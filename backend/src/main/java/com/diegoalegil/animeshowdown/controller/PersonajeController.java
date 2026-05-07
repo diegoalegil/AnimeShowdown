@@ -1,8 +1,11 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +23,19 @@ public class PersonajeController {
     }
 
     @GetMapping
-    public List<Personaje> listartodos(){
+    public List<Personaje> listarTodos(){
         return personajeRepository.findAll();
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Personaje> buscarPorId(@PathVariable Long id) {
+        Optional<Personaje> personaje = personajeRepository.findById(id);
+
+        if (personaje.isPresent()) {
+            return ResponseEntity.ok(personaje.get());
+        } else{
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
 }
