@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import org.springframework.web.bind.annotation.PutMapping;
-
 
 @RestController
 @RequestMapping("/api/personajes")
@@ -28,7 +28,10 @@ public class PersonajeController {
     }
 
     @GetMapping
-    public List<Personaje> listarTodos(){
+    public List<Personaje> listarTodos(@RequestParam(required = false) String anime) {
+        if (anime != null) {
+            return personajeRepository.findByAnime(anime);
+        }
         return personajeRepository.findAll();
     }
 
@@ -38,18 +41,18 @@ public class PersonajeController {
 
         if (personaje.isPresent()) {
             return ResponseEntity.ok(personaje.get());
-        } else{
+        } else {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PostMapping
-    public Personaje crear (@RequestBody Personaje personaje){
+    public Personaje crear(@RequestBody Personaje personaje) {
         return personajeRepository.save(personaje);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id){
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
 
         if (!personajeRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
@@ -59,7 +62,7 @@ public class PersonajeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Personaje> actualizar (@PathVariable Long id, @RequestBody Personaje datos){
+    public ResponseEntity<Personaje> actualizar(@PathVariable Long id, @RequestBody Personaje datos) {
         if (!personajeRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
@@ -67,5 +70,5 @@ public class PersonajeController {
         Personaje actualizado = personajeRepository.save(datos);
         return ResponseEntity.ok(actualizado);
     }
-    
+
 }
