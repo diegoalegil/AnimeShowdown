@@ -1,9 +1,20 @@
 package com.diegoalegil.animeshowdown.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.model.Voto;
 
 public interface VotoRepository extends JpaRepository<Voto, Long> {
 
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            FROM Voto v
+            GROUP BY v.personaje
+            ORDER BY COUNT(v) DESC
+            """)
+    List<RankingItem> obtenerRanking();
 }
