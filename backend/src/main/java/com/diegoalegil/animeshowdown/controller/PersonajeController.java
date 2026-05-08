@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
+
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
@@ -22,9 +25,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 public class PersonajeController {
 
     private final PersonajeRepository personajeRepository;
+    private final VotoRepository votoRepository;
 
-    public PersonajeController(PersonajeRepository personajeRepository) {
+    public PersonajeController(PersonajeRepository personajeRepository,
+            VotoRepository votoRepository) {
         this.personajeRepository = personajeRepository;
+        this.votoRepository = votoRepository;
     }
 
     @GetMapping
@@ -74,6 +80,20 @@ public class PersonajeController {
     @PostMapping("/batch")
     public List<Personaje> crearBatch(@RequestBody List<Personaje> personajes) {
         return personajeRepository.saveAll(personajes);
+    }
+
+    @PostMapping("/{id}/votar")
+    public ResponseEntity<Voto> votar(@PathVariable Long id) {
+        Optional<Personaje> personajeOpt = personajeRepository.findById(id);
+
+        if (personajeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Voto voto = new Voto(personajeOpt.get());
+        Voto guardado = votoRepository.save(voto);
+
+        return ResponseEntity.ok(guardado);
     }
 
 }
