@@ -71,4 +71,9 @@ public class PersonajeController {
         return ResponseEntity.ok(actualizado);
     }
 
+    @PostMapping("/batch")
+    public List<Personaje> crearBatch(@RequestBody List<Personaje> personajes) {
+        return personajeRepository.saveAll(personajes);
+    }
+
 }
