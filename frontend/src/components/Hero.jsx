@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import FloatingCards from './FloatingCards'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,6 +39,7 @@ function Hero() {
           'radial-gradient(ellipse at 50% 0%, var(--color-accent-soft), transparent 60%)',
       }}
     >
+      <FloatingCards />
       <motion.div
         className="relative z-10 flex max-w-3xl flex-col items-center gap-6 text-center"
         variants={containerVariants}
