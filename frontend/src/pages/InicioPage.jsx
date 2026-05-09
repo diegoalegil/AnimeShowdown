@@ -465,7 +465,7 @@ function Top5Row({ rank, slug, nombre, anime, elo }) {
 function SectionComoFunciona() {
   return (
     <motion.section
-      className="px-5 py-16 sm:px-8 sm:py-20"
+      className="bg-dots px-5 py-16 sm:px-8 sm:py-20"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
