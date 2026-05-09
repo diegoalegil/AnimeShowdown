@@ -108,3 +108,20 @@ export function getPersonajeBySlug(slug) {
 export function getIndicePersonaje(slug) {
   return personajes.findIndex((p) => p.slug === slug)
 }
+
+function hashSlug(slug) {
+  let h = 0
+  for (let i = 0; i < slug.length; i++) {
+    h = (h << 5) - h + slug.charCodeAt(i)
+    h |= 0
+  }
+  return Math.abs(h)
+}
+
+export function getStatsPersonaje(slug) {
+  const h = hashSlug(slug)
+  const elo = 1450 + (h % 800)
+  const wins = (h % 47) + 5
+  const losses = ((h * 7) % 30) + 3
+  return { elo, wins, losses }
+}
