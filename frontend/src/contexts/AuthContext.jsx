@@ -6,6 +6,17 @@ import { playMagic } from '../lib/sounds'
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
 
+function buildLocalUser(payload) {
+  if (!payload) return null
+  return {
+    id: payload.id,
+    username: payload.username,
+    email: payload.email,
+    avatarUrl: payload.avatarUrl,
+    rol: payload.rol || 'USER',
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -24,48 +35,55 @@ export function AuthProvider({ children }) {
     }
   }, [user])
 
-  const login = async (email, password) => {
+  const login = async (identificador, password) => {
     try {
-      const res = await endpoints.login({ email, password })
+      const res = await endpoints.login({
+        username: identificador,
+        password,
+      })
       if (res?.token) setToken(res.token)
-      const nombre = res?.usuario?.nombre || email.split('@')[0]
-      setUser({ email, nombre, ...(res?.usuario || {}) })
+      const u =
+        buildLocalUser(res?.usuario) || {
+          username: identificador,
+          email: identificador.includes('@') ? identificador : null,
+          rol: 'USER',
+        }
+      setUser(u)
       const muted = localStorage.getItem('animeshowdown.muted') === 'true'
       if (!muted) playMagic()
-      toast.success(`Bienvenido, ${nombre}`, {
-        description: 'Sesión iniciada correctamente.',
+      toast.success(`Bienvenido, ${u.username}`, {
+        description:
+          u.rol === 'ADMIN' ? 'Sesión ADMIN iniciada.' : 'Sesión iniciada.',
       })
     } catch (err) {
       if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
         toast.error('Credenciales inválidas', {
-          description: 'Revisa el email y contraseña.',
+          description: 'Revisa tu email/username y contraseña.',
         })
         throw err
       }
       // Fallback demo si el backend no responde
-      const nombre = email.split('@')[0]
-      setUser({ email, nombre })
-      toast.success(`Bienvenido, ${nombre}`, {
+      const fakeUser = {
+        username: identificador,
+        email: identificador.includes('@') ? identificador : null,
+        rol: 'USER',
+      }
+      setUser(fakeUser)
+      toast.success(`Bienvenido, ${fakeUser.username}`, {
         description: 'Modo demo (backend no disponible).',
       })
     }
   }
 
-  const register = async ({ email, password, nombre }) => {
+  const register = async ({ username, email, password }) => {
     try {
-      const res = await endpoints.register({ email, password, nombre })
-      if (res?.token) setToken(res.token)
-      const nombreFinal = res?.usuario?.nombre || nombre
-      setUser({ email, nombre: nombreFinal, ...(res?.usuario || {}) })
-      const muted = localStorage.getItem('animeshowdown.muted') === 'true'
-      if (!muted) playMagic()
-      toast.success(`Cuenta creada, ${nombreFinal}`, {
-        description: 'Bienvenido a AnimeShowdown.',
-      })
+      await endpoints.register({ username, email, password })
+      // Backend register no devuelve token; hacemos login automático
+      await login(username, password)
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        toast.error('Email ya registrado', {
-          description: 'Inicia sesión o usa otro email.',
+        toast.error('Usuario o email ya registrado', {
+          description: 'Prueba con otro username o entra desde Login.',
         })
         throw err
       }
@@ -76,11 +94,16 @@ export function AuthProvider({ children }) {
         throw err
       }
       // Fallback demo
-      setUser({ email, nombre })
-      toast.success(`Cuenta creada, ${nombre}`, {
+      const fakeUser = { username, email, rol: 'USER' }
+      setUser(fakeUser)
+      toast.success(`Cuenta creada, ${username}`, {
         description: 'Modo demo (backend no disponible).',
       })
     }
+  }
+
+  const updateUser = (partial) => {
+    setUser((prev) => (prev ? { ...prev, ...partial } : prev))
   }
 
   const logout = () => {
@@ -90,7 +113,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, login, register, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

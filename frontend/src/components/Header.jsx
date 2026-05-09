@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { LogOut, Palette, Volume2, VolumeX } from 'lucide-react'
+import { LogOut, Palette, Shield, Volume2, VolumeX } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useTheme } from '../contexts/ThemeContext'
+import Avatar from './Avatar'
 
 const navLinks = [
   { to: '/', label: 'Inicio' },
@@ -125,12 +126,23 @@ function Header() {
 }
 
 function UserBadge({ user, onLogout }) {
+  const isAdmin = user.rol === 'ADMIN'
   return (
-    <div className="ml-2 flex items-center gap-2.5 rounded-md bg-surface-alt px-2.5 py-1.5">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-[12px] font-bold text-white">
-        {user.nombre.charAt(0).toUpperCase()}
+    <div className="ml-2 flex items-center gap-2.5 rounded-md bg-surface-alt px-2 py-1.5">
+      <Avatar user={user} size={28} />
+      <span className="text-sm font-medium text-fg-strong">
+        {user.username}
       </span>
-      <span className="text-sm font-medium text-fg-strong">{user.nombre}</span>
+      {isAdmin && (
+        <Link
+          to="/admin"
+          aria-label="Panel admin"
+          className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent transition-colors hover:bg-accent/25"
+        >
+          <Shield className="h-3 w-3" />
+          Admin
+        </Link>
+      )}
       <button
         type="button"
         onClick={onLogout}
