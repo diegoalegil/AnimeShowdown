@@ -6,7 +6,6 @@ const cards = [
   { slug: 'mai_sakurajima', top: '5%', right: '4%', rotate: 7 },
   { slug: 'miku', top: '28%', left: '0%', rotate: -5 },
   { slug: 'shinobu', top: '28%', right: '1%', rotate: 6 },
-  { slug: 'power', top: '18%', right: '22%', rotate: 4 },
   { slug: 'makima', top: '56%', left: '1%', rotate: -7 },
   { slug: 'gojo', top: '56%', right: '2%', rotate: 5 },
   { slug: 'kuroneko', bottom: '5%', left: '6%', rotate: 7 },
