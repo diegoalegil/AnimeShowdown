@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { ArrowRight, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 
@@ -87,20 +88,20 @@ function Hero() {
           className="mt-2 flex flex-wrap justify-center gap-3"
           variants={itemVariants}
         >
-          <a
-            href="#"
+          <Link
+            to="/torneos"
             className="group inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all animate-pulse-halo hover:-translate-y-0.5 hover:bg-accent-hover"
           >
             Explora torneos
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/ranking"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-5 py-3 text-sm font-semibold text-fg-strong backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
           >
             <TrendingUp className="h-4 w-4" />
             Ver ranking
-          </a>
+          </Link>
         </motion.div>
       </motion.div>
     </section>
