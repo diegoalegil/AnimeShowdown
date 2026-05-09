@@ -39,7 +39,7 @@ function Header() {
 
   const handleCycleTheme = () => {
     const nuevoNombre = cycleTheme()
-    play('playWhoosh')
+    play('playLevelUp')
     toast(`Paleta: ${nuevoNombre}`, { duration: 1500 })
   }
 
