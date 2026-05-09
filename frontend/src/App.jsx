@@ -6,6 +6,7 @@ import PersonajesPage from './pages/PersonajesPage'
 import TorneosPage from './pages/TorneosPage'
 import RankingPage from './pages/RankingPage'
 import LoginPage from './pages/LoginPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/torneos" element={<TorneosPage />} />
           <Route path="/ranking" element={<RankingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       <Footer />

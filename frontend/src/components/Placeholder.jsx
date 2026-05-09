@@ -1,4 +1,6 @@
-function Placeholder({ titulo, descripcion, eyebrow = 'Próximamente' }) {
+import { Link } from 'react-router-dom'
+
+function Placeholder({ titulo, descripcion, eyebrow = 'Próximamente', cta }) {
   return (
     <section className="flex flex-1 items-center justify-center px-5 py-20 sm:px-8 sm:py-24">
       <div className="flex max-w-2xl flex-col items-center gap-4 text-center">
@@ -11,6 +13,14 @@ function Placeholder({ titulo, descripcion, eyebrow = 'Próximamente' }) {
         <p className="text-base leading-relaxed text-fg-muted">
           {descripcion}
         </p>
+        {cta && (
+          <Link
+            to={cta.to}
+            className="mt-2 inline-flex items-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+          >
+            {cta.label}
+          </Link>
+        )}
       </div>
     </section>
   )
