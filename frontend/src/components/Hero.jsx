@@ -1,13 +1,21 @@
 function Hero() {
   return (
     <section
-      className="relative flex flex-1 items-center justify-center overflow-hidden px-5 py-20 sm:px-8 sm:py-24"
+      className="relative flex flex-1 items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20"
       style={{
         backgroundImage:
           'radial-gradient(ellipse at 50% 0%, var(--color-accent-soft), transparent 60%)',
       }}
     >
       <div className="flex max-w-3xl flex-col items-center gap-6 text-center">
+        <img
+          src="/logo.webp"
+          alt=""
+          width={240}
+          height={240}
+          className="h-44 w-44 object-contain sm:h-56 sm:w-56"
+          style={{ filter: 'drop-shadow(0 0 50px rgb(255 46 99 / 0.4))' }}
+        />
         <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
           Beta · 96 personajes
         </span>
