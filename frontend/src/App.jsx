@@ -8,6 +8,7 @@ import CommandPalette from './components/CommandPalette'
 import InicioPage from './pages/InicioPage'
 import PersonajesPage from './pages/PersonajesPage'
 import PersonajeDetailPage from './pages/PersonajeDetailPage'
+import AnimesPage from './pages/AnimesPage'
 import TorneosPage from './pages/TorneosPage'
 import TorneoDetailPage from './pages/TorneoDetailPage'
 import RankingPage from './pages/RankingPage'
@@ -48,6 +49,7 @@ function App() {
               <Route path="/" element={<InicioPage />} />
               <Route path="/personajes" element={<PersonajesPage />} />
               <Route path="/personajes/:slug" element={<PersonajeDetailPage />} />
+              <Route path="/animes" element={<AnimesPage />} />
               <Route path="/torneos" element={<TorneosPage />} />
               <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
               <Route path="/ranking" element={<RankingPage />} />

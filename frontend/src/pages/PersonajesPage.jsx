@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { LayoutGrid, List, Search, X } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import PersonajeCard from '../components/PersonajeCard'
 import {
   personajes,
@@ -36,10 +36,20 @@ const sortLabels = {
 
 function PersonajesPage() {
   useDocumentTitle('Personajes')
+  const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
-  const [animeFilter, setAnimeFilter] = useState(null)
+  const [animeFilter, setAnimeFilter] = useState(
+    () => searchParams.get('anime') || null,
+  )
   const [sort, setSort] = useState('default')
   const [view, setView] = useState('grid')
+
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams)
+    if (animeFilter) next.set('anime', animeFilter)
+    else next.delete('anime')
+    setSearchParams(next, { replace: true })
+  }, [animeFilter, searchParams, setSearchParams])
 
   const filtered = useMemo(() => {
     let list = personajes
