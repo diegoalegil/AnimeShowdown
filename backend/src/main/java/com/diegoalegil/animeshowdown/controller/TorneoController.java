@@ -24,6 +24,7 @@ import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 @RestController
 @RequestMapping("/api/torneos")
@@ -32,13 +33,16 @@ public class TorneoController {
     private final TorneoRepository torneoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final PersonajeRepository personajeRepository;
+    private final VotoRepository votoRepository;
 
     public TorneoController(TorneoRepository torneoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
-            PersonajeRepository personajeRepository) {
+            PersonajeRepository personajeRepository,
+            VotoRepository votoRepository) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
+        this.votoRepository = votoRepository;
     }
 
     @GetMapping
@@ -105,5 +109,40 @@ public class TorneoController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(creados);
+    }
+
+    @PutMapping("/{id}/finalizar")
+    public ResponseEntity<?> finalizar(@PathVariable Long id) {
+        Optional<Torneo> torneoOpt = torneoRepository.findById(id);
+
+        if (torneoOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Torneo torneo = torneoOpt.get();
+
+        if (torneo.getEstado() != EstadoTorneo.ACTIVO) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Solo se pueden finalizar torneos en estado ACTIVO");
+        }
+
+        List<Enfrentamiento> enfrentamientos = enfrentamientoRepository.findByTorneo(torneo);
+        for (Enfrentamiento enf : enfrentamientos) {
+            long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, enf.getPersonaje1());
+            long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, enf.getPersonaje2());
+
+            if (votosP1 > votosP2) {
+                enf.setGanador(enf.getPersonaje1());
+            } else if (votosP2 > votosP1) {
+                enf.setGanador(enf.getPersonaje2());
+            }
+            enfrentamientoRepository.save(enf);
+        }
+
+        torneo.setEstado(EstadoTorneo.FINALIZADO);
+        torneo.setFechaFinalizacion(LocalDateTime.now());
+        Torneo guardado = torneoRepository.save(torneo);
+
+        return ResponseEntity.ok(guardado);
     }
 }

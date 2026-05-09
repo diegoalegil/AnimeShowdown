@@ -24,4 +24,6 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     boolean existsByPersonajeAndUsuario(Personaje personaje, Usuario usuario);
 
     boolean existsByEnfrentamientoAndUsuario(Enfrentamiento enfrentamiento, Usuario usuario);
+
+    long countByEnfrentamientoAndPersonaje(Enfrentamiento enfrentamiento, Personaje personaje);
 }
