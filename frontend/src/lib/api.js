@@ -72,12 +72,18 @@ export const api = {
 
 export const endpoints = {
   login: (credentials) => api.post('/api/auth/login', credentials, { auth: false }),
-  register: (data) => api.post('/api/auth/register', data, { auth: false }),
+  register: (data) => api.post('/api/auth/registro', data, { auth: false }),
+  me: () => api.get('/api/auth/me'),
+  updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   personajes: () => api.get('/api/personajes'),
   personaje: (id) => api.get(`/api/personajes/${id}`),
+  createPersonaje: (data) => api.post('/api/personajes', data),
+  deletePersonaje: (id) => api.del(`/api/personajes/${id}`),
   torneos: () => api.get('/api/torneos'),
   torneo: (id) => api.get(`/api/torneos/${id}`),
-  ranking: () => api.get('/api/ranking'),
+  createTorneo: (data) => api.post('/api/torneos', data),
+  deleteTorneo: (id) => api.del(`/api/torneos/${id}`),
+  ranking: () => api.get('/api/votos/ranking'),
   votar: (enfrentamientoId, personajeId) =>
     api.post(`/api/enfrentamientos/${enfrentamientoId}/votar`, { personajeId }),
 }

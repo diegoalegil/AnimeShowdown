@@ -129,10 +129,16 @@ function UserBadge({ user, onLogout }) {
   const isAdmin = user.rol === 'ADMIN'
   return (
     <div className="ml-2 flex items-center gap-2.5 rounded-md bg-surface-alt px-2 py-1.5">
-      <Avatar user={user} size={28} />
-      <span className="text-sm font-medium text-fg-strong">
-        {user.username}
-      </span>
+      <Link
+        to="/perfil"
+        aria-label="Mi perfil"
+        className="flex items-center gap-2.5"
+      >
+        <Avatar user={user} size={28} />
+        <span className="text-sm font-medium text-fg-strong hover:text-accent">
+          {user.username}
+        </span>
+      </Link>
       {isAdmin && (
         <Link
           to="/admin"
