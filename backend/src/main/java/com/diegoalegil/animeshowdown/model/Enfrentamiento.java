@@ -37,4 +37,62 @@ public class Enfrentamiento {
 
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
+
+    public Enfrentamiento() {
+    }
+
+    public Enfrentamiento(Torneo torneo, Personaje personaje1, Personaje personaje2) {
+        this.torneo = torneo;
+        this.personaje1 = personaje1;
+        this.personaje2 = personaje2;
+        this.fechaCreacion = LocalDateTime.now();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Torneo getTorneo() {
+        return torneo;
+    }
+
+    public void setTorneo(Torneo torneo) {
+        this.torneo = torneo;
+    }
+
+    public Personaje getPersonaje1() {
+        return personaje1;
+    }
+
+    public void setPersonaje1(Personaje personaje1) {
+        this.personaje1 = personaje1;
+    }
+
+    public Personaje getPersonaje2() {
+        return personaje2;
+    }
+
+    public void setPersonaje2(Personaje personaje2) {
+        this.personaje2 = personaje2;
+    }
+
+    public Personaje getGanador() {
+        return ganador;
+    }
+
+    public void setGanador(Personaje ganador) {
+        this.ganador = ganador;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
 }
