@@ -5,9 +5,9 @@
   --color-surface: #16161e;
   --color-surface-alt: #1c1c26;
   --color-border: #2a2a36;
-  --color-text: #c4c4d4;
-  --color-text-strong: #f5f5fa;
-  --color-text-muted: #8a8a9a;
+  --color-fg: #c4c4d4;
+  --color-fg-strong: #f5f5fa;
+  --color-fg-muted: #8a8a9a;
   --color-accent: #ff2e63;
   --color-accent-hover: #ff5483;
   --color-accent-soft: rgb(255 46 99 / 0.12);
@@ -25,7 +25,7 @@
     margin: 0;
     min-height: 100vh;
     background-color: var(--color-bg);
-    color: var(--color-text);
+    color: var(--color-fg);
     color-scheme: dark;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -40,7 +40,7 @@
   h1,
   h2,
   h3 {
-    color: var(--color-text-strong);
+    color: var(--color-fg-strong);
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.15;
