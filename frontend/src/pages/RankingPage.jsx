@@ -69,7 +69,12 @@ function RankRow({ rank, slug, nombre, anime, elo, wins, losses }) {
   const isTop3 = rank <= 3
 
   return (
-    <li>
+    <motion.li
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
       <Link
         to={`/personajes/${slug}`}
         className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
@@ -112,7 +117,7 @@ function RankRow({ rank, slug, nombre, anime, elo, wins, losses }) {
           </p>
         </div>
       </Link>
-    </li>
+    </motion.li>
   )
 }
 

@@ -37,6 +37,10 @@ function PersonajeCard({ slug, nombre, anime }) {
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         style={{
           rotateX,
           rotateY,
