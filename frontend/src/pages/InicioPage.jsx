@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -68,11 +69,129 @@ function InicioPage() {
       <Hero />
       <NombresMarquee />
       <SectionStats />
+      <SectionLiveBattle />
       <SectionTorneosActivos />
       <SectionTop5Ranking />
       <SectionBento />
       <SectionComoFunciona />
     </>
+  )
+}
+
+function getRandomPair() {
+  const a = Math.floor(Math.random() * personajes.length)
+  let b = Math.floor(Math.random() * personajes.length)
+  while (b === a) b = Math.floor(Math.random() * personajes.length)
+  return [personajes[a], personajes[b]]
+}
+
+function SectionLiveBattle() {
+  const [pair, setPair] = useState(getRandomPair)
+
+  useEffect(() => {
+    const id = setInterval(() => setPair(getRandomPair()), 5000)
+    return () => clearInterval(id)
+  }, [])
+
+  const [a, b] = pair
+  const eloA = getStatsPersonaje(a.slug).elo
+  const eloB = getStatsPersonaje(b.slug).elo
+  const total = eloA + eloB
+  const pctA = Math.round((eloA / total) * 100)
+  const pctB = 100 - pctA
+
+  return (
+    <motion.section
+      className="relative overflow-hidden bg-surface/40 px-5 py-16 sm:px-8 sm:py-20"
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+    >
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+              <span className="relative inline-flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              En vivo
+            </span>
+            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
+              Enfrentamiento ahora
+            </h2>
+          </div>
+          <Link
+            to="/votar"
+            className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent sm:inline-flex"
+          >
+            Vota tú
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+          <AnimatePresence mode="popLayout">
+            <BattleSlot
+              key={`a-${a.slug}`}
+              personaje={a}
+              pct={pctA}
+              side="left"
+            />
+          </AnimatePresence>
+          <span className="flex h-12 w-12 items-center justify-center justify-self-center rounded-full border border-accent/40 bg-accent-soft text-accent">
+            <Swords className="h-5 w-5" />
+          </span>
+          <AnimatePresence mode="popLayout">
+            <BattleSlot
+              key={`b-${b.slug}`}
+              personaje={b}
+              pct={pctB}
+              side="right"
+            />
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.section>
+  )
+}
+
+function BattleSlot({ personaje, pct, side }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: side === 'left' ? -30 : 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: side === 'left' ? 30 : -30 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className="flex flex-col gap-2 overflow-hidden rounded-xl border border-border bg-surface"
+    >
+      <img
+        src={imagenPersonaje(personaje.slug)}
+        alt={personaje.nombre}
+        className="aspect-[4/5] w-full object-cover object-top"
+      />
+      <div className="flex flex-col gap-2 p-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-fg-strong">
+            {personaje.nombre}
+          </p>
+          <p className="truncate text-[11px] text-fg-muted">{personaje.anime}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-alt">
+            <motion.div
+              className="h-full bg-accent"
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}
+            />
+          </div>
+          <span className="font-mono text-[11px] font-bold text-accent">
+            {pct}%
+          </span>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
