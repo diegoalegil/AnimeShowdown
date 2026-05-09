@@ -118,6 +118,12 @@ function LoginPage() {
           >
             {isSubmitting ? 'Entrando…' : 'Entrar'}
           </button>
+          <Link
+            to="/forgot-password"
+            className="self-end text-[12px] font-medium text-fg-muted transition-colors hover:text-accent"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
         </form>
         <p className="mt-4 text-center text-[13px] text-fg-muted">
           ¿No tienes cuenta?{' '}

@@ -80,6 +80,10 @@ export const api = {
 export const endpoints = {
   login: (credentials) => api.post('/api/auth/login', credentials, { auth: false }),
   register: (data) => api.post('/api/auth/registro', data, { auth: false }),
+  forgotPassword: (email) =>
+    api.post('/api/auth/forgot-password', { email }, { auth: false }),
+  resetPassword: (data) =>
+    api.post('/api/auth/reset-password', data, { auth: false }),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   personajes: () => api.get('/api/personajes'),
