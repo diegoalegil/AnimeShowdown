@@ -30,7 +30,7 @@ function RegisterPage() {
   const onSubmit = async (data) => {
     try {
       await registerUser({
-        nombre: data.nombre,
+        username: data.username,
         email: data.email,
         password: data.password,
       })
@@ -56,7 +56,7 @@ function RegisterPage() {
           </span>
           <h1 className="text-3xl tracking-tight">Únete a AnimeShowdown</h1>
           <p className="text-fg-muted">
-            Crea torneos, vota enfrentamientos y sigue tu historial. Modo demo: cualquier dato sirve mientras no haya backend conectado.
+            Crea torneos, vota enfrentamientos y sigue tu historial. Tu username será visible cuando votes.
           </p>
         </div>
         <form
@@ -65,27 +65,33 @@ function RegisterPage() {
         >
           <div className="flex flex-col gap-1.5">
             <label
-              htmlFor="nombre"
+              htmlFor="username"
               className="text-[13px] font-medium text-fg-strong"
             >
-              Nombre
+              Username
             </label>
             <input
-              id="nombre"
+              id="username"
               type="text"
               autoComplete="username"
-              {...register('nombre', {
-                required: 'Introduce tu nombre',
-                minLength: { value: 2, message: 'Mínimo 2 caracteres' },
-                maxLength: { value: 32, message: 'Máximo 32 caracteres' },
+              {...register('username', {
+                required: 'Elige un username',
+                minLength: { value: 3, message: 'Mínimo 3 caracteres' },
+                maxLength: { value: 30, message: 'Máximo 30 caracteres' },
+                pattern: {
+                  value: /^[A-Za-z0-9._-]+$/,
+                  message: 'Solo letras, números, puntos, guiones y barra baja',
+                },
               })}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.nombre ? 'border-red-500' : 'border-border'
+                errors.username ? 'border-red-500' : 'border-border'
               }`}
-              placeholder="Diego"
+              placeholder="diegoalegil"
             />
-            {errors.nombre && (
-              <p className="text-[12px] text-red-400">{errors.nombre.message}</p>
+            {errors.username && (
+              <p className="text-[12px] text-red-400">
+                {errors.username.message}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">

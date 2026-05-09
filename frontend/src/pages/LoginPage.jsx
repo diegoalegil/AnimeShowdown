@@ -26,7 +26,7 @@ function LoginPage() {
 
   const onSubmit = async (data) => {
     try {
-      await login(data.email, data.password)
+      await login(data.identificador, data.password)
       navigate('/')
     } catch {
       setError('root', {
@@ -49,7 +49,7 @@ function LoginPage() {
           </span>
           <h1 className="text-3xl tracking-tight">Inicia sesión</h1>
           <p className="text-fg-muted">
-            Crea torneos, vota enfrentamientos y guarda tu historial. Modo demo: cualquier email/password sirve mientras no haya backend conectado.
+            Crea torneos, vota enfrentamientos y sigue tu historial. Puedes entrar con tu username o tu email.
           </p>
         </div>
         <form
@@ -58,29 +58,28 @@ function LoginPage() {
         >
           <div className="flex flex-col gap-1.5">
             <label
-              htmlFor="email"
+              htmlFor="identificador"
               className="text-[13px] font-medium text-fg-strong"
             >
-              Email
+              Username o email
             </label>
             <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...register('email', {
-                required: 'Introduce tu email',
-                pattern: {
-                  value: /^\S+@\S+\.\S+$/,
-                  message: 'El email no es válido',
-                },
+              id="identificador"
+              type="text"
+              autoComplete="username"
+              {...register('identificador', {
+                required: 'Introduce tu username o email',
+                minLength: { value: 3, message: 'Mínimo 3 caracteres' },
               })}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.email ? 'border-red-500' : 'border-border'
+                errors.identificador ? 'border-red-500' : 'border-border'
               }`}
-              placeholder="diego@ejemplo.com"
+              placeholder="diego  ·  diego@ejemplo.com"
             />
-            {errors.email && (
-              <p className="text-[12px] text-red-400">{errors.email.message}</p>
+            {errors.identificador && (
+              <p className="text-[12px] text-red-400">
+                {errors.identificador.message}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
