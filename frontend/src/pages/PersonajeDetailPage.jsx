@@ -8,6 +8,7 @@ import {
   getStatsPersonaje,
 } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import PersonajeCard from '../components/PersonajeCard'
 import NotFoundPage from './NotFoundPage'
 
 const containerVariants = {
@@ -40,6 +41,9 @@ function PersonajeDetailPage() {
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
   const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
   const next = personajes[(idx + 1) % personajes.length]
+  const relacionados = personajes
+    .filter((p) => p.anime === personaje.anime && p.slug !== slug)
+    .slice(0, 6)
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -128,6 +132,26 @@ function PersonajeDetailPage() {
             </motion.div>
           </motion.div>
         </motion.div>
+
+        {relacionados.length > 0 && (
+          <div className="mt-16">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                  Mismo universo
+                </span>
+                <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
+                  Más de {personaje.anime}
+                </h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+              {relacionados.map((p) => (
+                <PersonajeCard key={p.slug} {...p} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )
