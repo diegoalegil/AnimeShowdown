@@ -22,14 +22,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.diegoalegil.animeshowdown.dto.ForgotPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.LoginRequest;
 import com.diegoalegil.animeshowdown.dto.RegistroRequest;
+import com.diegoalegil.animeshowdown.dto.ResetPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.TokenRespuesta;
 import com.diegoalegil.animeshowdown.dto.UsuarioRespuesta;
 import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
+import com.diegoalegil.animeshowdown.service.PasswordResetService;
 
 import jakarta.validation.Valid;
 
@@ -42,16 +45,19 @@ public class AuthController {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final PasswordResetService passwordResetService;
     private final Set<String> adminEmails;
 
     public AuthController(
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
             JwtUtil jwtUtil,
+            PasswordResetService passwordResetService,
             @Value("${admin.emails:diegogildam@gmail.com}") String adminEmailsCsv) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.passwordResetService = passwordResetService;
         this.adminEmails = Arrays.stream(adminEmailsCsv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -156,5 +162,27 @@ public class AuthController {
         usuarioRepository.save(u);
         log.info("Avatar actualizado: username={}", u.getUsername());
         return ResponseEntity.ok(new UsuarioRespuesta(u));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.solicitarReset(request.getEmail());
+        return ResponseEntity.ok(Map.of(
+                "message",
+                "Si el email existe, te hemos enviado un código de 6 dígitos."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.resetearPassword(
+                    request.getEmail(),
+                    request.getCodigo(),
+                    request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Contraseña actualizada"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 }
