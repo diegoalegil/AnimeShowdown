@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Trophy } from 'lucide-react'
 import {
   personajes,
   imagenPersonaje,
@@ -75,12 +76,16 @@ function RankRow({ rank, slug, nombre, anime, elo, wins, losses }) {
       >
         <span
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-mono text-sm font-bold ${
-            isTop3
-              ? 'bg-accent text-white'
-              : 'bg-surface-alt text-fg-muted'
+            rank === 1
+              ? 'bg-yellow-500/15 text-yellow-400'
+              : rank === 2
+                ? 'bg-zinc-400/15 text-zinc-300'
+                : rank === 3
+                  ? 'bg-orange-500/15 text-orange-400'
+                  : 'bg-surface-alt text-fg-muted'
           }`}
         >
-          {rank}
+          {rank === 1 ? <Trophy className="h-5 w-5" /> : rank}
         </span>
         <img
           src={imagenPersonaje(slug)}
