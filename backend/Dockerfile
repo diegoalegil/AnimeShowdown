@@ -23,4 +23,5 @@ COPY --from=builder /app/target/animeshowdown-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # -Xmx400m mantiene la JVM dentro de los 512MB del plan Free
-ENTRYPOINT ["sh", "-c", "java -Xmx400m -XX:+UseContainerSupport -jar app.jar"]
+# -XX:TieredStopAtLevel=1 acelera el arranque sacrificando algo de optimización JIT (OK para Free tier con 0.1 CPU)
+ENTRYPOINT ["sh", "-c", "java -Xmx400m -XX:+UseContainerSupport -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true -jar app.jar"]
