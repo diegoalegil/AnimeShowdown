@@ -1,90 +1,169 @@
 # AnimeShowdown
 
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-v4-38BDF8?logo=tailwindcss&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer%20Motion-12-FF0080?logo=framer&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-21-007396?logo=java&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.14-6DB33F?logo=springboot&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-Auth0%20java--jwt-000000?logo=jsonwebtokens&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-API REST de torneos y ranking de popularidad de personajes anime, con autenticación JWT, integración con la Jikan API (MyAnimeList) y persistencia en PostgreSQL.
+App full-stack de torneos y rankings ELO de personajes anime. Frontend React premium con aurora hero, carruseles tipo Crunchyroll, búsqueda + filtros, command palette tipo Linear, sonidos anime sintetizados con Web Audio API, bracket visual y auth real con JWT. Backend Spring Boot + PostgreSQL en Railway/Neon, frontend en Cloudflare Pages.
 
-> **Estado:** backend completo y desplegado. Frontend premium (React + Tailwind + Framer Motion) previsto para julio-agosto.
-
----
-
-## Stack
-
-- **Java 21** + **Spring Boot 3.5.14** (Web + Data JPA + Security + Validation + Actuator)
-- **PostgreSQL 17** (Neon en producción, local en desarrollo)
-- **JWT** con `com.auth0:java-jwt 4.4.0` y BCrypt para hashing de passwords
-- **springdoc-openapi 2.8.5** (Swagger UI)
-- **JUnit 5 + MockMvc + H2 in-memory** para tests
-- **Jikan API v4** para importar personajes desde MyAnimeList
-- **Maven Wrapper** + **Docker** multi-stage para deploy
-- Hosting: **Railway** (backend) + **Neon Free** (Postgres)
+> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD seedeada con 96 personajes
 
 ---
 
 ## Live
 
-- **API base:** https://animeshowdown-production-a9f4.up.railway.app
-- **Swagger UI:** https://animeshowdown-production-a9f4.up.railway.app/swagger-ui/index.html
-- **OpenAPI JSON:** https://animeshowdown-production-a9f4.up.railway.app/v3/api-docs
-- **Health check:** https://animeshowdown-production-a9f4.up.railway.app/actuator/health
+| Pieza | URL |
+|---|---|
+| **🌐 Frontend** | https://animeshowdown.pages.dev |
+| **🔌 API** | https://animeshowdown-production-a9f4.up.railway.app |
+| **📚 Swagger UI** | https://animeshowdown-production-a9f4.up.railway.app/swagger-ui/index.html |
+| **❤️ Health** | https://animeshowdown-production-a9f4.up.railway.app/actuator/health |
 
-> Hosting: backend en **Railway Hobby** (24/7 sin sleep), Postgres en **Neon Free** (Frankfurt).
+> Hosting: **Cloudflare Pages** (frontend, free tier) + **Railway Hobby** (backend, sin sleep) + **Neon Free** (Postgres en Frankfurt).
+
+---
+
+## Stack
+
+### Frontend (`frontend/`)
+
+- **React 19** + **Vite 8** (HMR + Rolldown bundler)
+- **Tailwind CSS v4** vía `@tailwindcss/vite` con tokens nativos en `@theme` (paleta dark anime: `#0d0d12` bg + `#ff2e63` accent magenta)
+- **Framer Motion 12** para animaciones, parallax mouse-tracked, AnimatePresence en transiciones de ruta
+- **React Router 7** (BrowserRouter + 11 rutas + URL search params para filtros)
+- **react-hook-form 7** para validación de formularios (Login + Register)
+- **Lucide React** + SVG inline para iconografía
+- **Sonner** para toast notifications
+- **cmdk** (Vercel) para command palette `Cmd+K`
+- **Web Audio API** sintetiza sonidos anime sin assets (5 efectos: click/hover/vote/whoosh/magic/impact/level-up)
+- **Geist** + **Geist Mono** vía Google Fonts
+
+### Backend (`backend/`)
+
+- **Java 21** + **Spring Boot 3.5.14** (Web + Data JPA + Security + Validation + Actuator)
+- **PostgreSQL 17** (Neon en producción, local en dev)
+- **JWT** con `com.auth0:java-jwt 4.4.0` y BCrypt para hashing
+- **springdoc-openapi 2.8.5** (Swagger UI)
+- **DataSeeder** que popula los 96 personajes en arranque si la BBDD está vacía
+- **JUnit 5** + **MockMvc** + **H2** in-memory para tests
+- **Maven Wrapper** + **Docker** multi-stage para deploy
+
+### Tooling
+
+- **Git** monorepo (`backend/` + `frontend/`)
+- **GitHub** con auto-deploy a Cloudflare Pages (main → producción)
+- **Postman** colección con 17 endpoints (`docs/postman/`)
 
 ---
 
 ## Capturas
 
-**Swagger UI — vista general (13 paths documentados)**
+> Capturas frescas tras el deploy. Más en `docs/screenshots/`.
+
+**Hero animado con aurora multilayer + 8 cards flotantes con parallax**
+
+![Hero landing](docs/screenshots/hero.png)
+
+**Galería de los 96 personajes con búsqueda, filtros por anime y view toggle**
+
+![Galería personajes](docs/screenshots/personajes.png)
+
+**Detalle de torneo con bracket visual SVG**
+
+![Bracket torneo](docs/screenshots/bracket.png)
+
+**Cmd+K command palette estilo Linear**
+
+![Command palette](docs/screenshots/command-palette.png)
+
+**Top 10 ELO con números gigantes outline magenta (Crunchyroll style)**
+
+![Top 10 ranking](docs/screenshots/top10.png)
+
+**Swagger UI del backend (13 paths)**
 
 ![Swagger UI overview](docs/screenshots/swagger-overview.png)
 
-**Swagger UI — detalle del endpoint POST /api/auth/login**
+---
 
-![POST /api/auth/login expandido](docs/screenshots/swagger-login-detail.png)
+## Features destacadas del frontend
+
+- 🎨 **Aurora multilayer** en Hero: 3 blobs animados (magenta + purple + cyan) con CSS keyframes desfasados
+- 🎴 **8 cards flotantes** alrededor del logo con parallax mouse-tracked (3 niveles de profundidad)
+- 🌀 **3D tilt + spotlight** en cada card del catálogo (mouse-tracked + spring smoothing)
+- 🎠 **Carruseles horizontales por anime** estilo Netflix/Crunchyroll (snap-x scroll-smooth)
+- 🏆 **Top 10 ELO** con números gigantes outline magenta solapando las cards (Crunchyroll vibe)
+- ⚔️ **Live Battle widget** auto-cyclando matchups cada 5s con AnimatePresence
+- 📜 **Marquee infinita** con los 96 nombres y fade en bordes
+- 🔢 **Stats counter rolling** (96 / 7 / 32 / max ELO) con easeOutCubic en viewport
+- 🎁 **Bento grid** asimétrico con 4 features (Brackets, ELO, Cuenta, Comunidad)
+- 🌳 **Bracket SVG** que computa rounds y resuelve por mayor ELO, ganador con border accent y glow
+- ⌘ **Command palette** (`Cmd+K`) con cmdk: navega a páginas, personajes y torneos con búsqueda fuzzy
+- 🔍 **Búsqueda + filtros + sort + grid/list toggle** en `/personajes` (estilo MyAnimeList)
+- 🌐 **Filter persistente vía URL** (`/personajes?anime=Naruto`)
+- 🎭 **404 con personaje random** y número outline magenta detrás
+- 🎵 **Sonidos anime sintetizados** vía Web Audio API: click, vote (acorde mayor + sparkle), whoosh, magic, impact, level-up. Toggle de mute en Header
+- 🍞 **Toast notifications** (Sonner) en login/logout/voto
+- 📊 **Progress bar** del scroll arriba con glow magenta
+- 🪟 **Sticky Header frosted-glass** con backdrop-blur al scroll
+- 🌑 **Texto shimmer animado** en H1 del Hero
+- 🎯 **CTA pulse halo** en botón primario del Hero
+- 📱 **Responsive** con prefers-reduced-motion respetado
+- 🔐 **Auth real con JWT** (con fallback a modo demo si el backend no responde)
 
 ---
 
 ## Setup local
 
-### Requisitos
-
-- Java 21
-- PostgreSQL 17 corriendo en `localhost:5432`
-- Una BD `animeshowdown_db` y un user `animeshowdown_user`:
-
-```sql
-CREATE DATABASE animeshowdown_db;
-CREATE USER animeshowdown_user WITH PASSWORD 'animeshowdown_dev_2026';
-GRANT ALL PRIVILEGES ON DATABASE animeshowdown_db TO animeshowdown_user;
-```
-
-### Arranque
+### Backend
 
 ```bash
+# Requisitos: Java 21, PostgreSQL 17 en localhost:5432
+psql -U postgres -c "CREATE DATABASE animeshowdown_db;"
+psql -U postgres -c "CREATE USER animeshowdown_user WITH PASSWORD 'animeshowdown_dev_2026';"
+psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE animeshowdown_db TO animeshowdown_user;"
+
 cd backend
 ./mvnw spring-boot:run
+# Spring levanta en http://localhost:8080
+# DataSeeder pobla los 96 personajes en el primer arranque
 ```
 
-Spring levanta en `http://localhost:8080`. Hibernate (`ddl-auto=update`) crea/actualiza el esquema automáticamente.
+### Frontend
+
+```bash
+# Requisitos: Node 22 LTS (vía nvm)
+cd frontend
+nvm use 22  # o nvm install 22 si no lo tienes
+npm install
+npm run dev
+# Vite levanta en http://localhost:5173
+```
+
+Por defecto el frontend apunta al backend de Railway. Si quieres apuntarlo a tu backend local, crea `frontend/.env.local`:
+
+```
+VITE_API_URL=http://localhost:8080
+```
 
 ### Tests
 
 ```bash
-cd backend
-./mvnw test
+# Backend (JUnit + MockMvc + H2)
+cd backend && ./mvnw test
 ```
-
-Cubre `AuthController` (registro, duplicado, validación, login OK/KO) con MockMvc + H2 in-memory.
 
 ---
 
 ## Variables de entorno
 
-Todas las credenciales y rutas críticas se externalizan vía variables de entorno con defaults seguros para dev. Copia `backend/.env.example` a `backend/.env` y rellena.
+### Backend (`backend/.env`)
 
 | Variable | Default (dev) | Notas |
 |---|---|---|
@@ -95,7 +174,13 @@ Todas las credenciales y rutas críticas se externalizan vía variables de entor
 | `JWT_EXPIRATION` | `3600000` | ms (1 h) |
 | `JPA_DDL` | `update` | `validate` o `none` en prod |
 | `SHOW_SQL` | `true` | `false` en prod |
-| `PORT` | `8080` | Render/Koyeb/Heroku lo inyectan |
+| `PORT` | `8080` | Railway lo inyecta |
+
+### Frontend (`frontend/.env.local`)
+
+| Variable | Default | Notas |
+|---|---|---|
+| `VITE_API_URL` | URL pública de Railway | Apunta a tu backend local en dev si lo prefieres |
 
 ---
 
@@ -121,6 +206,7 @@ erDiagram
     }
     PERSONAJES {
         bigint id PK
+        string slug UK "para url + frontend img"
         string nombre
         string anime
         string descripcion
@@ -153,161 +239,143 @@ erDiagram
 ```
 
 **Constraints clave:**
+- `UNIQUE (slug)` en `personajes` → cada personaje tiene un slug único que casa 1:1 con su WebP en el frontend
 - `UNIQUE (personaje_id, usuario_id)` en `votos` → 1 voto por usuario por personaje
 - `UNIQUE (enfrentamiento_id, usuario_id)` en `votos` → 1 voto por usuario por enfrentamiento
 
 ---
 
-## Flujo de autenticación
-
-```mermaid
-sequenceDiagram
-    participant C as Cliente
-    participant API as Spring Boot
-    participant DB as PostgreSQL
-
-    C->>API: POST /api/auth/registro {username, password, email}
-    API->>API: BCrypt.encode(password)
-    API->>DB: INSERT usuario
-    API-->>C: 201 + UsuarioRespuesta (sin password)
-
-    C->>API: POST /api/auth/login {username, password}
-    API->>DB: SELECT usuario por username
-    API->>API: BCrypt.matches(password, hash)
-    API->>API: jwt.generarToken(usuario)
-    API-->>C: 200 + {token: "eyJ..."}
-
-    C->>API: POST /api/personajes/4/votar (Authorization: Bearer eyJ...)
-    API->>API: JwtAuthFilter valida token
-    API->>DB: SELECT usuario por username del token
-    API->>API: SecurityContext.setAuthentication(usuario)
-    API->>DB: INSERT voto (personaje_id=4, usuario_id=X)
-    API-->>C: 200 + Voto
-```
-
----
-
 ## Endpoints
 
-### Públicos (sin auth)
+### Públicos
 
 | Método | Path | Qué hace |
 |---|---|---|
-| POST | `/api/auth/registro` | Crea usuario nuevo (BCrypt). 409 si username duplicado. 400 si validación falla. |
+| POST | `/api/auth/registro` | Crea usuario nuevo (BCrypt). 409 si username duplicado. |
 | POST | `/api/auth/login` | Devuelve `{token: "..."}`. 401 en credenciales inválidas. |
 | GET | `/api/personajes` | Lista todos. `?anime=Naruto` filtra. |
 | GET | `/api/personajes/{id}` | Por id. 404 si no existe. |
-| GET | `/api/votos/ranking` | Ranking agregado por COUNT de votos (JPQL). |
+| GET | `/api/votos/ranking` | Ranking agregado por COUNT (JPQL). |
 | GET | `/api/torneos` | Lista todos los torneos. |
-| GET | `/actuator/health` | Healthcheck (UP/DOWN). |
-| GET | `/v3/api-docs` | OpenAPI JSON. |
+| GET | `/actuator/health` | Healthcheck. |
 | GET | `/swagger-ui/index.html` | Swagger UI. |
 
-### Protegidos (requieren JWT)
-
-Cabecera: `Authorization: Bearer {token}`
+### Protegidos (JWT)
 
 | Método | Path | Qué hace |
 |---|---|---|
-| POST | `/api/personajes/{id}/votar` | Voto general. 409 si el usuario ya votó ese personaje. |
-| POST | `/api/enfrentamientos/{id}/votar` | Body `{personajeGanadorId}`. 400 si no pertenece al enfrentamiento. 409 si torneo no ACTIVO o ya votó. |
+| POST | `/api/personajes/{id}/votar` | Voto general. 409 si ya votó. |
+| POST | `/api/enfrentamientos/{id}/votar` | Body `{personajeGanadorId}`. |
 
-### Solo ADMIN (`hasRole("ADMIN")`)
+### ADMIN
 
 | Método | Path | Qué hace |
 |---|---|---|
-| POST/PUT/DELETE | `/api/personajes/**` | CRUD completo (todos menos GET). |
-| POST/PUT/DELETE | `/api/torneos/**` | CRUD + iniciar/finalizar/crear enfrentamientos. |
-| POST | `/api/admin/personajes/importar?cantidad=N` | Importa top N personajes desde Jikan. |
-
----
-
-## Flujo de uso de ejemplo
-
-```bash
-BASE=https://animeshowdown.onrender.com   # o http://localhost:8080 en local
-
-# 1. Registro
-curl -X POST $BASE/api/auth/registro \
-  -H "Content-Type: application/json" \
-  -d '{"username":"diego","password":"naruto123","email":"diego@example.com"}'
-# → 201 Created con {id, username, email, rol:"USER"} (sin password)
-
-# 2. Login → guardar token
-TOKEN=$(curl -s -X POST $BASE/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"diego","password":"naruto123"}' | jq -r .token)
-
-# 3. Votar (requiere JWT)
-curl -X POST $BASE/api/personajes/4/votar \
-  -H "Authorization: Bearer $TOKEN"
-# → 200 OK con el voto creado. 409 si ya votaste a ese personaje.
-
-# 4. Ver ranking público
-curl $BASE/api/votos/ranking
-```
+| POST/PUT/DELETE | `/api/personajes/**` | CRUD completo. |
+| POST/PUT/DELETE | `/api/torneos/**` | CRUD + iniciar/finalizar. |
+| POST | `/api/admin/personajes/importar?cantidad=N` | Importa top N desde Jikan. |
 
 ---
 
 ## Despliegue
 
+### Frontend en Cloudflare Pages
+
+1. Cuenta en https://dash.cloudflare.com
+2. Workers & Pages → Create → **Connect to Git** → autoriza GitHub
+3. Selecciona `AnimeShowdown` → configura:
+   - **Project name:** `animeshowdown`
+   - **Production branch:** `main`
+   - **Build command:** `npm run build`
+   - **Build output directory:** `dist`
+   - **Root directory** (advanced): `frontend`
+4. **Environment variables:** `VITE_API_URL` = URL de tu backend
+5. Save and Deploy → ~1-2 min y tienes `https://animeshowdown.pages.dev`
+6. **`frontend/public/_redirects`** ya configurado con `/* /index.html 200` para SPA routing
+
 ### Backend en Railway
 
-1. Cuenta en https://railway.app con GitHub
-2. New Project → Deploy from GitHub repo → seleccionar `AnimeShowdown`
-3. En el servicio creado → Settings:
-   - **Root Directory:** `backend`
-   - El Dockerfile se detecta automáticamente
-4. Variables: meter las 7 de la tabla de arriba (`DATABASE_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION`, `JPA_DDL`, `SHOW_SQL`). NO añadir `PORT`.
-5. Settings → Networking → **"Generate Domain"** → puerto `8080`
-6. Deploy → ~3 min el primer build, app arranca en ~10s
+1. Cuenta en https://railway.app
+2. New Project → Deploy from GitHub → `AnimeShowdown`
+3. Settings → Root Directory: `backend` (Dockerfile auto-detectado)
+4. Variables: las 7 de la tabla de arriba
+5. Settings → Networking → Generate Domain (puerto 8080)
 
 ### Postgres en Neon Free
 
-1. Cuenta en https://neon.tech con GitHub
-2. New Project → Postgres 17 → región Frankfurt
-3. Copiar la connection string del dashboard
-4. Construir `DATABASE_URL` con prefijo `jdbc:`:
-   `jdbc:postgresql://HOST/DBNAME?sslmode=require`
-5. Pegar `DB_USER`, `DB_PASSWORD` por separado en Render
+1. Cuenta en https://neon.tech
+2. New Project → Postgres 17 → Frankfurt
+3. Construir `DATABASE_URL` con prefijo `jdbc:` y `?sslmode=require`
+4. La primera vez que arranque el backend, **DataSeeder** pobla los 96 personajes automáticamente
 
 ---
 
-## Logging
+## Mantenimiento
 
-SLF4J en clases clave (formato Logback estándar de Spring Boot):
+### Añadir un personaje nuevo
 
-- `AuthController` → INFO en registro/login exitoso, WARN en duplicados o credenciales incorrectas
-- `JwtAuthFilter` → WARN en JWT inválido o usuario inexistente
-- `AdminController` → INFO en importación Jikan iniciada/completada
+1. Coloca el WebP en `frontend/public/personajes/{slug}.webp` (ratio 2:3, recomendado 1024x1536)
+2. Añade entrada en `frontend/src/data/personajes.js`:
+   ```js
+   { slug: 'mi_personaje', nombre: 'Mi Personaje', anime: 'Mi Anime' }
+   ```
+3. Añade entrada en `backend/src/main/resources/personajes-seed.json` (mismo objeto)
+4. `git push` → Cloudflare rebuild en 2 min, frontend muestra el nuevo personaje
+5. Para que aparezca también en BBDD: como el `DataSeeder` solo pobla si la tabla está vacía, hay dos opciones:
+   - **Opción rápida (recomendada):** llamada manual al endpoint admin con un POST custom (necesita endpoint nuevo)
+   - **Opción nuke:** vaciar tabla `personajes` en Neon y reiniciar el backend (re-poblará todos los 96 + el nuevo)
 
-**Nunca se loggean** passwords, tokens completos ni datos personales sensibles.
+### Añadir un torneo nuevo
 
----
+1. Edita `frontend/src/data/torneos.js` y añade un objeto:
+   ```js
+   {
+     slug: 'mi-torneo',
+     nombre: 'Mi Torneo',
+     estado: 'en-curso', // o 'finalizado' o 'proximo'
+     fechaInicio: '2026-06-01',
+     fechaFin: null,
+     participantes: ['naruto', 'luffy', ...], // 8 o 16 slugs
+     winner: null,
+   }
+   ```
+2. `git push` → Cloudflare redespliega → torneo aparece en `/torneos` y en el bracket
 
-## Limitaciones conocidas
+### Cambiar paleta o tipografía
 
-- **Jikan import:** el endpoint `/top/characters` no incluye los animes asociados, así que el campo `anime` queda como `"Desconocido"` para personajes importados. Mejora futura: segunda llamada a `/characters/{mal_id}/anime`.
-- **Empate en torneo:** si dos personajes empatan en votos al finalizar, `ganador` queda `NULL`.
-- **Railway Hobby plan:** $5/mes incluye créditos suficientes para app pequeña + uso de portfolio. Sin sleep, 24/7 real.
-- **Sin endpoint para promover a ADMIN:** se hace manualmente con `UPDATE usuarios SET rol = 'ADMIN' WHERE username = ?` en BD. Mejora futura: endpoint `/api/admin/usuarios/{id}/promover` que solo otros ADMIN puedan llamar.
+- Paleta: edita los tokens en `frontend/src/index.css` dentro del bloque `@theme` (`--color-accent`, `--color-bg`, etc.)
+- Tipografía: cambia el `<link>` de Google Fonts en `frontend/index.html` y los tokens `--font-sans`/`--font-mono` en `index.css`
+
+### Ver logs
+
+- **Frontend (Cloudflare):** dash.cloudflare.com → Workers & Pages → animeshowdown → Deployments → View build logs
+- **Backend (Railway):** dashboard.railway.app → tu proyecto → Deployments → Logs
 
 ---
 
 ## Roadmap
 
-- [ ] Endpoint para promover usuarios a ADMIN
-- [ ] Más tests (TorneoController, EnfrentamientoController, AdminController)
-- [ ] Métricas más completas con Prometheus
-- [ ] Frontend premium (React 18 + Vite + TypeScript + Tailwind + shadcn/ui + Framer Motion)
-- [ ] Despliegue del frontend en Vercel
-- [ ] Dominio custom (ej. `animeshowdown.dev`)
+- [x] Backend Spring Boot + JWT + PostgreSQL
+- [x] Despliegue backend en Railway
+- [x] Frontend React + Vite + Tailwind v4 + Framer Motion
+- [x] Despliegue frontend en Cloudflare Pages
+- [x] BBDD seedeada con los 96 personajes
+- [x] Auth real con fallback demo
+- [x] Bracket visual SVG
+- [x] Búsqueda + filtros + view toggle
+- [x] Cmd+K command palette
+- [x] Sonidos anime sintetizados
+- [ ] Endpoint admin para añadir personajes incrementalmente
+- [ ] Tests E2E con Playwright
+- [ ] Más tests backend (TorneoController, EnfrentamientoController)
+- [ ] Dominio custom (`animeshowdown.dev`)
+- [ ] PWA + service worker para offline
 
 ---
 
 ## Disclaimer
 
-Este proyecto utiliza nombres, imágenes y descripciones de personajes de anime obtenidos de [Jikan API](https://jikan.moe/) (API no oficial de MyAnimeList). Todo el contenido pertenece a sus respectivos autores y casas productoras. Este software se distribuye únicamente con fines educativos y de aprendizaje, sin ánimo de lucro. Ver [`LICENSE`](LICENSE) (MIT) para los términos del código fuente del proyecto.
+Este proyecto utiliza nombres e imágenes de personajes de anime con fines educativos. Todo el contenido pertenece a sus respectivos autores y casas productoras. Distribuido bajo [MIT](LICENSE) para el código fuente.
 
 ---
 
