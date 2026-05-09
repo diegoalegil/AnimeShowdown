@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
+import { useSound } from '../contexts/SoundContext'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -33,6 +34,7 @@ const logoVariants = {
 }
 
 function Hero() {
+  const { play } = useSound()
   return (
     <section className="relative flex min-h-[80vh] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
       <div
@@ -90,6 +92,7 @@ function Hero() {
         >
           <Link
             to="/torneos"
+            onClick={() => play('playClick')}
             className="group inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all animate-pulse-halo hover:-translate-y-0.5 hover:bg-accent-hover"
           >
             Explora torneos
@@ -97,6 +100,7 @@ function Hero() {
           </Link>
           <Link
             to="/ranking"
+            onClick={() => play('playClick')}
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-5 py-3 text-sm font-semibold text-fg-strong backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
           >
             <TrendingUp className="h-4 w-4" />
