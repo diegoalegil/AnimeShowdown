@@ -8,6 +8,7 @@ import PersonajeDetailPage from './pages/PersonajeDetailPage'
 import TorneosPage from './pages/TorneosPage'
 import TorneoDetailPage from './pages/TorneoDetailPage'
 import RankingPage from './pages/RankingPage'
+import VotarPage from './pages/VotarPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="/torneos" element={<TorneosPage />} />
               <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
               <Route path="/ranking" element={<RankingPage />} />
+              <Route path="/votar" element={<VotarPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
