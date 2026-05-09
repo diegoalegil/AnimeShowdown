@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import {
   personajes,
   imagenPersonaje,
@@ -45,7 +46,8 @@ function PersonajeDetailPage() {
           to="/personajes"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
         >
-          ← Volver al catálogo
+          <ArrowLeft className="h-4 w-4" />
+          Volver al catálogo
         </Link>
         <motion.div
           key={slug}
@@ -111,13 +113,15 @@ function PersonajeDetailPage() {
                 to={`/personajes/${prev.slug}`}
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
               >
-                ← {prev.nombre}
+                <ArrowLeft className="h-4 w-4" />
+                {prev.nombre}
               </Link>
               <Link
                 to={`/personajes/${next.slug}`}
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
               >
-                {next.nombre} →
+                {next.nombre}
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </motion.div>
           </motion.div>

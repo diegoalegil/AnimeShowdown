@@ -1,4 +1,5 @@
 import { Link, NavLink } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const navLinks = [
@@ -78,9 +79,10 @@ function UserBadge({ user, onLogout }) {
       <button
         type="button"
         onClick={onLogout}
-        className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted transition-colors hover:text-accent"
+        aria-label="Cerrar sesión"
+        className="ml-1 inline-flex items-center text-fg-muted transition-colors hover:text-accent"
       >
-        Salir
+        <LogOut className="h-4 w-4" />
       </button>
     </div>
   )

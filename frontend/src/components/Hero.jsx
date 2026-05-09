@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { ArrowRight, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 
 const containerVariants = {
@@ -79,14 +80,16 @@ function Hero() {
         >
           <a
             href="#"
-            className="inline-flex items-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+            className="group inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
           >
             Explora torneos
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </a>
           <a
             href="#"
-            className="inline-flex items-center rounded-lg border border-border bg-transparent px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-transparent px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
           >
+            <TrendingUp className="h-4 w-4" />
             Ver ranking
           </a>
         </motion.div>

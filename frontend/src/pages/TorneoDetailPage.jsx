@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import { getTorneoBySlug, estadoBadge } from '../data/torneos'
 import {
@@ -43,7 +44,8 @@ function TorneoDetailPage() {
           to="/torneos"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
         >
-          ← Volver a torneos
+          <ArrowLeft className="h-4 w-4" />
+          Volver a torneos
         </Link>
         <motion.header
           className="mb-10 flex flex-col items-start gap-3"
