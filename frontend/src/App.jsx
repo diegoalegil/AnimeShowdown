@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Toaster } from 'sonner'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
@@ -19,6 +20,17 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <ScrollProgress />
+      <Toaster
+        position="bottom-right"
+        theme="dark"
+        toastOptions={{
+          style: {
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-fg-strong)',
+          },
+        }}
+      />
       <Header />
       <main className="flex flex-1 flex-col">
         <AnimatePresence mode="wait">
