@@ -1,6 +1,9 @@
+import { lazy, Suspense } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
+
+const Personaje3D = lazy(() => import('../components/Personaje3D'))
 import {
   personajes,
   imagenPersonaje,
@@ -62,13 +65,23 @@ function PersonajeDetailPage() {
           initial="hidden"
           animate="visible"
         >
-          <motion.img
-            src={imagenPersonaje(slug)}
-            alt={personaje.nombre}
-            className="w-full max-w-md rounded-2xl border border-border bg-surface object-cover shadow-2xl"
+          <motion.div
+            className="relative aspect-[2/3] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-surface"
             style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
             variants={itemVariants}
-          />
+          >
+            <Suspense
+              fallback={
+                <img
+                  src={imagenPersonaje(slug)}
+                  alt={personaje.nombre}
+                  className="h-full w-full object-cover"
+                />
+              }
+            >
+              <Personaje3D slug={slug} />
+            </Suspense>
+          </motion.div>
           <motion.div
             className="flex flex-col items-start gap-4"
             variants={containerVariants}
