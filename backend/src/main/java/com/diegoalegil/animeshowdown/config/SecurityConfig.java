@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").authenticated()
                         .requestMatchers("/api/personajes/**").permitAll()
                         .requestMatchers("/api/votos/**").permitAll()
                         .requestMatchers("/api/torneos/**").permitAll()
