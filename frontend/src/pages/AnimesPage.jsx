@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSound } from '../contexts/SoundContext'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -55,9 +56,11 @@ function AnimesPage() {
 
 function AnimeTile({ anime, list }) {
   const featured = list.slice(0, 4)
+  const { play } = useSound()
   return (
     <Link
       to={`/personajes?anime=${encodeURIComponent(anime)}`}
+      onClick={() => play('playWhoosh')}
       className="group block overflow-hidden rounded-xl border border-border bg-surface p-3 transition-all hover:-translate-y-1 hover:border-accent/40"
     >
       <div className="mb-3 grid grid-cols-2 gap-1.5">

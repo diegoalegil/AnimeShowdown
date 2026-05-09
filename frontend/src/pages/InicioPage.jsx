@@ -21,6 +21,7 @@ import {
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import { useSound } from '../contexts/SoundContext'
 
 const animeUniversos = new Set(personajes.map((p) => p.anime)).size
 const eloMax = Math.max(
@@ -482,10 +483,12 @@ function SectionTop10Ranking() {
 }
 
 function Top10Card({ rank, slug, nombre, anime, elo }) {
+  const { play } = useSound()
   return (
     <li className="flex-none snap-start">
       <Link
         to={`/personajes/${slug}`}
+        onClick={() => play('playWhoosh')}
         className="group flex items-end gap-0"
       >
         <span
