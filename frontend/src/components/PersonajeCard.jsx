@@ -8,9 +8,11 @@ import {
   useTransform,
 } from 'framer-motion'
 import { imagenPersonaje } from '../data/personajes'
+import { useSound } from '../contexts/SoundContext'
 
 function PersonajeCard({ slug, nombre, anime }) {
   const cardRef = useRef(null)
+  const { play } = useSound()
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
 
@@ -37,7 +39,11 @@ function PersonajeCard({ slug, nombre, anime }) {
   }
 
   return (
-    <Link to={`/personajes/${slug}`} className="group block">
+    <Link
+      to={`/personajes/${slug}`}
+      onClick={() => play('playWhoosh')}
+      className="group block"
+    >
       <motion.article
         ref={cardRef}
         onMouseMove={handleMouseMove}

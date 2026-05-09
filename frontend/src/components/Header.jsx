@@ -39,7 +39,7 @@ function Header() {
 
   const handleCycleTheme = () => {
     const nuevoNombre = cycleTheme()
-    play('playClick')
+    play('playWhoosh')
     toast(`Paleta: ${nuevoNombre}`, { duration: 1500 })
   }
 
@@ -79,6 +79,7 @@ function Header() {
             key={label}
             to={to}
             end={to === '/'}
+            onClick={() => play('playClick')}
             className={regularLinkClass}
           >
             {label}
@@ -110,7 +111,11 @@ function Header() {
         {user ? (
           <UserBadge user={user} onLogout={logout} />
         ) : (
-          <NavLink to="/login" className={ctaLinkClass}>
+          <NavLink
+            to="/login"
+            onClick={() => play('playClick')}
+            className={ctaLinkClass}
+          >
             Login
           </NavLink>
         )}

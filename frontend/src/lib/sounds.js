@@ -12,6 +12,13 @@ function getCtx() {
   return audioContext
 }
 
+// Warm-up: lo llama SoundProvider al primer gesture del usuario para que el
+// AudioContext esté en estado "running" antes del primer play() y no haya lag
+// ni primer-sonido-mudo por la política de autoplay del navegador.
+export function __warm() {
+  getCtx()
+}
+
 function noiseBuffer(ctx, duration) {
   const length = Math.floor(ctx.sampleRate * duration)
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate)

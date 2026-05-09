@@ -5,6 +5,7 @@ import {
   getPersonajeBySlug,
 } from '../data/personajes'
 import { estadoBadge } from '../data/torneos'
+import { useSound } from '../contexts/SoundContext'
 
 const estadoIcon = {
   'en-curso': PlayCircle,
@@ -17,10 +18,12 @@ function TorneoCard({ torneo }) {
   const badge = estadoBadge[estado]
   const Icon = estadoIcon[estado]
   const winnerPersonaje = winner ? getPersonajeBySlug(winner) : null
+  const { play } = useSound()
 
   return (
     <Link
       to={`/torneos/${slug}`}
+      onClick={() => play('playWhoosh')}
       className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-all hover:-translate-y-1 hover:border-accent/40"
     >
       <div className="mb-4 flex items-center">
