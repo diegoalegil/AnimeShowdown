@@ -61,12 +61,6 @@ function Hero() {
           style={{ filter: 'drop-shadow(0 0 50px rgb(255 46 99 / 0.4))' }}
           variants={logoVariants}
         />
-        <motion.span
-          className="inline-flex rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted backdrop-blur-md"
-          variants={itemVariants}
-        >
-          Beta · 96 personajes
-        </motion.span>
         <motion.h1
           className="text-[clamp(2.25rem,6vw,4rem)] leading-[1.05] tracking-tight"
           variants={itemVariants}
