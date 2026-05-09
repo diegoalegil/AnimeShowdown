@@ -23,7 +23,7 @@ function CardMesh({ slug }) {
   return (
     <mesh ref={meshRef}>
       <planeGeometry args={[2.4, 3.6]} />
-      <meshStandardMaterial map={texture} transparent />
+      <meshBasicMaterial map={texture} transparent />
     </mesh>
   )
 }
@@ -46,9 +46,6 @@ function Personaje3D({ slug }) {
       gl={{ antialias: true, alpha: true }}
       className="rounded-2xl"
     >
-      <ambientLight intensity={0.45} />
-      <pointLight position={[3, 3, 3]} intensity={1.6} color={accent} />
-      <pointLight position={[-3, -2, 2]} intensity={0.6} color="#22d3ee" />
       <Suspense fallback={null}>
         <CardMesh slug={slug} />
       </Suspense>
