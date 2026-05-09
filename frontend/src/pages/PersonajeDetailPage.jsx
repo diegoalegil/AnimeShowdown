@@ -55,7 +55,7 @@ function PersonajeDetailPage() {
 
   useEffect(() => {
     let cancelado = false
-    buscarPersonajeJikan(personaje.nombre).then((d) => {
+    buscarPersonajeJikan(personaje.nombre, personaje.anime).then((d) => {
       if (!cancelado) setJikan(d)
     })
     citaPersonaje(personaje.nombre).then((q) => {
@@ -64,7 +64,7 @@ function PersonajeDetailPage() {
     return () => {
       cancelado = true
     }
-  }, [personaje.nombre])
+  }, [personaje.nombre, personaje.anime])
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
