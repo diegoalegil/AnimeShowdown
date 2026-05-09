@@ -9,10 +9,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "votos")
+@Table(name = "votos", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_voto_personaje_usuario", columnNames = { "personaje_id", "usuario_id" }),
+        @UniqueConstraint(name = "uk_voto_enfrentamiento_usuario", columnNames = { "enfrentamiento_id", "usuario_id" })
+})
 public class Voto {
 
     @Id
