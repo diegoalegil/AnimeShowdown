@@ -16,6 +16,8 @@ import RankingPage from './pages/RankingPage'
 import VotarPage from './pages/VotarPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import AdminPage from './pages/AdminPage'
 import PerfilPage from './pages/PerfilPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -60,6 +62,8 @@ function App() {
               <Route path="/votar" element={<VotarPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/perfil" element={<PerfilPage />} />
               <Route path="*" element={<NotFoundPage />} />
