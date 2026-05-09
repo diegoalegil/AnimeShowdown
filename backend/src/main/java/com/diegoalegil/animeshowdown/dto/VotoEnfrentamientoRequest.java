@@ -1,7 +1,10 @@
 package com.diegoalegil.animeshowdown.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public class VotoEnfrentamientoRequest {
 
+    @NotNull(message = "personajeGanadorId es obligatorio")
     private Long personajeGanadorId;
 
     public VotoEnfrentamientoRequest() {

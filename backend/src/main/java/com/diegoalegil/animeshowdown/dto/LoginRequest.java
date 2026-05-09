@@ -1,8 +1,13 @@
 package com.diegoalegil.animeshowdown.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginRequest {
 
+    @NotBlank(message = "El username es obligatorio")
     private String username;
+
+    @NotBlank(message = "La password es obligatoria")
     private String password;
 
     public LoginRequest() {

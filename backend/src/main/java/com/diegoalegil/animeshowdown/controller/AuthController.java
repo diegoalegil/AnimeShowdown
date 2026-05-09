@@ -18,6 +18,8 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -33,7 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<?> registro(@RequestBody RegistroRequest request) {
+    public ResponseEntity<?> registro(@Valid @RequestBody RegistroRequest request) {
 
         if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -54,7 +56,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(request.getUsername());
 

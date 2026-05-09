@@ -26,6 +26,8 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/torneos")
 public class TorneoController {
@@ -51,7 +53,7 @@ public class TorneoController {
     }
 
     @PostMapping
-    public Torneo crear(@RequestBody TorneoCrearRequest request) {
+    public Torneo crear(@Valid @RequestBody TorneoCrearRequest request) {
         Torneo torneo = new Torneo(request.getNombre(), request.getDescripcion());
         return torneoRepository.save(torneo);
     }
@@ -80,7 +82,7 @@ public class TorneoController {
 
     @PostMapping("/{id}/enfrentamientos")
     public ResponseEntity<?> crearEnfrentamientos(@PathVariable Long id,
-            @RequestBody List<EnfrentamientoCrearRequest> requests) {
+            @Valid @RequestBody List<@Valid EnfrentamientoCrearRequest> requests) {
 
         Optional<Torneo> torneoOpt = torneoRepository.findById(id);
         if (torneoOpt.isEmpty()) {
