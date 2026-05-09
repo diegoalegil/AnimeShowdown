@@ -48,10 +48,10 @@ const sectionVariants = {
   },
 }
 
-const top5 = [...personajes]
+const top10 = [...personajes]
   .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
   .sort((a, b) => b.elo - a.elo)
-  .slice(0, 5)
+  .slice(0, 10)
 
 const torneosPreview = torneos.slice(0, 3)
 
@@ -85,7 +85,7 @@ function InicioPage() {
       <SectionLiveBattle />
       <SectionTorneosActivos />
       <SectionPorAnime />
-      <SectionTop5Ranking />
+      <SectionTop10Ranking />
       <SectionBento />
       <SectionComoFunciona />
     </>
@@ -444,24 +444,36 @@ function SectionTorneosActivos() {
   )
 }
 
-function SectionTop5Ranking() {
+function SectionTop10Ranking() {
   return (
     <motion.section
       className="bg-surface/40 px-5 py-16 sm:px-8 sm:py-20"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={{ once: true, amount: 0.1 }}
     >
-      <div className="mx-auto max-w-4xl">
-        <SectionHeader
-          eyebrow="Ranking"
-          titulo="Top 5 por ELO"
-          link={{ to: '/ranking', label: 'Ver completo' }}
-        />
-        <ol className="flex flex-col gap-2">
-          {top5.map((p, i) => (
-            <Top5Row key={p.slug} rank={i + 1} {...p} />
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+              Top 10
+            </span>
+            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
+              Más alto ranking ELO
+            </h2>
+          </div>
+          <Link
+            to="/ranking"
+            className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent sm:inline-flex"
+          >
+            Ver los 96
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <ol className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
+          {top10.map((p, i) => (
+            <Top10Card key={p.slug} rank={i + 1} {...p} />
           ))}
         </ol>
       </div>
@@ -469,38 +481,45 @@ function SectionTop5Ranking() {
   )
 }
 
-function Top5Row({ rank, slug, nombre, anime, elo }) {
+function Top10Card({ rank, slug, nombre, anime, elo }) {
   return (
-    <li>
+    <li className="flex-none snap-start">
       <Link
         to={`/personajes/${slug}`}
-        className="group flex items-center gap-4 rounded-lg border border-border bg-surface px-4 py-3 transition-all hover:-translate-x-1 hover:border-accent/40"
+        className="group flex items-end gap-0"
       >
         <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-mono text-sm font-bold ${
-            rank === 1
-              ? 'bg-yellow-500/15 text-yellow-400'
-              : rank === 2
-                ? 'bg-zinc-400/15 text-zinc-300'
-                : rank === 3
-                  ? 'bg-orange-500/15 text-orange-400'
-                  : 'bg-surface-alt text-fg-muted'
-          }`}
+          aria-hidden="true"
+          className="select-none font-extrabold leading-[0.85] tracking-tighter text-[120px] sm:text-[160px]"
+          style={{
+            WebkitTextStroke: '2px var(--color-accent)',
+            color: 'transparent',
+            marginRight: rank === 10 ? '-30px' : '-20px',
+          }}
         >
-          {rank === 1 ? <Trophy className="h-5 w-5" /> : rank}
+          {rank}
         </span>
-        <img
-          src={imagenPersonaje(slug)}
-          alt=""
-          className="h-12 w-9 shrink-0 rounded-md object-cover object-top"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
-            {nombre}
-          </p>
-          <p className="truncate text-[12px] text-fg-muted">{anime}</p>
+        <div className="relative z-10 flex w-[140px] flex-col gap-1 sm:w-[160px]">
+          <div className="aspect-[2/3] overflow-hidden rounded-lg border border-border bg-surface transition-all group-hover:-translate-y-1 group-hover:border-accent/40">
+            <img
+              src={imagenPersonaje(slug)}
+              alt={nombre}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-bold text-fg-strong group-hover:text-accent">
+                {nombre}
+              </p>
+              <p className="truncate text-[11px] text-fg-muted">{anime}</p>
+            </div>
+            <p className="shrink-0 font-mono text-[12px] font-bold text-accent">
+              {elo}
+            </p>
+          </div>
         </div>
-        <p className="font-mono text-base font-bold text-accent">{elo}</p>
       </Link>
     </li>
   )
