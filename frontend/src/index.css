@@ -18,6 +18,17 @@
   --animate-aurora-1: aurora-1 14s ease-in-out infinite;
   --animate-aurora-2: aurora-2 18s ease-in-out infinite;
   --animate-aurora-3: aurora-3 16s ease-in-out infinite;
+  --animate-shimmer: shimmer 5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes aurora-1 {

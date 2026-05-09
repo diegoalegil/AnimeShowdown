@@ -68,7 +68,14 @@ function Hero() {
           className="text-[clamp(2.25rem,6vw,4rem)] leading-[1.05] tracking-tight"
           variants={itemVariants}
         >
-          Vota a tus personajes de <span className="text-accent">anime</span> favoritos
+          Vota a tus personajes de{' '}
+          <span
+            className="bg-gradient-to-r from-accent via-fuchsia-400 to-pink-300 bg-clip-text text-transparent animate-shimmer"
+            style={{ backgroundSize: '200% auto' }}
+          >
+            anime
+          </span>
+          {' '}favoritos
         </motion.h1>
         <motion.p
           className="max-w-xl text-[clamp(0.9375rem,1.6vw,1.125rem)] leading-relaxed text-fg-muted"
