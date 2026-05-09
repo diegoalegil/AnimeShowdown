@@ -69,8 +69,11 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "https://animeshowdown.vercel.app"));
-        config.setAllowedOriginPatterns(List.of("https://animeshowdown-*.vercel.app"));
+                "https://animeshowdown.vercel.app",
+                "https://animeshowdown.pages.dev"));
+        config.setAllowedOriginPatterns(List.of(
+                "https://animeshowdown-*.vercel.app",
+                "https://*.animeshowdown.pages.dev"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
         config.setExposedHeaders(List.of("Authorization"));
