@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
+import Bracket from '../components/Bracket'
 import { getTorneoBySlug, estadoBadge } from '../data/torneos'
 import {
   getPersonajeBySlug,
@@ -91,6 +92,12 @@ function TorneoDetailPage() {
             </div>
           </Link>
         )}
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+          Bracket
+        </h2>
+        <div className="mb-12">
+          <Bracket slugs={participantes} ganadorReal={winner} />
+        </div>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
           Roster
         </h2>
