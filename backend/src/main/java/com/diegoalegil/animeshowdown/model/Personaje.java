@@ -16,6 +16,9 @@ public class Personaje {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private String slug;
+
     private String nombre;
     private String anime;
     @Column(length =  500)
@@ -31,6 +34,22 @@ public class Personaje {
         this.anime = anime;
         this.descripcion = descripcion;
         this.imagenUrl = imagen;
+    }
+
+    public Personaje(String slug, String nombre, String anime, String descripcion, String imagen) {
+        this.slug = slug;
+        this.nombre = nombre;
+        this.anime = anime;
+        this.descripcion = descripcion;
+        this.imagenUrl = imagen;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public Long getId() {
