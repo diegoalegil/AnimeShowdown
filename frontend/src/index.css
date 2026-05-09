@@ -20,6 +20,19 @@
   --animate-aurora-3: aurora-3 16s ease-in-out infinite;
   --animate-shimmer: shimmer 5s ease-in-out infinite;
   --animate-marquee: marquee 70s linear infinite;
+  --animate-pulse-halo: pulse-halo 2.4s ease-out infinite;
+}
+
+@keyframes pulse-halo {
+  0% {
+    box-shadow: 0 0 0 0 rgb(255 46 99 / 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgb(255 46 99 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 46 99 / 0);
+  }
 }
 
 @keyframes marquee {
