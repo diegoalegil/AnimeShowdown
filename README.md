@@ -68,31 +68,31 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 
 **Hero animado con aurora multilayer + 8 cards flotantes con parallax**
 
-![Hero landing](docs/screenshots/hero.png)
+![Hero landing](docs/screenshots/hero.webp)
 
 **Galería de los 96 personajes con búsqueda, filtros por anime y view toggle**
 
-![Galería personajes](docs/screenshots/personajes.png)
+![Galería personajes](docs/screenshots/personajes.webp)
 
 **Detalle de torneo con bracket visual SVG**
 
-![Bracket torneo](docs/screenshots/bracket.png)
+![Bracket torneo](docs/screenshots/bracket.webp)
 
 **Detalle de personaje con stats ELO + récord + sección "Más de \[anime\]"**
 
-![Detalle personaje](docs/screenshots/personaje-detail.png)
+![Detalle personaje](docs/screenshots/personaje-detail.webp)
 
 **Pantalla de votación 1v1 con badge VS y reveal de porcentajes**
 
-![Pantalla de votar](docs/screenshots/votar.png)
+![Pantalla de votar](docs/screenshots/votar.webp)
 
 **Top 10 ELO con números gigantes outline magenta (Crunchyroll style)**
 
-![Top 10 ranking](docs/screenshots/top10.png)
+![Top 10 ranking](docs/screenshots/top10.webp)
 
 **Swagger UI del backend (13 paths)**
 
-![Swagger UI overview](docs/screenshots/swagger-overview.png)
+![Swagger UI overview](docs/screenshots/swagger-overview.webp)
 
 ---
 
