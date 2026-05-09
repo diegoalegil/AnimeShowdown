@@ -1,5 +1,7 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +26,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -38,6 +42,7 @@ public class AuthController {
     public ResponseEntity<?> registro(@Valid @RequestBody RegistroRequest request) {
 
         if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
+            log.warn("Intento de registro con username ya existente: {}", request.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("El username ya existe");
         }
@@ -51,6 +56,8 @@ public class AuthController {
 
         Usuario guardado = usuarioRepository.save(nuevoUsuario);
 
+        log.info("Usuario registrado: id={} username={}", guardado.getId(), guardado.getUsername());
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new UsuarioRespuesta(guardado));
     }
@@ -61,6 +68,7 @@ public class AuthController {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(request.getUsername());
 
         if (usuarioOpt.isEmpty()) {
+            log.warn("Login fallido (usuario no existe): username={}", request.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Credenciales inválidas");
         }
@@ -68,11 +76,14 @@ public class AuthController {
         Usuario usuario = usuarioOpt.get();
 
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
+            log.warn("Login fallido (password incorrecta): username={}", request.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Credenciales inválidas");
         }
 
         String token = jwtUtil.generarToken(usuario);
+
+        log.info("Login exitoso: username={} rol={}", usuario.getUsername(), usuario.getRol());
 
         return ResponseEntity.ok(new TokenRespuesta(token));
     }

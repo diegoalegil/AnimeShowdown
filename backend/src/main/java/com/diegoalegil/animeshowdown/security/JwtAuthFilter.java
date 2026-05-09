@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +22,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
     private final JwtUtil jwtUtil;
     private final UsuarioRepository usuarioRepository;
@@ -49,7 +53,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name())));
                     SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    log.warn("JWT válido pero el usuario no existe en la BD: username={}", username);
                 }
+            } else {
+                log.warn("JWT recibido inválido o caducado en {} {}", request.getMethod(), request.getRequestURI());
             }
         }
 
