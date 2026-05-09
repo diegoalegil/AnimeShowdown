@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom'
+import { ArrowUpRight } from 'lucide-react'
+
 function GithubIcon({ className }) {
   return (
     <svg
@@ -11,38 +14,96 @@ function GithubIcon({ className }) {
   )
 }
 
+const navLinks = [
+  { to: '/', label: 'Inicio' },
+  { to: '/personajes', label: 'Personajes' },
+  { to: '/torneos', label: 'Torneos' },
+  { to: '/votar', label: 'Votar' },
+  { to: '/ranking', label: 'Ranking' },
+]
+
+const techStack = [
+  'React 19',
+  'Vite 8',
+  'Tailwind v4',
+  'Framer Motion',
+  'React Router 7',
+  'Spring Boot 3',
+  'Java 21',
+  'PostgreSQL',
+  'JWT',
+]
+
 function Footer() {
   return (
     <footer className="border-t border-border bg-surface">
-      <div className="flex flex-wrap items-center justify-center gap-3 px-5 py-5 text-center sm:justify-between sm:px-8 sm:text-left">
-        <p className="text-[13px] text-fg-muted">
-          © 2026{' '}
-          <strong className="font-bold text-fg-strong">AnimeShowdown</strong> —
-          proyecto portfolio de Diego Alegil (DAM 1.º)
-        </p>
-        <nav className="flex items-center gap-4">
-          <a
-            href="https://github.com/diegoalegil/AnimeShowdown"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-accent"
-          >
-            <GithubIcon className="h-3.5 w-3.5" />
-            GitHub
-          </a>
-          <a
-            href="#"
-            className="text-[13px] text-fg-muted transition-colors hover:text-accent"
-          >
-            Términos
-          </a>
-          <a
-            href="#"
-            className="text-[13px] text-fg-muted transition-colors hover:text-accent"
-          >
-            Contacto
-          </a>
-        </nav>
+      <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+          <div className="flex flex-col gap-3">
+            <Link to="/" className="flex items-center gap-3">
+              <img
+                src="/logo.webp"
+                alt=""
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+              />
+              <span className="text-lg font-extrabold tracking-tight text-fg-strong">
+                AnimeShowdown
+              </span>
+            </Link>
+            <p className="max-w-xs text-[13px] leading-relaxed text-fg-muted">
+              Torneos cara a cara y rankings ELO de los personajes de anime más icónicos. Proyecto portfolio open source de Diego Alegil.
+            </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              Navegación
+            </h3>
+            <nav className="flex flex-col gap-2">
+              {navLinks.map(({ to, label }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className="w-fit text-[13px] text-fg transition-colors hover:text-accent"
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div className="flex flex-col gap-4">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              Stack
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
+              {techStack.map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center rounded-md bg-surface-alt px-2 py-1 font-mono text-[11px] font-medium text-fg-muted"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <a
+              href="https://github.com/diegoalegil/AnimeShowdown"
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex w-fit items-center gap-1.5 text-[13px] font-medium text-fg-strong transition-colors hover:text-accent"
+            >
+              <GithubIcon className="h-4 w-4" />
+              Ver en GitHub
+              <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          </div>
+        </div>
+        <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-[12px] text-fg-muted sm:flex-row">
+          <p>© 2026 Diego Alegil — DAM 1.º</p>
+          <p>
+            Hecho con <span className="text-accent">♥</span> en Madrid
+          </p>
+        </div>
       </div>
     </footer>
   )
