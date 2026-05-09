@@ -2,12 +2,15 @@ import { motion } from 'framer-motion'
 import { imagenPersonaje } from '../data/personajes'
 
 const cards = [
-  { slug: 'naruto', top: '8%', left: '4%', rotate: -8 },
-  { slug: 'mikasa', top: '5%', right: '6%', rotate: 7 },
-  { slug: 'gojo', top: '40%', left: '1%', rotate: -5 },
-  { slug: 'nezuko', top: '42%', right: '3%', rotate: 8 },
-  { slug: 'luffy', bottom: '6%', left: '7%', rotate: 6 },
-  { slug: 'zerotwo', bottom: '5%', right: '8%', rotate: -7 },
+  { slug: 'momo', top: '5%', left: '3%', rotate: -8 },
+  { slug: 'mai_sakurajima', top: '5%', right: '4%', rotate: 7 },
+  { slug: 'miku', top: '28%', left: '0%', rotate: -5 },
+  { slug: 'shinobu', top: '28%', right: '1%', rotate: 6 },
+  { slug: 'power', top: '18%', right: '22%', rotate: 4 },
+  { slug: 'makima', top: '56%', left: '1%', rotate: -7 },
+  { slug: 'gojo', top: '56%', right: '2%', rotate: 5 },
+  { slug: 'kuroneko', bottom: '5%', left: '6%', rotate: 7 },
+  { slug: 'toru_hagakure', bottom: '5%', right: '7%', rotate: -6 },
 ]
 
 function FloatingCards() {
@@ -21,7 +24,7 @@ function FloatingCards() {
           key={card.slug}
           src={imagenPersonaje(card.slug)}
           alt=""
-          className="absolute h-36 w-auto rounded-lg lg:h-48"
+          className="absolute h-32 w-auto rounded-lg lg:h-44"
           style={{
             top: card.top,
             left: card.left,
@@ -37,17 +40,17 @@ function FloatingCards() {
             rotate: [card.rotate, card.rotate + 2.5],
           }}
           transition={{
-            opacity: { duration: 1.4, delay: 0.5 + i * 0.18 },
-            scale: { duration: 1.4, delay: 0.5 + i * 0.18 },
+            opacity: { duration: 1.4, delay: 0.5 + i * 0.15 },
+            scale: { duration: 1.4, delay: 0.5 + i * 0.15 },
             y: {
-              duration: 4 + i * 0.4,
+              duration: 4 + i * 0.35,
               repeat: Infinity,
               repeatType: 'reverse',
               ease: 'easeInOut',
               delay: 1,
             },
             rotate: {
-              duration: 6 + i * 0.5,
+              duration: 6 + i * 0.45,
               repeat: Infinity,
               repeatType: 'reverse',
               ease: 'easeInOut',
