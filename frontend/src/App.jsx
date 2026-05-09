@@ -11,6 +11,7 @@ import TorneoDetailPage from './pages/TorneoDetailPage'
 import RankingPage from './pages/RankingPage'
 import VotarPage from './pages/VotarPage'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/votar" element={<VotarPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </motion.div>
