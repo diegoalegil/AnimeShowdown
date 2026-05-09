@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   motion,
+  useMotionTemplate,
   useMotionValue,
   useSpring,
   useTransform,
@@ -18,6 +19,10 @@ function PersonajeCard({ slug, nombre, anime }) {
 
   const rotateY = useTransform(springX, [0, 1], [-8, 8])
   const rotateX = useTransform(springY, [0, 1], [6, -6])
+
+  const spotlightX = useTransform(mouseX, (v) => `${v * 100}%`)
+  const spotlightY = useTransform(mouseY, (v) => `${v * 100}%`)
+  const spotlight = useMotionTemplate`radial-gradient(220px circle at ${spotlightX} ${spotlightY}, rgba(255, 255, 255, 0.18), transparent 70%)`
 
   const handleMouseMove = (e) => {
     if (!cardRef.current) return
@@ -53,6 +58,10 @@ function PersonajeCard({ slug, nombre, anime }) {
           alt={nombre}
           loading="lazy"
           className="aspect-[2/3] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+        <motion.div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: spotlight }}
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3.5 pt-10">
           <h3 className="text-sm font-bold text-fg-strong">{nombre}</h3>
