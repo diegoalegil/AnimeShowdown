@@ -43,7 +43,8 @@ function VotarPage() {
   const handleVote = (slug) => {
     if (votedFor) return
     setVotedFor(slug)
-    play('playVote')
+    play('playImpact')
+    setTimeout(() => play('playVote'), 120)
     const p = getPersonajeBySlug(slug)
     if (p) {
       toast.success(`Voto registrado: ${p.nombre}`, {

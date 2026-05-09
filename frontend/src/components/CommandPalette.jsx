@@ -18,6 +18,7 @@ import { personajes, imagenPersonaje } from '../data/personajes'
 import { torneos } from '../data/torneos'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
+import { playWhoosh } from '../lib/sounds'
 
 const rutas = [
   { to: '/', label: 'Inicio', icon: Home },
@@ -42,7 +43,14 @@ function CommandPalette() {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
-        setOpen((o) => !o)
+        setOpen((o) => {
+          const next = !o
+          if (next) {
+            const muted = localStorage.getItem('animeshowdown.muted') === 'true'
+            if (!muted) playWhoosh()
+          }
+          return next
+        })
       }
     }
     window.addEventListener('keydown', onKey)
