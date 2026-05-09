@@ -6,6 +6,7 @@ import {
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const ranked = [...personajes]
   .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
@@ -29,6 +30,7 @@ const listVariants = {
 }
 
 function RankingPage() {
+  useDocumentTitle('Ranking ELO')
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
       <div className="mx-auto max-w-4xl">

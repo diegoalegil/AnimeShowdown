@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -13,6 +14,7 @@ const containerVariants = {
 }
 
 function LoginPage() {
+  useDocumentTitle('Iniciar sesión')
   const { login } = useAuth()
   const navigate = useNavigate()
   const {

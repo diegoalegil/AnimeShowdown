@@ -7,6 +7,7 @@ import {
   getPersonajeBySlug,
   imagenPersonaje,
 } from '../data/personajes'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import NotFoundPage from './NotFoundPage'
 
 const headerVariants = {
@@ -23,6 +24,8 @@ function TorneoDetailPage() {
   const torneo = getTorneoBySlug(slug)
 
   if (!torneo) return <NotFoundPage />
+
+  useDocumentTitle(torneo.nombre)
 
   const {
     nombre,

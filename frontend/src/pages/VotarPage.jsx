@@ -6,6 +6,7 @@ import {
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 function getRandomPair() {
   const a = Math.floor(Math.random() * personajes.length)
@@ -24,6 +25,7 @@ const headerVariants = {
 }
 
 function VotarPage() {
+  useDocumentTitle('Votar')
   const [pair, setPair] = useState(getRandomPair)
   const [votedFor, setVotedFor] = useState(null)
 
