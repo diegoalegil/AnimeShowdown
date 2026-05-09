@@ -1,9 +1,7 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
-
-const Personaje3D = lazy(() => import('../components/Personaje3D'))
+import { ArrowLeft, ArrowRight, Quote, Star } from 'lucide-react'
 import {
   personajes,
   imagenPersonaje,
@@ -11,8 +9,12 @@ import {
   getStatsPersonaje,
 } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { buscarPersonajeJikan } from '../lib/jikan'
+import { citaPersonaje } from '../lib/animechan'
 import PersonajeCard from '../components/PersonajeCard'
 import NotFoundPage from './NotFoundPage'
+
+const Personaje3D = lazy(() => import('../components/Personaje3D'))
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -47,6 +49,22 @@ function PersonajeDetailPage() {
   const relacionados = personajes
     .filter((p) => p.anime === personaje.anime && p.slug !== slug)
     .slice(0, 6)
+
+  const [jikan, setJikan] = useState(null)
+  const [cita, setCita] = useState(null)
+
+  useEffect(() => {
+    let cancelado = false
+    buscarPersonajeJikan(personaje.nombre).then((d) => {
+      if (!cancelado) setJikan(d)
+    })
+    citaPersonaje(personaje.nombre).then((q) => {
+      if (!cancelado) setCita(q)
+    })
+    return () => {
+      cancelado = true
+    }
+  }, [personaje.nombre])
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -91,6 +109,13 @@ function PersonajeDetailPage() {
               variants={itemVariants}
             >
               Personaje {idx + 1} de {personajes.length}
+              {jikan?.favorites != null && (
+                <>
+                  {' · '}
+                  <Star className="ml-1 inline h-3 w-3 text-accent" />{' '}
+                  {jikan.favorites.toLocaleString('es-ES')} fans
+                </>
+              )}
             </motion.span>
             <motion.h1
               className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
@@ -118,11 +143,54 @@ function PersonajeDetailPage() {
               />
               <Stat label="Win rate" value={`${winRate}%`} />
             </motion.div>
+            {jikan?.about && (
+              <motion.div
+                className="rounded-lg border border-border bg-surface p-4"
+                variants={itemVariants}
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                  Bio · vía MyAnimeList
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-fg">
+                  {recortar(jikan.about, 280)}
+                </p>
+                {jikan.nicknames?.length > 0 && (
+                  <p className="mt-3 text-[12px] text-fg-muted">
+                    También conocido como:{' '}
+                    <span className="text-fg-strong">
+                      {jikan.nicknames.slice(0, 4).join(', ')}
+                    </span>
+                  </p>
+                )}
+              </motion.div>
+            )}
+            {cita && (
+              <motion.blockquote
+                className="relative w-full rounded-lg border border-accent/30 bg-accent-soft p-4 pl-10"
+                variants={itemVariants}
+              >
+                <Quote className="absolute left-3 top-3 h-5 w-5 text-accent" />
+                <p className="text-sm italic leading-relaxed text-fg-strong">
+                  {cita.content}
+                </p>
+                {(cita.character || cita.anime) && (
+                  <cite className="mt-2 block text-[12px] not-italic text-fg-muted">
+                    — {cita.character}
+                    {cita.anime && (
+                      <>
+                        {' · '}
+                        <span>{cita.anime}</span>
+                      </>
+                    )}
+                  </cite>
+                )}
+              </motion.blockquote>
+            )}
             <motion.p
               className="text-[12px] leading-relaxed text-fg-muted"
               variants={itemVariants}
             >
-              Estadísticas derivadas del historial de enfrentamientos. Datos de ejemplo hasta que el backend esté conectado.
+              Stats derivadas del historial de enfrentamientos. Bio + cita externa via Jikan/AnimeChan cuando disponibles.
             </motion.p>
             <motion.div
               className="mt-2 flex w-full items-center justify-between gap-3 border-t border-border pt-4"
@@ -185,6 +253,12 @@ function Stat({ label, value, accent }) {
       </p>
     </div>
   )
+}
+
+function recortar(texto, max) {
+  if (!texto) return ''
+  if (texto.length <= max) return texto
+  return texto.slice(0, max).trim() + '…'
 }
 
 export default PersonajeDetailPage
