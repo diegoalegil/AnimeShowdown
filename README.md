@@ -78,9 +78,13 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 
 ![Bracket torneo](docs/screenshots/bracket.png)
 
-**Cmd+K command palette estilo Linear**
+**Detalle de personaje con stats ELO + récord + sección "Más de \[anime\]"**
 
-![Command palette](docs/screenshots/command-palette.png)
+![Detalle personaje](docs/screenshots/personaje-detail.png)
+
+**Pantalla de votación 1v1 con badge VS y reveal de porcentajes**
+
+![Pantalla de votar](docs/screenshots/votar.png)
 
 **Top 10 ELO con números gigantes outline magenta (Crunchyroll style)**
 
