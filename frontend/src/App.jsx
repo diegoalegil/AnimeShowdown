@@ -5,6 +5,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
 import CommandPalette from './components/CommandPalette'
+import Splash from './components/Splash'
 import InicioPage from './pages/InicioPage'
 import PersonajesPage from './pages/PersonajesPage'
 import PersonajeDetailPage from './pages/PersonajeDetailPage'
@@ -21,6 +22,7 @@ function App() {
   const location = useLocation()
   return (
     <div className="flex min-h-screen flex-col">
+      <Splash />
       <ScrollProgress />
       <CommandPalette />
       <Toaster
