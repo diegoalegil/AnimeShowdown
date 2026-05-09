@@ -196,10 +196,15 @@ function UploadForm({ user, updateUser }) {
     } catch (err) {
       const msg =
         err instanceof ApiError
-          ? err.message || `Error ${err.status}`
-          : 'No se pudo subir al servidor.'
+          ? `${err.status} · ${err.message || 'sin detalle del servidor'}`
+          : 'No se pudo conectar al servidor.'
       setError(msg)
-      toast.error('Error subiendo avatar', { description: msg })
+      toast.error('Error subiendo avatar', {
+        description:
+          err instanceof ApiError && err.status === 500
+            ? 'Suele ser que la columna avatar_url aún es VARCHAR(500). Corre el ALTER TABLE en Neon.'
+            : msg,
+      })
     } finally {
       setBusy(false)
     }
