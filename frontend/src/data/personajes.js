@@ -50,7 +50,7 @@ export const personajes = [
   { slug: 'misa_amane', nombre: 'Misa Amane', anime: 'Death Note' },
   { slug: 'misa_kurobane', nombre: 'Misa Kurobane', anime: 'Engage Kiss' },
   { slug: 'mitsuri_kanroji', nombre: 'Mitsuri Kanroji', anime: 'Demon Slayer' },
-  { slug: 'momo', nombre: 'Momo Yaoyorozu', anime: 'My Hero Academia' },
+  { slug: 'momo', nombre: 'Momo Ayase', anime: 'Dandadan' },
   { slug: 'nami', nombre: 'Nami', anime: 'One Piece' },
   { slug: 'nao_tomori', nombre: 'Nao Tomori', anime: 'Charlotte' },
   { slug: 'naruto', nombre: 'Naruto Uzumaki', anime: 'Naruto' },
