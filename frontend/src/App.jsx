@@ -1,4 +1,5 @@
 import Header from './components/Header'
+import Hero from './components/Hero'
 import './App.css'
 
 function App() {
@@ -6,7 +7,7 @@ function App() {
     <div className="app">
       <Header />
       <main>
-        <h1>AnimeShowdown</h1>
+        <Hero />
       </main>
     </div>
   )
