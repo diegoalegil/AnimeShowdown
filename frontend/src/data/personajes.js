@@ -100,3 +100,11 @@ export const personajes = [
 export function imagenPersonaje(slug) {
   return `/personajes/${slug}.webp`
 }
+
+export function getPersonajeBySlug(slug) {
+  return personajes.find((p) => p.slug === slug) ?? null
+}
+
+export function getIndicePersonaje(slug) {
+  return personajes.findIndex((p) => p.slug === slug)
+}

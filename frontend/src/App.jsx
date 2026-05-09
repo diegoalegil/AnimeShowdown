@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import InicioPage from './pages/InicioPage'
 import PersonajesPage from './pages/PersonajesPage'
+import PersonajeDetailPage from './pages/PersonajeDetailPage'
 import TorneosPage from './pages/TorneosPage'
 import RankingPage from './pages/RankingPage'
 import LoginPage from './pages/LoginPage'
@@ -27,6 +28,7 @@ function App() {
             <Routes location={location}>
               <Route path="/" element={<InicioPage />} />
               <Route path="/personajes" element={<PersonajesPage />} />
+              <Route path="/personajes/:slug" element={<PersonajeDetailPage />} />
               <Route path="/torneos" element={<TorneosPage />} />
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/login" element={<LoginPage />} />
