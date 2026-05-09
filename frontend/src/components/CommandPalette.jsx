@@ -1,0 +1,205 @@
+import { useEffect, useState } from 'react'
+import { Command } from 'cmdk'
+import { useNavigate } from 'react-router-dom'
+import {
+  Home,
+  Users,
+  Trophy,
+  Swords,
+  TrendingUp,
+  LogIn,
+  UserPlus,
+  Volume2,
+  VolumeX,
+  LogOut,
+  Search,
+} from 'lucide-react'
+import { personajes, imagenPersonaje } from '../data/personajes'
+import { torneos } from '../data/torneos'
+import { useAuth } from '../contexts/AuthContext'
+import { useSound } from '../contexts/SoundContext'
+
+const rutas = [
+  { to: '/', label: 'Inicio', icon: Home },
+  { to: '/personajes', label: 'Personajes', icon: Users },
+  { to: '/torneos', label: 'Torneos', icon: Trophy },
+  { to: '/votar', label: 'Votar', icon: Swords },
+  { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
+]
+
+const rutasInvitado = [
+  { to: '/login', label: 'Iniciar sesión', icon: LogIn },
+  { to: '/register', label: 'Crear cuenta', icon: UserPlus },
+]
+
+function CommandPalette() {
+  const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+  const { muted, toggleMute } = useSound()
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const go = (path) => {
+    setOpen(false)
+    navigate(path)
+  }
+
+  return (
+    <Command.Dialog
+      open={open}
+      onOpenChange={setOpen}
+      label="Buscador rápido"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+    >
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={() => setOpen(false)}
+      />
+      <div className="relative z-10 w-full max-w-xl rounded-xl border border-border bg-surface shadow-2xl">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+          <Search className="h-4 w-4 text-fg-muted" />
+          <Command.Input
+            placeholder="Busca personajes, torneos o navega..."
+            className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
+          />
+          <kbd className="hidden rounded-md border border-border bg-bg px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline-block">
+            ESC
+          </kbd>
+        </div>
+        <Command.List className="scrollbar-hide max-h-[60vh] overflow-y-auto p-2">
+          <Command.Empty className="py-10 text-center text-sm text-fg-muted">
+            Sin resultados.
+          </Command.Empty>
+          <Command.Group
+            heading="Páginas"
+            className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+          >
+            {rutas.map(({ to, label, icon: Icon }) => (
+              <Command.Item
+                key={to}
+                value={`pagina ${label}`}
+                onSelect={() => go(to)}
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+              >
+                <Icon className="h-4 w-4 text-fg-muted" />
+                {label}
+              </Command.Item>
+            ))}
+            {!user &&
+              rutasInvitado.map(({ to, label, icon: Icon }) => (
+                <Command.Item
+                  key={to}
+                  value={`acceso ${label}`}
+                  onSelect={() => go(to)}
+                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+                >
+                  <Icon className="h-4 w-4 text-fg-muted" />
+                  {label}
+                </Command.Item>
+              ))}
+          </Command.Group>
+
+          <Command.Group
+            heading="Acciones"
+            className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+          >
+            <Command.Item
+              value="sonido toggle"
+              onSelect={() => {
+                toggleMute()
+                setOpen(false)
+              }}
+              className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+            >
+              {muted ? (
+                <Volume2 className="h-4 w-4 text-fg-muted" />
+              ) : (
+                <VolumeX className="h-4 w-4 text-fg-muted" />
+              )}
+              {muted ? 'Activar sonidos' : 'Silenciar sonidos'}
+            </Command.Item>
+            {user && (
+              <Command.Item
+                value="cerrar sesion"
+                onSelect={() => {
+                  logout()
+                  setOpen(false)
+                }}
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+              >
+                <LogOut className="h-4 w-4 text-fg-muted" />
+                Cerrar sesión
+              </Command.Item>
+            )}
+          </Command.Group>
+
+          <Command.Group
+            heading="Torneos"
+            className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+          >
+            {torneos.map((t) => (
+              <Command.Item
+                key={t.slug}
+                value={`torneo ${t.nombre}`}
+                onSelect={() => go(`/torneos/${t.slug}`)}
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+              >
+                <Trophy className="h-4 w-4 text-fg-muted" />
+                {t.nombre}
+                <span className="ml-auto text-[11px] text-fg-muted">
+                  {t.participantes.length} personajes
+                </span>
+              </Command.Item>
+            ))}
+          </Command.Group>
+
+          <Command.Group
+            heading="Personajes"
+            className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+          >
+            {personajes.map((p) => (
+              <Command.Item
+                key={p.slug}
+                value={`personaje ${p.nombre} ${p.anime}`}
+                onSelect={() => go(`/personajes/${p.slug}`)}
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+              >
+                <img
+                  src={imagenPersonaje(p.slug)}
+                  alt=""
+                  loading="lazy"
+                  className="h-7 w-5 shrink-0 rounded object-cover object-top"
+                />
+                <span>{p.nombre}</span>
+                <span className="ml-auto text-[11px] text-fg-muted">
+                  {p.anime}
+                </span>
+              </Command.Item>
+            ))}
+          </Command.Group>
+        </Command.List>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 text-[11px] text-fg-muted">
+          <span>
+            Cmd+K · Cmd+J para abrir
+          </span>
+          <span>
+            <kbd className="font-mono">↑↓</kbd> navegar ·{' '}
+            <kbd className="font-mono">↵</kbd> ir
+          </span>
+        </div>
+      </div>
+    </Command.Dialog>
+  )
+}
+
+export default CommandPalette
