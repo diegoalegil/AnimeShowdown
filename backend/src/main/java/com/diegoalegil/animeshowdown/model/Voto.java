@@ -1,5 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,6 +25,7 @@ public class Voto {
     @JoinColumn(name = "personaje_id", nullable = false)
     private Personaje personaje;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = true)
     private Usuario usuario;
