@@ -8,12 +8,14 @@ public class UsuarioRespuesta {
     private Long id;
     private String username;
     private String email;
+    private String avatarUrl;
     private Rol rol;
 
     public UsuarioRespuesta(Usuario usuario) {
         this.id = usuario.getId();
         this.username = usuario.getUsername();
         this.email = usuario.getEmail();
+        this.avatarUrl = usuario.getAvatarUrl();
         this.rol = usuario.getRol();
     }
 
@@ -27,6 +29,10 @@ public class UsuarioRespuesta {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
     }
 
     public Rol getRol() {
