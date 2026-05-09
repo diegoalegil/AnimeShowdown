@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").authenticated()
                         .requestMatchers("/api/personajes/**").permitAll()
