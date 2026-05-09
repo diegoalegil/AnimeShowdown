@@ -8,14 +8,14 @@ Colección Postman v2.1 con todos los endpoints de AnimeShowdown listos para pro
 |---|---|
 | `AnimeShowdown.postman_collection.json` | La colección con los 17 endpoints organizados en carpetas (Auth, Personajes, Votos, Torneos, Enfrentamientos, Admin, System) |
 | `AnimeShowdown-local.postman_environment.json` | Environment con `BASE_URL=http://localhost:8080` |
-| `AnimeShowdown-render.postman_environment.json` | Environment con `BASE_URL=https://animeshowdown.onrender.com` |
+| `AnimeShowdown-railway.postman_environment.json` | Environment con `BASE_URL=https://animeshowdown-production-a9f4.up.railway.app` |
 
 ## Importar en Postman
 
 1. Abre Postman → **Import** (botón arriba izquierda)
 2. Arrastra los 3 archivos `.json` (o uno a uno con "Choose Files")
 3. Postman los detecta como collection + 2 environments
-4. Arriba a la derecha selecciona el environment activo: **"AnimeShowdown — Local"** o **"AnimeShowdown — Render (prod)"**
+4. Arriba a la derecha selecciona el environment activo: **"AnimeShowdown — Local"** o **"AnimeShowdown — Railway (prod)"**
 
 ## Uso típico
 

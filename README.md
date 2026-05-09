@@ -21,18 +21,18 @@ API REST de torneos y ranking de popularidad de personajes anime, con autenticac
 - **JUnit 5 + MockMvc + H2 in-memory** para tests
 - **Jikan API v4** para importar personajes desde MyAnimeList
 - **Maven Wrapper** + **Docker** multi-stage para deploy
-- Hosting: **Render Free** (backend) + **Neon Free** (Postgres)
+- Hosting: **Railway** (backend) + **Neon Free** (Postgres)
 
 ---
 
 ## Live
 
-- **API base:** `https://animeshowdown.onrender.com` _(reemplazar con URL real cuando esté lista)_
-- **Swagger UI:** `https://animeshowdown.onrender.com/swagger-ui/index.html`
-- **OpenAPI JSON:** `https://animeshowdown.onrender.com/v3/api-docs`
-- **Health check:** `https://animeshowdown.onrender.com/actuator/health`
+- **API base:** https://animeshowdown-production-a9f4.up.railway.app
+- **Swagger UI:** https://animeshowdown-production-a9f4.up.railway.app/swagger-ui/index.html
+- **OpenAPI JSON:** https://animeshowdown-production-a9f4.up.railway.app/v3/api-docs
+- **Health check:** https://animeshowdown-production-a9f4.up.railway.app/actuator/health
 
-> Render Free duerme tras 15 min sin tráfico → primera request tras inactividad tarda ~50s en despertar.
+> Hosting: backend en **Railway Hobby** (24/7 sin sleep), Postgres en **Neon Free** (Frankfurt).
 
 ---
 
@@ -239,20 +239,16 @@ curl $BASE/api/votos/ranking
 
 ## Despliegue
 
-### Backend en Render Free
+### Backend en Railway
 
-1. Cuenta en https://render.com con GitHub
-2. New → Web Service → conectar repo `AnimeShowdown`
-3. Configuración:
-   - **Language:** Docker
+1. Cuenta en https://railway.app con GitHub
+2. New Project → Deploy from GitHub repo → seleccionar `AnimeShowdown`
+3. En el servicio creado → Settings:
    - **Root Directory:** `backend`
-   - **Dockerfile Path:** `Dockerfile`
-   - **Docker Build Context Directory:** `.`
-   - **Region:** Frankfurt (o más cercano)
-   - **Plan:** Free (512 MB / 0.1 CPU)
-   - **Health Check Path:** `/actuator/health`
-4. Environment Variables: las de la tabla de arriba (NO `PORT`, Render lo inyecta solo)
-5. Deploy → ~10 min el primer build
+   - El Dockerfile se detecta automáticamente
+4. Variables: meter las 7 de la tabla de arriba (`DATABASE_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION`, `JPA_DDL`, `SHOW_SQL`). NO añadir `PORT`.
+5. Settings → Networking → **"Generate Domain"** → puerto `8080`
+6. Deploy → ~3 min el primer build, app arranca en ~10s
 
 ### Postgres en Neon Free
 
@@ -281,7 +277,7 @@ SLF4J en clases clave (formato Logback estándar de Spring Boot):
 
 - **Jikan import:** el endpoint `/top/characters` no incluye los animes asociados, así que el campo `anime` queda como `"Desconocido"` para personajes importados. Mejora futura: segunda llamada a `/characters/{mal_id}/anime`.
 - **Empate en torneo:** si dos personajes empatan en votos al finalizar, `ganador` queda `NULL`.
-- **Render Free sleep:** 50s de cold start tras 15 min de inactividad. Aceptable para portfolio; si se quisiera 24/7 sin esperas → Hobby plan ($5/mes) o migrar a otro provider.
+- **Railway Hobby plan:** $5/mes incluye créditos suficientes para app pequeña + uso de portfolio. Sin sleep, 24/7 real.
 - **Sin endpoint para promover a ADMIN:** se hace manualmente con `UPDATE usuarios SET rol = 'ADMIN' WHERE username = ?` en BD. Mejora futura: endpoint `/api/admin/usuarios/{id}/promover` que solo otros ADMIN puedan llamar.
 
 ---
