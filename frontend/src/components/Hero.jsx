@@ -34,7 +34,7 @@ const logoVariants = {
 function Hero() {
   return (
     <section
-      className="relative flex flex-1 items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20"
+      className="relative flex min-h-[80vh] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20"
       style={{
         backgroundImage:
           'radial-gradient(ellipse at 50% 0%, var(--color-accent-soft), transparent 60%)',
