@@ -7,6 +7,7 @@ import {
   getStatsPersonaje,
 } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSound } from '../contexts/SoundContext'
 
 function getRandomPair() {
   const a = Math.floor(Math.random() * personajes.length)
@@ -26,6 +27,7 @@ const headerVariants = {
 
 function VotarPage() {
   useDocumentTitle('Votar')
+  const { play } = useSound()
   const [pair, setPair] = useState(getRandomPair)
   const [votedFor, setVotedFor] = useState(null)
 
@@ -39,11 +41,13 @@ function VotarPage() {
   const handleVote = (slug) => {
     if (votedFor) return
     setVotedFor(slug)
+    play('playVote')
   }
 
   const handleNext = () => {
     setPair(getRandomPair())
     setVotedFor(null)
+    play('playClick')
   }
 
   return (
