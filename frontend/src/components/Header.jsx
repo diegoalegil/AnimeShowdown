@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { LogOut, Volume2, VolumeX } from 'lucide-react'
+import { LogOut, Palette, Volume2, VolumeX } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
+import { useTheme } from '../contexts/ThemeContext'
 
 const navLinks = [
   { to: '/', label: 'Inicio' },
@@ -32,7 +34,14 @@ function ctaLinkClass({ isActive }) {
 function Header() {
   const { user, logout } = useAuth()
   const { muted, toggleMute, play } = useSound()
+  const { cycleTheme } = useTheme()
   const [scrolled, setScrolled] = useState(false)
+
+  const handleCycleTheme = () => {
+    const nuevoNombre = cycleTheme()
+    play('playClick')
+    toast(`Paleta: ${nuevoNombre}`, { duration: 1500 })
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -77,12 +86,20 @@ function Header() {
         ))}
         <button
           type="button"
+          onClick={handleCycleTheme}
+          aria-label="Cambiar paleta de color"
+          className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-accent"
+        >
+          <Palette className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
           onClick={() => {
             toggleMute()
             if (muted) play('playClick')
           }}
           aria-label={muted ? 'Activar sonidos' : 'Silenciar sonidos'}
-          className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
         >
           {muted ? (
             <VolumeX className="h-4 w-4" />
