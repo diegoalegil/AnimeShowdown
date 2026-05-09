@@ -4,12 +4,18 @@ import { ArrowRight, Heart, Swords, Trophy } from 'lucide-react'
 import Hero from '../components/Hero'
 import NombresMarquee from '../components/NombresMarquee'
 import TorneoCard from '../components/TorneoCard'
+import CountUp from '../components/CountUp'
 import { torneos } from '../data/torneos'
 import {
   personajes,
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+
+const animeUniversos = new Set(personajes.map((p) => p.anime)).size
+const eloMax = Math.max(
+  ...personajes.map((p) => getStatsPersonaje(p.slug).elo),
+)
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -53,10 +59,45 @@ function InicioPage() {
     <>
       <Hero />
       <NombresMarquee />
+      <SectionStats />
       <SectionTorneosActivos />
       <SectionTop5Ranking />
       <SectionComoFunciona />
     </>
+  )
+}
+
+function SectionStats() {
+  return (
+    <motion.section
+      className="px-5 py-16 sm:px-8 sm:py-20"
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+    >
+      <div className="mx-auto max-w-5xl">
+        <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
+          <Stat target={personajes.length} label="Personajes" />
+          <Stat target={torneos.length} label="Torneos" />
+          <Stat target={animeUniversos} label="Animes" />
+          <Stat target={eloMax} label="ELO máximo" />
+        </div>
+      </div>
+    </motion.section>
+  )
+}
+
+function Stat({ target, label }) {
+  return (
+    <div className="flex flex-col gap-2 border-l-2 border-accent/30 pl-4">
+      <p className="font-mono text-4xl font-extrabold tracking-tight text-fg-strong tabular-nums sm:text-5xl">
+        <CountUp target={target} />
+      </p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+        {label}
+      </p>
+    </div>
   )
 }
 
