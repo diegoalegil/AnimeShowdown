@@ -33,13 +33,15 @@ const logoVariants = {
 
 function Hero() {
   return (
-    <section
-      className="relative flex min-h-[80vh] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20"
-      style={{
-        backgroundImage:
-          'radial-gradient(ellipse at 50% 0%, var(--color-accent-soft), transparent 60%)',
-      }}
-    >
+    <section className="relative flex min-h-[80vh] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      >
+        <div className="absolute -top-24 left-1/4 h-[28rem] w-[28rem] rounded-full bg-accent opacity-30 blur-3xl animate-aurora-1" />
+        <div className="absolute top-1/4 right-1/4 h-[24rem] w-[24rem] rounded-full bg-purple-500 opacity-25 blur-3xl animate-aurora-2" />
+        <div className="absolute -bottom-16 left-1/2 h-[26rem] w-[26rem] rounded-full bg-cyan-400 opacity-15 blur-3xl animate-aurora-3" />
+      </div>
       <FloatingCards />
       <motion.div
         className="relative z-10 flex max-w-3xl flex-col items-center gap-6 text-center"
@@ -57,7 +59,7 @@ function Hero() {
           variants={logoVariants}
         />
         <motion.span
-          className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted"
+          className="inline-flex rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted backdrop-blur-md"
           variants={itemVariants}
         >
           Beta · 96 personajes
@@ -81,13 +83,14 @@ function Hero() {
           <a
             href="#"
             className="group inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+            style={{ boxShadow: '0 12px 32px -10px rgb(255 46 99 / 0.6)' }}
           >
             Explora torneos
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </a>
           <a
             href="#"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-transparent px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-5 py-3 text-sm font-semibold text-fg-strong backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
           >
             <TrendingUp className="h-4 w-4" />
             Ver ranking
