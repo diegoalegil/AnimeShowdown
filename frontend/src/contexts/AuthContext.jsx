@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -23,15 +24,25 @@ export function AuthProvider({ children }) {
 
   const login = async (email) => {
     await new Promise((r) => setTimeout(r, 600))
-    setUser({ email, nombre: email.split('@')[0] })
+    const nombre = email.split('@')[0]
+    setUser({ email, nombre })
+    toast.success(`Bienvenido, ${nombre}`, {
+      description: 'Sesión iniciada correctamente.',
+    })
   }
 
   const register = async ({ email, nombre }) => {
     await new Promise((r) => setTimeout(r, 700))
     setUser({ email, nombre })
+    toast.success(`Cuenta creada, ${nombre}`, {
+      description: 'Bienvenido a AnimeShowdown.',
+    })
   }
 
-  const logout = () => setUser(null)
+  const logout = () => {
+    setUser(null)
+    toast('Hasta pronto', { description: 'Sesión cerrada.' })
+  }
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout }}>

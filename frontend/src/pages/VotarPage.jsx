@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Swords } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   personajes,
   imagenPersonaje,
   getStatsPersonaje,
+  getPersonajeBySlug,
 } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSound } from '../contexts/SoundContext'
@@ -42,6 +44,12 @@ function VotarPage() {
     if (votedFor) return
     setVotedFor(slug)
     play('playVote')
+    const p = getPersonajeBySlug(slug)
+    if (p) {
+      toast.success(`Voto registrado: ${p.nombre}`, {
+        description: `de ${p.anime}`,
+      })
+    }
   }
 
   const handleNext = () => {
