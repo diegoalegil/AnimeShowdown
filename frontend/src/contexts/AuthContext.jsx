@@ -26,10 +26,15 @@ export function AuthProvider({ children }) {
     setUser({ email, nombre: email.split('@')[0] })
   }
 
+  const register = async ({ email, nombre }) => {
+    await new Promise((r) => setTimeout(r, 700))
+    setUser({ email, nombre })
+  }
+
   const logout = () => setUser(null)
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

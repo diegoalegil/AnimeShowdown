@@ -13,24 +13,31 @@ const containerVariants = {
   },
 }
 
-function LoginPage() {
-  useDocumentTitle('Iniciar sesión')
-  const { login } = useAuth()
+function RegisterPage() {
+  useDocumentTitle('Crear cuenta')
+  const { register: registerUser } = useAuth()
   const navigate = useNavigate()
   const {
     register,
     handleSubmit,
+    watch,
     setError,
     formState: { errors, isSubmitting },
   } = useForm()
 
+  const password = watch('password')
+
   const onSubmit = async (data) => {
     try {
-      await login(data.email, data.password)
+      await registerUser({
+        nombre: data.nombre,
+        email: data.email,
+        password: data.password,
+      })
       navigate('/')
     } catch {
       setError('root', {
-        message: 'No se pudo iniciar sesión. Intenta de nuevo.',
+        message: 'No se pudo crear la cuenta. Intenta de nuevo.',
       })
     }
   }
@@ -45,17 +52,42 @@ function LoginPage() {
       >
         <div className="mb-6 flex flex-col items-start gap-2">
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            Acceso
+            Nueva cuenta
           </span>
-          <h1 className="text-3xl tracking-tight">Inicia sesión</h1>
+          <h1 className="text-3xl tracking-tight">Únete a AnimeShowdown</h1>
           <p className="text-fg-muted">
-            Crea torneos, vota enfrentamientos y guarda tu historial. Modo demo: cualquier email/password sirve mientras no haya backend conectado.
+            Crea torneos, vota enfrentamientos y sigue tu historial. Modo demo: cualquier dato sirve mientras no haya backend conectado.
           </p>
         </div>
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
         >
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="nombre"
+              className="text-[13px] font-medium text-fg-strong"
+            >
+              Nombre
+            </label>
+            <input
+              id="nombre"
+              type="text"
+              autoComplete="username"
+              {...register('nombre', {
+                required: 'Introduce tu nombre',
+                minLength: { value: 2, message: 'Mínimo 2 caracteres' },
+                maxLength: { value: 32, message: 'Máximo 32 caracteres' },
+              })}
+              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+                errors.nombre ? 'border-red-500' : 'border-border'
+              }`}
+              placeholder="Diego"
+            />
+            {errors.nombre && (
+              <p className="text-[12px] text-red-400">{errors.nombre.message}</p>
+            )}
+          </div>
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="email"
@@ -93,9 +125,9 @@ function LoginPage() {
             <input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               {...register('password', {
-                required: 'Introduce tu contraseña',
+                required: 'Introduce una contraseña',
                 minLength: { value: 6, message: 'Mínimo 6 caracteres' },
               })}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
@@ -109,6 +141,33 @@ function LoginPage() {
               </p>
             )}
           </div>
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="confirmPassword"
+              className="text-[13px] font-medium text-fg-strong"
+            >
+              Confirma la contraseña
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              {...register('confirmPassword', {
+                required: 'Confirma tu contraseña',
+                validate: (value) =>
+                  value === password || 'Las contraseñas no coinciden',
+              })}
+              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+                errors.confirmPassword ? 'border-red-500' : 'border-border'
+              }`}
+              placeholder="••••••••"
+            />
+            {errors.confirmPassword && (
+              <p className="text-[12px] text-red-400">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
           {errors.root && (
             <p className="text-[12px] text-red-400">{errors.root.message}</p>
           )}
@@ -117,16 +176,16 @@ function LoginPage() {
             disabled={isSubmitting}
             className="mt-2 inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? 'Entrando…' : 'Entrar'}
+            {isSubmitting ? 'Creando cuenta…' : 'Crear cuenta'}
           </button>
         </form>
         <p className="mt-4 text-center text-[13px] text-fg-muted">
-          ¿No tienes cuenta?{' '}
+          ¿Ya tienes cuenta?{' '}
           <Link
-            to="/register"
+            to="/login"
             className="font-semibold text-accent hover:text-accent-hover"
           >
-            Crea una
+            Inicia sesión
           </Link>
         </p>
       </motion.div>
@@ -134,4 +193,4 @@ function LoginPage() {
   )
 }
 
-export default LoginPage
+export default RegisterPage
