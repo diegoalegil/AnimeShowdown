@@ -17,6 +17,37 @@ function buildLocalUser(payload) {
   }
 }
 
+function describeError(err) {
+  if (err instanceof ApiError) {
+    if (err.status === 401) {
+      return {
+        title: 'Credenciales inválidas',
+        description: 'Revisa tu username/email y contraseña.',
+      }
+    }
+    if (err.status === 409) {
+      return {
+        title: 'Usuario o email ya registrado',
+        description: 'Prueba con otros datos o entra desde Login.',
+      }
+    }
+    if (err.status >= 400 && err.status < 500) {
+      return {
+        title: 'Datos inválidos',
+        description: err.message || 'Revisa los campos del formulario.',
+      }
+    }
+    return {
+      title: 'Error en el servidor',
+      description: `${err.status} · ${err.message || 'Inténtalo en unos segundos.'}`,
+    }
+  }
+  return {
+    title: 'No se pudo conectar al servidor',
+    description: 'Verifica tu conexión o inténtalo en unos segundos.',
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -56,49 +87,21 @@ export function AuthProvider({ children }) {
           u.rol === 'ADMIN' ? 'Sesión ADMIN iniciada.' : 'Sesión iniciada.',
       })
     } catch (err) {
-      if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
-        toast.error('Credenciales inválidas', {
-          description: 'Revisa tu email/username y contraseña.',
-        })
-        throw err
-      }
-      // Fallback demo si el backend no responde
-      const fakeUser = {
-        username: identificador,
-        email: identificador.includes('@') ? identificador : null,
-        rol: 'USER',
-      }
-      setUser(fakeUser)
-      toast.success(`Bienvenido, ${fakeUser.username}`, {
-        description: 'Modo demo (backend no disponible).',
-      })
+      const { title, description } = describeError(err)
+      toast.error(title, { description })
+      throw err
     }
   }
 
   const register = async ({ username, email, password }) => {
     try {
       await endpoints.register({ username, email, password })
-      // Backend register no devuelve token; hacemos login automático
+      // Backend register no devuelve token; hacemos login automático con username + password
       await login(username, password)
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        toast.error('Usuario o email ya registrado', {
-          description: 'Prueba con otro username o entra desde Login.',
-        })
-        throw err
-      }
-      if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
-        toast.error('Datos inválidos', {
-          description: err.message || 'Revisa los campos del formulario.',
-        })
-        throw err
-      }
-      // Fallback demo
-      const fakeUser = { username, email, rol: 'USER' }
-      setUser(fakeUser)
-      toast.success(`Cuenta creada, ${username}`, {
-        description: 'Modo demo (backend no disponible).',
-      })
+      const { title, description } = describeError(err)
+      toast.error(title, { description })
+      throw err
     }
   }
 
