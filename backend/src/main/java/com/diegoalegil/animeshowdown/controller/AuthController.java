@@ -8,10 +8,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
+import com.diegoalegil.animeshowdown.dto.LoginRequest;
 import com.diegoalegil.animeshowdown.dto.RegistroRequest;
+import com.diegoalegil.animeshowdown.dto.TokenRespuesta;
 import com.diegoalegil.animeshowdown.dto.UsuarioRespuesta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
+import com.diegoalegil.animeshowdown.security.JwtUtil;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,10 +24,12 @@ public class AuthController {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/registro")
@@ -44,5 +51,27 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new UsuarioRespuesta(guardado));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(request.getUsername());
+
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Credenciales inválidas");
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Credenciales inválidas");
+        }
+
+        String token = jwtUtil.generarToken(usuario);
+
+        return ResponseEntity.ok(new TokenRespuesta(token));
     }
 }
