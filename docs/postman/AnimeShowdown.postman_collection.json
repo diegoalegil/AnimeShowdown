@@ -1,0 +1,291 @@
+{
+  "info": {
+    "name": "AnimeShowdown API",
+    "description": "Colección Postman completa para AnimeShowdown — torneos y ranking de personajes anime con auth JWT.\n\n**Variables**:\n- `BASE_URL`: URL del backend (local: `http://localhost:8080`, prod: `https://animeshowdown.onrender.com`)\n- `TOKEN`: se rellena automáticamente al hacer login\n\n**Uso típico**:\n1. Auth → Registrar (crea usuario)\n2. Auth → Login (guarda token automáticamente en `TOKEN`)\n3. Cualquier endpoint protegido usa `{{TOKEN}}` en el header Authorization\n\nImporta también el environment file `AnimeShowdown-local.postman_environment.json` o `AnimeShowdown-render.postman_environment.json`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Registrar usuario",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"diego\",\n  \"password\": \"naruto123\",\n  \"email\": \"diego@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/registro",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "registro"]
+            },
+            "description": "Crea un usuario nuevo. 201 Created con el usuario sin password. 409 Conflict si username duplicado. 400 Bad Request con detalle por campo si falla validación."
+          }
+        },
+        {
+          "name": "Login (guarda TOKEN automáticamente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('TOKEN', json.token);",
+                  "    console.log('Token guardado en environment.TOKEN');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"diego\",\n  \"password\": \"naruto123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Devuelve `{token: \"...\"}`. El test script guarda automáticamente el token en la variable de environment `TOKEN`. 401 si credenciales incorrectas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Personajes (público)",
+      "item": [
+        {
+          "name": "Listar todos",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/personajes",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "personajes"]
+            }
+          }
+        },
+        {
+          "name": "Filtrar por anime",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/personajes?anime=Naruto",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "personajes"],
+              "query": [{ "key": "anime", "value": "Naruto" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar por id",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/personajes/4",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "personajes", "4"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Votos",
+      "item": [
+        {
+          "name": "Ranking público",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/votos/ranking",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "votos", "ranking"]
+            },
+            "description": "Devuelve `[{personaje, votos}, ...]` ordenado por COUNT(votos) desc."
+          }
+        },
+        {
+          "name": "Votar a un personaje (auth)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/personajes/4/votar",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "personajes", "4", "votar"]
+            },
+            "description": "Requiere JWT (`Authorization: Bearer {{TOKEN}}` se aplica automáticamente). 409 si el usuario ya votó a ese personaje."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Torneos",
+      "item": [
+        {
+          "name": "Listar torneos (público)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/torneos",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "torneos"]
+            }
+          }
+        },
+        {
+          "name": "Crear torneo (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mejor protagonista shonen\",\n  \"descripcion\": \"Torneo entre los protagonistas más icónicos del shonen\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/torneos",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "torneos"]
+            },
+            "description": "Crea torneo en estado BORRADOR. Requiere ROLE_ADMIN."
+          }
+        },
+        {
+          "name": "Iniciar torneo (admin)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{BASE_URL}}/api/torneos/1/iniciar",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "torneos", "1", "iniciar"]
+            },
+            "description": "BORRADOR → ACTIVO + fechaInicio. 409 si no está en BORRADOR."
+          }
+        },
+        {
+          "name": "Crear enfrentamientos (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\"personaje1Id\": 4, \"personaje2Id\": 5},\n  {\"personaje1Id\": 6, \"personaje2Id\": 7}\n]"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/torneos/1/enfrentamientos",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "torneos", "1", "enfrentamientos"]
+            },
+            "description": "Crea N enfrentamientos en lote. 409 si torneo FINALIZADO. 404 si algún personaje no existe."
+          }
+        },
+        {
+          "name": "Finalizar torneo (admin)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{BASE_URL}}/api/torneos/1/finalizar",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "torneos", "1", "finalizar"]
+            },
+            "description": "ACTIVO → FINALIZADO. Calcula ganador de cada enfrentamiento por COUNT(votos). NULL en empate."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enfrentamientos",
+      "item": [
+        {
+          "name": "Votar enfrentamiento (auth)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personajeGanadorId\": 4\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/enfrentamientos/1/votar",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "enfrentamientos", "1", "votar"]
+            },
+            "description": "Vota a uno de los 2 personajes del enfrentamiento. 400 si personaje no pertenece. 409 si torneo no ACTIVO o ya votó."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Importar personajes desde Jikan",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/personajes/importar?cantidad=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "personajes", "importar"],
+              "query": [{ "key": "cantidad", "value": "10" }]
+            },
+            "description": "Importa los top N personajes desde Jikan (MyAnimeList). Requiere ROLE_ADMIN."
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/actuator/health",
+              "host": ["{{BASE_URL}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "OpenAPI JSON",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/v3/api-docs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["v3", "api-docs"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
