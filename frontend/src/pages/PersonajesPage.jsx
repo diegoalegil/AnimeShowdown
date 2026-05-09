@@ -9,6 +9,7 @@ import {
   getStatsPersonaje,
 } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSound } from '../contexts/SoundContext'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -36,6 +37,7 @@ const sortLabels = {
 
 function PersonajesPage() {
   useDocumentTitle('Personajes')
+  const { play } = useSound()
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [animeFilter, setAnimeFilter] = useState(
@@ -118,7 +120,10 @@ function PersonajesPage() {
           </div>
           <select
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={(e) => {
+              setSort(e.target.value)
+              play('playClick')
+            }}
             className="rounded-lg border border-border bg-surface py-2.5 px-3 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
           >
             {Object.entries(sortLabels).map(([k, v]) => (
@@ -130,7 +135,10 @@ function PersonajesPage() {
           <div className="flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
             <button
               type="button"
-              onClick={() => setView('grid')}
+              onClick={() => {
+                setView('grid')
+                play('playClick')
+              }}
               aria-label="Vista cuadrícula"
               className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
                 view === 'grid'
@@ -142,7 +150,10 @@ function PersonajesPage() {
             </button>
             <button
               type="button"
-              onClick={() => setView('list')}
+              onClick={() => {
+                setView('list')
+                play('playClick')
+              }}
               aria-label="Vista lista"
               className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
                 view === 'list'
@@ -158,7 +169,10 @@ function PersonajesPage() {
         <div className="scrollbar-hide -mx-5 mb-8 flex gap-2 overflow-x-auto px-5 pb-1 sm:-mx-0 sm:px-0">
           <button
             type="button"
-            onClick={() => setAnimeFilter(null)}
+            onClick={() => {
+              setAnimeFilter(null)
+              play('playClick')
+            }}
             className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
               animeFilter === null
                 ? 'border-accent bg-accent text-white'
@@ -171,7 +185,10 @@ function PersonajesPage() {
             <button
               key={anime}
               type="button"
-              onClick={() => setAnimeFilter(anime)}
+              onClick={() => {
+                setAnimeFilter(anime)
+                play('playClick')
+              }}
               className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
                 animeFilter === anime
                   ? 'border-accent bg-accent text-white'

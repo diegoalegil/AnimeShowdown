@@ -59,6 +59,8 @@ function CommandPalette() {
 
   const go = (path) => {
     setOpen(false)
+    const muted = localStorage.getItem('animeshowdown.muted') === 'true'
+    if (!muted) playWhoosh()
     navigate(path)
   }
 
