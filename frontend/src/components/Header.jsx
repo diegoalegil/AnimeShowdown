@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -28,9 +29,23 @@ function ctaLinkClass({ isActive }) {
 
 function Header() {
   const { user, logout } = useAuth()
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
-    <header className="flex flex-col items-stretch gap-3.5 border-b border-border bg-surface px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-4">
+    <header
+      className={`sticky top-0 z-30 flex flex-col items-stretch gap-3.5 px-5 py-3.5 transition-[background-color,backdrop-filter,border-color] duration-200 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-4 ${
+        scrolled
+          ? 'border-b border-border bg-surface/70 backdrop-blur-xl'
+          : 'border-b border-transparent bg-transparent backdrop-blur-0'
+      }`}
+    >
       <Link
         to="/"
         className="flex items-center justify-center gap-3 sm:justify-start"
