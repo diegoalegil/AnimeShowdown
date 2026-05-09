@@ -1,8 +1,13 @@
 package com.diegoalegil.animeshowdown.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public class EnfrentamientoCrearRequest {
 
+    @NotNull(message = "personaje1Id es obligatorio")
     private Long personaje1Id;
+
+    @NotNull(message = "personaje2Id es obligatorio")
     private Long personaje2Id;
 
     public EnfrentamientoCrearRequest() {

@@ -20,6 +20,8 @@ import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/enfrentamientos")
 public class EnfrentamientoController {
@@ -35,7 +37,7 @@ public class EnfrentamientoController {
 
     @PostMapping("/{id}/votar")
     public ResponseEntity<?> votar(@PathVariable Long id,
-            @RequestBody VotoEnfrentamientoRequest request,
+            @Valid @RequestBody VotoEnfrentamientoRequest request,
             @AuthenticationPrincipal Usuario usuario) {
 
         Optional<Enfrentamiento> enfOpt = enfrentamientoRepository.findById(id);
