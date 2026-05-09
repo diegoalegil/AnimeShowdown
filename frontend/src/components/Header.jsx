@@ -7,6 +7,7 @@ import { useSound } from '../contexts/SoundContext'
 const navLinks = [
   { to: '/', label: 'Inicio' },
   { to: '/personajes', label: 'Personajes' },
+  { to: '/animes', label: 'Animes' },
   { to: '/torneos', label: 'Torneos' },
   { to: '/votar', label: 'Votar' },
   { to: '/ranking', label: 'Ranking' },
