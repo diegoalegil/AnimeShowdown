@@ -148,9 +148,9 @@ public class AuthController {
         }
         Usuario u = usuarioOpt.get();
         String avatarUrl = body.get("avatarUrl");
-        if (avatarUrl != null && avatarUrl.length() > 500) {
+        if (avatarUrl != null && avatarUrl.length() > 500_000) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("avatarUrl demasiado largo (máx 500 caracteres)");
+                    .body("avatarUrl demasiado largo (máx 500 KB)");
         }
         u.setAvatarUrl(avatarUrl != null && avatarUrl.isBlank() ? null : avatarUrl);
         usuarioRepository.save(u);
