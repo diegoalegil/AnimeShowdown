@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Swords } from 'lucide-react'
 import {
   personajes,
   imagenPersonaje,
@@ -73,8 +74,8 @@ function VotarPage() {
             showResult={Boolean(votedFor)}
             pct={pctA}
           />
-          <span className="flex h-14 w-14 items-center justify-center justify-self-center rounded-full border border-accent/40 bg-accent-soft text-base font-extrabold tracking-tight text-accent">
-            VS
+          <span className="flex h-14 w-14 items-center justify-center justify-self-center rounded-full border border-accent/40 bg-accent-soft text-accent">
+            <Swords className="h-6 w-6" />
           </span>
           <VoteCard
             personaje={b}

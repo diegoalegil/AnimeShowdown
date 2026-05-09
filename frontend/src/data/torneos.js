@@ -86,7 +86,19 @@ export function getTorneoBySlug(slug) {
 }
 
 export const estadoBadge = {
-  'en-curso': { label: 'En curso', dot: 'bg-emerald-400' },
-  finalizado: { label: 'Finalizado', dot: 'bg-fg-muted' },
-  proximo: { label: 'Próximamente', dot: 'bg-accent' },
+  'en-curso': {
+    label: 'En curso',
+    dot: 'bg-emerald-400',
+    color: 'text-emerald-400',
+  },
+  finalizado: {
+    label: 'Finalizado',
+    dot: 'bg-fg-muted',
+    color: 'text-fg-muted',
+  },
+  proximo: {
+    label: 'Próximamente',
+    dot: 'bg-accent',
+    color: 'text-accent',
+  },
 }

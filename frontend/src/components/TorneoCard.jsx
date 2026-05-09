@@ -1,13 +1,21 @@
 import { Link } from 'react-router-dom'
+import { CheckCircle2, Clock, PlayCircle, Trophy, Users } from 'lucide-react'
 import {
   imagenPersonaje,
   getPersonajeBySlug,
 } from '../data/personajes'
 import { estadoBadge } from '../data/torneos'
 
+const estadoIcon = {
+  'en-curso': PlayCircle,
+  finalizado: CheckCircle2,
+  proximo: Clock,
+}
+
 function TorneoCard({ torneo }) {
   const { slug, nombre, estado, participantes, winner } = torneo
   const badge = estadoBadge[estado]
+  const Icon = estadoIcon[estado]
   const winnerPersonaje = winner ? getPersonajeBySlug(winner) : null
 
   return (
@@ -37,15 +45,21 @@ function TorneoCard({ torneo }) {
         {nombre}
       </h3>
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-fg-muted">
-        <span className="inline-flex items-center gap-1.5">
-          <span className={`h-2 w-2 rounded-full ${badge.dot}`} />
+        <span className={`inline-flex items-center gap-1.5 ${badge.color}`}>
+          <Icon className="h-3.5 w-3.5" />
           <span className="uppercase tracking-wider">{badge.label}</span>
         </span>
-        <span>·</span>
-        <span>{participantes.length} personajes</span>
+        <span className="text-border">·</span>
+        <span className="inline-flex items-center gap-1">
+          <Users className="h-3.5 w-3.5" />
+          {participantes.length}
+        </span>
       </div>
       {winnerPersonaje && (
         <div className="mt-4 flex items-center gap-3 rounded-lg bg-accent-soft p-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">
+            <Trophy className="h-4 w-4" />
+          </div>
           <img
             src={imagenPersonaje(winner)}
             alt=""
