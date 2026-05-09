@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
@@ -38,7 +39,6 @@ public class Torneo {
     public Torneo() {
     }
 
-    
     public Torneo(String nombre, String descripcion) {
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -46,6 +46,15 @@ public class Torneo {
         this.fechaCreacion = LocalDateTime.now();
     }
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
+        }
+        if (this.estado == null) {
+            this.estado = EstadoTorneo.BORRADOR;
+        }
+    }
 
     public Long getId() {
         return id;
