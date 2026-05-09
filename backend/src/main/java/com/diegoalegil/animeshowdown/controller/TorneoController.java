@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,9 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearRequest;
+import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
+import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
 @RestController
@@ -24,9 +30,15 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 public class TorneoController {
 
     private final TorneoRepository torneoRepository;
+    private final EnfrentamientoRepository enfrentamientoRepository;
+    private final PersonajeRepository personajeRepository;
 
-    public TorneoController(TorneoRepository torneoRepository) {
+    public TorneoController(TorneoRepository torneoRepository,
+            EnfrentamientoRepository enfrentamientoRepository,
+            PersonajeRepository personajeRepository) {
         this.torneoRepository = torneoRepository;
+        this.enfrentamientoRepository = enfrentamientoRepository;
+        this.personajeRepository = personajeRepository;
     }
 
     @GetMapping
@@ -60,5 +72,38 @@ public class TorneoController {
         Torneo guardado = torneoRepository.save(torneo);
 
         return ResponseEntity.ok(guardado);
+    }
+
+    @PostMapping("/{id}/enfrentamientos")
+    public ResponseEntity<?> crearEnfrentamientos(@PathVariable Long id,
+            @RequestBody List<EnfrentamientoCrearRequest> requests) {
+
+        Optional<Torneo> torneoOpt = torneoRepository.findById(id);
+        if (torneoOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Torneo torneo = torneoOpt.get();
+
+        if (torneo.getEstado() == EstadoTorneo.FINALIZADO) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("No se pueden añadir enfrentamientos a un torneo FINALIZADO");
+        }
+
+        List<Enfrentamiento> creados = new ArrayList<>();
+        for (EnfrentamientoCrearRequest req : requests) {
+            Optional<Personaje> p1Opt = personajeRepository.findById(req.getPersonaje1Id());
+            Optional<Personaje> p2Opt = personajeRepository.findById(req.getPersonaje2Id());
+
+            if (p1Opt.isEmpty() || p2Opt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Personaje no encontrado: " + req.getPersonaje1Id() + " o " + req.getPersonaje2Id());
+            }
+
+            Enfrentamiento e = new Enfrentamiento(torneo, p1Opt.get(), p2Opt.get());
+            creados.add(enfrentamientoRepository.save(e));
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(creados);
     }
 }
