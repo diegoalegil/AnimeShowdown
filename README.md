@@ -36,6 +36,18 @@ API REST de torneos y ranking de popularidad de personajes anime, con autenticac
 
 ---
 
+## Capturas
+
+**Swagger UI — vista general (13 paths documentados)**
+
+![Swagger UI overview](docs/screenshots/swagger-overview.png)
+
+**Swagger UI — detalle del endpoint POST /api/auth/login**
+
+![POST /api/auth/login expandido](docs/screenshots/swagger-login-detail.png)
+
+---
+
 ## Setup local
 
 ### Requisitos
