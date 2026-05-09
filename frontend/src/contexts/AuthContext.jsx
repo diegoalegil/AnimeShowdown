@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { endpoints, setToken, ApiError } from '../lib/api'
+import { playMagic } from '../lib/sounds'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -29,6 +30,8 @@ export function AuthProvider({ children }) {
       if (res?.token) setToken(res.token)
       const nombre = res?.usuario?.nombre || email.split('@')[0]
       setUser({ email, nombre, ...(res?.usuario || {}) })
+      const muted = localStorage.getItem('animeshowdown.muted') === 'true'
+      if (!muted) playMagic()
       toast.success(`Bienvenido, ${nombre}`, {
         description: 'Sesión iniciada correctamente.',
       })
@@ -54,6 +57,8 @@ export function AuthProvider({ children }) {
       if (res?.token) setToken(res.token)
       const nombreFinal = res?.usuario?.nombre || nombre
       setUser({ email, nombre: nombreFinal, ...(res?.usuario || {}) })
+      const muted = localStorage.getItem('animeshowdown.muted') === 'true'
+      if (!muted) playMagic()
       toast.success(`Cuenta creada, ${nombreFinal}`, {
         description: 'Bienvenido a AnimeShowdown.',
       })
