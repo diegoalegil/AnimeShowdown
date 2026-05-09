@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import ScrollProgress from './components/ScrollProgress'
 import InicioPage from './pages/InicioPage'
 import PersonajesPage from './pages/PersonajesPage'
 import PersonajeDetailPage from './pages/PersonajeDetailPage'
@@ -16,6 +17,7 @@ function App() {
   const location = useLocation()
   return (
     <div className="flex min-h-screen flex-col">
+      <ScrollProgress />
       <Header />
       <main className="flex flex-1 flex-col">
         <AnimatePresence mode="wait">
