@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import TorneoCard from '../components/TorneoCard'
 import { torneos } from '../data/torneos'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -12,6 +13,7 @@ const headerVariants = {
 }
 
 function TorneosPage() {
+  useDocumentTitle('Torneos')
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
       <div className="mx-auto max-w-6xl">

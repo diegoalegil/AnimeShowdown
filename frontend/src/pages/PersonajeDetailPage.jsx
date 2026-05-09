@@ -7,6 +7,7 @@ import {
   getIndicePersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import NotFoundPage from './NotFoundPage'
 
 const containerVariants = {
@@ -33,6 +34,7 @@ function PersonajeDetailPage() {
   if (idx === -1) return <NotFoundPage />
 
   const personaje = personajes[idx]
+  useDocumentTitle(personaje.nombre)
   const stats = getStatsPersonaje(slug)
   const total = stats.wins + stats.losses
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
