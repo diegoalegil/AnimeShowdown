@@ -14,6 +14,7 @@ import Hero from '../components/Hero'
 import NombresMarquee from '../components/NombresMarquee'
 import TorneoCard from '../components/TorneoCard'
 import CountUp from '../components/CountUp'
+import CarouselRow from '../components/CarouselRow'
 import { torneos } from '../data/torneos'
 import {
   personajes,
@@ -25,6 +26,18 @@ const animeUniversos = new Set(personajes.map((p) => p.anime)).size
 const eloMax = Math.max(
   ...personajes.map((p) => getStatsPersonaje(p.slug).elo),
 )
+
+const byAnime = personajes.reduce((acc, p) => {
+  if (!acc[p.anime]) acc[p.anime] = []
+  acc[p.anime].push(p)
+  return acc
+}, {})
+
+const carousels = Object.entries(byAnime)
+  .filter(([, list]) => list.length >= 4)
+  .sort((a, b) => b[1].length - a[1].length)
+  .slice(0, 5)
+  .map(([anime, list]) => ({ anime, list }))
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -71,10 +84,41 @@ function InicioPage() {
       <SectionStats />
       <SectionLiveBattle />
       <SectionTorneosActivos />
+      <SectionPorAnime />
       <SectionTop5Ranking />
       <SectionBento />
       <SectionComoFunciona />
     </>
+  )
+}
+
+function SectionPorAnime() {
+  return (
+    <motion.div
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.05 }}
+    >
+      <div className="mx-auto max-w-7xl px-5 pb-2 pt-12 sm:px-8 sm:pt-16">
+        <div className="flex flex-col items-start gap-2">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+            Por anime
+          </span>
+          <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
+            Explora por universo
+          </h2>
+        </div>
+      </div>
+      {carousels.map(({ anime, list }) => (
+        <CarouselRow
+          key={anime}
+          eyebrow={`${list.length} personajes`}
+          titulo={anime}
+          personajes={list}
+        />
+      ))}
+    </motion.div>
   )
 }
 
