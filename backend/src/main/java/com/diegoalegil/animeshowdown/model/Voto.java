@@ -23,11 +23,21 @@ public class Voto {
     @JoinColumn(name = "personaje_id", nullable = false)
     private Personaje personaje;
 
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = true)
+    private Usuario usuario;
+
     public Voto() {
     }
 
     public Voto(Personaje personaje) {
         this.personaje = personaje;
+        this.fecha = LocalDateTime.now();
+    }
+
+    public Voto(Personaje personaje, Usuario usuario) {
+        this.personaje = personaje;
+        this.usuario = usuario;
         this.fecha = LocalDateTime.now();
     }
 
@@ -53,5 +63,13 @@ public class Voto {
 
     public void setPersonaje(Personaje personaje) {
         this.personaje = personaje;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 }
