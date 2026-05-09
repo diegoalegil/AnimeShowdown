@@ -4,6 +4,7 @@ import {
   personajes,
   imagenPersonaje,
   getIndicePersonaje,
+  getStatsPersonaje,
 } from '../data/personajes'
 import NotFoundPage from './NotFoundPage'
 
@@ -31,6 +32,9 @@ function PersonajeDetailPage() {
   if (idx === -1) return <NotFoundPage />
 
   const personaje = personajes[idx]
+  const stats = getStatsPersonaje(slug)
+  const total = stats.wins + stats.losses
+  const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
   const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
   const next = personajes[(idx + 1) % personajes.length]
 
@@ -77,16 +81,30 @@ function PersonajeDetailPage() {
               className="text-lg text-fg-muted"
               variants={itemVariants}
             >
-              de <span className="font-semibold text-fg-strong">{personaje.anime}</span>
-            </motion.p>
-            <motion.p
-              className="leading-relaxed text-fg-muted"
-              variants={itemVariants}
-            >
-              Este personaje compite en los torneos de AnimeShowdown. Pronto verás su récord ELO, sus victorias y derrotas en directo en cada bracket.
+              de{' '}
+              <span className="font-semibold text-fg-strong">
+                {personaje.anime}
+              </span>
             </motion.p>
             <motion.div
-              className="mt-4 flex w-full items-center justify-between gap-3 border-t border-border pt-4"
+              className="grid w-full grid-cols-3 gap-3"
+              variants={itemVariants}
+            >
+              <Stat label="ELO" value={stats.elo} accent />
+              <Stat
+                label="Récord"
+                value={`${stats.wins}-${stats.losses}`}
+              />
+              <Stat label="Win rate" value={`${winRate}%`} />
+            </motion.div>
+            <motion.p
+              className="text-[12px] leading-relaxed text-fg-muted"
+              variants={itemVariants}
+            >
+              Estadísticas derivadas del historial de enfrentamientos. Datos de ejemplo hasta que el backend esté conectado.
+            </motion.p>
+            <motion.div
+              className="mt-2 flex w-full items-center justify-between gap-3 border-t border-border pt-4"
               variants={itemVariants}
             >
               <Link
@@ -106,6 +124,23 @@ function PersonajeDetailPage() {
         </motion.div>
       </div>
     </section>
+  )
+}
+
+function Stat({ label, value, accent }) {
+  return (
+    <div className="rounded-lg border border-border bg-surface px-3 py-2.5">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+        {label}
+      </p>
+      <p
+        className={`mt-1 font-mono text-xl font-bold ${
+          accent ? 'text-accent' : 'text-fg-strong'
+        }`}
+      >
+        {value}
+      </p>
+    </div>
   )
 }
 
