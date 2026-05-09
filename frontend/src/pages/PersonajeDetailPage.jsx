@@ -143,18 +143,18 @@ function PersonajeDetailPage() {
               />
               <Stat label="Win rate" value={`${winRate}%`} />
             </motion.div>
-            {jikan?.about && (
+            {personaje.descripcion && (
               <motion.div
                 className="rounded-lg border border-border bg-surface p-4"
                 variants={itemVariants}
               >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-                  Bio · vía MyAnimeList
+                  Sobre el personaje
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-fg">
-                  {recortar(jikan.about, 280)}
+                  {personaje.descripcion}
                 </p>
-                {jikan.nicknames?.length > 0 && (
+                {jikan?.nicknames?.length > 0 && (
                   <p className="mt-3 text-[12px] text-fg-muted">
                     También conocido como:{' '}
                     <span className="text-fg-strong">
@@ -190,7 +190,7 @@ function PersonajeDetailPage() {
               className="text-[12px] leading-relaxed text-fg-muted"
               variants={itemVariants}
             >
-              Stats derivadas del historial de enfrentamientos. Bio + cita externa via Jikan/AnimeChan cuando disponibles.
+              Stats derivadas del historial de enfrentamientos. Cita y nicknames vía AnimeChan/MyAnimeList cuando están disponibles.
             </motion.p>
             <motion.div
               className="mt-2 flex w-full items-center justify-between gap-3 border-t border-border pt-4"
