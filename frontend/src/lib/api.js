@@ -53,8 +53,15 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     }
   }
   if (!res.ok) {
+    const fallback =
+      typeof parsed === 'string' && parsed.length > 0
+        ? parsed.slice(0, 200)
+        : null
     throw new ApiError(
-      (parsed && parsed.message) || res.statusText || 'Error de red',
+      (parsed && parsed.message) ||
+        fallback ||
+        res.statusText ||
+        `Error ${res.status} del servidor`,
       res.status,
       parsed,
     )
