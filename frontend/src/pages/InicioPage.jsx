@@ -1,6 +1,14 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Heart, Swords, Trophy } from 'lucide-react'
+import {
+  ArrowRight,
+  Heart,
+  Swords,
+  Trophy,
+  TrendingUp,
+  User,
+  Users,
+} from 'lucide-react'
 import Hero from '../components/Hero'
 import NombresMarquee from '../components/NombresMarquee'
 import TorneoCard from '../components/TorneoCard'
@@ -62,8 +70,131 @@ function InicioPage() {
       <SectionStats />
       <SectionTorneosActivos />
       <SectionTop5Ranking />
+      <SectionBento />
       <SectionComoFunciona />
     </>
+  )
+}
+
+function SectionBento() {
+  const featuredAvatars = ['luffy', 'naruto', 'gojo', 'makima']
+  const communityAvatars = [
+    'mai_sakurajima',
+    'gojo',
+    'kuroneko',
+    'momo',
+    'shinobu',
+    'toru_hagakure',
+  ]
+  return (
+    <motion.section
+      className="px-5 py-16 sm:px-8 sm:py-20"
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+    >
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-10 flex flex-col items-start gap-2">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+            Plataforma
+          </span>
+          <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
+            Hecho para fans del anime
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <BentoCard
+            className="md:col-span-2"
+            icon={Trophy}
+            eyebrow="Brackets"
+            titulo="Visualización de torneos"
+            descripcion="Sigue el avance de cada bracket round a round, con avatares grandes y resultados de cada enfrentamiento sin recargar."
+          >
+            <div className="flex items-center gap-2">
+              {featuredAvatars.map((s, i) => (
+                <div key={s} className="flex items-center gap-2">
+                  <img
+                    src={imagenPersonaje(s)}
+                    alt=""
+                    className="h-12 w-12 rounded-md border border-border object-cover object-top"
+                  />
+                  {i < featuredAvatars.length - 1 && (
+                    <span className="font-mono text-[11px] font-bold text-accent">
+                      vs
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </BentoCard>
+          <BentoCard
+            icon={TrendingUp}
+            eyebrow="ELO"
+            titulo="Ranking en directo"
+            descripcion="Cada voto suma o resta puntos a los duelistas. El top 5 se actualiza tras cada ronda."
+          />
+          <BentoCard
+            icon={User}
+            eyebrow="Cuenta"
+            titulo="Tu historial, tu equipo"
+            descripcion="Inicia sesión para guardar torneos creados, votos emitidos y tu pódium personal de mejores personajes."
+          />
+          <BentoCard
+            className="md:col-span-2"
+            icon={Users}
+            eyebrow="Comunidad"
+            titulo="Vota con miles de fans"
+            descripcion="No estás solo. Cada enfrentamiento agrega votos de toda la comunidad y los rankings reflejan el consenso."
+          >
+            <div className="flex -space-x-3">
+              {communityAvatars.map((s) => (
+                <img
+                  key={s}
+                  src={imagenPersonaje(s)}
+                  alt=""
+                  className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
+                />
+              ))}
+              <span className="ml-2 inline-flex items-center text-[12px] font-semibold text-fg-muted">
+                +90
+              </span>
+            </div>
+          </BentoCard>
+        </div>
+      </div>
+    </motion.section>
+  )
+}
+
+function BentoCard({
+  icon: Icon,
+  eyebrow,
+  titulo,
+  descripcion,
+  className = '',
+  children,
+}) {
+  return (
+    <div
+      className={`group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border bg-surface p-6 transition-colors hover:border-accent/40 ${className}`}
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
+          <Icon className="h-5 w-5" />
+        </div>
+        {eyebrow && (
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+            {eyebrow}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-xl font-bold text-fg-strong">{titulo}</h3>
+        <p className="text-sm leading-relaxed text-fg-muted">{descripcion}</p>
+      </div>
+      {children && <div className="mt-auto pt-2">{children}</div>}
+    </div>
   )
 }
 
