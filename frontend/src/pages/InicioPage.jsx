@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Heart, Swords, Trophy } from 'lucide-react'
 import Hero from '../components/Hero'
+import NombresMarquee from '../components/NombresMarquee'
 import TorneoCard from '../components/TorneoCard'
 import { torneos } from '../data/torneos'
 import {
@@ -51,6 +52,7 @@ function InicioPage() {
   return (
     <>
       <Hero />
+      <NombresMarquee />
       <SectionTorneosActivos />
       <SectionTop5Ranking />
       <SectionComoFunciona />
