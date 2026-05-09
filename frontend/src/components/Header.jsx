@@ -128,7 +128,7 @@ function Header() {
 function UserBadge({ user, onLogout }) {
   const isAdmin = user.rol === 'ADMIN'
   return (
-    <div className="ml-2 flex items-center gap-2.5 rounded-md bg-surface-alt px-2 py-1.5">
+    <div className="ml-2 flex items-center gap-2 rounded-md bg-surface-alt px-2 py-1.5">
       <Link
         to="/perfil"
         aria-label="Mi perfil"
@@ -153,9 +153,10 @@ function UserBadge({ user, onLogout }) {
         type="button"
         onClick={onLogout}
         aria-label="Cerrar sesión"
-        className="ml-1 inline-flex items-center text-fg-muted transition-colors hover:text-accent"
+        className="ml-1 inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-3.5 w-3.5" />
+        Salir
       </button>
     </div>
   )
