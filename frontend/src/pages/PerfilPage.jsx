@@ -100,15 +100,12 @@ function CardAvatar({ user, updateUser }) {
         description: url ? 'Imagen vinculada correctamente.' : 'Volviste al avatar generado.',
       })
     } catch (err) {
-      if (err instanceof ApiError) {
-        setSavedError(err.message)
-        toast.error('No se pudo guardar', { description: err.message })
-      } else {
-        // fallback demo
-        const url = data.avatarUrl?.trim() || null
-        updateUser({ avatarUrl: url })
-        toast.success('Avatar actualizado (modo demo)')
-      }
+      const msg =
+        err instanceof ApiError
+          ? err.message || `Error ${err.status}`
+          : 'No se pudo conectar al servidor.'
+      setSavedError(msg)
+      toast.error('No se pudo guardar el avatar', { description: msg })
     }
   }
 
