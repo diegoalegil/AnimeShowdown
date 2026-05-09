@@ -1,9 +1,13 @@
+import Header from './components/Header'
 import './App.css'
 
 function App() {
   return (
     <div className="app">
-      <h1>AnimeShowdown</h1>
+      <Header />
+      <main>
+        <h1>AnimeShowdown</h1>
+      </main>
     </div>
   )
 }
