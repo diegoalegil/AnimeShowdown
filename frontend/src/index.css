@@ -14,6 +14,49 @@
 
   --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", Consolas, monospace;
+
+  --animate-aurora-1: aurora-1 14s ease-in-out infinite;
+  --animate-aurora-2: aurora-2 18s ease-in-out infinite;
+  --animate-aurora-3: aurora-3 16s ease-in-out infinite;
+}
+
+@keyframes aurora-1 {
+  0%,
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  33% {
+    transform: translate(-30%, -20px) scale(1.1);
+  }
+  66% {
+    transform: translate(-60%, 30px) scale(0.95);
+  }
+}
+
+@keyframes aurora-2 {
+  0%,
+  100% {
+    transform: translate(50%, 0) scale(1);
+  }
+  33% {
+    transform: translate(40%, 30px) scale(1.05);
+  }
+  66% {
+    transform: translate(60%, -30px) scale(1.1);
+  }
+}
+
+@keyframes aurora-3 {
+  0%,
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  33% {
+    transform: translate(-30%, 30px) scale(1.05);
+  }
+  66% {
+    transform: translate(-70%, -20px) scale(0.9);
+  }
 }
 
 @layer base {
