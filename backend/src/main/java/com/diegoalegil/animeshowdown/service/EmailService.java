@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,6 +32,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void enviarCodigoReset(String to, String username, String codigo) {
         if (!enabled) {
             log.warn("[EMAIL FALLBACK] Reset code para {} ({}): {}", to, username, codigo);
@@ -51,8 +53,11 @@ public class EmailService {
             mailSender.send(msg);
             log.info("Email de reset enviado a {}", to);
         } catch (Exception e) {
-            log.error("Error enviando email de reset a {}: {}", to, e.getMessage(), e);
-            throw new RuntimeException("No se pudo enviar el email", e);
+            // Como esto corre en async, no propagamos la excepción al request HTTP.
+            // Solo logeamos para debug; el código sigue válido en BBDD para que el
+            // usuario lo vea en logs si SMTP falla, o reintente la petición.
+            log.error("Error enviando email de reset a {}: {} (código actual: {})",
+                    to, e.getMessage(), codigo);
         }
     }
 }
