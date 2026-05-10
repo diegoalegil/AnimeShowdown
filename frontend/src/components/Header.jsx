@@ -13,6 +13,7 @@ const navLinks = [
   { to: '/animes', label: 'Animes' },
   { to: '/torneos', label: 'Torneos' },
   { to: '/votar', label: 'Votar' },
+  { to: '/higher-or-lower', label: 'Higher or Lower' },
   { to: '/ranking', label: 'Ranking' },
 ]
 

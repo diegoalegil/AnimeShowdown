@@ -29,6 +29,7 @@ const staticRoutes = [
   { path: '/animes', priority: '0.8', changefreq: 'weekly' },
   { path: '/torneos', priority: '0.9', changefreq: 'weekly' },
   { path: '/ranking', priority: '0.9', changefreq: 'daily' },
+  { path: '/higher-or-lower', priority: '0.7', changefreq: 'monthly' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
   { path: '/login', priority: '0.3', changefreq: 'monthly' },
   { path: '/register', priority: '0.3', changefreq: 'monthly' },

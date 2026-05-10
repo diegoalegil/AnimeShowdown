@@ -14,6 +14,7 @@ import {
   LogOut,
   Search,
   Tv,
+  Sparkles,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { torneos } from '../data/torneos'
@@ -27,6 +28,7 @@ const rutas = [
   { to: '/animes', label: 'Animes', icon: Tv },
   { to: '/torneos', label: 'Torneos', icon: Trophy },
   { to: '/votar', label: 'Votar', icon: Swords },
+  { to: '/higher-or-lower', label: 'Higher or Lower', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
 ]
 
