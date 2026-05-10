@@ -71,7 +71,9 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://localhost:3000",
                 "https://animeshowdown.vercel.app",
-                "https://animeshowdown.pages.dev"));
+                "https://animeshowdown.pages.dev",
+                "https://animeshowdown.dev",
+                "https://www.animeshowdown.dev"));
         config.setAllowedOriginPatterns(List.of(
                 "https://animeshowdown-*.vercel.app",
                 "https://*.animeshowdown.pages.dev"));

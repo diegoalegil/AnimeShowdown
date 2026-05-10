@@ -5,8 +5,8 @@
 
 set -euo pipefail
 
-API="${1:-${API:-https://animeshowdown-production-a9f4.up.railway.app}}"
-WEB="${2:-${WEB:-https://animeshowdown.pages.dev}}"
+API="${1:-${API:-https://api.animeshowdown.dev}}"
+WEB="${2:-${WEB:-https://animeshowdown.dev}}"
 EXPECTED_PERSONAJES="${EXPECTED_PERSONAJES:-125}"
 
 green() { printf "\033[32m%s\033[0m\n" "$1"; }

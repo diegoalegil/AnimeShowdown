@@ -20,12 +20,12 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 
 | Pieza | URL |
 |---|---|
-| **🌐 Frontend** | https://animeshowdown.pages.dev |
-| **🔌 API** | https://animeshowdown-production-a9f4.up.railway.app |
-| **📚 Swagger UI** | https://animeshowdown-production-a9f4.up.railway.app/swagger-ui/index.html |
-| **❤️ Health** | https://animeshowdown-production-a9f4.up.railway.app/actuator/health |
+| **🌐 Frontend** | https://animeshowdown.dev |
+| **🔌 API** | https://api.animeshowdown.dev |
+| **📚 Swagger UI** | https://api.animeshowdown.dev/swagger-ui/index.html |
+| **❤️ Health** | https://api.animeshowdown.dev/actuator/health |
 
-> Hosting: **Cloudflare Pages** (frontend, free tier) + **Railway Hobby** (backend, sin sleep) + **Neon Free** (Postgres en Frankfurt).
+> Hosting: **Cloudflare Pages** (frontend, free tier) + **Cloudflare Registrar** (dominio `.dev` $10.44/año) + **Railway Hobby** (backend, sin sleep) + **Neon Free** (Postgres en Frankfurt). Dominio `.dev` gestionado por Google con HTTPS forzado en TLD.
 
 ---
 
