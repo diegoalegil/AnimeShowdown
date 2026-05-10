@@ -69,14 +69,18 @@ public class AuthController {
     @PostMapping("/registro")
     public ResponseEntity<?> registro(@Valid @RequestBody RegistroRequest request) {
 
+        // Normaliza email a lowercase + trim para evitar duplicados por capitalización
+        // (Gmail, Outlook etc. tratan emails como case-insensitive — la BBDD también debe)
+        String emailNormalizado = request.getEmail() == null ? null : request.getEmail().trim().toLowerCase();
+
         if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
             log.warn("Intento de registro con username ya existente: {}", request.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("El username ya existe");
         }
 
-        if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
-            log.warn("Intento de registro con email ya existente: {}", request.getEmail());
+        if (usuarioRepository.findByEmail(emailNormalizado).isPresent()) {
+            log.warn("Intento de registro con email ya existente: {}", emailNormalizado);
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("El email ya está registrado");
         }
@@ -86,11 +90,11 @@ public class AuthController {
         Usuario nuevoUsuario = new Usuario(
                 request.getUsername(),
                 passwordHasheado,
-                request.getEmail());
+                emailNormalizado);
 
-        if (adminEmails.contains(request.getEmail().toLowerCase())) {
+        if (emailNormalizado != null && adminEmails.contains(emailNormalizado)) {
             nuevoUsuario.setRol(Rol.ADMIN);
-            log.info("Auto-promoción a ADMIN: email={}", request.getEmail());
+            log.info("Auto-promoción a ADMIN: email={}", emailNormalizado);
         }
 
         Usuario guardado = usuarioRepository.save(nuevoUsuario);
@@ -106,8 +110,11 @@ public class AuthController {
 
         // Acepta username o email en el campo username (UX: usuario teclea cualquiera)
         String identificador = request.getUsername();
+        // Para el lookup por email normalizamos a lowercase porque la BBDD lo guarda así
+        // desde el fix de email-case-sensitivity. Username sigue case-sensitive (es identidad).
+        String identificadorLower = identificador == null ? null : identificador.trim().toLowerCase();
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(identificador)
-                .or(() -> usuarioRepository.findByEmail(identificador));
+                .or(() -> usuarioRepository.findByEmail(identificadorLower));
 
         if (usuarioOpt.isEmpty()) {
             log.warn("Login fallido (usuario/email no existe): {}", identificador);

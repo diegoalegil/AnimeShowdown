@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,6 +60,7 @@ public class TorneoController {
     }
 
     @PutMapping("/{id}/iniciar")
+    @Transactional
     public ResponseEntity<?> iniciar(@PathVariable Long id) {
         Optional<Torneo> torneoOpt = torneoRepository.findById(id);
 
@@ -81,6 +83,7 @@ public class TorneoController {
     }
 
     @PostMapping("/{id}/enfrentamientos")
+    @Transactional
     public ResponseEntity<?> crearEnfrentamientos(@PathVariable Long id,
             @Valid @RequestBody List<@Valid EnfrentamientoCrearRequest> requests) {
 
@@ -98,6 +101,12 @@ public class TorneoController {
 
         List<Enfrentamiento> creados = new ArrayList<>();
         for (EnfrentamientoCrearRequest req : requests) {
+            // Validación: un personaje no puede luchar contra sí mismo
+            if (req.getPersonaje1Id() != null && req.getPersonaje1Id().equals(req.getPersonaje2Id())) {
+                return ResponseEntity.badRequest()
+                        .body("Un personaje no puede enfrentarse a sí mismo (id=" + req.getPersonaje1Id() + ")");
+            }
+
             Optional<Personaje> p1Opt = personajeRepository.findById(req.getPersonaje1Id());
             Optional<Personaje> p2Opt = personajeRepository.findById(req.getPersonaje2Id());
 
@@ -114,6 +123,7 @@ public class TorneoController {
     }
 
     @PutMapping("/{id}/finalizar")
+    @Transactional
     public ResponseEntity<?> finalizar(@PathVariable Long id) {
         Optional<Torneo> torneoOpt = torneoRepository.findById(id);
 

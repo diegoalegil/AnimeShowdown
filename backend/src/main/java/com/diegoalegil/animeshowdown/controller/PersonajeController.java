@@ -71,11 +71,20 @@ public class PersonajeController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Personaje> actualizar(@PathVariable Long id, @RequestBody Personaje datos) {
-        if (!personajeRepository.existsById(id)) {
+        // Carga existente y solo sobreescribe campos non-null del body. Antes el
+        // datos.setId(id) + save() hacía overwrite destructivo: cualquier campo no
+        // enviado en el PUT quedaba null (perdías slug/imagen/descripción al editar nombre).
+        Optional<Personaje> existente = personajeRepository.findById(id);
+        if (existente.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        datos.setId(id);
-        Personaje actualizado = personajeRepository.save(datos);
+        Personaje p = existente.get();
+        if (datos.getSlug() != null) p.setSlug(datos.getSlug());
+        if (datos.getNombre() != null) p.setNombre(datos.getNombre());
+        if (datos.getAnime() != null) p.setAnime(datos.getAnime());
+        if (datos.getDescripcion() != null) p.setDescripcion(datos.getDescripcion());
+        if (datos.getImagenUrl() != null) p.setImagenUrl(datos.getImagenUrl());
+        Personaje actualizado = personajeRepository.save(p);
         return ResponseEntity.ok(actualizado);
     }
 
