@@ -30,7 +30,7 @@ function App() {
       <ScrollProgress />
       <CommandPalette />
       <Toaster
-        position="bottom-right"
+        position="top-right"
         theme="dark"
         toastOptions={{
           style: {

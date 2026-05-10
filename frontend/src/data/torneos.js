@@ -2,9 +2,9 @@ export const torneos = [
   {
     slug: 'shonen-showdown',
     nombre: 'Shōnen Showdown',
-    estado: 'en-curso',
+    estado: 'finalizado',
     fechaInicio: '2026-05-07',
-    fechaFin: null,
+    fechaFin: '2026-05-09',
     participantes: [
       'naruto',
       'sasuke',
@@ -15,7 +15,7 @@ export const torneos = [
       'itadori',
       'sukuna',
     ],
-    winner: null,
+    winner: 'luffy',
   },
   {
     slug: 'best-girls-2026',
@@ -64,9 +64,9 @@ export const torneos = [
   {
     slug: 'darkness-bracket',
     nombre: 'Darkness Bracket',
-    estado: 'en-curso',
+    estado: 'finalizado',
     fechaInicio: '2026-05-09',
-    fechaFin: null,
+    fechaFin: '2026-05-10',
     participantes: [
       'light_yagami',
       'makima',
@@ -77,14 +77,14 @@ export const torneos = [
       'levi',
       'kurumi',
     ],
-    winner: null,
+    winner: 'levi',
   },
   {
     slug: 'isekai-royal-rumble',
     nombre: 'Isekai Royal Rumble',
-    estado: 'en-curso',
+    estado: 'finalizado',
     fechaInicio: '2026-05-04',
-    fechaFin: null,
+    fechaFin: '2026-05-08',
     participantes: [
       'emilia',
       'rem_and_ram',
@@ -95,7 +95,7 @@ export const torneos = [
       'asuna',
       'frieren',
     ],
-    winner: null,
+    winner: 'rem_and_ram',
   },
   {
     slug: 'sweethearts-of-anime',

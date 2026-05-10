@@ -41,13 +41,13 @@ function RankingPage() {
           variants={headerVariants}
         >
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            Datos de ejemplo
+            Catálogo completo
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Ranking ELO
           </h1>
           <p className="max-w-2xl text-fg-muted">
-            Los {ranked.length} personajes ordenados por puntuación ELO. Cuando el backend esté conectado, esta tabla se actualizará en directo según los enfrentamientos.
+            Los {ranked.length} personajes ordenados por puntuación ELO. Cada voto en un enfrentamiento ajusta el ELO del ganador y reordena la lista.
           </p>
         </motion.header>
         <motion.ol
