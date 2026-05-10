@@ -8,6 +8,7 @@ import {
   personajes,
   imagenPersonaje,
   getStatsPersonaje,
+  getPopularidad,
 } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSound } from '../contexts/SoundContext'
@@ -30,7 +31,7 @@ const animes = (() => {
 })()
 
 const sortLabels = {
-  default: 'Por defecto',
+  popularidad: 'Popularidad ↓',
   nombre: 'Nombre A-Z',
   elo: 'ELO ↓',
   anime: 'Anime A-Z',
@@ -44,7 +45,7 @@ function PersonajesPage() {
   const [animeFilter, setAnimeFilter] = useState(
     () => searchParams.get('anime') || null,
   )
-  const [sort, setSort] = useState('default')
+  const [sort, setSort] = useState('popularidad')
   const [view, setView] = useState('grid')
 
   useEffect(() => {
@@ -65,7 +66,13 @@ function PersonajesPage() {
           p.anime.toLowerCase().includes(s),
       )
     }
-    if (sort === 'nombre') {
+    if (sort === 'popularidad') {
+      // Orden por popularidad real (basado en MAL favorites + heurística por tier).
+      // Por defecto el catálogo se muestra así: Luffy, Levi, L, Zoro... arriba.
+      list = [...list].sort(
+        (a, b) => getPopularidad(b.slug) - getPopularidad(a.slug),
+      )
+    } else if (sort === 'nombre') {
       list = [...list].sort((a, b) => a.nombre.localeCompare(b.nombre))
     } else if (sort === 'elo') {
       list = [...list].sort(
