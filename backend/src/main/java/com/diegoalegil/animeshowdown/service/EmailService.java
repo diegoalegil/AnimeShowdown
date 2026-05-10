@@ -1,34 +1,38 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final String RESEND_BASE = "https://api.resend.com";
 
-    private final JavaMailSender mailSender;
+    private final RestClient restClient;
+    private final String apiKey;
     private final String from;
     private final boolean enabled;
 
     public EmailService(
-            @Autowired(required = false) JavaMailSender mailSender,
-            @Value("${spring.mail.from:noreply@animeshowdown.local}") String from,
-            @Value("${spring.mail.host:}") String host) {
-        this.mailSender = mailSender;
+            @Value("${email.resend.api-key:}") String apiKey,
+            @Value("${email.resend.from:onboarding@resend.dev}") String from) {
+        this.apiKey = apiKey;
         this.from = from;
-        this.enabled = mailSender != null && host != null && !host.isBlank();
+        this.enabled = apiKey != null && !apiKey.isBlank();
+        this.restClient = RestClient.builder().baseUrl(RESEND_BASE).build();
         if (this.enabled) {
-            log.info("EmailService activo: host={} from={}", host, from);
+            log.info("EmailService activo vía Resend: from={}", from);
         } else {
-            log.warn("EmailService DESACTIVADO (falta SMTP_HOST). Códigos de reset se logean en consola.");
+            log.warn("EmailService DESACTIVADO (falta RESEND_API_KEY). Códigos de reset se logean en consola.");
         }
     }
 
@@ -39,25 +43,26 @@ public class EmailService {
             return;
         }
         try {
-            SimpleMailMessage msg = new SimpleMailMessage();
-            msg.setFrom(from);
-            msg.setTo(to);
-            msg.setSubject("AnimeShowdown — Código para restablecer tu contraseña");
-            msg.setText(
-                "Hola " + username + ",\n\n" +
-                "Tu código para restablecer la contraseña es:\n\n" +
-                "    " + codigo + "\n\n" +
-                "El código expira en 15 minutos. Si no fuiste tú, ignora este mensaje.\n\n" +
-                "— AnimeShowdown"
-            );
-            mailSender.send(msg);
-            log.info("Email de reset enviado a {}", to);
+            Map<String, Object> body = Map.of(
+                    "from", from,
+                    "to", List.of(to),
+                    "subject", "AnimeShowdown — Código para restablecer tu contraseña",
+                    "text",
+                    "Hola " + username + ",\n\n" +
+                    "Tu código para restablecer la contraseña es:\n\n" +
+                    "    " + codigo + "\n\n" +
+                    "El código expira en 15 minutos. Si no fuiste tú, ignora este mensaje.\n\n" +
+                    "— AnimeShowdown");
+            restClient.post()
+                    .uri("/emails")
+                    .header("Authorization", "Bearer " + apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+            log.info("Email de reset enviado a {} vía Resend", to);
         } catch (Exception e) {
-            // Como esto corre en async, no propagamos la excepción al request HTTP.
-            // Solo logeamos para debug; el código sigue válido en BBDD para que el
-            // usuario lo vea en logs si SMTP falla, o reintente la petición.
-            log.error("Error enviando email de reset a {}: {} (código actual: {})",
-                    to, e.getMessage(), codigo);
+            log.error("Error Resend a {}: {} (código actual: {})", to, e.getMessage(), codigo);
         }
     }
 }
