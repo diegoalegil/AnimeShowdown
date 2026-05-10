@@ -1,6 +1,9 @@
+// Producción usa el subdominio custom api.animeshowdown.dev (CNAME a Railway).
+// Si por algún motivo el subdominio no resuelve, fallback al URL bruto de Railway
+// para que la app no quede sin backend.
 const API_BASE =
   import.meta.env.VITE_API_URL ??
-  'https://animeshowdown-production-a9f4.up.railway.app'
+  'https://api.animeshowdown.dev'
 
 const TOKEN_KEY = 'animeshowdown.token'
 

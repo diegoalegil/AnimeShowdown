@@ -10,7 +10,7 @@ import { dirname, join } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
-const BASE_URL = 'https://animeshowdown.pages.dev'
+const BASE_URL = 'https://animeshowdown.dev'
 
 // Parser simple regex de los .js — evita instalar dependencias.
 function extractSlugs(filePath) {
