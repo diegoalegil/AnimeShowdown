@@ -20,7 +20,7 @@ export const personajes = [
   { slug: 'froppy', nombre: 'Tsuyu Asui', anime: 'My Hero Academia', descripcion: 'Estudiante de la 1-A con quirk de rana. Calmada, sincera y la mejor compañera de equipo.' },
   { slug: 'gojo', nombre: 'Satoru Gojo', anime: 'Jujutsu Kaisen', descripcion: 'El hechicero más fuerte del mundo. Sus Seis Ojos y la técnica Infinito lo hacen invencible.' },
   { slug: 'hana_midorikawa', nombre: 'Hana Midorikawa', anime: 'Prison School', descripcion: 'Vicepresidenta del consejo subterráneo en Prison School. Ejecuta penitencias con disciplina marcial.' },
-  { slug: 'himiko', nombre: 'Himiko Toga', anime: 'My Hero Academia', descripcion: 'Villana sedienta de sangre con quirk de transformación. Obsesionada con quienes ama hasta el extremo.' },
+  { slug: 'himiko', nombre: 'Himiko', anime: 'Btooom!', descripcion: 'Superviviente del juego mortal en la isla y heroína de Btooom!. Pasado oscuro, bombas BIM en el cinturón y desconfianza total a los hombres.' },
   { slug: 'hinata', nombre: 'Hinata Hyuga', anime: 'Naruto', descripcion: 'Heredera tímida del clan Hyuga. Su Byakugan y su corazón siguen a Naruto desde la academia.' },
   { slug: 'ichigo', nombre: 'Ichigo Kurosaki', anime: 'Bleach', descripcion: 'Estudiante de instituto con poderes de shinigami. Cabello naranja y Zangetsu para proteger a quien le importa.' },
   { slug: 'inosuke', nombre: 'Inosuke Hashibira', anime: 'Demon Slayer', descripcion: 'Cazador salvaje criado por jabalíes. Dos espadas, máscara de cerdo y cero compostura.' },
