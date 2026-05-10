@@ -13,6 +13,7 @@ import AnimesPage from './pages/AnimesPage'
 import TorneosPage from './pages/TorneosPage'
 import TorneoDetailPage from './pages/TorneoDetailPage'
 import RankingPage from './pages/RankingPage'
+import HigherOrLowerPage from './pages/HigherOrLowerPage'
 import VotarPage from './pages/VotarPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -59,6 +60,7 @@ function App() {
               <Route path="/torneos" element={<TorneosPage />} />
               <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
               <Route path="/ranking" element={<RankingPage />} />
+              <Route path="/higher-or-lower" element={<HigherOrLowerPage />} />
               <Route path="/votar" element={<VotarPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
