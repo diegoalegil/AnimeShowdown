@@ -312,16 +312,63 @@ Todo coste 0:
 
 | # | Acción | Por qué | Esfuerzo | Hecho en este audit |
 |---|---|---|---|---|
-| 1 | **Push del DataSeeder idempotente y esperar Railway redeploy** | Sin esto, BBDD live sigue vacía y rompe credibilidad ante el profesor | S | ✅ commit pendiente al final |
-| 2 | **Verificar que `/api/personajes` devuelve 125 tras redeploy** | Confirma que la idempotencia funcionó | S | Pendiente verificación post-redeploy |
-| 3 | **Wirear `RankingPage` al backend** con fallback local | Cierra BUG-02 visible | S→M | Solo badge fix en este audit |
-| 4 | **Correr Lighthouse en 5 rutas y pegar scores en README** | Profesionalidad visual | S | ❌ no ejecutado |
-| 5 | **Añadir headers seguridad CSP+HSTS** vía `frontend/public/_headers` | Defendible en Q&A | S | ❌ no aplicado |
-| 6 | **Tests para TorneoController + EnfrentamientoController** | Roadmap lo admite, profesores lo aprecian | S | ❌ no creados |
-| 7 | **Sitemap.xml + robots.txt + JSON-LD personaje** | "Indexable en Google" suena pro | S | ❌ no creados |
-| 8 | **Implementar Anexo 2 (cron torneos auto)** | Skill GitHub Actions visible | M | ❌ no implementado |
-| 9 | **Limpiar bundle: lazy-load drei o quitarlo** | Personaje3D 884KB es pesado | S | ❌ no |
-| 10 | **Crear `docs/SECURITY.md` + `docs/DEMO_PLAYBOOK.md`** | Sustancia para defensa de proyecto | M | ❌ no creados |
+| 1 | **DataSeeder idempotente + Railway redeploy + verificación 125 personajes** | Sin esto, BBDD live vacía rompía credibilidad | S | ✅ HECHO + verificado en producción (smoke-test 8/8) |
+| 2 | **Headers seguridad CSP+HSTS+X-Frame+Permissions-Policy** vía `frontend/public/_headers` | Defendible en Q&A | S | ✅ HECHO — verificado en producción con `curl -I` |
+| 3 | **Sitemap.xml + robots.txt** generador dinámico (`scripts/generate-sitemap.mjs`) | Indexable en Google | S | ✅ HECHO — 140 URLs (8 estáticas + 125 personajes + 7 torneos) |
+| 4 | **Tests TorneoController + EnfrentamientoController** (14 nuevos, MockMvc + H2 + JWT real) | Cobertura 7→21 tests, profesores DAM lo aman | S | ✅ HECHO — `./mvnw test → 21/21 verde` |
+| 5 | **docs/SECURITY.md + docs/DEMO_PLAYBOOK.md** | Sustancia para defensa de proyecto | M | ✅ HECHO — política seguridad + 3 guiones demo + 15 Q&A duras |
+| 6 | **Cron torneos automáticos (Anexo 2 completo)** | Skill GitHub Actions visible en repo | M | ✅ HECHO — TorneoAutoService idempotente 24h + AutoTorneoController + workflow `auto-tournament.yml` cron 3 días |
+| 7 | **Wirear RankingPage al backend con banner "Top votado"** | Cierra BUG-02 parcialmente (al menos una página llama backend real) | S | ✅ HECHO — VotosLiveBanner con fetch `/api/votos/ranking` |
+| 8 | **Correr Lighthouse en 5 rutas y pegar scores en README** | Profesionalidad visual | S | ❌ NO ejecutado (requiere `npx lighthouse` manual con Chrome headless) |
+| 9 | **Limpiar bundle: lazy-load drei** | Personaje3D 884KB es pesado | S | ❌ NO (riesgo de romper sin testing exhaustivo) |
+| 10 | **Wirear `/votar` y `/personajes` al backend** | Cerrar BUG-02 completamente | M | ❌ NO (refactor que requiere decisiones de UX para loading states, fuera de scope ráfaga) |
+
+---
+
+## Apéndice C — Acciones extra ejecutadas (más allá del plan inicial)
+
+Tras la primera versión del audit, el usuario pidió "tu resuelve como sea todo". Estos son los items adicionales completados y commiteados:
+
+| Commit | Cambio | Cierra |
+|---|---|---|
+| `613335f` | DataSeeder idempotente: lee seed JSON, calcula slugs faltantes, inserta solo nuevos. Logs claros, no trunca, seguro re-ejecutar | Crítico #1 |
+| `98bf78f` | Frontend audit fixes: RankingPage badge, CommandPalette /animes, Toaster top-right, torneos finalizados con winners ELO-derived (luffy/levi/rem_and_ram), Footer Tenerife | BUG-03, 04, 05, 07 |
+| `2b1d8d6` | README updated (96→125, 11→16 rutas, etc.) + AUDIT_REPORT.md + scripts/smoke-test.sh | Inconsistencias 1-10 |
+| `6e55d70` | `frontend/public/_headers` con CSP+HSTS+X-Frame+Permissions-Policy + robots.txt + sitemap.xml dinámico generado por `scripts/generate-sitemap.mjs` (140 URLs) | TOP 4, TOP 5 |
+| `b98dd04` | 14 tests nuevos: TorneoControllerTest (8) + EnfrentamientoControllerTest (6). Cobertura 7→21 (3x), MockMvc + H2 + JWT real | TOP 6 |
+| `0bad147` | docs/SECURITY.md (política reporte, modelo amenaza, controles, riesgos en tabla con severidad) + docs/DEMO_PLAYBOOK.md (3 guiones cronometrados 2/15/30 min + 15 preguntas Q&A defensivo) | TOP 10 |
+| `6eaccf8` | Cron auto-torneos completo: TorneoAutoService con idempotencia 24h + kill switch app.tournament.auto.enabled + AutoTorneoController + GitHub Action `auto-tournament.yml` cada 3 días | TOP 8 (Anexo 2) |
+| `77ea8fa` | RankingPage hace fetch a `/api/votos/ranking` y muestra banner "Top votado en producción" cuando hay datos | TOP 1 (parcialmente) |
+
+---
+
+## Verificación final post-deploy
+
+**Smoke test 8/8 verde en producción** (10/05/2026 04:01 UTC):
+```
+✓ /actuator/health → UP
+✓ /api/personajes → 125 personajes
+✓ /api/personajes?anime=Naruto → 13 personajes
+✓ /api/votos/ranking → array
+✓ /swagger-ui/index.html → 200
+✓ frontend → 200
+✓ SPA routing /personajes → 200
+✓ login creds inválidas → 401
+```
+
+**Headers seguridad verificados live en `https://animeshowdown.pages.dev`**:
+```
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.myanimelist.net; connect-src 'self' https://animeshowdown-production-a9f4.up.railway.app https://api.jikan.moe https://animechan.io https://animechan.xyz; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-frame-options: DENY
+```
+
+**Tests backend**: `./mvnw test → BUILD SUCCESS, 21/21 verde` (de 7 → 21, 3x cobertura).
+
+**Build frontend**: `npm run build → ✓ built in 395ms, 2791 módulos`.
 
 ---
 
