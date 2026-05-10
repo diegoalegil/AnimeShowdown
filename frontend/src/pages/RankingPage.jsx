@@ -1,12 +1,14 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Trophy } from 'lucide-react'
+import { Trophy, TrendingUp } from 'lucide-react'
 import {
   personajes,
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { endpoints } from '../lib/api'
 
 const ranked = [...personajes]
   .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
@@ -29,6 +31,54 @@ const listVariants = {
   },
 }
 
+/**
+ * Header dinámico: si el backend tiene votos en producción, muestra un banner
+ * "Top votado en producción" con el primer item del ranking real.
+ * Si no, no muestra banner — el ranking ELO local sigue siendo la vista principal.
+ */
+function VotosLiveBanner() {
+  const [topVotado, setTopVotado] = useState(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    let cancel = false
+    endpoints
+      .ranking()
+      .then((data) => {
+        if (cancel) return
+        if (Array.isArray(data) && data.length > 0 && data[0].votos > 0) {
+          setTopVotado(data[0])
+        }
+      })
+      .catch(() => {
+        if (cancel) return
+        setError(true)
+      })
+    return () => {
+      cancel = true
+    }
+  }, [])
+
+  if (error || !topVotado || !topVotado.personaje) return null
+
+  const slug = topVotado.personaje.slug
+  const nombre = topVotado.personaje.nombre
+  const anime = topVotado.personaje.anime
+  const votos = topVotado.votos
+
+  return (
+    <Link
+      to={`/personajes/${slug}`}
+      className="group inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-3.5 py-1.5 text-[12px] font-semibold text-accent transition-colors hover:bg-accent/10"
+    >
+      <TrendingUp className="h-3.5 w-3.5" />
+      <span>
+        Top votado en producción: <span className="font-bold">{nombre}</span> ({anime}) · {votos} votos
+      </span>
+    </Link>
+  )
+}
+
 function RankingPage() {
   useDocumentTitle('Ranking ELO')
   return (
@@ -49,6 +99,7 @@ function RankingPage() {
           <p className="max-w-2xl text-fg-muted">
             Los {ranked.length} personajes ordenados por puntuación ELO. Cada voto en un enfrentamiento ajusta el ELO del ganador y reordena la lista.
           </p>
+          <VotosLiveBanner />
         </motion.header>
         <motion.ol
           className="flex flex-col gap-2"
@@ -68,7 +119,6 @@ function RankingPage() {
 function RankRow({ rank, slug, nombre, anime, elo, wins, losses }) {
   const total = wins + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
-  const isTop3 = rank <= 3
 
   return (
     <motion.li
