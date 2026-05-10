@@ -26,17 +26,7 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    /** Diagnóstico: imprime longitud + 4 chars de cabeza/cola del secret SIN revelar el secret completo. */
-    private String secretFingerprint() {
-        if (secret == null) return "null";
-        if (secret.isEmpty()) return "empty";
-        return "len=" + secret.length()
-                + " head=" + secret.substring(0, Math.min(4, secret.length()))
-                + " tail=" + secret.substring(Math.max(0, secret.length() - 4));
-    }
-
     public String generarToken(Usuario usuario) {
-        log.info("JWT generarToken: usuario={} secret-fingerprint={}", usuario.getUsername(), secretFingerprint());
         return JWT.create()
                 .withSubject(usuario.getUsername())
                 .withClaim("id", usuario.getId())
@@ -52,7 +42,8 @@ public class JwtUtil {
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException ex) {
-            log.warn("JWT validarToken FAIL: {} (secret-fingerprint={})", ex.getMessage(), secretFingerprint());
+            // Solo logeamos la causa (token expired, signature invalid, etc.) sin metadata del secret
+            log.debug("JWT inválido en validación: {}", ex.getMessage());
             return false;
         }
     }

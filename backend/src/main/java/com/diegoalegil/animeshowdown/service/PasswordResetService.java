@@ -39,11 +39,19 @@ public class PasswordResetService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /** Mensaje genérico unificado para todos los errores de reset (anti-enumeration). */
+    private static final String ERROR_GENERICO = "Email o código inválido o expirado";
+
+    private String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
     @Transactional
     public void solicitarReset(String email) {
-        Optional<Usuario> userOpt = usuarioRepo.findByEmail(email);
+        String emailNorm = normalizarEmail(email);
+        Optional<Usuario> userOpt = usuarioRepo.findByEmail(emailNorm);
         if (userOpt.isEmpty()) {
-            log.warn("Forgot-password: email no registrado: {}", email);
+            log.warn("Forgot-password: email no registrado: {}", emailNorm);
             return;
         }
         Usuario u = userOpt.get();
@@ -61,13 +69,16 @@ public class PasswordResetService {
 
     @Transactional
     public void resetearPassword(String email, String codigo, String newPassword) {
-        Usuario u = usuarioRepo.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Email o código inválido"));
+        // Mensaje unificado para los 3 casos (email no existe, código no existe, código expirado)
+        // — evita filtrar info al atacante que pueda enumerar usuarios o adivinar códigos
+        String emailNorm = normalizarEmail(email);
+        Usuario u = usuarioRepo.findByEmail(emailNorm)
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_GENERICO));
         PasswordResetToken token = tokenRepo
                 .findFirstByUsuarioIdAndCodigoAndUsadoFalseOrderByCreadoEnDesc(u.getId(), codigo)
-                .orElseThrow(() -> new IllegalArgumentException("Email o código inválido"));
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_GENERICO));
         if (token.getExpiraEn().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Código expirado, solicita uno nuevo");
+            throw new IllegalArgumentException(ERROR_GENERICO);
         }
         u.setPassword(passwordEncoder.encode(newPassword));
         usuarioRepo.save(u);
