@@ -23,6 +23,8 @@ import {
 } from '../data/personajes'
 import { useSound } from '../contexts/SoundContext'
 
+const totalPersonajes = personajes.length
+const totalTorneos = torneos.length
 const animeUniversos = new Set(personajes.map((p) => p.anime)).size
 const eloMax = Math.max(
   ...personajes.map((p) => getStatsPersonaje(p.slug).elo),
@@ -373,8 +375,8 @@ function SectionStats() {
     >
       <div className="mx-auto max-w-5xl">
         <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
-          <Stat target={personajes.length} label="Personajes" />
-          <Stat target={torneos.length} label="Torneos" />
+          <Stat target={totalPersonajes} label="Personajes" />
+          <Stat target={totalTorneos} label="Torneos" />
           <Stat target={animeUniversos} label="Animes" />
           <Stat target={eloMax} label="ELO máximo" />
         </div>
