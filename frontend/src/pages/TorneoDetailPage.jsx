@@ -99,7 +99,7 @@ function TorneoDetailPage() {
           Bracket
         </h2>
         <div className="mb-12">
-          <Bracket slugs={participantes} ganadorReal={winner} />
+          <Bracket slugs={participantes} ganadorReal={winner} estado={estado} />
         </div>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
           Roster
