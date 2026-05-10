@@ -177,40 +177,41 @@ function SectionLiveBattle() {
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
-          <AnimatePresence mode="popLayout">
-            <BattleSlot
-              key={`a-${a.slug}`}
-              personaje={a}
-              pct={pctA}
-              side="left"
-            />
-          </AnimatePresence>
-          <span className="flex h-12 w-12 items-center justify-center justify-self-center rounded-full border border-accent/40 bg-accent-soft text-accent">
-            <Swords className="h-5 w-5" />
-          </span>
-          <AnimatePresence mode="popLayout">
-            <BattleSlot
-              key={`b-${b.slug}`}
-              personaje={b}
-              pct={pctB}
-              side="right"
-            />
-          </AnimatePresence>
-        </div>
+        {/*
+          Antes había 2 AnimatePresence (una por slot) con mode="popLayout":
+          al cambiar el par cada 5s, cada slot transicionaba independientemente
+          y el elemento saliente se ponía position:absolute → el grid se quedaba
+          con frames asimétricos donde solo aparecía UNA card grande hasta que
+          la otra entraba. Ahora un único AnimatePresence mode="wait" envuelve
+          todo el grid: las dos cards salen juntas, esperan a que termine el
+          fade-out, y entran juntas. Sin glitch visual.
+        */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${a.slug}-vs-${b.slug}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6"
+          >
+            <BattleSlot personaje={a} pct={pctA} />
+            <span className="flex h-12 w-12 items-center justify-center justify-self-center rounded-full border border-accent/40 bg-accent-soft text-accent">
+              <Swords className="h-5 w-5" />
+            </span>
+            <BattleSlot personaje={b} pct={pctB} />
+          </motion.div>
+        </AnimatePresence>
       </div>
     </motion.section>
   )
 }
 
-function BattleSlot({ personaje, pct, side }) {
+function BattleSlot({ personaje, pct }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: side === 'left' ? -30 : 30 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: side === 'left' ? 30 : -30 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="flex flex-col gap-2 overflow-hidden rounded-xl border border-border bg-surface"
+    <Link
+      to="/votar"
+      className="group flex flex-col gap-2 overflow-hidden rounded-xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:border-accent/60"
     >
       <img
         src={imagenPersonaje(personaje.slug)}
@@ -219,7 +220,7 @@ function BattleSlot({ personaje, pct, side }) {
       />
       <div className="flex flex-col gap-2 p-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-fg-strong">
+          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
             {personaje.nombre}
           </p>
           <p className="truncate text-[11px] text-fg-muted">{personaje.anime}</p>
@@ -238,7 +239,7 @@ function BattleSlot({ personaje, pct, side }) {
           </span>
         </div>
       </div>
-    </motion.div>
+    </Link>
   )
 }
 
