@@ -1,7 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Trophy, Sparkles, RotateCcw, ChevronRight } from 'lucide-react'
+import {
+  Trophy,
+  Sparkles,
+  RotateCcw,
+  ArrowUp,
+  ArrowDown,
+  HelpCircle,
+} from 'lucide-react'
 import {
   personajes,
   imagenPersonaje,
@@ -20,20 +27,30 @@ function pickRandom(exclude = null) {
   return { ...p, ...getStatsPersonaje(p.slug) }
 }
 
-function pickPair() {
-  const a = pickRandom()
-  let b = pickRandom(a)
-  // Si por azar tienen el mismo ELO, tira otro
-  while (b.elo === a.elo) b = pickRandom(a)
-  return [a, b]
+function pickDistinctElo(reference) {
+  let p = pickRandom(reference)
+  // Si por azar tienen exactamente el mismo ELO, tira otro (evita ambigüedad
+  // en la pregunta "más o menos" — en el catálogo solo pasa con personajes
+  // muy similares en popularidad, pero por si acaso).
+  while (p.elo === reference.elo) p = pickRandom(reference)
+  return p
 }
 
 function HigherOrLowerPage() {
   useDocumentTitle('Higher or Lower')
   const { play } = useSound()
-  const [pair, setPair] = useState(() => pickPair())
+
+  // Mecánica clásica de Higher or Lower:
+  //   - reference = personaje conocido en la izquierda (su ELO se ve)
+  //   - challenger = personaje misterio en la derecha (ELO oculto hasta acertar)
+  //   - User predice: ¿el challenger tiene MÁS o MENOS ELO que reference?
+  //   - Si acierta: challenger se convierte en el nuevo reference, aparece nuevo challenger
+  //   - Esto rota la cadena así no hay racha infinita con un top-tier en izquierda
+  const [reference, setReference] = useState(() => pickRandom())
+  const [challenger, setChallenger] = useState(() =>
+    pickDistinctElo(reference || pickRandom()),
+  )
   const [revealed, setRevealed] = useState(null) // null | 'correct' | 'wrong'
-  const [chosenIndex, setChosenIndex] = useState(null) // 0 ó 1, qué card eligió el user
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(() => {
     try {
@@ -45,14 +62,10 @@ function HigherOrLowerPage() {
   })
   const [gameOver, setGameOver] = useState(false)
 
-  const [a, b] = pair
-
-  const handleChoose = (index) => {
+  const handleGuess = (esMayor) => {
     if (revealed !== null) return
-    const elegido = pair[index]
-    const otro = pair[index === 0 ? 1 : 0]
-    const acierto = elegido.elo > otro.elo
-    setChosenIndex(index)
+    const challengerEsMayor = challenger.elo > reference.elo
+    const acierto = esMayor === challengerEsMayor
     setRevealed(acierto ? 'correct' : 'wrong')
 
     if (acierto) {
@@ -67,27 +80,28 @@ function HigherOrLowerPage() {
           // ignore storage errors
         }
       }
-      // Después de 900ms: el ganador se queda, aparece nuevo retador
+      // Después de 1100ms (suficiente para ver el reveal):
+      // challenger se convierte en el nuevo reference (rota a la izquierda)
+      // y aparece un nuevo challenger en la derecha
       setTimeout(() => {
-        const winner = elegido
-        const newOpponent = pickRandom(winner)
-        // Mantenemos al ganador en su lado, el retador en el opuesto
-        setPair(index === 0 ? [winner, newOpponent] : [newOpponent, winner])
+        const nuevoChallenger = pickDistinctElo(challenger)
+        setReference(challenger)
+        setChallenger(nuevoChallenger)
         setRevealed(null)
-        setChosenIndex(null)
-      }, 900)
+      }, 1100)
     } else {
       play('playImpact')
-      setTimeout(() => setGameOver(true), 900)
+      setTimeout(() => setGameOver(true), 1100)
     }
   }
 
   const restart = () => {
     play('playClick')
-    setPair(pickPair())
+    const nuevoRef = pickRandom()
+    setReference(nuevoRef)
+    setChallenger(pickDistinctElo(nuevoRef))
     setScore(0)
     setRevealed(null)
-    setChosenIndex(null)
     setGameOver(false)
   }
 
@@ -103,8 +117,8 @@ function HigherOrLowerPage() {
             Higher or Lower
           </h1>
           <p className="max-w-2xl text-fg-muted">
-            Click en el personaje que creas que tiene más ELO. Si aciertas, se queda en pantalla
-            y aparece un nuevo retador. Falla y empiezas de cero.
+            ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO que el de la izquierda?
+            Cada acierto el misterio se desvela y se convierte en el nuevo punto de comparación.
           </p>
         </header>
 
@@ -112,7 +126,14 @@ function HigherOrLowerPage() {
 
         <AnimatePresence mode="wait">
           {gameOver ? (
-            <GameOver key="gameover" score={score} best={best} onRestart={restart} />
+            <GameOver
+              key="gameover"
+              score={score}
+              best={best}
+              reference={reference}
+              challenger={challenger}
+              onRestart={restart}
+            />
           ) : (
             <motion.div
               key="board"
@@ -121,19 +142,12 @@ function HigherOrLowerPage() {
               exit={{ opacity: 0 }}
               className="grid grid-cols-1 gap-4 md:grid-cols-2"
             >
-              <PersonajeCard
-                personaje={a}
+              <ReferenceCard personaje={reference} />
+              <ChallengerCard
+                personaje={challenger}
                 revealedState={revealed}
-                isChosen={chosenIndex === 0}
-                isOther={chosenIndex !== null && chosenIndex !== 0}
-                onClick={() => handleChoose(0)}
-              />
-              <PersonajeCard
-                personaje={b}
-                revealedState={revealed}
-                isChosen={chosenIndex === 1}
-                isOther={chosenIndex !== null && chosenIndex !== 1}
-                onClick={() => handleChoose(1)}
+                onMayor={() => handleGuess(true)}
+                onMenor={() => handleGuess(false)}
               />
             </motion.div>
           )}
@@ -171,77 +185,130 @@ function ScoreBar({ score, best }) {
   )
 }
 
-function PersonajeCard({ personaje, revealedState, isChosen, isOther, onClick }) {
-  const isCorrect = revealedState === 'correct'
-  const isWrong = revealedState === 'wrong'
-
-  const borderClass = useMemo(() => {
-    if (revealedState === null) return 'border-border hover:border-accent/60'
-    if (isChosen && isCorrect) return 'border-emerald-500'
-    if (isChosen && isWrong) return 'border-rose-500'
-    if (isOther && isWrong) return 'border-emerald-500/50'
-    return 'border-border opacity-60'
-  }, [revealedState, isChosen, isCorrect, isWrong, isOther])
-
-  const overlayClass = useMemo(() => {
-    if (revealedState === null) return ''
-    if (isChosen && isCorrect) return 'bg-emerald-500/10'
-    if (isChosen && isWrong) return 'bg-rose-500/10'
-    return ''
-  }, [revealedState, isChosen, isCorrect, isWrong])
-
+function ReferenceCard({ personaje }) {
   return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      disabled={revealedState !== null}
-      layout
-      className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-all disabled:cursor-default ${borderClass} ${overlayClass}`}
-      whileHover={revealedState === null ? { y: -3 } : {}}
-      transition={{ duration: 0.2 }}
+    <motion.div
+      key={personaje.slug}
+      initial={{ x: 40, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className="relative flex flex-col overflow-hidden rounded-xl border-2 border-border bg-surface"
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-alt">
         <img
           src={imagenPersonaje(personaje.slug)}
           alt=""
           loading="lazy"
-          className="h-full w-full object-cover object-top transition-transform group-hover:scale-[1.02]"
+          className="h-full w-full object-cover object-top"
         />
-        {revealedState !== null && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 p-4 text-center backdrop-blur-md ${
-              isChosen && isCorrect
-                ? 'bg-emerald-500/90'
-                : isChosen && isWrong
-                  ? 'bg-rose-500/90'
-                  : 'bg-black/60'
-            }`}
-          >
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
-              ELO
-            </span>
-            <span className="font-mono text-4xl font-extrabold text-white tabular-nums">
-              {personaje.elo}
-            </span>
-          </motion.div>
-        )}
+        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 bg-black/60 p-4 text-center backdrop-blur-md">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
+            ELO conocido
+          </span>
+          <span className="font-mono text-4xl font-extrabold text-white tabular-nums">
+            {personaje.elo}
+          </span>
+        </div>
       </div>
-      <div className="flex flex-col gap-1 px-4 py-3 text-left">
+      <div className="flex flex-col gap-1 px-4 py-3">
         <h3 className="text-base font-bold text-fg-strong">{personaje.nombre}</h3>
         <p className="text-[12px] text-fg-muted">{personaje.anime}</p>
-        {revealedState === null && (
-          <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-accent">
-            Pulsa para elegir <ChevronRight className="h-3 w-3" />
-          </span>
-        )}
       </div>
-    </motion.button>
+    </motion.div>
   )
 }
 
-function GameOver({ score, best, onRestart }) {
+function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
+  const isCorrect = revealedState === 'correct'
+  const isWrong = revealedState === 'wrong'
+  const isRevealed = revealedState !== null
+
+  const borderClass = isCorrect
+    ? 'border-emerald-500'
+    : isWrong
+      ? 'border-rose-500'
+      : 'border-border'
+
+  return (
+    <motion.div
+      key={personaje.slug}
+      initial={{ x: -40, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className={`relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-colors ${borderClass}`}
+    >
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-alt">
+        <img
+          src={imagenPersonaje(personaje.slug)}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover object-top"
+        />
+        <AnimatePresence>
+          {!isRevealed && (
+            <motion.div
+              key="hidden"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 bg-black/60 p-4 text-center backdrop-blur-md"
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
+                ELO misterio
+              </span>
+              <HelpCircle className="h-9 w-9 text-white/90" />
+            </motion.div>
+          )}
+          {isRevealed && (
+            <motion.div
+              key="revealed"
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 p-4 text-center backdrop-blur-md ${
+                isCorrect ? 'bg-emerald-500/90' : 'bg-rose-500/90'
+              }`}
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
+                ELO real
+              </span>
+              <span className="font-mono text-4xl font-extrabold text-white tabular-nums">
+                {personaje.elo}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      <div className="flex flex-col gap-3 px-4 py-3">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-base font-bold text-fg-strong">{personaje.nombre}</h3>
+          <p className="text-[12px] text-fg-muted">{personaje.anime}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onMayor}
+            disabled={isRevealed}
+            className="group inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2.5 text-sm font-semibold text-emerald-300 transition-all hover:-translate-y-0.5 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+          >
+            <ArrowUp className="h-4 w-4" />
+            Más ELO
+          </button>
+          <button
+            type="button"
+            onClick={onMenor}
+            disabled={isRevealed}
+            className="group inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2.5 text-sm font-semibold text-rose-300 transition-all hover:-translate-y-0.5 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+          >
+            <ArrowDown className="h-4 w-4" />
+            Menos ELO
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function GameOver({ score, best, reference, challenger, onRestart }) {
+  const challengerEsMayor = challenger.elo > reference.elo
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -259,6 +326,16 @@ function GameOver({ score, best, onRestart }) {
         Conseguiste <span className="font-mono font-bold text-fg-strong">{score}</span> aciertos
         seguidos. Tu récord es <span className="font-mono font-bold text-accent">{best}</span>.
       </p>
+      <div className="text-sm text-fg-muted">
+        <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO{' '}
+        <span className="font-mono text-fg-strong">{challenger.elo}</span> →{' '}
+        {challengerEsMayor ? (
+          <span className="text-emerald-300">era MAYOR</span>
+        ) : (
+          <span className="text-rose-300">era MENOR</span>
+        )}{' '}
+        que <span className="font-bold text-fg-strong">{reference.nombre}</span> ({reference.elo}).
+      </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
