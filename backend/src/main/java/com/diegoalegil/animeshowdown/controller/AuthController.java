@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -131,37 +131,33 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
+    public ResponseEntity<?> me(@AuthenticationPrincipal Usuario usuario) {
+        // Antes usaba auth.getName() + findByUsername, pero como Usuario no
+        // implementa UserDetails, auth.getName() devolvía Object.toString() ("...Usuario@abc")
+        // y findByUsername fallaba siempre → 401. JwtAuthFilter ya inyecta la
+        // entidad Usuario completa como principal — la usamos directamente.
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(auth.getName());
-        return usuarioOpt
-                .<ResponseEntity<?>>map(u -> ResponseEntity.ok(new UsuarioRespuesta(u)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        return ResponseEntity.ok(new UsuarioRespuesta(usuario));
     }
 
     @PutMapping("/me/avatar")
     public ResponseEntity<?> actualizarAvatar(
             @RequestBody Map<String, String> body,
-            Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
+            @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(auth.getName());
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        Usuario u = usuarioOpt.get();
         String avatarUrl = body.get("avatarUrl");
         if (avatarUrl != null && avatarUrl.length() > 500_000) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("avatarUrl demasiado largo (máx 500 KB)");
         }
-        u.setAvatarUrl(avatarUrl != null && avatarUrl.isBlank() ? null : avatarUrl);
-        usuarioRepository.save(u);
-        log.info("Avatar actualizado: username={}", u.getUsername());
-        return ResponseEntity.ok(new UsuarioRespuesta(u));
+        usuario.setAvatarUrl(avatarUrl != null && avatarUrl.isBlank() ? null : avatarUrl);
+        usuarioRepository.save(usuario);
+        log.info("Avatar actualizado: username={}", usuario.getUsername());
+        return ResponseEntity.ok(new UsuarioRespuesta(usuario));
     }
 
     @PostMapping("/forgot-password")

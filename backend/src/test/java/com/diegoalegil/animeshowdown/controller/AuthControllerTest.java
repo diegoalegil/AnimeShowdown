@@ -1,6 +1,8 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -125,5 +127,62 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(login)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getMeConTokenValidoDevuelveUsuario() throws Exception {
+        // REGRESIÓN: este test falla en bug donde Usuario no implementaba UserDetails
+        // y auth.getName() devolvía Object.toString() en lugar del username.
+        // El endpoint debe usar @AuthenticationPrincipal Usuario directamente.
+        Map<String, String> reg = Map.of(
+                "username", "fiona",
+                "password", "secreta123",
+                "email", "fiona@example.com");
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(reg)))
+                .andExpect(status().isCreated());
+
+        Map<String, String> login = Map.of("username", "fiona", "password", "secreta123");
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = json.readTree(loginRes.getResponse().getContentAsString()).get("token").asText();
+
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("fiona"))
+                .andExpect(jsonPath("$.email").value("fiona@example.com"));
+    }
+
+    @Test
+    void putAvatarConTokenValidoActualiza() throws Exception {
+        Map<String, String> reg = Map.of(
+                "username", "gloria",
+                "password", "secreta123",
+                "email", "gloria@example.com");
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(reg)))
+                .andExpect(status().isCreated());
+
+        Map<String, String> login = Map.of("username", "gloria", "password", "secreta123");
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = json.readTree(loginRes.getResponse().getContentAsString()).get("token").asText();
+
+        Map<String, String> body = Map.of("avatarUrl", "https://example.com/gloria.png");
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.avatarUrl").value("https://example.com/gloria.png"));
     }
 }
