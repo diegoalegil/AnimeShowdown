@@ -36,24 +36,19 @@ const itemVariants = {
 function PersonajeDetailPage() {
   const { slug } = useParams()
   const idx = getIndicePersonaje(slug)
+  const personaje = idx === -1 ? null : personajes[idx]
 
-  if (idx === -1) return <NotFoundPage />
-
-  const personaje = personajes[idx]
-  useDocumentTitle(personaje.nombre)
-  const stats = getStatsPersonaje(slug)
-  const total = stats.wins + stats.losses
-  const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
-  const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
-  const next = personajes[(idx + 1) % personajes.length]
-  const relacionados = personajes
-    .filter((p) => p.anime === personaje.anime && p.slug !== slug)
-    .slice(0, 6)
-
+  // Hooks SIEMPRE arriba del posible early-return — Rules of Hooks: el orden no
+  // puede variar entre renders. Antes el `if (idx === -1) return <NotFoundPage />`
+  // estaba antes de useDocumentTitle/useState/useEffect, lo que hacía crashear
+  // React con "Rendered fewer hooks than expected" al navegar de slug válido a
+  // inválido (refresh tras delete, link roto, typo en URL).
+  useDocumentTitle(personaje?.nombre ?? '404')
   const [jikan, setJikan] = useState(null)
   const [cita, setCita] = useState(null)
 
   useEffect(() => {
+    if (!personaje) return
     let cancelado = false
     buscarPersonajeJikan(personaje.nombre, personaje.anime).then((d) => {
       if (!cancelado) setJikan(d)
@@ -64,7 +59,18 @@ function PersonajeDetailPage() {
     return () => {
       cancelado = true
     }
-  }, [personaje.nombre, personaje.anime])
+  }, [personaje])
+
+  if (idx === -1) return <NotFoundPage />
+
+  const stats = getStatsPersonaje(slug)
+  const total = stats.wins + stats.losses
+  const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
+  const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
+  const next = personajes[(idx + 1) % personajes.length]
+  const relacionados = personajes
+    .filter((p) => p.anime === personaje.anime && p.slug !== slug)
+    .slice(0, 6)
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">

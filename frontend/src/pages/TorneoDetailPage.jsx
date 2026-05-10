@@ -24,9 +24,12 @@ function TorneoDetailPage() {
   const { slug } = useParams()
   const torneo = getTorneoBySlug(slug)
 
-  if (!torneo) return <NotFoundPage />
+  // Hooks arriba del early-return (Rules of Hooks). useDocumentTitle estaba
+  // después del `if (!torneo) return ...` y crashearía React si el user navega
+  // a un slug inexistente con la ruta cacheada.
+  useDocumentTitle(torneo?.nombre ?? '404')
 
-  useDocumentTitle(torneo.nombre)
+  if (!torneo) return <NotFoundPage />
 
   const {
     nombre,

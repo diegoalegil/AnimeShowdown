@@ -99,5 +99,9 @@ export const endpoints = {
   deleteTorneo: (id) => api.del(`/api/torneos/${id}`),
   ranking: () => api.get('/api/votos/ranking'),
   votar: (enfrentamientoId, personajeId) =>
-    api.post(`/api/enfrentamientos/${enfrentamientoId}/votar`, { personajeId }),
+    // El backend espera el campo personajeGanadorId (validado con @NotNull en
+    // VotoEnfrentamientoRequest); antes mandábamos personajeId y rebotaba con 400.
+    api.post(`/api/enfrentamientos/${enfrentamientoId}/votar`, {
+      personajeGanadorId: personajeId,
+    }),
 }
