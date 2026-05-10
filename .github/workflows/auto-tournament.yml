@@ -1,0 +1,116 @@
+name: Auto-generate tournament
+
+# Cron job que crea un torneo aleatorio cada 3 días llamando al endpoint admin del backend.
+# La acción primero hace login con credenciales de admin (secrets) para obtener un JWT
+# fresco (expira 1h), después usa ese JWT para llamar /api/admin/torneos/auto-generar.
+#
+# Para activar:
+# 1. Settings → Secrets and variables → Actions → New repository secret:
+#    - API_URL = https://animeshowdown-production-a9f4.up.railway.app
+#    - ADMIN_USERNAME = (username del admin registrado, ej: diegogil)
+#    - ADMIN_PASSWORD = (su password)
+# 2. (opcional) Settings → Actions → workflow_dispatch para botón manual.
+#
+# Para desactivar el endpoint en caliente: en Railway Variables setear
+# TOURNAMENT_AUTO_ENABLED=false. La acción seguirá llamando pero el backend
+# devolverá 503 Service Unavailable y el job fallará — el workflow loggea pero
+# no bloquea otros deploys.
+#
+# Idempotencia 24h: si ya hay un torneo auto reciente, el endpoint devuelve 409 con
+# id del existente. La acción lo detecta y termina con éxito (no re-genera).
+
+on:
+  schedule:
+    # Cada 3 días a las 09:00 UTC. Sintaxis cron: min hour day month dow
+    - cron: '0 9 */3 * *'
+  workflow_dispatch:
+    inputs:
+      tamano:
+        description: 'Tamaño del torneo (8 o 16)'
+        required: false
+        default: '8'
+        type: choice
+        options:
+          - '8'
+          - '16'
+      force:
+        description: 'Forzar aunque haya un auto-torneo en últimas 24h'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  generate:
+    name: Generar torneo automático
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Login admin → obtener JWT
+        id: login
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$ADMIN_USERNAME" ] || [ -z "$ADMIN_PASSWORD" ]; then
+            echo "::error::Faltan secrets API_URL, ADMIN_USERNAME o ADMIN_PASSWORD en el repo"
+            exit 1
+          fi
+          RES=$(curl -fsS -X POST "$API_URL/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"$ADMIN_USERNAME\",\"password\":\"$ADMIN_PASSWORD\"}")
+          TOKEN=$(echo "$RES" | python3 -c "import json,sys; print(json.load(sys.stdin)['token'])")
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "::error::Login fallido, respuesta: $RES"
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+          echo "✓ JWT obtenido (length=${#TOKEN})"
+
+      - name: Call POST /api/admin/torneos/auto-generar
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          TOKEN: ${{ steps.login.outputs.token }}
+          TAMANO: ${{ inputs.tamano || '8' }}
+          FORCE: ${{ inputs.force || 'false' }}
+        run: |
+          BODY="{\"tamano\":$TAMANO,\"force\":$FORCE}"
+          echo "Body: $BODY"
+
+          # -w para capturar status code, -o para guardar body
+          HTTP=$(curl -sS -X POST "$API_URL/api/admin/torneos/auto-generar" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$BODY" \
+            -w "%{http_code}" \
+            -o response.json)
+
+          echo "HTTP $HTTP"
+          cat response.json
+
+          case "$HTTP" in
+            201)
+              ID=$(python3 -c "import json; print(json.load(open('response.json'))['id'])")
+              NOMBRE=$(python3 -c "import json; print(json.load(open('response.json'))['nombre'])")
+              echo "::notice::✓ Torneo creado (id=$ID): $NOMBRE"
+              ;;
+            409)
+              echo "::warning::Ya existe un torneo auto en las últimas 24h. No se crea otro."
+              ;;
+            503)
+              echo "::warning::Auto-generación deshabilitada en backend (TOURNAMENT_AUTO_ENABLED=false)"
+              ;;
+            *)
+              echo "::error::Status inesperado HTTP $HTTP"
+              exit 1
+              ;;
+          esac
+
+      - name: Upload response artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tournament-response-${{ github.run_id }}
+          path: response.json
+          retention-days: 30
