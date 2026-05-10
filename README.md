@@ -36,7 +36,7 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 - **React 19** + **Vite 8** (HMR + Rolldown bundler)
 - **Tailwind CSS v4** vía `@tailwindcss/vite` con tokens nativos en `@theme` (paleta dark anime: `#0d0d12` bg + `#ff2e63` accent magenta)
 - **Framer Motion 12** para animaciones, parallax mouse-tracked, AnimatePresence en transiciones de ruta
-- **React Router 7** (BrowserRouter + 16 rutas + URL search params para filtros)
+- **React Router 7** (BrowserRouter + 16 rutas — incluye `/higher-or-lower` mini-juego — + URL search params para filtros)
 - **react-hook-form 7** para validación de formularios (Login + Register)
 - **Lucide React** + SVG inline para iconografía
 - **Sonner** para toast notifications
@@ -120,6 +120,8 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 - 🎯 **CTA pulse halo** en botón primario del Hero
 - 📱 **Responsive** con prefers-reduced-motion respetado
 - 🔐 **Auth real con JWT** (registro + login + olvidé contraseña con código por email vía Resend HTTP API + edición de avatar + rol ADMIN auto-promovido por `ADMIN_EMAILS` env)
+- 🎮 **Higher or Lower** mini-juego en `/higher-or-lower`: adivina qué personaje tiene más ELO entre 2 cards, el ganador se queda y aparece nuevo retador, racha + récord histórico en localStorage
+- 📧 **Sugiere personaje CTA** al final de `/personajes` y `/animes` con `mailto:` pre-rellenado a `noreply@animeshowdown.dev` (asunto + cuerpo URL-encoded para Mail.app, Gmail web, Outlook)
 
 ---
 
@@ -368,14 +370,22 @@ erDiagram
 - [x] Cmd+K command palette
 - [x] Sonidos anime sintetizados
 - [x] DataSeeder idempotente que sincroniza personajes incrementalmente (sin truncar BBDD)
-- [x] Email transaccional vía Resend HTTP API (Railway bloquea SMTP outbound)
-- [ ] Wirea `/ranking` y `/votar` al backend en producción (hoy son frontend-only por defecto cuando la BBDD está vacía)
+- [x] Email transaccional vía Resend HTTP API con dominio verificado `noreply@animeshowdown.dev`
+- [x] Dominio custom **animeshowdown.dev** (frontend) + **api.animeshowdown.dev** (backend) en Cloudflare Registrar + Cloudflare Pages + Railway custom domain
+- [x] Cron de torneos automáticos (GitHub Actions cada 3 días → endpoint admin con login OAuth y secret)
+- [x] Sitemap.xml dinámico (140+ URLs regeneradas en cada `npm run build`) + robots.txt
+- [x] Headers de seguridad CSP + HSTS + X-Frame-Options + Permissions-Policy en Cloudflare Pages `_headers`
+- [x] Tests backend ampliados a 23 (cobertura AuthController + TorneoController + EnfrentamientoController + /me + /me/avatar)
+- [x] Mini-juego Higher or Lower con racha persistente en localStorage
+- [x] Banner "Top votado en producción" en `/ranking` con fetch real al backend
+- [x] CTA "Sugerir personaje" con `mailto:` pre-rellenado al final de `/personajes` y `/animes`
+- [x] Hardening backend: email case-insensitive, reset-password anti-enumeration, JwtUtil sin info leak, PersonajeController PUT no destructivo, TorneoController `@Transactional`, validación distinct personajes
+- [ ] Wirea `/votar` y `/personajes` al backend en producción (hoy `/ranking` ya hace fetch, pero `/votar` y catálogo siguen siendo local-only)
 - [ ] Tests E2E con Playwright
-- [ ] Más tests backend (TorneoController, EnfrentamientoController)
-- [ ] Dominio custom (`animeshowdown.dev`)
+- [ ] Refresh tokens (hoy JWT expira a 1h y obliga re-login)
+- [ ] Rate limiting con bucket4j en `/forgot-password` y `/login` (anti brute-force)
 - [ ] PWA + service worker para offline
-- [ ] Cron de torneos automáticos (GitHub Actions → endpoint admin)
-- [ ] OG images dinámicas + sitemap.xml + JSON-LD
+- [ ] OG images dinámicas server-side
 
 ---
 

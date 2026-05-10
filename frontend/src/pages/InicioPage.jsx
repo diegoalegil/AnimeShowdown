@@ -470,7 +470,7 @@ function SectionTop10Ranking() {
             to="/ranking"
             className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent sm:inline-flex"
           >
-            Ver los 96
+            Ver los {totalPersonajes}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
