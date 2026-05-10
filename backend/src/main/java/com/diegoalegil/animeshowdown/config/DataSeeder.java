@@ -2,6 +2,8 @@ package com.diegoalegil.animeshowdown.config;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,12 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Seeder idempotente: en cada arranque lee personajes-seed.json y SOLO inserta
+ * los slugs que aún no existen en la BBDD. No trunca, no actualiza, no falla
+ * si una fila concreta da error. Seguro de re-ejecutar en cualquier estado de
+ * la BBDD (vacía, parcialmente seeded, completa).
+ */
 @Component
 public class DataSeeder implements CommandLineRunner {
 
@@ -30,16 +38,16 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        long count = personajeRepository.count();
-        if (count > 0) {
-            log.info("DataSeeder omitido: ya hay {} personajes en BBDD", count);
-            return;
-        }
-
-        log.info("DataSeeder iniciado: BBDD vacía, cargando {}", SEED_FILE);
+        log.info("DataSeeder iniciado: cargando {}", SEED_FILE);
         try (InputStream is = new ClassPathResource(SEED_FILE).getInputStream()) {
             List<SeedPersonaje> entradas = objectMapper.readValue(is, new TypeReference<>() {});
-            List<Personaje> personajes = entradas.stream()
+
+            Set<String> slugsExistentes = personajeRepository.findAll().stream()
+                .map(Personaje::getSlug)
+                .collect(Collectors.toSet());
+
+            List<Personaje> nuevos = entradas.stream()
+                .filter(s -> !slugsExistentes.contains(s.slug))
                 .map(s -> new Personaje(
                     s.slug,
                     s.nombre,
@@ -48,10 +56,20 @@ public class DataSeeder implements CommandLineRunner {
                     s.imagenUrl != null ? s.imagenUrl : "/personajes/" + s.slug + ".webp"
                 ))
                 .toList();
-            personajeRepository.saveAll(personajes);
-            log.info("DataSeeder completado: {} personajes insertados", personajes.size());
+
+            if (nuevos.isEmpty()) {
+                log.info("DataSeeder: BBDD ya contiene los {} personajes del seed (entradas={}, existentes={})",
+                    slugsExistentes.size(), entradas.size(), slugsExistentes.size());
+                return;
+            }
+
+            personajeRepository.saveAll(nuevos);
+            log.info("DataSeeder: insertados {} personajes nuevos (total ahora {} de {} en seed)",
+                nuevos.size(),
+                slugsExistentes.size() + nuevos.size(),
+                entradas.size());
         } catch (Exception e) {
-            log.error("DataSeeder falló al leer {}: {}", SEED_FILE, e.getMessage(), e);
+            log.error("DataSeeder fallo global al leer {}: {}", SEED_FILE, e.getMessage(), e);
         }
     }
 
