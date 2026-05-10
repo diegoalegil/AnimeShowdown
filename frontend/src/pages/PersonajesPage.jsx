@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { LayoutGrid, List, Search, X } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import PersonajeCard from '../components/PersonajeCard'
+import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import {
   personajes,
   imagenPersonaje,
@@ -232,6 +233,8 @@ function PersonajesPage() {
             ))}
           </ul>
         )}
+
+        <SugerirPersonajeCTA titulo="¿No está tu personaje favorito?" />
       </div>
     </section>
   )

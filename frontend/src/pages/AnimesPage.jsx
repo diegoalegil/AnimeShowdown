@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSound } from '../contexts/SoundContext'
+import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -49,6 +50,8 @@ function AnimesPage() {
             <AnimeTile key={anime} anime={anime} list={list} />
           ))}
         </div>
+
+        <SugerirPersonajeCTA titulo="¿Falta algún anime en el catálogo?" />
       </div>
     </section>
   )
