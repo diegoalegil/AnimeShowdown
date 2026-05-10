@@ -1,0 +1,74 @@
+package com.diegoalegil.animeshowdown.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.service.TorneoAutoService;
+
+/**
+ * Endpoint admin para auto-generar torneos. Lo invoca el GitHub Action
+ * `.github/workflows/auto-tournament.yml` cada 3 días con secret ADMIN_TOKEN.
+ *
+ * Protegido por SecurityConfig: requiere rol ADMIN.
+ */
+@RestController
+@RequestMapping("/api/admin/torneos")
+public class AutoTorneoController {
+
+    private final TorneoAutoService autoService;
+
+    public AutoTorneoController(TorneoAutoService autoService) {
+        this.autoService = autoService;
+    }
+
+    @PostMapping("/auto-generar")
+    public ResponseEntity<?> autoGenerar(@RequestBody(required = false) Map<String, Object> body) {
+        if (!autoService.isEnabled()) {
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("error", "Auto-generación deshabilitada");
+            resp.put("hint", "Activa con app.tournament.auto.enabled=true en application.properties");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(resp);
+        }
+
+        int tamano = 8;
+        boolean force = false;
+        if (body != null) {
+            Object t = body.get("tamano");
+            if (t instanceof Number) tamano = ((Number) t).intValue();
+            Object f = body.get("force");
+            if (f instanceof Boolean) force = (Boolean) f;
+        }
+
+        try {
+            Torneo creado = autoService.generar(tamano, force);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+        } catch (TorneoAutoService.IdempotenciaException e) {
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("error", e.getMessage());
+            resp.put("torneo_existente", e.getExistente());
+            resp.put("hint", "Pasa force=true en el body para forzar otro torneo");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(resp);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/auto-historial")
+    public ResponseEntity<?> autoHistorial() {
+        Optional<Torneo> reciente = autoService.torneoAutoReciente();
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("auto_enabled", autoService.isEnabled());
+        resp.put("torneo_reciente_24h", reciente.orElse(null));
+        return ResponseEntity.ok(resp);
+    }
+}
