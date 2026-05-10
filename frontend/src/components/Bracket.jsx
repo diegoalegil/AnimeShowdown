@@ -1,11 +1,11 @@
-import { Trophy } from 'lucide-react'
+import { Trophy, Lock } from 'lucide-react'
 import {
   imagenPersonaje,
   getPersonajeBySlug,
   getStatsPersonaje,
 } from '../data/personajes'
 
-function generarBracket(slugs) {
+function generarBracket(slugs, revelarGanadores = true) {
   if (slugs.length < 2) return { rounds: [], campeon: slugs[0] ?? null }
   let current = [...slugs]
   const rounds = []
@@ -14,13 +14,25 @@ function generarBracket(slugs) {
     for (let i = 0; i < current.length; i += 2) {
       const a = current[i]
       const b = current[i + 1]
-      const eloA = getStatsPersonaje(a).elo
-      const eloB = getStatsPersonaje(b).elo
-      const winner = eloA >= eloB ? a : b
+      // Solo computamos ganador si revelarGanadores=true; en torneos 'proximo' o
+      // 'sin empezar' devolvemos null y el frontend muestra "?" en lugar del Trophy.
+      let winner = null
+      if (revelarGanadores) {
+        const eloA = getStatsPersonaje(a).elo
+        const eloB = getStatsPersonaje(b).elo
+        winner = eloA >= eloB ? a : b
+      }
       matches.push({ a, b, winner })
     }
     rounds.push(matches)
-    current = matches.map((m) => m.winner)
+    // Para avanzar el bracket en torneos 'proximo' avanzamos por ELO igualmente
+    // (estructura del bracket), pero los matches no muestran ganador visualmente
+    current = matches.map((m) => {
+      if (m.winner) return m.winner
+      const eloA = getStatsPersonaje(m.a).elo
+      const eloB = getStatsPersonaje(m.b).elo
+      return eloA >= eloB ? m.a : m.b
+    })
   }
   return { rounds, campeon: current[0] }
 }
@@ -32,11 +44,15 @@ const TITULOS = {
   1: ['Final'],
 }
 
-function Bracket({ slugs, ganadorReal }) {
-  const { rounds, campeon } = generarBracket(slugs)
+function Bracket({ slugs, ganadorReal, estado = 'finalizado' }) {
+  // En torneos 'proximo' el bracket se muestra pero sin trofeos ni campeón
+  // revelado — solo la estructura de cómo se enfrentarían los participantes.
+  // En 'finalizado' o 'en-curso' sí mostramos ganador computado por ELO.
+  const revelarGanadores = estado !== 'proximo'
+  const { rounds, campeon } = generarBracket(slugs, revelarGanadores)
   if (rounds.length === 0) return null
   const titulos = TITULOS[rounds.length] || []
-  const campeonFinal = ganadorReal || campeon
+  const campeonFinal = revelarGanadores ? (ganadorReal || campeon) : null
 
   return (
     <div className="scrollbar-hide -mx-5 overflow-x-auto px-5 sm:-mx-8 sm:px-8">
@@ -60,7 +76,11 @@ function Bracket({ slugs, ganadorReal }) {
           <h3 className="text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
             Campeón
           </h3>
-          <ChampionSlot slug={campeonFinal} />
+          {campeonFinal ? (
+            <ChampionSlot slug={campeonFinal} />
+          ) : (
+            <ChampionPlaceholder />
+          )}
         </div>
       </div>
     </div>
@@ -123,6 +143,18 @@ function ChampionSlot({ slug }) {
         <p className="text-sm font-bold text-fg-strong">{p.nombre}</p>
         <p className="text-[11px] text-fg-muted">{p.anime}</p>
       </div>
+    </div>
+  )
+}
+
+function ChampionPlaceholder() {
+  return (
+    <div className="mt-3 flex aspect-[2/3] max-w-[110px] flex-col items-center justify-center gap-2 self-center rounded-xl border-2 border-dashed border-border bg-surface-alt/40 p-3 text-center">
+      <Lock className="h-5 w-5 text-fg-muted" />
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+        Por decidir
+      </p>
+      <p className="text-[10px] text-fg-muted">El torneo aún no ha empezado</p>
     </div>
   )
 }
