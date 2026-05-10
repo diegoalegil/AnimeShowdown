@@ -96,7 +96,8 @@ export const endpoints = {
   torneos: () => api.get('/api/torneos'),
   torneo: (id) => api.get(`/api/torneos/${id}`),
   createTorneo: (data) => api.post('/api/torneos', data),
-  deleteTorneo: (id) => api.del(`/api/torneos/${id}`),
+  // deleteTorneo eliminado: TorneoController no expone @DeleteMapping todavía,
+  // si el frontend lo llamaba caía con 405. Se restaurará cuando se implemente backend-side.
   ranking: () => api.get('/api/votos/ranking'),
   votar: (enfrentamientoId, personajeId) =>
     // El backend espera el campo personajeGanadorId (validado con @NotNull en
