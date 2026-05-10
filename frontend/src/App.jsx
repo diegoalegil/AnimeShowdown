@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Toaster } from 'sonner'
@@ -25,6 +26,15 @@ import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
   const location = useLocation()
+
+  // Scroll to top en cada cambio de ruta — antes la página quedaba con el scroll
+  // de la página anterior, así que al click en una card del catálogo el detalle
+  // aparecía "desde abajo" (porque el navegador conserva la posición y el
+  // contenido nuevo es más corto que el scroll heredado).
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
   return (
     <div className="flex min-h-screen flex-col">
       <Splash />
