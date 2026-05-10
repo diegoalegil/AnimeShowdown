@@ -13,6 +13,7 @@ import {
   VolumeX,
   LogOut,
   Search,
+  Tv,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { torneos } from '../data/torneos'
@@ -23,6 +24,7 @@ import { playWhoosh } from '../lib/sounds'
 const rutas = [
   { to: '/', label: 'Inicio', icon: Home },
   { to: '/personajes', label: 'Personajes', icon: Users },
+  { to: '/animes', label: 'Animes', icon: Tv },
   { to: '/torneos', label: 'Torneos', icon: Trophy },
   { to: '/votar', label: 'Votar', icon: Swords },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },

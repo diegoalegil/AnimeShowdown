@@ -101,7 +101,7 @@ function Footer() {
         <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-[12px] text-fg-muted sm:flex-row">
           <p>© 2026 Diego Alegil — DAM 1.º</p>
           <p>
-            Hecho con <span className="text-accent">♥</span> en Madrid
+            Hecho con <span className="text-accent">♥</span> en Tenerife
           </p>
         </div>
       </div>
