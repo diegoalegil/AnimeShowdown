@@ -1,13 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
-import { useInView } from 'framer-motion'
+import { useEffect, useState } from 'react'
 
+/**
+ * Anima un contador de 0 a `target` con easing easeOutCubic.
+ * Antes usaba framer-motion useInView para arrancar al entrar en viewport, pero
+ * en producción una de las 4 instancias quedaba pegada en 0 (probable race con
+ * IntersectionObserver y refs en React 19). Ahora arranca on-mount, simple y
+ * predictible — la sección padre tiene su propio whileInView y para cuando el
+ * user scrollea aquí los counters ya tienen valor estable.
+ */
 function CountUp({ target, duration = 1.6, suffix = '' }) {
   const [value, setValue] = useState(0)
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-80px' })
 
   useEffect(() => {
-    if (!inView) return
+    if (typeof target !== 'number' || target === 0) {
+      setValue(target || 0)
+      return
+    }
     let raf
     const start = performance.now()
     const step = (now) => {
@@ -19,10 +27,10 @@ function CountUp({ target, duration = 1.6, suffix = '' }) {
     }
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
-  }, [inView, target, duration])
+  }, [target, duration])
 
   return (
-    <span ref={ref}>
+    <span>
       {value}
       {suffix}
     </span>
