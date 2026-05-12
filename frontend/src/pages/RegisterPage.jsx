@@ -86,7 +86,7 @@ function RegisterPage() {
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.username ? 'border-red-500' : 'border-border'
               }`}
-              placeholder="diegoalegil"
+              placeholder="Elige un nombre de usuario"
             />
             {errors.username && (
               <p className="text-[12px] text-red-400">
@@ -115,7 +115,7 @@ function RegisterPage() {
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.email ? 'border-red-500' : 'border-border'
               }`}
-              placeholder="diego@ejemplo.com"
+              placeholder="tunombre@ejemplo.com"
             />
             {errors.email && (
               <p className="text-[12px] text-red-400">{errors.email.message}</p>
@@ -139,7 +139,7 @@ function RegisterPage() {
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.password ? 'border-red-500' : 'border-border'
               }`}
-              placeholder="••••••••"
+              placeholder="Mínimo 6 caracteres"
             />
             {errors.password && (
               <p className="text-[12px] text-red-400">
@@ -166,7 +166,7 @@ function RegisterPage() {
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.confirmPassword ? 'border-red-500' : 'border-border'
               }`}
-              placeholder="••••••••"
+              placeholder="Repite tu contraseña"
             />
             {errors.confirmPassword && (
               <p className="text-[12px] text-red-400">
