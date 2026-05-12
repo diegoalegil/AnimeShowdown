@@ -1,9 +1,18 @@
 import { useRef, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { ImagePlus, Link as LinkIcon, Mail, Shield, Upload, User } from 'lucide-react'
+import {
+  ImagePlus,
+  Key,
+  Link as LinkIcon,
+  LogOut,
+  Mail,
+  Shield,
+  Upload,
+  User,
+} from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { endpoints, ApiError } from '../lib/api'
@@ -44,9 +53,15 @@ async function fileToBase64(file, maxSize = 256, quality = 0.82) {
 
 function PerfilPage() {
   useDocumentTitle('Mi perfil')
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, logout } = useAuth()
+  const navigate = useNavigate()
 
   if (!user) return <Navigate to="/login" replace />
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -63,11 +78,16 @@ function PerfilPage() {
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Perfil
           </h1>
+          <p className="text-fg-muted">
+            Gestiona tus datos, tu avatar y la seguridad de tu cuenta.
+          </p>
         </motion.header>
 
         <div className="grid gap-6">
           <CardDatos user={user} />
           <CardAvatar user={user} updateUser={updateUser} />
+          <CardPassword />
+          <CardSesion onLogout={handleLogout} />
         </div>
       </div>
     </section>
@@ -407,6 +427,171 @@ function UrlForm({ user, updateUser }) {
       </button>
       {error && <p className="text-[11px] text-red-400">{error}</p>}
     </form>
+  )
+}
+
+function CardPassword() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm()
+  const newPassword = watch('newPassword')
+
+  const onSubmit = async (data) => {
+    try {
+      await endpoints.changePassword(data.currentPassword, data.newPassword)
+      toast.success('Contraseña actualizada', {
+        description: 'Tu nueva contraseña ya está activa.',
+      })
+      reset()
+    } catch (err) {
+      const status = err instanceof ApiError ? err.status : 0
+      const msg =
+        err instanceof ApiError
+          ? err.message || `Error ${err.status}`
+          : 'No se pudo conectar al servidor.'
+      if (status === 401) {
+        // current password mal
+        setError('currentPassword', { message: 'La contraseña actual no coincide' })
+      } else if (status === 400) {
+        // nueva password incumple regla
+        setError('newPassword', { message: msg })
+      } else {
+        setError('root', { message: msg })
+      }
+      toast.error('No se pudo cambiar la contraseña', { description: msg })
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Key className="h-4 w-4 text-accent" />
+        <h2 className="text-lg font-bold text-fg-strong">Cambiar contraseña</h2>
+      </div>
+      <p className="mb-5 text-[12px] text-fg-muted">
+        Necesitas la contraseña actual para confirmar el cambio. Si no la recuerdas,
+        usa el flujo de "Olvidé mi contraseña" desde el login.
+      </p>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="currentPassword"
+            className="text-[12px] font-medium text-fg-strong"
+          >
+            Contraseña actual
+          </label>
+          <input
+            id="currentPassword"
+            type="password"
+            autoComplete="current-password"
+            {...register('currentPassword', {
+              required: 'Introduce tu contraseña actual',
+            })}
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              errors.currentPassword ? 'border-red-500' : 'border-border'
+            }`}
+            placeholder="Tu contraseña actual"
+          />
+          {errors.currentPassword && (
+            <p className="text-[11px] text-red-400">
+              {errors.currentPassword.message}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="newPassword"
+            className="text-[12px] font-medium text-fg-strong"
+          >
+            Nueva contraseña
+          </label>
+          <input
+            id="newPassword"
+            type="password"
+            autoComplete="new-password"
+            {...register('newPassword', {
+              required: 'Introduce la contraseña nueva',
+              minLength: { value: 6, message: 'Mínimo 6 caracteres' },
+            })}
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              errors.newPassword ? 'border-red-500' : 'border-border'
+            }`}
+            placeholder="Mínimo 6 caracteres"
+          />
+          {errors.newPassword && (
+            <p className="text-[11px] text-red-400">
+              {errors.newPassword.message}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="confirmNewPassword"
+            className="text-[12px] font-medium text-fg-strong"
+          >
+            Confirma la nueva contraseña
+          </label>
+          <input
+            id="confirmNewPassword"
+            type="password"
+            autoComplete="new-password"
+            {...register('confirmNewPassword', {
+              required: 'Confirma la contraseña nueva',
+              validate: (v) =>
+                v === newPassword || 'Las contraseñas no coinciden',
+            })}
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              errors.confirmNewPassword ? 'border-red-500' : 'border-border'
+            }`}
+            placeholder="Repite la nueva contraseña"
+          />
+          {errors.confirmNewPassword && (
+            <p className="text-[11px] text-red-400">
+              {errors.confirmNewPassword.message}
+            </p>
+          )}
+        </div>
+        {errors.root && (
+          <p className="text-[12px] text-red-400">{errors.root.message}</p>
+        )}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Key className="h-4 w-4" />
+          {isSubmitting ? 'Guardando…' : 'Cambiar contraseña'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+function CardSesion({ onLogout }) {
+  return (
+    <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-6">
+      <div className="mb-3 flex items-center gap-2">
+        <LogOut className="h-4 w-4 text-rose-300" />
+        <h2 className="text-lg font-bold text-fg-strong">Cerrar sesión</h2>
+      </div>
+      <p className="mb-4 text-[12px] text-fg-muted">
+        Cierra tu sesión en este dispositivo. Tu token JWT se borra del navegador,
+        tendrás que volver a entrar con tu username y contraseña.
+      </p>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+      >
+        <LogOut className="h-4 w-4" />
+        Salir de mi cuenta
+      </button>
+    </div>
   )
 }
 
