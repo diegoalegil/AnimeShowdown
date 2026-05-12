@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.diegoalegil.animeshowdown.dto.CambioPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.ForgotPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.LoginRequest;
 import com.diegoalegil.animeshowdown.dto.RegistroRequest;
@@ -165,6 +166,32 @@ public class AuthController {
         usuarioRepository.save(usuario);
         log.info("Avatar actualizado: username={}", usuario.getUsername());
         return ResponseEntity.ok(new UsuarioRespuesta(usuario));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<?> cambiarPassword(
+            @Valid @RequestBody CambioPasswordRequest request,
+            @AuthenticationPrincipal Usuario usuario) {
+        // Cambio de contraseña con usuario autenticado: requiere current_password
+        // para evitar que si alguien deja la sesión abierta otro usuario cambie
+        // la pass sin saber la actual (distinto del reset por email que sirve
+        // cuando se te olvida la actual).
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!passwordEncoder.matches(request.getCurrentPassword(), usuario.getPassword())) {
+            log.warn("Cambio password fallido (current incorrecta): username={}", usuario.getUsername());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "La contraseña actual no coincide"));
+        }
+        if (request.getNewPassword().equals(request.getCurrentPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "La nueva contraseña debe ser distinta a la actual"));
+        }
+        usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usuarioRepository.save(usuario);
+        log.info("Password cambiada: username={}", usuario.getUsername());
+        return ResponseEntity.ok(Map.of("message", "Contraseña actualizada"));
     }
 
     @PostMapping("/forgot-password")
