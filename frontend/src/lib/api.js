@@ -89,6 +89,8 @@ export const endpoints = {
     api.post('/api/auth/reset-password', data, { auth: false }),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
+  changePassword: (currentPassword, newPassword) =>
+    api.put('/api/auth/me/password', { currentPassword, newPassword }),
   personajes: () => api.get('/api/personajes'),
   personaje: (id) => api.get(`/api/personajes/${id}`),
   createPersonaje: (data) => api.post('/api/personajes', data),
