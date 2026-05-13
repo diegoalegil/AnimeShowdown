@@ -14,6 +14,7 @@ import {
   User,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useSound } from '../contexts/SoundContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { endpoints, ApiError } from '../lib/api'
 import Avatar from '../components/Avatar'
@@ -431,6 +432,7 @@ function UrlForm({ user, updateUser }) {
 }
 
 function CardPassword() {
+  const { play } = useSound()
   const {
     register,
     handleSubmit,
@@ -444,6 +446,7 @@ function CardPassword() {
   const onSubmit = async (data) => {
     try {
       await endpoints.changePassword(data.currentPassword, data.newPassword)
+      play('playLevelUp')
       toast.success('Contraseña actualizada', {
         description: 'Tu nueva contraseña ya está activa.',
       })
@@ -573,6 +576,11 @@ function CardPassword() {
 }
 
 function CardSesion({ onLogout }) {
+  const { play } = useSound()
+  const handleClick = () => {
+    play('playClick')
+    onLogout()
+  }
   return (
     <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-6">
       <div className="mb-3 flex items-center gap-2">
@@ -585,7 +593,7 @@ function CardSesion({ onLogout }) {
       </p>
       <button
         type="button"
-        onClick={onLogout}
+        onClick={handleClick}
         className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
       >
         <LogOut className="h-4 w-4" />
