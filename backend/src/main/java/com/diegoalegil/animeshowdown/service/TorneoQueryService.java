@@ -117,7 +117,7 @@ public class TorneoQueryService {
         dto.setTotalRondas(totalRondas);
         dto.setNumParticipantes((int) (matchesRonda1 * 2));
         dto.setRondaActual(calcularRondaActual(t.getEstado(), totalRondas, matches));
-        dto.setGanadorSlug(calcularGanadorSlug(t.getEstado(), totalRondas, matches));
+        dto.setGanadorSlug(calcularGanadorSlug(t, totalRondas, matches));
         return dto;
     }
 
@@ -136,8 +136,25 @@ public class TorneoQueryService {
                 .orElse(totalRondas); // todos resueltos → último round es el "actual" informativo
     }
 
-    private String calcularGanadorSlug(EstadoTorneo estado, int totalRondas, List<Enfrentamiento> matches) {
-        if (estado != EstadoTorneo.FINISHED || totalRondas == 0) {
+    /**
+     * Determina el slug del ganador del torneo con dos fuentes:
+     *
+     *   1. Torneo.ganadorPersonaje directo (campo añadido en commit 6 para
+     *      torneos legacy seedados con ganador conocido pero sin bracket
+     *      intermedio detallado).
+     *   2. Fallback: ganador del match de la última ronda en BBDD, cuando
+     *      el bracket se ha cerrado a través del flujo normal.
+     *
+     * Solo retorna no-null si el torneo está FINISHED.
+     */
+    private String calcularGanadorSlug(Torneo t, int totalRondas, List<Enfrentamiento> matches) {
+        if (t.getEstado() != EstadoTorneo.FINISHED) {
+            return null;
+        }
+        if (t.getGanadorPersonaje() != null) {
+            return t.getGanadorPersonaje().getSlug();
+        }
+        if (totalRondas == 0) {
             return null;
         }
         return matches.stream()

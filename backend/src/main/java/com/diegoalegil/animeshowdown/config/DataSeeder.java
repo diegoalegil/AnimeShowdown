@@ -16,12 +16,18 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.service.BracketService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.LocalDateTime;
 
 /**
  * Seeder de personajes que sincroniza la BBDD con personajes-seed.json (que
@@ -51,31 +57,45 @@ public class DataSeeder implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
     private static final String SEED_FILE = "personajes-seed.json";
+    private static final String SEED_TORNEOS_FILE = "torneos-seed.json";
 
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
+    private final TorneoRepository torneoRepository;
+    private final BracketService bracketService;
     private final ObjectMapper objectMapper;
 
     public DataSeeder(
             PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
+            TorneoRepository torneoRepository,
+            BracketService bracketService,
             ObjectMapper objectMapper) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
+        this.torneoRepository = torneoRepository;
+        this.bracketService = bracketService;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void run(String... args) {
-        log.info("DataSeeder iniciado: sincronizando con {}", SEED_FILE);
+        log.info("DataSeeder iniciado: sincronizando con {} y {}", SEED_FILE, SEED_TORNEOS_FILE);
         try (InputStream is = new ClassPathResource(SEED_FILE).getInputStream()) {
             List<SeedPersonaje> entradas = objectMapper.readValue(is, new TypeReference<>() {});
             sincronizar(entradas);
         } catch (Exception e) {
             log.error("DataSeeder fallo global al leer {}: {}", SEED_FILE, e.getMessage(), e);
+        }
+
+        try (InputStream is = new ClassPathResource(SEED_TORNEOS_FILE).getInputStream()) {
+            List<SeedTorneo> torneos = objectMapper.readValue(is, new TypeReference<>() {});
+            sincronizarTorneos(torneos);
+        } catch (Exception e) {
+            log.error("DataSeeder fallo global al leer {}: {}", SEED_TORNEOS_FILE, e.getMessage(), e);
         }
     }
 
@@ -191,5 +211,133 @@ public class DataSeeder implements CommandLineRunner {
         public String anime;
         public String descripcion;
         public String imagenUrl;
+    }
+
+    // ===================================================================
+    //  Torneos seed (Plan v2 §1.1 commit 6)
+    // ===================================================================
+
+    /**
+     * Sincroniza los 13 torneos de torneos-seed.json. A diferencia de los
+     * personajes NO hace DELETE de los torneos no listados — los torneos
+     * los crean usuarios o el cron AUTO también, no son solo seed.
+     *
+     * Comportamiento idempotente por slug:
+     *   - Si NO existe: crea Torneo + bracket precomputado vía BracketService.
+     *     Si tiene ganadorSlug, asigna Torneo.ganadorPersonaje.
+     *   - Si existe: actualiza solo campos meta (nombre, descripcion, estado,
+     *     fechas, ganador). NO recrea el bracket — los enfrentamientos
+     *     existentes en BBDD son inmutables desde el seed (votos del usuario,
+     *     resultados reales).
+     */
+    @Transactional
+    protected void sincronizarTorneos(List<SeedTorneo> torneos) {
+        Map<String, Personaje> personajesPorSlug = new HashMap<>();
+        for (Personaje p : personajeRepository.findAll()) {
+            personajesPorSlug.put(p.getSlug(), p);
+        }
+
+        int creados = 0;
+        int actualizados = 0;
+        for (SeedTorneo s : torneos) {
+            try {
+                if (torneoRepository.existsBySlug(s.slug)) {
+                    Torneo existente = torneoRepository.findBySlug(s.slug).orElseThrow();
+                    if (aplicarCambiosTorneo(existente, s, personajesPorSlug)) {
+                        torneoRepository.save(existente);
+                        actualizados++;
+                    }
+                } else {
+                    crearTorneoDesdeSeed(s, personajesPorSlug);
+                    creados++;
+                }
+            } catch (Exception e) {
+                log.error("DataSeeder torneo fallo en slug={}: {}", s.slug, e.getMessage(), e);
+            }
+        }
+
+        log.info("DataSeeder torneos: creados={}, actualizados={} (seed total={})",
+                creados, actualizados, torneos.size());
+    }
+
+    private void crearTorneoDesdeSeed(SeedTorneo s, Map<String, Personaje> personajesPorSlug) {
+        Torneo torneo = new Torneo(s.slug, s.nombre, s.descripcion);
+        torneo.setEstado(s.estado != null ? s.estado : EstadoTorneo.SCHEDULED);
+        torneo.setFechaInicio(parseFecha(s.fechaInicio));
+        torneo.setFechaFinalizacion(parseFecha(s.fechaFinalizacion));
+        if (s.ganadorSlug != null) {
+            Personaje ganador = personajesPorSlug.get(s.ganadorSlug);
+            if (ganador != null) {
+                torneo.setGanadorPersonaje(ganador);
+            } else {
+                log.warn("DataSeeder torneo {}: ganadorSlug={} no existe en BBDD", s.slug, s.ganadorSlug);
+            }
+        }
+        Torneo guardado = torneoRepository.save(torneo);
+
+        // Crea bracket precomputado solo si hay participantes y tamaño válido.
+        if (s.participantes != null && !s.participantes.isEmpty()) {
+            List<Personaje> participantes = new ArrayList<>();
+            for (String slug : s.participantes) {
+                Personaje p = personajesPorSlug.get(slug);
+                if (p == null) {
+                    log.warn("DataSeeder torneo {}: participante slug={} no existe en BBDD, se omite el bracket",
+                            s.slug, slug);
+                    return;
+                }
+                participantes.add(p);
+            }
+            try {
+                bracketService.crearBracket(guardado, participantes);
+            } catch (IllegalArgumentException e) {
+                log.warn("DataSeeder torneo {}: tamaño bracket inválido ({} participantes), bracket no creado",
+                        s.slug, participantes.size());
+            }
+        }
+
+        log.info("DataSeeder torneo INSERT: slug={} estado={} participantes={} ganador={}",
+                s.slug, s.estado, s.participantes != null ? s.participantes.size() : 0, s.ganadorSlug);
+    }
+
+    private boolean aplicarCambiosTorneo(Torneo p, SeedTorneo s, Map<String, Personaje> personajesPorSlug) {
+        boolean cambio = false;
+        if (!Objects.equals(p.getNombre(), s.nombre)) { p.setNombre(s.nombre); cambio = true; }
+        if (!Objects.equals(p.getDescripcion(), s.descripcion)) { p.setDescripcion(s.descripcion); cambio = true; }
+        if (s.estado != null && p.getEstado() != s.estado) { p.setEstado(s.estado); cambio = true; }
+        LocalDateTime fechaInicio = parseFecha(s.fechaInicio);
+        if (!Objects.equals(p.getFechaInicio(), fechaInicio)) { p.setFechaInicio(fechaInicio); cambio = true; }
+        LocalDateTime fechaFin = parseFecha(s.fechaFinalizacion);
+        if (!Objects.equals(p.getFechaFinalizacion(), fechaFin)) { p.setFechaFinalizacion(fechaFin); cambio = true; }
+        if (s.ganadorSlug != null) {
+            Personaje ganador = personajesPorSlug.get(s.ganadorSlug);
+            if (ganador != null && (p.getGanadorPersonaje() == null
+                    || !Objects.equals(p.getGanadorPersonaje().getId(), ganador.getId()))) {
+                p.setGanadorPersonaje(ganador);
+                cambio = true;
+            }
+        }
+        return cambio;
+    }
+
+    private LocalDateTime parseFecha(String iso) {
+        if (iso == null || iso.isBlank()) return null;
+        try {
+            return LocalDateTime.parse(iso);
+        } catch (Exception e) {
+            log.warn("DataSeeder fecha inválida '{}': {}", iso, e.getMessage());
+            return null;
+        }
+    }
+
+    /** DTO interno para deserializar torneos-seed.json. */
+    private static class SeedTorneo {
+        public String slug;
+        public String nombre;
+        public String descripcion;
+        public EstadoTorneo estado;
+        public String fechaInicio;
+        public String fechaFinalizacion;
+        public List<String> participantes;
+        public String ganadorSlug;
     }
 }

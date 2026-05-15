@@ -9,6 +9,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -47,6 +49,16 @@ public class Torneo {
     private LocalDateTime fechaInicio;
 
     private LocalDateTime fechaFinalizacion;
+
+    /**
+     * Ganador del torneo. Para torneos completos coincide con el ganador
+     * del match de la última ronda — lo setea TorneoService.finalizar.
+     * Para torneos legacy seedados sin bracket detallado (Plan v2 §1.1
+     * commit 6), este campo es la única fuente de verdad del ganador.
+     */
+    @ManyToOne
+    @JoinColumn(name = "ganador_personaje_id")
+    private Personaje ganadorPersonaje;
 
     public Torneo() {
     }
@@ -142,6 +154,14 @@ public class Torneo {
 
     public void setFechaFinalizacion(LocalDateTime fechaFinalizacion) {
         this.fechaFinalizacion = fechaFinalizacion;
+    }
+
+    public Personaje getGanadorPersonaje() {
+        return ganadorPersonaje;
+    }
+
+    public void setGanadorPersonaje(Personaje ganadorPersonaje) {
+        this.ganadorPersonaje = ganadorPersonaje;
     }
 
 }
