@@ -643,8 +643,18 @@ export const personajes = [
   { slug: 'yotsuha_miyamizu', nombre: 'Yotsuha Miyamizu', anime: 'Your Name', descripcion: 'Personaje del anime Your Name.', imagen: '/img/Your_Name/yotsuha_miyamizu.webp' },
 ]
 
+// Map slug → ruta de imagen construido una sola vez al cargar el módulo. Antes
+// la función devolvía `/personajes/${slug}.webp` (estructura plana vieja), pero
+// tras la migración el catálogo vive en /img/<Anime>/<slug>.webp y la ruta
+// completa ya está dentro de cada entrada como `imagen`. La página /personajes
+// muestra ~640 cards, así que evitamos el find() lineal en cada render.
+const slugToImagen = new Map(personajes.map((p) => [p.slug, p.imagen]))
+
 export function imagenPersonaje(slug) {
-  return `/personajes/${slug}.webp`
+  // Fallback determinístico para slugs ausentes del catálogo: devolvemos una
+  // ruta que dará 404 visible (icono roto) en vez de undefined/cadena vacía,
+  // que dejan el <img> en estado raro y silencian el bug.
+  return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`
 }
 
 export function getPersonajeBySlug(slug) {
