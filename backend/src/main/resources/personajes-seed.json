@@ -1,127 +1,4496 @@
 [
-  { "slug": "L", "nombre": "L", "anime": "Death Note" },
-  { "slug": "ai_hoshino", "nombre": "Ai Hoshino", "anime": "Oshi no Ko" },
-  { "slug": "akeno_himejima", "nombre": "Akeno Himejima", "anime": "High School DxD" },
-  { "slug": "albedo", "nombre": "Albedo", "anime": "Overlord" },
-  { "slug": "alisa_mikhailovna_kujou", "nombre": "Alisa Mikhailovna Kujou", "anime": "Roshidere" },
-  { "slug": "allmight", "nombre": "All Might", "anime": "My Hero Academia" },
-  { "slug": "android_18", "nombre": "Android 18", "anime": "Dragon Ball Z" },
-  { "slug": "anya_forger", "nombre": "Anya Forger", "anime": "Spy x Family" },
-  { "slug": "aqua", "nombre": "Aqua", "anime": "KonoSuba" },
-  { "slug": "asuka", "nombre": "Asuka Langley", "anime": "Neon Genesis Evangelion" },
-  { "slug": "asuna", "nombre": "Asuna Yuuki", "anime": "Sword Art Online" },
-  { "slug": "boa_hancock", "nombre": "Boa Hancock", "anime": "One Piece" },
-  { "slug": "bulma", "nombre": "Bulma", "anime": "Dragon Ball" },
-  { "slug": "denji", "nombre": "Denji", "anime": "Chainsaw Man" },
-  { "slug": "emilia", "nombre": "Emilia", "anime": "Re:Zero" },
-  { "slug": "erza", "nombre": "Erza Scarlet", "anime": "Fairy Tail" },
-  { "slug": "esdeath", "nombre": "Esdeath", "anime": "Akame ga Kill!" },
-  { "slug": "frieren", "nombre": "Frieren", "anime": "Frieren: Beyond Journey's End" },
-  { "slug": "froppy", "nombre": "Tsuyu Asui", "anime": "My Hero Academia" },
-  { "slug": "gojo", "nombre": "Satoru Gojo", "anime": "Jujutsu Kaisen" },
-  { "slug": "hana_midorikawa", "nombre": "Hana Midorikawa", "anime": "Prison School" },
-  { "slug": "himiko", "nombre": "Himiko", "anime": "Btooom!" },
-  { "slug": "hinata", "nombre": "Hinata Hyuga", "anime": "Naruto" },
-  { "slug": "ichigo", "nombre": "Ichigo Kurosaki", "anime": "Bleach" },
-  { "slug": "inosuke", "nombre": "Inosuke Hashibira", "anime": "Demon Slayer" },
-  { "slug": "itachi", "nombre": "Itachi Uchiha", "anime": "Naruto" },
-  { "slug": "itadori", "nombre": "Yuji Itadori", "anime": "Jujutsu Kaisen" },
-  { "slug": "izuna_hatsuse", "nombre": "Izuna Hatsuse", "anime": "No Game No Life" },
-  { "slug": "kanade_tachibana", "nombre": "Kanade Tachibana", "anime": "Angel Beats!" },
-  { "slug": "kanao_tsuyuri", "nombre": "Kanao Tsuyuri", "anime": "Demon Slayer" },
-  { "slug": "kaneki", "nombre": "Ken Kaneki", "anime": "Tokyo Ghoul" },
-  { "slug": "kirino_kousaka", "nombre": "Kirino Kousaka", "anime": "Oreimo" },
-  { "slug": "kirito", "nombre": "Kirito", "anime": "Sword Art Online" },
-  { "slug": "kuroneko", "nombre": "Kuroneko", "anime": "Oreimo" },
-  { "slug": "kurumi", "nombre": "Kurumi Tokisaki", "anime": "Date A Live" },
-  { "slug": "lemillion", "nombre": "Lemillion", "anime": "My Hero Academia" },
-  { "slug": "levi", "nombre": "Levi Ackerman", "anime": "Attack on Titan" },
-  { "slug": "light_yagami", "nombre": "Light Yagami", "anime": "Death Note" },
-  { "slug": "luffy", "nombre": "Monkey D. Luffy", "anime": "One Piece" },
-  { "slug": "mahiru_shiina", "nombre": "Mahiru Shiina", "anime": "The Angel Next Door" },
-  { "slug": "mai_sakurajima", "nombre": "Mai Sakurajima", "anime": "Bunny Girl Senpai" },
-  { "slug": "makima", "nombre": "Makima", "anime": "Chainsaw Man" },
-  { "slug": "marin_kitagawa", "nombre": "Marin Kitagawa", "anime": "My Dress-Up Darling" },
-  { "slug": "masami_iwasawa", "nombre": "Masami Iwasawa", "anime": "Angel Beats!" },
-  { "slug": "mazinkaiser", "nombre": "Mazinkaiser", "anime": "Mazinkaiser" },
-  { "slug": "megumin", "nombre": "Megumin", "anime": "KonoSuba" },
-  { "slug": "mikasa", "nombre": "Mikasa Ackerman", "anime": "Attack on Titan" },
-  { "slug": "miku", "nombre": "Hatsune Miku", "anime": "Vocaloid" },
-  { "slug": "misa_amane", "nombre": "Misa Amane", "anime": "Death Note" },
-  { "slug": "misa_kurobane", "nombre": "Misa Kurobane", "anime": "Charlotte" },
-  { "slug": "mitsuri_kanroji", "nombre": "Mitsuri Kanroji", "anime": "Demon Slayer" },
-  { "slug": "momo", "nombre": "Momo Ayase", "anime": "Dandadan" },
-  { "slug": "nami", "nombre": "Nami", "anime": "One Piece" },
-  { "slug": "nao_tomori", "nombre": "Nao Tomori", "anime": "Charlotte" },
-  { "slug": "naruto", "nombre": "Naruto Uzumaki", "anime": "Naruto" },
-  { "slug": "nejire_hado", "nombre": "Nejire Hado", "anime": "My Hero Academia" },
-  { "slug": "nezuko", "nombre": "Nezuko Kamado", "anime": "Demon Slayer" },
-  { "slug": "nobara", "nombre": "Nobara Kugisaki", "anime": "Jujutsu Kaisen" },
-  { "slug": "ochaco_uraraka", "nombre": "Ochaco Uraraka", "anime": "My Hero Academia" },
-  { "slug": "orihime", "nombre": "Orihime Inoue", "anime": "Bleach" },
-  { "slug": "power", "nombre": "Power", "anime": "Chainsaw Man" },
-  { "slug": "prision_school", "nombre": "Meiko Shiraki", "anime": "Prison School" },
-  { "slug": "rei", "nombre": "Rei Ayanami", "anime": "Neon Genesis Evangelion" },
-  { "slug": "rem_and_ram", "nombre": "Rem y Ram", "anime": "Re:Zero" },
-  { "slug": "rengoku", "nombre": "Kyojuro Rengoku", "anime": "Demon Slayer" },
-  { "slug": "reze", "nombre": "Reze", "anime": "Chainsaw Man" },
-  { "slug": "rias", "nombre": "Rias Gremory", "anime": "High School DxD" },
-  { "slug": "rikka_takanashi", "nombre": "Rikka Takanashi", "anime": "Chuunibyou" },
-  { "slug": "rio_futaba", "nombre": "Rio Futaba", "anime": "Bunny Girl Senpai" },
-  { "slug": "robin", "nombre": "Nico Robin", "anime": "One Piece" },
-  { "slug": "saber", "nombre": "Saber", "anime": "Fate/stay night" },
-  { "slug": "sakura", "nombre": "Sakura Haruno", "anime": "Naruto" },
-  { "slug": "sasuke", "nombre": "Sasuke Uchiha", "anime": "Naruto" },
-  { "slug": "senku_toji", "nombre": "Senku Ishigami", "anime": "Dr. Stone" },
-  { "slug": "shinobu", "nombre": "Shinobu Kocho", "anime": "Demon Slayer" },
-  { "slug": "shiro_nai", "nombre": "Shiro", "anime": "No Game No Life" },
-  { "slug": "sinon_asada", "nombre": "Sinon", "anime": "Sword Art Online" },
-  { "slug": "sora_nai", "nombre": "Sora", "anime": "No Game No Life" },
-  { "slug": "sukuna", "nombre": "Ryomen Sukuna", "anime": "Jujutsu Kaisen" },
-  { "slug": "tatsumaki", "nombre": "Tatsumaki", "anime": "One Punch Man" },
-  { "slug": "toga", "nombre": "Himiko Toga", "anime": "My Hero Academia" },
-  { "slug": "tomioka", "nombre": "Giyu Tomioka", "anime": "Demon Slayer" },
-  { "slug": "tomoe_koga", "nombre": "Tomoe Koga", "anime": "Bunny Girl Senpai" },
-  { "slug": "toru_hagakure", "nombre": "Toru Hagakure", "anime": "My Hero Academia" },
-  { "slug": "touka_kirishima", "nombre": "Touka Kirishima", "anime": "Tokyo Ghoul" },
-  { "slug": "tsunade", "nombre": "Tsunade", "anime": "Naruto" },
-  { "slug": "umaru_doma", "nombre": "Umaru Doma", "anime": "Himouto! Umaru-chan" },
-  { "slug": "yor_forger", "nombre": "Yor Forger", "anime": "Spy x Family" },
-  { "slug": "your_name", "nombre": "Your Name", "anime": "Your Name" },
-  { "slug": "yu_takeyama", "nombre": "Yu Takeyama", "anime": "My Hero Academia" },
-  { "slug": "yuno", "nombre": "Yuno Gasai", "anime": "Future Diary" },
-  { "slug": "yuri_nakamura", "nombre": "Yuri Nakamura", "anime": "Angel Beats!" },
-  { "slug": "yuta_okkotsu", "nombre": "Yuta Okkotsu", "anime": "Jujutsu Kaisen" },
-  { "slug": "zenitsu_agatsuma", "nombre": "Zenitsu Agatsuma", "anime": "Demon Slayer" },
-  { "slug": "zerotwo", "nombre": "Zero Two", "anime": "Darling in the Franxx" },
-  { "slug": "zoro", "nombre": "Roronoa Zoro", "anime": "One Piece" },
-  { "slug": "akaza", "nombre": "Akaza", "anime": "Demon Slayer" },
-  { "slug": "douma", "nombre": "Douma", "anime": "Demon Slayer" },
-  { "slug": "kokushibo", "nombre": "Kokushibo", "anime": "Demon Slayer" },
-  { "slug": "muzan", "nombre": "Muzan Kibutsuji", "anime": "Demon Slayer" },
-  { "slug": "yoriichi", "nombre": "Yoriichi Tsugikuni", "anime": "Demon Slayer" },
-  { "slug": "sanemi", "nombre": "Sanemi Shinazugawa", "anime": "Demon Slayer" },
-  { "slug": "tokito", "nombre": "Muichiro Tokito", "anime": "Demon Slayer" },
-  { "slug": "obanai", "nombre": "Obanai Iguro", "anime": "Demon Slayer" },
-  { "slug": "gyomei_himejima", "nombre": "Gyomei Himejima", "anime": "Demon Slayer" },
-  { "slug": "madara", "nombre": "Madara Uchiha", "anime": "Naruto" },
-  { "slug": "pain", "nombre": "Pain", "anime": "Naruto" },
-  { "slug": "jiraya", "nombre": "Jiraiya", "anime": "Naruto" },
-  { "slug": "kakashi", "nombre": "Kakashi Hatake", "anime": "Naruto" },
-  { "slug": "minato", "nombre": "Minato Namikaze", "anime": "Naruto" },
-  { "slug": "hashirama", "nombre": "Hashirama Senju", "anime": "Naruto" },
-  { "slug": "sasori", "nombre": "Sasori", "anime": "Naruto" },
-  { "slug": "deku", "nombre": "Izuku Midoriya", "anime": "My Hero Academia" },
-  { "slug": "bakugo", "nombre": "Katsuki Bakugo", "anime": "My Hero Academia" },
-  { "slug": "shoto_todoroki", "nombre": "Shoto Todoroki", "anime": "My Hero Academia" },
-  { "slug": "tomura_shigaraki", "nombre": "Tomura Shigaraki", "anime": "My Hero Academia" },
-  { "slug": "all_for_one", "nombre": "All For One", "anime": "My Hero Academia" },
-  { "slug": "ash_ketchum", "nombre": "Ash Ketchum", "anime": "Pokémon" },
-  { "slug": "may_pokemon", "nombre": "May", "anime": "Pokémon" },
-  { "slug": "serena_pokemon", "nombre": "Serena", "anime": "Pokémon" },
-  { "slug": "natsuki_subaru", "nombre": "Natsuki Subaru", "anime": "Re:Zero" },
-  { "slug": "ken_takakura", "nombre": "Ken Takakura", "anime": "Wind Breaker" },
-  { "slug": "aira_shitadori", "nombre": "Aira Shitadori", "anime": "Wind Breaker" },
-  { "slug": "mashiro_shiina_sakurasou", "nombre": "Mashiro Shiina", "anime": "Sakurasou no Pet na Kanojo" },
-  { "slug": "kaguya_shinomiya", "nombre": "Kaguya Shinomiya", "anime": "Kaguya-sama: Love is War" }
+  {
+    "slug": "akame",
+    "nombre": "Akame",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Asesina de Night Raid con la espada Murasame, que mata al primer corte. Rostro de muñeca, alma de cuchillo.",
+    "imagenUrl": "/img/Akame_ga_Kill/akame.webp"
+  },
+  {
+    "slug": "chelsea",
+    "nombre": "Chelsea",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Personaje del anime Akame ga Kill!.",
+    "imagenUrl": "/img/Akame_ga_Kill/chelsea.webp"
+  },
+  {
+    "slug": "esdeath",
+    "nombre": "Esdeath",
+    "anime": "Akame ga Kill!",
+    "descripcion": "General imperial de hielo. Sádica, romántica y la enemiga más temible de Night Raid.",
+    "imagenUrl": "/img/Akame_ga_Kill/esdeath.webp"
+  },
+  {
+    "slug": "kurome",
+    "nombre": "Kurome",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Personaje del anime Akame ga Kill!.",
+    "imagenUrl": "/img/Akame_ga_Kill/kurome.webp"
+  },
+  {
+    "slug": "leone",
+    "nombre": "Leone",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Personaje del anime Akame ga Kill!.",
+    "imagenUrl": "/img/Akame_ga_Kill/leone.webp"
+  },
+  {
+    "slug": "lubbock",
+    "nombre": "Lubbock",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Personaje del anime Akame ga Kill!.",
+    "imagenUrl": "/img/Akame_ga_Kill/lubbock.webp"
+  },
+  {
+    "slug": "mine",
+    "nombre": "Mine",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Personaje del anime Akame ga Kill!.",
+    "imagenUrl": "/img/Akame_ga_Kill/mine.webp"
+  },
+  {
+    "slug": "najenda",
+    "nombre": "Najenda",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Personaje del anime Akame ga Kill!.",
+    "imagenUrl": "/img/Akame_ga_Kill/najenda.webp"
+  },
+  {
+    "slug": "tatsumi",
+    "nombre": "Tatsumi",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Protagonista de Akame ga Kill. Aldeano que entra a Night Raid tras presenciar la corrupción imperial.",
+    "imagenUrl": "/img/Akame_ga_Kill/tatsumi.webp"
+  },
+  {
+    "slug": "wave",
+    "nombre": "Wave",
+    "anime": "Akame ga Kill!",
+    "descripcion": "Personaje del anime Akame ga Kill!.",
+    "imagenUrl": "/img/Akame_ga_Kill/wave.webp"
+  },
+  {
+    "slug": "hideki_hinata",
+    "nombre": "Hideki Hinata",
+    "anime": "Angel Beats!",
+    "descripcion": "Personaje del anime Angel Beats!.",
+    "imagenUrl": "/img/Angel_Beats/hideki_hinata.webp"
+  },
+  {
+    "slug": "kanade_tachibana",
+    "nombre": "Kanade Tachibana",
+    "anime": "Angel Beats!",
+    "descripcion": "Presidenta estudiantil del más allá con poderes de mano-a-espada. Conocida como Tenshi.",
+    "imagenUrl": "/img/Angel_Beats/kanade_tachibana.webp"
+  },
+  {
+    "slug": "masami_iwasawa",
+    "nombre": "Masami Iwasawa",
+    "anime": "Angel Beats!",
+    "descripcion": "Vocalista de Girls Dead Monster en el más allá. Su música siempre fue todo lo que tuvo.",
+    "imagenUrl": "/img/Angel_Beats/masami_iwasawa.webp"
+  },
+  {
+    "slug": "otonashi_yuzuru",
+    "nombre": "Otonashi Yuzuru",
+    "anime": "Angel Beats!",
+    "descripcion": "Protagonista amnésico del Afterlife. Donó órganos en vida; lo recuerda con Kanade en el final.",
+    "imagenUrl": "/img/Angel_Beats/otonashi_yuzuru.webp"
+  },
+  {
+    "slug": "shiina",
+    "nombre": "Shiina",
+    "anime": "Angel Beats!",
+    "descripcion": "Personaje del anime Angel Beats!.",
+    "imagenUrl": "/img/Angel_Beats/shiina.webp"
+  },
+  {
+    "slug": "tk",
+    "nombre": "Tk",
+    "anime": "Angel Beats!",
+    "descripcion": "Personaje del anime Angel Beats!.",
+    "imagenUrl": "/img/Angel_Beats/tk.webp"
+  },
+  {
+    "slug": "angel_beats_yui",
+    "nombre": "Yui",
+    "anime": "Angel Beats!",
+    "descripcion": "Hija IA adoptada por Kirito y Asuna en SAO. Pequeña hada en los juegos posteriores.",
+    "imagenUrl": "/img/Angel_Beats/yui.webp"
+  },
+  {
+    "slug": "yuri_nakamura",
+    "nombre": "Yuri Nakamura",
+    "anime": "Angel Beats!",
+    "descripcion": "Líder del SSS contra Dios en Angel Beats. Pelo violeta y plan de batalla siempre listo.",
+    "imagenUrl": "/img/Angel_Beats/yuri_nakamura.webp"
+  },
+  {
+    "slug": "annie_leonhart",
+    "nombre": "Annie Leonhart",
+    "anime": "Attack on Titan",
+    "descripcion": "Cadete y guerrera de Marley. Heredera del Titán Hembra, se cristalizó tras la primera invasión.",
+    "imagenUrl": "/img/Attack_On_Titan/annie_leonhart.webp"
+  },
+  {
+    "slug": "armin_arlert",
+    "nombre": "Armin Arlert",
+    "anime": "Attack on Titan",
+    "descripcion": "Mejor amigo de Eren y estratega del Cuerpo de Investigación. Heredero del Titán Colosal tras Bertholdt.",
+    "imagenUrl": "/img/Attack_On_Titan/armin_arlert.webp"
+  },
+  {
+    "slug": "eren_yeager",
+    "nombre": "Eren Yeager",
+    "anime": "Attack on Titan",
+    "descripcion": "Cadete del 104º que jura matar a todos los titanes. Heredero del Ataque, del Fundador y del Martillo de Guerra.",
+    "imagenUrl": "/img/Attack_On_Titan/eren_yeager.webp"
+  },
+  {
+    "slug": "erwin_smith",
+    "nombre": "Erwin Smith",
+    "anime": "Attack on Titan",
+    "descripcion": "Comandante 13º del Cuerpo de Investigación. Brazo perdido, mente brillante, sueño de saber la verdad.",
+    "imagenUrl": "/img/Attack_On_Titan/erwin_smith.webp"
+  },
+  {
+    "slug": "hange_zoe",
+    "nombre": "Hange Zoe",
+    "anime": "Attack on Titan",
+    "descripcion": "Líder de escuadrón y científica obsesionada con titanes. Sucesora de Erwin como comandante.",
+    "imagenUrl": "/img/Attack_On_Titan/hange_zoe.webp"
+  },
+  {
+    "slug": "historia_reiss",
+    "nombre": "Historia Reiss",
+    "anime": "Attack on Titan",
+    "descripcion": "Verdadera reina de los muros y descendiente Reiss. Pasó de Christa tímida a líder coronada.",
+    "imagenUrl": "/img/Attack_On_Titan/historia_reiss.webp"
+  },
+  {
+    "slug": "jean_kirstein",
+    "nombre": "Jean Kirstein",
+    "anime": "Attack on Titan",
+    "descripcion": "Cadete del 104º con habilidades de liderazgo. Caballo en cara y honor en combate.",
+    "imagenUrl": "/img/Attack_On_Titan/jean_kirstein.webp"
+  },
+  {
+    "slug": "levi_ackerman",
+    "nombre": "Levi Ackerman",
+    "anime": "Attack on Titan",
+    "descripcion": "Capitán del Cuerpo de Investigación. El soldado más fuerte de la humanidad y un maniático del orden.",
+    "imagenUrl": "/img/Attack_On_Titan/levi_ackerman.webp"
+  },
+  {
+    "slug": "mikasa_ackerman",
+    "nombre": "Mikasa Ackerman",
+    "anime": "Attack on Titan",
+    "descripcion": "Soldado prodigio del 104º. Hermana adoptiva de Eren con el mismo poder Ackerman.",
+    "imagenUrl": "/img/Attack_On_Titan/mikasa_ackerman.webp"
+  },
+  {
+    "slug": "reiner_braun",
+    "nombre": "Reiner Braun",
+    "anime": "Attack on Titan",
+    "descripcion": "Heredero del Titán Acorazado y guerrero de Marley. Traumatizado entre dos identidades irreconciliables.",
+    "imagenUrl": "/img/Attack_On_Titan/reiner_braun.webp"
+  },
+  {
+    "slug": "sasha_blouse",
+    "nombre": "Sasha Blouse",
+    "anime": "Attack on Titan",
+    "descripcion": "Cadete cazadora con apetito eterno. Patata, arco y final demasiado pronto.",
+    "imagenUrl": "/img/Attack_On_Titan/sasha_blouse.webp"
+  },
+  {
+    "slug": "ymir",
+    "nombre": "Ymir",
+    "anime": "Attack on Titan",
+    "descripcion": "Cadete del 104º con un secreto. Devoradora de Marcel, heredera del Mandíbula, amor de Historia.",
+    "imagenUrl": "/img/Attack_On_Titan/ymir.webp"
+  },
+  {
+    "slug": "zeke_yeager",
+    "nombre": "Zeke Yeager",
+    "anime": "Attack on Titan",
+    "descripcion": "Hermano mayor de Eren y guerrero de Marley. Heredero del Titán Bestia con plan eutanásico.",
+    "imagenUrl": "/img/Attack_On_Titan/zeke_yeager.webp"
+  },
+  {
+    "slug": "balalaika",
+    "nombre": "Balalaika",
+    "anime": "Black Lagoon",
+    "descripcion": "Personaje del anime Black Lagoon.",
+    "imagenUrl": "/img/Black_Lagoon/balalaika.webp"
+  },
+  {
+    "slug": "benny",
+    "nombre": "Benny",
+    "anime": "Black Lagoon",
+    "descripcion": "Personaje del anime Black Lagoon.",
+    "imagenUrl": "/img/Black_Lagoon/benny.webp"
+  },
+  {
+    "slug": "dutch",
+    "nombre": "Dutch",
+    "anime": "Black Lagoon",
+    "descripcion": "Personaje del anime Black Lagoon.",
+    "imagenUrl": "/img/Black_Lagoon/dutch.webp"
+  },
+  {
+    "slug": "revy",
+    "nombre": "Revy",
+    "anime": "Black Lagoon",
+    "descripcion": "Personaje del anime Black Lagoon.",
+    "imagenUrl": "/img/Black_Lagoon/revy.webp"
+  },
+  {
+    "slug": "rock",
+    "nombre": "Rock",
+    "anime": "Black Lagoon",
+    "descripcion": "Personaje del anime Black Lagoon.",
+    "imagenUrl": "/img/Black_Lagoon/rock.webp"
+  },
+  {
+    "slug": "byakuya_kuchiki",
+    "nombre": "Byakuya Kuchiki",
+    "anime": "Bleach",
+    "descripcion": "Capitán del 6º escuadrón y hermano adoptivo de Rukia. Senbonzakura, pétalos de cerezo cortantes.",
+    "imagenUrl": "/img/Bleach/byakuya_kuchiki.webp"
+  },
+  {
+    "slug": "grimmjow_jaegerjaquez",
+    "nombre": "Grimmjow Jaegerjaquez",
+    "anime": "Bleach",
+    "descripcion": "Sexto Espada con forma de pantera. Rival principal de Ichigo en Hueco Mundo.",
+    "imagenUrl": "/img/Bleach/grimmjow_jaegerjaquez.webp"
+  },
+  {
+    "slug": "ichigo_kurosaki",
+    "nombre": "Ichigo Kurosaki",
+    "anime": "Bleach",
+    "descripcion": "Estudiante de instituto con poderes de shinigami. Cabello naranja y Zangetsu para proteger a quien le importa.",
+    "imagenUrl": "/img/Bleach/ichigo_kurosaki.webp"
+  },
+  {
+    "slug": "kenpachi_zaraki",
+    "nombre": "Kenpachi Zaraki",
+    "anime": "Bleach",
+    "descripcion": "Capitán del 11º escuadrón sin nombre de zanpakuto inicial. Pura batalla, sin reglas, parche bloqueador.",
+    "imagenUrl": "/img/Bleach/kenpachi_zaraki.webp"
+  },
+  {
+    "slug": "kisuke_urahara",
+    "nombre": "Kisuke Urahara",
+    "anime": "Bleach",
+    "descripcion": "Antiguo capitán del 12º y dueño de tienda en Karakura. Genio inventor del Hougyoku original.",
+    "imagenUrl": "/img/Bleach/kisuke_urahara.webp"
+  },
+  {
+    "slug": "orihime_inoue",
+    "nombre": "Orihime Inoue",
+    "anime": "Bleach",
+    "descripcion": "Compañera de Ichigo con poderes Shun Shun Rikka. Ánimo a prueba de hollows.",
+    "imagenUrl": "/img/Bleach/orihime_inoue.webp"
+  },
+  {
+    "slug": "renji_abarai",
+    "nombre": "Renji Abarai",
+    "anime": "Bleach",
+    "descripcion": "Teniente del 6º escuadrón y amigo de infancia de Rukia. Zabimaru evoluciona con cada saga.",
+    "imagenUrl": "/img/Bleach/renji_abarai.webp"
+  },
+  {
+    "slug": "rukia_kuchiki",
+    "nombre": "Rukia Kuchiki",
+    "anime": "Bleach",
+    "descripcion": "Shinigami del 13º escuadrón que dio sus poderes a Ichigo. Sode no Shirayuki y elegancia gélida.",
+    "imagenUrl": "/img/Bleach/rukia_kuchiki.webp"
+  },
+  {
+    "slug": "sosuke_aizen",
+    "nombre": "Sosuke Aizen",
+    "anime": "Bleach",
+    "descripcion": "Antiguo capitán del 5º escuadrón. Traidor maestro del Hougyoku, busca trono superior al Rey Espíritu.",
+    "imagenUrl": "/img/Bleach/sosuke_aizen.webp"
+  },
+  {
+    "slug": "toshiro_hitsugaya",
+    "nombre": "Toshiro Hitsugaya",
+    "anime": "Bleach",
+    "descripcion": "Capitán prodigio del 10º escuadrón. Hyourinmaru, el dragón de hielo más poderoso.",
+    "imagenUrl": "/img/Bleach/toshiro_hitsugaya.webp"
+  },
+  {
+    "slug": "ulquiorra_cifer",
+    "nombre": "Ulquiorra Cifer",
+    "anime": "Bleach",
+    "descripcion": "Cuarto Espada con murciélago como liberación. Nihilista frío que custodió a Orihime en Las Noches.",
+    "imagenUrl": "/img/Bleach/ulquiorra_cifer.webp"
+  },
+  {
+    "slug": "yoruichi_shihoin",
+    "nombre": "Yoruichi Shihoin",
+    "anime": "Bleach",
+    "descripcion": "Diosa de la velocidad y antigua capitana del 2º escuadrón. Forma de gato negra y maestra de Ichigo.",
+    "imagenUrl": "/img/Bleach/yoruichi_shihoin.webp"
+  },
+  {
+    "slug": "hyoma_chigiri",
+    "nombre": "Hyoma Chigiri",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/hyoma_chigiri.webp"
+  },
+  {
+    "slug": "meguru_bachira",
+    "nombre": "Meguru Bachira",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/meguru_bachira.webp"
+  },
+  {
+    "slug": "rin_itoshi",
+    "nombre": "Rin Itoshi",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/rin_itoshi.webp"
+  },
+  {
+    "slug": "seishiro_nagi",
+    "nombre": "Seishiro Nagi",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/seishiro_nagi.webp"
+  },
+  {
+    "slug": "yoichi_isagi",
+    "nombre": "Yoichi Isagi",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/yoichi_isagi.webp"
+  },
+  {
+    "slug": "eliza_shimizu",
+    "nombre": "Eliza Shimizu",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/eliza_shimizu.webp"
+  },
+  {
+    "slug": "futari_gotoh",
+    "nombre": "Futari Gotoh",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/futari_gotoh.webp"
+  },
+  {
+    "slug": "hitori_gotoh",
+    "nombre": "Hitori Gotoh",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/hitori_gotoh.webp"
+  },
+  {
+    "slug": "ikuyo_kita",
+    "nombre": "Ikuyo Kita",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/ikuyo_kita.webp"
+  },
+  {
+    "slug": "kikuri_hiroi",
+    "nombre": "Kikuri Hiroi",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/kikuri_hiroi.webp"
+  },
+  {
+    "slug": "naoki_gotoh",
+    "nombre": "Naoki Gotoh",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/naoki_gotoh.webp"
+  },
+  {
+    "slug": "nijika_ijichi",
+    "nombre": "Nijika Ijichi",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/nijika_ijichi.webp"
+  },
+  {
+    "slug": "pa_san",
+    "nombre": "Pa San",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/pa_san.webp"
+  },
+  {
+    "slug": "ryo_yamada",
+    "nombre": "Ryo Yamada",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/ryo_yamada.webp"
+  },
+  {
+    "slug": "seika_ijichi",
+    "nombre": "Seika Ijichi",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/seika_ijichi.webp"
+  },
+  {
+    "slug": "shima_iwashita",
+    "nombre": "Shima Iwashita",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/shima_iwashita.webp"
+  },
+  {
+    "slug": "yoyoko_ohtsuki",
+    "nombre": "Yoyoko Ohtsuki",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/yoyoko_ohtsuki.webp"
+  },
+  {
+    "slug": "yuyu_uchida",
+    "nombre": "Yuyu Uchida",
+    "anime": "Bocchi the Rock!",
+    "descripcion": "Personaje del anime Bocchi the Rock!.",
+    "imagenUrl": "/img/Bocchi_the_Rock/yuyu_uchida.webp"
+  },
+  {
+    "slug": "himiko",
+    "nombre": "Himiko",
+    "anime": "Btooom!",
+    "descripcion": "Superviviente del juego mortal en la isla y heroína de Btooom!. Pasado oscuro, bombas BIM en el cinturón y desconfianza total a los hombres.",
+    "imagenUrl": "/img/Btooom/himiko.webp"
+  },
+  {
+    "slug": "kosuke_kira",
+    "nombre": "Kosuke Kira",
+    "anime": "Btooom!",
+    "descripcion": "Personaje del anime Btooom!.",
+    "imagenUrl": "/img/Btooom/kosuke_kira.webp"
+  },
+  {
+    "slug": "nobutaka_oda",
+    "nombre": "Nobutaka Oda",
+    "anime": "Btooom!",
+    "descripcion": "Personaje del anime Btooom!.",
+    "imagenUrl": "/img/Btooom/nobutaka_oda.webp"
+  },
+  {
+    "slug": "ryouta_sakamoto",
+    "nombre": "Ryouta Sakamoto",
+    "anime": "Btooom!",
+    "descripcion": "Otaku desempleado top-jugador de Btooom! arrastrado al juego real. Bombas BIM en la jungla mortal.",
+    "imagenUrl": "/img/Btooom/ryouta_sakamoto.webp"
+  },
+  {
+    "slug": "akane_sawatari",
+    "nombre": "Akane Sawatari",
+    "anime": "Chainsaw Man",
+    "descripcion": "Cazadora de demonios privada con contrato Snake Devil. Aliada de Katana Man en el ataque al ministerio.",
+    "imagenUrl": "/img/Chainsaw_Man/akane_sawatari.webp"
+  },
+  {
+    "slug": "aki_hayakawa",
+    "nombre": "Aki Hayakawa",
+    "anime": "Chainsaw Man",
+    "descripcion": "Cazador de demonios con contrato Fox/Curse/Future. Compañero estoico de Denji y Power.",
+    "imagenUrl": "/img/Chainsaw_Man/aki_hayakawa.webp"
+  },
+  {
+    "slug": "angel_devil",
+    "nombre": "Angel Devil",
+    "anime": "Chainsaw Man",
+    "descripcion": "Cazador-demonio que absorbe vida humana al contacto. Compañero perezoso de Aki Hayakawa.",
+    "imagenUrl": "/img/Chainsaw_Man/angel_devil.webp"
+  },
+  {
+    "slug": "asa_mitaka",
+    "nombre": "Asa Mitaka",
+    "anime": "Chainsaw Man",
+    "descripcion": "Estudiante huésped del Demonio de la Guerra. Protagonista de la segunda parte de Chainsaw Man.",
+    "imagenUrl": "/img/Chainsaw_Man/asa_mitaka.webp"
+  },
+  {
+    "slug": "beam",
+    "nombre": "Beam",
+    "anime": "Chainsaw Man",
+    "descripcion": "Demonio Tiburón con fanatismo total por Chainsaw Man. Loyalty pura, dientes afilados.",
+    "imagenUrl": "/img/Chainsaw_Man/beam.webp"
+  },
+  {
+    "slug": "cosmo",
+    "nombre": "Cosmo",
+    "anime": "Chainsaw Man",
+    "descripcion": "Hibrida del Demonio del Cosmos. Compañera de instituto de Asa con conocimientos universales literales.",
+    "imagenUrl": "/img/Chainsaw_Man/cosmo.webp"
+  },
+  {
+    "slug": "denji",
+    "nombre": "Denji",
+    "anime": "Chainsaw Man",
+    "descripcion": "Chico mitad-demonio motosierra. Sueños sencillos: comer, dormir, tocar a alguien.",
+    "imagenUrl": "/img/Chainsaw_Man/denji.webp"
+  },
+  {
+    "slug": "fami",
+    "nombre": "Fami",
+    "anime": "Chainsaw Man",
+    "descripcion": "Demonio del Hambre y hermana de Yoru. Pizza Devil y tobillo eterno para encerrar Death Devil.",
+    "imagenUrl": "/img/Chainsaw_Man/fami.webp"
+  },
+  {
+    "slug": "gun_devil",
+    "nombre": "Gun Devil",
+    "anime": "Chainsaw Man",
+    "descripcion": "Demonio de las Armas, leyenda urbana en USA. Mató a la familia de Aki, el target principal del Ministerio.",
+    "imagenUrl": "/img/Chainsaw_Man/gun_devil.webp"
+  },
+  {
+    "slug": "himeno",
+    "nombre": "Himeno",
+    "anime": "Chainsaw Man",
+    "descripcion": "Veterana cazadora de demonios con contrato Fantasma. Compañera de Aki, parche en el ojo, cigarrillos eternos.",
+    "imagenUrl": "/img/Chainsaw_Man/himeno.webp"
+  },
+  {
+    "slug": "katana_man",
+    "nombre": "Katana Man",
+    "anime": "Chainsaw Man",
+    "descripcion": "Mitad-demonio espada igual que Denji. Nieto del jefe yakuza que atacó al equipo Aki.",
+    "imagenUrl": "/img/Chainsaw_Man/katana_man.webp"
+  },
+  {
+    "slug": "kishibe",
+    "nombre": "Kishibe",
+    "anime": "Chainsaw Man",
+    "descripcion": "Cazador más fuerte del Ministerio. Mentor brutal de Denji y Power tras la masacre Reze.",
+    "imagenUrl": "/img/Chainsaw_Man/kishibe.webp"
+  },
+  {
+    "slug": "kobeni_higashiyama",
+    "nombre": "Kobeni Higashiyama",
+    "anime": "Chainsaw Man",
+    "descripcion": "Cazadora de demonios traumatizada al borde del colapso. Sorprendentemente capaz cuando entra en pánico.",
+    "imagenUrl": "/img/Chainsaw_Man/kobeni_higashiyama.webp"
+  },
+  {
+    "slug": "makima",
+    "nombre": "Makima",
+    "anime": "Chainsaw Man",
+    "descripcion": "Cazadora de demonios con voz suave y fines siniestros. Jefa de la división especial.",
+    "imagenUrl": "/img/Chainsaw_Man/makima.webp"
+  },
+  {
+    "slug": "nayuta",
+    "nombre": "Nayuta",
+    "anime": "Chainsaw Man",
+    "descripcion": "Reencarnación del Demonio del Control tras la muerte de Makima. Niña adoptada por Denji con bondad opuesta.",
+    "imagenUrl": "/img/Chainsaw_Man/nayuta.webp"
+  },
+  {
+    "slug": "pochita",
+    "nombre": "Pochita",
+    "anime": "Chainsaw Man",
+    "descripcion": "Demonio Motosierra original. Pequeño compañero perro de Denji antes de fusionarse con su corazón.",
+    "imagenUrl": "/img/Chainsaw_Man/pochita.webp"
+  },
+  {
+    "slug": "power",
+    "nombre": "Power",
+    "anime": "Chainsaw Man",
+    "descripcion": "Demonia de la sangre con dos cuernos y un gato llamado Meowy. Caos puro y leal.",
+    "imagenUrl": "/img/Chainsaw_Man/power.webp"
+  },
+  {
+    "slug": "reze",
+    "nombre": "Reze",
+    "anime": "Chainsaw Man",
+    "descripcion": "Asesina de Chainsaw Man enviada de Rusia. Su tipo ideal son los cafés tranquilos.",
+    "imagenUrl": "/img/Chainsaw_Man/reze.webp"
+  },
+  {
+    "slug": "violence_fiend",
+    "nombre": "Violence Fiend",
+    "anime": "Chainsaw Man",
+    "descripcion": "Galgali, fiend con máscara antigás obligatoria. Su veneno sale del cuerpo si la quita.",
+    "imagenUrl": "/img/Chainsaw_Man/violence_fiend.webp"
+  },
+  {
+    "slug": "yoru",
+    "nombre": "Yoru",
+    "anime": "Chainsaw Man",
+    "descripcion": "Demonio de la Guerra reencarnado en Asa Mitaka. Antigua rival arcana de los Cuatro Jinetes.",
+    "imagenUrl": "/img/Chainsaw_Man/yoru.webp"
+  },
+  {
+    "slug": "ayumi_otosaka",
+    "nombre": "Ayumi Otosaka",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/ayumi_otosaka.webp"
+  },
+  {
+    "slug": "joujirou_takajou",
+    "nombre": "Joujirou Takajou",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/joujirou_takajou.webp"
+  },
+  {
+    "slug": "kazuki_tomori",
+    "nombre": "Kazuki Tomori",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/kazuki_tomori.webp"
+  },
+  {
+    "slug": "konishi",
+    "nombre": "Konishi",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/konishi.webp"
+  },
+  {
+    "slug": "maedomari",
+    "nombre": "Maedomari",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/maedomari.webp"
+  },
+  {
+    "slug": "medoki",
+    "nombre": "Medoki",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/medoki.webp"
+  },
+  {
+    "slug": "misa_kurobane",
+    "nombre": "Misa Kurobane",
+    "anime": "Charlotte",
+    "descripcion": "Guitarrista de Howling at the Moon. Su cuerpo lo posee a ratos Yumi, su hermana fallecida, que invoca el poder del fuego.",
+    "imagenUrl": "/img/Charlotte/misa_kurobane.webp"
+  },
+  {
+    "slug": "mishima",
+    "nombre": "Mishima",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/mishima.webp"
+  },
+  {
+    "slug": "nao_tomori",
+    "nombre": "Nao Tomori",
+    "anime": "Charlotte",
+    "descripcion": "Presidenta del consejo estudiantil con poder de invisibilidad selectiva.",
+    "imagenUrl": "/img/Charlotte/nao_tomori.webp"
+  },
+  {
+    "slug": "sara_shane",
+    "nombre": "Sara Shane",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/sara_shane.webp"
+  },
+  {
+    "slug": "shunsuke_otosaka",
+    "nombre": "Shunsuke Otosaka",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/shunsuke_otosaka.webp"
+  },
+  {
+    "slug": "takehito_kumagami",
+    "nombre": "Takehito Kumagami",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/takehito_kumagami.webp"
+  },
+  {
+    "slug": "yumi_shirayanagi",
+    "nombre": "Yumi Shirayanagi",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/yumi_shirayanagi.webp"
+  },
+  {
+    "slug": "yusa_kurobane",
+    "nombre": "Yusa Kurobane",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/yusa_kurobane.webp"
+  },
+  {
+    "slug": "yuu_otosaka",
+    "nombre": "Yuu Otosaka",
+    "anime": "Charlotte",
+    "descripcion": "Protagonista de Charlotte con poder de posesión temporal. Su evolución le hace cargar todas las habilidades del mundo.",
+    "imagenUrl": "/img/Charlotte/yuu_otosaka.webp"
+  },
+  {
+    "slug": "yuuki_no_shoujo",
+    "nombre": "Yuuki No Shoujo",
+    "anime": "Charlotte",
+    "descripcion": "Personaje del anime Charlotte.",
+    "imagenUrl": "/img/Charlotte/yuuki_no_shoujo.webp"
+  },
+  {
+    "slug": "kumin_tsuyuri",
+    "nombre": "Kumin Tsuyuri",
+    "anime": "Chuunibyou demo Koi ga Shitai!",
+    "descripcion": "Personaje del anime Chuunibyou demo Koi ga Shitai!.",
+    "imagenUrl": "/img/Chuunibyou/kumin_tsuyuri.webp"
+  },
+  {
+    "slug": "rikka_takanashi",
+    "nombre": "Rikka Takanashi",
+    "anime": "Chuunibyou demo Koi ga Shitai!",
+    "descripcion": "Estudiante con un parche y delirios chuunibyou. Princesa del ojo de la maldad.",
+    "imagenUrl": "/img/Chuunibyou/rikka_takanashi.webp"
+  },
+  {
+    "slug": "sanae_dekomori",
+    "nombre": "Sanae Dekomori",
+    "anime": "Chuunibyou demo Koi ga Shitai!",
+    "descripcion": "Personaje del anime Chuunibyou demo Koi ga Shitai!.",
+    "imagenUrl": "/img/Chuunibyou/sanae_dekomori.webp"
+  },
+  {
+    "slug": "satone_shichimiya",
+    "nombre": "Satone Shichimiya",
+    "anime": "Chuunibyou demo Koi ga Shitai!",
+    "descripcion": "Personaje del anime Chuunibyou demo Koi ga Shitai!.",
+    "imagenUrl": "/img/Chuunibyou/satone_shichimiya.webp"
+  },
+  {
+    "slug": "shinka_nibutani",
+    "nombre": "Shinka Nibutani",
+    "anime": "Chuunibyou demo Koi ga Shitai!",
+    "descripcion": "Personaje del anime Chuunibyou demo Koi ga Shitai!.",
+    "imagenUrl": "/img/Chuunibyou/shinka_nibutani.webp"
+  },
+  {
+    "slug": "yuuta_togashi",
+    "nombre": "Yuuta Togashi",
+    "anime": "Chuunibyou demo Koi ga Shitai!",
+    "descripcion": "Personaje del anime Chuunibyou demo Koi ga Shitai!.",
+    "imagenUrl": "/img/Chuunibyou/yuuta_togashi.webp"
+  },
+  {
+    "slug": "clare",
+    "nombre": "Clare",
+    "anime": "Claymore",
+    "descripcion": "Personaje del anime Claymore.",
+    "imagenUrl": "/img/Claymore/clare.webp"
+  },
+  {
+    "slug": "miria",
+    "nombre": "Miria",
+    "anime": "Claymore",
+    "descripcion": "Personaje del anime Claymore.",
+    "imagenUrl": "/img/Claymore/miria.webp"
+  },
+  {
+    "slug": "priscilla",
+    "nombre": "Priscilla",
+    "anime": "Claymore",
+    "descripcion": "Personaje del anime Claymore.",
+    "imagenUrl": "/img/Claymore/priscilla.webp"
+  },
+  {
+    "slug": "raki",
+    "nombre": "Raki",
+    "anime": "Claymore",
+    "descripcion": "Personaje del anime Claymore.",
+    "imagenUrl": "/img/Claymore/raki.webp"
+  },
+  {
+    "slug": "teresa",
+    "nombre": "Teresa de la Sonrisa Tenue",
+    "anime": "Claymore",
+    "descripcion": "Claymore número 1 absoluta. Madre adoptiva de Clare antes del final del Despertar.",
+    "imagenUrl": "/img/Claymore/teresa.webp"
+  },
+  {
+    "slug": "aira_shiratori",
+    "nombre": "Aira Shiratori",
+    "anime": "Dandadan",
+    "descripcion": "Personaje del anime Dandadan.",
+    "imagenUrl": "/img/Dandadan/aira_shiratori.webp"
+  },
+  {
+    "slug": "jin_enjoji_jiji",
+    "nombre": "Jin Enjoji Jiji",
+    "anime": "Dandadan",
+    "descripcion": "Personaje del anime Dandadan.",
+    "imagenUrl": "/img/Dandadan/jin_enjoji_jiji.webp"
+  },
+  {
+    "slug": "momo_ayase",
+    "nombre": "Momo Ayase",
+    "anime": "Dandadan",
+    "descripcion": "Personaje del anime Dandadan.",
+    "imagenUrl": "/img/Dandadan/momo_ayase.webp"
+  },
+  {
+    "slug": "okarun",
+    "nombre": "Ken Takakura (Okarun)",
+    "anime": "Dandadan",
+    "descripcion": "Estudiante otaku creyente de alienígenas. Maldecido por Turbo Granny tras tropezar con Momo.",
+    "imagenUrl": "/img/Dandadan/okarun.webp"
+  },
+  {
+    "slug": "seiko_ayase",
+    "nombre": "Seiko Ayase",
+    "anime": "Dandadan",
+    "descripcion": "Personaje del anime Dandadan.",
+    "imagenUrl": "/img/Dandadan/seiko_ayase.webp"
+  },
+  {
+    "slug": "turbo_granny",
+    "nombre": "Turbo Granny",
+    "anime": "Dandadan",
+    "descripcion": "Espíritu de túnel famoso de leyenda urbana. Posesión inicial de Okarun en Dandadan.",
+    "imagenUrl": "/img/Dandadan/turbo_granny.webp"
+  },
+  {
+    "slug": "vamola",
+    "nombre": "Vamola",
+    "anime": "Dandadan",
+    "descripcion": "Personaje del anime Dandadan.",
+    "imagenUrl": "/img/Dandadan/vamola.webp"
+  },
+  {
+    "slug": "zerotwo",
+    "nombre": "Zero Two",
+    "anime": "Darling in the Franxx",
+    "descripcion": "Piloto híbrida de Strelizia con cuernos rojos. Codename 002, bocado de tu corazón.",
+    "imagenUrl": "/img/Darling_in_the_Franxx/zerotwo.webp"
+  },
+  {
+    "slug": "kurumi",
+    "nombre": "Kurumi Tokisaki",
+    "anime": "Date A Live",
+    "descripcion": "Espíritu del tiempo con dos pistolas y un aura aterradora. Apellido oscuro, sonrisa peor.",
+    "imagenUrl": "/img/Date_a_Live/kurumi.webp"
+  },
+  {
+    "slug": "L",
+    "nombre": "L",
+    "anime": "Death Note",
+    "descripcion": "El detective más brillante del mundo. Resuelve casos imposibles bajo seudónimo y enfrenta a Kira con un café siempre en mano.",
+    "imagenUrl": "/img/Death_Note/L.webp"
+  },
+  {
+    "slug": "light_yagami",
+    "nombre": "Light Yagami",
+    "anime": "Death Note",
+    "descripcion": "Estudiante prodigio que encuentra el Death Note y se autoproclama dios del nuevo mundo justo.",
+    "imagenUrl": "/img/Death_Note/light_yagami.webp"
+  },
+  {
+    "slug": "mello",
+    "nombre": "Mello",
+    "anime": "Death Note",
+    "descripcion": "Sucesor rival de Near en Wammy's House. Chocolate, mafia y velocidad por encima de todo.",
+    "imagenUrl": "/img/Death_Note/mello.webp"
+  },
+  {
+    "slug": "misa_amane",
+    "nombre": "Misa Amane",
+    "anime": "Death Note",
+    "descripcion": "Idol y segunda usuaria del Death Note. Devota a Light Yagami hasta extremos peligrosos.",
+    "imagenUrl": "/img/Death_Note/misa_amane.webp"
+  },
+  {
+    "slug": "naomi_misora",
+    "nombre": "Naomi Misora",
+    "anime": "Death Note",
+    "descripcion": "Ex-FBI prometida de Raye Penber. Llegó demasiado cerca de Light y pagó el precio.",
+    "imagenUrl": "/img/Death_Note/naomi_misora.webp"
+  },
+  {
+    "slug": "near",
+    "nombre": "Near",
+    "anime": "Death Note",
+    "descripcion": "Sucesor de L en el caso Kira. Genio joven con muñecos y un ojo siempre puesto en Light.",
+    "imagenUrl": "/img/Death_Note/near.webp"
+  },
+  {
+    "slug": "rem",
+    "nombre": "Rem",
+    "anime": "Death Note",
+    "descripcion": "Shinigami protectora de Misa Amane. Capaz de morir por amor a un humano, literalmente.",
+    "imagenUrl": "/img/Death_Note/rem.webp"
+  },
+  {
+    "slug": "ryuk",
+    "nombre": "Ryuk",
+    "anime": "Death Note",
+    "descripcion": "Shinigami aburrido que dejó caer su Death Note en el mundo humano por puro entretenimiento. Adora las manzanas.",
+    "imagenUrl": "/img/Death_Note/ryuk.webp"
+  },
+  {
+    "slug": "soichiro_yagami",
+    "nombre": "Soichiro Yagami",
+    "anime": "Death Note",
+    "descripcion": "Jefe del equipo de policía cazando a Kira. Padre de Light, recto hasta el final.",
+    "imagenUrl": "/img/Death_Note/soichiro_yagami.webp"
+  },
+  {
+    "slug": "teru_mikami",
+    "nombre": "Teru Mikami",
+    "anime": "Death Note",
+    "descripcion": "Personaje del anime Death Note.",
+    "imagenUrl": "/img/Death_Note/teru_mikami.webp"
+  },
+  {
+    "slug": "touta_matsuda",
+    "nombre": "Touta Matsuda",
+    "anime": "Death Note",
+    "descripcion": "Personaje del anime Death Note.",
+    "imagenUrl": "/img/Death_Note/touta_matsuda.webp"
+  },
+  {
+    "slug": "watari",
+    "nombre": "Watari",
+    "anime": "Death Note",
+    "descripcion": "Quillsh Wammy. Mentor y protector de L; ojos y manos del detective en el mundo.",
+    "imagenUrl": "/img/Death_Note/watari.webp"
+  },
+  {
+    "slug": "akaza",
+    "nombre": "Akaza",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 3 con técnica de Combate Destructor. Persigue la fuerza absoluta y el recuerdo de Koyuki.",
+    "imagenUrl": "/img/Demon_Slayer/akaza.webp"
+  },
+  {
+    "slug": "amane_ubuyashiki",
+    "nombre": "Amane Ubuyashiki",
+    "anime": "Demon Slayer",
+    "descripcion": "Esposa de Kagaya Ubuyashiki. Mensajera del clan ante los Pilares en lugar de su esposo enfermo.",
+    "imagenUrl": "/img/Demon_Slayer/amane_ubuyashiki.webp"
+  },
+  {
+    "slug": "aoi_kanzaki",
+    "nombre": "Aoi Kanzaki",
+    "anime": "Demon Slayer",
+    "descripcion": "Sanadora del cuartel Mariposa. Apoyo emocional para los cazadores convalecientes.",
+    "imagenUrl": "/img/Demon_Slayer/aoi_kanzaki.webp"
+  },
+  {
+    "slug": "daki",
+    "nombre": "Daki",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 6 femenina y hermana de Gyutaro. Vanidad cortante en el distrito rojo.",
+    "imagenUrl": "/img/Demon_Slayer/daki.webp"
+  },
+  {
+    "slug": "douma",
+    "nombre": "Douma",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 2 y líder del culto Eternal Paradise. Sin emociones reales, solo sonrisas y hielo carmesí.",
+    "imagenUrl": "/img/Demon_Slayer/douma.webp"
+  },
+  {
+    "slug": "enmu",
+    "nombre": "Enmu",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Inferior 1 del arco del tren infinito. Atrapa víctimas en sueños felices antes de devorar.",
+    "imagenUrl": "/img/Demon_Slayer/enmu.webp"
+  },
+  {
+    "slug": "genya_shinazugawa",
+    "nombre": "Genya Shinazugawa",
+    "anime": "Demon Slayer",
+    "descripcion": "Hermano menor de Sanemi sin respiración. Come demonios para tomar su poder temporalmente.",
+    "imagenUrl": "/img/Demon_Slayer/genya_shinazugawa.webp"
+  },
+  {
+    "slug": "gyokko",
+    "nombre": "Gyokko",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 5 artista de jarrones. Decora con cuerpos y se considera escultor genio.",
+    "imagenUrl": "/img/Demon_Slayer/gyokko.webp"
+  },
+  {
+    "slug": "gyomei_himejima",
+    "nombre": "Gyomei Himejima",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar de la Roca, el más fuerte de todos. Ciego, gigante y reza con cada lágrima caída.",
+    "imagenUrl": "/img/Demon_Slayer/gyomei_himejima.webp"
+  },
+  {
+    "slug": "gyutaro",
+    "nombre": "Gyutaro",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 6 masculina y hermano de Daki. Hoces venenosas y resentimiento desde la miseria.",
+    "imagenUrl": "/img/Demon_Slayer/gyutaro.webp"
+  },
+  {
+    "slug": "hantengu",
+    "nombre": "Hantengu",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 4 con personalidades múltiples emocionales. Cada clon, una emoción distinta.",
+    "imagenUrl": "/img/Demon_Slayer/hantengu.webp"
+  },
+  {
+    "slug": "hotaru_haganezuka",
+    "nombre": "Hotaru Haganezuka",
+    "anime": "Demon Slayer",
+    "descripcion": "Forjador de espadas obsesivo con la perfección. Hizo la nichirin negra de Tanjiro.",
+    "imagenUrl": "/img/Demon_Slayer/hotaru_haganezuka.webp"
+  },
+  {
+    "slug": "inosuke",
+    "nombre": "Inosuke Hashibira",
+    "anime": "Demon Slayer",
+    "descripcion": "Cazador salvaje criado por jabalíes. Dos espadas, máscara de cerdo y cero compostura.",
+    "imagenUrl": "/img/Demon_Slayer/inosuke.webp"
+  },
+  {
+    "slug": "kagaya_ubuyashiki",
+    "nombre": "Kagaya Ubuyashiki",
+    "anime": "Demon Slayer",
+    "descripcion": "97º jefe del Cuerpo de Cazadores. Maldición Ubuyashiki, voz suave, plan final contra Muzan.",
+    "imagenUrl": "/img/Demon_Slayer/kagaya_ubuyashiki.webp"
+  },
+  {
+    "slug": "kaigaku",
+    "nombre": "Kaigaku",
+    "anime": "Demon Slayer",
+    "descripcion": "Antiguo aprendiz de Jigoro junto a Zenitsu. Renegado convertido en Luna Superior 6 sucesor.",
+    "imagenUrl": "/img/Demon_Slayer/kaigaku.webp"
+  },
+  {
+    "slug": "kanae_kocho",
+    "nombre": "Kanae Kocho",
+    "anime": "Demon Slayer",
+    "descripcion": "Hermana mayor de Shinobu y antigua Pilar Flor. Asesinada por Douma antes de la serie.",
+    "imagenUrl": "/img/Demon_Slayer/kanae_kocho.webp"
+  },
+  {
+    "slug": "kanao_tsuyuri",
+    "nombre": "Kanao Tsuyuri",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar Flor entrenada con Shinobu. Decide con su moneda hasta encontrar voluntad propia.",
+    "imagenUrl": "/img/Demon_Slayer/kanao_tsuyuri.webp"
+  },
+  {
+    "slug": "kokushibo",
+    "nombre": "Kokushibo",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 1 con seis ojos y luna creciente. Hermano gemelo de Yoriichi Tsugikuni.",
+    "imagenUrl": "/img/Demon_Slayer/kokushibo.webp"
+  },
+  {
+    "slug": "kotetsu",
+    "nombre": "Kotetsu",
+    "anime": "Demon Slayer",
+    "descripcion": "Joven aspirante a forjador en la aldea de los herreros. Acompaña a Tanjiro en la reparación de Yoriichi Type Zero.",
+    "imagenUrl": "/img/Demon_Slayer/kotetsu.webp"
+  },
+  {
+    "slug": "makio_suma_hinatsuru",
+    "nombre": "Makio, Suma y Hinatsuru",
+    "anime": "Demon Slayer",
+    "descripcion": "Las tres esposas kunoichi de Tengen Uzui. Espías letales del Pilar del Sonido.",
+    "imagenUrl": "/img/Demon_Slayer/makio_suma_hinatsuru.webp"
+  },
+  {
+    "slug": "makomo",
+    "nombre": "Makomo",
+    "anime": "Demon Slayer",
+    "descripcion": "Compañera de Sabito y también discípula de Urokodaki. Espíritu guía de Tanjiro.",
+    "imagenUrl": "/img/Demon_Slayer/makomo.webp"
+  },
+  {
+    "slug": "mitsuri_kanroji",
+    "nombre": "Mitsuri Kanroji",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar del Amor con cabello rosa-verde y la fuerza de ocho personas adultas.",
+    "imagenUrl": "/img/Demon_Slayer/mitsuri_kanroji.webp"
+  },
+  {
+    "slug": "muzan",
+    "nombre": "Muzan Kibutsuji",
+    "anime": "Demon Slayer",
+    "descripcion": "Rey de los demonios y origen de todos. Mil años buscando superar el sol y al espadachín que casi lo mata.",
+    "imagenUrl": "/img/Demon_Slayer/muzan.webp"
+  },
+  {
+    "slug": "nakime",
+    "nombre": "Nakime",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Superior 4 musical de Muzan. Toca el biwa para abrir el Castillo Infinito.",
+    "imagenUrl": "/img/Demon_Slayer/nakime.webp"
+  },
+  {
+    "slug": "nezuko",
+    "nombre": "Nezuko Kamado",
+    "anime": "Demon Slayer",
+    "descripcion": "Demonia que conserva su humanidad. Hermana mayor de Tanjiro y arma viviente del escuadrón.",
+    "imagenUrl": "/img/Demon_Slayer/nezuko.webp"
+  },
+  {
+    "slug": "obanai",
+    "nombre": "Obanai Iguro",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar de la Serpiente con vendas en la cara. Su Kaburamaru le susurra los movimientos al oído.",
+    "imagenUrl": "/img/Demon_Slayer/obanai.webp"
+  },
+  {
+    "slug": "rengoku",
+    "nombre": "Kyojuro Rengoku",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar de las Llamas. Su pasión y honor encendieron toda una era del escuadrón.",
+    "imagenUrl": "/img/Demon_Slayer/rengoku.webp"
+  },
+  {
+    "slug": "rui",
+    "nombre": "Rui",
+    "anime": "Demon Slayer",
+    "descripcion": "Luna Inferior 5 con familia de demonios falsa. Hilos cortantes y soledad imitando hogar.",
+    "imagenUrl": "/img/Demon_Slayer/rui.webp"
+  },
+  {
+    "slug": "sabito",
+    "nombre": "Sabito",
+    "anime": "Demon Slayer",
+    "descripcion": "Antiguo discípulo de Urokodaki muerto en la selección final. Espíritu que entrenó a Tanjiro en sueños.",
+    "imagenUrl": "/img/Demon_Slayer/sabito.webp"
+  },
+  {
+    "slug": "sakonji_urokodaki",
+    "nombre": "Sakonji Urokodaki",
+    "anime": "Demon Slayer",
+    "descripcion": "Maestro del Aliento del Agua y antiguo Pilar. Profesor de Tanjiro con máscara de tengu.",
+    "imagenUrl": "/img/Demon_Slayer/sakonji_urokodaki.webp"
+  },
+  {
+    "slug": "sanemi",
+    "nombre": "Sanemi Shinazugawa",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar del Viento con cicatrices y sangre marechi. Hermano mayor de Genya, odio puro hacia los demonios.",
+    "imagenUrl": "/img/Demon_Slayer/sanemi.webp"
+  },
+  {
+    "slug": "shinobu",
+    "nombre": "Shinobu Kocho",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar Insecto del escuadrón. Sonríe siempre pero su veneno es mortal.",
+    "imagenUrl": "/img/Demon_Slayer/shinobu.webp"
+  },
+  {
+    "slug": "tamayo",
+    "nombre": "Tamayo",
+    "anime": "Demon Slayer",
+    "descripcion": "Demonia médica liberada por Yoriichi. Aliada de Tanjiro contra Muzan con medicinas reversoras.",
+    "imagenUrl": "/img/Demon_Slayer/tamayo.webp"
+  },
+  {
+    "slug": "tengen_uzui",
+    "nombre": "Tengen Uzui",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar del Sonido y antiguo shinobi. Llamativo, ostentoso, casado con tres kunoichis.",
+    "imagenUrl": "/img/Demon_Slayer/tengen_uzui.webp"
+  },
+  {
+    "slug": "tokito",
+    "nombre": "Muichiro Tokito",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar de la Niebla a los catorce años. Memoria fragmentada y espadazos suaves como brisa.",
+    "imagenUrl": "/img/Demon_Slayer/tokito.webp"
+  },
+  {
+    "slug": "tomioka",
+    "nombre": "Giyu Tomioka",
+    "anime": "Demon Slayer",
+    "descripcion": "Pilar del Agua taciturno. Reclutó a Tanjiro al ver su determinación con Nezuko.",
+    "imagenUrl": "/img/Demon_Slayer/tomioka.webp"
+  },
+  {
+    "slug": "yoriichi",
+    "nombre": "Yoriichi Tsugikuni",
+    "anime": "Demon Slayer",
+    "descripcion": "El espadachín más fuerte de la historia. Creador de la Respiración del Sol y única amenaza real para Muzan.",
+    "imagenUrl": "/img/Demon_Slayer/yoriichi.webp"
+  },
+  {
+    "slug": "yushiro",
+    "nombre": "Yushiro",
+    "anime": "Demon Slayer",
+    "descripcion": "Demonio joven creado por Tamayo. Devoto a ella, esconde su belleza tras un disfraz.",
+    "imagenUrl": "/img/Demon_Slayer/yushiro.webp"
+  },
+  {
+    "slug": "zenitsu_agatsuma",
+    "nombre": "Zenitsu Agatsuma",
+    "anime": "Demon Slayer",
+    "descripcion": "Cazador cobarde que solo desata el Aliento del Trueno cuando se desmaya.",
+    "imagenUrl": "/img/Demon_Slayer/zenitsu_agatsuma.webp"
+  },
+  {
+    "slug": "chrome",
+    "nombre": "Chrome",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/chrome.webp"
+  },
+  {
+    "slug": "gen_asagiri",
+    "nombre": "Gen Asagiri",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/gen_asagiri.webp"
+  },
+  {
+    "slug": "kohaku",
+    "nombre": "Kohaku",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/kohaku.webp"
+  },
+  {
+    "slug": "ryusui_nanami",
+    "nombre": "Ryusui Nanami",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/ryusui_nanami.webp"
+  },
+  {
+    "slug": "senku_ishigami",
+    "nombre": "Senku Ishigami",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/senku_ishigami.webp"
+  },
+  {
+    "slug": "suika",
+    "nombre": "Suika",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/suika.webp"
+  },
+  {
+    "slug": "tsukasa_shishio",
+    "nombre": "Tsukasa Shishio",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/tsukasa_shishio.webp"
+  },
+  {
+    "slug": "ukyo_saionji",
+    "nombre": "Ukyo Saionji",
+    "anime": "Dr. Stone",
+    "descripcion": "Personaje del anime Dr. Stone.",
+    "imagenUrl": "/img/Dr_Stone/ukyo_saionji.webp"
+  },
+  {
+    "slug": "android_18",
+    "nombre": "Android 18",
+    "anime": "Dragon Ball",
+    "descripcion": "Cyborg creada por el Dr. Gero. De villana de la saga Cell pasó a esposa de Krillin y madre de Marron.",
+    "imagenUrl": "/img/Dragon_Ball/android_18.webp"
+  },
+  {
+    "slug": "beerus",
+    "nombre": "Beerus",
+    "anime": "Dragon Ball",
+    "descripcion": "Dios de la Destrucción del Universo 7. Gato bipolar que destruye planetas por enfado culinario.",
+    "imagenUrl": "/img/Dragon_Ball/beerus.webp"
+  },
+  {
+    "slug": "broly",
+    "nombre": "Broly",
+    "anime": "Dragon Ball",
+    "descripcion": "Saiyajin legendario de potencial ilimitado. Crió en aislamiento, descarga rabia al primer combate.",
+    "imagenUrl": "/img/Dragon_Ball/broly.webp"
+  },
+  {
+    "slug": "bulma",
+    "nombre": "Bulma",
+    "anime": "Dragon Ball",
+    "descripcion": "Heredera Capsule Corp y compañera de aventuras de Goku. Cerebro detrás del Dragon Radar.",
+    "imagenUrl": "/img/Dragon_Ball/bulma.webp"
+  },
+  {
+    "slug": "cell",
+    "nombre": "Cell",
+    "anime": "Dragon Ball",
+    "descripcion": "Bio-androide del Dr. Gero con células de los más fuertes. Buscaba la perfección absorbiendo a los Androides.",
+    "imagenUrl": "/img/Dragon_Ball/cell.webp"
+  },
+  {
+    "slug": "chi_chi",
+    "nombre": "Chi Chi",
+    "anime": "Dragon Ball",
+    "descripcion": "Personaje del anime Dragon Ball.",
+    "imagenUrl": "/img/Dragon_Ball/chi_chi.webp"
+  },
+  {
+    "slug": "frieza",
+    "nombre": "Frieza",
+    "anime": "Dragon Ball",
+    "descripcion": "Tirano galáctico que destruyó el planeta Vegeta. Cuatro transformaciones y un odio puro a los Saiyajin.",
+    "imagenUrl": "/img/Dragon_Ball/frieza.webp"
+  },
+  {
+    "slug": "future_trunks",
+    "nombre": "Future Trunks",
+    "anime": "Dragon Ball",
+    "descripcion": "Personaje del anime Dragon Ball.",
+    "imagenUrl": "/img/Dragon_Ball/future_trunks.webp"
+  },
+  {
+    "slug": "gogeta",
+    "nombre": "Gogeta",
+    "anime": "Dragon Ball",
+    "descripcion": "Personaje del anime Dragon Ball.",
+    "imagenUrl": "/img/Dragon_Ball/gogeta.webp"
+  },
+  {
+    "slug": "goku",
+    "nombre": "Son Goku",
+    "anime": "Dragon Ball",
+    "descripcion": "Saiyajin criado en la Tierra que entrena por puro amor a la pelea. Salvó el universo varias veces y aún busca ser más fuerte.",
+    "imagenUrl": "/img/Dragon_Ball/goku.webp"
+  },
+  {
+    "slug": "majin_buu",
+    "nombre": "Majin Buu",
+    "anime": "Dragon Ball",
+    "descripcion": "Bestia rosa de chicle creada por Bibidi hace eones. Cambia de forma según con quién se fusione.",
+    "imagenUrl": "/img/Dragon_Ball/majin_buu.webp"
+  },
+  {
+    "slug": "piccolo",
+    "nombre": "Piccolo",
+    "anime": "Dragon Ball",
+    "descripcion": "Namekiano serio que pasó de villano a mentor de Gohan. Maestro Roshi de la nueva generación.",
+    "imagenUrl": "/img/Dragon_Ball/piccolo.webp"
+  },
+  {
+    "slug": "vegeta",
+    "nombre": "Vegeta",
+    "anime": "Dragon Ball",
+    "descripcion": "Príncipe de los Saiyajin con orgullo de planeta caído. Rival eterno de Goku, padre de Trunks y Bulla.",
+    "imagenUrl": "/img/Dragon_Ball/vegeta.webp"
+  },
+  {
+    "slug": "vegito",
+    "nombre": "Vegito",
+    "anime": "Dragon Ball",
+    "descripcion": "Personaje del anime Dragon Ball.",
+    "imagenUrl": "/img/Dragon_Ball/vegito.webp"
+  },
+  {
+    "slug": "whis",
+    "nombre": "Whis",
+    "anime": "Dragon Ball",
+    "descripcion": "Ángel asistente de Beerus. Más fuerte que su pupilo, paciente como mil siglos.",
+    "imagenUrl": "/img/Dragon_Ball/whis.webp"
+  },
+  {
+    "slug": "kouta",
+    "nombre": "Kouta",
+    "anime": "Elfen Lied",
+    "descripcion": "Personaje del anime Elfen Lied.",
+    "imagenUrl": "/img/Elfen_Lied/kouta.webp"
+  },
+  {
+    "slug": "elfen_lied_lucy",
+    "nombre": "Lucy",
+    "anime": "Elfen Lied",
+    "descripcion": "Pico Pareja del Battle Frontier en Kanto. Su Seviper enrosca rivales hasta capitular.",
+    "imagenUrl": "/img/Elfen_Lied/lucy.webp"
+  },
+  {
+    "slug": "nana",
+    "nombre": "Nana",
+    "anime": "Elfen Lied",
+    "descripcion": "Personaje del anime Elfen Lied.",
+    "imagenUrl": "/img/Elfen_Lied/nana.webp"
+  },
+  {
+    "slug": "nyu",
+    "nombre": "Nyu",
+    "anime": "Elfen Lied",
+    "descripcion": "Personaje del anime Elfen Lied.",
+    "imagenUrl": "/img/Elfen_Lied/nyu.webp"
+  },
+  {
+    "slug": "yuka",
+    "nombre": "Yuka",
+    "anime": "Elfen Lied",
+    "descripcion": "Personaje del anime Elfen Lied.",
+    "imagenUrl": "/img/Elfen_Lied/yuka.webp"
+  },
+  {
+    "slug": "erza_scarlet",
+    "nombre": "Erza Scarlet",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/erza_scarlet.webp"
+  },
+  {
+    "slug": "gajeel_redfox",
+    "nombre": "Gajeel Redfox",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/gajeel_redfox.webp"
+  },
+  {
+    "slug": "gray_fullbuster",
+    "nombre": "Gray Fullbuster",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/gray_fullbuster.webp"
+  },
+  {
+    "slug": "juvia_lockser",
+    "nombre": "Juvia Lockser",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/juvia_lockser.webp"
+  },
+  {
+    "slug": "laxus_dreyar",
+    "nombre": "Laxus Dreyar",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/laxus_dreyar.webp"
+  },
+  {
+    "slug": "lucy_heartfilia",
+    "nombre": "Lucy Heartfilia",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/lucy_heartfilia.webp"
+  },
+  {
+    "slug": "mirajane_strauss",
+    "nombre": "Mirajane Strauss",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/mirajane_strauss.webp"
+  },
+  {
+    "slug": "natsu_dragneel",
+    "nombre": "Natsu Dragneel",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/natsu_dragneel.webp"
+  },
+  {
+    "slug": "wendy_marvell",
+    "nombre": "Wendy Marvell",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/wendy_marvell.webp"
+  },
+  {
+    "slug": "zeref_dragneel",
+    "nombre": "Zeref Dragneel",
+    "anime": "Fairy Tail",
+    "descripcion": "Personaje del anime Fairy Tail.",
+    "imagenUrl": "/img/Fairy_Tail/zeref_dragneel.webp"
+  },
+  {
+    "slug": "artoria_pendragon_alter",
+    "nombre": "Artoria Pendragon Alter",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/artoria_pendragon_alter.webp"
+  },
+  {
+    "slug": "jeanne_darc",
+    "nombre": "Jeanne Darc",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/jeanne_darc.webp"
+  },
+  {
+    "slug": "jeanne_darc_alter",
+    "nombre": "Jeanne Darc Alter",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/jeanne_darc_alter.webp"
+  },
+  {
+    "slug": "mash_kyrielight",
+    "nombre": "Mash Kyrielight",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/mash_kyrielight.webp"
+  },
+  {
+    "slug": "morgan",
+    "nombre": "Morgan",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/morgan.webp"
+  },
+  {
+    "slug": "musashi_miyamoto",
+    "nombre": "Musashi Miyamoto",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/musashi_miyamoto.webp"
+  },
+  {
+    "slug": "nero_claudius",
+    "nombre": "Nero Claudius",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/nero_claudius.webp"
+  },
+  {
+    "slug": "okita_souji",
+    "nombre": "Okita Souji",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/okita_souji.webp"
+  },
+  {
+    "slug": "scathach",
+    "nombre": "Scathach",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/scathach.webp"
+  },
+  {
+    "slug": "tamamo_no_mae",
+    "nombre": "Tamamo No Mae",
+    "anime": "Fate/Grand Order",
+    "descripcion": "Personaje del anime Fate/Grand Order.",
+    "imagenUrl": "/img/Fate_Grand_Order/tamamo_no_mae.webp"
+  },
+  {
+    "slug": "archer",
+    "nombre": "Archer",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Servant clase Archer de Rin. Versión futura de Shirou con Unlimited Blade Works.",
+    "imagenUrl": "/img/Fate_Stay_Night/archer.webp"
+  },
+  {
+    "slug": "berserker_heracles",
+    "nombre": "Berserker Heracles",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Personaje del anime Fate/Stay Night.",
+    "imagenUrl": "/img/Fate_Stay_Night/berserker_heracles.webp"
+  },
+  {
+    "slug": "gilgamesh",
+    "nombre": "Gilgamesh",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Rey de Uruk y la primera leyenda heroica. Gate of Babylon con tesoros mundiales.",
+    "imagenUrl": "/img/Fate_Stay_Night/gilgamesh.webp"
+  },
+  {
+    "slug": "illyasviel_von_einzbern",
+    "nombre": "Illyasviel Von Einzbern",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Personaje del anime Fate/Stay Night.",
+    "imagenUrl": "/img/Fate_Stay_Night/illyasviel_von_einzbern.webp"
+  },
+  {
+    "slug": "kirei_kotomine",
+    "nombre": "Kirei Kotomine",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Personaje del anime Fate/Stay Night.",
+    "imagenUrl": "/img/Fate_Stay_Night/kirei_kotomine.webp"
+  },
+  {
+    "slug": "lancer_cu_chulainn",
+    "nombre": "Lancer Cu Chulainn",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Personaje del anime Fate/Stay Night.",
+    "imagenUrl": "/img/Fate_Stay_Night/lancer_cu_chulainn.webp"
+  },
+  {
+    "slug": "rider_medusa",
+    "nombre": "Rider Medusa",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Personaje del anime Fate/Stay Night.",
+    "imagenUrl": "/img/Fate_Stay_Night/rider_medusa.webp"
+  },
+  {
+    "slug": "rin_tohsaka",
+    "nombre": "Rin Tohsaka",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Maestra de Archer en la Quinta Guerra del Grial. Magia de gemas y tsundere clásica.",
+    "imagenUrl": "/img/Fate_Stay_Night/rin_tohsaka.webp"
+  },
+  {
+    "slug": "saber",
+    "nombre": "Saber",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Rey Arturo invocada en clase Saber. Excalibur en mano y honor inquebrantable.",
+    "imagenUrl": "/img/Fate_Stay_Night/saber.webp"
+  },
+  {
+    "slug": "sakura_matou",
+    "nombre": "Sakura Matou",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Personaje del anime Fate/Stay Night.",
+    "imagenUrl": "/img/Fate_Stay_Night/sakura_matou.webp"
+  },
+  {
+    "slug": "shirou_emiya",
+    "nombre": "Shirou Emiya",
+    "anime": "Fate/Stay Night",
+    "descripcion": "Maestro de Saber en la Quinta Guerra. Trace on, projection de armas legendarias.",
+    "imagenUrl": "/img/Fate_Stay_Night/shirou_emiya.webp"
+  },
+  {
+    "slug": "irisviel_von_einzbern",
+    "nombre": "Irisviel Von Einzbern",
+    "anime": "Fate/Zero",
+    "descripcion": "Personaje del anime Fate/Zero.",
+    "imagenUrl": "/img/Fate_Zero/irisviel_von_einzbern.webp"
+  },
+  {
+    "slug": "iskandar",
+    "nombre": "Iskandar",
+    "anime": "Fate/Zero",
+    "descripcion": "Rey de los Conquistadores en Fate/Zero. Reality Marble Ionioi Hetairoi con ejército imperial.",
+    "imagenUrl": "/img/Fate_Zero/iskandar.webp"
+  },
+  {
+    "slug": "kiritsugu_emiya",
+    "nombre": "Kiritsugu Emiya",
+    "anime": "Fate/Zero",
+    "descripcion": "Magus Killer y padre adoptivo de Shirou. Origin Bullets y pistola Thompson Contender.",
+    "imagenUrl": "/img/Fate_Zero/kiritsugu_emiya.webp"
+  },
+  {
+    "slug": "waver_velvet",
+    "nombre": "Waver Velvet",
+    "anime": "Fate/Zero",
+    "descripcion": "Personaje del anime Fate/Zero.",
+    "imagenUrl": "/img/Fate_Zero/waver_velvet.webp"
+  },
+  {
+    "slug": "arthur_boyle",
+    "nombre": "Arthur Boyle",
+    "anime": "Fire Force",
+    "descripcion": "Personaje del anime Fire Force.",
+    "imagenUrl": "/img/Fire_Force/arthur_boyle.webp"
+  },
+  {
+    "slug": "benimaru_shinmon",
+    "nombre": "Benimaru Shinmon",
+    "anime": "Fire Force",
+    "descripcion": "Personaje del anime Fire Force.",
+    "imagenUrl": "/img/Fire_Force/benimaru_shinmon.webp"
+  },
+  {
+    "slug": "maki_oze",
+    "nombre": "Maki Oze",
+    "anime": "Fire Force",
+    "descripcion": "Personaje del anime Fire Force.",
+    "imagenUrl": "/img/Fire_Force/maki_oze.webp"
+  },
+  {
+    "slug": "shinra_kusakabe",
+    "nombre": "Shinra Kusakabe",
+    "anime": "Fire Force",
+    "descripcion": "Personaje del anime Fire Force.",
+    "imagenUrl": "/img/Fire_Force/shinra_kusakabe.webp"
+  },
+  {
+    "slug": "tamaki_kotatsu",
+    "nombre": "Tamaki Kotatsu",
+    "anime": "Fire Force",
+    "descripcion": "Personaje del anime Fire Force.",
+    "imagenUrl": "/img/Fire_Force/tamaki_kotatsu.webp"
+  },
+  {
+    "slug": "1921344b018b586a8da38a55337f8656612612b0f4a2257e404b90518cca25a1",
+    "nombre": "1921344b018b586a8da38a55337f8656612612b0f4a2257e404b90518cca25a1",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/1921344b018b586a8da38a55337f8656612612b0f4a2257e404b90518cca25a1.webp"
+  },
+  {
+    "slug": "aura_the_guillotine",
+    "nombre": "Aura The Guillotine",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/aura_the_guillotine.webp"
+  },
+  {
+    "slug": "denken",
+    "nombre": "Denken",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/denken.webp"
+  },
+  {
+    "slug": "fern",
+    "nombre": "Fern",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Aprendiz humana de Frieren. Magia de Maestra a velocidad récord, paciencia legendaria.",
+    "imagenUrl": "/img/Frieren/fern.webp"
+  },
+  {
+    "slug": "frieren",
+    "nombre": "Frieren",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Maga elfa que sobrevivió un siglo a sus compañeros. Empieza a entender lo que perdió.",
+    "imagenUrl": "/img/Frieren/frieren.webp"
+  },
+  {
+    "slug": "himmel",
+    "nombre": "Himmel",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Héroe de la última generación, compañero de Frieren en la derrota del Rey Demonio. Recuerdo central que mueve la historia.",
+    "imagenUrl": "/img/Frieren/himmel.webp"
+  },
+  {
+    "slug": "methode",
+    "nombre": "Methode",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/methode.webp"
+  },
+  {
+    "slug": "serie",
+    "nombre": "Serie",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/serie.webp"
+  },
+  {
+    "slug": "stark",
+    "nombre": "Stark",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Aprendiz del guerrero Eisen. Hacha gigante, miedo permanente, capaz de proezas heroicas con confianza.",
+    "imagenUrl": "/img/Frieren/stark.webp"
+  },
+  {
+    "slug": "ubel",
+    "nombre": "Ubel",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/ubel.webp"
+  },
+  {
+    "slug": "kamina",
+    "nombre": "Kamina",
+    "anime": "Gurren Lagann",
+    "descripcion": "Personaje del anime Gurren Lagann.",
+    "imagenUrl": "/img/Gurren_Lagann/kamina.webp"
+  },
+  {
+    "slug": "nia_teppelin",
+    "nombre": "Nia Teppelin",
+    "anime": "Gurren Lagann",
+    "descripcion": "Personaje del anime Gurren Lagann.",
+    "imagenUrl": "/img/Gurren_Lagann/nia_teppelin.webp"
+  },
+  {
+    "slug": "simon",
+    "nombre": "Simon",
+    "anime": "Gurren Lagann",
+    "descripcion": "Personaje del anime Gurren Lagann.",
+    "imagenUrl": "/img/Gurren_Lagann/simon.webp"
+  },
+  {
+    "slug": "viral",
+    "nombre": "Viral",
+    "anime": "Gurren Lagann",
+    "descripcion": "Personaje del anime Gurren Lagann.",
+    "imagenUrl": "/img/Gurren_Lagann/viral.webp"
+  },
+  {
+    "slug": "yoko_littner",
+    "nombre": "Yoko Littner",
+    "anime": "Gurren Lagann",
+    "descripcion": "Personaje del anime Gurren Lagann.",
+    "imagenUrl": "/img/Gurren_Lagann/yoko_littner.webp"
+  },
+  {
+    "slug": "alexander_anderson",
+    "nombre": "Alexander Anderson",
+    "anime": "Hellsing",
+    "descripcion": "Personaje del anime Hellsing.",
+    "imagenUrl": "/img/Hellsing/alexander_anderson.webp"
+  },
+  {
+    "slug": "alucard",
+    "nombre": "Alucard",
+    "anime": "Hellsing",
+    "descripcion": "Personaje del anime Hellsing.",
+    "imagenUrl": "/img/Hellsing/alucard.webp"
+  },
+  {
+    "slug": "integra_hellsing",
+    "nombre": "Integra Hellsing",
+    "anime": "Hellsing",
+    "descripcion": "Personaje del anime Hellsing.",
+    "imagenUrl": "/img/Hellsing/integra_hellsing.webp"
+  },
+  {
+    "slug": "seras_victoria",
+    "nombre": "Seras Victoria",
+    "anime": "Hellsing",
+    "descripcion": "Personaje del anime Hellsing.",
+    "imagenUrl": "/img/Hellsing/seras_victoria.webp"
+  },
+  {
+    "slug": "walter_c_dornez",
+    "nombre": "Walter C Dornez",
+    "anime": "Hellsing",
+    "descripcion": "Personaje del anime Hellsing.",
+    "imagenUrl": "/img/Hellsing/walter_c_dornez.webp"
+  },
+  {
+    "slug": "akeno_himejima",
+    "nombre": "Akeno Himejima",
+    "anime": "High School DxD",
+    "descripcion": "Vicepresidenta del club de ocultismo y sacerdotisa caída. Mezcla relámpagos sagrados con un carácter sereno y peligroso.",
+    "imagenUrl": "/img/High_School_DXD/akeno_himejima.webp"
+  },
+  {
+    "slug": "asia_argento",
+    "nombre": "Asia Argento",
+    "anime": "High School DxD",
+    "descripcion": "Ex-monja con poder de Twilight Healing. Devota a Issei tras ser excomulgada por la Iglesia.",
+    "imagenUrl": "/img/High_School_DXD/asia_argento.webp"
+  },
+  {
+    "slug": "irina_shidou",
+    "nombre": "Irina Shidou",
+    "anime": "High School DxD",
+    "descripcion": "Personaje del anime High School DxD.",
+    "imagenUrl": "/img/High_School_DXD/irina_shidou.webp"
+  },
+  {
+    "slug": "issei_hyoudou",
+    "nombre": "Issei Hyoudou",
+    "anime": "High School DxD",
+    "descripcion": "Estudiante pervertido reencarnado como demonio bajo Rias. Portador del Boosted Gear del Sekiryuutei.",
+    "imagenUrl": "/img/High_School_DXD/issei_hyoudou.webp"
+  },
+  {
+    "slug": "koneko_toujou",
+    "nombre": "Koneko Toujou",
+    "anime": "High School DxD",
+    "descripcion": "Nekomata reencarnada como pieza Torre de Rias. Pequeña, fuerte y silenciosa.",
+    "imagenUrl": "/img/High_School_DXD/koneko_toujou.webp"
+  },
+  {
+    "slug": "rias_gremory",
+    "nombre": "Rias Gremory",
+    "anime": "High School DxD",
+    "descripcion": "Personaje del anime High School DxD.",
+    "imagenUrl": "/img/High_School_DXD/rias_gremory.webp"
+  },
+  {
+    "slug": "rossweisse",
+    "nombre": "Rossweisse",
+    "anime": "High School DxD",
+    "descripcion": "Personaje del anime High School DxD.",
+    "imagenUrl": "/img/High_School_DXD/rossweisse.webp"
+  },
+  {
+    "slug": "ebina_nana",
+    "nombre": "Ebina Nana",
+    "anime": "Himouto! Umaru-chan",
+    "descripcion": "Personaje del anime Himouto! Umaru-chan.",
+    "imagenUrl": "/img/Himouto_Umaru_chan/ebina_nana.webp"
+  },
+  {
+    "slug": "kirie_motoba",
+    "nombre": "Kirie Motoba",
+    "anime": "Himouto! Umaru-chan",
+    "descripcion": "Personaje del anime Himouto! Umaru-chan.",
+    "imagenUrl": "/img/Himouto_Umaru_chan/kirie_motoba.webp"
+  },
+  {
+    "slug": "silfinford_tachibana",
+    "nombre": "Silfinford Tachibana",
+    "anime": "Himouto! Umaru-chan",
+    "descripcion": "Personaje del anime Himouto! Umaru-chan.",
+    "imagenUrl": "/img/Himouto_Umaru_chan/silfinford_tachibana.webp"
+  },
+  {
+    "slug": "taihei_doma",
+    "nombre": "Taihei Doma",
+    "anime": "Himouto! Umaru-chan",
+    "descripcion": "Personaje del anime Himouto! Umaru-chan.",
+    "imagenUrl": "/img/Himouto_Umaru_chan/taihei_doma.webp"
+  },
+  {
+    "slug": "umaru_doma",
+    "nombre": "Umaru Doma",
+    "anime": "Himouto! Umaru-chan",
+    "descripcion": "Por fuera estudiante perfecta, por dentro otaku flojaza con capucha de hámster.",
+    "imagenUrl": "/img/Himouto_Umaru_chan/umaru_doma.webp"
+  },
+  {
+    "slug": "aoi_todo",
+    "nombre": "Aoi Todo",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero de la Jujutsu de Kioto con técnica Boogie Woogie. Best friend autoproclamado de Itadori.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/aoi_todo.webp"
+  },
+  {
+    "slug": "choso",
+    "nombre": "Choso",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hermano mayor del trío de los Death Painting. Hijo de Kenjaku y aliado tardío de Itadori.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/choso.webp"
+  },
+  {
+    "slug": "dagon",
+    "nombre": "Dagon",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Maldición especial acuática. Domina su dominio expandido con tiburones y agua presurizada.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/dagon.webp"
+  },
+  {
+    "slug": "hajime_kashimo",
+    "nombre": "Hajime Kashimo",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero legendario de hace 400 años. Reencarnó en el Culling Game para buscar al más fuerte.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/hajime_kashimo.webp"
+  },
+  {
+    "slug": "hanami",
+    "nombre": "Hanami",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Maldición especial natural con poderes botánicos. Quiere proteger la naturaleza eliminando humanos.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/hanami.webp"
+  },
+  {
+    "slug": "hiromi_higuruma",
+    "nombre": "Hiromi Higuruma",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Abogado y hechicero del Culling Game. Despertó su técnica de Juicio Mortal por accidente.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/hiromi_higuruma.webp"
+  },
+  {
+    "slug": "itadori",
+    "nombre": "Yuji Itadori",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Estudiante atlético que se traga un dedo de Sukuna y se convierte en su contenedor.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/itadori.webp"
+  },
+  {
+    "slug": "jogo",
+    "nombre": "Jogo",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Maldición especial volcánica con tres ojos. Lealtad a la causa de las maldiciones.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/jogo.webp"
+  },
+  {
+    "slug": "kasumi_miwa",
+    "nombre": "Kasumi Miwa",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicera de Kioto con espada nichirin y técnica New Shadow Style. Especial débil de katanas.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/kasumi_miwa.webp"
+  },
+  {
+    "slug": "kenjaku",
+    "nombre": "Kenjaku",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero antiguo que cambia de cuerpo desde hace milenios. Padre biológico de Yuji vía Choso.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/kenjaku.webp"
+  },
+  {
+    "slug": "kento_nanami",
+    "nombre": "Kento Nanami",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero grado 1 con técnica de Ratio. Salaryman convertido en mentor de Itadori.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/kento_nanami.webp"
+  },
+  {
+    "slug": "kirara_hoshi",
+    "nombre": "Kirara Hoshi",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Personaje del anime Jujutsu Kaisen.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/kirara_hoshi.webp"
+  },
+  {
+    "slug": "mahito",
+    "nombre": "Mahito",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Maldición especial que manipula almas humanas. Idle main, transformaciones grotescas.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/mahito.webp"
+  },
+  {
+    "slug": "mai_zenin",
+    "nombre": "Mai Zenin",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hermana gemela de Maki con técnica Construct. Pistolera del clan Zenin con resentimiento profundo.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/mai_zenin.webp"
+  },
+  {
+    "slug": "maki_zenin",
+    "nombre": "Maki Zenin",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicera Zenin sin energía maldita pero con cuerpo sobrehumano. Lanza Playful Cloud y orgullo familiar.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/maki_zenin.webp"
+  },
+  {
+    "slug": "megumi_fushiguro",
+    "nombre": "Megumi Fushiguro",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero del clan Zenin con la técnica de las Diez Sombras. Hijo de Toji con potencial latente.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/megumi_fushiguro.webp"
+  },
+  {
+    "slug": "mei_mei",
+    "nombre": "Mei Mei",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicera grado 1 con técnica de Cuervos Negros. Mercenaria del dinero antes que del mundo.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/mei_mei.webp"
+  },
+  {
+    "slug": "momo_nishimiya",
+    "nombre": "Momo Nishimiya",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Personaje del anime Jujutsu Kaisen.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/momo_nishimiya.webp"
+  },
+  {
+    "slug": "nobara_kugisaki",
+    "nombre": "Nobara Kugisaki",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicera con clavos y martillo. Aldeana orgullosa con kit de maquillaje a mano.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/nobara_kugisaki.webp"
+  },
+  {
+    "slug": "noritoshi_kamo",
+    "nombre": "Noritoshi Kamo",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Heredero del clan Kamo con técnica de manipulación de sangre. Líder estudiantil de Kioto.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/noritoshi_kamo.webp"
+  },
+  {
+    "slug": "panda",
+    "nombre": "Panda",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Cuerpo maldito en forma de oso panda. Tres núcleos, hermano honorario de Maki y Toge.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/panda.webp"
+  },
+  {
+    "slug": "ryu_ishigori",
+    "nombre": "Ryu Ishigori",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero del Culling Game con técnica Granite Blast. Pegada bruta de era pasada.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/ryu_ishigori.webp"
+  },
+  {
+    "slug": "satoru_gojo",
+    "nombre": "Satoru Gojo",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "El hechicero más fuerte del mundo. Sus Seis Ojos y la técnica Infinito lo hacen invencible.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/satoru_gojo.webp"
+  },
+  {
+    "slug": "shoko_ieiri",
+    "nombre": "Shoko Ieiri",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Médica hechicera con técnica de Reverse Curse en humanos. Compañera de Gojo y Geto en su época.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/shoko_ieiri.webp"
+  },
+  {
+    "slug": "sukuna",
+    "nombre": "Ryomen Sukuna",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Rey de las maldiciones de cuatro brazos y dos caras. Habita en Itadori desde el primer dedo.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/sukuna.webp"
+  },
+  {
+    "slug": "toge_inumaki",
+    "nombre": "Toge Inumaki",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero del Habla Maldita. Solo dice nombres de onigiri para no manipular sin querer.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/toge_inumaki.webp"
+  },
+  {
+    "slug": "toji_fushiguro",
+    "nombre": "Toji Fushiguro",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Hechicero Killer caído del clan Zenin. Sin energía maldita pero capaz de derrotar a Gojo.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/toji_fushiguro.webp"
+  },
+  {
+    "slug": "utaime_iori",
+    "nombre": "Utaime Iori",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Personaje del anime Jujutsu Kaisen.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/utaime_iori.webp"
+  },
+  {
+    "slug": "yuta_okkotsu",
+    "nombre": "Yuta Okkotsu",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Heredero de un linaje peligroso con la maldición Rika a su lado. Estudiante del Tokyo Jujutsu.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/yuta_okkotsu.webp"
+  },
+  {
+    "slug": "aqua",
+    "nombre": "Aqua",
+    "anime": "KonoSuba",
+    "descripcion": "Diosa del agua incompetente atrapada en otro mundo con Kazuma. Sus llantos arruinan más planes que los enemigos.",
+    "imagenUrl": "/img/KonoSuba/aqua.webp"
+  },
+  {
+    "slug": "chris",
+    "nombre": "Chris",
+    "anime": "KonoSuba",
+    "descripcion": "Personaje del anime KonoSuba.",
+    "imagenUrl": "/img/KonoSuba/chris.webp"
+  },
+  {
+    "slug": "darkness",
+    "nombre": "Darkness",
+    "anime": "KonoSuba",
+    "descripcion": "Crusader masoquista del grupo de Kazuma. Recibe daño pero nunca acierta un golpe.",
+    "imagenUrl": "/img/KonoSuba/darkness.webp"
+  },
+  {
+    "slug": "eris",
+    "nombre": "Eris",
+    "anime": "KonoSuba",
+    "descripcion": "Personaje del anime KonoSuba.",
+    "imagenUrl": "/img/KonoSuba/eris.webp"
+  },
+  {
+    "slug": "kazuma_satou",
+    "nombre": "Kazuma Satou",
+    "anime": "KonoSuba",
+    "descripcion": "Personaje del anime KonoSuba.",
+    "imagenUrl": "/img/KonoSuba/kazuma_satou.webp"
+  },
+  {
+    "slug": "megumin",
+    "nombre": "Megumin",
+    "anime": "KonoSuba",
+    "descripcion": "Maga arch-wizard que solo lanza Explosión una vez al día y queda KO en el suelo.",
+    "imagenUrl": "/img/KonoSuba/megumin.webp"
+  },
+  {
+    "slug": "vanir",
+    "nombre": "Vanir",
+    "anime": "KonoSuba",
+    "descripcion": "Demonio máscara empleado de Wiz. Ve almas y compra emociones negativas.",
+    "imagenUrl": "/img/KonoSuba/vanir.webp"
+  },
+  {
+    "slug": "wiz",
+    "nombre": "Wiz",
+    "anime": "KonoSuba",
+    "descripcion": "Liche y dueña de una tienda mágica fracasada. Una de las generales del Rey Demonio.",
+    "imagenUrl": "/img/KonoSuba/wiz.webp"
+  },
+  {
+    "slug": "yunyun",
+    "nombre": "Yunyun",
+    "anime": "KonoSuba",
+    "descripcion": "Personaje del anime KonoSuba.",
+    "imagenUrl": "/img/KonoSuba/yunyun.webp"
+  },
+  {
+    "slug": "ai_hayasaka",
+    "nombre": "Ai Hayasaka",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Personaje del anime Kaguya-sama: Love is War.",
+    "imagenUrl": "/img/Love_is_War/ai_hayasaka.webp"
+  },
+  {
+    "slug": "chika_fujiwara",
+    "nombre": "Chika Fujiwara",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Secretaria del consejo y disruptor de cualquier plan de Kaguya o Shirogane. Bailes, juegos, caos rosa.",
+    "imagenUrl": "/img/Love_is_War/chika_fujiwara.webp"
+  },
+  {
+    "slug": "kaguya_shinomiya",
+    "nombre": "Kaguya Shinomiya",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Heredera del clan Shinomiya en guerra mental con Shirogane. Quien confiesa primero, pierde.",
+    "imagenUrl": "/img/Love_is_War/kaguya_shinomiya.webp"
+  },
+  {
+    "slug": "kei_shirogane",
+    "nombre": "Kei Shirogane",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Personaje del anime Kaguya-sama: Love is War.",
+    "imagenUrl": "/img/Love_is_War/kei_shirogane.webp"
+  },
+  {
+    "slug": "miko_iino",
+    "nombre": "Miko Iino",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Personaje del anime Kaguya-sama: Love is War.",
+    "imagenUrl": "/img/Love_is_War/miko_iino.webp"
+  },
+  {
+    "slug": "miyuki_shirogane",
+    "nombre": "Miyuki Shirogane",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Presidente del consejo en Shuchiin Academy. Inteligente, becado y la otra mitad del juego mental con Kaguya.",
+    "imagenUrl": "/img/Love_is_War/miyuki_shirogane.webp"
+  },
+  {
+    "slug": "nagisa_kashiwagi",
+    "nombre": "Nagisa Kashiwagi",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Personaje del anime Kaguya-sama: Love is War.",
+    "imagenUrl": "/img/Love_is_War/nagisa_kashiwagi.webp"
+  },
+  {
+    "slug": "yu_ishigami",
+    "nombre": "Yu Ishigami",
+    "anime": "Kaguya-sama: Love is War",
+    "descripcion": "Tesorero del consejo con pasado escolar trágico. Pesimista, fan de los juegos, leal a Shirogane.",
+    "imagenUrl": "/img/Love_is_War/yu_ishigami.webp"
+  },
+  {
+    "slug": "bondrewd",
+    "nombre": "Bondrewd",
+    "anime": "Made in Abyss",
+    "descripcion": "Personaje del anime Made in Abyss.",
+    "imagenUrl": "/img/Made_in_Abyss/bondrewd.webp"
+  },
+  {
+    "slug": "faputa",
+    "nombre": "Faputa",
+    "anime": "Made in Abyss",
+    "descripcion": "Personaje del anime Made in Abyss.",
+    "imagenUrl": "/img/Made_in_Abyss/faputa.webp"
+  },
+  {
+    "slug": "nanachi",
+    "nombre": "Nanachi",
+    "anime": "Made in Abyss",
+    "descripcion": "Personaje del anime Made in Abyss.",
+    "imagenUrl": "/img/Made_in_Abyss/nanachi.webp"
+  },
+  {
+    "slug": "reg",
+    "nombre": "Reg",
+    "anime": "Made in Abyss",
+    "descripcion": "Personaje del anime Made in Abyss.",
+    "imagenUrl": "/img/Made_in_Abyss/reg.webp"
+  },
+  {
+    "slug": "riko",
+    "nombre": "Riko",
+    "anime": "Made in Abyss",
+    "descripcion": "Personaje del anime Made in Abyss.",
+    "imagenUrl": "/img/Made_in_Abyss/riko.webp"
+  },
+  {
+    "slug": "aphrodite_a",
+    "nombre": "Aphrodite A",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/aphrodite_a.webp"
+  },
+  {
+    "slug": "baron_ashura",
+    "nombre": "Baron Ashura",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/baron_ashura.webp"
+  },
+  {
+    "slug": "boss",
+    "nombre": "Boss",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/boss.webp"
+  },
+  {
+    "slug": "boss_borot",
+    "nombre": "Boss Borot",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/boss_borot.webp"
+  },
+  {
+    "slug": "count_broken",
+    "nombre": "Count Broken",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/count_broken.webp"
+  },
+  {
+    "slug": "doublas_m2",
+    "nombre": "Doublas M2",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/doublas_m2.webp"
+  },
+  {
+    "slug": "dr_hell",
+    "nombre": "Dr Hell",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/dr_hell.webp"
+  },
+  {
+    "slug": "garada_k7",
+    "nombre": "Garada K7",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/garada_k7.webp"
+  },
+  {
+    "slug": "general_negro",
+    "nombre": "General Negro",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/general_negro.webp"
+  },
+  {
+    "slug": "great_mazinger",
+    "nombre": "Great Mazinger",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/great_mazinger.webp"
+  },
+  {
+    "slug": "grendizer",
+    "nombre": "Grendizer",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/grendizer.webp"
+  },
+  {
+    "slug": "kenzo_kabuto",
+    "nombre": "Kenzo Kabuto",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/kenzo_kabuto.webp"
+  },
+  {
+    "slug": "koji_kabuto",
+    "nombre": "Koji Kabuto",
+    "anime": "Mazinger Z",
+    "descripcion": "Piloto original del Mazinger Z. Heredero del Dr. Kabuto contra el Dr. Infierno.",
+    "imagenUrl": "/img/Mazinger/koji_kabuto.webp"
+  },
+  {
+    "slug": "lori_and_loru",
+    "nombre": "Lori And Loru",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/lori_and_loru.webp"
+  },
+  {
+    "slug": "mazinger_z",
+    "nombre": "Mazinger Z",
+    "anime": "Mazinger Z",
+    "descripcion": "Mecha clásico pilotado por Koji Kabuto. Padre fundador del género super robot.",
+    "imagenUrl": "/img/Mazinger/mazinger_z.webp"
+  },
+  {
+    "slug": "mazinkaiser",
+    "nombre": "Mazinkaiser",
+    "anime": "Mazinger Z",
+    "descripcion": "Mecha legendario forjado del Photonic Power. Sucesor del Mazinger Z con potencial divino.",
+    "imagenUrl": "/img/Mazinger/mazinkaiser.webp"
+  },
+  {
+    "slug": "sayaka_yumi",
+    "nombre": "Sayaka Yumi",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/sayaka_yumi.webp"
+  },
+  {
+    "slug": "shiro_kabuto",
+    "nombre": "Shiro Kabuto",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/shiro_kabuto.webp"
+  },
+  {
+    "slug": "tetsuya_tsurugi",
+    "nombre": "Tetsuya Tsurugi",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/tetsuya_tsurugi.webp"
+  },
+  {
+    "slug": "venus_a",
+    "nombre": "Venus A",
+    "anime": "Mazinger Z",
+    "descripcion": "Personaje del anime Mazinger Z.",
+    "imagenUrl": "/img/Mazinger/venus_a.webp"
+  },
+  {
+    "slug": "deus_ex_machina",
+    "nombre": "Deus Ex Machina",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/deus_ex_machina.webp"
+  },
+  {
+    "slug": "gasai_yuno",
+    "nombre": "Gasai Yuno",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/gasai_yuno.webp"
+  },
+  {
+    "slug": "mao_nonosaka",
+    "nombre": "Mao Nonosaka",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/mao_nonosaka.webp"
+  },
+  {
+    "slug": "minene_uryuu",
+    "nombre": "Minene Uryuu",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/minene_uryuu.webp"
+  },
+  {
+    "slug": "muru_muru",
+    "nombre": "Muru Muru",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/muru_muru.webp"
+  },
+  {
+    "slug": "reisuke_houjou",
+    "nombre": "Reisuke Houjou",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/reisuke_houjou.webp"
+  },
+  {
+    "slug": "tsubaki_kasumikado",
+    "nombre": "Tsubaki Kasumikado",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/tsubaki_kasumikado.webp"
+  },
+  {
+    "slug": "yukiteru_amano",
+    "nombre": "Yukiteru Amano",
+    "anime": "Mirai Nikki",
+    "descripcion": "Personaje del anime Mirai Nikki.",
+    "imagenUrl": "/img/Mirai_Nikki/yukiteru_amano.webp"
+  },
+  {
+    "slug": "marin_kitagawa",
+    "nombre": "Marin Kitagawa",
+    "anime": "My Dress-Up Darling",
+    "descripcion": "Estudiante popular y otaka del cosplay. Confía en Gojo Wakana para coser sueños.",
+    "imagenUrl": "/img/My_Dress_Up_Darling/marin_kitagawa.webp"
+  },
+  {
+    "slug": "sajuna_inui",
+    "nombre": "Sajuna Inui",
+    "anime": "My Dress-Up Darling",
+    "descripcion": "Personaje del anime My Dress-Up Darling.",
+    "imagenUrl": "/img/My_Dress_Up_Darling/sajuna_inui.webp"
+  },
+  {
+    "slug": "shinju_inui",
+    "nombre": "Shinju Inui",
+    "anime": "My Dress-Up Darling",
+    "descripcion": "Personaje del anime My Dress-Up Darling.",
+    "imagenUrl": "/img/My_Dress_Up_Darling/shinju_inui.webp"
+  },
+  {
+    "slug": "wakana_gojo",
+    "nombre": "Wakana Gojo",
+    "anime": "My Dress-Up Darling",
+    "descripcion": "Estudiante artesano de hina-ningyo. Cose cosplay para Marin y guarda su secreto familiar.",
+    "imagenUrl": "/img/My_Dress_Up_Darling/wakana_gojo.webp"
+  },
+  {
+    "slug": "all_for_one",
+    "nombre": "All For One",
+    "anime": "My Hero Academia",
+    "descripcion": "El demonio detrás de la Liga. Roba quirks ajenos hace siglos y arquitecto de la era villanesca.",
+    "imagenUrl": "/img/My_Hero_Academia/all_for_one.webp"
+  },
+  {
+    "slug": "allmight",
+    "nombre": "All Might",
+    "anime": "My Hero Academia",
+    "descripcion": "Símbolo de la paz y antiguo héroe número uno de Japón. Tutor de Deku y portador original del One For All.",
+    "imagenUrl": "/img/My_Hero_Academia/allmight.webp"
+  },
+  {
+    "slug": "bakugo",
+    "nombre": "Katsuki Bakugo",
+    "anime": "My Hero Academia",
+    "descripcion": "Quirk explosión y ego en proporción equivalente. Rival eterno de Deku con orgullo de aspirante a número uno.",
+    "imagenUrl": "/img/My_Hero_Academia/bakugo.webp"
+  },
+  {
+    "slug": "best_jeanist",
+    "nombre": "Best Jeanist",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/best_jeanist.webp"
+  },
+  {
+    "slug": "dabi",
+    "nombre": "Touya Todoroki",
+    "anime": "My Hero Academia",
+    "descripcion": "Villano con llamas azules de la Liga. Hijo perdido de Endeavor con ardor en venganza.",
+    "imagenUrl": "/img/My_Hero_Academia/dabi.webp"
+  },
+  {
+    "slug": "deku",
+    "nombre": "Izuku Midoriya",
+    "anime": "My Hero Academia",
+    "descripcion": "Sucesor del One For All elegido por All Might. Sin quirk al nacer, ahora la nueva esperanza de los héroes.",
+    "imagenUrl": "/img/My_Hero_Academia/deku.webp"
+  },
+  {
+    "slug": "denki_kaminari",
+    "nombre": "Denki Kaminari",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/denki_kaminari.webp"
+  },
+  {
+    "slug": "edgeshot",
+    "nombre": "Edgeshot",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/edgeshot.webp"
+  },
+  {
+    "slug": "eijiro_kirishima",
+    "nombre": "Eijiro Kirishima",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/eijiro_kirishima.webp"
+  },
+  {
+    "slug": "endeavor",
+    "nombre": "Enji Todoroki",
+    "anime": "My Hero Academia",
+    "descripcion": "Héroe número uno tras All Might. Padre de Shoto, redención escrita en cenizas.",
+    "imagenUrl": "/img/My_Hero_Academia/endeavor.webp"
+  },
+  {
+    "slug": "fat_gum",
+    "nombre": "Fat Gum",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/fat_gum.webp"
+  },
+  {
+    "slug": "froppy",
+    "nombre": "Tsuyu Asui",
+    "anime": "My Hero Academia",
+    "descripcion": "Estudiante de la 1-A con quirk de rana. Calmada, sincera y la mejor compañera de equipo.",
+    "imagenUrl": "/img/My_Hero_Academia/froppy.webp"
+  },
+  {
+    "slug": "fumikage_tokoyami",
+    "nombre": "Fumikage Tokoyami",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/fumikage_tokoyami.webp"
+  },
+  {
+    "slug": "gang_orca",
+    "nombre": "Gang Orca",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/gang_orca.webp"
+  },
+  {
+    "slug": "gentle_criminal",
+    "nombre": "Gentle Criminal",
+    "anime": "My Hero Academia",
+    "descripcion": "Villano elegante con quirk de elasticidad de aire. Streamer fracasado con compañera La Brava.",
+    "imagenUrl": "/img/My_Hero_Academia/gentle_criminal.webp"
+  },
+  {
+    "slug": "hanta_sero",
+    "nombre": "Hanta Sero",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/hanta_sero.webp"
+  },
+  {
+    "slug": "hawks",
+    "nombre": "Keigo Takami",
+    "anime": "My Hero Academia",
+    "descripcion": "Héroe número dos con alas rojas. Espía infiltrado en la Liga durante la guerra.",
+    "imagenUrl": "/img/My_Hero_Academia/hawks.webp"
+  },
+  {
+    "slug": "hitoshi_shinso",
+    "nombre": "Hitoshi Shinso",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/hitoshi_shinso.webp"
+  },
+  {
+    "slug": "koji_koda",
+    "nombre": "Koji Koda",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/koji_koda.webp"
+  },
+  {
+    "slug": "kurogiri",
+    "nombre": "Kurogiri",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/kurogiri.webp"
+  },
+  {
+    "slug": "kyoka_jiro",
+    "nombre": "Kyoka Jiro",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/kyoka_jiro.webp"
+  },
+  {
+    "slug": "la_brava",
+    "nombre": "La Brava",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/la_brava.webp"
+  },
+  {
+    "slug": "lady_nagant",
+    "nombre": "Lady Nagant",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/lady_nagant.webp"
+  },
+  {
+    "slug": "lemillion",
+    "nombre": "Mirio Togata",
+    "anime": "My Hero Academia",
+    "descripcion": "Aspirante al top 3 de la UA con quirk de permeabilidad. Casi sucesor de All Might.",
+    "imagenUrl": "/img/My_Hero_Academia/lemillion.webp"
+  },
+  {
+    "slug": "mashirao_ojiro",
+    "nombre": "Mashirao Ojiro",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/mashirao_ojiro.webp"
+  },
+  {
+    "slug": "mei_hatsume",
+    "nombre": "Mei Hatsume",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/mei_hatsume.webp"
+  },
+  {
+    "slug": "mezo_shoji",
+    "nombre": "Mezo Shoji",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/mezo_shoji.webp"
+  },
+  {
+    "slug": "midnight",
+    "nombre": "Midnight",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/midnight.webp"
+  },
+  {
+    "slug": "mina_ashido",
+    "nombre": "Mina Ashido",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/mina_ashido.webp"
+  },
+  {
+    "slug": "minoru_mineta",
+    "nombre": "Minoru Mineta",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/minoru_mineta.webp"
+  },
+  {
+    "slug": "mirko",
+    "nombre": "Mirko",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/mirko.webp"
+  },
+  {
+    "slug": "momo_yaoyorozu",
+    "nombre": "Momo Yaoyorozu",
+    "anime": "My Hero Academia",
+    "descripcion": "Vicedelegada con quirk de creación material. Inteligencia táctica del top de la 1-A.",
+    "imagenUrl": "/img/My_Hero_Academia/momo_yaoyorozu.webp"
+  },
+  {
+    "slug": "muscular",
+    "nombre": "Muscular",
+    "anime": "My Hero Academia",
+    "descripcion": "Villano con quirk Pump Up de fibras musculares. Casi mata a Kota antes de Deku.",
+    "imagenUrl": "/img/My_Hero_Academia/muscular.webp"
+  },
+  {
+    "slug": "nejire_hado",
+    "nombre": "Nejire Hado",
+    "anime": "My Hero Academia",
+    "descripcion": "Big Three de la UA con quirk de ondas y curiosidad infinita.",
+    "imagenUrl": "/img/My_Hero_Academia/nejire_hado.webp"
+  },
+  {
+    "slug": "ochaco_uraraka",
+    "nombre": "Ochaco Uraraka",
+    "anime": "My Hero Academia",
+    "descripcion": "Estudiante con quirk de gravedad cero. Quiere ser héroe para sostener a su familia.",
+    "imagenUrl": "/img/My_Hero_Academia/ochaco_uraraka.webp"
+  },
+  {
+    "slug": "overhaul",
+    "nombre": "Kai Chisaki",
+    "anime": "My Hero Academia",
+    "descripcion": "Jefe de los Shie Hassaikai con quirk Overhaul. Padre psicopático de Eri y filtro de quirks.",
+    "imagenUrl": "/img/My_Hero_Academia/overhaul.webp"
+  },
+  {
+    "slug": "pixie_bob",
+    "nombre": "Pixie Bob",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/pixie_bob.webp"
+  },
+  {
+    "slug": "present_mic",
+    "nombre": "Present Mic",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/present_mic.webp"
+  },
+  {
+    "slug": "re_destro",
+    "nombre": "Re Destro",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/re_destro.webp"
+  },
+  {
+    "slug": "rikido_sato",
+    "nombre": "Rikido Sato",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/rikido_sato.webp"
+  },
+  {
+    "slug": "ryukyu",
+    "nombre": "Ryukyu",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/ryukyu.webp"
+  },
+  {
+    "slug": "shoto_todoroki",
+    "nombre": "Shoto Todoroki",
+    "anime": "My Hero Academia",
+    "descripcion": "Hijo de Endeavor con doble quirk fuego-hielo. Cabello bicolor y herencia traumática del clan Todoroki.",
+    "imagenUrl": "/img/My_Hero_Academia/shoto_todoroki.webp"
+  },
+  {
+    "slug": "sir_nighteye",
+    "nombre": "Sir Nighteye",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/sir_nighteye.webp"
+  },
+  {
+    "slug": "spinner",
+    "nombre": "Spinner",
+    "anime": "My Hero Academia",
+    "descripcion": "Hombre lagarto villano fan de Stain. Símbolo retorcido de la revolución villanesca.",
+    "imagenUrl": "/img/My_Hero_Academia/spinner.webp"
+  },
+  {
+    "slug": "stain",
+    "nombre": "Stain",
+    "anime": "My Hero Academia",
+    "descripcion": "Hero Killer con cruzada contra héroes falsos. Sangrar a alguien le permite paralizarlo.",
+    "imagenUrl": "/img/My_Hero_Academia/stain.webp"
+  },
+  {
+    "slug": "star_and_stripe",
+    "nombre": "Star And Stripe",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/star_and_stripe.webp"
+  },
+  {
+    "slug": "tamaki_amajiki",
+    "nombre": "Tamaki Amajiki",
+    "anime": "My Hero Academia",
+    "descripcion": "Big Three con quirk Manifest. Tímido en clase, devastador en batalla.",
+    "imagenUrl": "/img/My_Hero_Academia/tamaki_amajiki.webp"
+  },
+  {
+    "slug": "tenya_iida",
+    "nombre": "Tenya Iida",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/tenya_iida.webp"
+  },
+  {
+    "slug": "toga",
+    "nombre": "Himiko Toga",
+    "anime": "My Hero Academia",
+    "descripcion": "Yandere de la Liga de Villanos con quirk de transformación por sangre. Ama de forma terrible.",
+    "imagenUrl": "/img/My_Hero_Academia/toga.webp"
+  },
+  {
+    "slug": "tomura_shigaraki",
+    "nombre": "Tomura Shigaraki",
+    "anime": "My Hero Academia",
+    "descripcion": "Líder de la Liga de Villanos y heredero de All For One. Cinco dedos descomponen lo que tocan.",
+    "imagenUrl": "/img/My_Hero_Academia/tomura_shigaraki.webp"
+  },
+  {
+    "slug": "toru_hagakure",
+    "nombre": "Toru Hagakure",
+    "anime": "My Hero Academia",
+    "descripcion": "Estudiante invisible literal con personalidad luminosa.",
+    "imagenUrl": "/img/My_Hero_Academia/toru_hagakure.webp"
+  },
+  {
+    "slug": "twice",
+    "nombre": "Jin Bubaigawara",
+    "anime": "My Hero Academia",
+    "descripcion": "Villano que crea clones imperfectos de sí mismo. Doble personalidad y lealtad inquebrantable.",
+    "imagenUrl": "/img/My_Hero_Academia/twice.webp"
+  },
+  {
+    "slug": "wash",
+    "nombre": "Wash",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/wash.webp"
+  },
+  {
+    "slug": "yu_takeyama",
+    "nombre": "Mt. Lady",
+    "anime": "My Hero Academia",
+    "descripcion": "Heroína Mt. Lady con quirk de tamaño. Más cámaras que sentido del deber.",
+    "imagenUrl": "/img/My_Hero_Academia/yu_takeyama.webp"
+  },
+  {
+    "slug": "yuga_aoyama",
+    "nombre": "Yuga Aoyama",
+    "anime": "My Hero Academia",
+    "descripcion": "Personaje del anime My Hero Academia.",
+    "imagenUrl": "/img/My_Hero_Academia/yuga_aoyama.webp"
+  },
+  {
+    "slug": "asuma_sarutobi",
+    "nombre": "Asuma Sarutobi",
+    "anime": "Naruto",
+    "descripcion": "Líder del equipo 10 con cuchillas de chakra. Hijo de Hiruzen y futuro padre de Kurenai.",
+    "imagenUrl": "/img/Naruto/asuma_sarutobi.webp"
+  },
+  {
+    "slug": "choji_akimichi",
+    "nombre": "Choji Akimichi",
+    "anime": "Naruto",
+    "descripcion": "Ninja del clan Akimichi con técnica de expansión corporal. Patatas fritas con honor y lealtad sin límite.",
+    "imagenUrl": "/img/Naruto/choji_akimichi.webp"
+  },
+  {
+    "slug": "deidara",
+    "nombre": "Deidara",
+    "anime": "Naruto",
+    "descripcion": "Artista terrorista de Akatsuki con arcilla explosiva. El arte es una explosión, una y otra vez.",
+    "imagenUrl": "/img/Naruto/deidara.webp"
+  },
+  {
+    "slug": "gaara",
+    "nombre": "Gaara",
+    "anime": "Naruto",
+    "descripcion": "Quinto Kazekage de la Arena con el Shukaku en su interior. Pasó de jinchuuriki solitario a líder amado.",
+    "imagenUrl": "/img/Naruto/gaara.webp"
+  },
+  {
+    "slug": "hagoromo_otsutsuki",
+    "nombre": "Hagoromo Otsutsuki",
+    "anime": "Naruto",
+    "descripcion": "Sabio de los Seis Caminos, fundador del ninshuu. Hijo de Kaguya y origen de todo el chakra.",
+    "imagenUrl": "/img/Naruto/hagoromo_otsutsuki.webp"
+  },
+  {
+    "slug": "haku",
+    "nombre": "Haku",
+    "anime": "Naruto",
+    "descripcion": "Aprendiz de Zabuza con Hyoton, Liberación de Hielo. Belleza ambigua y lealtad absoluta.",
+    "imagenUrl": "/img/Naruto/haku.webp"
+  },
+  {
+    "slug": "hashirama",
+    "nombre": "Hashirama",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/hashirama.webp"
+  },
+  {
+    "slug": "hinata",
+    "nombre": "Hinata Hyuga",
+    "anime": "Naruto",
+    "descripcion": "Heredera tímida del clan Hyuga. Su Byakugan y su corazón siguen a Naruto desde la academia.",
+    "imagenUrl": "/img/Naruto/hinata.webp"
+  },
+  {
+    "slug": "hiruzen_sarutobi",
+    "nombre": "Hiruzen Sarutobi",
+    "anime": "Naruto",
+    "descripcion": "Tercer Hokage conocido como el Profesor. Conoce miles de jutsus y enseñó a los Sannin.",
+    "imagenUrl": "/img/Naruto/hiruzen_sarutobi.webp"
+  },
+  {
+    "slug": "ino_yamanaka",
+    "nombre": "Ino Yamanaka",
+    "anime": "Naruto",
+    "descripcion": "Kunoichi del clan Yamanaka con técnica de transferencia mental. Florista y compañera del equipo 10.",
+    "imagenUrl": "/img/Naruto/ino_yamanaka.webp"
+  },
+  {
+    "slug": "itachi",
+    "nombre": "Itachi Uchiha",
+    "anime": "Naruto",
+    "descripcion": "Genio Uchiha que masacró a su clan para proteger Konoha. Hermano mayor de Sasuke y leyenda Akatsuki.",
+    "imagenUrl": "/img/Naruto/itachi.webp"
+  },
+  {
+    "slug": "jiraya",
+    "nombre": "Jiraya",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/jiraya.webp"
+  },
+  {
+    "slug": "juugo",
+    "nombre": "Juugo",
+    "anime": "Naruto",
+    "descripcion": "Origen de los Sellos Maldito de Orochimaru. Personalidad partida, fusión con animales, lealtad a Kimimaro y Sasuke.",
+    "imagenUrl": "/img/Naruto/juugo.webp"
+  },
+  {
+    "slug": "kaguya_otsutsuki",
+    "nombre": "Kaguya Otsutsuki",
+    "anime": "Naruto",
+    "descripcion": "Diosa Conejo Devoradora del Chakra. Primera usuaria del chakra en la Tierra y madre de Hagoromo.",
+    "imagenUrl": "/img/Naruto/kaguya_otsutsuki.webp"
+  },
+  {
+    "slug": "kakashi",
+    "nombre": "Kakashi Hatake",
+    "anime": "Naruto",
+    "descripcion": "El ninja que copia con su Sharingan heredado. Sexto Hokage y maestro del Equipo 7.",
+    "imagenUrl": "/img/Naruto/kakashi.webp"
+  },
+  {
+    "slug": "karin",
+    "nombre": "Karin",
+    "anime": "Naruto",
+    "descripcion": "Uzumaki con sensoría chakra avanzada. Miembro del Hebi de Sasuke con mordida sanadora.",
+    "imagenUrl": "/img/Naruto/karin.webp"
+  },
+  {
+    "slug": "kiba_inuzuka",
+    "nombre": "Kiba Inuzuka",
+    "anime": "Naruto",
+    "descripcion": "Ninja del clan Inuzuka con su perro Akamaru. Olfato salvaje y técnicas Gatsuga.",
+    "imagenUrl": "/img/Naruto/kiba_inuzuka.webp"
+  },
+  {
+    "slug": "killer_b",
+    "nombre": "Killer B",
+    "anime": "Naruto",
+    "descripcion": "Jinchuuriki del Hachibi y rapper de Kumogakure. Ocho espadas, ocho colas, rap a todas horas.",
+    "imagenUrl": "/img/Naruto/killer_b.webp"
+  },
+  {
+    "slug": "kisame_hoshigaki",
+    "nombre": "Kisame Hoshigaki",
+    "anime": "Naruto",
+    "descripcion": "Compañero de Itachi en Akatsuki. Hombre tiburón con Samehada que devora chakra.",
+    "imagenUrl": "/img/Naruto/kisame_hoshigaki.webp"
+  },
+  {
+    "slug": "konan",
+    "nombre": "Konan",
+    "anime": "Naruto",
+    "descripcion": "Origami master de Akatsuki y compañera de Pain. Ángel de Amegakure con técnicas de papel mortal.",
+    "imagenUrl": "/img/Naruto/konan.webp"
+  },
+  {
+    "slug": "kurenai_yuhi",
+    "nombre": "Kurenai Yuhi",
+    "anime": "Naruto",
+    "descripcion": "Líder del equipo 8 especialista en genjutsu. Pareja de Asuma y madre de Mirai.",
+    "imagenUrl": "/img/Naruto/kurenai_yuhi.webp"
+  },
+  {
+    "slug": "kushina_uzumaki",
+    "nombre": "Kushina Uzumaki",
+    "anime": "Naruto",
+    "descripcion": "Habanero Sangriento, jinchuuriki anterior del Kyubi. Madre de Naruto y mujer de Minato.",
+    "imagenUrl": "/img/Naruto/kushina_uzumaki.webp"
+  },
+  {
+    "slug": "madara",
+    "nombre": "Madara",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/madara.webp"
+  },
+  {
+    "slug": "minato",
+    "nombre": "Minato",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/minato.webp"
+  },
+  {
+    "slug": "nagato",
+    "nombre": "Nagato",
+    "anime": "Naruto",
+    "descripcion": "Verdadero usuario del Rinnegan tras los Seis Cuerpos del Dolor. Pupilo de Jiraiya con tragedia escrita.",
+    "imagenUrl": "/img/Naruto/nagato.webp"
+  },
+  {
+    "slug": "naruto",
+    "nombre": "Naruto Uzumaki",
+    "anime": "Naruto",
+    "descripcion": "El ninja hiperactivo y bocazas de Konoha. Sueña con ser Hokage y porta al Zorro de las Nueve Colas.",
+    "imagenUrl": "/img/Naruto/naruto.webp"
+  },
+  {
+    "slug": "neji_hyuga",
+    "nombre": "Neji Hyuga",
+    "anime": "Naruto",
+    "descripcion": "Genio del clan Hyuga rama secundaria. Byakugan letal y orgullo con destino marcado.",
+    "imagenUrl": "/img/Naruto/neji_hyuga.webp"
+  },
+  {
+    "slug": "obito_uchiha",
+    "nombre": "Obito Uchiha",
+    "anime": "Naruto",
+    "descripcion": "Compañero de Kakashi creído muerto. Volvió como Tobi tras manipulación de Madara — villano y luego redención.",
+    "imagenUrl": "/img/Naruto/obito_uchiha.webp"
+  },
+  {
+    "slug": "orochimaru",
+    "nombre": "Orochimaru",
+    "anime": "Naruto",
+    "descripcion": "Sannin serpiente obsesionado con la inmortalidad. Maestro de Sasuke con experimentos prohibidos.",
+    "imagenUrl": "/img/Naruto/orochimaru.webp"
+  },
+  {
+    "slug": "pain",
+    "nombre": "Pain",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/pain.webp"
+  },
+  {
+    "slug": "rock_lee",
+    "nombre": "Rock Lee",
+    "anime": "Naruto",
+    "descripcion": "Ninja sin chakra que entrena taijutsu hasta el límite. Disciplina ardiente y cejas inolvidables.",
+    "imagenUrl": "/img/Naruto/rock_lee.webp"
+  },
+  {
+    "slug": "sai",
+    "nombre": "Sai",
+    "anime": "Naruto",
+    "descripcion": "Ex-Raíz ANBU con técnicas de tinta animada. Aprende emociones humanas tras conocer al equipo 7.",
+    "imagenUrl": "/img/Naruto/sai.webp"
+  },
+  {
+    "slug": "sakura_haruno",
+    "nombre": "Sakura Haruno",
+    "anime": "Naruto",
+    "descripcion": "Médica ninja del equipo 7. Discípula de Tsunade con fuerza monstruosa.",
+    "imagenUrl": "/img/Naruto/sakura_haruno.webp"
+  },
+  {
+    "slug": "sasori",
+    "nombre": "Sasori",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/sasori.webp"
+  },
+  {
+    "slug": "sasuke",
+    "nombre": "Sasuke Uchiha",
+    "anime": "Naruto",
+    "descripcion": "Último Uchiha vengador. Genio del clan, amigo y rival eterno de Naruto.",
+    "imagenUrl": "/img/Naruto/sasuke.webp"
+  },
+  {
+    "slug": "shikamaru_nara",
+    "nombre": "Shikamaru Nara",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/shikamaru_nara.webp"
+  },
+  {
+    "slug": "suigetsu_hozuki",
+    "nombre": "Suigetsu Hozuki",
+    "anime": "Naruto",
+    "descripcion": "Ninja Hozuki licuable que colecciona espadas legendarias. Compañero de Sasuke en Hebi/Taka.",
+    "imagenUrl": "/img/Naruto/suigetsu_hozuki.webp"
+  },
+  {
+    "slug": "temari",
+    "nombre": "Temari",
+    "anime": "Naruto",
+    "descripcion": "Hermana mayor de Gaara con abanico de viento gigante. Futura esposa de Shikamaru.",
+    "imagenUrl": "/img/Naruto/temari.webp"
+  },
+  {
+    "slug": "tobirama_senju",
+    "nombre": "Tobirama Senju",
+    "anime": "Naruto",
+    "descripcion": "Segundo Hokage y hermano de Hashirama. Creador del Hiraishin y del Edo Tensei.",
+    "imagenUrl": "/img/Naruto/tobirama_senju.webp"
+  },
+  {
+    "slug": "tsunade",
+    "nombre": "Tsunade",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/tsunade.webp"
+  },
+  {
+    "slug": "yamato",
+    "nombre": "Yamato",
+    "anime": "Naruto",
+    "descripcion": "Capitán ANBU con Mokuton implantado de Hashirama. Sustituto temporal de Kakashi y guardián de Naruto.",
+    "imagenUrl": "/img/Naruto/yamato.webp"
+  },
+  {
+    "slug": "zabuza_momochi",
+    "nombre": "Zabuza Momochi",
+    "anime": "Naruto",
+    "descripcion": "Demonio Oculto de la Niebla con Kubikiribocho. Misionero del primer arco con final memorable.",
+    "imagenUrl": "/img/Naruto/zabuza_momochi.webp"
+  },
+  {
+    "slug": "asuka",
+    "nombre": "Asuka Langley",
+    "anime": "Neon Genesis Evangelion",
+    "descripcion": "Piloto del Eva-02. Orgullosa, prodigio y emocionalmente devastada por su pasado.",
+    "imagenUrl": "/img/Neon_Genesis_Evangelion/asuka.webp"
+  },
+  {
+    "slug": "gendo_ikari",
+    "nombre": "Gendo Ikari",
+    "anime": "Neon Genesis Evangelion",
+    "descripcion": "Personaje del anime Neon Genesis Evangelion.",
+    "imagenUrl": "/img/Neon_Genesis_Evangelion/gendo_ikari.webp"
+  },
+  {
+    "slug": "kaworu_nagisa",
+    "nombre": "Kaworu Nagisa",
+    "anime": "Neon Genesis Evangelion",
+    "descripcion": "Piloto del Eva-04 y el ángel Tabris. Comprende a Shinji como nadie en muy poco tiempo.",
+    "imagenUrl": "/img/Neon_Genesis_Evangelion/kaworu_nagisa.webp"
+  },
+  {
+    "slug": "mari_illustrious_makinami",
+    "nombre": "Mari Illustrious Makinami",
+    "anime": "Neon Genesis Evangelion",
+    "descripcion": "Personaje del anime Neon Genesis Evangelion.",
+    "imagenUrl": "/img/Neon_Genesis_Evangelion/mari_illustrious_makinami.webp"
+  },
+  {
+    "slug": "misato_katsuragi",
+    "nombre": "Misato Katsuragi",
+    "anime": "Neon Genesis Evangelion",
+    "descripcion": "Capitana operativa de NERV y tutora de Shinji. Bebe cerveza por desayuno y carga con todo.",
+    "imagenUrl": "/img/Neon_Genesis_Evangelion/misato_katsuragi.webp"
+  },
+  {
+    "slug": "rei",
+    "nombre": "Rei Ayanami",
+    "anime": "Neon Genesis Evangelion",
+    "descripcion": "Piloto del Eva-00. Silenciosa, enigmática y la primera niña del proyecto.",
+    "imagenUrl": "/img/Neon_Genesis_Evangelion/rei.webp"
+  },
+  {
+    "slug": "shinji_ikari",
+    "nombre": "Shinji Ikari",
+    "anime": "Neon Genesis Evangelion",
+    "descripcion": "Piloto del Eva-01 a la fuerza. Hijo abandonado de Gendou, debe enfrentarse a sí mismo más que a los ángeles.",
+    "imagenUrl": "/img/Neon_Genesis_Evangelion/shinji_ikari.webp"
+  },
+  {
+    "slug": "azriel",
+    "nombre": "Azriel",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/azriel.webp"
+  },
+  {
+    "slug": "fil_nilvalen",
+    "nombre": "Fil Nilvalen",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/fil_nilvalen.webp"
+  },
+  {
+    "slug": "holou",
+    "nombre": "Holou",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/holou.webp"
+  },
+  {
+    "slug": "izuna_hatsuse",
+    "nombre": "Izuna Hatsuse",
+    "anime": "No Game No Life",
+    "descripcion": "Werebeast mensajera de Disboard. Termina cada frase con un nya nya.",
+    "imagenUrl": "/img/No_Game_No_Life/izuna_hatsuse.webp"
+  },
+  {
+    "slug": "jibril",
+    "nombre": "Jibril",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/jibril.webp"
+  },
+  {
+    "slug": "kurami_zell",
+    "nombre": "Kurami Zell",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/kurami_zell.webp"
+  },
+  {
+    "slug": "miko",
+    "nombre": "Miko",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/miko.webp"
+  },
+  {
+    "slug": "schwi_dola",
+    "nombre": "Schwi Dola",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/schwi_dola.webp"
+  },
+  {
+    "slug": "shiro_nai",
+    "nombre": "Shiro",
+    "anime": "No Game No Life",
+    "descripcion": "Mitad menor del dúo Imanity. Genio absoluto en la lógica de Disboard.",
+    "imagenUrl": "/img/No_Game_No_Life/shiro_nai.webp"
+  },
+  {
+    "slug": "sora_nai",
+    "nombre": "Sora",
+    "anime": "No Game No Life",
+    "descripcion": "Mitad mayor del dúo Imanity. Estratega y cara social del equipo invencible.",
+    "imagenUrl": "/img/No_Game_No_Life/sora_nai.webp"
+  },
+  {
+    "slug": "stephanie_dola",
+    "nombre": "Stephanie Dola",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/stephanie_dola.webp"
+  },
+  {
+    "slug": "tet",
+    "nombre": "Tet",
+    "anime": "No Game No Life",
+    "descripcion": "Personaje del anime No Game No Life.",
+    "imagenUrl": "/img/No_Game_No_Life/tet.webp"
+  },
+  {
+    "slug": "boa_hancock",
+    "nombre": "Boa Hancock",
+    "anime": "One Piece",
+    "descripcion": "Emperatriz Pirata de Amazon Lily. Convierte rivales en piedra con la mirada — literalmente.",
+    "imagenUrl": "/img/One_Piece/boa_hancock.webp"
+  },
+  {
+    "slug": "boa_hancock_alt",
+    "nombre": "Boa Hancock Alt",
+    "anime": "One Piece",
+    "descripcion": "Personaje del anime One Piece.",
+    "imagenUrl": "/img/One_Piece/boa_hancock_alt.webp"
+  },
+  {
+    "slug": "luffy",
+    "nombre": "Monkey D. Luffy",
+    "anime": "One Piece",
+    "descripcion": "Capitán pirata de los Sombrero de Paja. Comió la fruta Goma-Goma y será el Rey de los Piratas.",
+    "imagenUrl": "/img/One_Piece/luffy.webp"
+  },
+  {
+    "slug": "nami",
+    "nombre": "Nami",
+    "anime": "One Piece",
+    "descripcion": "Navegante de los Sombrero de Paja. Sueña con dibujar el mapa completo del mundo.",
+    "imagenUrl": "/img/One_Piece/nami.webp"
+  },
+  {
+    "slug": "nico_robin",
+    "nombre": "Nico Robin",
+    "anime": "One Piece",
+    "descripcion": "Personaje del anime One Piece.",
+    "imagenUrl": "/img/One_Piece/nico_robin.webp"
+  },
+  {
+    "slug": "zoro",
+    "nombre": "Roronoa Zoro",
+    "anime": "One Piece",
+    "descripcion": "Espadachín de los Sombrero de Paja con tres katanas. Pierde el norte sin problema.",
+    "imagenUrl": "/img/One_Piece/zoro.webp"
+  },
+  {
+    "slug": "atomic_samurai",
+    "nombre": "Atomic Samurai",
+    "anime": "One Punch Man",
+    "descripcion": "Héroe S-class espadachín. Maestro de tres discípulos, cortes a velocidad atómica.",
+    "imagenUrl": "/img/One_Punch_Man/atomic_samurai.webp"
+  },
+  {
+    "slug": "bang",
+    "nombre": "Bang",
+    "anime": "One Punch Man",
+    "descripcion": "Héroe S-class anciano maestro de Water Stream Rock Smashing Fist. Ex-maestro de Garou.",
+    "imagenUrl": "/img/One_Punch_Man/bang.webp"
+  },
+  {
+    "slug": "boros",
+    "nombre": "Lord Boros",
+    "anime": "One Punch Man",
+    "descripcion": "Alien conquistador de Dark Matter Thieves. Único en aguantar un golpe casual de Saitama.",
+    "imagenUrl": "/img/One_Punch_Man/boros.webp"
+  },
+  {
+    "slug": "fubuki",
+    "nombre": "Fubuki",
+    "anime": "One Punch Man",
+    "descripcion": "Heroína psíquica B-class y líder del Grupo Blizzard. Hermana menor de Tatsumaki, complejo de sombra.",
+    "imagenUrl": "/img/One_Punch_Man/fubuki.webp"
+  },
+  {
+    "slug": "garou",
+    "nombre": "Garou",
+    "anime": "One Punch Man",
+    "descripcion": "Ex-discípulo de Bang. Hero Hunter buscando ser el monstruo último para inspirar a los débiles.",
+    "imagenUrl": "/img/One_Punch_Man/garou.webp"
+  },
+  {
+    "slug": "genos",
+    "nombre": "Genos",
+    "anime": "One Punch Man",
+    "descripcion": "Cyborg discípulo de Saitama. Demon-class busca venganza, S-class por méritos propios.",
+    "imagenUrl": "/img/One_Punch_Man/genos.webp"
+  },
+  {
+    "slug": "king",
+    "nombre": "King",
+    "anime": "One Punch Man",
+    "descripcion": "Héroe S-class más fuerte del mundo según rumores. En realidad un cobarde que casualmente queda cerca de victorias.",
+    "imagenUrl": "/img/One_Punch_Man/king.webp"
+  },
+  {
+    "slug": "metal_bat",
+    "nombre": "Metal Bat",
+    "anime": "One Punch Man",
+    "descripcion": "Héroe S-class con bate. Pelea más fuerte cuanto más herido está, hermano protector de Zenko.",
+    "imagenUrl": "/img/One_Punch_Man/metal_bat.webp"
+  },
+  {
+    "slug": "mumen_rider",
+    "nombre": "Mumen Rider",
+    "anime": "One Punch Man",
+    "descripcion": "Héroe C-class en bicicleta. Sin poderes pero con coraje infinito para enfrentar a monstruos.",
+    "imagenUrl": "/img/One_Punch_Man/mumen_rider.webp"
+  },
+  {
+    "slug": "saitama",
+    "nombre": "Saitama",
+    "anime": "One Punch Man",
+    "descripcion": "Héroe por hobby que mata a cualquiera de un puñetazo. Calvo, aburrido, busca rival real.",
+    "imagenUrl": "/img/One_Punch_Man/saitama.webp"
+  },
+  {
+    "slug": "speed_o_sound_sonic",
+    "nombre": "Speed-o'-Sound Sonic",
+    "anime": "One Punch Man",
+    "descripcion": "Ninja autoproclamado rival eterno de Saitama. Nunca consigue ni rozarlo.",
+    "imagenUrl": "/img/One_Punch_Man/speed_o_sound_sonic.webp"
+  },
+  {
+    "slug": "tatsumaki",
+    "nombre": "Tatsumaki",
+    "anime": "One Punch Man",
+    "descripcion": "Heroína psíquica clase S. Pequeña, gruñona y suficiente para pulverizar ciudades.",
+    "imagenUrl": "/img/One_Punch_Man/tatsumaki.webp"
+  },
+  {
+    "slug": "watchdog_man",
+    "nombre": "Watchdog Man",
+    "anime": "One Punch Man",
+    "descripcion": "Héroe S-class en traje de perro. Defiende un solo barrio con eficacia absoluta sobre monstruos.",
+    "imagenUrl": "/img/One_Punch_Man/watchdog_man.webp"
+  },
+  {
+    "slug": "ayase_aragaki",
+    "nombre": "Ayase Aragaki",
+    "anime": "Oreimo",
+    "descripcion": "Personaje del anime Oreimo.",
+    "imagenUrl": "/img/Oreimo/ayase_aragaki.webp"
+  },
+  {
+    "slug": "kirino_kousaka",
+    "nombre": "Kirino Kousaka",
+    "anime": "Oreimo",
+    "descripcion": "Modelo, atleta y otaku en secreto. Hermana menor problemática y orgullosa de Kyousuke.",
+    "imagenUrl": "/img/Oreimo/kirino_kousaka.webp"
+  },
+  {
+    "slug": "kuroneko",
+    "nombre": "Kuroneko",
+    "anime": "Oreimo",
+    "descripcion": "Otaku gótica con conjunto negro perpetuo. Su oscuridad es real, su corazón también.",
+    "imagenUrl": "/img/Oreimo/kuroneko.webp"
+  },
+  {
+    "slug": "kyousuke_kousaka",
+    "nombre": "Kyousuke Kousaka",
+    "anime": "Oreimo",
+    "descripcion": "Personaje del anime Oreimo.",
+    "imagenUrl": "/img/Oreimo/kyousuke_kousaka.webp"
+  },
+  {
+    "slug": "saori_makishima",
+    "nombre": "Saori Makishima",
+    "anime": "Oreimo",
+    "descripcion": "Personaje del anime Oreimo.",
+    "imagenUrl": "/img/Oreimo/saori_makishima.webp"
+  },
+  {
+    "slug": "ai_hoshino",
+    "nombre": "Ai Hoshino",
+    "anime": "Oshi no Ko",
+    "descripcion": "Idol legendaria del grupo B-Komachi. Su carrera y sus secretos cambian la vida de todos los que la rodean.",
+    "imagenUrl": "/img/Oshi_no_Ko/ai_hoshino.webp"
+  },
+  {
+    "slug": "akane_kurokawa",
+    "nombre": "Akane Kurokawa",
+    "anime": "Oshi no Ko",
+    "descripcion": "Actriz teatral del show de citas. Estudia a sus personajes hasta el extremo psicológico.",
+    "imagenUrl": "/img/Oshi_no_Ko/akane_kurokawa.webp"
+  },
+  {
+    "slug": "aquamarine_hoshino",
+    "nombre": "Aquamarine Hoshino",
+    "anime": "Oshi no Ko",
+    "descripcion": "Personaje del anime Oshi no Ko.",
+    "imagenUrl": "/img/Oshi_no_Ko/aquamarine_hoshino.webp"
+  },
+  {
+    "slug": "kana_arima",
+    "nombre": "Kana Arima",
+    "anime": "Oshi no Ko",
+    "descripcion": "Ex-actriz infantil reconvertida en idol de la nueva B-Komachi. Brillante en cámara, insegura fuera de ella.",
+    "imagenUrl": "/img/Oshi_no_Ko/kana_arima.webp"
+  },
+  {
+    "slug": "mem_cho",
+    "nombre": "MEM-Cho",
+    "anime": "Oshi no Ko",
+    "descripcion": "Influencer reconvertida en idol de B-Komachi. Mayor que sus compañeras pero esconde su edad real.",
+    "imagenUrl": "/img/Oshi_no_Ko/mem_cho.webp"
+  },
+  {
+    "slug": "ruby_hoshino",
+    "nombre": "Ruby Hoshino",
+    "anime": "Oshi no Ko",
+    "descripcion": "Hermana gemela de Aqua reencarnada del cuerpo de Sarina. Sueña con ser idol como su madre Ai.",
+    "imagenUrl": "/img/Oshi_no_Ko/ruby_hoshino.webp"
+  },
+  {
+    "slug": "ainz_ooal_gown",
+    "nombre": "Ainz Ooal Gown",
+    "anime": "Overlord",
+    "descripcion": "Jugador atrapado en su esqueleto de jefe supremo. Gobierna Nazarick mientras finge saber lo que hace.",
+    "imagenUrl": "/img/Overlord/ainz_ooal_gown.webp"
+  },
+  {
+    "slug": "albedo",
+    "nombre": "Albedo",
+    "anime": "Overlord",
+    "descripcion": "Guardiana suprema del Gran Tumba de Nazarick. Devota a Ainz Ooal Gown hasta el delirio total.",
+    "imagenUrl": "/img/Overlord/albedo.webp"
+  },
+  {
+    "slug": "aura_bella_fiora",
+    "nombre": "Aura Bella Fiora",
+    "anime": "Overlord",
+    "descripcion": "Elfa oscura guardiana del sexto piso. Domadora de bestias y gemela de Mare.",
+    "imagenUrl": "/img/Overlord/aura_bella_fiora.webp"
+  },
+  {
+    "slug": "cocytus",
+    "nombre": "Cocytus",
+    "anime": "Overlord",
+    "descripcion": "Insecto guerrero de hielo del quinto piso. Honor samurai por escarcha.",
+    "imagenUrl": "/img/Overlord/cocytus.webp"
+  },
+  {
+    "slug": "demiurge",
+    "nombre": "Demiurge",
+    "anime": "Overlord",
+    "descripcion": "Estratega demoníaco del séptimo piso. Interpreta cualquier capricho de Ainz como plan maestro.",
+    "imagenUrl": "/img/Overlord/demiurge.webp"
+  },
+  {
+    "slug": "mare_bello_fiore",
+    "nombre": "Mare Bello Fiore",
+    "anime": "Overlord",
+    "descripcion": "Personaje del anime Overlord.",
+    "imagenUrl": "/img/Overlord/mare_bello_fiore.webp"
+  },
+  {
+    "slug": "narberal_gamma",
+    "nombre": "Narberal Gamma",
+    "anime": "Overlord",
+    "descripcion": "Personaje del anime Overlord.",
+    "imagenUrl": "/img/Overlord/narberal_gamma.webp"
+  },
+  {
+    "slug": "shalltear_bloodfallen",
+    "nombre": "Shalltear Bloodfallen",
+    "anime": "Overlord",
+    "descripcion": "Vampiresa true ancestor guardiana del primer nivel. Lolita gótica con sed cósmica.",
+    "imagenUrl": "/img/Overlord/shalltear_bloodfallen.webp"
+  },
+  {
+    "slug": "ash_ketchum",
+    "nombre": "Ash Ketchum",
+    "anime": "Pokémon",
+    "descripcion": "Entrenador eterno de Pueblo Paleta. Pikachu en el hombro y sueño de ser Maestro Pokémon.",
+    "imagenUrl": "/img/Pokemon/ash_ketchum.webp"
+  },
+  {
+    "slug": "blue",
+    "nombre": "Blue",
+    "anime": "Pokémon",
+    "descripcion": "Rival original de Red en Kanto. Nieto del Profesor Oak y Campeón temporal de la Liga.",
+    "imagenUrl": "/img/Pokemon/blue.webp"
+  },
+  {
+    "slug": "brock",
+    "nombre": "Brock",
+    "anime": "Pokémon",
+    "descripcion": "Líder de gimnasio de Pewter City. Doctor pokémon, criador y casanova fallido en cada región.",
+    "imagenUrl": "/img/Pokemon/brock.webp"
+  },
+  {
+    "slug": "cynthia",
+    "nombre": "Cynthia",
+    "anime": "Pokémon",
+    "descripcion": "Campeona de Sinnoh con su Garchomp legendario. Investigadora del mito de Arceus.",
+    "imagenUrl": "/img/Pokemon/cynthia.webp"
+  },
+  {
+    "slug": "dawn",
+    "nombre": "Dawn",
+    "anime": "Pokémon",
+    "descripcion": "Coordinadora pokémon de Sinnoh. Concursos elegantes con Piplup en el equipo.",
+    "imagenUrl": "/img/Pokemon/dawn.webp"
+  },
+  {
+    "slug": "iris",
+    "nombre": "Iris",
+    "anime": "Pokémon",
+    "descripcion": "Entrenadora de dragones de Unova. Acompañó a Ash con Axew en la cabeza y un Hydreigon legendario.",
+    "imagenUrl": "/img/Pokemon/iris.webp"
+  },
+  {
+    "slug": "james",
+    "nombre": "James",
+    "anime": "Pokémon",
+    "descripcion": "Miembro del Team Rocket trío. Coleccionista de tapones, dueño temporal de un Carnivine cariñoso.",
+    "imagenUrl": "/img/Pokemon/james.webp"
+  },
+  {
+    "slug": "jessie",
+    "nombre": "Jessie",
+    "anime": "Pokémon",
+    "descripcion": "Miembro del Team Rocket trío con James y Meowth. Wobbuffet y Arbok desde la primera saga.",
+    "imagenUrl": "/img/Pokemon/jessie.webp"
+  },
+  {
+    "slug": "lana",
+    "nombre": "Lana",
+    "anime": "Pokémon",
+    "descripcion": "Compañera de Ash en la Pokémon School de Alola. Especialista en pokémon de agua con Popplio inicial.",
+    "imagenUrl": "/img/Pokemon/lana.webp"
+  },
+  {
+    "slug": "lillie",
+    "nombre": "Lillie",
+    "anime": "Pokémon",
+    "descripcion": "Compañera de Alola con miedo inicial a tocar pokémon. Su Vulpix de Alola la ayudó a superarlo.",
+    "imagenUrl": "/img/Pokemon/lillie.webp"
+  },
+  {
+    "slug": "pokemon_lucy",
+    "nombre": "Lucy",
+    "anime": "Pokémon",
+    "descripcion": "Pico Pareja del Battle Frontier en Kanto. Su Seviper enrosca rivales hasta capitular.",
+    "imagenUrl": "/img/Pokemon/lucy.webp"
+  },
+  {
+    "slug": "marnie",
+    "nombre": "Marnie",
+    "anime": "Pokémon",
+    "descripcion": "Entrenadora de Galar con vibra punk. Lidera Spikemuth con su hermano Piers y un Morpeko leal.",
+    "imagenUrl": "/img/Pokemon/marnie.webp"
+  },
+  {
+    "slug": "may_pokemon",
+    "nombre": "May",
+    "anime": "Pokémon",
+    "descripcion": "Coordinadora pokémon de Hoenn. Concursos, listones y compañera de viaje de Ash en la región tropical.",
+    "imagenUrl": "/img/Pokemon/may_pokemon.webp"
+  },
+  {
+    "slug": "misty",
+    "nombre": "Misty",
+    "anime": "Pokémon",
+    "descripcion": "Líder de gimnasio de Cerulean City y compañera original de Ash. Pokémon de agua y temperamento de fuego.",
+    "imagenUrl": "/img/Pokemon/misty.webp"
+  },
+  {
+    "slug": "n",
+    "nombre": "N",
+    "anime": "Pokémon",
+    "descripcion": "Rey del Team Plasma con sueño de liberar a los pokémon. Habla con sus criaturas y monta a Reshiram.",
+    "imagenUrl": "/img/Pokemon/n.webp"
+  },
+  {
+    "slug": "red",
+    "nombre": "Red",
+    "anime": "Pokémon",
+    "descripcion": "Protagonista silencioso de Pokémon Rojo. Entrenador legendario que asciende al Monte Plateado.",
+    "imagenUrl": "/img/Pokemon/red.webp"
+  },
+  {
+    "slug": "serena_pokemon",
+    "nombre": "Serena",
+    "anime": "Pokémon",
+    "descripcion": "Performer de Kalos con ambición de Reina. Acompañó a Ash con vestido de gala y Fennekin en mochila.",
+    "imagenUrl": "/img/Pokemon/serena_pokemon.webp"
+  },
+  {
+    "slug": "chiyo_kurihara",
+    "nombre": "Chiyo Kurihara",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/chiyo_kurihara.webp"
+  },
+  {
+    "slug": "hana_midorikawa",
+    "nombre": "Hana Midorikawa",
+    "anime": "Prison School",
+    "descripcion": "Vicepresidenta del consejo subterráneo en Prison School. Ejecuta penitencias con disciplina marcial.",
+    "imagenUrl": "/img/Prison_School/hana_midorikawa.webp"
+  },
+  {
+    "slug": "jouji_nezu",
+    "nombre": "Jouji Nezu",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/jouji_nezu.webp"
+  },
+  {
+    "slug": "kioshi_fujino",
+    "nombre": "Kioshi Fujino",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/kioshi_fujino.webp"
+  },
+  {
+    "slug": "mari_kurihara",
+    "nombre": "Mari Kurihara",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/mari_kurihara.webp"
+  },
+  {
+    "slug": "meiko_shiraki",
+    "nombre": "Meiko Shiraki",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/meiko_shiraki.webp"
+  },
+  {
+    "slug": "reji_andou",
+    "nombre": "Reji Andou",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/reji_andou.webp"
+  },
+  {
+    "slug": "shingo_wakamoto",
+    "nombre": "Shingo Wakamoto",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/shingo_wakamoto.webp"
+  },
+  {
+    "slug": "takehito_morokuzu",
+    "nombre": "Takehito Morokuzu",
+    "anime": "Prison School",
+    "descripcion": "Personaje del anime Prison School.",
+    "imagenUrl": "/img/Prison_School/takehito_morokuzu.webp"
+  },
+  {
+    "slug": "anastasia_hoshin",
+    "nombre": "Anastasia Hoshin",
+    "anime": "Re:Zero",
+    "descripcion": "Mercader Hoshin y candidata al trono. Mente comercial, sonrisa pícara, ambición declarada.",
+    "imagenUrl": "/img/Re_Zero/anastasia_hoshin.webp"
+  },
+  {
+    "slug": "beatrice",
+    "nombre": "Beatrice",
+    "anime": "Re:Zero",
+    "descripcion": "Espíritu de la biblioteca prohibida con drill twin-tails. Vínculo pactado con Subaru tras saga 4.",
+    "imagenUrl": "/img/Re_Zero/beatrice.webp"
+  },
+  {
+    "slug": "crusch_karsten",
+    "nombre": "Crusch Karsten",
+    "anime": "Re:Zero",
+    "descripcion": "Duquesa Karsten y candidata al trono. Disciplina marcial y honor sin atajos.",
+    "imagenUrl": "/img/Re_Zero/crusch_karsten.webp"
+  },
+  {
+    "slug": "echidna",
+    "nombre": "Echidna",
+    "anime": "Re:Zero",
+    "descripcion": "Bruja de la Codicia. Té y curiosidad infinita; manipulación maestra desde su tumba.",
+    "imagenUrl": "/img/Re_Zero/echidna.webp"
+  },
+  {
+    "slug": "elsa_granhiert",
+    "nombre": "Elsa Granhiert",
+    "anime": "Re:Zero",
+    "descripcion": "Bowel Hunter, asesina con cuchillas curvadas. Su risa al cortar entrañas helaba a Subaru desde el episodio 1.",
+    "imagenUrl": "/img/Re_Zero/elsa_granhiert.webp"
+  },
+  {
+    "slug": "emilia",
+    "nombre": "Emilia",
+    "anime": "Re:Zero",
+    "descripcion": "Semielfa candidata al trono del reino de Lugnica. Su belleza esconde poderes glaciales.",
+    "imagenUrl": "/img/Re_Zero/emilia.webp"
+  },
+  {
+    "slug": "felix_argyle",
+    "nombre": "Felix Argyle",
+    "anime": "Re:Zero",
+    "descripcion": "Caballero felino sanador de Crusch. Hechicero curativo del más alto nivel, traviesa apariencia.",
+    "imagenUrl": "/img/Re_Zero/felix_argyle.webp"
+  },
+  {
+    "slug": "frederica_baumann",
+    "nombre": "Frederica Baumann",
+    "anime": "Re:Zero",
+    "descripcion": "Maid felina senior de la mansión Roswaal. Hermana mayor de Garfiel, mentora de Petra.",
+    "imagenUrl": "/img/Re_Zero/frederica_baumann.webp"
+  },
+  {
+    "slug": "garfiel_tinsel",
+    "nombre": "Garfiel Tinsel",
+    "anime": "Re:Zero",
+    "descripcion": "Demi-humano felino guardián del Santuario. Hermano de Frederica con sello roto pendiente.",
+    "imagenUrl": "/img/Re_Zero/garfiel_tinsel.webp"
+  },
+  {
+    "slug": "julius_juukulius",
+    "nombre": "Julius Juukulius",
+    "anime": "Re:Zero",
+    "descripcion": "Caballero perfecto de Anastasia. Hermano de armas reluctante de Subaru con seis espíritus.",
+    "imagenUrl": "/img/Re_Zero/julius_juukulius.webp"
+  },
+  {
+    "slug": "meili_porretroute",
+    "nombre": "Meili Porretroute",
+    "anime": "Re:Zero",
+    "descripcion": "Asesina niña controladora de bestias mágicas. Hermana de Elsa, pasado oscuro.",
+    "imagenUrl": "/img/Re_Zero/meili_porretroute.webp"
+  },
+  {
+    "slug": "natsuki_subaru",
+    "nombre": "Natsuki Subaru",
+    "anime": "Re:Zero",
+    "descripcion": "Protagonista con Return by Death. Muere y vuelve al checkpoint sin que nadie lo recuerde.",
+    "imagenUrl": "/img/Re_Zero/natsuki_subaru.webp"
+  },
+  {
+    "slug": "otto_suwen",
+    "nombre": "Otto Suwen",
+    "anime": "Re:Zero",
+    "descripcion": "Mercader que entiende voces de animales. Mejor amigo declarado de Subaru tras saga 4.",
+    "imagenUrl": "/img/Re_Zero/otto_suwen.webp"
+  },
+  {
+    "slug": "pandora",
+    "nombre": "Pandora",
+    "anime": "Re:Zero",
+    "descripcion": "Bruja de la Vanidad. Reescribe la realidad y todos olvidan que existió tras el contacto.",
+    "imagenUrl": "/img/Re_Zero/pandora.webp"
+  },
+  {
+    "slug": "priscilla_barielle",
+    "nombre": "Priscilla Barielle",
+    "anime": "Re:Zero",
+    "descripcion": "Candidata al trono con orgullo aristocrático. Don't kneel except in front of beauty.",
+    "imagenUrl": "/img/Re_Zero/priscilla_barielle.webp"
+  },
+  {
+    "slug": "reinhard_van_astrea",
+    "nombre": "Reinhard van Astrea",
+    "anime": "Re:Zero",
+    "descripcion": "Caballero más fuerte del reino y heredero del linaje Astrea. Bendiciones divinas a montones.",
+    "imagenUrl": "/img/Re_Zero/reinhard_van_astrea.webp"
+  },
+  {
+    "slug": "rem_and_ram",
+    "nombre": "Rem y Ram",
+    "anime": "Re:Zero",
+    "descripcion": "Gemelas oni y maids de la mansión Roswaal. Una calmada, otra perezosa, ambas letales.",
+    "imagenUrl": "/img/Re_Zero/rem_and_ram.webp"
+  },
+  {
+    "slug": "roswaal_l_mathers",
+    "nombre": "Roswaal L Mathers",
+    "anime": "Re:Zero",
+    "descripcion": "Margrave bicolor y patrocinador de Emilia. Magia universal y obsesión secreta con la Bruja del Saber.",
+    "imagenUrl": "/img/Re_Zero/roswaal_l_mathers.webp"
+  },
+  {
+    "slug": "satella",
+    "nombre": "Satella",
+    "anime": "Re:Zero",
+    "descripcion": "Bruja de la Envidia y origen del Return by Death. Amor obsesivo y final mundial congelado.",
+    "imagenUrl": "/img/Re_Zero/satella.webp"
+  },
+  {
+    "slug": "alisa_mikhailovna",
+    "nombre": "Alisa Mikhailovna",
+    "anime": "Alya Sometimes Hides Her Feelings in Russian",
+    "descripcion": "Personaje del anime Alya Sometimes Hides Her Feelings in Russian.",
+    "imagenUrl": "/img/Roshidere/alisa_mikhailovna.webp"
+  },
+  {
+    "slug": "ayano_kimishima",
+    "nombre": "Ayano Kimishima",
+    "anime": "Alya Sometimes Hides Her Feelings in Russian",
+    "descripcion": "Personaje del anime Alya Sometimes Hides Her Feelings in Russian.",
+    "imagenUrl": "/img/Roshidere/ayano_kimishima.webp"
+  },
+  {
+    "slug": "maria_mikhailovna_kujou",
+    "nombre": "Maria Mikhailovna Kujou",
+    "anime": "Alya Sometimes Hides Her Feelings in Russian",
+    "descripcion": "Personaje del anime Alya Sometimes Hides Her Feelings in Russian.",
+    "imagenUrl": "/img/Roshidere/maria_mikhailovna_kujou.webp"
+  },
+  {
+    "slug": "masachika_kuze",
+    "nombre": "Masachika Kuze",
+    "anime": "Alya Sometimes Hides Her Feelings in Russian",
+    "descripcion": "Personaje del anime Alya Sometimes Hides Her Feelings in Russian.",
+    "imagenUrl": "/img/Roshidere/masachika_kuze.webp"
+  },
+  {
+    "slug": "sayaka_taniyama",
+    "nombre": "Sayaka Taniyama",
+    "anime": "Alya Sometimes Hides Her Feelings in Russian",
+    "descripcion": "Personaje del anime Alya Sometimes Hides Her Feelings in Russian.",
+    "imagenUrl": "/img/Roshidere/sayaka_taniyama.webp"
+  },
+  {
+    "slug": "yuki_suou",
+    "nombre": "Yuki Suou",
+    "anime": "Alya Sometimes Hides Her Feelings in Russian",
+    "descripcion": "Personaje del anime Alya Sometimes Hides Her Feelings in Russian.",
+    "imagenUrl": "/img/Roshidere/yuki_suou.webp"
+  },
+  {
+    "slug": "jin_mitaka",
+    "nombre": "Jin Mitaka",
+    "anime": "Sakurasou no Pet na Kanojo",
+    "descripcion": "Personaje del anime Sakurasou no Pet na Kanojo.",
+    "imagenUrl": "/img/Sakurasou_no_Pet_na_Kanojo/jin_mitaka.webp"
+  },
+  {
+    "slug": "mashiro_shiina_sakurasou",
+    "nombre": "Mashiro Shiina Sakurasou",
+    "anime": "Sakurasou no Pet na Kanojo",
+    "descripcion": "Personaje del anime Sakurasou no Pet na Kanojo.",
+    "imagenUrl": "/img/Sakurasou_no_Pet_na_Kanojo/mashiro_shiina_sakurasou.webp"
+  },
+  {
+    "slug": "misaki_kamiigusa",
+    "nombre": "Misaki Kamiigusa",
+    "anime": "Sakurasou no Pet na Kanojo",
+    "descripcion": "Personaje del anime Sakurasou no Pet na Kanojo.",
+    "imagenUrl": "/img/Sakurasou_no_Pet_na_Kanojo/misaki_kamiigusa.webp"
+  },
+  {
+    "slug": "nanami_aoyama",
+    "nombre": "Nanami Aoyama",
+    "anime": "Sakurasou no Pet na Kanojo",
+    "descripcion": "Personaje del anime Sakurasou no Pet na Kanojo.",
+    "imagenUrl": "/img/Sakurasou_no_Pet_na_Kanojo/nanami_aoyama.webp"
+  },
+  {
+    "slug": "rita_ainsworth",
+    "nombre": "Rita Ainsworth",
+    "anime": "Sakurasou no Pet na Kanojo",
+    "descripcion": "Personaje del anime Sakurasou no Pet na Kanojo.",
+    "imagenUrl": "/img/Sakurasou_no_Pet_na_Kanojo/rita_ainsworth.webp"
+  },
+  {
+    "slug": "ryuunosuke_akasaka",
+    "nombre": "Ryuunosuke Akasaka",
+    "anime": "Sakurasou no Pet na Kanojo",
+    "descripcion": "Personaje del anime Sakurasou no Pet na Kanojo.",
+    "imagenUrl": "/img/Sakurasou_no_Pet_na_Kanojo/ryuunosuke_akasaka.webp"
+  },
+  {
+    "slug": "sorata_kanda",
+    "nombre": "Sorata Kanda",
+    "anime": "Sakurasou no Pet na Kanojo",
+    "descripcion": "Personaje del anime Sakurasou no Pet na Kanojo.",
+    "imagenUrl": "/img/Sakurasou_no_Pet_na_Kanojo/sorata_kanda.webp"
+  },
+  {
+    "slug": "kaede_azusagawa",
+    "nombre": "Kaede Azusagawa",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Personaje del anime Bunny Girl Senpai.",
+    "imagenUrl": "/img/Seishun_Buta Yarou_(Bunny_Girl_Senpai)/kaede_azusagawa.webp"
+  },
+  {
+    "slug": "mai_sakurajima",
+    "nombre": "Mai Sakurajima",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Idol y actriz invisible para todos por el Síndrome de la Pubertad. Solo Sakuta puede verla.",
+    "imagenUrl": "/img/Seishun_Buta Yarou_(Bunny_Girl_Senpai)/mai_sakurajima.webp"
+  },
+  {
+    "slug": "nodoka_toyohama",
+    "nombre": "Nodoka Toyohama",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Personaje del anime Bunny Girl Senpai.",
+    "imagenUrl": "/img/Seishun_Buta Yarou_(Bunny_Girl_Senpai)/nodoka_toyohama.webp"
+  },
+  {
+    "slug": "rio_futaba",
+    "nombre": "Rio Futaba",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Compañera científica de Sakuta. Analiza el Síndrome de la Pubertad con bata blanca y pragmatismo.",
+    "imagenUrl": "/img/Seishun_Buta Yarou_(Bunny_Girl_Senpai)/rio_futaba.webp"
+  },
+  {
+    "slug": "sakuta_azusagawa",
+    "nombre": "Sakuta Azusagawa",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Protagonista de Bunny Girl Senpai. Soporta el Síndrome de la Pubertad ajeno para proteger a las afectadas.",
+    "imagenUrl": "/img/Seishun_Buta Yarou_(Bunny_Girl_Senpai)/sakuta_azusagawa.webp"
+  },
+  {
+    "slug": "shouko_makinohara",
+    "nombre": "Shouko Makinohara",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Personaje del anime Bunny Girl Senpai.",
+    "imagenUrl": "/img/Seishun_Buta Yarou_(Bunny_Girl_Senpai)/shouko_makinohara.webp"
+  },
+  {
+    "slug": "tomoe_koga",
+    "nombre": "Tomoe Koga",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Estudiante popular atrapada en un bucle temporal por el Síndrome. Sakuta finge ser su novio.",
+    "imagenUrl": "/img/Seishun_Buta Yarou_(Bunny_Girl_Senpai)/tomoe_koga.webp"
+  },
+  {
+    "slug": "black_star",
+    "nombre": "Black Star",
+    "anime": "Soul Eater",
+    "descripcion": "Personaje del anime Soul Eater.",
+    "imagenUrl": "/img/Soul_Eater/black_star.webp"
+  },
+  {
+    "slug": "death_the_kid",
+    "nombre": "Death The Kid",
+    "anime": "Soul Eater",
+    "descripcion": "Personaje del anime Soul Eater.",
+    "imagenUrl": "/img/Soul_Eater/death_the_kid.webp"
+  },
+  {
+    "slug": "maka_albarn",
+    "nombre": "Maka Albarn",
+    "anime": "Soul Eater",
+    "descripcion": "Personaje del anime Soul Eater.",
+    "imagenUrl": "/img/Soul_Eater/maka_albarn.webp"
+  },
+  {
+    "slug": "soul_eater_evans",
+    "nombre": "Soul Eater Evans",
+    "anime": "Soul Eater",
+    "descripcion": "Personaje del anime Soul Eater.",
+    "imagenUrl": "/img/Soul_Eater/soul_eater_evans.webp"
+  },
+  {
+    "slug": "tsubaki_nakatsukasa",
+    "nombre": "Tsubaki Nakatsukasa",
+    "anime": "Soul Eater",
+    "descripcion": "Personaje del anime Soul Eater.",
+    "imagenUrl": "/img/Soul_Eater/tsubaki_nakatsukasa.webp"
+  },
+  {
+    "slug": "anya_forger",
+    "nombre": "Anya Forger",
+    "anime": "Spy × Family",
+    "descripcion": "Niña telépata adoptada por un espía y una asesina. Nadie sospecha lo que sabe sobre ellos.",
+    "imagenUrl": "/img/Spy_x_Family/anya_forger.webp"
+  },
+  {
+    "slug": "becky_blackbell",
+    "nombre": "Becky Blackbell",
+    "anime": "Spy × Family",
+    "descripcion": "Mejor amiga de Anya en la academia Eden. Niña rica de la familia armamentística más importante de Ostania.",
+    "imagenUrl": "/img/Spy_x_Family/becky_blackbell.webp"
+  },
+  {
+    "slug": "damian_desmond",
+    "nombre": "Damian Desmond",
+    "anime": "Spy × Family",
+    "descripcion": "Hijo del objetivo de Twilight. Compañero de clase de Anya y rival/crush adolescente.",
+    "imagenUrl": "/img/Spy_x_Family/damian_desmond.webp"
+  },
+  {
+    "slug": "fiona_frost",
+    "nombre": "Fiona Frost",
+    "anime": "Spy × Family",
+    "descripcion": "Personaje del anime Spy × Family.",
+    "imagenUrl": "/img/Spy_x_Family/fiona_frost.webp"
+  },
+  {
+    "slug": "franky_franklin",
+    "nombre": "Franky Franklin",
+    "anime": "Spy × Family",
+    "descripcion": "Personaje del anime Spy × Family.",
+    "imagenUrl": "/img/Spy_x_Family/franky_franklin.webp"
+  },
+  {
+    "slug": "loid_forger",
+    "nombre": "Loid Forger",
+    "anime": "Spy × Family",
+    "descripcion": "Espía Twilight de Westalis infiltrado en familia falsa para evitar guerra. Médico de cobertura, padre por necesidad.",
+    "imagenUrl": "/img/Spy_x_Family/loid_forger.webp"
+  },
+  {
+    "slug": "yor_forger",
+    "nombre": "Yor Forger",
+    "anime": "Spy × Family",
+    "descripcion": "Asesina conocida como Thorn Princess. Madre fingida de Anya y esposa fingida de Loid.",
+    "imagenUrl": "/img/Spy_x_Family/yor_forger.webp"
+  },
+  {
+    "slug": "alice_zuberg",
+    "nombre": "Alice Zuberg",
+    "anime": "Sword Art Online",
+    "descripcion": "Integrity Knight de Underworld. Compañera de la infancia de Kirito y heroína de la saga Alicization.",
+    "imagenUrl": "/img/Sword_Art_Online/alice_zuberg.webp"
+  },
+  {
+    "slug": "asuna",
+    "nombre": "Asuna Yuuki",
+    "anime": "Sword Art Online",
+    "descripcion": "Subcomandante de los Knights of the Blood en SAO. Pareja de Kirito y rapierista de élite.",
+    "imagenUrl": "/img/Sword_Art_Online/asuna.webp"
+  },
+  {
+    "slug": "eugeo",
+    "nombre": "Eugeo",
+    "anime": "Sword Art Online",
+    "descripcion": "Mejor amigo virtual de Kirito en Underworld. Espadachín gemelo del Blue Rose Sword.",
+    "imagenUrl": "/img/Sword_Art_Online/eugeo.webp"
+  },
+  {
+    "slug": "fukaziroh",
+    "nombre": "Fukaziroh",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/fukaziroh.webp"
+  },
+  {
+    "slug": "kirito",
+    "nombre": "Kirito",
+    "anime": "Sword Art Online",
+    "descripcion": "Beta tester atrapado en Sword Art Online. Espadachín dual que rompe las reglas y los corazones.",
+    "imagenUrl": "/img/Sword_Art_Online/kirito.webp"
+  },
+  {
+    "slug": "klein",
+    "nombre": "Klein",
+    "anime": "Sword Art Online",
+    "descripcion": "Samurái leal y mejor amigo de Kirito desde el día uno de SAO. Defensa imparable de Furinkazan.",
+    "imagenUrl": "/img/Sword_Art_Online/klein.webp"
+  },
+  {
+    "slug": "leafa",
+    "nombre": "Leafa",
+    "anime": "Sword Art Online",
+    "descripcion": "Hermana adoptiva de Kirito y sílfide de ALfheim. Suguha por fuera del juego.",
+    "imagenUrl": "/img/Sword_Art_Online/leafa.webp"
+  },
+  {
+    "slug": "lisbeth",
+    "nombre": "Lisbeth",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/lisbeth.webp"
+  },
+  {
+    "slug": "llenn",
+    "nombre": "Llenn",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/llenn.webp"
+  },
+  {
+    "slug": "sachi",
+    "nombre": "Sachi",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/sachi.webp"
+  },
+  {
+    "slug": "silica",
+    "nombre": "Silica",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/silica.webp"
+  },
+  {
+    "slug": "sinon_asada",
+    "nombre": "Sinon",
+    "anime": "Sword Art Online",
+    "descripcion": "Francotiradora superdotada de GGO. Mujer tras la pantalla, fuerte tras el rifle.",
+    "imagenUrl": "/img/Sword_Art_Online/sinon_asada.webp"
+  },
+  {
+    "slug": "strea",
+    "nombre": "Strea",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/strea.webp"
+  },
+  {
+    "slug": "sword_art_online_yui",
+    "nombre": "Yui",
+    "anime": "Sword Art Online",
+    "descripcion": "Hija IA adoptada por Kirito y Asuna en SAO. Pequeña hada en los juegos posteriores.",
+    "imagenUrl": "/img/Sword_Art_Online/yui.webp"
+  },
+  {
+    "slug": "yuuki_konno",
+    "nombre": "Yuuki Konno",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/yuuki_konno.webp"
+  },
+  {
+    "slug": "yuuna",
+    "nombre": "Yuuna",
+    "anime": "Sword Art Online",
+    "descripcion": "Personaje del anime Sword Art Online.",
+    "imagenUrl": "/img/Sword_Art_Online/yuuna.webp"
+  },
+  {
+    "slug": "amane_fujimiya",
+    "nombre": "Amane Fujimiya",
+    "anime": "The Angel Next Door Spoils Me Rotten",
+    "descripcion": "Personaje del anime The Angel Next Door Spoils Me Rotten.",
+    "imagenUrl": "/img/The_Angel_Next_Door/amane_fujimiya.webp"
+  },
+  {
+    "slug": "chitose_shirakawa",
+    "nombre": "Chitose Shirakawa",
+    "anime": "The Angel Next Door Spoils Me Rotten",
+    "descripcion": "Personaje del anime The Angel Next Door Spoils Me Rotten.",
+    "imagenUrl": "/img/The_Angel_Next_Door/chitose_shirakawa.webp"
+  },
+  {
+    "slug": "itsuki_akazawa",
+    "nombre": "Itsuki Akazawa",
+    "anime": "The Angel Next Door Spoils Me Rotten",
+    "descripcion": "Personaje del anime The Angel Next Door Spoils Me Rotten.",
+    "imagenUrl": "/img/The_Angel_Next_Door/itsuki_akazawa.webp"
+  },
+  {
+    "slug": "mahiru_shiina",
+    "nombre": "Mahiru Shiina",
+    "anime": "The Angel Next Door Spoils Me Rotten",
+    "descripcion": "El ángel de la puerta de al lado. Cuida de Amane sin pedir nada a cambio.",
+    "imagenUrl": "/img/The_Angel_Next_Door/mahiru_shiina.webp"
+  },
+  {
+    "slug": "ayato_kirishima",
+    "nombre": "Ayato Kirishima",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/ayato_kirishima.webp"
+  },
+  {
+    "slug": "jason",
+    "nombre": "Jason",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/jason.webp"
+  },
+  {
+    "slug": "juuzou_suzuya",
+    "nombre": "Juuzou Suzuya",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/juuzou_suzuya.webp"
+  },
+  {
+    "slug": "kaneki",
+    "nombre": "Kaneki",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/kaneki.webp"
+  },
+  {
+    "slug": "nishiki_nishio",
+    "nombre": "Nishiki Nishio",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/nishiki_nishio.webp"
+  },
+  {
+    "slug": "rize_kamishiro",
+    "nombre": "Rize Kamishiro",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/rize_kamishiro.webp"
+  },
+  {
+    "slug": "touka_kirishima",
+    "nombre": "Touka Kirishima",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/touka_kirishima.webp"
+  },
+  {
+    "slug": "uta",
+    "nombre": "Uta",
+    "anime": "Tokyo Ghoul",
+    "descripcion": "Personaje del anime Tokyo Ghoul.",
+    "imagenUrl": "/img/Tokyo_Ghoul/uta.webp"
+  },
+  {
+    "slug": "benedict_blue",
+    "nombre": "Benedict Blue",
+    "anime": "Violet Evergarden",
+    "descripcion": "Personaje del anime Violet Evergarden.",
+    "imagenUrl": "/img/Violet_Evergarden/benedict_blue.webp"
+  },
+  {
+    "slug": "cattleya_baudelaire",
+    "nombre": "Cattleya Baudelaire",
+    "anime": "Violet Evergarden",
+    "descripcion": "Personaje del anime Violet Evergarden.",
+    "imagenUrl": "/img/Violet_Evergarden/cattleya_baudelaire.webp"
+  },
+  {
+    "slug": "gilbert_bougainvillea",
+    "nombre": "Gilbert Bougainvillea",
+    "anime": "Violet Evergarden",
+    "descripcion": "Personaje del anime Violet Evergarden.",
+    "imagenUrl": "/img/Violet_Evergarden/gilbert_bougainvillea.webp"
+  },
+  {
+    "slug": "iris_cannary",
+    "nombre": "Iris Cannary",
+    "anime": "Violet Evergarden",
+    "descripcion": "Personaje del anime Violet Evergarden.",
+    "imagenUrl": "/img/Violet_Evergarden/iris_cannary.webp"
+  },
+  {
+    "slug": "violet_evergarden",
+    "nombre": "Violet Evergarden",
+    "anime": "Violet Evergarden",
+    "descripcion": "Auto Memory Doll que escribe cartas para otros mientras aprende qué es 'te amo'. Antigua arma humana del Mayor Gilbert.",
+    "imagenUrl": "/img/Violet_Evergarden/violet_evergarden.webp"
+  },
+  {
+    "slug": "gumi",
+    "nombre": "Gumi",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/gumi.webp"
+  },
+  {
+    "slug": "ia",
+    "nombre": "Ia",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/ia.webp"
+  },
+  {
+    "slug": "kagamine_len",
+    "nombre": "Kagamine Len",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/kagamine_len.webp"
+  },
+  {
+    "slug": "kagamine_rin",
+    "nombre": "Kagamine Rin",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/kagamine_rin.webp"
+  },
+  {
+    "slug": "kaito",
+    "nombre": "Kaito",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/kaito.webp"
+  },
+  {
+    "slug": "kasane_teto",
+    "nombre": "Kasane Teto",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/kasane_teto.webp"
+  },
+  {
+    "slug": "megurine_luka",
+    "nombre": "Megurine Luka",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/megurine_luka.webp"
+  },
+  {
+    "slug": "meiko",
+    "nombre": "Meiko",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/meiko.webp"
+  },
+  {
+    "slug": "miku",
+    "nombre": "Hatsune Miku",
+    "anime": "Vocaloid",
+    "descripcion": "Vocaloid pop turquesa. Voz sintetizada que puebla millones de canciones por todo el planeta.",
+    "imagenUrl": "/img/Vocaloid/miku.webp"
+  },
+  {
+    "slug": "yuzuki_yukari",
+    "nombre": "Yuzuki Yukari",
+    "anime": "Vocaloid",
+    "descripcion": "Personaje del anime Vocaloid.",
+    "imagenUrl": "/img/Vocaloid/yuzuki_yukari.webp"
+  },
+  {
+    "slug": "el_hilo_rojo",
+    "nombre": "El Hilo Rojo",
+    "anime": "Your Name",
+    "descripcion": "Personaje del anime Your Name.",
+    "imagenUrl": "/img/Your_Name/el_hilo_rojo.webp"
+  },
+  {
+    "slug": "hitoha_miyamizu",
+    "nombre": "Hitoha Miyamizu",
+    "anime": "Your Name",
+    "descripcion": "Personaje del anime Your Name.",
+    "imagenUrl": "/img/Your_Name/hitoha_miyamizu.webp"
+  },
+  {
+    "slug": "katsuhiko_teshigawara",
+    "nombre": "Katsuhiko Teshigawara",
+    "anime": "Your Name",
+    "descripcion": "Personaje del anime Your Name.",
+    "imagenUrl": "/img/Your_Name/katsuhiko_teshigawara.webp"
+  },
+  {
+    "slug": "miki_okudera",
+    "nombre": "Miki Okudera",
+    "anime": "Your Name",
+    "descripcion": "Personaje del anime Your Name.",
+    "imagenUrl": "/img/Your_Name/miki_okudera.webp"
+  },
+  {
+    "slug": "mitsuha_miyamizu",
+    "nombre": "Mitsuha Miyamizu",
+    "anime": "Your Name",
+    "descripcion": "Estudiante de Itomori con kuchikamisake en las venas. Otra mitad del intercambio y heredera de la maldición Miyamizu.",
+    "imagenUrl": "/img/Your_Name/mitsuha_miyamizu.webp"
+  },
+  {
+    "slug": "sayaka_natori",
+    "nombre": "Sayaka Natori",
+    "anime": "Your Name",
+    "descripcion": "Personaje del anime Your Name.",
+    "imagenUrl": "/img/Your_Name/sayaka_natori.webp"
+  },
+  {
+    "slug": "taki_tachibana",
+    "nombre": "Taki Tachibana",
+    "anime": "Your Name",
+    "descripcion": "Estudiante de Tokio que despierta en el cuerpo de Mitsuha. Mitad protagonista del intercambio cósmico.",
+    "imagenUrl": "/img/Your_Name/taki_tachibana.webp"
+  },
+  {
+    "slug": "yotsuha_miyamizu",
+    "nombre": "Yotsuha Miyamizu",
+    "anime": "Your Name",
+    "descripcion": "Personaje del anime Your Name.",
+    "imagenUrl": "/img/Your_Name/yotsuha_miyamizu.webp"
+  }
 ]
