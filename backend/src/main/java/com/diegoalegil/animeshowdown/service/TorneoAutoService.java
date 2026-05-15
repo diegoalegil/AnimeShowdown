@@ -58,10 +58,10 @@ public class TorneoAutoService {
 
     public Optional<Torneo> torneoAutoReciente() {
         LocalDateTime ventana = LocalDateTime.now().minusHours(VENTANA_HORAS);
-        return torneoRepository.findAll().stream()
-                .filter(t -> t.getDescripcion() != null && t.getDescripcion().startsWith(AUTO_PREFIX))
-                .filter(t -> t.getFechaCreacion() != null && t.getFechaCreacion().isAfter(ventana))
-                .max((a, b) -> a.getFechaCreacion().compareTo(b.getFechaCreacion()));
+        // Antes hacía findAll().stream().filter() leyendo toda la tabla y
+        // filtrando en memoria — escalable como nada. Ahora se resuelve con
+        // query JPQL que va a Postgres con WHERE LIKE + WHERE > fecha.
+        return torneoRepository.findAutoTorneoMasRecienteDesde(AUTO_PREFIX, ventana);
     }
 
     /**
@@ -98,9 +98,10 @@ public class TorneoAutoService {
         List<Personaje> seleccionados = new ArrayList<>(todos.subList(0, tamano));
 
         String fecha = LocalDateTime.now().toLocalDate().toString();
-        long autoCount = torneoRepository.findAll().stream()
-                .filter(t -> t.getDescripcion() != null && t.getDescripcion().startsWith(AUTO_PREFIX))
-                .count() + 1;
+        // Antes contaba con findAll().stream().filter().count() cargando toda
+        // la tabla. Ahora se delega a una query COUNT que Postgres resuelve
+        // sin materializar las filas.
+        long autoCount = torneoRepository.countByDescripcionPrefix(AUTO_PREFIX) + 1;
         Torneo torneo = new Torneo(
                 "Random Showdown #" + autoCount,
                 AUTO_PREFIX + " Generado el " + fecha + " · " + tamano + " personajes aleatorios");
