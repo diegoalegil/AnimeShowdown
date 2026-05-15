@@ -1,7 +1,9 @@
 package com.diegoalegil.animeshowdown.config;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,9 +24,16 @@ import com.diegoalegil.animeshowdown.security.JwtAuthFilter;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final String allowedOriginsCsv;
+    private final String allowedOriginPatternsCsv;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(
+            JwtAuthFilter jwtAuthFilter,
+            @Value("${cors.allowed-origins:}") String allowedOriginsCsv,
+            @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.allowedOriginsCsv = allowedOriginsCsv;
+        this.allowedOriginPatternsCsv = allowedOriginPatternsCsv;
     }
 
     @Bean
@@ -67,16 +76,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "https://animeshowdown.vercel.app",
-                "https://animeshowdown.pages.dev",
-                "https://animeshowdown.dev",
-                "https://www.animeshowdown.dev"));
-        config.setAllowedOriginPatterns(List.of(
-                "https://animeshowdown-*.vercel.app",
-                "https://*.animeshowdown.pages.dev"));
+        // Antes los dominios estaban hardcodeados. Ahora se leen de
+        // cors.allowed-origins (CSV) en application.properties, configurable
+        // por env var CORS_ALLOWED_ORIGINS sin redeploy de código.
+        config.setAllowedOrigins(parseCsv(allowedOriginsCsv));
+        config.setAllowedOriginPatterns(parseCsv(allowedOriginPatternsCsv));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
         config.setExposedHeaders(List.of("Authorization"));
@@ -86,5 +90,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    /** Parsea una lista CSV ignorando espacios y entradas vacías. */
+    private static List<String> parseCsv(String csv) {
+        if (csv == null || csv.isBlank()) return List.of();
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 }
