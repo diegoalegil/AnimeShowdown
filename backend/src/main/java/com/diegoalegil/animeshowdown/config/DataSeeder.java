@@ -1,26 +1,50 @@
 package com.diegoalegil.animeshowdown.config;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Seeder idempotente: en cada arranque lee personajes-seed.json y SOLO inserta
- * los slugs que aún no existen en la BBDD. No trunca, no actualiza, no falla
- * si una fila concreta da error. Seguro de re-ejecutar en cualquier estado de
- * la BBDD (vacía, parcialmente seeded, completa).
+ * Seeder de personajes que sincroniza la BBDD con personajes-seed.json (que
+ * genera scripts/sync-personajes.mjs desde frontend/img/). El seed es la
+ * fuente de verdad.
+ *
+ * Tres operaciones idempotentes en cada arranque:
+ *
+ * 1. INSERT: slugs en seed que NO están en BBDD → se crean.
+ * 2. UPDATE: slugs en ambos → se actualiza nombre/anime/descripcion/imagenUrl
+ *    si difieren. Sin esto, cambios al seed (ej. mover imágenes a /img/Anime/)
+ *    no se propagaban a la BBDD live.
+ * 3. DELETE: slugs en BBDD que ya NO están en seed → se borran junto a sus
+ *    votos y enfrentamientos asociados (en transacción).
+ *
+ * El borrado en cascada es agresivo pero coherente con la decisión de
+ * usuario: "borra lo que ya no existe". Si un personaje desaparece del seed,
+ * los datos derivados (votos del usuario sobre ese personaje, enfrentamientos
+ * donde participaba) también desaparecen.
+ *
+ * Si algún paso falla (ej. JSON malformado, error de FK), se loguea pero la
+ * app sigue arrancando — el catálogo simplemente quedará desactualizado hasta
+ * el siguiente boot, no impide servir el resto del API.
  */
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -29,50 +53,138 @@ public class DataSeeder implements CommandLineRunner {
     private static final String SEED_FILE = "personajes-seed.json";
 
     private final PersonajeRepository personajeRepository;
+    private final VotoRepository votoRepository;
+    private final EnfrentamientoRepository enfrentamientoRepository;
     private final ObjectMapper objectMapper;
 
-    public DataSeeder(PersonajeRepository personajeRepository, ObjectMapper objectMapper) {
+    public DataSeeder(
+            PersonajeRepository personajeRepository,
+            VotoRepository votoRepository,
+            EnfrentamientoRepository enfrentamientoRepository,
+            ObjectMapper objectMapper) {
         this.personajeRepository = personajeRepository;
+        this.votoRepository = votoRepository;
+        this.enfrentamientoRepository = enfrentamientoRepository;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void run(String... args) {
-        log.info("DataSeeder iniciado: cargando {}", SEED_FILE);
+        log.info("DataSeeder iniciado: sincronizando con {}", SEED_FILE);
         try (InputStream is = new ClassPathResource(SEED_FILE).getInputStream()) {
             List<SeedPersonaje> entradas = objectMapper.readValue(is, new TypeReference<>() {});
-
-            Set<String> slugsExistentes = personajeRepository.findAll().stream()
-                .map(Personaje::getSlug)
-                .collect(Collectors.toSet());
-
-            List<Personaje> nuevos = entradas.stream()
-                .filter(s -> !slugsExistentes.contains(s.slug))
-                .map(s -> new Personaje(
-                    s.slug,
-                    s.nombre,
-                    s.anime,
-                    s.descripcion,
-                    s.imagenUrl != null ? s.imagenUrl : "/personajes/" + s.slug + ".webp"
-                ))
-                .toList();
-
-            if (nuevos.isEmpty()) {
-                log.info("DataSeeder: BBDD ya contiene los {} personajes del seed (entradas={}, existentes={})",
-                    slugsExistentes.size(), entradas.size(), slugsExistentes.size());
-                return;
-            }
-
-            personajeRepository.saveAll(nuevos);
-            log.info("DataSeeder: insertados {} personajes nuevos (total ahora {} de {} en seed)",
-                nuevos.size(),
-                slugsExistentes.size() + nuevos.size(),
-                entradas.size());
+            sincronizar(entradas);
         } catch (Exception e) {
             log.error("DataSeeder fallo global al leer {}: {}", SEED_FILE, e.getMessage(), e);
         }
     }
 
+    /**
+     * Hace insert/update/delete en una transacción. Si falla algún paso
+     * crítico se hace rollback automático por @Transactional.
+     */
+    @Transactional
+    protected void sincronizar(List<SeedPersonaje> entradas) {
+        // Index del seed por slug para lookups O(1)
+        Map<String, SeedPersonaje> seedPorSlug = new HashMap<>();
+        for (SeedPersonaje s : entradas) {
+            seedPorSlug.put(s.slug, s);
+        }
+        Set<String> slugsEnSeed = seedPorSlug.keySet();
+
+        // Personajes actuales en BBDD
+        List<Personaje> existentes = personajeRepository.findAll();
+        Set<String> slugsExistentes = new HashSet<>();
+        for (Personaje p : existentes) slugsExistentes.add(p.getSlug());
+
+        // ─── DELETE: en BBDD pero no en seed ────────────────────────────────
+        List<Personaje> aBorrar = new ArrayList<>();
+        for (Personaje p : existentes) {
+            if (!slugsEnSeed.contains(p.getSlug())) aBorrar.add(p);
+        }
+        int borrados = 0;
+        for (Personaje p : aBorrar) {
+            borrados += borrarPersonajeConCascada(p);
+        }
+
+        // ─── UPDATE: en ambos pero con campos distintos ────────────────────
+        int actualizados = 0;
+        for (Personaje p : existentes) {
+            SeedPersonaje s = seedPorSlug.get(p.getSlug());
+            if (s == null) continue; // ya borrado arriba
+            if (aplicarCambios(p, s)) {
+                personajeRepository.save(p);
+                actualizados++;
+            }
+        }
+
+        // ─── INSERT: en seed pero no en BBDD ───────────────────────────────
+        List<Personaje> nuevos = new ArrayList<>();
+        for (SeedPersonaje s : entradas) {
+            if (!slugsExistentes.contains(s.slug)) {
+                nuevos.add(new Personaje(
+                        s.slug,
+                        s.nombre,
+                        s.anime,
+                        s.descripcion,
+                        s.imagenUrl != null ? s.imagenUrl : "/img/" + s.slug + ".webp"));
+            }
+        }
+        if (!nuevos.isEmpty()) {
+            personajeRepository.saveAll(nuevos);
+        }
+
+        log.info(
+                "DataSeeder: sincronizado — insertados={}, actualizados={}, borrados={} (seed={}, BBDD antes={})",
+                nuevos.size(), actualizados, borrados,
+                entradas.size(), existentes.size());
+    }
+
+    /**
+     * Borra el personaje y todos los datos que lo referencian, en orden:
+     * 1. Votos cuyo personaje sea este (Voto.personaje FK).
+     * 2. Votos de enfrentamientos donde participe (Voto.enfrentamiento FK
+     *    apunta a un enfrentamiento que tiene FK al personaje).
+     * 3. Enfrentamientos donde aparezca como personaje1/2/ganador.
+     * 4. El personaje en sí.
+     *
+     * El orden es crítico: si intentamos borrar el personaje antes que sus
+     * votos, falla con constraint violation. Devuelve 1 si se borró el
+     * personaje, 0 si algo fue mal.
+     */
+    private int borrarPersonajeConCascada(Personaje p) {
+        try {
+            int votosBorrados = votoRepository.deleteByPersonajeId(p.getId());
+            int votosEnEnfBorrados = votoRepository.deleteVotosEnEnfrentamientosDelPersonaje(p.getId());
+            int enfBorrados = enfrentamientoRepository.deleteByPersonajeId(p.getId());
+            personajeRepository.delete(p);
+            log.info(
+                    "DataSeeder DELETE: slug={} (votos={}, votosEnEnfrentamientos={}, enfrentamientos={})",
+                    p.getSlug(), votosBorrados, votosEnEnfBorrados, enfBorrados);
+            return 1;
+        } catch (Exception e) {
+            log.error("DataSeeder DELETE falló para slug={}: {}", p.getSlug(), e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Actualiza el personaje con los valores del seed si difieren. Devuelve
+     * true si hubo algún cambio (para decidir si guardar).
+     */
+    private boolean aplicarCambios(Personaje p, SeedPersonaje s) {
+        boolean cambio = false;
+        if (!Objects.equals(p.getNombre(), s.nombre)) { p.setNombre(s.nombre); cambio = true; }
+        if (!Objects.equals(p.getAnime(), s.anime)) { p.setAnime(s.anime); cambio = true; }
+        if (!Objects.equals(p.getDescripcion(), s.descripcion)) { p.setDescripcion(s.descripcion); cambio = true; }
+        if (s.imagenUrl != null && !Objects.equals(p.getImagenUrl(), s.imagenUrl)) {
+            p.setImagenUrl(s.imagenUrl);
+            cambio = true;
+        }
+        return cambio;
+    }
+
+    /** DTO interno para deserializar el JSON. */
     private static class SeedPersonaje {
         public String slug;
         public String nombre;
