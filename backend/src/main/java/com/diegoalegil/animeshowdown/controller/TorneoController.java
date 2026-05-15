@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearRequest;
+import com.diegoalegil.animeshowdown.dto.TorneoIniciarRequest;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.service.TorneoService;
@@ -47,9 +48,17 @@ public class TorneoController {
         return torneoService.crear(request);
     }
 
+    /**
+     * Inicia el torneo. Body opcional con `participantesIds` para que el
+     * servicio cree el bracket completo en cascada (Plan v2 §1.1). Si llega
+     * sin body, solo cambia estado a IN_PROGRESS y deja la creación de
+     * enfrentamientos al endpoint /enfrentamientos.
+     */
     @PutMapping("/{id}/iniciar")
-    public ResponseEntity<Torneo> iniciar(@PathVariable Long id) {
-        return ResponseEntity.ok(torneoService.iniciar(id));
+    public ResponseEntity<Torneo> iniciar(
+            @PathVariable Long id,
+            @RequestBody(required = false) TorneoIniciarRequest request) {
+        return ResponseEntity.ok(torneoService.iniciar(id, request));
     }
 
     @PostMapping("/{id}/enfrentamientos")
