@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
@@ -18,6 +19,14 @@ import java.time.LocalDateTime;
 @Table(name = "votos", uniqueConstraints = {
         @UniqueConstraint(name = "uk_voto_personaje_usuario", columnNames = { "personaje_id", "usuario_id" }),
         @UniqueConstraint(name = "uk_voto_enfrentamiento_usuario", columnNames = { "enfrentamiento_id", "usuario_id" })
+}, indexes = {
+        // Queries hot path: GROUP BY personaje en el ranking,
+        // countByEnfrentamientoAndPersonaje al cerrar torneos, y los DELETE
+        // de cascada del DataSeeder. Postgres crea índice implícito para las
+        // uniqueConstraints compuestas pero queremos también índices simples
+        // sobre cada FK para acelerar lookups por una columna.
+        @Index(name = "idx_votos_personaje", columnList = "personaje_id"),
+        @Index(name = "idx_votos_enfrentamiento", columnList = "enfrentamiento_id")
 })
 public class Voto {
 

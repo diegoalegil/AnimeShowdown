@@ -11,11 +11,19 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios", indexes = {
+        // El UNIQUE de username/email ya genera índice implícito en Postgres,
+        // pero declararlo explícitamente con nombre estable facilita
+        // migraciones futuras (Flyway) y deja claro qué columnas son hot path
+        // de queries (login por username, lookup por email).
+        @Index(name = "idx_usuarios_email", columnList = "email"),
+        @Index(name = "idx_usuarios_username", columnList = "username")
+})
 public class Usuario {
 
     @Id
