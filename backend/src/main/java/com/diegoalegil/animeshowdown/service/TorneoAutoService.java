@@ -16,7 +16,6 @@ import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
-import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
@@ -37,17 +36,17 @@ public class TorneoAutoService {
 
     private final TorneoRepository torneoRepository;
     private final PersonajeRepository personajeRepository;
-    private final EnfrentamientoRepository enfrentamientoRepository;
+    private final BracketService bracketService;
     private final boolean enabled;
 
     public TorneoAutoService(
             TorneoRepository torneoRepository,
             PersonajeRepository personajeRepository,
-            EnfrentamientoRepository enfrentamientoRepository,
+            BracketService bracketService,
             @Value("${app.tournament.auto.enabled:true}") boolean enabled) {
         this.torneoRepository = torneoRepository;
         this.personajeRepository = personajeRepository;
-        this.enfrentamientoRepository = enfrentamientoRepository;
+        this.bracketService = bracketService;
         this.enabled = enabled;
         log.info("TorneoAutoService inicializado: enabled={}", enabled);
     }
@@ -114,14 +113,13 @@ public class TorneoAutoService {
         torneo.setFechaInicio(LocalDateTime.now());
         Torneo guardado = torneoRepository.save(torneo);
 
-        // Bracket de primera ronda: empareja 0vs1, 2vs3, 4vs5, ...
-        List<Enfrentamiento> enfs = new ArrayList<>();
-        for (int i = 0; i < tamano; i += 2) {
-            Enfrentamiento e = new Enfrentamiento(guardado, seleccionados.get(i), seleccionados.get(i + 1));
-            enfs.add(enfrentamientoRepository.save(e));
-        }
+        // Antes solo creaba la 1ª ronda (8 enfrentamientos para tamaño 16).
+        // Ahora BracketService crea las rondas en cascada: octavos con
+        // personajes, cuartos/semis/final con slots vacíos hasta que el
+        // scheduler de avance (commit 4.5) o el admin cierren las rondas.
+        List<Enfrentamiento> enfs = bracketService.crearBracket(guardado, seleccionados);
 
-        log.info("Auto-torneo {} creado (id={}, tamaño={}, enfrentamientos={}, slugs={})",
+        log.info("Auto-torneo {} creado (id={}, tamaño={}, matches_totales={}, slugs={})",
                 guardado.getNombre(),
                 guardado.getId(),
                 tamano,

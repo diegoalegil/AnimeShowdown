@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearRequest;
+import com.diegoalegil.animeshowdown.dto.TorneoIniciarRequest;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
@@ -41,16 +42,19 @@ public class TorneoService {
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
+    private final BracketService bracketService;
 
     public TorneoService(
             TorneoRepository torneoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
             PersonajeRepository personajeRepository,
-            VotoRepository votoRepository) {
+            VotoRepository votoRepository,
+            BracketService bracketService) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
+        this.bracketService = bracketService;
     }
 
     public List<Torneo> listarTodos() {
@@ -81,8 +85,16 @@ public class TorneoService {
         return base + "-" + sufijo;
     }
 
+    /**
+     * Inicia un torneo cambiando su estado a IN_PROGRESS. Si el request lleva
+     * `participantesIds` no vacíos, además crea el bracket precomputado en
+     * cascada vía BracketService — uso recomendado del Plan v2 §1.1. Si el
+     * request es null o sin participantes, solo cambia el estado y los
+     * enfrentamientos deben crearse a mano con POST /enfrentamientos (modo
+     * legacy mantenido para no romper tests existentes y el admin manual).
+     */
     @Transactional
-    public Torneo iniciar(Long id) {
+    public Torneo iniciar(Long id, TorneoIniciarRequest request) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
 
@@ -92,7 +104,19 @@ public class TorneoService {
 
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setFechaInicio(LocalDateTime.now());
-        return torneoRepository.save(torneo);
+        Torneo guardado = torneoRepository.save(torneo);
+
+        if (request != null && request.getParticipantesIds() != null && !request.getParticipantesIds().isEmpty()) {
+            List<Personaje> participantes = new ArrayList<>();
+            for (Long pid : request.getParticipantesIds()) {
+                Personaje p = personajeRepository.findById(pid)
+                        .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + pid));
+                participantes.add(p);
+            }
+            bracketService.crearBracket(guardado, participantes);
+        }
+
+        return guardado;
     }
 
     @Transactional
