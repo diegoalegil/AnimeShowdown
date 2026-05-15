@@ -14,6 +14,7 @@ import com.diegoalegil.animeshowdown.dto.TorneoCrearRequest;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.SlugUtil;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
@@ -57,8 +58,27 @@ public class TorneoService {
     }
 
     public Torneo crear(TorneoCrearRequest request) {
-        Torneo torneo = new Torneo(request.getNombre(), request.getDescripcion());
+        String slug = generarSlugUnico(request.getNombre());
+        Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
         return torneoRepository.save(torneo);
+    }
+
+    /**
+     * Genera un slug URL-safe a partir del nombre y le añade sufijo numérico
+     * si ya existe en BBDD. Itera incrementando hasta encontrar uno libre.
+     * Para nombres muy comunes podría iterar varias veces, pero el límite
+     * práctico (80 chars de la columna) acota el número de tentativas.
+     */
+    String generarSlugUnico(String nombre) {
+        String base = SlugUtil.slugify(nombre);
+        if (!torneoRepository.existsBySlug(base)) {
+            return base;
+        }
+        int sufijo = 2;
+        while (torneoRepository.existsBySlug(base + "-" + sufijo)) {
+            sufijo++;
+        }
+        return base + "-" + sufijo;
     }
 
     @Transactional

@@ -44,6 +44,30 @@ public class EnumMigrations implements CommandLineRunner {
     @Override
     public void run(String... args) {
         migrarEstadoTorneo();
+        rellenarSlugsTorneos();
+    }
+
+    /**
+     * Rellena `torneos.slug` para filas viejas sin slug (anteriores al
+     * Plan v2 §1.1 commit 2). Fallback determinista `torneo-{id}` que
+     * garantiza unicidad por PK. Para torneos nuevos el slug lo asigna
+     * TorneoService.crear() a partir del nombre antes de persistir.
+     *
+     * El ALTER TABLE para añadir la columna lo hace Hibernate con
+     * ddl-auto=update — esta migración solo rellena los huecos NULL.
+     * Idempotente: si todos tienen slug, 0 filas tocadas.
+     */
+    private void rellenarSlugsTorneos() {
+        try {
+            int rellenados = jdbcTemplate.update(
+                    "UPDATE torneos SET slug = 'torneo-' || id WHERE slug IS NULL");
+            if (rellenados > 0) {
+                log.info("EnumMigrations.slugTorneos: {} torneos sin slug rellenados con 'torneo-{{id}}'", rellenados);
+            }
+        } catch (DataAccessException e) {
+            // Columna slug aún no creada por Hibernate, o tabla vacía: skip.
+            log.debug("EnumMigrations.slugTorneos: columna slug aún no existe o no hay filas viejas", e);
+        }
     }
 
     /**

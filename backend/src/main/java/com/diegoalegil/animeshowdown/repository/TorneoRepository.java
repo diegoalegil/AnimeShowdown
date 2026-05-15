@@ -12,6 +12,12 @@ import com.diegoalegil.animeshowdown.model.Torneo;
 
 public interface TorneoRepository extends JpaRepository<Torneo, Long> {
 
+    /** Lookup por slug URL-safe — usado por el endpoint público GET /api/torneos/slug/{slug}. */
+    Optional<Torneo> findBySlug(String slug);
+
+    /** Existencia rápida sin cargar la entidad. Útil para el sufijo numérico de unicidad. */
+    boolean existsBySlug(String slug);
+
     /**
      * Torneos cuyo prefijo de descripción coincida con el dado (típicamente
      * "[AUTO]"), filtrados por fechaCreacion posterior al umbral. Reemplaza
