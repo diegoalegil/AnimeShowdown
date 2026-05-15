@@ -1,8 +1,13 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -10,8 +15,34 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+
+/**
+ * Cliente HTTP de la Jikan API (proxy de MyAnimeList) con resiliencia.
+ *
+ * Antes: RestClient sin timeout, sin retry, sin circuit breaker, sin caché.
+ * Si Jikan caía o tardaba, este endpoint admin tiraba indefinidamente.
+ *
+ * Ahora:
+ * - RestClient con connect timeout 3s + read timeout 5s (un fallo rápido en
+ *   lugar de bloquear el thread pool de Tomcat).
+ * - @Retry("jikan") aplica retry exponencial (500ms → 1s → 2s) con max 3
+ *   intentos sobre IOException / 5xx / ResourceAccessException. Errores 4xx
+ *   no se reintentan (404 no se va a arreglar reintentando).
+ * - @CircuitBreaker("jikan") abre el circuito tras 50% de fallos en 10
+ *   llamadas y queda abierto 30s antes de probar half-open. Mientras está
+ *   abierto, lanza CallNotPermittedException inmediatamente sin tocar Jikan.
+ * - @Cacheable("jikan-top-characters") guarda cada página 1h en Caffeine.
+ *   Reimportar dentro de la ventana usa caché y no quema rate limit de Jikan.
+ *
+ * Configuración de los policies en application.properties bajo el prefijo
+ * resilience4j.{retry,circuitbreaker,timelimiter}.instances.jikan.*
+ */
 @Service
 public class JikanService {
+
+    private static final Logger log = LoggerFactory.getLogger(JikanService.class);
 
     private static final String BASE_URL = "https://api.jikan.moe/v4";
     private static final int MAX_PAGES = 10;
@@ -21,19 +52,31 @@ public class JikanService {
     private final PersonajeRepository personajeRepository;
 
     public JikanService(PersonajeRepository personajeRepository) {
-        this.restClient = RestClient.create(BASE_URL);
+        // RestClient con timeout explícito. Antes se construía con
+        // RestClient.create(BASE_URL) y el factory por defecto no impone
+        // timeout en absoluto.
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout((int) Duration.ofSeconds(3).toMillis());
+        factory.setReadTimeout((int) Duration.ofSeconds(5).toMillis());
+
+        this.restClient = RestClient.builder()
+                .baseUrl(BASE_URL)
+                .requestFactory(factory)
+                .build();
         this.personajeRepository = personajeRepository;
     }
 
+    /**
+     * Importa los top N personajes de Jikan paginando hasta MAX_PAGES.
+     * Sigue siendo el caller responsable de iterar; cada llamada a
+     * fetchTopCharactersPage queda envuelta en cache+retry+circuitbreaker.
+     */
     public List<Personaje> importarTopPersonajes(int cantidad) {
         List<Personaje> importados = new ArrayList<>();
         int page = 1;
 
         while (importados.size() < cantidad && page <= MAX_PAGES) {
-            JsonNode response = restClient.get()
-                    .uri("/top/characters?page={page}", page)
-                    .retrieve()
-                    .body(JsonNode.class);
+            JsonNode response = fetchTopCharactersPage(page);
 
             if (response == null || !response.has("data")) {
                 break;
@@ -71,6 +114,23 @@ public class JikanService {
         }
 
         return importados;
+    }
+
+    /**
+     * Llamada cruda a /top/characters?page=N con resiliencia completa.
+     * Separada como método público con anotaciones de cache + retry +
+     * circuit-breaker para que el proxy Spring/AOP las aplique (no funcionan
+     * si se llaman desde dentro de la misma clase, por eso queda public).
+     */
+    @Cacheable(value = "jikan-top-characters", key = "#page")
+    @Retry(name = "jikan")
+    @CircuitBreaker(name = "jikan")
+    public JsonNode fetchTopCharactersPage(int page) {
+        log.debug("Jikan: fetch /top/characters?page={}", page);
+        return restClient.get()
+                .uri("/top/characters?page={page}", page)
+                .retrieve()
+                .body(JsonNode.class);
     }
 
     private String extraerPrimerAnime(JsonNode character) {
