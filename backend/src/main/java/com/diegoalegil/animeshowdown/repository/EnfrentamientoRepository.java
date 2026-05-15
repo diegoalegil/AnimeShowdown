@@ -15,6 +15,14 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
     List<Enfrentamiento> findByTorneo(Torneo torneo);
 
     /**
+     * Bracket completo del torneo en orden de presentación: primero ronda 1
+     * (octavos), luego ronda 2 (cuartos), etc. Dentro de cada ronda el orden
+     * es por id ascendente (orden de inserción = orden del bracket de
+     * arriba abajo). Resuelto por idx_enf_torneo_ronda sin sort en memoria.
+     */
+    List<Enfrentamiento> findByTorneoOrderByRondaAscIdAsc(Torneo torneo);
+
+    /**
      * Borra todos los enfrentamientos donde el personaje participe como
      * personaje1, personaje2 o ganador. Devuelve cuántos se borraron.
      * Los votos asociados deben borrarse ANTES (FK constraint), usa
