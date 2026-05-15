@@ -1,6 +1,6 @@
 # AUDIT_REPORT.md — AnimeShowdown
 
-**Fecha:** 2026-05-10  ·  **Auditor:** Claude (sesión Claude Code)  ·  **Repo:** [diegoalegil/AnimeShowdown](https://github.com/diegoalegil/AnimeShowdown)
+**Fecha:** 2026-05-10  ·  **Repo:** [diegoalegil/AnimeShowdown](https://github.com/diegoalegil/AnimeShowdown)
 **Frontend live:** https://animeshowdown.pages.dev  ·  **API live:** https://animeshowdown-production-a9f4.up.railway.app  ·  **Swagger:** [/swagger-ui](https://animeshowdown-production-a9f4.up.railway.app/swagger-ui/index.html)
 
 ---
