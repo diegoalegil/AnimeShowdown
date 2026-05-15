@@ -1,7 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +15,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
+import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/personajes")
@@ -44,24 +48,31 @@ public class PersonajeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Personaje> buscarPorId(@PathVariable Long id) {
-        Optional<Personaje> personaje = personajeRepository.findById(id);
-
-        if (personaje.isPresent()) {
-            return ResponseEntity.ok(personaje.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public Personaje buscarPorId(@PathVariable Long id) {
+        return personajeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
     }
 
+    /**
+     * Crea un personaje desde un DTO validado. Antes aceptaba la entidad
+     * Personaje directa sin @Valid, permitiendo slugs vacíos o caracteres
+     * inválidos. Ahora PersonajeCrearRequest impone formato del slug,
+     * longitudes y obligatoriedad de slug/nombre/anime.
+     */
     @PostMapping
-    public Personaje crear(@RequestBody Personaje personaje) {
-        return personajeRepository.save(personaje);
+    public ResponseEntity<Personaje> crear(@Valid @RequestBody PersonajeCrearRequest request) {
+        Personaje p = new Personaje(
+                request.getSlug(),
+                request.getNombre(),
+                request.getAnime(),
+                request.getDescripcion(),
+                request.getImagenUrl());
+        Personaje guardado = personajeRepository.save(p);
+        return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-
         if (!personajeRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
@@ -69,49 +80,44 @@ public class PersonajeController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Actualización parcial: el cliente manda solo los campos a cambiar.
+     * Los null se ignoran (preservan el valor previo). PersonajeActualizar
+     * Request valida formato y tamaño pero no obliga a estar presentes.
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<Personaje> actualizar(@PathVariable Long id, @RequestBody Personaje datos) {
-        // Carga existente y solo sobreescribe campos non-null del body. Antes el
-        // datos.setId(id) + save() hacía overwrite destructivo: cualquier campo no
-        // enviado en el PUT quedaba null (perdías slug/imagen/descripción al editar nombre).
-        Optional<Personaje> existente = personajeRepository.findById(id);
-        if (existente.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        Personaje p = existente.get();
+    public Personaje actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody PersonajeActualizarRequest datos) {
+        Personaje p = personajeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
         if (datos.getSlug() != null) p.setSlug(datos.getSlug());
         if (datos.getNombre() != null) p.setNombre(datos.getNombre());
         if (datos.getAnime() != null) p.setAnime(datos.getAnime());
         if (datos.getDescripcion() != null) p.setDescripcion(datos.getDescripcion());
         if (datos.getImagenUrl() != null) p.setImagenUrl(datos.getImagenUrl());
-        Personaje actualizado = personajeRepository.save(p);
-        return ResponseEntity.ok(actualizado);
+        return personajeRepository.save(p);
     }
 
     @PostMapping("/batch")
-    public List<Personaje> crearBatch(@RequestBody List<Personaje> personajes) {
-        return personajeRepository.saveAll(personajes);
+    public List<Personaje> crearBatch(@RequestBody List<@Valid PersonajeCrearRequest> personajes) {
+        return personajes.stream()
+                .map(r -> personajeRepository.save(new Personaje(
+                        r.getSlug(), r.getNombre(), r.getAnime(),
+                        r.getDescripcion(), r.getImagenUrl())))
+                .toList();
     }
 
     @PostMapping("/{id}/votar")
-    public ResponseEntity<?> votar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
-        Optional<Personaje> personajeOpt = personajeRepository.findById(id);
-
-        if (personajeOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Personaje personaje = personajeOpt.get();
+    public ResponseEntity<Voto> votar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        Personaje personaje = personajeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
 
         if (votoRepository.existsByPersonajeAndUsuario(personaje, usuario)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Ya has votado a este personaje");
+            throw new IllegalStateException("Ya has votado a este personaje");
         }
 
         Voto voto = new Voto(personaje, usuario);
-        Voto guardado = votoRepository.save(voto);
-
-        return ResponseEntity.ok(guardado);
+        return ResponseEntity.ok(votoRepository.save(voto));
     }
-
 }
