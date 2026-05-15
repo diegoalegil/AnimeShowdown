@@ -19,7 +19,11 @@ import jakarta.persistence.Table;
         // del DataSeeder por personaje1/2, y los join al cerrar torneos.
         @Index(name = "idx_enf_torneo", columnList = "torneo_id"),
         @Index(name = "idx_enf_personaje1", columnList = "personaje1_id"),
-        @Index(name = "idx_enf_personaje2", columnList = "personaje2_id")
+        @Index(name = "idx_enf_personaje2", columnList = "personaje2_id"),
+        // Bracket: listar por torneo ordenado por ronda y dentro de ronda
+        // por id (orden estable de inserción) lo resuelve este índice
+        // compuesto sin tocar disco más allá del lookup.
+        @Index(name = "idx_enf_torneo_ronda", columnList = "torneo_id,ronda")
 })
 public class Enfrentamiento {
 
@@ -31,17 +35,30 @@ public class Enfrentamiento {
     @JoinColumn(name = "torneo_id", nullable = false)
     private Torneo torneo;
 
+    /**
+     * Personaje1 del enfrentamiento. Nullable porque las rondas 2+ del
+     * bracket se precomputan con slots vacíos y se rellenan al determinar
+     * el ganador de la ronda anterior (Plan v2 §1.1).
+     */
     @ManyToOne
-    @JoinColumn(name = "personaje1_id", nullable = false)
+    @JoinColumn(name = "personaje1_id")
     private Personaje personaje1;
 
     @ManyToOne
-    @JoinColumn(name = "personaje2_id", nullable = false)
+    @JoinColumn(name = "personaje2_id")
     private Personaje personaje2;
 
     @ManyToOne
     @JoinColumn(name = "ganador_id", nullable = true)
     private Personaje ganador;
+
+    /**
+     * Ronda del bracket: 1 = octavos (o 1ª ronda del tamaño que tenga),
+     * 2 = cuartos, 3 = semis, 4 = final, etc. Default 1 para retro-
+     * compatibilidad con torneos creados antes del bracket precomputado.
+     */
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 1")
+    private Integer ronda = 1;
 
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
@@ -50,9 +67,14 @@ public class Enfrentamiento {
     }
 
     public Enfrentamiento(Torneo torneo, Personaje personaje1, Personaje personaje2) {
+        this(torneo, personaje1, personaje2, 1);
+    }
+
+    public Enfrentamiento(Torneo torneo, Personaje personaje1, Personaje personaje2, int ronda) {
         this.torneo = torneo;
         this.personaje1 = personaje1;
         this.personaje2 = personaje2;
+        this.ronda = ronda;
         this.fechaCreacion = LocalDateTime.now();
     }
 
@@ -60,6 +82,9 @@ public class Enfrentamiento {
     protected void onCreate() {
         if (this.fechaCreacion == null) {
             this.fechaCreacion = LocalDateTime.now();
+        }
+        if (this.ronda == null) {
+            this.ronda = 1;
         }
     }
 
@@ -101,6 +126,14 @@ public class Enfrentamiento {
 
     public void setGanador(Personaje ganador) {
         this.ganador = ganador;
+    }
+
+    public Integer getRonda() {
+        return ronda;
+    }
+
+    public void setRonda(Integer ronda) {
+        this.ronda = ronda;
     }
 
     public LocalDateTime getFechaCreacion() {
