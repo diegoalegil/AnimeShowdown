@@ -42,7 +42,7 @@ public class Torneo {
     public Torneo(String nombre, String descripcion) {
         this.nombre = nombre;
         this.descripcion = descripcion;
-        this.estado = EstadoTorneo.BORRADOR;
+        this.estado = EstadoTorneo.SCHEDULED;
         this.fechaCreacion = LocalDateTime.now();
     }
 
@@ -52,7 +52,7 @@ public class Torneo {
             this.fechaCreacion = LocalDateTime.now();
         }
         if (this.estado == null) {
-            this.estado = EstadoTorneo.BORRADOR;
+            this.estado = EstadoTorneo.SCHEDULED;
         }
     }
 

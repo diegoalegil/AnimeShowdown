@@ -121,11 +121,11 @@ class TorneoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.nombre").value("Torneo Admin Test"))
-                .andExpect(jsonPath("$.estado").value("BORRADOR"));
+                .andExpect(jsonPath("$.estado").value("SCHEDULED"));
     }
 
     @Test
-    void iniciarTorneoBorradorPasaAEstadoActivo() throws Exception {
+    void iniciarTorneoScheduledPasaAEstadoInProgress() throws Exception {
         String token = tokenAdmin();
 
         Map<String, String> body = Map.of(
@@ -143,12 +143,12 @@ class TorneoControllerTest {
         mvc.perform(put("/api/torneos/" + id + "/iniciar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("ACTIVO"))
+                .andExpect(jsonPath("$.estado").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$.fechaInicio").isString());
     }
 
     @Test
-    void iniciarTorneoYaActivoDevuelve409() throws Exception {
+    void iniciarTorneoYaInProgressDevuelve409() throws Exception {
         String token = tokenAdmin();
 
         Map<String, String> body = Map.of(
@@ -167,7 +167,7 @@ class TorneoControllerTest {
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
 
-        // Segundo iniciar sobre torneo ACTIVO → 409
+        // Segundo iniciar sobre torneo IN_PROGRESS → 409
         mvc.perform(put("/api/torneos/" + id + "/iniciar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isConflict());
@@ -183,7 +183,7 @@ class TorneoControllerTest {
     }
 
     @Test
-    void finalizarTorneoSoloFuncionaSiEstaActivo() throws Exception {
+    void finalizarTorneoSoloFuncionaSiEstaInProgress() throws Exception {
         String token = tokenAdmin();
 
         Map<String, String> body = Map.of(
@@ -198,21 +198,21 @@ class TorneoControllerTest {
                 .andReturn();
         Long id = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
 
-        // Finalizar BORRADOR → 409
+        // Finalizar SCHEDULED → 409
         mvc.perform(put("/api/torneos/" + id + "/finalizar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isConflict());
 
-        // Iniciar → ACTIVO
+        // Iniciar → IN_PROGRESS
         mvc.perform(put("/api/torneos/" + id + "/iniciar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
 
-        // Finalizar ACTIVO → 200, estado FINALIZADO
+        // Finalizar IN_PROGRESS → 200, estado FINISHED
         mvc.perform(put("/api/torneos/" + id + "/finalizar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("FINALIZADO"))
+                .andExpect(jsonPath("$.estado").value("FINISHED"))
                 .andExpect(jsonPath("$.fechaFinalizacion").isString());
     }
 }
