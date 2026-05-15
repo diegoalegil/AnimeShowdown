@@ -57,10 +57,6 @@ public class TorneoService {
         this.bracketService = bracketService;
     }
 
-    public List<Torneo> listarTodos() {
-        return torneoRepository.findAll();
-    }
-
     public Torneo crear(TorneoCrearRequest request) {
         String slug = generarSlugUnico(request.getNombre());
         Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
