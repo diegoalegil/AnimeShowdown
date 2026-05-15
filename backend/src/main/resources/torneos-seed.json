@@ -1,0 +1,172 @@
+[
+  {
+    "slug": "shonen-showdown",
+    "nombre": "Shōnen Showdown",
+    "descripcion": "Los protagonistas más populares del shōnen en bracket de eliminación directa.",
+    "estado": "FINISHED",
+    "fechaInicio": "2026-05-07T00:00:00",
+    "fechaFinalizacion": "2026-05-09T00:00:00",
+    "participantes": [
+      "naruto", "sasuke", "luffy", "zoro",
+      "ichigo_kurosaki", "satoru_gojo", "itadori", "sukuna"
+    ],
+    "ganadorSlug": "luffy"
+  },
+  {
+    "slug": "best-girls-2026",
+    "nombre": "Best Girls 2026",
+    "descripcion": "Las protagonistas femeninas más populares de la temporada en bracket.",
+    "estado": "FINISHED",
+    "fechaInicio": "2026-04-14T00:00:00",
+    "fechaFinalizacion": "2026-04-28T00:00:00",
+    "participantes": [
+      "mai_sakurajima", "marin_kitagawa", "frieren", "makima",
+      "rem_and_ram", "asuna", "anya_forger", "mikasa_ackerman"
+    ],
+    "ganadorSlug": "makima"
+  },
+  {
+    "slug": "slayers-vs-sorcerers",
+    "nombre": "Slayers vs Sorcerers",
+    "descripcion": "Cazadores de demonios contra hechiceros de Jujutsu en un bracket de 16.",
+    "estado": "SCHEDULED",
+    "fechaInicio": "2026-05-12T00:00:00",
+    "fechaFinalizacion": null,
+    "participantes": [
+      "nezuko", "zenitsu_agatsuma", "inosuke", "shinobu",
+      "rengoku", "mitsuri_kanroji", "tomioka", "kanao_tsuyuri",
+      "satoru_gojo", "itadori", "sukuna", "nobara_kugisaki",
+      "yuta_okkotsu", "megumin", "levi_ackerman", "kurumi"
+    ],
+    "ganadorSlug": null
+  },
+  {
+    "slug": "darkness-bracket",
+    "nombre": "Darkness Bracket",
+    "descripcion": "Villanos y antihéroes más temidos del anime en lucha por la corona oscura.",
+    "estado": "FINISHED",
+    "fechaInicio": "2026-05-09T00:00:00",
+    "fechaFinalizacion": "2026-05-10T00:00:00",
+    "participantes": [
+      "light_yagami", "makima", "sukuna", "esdeath",
+      "L", "kaneki", "levi_ackerman", "kurumi"
+    ],
+    "ganadorSlug": "levi_ackerman"
+  },
+  {
+    "slug": "isekai-royal-rumble",
+    "nombre": "Isekai Royal Rumble",
+    "descripcion": "Los protagonistas más populares del subgénero isekai compiten por la cima.",
+    "estado": "FINISHED",
+    "fechaInicio": "2026-05-04T00:00:00",
+    "fechaFinalizacion": "2026-05-08T00:00:00",
+    "participantes": [
+      "emilia", "rem_and_ram", "aqua", "megumin",
+      "albedo", "kirito", "asuna", "frieren"
+    ],
+    "ganadorSlug": "rem_and_ram"
+  },
+  {
+    "slug": "sweethearts-of-anime",
+    "nombre": "Sweethearts of Anime",
+    "descripcion": "Las waifus más adorables compitiendo por el corazón del fandom.",
+    "estado": "FINISHED",
+    "fechaInicio": "2026-03-20T00:00:00",
+    "fechaFinalizacion": "2026-04-03T00:00:00",
+    "participantes": [
+      "nezuko", "anya_forger", "kanade_tachibana", "momo_ayase",
+      "miku", "marin_kitagawa", "mahiru_shiina", "kuroneko"
+    ],
+    "ganadorSlug": "anya_forger"
+  },
+  {
+    "slug": "demon-slayer-internal",
+    "nombre": "Demon Slayer Internal",
+    "descripcion": "Bracket interno del Cuerpo de Cazadores de Demonios.",
+    "estado": "SCHEDULED",
+    "fechaInicio": "2026-05-15T00:00:00",
+    "fechaFinalizacion": null,
+    "participantes": [
+      "nezuko", "zenitsu_agatsuma", "inosuke", "shinobu",
+      "rengoku", "mitsuri_kanroji", "tomioka", "kanao_tsuyuri"
+    ],
+    "ganadorSlug": null
+  },
+  {
+    "slug": "naruto-hokages-vs-akatsuki",
+    "nombre": "Hokages vs Akatsuki",
+    "descripcion": "Los líderes de Konoha contra los miembros del legendario Akatsuki.",
+    "estado": "FINISHED",
+    "fechaInicio": "2026-04-25T00:00:00",
+    "fechaFinalizacion": "2026-05-02T00:00:00",
+    "participantes": [
+      "hashirama", "minato", "kakashi", "tsunade",
+      "pain", "itachi", "sasori", "madara"
+    ],
+    "ganadorSlug": "madara"
+  },
+  {
+    "slug": "mha-heroes-vs-villains",
+    "nombre": "MHA: Héroes vs Villanos",
+    "descripcion": "Los rostros de la clase 1-A se enfrentan a la Liga de Villanos.",
+    "estado": "IN_PROGRESS",
+    "fechaInicio": "2026-05-08T00:00:00",
+    "fechaFinalizacion": null,
+    "participantes": [
+      "allmight", "deku", "shoto_todoroki", "lemillion",
+      "tomura_shigaraki", "all_for_one", "himiko", "bakugo"
+    ],
+    "ganadorSlug": null
+  },
+  {
+    "slug": "pillars-of-the-corps",
+    "nombre": "Pilares del Cuerpo",
+    "descripcion": "Los Hashira de Demon Slayer en bracket interno por la supremacía.",
+    "estado": "SCHEDULED",
+    "fechaInicio": "2026-05-18T00:00:00",
+    "fechaFinalizacion": null,
+    "participantes": [
+      "gyomei_himejima", "sanemi", "tokito", "obanai",
+      "shinobu", "rengoku", "mitsuri_kanroji", "tomioka"
+    ],
+    "ganadorSlug": null
+  },
+  {
+    "slug": "pokemon-master-tournament",
+    "nombre": "Pokémon Master Tournament",
+    "descripcion": "Entrenadores legendarios compiten por el título de Maestro Pokémon.",
+    "estado": "FINISHED",
+    "fechaInicio": "2026-04-10T00:00:00",
+    "fechaFinalizacion": "2026-04-22T00:00:00",
+    "participantes": [
+      "ash_ketchum", "may_pokemon", "serena_pokemon", "misa_amane"
+    ],
+    "ganadorSlug": "ash_ketchum"
+  },
+  {
+    "slug": "one-piece-strawhats",
+    "nombre": "One Piece — Sombrero de Paja",
+    "descripcion": "Mugiwaras contra rivales legendarios del mundo del anime.",
+    "estado": "IN_PROGRESS",
+    "fechaInicio": "2026-05-09T00:00:00",
+    "fechaFinalizacion": null,
+    "participantes": [
+      "luffy", "zoro", "nami", "nico_robin",
+      "boa_hancock", "sukuna", "kirito", "asuna"
+    ],
+    "ganadorSlug": null
+  },
+  {
+    "slug": "jujutsu-sorcerer-cup",
+    "nombre": "Jujutsu Sorcerer Cup",
+    "descripcion": "Los hechiceros más poderosos compiten por el título del Sorcerer Cup.",
+    "estado": "SCHEDULED",
+    "fechaInicio": "2026-05-20T00:00:00",
+    "fechaFinalizacion": null,
+    "participantes": [
+      "satoru_gojo", "itadori", "sukuna", "nobara_kugisaki",
+      "yuta_okkotsu", "megumin", "kuroneko", "rikka_takanashi"
+    ],
+    "ganadorSlug": null
+  }
+]

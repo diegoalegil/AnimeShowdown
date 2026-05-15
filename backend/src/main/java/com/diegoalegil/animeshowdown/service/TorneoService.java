@@ -159,8 +159,13 @@ public class TorneoService {
             throw new IllegalStateException("Solo se pueden finalizar torneos en estado IN_PROGRESS");
         }
 
-        List<Enfrentamiento> enfrentamientos = enfrentamientoRepository.findByTorneo(torneo);
+        List<Enfrentamiento> enfrentamientos = enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(torneo);
+        int maxRonda = 0;
         for (Enfrentamiento enf : enfrentamientos) {
+            if (enf.getPersonaje1() == null || enf.getPersonaje2() == null) {
+                // Slot vacío (ronda futura sin resolver); no contamos votos.
+                continue;
+            }
             long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, enf.getPersonaje1());
             long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, enf.getPersonaje2());
 
@@ -170,6 +175,21 @@ public class TorneoService {
                 enf.setGanador(enf.getPersonaje2());
             }
             enfrentamientoRepository.save(enf);
+            if (enf.getRonda() != null && enf.getRonda() > maxRonda) {
+                maxRonda = enf.getRonda();
+            }
+        }
+
+        // Sincroniza Torneo.ganadorPersonaje con el ganador del match de la
+        // última ronda — fuente unificada de "quién ganó este torneo" para
+        // el DTO de respuesta (TorneoQueryService.calcularGanadorSlug).
+        if (maxRonda > 0) {
+            for (Enfrentamiento enf : enfrentamientos) {
+                if (Integer.valueOf(maxRonda).equals(enf.getRonda()) && enf.getGanador() != null) {
+                    torneo.setGanadorPersonaje(enf.getGanador());
+                    break;
+                }
+            }
         }
 
         torneo.setEstado(EstadoTorneo.FINISHED);
