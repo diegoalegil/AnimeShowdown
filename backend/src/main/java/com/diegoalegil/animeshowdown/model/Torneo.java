@@ -20,6 +20,18 @@ public class Torneo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * URL-safe identifier para frontend (`/torneos/best-girls-2026`). Único.
+     * Lo genera automáticamente {@link #onCreate} desde el nombre si no se
+     * proporcionó explícitamente. La unicidad se garantiza en TorneoService
+     * con sufijos numéricos si hay colisión.
+     *
+     * En DDL queda nullable para no romper migrate de filas viejas; a nivel
+     * app está siempre presente (PrePersist + servicio).
+     */
+    @Column(unique = true, length = 80)
+    private String slug;
+
     @Column(nullable = false)
     private String nombre;
 
@@ -46,6 +58,11 @@ public class Torneo {
         this.fechaCreacion = LocalDateTime.now();
     }
 
+    public Torneo(String slug, String nombre, String descripcion) {
+        this(nombre, descripcion);
+        this.slug = slug;
+    }
+
     @PrePersist
     protected void onCreate() {
         if (this.fechaCreacion == null) {
@@ -53,6 +70,13 @@ public class Torneo {
         }
         if (this.estado == null) {
             this.estado = EstadoTorneo.SCHEDULED;
+        }
+        if (this.slug == null || this.slug.isBlank()) {
+            // Fallback defensivo: si llegamos aquí sin slug es bug en la capa
+            // de servicio, pero garantizamos UNIQUE generando uno provisional
+            // a partir del nombre. TorneoService.crear() debe haberlo seteado
+            // ya con SlugUtil + check de unicidad.
+            this.slug = SlugUtil.slugify(this.nombre) + "-" + System.currentTimeMillis();
         }
     }
 
@@ -62,6 +86,14 @@ public class Torneo {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public String getNombre() {

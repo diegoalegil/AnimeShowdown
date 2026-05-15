@@ -102,8 +102,13 @@ public class TorneoAutoService {
         // la tabla. Ahora se delega a una query COUNT que Postgres resuelve
         // sin materializar las filas.
         long autoCount = torneoRepository.countByDescripcionPrefix(AUTO_PREFIX) + 1;
+        String nombre = "Random Showdown #" + autoCount;
+        // Slug determinista por contador (siempre incrementa con countByDescripcionPrefix),
+        // así no necesitamos iterar para garantizar unicidad como TorneoService.crear.
+        String slug = "random-showdown-" + autoCount;
         Torneo torneo = new Torneo(
-                "Random Showdown #" + autoCount,
+                slug,
+                nombre,
                 AUTO_PREFIX + " Generado el " + fecha + " · " + tamano + " personajes aleatorios");
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setFechaInicio(LocalDateTime.now());
