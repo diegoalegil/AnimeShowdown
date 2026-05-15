@@ -14,9 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearRequest;
+import com.diegoalegil.animeshowdown.dto.TorneoDetalleDto;
 import com.diegoalegil.animeshowdown.dto.TorneoIniciarRequest;
+import com.diegoalegil.animeshowdown.dto.TorneoResumenDto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.service.TorneoQueryService;
 import com.diegoalegil.animeshowdown.service.TorneoService;
 
 import jakarta.validation.Valid;
@@ -33,14 +36,40 @@ import jakarta.validation.Valid;
 public class TorneoController {
 
     private final TorneoService torneoService;
+    private final TorneoQueryService torneoQueryService;
 
-    public TorneoController(TorneoService torneoService) {
+    public TorneoController(TorneoService torneoService, TorneoQueryService torneoQueryService) {
         this.torneoService = torneoService;
+        this.torneoQueryService = torneoQueryService;
     }
 
+    /**
+     * Listado de torneos en formato DTO. Antes devolvía entidades JPA
+     * directas (problema N+1 por colecciones lazy, exposición de campos
+     * internos). Plan v2 §1.1: el frontend lo consume con react-query.
+     */
     @GetMapping
-    public List<Torneo> listarTodos() {
-        return torneoService.listarTodos();
+    public List<TorneoResumenDto> listarTodos() {
+        return torneoQueryService.listarResumenes();
+    }
+
+    /**
+     * Detalle de torneo + bracket completo. Usado por TorneoDetailPage
+     * con polling cada 30s durante torneos IN_PROGRESS.
+     */
+    @GetMapping("/{id}")
+    public TorneoDetalleDto detallePorId(@PathVariable Long id) {
+        return torneoQueryService.findById(id);
+    }
+
+    /**
+     * Detalle por slug URL-safe. Es la ruta que consume el frontend para
+     * `/torneos/{slug}` — coincide con el shape canonical de las URLs
+     * (Plan v2 §5.3) y permite caching CDN agresivo.
+     */
+    @GetMapping("/slug/{slug}")
+    public TorneoDetalleDto detallePorSlug(@PathVariable String slug) {
+        return torneoQueryService.findBySlug(slug);
     }
 
     @PostMapping

@@ -29,6 +29,23 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     long countByEnfrentamientoAndPersonaje(Enfrentamiento enfrentamiento, Personaje personaje);
 
+    /**
+     * Conteo agrupado por enfrentamiento dentro de un torneo. Evita N+1
+     * cuando TorneoQueryService rellena `totalVotos` en cada match del
+     * bracket: una sola query bulk en lugar de countByEnfrentamiento(e)
+     * llamado 16 veces por torneo de 16 personajes.
+     *
+     * Devuelve Object[] {Long enfrentamientoId, Long count} para que el
+     * service lo convierta a Map<Long, Long>.
+     */
+    @Query("""
+            SELECT v.enfrentamiento.id, COUNT(v)
+            FROM Voto v
+            WHERE v.enfrentamiento.torneo.id = :torneoId
+            GROUP BY v.enfrentamiento.id
+            """)
+    List<Object[]> contarVotosPorEnfrentamientoDeTorneo(@Param("torneoId") Long torneoId);
+
     /** Borra todos los votos cuyo personaje sea el id dado. */
     @Modifying
     @Query("DELETE FROM Voto v WHERE v.personaje.id = :personajeId")
