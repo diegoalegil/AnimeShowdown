@@ -35,17 +35,56 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body, auth = true } = {}) {
+// Timeout por defecto para todas las requests al backend. Antes el fetch no
+// tenía timeout y se podía quedar colgado indefinidamente en redes lentas o si
+// el backend tardaba en responder, dejando spinners eternos en el frontend.
+const DEFAULT_TIMEOUT_MS = 10000
+
+async function request(
+  path,
+  { method = 'GET', body, auth = true, timeoutMs = DEFAULT_TIMEOUT_MS, signal } = {},
+) {
   const headers = { 'Content-Type': 'application/json' }
   if (auth) {
     const token = getToken()
     if (token) headers.Authorization = `Bearer ${token}`
   }
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+
+  // Si el caller pasa su propio signal lo respetamos; si no, montamos un
+  // AbortController interno con el timeout configurado. Esto permite cancelar
+  // requests desde useEffect cleanup (evita setState en componentes
+  // desmontados) y cortar las que tarden más de lo razonable.
+  const controller = signal ? null : new AbortController()
+  const effectiveSignal = signal ?? controller.signal
+  const timeoutId = controller
+    ? setTimeout(() => controller.abort(), timeoutMs)
+    : null
+
+  let res
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: effectiveSignal,
+    })
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new ApiError(
+        `La petición tardó demasiado (más de ${timeoutMs}ms) y se canceló`,
+        0,
+        null,
+      )
+    }
+    throw new ApiError(
+      err.message || 'Error de red al contactar con el servidor',
+      0,
+      null,
+    )
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+
   const text = await res.text()
   let parsed = null
   if (text) {
