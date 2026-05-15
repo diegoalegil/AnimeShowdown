@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Toaster } from 'sonner'
@@ -7,22 +7,40 @@ import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
 import CommandPalette from './components/CommandPalette'
 import Splash from './components/Splash'
+
+// InicioPage es la landing — la carga en el bundle principal porque casi
+// todo visitante entra por '/' y queremos que renderice sin esperar a un
+// chunk extra. El resto va a code splitting con React.lazy: cada ruta es
+// su propio chunk asíncrono, así el bundle inicial baja de >500KB a algo
+// razonable (Vite avisa de chunks grandes en build).
 import InicioPage from './pages/InicioPage'
-import PersonajesPage from './pages/PersonajesPage'
-import PersonajeDetailPage from './pages/PersonajeDetailPage'
-import AnimesPage from './pages/AnimesPage'
-import TorneosPage from './pages/TorneosPage'
-import TorneoDetailPage from './pages/TorneoDetailPage'
-import RankingPage from './pages/RankingPage'
-import HigherOrLowerPage from './pages/HigherOrLowerPage'
-import VotarPage from './pages/VotarPage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import ForgotPasswordPage from './pages/ForgotPasswordPage'
-import ResetPasswordPage from './pages/ResetPasswordPage'
-import AdminPage from './pages/AdminPage'
-import PerfilPage from './pages/PerfilPage'
-import NotFoundPage from './pages/NotFoundPage'
+
+const PersonajesPage = lazy(() => import('./pages/PersonajesPage'))
+const PersonajeDetailPage = lazy(() => import('./pages/PersonajeDetailPage'))
+const AnimesPage = lazy(() => import('./pages/AnimesPage'))
+const TorneosPage = lazy(() => import('./pages/TorneosPage'))
+const TorneoDetailPage = lazy(() => import('./pages/TorneoDetailPage'))
+const RankingPage = lazy(() => import('./pages/RankingPage'))
+const HigherOrLowerPage = lazy(() => import('./pages/HigherOrLowerPage'))
+const VotarPage = lazy(() => import('./pages/VotarPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
+const PerfilPage = lazy(() => import('./pages/PerfilPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+
+// Fallback de Suspense compartido. Minimalista a propósito: la página entera
+// está dentro de <AnimatePresence motion fade>, así que el flash de carga
+// dura milisegundos en navegación normal y la animación oculta el cambio.
+function PageLoader() {
+  return (
+    <div className="flex flex-1 items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+    </div>
+  )
+}
 
 function App() {
   const location = useLocation()
@@ -62,24 +80,26 @@ function App() {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="flex flex-1 flex-col"
           >
-            <Routes location={location}>
-              <Route path="/" element={<InicioPage />} />
-              <Route path="/personajes" element={<PersonajesPage />} />
-              <Route path="/personajes/:slug" element={<PersonajeDetailPage />} />
-              <Route path="/animes" element={<AnimesPage />} />
-              <Route path="/torneos" element={<TorneosPage />} />
-              <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
-              <Route path="/ranking" element={<RankingPage />} />
-              <Route path="/higher-or-lower" element={<HigherOrLowerPage />} />
-              <Route path="/votar" element={<VotarPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/perfil" element={<PerfilPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes location={location}>
+                <Route path="/" element={<InicioPage />} />
+                <Route path="/personajes" element={<PersonajesPage />} />
+                <Route path="/personajes/:slug" element={<PersonajeDetailPage />} />
+                <Route path="/animes" element={<AnimesPage />} />
+                <Route path="/torneos" element={<TorneosPage />} />
+                <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
+                <Route path="/ranking" element={<RankingPage />} />
+                <Route path="/higher-or-lower" element={<HigherOrLowerPage />} />
+                <Route path="/votar" element={<VotarPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/perfil" element={<PerfilPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>
