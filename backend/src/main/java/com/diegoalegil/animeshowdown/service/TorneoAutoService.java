@@ -66,7 +66,7 @@ public class TorneoAutoService {
 
     /**
      * Crea un torneo aleatorio con N personajes (8 o 16) emparejados secuencialmente
-     * en bracket. Lo deja en estado ACTIVO con sus enfrentamientos creados.
+     * en bracket. Lo deja en estado IN_PROGRESS con sus enfrentamientos creados.
      *
      * @return el torneo guardado y con enfrentamientos persistidos.
      */
@@ -105,7 +105,7 @@ public class TorneoAutoService {
         Torneo torneo = new Torneo(
                 "Random Showdown #" + autoCount,
                 AUTO_PREFIX + " Generado el " + fecha + " · " + tamano + " personajes aleatorios");
-        torneo.setEstado(EstadoTorneo.ACTIVO);
+        torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setFechaInicio(LocalDateTime.now());
         Torneo guardado = torneoRepository.save(torneo);
 

@@ -47,9 +47,9 @@ public class EnfrentamientoController {
 
         Enfrentamiento enf = enfOpt.get();
 
-        if (enf.getTorneo().getEstado() != EstadoTorneo.ACTIVO) {
+        if (enf.getTorneo().getEstado() != EstadoTorneo.IN_PROGRESS) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Solo se puede votar en enfrentamientos de torneos ACTIVOS");
+                    .body("Solo se puede votar en enfrentamientos de torneos IN_PROGRESS");
         }
 
         Long ganadorId = request.getPersonajeGanadorId();

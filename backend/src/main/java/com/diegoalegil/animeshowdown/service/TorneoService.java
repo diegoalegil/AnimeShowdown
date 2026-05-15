@@ -66,11 +66,11 @@ public class TorneoService {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
 
-        if (torneo.getEstado() != EstadoTorneo.BORRADOR) {
-            throw new IllegalStateException("Solo se pueden iniciar torneos en estado BORRADOR");
+        if (torneo.getEstado() != EstadoTorneo.SCHEDULED) {
+            throw new IllegalStateException("Solo se pueden iniciar torneos en estado SCHEDULED");
         }
 
-        torneo.setEstado(EstadoTorneo.ACTIVO);
+        torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setFechaInicio(LocalDateTime.now());
         return torneoRepository.save(torneo);
     }
@@ -80,8 +80,8 @@ public class TorneoService {
         Torneo torneo = torneoRepository.findById(torneoId)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + torneoId));
 
-        if (torneo.getEstado() == EstadoTorneo.FINALIZADO) {
-            throw new IllegalStateException("No se pueden añadir enfrentamientos a un torneo FINALIZADO");
+        if (torneo.getEstado() == EstadoTorneo.FINISHED) {
+            throw new IllegalStateException("No se pueden añadir enfrentamientos a un torneo FINISHED");
         }
 
         List<Enfrentamiento> creados = new ArrayList<>();
@@ -115,8 +115,8 @@ public class TorneoService {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
 
-        if (torneo.getEstado() != EstadoTorneo.ACTIVO) {
-            throw new IllegalStateException("Solo se pueden finalizar torneos en estado ACTIVO");
+        if (torneo.getEstado() != EstadoTorneo.IN_PROGRESS) {
+            throw new IllegalStateException("Solo se pueden finalizar torneos en estado IN_PROGRESS");
         }
 
         List<Enfrentamiento> enfrentamientos = enfrentamientoRepository.findByTorneo(torneo);
@@ -132,7 +132,7 @@ public class TorneoService {
             enfrentamientoRepository.save(enf);
         }
 
-        torneo.setEstado(EstadoTorneo.FINALIZADO);
+        torneo.setEstado(EstadoTorneo.FINISHED);
         torneo.setFechaFinalizacion(LocalDateTime.now());
         Torneo guardado = torneoRepository.save(torneo);
         log.info("Torneo {} finalizado con {} enfrentamientos resueltos", id, enfrentamientos.size());
