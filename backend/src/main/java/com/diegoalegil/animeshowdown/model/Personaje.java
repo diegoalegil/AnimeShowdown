@@ -5,11 +5,19 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "personajes")
+@Table(name = "personajes", indexes = {
+        // El UNIQUE de slug ya crea índice implícito; lo declaramos explícito
+        // para nombrarlo de forma estable y dejar el intent en código.
+        // idx_personajes_anime acelera findByAnime (filtros por anime en
+        // GET /api/personajes?anime=Naruto y queries del catálogo).
+        @Index(name = "idx_personajes_slug", columnList = "slug"),
+        @Index(name = "idx_personajes_anime", columnList = "anime")
+})
 public class Personaje {
 
     @Id
