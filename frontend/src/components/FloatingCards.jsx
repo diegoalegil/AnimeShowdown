@@ -3,12 +3,12 @@ import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { imagenPersonaje } from '../data/personajes'
 
 const cards = [
-  { slug: 'momo', top: '5%', left: '3%', rotate: -8 },
+  { slug: 'momo_ayase', top: '5%', left: '3%', rotate: -8 },
   { slug: 'mai_sakurajima', top: '5%', right: '4%', rotate: 7 },
   { slug: 'miku', top: '28%', left: '0%', rotate: -5 },
   { slug: 'shinobu', top: '28%', right: '1%', rotate: 6 },
   { slug: 'makima', top: '56%', left: '1%', rotate: -7 },
-  { slug: 'gojo', top: '56%', right: '2%', rotate: 5 },
+  { slug: 'satoru_gojo', top: '56%', right: '2%', rotate: 5 },
   { slug: 'kuroneko', bottom: '5%', left: '6%', rotate: 7 },
   { slug: 'toru_hagakure', bottom: '5%', right: '7%', rotate: -6 },
 ]

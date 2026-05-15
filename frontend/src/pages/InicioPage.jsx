@@ -244,12 +244,12 @@ function BattleSlot({ personaje, pct }) {
 }
 
 function SectionBento() {
-  const featuredAvatars = ['luffy', 'naruto', 'gojo', 'makima']
+  const featuredAvatars = ['luffy', 'naruto', 'satoru_gojo', 'makima']
   const communityAvatars = [
     'mai_sakurajima',
-    'gojo',
+    'satoru_gojo',
     'kuroneko',
-    'momo',
+    'momo_ayase',
     'shinobu',
     'toru_hagakure',
   ]
