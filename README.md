@@ -12,7 +12,7 @@
 
 App full-stack de torneos y rankings ELO de personajes anime. Frontend React premium con aurora hero, carruseles tipo Crunchyroll, búsqueda + filtros, command palette tipo Linear, sonidos anime sintetizados con Web Audio API, bracket visual y auth real con JWT. Backend Spring Boot + PostgreSQL en Railway/Neon, frontend en Cloudflare Pages.
 
-> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con 125 personajes (DataSeeder idempotente)
+> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con 642 personajes en 60 animes (DataSeeder con insert/update/delete cascade)
 
 ---
 
@@ -50,7 +50,8 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 - **PostgreSQL 17** (Neon en producción, local en dev)
 - **JWT** con `com.auth0:java-jwt 4.4.0` y BCrypt para hashing
 - **springdoc-openapi 2.8.5** (Swagger UI)
-- **DataSeeder idempotente** que sincroniza los 125 personajes en cada arranque (solo inserta los slugs que faltan, no trunca ni duplica)
+- **DataSeeder con sincronización completa** que en cada arranque ajusta los 642 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
+- **Resilience4j** sobre `JikanService` (retry exponencial + circuit breaker + timeout 5s) y **caché Caffeine** sobre las páginas top con TTL 1h
 - **JUnit 5** + **MockMvc** + **H2** in-memory para tests
 - **Maven Wrapper** + **Docker** multi-stage para deploy
 
@@ -70,7 +71,7 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 
 ![Hero landing](docs/screenshots/hero.webp)
 
-**Galería de los 125 personajes con búsqueda, filtros por anime y view toggle**
+**Galería de los 642 personajes con búsqueda, filtros por anime y view toggle**
 
 ![Galería personajes](docs/screenshots/personajes.webp)
 
@@ -104,8 +105,8 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 - 🎠 **Carruseles horizontales por anime** estilo Netflix/Crunchyroll (snap-x scroll-smooth)
 - 🏆 **Top 10 ELO** con números gigantes outline magenta solapando las cards (Crunchyroll vibe)
 - ⚔️ **Live Battle widget** auto-cyclando matchups cada 5s con AnimatePresence
-- 📜 **Marquee infinita** con los 125 nombres y fade en bordes
-- 🔢 **Stats counter rolling** (125 personajes / 7 torneos / 49 animes / ELO máx) con easeOutCubic en viewport
+- 📜 **Marquee infinita** con los 642 nombres y fade en bordes
+- 🔢 **Stats counter rolling** (642 personajes / 13 torneos / 60 animes / ELO máx) con easeOutCubic en viewport
 - 🎁 **Bento grid** asimétrico con 4 features (Brackets, ELO, Cuenta, Comunidad)
 - 🌳 **Bracket SVG** que computa rounds y resuelve por mayor ELO, ganador con border accent y glow
 - ⌘ **Command palette** (`Cmd+K`) con cmdk: navega a páginas, personajes y torneos con búsqueda fuzzy
@@ -138,7 +139,7 @@ psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE animeshowdown_db TO animes
 cd backend
 ./mvnw spring-boot:run
 # Spring levanta en http://localhost:8080
-# DataSeeder sincroniza los 125 personajes (idempotente: solo inserta los slugs faltantes)
+# DataSeeder sincroniza los 642 personajes con el seed: inserta nuevos, actualiza cambios y borra retirados
 ```
 
 ### Frontend
@@ -320,14 +321,20 @@ erDiagram
 
 ### Añadir un personaje nuevo
 
-1. Coloca el WebP en `frontend/public/personajes/{slug}.webp` (ratio 2:3, recomendado 1024x1536)
-2. Añade entrada en `frontend/src/data/personajes.js`:
-   ```js
-   { slug: 'mi_personaje', nombre: 'Mi Personaje', anime: 'Mi Anime' }
+`frontend/img/` es la **fuente de verdad** del catálogo. El flujo es:
+
+1. Coloca el WebP en `frontend/img/<Nombre_del_Anime>/<slug>.webp` (ratio 2:3 recomendado, 1024x1536). El folder debe coincidir con uno de los registrados en `scripts/data/anime-display-names.json` o se añade una entrada nueva ahí mapeando folder → nombre legible.
+2. (Opcional) Edita `scripts/data/personajes-overrides.json` para escribir nombre legible y descripción curada del nuevo personaje:
+   ```json
+   "mi_personaje": { "nombre": "Mi Personaje", "descripcion": "Descripción de 1-2 frases." }
    ```
-3. Añade entrada en `backend/src/main/resources/personajes-seed.json` (mismo objeto)
-4. `git push` → Cloudflare rebuild en 2 min, frontend muestra el nuevo personaje
-5. **Para que aparezca también en BBDD:** el `DataSeeder` es idempotente — en el siguiente arranque (Railway redeploy automático con cada push) detectará el slug nuevo en `personajes-seed.json` y lo insertará. No hace falta truncar la tabla ni endpoint manual.
+   Sin override, el script deriva el nombre del slug (capitaliza palabras) y usa `"Personaje del anime {Anime}."` como descripción.
+3. Ejecuta el sync:
+   ```bash
+   node scripts/sync-personajes.mjs
+   ```
+   Regenera `frontend/src/data/personajes.js` y `backend/src/main/resources/personajes-seed.json`. Soporta `--dry-run` para inspeccionar antes de escribir. Si el slug colisiona con otro anime (ej. `lucy` en Pokemon y Elfen Lied), el script los prefija automáticamente con el folder (`pokemon_lucy`, `elfen_lied_lucy`).
+4. `git push` → Cloudflare rebuild + Railway redeploy. Al arrancar, el `DataSeeder` detecta el slug nuevo y lo inserta en BBDD; si retiraste alguno del seed lo borra con cascade de votos y enfrentamientos.
 
 ### Añadir un torneo nuevo
 
@@ -363,7 +370,7 @@ erDiagram
 - [x] Despliegue backend en Railway
 - [x] Frontend React + Vite + Tailwind v4 + Framer Motion
 - [x] Despliegue frontend en Cloudflare Pages
-- [x] BBDD sincronizada con los 125 personajes vía DataSeeder idempotente
+- [x] BBDD sincronizada con los 642 personajes (DataSeeder con insert/update/delete cascade desde `frontend/img/` como source of truth)
 - [x] Auth real con JWT (registro + login + reset por email vía Resend + edición avatar + rol ADMIN)
 - [x] Bracket visual SVG
 - [x] Búsqueda + filtros + view toggle
