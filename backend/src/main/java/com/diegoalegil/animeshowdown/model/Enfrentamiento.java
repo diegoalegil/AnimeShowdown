@@ -7,13 +7,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "enfrentamientos")
+@Table(name = "enfrentamientos", indexes = {
+        // Queries hot path: findByTorneo (listado del bracket), las cascadas
+        // del DataSeeder por personaje1/2, y los join al cerrar torneos.
+        @Index(name = "idx_enf_torneo", columnList = "torneo_id"),
+        @Index(name = "idx_enf_personaje1", columnList = "personaje1_id"),
+        @Index(name = "idx_enf_personaje2", columnList = "personaje2_id")
+})
 public class Enfrentamiento {
 
     @Id
