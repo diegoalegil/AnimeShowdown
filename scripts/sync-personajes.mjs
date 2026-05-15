@@ -61,7 +61,8 @@ function deriveName(slug) {
 // ─── escaneo de img/ ────────────────────────────────────────────────────────
 
 function scanFolder() {
-  const entries = []
+  // Primera pasada: lista cruda sin resolver conflictos
+  const raw = []
   const folders = readdirSync(IMG_DIR, { withFileTypes: true })
     .filter(d => d.isDirectory())
     .map(d => d.name)
@@ -75,22 +76,50 @@ function scanFolder() {
       .sort()
 
     for (const file of files) {
-      const slug = basename(file, extname(file))
-      const override = overrides[slug] || {}
-      const nombre = override.nombre || deriveName(slug)
-      const descripcion = override.descripcion || `Personaje del anime ${animeDisplay}.`
-      const imagenUrl = `/img/${folder}/${file}`
-
-      entries.push({
-        slug,
-        nombre,
-        anime: animeDisplay,
-        descripcion,
-        imagenUrl,
-        _folder: folder, // metadata interna, no se escribe
-      })
+      const baseSlug = basename(file, extname(file))
+      raw.push({ baseSlug, folder, animeDisplay, file })
     }
   }
+
+  // Detecta colisiones de slug entre anime distintos. Si un mismo slug aparece
+  // en dos folders, se prefijan AMBOS con el folder lowercased (lucy + Pokemon
+  // → pokemon_lucy; lucy + Elfen_Lied → elfen_lied_lucy). Si solo aparece una
+  // vez, el slug queda limpio.
+  const slugCount = {}
+  for (const r of raw) {
+    slugCount[r.baseSlug] = (slugCount[r.baseSlug] || 0) + 1
+  }
+
+  const collisions = []
+  const entries = raw.map(r => {
+    const folderPrefix = r.folder.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+    const finalSlug = slugCount[r.baseSlug] > 1
+      ? `${folderPrefix}_${r.baseSlug}`
+      : r.baseSlug
+    if (slugCount[r.baseSlug] > 1) {
+      collisions.push(`${r.baseSlug} (${r.folder}) → ${finalSlug}`)
+    }
+    // El override se busca PRIMERO por el slug final con prefijo, y como
+    // fallback por el baseSlug original (para no perder descripciones curadas
+    // cuando el slug se desambigua).
+    const override = overrides[finalSlug] || overrides[r.baseSlug] || {}
+    const nombre = override.nombre || deriveName(r.baseSlug)
+    const descripcion = override.descripcion || `Personaje del anime ${r.animeDisplay}.`
+    const imagenUrl = `/img/${r.folder}/${r.file}`
+    return {
+      slug: finalSlug,
+      nombre,
+      anime: r.animeDisplay,
+      descripcion,
+      imagenUrl,
+    }
+  })
+
+  if (collisions.length > 0) {
+    console.log(`  ⚠ ${collisions.length} colisiones de slug resueltas con prefijo de folder:`)
+    for (const c of collisions) console.log(`    ${c}`)
+  }
+
   return entries
 }
 
