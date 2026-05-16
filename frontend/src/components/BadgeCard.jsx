@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import * as Icons from 'lucide-react'
 import { Lock } from 'lucide-react'
+import { kanjiDeBadge } from '../lib/badgeKanji'
 
 /**
  * Card individual de un badge/logro (Plan v2 §4.2).
@@ -97,6 +98,17 @@ function BadgeCard({ logro }) {
         {!desbloqueado && (
           <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60">
             <Lock className="h-4 w-4 text-fg-muted" />
+          </span>
+        )}
+        {/* Plan v2 §13.1: kanji asociado al badge en esquina sup-derecha
+            del circulo del icono. Solo si esta desbloqueado y tiene
+            mapping en lib/badgeKanji. */}
+        {desbloqueado && kanjiDeBadge(logro.codigo) && (
+          <span
+            aria-hidden="true"
+            className={`absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-bg px-1 font-mono text-[10px] font-bold leading-none ${style.icono}`}
+          >
+            {kanjiDeBadge(logro.codigo)}
           </span>
         )}
       </span>
