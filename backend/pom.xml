@@ -178,6 +178,17 @@
 			<artifactId>totp</artifactId>
 			<version>1.7.1</version>
 		</dependency>
+
+		<!-- WebSocket + STOMP (Plan v2 §2.13). Spring Boot starter trae
+		     spring-websocket + spring-messaging + jackson-jsr310. Endpoint
+		     STOMP en /ws con handshake JWT-autenticado; broker simple
+		     in-memory para /topic (broadcast público de brackets) y
+		     /user/queue (notificaciones personales). Cliente frontend:
+		     @stomp/stompjs (~6KB gzip). -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
 	</dependencies>
 	
 	<build>
