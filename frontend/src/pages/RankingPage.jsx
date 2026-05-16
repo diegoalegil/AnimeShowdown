@@ -91,6 +91,98 @@ function RankingPage() {
         </div>
 
         <HubLinks />
+
+        <TablaExtraible />
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Tabla HTML semántica con el top 10 ELO local (Plan v2 §6.2). Sirve
+ * dos públicos:
+ *     extraer datos tabulares estructurados antes que listas decoradas.
+ *   - Usuarios que quieren copy/paste de los datos para un Sheets/post.
+ *
+ * Usa table/thead/tbody/th-scope estándar — sin estilos exóticos para
+ * que los parsers de tablas (Common Crawl, Bing tables) la pillen.
+ */
+function TablaExtraible() {
+  const top10 = rankedElo.slice(0, 10)
+  return (
+    <section
+      aria-labelledby="top10-elo-heading"
+      className="mt-12 rounded-xl border border-border bg-surface p-6"
+    >
+      <h2
+        id="top10-elo-heading"
+        className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted"
+      >
+        Top 10 ELO — datos extraíbles
+      </h2>
+      <p className="mb-4 text-[12px] text-fg-muted">
+        Tabla en formato estándar para copia rápida o referencia en posts.
+        Datos del ELO local calculado desde el catálogo (actualizado a fecha de
+        deploy).
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b border-border text-left text-fg-muted">
+              <th scope="col" className="py-2 pr-3 font-semibold">
+                Rank
+              </th>
+              <th scope="col" className="py-2 pr-3 font-semibold">
+                Personaje
+              </th>
+              <th scope="col" className="py-2 pr-3 font-semibold">
+                Anime
+              </th>
+              <th
+                scope="col"
+                className="py-2 pr-3 text-right font-mono font-semibold tabular-nums"
+              >
+                ELO
+              </th>
+              <th
+                scope="col"
+                className="hidden py-2 pr-3 text-right font-semibold sm:table-cell"
+              >
+                W/L
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {top10.map((p, i) => (
+              <tr
+                key={p.slug}
+                className="border-b border-border/60 last:border-0"
+              >
+                <th
+                  scope="row"
+                  className="py-2 pr-3 font-mono font-semibold text-fg-strong tabular-nums"
+                >
+                  {i + 1}
+                </th>
+                <td className="py-2 pr-3 text-fg-strong">
+                  <Link
+                    to={`/personajes/${p.slug}`}
+                    className="hover:text-accent hover:underline"
+                  >
+                    {p.nombre}
+                  </Link>
+                </td>
+                <td className="py-2 pr-3 text-fg-muted">{p.anime}</td>
+                <td className="py-2 pr-3 text-right font-mono tabular-nums text-accent">
+                  {p.elo}
+                </td>
+                <td className="hidden py-2 pr-3 text-right font-mono text-fg-muted tabular-nums sm:table-cell">
+                  {p.wins}/{p.losses}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   )
