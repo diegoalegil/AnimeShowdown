@@ -35,6 +35,11 @@ const UsuarioPage = lazy(() => import('./pages/UsuarioPage'))
 const CrearTorneoPage = lazy(() => import('./pages/CrearTorneoPage'))
 const FaqPage = lazy(() => import('./pages/FaqPage'))
 const ApiDocsPage = lazy(() => import('./pages/ApiDocsPage'))
+const GamesHubPage = lazy(() => import('./pages/GamesHubPage'))
+const GuessCharacterPage = lazy(() => import('./pages/GuessCharacterPage'))
+const GuessAnimePage = lazy(() => import('./pages/GuessAnimePage'))
+const AnidelPage = lazy(() => import('./pages/AnidelPage'))
+const ImpostorPage = lazy(() => import('./pages/ImpostorPage'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -115,6 +120,11 @@ function App() {
                 <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
                 <Route path="/faq" element={<FaqPage />} />
                 <Route path="/api-docs" element={<ApiDocsPage />} />
+                <Route path="/games" element={<GamesHubPage />} />
+                <Route path="/games/guess-character" element={<GuessCharacterPage />} />
+                <Route path="/games/guess-anime" element={<GuessAnimePage />} />
+                <Route path="/games/anidel" element={<AnidelPage />} />
+                <Route path="/games/impostor" element={<ImpostorPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
