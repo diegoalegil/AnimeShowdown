@@ -70,6 +70,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers("/api/votos/**").permitAll()
+                        // Plan v2 §4.2: catálogo de badges público (cacheable
+                        // long-term en frontend); /mios requiere auth para
+                        // saber a qué usuario pertenecen los desbloqueos.
+                        .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
+                        .requestMatchers("/api/logros/mios").authenticated()
                         // OG images server-side (Plan v2 §1.2): los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()
