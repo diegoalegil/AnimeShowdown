@@ -1,22 +1,29 @@
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Swords } from 'lucide-react'
 import { toast } from 'sonner'
-import {
-  personajes,
-  imagenPersonaje,
-  getStatsPersonaje,
-  getPersonajeBySlug,
-} from '../data/personajes'
+import { personajes, imagenPersonaje } from '../data/personajes'
+import { endpoints, ApiError } from '../lib/api'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSound } from '../contexts/SoundContext'
+import { useAuth } from '../contexts/AuthContext'
 
-function getRandomPair() {
-  const a = Math.floor(Math.random() * personajes.length)
-  let b = Math.floor(Math.random() * personajes.length)
-  while (b === a) b = Math.floor(Math.random() * personajes.length)
-  return [personajes[a], personajes[b]]
-}
+/**
+ * VotarPage en modo HÍBRIDO (Plan v2 §1.1):
+ *
+ *   1. Pide GET /api/enfrentamientos/aleatorio.
+ *   2. Si llega un match abierto (200) → MODO BACKEND: muestra los dos
+ *      personajes reales, votar manda POST /enfrentamientos/{id}/votar y
+ *      el cache de torneos se invalida (afecta al bracket en vivo).
+ *   3. Si responde 404 (no hay matches abiertos) → MODO CASUAL: pares
+ *      sintéticos del catálogo local. El "voto" es un toast sin persistir
+ *      en BBDD — útil para tener algo que hacer cuando no hay torneos.
+ *
+ * El estado de auth solo importa en modo backend: si el usuario no está
+ * logueado y pulsa votar, redirigimos a /login con next=/votar.
+ */
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -27,37 +34,137 @@ const headerVariants = {
   },
 }
 
+function getRandomPair() {
+  const a = Math.floor(Math.random() * personajes.length)
+  let b = Math.floor(Math.random() * personajes.length)
+  while (b === a) b = Math.floor(Math.random() * personajes.length)
+  return [personajes[a], personajes[b]]
+}
+
 function VotarPage() {
   useDocumentTitle('Votar')
   const { play } = useSound()
-  const [pair, setPair] = useState(getRandomPair)
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  // Query del match real. Si 404 (no hay abiertos) caemos a modo casual.
+  // staleTime 0 + refetch on demand para que cada "siguiente" pida uno
+  // distinto. retry 0 porque el 404 NO es error transitorio, es señal.
+  const {
+    data: enfrentamiento,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ['enfrentamientos', 'aleatorio'],
+    queryFn: endpoints.enfrentamientoAleatorio,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+  })
+
+  // Estado local del modo casual (fallback cuando no hay match abierto).
+  const [casualPair, setCasualPair] = useState(getRandomPair)
+  // Slug votado en esta sesión (independiente del modo). Bloquea doble voto.
   const [votedFor, setVotedFor] = useState(null)
 
-  const [a, b] = pair
-  const statsA = getStatsPersonaje(a.slug)
-  const statsB = getStatsPersonaje(b.slug)
-  const total = statsA.elo + statsB.elo
-  const pctA = Math.round((statsA.elo / total) * 100)
-  const pctB = 100 - pctA
+  const votarMutation = useMutation({
+    mutationFn: ({ enfrentamientoId, personajeGanadorId }) =>
+      endpoints.votar(enfrentamientoId, personajeGanadorId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['torneos'] })
+    },
+  })
 
-  const handleVote = (slug) => {
+  // Modo backend si la query retornó datos; casual si vino 404 (status 404
+  // en ApiError) o cualquier otro error de red.
+  const modoBackend = Boolean(enfrentamiento && !isError)
+  const sinMatchesAbiertos = isError && error instanceof ApiError && error.status === 404
+
+  if (isLoading) {
+    return (
+      <section className="flex flex-1 items-center justify-center px-5 py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </section>
+    )
+  }
+
+  // Datos a renderizar (uniforme para ambos modos).
+  let a, b, matchId
+  if (modoBackend) {
+    a = enfrentamiento.personaje1
+    b = enfrentamiento.personaje2
+    matchId = enfrentamiento.id
+  } else {
+    ;[a, b] = casualPair
+    matchId = null
+  }
+
+  const handleVote = (personaje) => {
     if (votedFor) return
-    setVotedFor(slug)
     play('playImpact')
     setTimeout(() => play('playVote'), 120)
-    const p = getPersonajeBySlug(slug)
-    if (p) {
-      toast.success(`Voto registrado: ${p.nombre}`, {
-        description: `de ${p.anime}`,
+
+    if (modoBackend) {
+      if (!user) {
+        toast.error('Inicia sesión para votar', {
+          description: 'Te llevamos al login.',
+        })
+        navigate(`/login?next=${encodeURIComponent('/votar')}`)
+        return
+      }
+      setVotedFor(personaje.slug)
+      votarMutation.mutate(
+        { enfrentamientoId: matchId, personajeGanadorId: personaje.id },
+        {
+          onSuccess: () => {
+            toast.success(`Voto registrado: ${personaje.nombre}`, {
+              description: `de ${personaje.anime}`,
+            })
+          },
+          onError: (err) => {
+            setVotedFor(null) // permite reintentar
+            const status = err instanceof ApiError ? err.status : 0
+            if (status === 409) {
+              toast.error('Ya votaste este enfrentamiento')
+            } else if (status === 401) {
+              navigate(`/login?next=${encodeURIComponent('/votar')}`)
+            } else {
+              toast.error('No se pudo registrar el voto', {
+                description: err?.message || 'Inténtalo de nuevo.',
+              })
+            }
+          },
+        },
+      )
+    } else {
+      // Modo casual: solo toast, sin persistencia.
+      setVotedFor(personaje.slug)
+      toast.success(`Voto registrado: ${personaje.nombre}`, {
+        description: `${personaje.anime} · sin torneo activo`,
       })
     }
   }
 
   const handleNext = () => {
-    setPair(getRandomPair())
-    setVotedFor(null)
     play('playClick')
+    setVotedFor(null)
+    if (modoBackend) {
+      refetch()
+    } else {
+      setCasualPair(getRandomPair())
+    }
   }
+
+  // Para mostrar % de votos en modo backend usamos el total real si llegó
+  // del backend. En casual derivamos un split visual sintético (50/50)
+  // para no romper el layout — el dato no es real.
+  const showResult = Boolean(votedFor)
+  const pctA = 50
+  const pctB = 50
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -69,14 +176,26 @@ function VotarPage() {
           variants={headerVariants}
         >
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            Enfrentamiento aleatorio
+            {modoBackend ? 'Match en juego' : 'Enfrentamiento aleatorio'}
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             ¿A quién prefieres?
           </h1>
           <p className="max-w-xl text-fg-muted">
-            Pulsa la card del personaje que crees que ganaría este enfrentamiento. Verás cómo se reparten los votos según su ELO actual.
+            {modoBackend
+              ? 'Tu voto cuenta para el bracket en directo. Necesitas haber iniciado sesión.'
+              : sinMatchesAbiertos
+                ? 'Ahora mismo no hay torneos en juego — pares aleatorios para que sigas votando sin parar.'
+                : 'Pulsa la card del personaje que crees que ganaría.'}
           </p>
+          {sinMatchesAbiertos && (
+            <Link
+              to="/torneos"
+              className="text-[12px] text-accent hover:underline"
+            >
+              Ver torneos disponibles →
+            </Link>
+          )}
         </motion.header>
         <div
           key={`${a.slug}-${b.slug}`}
@@ -84,9 +203,9 @@ function VotarPage() {
         >
           <VoteCard
             personaje={a}
-            onClick={() => handleVote(a.slug)}
+            onClick={() => handleVote(a)}
             isVoted={votedFor === a.slug}
-            showResult={Boolean(votedFor)}
+            showResult={showResult}
             pct={pctA}
           />
           <span className="flex h-14 w-14 items-center justify-center justify-self-center rounded-full border border-accent/40 bg-accent-soft text-accent">
@@ -94,9 +213,9 @@ function VotarPage() {
           </span>
           <VoteCard
             personaje={b}
-            onClick={() => handleVote(b.slug)}
+            onClick={() => handleVote(b)}
             isVoted={votedFor === b.slug}
-            showResult={Boolean(votedFor)}
+            showResult={showResult}
             pct={pctB}
           />
         </div>
@@ -104,7 +223,8 @@ function VotarPage() {
           <button
             type="button"
             onClick={handleNext}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+            disabled={isFetching}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
           >
             {votedFor ? 'Siguiente enfrentamiento →' : 'Saltar enfrentamiento →'}
           </button>
@@ -116,6 +236,11 @@ function VotarPage() {
 
 function VoteCard({ personaje, onClick, isVoted, showResult, pct }) {
   const dimmed = showResult && !isVoted
+  // En modo backend el personaje viene del DTO (PersonajeMiniDto con imagenUrl).
+  // En modo casual viene del catálogo local. Ambos tienen slug/nombre/anime
+  // y, para la imagen, preferimos imagenUrl del DTO; fallback a imagenPersonaje
+  // del catálogo local cuando viene del modo casual.
+  const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   return (
     <button
       type="button"
@@ -128,7 +253,7 @@ function VoteCard({ personaje, onClick, isVoted, showResult, pct }) {
       } ${dimmed ? 'opacity-50' : ''} disabled:cursor-default`}
     >
       <img
-        src={imagenPersonaje(personaje.slug)}
+        src={imgSrc}
         alt={personaje.nombre}
         className="aspect-[2/3] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
       />
@@ -152,9 +277,6 @@ function VoteCard({ personaje, onClick, isVoted, showResult, pct }) {
                 transition={{ duration: 0.6, ease: 'easeOut' }}
               />
             </div>
-            <p className="mt-1.5 text-[12px] font-semibold text-fg-strong">
-              {pct}% <span className="font-normal text-fg-muted">de los votos</span>
-            </p>
           </motion.div>
         )}
       </div>

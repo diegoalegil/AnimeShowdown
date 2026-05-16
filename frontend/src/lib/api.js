@@ -155,6 +155,9 @@ export const endpoints = {
   // deleteTorneo eliminado: TorneoController no expone @DeleteMapping todavía,
   // si el frontend lo llamaba caía con 405. Se restaurará cuando se implemente backend-side.
   ranking: () => api.get('/api/votos/ranking'),
+  // Match aleatorio abierto (Plan v2 §1.1). Devuelve EnfrentamientoDto o
+  // 404 (modo casual del frontend toma el control). No requiere auth.
+  enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/aleatorio', { auth: false }),
   votar: (enfrentamientoId, personajeId) =>
     // El backend espera el campo personajeGanadorId (validado con @NotNull en
     // VotoEnfrentamientoRequest); antes mandábamos personajeId y rebotaba con 400.
