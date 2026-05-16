@@ -23,8 +23,12 @@ import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.repository.AuditLogRepository;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
+import com.diegoalegil.animeshowdown.repository.TotpBackupCodeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import dev.samstevens.totp.code.DefaultCodeGenerator;
+import dev.samstevens.totp.time.SystemTimeProvider;
 
 import org.springframework.context.annotation.Import;
 
@@ -48,6 +52,34 @@ class AuthControllerTest {
 
     @Autowired
     private AuditLogRepository auditLogRepository;
+
+    @Autowired
+    private TotpBackupCodeRepository totpBackupCodeRepository;
+
+    /** Genera el código TOTP actual para un secret dado, usando la misma lib que el backend. */
+    private String generarCodigoActual(String secretPlano) throws Exception {
+        long counter = Math.floorDiv(new SystemTimeProvider().getTime(), 30);
+        return new DefaultCodeGenerator().generate(secretPlano, counter);
+    }
+
+    /** Registra+loguea un usuario y devuelve { token, username, password }. */
+    private record Sesion(String token, String username, String password) {}
+
+    private Sesion registrarYLoguear(String username, String password, String email) throws Exception {
+        Map<String, String> reg = Map.of("username", username, "password", password, "email", email);
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(reg)))
+                .andExpect(status().isCreated());
+        Map<String, String> login = Map.of("username", username, "password", password);
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = json.readTree(loginRes.getResponse().getContentAsString()).get("token").asText();
+        return new Sesion(token, username, password);
+    }
 
     @Test
     void registroValidoDevuelve201YOcultaPassword() throws Exception {
@@ -344,5 +376,166 @@ class AuthControllerTest {
                 .orElseThrow();
         assert ultimoFail.getDetalles() != null && ultimoFail.getDetalles().contains("password_incorrecta")
                 : "LOGIN_FAIL debe llevar detalles JSON con la razón; got=" + ultimoFail.getDetalles();
+    }
+
+    // ====================================================================
+    // 2FA TOTP — Plan v2 §2.3
+    // ====================================================================
+
+    @Test
+    void totpSetupYEnableActivaTotpYDevuelveBackupCodes() throws Exception {
+        Sesion s = registrarYLoguear("totp_alice", "secreta123", "totp_alice@example.com");
+
+        // Setup: el endpoint devuelve secret + otpauth + qr.
+        var setupRes = mvc.perform(post("/api/auth/2fa/setup")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.secret").isString())
+                .andExpect(jsonPath("$.otpauthUri").value(org.hamcrest.Matchers.startsWith("otpauth://totp/")))
+                .andExpect(jsonPath("$.qrCodeDataUri").value(org.hamcrest.Matchers.startsWith("data:image/png;base64,")))
+                .andReturn();
+        String secret = json.readTree(setupRes.getResponse().getContentAsString()).get("secret").asText();
+
+        // Enable con código correcto: activa y devuelve 10 backup codes.
+        Map<String, String> enableBody = Map.of("codigo", generarCodigoActual(secret));
+        mvc.perform(post("/api/auth/2fa/enable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(enableBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.backupCodes").isArray())
+                .andExpect(jsonPath("$.backupCodes.length()").value(10));
+
+        var usuario = usuarioRepository.findByUsername("totp_alice").orElseThrow();
+        assert usuario.isTotpHabilitado() : "Tras enable, el usuario debe tener totpHabilitado=true";
+        assert usuario.getTotpSecret() != null : "El secret debe estar guardado";
+        assert usuario.getTotpSecretPendiente() == null : "El pendiente debe haberse limpiado";
+        assert totpBackupCodeRepository.findByUsuario(usuario).size() == 10
+                : "Deben haberse persistido 10 backup codes";
+    }
+
+    @Test
+    void totpEnableConCodigoIncorrectoDevuelve401YNoActiva() throws Exception {
+        Sesion s = registrarYLoguear("totp_bob", "secreta123", "totp_bob@example.com");
+
+        mvc.perform(post("/api/auth/2fa/setup")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk());
+
+        Map<String, String> enableMal = Map.of("codigo", "000000");
+        mvc.perform(post("/api/auth/2fa/enable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(enableMal)))
+                .andExpect(status().isUnauthorized());
+
+        var usuario = usuarioRepository.findByUsername("totp_bob").orElseThrow();
+        assert !usuario.isTotpHabilitado() : "Tras enable fallido, no debe activarse";
+        assert usuario.getTotpSecretPendiente() != null : "El pendiente debe seguir vivo para reintentar";
+    }
+
+    @Test
+    void loginConTotpDevuelveChallengeYVerifyLoginCompletaSesion() throws Exception {
+        Sesion s = registrarYLoguear("totp_carla", "secreta123", "totp_carla@example.com");
+        // Setup + enable para activar 2FA.
+        var setupRes = mvc.perform(post("/api/auth/2fa/setup")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk()).andReturn();
+        String secret = json.readTree(setupRes.getResponse().getContentAsString()).get("secret").asText();
+        mvc.perform(post("/api/auth/2fa/enable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("codigo", generarCodigoActual(secret)))))
+                .andExpect(status().isOk());
+
+        // Login: ahora devuelve challenge en lugar de token directo.
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "totp_carla", "password", "secreta123"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requires2fa").value(true))
+                .andExpect(jsonPath("$.challengeToken").isString())
+                .andExpect(jsonPath("$.token").doesNotExist())
+                .andReturn();
+        String challengeToken = json.readTree(loginRes.getResponse().getContentAsString())
+                .get("challengeToken").asText();
+
+        // Verify-login con código actual: completa el login.
+        Map<String, String> verify = Map.of(
+                "challengeToken", challengeToken,
+                "codigo", generarCodigoActual(secret));
+        mvc.perform(post("/api/auth/2fa/verify-login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(verify)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isString())
+                .andExpect(jsonPath("$.usuario.totpHabilitado").value(true));
+    }
+
+    @Test
+    void loginVerifyLoginConBackupCodeFuncionaYConsumeElCodigo() throws Exception {
+        Sesion s = registrarYLoguear("totp_diana", "secreta123", "totp_diana@example.com");
+        var setupRes = mvc.perform(post("/api/auth/2fa/setup")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk()).andReturn();
+        String secret = json.readTree(setupRes.getResponse().getContentAsString()).get("secret").asText();
+        var enableRes = mvc.perform(post("/api/auth/2fa/enable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("codigo", generarCodigoActual(secret)))))
+                .andExpect(status().isOk()).andReturn();
+        var backupCodes = json.readTree(enableRes.getResponse().getContentAsString()).get("backupCodes");
+        String unBackupCode = backupCodes.get(0).asText();
+
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "totp_diana", "password", "secreta123"))))
+                .andExpect(status().isOk()).andReturn();
+        String challengeToken = json.readTree(loginRes.getResponse().getContentAsString())
+                .get("challengeToken").asText();
+
+        // Verify con backup code en lugar de TOTP: también funciona.
+        mvc.perform(post("/api/auth/2fa/verify-login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "challengeToken", challengeToken,
+                        "codigo", unBackupCode))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isString());
+
+        // El backup code usado debe haber sido marcado y ya no funcionar otra vez.
+        var usuario = usuarioRepository.findByUsername("totp_diana").orElseThrow();
+        long usados = totpBackupCodeRepository.findByUsuario(usuario).stream()
+                .filter(c -> c.getUsadoEn() != null).count();
+        assert usados == 1 : "Tras usar 1 backup code debe haber 1 marcado como usado; got=" + usados;
+    }
+
+    @Test
+    void disableConPasswordYCodigoLimpiaTotpYBorraBackupCodes() throws Exception {
+        Sesion s = registrarYLoguear("totp_eva", "secreta123", "totp_eva@example.com");
+        var setupRes = mvc.perform(post("/api/auth/2fa/setup")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk()).andReturn();
+        String secret = json.readTree(setupRes.getResponse().getContentAsString()).get("secret").asText();
+        mvc.perform(post("/api/auth/2fa/enable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("codigo", generarCodigoActual(secret)))))
+                .andExpect(status().isOk());
+
+        Map<String, String> disable = Map.of(
+                "password", "secreta123",
+                "codigo", generarCodigoActual(secret));
+        mvc.perform(post("/api/auth/2fa/disable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(disable)))
+                .andExpect(status().isOk());
+
+        var usuario = usuarioRepository.findByUsername("totp_eva").orElseThrow();
+        assert !usuario.isTotpHabilitado() : "Tras disable, totpHabilitado=false";
+        assert usuario.getTotpSecret() == null : "El secret debe limpiarse";
+        assert totpBackupCodeRepository.findByUsuario(usuario).isEmpty()
+                : "Tras disable, no debe quedar ningún backup code";
     }
 }
