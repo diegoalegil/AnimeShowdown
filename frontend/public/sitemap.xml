@@ -93,6 +93,24 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://animeshowdown.dev/privacidad</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://animeshowdown.dev/terminos</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://animeshowdown.dev/dmca</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://animeshowdown.dev/faq</loc>
     <lastmod>2026-05-16</lastmod>
     <changefreq>monthly</changefreq>
