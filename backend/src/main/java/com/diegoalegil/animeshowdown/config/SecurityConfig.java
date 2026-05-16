@@ -75,6 +75,11 @@ public class SecurityConfig {
                         // saber a qué usuario pertenecen los desbloqueos.
                         .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
                         .requestMatchers("/api/logros/mios").authenticated()
+                        // Plan v2 §4.3: reactions emoji. GET público (todos
+                        // ven los counts); POST autenticado (1 reaction por
+                        // user-target con lógica toggle/swap en el service).
+                        .requestMatchers(HttpMethod.GET, "/api/reacciones").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/reacciones").authenticated()
                         // OG images server-side (Plan v2 §1.2): los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()
