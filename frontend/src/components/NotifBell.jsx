@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, CheckCheck, Inbox, Trophy } from 'lucide-react'
+import { Award, Bell, CheckCheck, Inbox, Trophy, UserPlus } from 'lucide-react'
 import {
   useMarcarLeida,
   useMarcarTodasLeidas,
@@ -73,6 +74,7 @@ function NotifDropdown({ onClose }) {
   const { data, isLoading } = useNotificaciones({ size: 10 })
   const marcarLeida = useMarcarLeida()
   const marcarTodasLeidas = useMarcarTodasLeidas()
+  const navigate = useNavigate()
 
   const items = data?.content ?? []
   const hayNoLeidas = items.some((n) => !n.leida)
@@ -119,6 +121,8 @@ function NotifDropdown({ onClose }) {
                 notif={n}
                 onClick={() => {
                   if (!n.leida) marcarLeida.mutate(n.id)
+                  const target = enlaceDeNotif(n)
+                  if (target) navigate(target)
                   onClose()
                 }}
               />
@@ -134,7 +138,27 @@ const tipoIcono = {
   BIENVENIDA: Trophy,
   TORNEO_INICIADO: Trophy,
   TORNEO_FINALIZADO: Trophy,
+  BADGE_DESBLOQUEADO: Award,
+  SEGUIDOR_NUEVO: UserPlus,
   SISTEMA: Bell,
+}
+
+/**
+ * Devuelve la ruta a la que debe navegar el click sobre una notif, o
+ * null si no tiene navegación (en cuyo caso solo se marca como leída).
+ * El payload viene como JSON-string; lo parseamos defensivamente porque
+ * notificaciones viejas pueden no traer todos los campos.
+ */
+function enlaceDeNotif(notif) {
+  if (notif.tipo !== 'SEGUIDOR_NUEVO') return null
+  if (!notif.payload) return null
+  try {
+    const datos = JSON.parse(notif.payload)
+    const username = datos?.seguidorUsername
+    return username ? `/u/${encodeURIComponent(username)}` : null
+  } catch {
+    return null
+  }
 }
 
 function NotifItem({ notif, onClick }) {
