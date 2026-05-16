@@ -85,7 +85,6 @@ function imgFolderPlugin() {
       }
       walk(IMG_SRC, outDir)
       // Log visible en build para detectar regresiones rápido.
-      // eslint-disable-next-line no-console
       console.log(`[img-folder] copiadas ${copied} imágenes a ${basename(outDir)}/`)
     },
   }

@@ -261,10 +261,4 @@ function Stat({ label, value, accent }) {
   )
 }
 
-function recortar(texto, max) {
-  if (!texto) return ''
-  if (texto.length <= max) return texto
-  return texto.slice(0, max).trim() + '…'
-}
-
 export default PersonajeDetailPage
