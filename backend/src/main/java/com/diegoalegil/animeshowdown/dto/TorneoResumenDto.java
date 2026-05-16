@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 
@@ -29,6 +30,14 @@ public class TorneoResumenDto {
     private Integer totalRondas;
     private Integer rondaActual;
     private String ganadorSlug;
+
+    /**
+     * Primeros 5 participantes (de ronda 1) para que el TorneoCard del
+     * listado pueda mostrar el circulito de avatares sin tener que pedir
+     * el detalle de cada torneo. Si la ronda 1 tiene menos de 5 matches,
+     * el array trae lo que haya.
+     */
+    private List<PersonajeMiniDto> avataresPrincipales;
 
     public TorneoResumenDto() {
     }
@@ -127,5 +136,13 @@ public class TorneoResumenDto {
 
     public void setGanadorSlug(String ganadorSlug) {
         this.ganadorSlug = ganadorSlug;
+    }
+
+    public List<PersonajeMiniDto> getAvataresPrincipales() {
+        return avataresPrincipales;
+    }
+
+    public void setAvataresPrincipales(List<PersonajeMiniDto> avataresPrincipales) {
+        this.avataresPrincipales = avataresPrincipales;
     }
 }
