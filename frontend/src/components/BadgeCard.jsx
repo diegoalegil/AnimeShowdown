@@ -106,7 +106,7 @@ function BadgeCard({ logro }) {
         {desbloqueado && kanjiDeBadge(logro.codigo) && (
           <span
             aria-hidden="true"
-            className={`absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-bg px-1 font-mono text-[10px] font-bold leading-none ${style.icono}`}
+            className={`font-jp absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-bg px-1 text-[10px] leading-none ${style.icono}`}
           >
             {kanjiDeBadge(logro.codigo)}
           </span>
