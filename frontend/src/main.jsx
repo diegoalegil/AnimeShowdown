@@ -7,6 +7,7 @@ import { SoundProvider } from './contexts/SoundContext.jsx'
 import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import { queryClient } from './lib/queryClient.js'
 import { initSentry } from './lib/sentry.js'
+import { initWebVitals } from './lib/vitals.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
 import App from './App.jsx'
@@ -14,6 +15,10 @@ import App from './App.jsx'
 // Bootstrap Sentry antes de montar React. No-op si VITE_SENTRY_DSN no está
 // definida (dev local sin .env). Plan v2 §3.7.
 initSentry()
+
+// Web Vitals → Sentry measurements. En dev sin DSN solo log a consola.
+// Plan v2 §3.8.
+initWebVitals()
 
 // QueryClientProvider envuelve el árbol entero para que cualquier
 // página/componente pueda usar useQuery sin pasar props. El cliente vive
