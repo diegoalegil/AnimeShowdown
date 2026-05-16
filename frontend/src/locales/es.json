@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "inicio": "Inicio",
+    "personajes": "Personajes",
+    "animes": "Animes",
+    "torneos": "Torneos",
+    "votar": "Votar",
+    "higherOrLower": "Higher or Lower",
+    "ranking": "Ranking",
+    "login": "Login",
+    "perfil": "Mi perfil",
+    "admin": "Admin",
+    "salir": "Salir"
+  },
+  "header": {
+    "cambiarTema": "Cambiar paleta de color",
+    "silenciar": "Silenciar sonidos",
+    "activarSonidos": "Activar sonidos",
+    "paletaToast": "Paleta: {{nombre}}",
+    "idioma": "Idioma",
+    "elegirIdioma": "Elegir idioma"
+  },
+  "footer": {
+    "creadoPor": "Creado con 🍣 por",
+    "newsletter": "Newsletter",
+    "newsletterIntro": "Recibe los próximos torneos y rankings en tu email. Cero spam, una vez por semana.",
+    "newsletterEmailLabel": "Email",
+    "newsletterEmailPlaceholder": "tu@correo.com",
+    "newsletterSubmit": "Suscribirme",
+    "newsletterEnviando": "Enviando…",
+    "newsletterRevisa": "Revisa tu bandeja",
+    "newsletterRevisaDesc": "Te hemos enviado un email con un link para confirmar. Pincha en él y listo.",
+    "newsletterReintentar": "Suscribir otro correo",
+    "legales": "Legales",
+    "privacidad": "Privacidad",
+    "terminos": "Términos",
+    "contacto": "Contacto"
+  },
+  "inicio": {
+    "tagline": "Bracket de personajes",
+    "tituloLinea1": "¿Quién gana en",
+    "tituloLinea2": "tu anime favorito?",
+    "subtitulo": "Vota uno a uno en brackets cara a cara. Predice quién pasa de ronda y desbloquea logros. El ranking ELO actualizado al instante.",
+    "ctaPrimario": "Empezar a votar",
+    "ctaSecundario": "Ver torneos en curso",
+    "kpiPersonajes": "personajes en catálogo",
+    "kpiTorneos": "torneos completados",
+    "kpiVotos": "votos contabilizados",
+    "comoFunciona": "Cómo funciona",
+    "comoFuncionaSub": "Tres pasos para ponerle datos a tus discusiones de anime.",
+    "paso1Titulo": "Vota",
+    "paso1Desc": "Cada match enfrenta a dos personajes. Pulsa el ganador y AnimeShowdown actualiza el ELO de ambos al instante.",
+    "paso2Titulo": "Predice",
+    "paso2Desc": "Cuando un torneo está activo, predice quién avanza en cada bracket. Acumula racha de aciertos y desbloquea badges.",
+    "paso3Titulo": "Compara",
+    "paso3Desc": "Mira el ranking global, filtra por anime y compárate con otros usuarios desde su perfil público."
+  },
+  "torneos": {
+    "tituloPagina": "Torneos",
+    "subtitulo": "Brackets cara a cara entre los personajes del catálogo. Pulsa cualquier torneo para ver el roster completo y el estado de cada enfrentamiento.",
+    "crearCta": "Crea tu torneo",
+    "contadorPlural": "{{count}} torneos",
+    "contadorSingular": "{{count}} torneo",
+    "loading": "…",
+    "errorLoad": "No se pudieron cargar los torneos. {{error}}",
+    "errorFallback": "Inténtalo de nuevo en unos segundos.",
+    "vacio": "Aún no hay torneos activos. El cron de auto-torneos genera uno nuevo cada 3 días."
+  },
+  "votar": {
+    "tituloPagina": "Votar",
+    "subtituloPagina": "Elige quién gana en cada enfrentamiento."
+  },
+  "ranking": {
+    "tituloPagina": "Ranking",
+    "subtituloPagina": "Los personajes mejor valorados por la comunidad."
+  },
+  "personajes": {
+    "tituloPagina": "Personajes",
+    "subtituloPagina": "Catálogo completo con stats de cada anime."
+  },
+  "comun": {
+    "cargando": "Cargando…",
+    "cancelar": "Cancelar",
+    "guardar": "Guardar",
+    "enviar": "Enviar",
+    "cerrar": "Cerrar",
+    "volverInicio": "Volver al inicio",
+    "verMas": "Ver más"
+  }
+}
