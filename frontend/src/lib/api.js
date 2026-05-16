@@ -232,6 +232,17 @@ export const endpoints = {
     ),
   regenerateBackupCodes: (codigo) =>
     api.post('/api/auth/2fa/backup-codes/regenerar', { codigo }),
+  // Notificaciones in-app (Plan v2 §2.13).
+  notificaciones: ({ soloNoLeidas = false, page = 0, size = 20 } = {}) =>
+    api.get(
+      `/api/notificaciones?soloNoLeidas=${soloNoLeidas}&page=${page}&size=${size}`,
+    ),
+  notificacionesUnreadCount: () =>
+    api.get('/api/notificaciones/unread-count'),
+  notificacionMarcarLeida: (id) =>
+    api.post(`/api/notificaciones/${id}/leida`, undefined),
+  notificacionesMarcarTodasLeidas: () =>
+    api.post('/api/notificaciones/marcar-todas-leidas', undefined),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>
