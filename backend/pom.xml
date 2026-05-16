@@ -122,6 +122,16 @@
 			<artifactId>imageio-webp</artifactId>
 			<version>3.13.1</version>
 		</dependency>
+
+		<!-- Bucket4j para rate limiting in-memory (Plan v2 §2.1).
+		     Protege /auth/login, /auth/registro, /auth/forgot, /auth/reset
+		     y /enfrentamientos/*/votar contra ataques de fuerza bruta y
+		     spam de votos. Bandwidth compuesto: 5/min + 50/hora por IP. -->
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>8.10.1</version>
+		</dependency>
 	</dependencies>
 	
 	<build>
