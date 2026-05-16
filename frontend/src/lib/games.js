@@ -50,14 +50,19 @@ export function personajeDelDia(prefix = '', date = new Date()) {
 
 /**
  * 4 personajes del mismo anime + 1 impostor de otro anime, determinístico
- * por fecha. Si no hay 4 del mismo anime en el catálogo (anime pequeño),
- * cae al siguiente anime con ≥4 personajes.
+ * por fecha + salt. Si no hay 4 del mismo anime en el catálogo (anime
+ * pequeño), cae al siguiente anime con ≥4 personajes.
+ *
+ * <p>El parámetro {@code salt} permite generar rondas distintas en el
+ * mismo día — sin salt, las 3 rondas del Detector de Impostor daban el
+ * mismo anime/impostor/orden (bug). Llamando con salt="0","1","2" se
+ * obtienen 3 sets distintos pero estables para todos los visitantes.
  *
  * @returns {{anime: string, items: Array<{slug, nombre, anime, imagen, esImpostor: boolean}>}}
  *          o null si el catálogo no permite la ronda (debería pasar nunca con 642 personajes).
  */
-export function impostorDelDia(date = new Date()) {
-  const seed = `impostor:${fechaDelDia(date)}`
+export function impostorDelDia(date = new Date(), salt = '') {
+  const seed = `impostor:${fechaDelDia(date)}:${salt}`
   const rand = mulberry32(djb2(seed))
 
   // Agrupa personajes por anime y filtra a animes con ≥4.

@@ -59,10 +59,12 @@ function ImpostorPage() {
     const out = []
     const hoy = new Date()
     for (let r = 0; r < RONDAS_POR_DIA; r++) {
-      // Offset por ronda restando segundos al día base — el seed cambia
-      // por ronda pero queda determinístico para el mismo día.
-      const seedDate = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, r)
-      out.push(impostorDelDia(seedDate))
+      // El salt String(r) garantiza que cada ronda del mismo día tiene
+      // anime + impostor + orden de cartas distintos pero determinísticos
+      // para todos los visitantes. Antes pasaba seedDate con segundos
+      // distintos pero fechaDelDia solo lee Y/M/D, así que las 3 rondas
+      // daban el mismo set — bug reportado el 16/05/2026.
+      out.push(impostorDelDia(hoy, String(r)))
     }
     return out.filter(Boolean)
   }, [])
