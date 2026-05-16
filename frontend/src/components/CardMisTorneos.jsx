@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { Inbox, Sparkles, Trophy } from 'lucide-react'
+import { Sparkles, Trophy } from 'lucide-react'
 import { useMisTorneos } from '../hooks/useTorneosCreados'
+import { pickVacio } from './Kaomoji'
 
 /**
  * Card "Mis torneos" del perfil (Plan v2 §4.9).
@@ -35,7 +36,9 @@ function CardMisTorneos() {
         </div>
       ) : !torneos || torneos.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-6 text-center text-fg-muted">
-          <Inbox className="h-6 w-6" />
+          <p className="font-mono text-2xl text-fg-muted/80">
+            {pickVacio('mis-torneos')}
+          </p>
           <p className="text-[12px]">
             Aún no has creado ningún torneo. Elige tus 8 o 16 favoritos y
             ponlos a luchar.

@@ -1,6 +1,7 @@
-import { Heart, Inbox } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { usePerfilTop } from '../hooks/usePerfil'
+import { pickVacio } from './Kaomoji'
 
 /**
  * Card "Top personajes" del perfil (Plan v2 §4.1, §4.5).
@@ -40,7 +41,9 @@ function CardTop5({
         </div>
       ) : !top || top.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-6 text-fg-muted">
-          <Inbox className="h-6 w-6" />
+          <p className="font-mono text-2xl text-fg-muted/80">
+            {pickVacio('top5')}
+          </p>
           {mensajeVacio ? (
             <p className="text-[12px]">{mensajeVacio}</p>
           ) : (
