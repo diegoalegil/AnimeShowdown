@@ -19,7 +19,10 @@
   --animate-aurora-2: aurora-2 18s ease-in-out infinite;
   --animate-aurora-3: aurora-3 16s ease-in-out infinite;
   --animate-shimmer: shimmer 5s ease-in-out infinite;
-  --animate-marquee: marquee 70s linear infinite;
+  /* Marquee de 240s — antes 70s era ilegible: el catálogo tiene 642
+     personajes duplicados (1284 items) y a 70s cada nombre solo aparecía
+     ~55ms. A 240s da ~190ms por nombre, suficiente para leer al vuelo. */
+  --animate-marquee: marquee 240s linear infinite;
   --animate-pulse-halo: pulse-halo 2.4s ease-out infinite;
 }
 
