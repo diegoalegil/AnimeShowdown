@@ -1,10 +1,25 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { endpoints, setToken, ApiError } from '../lib/api'
+import { endpoints, setToken, refreshSession, ApiError } from '../lib/api'
 import { playMagic } from '../lib/sounds'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
+
+/**
+ * Plan v2 §1.3 — sesión persistente vía refresh cookie httpOnly:
+ *
+ *   1. Al montar, llamamos refreshSession() — el backend intenta rotar el
+ *      refresh_token cookie (si existe) y devuelve un JWT corto + datos
+ *      del usuario. Si funciona, el usuario queda logueado sin volver
+ *      a pedirle pass.
+ *   2. login/register guardan el JWT en memoria (api.js) y persisten
+ *      una copia ligera del user en localStorage (solo para UX:
+ *      enseñar el avatar antes del primer refresh). El JWT NO va a
+ *      localStorage — protegido contra XSS.
+ *   3. logout llama POST /api/auth/logout para que el backend revoque
+ *      la entrada y limpie la cookie del navegador.
+ */
 
 function buildLocalUser(payload) {
   if (!payload) return null
@@ -50,6 +65,9 @@ function describeError(err) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
+    // Carga optimista del localStorage para evitar flash de "invitado" antes
+    // de que termine el primer refresh. Si el refresh falla luego, este
+    // estado se limpia.
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       return stored ? JSON.parse(stored) : null
@@ -57,6 +75,29 @@ export function AuthProvider({ children }) {
       return null
     }
   })
+
+  // Bootstrap del refresh al montar. Si la cookie está viva, conseguimos
+  // un JWT fresco y mantenemos la sesión. Si no, el user optimista se
+  // limpia y aparece como invitado.
+  useEffect(() => {
+    let cancelled = false
+    refreshSession().then((data) => {
+      if (cancelled) return
+      if (data?.token && data.usuario) {
+        // refreshSession ya pone el token en memoria; solo actualizamos el user.
+        setUser(buildLocalUser(data.usuario))
+      } else if (user) {
+        // Había user optimista pero el refresh falló → la cookie ya no es
+        // válida. Forzamos logout local.
+        setUser(null)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+    // Solo al montar. Si user cambia más tarde no queremos re-disparar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -109,7 +150,16 @@ export function AuthProvider({ children }) {
     setUser((prev) => (prev ? { ...prev, ...partial } : prev))
   }
 
-  const logout = () => {
+  const logout = async () => {
+    // Notificamos al backend para revocar el refresh y limpiar la cookie.
+    // Si falla la red lo loggeamos pero seguimos limpiando local — el
+    // usuario espera que "Cerrar sesión" funcione siempre.
+    try {
+      await endpoints.logout()
+    } catch (err) {
+      // ignore: revocación best-effort; el JWT en memoria se va a la papelera.
+      console.debug('logout backend falló (ignored):', err?.message)
+    }
     setUser(null)
     setToken(null)
     toast('Hasta pronto', { description: 'Sesión cerrada.' })
