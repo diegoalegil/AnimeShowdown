@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { endpoints } from './api.js'
 import { queryKeys } from './queryClient.js'
+import { useStompSubscription } from '../hooks/useStompSubscription.js'
 
 /**
  * Mapping del enum del backend (SCHEDULED/IN_PROGRESS/FINISHED) a las
@@ -47,25 +49,49 @@ export function useTorneos() {
 /**
  * Detalle de un torneo por slug (TorneoDetalleDto incluye `enfrentamientos`).
  *
- * Polling: si el torneo está IN_PROGRESS hacemos refetch cada 30s para captar
- * cambios de ronda en vivo sin necesidad de WebSocket (Plan v2 §1.1 — el
- * WS proper llega en Bloque 2.13). Para SCHEDULED y FINISHED no hace falta:
- * SCHEDULED es estático hasta que admin lo inicie, FINISHED es inmutable.
+ * Doble canal de updates (Plan v2 §2.13):
+ *   1. Polling 30s mientras el torneo está IN_PROGRESS (fallback si el WS
+ *      no conecta — proxies corporativos, mobile en red mala, etc).
+ *   2. WebSocket STOMP suscrito a /topic/torneo.{id}.bracket: cuando alguien
+ *      vota, el server pushea un BracketUpdateEvent y aquí invalidamos la
+ *      query para refetch instantáneo. Sin esperar a la siguiente vuelta
+ *      del polling.
  *
  * El refetchInterval se ajusta solo viendo data.estado, así que un torneo
  * pasa automáticamente de "no polling" a "polling 30s" cuando admin lo
  * inicia, sin remontar el componente.
  */
 export function useTorneoBySlug(slug) {
-  return useQuery({
+  const queryClient = useQueryClient()
+  const query = useQuery({
     queryKey: queryKeys.torneoBySlug(slug),
     queryFn: () => endpoints.torneoBySlug(slug),
     enabled: Boolean(slug),
-    refetchInterval: (query) => {
-      const data = query.state.data
+    refetchInterval: (q) => {
+      const data = q.state.data
       return data?.estado === 'IN_PROGRESS' ? 30_000 : false
     },
   })
+
+  // Suscripción WS solo si tenemos id de torneo y está IN_PROGRESS. Para
+  // SCHEDULED no hay votos, para FINISHED no hay cambios.
+  const torneoId = query.data?.id
+  const estaEnCurso = query.data?.estado === 'IN_PROGRESS'
+  const destination =
+    torneoId && estaEnCurso ? `/topic/torneo.${torneoId}.bracket` : null
+  const { lastMessage } = useStompSubscription(destination)
+
+  useEffect(() => {
+    if (!lastMessage || !slug) return
+    // Recibimos { torneoId, enfrentamientoId, conteos... }. Invalidamos la
+    // query: el cache se marcará stale y se refetch automáticamente — más
+    // simple y robusto que reconciliar conteos manualmente con setQueryData,
+    // porque el refetch trae también ganador/ronda actualizados si el match
+    // se cerró por el voto.
+    queryClient.invalidateQueries({ queryKey: queryKeys.torneoBySlug(slug) })
+  }, [lastMessage, queryClient, slug])
+
+  return query
 }
 
 /**
