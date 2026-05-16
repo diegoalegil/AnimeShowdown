@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -32,6 +32,16 @@ const containerVariants = {
   },
 }
 
+function generarRondas(salt = '') {
+  const out = []
+  const hoy = new Date()
+  for (let r = 0; r < RONDAS_POR_DIA; r++) {
+    const ronda = impostorDelDia(hoy, `${salt}${r}`)
+    if (ronda) out.push(ronda)
+  }
+  return out
+}
+
 /**
  * Detector de Impostor — Daily (Plan v2 §14.5).
  *
@@ -55,25 +65,17 @@ function ImpostorPage() {
       '5 cartas de anime, 4 del mismo, 1 intrusa. Pulsa el impostor antes de que pase el tiempo. 3 rondas al día.',
   })
 
-  const rondas = useMemo(() => {
-    const out = []
-    const hoy = new Date()
-    for (let r = 0; r < RONDAS_POR_DIA; r++) {
-      // El salt String(r) garantiza que cada ronda del mismo día tiene
-      // anime + impostor + orden de cartas distintos pero determinísticos
-      // para todos los visitantes. Antes pasaba seedDate con segundos
-      // distintos pero fechaDelDia solo lee Y/M/D, así que las 3 rondas
-      // daban el mismo set — bug reportado el 16/05/2026.
-      out.push(impostorDelDia(hoy, String(r)))
-    }
-    return out.filter(Boolean)
-  }, [])
-
+  // Rondas en useState (no useMemo) para que jugarOtra pueda regenerarlas
+  // con salt distinto sin cambiar el daily. El daily usa salt=String(r),
+  // los extras usan salt único por tirada.
+  const [rondas, setRondas] = useState(() => generarRondas())
+  const [esExtra, setEsExtra] = useState(false)
   const [estado, setEstado] = useState(() => loadEstado())
   const rondaActual = rondas[estado.rondaIdx]
   const finalizadoDia = estado.rondaIdx >= rondas.length
 
   useEffect(() => {
+    if (esExtra) return
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
@@ -82,7 +84,7 @@ function ImpostorPage() {
         resultados: estado.resultados,
       }),
     )
-  }, [estado])
+  }, [estado, esExtra])
 
   const handleEleccion = (item) => {
     if (finalizadoDia || !rondaActual) return
@@ -98,9 +100,16 @@ function ImpostorPage() {
     }))
   }
 
-  const handleReset = () => {
-    if (!confirm('¿Reiniciar el día?')) return
-    setEstado(loadEstado(true))
+  const jugarOtra = () => {
+    setRondas(generarRondas(`extra-${Date.now()}-`))
+    setEsExtra(true)
+    setEstado({ rondaIdx: 0, resultados: [] })
+  }
+
+  const volverAlDaily = () => {
+    setRondas(generarRondas())
+    setEsExtra(false)
+    setEstado(loadEstado())
   }
 
   return (
@@ -154,6 +163,7 @@ function ImpostorPage() {
           <PanelResultado
             resultados={estado.resultados}
             rondas={rondas}
+            esExtra={esExtra}
           />
         )}
 
@@ -164,15 +174,24 @@ function ImpostorPage() {
         />
 
         {finalizadoDia && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted transition-colors hover:text-accent"
+              onClick={jugarOtra}
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
             >
-              <RotateCcw className="h-3 w-3" />
-              Reiniciar (solo para testear)
+              <RotateCcw className="h-4 w-4" />
+              Jugar otra ronda
             </button>
+            {esExtra && (
+              <button
+                type="button"
+                onClick={volverAlDaily}
+                className="inline-flex items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-accent"
+              >
+                Volver al Daily
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -251,12 +270,12 @@ function ProgresoRondas({ rondaActual, resultados, total }) {
   )
 }
 
-function PanelResultado({ resultados }) {
+function PanelResultado({ resultados, esExtra }) {
   const aciertos = resultados.filter(Boolean).length
   const total = resultados.length
   const squares = resultados.map((r) => (r ? '🟩' : '🟥')).join('')
 
-  const texto = `🕵️ Detector de Impostor — ${fechaDelDia()}\n${aciertos}/${total} aciertos  ${squares}\nanimeshowdown.dev/games/impostor`
+  const texto = `🕵️ Detector de Impostor — ${fechaDelDia()}${esExtra ? ' (Extra)' : ''}\n${aciertos}/${total} aciertos  ${squares}\nanimeshowdown.dev/games/impostor`
 
   const compartir = async () => {
     try {
