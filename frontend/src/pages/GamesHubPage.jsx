@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, Gamepad2, Grid3X3, Sparkles, Type } from 'lucide-react'
+import { Eye, Gamepad2, Grid3X3, Sparkles, TrendingUp, Type } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -63,6 +63,14 @@ const GAMES = [
     desc: '4 personajes del mismo anime + 1 impostor de otro. Identifícalo antes de que pasen los 15s.',
     sub: '3 rondas al día',
   },
+  {
+    to: '/higher-or-lower',
+    icon: TrendingUp,
+    color: 'cyan',
+    titulo: 'Higher or Lower',
+    desc: '¿Quién tiene más ELO entre estos dos personajes? Adivina seguido y construye tu racha.',
+    sub: 'Endless · sin límite',
+  },
 ]
 
 const PILL_COLORS = {
@@ -70,6 +78,7 @@ const PILL_COLORS = {
   amber: 'border-amber-500/40 bg-amber-500/10 text-amber-200',
   emerald: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200',
   purple: 'border-purple-500/40 bg-purple-500/10 text-purple-200',
+  cyan: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-200',
 }
 
 function GamesHubPage() {
