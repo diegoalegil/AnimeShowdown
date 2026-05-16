@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,10 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
+import com.diegoalegil.animeshowdown.dto.PersonajeMiniDto;
 import com.diegoalegil.animeshowdown.dto.TorneoDetalleDto;
 import com.diegoalegil.animeshowdown.dto.TorneoResumenDto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
+import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
@@ -118,7 +121,30 @@ public class TorneoQueryService {
         dto.setNumParticipantes((int) (matchesRonda1 * 2));
         dto.setRondaActual(calcularRondaActual(t.getEstado(), totalRondas, matches));
         dto.setGanadorSlug(calcularGanadorSlug(t, totalRondas, matches));
+        dto.setAvataresPrincipales(calcularAvataresPrincipales(matches));
         return dto;
+    }
+
+    /**
+     * Primeros 5 personajes únicos de los matches de ronda 1, en orden de
+     * inserción. Si la ronda 1 tiene menos, devuelve lo que haya. Sirve al
+     * frontend para pintar el circulito de avatares en el listado sin
+     * pedir el detalle de cada torneo.
+     */
+    private List<PersonajeMiniDto> calcularAvataresPrincipales(List<Enfrentamiento> matches) {
+        List<PersonajeMiniDto> avatares = new ArrayList<>();
+        for (Enfrentamiento m : matches) {
+            if (!Integer.valueOf(1).equals(m.getRonda())) continue;
+            agregarAvatar(avatares, m.getPersonaje1());
+            agregarAvatar(avatares, m.getPersonaje2());
+            if (avatares.size() >= 5) break;
+        }
+        return avatares;
+    }
+
+    private void agregarAvatar(List<PersonajeMiniDto> avatares, Personaje p) {
+        if (p == null || avatares.size() >= 5) return;
+        avatares.add(PersonajeMiniDto.from(p));
     }
 
     private Integer calcularRondaActual(EstadoTorneo estado, int totalRondas, List<Enfrentamiento> matches) {
