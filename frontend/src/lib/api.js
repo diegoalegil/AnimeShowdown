@@ -134,9 +134,24 @@ export const endpoints = {
   personaje: (id) => api.get(`/api/personajes/${id}`),
   createPersonaje: (data) => api.post('/api/personajes', data),
   deletePersonaje: (id) => api.del(`/api/personajes/${id}`),
+  // Listado de torneos en formato TorneoResumenDto (Plan v2 §1.1):
+  // id, slug, nombre, estado, fechas, numParticipantes, totalRondas,
+  // rondaActual, ganadorSlug. Sin enfrentamientos — para eso usar
+  // torneoBySlug.
   torneos: () => api.get('/api/torneos'),
   torneo: (id) => api.get(`/api/torneos/${id}`),
+  // Detalle por slug con bracket completo: TorneoDetalleDto. Es la ruta
+  // canonical que consume TorneoDetailPage (/torneos/[slug]) — coincide
+  // con la URL del frontend para que el polling y el cache sean limpios.
+  torneoBySlug: (slug) => api.get(`/api/torneos/slug/${slug}`),
   createTorneo: (data) => api.post('/api/torneos', data),
+  // Inicia el torneo y opcionalmente precomputa el bracket si pasas
+  // participantesIds. Sin ese array, solo cambia estado a IN_PROGRESS.
+  iniciarTorneo: (id, participantesIds) =>
+    api.put(
+      `/api/torneos/${id}/iniciar`,
+      participantesIds ? { participantesIds } : undefined,
+    ),
   // deleteTorneo eliminado: TorneoController no expone @DeleteMapping todavía,
   // si el frontend lo llamaba caía con 405. Se restaurará cuando se implemente backend-side.
   ranking: () => api.get('/api/votos/ranking'),
