@@ -84,6 +84,10 @@ public class SecurityConfig {
                         // público (top predictores); /mias y POST autenticados.
                         .requestMatchers(HttpMethod.GET, "/api/predicciones/leaderboard").permitAll()
                         .requestMatchers("/api/predicciones/**").authenticated()
+                        // Plan v2 §4.8: newsletter con double opt-in. Todo
+                        // público — form en footer y links de confirmación
+                        // /unsubscribe llegan al email del user sin auth.
+                        .requestMatchers("/api/newsletter/**").permitAll()
                         // OG images server-side (Plan v2 §1.2): los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()
