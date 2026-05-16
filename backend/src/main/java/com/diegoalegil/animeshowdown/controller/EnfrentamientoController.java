@@ -2,8 +2,12 @@ package com.diegoalegil.animeshowdown.controller;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
 import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
@@ -30,15 +35,20 @@ import org.springframework.beans.factory.annotation.Value;
 @RequestMapping("/api/enfrentamientos")
 public class EnfrentamientoController {
 
+    private static final Logger log = LoggerFactory.getLogger(EnfrentamientoController.class);
+
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final VotoRepository votoRepository;
+    private final SimpMessagingTemplate messaging;
     private final boolean requiereEmailVerificado;
 
     public EnfrentamientoController(EnfrentamientoRepository enfrentamientoRepository,
             VotoRepository votoRepository,
+            @Autowired(required = false) SimpMessagingTemplate messaging,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
+        this.messaging = messaging;
         this.requiereEmailVerificado = requiereEmailVerificado;
     }
 
@@ -101,6 +111,40 @@ public class EnfrentamientoController {
         Voto voto = new Voto(ganador, usuario, enf);
         Voto guardado = votoRepository.save(voto);
 
+        // Plan v2 §2.13: push del estado actualizado del match al topic del
+        // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
+        // sin esperar al polling. Best-effort: si falla no afecta al voto.
+        publicarBracketUpdate(enf);
+
         return ResponseEntity.ok(guardado);
+    }
+
+    /**
+     * Cuenta los votos actuales de cada personaje en el enfrentamiento y
+     * publica un {@link BracketUpdateEvent} al topic público del torneo.
+     */
+    private void publicarBracketUpdate(Enfrentamiento enf) {
+        if (messaging == null) return;
+        try {
+            Personaje p1 = enf.getPersonaje1();
+            Personaje p2 = enf.getPersonaje2();
+            long v1 = p1 == null ? 0 : votoRepository.countByEnfrentamientoAndPersonaje(enf, p1);
+            long v2 = p2 == null ? 0 : votoRepository.countByEnfrentamientoAndPersonaje(enf, p2);
+            BracketUpdateEvent ev = new BracketUpdateEvent(
+                    enf.getTorneo().getId(),
+                    enf.getId(),
+                    p1 == null ? null : p1.getId(),
+                    v1,
+                    p2 == null ? null : p2.getId(),
+                    v2,
+                    v1 + v2);
+            String topic = "/topic/torneo." + enf.getTorneo().getId() + ".bracket";
+            messaging.convertAndSend(topic, ev);
+        } catch (Exception e) {
+            // Best-effort: el voto ya está guardado. El cliente lo verá en
+            // el próximo polling 30s del fallback.
+            log.warn("Push WS bracket update falló: enf={} err={}",
+                    enf.getId(), e.getMessage());
+        }
     }
 }
