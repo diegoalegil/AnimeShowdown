@@ -65,7 +65,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/personajes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/torneos/mios").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").permitAll()
+                        // Plan v2 §4.9: torneos creados por usuario verificado.
+                        // POST /mio es autenticado normal; el service valida
+                        // la verificación de email. El resto de POST/PUT/DELETE
+                        // sobre /api/torneos sigue siendo admin-only.
+                        .requestMatchers(HttpMethod.POST, "/api/torneos/mio").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/torneos/**").hasRole("ADMIN")

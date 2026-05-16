@@ -13,6 +13,7 @@ import com.diegoalegil.animeshowdown.dto.PersonajeMiniDto;
 import com.diegoalegil.animeshowdown.dto.TorneoDetalleDto;
 import com.diegoalegil.animeshowdown.dto.TorneoResumenDto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
+import com.diegoalegil.animeshowdown.model.EstadoRevision;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
@@ -55,9 +56,15 @@ public class TorneoQueryService {
         this.votoRepository = votoRepository;
     }
 
+    /**
+     * Listado público filtrado por visibilidad (Plan v2 §4.9): solo torneos
+     * NO_APLICA (admin legacy) o APROBADO (revisado). Los PENDIENTES y
+     * RECHAZADOS no aparecen aquí — el creador los ve en /api/torneos/mios
+     * y el admin en /api/admin/torneos/pendientes.
+     */
     @Transactional(readOnly = true)
     public List<TorneoResumenDto> listarResumenes() {
-        return torneoRepository.findAll().stream()
+        return torneoRepository.findVisiblesPublico().stream()
                 .map(this::toResumen)
                 .toList();
     }
@@ -66,6 +73,13 @@ public class TorneoQueryService {
     public TorneoDetalleDto findBySlug(String slug) {
         Torneo torneo = torneoRepository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: slug=" + slug));
+        if (torneo.getEstadoRevision() == EstadoRevision.PENDIENTE
+                || torneo.getEstadoRevision() == EstadoRevision.RECHAZADO) {
+            // Slug existe pero el torneo no es visible al público — mismo
+            // 404 que si no existiera, para no filtrar metadatos del bracket
+            // pendiente a usuarios no autorizados.
+            throw new EntityNotFoundException("Torneo no encontrado: slug=" + slug);
+        }
         return toDetalle(torneo);
     }
 

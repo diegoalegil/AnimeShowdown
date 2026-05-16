@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,12 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest;
+import com.diegoalegil.animeshowdown.dto.TorneoCrearMioRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoDetalleDto;
 import com.diegoalegil.animeshowdown.dto.TorneoIniciarRequest;
+import com.diegoalegil.animeshowdown.dto.TorneoMioDto;
 import com.diegoalegil.animeshowdown.dto.TorneoResumenDto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.TorneoQueryService;
 import com.diegoalegil.animeshowdown.service.TorneoService;
 
@@ -75,6 +79,42 @@ public class TorneoController {
     @PostMapping
     public Torneo crear(@Valid @RequestBody TorneoCrearRequest request) {
         return torneoService.crear(request);
+    }
+
+    /**
+     * Crea un torneo a partir de un usuario verificado (Plan v2 §4.9).
+     * Bracket precomputado pero estado_revision=PENDIENTE hasta que admin
+     * apruebe. Hasta entonces, no aparece en GET /api/torneos público —
+     * solo en /api/torneos/mios del creador y /api/admin/torneos/pendientes.
+     */
+    @PostMapping("/mio")
+    public ResponseEntity<Torneo> crearMio(
+            @AuthenticationPrincipal Usuario creador,
+            @Valid @RequestBody TorneoCrearMioRequest request) {
+        if (creador == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Torneo guardado = torneoService.crearPorUsuario(creador, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
+    }
+
+    /**
+     * Lista los torneos creados por el usuario autenticado, en cualquier
+     * estado de revisión. Plan v2 §4.9: el creador debe ver sus PENDIENTES
+     * (esperando), APROBADOS (en juego) y RECHAZADOS (con motivo) para
+     * tener feedback claro del flujo de moderación.
+     */
+    @GetMapping("/mios")
+    public ResponseEntity<List<TorneoMioDto>> listarMios(
+            @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<TorneoMioDto> mios = torneoService.listarTorneosDelUsuario(usuario)
+                .stream()
+                .map(TorneoMioDto::from)
+                .toList();
+        return ResponseEntity.ok(mios);
     }
 
     /**

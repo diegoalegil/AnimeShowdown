@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.diegoalegil.animeshowdown.model.EstadoRevision;
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.model.Usuario;
 
 public interface TorneoRepository extends JpaRepository<Torneo, Long> {
 
@@ -45,4 +47,24 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
         List<Torneo> resultados = findAutoTorneosDesde(prefix, desde);
         return resultados.isEmpty() ? Optional.empty() : Optional.of(resultados.get(0));
     }
+
+    /**
+     * Listado público: solo torneos visibles para todos — los creados por
+     * admin (NO_APLICA) y los aprobados por moderación. Excluye PENDIENTE
+     * (en cola) y RECHAZADO (rebotados), que solo son visibles para el
+     * creador en "Mis torneos" o para admin en la cola.
+     */
+    @Query("""
+            SELECT t FROM Torneo t
+            WHERE t.estadoRevision IN (
+                com.diegoalegil.animeshowdown.model.EstadoRevision.NO_APLICA,
+                com.diegoalegil.animeshowdown.model.EstadoRevision.APROBADO)
+            """)
+    List<Torneo> findVisiblesPublico();
+
+    /** Cola admin: pendientes en orden de llegada (FIFO). */
+    List<Torneo> findByEstadoRevisionOrderByFechaCreacionAsc(EstadoRevision estado);
+
+    /** Listado del propio creador, todos los estados, más recientes primero. */
+    List<Torneo> findByCreadoPorOrderByFechaCreacionDesc(Usuario creador);
 }

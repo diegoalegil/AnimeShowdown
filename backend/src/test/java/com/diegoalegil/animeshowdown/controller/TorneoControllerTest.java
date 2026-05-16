@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,6 +40,12 @@ class TorneoControllerTest {
 
     @Autowired
     private ObjectMapper json;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PersonajeRepository personajeRepository;
 
     /**
      * Asegura un user con esas credenciales (idempotente entre tests). Si ya existe
@@ -180,6 +190,136 @@ class TorneoControllerTest {
         mvc.perform(put("/api/torneos/9999999/iniciar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
+    }
+
+    private String tokenUserVerificado(String username, String email) throws Exception {
+        String token = tokenUserRegistrado(username, email);
+        // Plan v2 §2.4: registros nacen PENDIENTE. Para el flow §4.9 el user
+        // necesita estar verificado — lo flippeamos directo en DB en el test.
+        var u = usuarioRepository.findByUsername(username).orElseThrow();
+        u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
+        usuarioRepository.save(u);
+        return token;
+    }
+
+    private List<Long> primerosNPersonajes(int n) {
+        return personajeRepository.findAll().stream()
+                .limit(n)
+                .map(p -> p.getId())
+                .toList();
+    }
+
+    @Test
+    void crearMioSinAuthDevuelve403() throws Exception {
+        mvc.perform(post("/api/torneos/mio")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Anon torneo",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void crearMioConUserNoVerificadoDevuelve400() throws Exception {
+        String token = tokenUserRegistrado("user_no_verif_torneo", "user_no_verif_torneo@example.com");
+
+        mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Mi torneo pendiente verif",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void crearMioCon7PersonajesDevuelve400() throws Exception {
+        String token = tokenUserVerificado("user_7_pers", "user_7_pers@example.com");
+
+        mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Numero raro",
+                        "participantesIds", primerosNPersonajes(7)))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void crearMioCon8PersonajesDevuelve201YPendiente() throws Exception {
+        String token = tokenUserVerificado("user_torneo_mio", "user_torneo_mio@example.com");
+
+        mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Mi primer torneo",
+                        "descripcion", "Probando creacion por user",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.nombre").value("Mi primer torneo"))
+                .andExpect(jsonPath("$.estadoRevision").value("PENDIENTE"))
+                .andExpect(jsonPath("$.estado").value("SCHEDULED"));
+    }
+
+    @Test
+    void torneoMioPendienteNoAparece_enListadoPublico() throws Exception {
+        String token = tokenUserVerificado("user_torneo_oculto", "user_torneo_oculto@example.com");
+
+        MvcResult res = mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Torneo invisible",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String slugCreado = json.readTree(res.getResponse().getContentAsString())
+                .get("slug").asText();
+
+        // El listado público no incluye torneos PENDIENTES.
+        MvcResult listado = mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode arr = json.readTree(listado.getResponse().getContentAsString());
+        boolean encontrado = false;
+        for (JsonNode t : arr) {
+            if (slugCreado.equals(t.get("slug").asText())) encontrado = true;
+        }
+        org.junit.jupiter.api.Assertions.assertFalse(encontrado,
+                "Torneo PENDIENTE no debería estar en /api/torneos público");
+
+        // Y findBySlug devuelve 404 mientras esté PENDIENTE.
+        mvc.perform(get("/api/torneos/slug/" + slugCreado))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void misTorneosDevuelveTorneosDelCreadorConEstadoRevision() throws Exception {
+        String token = tokenUserVerificado("user_mios_test", "user_mios_test@example.com");
+
+        mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Mio para listar",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated());
+
+        mvc.perform(get("/api/torneos/mios")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nombre").value("Mio para listar"))
+                .andExpect(jsonPath("$[0].estadoRevision").value("PENDIENTE"));
+    }
+
+    @Test
+    void misTorneosSinAuthDevuelveForbidden() throws Exception {
+        mvc.perform(get("/api/torneos/mios"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
