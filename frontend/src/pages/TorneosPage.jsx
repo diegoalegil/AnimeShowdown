@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Sparkles } from 'lucide-react'
 import TorneoCard from '../components/TorneoCard'
 import { useTorneos } from '../lib/torneosQueries'
@@ -16,7 +17,8 @@ const headerVariants = {
 }
 
 function TorneosPage() {
-  useDocumentTitle('Torneos')
+  const { t } = useTranslation()
+  useDocumentTitle(t('torneos.tituloPagina'))
   const { data: torneos, isLoading, isError, error } = useTorneos()
   const { user } = useAuth()
 
@@ -30,21 +32,21 @@ function TorneosPage() {
           variants={headerVariants}
         >
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            {isLoading ? '…' : `${torneos?.length ?? 0} torneos`}
+            {isLoading
+              ? t('torneos.loading')
+              : t('torneos.contadorPlural', { count: torneos?.length ?? 0 })}
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            Torneos
+            {t('torneos.tituloPagina')}
           </h1>
-          <p className="max-w-2xl text-fg-muted">
-            Brackets cara a cara entre los personajes del catálogo. Pulsa cualquier torneo para ver el roster completo y el estado de cada enfrentamiento.
-          </p>
+          <p className="max-w-2xl text-fg-muted">{t('torneos.subtitulo')}</p>
           {user && (
             <Link
               to="/torneos/crear"
               className="mt-2 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
             >
               <Sparkles className="h-4 w-4" />
-              Crea tu torneo
+              {t('torneos.crearCta')}
             </Link>
           )}
         </motion.header>
@@ -55,12 +57,14 @@ function TorneosPage() {
         )}
         {isError && (
           <p className="rounded-lg border border-border bg-surface p-4 text-fg-muted">
-            No se pudieron cargar los torneos. {error?.message || 'Inténtalo de nuevo en unos segundos.'}
+            {t('torneos.errorLoad', {
+              error: error?.message || t('torneos.errorFallback'),
+            })}
           </p>
         )}
         {!isLoading && !isError && torneos && torneos.length === 0 && (
           <p className="rounded-lg border border-border bg-surface p-4 text-fg-muted">
-            Aún no hay torneos activos. El cron de auto-torneos genera uno nuevo cada 3 días.
+            {t('torneos.vacio')}
           </p>
         )}
         {!isLoading && !isError && torneos && torneos.length > 0 && (

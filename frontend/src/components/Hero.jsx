@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowRight, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useSound } from '../contexts/SoundContext'
@@ -35,6 +36,7 @@ const logoVariants = {
 
 function Hero() {
   const { play } = useSound()
+  const { t } = useTranslation()
   return (
     <section className="relative flex min-h-[80vh] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
       <div
@@ -65,20 +67,20 @@ function Hero() {
           className="text-[clamp(2.25rem,6vw,4rem)] leading-[1.05] tracking-tight"
           variants={itemVariants}
         >
-          Vota a tus personajes de{' '}
+          {t('hero.tituloAntes')}{' '}
           <span
             className="bg-gradient-to-r from-accent via-fuchsia-400 to-pink-300 bg-clip-text text-transparent animate-shimmer"
             style={{ backgroundSize: '200% auto' }}
           >
-            anime
+            {t('hero.tituloAnime')}
           </span>
-          {' '}favoritos
+          {' '}{t('hero.tituloDespues')}
         </motion.h1>
         <motion.p
           className="max-w-xl text-[clamp(0.9375rem,1.6vw,1.125rem)] leading-relaxed text-fg-muted"
           variants={itemVariants}
         >
-          Torneos cara a cara, brackets visuales y rankings ELO en vivo. Quédate con el campeón del próximo bracket.
+          {t('hero.subtitulo')}
         </motion.p>
         <motion.div
           className="mt-2 flex flex-wrap justify-center gap-3"
@@ -89,7 +91,7 @@ function Hero() {
             onClick={() => play('playClick')}
             className="group inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all animate-pulse-halo hover:-translate-y-0.5 hover:bg-accent-hover"
           >
-            Explora torneos
+            {t('hero.ctaTorneos')}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
@@ -98,7 +100,7 @@ function Hero() {
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-5 py-3 text-sm font-semibold text-fg-strong backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
           >
             <TrendingUp className="h-4 w-4" />
-            Ver ranking
+            {t('hero.ctaRanking')}
           </Link>
         </motion.div>
       </motion.div>
