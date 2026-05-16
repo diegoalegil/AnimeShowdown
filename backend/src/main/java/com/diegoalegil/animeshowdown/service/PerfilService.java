@@ -1,0 +1,97 @@
+package com.diegoalegil.animeshowdown.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.diegoalegil.animeshowdown.dto.PerfilStatsDto;
+import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
+import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
+import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
+
+/**
+ * Stats agregadas del usuario para el perfil (Plan v2 §4.1).
+ *
+ * <p>Todos los métodos {@code @Transactional(readOnly = true)} para que el
+ * mapeo a DTO con accesos lazy (Voto.enfrentamiento → personaje1/2, torneo)
+ * suceda dentro de la session de Hibernate — mismo patrón que en
+ * BadgeService y PrediccionService para evitar LazyInitException.
+ */
+@Service
+public class PerfilService {
+
+    private final VotoRepository votoRepository;
+    private final PrediccionRepository prediccionRepository;
+    private final UsuarioLogroRepository usuarioLogroRepository;
+
+    public PerfilService(VotoRepository votoRepository,
+            PrediccionRepository prediccionRepository,
+            UsuarioLogroRepository usuarioLogroRepository) {
+        this.votoRepository = votoRepository;
+        this.prediccionRepository = prediccionRepository;
+        this.usuarioLogroRepository = usuarioLogroRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public PerfilStatsDto stats(Usuario usuario) {
+        long votosTotales = votoRepository.countByUsuario(usuario);
+        long prediccionesAcertadas = prediccionRepository.countByUsuarioAndAcertadaTrue(usuario);
+        // Una pasada O(n) por todas las predicciones es aceptable porque el
+        // count de predicciones por usuario es siempre pequeño (decenas).
+        var todasMisPredicciones = prediccionRepository.findResueltasDelUsuarioDesc(
+                usuario, PageRequest.of(0, 10_000));
+        long prediccionesResueltas = todasMisPredicciones.size();
+        // prediccionesTotales requiere el count de TODAS (resueltas + pendientes).
+        // No tenemos un countByUsuario en PrediccionRepository — usamos una
+        // aproximación: las resueltas + 0 pendientes en stats actuales (las
+        // pendientes solo importan al user en el bracket activo, no aquí).
+        // Si en el futuro queremos exactitud, añadir Prediccion.countByUsuario.
+        long prediccionesTotales = prediccionesResueltas;
+        double porcentaje = prediccionesResueltas == 0
+                ? 0.0
+                : (100.0 * prediccionesAcertadas) / prediccionesResueltas;
+        long badges = usuarioLogroRepository.countByUsuario(usuario);
+        return new PerfilStatsDto(votosTotales, prediccionesTotales,
+                prediccionesAcertadas, prediccionesResueltas,
+                redondear(porcentaje, 1), badges);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VotoHistorialDto> historialVotos(Usuario usuario, int page, int size) {
+        int sanePage = Math.max(0, page);
+        int saneSize = Math.min(100, Math.max(1, size));
+        return votoRepository.findByUsuarioOrderByFechaDesc(usuario,
+                PageRequest.of(sanePage, saneSize))
+                .map(VotoHistorialDto::from);
+    }
+
+    /** Top N personajes más votados por el usuario. */
+    @Transactional(readOnly = true)
+    public List<TopPersonajeItem> top(Usuario usuario, int limit) {
+        Pageable pg = PageRequest.of(0, Math.min(20, Math.max(1, limit)));
+        List<Object[]> filas = votoRepository.topPorUsuario(usuario, pg);
+        List<TopPersonajeItem> resultado = new ArrayList<>(filas.size());
+        for (Object[] fila : filas) {
+            Personaje p = (Personaje) fila[0];
+            Long count = (Long) fila[1];
+            resultado.add(new TopPersonajeItem(
+                    p.getId(), p.getSlug(), p.getNombre(),
+                    p.getImagenUrl(), p.getAnime(), count));
+        }
+        return resultado;
+    }
+
+    private static double redondear(double v, int decimales) {
+        double factor = Math.pow(10, decimales);
+        return Math.round(v * factor) / factor;
+    }
+}

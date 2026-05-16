@@ -33,6 +33,29 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByEnfrentamientoAndPersonaje(Enfrentamiento enfrentamiento, Personaje personaje);
 
     /**
+     * Historial de votos del usuario, ordenados por fecha desc (más recientes
+     * primero). Page para paginación; el frontend pide page=0,size=50 típicamente.
+     * Plan v2 §4.1.
+     */
+    org.springframework.data.domain.Page<Voto> findByUsuarioOrderByFechaDesc(
+            Usuario usuario, org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Top N personajes más votados por un usuario. Devuelve {Personaje, Long}.
+     * Plan v2 §4.1 — sección "Tu Top 5" del perfil.
+     */
+    @Query("""
+            SELECT v.personaje, COUNT(v)
+            FROM Voto v
+            WHERE v.usuario = :usuario
+            GROUP BY v.personaje
+            ORDER BY COUNT(v) DESC
+            """)
+    List<Object[]> topPorUsuario(
+            @Param("usuario") Usuario usuario,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Conteo agrupado por enfrentamiento dentro de un torneo. Evita N+1
      * cuando TorneoQueryService rellena `totalVotos` en cada match del
      * bracket: una sola query bulk en lugar de countByEnfrentamiento(e)
