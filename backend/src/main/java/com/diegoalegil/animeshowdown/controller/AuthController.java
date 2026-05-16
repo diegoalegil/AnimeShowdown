@@ -34,12 +34,16 @@ import com.diegoalegil.animeshowdown.dto.RegistroRequest;
 import com.diegoalegil.animeshowdown.dto.ResetPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.TokenRespuesta;
 import com.diegoalegil.animeshowdown.dto.UsuarioRespuesta;
+import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
+import com.diegoalegil.animeshowdown.service.EmailVerificationService;
 import com.diegoalegil.animeshowdown.service.PasswordResetService;
 import com.diegoalegil.animeshowdown.service.RefreshTokenService;
+
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 
@@ -56,6 +60,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final PasswordResetService passwordResetService;
     private final RefreshTokenService refreshTokenService;
+    private final EmailVerificationService emailVerificationService;
     private final Set<String> adminEmails;
     private final boolean cookieSecure;
 
@@ -65,6 +70,7 @@ public class AuthController {
             JwtUtil jwtUtil,
             PasswordResetService passwordResetService,
             RefreshTokenService refreshTokenService,
+            EmailVerificationService emailVerificationService,
             @Value("${admin.emails:diegogildam@gmail.com}") String adminEmailsCsv,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.usuarioRepository = usuarioRepository;
@@ -72,6 +78,7 @@ public class AuthController {
         this.jwtUtil = jwtUtil;
         this.passwordResetService = passwordResetService;
         this.refreshTokenService = refreshTokenService;
+        this.emailVerificationService = emailVerificationService;
         this.cookieSecure = cookieSecure;
         this.adminEmails = Arrays.stream(adminEmailsCsv.split(","))
                 .map(String::trim)
@@ -145,6 +152,9 @@ public class AuthController {
                 request.getUsername(),
                 passwordHasheado,
                 emailNormalizado);
+        // Plan v2 §2.4: registros nuevos nacen PENDIENTE hasta verificar email.
+        // No pueden votar ni crear torneos en este estado.
+        nuevoUsuario.setEstadoVerificacion(EstadoVerificacion.PENDIENTE);
 
         if (emailNormalizado != null && adminEmails.contains(emailNormalizado)) {
             nuevoUsuario.setRol(Rol.ADMIN);
@@ -153,10 +163,53 @@ public class AuthController {
 
         Usuario guardado = usuarioRepository.save(nuevoUsuario);
 
-        log.info("Usuario registrado: id={} username={} rol={}", guardado.getId(), guardado.getUsername(), guardado.getRol());
+        // Emite token de verificación + dispara email asíncrono. Si el envío
+        // falla, el log queda en EmailService; el usuario verá el banner en
+        // el frontend y podrá pedir reenvio.
+        emailVerificationService.emitir(guardado);
+
+        log.info("Usuario registrado (PENDIENTE verificación): id={} username={} rol={}",
+                guardado.getId(), guardado.getUsername(), guardado.getRol());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new UsuarioRespuesta(guardado));
+    }
+
+    /**
+     * Verifica un email vía link recibido por correo. El frontend hace
+     * GET /api/auth/verify?token=XXX desde /verify y muestra el resultado.
+     * Plan v2 §2.4.
+     */
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyEmail(@RequestParam String token) {
+        boolean ok = emailVerificationService.verificar(token);
+        if (ok) {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Email verificado correctamente",
+                    "verificado", true));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "message", "Token inválido o expirado. Pide un reenvío desde la web.",
+                        "verificado", false));
+    }
+
+    /**
+     * Reenvía el email de verificación al usuario autenticado. Requiere
+     * estar logueado (JWT válido) — el usuario PENDIENTE sí tiene JWT,
+     * solo está restringido para acciones como votar.
+     */
+    @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (usuario.estaVerificado()) {
+            return ResponseEntity.ok(Map.of("message", "Tu email ya está verificado"));
+        }
+        emailVerificationService.emitir(usuario);
+        return ResponseEntity.ok(Map.of(
+                "message", "Hemos enviado un nuevo enlace a tu correo. Revisa la bandeja en unos segundos."));
     }
 
     @PostMapping("/login")

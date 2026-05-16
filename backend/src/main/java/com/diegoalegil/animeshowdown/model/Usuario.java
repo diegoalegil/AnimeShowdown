@@ -66,6 +66,16 @@ public class Usuario {
     @Column(name = "bloqueado_hasta")
     private LocalDateTime bloqueadoHasta;
 
+    /**
+     * Verificación de email (Plan v2 §2.4). PENDIENTE tras /registro hasta
+     * que el usuario clica el link recibido por email; ACTIVO tras
+     * verificar. Los usuarios pre-existentes (creados antes de §2.4)
+     * arrancan con ACTIVO por el default en V2.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_verificacion", nullable = false, length = 20)
+    private EstadoVerificacion estadoVerificacion = EstadoVerificacion.ACTIVO;
+
     public Usuario() {
     }
 
@@ -162,6 +172,19 @@ public class Usuario {
     /** True si la cuenta tiene un bloqueo activo (no expirado). */
     public boolean estaBloqueado() {
         return bloqueadoHasta != null && bloqueadoHasta.isAfter(LocalDateTime.now());
+    }
+
+    public EstadoVerificacion getEstadoVerificacion() {
+        return estadoVerificacion == null ? EstadoVerificacion.PENDIENTE : estadoVerificacion;
+    }
+
+    public void setEstadoVerificacion(EstadoVerificacion estadoVerificacion) {
+        this.estadoVerificacion = estadoVerificacion;
+    }
+
+    /** True si el usuario verificó email — habilitado para votar/crear torneos. */
+    public boolean estaVerificado() {
+        return getEstadoVerificacion() == EstadoVerificacion.ACTIVO;
     }
 
 }

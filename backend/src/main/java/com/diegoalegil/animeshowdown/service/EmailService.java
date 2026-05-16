@@ -43,26 +43,59 @@ public class EmailService {
             return;
         }
         try {
-            Map<String, Object> body = Map.of(
-                    "from", from,
-                    "to", List.of(to),
-                    "subject", "AnimeShowdown — Código para restablecer tu contraseña",
-                    "text",
+            enviar(
+                    to,
+                    "AnimeShowdown — Código para restablecer tu contraseña",
                     "Hola " + username + ",\n\n" +
-                    "Tu código para restablecer la contraseña es:\n\n" +
-                    "    " + codigo + "\n\n" +
-                    "El código expira en 15 minutos. Si no fuiste tú, ignora este mensaje.\n\n" +
-                    "— AnimeShowdown");
-            restClient.post()
-                    .uri("/emails")
-                    .header("Authorization", "Bearer " + apiKey)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .toBodilessEntity();
+                            "Tu código para restablecer la contraseña es:\n\n" +
+                            "    " + codigo + "\n\n" +
+                            "El código expira en 15 minutos. Si no fuiste tú, ignora este mensaje.\n\n" +
+                            "— AnimeShowdown");
             log.info("Email de reset enviado a {} vía Resend", to);
         } catch (Exception e) {
             log.error("Error Resend a {}: {} (código actual: {})", to, e.getMessage(), codigo);
         }
+    }
+
+    /**
+     * Email de verificación post-registro (Plan v2 §2.4). El link apunta al
+     * frontend `/verify?token=XXX`; al cargar esa ruta, el SPA llama al
+     * backend `GET /api/auth/verify?token=XXX` y muestra el resultado.
+     */
+    @Async
+    public void enviarVerificacion(String to, String username, String linkVerificacion) {
+        if (!enabled) {
+            log.warn("[EMAIL FALLBACK] Verify link para {} ({}): {}", to, username, linkVerificacion);
+            return;
+        }
+        try {
+            enviar(
+                    to,
+                    "AnimeShowdown — Verifica tu email",
+                    "¡Bienvenido " + username + "!\n\n" +
+                            "Para activar tu cuenta y poder votar en los torneos, confirma tu email:\n\n" +
+                            linkVerificacion + "\n\n" +
+                            "El enlace caduca en 24 horas. Si no fuiste tú quien se registró, ignora este mensaje.\n\n" +
+                            "— AnimeShowdown");
+            log.info("Email de verificación enviado a {} vía Resend", to);
+        } catch (Exception e) {
+            log.error("Error Resend verificación a {}: {} (link actual: {})", to, e.getMessage(), linkVerificacion);
+        }
+    }
+
+    /** Envío genérico a Resend. Lanza si falla — el caller decide cómo loguear. */
+    private void enviar(String to, String subject, String text) {
+        Map<String, Object> body = Map.of(
+                "from", from,
+                "to", List.of(to),
+                "subject", subject,
+                "text", text);
+        restClient.post()
+                .uri("/emails")
+                .header("Authorization", "Bearer " + apiKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .toBodilessEntity();
     }
 }
