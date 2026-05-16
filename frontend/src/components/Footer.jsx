@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowUpRight } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
 
@@ -16,11 +17,11 @@ function GithubIcon({ className }) {
 }
 
 const navLinks = [
-  { to: '/', label: 'Inicio' },
-  { to: '/personajes', label: 'Personajes' },
-  { to: '/torneos', label: 'Torneos' },
-  { to: '/votar', label: 'Votar' },
-  { to: '/ranking', label: 'Ranking' },
+  { to: '/', i18nKey: 'inicio' },
+  { to: '/personajes', i18nKey: 'personajes' },
+  { to: '/torneos', i18nKey: 'torneos' },
+  { to: '/votar', i18nKey: 'votar' },
+  { to: '/ranking', i18nKey: 'ranking' },
 ]
 
 const techStack = [
@@ -36,6 +37,7 @@ const techStack = [
 ]
 
 function Footer() {
+  const { t } = useTranslation()
   return (
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
@@ -54,42 +56,42 @@ function Footer() {
               </span>
             </Link>
             <p className="max-w-xs text-[13px] leading-relaxed text-fg-muted">
-              Torneos cara a cara y rankings ELO de los personajes de anime más icónicos. Proyecto portfolio open source de Diego Alegil.
+              {t('footer.descripcion')}
             </p>
           </div>
           <div className="flex flex-col gap-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              Newsletter
+              {t('footer.newsletter')}
             </h3>
             <NewsletterForm />
           </div>
           <div className="flex flex-col gap-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              Navegación
+              {t('footer.navegacion')}
             </h3>
             <nav className="flex flex-col gap-2">
-              {navLinks.map(({ to, label }) => (
+              {navLinks.map(({ to, i18nKey }) => (
                 <Link
                   key={to}
                   to={to}
                   className="w-fit text-[13px] text-fg transition-colors hover:text-accent"
                 >
-                  {label}
+                  {t(`nav.${i18nKey}`)}
                 </Link>
               ))}
             </nav>
           </div>
           <div className="flex flex-col gap-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              Stack
+              {t('footer.stack')}
             </h3>
             <div className="flex flex-wrap gap-1.5">
-              {techStack.map((t) => (
+              {techStack.map((tech) => (
                 <span
-                  key={t}
+                  key={tech}
                   className="inline-flex items-center rounded-md bg-surface-alt px-2 py-1 font-mono text-[11px] font-medium text-fg-muted"
                 >
-                  {t}
+                  {tech}
                 </span>
               ))}
             </div>
@@ -100,15 +102,16 @@ function Footer() {
               className="group inline-flex w-fit items-center gap-1.5 text-[13px] font-medium text-fg-strong transition-colors hover:text-accent"
             >
               <GithubIcon className="h-4 w-4" />
-              Ver en GitHub
+              {t('footer.verGithub')}
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
           </div>
         </div>
         <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-[12px] text-fg-muted sm:flex-row">
-          <p>© 2026 Diego Alegil — DAM 1.º</p>
+          <p>{t('footer.copyright')}</p>
           <p>
-            Hecho con <span className="text-accent">♥</span> en Tenerife
+            {t('footer.hechoCon')} <span className="text-accent">♥</span>{' '}
+            {t('footer.enTenerife')}
           </p>
         </div>
       </div>

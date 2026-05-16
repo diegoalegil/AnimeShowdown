@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Check, Mail } from 'lucide-react'
 import { ApiError, endpoints } from '../lib/api'
 
@@ -10,6 +11,7 @@ import { ApiError, endpoints } from '../lib/api'
  * vive en el footer y el toast podría perderse fuera del viewport.
  */
 function NewsletterForm() {
+  const { t } = useTranslation()
   const {
     register,
     handleSubmit,
@@ -22,13 +24,13 @@ function NewsletterForm() {
   const onSubmit = async (data) => {
     try {
       const res = await endpoints.suscribirNewsletter(data.email.trim())
-      setExito({ mensaje: res?.message ?? 'Te hemos enviado un email para confirmar.' })
+      setExito({ mensaje: res?.message ?? t('newsletter.okDefault') })
       reset()
     } catch (err) {
       const msg =
         err instanceof ApiError
           ? err.message || `Error ${err.status}`
-          : 'No se pudo enviar. Inténtalo de nuevo en unos segundos.'
+          : t('newsletter.errorEnvio')
       setError('email', { message: msg })
     }
   }
@@ -44,7 +46,7 @@ function NewsletterForm() {
             onClick={() => setExito(null)}
             className="mt-1 text-[11px] text-emerald-200/70 hover:text-emerald-200"
           >
-            Suscribir otro email
+            {t('newsletter.reintentar')}
           </button>
         </div>
       </div>
@@ -53,19 +55,17 @@ function NewsletterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
-      <p className="text-[12px] text-fg-muted">
-        Resumen semanal con el top, torneos nuevos y predicciones destacadas.
-      </p>
+      <p className="text-[12px] text-fg-muted">{t('newsletter.intro')}</p>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="email"
           autoComplete="email"
-          placeholder="tu@correo.com"
+          placeholder={t('newsletter.emailPlaceholder')}
           {...register('email', {
-            required: 'Introduce tu email',
+            required: t('newsletter.errorRequired'),
             pattern: {
               value: /^\S+@\S+\.\S+$/,
-              message: 'Email no válido',
+              message: t('newsletter.errorInvalido'),
             },
           })}
           className={`flex-1 rounded-lg border bg-bg px-3 py-2 text-[13px] text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
@@ -78,16 +78,13 @@ function NewsletterForm() {
           className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Mail className="h-3.5 w-3.5" />
-          {isSubmitting ? 'Enviando…' : 'Suscribirme'}
+          {isSubmitting ? t('newsletter.enviando') : t('newsletter.submit')}
         </button>
       </div>
       {errors.email && (
         <p className="text-[11px] text-red-400">{errors.email.message}</p>
       )}
-      <p className="text-[10px] text-fg-muted">
-        Double opt-in: necesitas confirmar via email. Puedes darte de baja
-        en cualquier momento desde el footer de cada envío.
-      </p>
+      <p className="text-[10px] text-fg-muted">{t('newsletter.doubleOptIn')}</p>
     </form>
   )
 }
