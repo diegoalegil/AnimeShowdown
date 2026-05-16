@@ -54,9 +54,12 @@ function NewsletterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex w-full min-w-0 flex-col gap-2"
+    >
       <p className="text-[12px] text-fg-muted">{t('newsletter.intro')}</p>
-      <div className="flex flex-col gap-2">
+      <div className="flex w-full min-w-0 flex-col gap-2">
         <input
           type="email"
           autoComplete="email"
@@ -68,14 +71,14 @@ function NewsletterForm() {
               message: t('newsletter.errorInvalido'),
             },
           })}
-          className={`flex-1 rounded-lg border bg-bg px-3 py-2 text-[13px] text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+          className={`w-full min-w-0 rounded-lg border bg-bg px-3 py-2 text-[13px] text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
             errors.email ? 'border-red-500' : 'border-border'
           }`}
         />
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Mail className="h-3.5 w-3.5" />
           {isSubmitting ? t('newsletter.enviando') : t('newsletter.submit')}

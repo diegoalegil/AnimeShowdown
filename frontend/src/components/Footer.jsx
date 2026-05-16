@@ -78,7 +78,7 @@ function Footer() {
               {t('footer.descripcion')}
             </p>
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
               {t('footer.newsletter')}
             </h3>
