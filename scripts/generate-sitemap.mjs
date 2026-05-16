@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 // scripts/generate-sitemap.mjs
-// Genera frontend/public/sitemap.xml leyendo personajes.js + torneos.js.
-// Ejecutar manualmente cuando se añadan personajes/torneos: node scripts/generate-sitemap.mjs
-// Idealmente se invoca como `npm run build:sitemap` antes de `npm run build`.
+// Genera frontend/public/sitemap.xml leyendo personajes.js (catálogo
+// estático) + el seed de torneos del backend (torneos-seed.json).
+// Antes leía frontend/src/data/torneos.js pero ese archivo se eliminó
+// cuando los torneos pasaron a vivir en BBDD (Plan v2 §1.1 commit 10).
+// Ejecutar manualmente: node scripts/generate-sitemap.mjs
+// Se invoca automático en `npm run build` antes de `vite build`.
 
 import { readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
@@ -12,15 +15,23 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const BASE_URL = 'https://animeshowdown.dev'
 
-// Parser simple regex de los .js — evita instalar dependencias.
-function extractSlugs(filePath) {
+// Parser regex de personajes.js — evita instalar dependencias.
+function extractSlugsFromJs(filePath) {
   const content = readFileSync(filePath, 'utf8')
   const matches = [...content.matchAll(/slug:\s*'([^']+)'/g)]
   return matches.map((m) => m[1])
 }
 
-const personajes = extractSlugs(join(ROOT, 'frontend/src/data/personajes.js'))
-const torneos = extractSlugs(join(ROOT, 'frontend/src/data/torneos.js'))
+const personajes = extractSlugsFromJs(join(ROOT, 'frontend/src/data/personajes.js'))
+// Torneos: leemos el seed del backend porque es la fuente de verdad
+// inicial. Torneos creados después por usuarios o auto-tournament cron
+// se añadirán al sitemap cuando llegue Bloque 5.4 (sitemap segmentado
+// generado en backend al vuelo). Por ahora, los 13 del seed son los
+// que vive el SEO.
+const torneosSeed = JSON.parse(
+  readFileSync(join(ROOT, 'backend/src/main/resources/torneos-seed.json'), 'utf8'),
+)
+const torneos = torneosSeed.map((t) => t.slug)
 
 // Rutas estáticas indexables (excluidas: /admin, /perfil, /forgot-password, /reset-password)
 const staticRoutes = [

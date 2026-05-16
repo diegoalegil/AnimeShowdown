@@ -15,7 +15,7 @@ import NombresMarquee from '../components/NombresMarquee'
 import TorneoCard from '../components/TorneoCard'
 import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
-import { torneos } from '../data/torneos'
+import { useTorneos } from '../lib/torneosQueries'
 import {
   personajes,
   imagenPersonaje,
@@ -24,7 +24,6 @@ import {
 import { useSound } from '../contexts/SoundContext'
 
 const totalPersonajes = personajes.length
-const totalTorneos = torneos.length
 const animeUniversos = new Set(personajes.map((p) => p.anime)).size
 const eloMax = Math.max(
   ...personajes.map((p) => getStatsPersonaje(p.slug).elo),
@@ -55,8 +54,6 @@ const top10 = [...personajes]
   .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
   .sort((a, b) => b.elo - a.elo)
   .slice(0, 10)
-
-const torneosPreview = torneos.slice(0, 3)
 
 const pasos = [
   {
@@ -366,6 +363,9 @@ function BentoCard({
 }
 
 function SectionStats() {
+  // Torneos viene del backend; mientras carga mostramos 0 — el CountUp
+  // animará al valor final cuando llegue la response.
+  const { data: torneos = [] } = useTorneos()
   return (
     <motion.section
       className="px-5 py-16 sm:px-8 sm:py-20"
@@ -377,7 +377,7 @@ function SectionStats() {
       <div className="mx-auto max-w-5xl">
         <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
           <Stat target={totalPersonajes} label="Personajes" />
-          <Stat target={totalTorneos} label="Torneos" />
+          <Stat target={torneos.length} label="Torneos" />
           <Stat target={animeUniversos} label="Animes" />
           <Stat target={eloMax} label="ELO máximo" />
         </div>
@@ -424,6 +424,12 @@ function SectionHeader({ eyebrow, titulo, link }) {
 }
 
 function SectionTorneosActivos() {
+  // Preview de los 3 primeros torneos del backend. Si aún cargan o falla
+  // la llamada, la sección se renderiza sin grid (no asusta al usuario
+  // con error message — el listado completo está en /torneos).
+  const { data: torneos = [] } = useTorneos()
+  const torneosPreview = torneos.slice(0, 3)
+  if (torneosPreview.length === 0) return null
   return (
     <motion.section
       className="px-5 py-16 sm:px-8 sm:py-20"
