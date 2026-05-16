@@ -200,9 +200,14 @@ function TorneoDetailPage() {
         </div>
         {rosterRonda1.length > 0 && (
           <>
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
-              Roster
-            </h2>
+            <div className="mb-4 flex flex-col gap-1">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                Participantes
+              </span>
+              <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
+                Personajes en {nombre}
+              </h2>
+            </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {rosterRonda1.map((p) => (
                 <PersonajeCard
@@ -213,6 +218,22 @@ function TorneoDetailPage() {
                 />
               ))}
             </div>
+            <p className="mt-6 text-[13px] text-fg-muted">
+              Vota en cada enfrentamiento del bracket para decidir el campeón.
+              También puedes{' '}
+              <Link to="/torneos" className="text-accent hover:underline">
+                ver otros torneos activos
+              </Link>
+              ,{' '}
+              <Link to="/ranking" className="text-accent hover:underline">
+                consultar el ranking ELO global
+              </Link>{' '}
+              o{' '}
+              <Link to="/votar" className="text-accent hover:underline">
+                votar en matches casuales
+              </Link>
+              .
+            </p>
           </>
         )}
       </div>

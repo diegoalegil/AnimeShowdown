@@ -7,7 +7,9 @@ import {
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
+import { breadcrumbsSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import {
   useAnimesConVotos,
   useRankingSegmentado,
@@ -43,11 +45,21 @@ const headerVariants = {
 }
 
 function RankingPage() {
-  useDocumentTitle('Ranking')
+  useSeo({
+    title: 'Ranking ELO',
+    description: `Top ${personajes.length} personajes de anime ordenados por ELO local, votos all-time y por mes. Filtra por anime para ver quién domina cada universo.`,
+  })
   const [tab, setTab] = useState('elo')
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: 'Ranking', path: '/ranking' },
+        ])}
+      />
       <div className="mx-auto max-w-4xl">
         <motion.header
           className="mb-8 flex flex-col items-start gap-3"
@@ -77,8 +89,44 @@ function RankingPage() {
           {tab === 'mes' && <ListaBackend periodo="mes" />}
           {tab === 'anime' && <PorAnime />}
         </div>
+
+        <HubLinks />
       </div>
     </section>
+  )
+}
+
+/**
+ * Sección hub al final de /ranking con links descriptivos (Plan v2 §5.6).
+ * Ayuda al crawler a seguir hilos de contenido relacionado y al usuario
+ * a descubrir secciones complementarias sin volver al menú superior.
+ */
+function HubLinks() {
+  return (
+    <div className="mt-12 rounded-xl border border-border bg-surface p-6">
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+        Sigue explorando
+      </h2>
+      <p className="text-[13px] leading-relaxed text-fg-muted">
+        Para entender mejor el ranking puedes{' '}
+        <Link to="/faq" className="text-accent hover:underline">
+          leer cómo funciona el sistema ELO en AnimeShowdown
+        </Link>
+        , o explorar el{' '}
+        <Link to="/personajes" className="text-accent hover:underline">
+          catálogo completo de {personajes.length} personajes
+        </Link>{' '}
+        con filtros por anime. Si quieres ponerle números a tus discusiones,{' '}
+        <Link to="/votar" className="text-accent hover:underline">
+          vota en matches casuales
+        </Link>{' '}
+        o entra en{' '}
+        <Link to="/torneos" className="text-accent hover:underline">
+          uno de los torneos activos
+        </Link>{' '}
+        — cada voto cuenta hacia los ELO que ves aquí arriba.
+      </p>
+    </div>
   )
 }
 
@@ -224,6 +272,8 @@ function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses }) {
     >
       <Link
         to={`/personajes/${slug}`}
+        aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
+        title={`${nombre} de ${anime} · ELO ${elo}`}
         className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
       >
         <RankBadge rank={rank} />
@@ -266,6 +316,8 @@ function RankRowVotos({ rank, personaje, votos }) {
     >
       <Link
         to={`/personajes/${personaje.slug}`}
+        aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
+        title={`${personaje.nombre} de ${personaje.anime}`}
         className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
       >
         <RankBadge rank={rank} />

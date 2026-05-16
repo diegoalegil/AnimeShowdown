@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowUpRight } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
+import { personajes } from '../data/personajes'
 
 function GithubIcon({ className }) {
   return (
@@ -24,6 +25,20 @@ const navLinks = [
   { to: '/ranking', i18nKey: 'ranking' },
   { to: '/faq', i18nKey: 'faq' },
 ]
+
+// Top 7 animes por cantidad de personajes en catálogo. Calculado en
+// module load (estable, no cambia entre renders). Plan v2 §5.6: footer
+// sitemap con anchor descriptivo para que el crawler siga los animes
+// "estrella" en cada visita al footer (toda página los expone).
+const topAnimes = (() => {
+  const counts = {}
+  personajes.forEach((p) => {
+    counts[p.anime] = (counts[p.anime] || 0) + 1
+  })
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 7)
+})()
 
 const techStack = [
   'React 19',
@@ -108,7 +123,28 @@ function Footer() {
             </a>
           </div>
         </div>
-        <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-[12px] text-fg-muted sm:flex-row">
+        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            Animes con más personajes
+          </p>
+          <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+            {topAnimes.map(([anime, count]) => (
+              <li key={anime}>
+                <Link
+                  to={`/personajes?anime=${encodeURIComponent(anime)}`}
+                  className="text-fg-muted transition-colors hover:text-accent hover:underline"
+                  title={`${count} personajes de ${anime} en AnimeShowdown`}
+                >
+                  {anime}{' '}
+                  <span className="font-mono text-[10px] tabular-nums">
+                    ({count})
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-[12px] text-fg-muted sm:flex-row">
           <p>{t('footer.copyright')}</p>
           <p>
             {t('footer.hechoCon')} <span className="text-accent">♥</span>{' '}
