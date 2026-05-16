@@ -31,6 +31,10 @@ import { useEffect } from 'react'
  */
 const BASE = 'AnimeShowdown'
 const SITIO = 'https://animeshowdown.dev'
+// Plan v2 §5.9: idiomas que tenemos al menos parcialmente traducidos.
+// Cada uno produce un <link rel="alternate" hreflang="X" href="URL?lang=X">
+// más un x-default que apunta al ES (idioma original y catálogo completo).
+const LANGS = ['es', 'en']
 
 export function useSeo({
   title,
@@ -59,6 +63,8 @@ export function useSeo({
       setMetaProperty('og:image', img),
       setMetaProperty('og:type', type),
       setMetaProperty('og:site_name', BASE),
+      setMetaProperty('og:locale', 'es_ES'),
+      setMetaProperty('og:locale:alternate', 'en_US'),
       setMetaName('twitter:card', 'summary_large_image'),
       setMetaName('twitter:title', tituloCompleto),
       setMetaName('twitter:description', description),
@@ -66,6 +72,15 @@ export function useSeo({
       noindex
         ? setMetaName('robots', 'noindex,nofollow')
         : setMetaName('robots', null),
+      // Hreflang (Plan v2 §5.9): un link por idioma soportado más
+      // x-default → ES. Si la página tiene noindex no los emitimos
+      // porque hreflang en páginas no indexables es contradicción.
+      ...(noindex
+        ? []
+        : LANGS.map((lang) =>
+            setLinkAlternate(lang, withLangParam(url, lang)),
+          )),
+      ...(noindex ? [] : [setLinkAlternate('x-default', withLangParam(url, 'es'))]),
     ]
 
     return () => {
@@ -79,6 +94,56 @@ function absolutizar(src) {
   if (!src) return src
   if (src.startsWith('http://') || src.startsWith('https://')) return src
   return `${SITIO}${src.startsWith('/') ? '' : '/'}${src}`
+}
+
+/**
+ * Añade {@code ?lang=X} a una URL sin duplicar el param si ya existe.
+ * Usado por hreflang para que cada alternate apunte a la misma página
+ * con el idioma "fijado" como query param. El frontend respeta el
+ * {@code ?lang} sobre la preferencia de localStorage para que crawlers
+ * que entran via hreflang aterricen en el idioma correcto.
+ *
+ * <p>El soporte de {@code ?lang} en el cliente queda pendiente del
+ * Bloque 5.9.b — por ahora los crawlers entran ignorando el param, que
+ * no rompe nada (i18next cae a su detector normal).
+ */
+function withLangParam(url, lang) {
+  try {
+    const u = new URL(url)
+    u.searchParams.set('lang', lang)
+    return u.toString()
+  } catch {
+    return url
+  }
+}
+
+/**
+ * Setea {@code <link rel="alternate" hreflang="X" href="Y">}. Devuelve
+ * una función que restaura el estado anterior (igual que los otros
+ * setters de meta tags).
+ */
+function setLinkAlternate(hreflang, href) {
+  const sel = `link[rel="alternate"][hreflang="${hreflang}"]`
+  let el = document.head.querySelector(sel)
+  let creado = false
+  if (!el) {
+    el = document.createElement('link')
+    el.setAttribute('rel', 'alternate')
+    el.setAttribute('hreflang', hreflang)
+    document.head.appendChild(el)
+    creado = true
+  }
+  const prev = el.getAttribute('href')
+  if (href) el.setAttribute('href', href)
+  return () => {
+    if (creado) {
+      el.remove()
+    } else if (prev != null) {
+      el.setAttribute('href', prev)
+    } else {
+      el.removeAttribute('href')
+    }
+  }
 }
 
 /**
