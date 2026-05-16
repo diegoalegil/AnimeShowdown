@@ -1,4 +1,76 @@
+# robots.txt — AnimeShowdown
+# https://animeshowdown.dev/robots.txt
+
+# ---------------------------------------------------------------------------
+# Bots tradicionales (Google, Bing, Yandex, DuckDuckGo, etc.)
+# ---------------------------------------------------------------------------
 User-agent: *
 Allow: /
+# Rutas privadas o de usuario autenticado — sin valor para indexación.
+Disallow: /admin
+Disallow: /perfil
+Disallow: /torneos/crear
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify
+Disallow: /newsletter/confirmar
+Disallow: /api/auth/
+Disallow: /api/admin/
 
+# ---------------------------------------------------------------------------
+# Crawlers de IA (Plan v2 §6.4) — explícitamente permitidos. AnimeShowdown
+# está diseñado para ser un recurso citable: catálogo público, ranking ELO
+# transparente y endpoints sin auth. Que los LLMs lo indexen es upside.
+# ---------------------------------------------------------------------------
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /perfil
+Disallow: /api/auth/
+Disallow: /api/admin/
+
+Allow: /
+
+Allow: /
+Disallow: /admin
+Disallow: /perfil
+Disallow: /api/auth/
+Disallow: /api/admin/
+
+Allow: /
+
+Allow: /
+
+# Perplexity (Perplexity AI search)
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /perfil
+Disallow: /api/auth/
+Disallow: /api/admin/
+
+# Google AI (Bard / Gemini, separable de Googlebot vía Google-Extended)
+User-agent: Google-Extended
+Allow: /
+
+# Common Crawl — dataset usado por casi todos los LLMs públicos
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /perfil
+Disallow: /api/auth/
+Disallow: /api/admin/
+
+# Bytespider (ByteDance / Doubao)
+User-agent: Bytespider
+Allow: /
+
+# Apple (Applebot-Extended para Apple Intelligence)
+User-agent: Applebot-Extended
+Allow: /
+
+# ---------------------------------------------------------------------------
+# Sitemap + llms.txt
+# ---------------------------------------------------------------------------
 Sitemap: https://animeshowdown.dev/sitemap.xml
