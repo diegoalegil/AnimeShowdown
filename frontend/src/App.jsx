@@ -7,6 +7,7 @@ import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
 import CommandPalette from './components/CommandPalette'
 import Splash from './components/Splash'
+import EmailVerifyBanner from './components/EmailVerifyBanner'
 
 // InicioPage es la landing — la carga en el bundle principal porque casi
 // todo visitante entra por '/' y queremos que renderice sin esperar a un
@@ -29,6 +30,7 @@ const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const PerfilPage = lazy(() => import('./pages/PerfilPage'))
+const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Fallback de Suspense compartido. Minimalista a propósito: la página entera
@@ -70,6 +72,7 @@ function App() {
         }}
       />
       <Header />
+      <EmailVerifyBanner />
       <main className="flex flex-1 flex-col">
         <AnimatePresence mode="wait">
           <motion.div
@@ -97,6 +100,7 @@ function App() {
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />
+                <Route path="/verify" element={<VerifyPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
