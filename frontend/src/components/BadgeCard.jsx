@@ -88,6 +88,9 @@ function BadgeCard({ logro }) {
           desbloqueado ? 'bg-surface' : 'bg-surface-alt'
         }`}
       >
+        {/* eslint-disable-next-line react-hooks/static-components -- icon
+            es lookup dinámico por logro.icono; el componente sí es estable
+            entre renders del mismo badge (mismo logro = mismo icono). */}
         <Icon
           className={`h-6 w-6 ${desbloqueado ? style.icono : 'text-fg-muted/40'}`}
         />
