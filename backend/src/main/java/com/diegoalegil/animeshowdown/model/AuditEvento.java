@@ -54,5 +54,7 @@ public enum AuditEvento {
     /** Login con backup code (one-shot recovery). */
     TOTP_BACKUP_CODE_USADO,
     /** El usuario regeneró su set de backup codes (invalidando los anteriores). */
-    TOTP_BACKUP_CODES_REGENERADOS
+    TOTP_BACKUP_CODES_REGENERADOS,
+    /** Badge/logro desbloqueado por el usuario (Plan v2 §4.2). */
+    BADGE_DESBLOQUEADO
 }

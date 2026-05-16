@@ -19,6 +19,8 @@ public enum NotificacionTipo {
     TORNEO_INICIADO,
     /** Torneo finalizado — al admin creador, con link al ganador. */
     TORNEO_FINALIZADO,
+    /** Badge/logro desbloqueado (Plan v2 §4.2). Payload con codigo+icono+rareza. */
+    BADGE_DESBLOQUEADO,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA
 }
