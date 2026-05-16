@@ -56,7 +56,7 @@ function NewsletterForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
       <p className="text-[12px] text-fg-muted">{t('newsletter.intro')}</p>
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2">
         <input
           type="email"
           autoComplete="email"
