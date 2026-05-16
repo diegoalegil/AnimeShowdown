@@ -11,7 +11,8 @@
     "perfil": "Mi perfil",
     "admin": "Admin",
     "salir": "Salir",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "apiDocs": "API docs"
   },
   "header": {
     "cambiarTema": "Cambiar paleta de color",

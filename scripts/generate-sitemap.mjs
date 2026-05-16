@@ -147,6 +147,7 @@ const staticRoutes = [
   { path: '/higher-or-lower', priority: '0.7', changefreq: 'monthly' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
   { path: '/faq', priority: '0.6', changefreq: 'monthly' },
+  { path: '/api-docs', priority: '0.5', changefreq: 'monthly' },
   { path: '/login', priority: '0.3', changefreq: 'monthly' },
   { path: '/register', priority: '0.3', changefreq: 'monthly' },
 ]
