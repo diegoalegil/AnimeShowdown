@@ -7,8 +7,8 @@ import {
   useSpring,
   useTransform,
 } from 'framer-motion'
-import { imagenPersonaje } from '../data/personajes'
 import { useSound } from '../contexts/SoundContext'
+import PersonajeImg from './PersonajeImg'
 
 function PersonajeCard({ slug, nombre, anime }) {
   const cardRef = useRef(null)
@@ -59,8 +59,8 @@ function PersonajeCard({ slug, nombre, anime }) {
         }}
         className="relative overflow-hidden rounded-xl border border-border bg-surface transition-colors group-hover:border-accent/40"
       >
-        <img
-          src={imagenPersonaje(slug)}
+        <PersonajeImg
+          slug={slug}
           alt={nombre}
           loading="lazy"
           className="aspect-[2/3] w-full object-cover transition-transform duration-300 group-hover:scale-105"

@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variantes de imagen generadas en build time por scripts/generate-image-variants.mjs
+# (Plan v2 §3.3-3.4). Las originales (slug.webp) sí se commitean; las variantes
+# se regeneran en cada build de Cloudflare Pages.
+img/**/*-300.webp
+img/**/*-600.webp
+img/**/*-1024.webp
+img/**/*.avif
