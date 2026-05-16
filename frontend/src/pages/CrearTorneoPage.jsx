@@ -12,7 +12,7 @@ import {
   Users,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
 import { endpoints, ApiError } from '../lib/api'
 import { personajes as catalogoCliente } from '../data/personajes'
@@ -45,7 +45,7 @@ const TAMANOS = [8, 16]
  * en la card "Mis torneos" con pill amarillo.
  */
 function CrearTorneoPage() {
-  useDocumentTitle('Crea tu torneo')
+  useSeo({ title: 'Crea tu torneo', noindex: true })
   const { user } = useAuth()
   const navigate = useNavigate()
 

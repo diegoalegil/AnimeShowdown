@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { endpoints } from '../lib/api'
 
 /**
@@ -17,7 +17,7 @@ import { endpoints } from '../lib/api'
  *   - error: token inválido o expirado.
  */
 function NewsletterConfirmarPage() {
-  useDocumentTitle('Confirmar suscripción')
+  useSeo({ title: 'Confirmar suscripción', noindex: true })
   const [params] = useSearchParams()
   const token = params.get('token')
   // Estado inicial calculado en lazy init: si falta token directamente
