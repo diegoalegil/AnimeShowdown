@@ -20,6 +20,7 @@ import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import Avatar from '../components/Avatar'
 import Card2faSeguridad from '../components/Card2faSeguridad'
+import CardDanKyu from '../components/CardDanKyu'
 import CardLogros from '../components/CardLogros'
 import CardMisTorneos from '../components/CardMisTorneos'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
@@ -93,6 +94,7 @@ function PerfilPage() {
 
         <div className="grid gap-6">
           <CardDatos user={user} />
+          <CardDanKyu />
           <CardLogros />
           <CardMisTorneos />
           <CardAvatar user={user} updateUser={updateUser} />

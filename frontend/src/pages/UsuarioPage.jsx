@@ -6,6 +6,7 @@ import Avatar from '../components/Avatar'
 import CardStats from '../components/CardStats'
 import CardTop5 from '../components/CardTop5'
 import CardLogros from '../components/CardLogros'
+import CardDanKyu from '../components/CardDanKyu'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -136,6 +137,7 @@ function UsuarioPage() {
             userLogueado={Boolean(user)}
           />
           <CardStats data={perfil.stats} />
+          <CardDanKyu data={perfil.stats} />
           <CardTop5
             data={perfil.top}
             titulo={`Top 5 de ${perfil.username}`}
