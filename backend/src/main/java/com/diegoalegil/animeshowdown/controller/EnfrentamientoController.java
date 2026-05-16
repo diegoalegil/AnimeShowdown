@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
 import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
+import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
@@ -26,6 +27,8 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 import jakarta.validation.Valid;
 
@@ -40,15 +43,18 @@ public class EnfrentamientoController {
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final VotoRepository votoRepository;
     private final SimpMessagingTemplate messaging;
+    private final ApplicationEventPublisher eventPublisher;
     private final boolean requiereEmailVerificado;
 
     public EnfrentamientoController(EnfrentamientoRepository enfrentamientoRepository,
             VotoRepository votoRepository,
             @Autowired(required = false) SimpMessagingTemplate messaging,
+            ApplicationEventPublisher eventPublisher,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
         this.messaging = messaging;
+        this.eventPublisher = eventPublisher;
         this.requiereEmailVerificado = requiereEmailVerificado;
     }
 
@@ -115,6 +121,11 @@ public class EnfrentamientoController {
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf);
+
+        // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
+        // commit y desbloquea badges de umbral (primer_voto/cien/mil).
+        // Diseño extensible — futuros listeners podrán reaccionar también.
+        eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf));
 
         return ResponseEntity.ok(guardado);
     }
