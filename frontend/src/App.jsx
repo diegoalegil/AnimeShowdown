@@ -45,6 +45,9 @@ const ImpostorPage = lazy(() => import('./pages/ImpostorPage'))
 const OmikujiPage = lazy(() => import('./pages/OmikujiPage'))
 const GlossaryPage = lazy(() => import('./pages/GlossaryPage'))
 const ApoyaPage = lazy(() => import('./pages/ApoyaPage'))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const TermsPage = lazy(() => import('./pages/TermsPage'))
+const DmcaPage = lazy(() => import('./pages/DmcaPage'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -139,6 +142,9 @@ function App() {
                 <Route path="/omikuji" element={<OmikujiPage />} />
                 <Route path="/glossary" element={<GlossaryPage />} />
                 <Route path="/apoya" element={<ApoyaPage />} />
+                <Route path="/privacidad" element={<PrivacyPage />} />
+                <Route path="/terminos" element={<TermsPage />} />
+                <Route path="/dmca" element={<DmcaPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>

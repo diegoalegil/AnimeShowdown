@@ -154,12 +154,39 @@ function Footer() {
             ))}
           </ul>
         </div>
-        <div className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-[12px] text-fg-muted sm:flex-row">
-          <p>{t('footer.copyright')}</p>
-          <p>
-            {t('footer.hechoCon')} <span className="text-accent">♥</span>{' '}
-            {t('footer.enTenerife')}
-          </p>
+        <div className="mt-6 flex flex-col gap-4 border-t border-border pt-6 text-[12px] text-fg-muted">
+          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-start">
+            <li>
+              <Link to="/privacidad" className="hover:text-accent hover:underline">
+                {t('footer.privacidad')}
+              </Link>
+            </li>
+            <li>
+              <Link to="/terminos" className="hover:text-accent hover:underline">
+                {t('footer.terminos')}
+              </Link>
+            </li>
+            <li>
+              <Link to="/dmca" className="hover:text-accent hover:underline">
+                DMCA
+              </Link>
+            </li>
+            <li>
+              <a
+                href="mailto:diegogildam@gmail.com"
+                className="hover:text-accent hover:underline"
+              >
+                {t('footer.contacto')}
+              </a>
+            </li>
+          </ul>
+          <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
+            <p>{t('footer.copyright')}</p>
+            <p>
+              {t('footer.hechoCon')} <span className="text-accent">♥</span>{' '}
+              {t('footer.enTenerife')}
+            </p>
+          </div>
         </div>
       </div>
     </footer>
