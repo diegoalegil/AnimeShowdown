@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useSeo } from '../hooks/useSeo'
+import { webSiteSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import {
   ArrowRight,
   Heart,
@@ -77,8 +80,17 @@ const pasos = [
 ]
 
 function InicioPage() {
+  // useSeo en la home no setea title (el HTML inicial ya tiene el correcto
+  // y queremos preservarlo como canonical); pero sí añadimos canonical
+  // explícito y aseguramos OG con la imagen del logo.
+  useSeo({
+    description:
+      'Vota a tus personajes de anime favoritos en torneos cara a cara. Brackets visuales, ranking ELO al instante y predicciones para tu bracket.',
+    canonical: 'https://animeshowdown.dev/',
+  })
   return (
     <>
+      <JsonLd id="website" schema={webSiteSchema()} />
       <Hero />
       <NombresMarquee />
       <SectionStats />

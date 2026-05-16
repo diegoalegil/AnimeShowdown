@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import Avatar from '../components/Avatar'
 import Card2faSeguridad from '../components/Card2faSeguridad'
@@ -58,7 +58,9 @@ async function fileToBase64(file, maxSize = 256, quality = 0.82) {
 }
 
 function PerfilPage() {
-  useDocumentTitle('Mi perfil')
+  // noindex porque es vista privada del propio usuario — /u/{username}
+  // es el perfil público que sí queremos indexar.
+  useSeo({ title: 'Mi perfil', noindex: true })
   const { user, updateUser, logout } = useAuth()
   const navigate = useNavigate()
 

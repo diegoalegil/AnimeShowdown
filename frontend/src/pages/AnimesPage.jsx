@@ -2,7 +2,9 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
+import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 
@@ -25,9 +27,23 @@ const animes = (() => {
 })()
 
 function AnimesPage() {
-  useDocumentTitle('Animes')
+  useSeo({
+    title: 'Animes',
+    description: `${animes.length} universos de anime en AnimeShowdown, con sus personajes votables y rankings.`,
+  })
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <JsonLd
+        id="animes-list"
+        schema={animesListSchema(animes.map((a) => a[0]))}
+      />
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: 'Animes', path: '/animes' },
+        ])}
+      />
       <div className="mx-auto max-w-7xl">
         <motion.header
           className="mb-10 flex flex-col items-start gap-3"

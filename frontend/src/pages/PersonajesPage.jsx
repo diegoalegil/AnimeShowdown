@@ -10,7 +10,9 @@ import {
   getStatsPersonaje,
   getPopularidad,
 } from '../data/personajes'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
+import { breadcrumbsSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 
 const headerVariants = {
@@ -38,7 +40,10 @@ const sortLabels = {
 }
 
 function PersonajesPage() {
-  useDocumentTitle('Personajes')
+  useSeo({
+    title: 'Personajes',
+    description: `Catálogo de ${personajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
+  })
   const { play } = useSound()
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
@@ -87,6 +92,13 @@ function PersonajesPage() {
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: 'Personajes', path: '/personajes' },
+        ])}
+      />
       <div className="mx-auto max-w-7xl">
         <motion.header
           className="mb-8 flex flex-col items-start gap-3"

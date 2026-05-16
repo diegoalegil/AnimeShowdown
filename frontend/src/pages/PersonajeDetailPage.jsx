@@ -9,10 +9,12 @@ import {
   getIndicePersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { buscarPersonajeJikan } from '../lib/jikan'
 import { citaPersonaje } from '../lib/animechan'
 import { endpoints } from '../lib/api'
+import { personajeSchema, breadcrumbsSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import PersonajeCard from '../components/PersonajeCard'
 import ReactionsBar from '../components/ReactionsBar'
 import NotFoundPage from './NotFoundPage'
@@ -43,10 +45,23 @@ function PersonajeDetailPage() {
 
   // Hooks SIEMPRE arriba del posible early-return — Rules of Hooks: el orden no
   // puede variar entre renders. Antes el `if (idx === -1) return <NotFoundPage />`
-  // estaba antes de useDocumentTitle/useState/useEffect, lo que hacía crashear
-  // React con "Rendered fewer hooks than expected" al navegar de slug válido a
-  // inválido (refresh tras delete, link roto, typo en URL).
-  useDocumentTitle(personaje?.nombre ?? '404')
+  // estaba antes del hook de title, lo que hacía crashear React con
+  // "Rendered fewer hooks than expected" al navegar de slug válido a inválido.
+  const stats = personaje ? getStatsPersonaje(slug) : null
+  useSeo(
+    personaje
+      ? {
+          title: `${personaje.nombre} de ${personaje.anime}${
+            stats?.elo ? ` · ELO ${stats.elo}` : ''
+          }`,
+          description:
+            personaje.descripcion ||
+            `Stats, ranking ELO y ficha de ${personaje.nombre}, personaje de ${personaje.anime}, en AnimeShowdown.`,
+          image: imagenPersonaje(personaje.slug),
+          type: 'profile',
+        }
+      : { title: '404 — Personaje no encontrado', noindex: true },
+  )
   const [jikan, setJikan] = useState(null)
   const [cita, setCita] = useState(null)
 
@@ -78,7 +93,6 @@ function PersonajeDetailPage() {
 
   if (idx === -1) return <NotFoundPage />
 
-  const stats = getStatsPersonaje(slug)
   const total = stats.wins + stats.losses
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
   const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
@@ -89,6 +103,18 @@ function PersonajeDetailPage() {
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <JsonLd
+        id="personaje"
+        schema={personajeSchema(personaje, stats)}
+      />
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: 'Personajes', path: '/personajes' },
+          { label: personaje.nombre, path: `/personajes/${personaje.slug}` },
+        ])}
+      />
       <div className="mx-auto max-w-6xl">
         <Link
           to="/personajes"

@@ -5,7 +5,9 @@ import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
 import ReactionsBar from '../components/ReactionsBar'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
+import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import NotFoundPage from './NotFoundPage'
 
 const headerVariants = {
@@ -30,8 +32,24 @@ function TorneoDetailPage() {
   const { slug } = useParams()
   const { data: torneo, isLoading, isError, error } = useTorneoBySlug(slug)
 
-  // useDocumentTitle por encima del early-return (Rules of Hooks).
-  useDocumentTitle(torneo?.nombre ?? 'Torneo')
+  // useSeo por encima del early-return (Rules of Hooks). Cuando todavía no
+  // hay datos pintamos un title genérico; cuando llegan, los meta tags
+  // se actualizan en el siguiente tick (efecto dependiente de torneo).
+  useSeo(
+    torneo
+      ? {
+          title: `${torneo.nombre} · Bracket de ${
+            torneo.numParticipantes ?? '?'
+          } personajes`,
+          description:
+            torneo.descripcion ||
+            `Sigue el bracket de ${torneo.nombre} con ${
+              torneo.numParticipantes ?? '?'
+            } personajes y vota en cada enfrentamiento.`,
+          type: 'website',
+        }
+      : { title: 'Torneo' },
+  )
 
   if (isLoading) {
     return (
@@ -101,6 +119,18 @@ function TorneoDetailPage() {
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <JsonLd
+        id="torneo"
+        schema={torneoSchema(torneo, rosterRonda1)}
+      />
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: 'Torneos', path: '/torneos' },
+          { label: torneo.nombre, path: `/torneos/${torneo.slug}` },
+        ])}
+      />
       <div className="mx-auto max-w-6xl">
         <Link
           to="/torneos"
