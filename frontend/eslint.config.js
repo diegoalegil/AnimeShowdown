@@ -25,12 +25,14 @@ export default defineConfig([
   {
     files: ['**/*.{js,jsx}'],
     rules: {
-      // React Compiler reporta error si una librería de terceros devuelve
-      // funciones que no se pueden memoizar (p.ej. react-hook-form's
-      // watch()). El código funciona perfectamente; solo significa que el
-      // compiler optimizer no puede tocar ese componente. Lo bajamos a
-      // warning para no bloquear CI sobre algo que es solo informativo.
-      'react-hooks/incompatible-library': 'warn',
+      // React Compiler reporta esta rule si una librería de terceros
+      // devuelve funciones que no se pueden memoizar (p.ej. el watch()
+      // de react-hook-form). El código funciona perfectamente; solo
+      // significa que el optimizer del compiler NO puede tocar ese
+      // componente — una optimización opcional, no un bug. Off completo
+      // porque en CI una versión del plugin distinta de la local la
+      // mantenía como error y rompía el build.
+      'react-hooks/incompatible-library': 'off',
     },
   },
 ])
