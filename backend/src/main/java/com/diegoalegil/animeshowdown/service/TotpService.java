@@ -74,7 +74,7 @@ public class TotpService {
 
     /**
      * Construye la URI otpauth:// que codificaremos al QR.
-     * <pre>otpauth://totp/AnimeShowdown:diego@example.com?secret=XXX&issuer=AnimeShowdown</pre>
+     * <pre>otpauth://totp/AnimeShowdown:usuario@correo.com?secret=XXX&issuer=AnimeShowdown</pre>
      */
     public String construirOtpauthUri(Usuario usuario, String secret) {
         QrData data = new QrData.Builder()
