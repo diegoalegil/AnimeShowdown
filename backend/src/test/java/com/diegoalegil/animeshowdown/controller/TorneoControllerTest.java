@@ -323,6 +323,148 @@ class TorneoControllerTest {
     }
 
     @Test
+    void admin_listarPendientes_devuelveTorneoCreadoPorUser() throws Exception {
+        String tokenUser = tokenUserVerificado("user_admin_aprueba", "user_admin_aprueba@example.com");
+        String tokenAdmin = tokenAdmin();
+
+        // User envía propuesta
+        mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + tokenUser)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Para que admin lo apruebe",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated());
+
+        // Admin ve la cola
+        mvc.perform(get("/api/admin/torneos/pendientes")
+                .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[?(@.nombre == 'Para que admin lo apruebe')]").exists());
+    }
+
+    @Test
+    void admin_aprobar_marcaTorneoAprobadoEInProgress() throws Exception {
+        String tokenUser = tokenUserVerificado("user_aprobar_target", "user_aprobar_target@example.com");
+        String tokenAdmin = tokenAdmin();
+
+        MvcResult res = mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + tokenUser)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "A aprobar",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        Long id = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+
+        mvc.perform(put("/api/admin/torneos/" + id + "/aprobar")
+                .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estadoRevision").value("APROBADO"))
+                .andExpect(jsonPath("$.estado").value("IN_PROGRESS"));
+
+        // Ahora SÍ aparece en el listado público
+        MvcResult list = mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode arr = json.readTree(list.getResponse().getContentAsString());
+        boolean encontrado = false;
+        for (JsonNode t : arr) {
+            if ("A aprobar".equals(t.get("nombre").asText())) encontrado = true;
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(encontrado,
+                "Torneo APROBADO debería aparecer en /api/torneos público");
+    }
+
+    @Test
+    void admin_rechazar_marcaTorneoRechazadoConMotivo() throws Exception {
+        String tokenUser = tokenUserVerificado("user_rechazar_target", "user_rechazar_target@example.com");
+        String tokenAdmin = tokenAdmin();
+
+        MvcResult res = mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + tokenUser)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "A rechazar",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        Long id = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+
+        mvc.perform(put("/api/admin/torneos/" + id + "/rechazar")
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("motivo", "Personajes repetidos en distintos animes"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estadoRevision").value("RECHAZADO"))
+                .andExpect(jsonPath("$.motivoRechazo").value("Personajes repetidos en distintos animes"));
+
+        // El creador ve el rechazo + motivo en /mios
+        mvc.perform(get("/api/torneos/mios")
+                .header("Authorization", "Bearer " + tokenUser))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.nombre == 'A rechazar')].estadoRevision").value("RECHAZADO"))
+                .andExpect(jsonPath("$[?(@.nombre == 'A rechazar')].motivoRechazo")
+                        .value("Personajes repetidos en distintos animes"));
+    }
+
+    @Test
+    void admin_aprobar_torneoYaAprobado_devuelve409() throws Exception {
+        String tokenUser = tokenUserVerificado("user_doble_aprobar", "user_doble_aprobar@example.com");
+        String tokenAdmin = tokenAdmin();
+
+        MvcResult res = mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + tokenUser)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Doble aprobacion",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        Long id = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+
+        mvc.perform(put("/api/admin/torneos/" + id + "/aprobar")
+                .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk());
+        mvc.perform(put("/api/admin/torneos/" + id + "/aprobar")
+                .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void admin_rechazar_sinMotivo_devuelve400() throws Exception {
+        String tokenUser = tokenUserVerificado("user_rechazar_sin_motivo", "user_rechazar_sin_motivo@example.com");
+        String tokenAdmin = tokenAdmin();
+
+        MvcResult res = mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + tokenUser)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Sin motivo",
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        Long id = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+
+        mvc.perform(put("/api/admin/torneos/" + id + "/rechazar")
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("motivo", ""))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void admin_aprobar_sinAdmin_devuelve403() throws Exception {
+        String tokenUser = tokenUserVerificado("user_no_admin_aprueba", "user_no_admin_aprueba@example.com");
+
+        mvc.perform(put("/api/admin/torneos/9999/aprobar")
+                .header("Authorization", "Bearer " + tokenUser))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void finalizarTorneoSoloFuncionaSiEstaInProgress() throws Exception {
         String token = tokenAdmin();
 
