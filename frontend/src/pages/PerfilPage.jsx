@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import {
+  ExternalLink,
   ImagePlus,
   Key,
   Link as LinkIcon,
@@ -102,30 +103,39 @@ function PerfilPage() {
 
 function CardDatos({ user }) {
   return (
-    <div className="flex items-center gap-5 rounded-xl border border-border bg-surface p-6">
-      <Avatar user={user} size={80} />
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="text-xl font-bold tracking-tight text-fg-strong">
-          {user.username}
-        </p>
-        <p className="inline-flex items-center gap-1.5 text-[13px] text-fg-muted">
-          <Mail className="h-3.5 w-3.5" />
-          {user.email || 'sin email'}
-        </p>
-        <p className="inline-flex items-center gap-1.5 text-[12px]">
-          <User className="h-3.5 w-3.5 text-fg-muted" />
-          <span
-            className={`font-mono font-bold ${
-              user.rol === 'ADMIN' ? 'text-accent' : 'text-fg-muted'
-            }`}
-          >
-            {user.rol || 'USER'}
-          </span>
-          {user.rol === 'ADMIN' && (
-            <Shield className="h-3 w-3 text-accent" />
-          )}
-        </p>
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <div className="flex items-center gap-5">
+        <Avatar user={user} size={80} />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="text-xl font-bold tracking-tight text-fg-strong">
+            {user.username}
+          </p>
+          <p className="inline-flex items-center gap-1.5 text-[13px] text-fg-muted">
+            <Mail className="h-3.5 w-3.5" />
+            {user.email || 'sin email'}
+          </p>
+          <p className="inline-flex items-center gap-1.5 text-[12px]">
+            <User className="h-3.5 w-3.5 text-fg-muted" />
+            <span
+              className={`font-mono font-bold ${
+                user.rol === 'ADMIN' ? 'text-accent' : 'text-fg-muted'
+              }`}
+            >
+              {user.rol || 'USER'}
+            </span>
+            {user.rol === 'ADMIN' && (
+              <Shield className="h-3 w-3 text-accent" />
+            )}
+          </p>
+        </div>
       </div>
+      <Link
+        to={`/u/${encodeURIComponent(user.username)}`}
+        className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-fg-strong"
+      >
+        <ExternalLink className="h-3 w-3" />
+        Ver mi perfil público
+      </Link>
     </div>
   )
 }
