@@ -156,7 +156,11 @@ function ImpostorPage() {
         </motion.header>
 
         {!finalizadoDia && rondaActual && (
-          <Ronda ronda={rondaActual} onEleccion={handleEleccion} />
+          <Ronda
+            key={`${esExtra ? 'x' : 'd'}-${estado.rondaIdx}`}
+            ronda={rondaActual}
+            onEleccion={handleEleccion}
+          />
         )}
 
         {finalizadoDia && (
@@ -226,12 +230,12 @@ function Carta({ item, onClick }) {
       aria-label={`${item.nombre} de ${item.anime} — ¿impostor?`}
       className="group relative overflow-hidden rounded-lg border border-border bg-bg text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/40"
     >
-      <div className="aspect-[2/3] w-full overflow-hidden bg-surface-alt">
+      <div className="aspect-[3/4] w-full overflow-hidden bg-surface-alt">
         <img
           src={item.imagen}
           alt=""
           loading="lazy"
-          className="h-full w-full object-cover object-top transition-transform group-hover:scale-105"
+          className="h-full w-full object-contain transition-transform group-hover:scale-105"
         />
       </div>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2.5">
