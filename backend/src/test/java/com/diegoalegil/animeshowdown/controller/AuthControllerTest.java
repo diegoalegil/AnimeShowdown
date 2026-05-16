@@ -16,15 +16,22 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.diegoalegil.animeshowdown.TestAsyncConfig;
+import com.diegoalegil.animeshowdown.model.AuditEvento;
+import com.diegoalegil.animeshowdown.model.AuditLog;
 import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.repository.AuditLogRepository;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.context.annotation.Import;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestAsyncConfig.class)
 class AuthControllerTest {
 
     @Autowired
@@ -38,6 +45,9 @@ class AuthControllerTest {
 
     @Autowired
     private EmailVerificationRepository emailVerificationRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
 
     @Test
     void registroValidoDevuelve201YOcultaPassword() throws Exception {
@@ -284,5 +294,55 @@ class AuthControllerTest {
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.avatarUrl").value("https://example.com/gloria.png"));
+    }
+
+    @Test
+    void auditLogRegistraLoginYRegistro() throws Exception {
+        // Plan v2 §2.6: verifica que el AuditLog captura eventos clave de auth.
+        // El TestAsyncConfig hace que los @Async corran sincrónicamente, así
+        // que cuando vuelve el POST la fila ya está persistida.
+        long before = auditLogRepository.count();
+
+        Map<String, String> registro = Map.of(
+                "username", "audit_user",
+                "password", "secreta123",
+                "email", "audit@example.com");
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(registro)))
+                .andExpect(status().isCreated());
+
+        Map<String, String> login = Map.of("username", "audit_user", "password", "secreta123");
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(login)))
+                .andExpect(status().isOk());
+
+        // Login fallido también — para verificar LOGIN_FAIL.
+        Map<String, String> loginMal = Map.of("username", "audit_user", "password", "wrongpass");
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(loginMal)))
+                .andExpect(status().isUnauthorized());
+
+        var logs = auditLogRepository.findAll();
+        long delta = logs.size() - before;
+        assert delta >= 3 : "Deberían haberse registrado al menos REGISTRO + LOGIN_OK + LOGIN_FAIL (3 audit logs); delta=" + delta;
+
+        // Cada evento debe haber dejado al menos una fila.
+        long registros = logs.stream().filter(l -> l.getEvento() == AuditEvento.REGISTRO).count();
+        long loginsOk = logs.stream().filter(l -> l.getEvento() == AuditEvento.LOGIN_OK).count();
+        long loginsFail = logs.stream().filter(l -> l.getEvento() == AuditEvento.LOGIN_FAIL).count();
+        assert registros >= 1 : "Debe haber al menos 1 REGISTRO audit";
+        assert loginsOk >= 1 : "Debe haber al menos 1 LOGIN_OK audit";
+        assert loginsFail >= 1 : "Debe haber al menos 1 LOGIN_FAIL audit";
+
+        // Los detalles del LOGIN_FAIL deben tener JSON con razón.
+        AuditLog ultimoFail = logs.stream()
+                .filter(l -> l.getEvento() == AuditEvento.LOGIN_FAIL)
+                .reduce((a, b) -> b)
+                .orElseThrow();
+        assert ultimoFail.getDetalles() != null && ultimoFail.getDetalles().contains("password_incorrecta")
+                : "LOGIN_FAIL debe llevar detalles JSON con la razón; got=" + ultimoFail.getDetalles();
     }
 }
