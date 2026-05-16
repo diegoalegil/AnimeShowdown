@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
+import NewsletterForm from './NewsletterForm'
 
 function GithubIcon({ className }) {
   return (
@@ -38,7 +39,7 @@ function Footer() {
   return (
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
           <div className="flex flex-col gap-3">
             <Link to="/" className="flex items-center gap-3">
               <img
@@ -55,6 +56,12 @@ function Footer() {
             <p className="max-w-xs text-[13px] leading-relaxed text-fg-muted">
               Torneos cara a cara y rankings ELO de los personajes de anime más icónicos. Proyecto portfolio open source de Diego Alegil.
             </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              Newsletter
+            </h3>
+            <NewsletterForm />
           </div>
           <div className="flex flex-col gap-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">

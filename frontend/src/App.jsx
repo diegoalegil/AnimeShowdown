@@ -32,6 +32,7 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const PerfilPage = lazy(() => import('./pages/PerfilPage'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
+const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Fallback de Suspense compartido. Minimalista a propósito: la página entera
@@ -105,6 +106,7 @@ function App() {
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />
                 <Route path="/verify" element={<VerifyPage />} />
+                <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
