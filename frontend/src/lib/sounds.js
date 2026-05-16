@@ -4,7 +4,10 @@ function getCtx() {
   if (!audioContext) {
     const Ctx = window.AudioContext || window.webkitAudioContext
     if (!Ctx) return null
-    audioContext = new Ctx()
+    // latencyHint:'interactive' pide al navegador el buffer de salida más
+    // pequeño posible. Con 'playback' (default en algunos UA) el output
+    // latency puede subir a 100ms+, que se percibe como sonido tardío.
+    audioContext = new Ctx({ latencyHint: 'interactive' })
   }
   if (audioContext.state === 'suspended') {
     audioContext.resume().catch(() => {})

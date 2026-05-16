@@ -22,22 +22,20 @@ export function SoundProvider({ children }) {
   }, [muted])
 
   useEffect(() => {
-    // Warm-up del AudioContext en la primera interacción del usuario para que el
-    // primer sonido suene sin lag (las APIs de audio están suspended hasta gesture).
+    // Warm-up del AudioContext en cada interacción del usuario. Sin once:true
+    // porque si la pestaña pierde foco el ctx puede volver a suspended y nos
+    // interesa re-resumirlo en el siguiente gesture (resume() es no-op si ya
+    // está running, así que no penaliza). También al recuperar foco.
     const handler = () => {
       sfx.__warm?.()
     }
-    document.addEventListener('pointerdown', handler, {
-      once: true,
-      passive: true,
-    })
-    document.addEventListener('keydown', handler, {
-      once: true,
-      passive: true,
-    })
+    document.addEventListener('pointerdown', handler, { passive: true })
+    document.addEventListener('keydown', handler, { passive: true })
+    window.addEventListener('focus', handler)
     return () => {
       document.removeEventListener('pointerdown', handler)
       document.removeEventListener('keydown', handler)
+      window.removeEventListener('focus', handler)
     }
   }, [])
 
