@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, Quote, Star } from 'lucide-react'
 import {
   personajes,
@@ -11,7 +12,9 @@ import {
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { buscarPersonajeJikan } from '../lib/jikan'
 import { citaPersonaje } from '../lib/animechan'
+import { endpoints } from '../lib/api'
 import PersonajeCard from '../components/PersonajeCard'
+import ReactionsBar from '../components/ReactionsBar'
 import NotFoundPage from './NotFoundPage'
 
 const Personaje3D = lazy(() => import('../components/Personaje3D'))
@@ -60,6 +63,18 @@ function PersonajeDetailPage() {
       cancelado = true
     }
   }, [personaje])
+
+  // Lista cacheada (10 min stale) para mapear slug → id del backend. La
+  // necesitamos porque las reactions usan targetId=long del backend, no
+  // el slug del catálogo client-side. Plan v2 §4.3.
+  const { data: listaBackend } = useQuery({
+    queryKey: ['personajes', 'lista'],
+    queryFn: endpoints.personajes,
+    staleTime: 10 * 60 * 1000,
+  })
+  const personajeBackendId = personaje && listaBackend
+    ? listaBackend.find((p) => p.slug === personaje.slug)?.id
+    : null
 
   if (idx === -1) return <NotFoundPage />
 
@@ -138,6 +153,14 @@ function PersonajeDetailPage() {
                 {personaje.anime}
               </span>
             </motion.p>
+            {personajeBackendId && (
+              <motion.div variants={itemVariants}>
+                <ReactionsBar
+                  targetType="PERSONAJE"
+                  targetId={personajeBackendId}
+                />
+              </motion.div>
+            )}
             <motion.div
               className="grid w-full grid-cols-3 gap-3"
               variants={itemVariants}

@@ -248,6 +248,15 @@ export const endpoints = {
   //   misLogros: autenticado, catálogo enriquecido con desbloqueadoEn null/timestamp.
   logros: () => api.get('/api/logros', { auth: false }),
   misLogros: () => api.get('/api/logros/mios'),
+  // Reactions (Plan v2 §4.3).
+  //   getReacciones: público, devuelve {counts, miReaccion, total}.
+  //   aplicarReaccion: autenticado. Backend gestiona toggle/swap automático.
+  getReacciones: (targetType, targetId) =>
+    api.get(
+      `/api/reacciones?targetType=${targetType}&targetId=${targetId}`,
+    ),
+  aplicarReaccion: ({ targetType, targetId, tipo }) =>
+    api.post('/api/reacciones', { targetType, targetId, tipo }),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>

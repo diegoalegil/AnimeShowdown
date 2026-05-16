@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
+import ReactionsBar from '../components/ReactionsBar'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import NotFoundPage from './NotFoundPage'
@@ -129,6 +130,10 @@ function TorneoDetailPage() {
             {fechaInicioFmt && ` · ${fechaInicioFmt}`}
             {fechaFinFmt && ` → ${fechaFinFmt}`}
           </p>
+          {/* Plan v2 §4.3: reactions sobre el torneo. */}
+          {torneo?.id && (
+            <ReactionsBar targetType="TORNEO" targetId={torneo.id} />
+          )}
         </motion.header>
         {campeon && (
           <Link
