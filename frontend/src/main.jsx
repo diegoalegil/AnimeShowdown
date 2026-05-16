@@ -6,26 +6,37 @@ import { AuthProvider } from './contexts/AuthContext.jsx'
 import { SoundProvider } from './contexts/SoundContext.jsx'
 import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import { queryClient } from './lib/queryClient.js'
+import { initSentry } from './lib/sentry.js'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
 import App from './App.jsx'
+
+// Bootstrap Sentry antes de montar React. No-op si VITE_SENTRY_DSN no está
+// definida (dev local sin .env). Plan v2 §3.7.
+initSentry()
 
 // QueryClientProvider envuelve el árbol entero para que cualquier
 // página/componente pueda usar useQuery sin pasar props. El cliente vive
 // en lib/queryClient.js — singleton compartido entre tests y app.
 // Se coloca DENTRO de BrowserRouter pero FUERA de Auth/Sound/Theme para
 // que esos contexts puedan usar useQuery si lo necesitan en el futuro.
+//
+// ErrorBoundary es lo más externo posible para atrapar errores síncronos
+// de cualquier provider o componente descendiente.
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AuthProvider>
-            <SoundProvider>
-              <App />
-            </SoundProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <AuthProvider>
+              <SoundProvider>
+                <App />
+              </SoundProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )
