@@ -18,6 +18,7 @@ import { useSound } from '../contexts/SoundContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { endpoints, ApiError } from '../lib/api'
 import Avatar from '../components/Avatar'
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -519,18 +520,23 @@ function CardPassword() {
             autoComplete="new-password"
             {...register('newPassword', {
               required: 'Introduce la contraseña nueva',
-              minLength: { value: 6, message: 'Mínimo 6 caracteres' },
+              minLength: { value: 8, message: 'Mínimo 8 caracteres' },
+              pattern: {
+                value: /^(?=.*[A-Za-z])(?=.*\d).{8,100}$/,
+                message: 'Debe incluir al menos una letra y un número',
+              },
             })}
             className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
               errors.newPassword ? 'border-red-500' : 'border-border'
             }`}
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8, con letra y número"
           />
           {errors.newPassword && (
             <p className="text-[11px] text-red-400">
               {errors.newPassword.message}
             </p>
           )}
+          <PasswordStrengthMeter password={newPassword} />
         </div>
         <div className="flex flex-col gap-1.5">
           <label
