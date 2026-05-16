@@ -1,7 +1,10 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
 import TorneoCard from '../components/TorneoCard'
 import { useTorneos } from '../lib/torneosQueries'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useAuth } from '../contexts/AuthContext'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -15,6 +18,7 @@ const headerVariants = {
 function TorneosPage() {
   useDocumentTitle('Torneos')
   const { data: torneos, isLoading, isError, error } = useTorneos()
+  const { user } = useAuth()
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -34,6 +38,15 @@ function TorneosPage() {
           <p className="max-w-2xl text-fg-muted">
             Brackets cara a cara entre los personajes del catálogo. Pulsa cualquier torneo para ver el roster completo y el estado de cada enfrentamiento.
           </p>
+          {user && (
+            <Link
+              to="/torneos/crear"
+              className="mt-2 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+            >
+              <Sparkles className="h-4 w-4" />
+              Crea tu torneo
+            </Link>
+          )}
         </motion.header>
         {isLoading && (
           <div className="flex justify-center py-16">

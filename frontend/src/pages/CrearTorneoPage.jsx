@@ -1,0 +1,424 @@
+import { useMemo, useState } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { motion } from 'framer-motion'
+import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
+import {
+  CheckCircle2,
+  Search,
+  Sparkles,
+  Trophy,
+  Users,
+} from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
+import { endpoints, ApiError } from '../lib/api'
+import { personajes as catalogoCliente } from '../data/personajes'
+
+const containerVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: 'easeOut' },
+  },
+}
+
+const TAMANOS = [8, 16]
+
+/**
+ * Creación de torneos por usuarios verificados (Plan v2 §4.9).
+ *
+ * Flow:
+ *   1. Radio explícito 8 o 16 personajes (decisión inicial; bloquea el
+ *      contador para que la UI sepa cuántos esperar).
+ *   2. Nombre + descripción opcional (react-hook-form).
+ *   3. Grid de avatares con search en local — el catálogo cliente-side
+ *      tiene 642+ personajes, queremos filtrar sin pedir al backend en
+ *      cada keystroke.
+ *   4. Submit con conversión slug → id del backend (lista cacheada via
+ *      useQuery) antes de POST.
+ *
+ * Tras éxito redirige a /perfil — el torneo queda PENDIENTE y aparece
+ * en la card "Mis torneos" con pill amarillo.
+ */
+function CrearTorneoPage() {
+  useDocumentTitle('Crea tu torneo')
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  // Lista del backend con IDs reales. La cachea 10 min porque el catálogo
+  // no cambia entre peticiones (admin import-jikan es esporádico).
+  const { data: listaBackend, isLoading: cargandoBackend } = useQuery({
+    queryKey: ['personajes', 'lista'],
+    queryFn: endpoints.personajes,
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const crearMutation = useCrearTorneoMio()
+
+  const [tamano, setTamano] = useState(8)
+  const [seleccionados, setSeleccionados] = useState(() => new Set())
+  const [query, setQuery] = useState('')
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm()
+
+  const slugToBackendId = useMemo(() => {
+    if (!listaBackend) return new Map()
+    const m = new Map()
+    for (const p of listaBackend) m.set(p.slug, p.id)
+    return m
+  }, [listaBackend])
+
+  // Catálogo filtrado: trabajamos sobre el cliente-side porque trae
+  // descripciones + imágenes y queremos render rápido. El backend solo
+  // sirve para mapear a IDs en el submit.
+  const filtrados = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return catalogoCliente
+    return catalogoCliente.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(q) ||
+        p.anime.toLowerCase().includes(q),
+    )
+  }, [query])
+
+  if (!user) return <Navigate to="/login?next=/torneos/crear" replace />
+
+  const toggleSeleccion = (slug) => {
+    setSeleccionados((prev) => {
+      const next = new Set(prev)
+      if (next.has(slug)) {
+        next.delete(slug)
+      } else if (next.size < tamano) {
+        next.add(slug)
+      } else {
+        // Cap: no permitir más allá del tamaño objetivo. Damos feedback.
+        toast.info(`Ya tienes ${tamano} personajes elegidos`, {
+          description: 'Quita uno para añadir otro.',
+        })
+      }
+      return next
+    })
+  }
+
+  const cambiarTamano = (nuevo) => {
+    if (nuevo === tamano) return
+    setTamano(nuevo)
+    // Si reduces de 16 a 8 y tenías más de 8 elegidos, recortamos
+    // los últimos para no dejar al user con un estado inválido.
+    setSeleccionados((prev) => {
+      if (prev.size <= nuevo) return prev
+      const arr = Array.from(prev).slice(0, nuevo)
+      return new Set(arr)
+    })
+  }
+
+  const onSubmit = async (data) => {
+    if (seleccionados.size !== tamano) {
+      setError('root', {
+        message: `Faltan personajes: tienes ${seleccionados.size}/${tamano}`,
+      })
+      return
+    }
+    // Mapeo slug → backend id. Si algún slug no está en la lista del
+    // backend (catálogo cliente desincronizado), abortamos con error.
+    const ids = []
+    for (const slug of seleccionados) {
+      const id = slugToBackendId.get(slug)
+      if (!id) {
+        setError('root', {
+          message: `Personaje "${slug}" no está en el backend todavía.`,
+        })
+        return
+      }
+      ids.push(id)
+    }
+    try {
+      await crearMutation.mutateAsync({
+        nombre: data.nombre,
+        descripcion: data.descripcion?.trim() || null,
+        participantesIds: ids,
+      })
+      toast.success('Torneo enviado a revisión', {
+        description: 'Un admin lo revisará pronto. Te avisaremos.',
+      })
+      navigate('/perfil')
+    } catch (err) {
+      const msg =
+        err instanceof ApiError
+          ? err.message || `Error ${err.status}`
+          : 'No se pudo conectar al servidor.'
+      setError('root', { message: msg })
+      toast.error('No se pudo crear el torneo', { description: msg })
+    }
+  }
+
+  return (
+    <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <div className="mx-auto max-w-3xl">
+        <motion.header
+          className="mb-8 flex flex-col items-start gap-3"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+            <Sparkles className="h-3 w-3" />
+            Crea un torneo
+          </span>
+          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+            Tu torneo personalizado
+          </h1>
+          <p className="max-w-2xl text-fg-muted">
+            Elige el tamaño y los personajes. Tu torneo entrará en una cola
+            de revisión; cuando un admin lo apruebe, se inicia en juego para
+            que todos voten.
+          </p>
+        </motion.header>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-6"
+        >
+          <CardTamano tamano={tamano} onCambio={cambiarTamano} />
+
+          <CardDatos
+            register={register}
+            errors={errors}
+          />
+
+          <CardSeleccion
+            tamano={tamano}
+            seleccionados={seleccionados}
+            onToggle={toggleSeleccion}
+            query={query}
+            onQuery={setQuery}
+            filtrados={filtrados}
+            cargandoBackend={cargandoBackend}
+          />
+
+          {errors.root && (
+            <p className="text-[13px] text-red-400">{errors.root.message}</p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={
+                isSubmitting ||
+                crearMutation.isPending ||
+                seleccionados.size !== tamano
+              }
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Trophy className="h-4 w-4" />
+              {crearMutation.isPending ? 'Enviando…' : 'Enviar a revisión'}
+            </button>
+            <Link
+              to="/torneos"
+              className="text-[13px] text-fg-muted transition-colors hover:text-accent"
+            >
+              Cancelar
+            </Link>
+          </div>
+        </form>
+      </div>
+    </section>
+  )
+}
+
+function CardTamano({ tamano, onCambio }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Users className="h-4 w-4 text-accent" />
+        <h2 className="text-lg font-bold text-fg-strong">Tamaño del torneo</h2>
+      </div>
+      <p className="mb-4 text-[12px] text-fg-muted">
+        Elige cuántos personajes competirán en el bracket. 8 son 3 rondas; 16
+        son 4 rondas.
+      </p>
+      <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-bg p-1">
+        {TAMANOS.map((n) => {
+          const activo = tamano === n
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onCambio(n)}
+              className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold transition-colors ${
+                activo
+                  ? 'bg-accent text-bg'
+                  : 'text-fg-muted hover:text-fg-strong'
+              }`}
+            >
+              {n} personajes
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function CardDatos({ register, errors }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Trophy className="h-4 w-4 text-amber-400" />
+        <h2 className="text-lg font-bold text-fg-strong">Datos del torneo</h2>
+      </div>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="nombre"
+            className="text-[12px] font-medium text-fg-strong"
+          >
+            Nombre
+          </label>
+          <input
+            id="nombre"
+            type="text"
+            {...register('nombre', {
+              required: 'El nombre es obligatorio',
+              minLength: { value: 5, message: 'Mínimo 5 caracteres' },
+              maxLength: { value: 80, message: 'Máximo 80 caracteres' },
+            })}
+            placeholder='Ej. "Las mejores chicas de los 2010"'
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              errors.nombre ? 'border-red-500' : 'border-border'
+            }`}
+          />
+          {errors.nombre && (
+            <p className="text-[11px] text-red-400">
+              {errors.nombre.message}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="descripcion"
+            className="text-[12px] font-medium text-fg-strong"
+          >
+            Descripción <span className="text-fg-muted">(opcional)</span>
+          </label>
+          <textarea
+            id="descripcion"
+            rows={3}
+            {...register('descripcion', {
+              maxLength: { value: 500, message: 'Máximo 500 caracteres' },
+            })}
+            placeholder="Cuenta el concepto del torneo."
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              errors.descripcion ? 'border-red-500' : 'border-border'
+            }`}
+          />
+          {errors.descripcion && (
+            <p className="text-[11px] text-red-400">
+              {errors.descripcion.message}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CardSeleccion({
+  tamano,
+  seleccionados,
+  onToggle,
+  query,
+  onQuery,
+  filtrados,
+  cargandoBackend,
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Users className="h-4 w-4 text-accent" />
+        <h2 className="text-lg font-bold text-fg-strong">Participantes</h2>
+        <span
+          className={`ml-auto inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums ${
+            seleccionados.size === tamano
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+              : 'border-border bg-bg text-fg-muted'
+          }`}
+        >
+          {seleccionados.size} / {tamano}
+        </span>
+      </div>
+      <p className="mb-4 text-[12px] text-fg-muted">
+        Pulsa los personajes que entrarán al torneo. Necesitas{' '}
+        <strong className="font-semibold text-fg-strong">
+          exactamente {tamano}
+        </strong>
+        .
+      </p>
+      <div className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-2">
+        <Search className="h-4 w-4 text-fg-muted" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => onQuery(e.target.value)}
+          placeholder="Filtra por nombre o anime…"
+          className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
+        />
+      </div>
+      {cargandoBackend && (
+        <p className="mb-3 text-[11px] text-fg-muted">
+          Cargando catálogo del backend…
+        </p>
+      )}
+      <div className="scrollbar-hide grid max-h-[420px] grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-4 md:grid-cols-5">
+        {filtrados.map((p) => {
+          const sel = seleccionados.has(p.slug)
+          return (
+            <button
+              key={p.slug}
+              type="button"
+              onClick={() => onToggle(p.slug)}
+              aria-pressed={sel}
+              className={`relative flex flex-col items-center gap-1 overflow-hidden rounded-lg border p-2 text-center transition-all ${
+                sel
+                  ? 'border-accent bg-accent/10'
+                  : 'border-border bg-bg hover:border-accent/40'
+              }`}
+            >
+              <img
+                src={p.imagen}
+                alt=""
+                loading="lazy"
+                className="h-16 w-12 rounded object-cover object-top"
+              />
+              <span className="line-clamp-1 text-[11px] font-semibold text-fg-strong">
+                {p.nombre}
+              </span>
+              <span className="line-clamp-1 text-[10px] text-fg-muted">
+                {p.anime}
+              </span>
+              {sel && (
+                <CheckCircle2 className="absolute right-1 top-1 h-4 w-4 text-accent" />
+              )}
+            </button>
+          )
+        })}
+        {filtrados.length === 0 && (
+          <p className="col-span-full py-8 text-center text-[12px] text-fg-muted">
+            No hay personajes que coincidan con "{query}".
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default CrearTorneoPage
