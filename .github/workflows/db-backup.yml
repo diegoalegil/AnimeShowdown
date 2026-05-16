@@ -1,0 +1,92 @@
+name: DB backup → R2
+
+# Cron diario que hace pg_dump de Neon production y lo sube a Cloudflare R2
+# con rotación daily 7d / weekly 4w / monthly 12m (Plan v2 §2.8).
+#
+# Para activar — secrets necesarios en Settings → Secrets → Actions:
+#   NEON_DATABASE_URL      postgresql://user:pass@host/db?sslmode=require
+#                          (¡SIN -pooler! pg_dump necesita conexión directa)
+#   R2_ENDPOINT            https://<account-id>.r2.cloudflarestorage.com
+#   R2_ACCESS_KEY_ID       Access Key del API token R2 con write al bucket
+#   R2_SECRET_ACCESS_KEY   Secret correspondiente
+#
+# Para test manual antes de esperar al cron: tab Actions → "DB backup → R2"
+# → Run workflow. Dura ~20s para una BBDD pequeña.
+#
+# Restaurar desde un backup: descargar el .dump con aws s3 cp y luego:
+#   pg_restore --clean --if-exists --no-owner --no-acl \
+#              --dbname=$TARGET_DB animeshowdown-YYYY-MM-DD.dump
+# Probarlo mensual contra una BBDD local — política de "test de restore"
+# del Plan v2 §2.8.
+
+on:
+  schedule:
+    # 04:00 UTC = 06:00 Madrid (CEST en verano, CET en invierno). Horario
+    # valle: cero tráfico humano, Neon ya despierto del baseline.
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Dump + upload + rotate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      R2_BUCKET: animeshowdown-backups
+      NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL 17 client
+        # ubuntu-latest viene con pg_dump 16 por default; Neon corre Postgres 17
+        # y pg_dump 16 contra server 17 falla con "server version mismatch".
+        # Repo oficial de PostgreSQL → instalar postgresql-client-17.
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
+
+      - name: Verify secrets present
+        # Falla temprano si falta algún secret — el script ya checkea pero
+        # el error sale más claro aquí, antes del install de pg_dump.
+        run: |
+          missing=()
+          [ -z "$NEON_DATABASE_URL"     ] && missing+=("NEON_DATABASE_URL")
+          [ -z "$R2_ENDPOINT"           ] && missing+=("R2_ENDPOINT")
+          [ -z "$R2_ACCESS_KEY_ID"      ] && missing+=("R2_ACCESS_KEY_ID")
+          [ -z "$R2_SECRET_ACCESS_KEY"  ] && missing+=("R2_SECRET_ACCESS_KEY")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Faltan secrets: ${missing[*]}"
+            exit 1
+          fi
+          echo "✓ Todos los secrets presentes."
+
+      - name: Run backup script
+        run: ./scripts/backup-and-rotate.sh
+
+      - name: Summary
+        if: always()
+        # Lista el estado actual del bucket en el summary del job — útil para
+        # auditar visualmente en el run sin abrir Cloudflare.
+        run: |
+          export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+          export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+          export AWS_DEFAULT_REGION="auto"
+          echo "### Estado del bucket tras el run" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          aws s3 ls "s3://$R2_BUCKET/daily/"   --endpoint-url "$R2_ENDPOINT" --human-readable --summarize >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "daily/ vacío" >> "$GITHUB_STEP_SUMMARY"
+          echo "---" >> "$GITHUB_STEP_SUMMARY"
+          aws s3 ls "s3://$R2_BUCKET/weekly/"  --endpoint-url "$R2_ENDPOINT" --human-readable --summarize >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "weekly/ vacío" >> "$GITHUB_STEP_SUMMARY"
+          echo "---" >> "$GITHUB_STEP_SUMMARY"
+          aws s3 ls "s3://$R2_BUCKET/monthly/" --endpoint-url "$R2_ENDPOINT" --human-readable --summarize >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "monthly/ vacío" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
