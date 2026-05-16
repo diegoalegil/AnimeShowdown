@@ -139,21 +139,34 @@ function TorneoDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver a torneos
         </Link>
+        {/* Plan v2 §6.3: <header> con Microdata schema.org/SportsEvent.
+            JSON-LD del torneo va en JsonLd arriba; el Microdata aquí
+            sirve a crawlers que prefieren parsearlo inline. */}
         <motion.header
+          itemScope
+          itemType="https://schema.org/SportsEvent"
           className="mb-10 flex flex-col items-start gap-3"
           initial="hidden"
           animate="visible"
           variants={headerVariants}
         >
+          <meta itemProp="url" content={`https://animeshowdown.dev/torneos/${torneo.slug}`} />
+          {fechaInicio && <meta itemProp="startDate" content={fechaInicio} />}
+          {fechaFinalizacion && <meta itemProp="endDate" content={fechaFinalizacion} />}
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
             <span className={`h-2 w-2 rounded-full ${badge.dot}`} />
             {badge.label}
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight">
+          <h1
+            itemProp="name"
+            className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
+          >
             {nombre}
           </h1>
           {descripcion && (
-            <p className="max-w-3xl text-fg-muted">{descripcion}</p>
+            <p itemProp="description" className="max-w-3xl text-fg-muted">
+              {descripcion}
+            </p>
           )}
           <p className="text-fg-muted">
             {numParticipantes} personajes
