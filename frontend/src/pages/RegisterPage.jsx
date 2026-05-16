@@ -116,7 +116,7 @@ function RegisterPage() {
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.email ? 'border-red-500' : 'border-border'
               }`}
-              placeholder="tunombre@ejemplo.com"
+              placeholder="tu@correo.com"
             />
             {errors.email && (
               <p className="text-[12px] text-red-400">{errors.email.message}</p>
