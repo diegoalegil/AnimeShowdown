@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Torneo;
 
@@ -21,6 +23,30 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
      * arriba abajo). Resuelto por idx_enf_torneo_ronda sin sort en memoria.
      */
     List<Enfrentamiento> findByTorneoOrderByRondaAscIdAsc(Torneo torneo);
+
+    /**
+     * Devuelve un enfrentamiento aleatorio "abierto" (ambos personajes
+     * presentes y sin ganador) de cualquier torneo en estado IN_PROGRESS.
+     * Usado por VotarPage modo backend: el usuario vota un match real
+     * sin tener que elegir torneo manualmente.
+     *
+     * ORDER BY RANDOM() es O(n log n) sobre n filas. Para los tamaños
+     * realistas del proyecto (cientos de matches abiertos como máximo)
+     * es perfectamente aceptable — Postgres lo resuelve <5ms. Cuando
+     * llegue Bloque 9 (Battle Royale) con miles de matches/min, se
+     * puede cambiar a una estrategia con OFFSET aleatorio.
+     */
+    @Query(value = """
+            SELECT * FROM enfrentamientos e
+            JOIN torneos t ON e.torneo_id = t.id
+            WHERE t.estado = 'IN_PROGRESS'
+              AND e.personaje1_id IS NOT NULL
+              AND e.personaje2_id IS NOT NULL
+              AND e.ganador_id IS NULL
+            ORDER BY RANDOM()
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Enfrentamiento> findEnfrentamientoAbiertoAleatorio();
 
     /**
      * Borra todos los enfrentamientos donde el personaje participe como

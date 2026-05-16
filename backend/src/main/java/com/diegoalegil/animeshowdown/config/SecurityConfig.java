@@ -51,6 +51,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").authenticated()
+                        // Lectura pública para que VotarPage pueda mostrar el match aleatorio
+                        // antes de pedir login (el voto sí requiere auth, regla de arriba).
+                        .requestMatchers(HttpMethod.GET, "/api/enfrentamientos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/personajes/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/personajes/**").hasRole("ADMIN")
