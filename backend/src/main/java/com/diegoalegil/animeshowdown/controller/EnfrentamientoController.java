@@ -24,17 +24,22 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 import jakarta.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Value;
+
 @RestController
 @RequestMapping("/api/enfrentamientos")
 public class EnfrentamientoController {
 
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final VotoRepository votoRepository;
+    private final boolean requiereEmailVerificado;
 
     public EnfrentamientoController(EnfrentamientoRepository enfrentamientoRepository,
-            VotoRepository votoRepository) {
+            VotoRepository votoRepository,
+            @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
+        this.requiereEmailVerificado = requiereEmailVerificado;
     }
 
     /**
@@ -66,6 +71,15 @@ public class EnfrentamientoController {
         if (enf.getTorneo().getEstado() != EstadoTorneo.IN_PROGRESS) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Solo se puede votar en enfrentamientos de torneos IN_PROGRESS");
+        }
+
+        // Plan v2 §2.4: usuarios PENDIENTE de verificación de email no
+        // pueden votar. Toggle vía app.email-verification.required-to-vote
+        // (true en prod, false en tests para no obligar al fixture a
+        // simular el flujo completo de email). 403 con mensaje claro.
+        if (requiereEmailVerificado && !usuario.estaVerificado()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Necesitas verificar tu email antes de votar. Revisa tu bandeja de entrada.");
         }
 
         Long ganadorId = request.getPersonajeGanadorId();
