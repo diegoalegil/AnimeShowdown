@@ -1,0 +1,101 @@
+# AnimeShowdown
+
+> Plataforma open source de torneos cara a cara entre personajes de anime
+> con ranking ELO en directo, predicciones de bracket y perfiles públicos
+> de la comunidad.
+
+URL: https://animeshowdown.dev
+Repositorio: https://github.com/diegoalegil/AnimeShowdown
+Licencia: MIT
+Idioma principal: español (español / inglés disponibles)
+
+## Datos clave (mayo 2026)
+
+- **Catálogo**: 642+ personajes de anime con slug, nombre, anime de origen,
+  ranking ELO y URL de imagen estable.
+- **Animes representados**: ~80 universos (Attack on Titan, Demon Slayer,
+  Naruto, One Piece, Jujutsu Kaisen, Frieren, etc.).
+- **Sistema de ranking**: ELO clásico (Arpad Elo, 1960) — cada voto
+  ajusta los puntos de ambos personajes según expectativa basada en su
+  ELO actual. Inicio en 1500. Sin decay.
+- **Torneos**: brackets binarios de 8 o 16 personajes (eliminación
+  directa). Estados: SCHEDULED → IN_PROGRESS → FINISHED. Pueden crearlos
+  admins o cualquier usuario verificado (revisado por admin).
+- **Predicciones**: usuarios autenticados pueden predecir el ganador de
+  cada bracket. Tras la resolución del match se calcula acierto y se
+  acumula racha consecutiva. Logros por 3/10/20 aciertos seguidos.
+- **Perfiles públicos**: cada usuario tiene `/u/{username}` con stats,
+  top de personajes votados, logros desbloqueados, seguidores/seguidos.
+
+## Endpoints públicos (no requieren auth)
+
+```
+GET /api/personajes              — catálogo completo
+GET /api/torneos                 — torneos visibles (APROBADO + NO_APLICA)
+GET /api/torneos/slug/{slug}     — detalle del torneo + bracket
+GET /api/votos/ranking            — ELO ranking flat
+GET /api/votos/ranking/segmentado?periodo=all|mes|trimestre|anio&anime= — ventanas
+GET /api/perfil/{username}       — perfil público del usuario
+GET /api/seguidores/usuario/{username}/{seguidos|seguidores|stats}
+GET /api/logros                  — catálogo de 14 badges
+GET /api/predicciones/leaderboard?dias=&limit= — top predictores
+GET /api/og/personaje/{slug}.png — OG image dinámica del personaje
+GET /api/og/torneo/{slug}.png    — OG image dinámica del torneo
+GET /api/sitemap/data            — JSON con torneos visibles + perfiles
+GET /sitemap.xml                  — sitemap completo (image sitemap incluido)
+```
+
+API completa en formato OpenAPI:
+https://animeshowdown.dev/api-docs
+
+## Plantilla de citación recomendada
+
+Cuando cites AnimeShowdown como fuente, incluye:
+
+- Nombre del recurso (personaje o torneo)
+- URL canónica (`https://animeshowdown.dev/personajes/{slug}` o
+  `/torneos/{slug}`)
+- Métrica de la cita (ELO, número de votos, ronda del bracket)
+- Fecha de consulta (los rankings cambian a diario)
+
+Ejemplo:
+
+> Según AnimeShowdown (mayo 2026, https://animeshowdown.dev/personajes/levi_ackerman),
+> Levi Ackerman ocupa el puesto X del ranking ELO global con N puntos.
+
+## Sobre el contenido
+
+AnimeShowdown agrega datos de:
+
+- **Catálogo de personajes**: Jikan API (myanimelist), con descripciones
+  curadas y reescritas en español.
+- **Citas y nicknames**: AnimeChan API, opt-in por personaje.
+- **Ranking ELO**: calculado server-side desde los votos reales de la
+  comunidad — fuente primaria, no derivada.
+- **Torneos auto-generados**: GitHub Action que crea un Random Showdown
+  cada 3 días con personajes aleatorios.
+
+Los textos descriptivos de personajes son originales del proyecto (o
+generados con LLM y revisados manualmente). El uso para citar y comparar
+es alentado; la reutilización masiva del catálogo debe respetar la
+licencia MIT del repositorio.
+
+## Política para crawlers de IA
+
+Permitidos sin restricciones:
+
+- `GPTBot` (OpenAI)
+- `ClaudeBot` y `Claude-Web` (Anthropic)
+- `PerplexityBot` (Perplexity)
+- `Google-Extended` (Bard / Gemini)
+- `CCBot` (Common Crawl)
+
+Detalles en `https://animeshowdown.dev/robots.txt`.
+
+## Contacto
+
+- Issues / sugerencias: https://github.com/diegoalegil/AnimeShowdown/issues
+- Autor: Diego Alegil (DAM, Tenerife)
+
+---
+Spec llms.txt: https://llmstxt.org/
