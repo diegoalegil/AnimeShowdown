@@ -80,4 +80,46 @@ public class VotoController {
     public List<String> animesConVotos() {
         return votoRepository.animesConVotos();
     }
+
+    /**
+     * Top voters (Plan v2 §11.9) — leaderboard de los usuarios que más
+     * han votado. Periodo: all|semana|mes. Sin auth — es transparencia
+     * pública del engagement del sitio.
+     *
+     * <p>Devuelve DTO mínimo {username, avatarUrl, votos} para no
+     * exponer email u otros campos privados.
+     */
+    @GetMapping("/top-voters")
+    public List<java.util.Map<String, Object>> topVoters(
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "all") String periodo,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int limit) {
+        int saneLimit = Math.max(1, Math.min(50, limit));
+        org.springframework.data.domain.Pageable pg = org.springframework.data.domain.PageRequest.of(
+                0, saneLimit);
+        List<Object[]> filas;
+        switch (periodo) {
+            case "semana":
+                filas = votoRepository.topVotersDesde(
+                        java.time.LocalDateTime.now().minusDays(7), pg);
+                break;
+            case "mes":
+                filas = votoRepository.topVotersDesde(
+                        java.time.LocalDateTime.now().minusDays(30), pg);
+                break;
+            case "all":
+            default:
+                filas = votoRepository.topVoters(pg);
+        }
+        return filas.stream()
+                .map((fila) -> {
+                    com.diegoalegil.animeshowdown.model.Usuario u =
+                            (com.diegoalegil.animeshowdown.model.Usuario) fila[0];
+                    Long count = (Long) fila[1];
+                    return java.util.Map.<String, Object>of(
+                            "username", u.getUsername(),
+                            "avatarUrl", u.getAvatarUrl() == null ? "" : u.getAvatarUrl(),
+                            "votos", count);
+                })
+                .toList();
+    }
 }

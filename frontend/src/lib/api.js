@@ -302,6 +302,9 @@ export const endpoints = {
   },
   animesConVotos: () =>
     api.get('/api/votos/ranking/animes-disponibles', { auth: false }),
+  // Top voters leaderboard (Plan v2 §11.9). periodo: all|semana|mes.
+  topVoters: ({ periodo = 'all', limit = 10 } = {}) =>
+    api.get(`/api/votos/top-voters?periodo=${periodo}&limit=${limit}`, { auth: false }),
   // Newsletter con double opt-in (Plan v2 §4.8).
   suscribirNewsletter: (email) =>
     api.post('/api/newsletter', { email }, { auth: false }),

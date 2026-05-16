@@ -86,6 +86,35 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /** Total de votos emitidos por un usuario. Plan v2 §4.2 (badges por umbral). */
     long countByUsuario(Usuario usuario);
 
+    /**
+     * Top voters all-time (Plan v2 §11.9). Devuelve {Usuario, Long total}
+     * ordenado descendente. Usado por GET /api/votos/top-voters?limit=10
+     * para la página /leaderboards/voters.
+     */
+    @Query("""
+            SELECT v.usuario, COUNT(v)
+            FROM Voto v
+            WHERE v.usuario IS NOT NULL
+            GROUP BY v.usuario
+            ORDER BY COUNT(v) DESC
+            """)
+    List<Object[]> topVoters(org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Top voters de los últimos N días (semanal/mensual). Mismo shape que
+     * topVoters pero con WHERE fecha > :desde para ventana temporal.
+     */
+    @Query("""
+            SELECT v.usuario, COUNT(v)
+            FROM Voto v
+            WHERE v.usuario IS NOT NULL AND v.fecha > :desde
+            GROUP BY v.usuario
+            ORDER BY COUNT(v) DESC
+            """)
+    List<Object[]> topVotersDesde(
+            @Param("desde") java.time.LocalDateTime desde,
+            org.springframework.data.domain.Pageable pageable);
+
     long countByEnfrentamientoAndPersonaje(Enfrentamiento enfrentamiento, Personaje personaje);
 
     /**
