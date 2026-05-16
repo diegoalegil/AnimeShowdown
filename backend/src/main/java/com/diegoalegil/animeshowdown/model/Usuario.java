@@ -50,6 +50,22 @@ public class Usuario {
     @Column(nullable = false)
     private LocalDateTime fechaRegistro;
 
+    /**
+     * Cuenta de logins fallidos consecutivos (Plan v2 §2.2). Se resetea a 0
+     * en cada login exitoso. Si llega a 5, el AuthController setea
+     * bloqueadoHasta = now + 15min y reincia el contador.
+     */
+    @Column(name = "intentos_fallidos", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer intentosFallidos = 0;
+
+    /**
+     * Si está seteado y es futuro, los logins responden 423 Locked sin
+     * comprobar password. null = cuenta normal. Lo desactivamos automático
+     * cuando se expira (no necesita unlock manual).
+     */
+    @Column(name = "bloqueado_hasta")
+    private LocalDateTime bloqueadoHasta;
+
     public Usuario() {
     }
 
@@ -125,6 +141,27 @@ public class Usuario {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public Integer getIntentosFallidos() {
+        return intentosFallidos == null ? 0 : intentosFallidos;
+    }
+
+    public void setIntentosFallidos(Integer intentosFallidos) {
+        this.intentosFallidos = intentosFallidos == null ? 0 : intentosFallidos;
+    }
+
+    public LocalDateTime getBloqueadoHasta() {
+        return bloqueadoHasta;
+    }
+
+    public void setBloqueadoHasta(LocalDateTime bloqueadoHasta) {
+        this.bloqueadoHasta = bloqueadoHasta;
+    }
+
+    /** True si la cuenta tiene un bloqueo activo (no expirado). */
+    public boolean estaBloqueado() {
+        return bloqueadoHasta != null && bloqueadoHasta.isAfter(LocalDateTime.now());
     }
 
 }
