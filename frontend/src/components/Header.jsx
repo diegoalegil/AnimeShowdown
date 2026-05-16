@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { LogOut, Palette, Shield, Volume2, VolumeX } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useTheme } from '../contexts/ThemeContext'
 import Avatar from './Avatar'
+import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
 
 const navLinks = [
-  { to: '/', label: 'Inicio' },
-  { to: '/personajes', label: 'Personajes' },
-  { to: '/animes', label: 'Animes' },
-  { to: '/torneos', label: 'Torneos' },
-  { to: '/votar', label: 'Votar' },
-  { to: '/higher-or-lower', label: 'Higher or Lower' },
-  { to: '/ranking', label: 'Ranking' },
+  { to: '/', i18nKey: 'inicio' },
+  { to: '/personajes', i18nKey: 'personajes' },
+  { to: '/animes', i18nKey: 'animes' },
+  { to: '/torneos', i18nKey: 'torneos' },
+  { to: '/votar', i18nKey: 'votar' },
+  { to: '/higher-or-lower', i18nKey: 'higherOrLower' },
+  { to: '/ranking', i18nKey: 'ranking' },
 ]
 
 const navLinkBase = 'rounded-md px-3.5 py-2 text-sm transition-colors'
@@ -38,6 +40,7 @@ function ctaLinkClass({ isActive }) {
 }
 
 function Header() {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { muted, toggleMute, play } = useSound()
   const { cycleTheme } = useTheme()
@@ -46,7 +49,7 @@ function Header() {
   const handleCycleTheme = () => {
     const nuevoNombre = cycleTheme()
     play('playLevelUp')
-    toast(`Paleta: ${nuevoNombre}`, { duration: 1500 })
+    toast(t('header.paletaToast', { nombre: nuevoNombre }), { duration: 1500 })
   }
 
   useEffect(() => {
@@ -80,21 +83,22 @@ function Header() {
         </span>
       </Link>
       <nav className="flex flex-wrap items-center justify-center gap-1">
-        {navLinks.map(({ to, label }) => (
+        {navLinks.map(({ to, i18nKey }) => (
           <NavLink
-            key={label}
+            key={to}
             to={to}
             end={to === '/'}
             onClick={() => play('playClick')}
             className={regularLinkClass}
           >
-            {label}
+            {t(`nav.${i18nKey}`)}
           </NavLink>
         ))}
+        <LanguageToggle />
         <button
           type="button"
           onClick={handleCycleTheme}
-          aria-label="Cambiar paleta de color"
+          aria-label={t('header.cambiarTema')}
           className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-accent"
         >
           <Palette className="h-4 w-4" />
@@ -105,7 +109,7 @@ function Header() {
             toggleMute()
             if (muted) play('playClick')
           }}
-          aria-label={muted ? 'Activar sonidos' : 'Silenciar sonidos'}
+          aria-label={muted ? t('header.activarSonidos') : t('header.silenciar')}
           className="inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
         >
           {muted ? (
@@ -117,7 +121,7 @@ function Header() {
         {user ? (
           <>
             <NotifBell />
-            <UserBadge user={user} onLogout={logout} />
+            <UserBadge user={user} onLogout={logout} t={t} />
           </>
         ) : (
           <NavLink
@@ -125,7 +129,7 @@ function Header() {
             onClick={() => play('playClick')}
             className={ctaLinkClass}
           >
-            Login
+            {t('nav.login')}
           </NavLink>
         )}
       </nav>
@@ -133,13 +137,13 @@ function Header() {
   )
 }
 
-function UserBadge({ user, onLogout }) {
+function UserBadge({ user, onLogout, t }) {
   const isAdmin = user.rol === 'ADMIN'
   return (
     <div className="ml-2 flex items-center gap-2 rounded-md bg-surface-alt px-2 py-1.5">
       <Link
         to="/perfil"
-        aria-label="Mi perfil"
+        aria-label={t('nav.perfil')}
         className="flex items-center gap-2.5"
       >
         <Avatar user={user} size={28} />
@@ -150,21 +154,21 @@ function UserBadge({ user, onLogout }) {
       {isAdmin && (
         <Link
           to="/admin"
-          aria-label="Panel admin"
+          aria-label={t('nav.admin')}
           className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent transition-colors hover:bg-accent/25"
         >
           <Shield className="h-3 w-3" />
-          Admin
+          {t('nav.admin')}
         </Link>
       )}
       <button
         type="button"
         onClick={onLogout}
-        aria-label="Cerrar sesión"
+        aria-label={t('nav.salir')}
         className="ml-1 inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
       >
         <LogOut className="h-3.5 w-3.5" />
-        Salir
+        {t('nav.salir')}
       </button>
     </div>
   )
