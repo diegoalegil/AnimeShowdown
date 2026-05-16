@@ -156,6 +156,17 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.7.0</version>
 		</dependency>
+
+		<!-- spring-retry para @Retryable + @Recover en EmailService
+		     (Plan v2 §2.12). aspectjweaver lo arrastra spring-boot ya. -->
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+		</dependency>
 	</dependencies>
 	
 	<build>
