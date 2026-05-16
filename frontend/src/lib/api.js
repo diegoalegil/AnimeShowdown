@@ -5,26 +5,32 @@ const API_BASE =
   import.meta.env.VITE_API_URL ??
   'https://api.animeshowdown.dev'
 
-const TOKEN_KEY = 'animeshowdown.token'
+// Plan v2 §1.3: el JWT vive en MEMORIA, no en localStorage. La sesión
+// persistente la da el refresh_token cookie httpOnly que pone el backend
+// — esa cookie no la pueden tocar scripts (defensa XSS) y solo viaja a
+// nuestro propio dominio en peticiones credentialed (defensa CSRF).
+//
+// Bootstrap: al abrir la app, AuthContext llama refreshSession() para
+// intentar conseguir un JWT fresco usando la cookie persistente. Si éxito
+// el usuario sigue logueado; si fallo aparece como invitado.
+let tokenEnMemoria = null
+// One-shot: si la versión anterior dejó tokens en localStorage, los borramos
+// la primera vez que se importa este módulo. Es migración invisible para el
+// user — la próxima vez que abra la web ya no hay rastros del modelo viejo.
+try {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('animeshowdown.token')
+  }
+} catch {
+  // ignore (SSR / privacy mode)
+}
 
 export function getToken() {
-  try {
-    return localStorage.getItem(TOKEN_KEY)
-  } catch {
-    return null
-  }
+  return tokenEnMemoria
 }
 
 export function setToken(token) {
-  try {
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token)
-    } else {
-      localStorage.removeItem(TOKEN_KEY)
-    }
-  } catch {
-    // ignore storage errors
-  }
+  tokenEnMemoria = token || null
 }
 
 export class ApiError extends Error {
@@ -40,20 +46,71 @@ export class ApiError extends Error {
 // el backend tardaba en responder, dejando spinners eternos en el frontend.
 const DEFAULT_TIMEOUT_MS = 10000
 
+// Promesa singleton para deduplicar refresh paralelos. Si dos peticiones
+// reciben 401 a la vez, ambas comparten el mismo intento de refresh —
+// evitamos cosas raras como "rotar el refresh dos veces" que invalidaría
+// la sesión por reuse-detection del backend.
+let refreshPromise = null
+
+async function intentarRefresh() {
+  if (refreshPromise) return refreshPromise
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!res.ok) {
+        tokenEnMemoria = null
+        return null
+      }
+      const data = await res.json()
+      if (data?.token) {
+        tokenEnMemoria = data.token
+      }
+      return data
+    } catch {
+      tokenEnMemoria = null
+      return null
+    } finally {
+      refreshPromise = null
+    }
+  })()
+  return refreshPromise
+}
+
+/**
+ * Llamada pública para que AuthContext intente recuperar sesión al montar.
+ * Devuelve { token, usuario } si éxito, null si la cookie no es válida.
+ */
+export async function refreshSession() {
+  return intentarRefresh()
+}
+
+async function ejecutarFetch(path, { method, headers, body, signal, includeAuth }) {
+  const fullHeaders = { 'Content-Type': 'application/json', ...headers }
+  if (includeAuth && tokenEnMemoria) {
+    fullHeaders.Authorization = `Bearer ${tokenEnMemoria}`
+  }
+  return fetch(`${API_BASE}${path}`, {
+    method,
+    headers: fullHeaders,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    signal,
+    // credentials: 'include' siempre — necesario para que la cookie
+    // refresh_token viaje en las peticiones a /api/auth/refresh y
+    // /api/auth/logout. En el resto de endpoints no estorba.
+    credentials: 'include',
+  })
+}
+
 async function request(
   path,
   { method = 'GET', body, auth = true, timeoutMs = DEFAULT_TIMEOUT_MS, signal } = {},
 ) {
-  const headers = { 'Content-Type': 'application/json' }
-  if (auth) {
-    const token = getToken()
-    if (token) headers.Authorization = `Bearer ${token}`
-  }
-
   // Si el caller pasa su propio signal lo respetamos; si no, montamos un
-  // AbortController interno con el timeout configurado. Esto permite cancelar
-  // requests desde useEffect cleanup (evita setState en componentes
-  // desmontados) y cortar las que tarden más de lo razonable.
+  // AbortController interno con el timeout configurado.
   const controller = signal ? null : new AbortController()
   const effectiveSignal = signal ?? controller.signal
   const timeoutId = controller
@@ -62,12 +119,33 @@ async function request(
 
   let res
   try {
-    res = await fetch(`${API_BASE}${path}`, {
+    res = await ejecutarFetch(path, {
       method,
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body,
       signal: effectiveSignal,
+      includeAuth: auth,
     })
+
+    // Auto-refresh on 401: si la petición autenticada falla con 401, intenta
+    // /refresh una vez. Si el refresh funciona, reintenta la petición original
+    // con el nuevo token. Si el refresh falla, propaga el 401 original.
+    // Excluimos los propios endpoints /auth/login y /auth/refresh para no
+    // entrar en bucle.
+    const esRutaAuth =
+      path.includes('/api/auth/refresh') ||
+      path.includes('/api/auth/login') ||
+      path.includes('/api/auth/registro')
+    if (res.status === 401 && auth && !esRutaAuth) {
+      const refreshed = await intentarRefresh()
+      if (refreshed?.token) {
+        res = await ejecutarFetch(path, {
+          method,
+          body,
+          signal: effectiveSignal,
+          includeAuth: true,
+        })
+      }
+    }
   } catch (err) {
     if (err.name === 'AbortError') {
       throw new ApiError(
@@ -122,6 +200,11 @@ export const api = {
 export const endpoints = {
   login: (credentials) => api.post('/api/auth/login', credentials, { auth: false }),
   register: (data) => api.post('/api/auth/registro', data, { auth: false }),
+  // /refresh y /logout viven sin Authorization Bearer — el backend lee la
+  // cookie httpOnly. credentials: 'include' del request global hace el resto.
+  refresh: () => api.post('/api/auth/refresh', undefined, { auth: false }),
+  logout: () => api.post('/api/auth/logout', undefined, { auth: false }),
+  revokeAll: () => api.post('/api/auth/revoke-all', undefined),
   forgotPassword: (email) =>
     api.post('/api/auth/forgot-password', { email }, { auth: false }),
   resetPassword: (data) =>
