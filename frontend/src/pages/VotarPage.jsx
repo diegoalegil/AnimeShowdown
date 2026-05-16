@@ -110,7 +110,7 @@ function VotarPage() {
   const handleVote = (personaje) => {
     if (votedFor) return
     play('playImpact')
-    setTimeout(() => play('playVote'), 120)
+    play('playVote')
 
     if (modoBackend) {
       if (!user) {
