@@ -129,13 +129,25 @@ function PersonajeDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver al catálogo
         </Link>
-        <motion.div
+        {/* Plan v2 §6.3: <article> con Microdata schema.org/Person para
+            crawlers que prefieren Microdata sobre JSON-LD. Coexiste con
+            el JsonLd de arriba sin contradecirse — Google da prioridad a
+            JSON-LD pero algunos LLMs y scrapers parsean ambos. itemprop
+            en name (H1), description (p), image (img/meta). */}
+        <motion.article
           key={slug}
+          itemScope
+          itemType="https://schema.org/Person"
           className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-center md:gap-12"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
+          <meta
+            itemProp="image"
+            content={`https://animeshowdown.dev${imagenPersonaje(slug)}`}
+          />
+          <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
           <motion.div
             className="relative aspect-[2/3] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-surface"
             style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
@@ -171,6 +183,7 @@ function PersonajeDetailPage() {
               )}
             </motion.span>
             <motion.h1
+              itemProp="name"
               className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
               variants={itemVariants}
             >
@@ -181,8 +194,13 @@ function PersonajeDetailPage() {
               variants={itemVariants}
             >
               de{' '}
-              <span className="font-semibold text-fg-strong">
-                {personaje.anime}
+              <span
+                itemProp="affiliation"
+                itemScope
+                itemType="https://schema.org/TVSeries"
+                className="font-semibold text-fg-strong"
+              >
+                <span itemProp="name">{personaje.anime}</span>
               </span>
             </motion.p>
             {personajeBackendId && (
@@ -212,7 +230,7 @@ function PersonajeDetailPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
                   Sobre el personaje
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-fg">
+                <p itemProp="description" className="mt-2 text-sm leading-relaxed text-fg">
                   {personaje.descripcion}
                 </p>
                 {jikan?.nicknames?.length > 0 && (
@@ -277,7 +295,7 @@ function PersonajeDetailPage() {
               </Link>
             </motion.div>
           </motion.div>
-        </motion.div>
+        </motion.article>
 
         {relacionados.length > 0 && (
           <div className="mt-16">
