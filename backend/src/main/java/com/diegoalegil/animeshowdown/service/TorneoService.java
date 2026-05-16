@@ -43,18 +43,21 @@ public class TorneoService {
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
     private final BracketService bracketService;
+    private final PrediccionService prediccionService;
 
     public TorneoService(
             TorneoRepository torneoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
             PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
-            BracketService bracketService) {
+            BracketService bracketService,
+            PrediccionService prediccionService) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.bracketService = bracketService;
+        this.prediccionService = prediccionService;
     }
 
     public Torneo crear(TorneoCrearRequest request) {
@@ -195,7 +198,14 @@ public class TorneoService {
         torneo.setEstado(EstadoTorneo.FINISHED);
         torneo.setFechaFinalizacion(LocalDateTime.now());
         Torneo guardado = torneoRepository.save(torneo);
-        log.info("Torneo {} finalizado con {} enfrentamientos resueltos", id, enfrentamientos.size());
+
+        // Plan v2 §4.4: resuelve todas las predicciones del torneo
+        // comparando contra los ganadores recién calculados. Publica un
+        // PrediccionResueltaEvent por usuario para que BadgeListener
+        // compruebe streaks consecutivos y el badge profeta.
+        int resueltas = prediccionService.resolverParaTorneo(guardado);
+        log.info("Torneo {} finalizado: {} enfrentamientos + {} predicciones resueltas",
+                id, enfrentamientos.size(), resueltas);
         return guardado;
     }
 }

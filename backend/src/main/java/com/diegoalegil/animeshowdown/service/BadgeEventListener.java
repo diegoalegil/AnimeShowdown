@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.diegoalegil.animeshowdown.event.PrediccionResueltaEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -64,6 +65,31 @@ public class BadgeEventListener {
         }
         if (totalVotos >= 1000) {
             badgeService.desbloquear(usuario, "mil_votos");
+        }
+    }
+
+    /**
+     * Tras resolver predicciones al finalizar un torneo (Plan v2 §4.4):
+     * comprueba racha consecutiva (3 / 10 seguidas) y total absoluto
+     * (profeta = 20+). Los desbloqueos son idempotentes, así que si en
+     * un mismo torneo el usuario gana varios badges, ninguno se
+     * dispara dos veces.
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPrediccionResuelta(PrediccionResueltaEvent ev) {
+        Usuario usuario = ev.usuario();
+        log.debug("Predicción resuelta: usuario={} total={} racha={}",
+                usuario.getUsername(), ev.totalAciertos(), ev.rachaConsecutivaActual());
+
+        if (ev.rachaConsecutivaActual() >= 3) {
+            badgeService.desbloquear(usuario, "predicciones_3_seguidas");
+        }
+        if (ev.rachaConsecutivaActual() >= 10) {
+            badgeService.desbloquear(usuario, "predicciones_10_seguidas");
+        }
+        if (ev.totalAciertos() >= 20) {
+            badgeService.desbloquear(usuario, "profeta");
         }
     }
 }
