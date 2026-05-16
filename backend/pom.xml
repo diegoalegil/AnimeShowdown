@@ -132,6 +132,19 @@
 			<artifactId>bucket4j-core</artifactId>
 			<version>8.10.1</version>
 		</dependency>
+
+		<!-- Flyway para migraciones de schema versionadas (Plan v2 §2.7).
+		     Reemplaza al hibernate ddl-auto=update + SchemaMigrations.java
+		     manual. Cada cambio futuro = un V{n}__{descripcion}.sql en
+		     resources/db/migration. -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
 	</dependencies>
 	
 	<build>
