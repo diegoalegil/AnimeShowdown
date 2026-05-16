@@ -48,6 +48,7 @@ const ApoyaPage = lazy(() => import('./pages/ApoyaPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const DmcaPage = lazy(() => import('./pages/DmcaPage'))
+const TvModePage = lazy(() => import('./pages/TvModePage'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -145,6 +146,7 @@ function App() {
                 <Route path="/privacidad" element={<PrivacyPage />} />
                 <Route path="/terminos" element={<TermsPage />} />
                 <Route path="/dmca" element={<DmcaPage />} />
+                <Route path="/tv" element={<TvModePage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
