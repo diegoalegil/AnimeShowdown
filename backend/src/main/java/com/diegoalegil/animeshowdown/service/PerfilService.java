@@ -36,15 +36,18 @@ public class PerfilService {
     private final PrediccionRepository prediccionRepository;
     private final UsuarioLogroRepository usuarioLogroRepository;
     private final SeguidorRepository seguidorRepository;
+    private final BadgeService badgeService;
 
     public PerfilService(VotoRepository votoRepository,
             PrediccionRepository prediccionRepository,
             UsuarioLogroRepository usuarioLogroRepository,
-            SeguidorRepository seguidorRepository) {
+            SeguidorRepository seguidorRepository,
+            BadgeService badgeService) {
         this.votoRepository = votoRepository;
         this.prediccionRepository = prediccionRepository;
         this.usuarioLogroRepository = usuarioLogroRepository;
         this.seguidorRepository = seguidorRepository;
+        this.badgeService = badgeService;
     }
 
     /**
@@ -56,11 +59,10 @@ public class PerfilService {
     public PerfilPublicoDto perfilPublico(Usuario duenyo, Usuario caller, int topLimit) {
         PerfilStatsDto statsDto = stats(duenyo);
         List<TopPersonajeItem> topItems = top(duenyo, topLimit);
-        List<LogroDto> logrosDesbloqueados = usuarioLogroRepository
-                .findByUsuarioOrderByDesbloqueadoEnDesc(duenyo)
-                .stream()
-                .map(LogroDto::desbloqueado)
-                .toList();
+        // Frontend pinta catálogo completo con locked, así que devolvemos
+        // los 14 con desbloqueadoEn poblado en los que el user tiene.
+        List<LogroDto> logrosDesbloqueados = badgeService
+                .listarCatalogoConDesbloqueos(duenyo);
         long countSeguidores = seguidorRepository.countByIdSeguidoId(duenyo.getId());
         long countSeguidos = seguidorRepository.countByIdSeguidorId(duenyo.getId());
 
