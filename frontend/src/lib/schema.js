@@ -152,6 +152,30 @@ export function animesListSchema(animesList = []) {
 }
 
 /**
+ * Schema {@code FAQPage} (Plan v2 §5.10). Cada item produce un acordeón
+ * en el rich snippet de Google si la página alcanza autoridad suficiente.
+ * Las respuestas se serializan como texto plano (HTML básico se permite
+ * pero Google solo renderiza un subset; preferimos plain text).
+ *
+ * @param items array de {pregunta, respuesta}
+ */
+export function faqPageSchema(items) {
+  if (!items || items.length === 0) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((it) => ({
+      '@type': 'Question',
+      name: it.pregunta,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: it.respuesta,
+      },
+    })),
+  }
+}
+
+/**
  * Schema {@code BreadcrumbList} para mostrar la jerarquía en el rich snippet.
  * Acepta un array de pares {label, path}.
  */

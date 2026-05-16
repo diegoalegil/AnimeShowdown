@@ -22,6 +22,7 @@ const navLinks = [
   { to: '/torneos', i18nKey: 'torneos' },
   { to: '/votar', i18nKey: 'votar' },
   { to: '/ranking', i18nKey: 'ranking' },
+  { to: '/faq', i18nKey: 'faq' },
 ]
 
 const techStack = [
