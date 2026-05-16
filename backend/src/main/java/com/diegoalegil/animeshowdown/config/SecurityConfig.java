@@ -93,6 +93,12 @@ public class SecurityConfig {
                         // requiere ser el seguidor (auth).
                         .requestMatchers(HttpMethod.GET, "/api/seguidores/usuario/**").permitAll()
                         .requestMatchers("/api/seguidores/**").authenticated()
+                        // Plan v2 §4.5: perfil público por username. /me/** son
+                        // del usuario autenticado (historial privado, etc).
+                        // /api/perfil/{username} muestra stats + top + logros
+                        // públicos sin necesidad de login.
+                        .requestMatchers(HttpMethod.GET, "/api/perfil/me/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/perfil/*").permitAll()
                         // OG images server-side (Plan v2 §1.2): los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()

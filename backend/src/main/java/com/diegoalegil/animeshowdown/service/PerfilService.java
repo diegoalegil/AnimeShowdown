@@ -9,12 +9,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.diegoalegil.animeshowdown.dto.LogroDto;
+import com.diegoalegil.animeshowdown.dto.PerfilPublicoDto;
 import com.diegoalegil.animeshowdown.dto.PerfilStatsDto;
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
+import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
@@ -32,13 +35,52 @@ public class PerfilService {
     private final VotoRepository votoRepository;
     private final PrediccionRepository prediccionRepository;
     private final UsuarioLogroRepository usuarioLogroRepository;
+    private final SeguidorRepository seguidorRepository;
 
     public PerfilService(VotoRepository votoRepository,
             PrediccionRepository prediccionRepository,
-            UsuarioLogroRepository usuarioLogroRepository) {
+            UsuarioLogroRepository usuarioLogroRepository,
+            SeguidorRepository seguidorRepository) {
         this.votoRepository = votoRepository;
         this.prediccionRepository = prediccionRepository;
         this.usuarioLogroRepository = usuarioLogroRepository;
+        this.seguidorRepository = seguidorRepository;
+    }
+
+    /**
+     * Vista pública agregada (Plan v2 §4.5). Junta stats + top + logros
+     * desbloqueados + counts de follow en una sola transacción para que
+     * el mapeo lazy de UsuarioLogro.logro suceda con session viva.
+     */
+    @Transactional(readOnly = true)
+    public PerfilPublicoDto perfilPublico(Usuario duenyo, Usuario caller, int topLimit) {
+        PerfilStatsDto statsDto = stats(duenyo);
+        List<TopPersonajeItem> topItems = top(duenyo, topLimit);
+        List<LogroDto> logrosDesbloqueados = usuarioLogroRepository
+                .findByUsuarioOrderByDesbloqueadoEnDesc(duenyo)
+                .stream()
+                .map(LogroDto::desbloqueado)
+                .toList();
+        long countSeguidores = seguidorRepository.countByIdSeguidoId(duenyo.getId());
+        long countSeguidos = seguidorRepository.countByIdSeguidorId(duenyo.getId());
+
+        boolean esMismo = caller != null && caller.getId().equals(duenyo.getId());
+        Boolean siguiendo = null;
+        if (caller != null && !esMismo) {
+            siguiendo = seguidorRepository.existsByIdSeguidorIdAndIdSeguidoId(
+                    caller.getId(), duenyo.getId());
+        }
+        return new PerfilPublicoDto(
+                duenyo.getId(),
+                duenyo.getUsername(),
+                duenyo.getAvatarUrl(),
+                countSeguidores,
+                countSeguidos,
+                siguiendo,
+                esMismo,
+                statsDto,
+                topItems,
+                logrosDesbloqueados);
     }
 
     @Transactional(readOnly = true)

@@ -96,6 +96,52 @@ class PerfilControllerTest {
     }
 
     @Test
+    void perfilPublicoSinAuthDevuelveStatsYFlags() throws Exception {
+        // Registra el usuario para que exista, sin tokens necesarios para la lectura.
+        tokenDe("perfil_publico_anon", "perfil_publico_anon@example.com");
+
+        mvc.perform(get("/api/perfil/perfil_publico_anon"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("perfil_publico_anon"))
+                .andExpect(jsonPath("$.esMismoUsuario").value(false))
+                .andExpect(jsonPath("$.siguiendo").doesNotExist())
+                .andExpect(jsonPath("$.seguidores").value(0))
+                .andExpect(jsonPath("$.seguidos").value(0))
+                .andExpect(jsonPath("$.stats.votosTotales").value(0))
+                .andExpect(jsonPath("$.top").isArray())
+                .andExpect(jsonPath("$.logros").isArray());
+    }
+
+    @Test
+    void perfilPublicoUsernameInexistenteDevuelve404() throws Exception {
+        mvc.perform(get("/api/perfil/no_existe_jamas_42"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void perfilPublicoConCallerDistintoTraeSiguiendoFalse() throws Exception {
+        tokenDe("perfil_target_x", "perfil_target_x@example.com");
+        String callerToken = tokenDe("perfil_caller_y", "perfil_caller_y@example.com");
+
+        mvc.perform(get("/api/perfil/perfil_target_x")
+                .header("Authorization", "Bearer " + callerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.esMismoUsuario").value(false))
+                .andExpect(jsonPath("$.siguiendo").value(false));
+    }
+
+    @Test
+    void perfilPublicoConCallerIgualMarcaEsMismoUsuario() throws Exception {
+        String token = tokenDe("perfil_self_z", "perfil_self_z@example.com");
+
+        mvc.perform(get("/api/perfil/perfil_self_z")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.esMismoUsuario").value(true))
+                .andExpect(jsonPath("$.siguiendo").doesNotExist());
+    }
+
+    @Test
     void historialTrasUnVotoReflejaElEnfrentamiento() throws Exception {
         String adminToken = tokenAdmin();
         String userToken = tokenDe("perfil_diana", "perfil_diana@example.com");

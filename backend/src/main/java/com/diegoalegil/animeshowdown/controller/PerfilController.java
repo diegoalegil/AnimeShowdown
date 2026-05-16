@@ -5,12 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.service.PerfilService;
 
 /**
@@ -28,9 +30,31 @@ import com.diegoalegil.animeshowdown.service.PerfilService;
 public class PerfilController {
 
     private final PerfilService perfilService;
+    private final UsuarioRepository usuarioRepository;
 
-    public PerfilController(PerfilService perfilService) {
+    public PerfilController(PerfilService perfilService,
+            UsuarioRepository usuarioRepository) {
         this.perfilService = perfilService;
+        this.usuarioRepository = usuarioRepository;
+    }
+
+    /**
+     * Vista PÚBLICA del perfil de un usuario (Plan v2 §4.5). Stats + top
+     * personajes + logros desbloqueados + counts de seguidores en una
+     * sola llamada. Si el caller está autenticado, incluye flags
+     * {@code siguiendo} y {@code esMismoUsuario} para que el frontend
+     * decida si pintar el botón Follow.
+     *
+     * <p>No expone el historial detallado de votos — eso queda en
+     * {@code /api/perfil/me/historial-votos} (privado).
+     */
+    @GetMapping("/{username}")
+    public ResponseEntity<?> perfilPublico(@PathVariable String username,
+            @AuthenticationPrincipal Usuario caller) {
+        return usuarioRepository.findByUsername(username)
+                .map(u -> ResponseEntity.<Object>ok(
+                        perfilService.perfilPublico(u, caller, 5)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/me/stats")
