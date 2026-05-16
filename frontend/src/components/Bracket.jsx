@@ -30,7 +30,20 @@ const TITULOS = {
   1: ['Final'],
 }
 
-function Bracket({ enfrentamientos, ganadorSlug, totalRondas }) {
+function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId }) {
+  // Plan v2 §4.4: cargamos las predicciones del usuario para este torneo
+  // (skip si no hay user o no hay torneoId). El hook ya respeta esos
+  // gates internamente. Se indexa por enfrentamientoId para que cada
+  // BracketMatch reciba solo su predicción.
+  const { data: misPredicciones } = useMisPredicciones(torneoId)
+  const prediccionesPorEnf = useMemo(() => {
+    const map = new Map()
+    for (const p of misPredicciones ?? []) {
+      map.set(p.enfrentamientoId, p)
+    }
+    return map
+  }, [misPredicciones])
+
   if (!enfrentamientos || enfrentamientos.length === 0) {
     return null
   }
@@ -68,7 +81,12 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas }) {
             </h3>
             <div className="flex flex-1 flex-col justify-around gap-3">
               {porRonda.get(ronda).map((match) => (
-                <BracketMatch key={match.id} match={match} />
+                <BracketMatch
+                  key={match.id}
+                  match={match}
+                  torneoId={torneoId}
+                  prediccion={prediccionesPorEnf.get(match.id)}
+                />
               ))}
             </div>
           </div>
@@ -103,7 +121,7 @@ function findPersonajePorSlug(enfrentamientos, slug) {
   return null
 }
 
-function BracketMatch({ match }) {
+function BracketMatch({ match, torneoId, prediccion }) {
   const ambosPersonajes = match.personaje1 && match.personaje2
 
   // Match vacío (slot de ronda futura sin resolver): placeholder difuminado.
@@ -121,6 +139,8 @@ function BracketMatch({ match }) {
   }
 
   const ganadorId = match.ganador?.id
+  const resuelto = Boolean(ganadorId)
+
   return (
     <div className="rounded-lg border border-border bg-surface p-1.5">
       <BracketSlot
@@ -132,7 +152,137 @@ function BracketMatch({ match }) {
         personaje={match.personaje2}
         winner={ganadorId === match.personaje2.id}
       />
+      {/* Plan v2 §4.4: picker de predicciones. Solo aparece si el match
+          está abierto Y tenemos torneoId (i.e. user logueado, el hook
+          padre cargó misPredicciones). Si resuelto, mostramos badge con
+          el resultado de la predicción. */}
+      {torneoId && (
+        <PrediccionRow
+          match={match}
+          prediccion={prediccion}
+          resuelto={resuelto}
+          torneoId={torneoId}
+        />
+      )}
     </div>
+  )
+}
+
+/**
+ * Footer del BracketMatch con la predicción (Plan v2 §4.4).
+ *
+ * - Match abierto + sin predicción → botón "🔮 Predice".
+ *   Click expande dos botones (los 2 personajes); click en uno → registra.
+ * - Match abierto + con predicción → "Predijiste: <nombre>" + opción cambiar.
+ * - Match resuelto + con predicción → badge verde/rojo según acertaste.
+ * - Match resuelto + sin predicción → no se pinta nada.
+ */
+function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
+  const { user } = useAuth()
+  const [picking, setPicking] = useState(false)
+  const mutation = useAplicarPrediccion(torneoId)
+
+  if (resuelto) {
+    if (!prediccion) return null
+    const acerto = prediccion.acertada === true
+    return (
+      <div
+        className={`mt-1.5 flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-semibold ${
+          acerto
+            ? 'bg-emerald-500/10 text-emerald-300'
+            : 'bg-rose-500/10 text-rose-300'
+        }`}
+      >
+        <Sparkles className="h-3 w-3" />
+        {acerto ? '¡Acertaste tu predicción!' : 'Tu predicción falló'}
+      </div>
+    )
+  }
+
+  // No mostrar el picker a invitados — el botón redirigiría a login y
+  // probablemente solo distrae en el grid del bracket.
+  if (!user) return null
+
+  const onPick = (personajeId) => {
+    mutation.mutate(
+      { enfrentamientoId: match.id, personajePredichoId: personajeId },
+      {
+        onSuccess: () => {
+          setPicking(false)
+          toast.success('Predicción guardada')
+        },
+        onError: (err) => {
+          toast.error(
+            err instanceof ApiError ? err.message : 'No se pudo guardar',
+          )
+        },
+      },
+    )
+  }
+
+  if (picking || !prediccion) {
+    return (
+      <div className="mt-1.5 flex items-center gap-1">
+        {picking ? (
+          <>
+            <PickButton
+              personaje={match.personaje1}
+              onClick={() => onPick(match.personaje1.id)}
+              disabled={mutation.isPending}
+            />
+            <PickButton
+              personaje={match.personaje2}
+              onClick={() => onPick(match.personaje2.id)}
+              disabled={mutation.isPending}
+            />
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setPicking(true)}
+            className="w-full rounded-md border border-dashed border-border px-2 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-accent"
+          >
+            🔮 Predice el ganador
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  // Predicción ya hecha (sin resolver). Mostrar resumen + opción cambiar.
+  return (
+    <div className="mt-1.5 flex items-center gap-1.5 rounded-md bg-accent-soft px-2 py-1">
+      <Check className="h-3 w-3 shrink-0 text-accent" />
+      <span className="min-w-0 flex-1 truncate text-[10px] font-medium text-fg-strong">
+        Predigo: {prediccion.personajePredichoNombre}
+      </span>
+      <button
+        type="button"
+        onClick={() => setPicking(true)}
+        className="text-[10px] text-fg-muted underline-offset-2 hover:text-accent hover:underline"
+      >
+        cambiar
+      </button>
+    </div>
+  )
+}
+
+function PickButton({ personaje, onClick, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={`Predecir a ${personaje.nombre}`}
+      className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-bg px-1.5 py-1 text-[10px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      <img
+        src={personaje.imagenUrl}
+        alt=""
+        className="h-4 w-4 shrink-0 rounded object-cover object-top"
+      />
+      <span className="truncate">{personaje.nombre}</span>
+    </button>
   )
 }
 

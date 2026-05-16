@@ -165,6 +165,7 @@ function TorneoDetailPage() {
             ganadorSlug={ganadorSlug}
             totalRondas={totalRondas}
             estado={estado}
+            torneoId={torneo.id}
           />
         </div>
         {rosterRonda1.length > 0 && (
