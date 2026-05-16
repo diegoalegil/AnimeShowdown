@@ -1,0 +1,78 @@
+# Dependabot config — Plan v2 §16.2
+#
+# Scan semanal con auto-merge candidate solo para patches/minors que pasen CI.
+# Major updates quedan abiertos como PR sin auto-merge para review manual
+# (puede haber breaking changes que el CI no detecte).
+#
+# Paquetes ignorados explícitamente: ninguno por ahora. Si surge un paquete
+# con releases muy frecuentes que satura la cola (ej. Storybook a futuro),
+# añadir un ignore con update-types: ["version-update:semver-patch"].
+
+version: 2
+updates:
+  # Frontend — React, Vite, Tailwind, librerías npm
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      # Agrupa los updates pequeños de la misma familia para reducir ruido
+      # de PRs. Cuando React saca patch + react-dom patch + react-router
+      # patch, los 3 vienen en un solo PR.
+      react-vendor:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router-dom"
+      i18n:
+        patterns:
+          - "i18next*"
+          - "react-i18next"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      sentry:
+        patterns:
+          - "@sentry/*"
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "@vitejs/*"
+
+  # Backend — Spring Boot, dependencias Maven
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "backend"
+    # Spring Boot major updates suelen requerir review profundo (compat
+    # con Spring Security, Flyway, etc.). Para minor/patch dejamos que
+    # Dependabot abra PR — el CI con los 92 tests valida automáticamente.
+    ignore:
+      - dependency-name: "org.springframework.boot:spring-boot-starter-parent"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions usados en .github/workflows/
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
