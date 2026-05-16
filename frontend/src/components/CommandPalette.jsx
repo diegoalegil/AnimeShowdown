@@ -17,6 +17,10 @@ import {
   Sparkles,
   HelpCircle,
   Code2,
+  Gamepad2,
+  Eye,
+  Type,
+  Grid3X3,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { useTorneos } from '../lib/torneosQueries'
@@ -30,6 +34,11 @@ const rutas = [
   { to: '/animes', label: 'Animes', icon: Tv },
   { to: '/torneos', label: 'Torneos', icon: Trophy },
   { to: '/votar', label: 'Votar', icon: Swords },
+  { to: '/games', label: 'Anime Games Hub', icon: Gamepad2 },
+  { to: '/games/guess-character', label: 'Guess the Character', icon: Eye },
+  { to: '/games/guess-anime', label: 'Guess the Anime', icon: Type },
+  { to: '/games/anidel', label: 'Anidel (Wordle)', icon: Grid3X3 },
+  { to: '/games/impostor', label: 'Detector de Impostor', icon: Sparkles },
   { to: '/higher-or-lower', label: 'Higher or Lower', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
   { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },

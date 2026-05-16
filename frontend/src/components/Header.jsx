@@ -16,7 +16,7 @@ const navLinks = [
   { to: '/animes', i18nKey: 'animes' },
   { to: '/torneos', i18nKey: 'torneos' },
   { to: '/votar', i18nKey: 'votar' },
-  { to: '/higher-or-lower', i18nKey: 'higherOrLower' },
+  { to: '/games', i18nKey: 'games' },
   { to: '/ranking', i18nKey: 'ranking' },
 ]
 
