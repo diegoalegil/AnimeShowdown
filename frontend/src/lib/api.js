@@ -290,6 +290,19 @@ export const endpoints = {
   },
   animesConVotos: () =>
     api.get('/api/votos/ranking/animes-disponibles', { auth: false }),
+  // Newsletter con double opt-in (Plan v2 §4.8).
+  suscribirNewsletter: (email) =>
+    api.post('/api/newsletter', { email }, { auth: false }),
+  confirmarNewsletter: (token) =>
+    api.get(`/api/newsletter/confirmar?token=${encodeURIComponent(token)}`, {
+      auth: false,
+    }),
+  unsubscribeNewsletter: (token) =>
+    api.post(
+      `/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}`,
+      undefined,
+      { auth: false },
+    ),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>
