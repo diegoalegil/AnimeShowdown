@@ -276,6 +276,20 @@ export const endpoints = {
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
   perfilTop: ({ limit = 5 } = {}) =>
     api.get(`/api/perfil/me/top?limit=${limit}`),
+  // Ranking segmentado (Plan v2 §4.6).
+  //   rankingSegmentado: periodo all|mes|trimestre|anio, anime opcional toma
+  //     precedencia, limit max 200.
+  //   animesConVotos: lista de animes con al menos 1 voto, para popular
+  //     el dropdown del tab 'Por anime'.
+  rankingSegmentado: ({ periodo = 'all', anime, limit = 50 } = {}) => {
+    const params = new URLSearchParams({ periodo, limit: String(limit) })
+    if (anime) params.set('anime', anime)
+    return api.get(`/api/votos/ranking/segmentado?${params}`, {
+      auth: false,
+    })
+  },
+  animesConVotos: () =>
+    api.get('/api/votos/ranking/animes-disponibles', { auth: false }),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>
