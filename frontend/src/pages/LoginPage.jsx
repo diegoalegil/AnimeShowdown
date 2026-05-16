@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -22,7 +22,11 @@ const stepVariants = {
 }
 
 function LoginPage() {
-  useDocumentTitle('Iniciar sesión')
+  useSeo({
+    title: 'Iniciar sesión',
+    description:
+      'Entra en tu cuenta AnimeShowdown para votar, predecir torneos y mantener tu perfil público con ranking ELO personalizado.',
+  })
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()
 

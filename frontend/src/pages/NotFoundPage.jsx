@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Home } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -23,7 +23,7 @@ const itemVariants = {
 }
 
 function NotFoundPage() {
-  useDocumentTitle('404')
+  useSeo({ title: '404 — Página no encontrada', noindex: true })
   // useState con función inicializadora: se ejecuta UNA vez al montar y
   // queda estable durante toda la vida del componente. Antes era useMemo
   // pero el compilador de React marca Math.random() en useMemo como

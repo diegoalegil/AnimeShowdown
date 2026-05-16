@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Tv } from 'lucide-react'
+import { useSeo } from '../hooks/useSeo'
 import {
   personajes,
   imagenPersonaje,
@@ -42,6 +43,12 @@ function pickRandom(arr, seed) {
 }
 
 function TvModePage() {
+  useSeo({
+    title: 'TV Mode',
+    description:
+      'Vista pantalla completa para streamers. Rotación de top ELO, personaje destacado y matchup random.',
+    noindex: true,
+  })
   const [vistaIdx, setVistaIdx] = useState(0)
   const [tick, setTick] = useState(0)
 

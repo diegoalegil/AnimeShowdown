@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 
 const containerVariants = {
@@ -15,7 +15,11 @@ const containerVariants = {
 }
 
 function RegisterPage() {
-  useDocumentTitle('Crear cuenta')
+  useSeo({
+    title: 'Crear cuenta',
+    description:
+      'Crea tu cuenta gratuita en AnimeShowdown. Vota, predice torneos, crea tu propio bracket y construye tu perfil público.',
+  })
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
   const {
