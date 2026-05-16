@@ -16,6 +16,7 @@ import com.diegoalegil.animeshowdown.dto.TorneoIniciarRequest;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoRevision;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
+import com.diegoalegil.animeshowdown.model.NotificacionTipo;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.SlugUtil;
 import com.diegoalegil.animeshowdown.model.Torneo;
@@ -47,6 +48,7 @@ public class TorneoService {
     private final VotoRepository votoRepository;
     private final BracketService bracketService;
     private final PrediccionService prediccionService;
+    private final NotificacionService notificacionService;
 
     public TorneoService(
             TorneoRepository torneoRepository,
@@ -54,13 +56,15 @@ public class TorneoService {
             PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
             BracketService bracketService,
-            PrediccionService prediccionService) {
+            PrediccionService prediccionService,
+            NotificacionService notificacionService) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.bracketService = bracketService;
         this.prediccionService = prediccionService;
+        this.notificacionService = notificacionService;
     }
 
     public Torneo crear(TorneoCrearRequest request) {
@@ -149,6 +153,108 @@ public class TorneoService {
     public List<Torneo> listarTorneosDelUsuario(Usuario creador) {
         if (creador == null) return List.of();
         return torneoRepository.findByCreadoPorOrderByFechaCreacionDesc(creador);
+    }
+
+    /** Cola admin de torneos pendientes de revisión, FIFO por fecha. */
+    @Transactional(readOnly = true)
+    public List<Torneo> listarPendientesRevision() {
+        return torneoRepository.findByEstadoRevisionOrderByFechaCreacionAsc(
+                EstadoRevision.PENDIENTE);
+    }
+
+    /**
+     * Admin aprueba el torneo (Plan v2 §4.9): cambia estadoRevision a APROBADO
+     * y lo inicia automáticamente (estado SCHEDULED → IN_PROGRESS) para que
+     * pase a ser visible y votable de inmediato. Notif TORNEO_APROBADO al
+     * creador (best-effort).
+     */
+    @Transactional
+    public Torneo aprobar(Long id) {
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
+        if (torneo.getEstadoRevision() != EstadoRevision.PENDIENTE) {
+            throw new IllegalStateException(
+                    "Solo se pueden aprobar torneos en estado PENDIENTE (actual: "
+                            + torneo.getEstadoRevision() + ")");
+        }
+        torneo.setEstadoRevision(EstadoRevision.APROBADO);
+        torneo.setFechaRevisado(LocalDateTime.now());
+        // El bracket ya se creó al recibir la propuesta. Auto-iniciar evita
+        // que el creador tenga que pulsar "iniciar" después — el flow tras
+        // aprobación es invisible para él, solo ve "ya está en juego".
+        torneo.setEstado(EstadoTorneo.IN_PROGRESS);
+        torneo.setFechaInicio(LocalDateTime.now());
+        Torneo guardado = torneoRepository.save(torneo);
+
+        notificarRevisado(guardado, NotificacionTipo.TORNEO_APROBADO,
+                "Tu torneo ha sido aprobado",
+                "\"" + guardado.getNombre() + "\" ya está en juego.",
+                payloadDeTorneo(guardado));
+
+        log.info("Torneo aprobado: id={} slug={} creador={}",
+                guardado.getId(), guardado.getSlug(),
+                guardado.getCreadoPor() != null ? guardado.getCreadoPor().getUsername() : "(sin)");
+        return guardado;
+    }
+
+    /**
+     * Admin rechaza el torneo (Plan v2 §4.9): RECHAZADO + motivo persistido
+     * para que el creador lo vea en "Mis torneos". El torneo queda sin
+     * iniciar — el bracket precomputado no se borra (puede servir para
+     * que el creador vuelva a enviarlo con ajustes, futuro).
+     */
+    @Transactional
+    public Torneo rechazar(Long id, String motivo) {
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
+        if (torneo.getEstadoRevision() != EstadoRevision.PENDIENTE) {
+            throw new IllegalStateException(
+                    "Solo se pueden rechazar torneos en estado PENDIENTE (actual: "
+                            + torneo.getEstadoRevision() + ")");
+        }
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException("Debes indicar un motivo de rechazo");
+        }
+        torneo.setEstadoRevision(EstadoRevision.RECHAZADO);
+        torneo.setMotivoRechazo(motivo.trim());
+        torneo.setFechaRevisado(LocalDateTime.now());
+        Torneo guardado = torneoRepository.save(torneo);
+
+        notificarRevisado(guardado, NotificacionTipo.TORNEO_RECHAZADO,
+                "Tu torneo no pasó la revisión",
+                "\"" + guardado.getNombre() + "\" fue rechazado: " + motivo.trim(),
+                payloadDeTorneo(guardado));
+
+        log.info("Torneo rechazado: id={} slug={} motivo={}",
+                guardado.getId(), guardado.getSlug(), motivo);
+        return guardado;
+    }
+
+    private static String payloadDeTorneo(Torneo t) {
+        // JSON manual mínimo para no traer Jackson en la capa de servicio.
+        // Mientras el slug no contenga comillas (lo garantiza SlugUtil) el
+        // string es válido. Si el día de mañana queremos campos más complejos
+        // pasamos a ObjectMapper.
+        return "{\"torneoId\":" + t.getId()
+                + ",\"slug\":\"" + t.getSlug() + "\""
+                + ",\"nombre\":\"" + escaparJson(t.getNombre()) + "\"}";
+    }
+
+    private static String escaparJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private void notificarRevisado(Torneo torneo, NotificacionTipo tipo,
+            String titulo, String mensaje, String payload) {
+        Usuario creador = torneo.getCreadoPor();
+        if (creador == null) return; // legacy / huérfano
+        try {
+            notificacionService.crear(creador, tipo, titulo, mensaje, payload);
+        } catch (Exception e) {
+            log.warn("Notificación {} falló para torneo {}: {}",
+                    tipo, torneo.getId(), e.getMessage());
+        }
     }
 
     /**

@@ -23,6 +23,10 @@ public enum NotificacionTipo {
     BADGE_DESBLOQUEADO,
     /** Alguien ha empezado a seguir al usuario (Plan v2 §4.5). */
     SEGUIDOR_NUEVO,
+    /** Admin aprobó el torneo creado por el usuario (Plan v2 §4.9). */
+    TORNEO_APROBADO,
+    /** Admin rechazó el torneo creado por el usuario (Plan v2 §4.9). */
+    TORNEO_RECHAZADO,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA
 }
