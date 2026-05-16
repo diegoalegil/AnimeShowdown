@@ -17,7 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
-import { torneos } from '../data/torneos'
+import { useTorneos } from '../lib/torneosQueries'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { playWhoosh } from '../lib/sounds'
@@ -42,6 +42,10 @@ function CommandPalette() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { muted, toggleMute } = useSound()
+  // Lista del backend. Si aún no llegó (loading) o falló, mostramos el
+  // resto del palette sin la sección "Torneos" — la búsqueda de personajes
+  // sigue funcionando.
+  const { data: torneos = [] } = useTorneos()
 
   useEffect(() => {
     const onKey = (e) => {
@@ -171,7 +175,7 @@ function CommandPalette() {
                 <Trophy className="h-4 w-4 text-fg-muted" />
                 {t.nombre}
                 <span className="ml-auto text-[11px] text-fg-muted">
-                  {t.participantes.length} personajes
+                  {t.numParticipantes} personajes
                 </span>
               </Command.Item>
             ))}
