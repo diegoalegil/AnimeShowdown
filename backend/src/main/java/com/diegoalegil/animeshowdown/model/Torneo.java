@@ -60,6 +60,35 @@ public class Torneo {
     @JoinColumn(name = "ganador_personaje_id")
     private Personaje ganadorPersonaje;
 
+    /**
+     * User que creó el torneo. NULL en torneos legacy creados por admin
+     * antes del Plan v2 §4.9, o si el creador se borra (ON DELETE SET NULL).
+     */
+    @ManyToOne
+    @JoinColumn(name = "created_by_user_id")
+    private Usuario creadoPor;
+
+    /**
+     * Estado de revisión administrativa (Plan v2 §4.9). Los torneos creados
+     * por admin nacen como {@link EstadoRevision#NO_APLICA} y son visibles
+     * inmediatamente. Los creados por user nacen como PENDIENTE y solo se
+     * exponen al público una vez APROBADO.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_revision", nullable = false, length = 20)
+    private EstadoRevision estadoRevision;
+
+    /** Motivo del admin si {@link #estadoRevision} es RECHAZADO. */
+    @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
+    private String motivoRechazo;
+
+    @Column(name = "fecha_revisado")
+    private LocalDateTime fechaRevisado;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private VisibilidadTorneo visibilidad;
+
     public Torneo() {
     }
 
@@ -82,6 +111,15 @@ public class Torneo {
         }
         if (this.estado == null) {
             this.estado = EstadoTorneo.SCHEDULED;
+        }
+        if (this.estadoRevision == null) {
+            // Default seguro: si entra sin estado explícito asumimos legacy
+            // (admin → NO_APLICA). Los torneos de usuario los marca
+            // explícitamente TorneoService.crearPorUsuario().
+            this.estadoRevision = EstadoRevision.NO_APLICA;
+        }
+        if (this.visibilidad == null) {
+            this.visibilidad = VisibilidadTorneo.PUBLICO;
         }
         if (this.slug == null || this.slug.isBlank()) {
             // Fallback defensivo: si llegamos aquí sin slug es bug en la capa
@@ -162,6 +200,46 @@ public class Torneo {
 
     public void setGanadorPersonaje(Personaje ganadorPersonaje) {
         this.ganadorPersonaje = ganadorPersonaje;
+    }
+
+    public Usuario getCreadoPor() {
+        return creadoPor;
+    }
+
+    public void setCreadoPor(Usuario creadoPor) {
+        this.creadoPor = creadoPor;
+    }
+
+    public EstadoRevision getEstadoRevision() {
+        return estadoRevision;
+    }
+
+    public void setEstadoRevision(EstadoRevision estadoRevision) {
+        this.estadoRevision = estadoRevision;
+    }
+
+    public String getMotivoRechazo() {
+        return motivoRechazo;
+    }
+
+    public void setMotivoRechazo(String motivoRechazo) {
+        this.motivoRechazo = motivoRechazo;
+    }
+
+    public LocalDateTime getFechaRevisado() {
+        return fechaRevisado;
+    }
+
+    public void setFechaRevisado(LocalDateTime fechaRevisado) {
+        this.fechaRevisado = fechaRevisado;
+    }
+
+    public VisibilidadTorneo getVisibilidad() {
+        return visibilidad;
+    }
+
+    public void setVisibilidad(VisibilidadTorneo visibilidad) {
+        this.visibilidad = visibilidad;
     }
 
 }
