@@ -1,18 +1,22 @@
 #!/usr/bin/env node
 // scripts/generate-sitemap.mjs
 // Genera frontend/public/sitemap.xml combinando:
-//   1. Catálogo cliente-side de personajes (~642, estable, parseado de
-//      personajes.js via regex sin deps).
-//   2. Rutas estáticas indexables (8 rutas).
+//   1. Catálogo cliente-side de personajes (~642 con slug+nombre+anime+imagen,
+//      parseado de personajes.js via regex sin deps).
+//   2. Rutas estáticas indexables.
 //   3. Datos dinámicos de backend (torneos APROBADO + perfiles públicos),
 //      con fallback a torneos-seed.json si el backend no responde.
+//
+// Image extension (Plan v2 §5.5): cada URL de personaje lleva un
+// <image:image> con loc absoluta, title (nombre) y caption (nombre de anime)
+// para que Google Image Search indexe las webp del catálogo. ~642 imágenes
+// indexables — buen volumen para tráfico orgánico de búsquedas tipo "akame
+// ga kill akame imagen".
 //
 // Se invoca automático en `npm run build` antes de `vite build`.
 // Variables de entorno:
 //   - SITEMAP_API_URL: URL base del backend en producción (Railway).
 //     Si no está definida, el script usa solo los torneos del seed.
-//
-// Plan v2 §5.4 — sitemap segmentado (foundations).
 
 import { readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
@@ -22,15 +26,43 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const BASE_URL = 'https://animeshowdown.dev'
 
-// 5 segundos antes de rendirse y caer al seed. Si Railway está cold-start
-// puede tardar hasta 8s, pero entonces preferimos seed + faltarle algunos
-// torneos UGC que romper el build.
 const API_TIMEOUT_MS = 5000
 
-function extractSlugsFromJs(filePath) {
+/**
+ * Parsea el catálogo cliente-side `personajes.js` extrayendo slug, nombre,
+ * anime e imagen. Mantiene el regex parsing en lugar de import dinámico
+ * para no depender del runtime de Vite/React durante el build de Cloudflare
+ * Pages (que ejecuta el script con Node simple, antes de vite build).
+ *
+ * El catálogo tiene una línea por personaje con el formato:
+ *   { slug: '...', nombre: '...', anime: '...', descripcion: '...', imagen: '...' }
+ *
+ * Capturamos los 4 campos clave en un solo regex con grupos nombrados.
+ */
+function extractPersonajesFromJs(filePath) {
   const content = readFileSync(filePath, 'utf8')
-  const matches = [...content.matchAll(/slug:\s*'([^']+)'/g)]
-  return matches.map((m) => m[1])
+  // Patrón clásico para strings JS con escapes: cualquier char excepto
+  // ' o \, O bien un \ seguido de cualquier char (cubre \', \\, \n, etc).
+  // Necesario porque las descripciones tienen comas, apóstrofes escapadas
+  // y caracteres acentuados que el regex naive [^']* no permitía.
+  const STR = "'((?:[^'\\\\]|\\\\.)*)'"
+  const re = new RegExp(
+      `\\{\\s*slug:\\s*${STR},\\s*nombre:\\s*${STR},\\s*anime:\\s*${STR},\\s*descripcion:\\s*${STR},\\s*imagen:\\s*${STR}`,
+      'g',
+  )
+  const out = []
+  let m
+  while ((m = re.exec(content))) {
+    out.push({
+      slug: m[1],
+      nombre: m[2].replace(/\\'/g, "'"),
+      anime: m[3].replace(/\\'/g, "'"),
+      // m[4] es descripcion — la ignoramos pero el grupo es necesario para
+      // que el regex consuma hasta `imagen` correctamente.
+      imagen: m[5],
+    })
+  }
+  return out
 }
 
 async function fetchSitemapData(apiUrl) {
@@ -56,7 +88,22 @@ async function fetchSitemapData(apiUrl) {
   }
 }
 
-const personajes = extractSlugsFromJs(
+/**
+ * Escapa caracteres XML reservados en strings que van dentro de tags. Sin
+ * esto, un personaje con "&" o "<" en el nombre rompe el parseo del
+ * sitemap (Googlebot lo descarta entero).
+ */
+function xmlEscape(s) {
+  if (s == null) return ''
+  return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;')
+}
+
+const personajesCatalogo = extractPersonajesFromJs(
   join(ROOT, 'frontend/src/data/personajes.js'),
 )
 
@@ -69,9 +116,6 @@ const torneosSeed = JSON.parse(
 
 const apiData = await fetchSitemapData(process.env.SITEMAP_API_URL)
 
-// Si el backend respondió usamos su lista de torneos. Si no, los del seed
-// (mínimo aceptable para que el sitemap nunca esté vacío). Dedup por slug
-// por si el backend devuelve también los del seed.
 let torneos
 let usuarios
 if (apiData) {
@@ -110,33 +154,52 @@ const staticRoutes = [
 const today = new Date().toISOString().split('T')[0]
 function lastmodOf(value) {
   if (!value) return today
-  // El backend devuelve LocalDateTime como '2026-05-16T16:14:33.123'. Para
-  // sitemap solo queremos YYYY-MM-DD.
   return String(value).slice(0, 10) || today
 }
 
-const url = (loc, priority, changefreq, lastmod = today) => `  <url>
+function urlBlock(loc, priority, changefreq, lastmod = today, images = []) {
+  const imageTags = images
+      .map(
+          (img) => `    <image:image>
+      <image:loc>${xmlEscape(img.loc)}</image:loc>
+      <image:title>${xmlEscape(img.title)}</image:title>
+      <image:caption>${xmlEscape(img.caption)}</image:caption>
+    </image:image>`,
+      )
+      .join('\n')
+  return `  <url>
     <loc>${BASE_URL}${loc}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
+    <priority>${priority}</priority>${imageTags ? '\n' + imageTags : ''}
   </url>`
+}
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticRoutes.map((r) => url(r.path, r.priority, r.changefreq)).join('\n')}
-${personajes.map((slug) => url(`/personajes/${slug}`, '0.6', 'monthly')).join('\n')}
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${staticRoutes.map((r) => urlBlock(r.path, r.priority, r.changefreq)).join('\n')}
+${personajesCatalogo
+    .map((p) =>
+      urlBlock(`/personajes/${p.slug}`, '0.6', 'monthly', today, [
+        {
+          loc: `${BASE_URL}${p.imagen}`,
+          title: p.nombre,
+          caption: `${p.nombre} — personaje de ${p.anime} en AnimeShowdown`,
+        },
+      ]),
+    )
+    .join('\n')}
 ${torneos
     .map((t) => {
-      // UGC más activos al principio → priority levemente menor que admin
-      // para no sesgar el sitemap completo. weekly por defecto.
       const priority = t.esDeUsuario ? '0.4' : '0.5'
-      return url(`/torneos/${t.slug}`, priority, 'weekly', lastmodOf(t.lastmod))
+      return urlBlock(`/torneos/${t.slug}`, priority, 'weekly', lastmodOf(t.lastmod))
     })
     .join('\n')}
 ${usuarios
     .map((u) =>
-      url(
+      urlBlock(
         `/u/${encodeURIComponent(u.username)}`,
         '0.3',
         'weekly',
@@ -152,9 +215,11 @@ writeFileSync(outPath, xml)
 
 console.log(`✅ sitemap.xml generado en ${outPath}`)
 console.log(`   - ${staticRoutes.length} rutas estáticas`)
-console.log(`   - ${personajes.length} personajes`)
-console.log(`   - ${torneos.length} torneos (${apiData ? 'backend live' : 'seed fallback'})`)
+console.log(`   - ${personajesCatalogo.length} personajes (con image extension)`)
+console.log(
+  `   - ${torneos.length} torneos (${apiData ? 'backend live' : 'seed fallback'})`,
+)
 console.log(`   - ${usuarios.length} usuarios públicos`)
 console.log(
-  `   - Total: ${staticRoutes.length + personajes.length + torneos.length + usuarios.length} URLs`,
+  `   - Total: ${staticRoutes.length + personajesCatalogo.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length} imágenes`,
 )
