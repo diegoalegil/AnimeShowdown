@@ -14,7 +14,8 @@
     "salir": "Sign out",
     "faq": "FAQ",
     "apiDocs": "API docs",
-    "glossary": "Glossary"
+    "glossary": "Glossary",
+    "apoya": "Support"
   },
   "header": {
     "cambiarTema": "Change color palette",
@@ -30,6 +31,7 @@
     "navegacion": "Navigation",
     "stack": "Stack",
     "verGithub": "View on GitHub",
+    "apoyaCta": "Buy me a coffee",
     "copyright": "© 2026 Diego Alegil — DAM 1st year",
     "hechoCon": "Made with",
     "enTenerife": "in Tenerife"

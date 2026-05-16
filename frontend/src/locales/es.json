@@ -14,7 +14,8 @@
     "salir": "Salir",
     "faq": "FAQ",
     "apiDocs": "API docs",
-    "glossary": "Glosario"
+    "glossary": "Glosario",
+    "apoya": "Apoya"
   },
   "header": {
     "cambiarTema": "Cambiar paleta de color",
@@ -30,6 +31,7 @@
     "navegacion": "Navegación",
     "stack": "Stack",
     "verGithub": "Ver en GitHub",
+    "apoyaCta": "Invítame a un café",
     "copyright": "© 2026 Diego Alegil — DAM 1.º",
     "hechoCon": "Hecho con",
     "enTenerife": "en Tenerife"

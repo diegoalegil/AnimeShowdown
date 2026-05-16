@@ -153,6 +153,7 @@ const staticRoutes = [
   { path: '/games/impostor', priority: '0.7', changefreq: 'daily' },
   { path: '/omikuji', priority: '0.6', changefreq: 'daily' },
   { path: '/glossary', priority: '0.7', changefreq: 'monthly' },
+  { path: '/apoya', priority: '0.4', changefreq: 'monthly' },
   { path: '/faq', priority: '0.6', changefreq: 'monthly' },
   { path: '/api-docs', priority: '0.5', changefreq: 'monthly' },
   { path: '/login', priority: '0.3', changefreq: 'monthly' },
