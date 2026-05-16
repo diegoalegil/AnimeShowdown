@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Award, Bell, CheckCheck, Inbox, Trophy, UserPlus } from 'lucide-react'
+import { Award, Bell, CheckCheck, Check, Inbox, Trophy, UserPlus, X } from 'lucide-react'
 import {
   useMarcarLeida,
   useMarcarTodasLeidas,
@@ -138,6 +138,8 @@ const tipoIcono = {
   BIENVENIDA: Trophy,
   TORNEO_INICIADO: Trophy,
   TORNEO_FINALIZADO: Trophy,
+  TORNEO_APROBADO: Check,
+  TORNEO_RECHAZADO: X,
   BADGE_DESBLOQUEADO: Award,
   SEGUIDOR_NUEVO: UserPlus,
   SISTEMA: Bell,
@@ -150,12 +152,29 @@ const tipoIcono = {
  * notificaciones viejas pueden no traer todos los campos.
  */
 function enlaceDeNotif(notif) {
-  if (notif.tipo !== 'SEGUIDOR_NUEVO') return null
-  if (!notif.payload) return null
+  if (!notif?.tipo) return null
+  if (!notif.payload) {
+    // Tipos sin payload con destino fijo:
+    if (notif.tipo === 'TORNEO_RECHAZADO') return '/perfil'
+    return null
+  }
   try {
     const datos = JSON.parse(notif.payload)
-    const username = datos?.seguidorUsername
-    return username ? `/u/${encodeURIComponent(username)}` : null
+    if (notif.tipo === 'SEGUIDOR_NUEVO') {
+      return datos?.seguidorUsername
+        ? `/u/${encodeURIComponent(datos.seguidorUsername)}`
+        : null
+    }
+    if (notif.tipo === 'TORNEO_APROBADO') {
+      // Aprobados son visibles públicamente — el creador va al detalle.
+      return datos?.slug ? `/torneos/${encodeURIComponent(datos.slug)}` : null
+    }
+    if (notif.tipo === 'TORNEO_RECHAZADO') {
+      // Rechazados no están en /torneos públicos. Llevamos al creador a su
+      // perfil donde la card "Mis torneos" muestra el motivo.
+      return '/perfil'
+    }
+    return null
   } catch {
     return null
   }
