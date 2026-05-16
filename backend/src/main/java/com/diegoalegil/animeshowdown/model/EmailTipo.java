@@ -12,6 +12,8 @@ package com.diegoalegil.animeshowdown.model;
 public enum EmailTipo {
     RESET_PASSWORD,
     VERIFICACION,
-    /** Catch-all para envíos futuros (newsletter, notificaciones). */
+    /** Confirmación double opt-in de newsletter (Plan v2 §4.8). */
+    NEWSLETTER_CONFIRMACION,
+    /** Catch-all para envíos futuros (digest semanal, notificaciones, etc.). */
     OTROS
 }

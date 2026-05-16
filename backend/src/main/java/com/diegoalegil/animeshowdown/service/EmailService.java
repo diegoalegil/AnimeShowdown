@@ -97,6 +97,20 @@ public class EmailService {
         enviarConRetry(EmailTipo.VERIFICACION, to, subject, text);
     }
 
+    /** Confirmación double opt-in de suscripción a newsletter (Plan v2 §4.8). */
+    @Async("emailExecutor")
+    public void enviarConfirmacionNewsletter(String to, String linkConfirmacion) {
+        String subject = "AnimeShowdown — Confirma tu suscripción a la newsletter";
+        String text = "¡Hola!\n\n" +
+                "Recibimos tu petición para suscribirte a la newsletter de AnimeShowdown.\n" +
+                "Confirma tu email para empezar a recibir el resumen semanal:\n\n" +
+                linkConfirmacion + "\n\n" +
+                "El enlace caduca en 48 horas. Si no fuiste tú, ignora este mensaje —\n" +
+                "no quedará rastro de tu email en nuestra base.\n\n" +
+                "— AnimeShowdown";
+        enviarConRetry(EmailTipo.NEWSLETTER_CONFIRMACION, to, subject, text);
+    }
+
     /**
      * Núcleo del envío con retry. Es público para que el proxy de Spring
      * Retry funcione cuando los métodos wrapper @Async lo llaman.
