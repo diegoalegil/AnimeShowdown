@@ -151,6 +151,7 @@ const staticRoutes = [
   { path: '/games/guess-anime', priority: '0.7', changefreq: 'daily' },
   { path: '/games/anidel', priority: '0.7', changefreq: 'daily' },
   { path: '/games/impostor', priority: '0.7', changefreq: 'daily' },
+  { path: '/mi-top5', priority: '0.5', changefreq: 'monthly' },
   { path: '/omikuji', priority: '0.6', changefreq: 'daily' },
   { path: '/glossary', priority: '0.7', changefreq: 'monthly' },
   { path: '/apoya', priority: '0.4', changefreq: 'monthly' },

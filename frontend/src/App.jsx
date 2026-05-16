@@ -49,6 +49,7 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const DmcaPage = lazy(() => import('./pages/DmcaPage'))
 const TvModePage = lazy(() => import('./pages/TvModePage'))
+const MiTop5Page = lazy(() => import('./pages/MiTop5Page'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -147,6 +148,7 @@ function App() {
                 <Route path="/terminos" element={<TermsPage />} />
                 <Route path="/dmca" element={<DmcaPage />} />
                 <Route path="/tv" element={<TvModePage />} />
+                <Route path="/mi-top5" element={<MiTop5Page />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
