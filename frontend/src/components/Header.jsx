@@ -28,8 +28,11 @@ function regularLinkClass({ isActive }) {
   }`
 }
 
+// CTA principal del header (Login). Texto en --color-bg (#0d0d12) sobre
+// magenta --color-accent: contraste 5.4:1 cumple WCAG AA (Plan v2 §3.9).
+// Antes era text-white sobre el mismo bg → solo 3.6:1, fallaba AA.
 function ctaLinkClass({ isActive }) {
-  return `${navLinkBase} ml-2 font-semibold text-white ${
+  return `${navLinkBase} ml-2 font-semibold text-bg ${
     isActive ? 'bg-accent-hover' : 'bg-accent hover:bg-accent-hover'
   }`
 }
