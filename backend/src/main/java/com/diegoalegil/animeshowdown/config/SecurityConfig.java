@@ -80,6 +80,10 @@ public class SecurityConfig {
                         // user-target con lógica toggle/swap en el service).
                         .requestMatchers(HttpMethod.GET, "/api/reacciones").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reacciones").authenticated()
+                        // Plan v2 §4.4: predicciones de bracket. Leaderboard
+                        // público (top predictores); /mias y POST autenticados.
+                        .requestMatchers(HttpMethod.GET, "/api/predicciones/leaderboard").permitAll()
+                        .requestMatchers("/api/predicciones/**").authenticated()
                         // OG images server-side (Plan v2 §1.2): los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()
