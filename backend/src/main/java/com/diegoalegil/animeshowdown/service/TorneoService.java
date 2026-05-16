@@ -49,6 +49,7 @@ public class TorneoService {
     private final BracketService bracketService;
     private final PrediccionService prediccionService;
     private final NotificacionService notificacionService;
+    private final IndexNowService indexNowService;
 
     public TorneoService(
             TorneoRepository torneoRepository,
@@ -57,7 +58,8 @@ public class TorneoService {
             VotoRepository votoRepository,
             BracketService bracketService,
             PrediccionService prediccionService,
-            NotificacionService notificacionService) {
+            NotificacionService notificacionService,
+            IndexNowService indexNowService) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
@@ -65,6 +67,7 @@ public class TorneoService {
         this.bracketService = bracketService;
         this.prediccionService = prediccionService;
         this.notificacionService = notificacionService;
+        this.indexNowService = indexNowService;
     }
 
     public Torneo crear(TorneoCrearRequest request) {
@@ -190,6 +193,11 @@ public class TorneoService {
                 "Tu torneo ha sido aprobado",
                 "\"" + guardado.getNombre() + "\" ya está en juego.",
                 payloadDeTorneo(guardado));
+
+        // Plan v2 §5.7: IndexNow ping a Bing/Yandex/etc. para que el
+        // nuevo URL del torneo se indexe en minutos en lugar de horas.
+        // Best-effort async; no afecta al flujo de aprobación si falla.
+        indexNowService.notificarUna("/torneos/" + guardado.getSlug());
 
         log.info("Torneo aprobado: id={} slug={} creador={}",
                 guardado.getId(), guardado.getSlug(),
