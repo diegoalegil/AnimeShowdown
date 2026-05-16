@@ -72,9 +72,30 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # build = generate-sitemap + vite build. Verifica que la web compila
-      # con la última data y que el plugin imgFolderPlugin copia las
-      # imágenes a dist/img/ sin perderse.
+      # Cache de las variantes de imagen generadas (Plan v2 §3.3-3.4).
+      # El script generate-image-variants.mjs procesa 700+ imágenes con
+      # sharp y tarda ~5min cold. Idempotente por mtime en local pero
+      # CI empieza desde cero cada vez — cacheamos las salidas .avif/.webp.
+      #
+      # La key incluye el hash del propio script + un hash que cambia
+      # cuando se añaden/modifican imágenes originales. Para ese segundo
+      # componente listamos los archivos .webp que NO son variantes (no
+      # terminan en -300/-600/-1024).
+      - name: Cache image variants
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend/img/**/*-300.webp
+            frontend/img/**/*-600.webp
+            frontend/img/**/*-1024.webp
+            frontend/img/**/*.avif
+          key: img-variants-v1-${{ hashFiles('frontend/scripts/generate-image-variants.mjs', 'frontend/img/**/*.webp') }}
+          restore-keys: |
+            img-variants-v1-
+
+      # build = generate-image-variants + generate-sitemap + vite build.
+      # Si el cache hit del step anterior está poblado, generate-image-variants
+      # termina en ~2s (skip de todo por mtime). Sin cache, tarda 4-5 min.
       - name: Build
         run: npm run build
 
