@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { Sparkles } from 'lucide-react'
 import TorneoCard from '../components/TorneoCard'
 import { useTorneos } from '../lib/torneosQueries'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
+import { breadcrumbsSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
 
 const headerVariants = {
@@ -18,12 +20,22 @@ const headerVariants = {
 
 function TorneosPage() {
   const { t } = useTranslation()
-  useDocumentTitle(t('torneos.tituloPagina'))
+  useSeo({
+    title: t('torneos.tituloPagina'),
+    description: t('torneos.subtitulo'),
+  })
   const { data: torneos, isLoading, isError, error } = useTorneos()
   const { user } = useAuth()
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: t('nav.torneos'), path: '/torneos' },
+        ])}
+      />
       <div className="mx-auto max-w-6xl">
         <motion.header
           className="mb-10 flex flex-col items-start gap-3"
