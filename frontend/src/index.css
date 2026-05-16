@@ -110,6 +110,48 @@
     );
     background-size: 32px 32px;
   }
+
+  /* Patrones tradicionales japoneses (Plan v2 §13.4). SVG inline en
+     data-url para que no añadan request HTTP. Opacidad ~5% — son acento
+     decorativo, no foreground. Usados en perfil (asanoha) y logros
+     (seigaiha) para identidad visual otaku sin caer en weeb cringe. */
+  .bg-asanoha {
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23ff2e63' stroke-width='0.6' opacity='0.4'%3E%3Cpolygon points='30,0 60,17 60,43 30,60 0,43 0,17'/%3E%3Cline x1='0' y1='17' x2='60' y2='43'/%3E%3Cline x1='60' y1='17' x2='0' y2='43'/%3E%3Cline x1='30' y1='0' x2='30' y2='60'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 60px 60px;
+    background-position: center;
+  }
+
+  .bg-seigaiha {
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%23a855f7' stroke-width='0.5' opacity='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3Ccircle cx='0' cy='20' r='8'/%3E%3Ccircle cx='40' cy='20' r='8'/%3E%3Ccircle cx='20' cy='0' r='8'/%3E%3Ccircle cx='20' cy='40' r='8'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 40px 20px;
+  }
+
+  /* Wrapper que añade el patrón con opacidad sutil sobre un padre con
+     position relative — no afecta al contenido, solo decoración. */
+  .pattern-overlay {
+    position: relative;
+    isolation: isolate;
+  }
+  .pattern-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+  .pattern-overlay-asanoha::before {
+    /* Asanoha (hojas de cáñamo) — patrón asociado a juventud, crecimiento.
+       Usado en CardDatos del perfil para evocar progreso del usuario. */
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23ff8fbf' stroke-width='0.6'%3E%3Cpolygon points='30,0 60,17 60,43 30,60 0,43 0,17'/%3E%3Cline x1='0' y1='17' x2='60' y2='43'/%3E%3Cline x1='60' y1='17' x2='0' y2='43'/%3E%3Cline x1='30' y1='0' x2='30' y2='60'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 60px 60px;
+  }
+  .pattern-overlay-seigaiha::before {
+    /* Seigaiha (olas) — patrón asociado a buena suerte, paz, longevidad.
+       Usado en CardLogros del perfil como fondo de los badges. */
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%23a855f7' stroke-width='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 40px 20px;
+  }
 }
 
 @layer base {
