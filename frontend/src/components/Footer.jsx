@@ -24,6 +24,7 @@ const navLinks = [
   { to: '/votar', i18nKey: 'votar' },
   { to: '/ranking', i18nKey: 'ranking' },
   { to: '/faq', i18nKey: 'faq' },
+  { to: '/api-docs', i18nKey: 'apiDocs' },
 ]
 
 // Top 7 animes por cantidad de personajes en catálogo. Calculado en

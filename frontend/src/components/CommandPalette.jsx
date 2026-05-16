@@ -16,6 +16,7 @@ import {
   Tv,
   Sparkles,
   HelpCircle,
+  Code2,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { useTorneos } from '../lib/torneosQueries'
@@ -32,6 +33,7 @@ const rutas = [
   { to: '/higher-or-lower', label: 'Higher or Lower', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
   { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },
+  { to: '/api-docs', label: 'API pública', icon: Code2 },
 ]
 
 const rutasInvitado = [
