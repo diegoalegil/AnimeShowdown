@@ -88,6 +88,11 @@ public class SecurityConfig {
                         // público — form en footer y links de confirmación
                         // /unsubscribe llegan al email del user sin auth.
                         .requestMatchers("/api/newsletter/**").permitAll()
+                        // Plan v2 §4.5: friends / follow. GET de listas y
+                        // stats es público (perfiles ajenos). POST/DELETE
+                        // requiere ser el seguidor (auth).
+                        .requestMatchers(HttpMethod.GET, "/api/seguidores/usuario/**").permitAll()
+                        .requestMatchers("/api/seguidores/**").authenticated()
                         // OG images server-side (Plan v2 §1.2): los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()

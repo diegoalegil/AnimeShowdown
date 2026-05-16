@@ -21,6 +21,8 @@ public enum NotificacionTipo {
     TORNEO_FINALIZADO,
     /** Badge/logro desbloqueado (Plan v2 §4.2). Payload con codigo+icono+rareza. */
     BADGE_DESBLOQUEADO,
+    /** Alguien ha empezado a seguir al usuario (Plan v2 §4.5). */
+    SEGUIDOR_NUEVO,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA
 }
