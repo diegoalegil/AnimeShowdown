@@ -15,6 +15,7 @@ import {
   Search,
   Tv,
   Sparkles,
+  HelpCircle,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { useTorneos } from '../lib/torneosQueries'
@@ -30,6 +31,7 @@ const rutas = [
   { to: '/votar', label: 'Votar', icon: Swords },
   { to: '/higher-or-lower', label: 'Higher or Lower', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
+  { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },
 ]
 
 const rutasInvitado = [

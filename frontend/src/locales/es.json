@@ -10,7 +10,8 @@
     "login": "Login",
     "perfil": "Mi perfil",
     "admin": "Admin",
-    "salir": "Salir"
+    "salir": "Salir",
+    "faq": "FAQ"
   },
   "header": {
     "cambiarTema": "Cambiar paleta de color",

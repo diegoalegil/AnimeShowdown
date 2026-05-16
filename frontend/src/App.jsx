@@ -33,6 +33,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'))
 const PerfilPage = lazy(() => import('./pages/PerfilPage'))
 const UsuarioPage = lazy(() => import('./pages/UsuarioPage'))
 const CrearTorneoPage = lazy(() => import('./pages/CrearTorneoPage'))
+const FaqPage = lazy(() => import('./pages/FaqPage'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -111,6 +112,7 @@ function App() {
                 <Route path="/u/:username" element={<UsuarioPage />} />
                 <Route path="/verify" element={<VerifyPage />} />
                 <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
+                <Route path="/faq" element={<FaqPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
