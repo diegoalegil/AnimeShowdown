@@ -132,6 +132,31 @@ public class BadgeService {
         return logroRepo.findAll();
     }
 
+    /**
+     * Devuelve TODOS los badges del catálogo enriquecidos con la fecha de
+     * desbloqueo del usuario (null para los que aún no tiene). El merge se
+     * hace dentro de la transacción para evitar LazyInitializationException
+     * al acceder a {@code UsuarioLogro.logro} desde el controller.
+     */
+    @Transactional(readOnly = true)
+    public List<com.diegoalegil.animeshowdown.dto.LogroDto> listarCatalogoConDesbloqueos(Usuario usuario) {
+        List<UsuarioLogro> mios = usuarioLogroRepo.findByUsuarioOrderByDesbloqueadoEnDesc(usuario);
+        // Index por logro_id para O(n) en lugar de O(n*m) cuando hay muchos
+        // logros y muchos desbloqueos.
+        java.util.Map<Long, UsuarioLogro> indexPorLogro = new java.util.HashMap<>();
+        for (UsuarioLogro ul : mios) {
+            indexPorLogro.put(ul.getLogro().getId(), ul);
+        }
+        return logroRepo.findAll().stream()
+                .map(logro -> {
+                    UsuarioLogro ul = indexPorLogro.get(logro.getId());
+                    return ul != null
+                            ? com.diegoalegil.animeshowdown.dto.LogroDto.desbloqueado(ul)
+                            : com.diegoalegil.animeshowdown.dto.LogroDto.deCatalogo(logro);
+                })
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public long contarDesbloqueados(Usuario usuario) {
         return usuarioLogroRepo.countByUsuario(usuario);

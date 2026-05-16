@@ -1,8 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.LogroDto;
-import com.diegoalegil.animeshowdown.model.Logro;
 import com.diegoalegil.animeshowdown.model.Usuario;
-import com.diegoalegil.animeshowdown.model.UsuarioLogro;
 import com.diegoalegil.animeshowdown.service.BadgeService;
 
 /**
@@ -51,19 +47,9 @@ public class LogroController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // Merge catálogo + lo que el usuario tiene desbloqueado. Index por
-        // logro_id para evitar O(n*m).
-        List<UsuarioLogro> mios = badgeService.listarUsuario(usuario);
-        Map<Long, UsuarioLogro> indexPorLogro = new HashMap<>();
-        for (UsuarioLogro ul : mios) {
-            indexPorLogro.put(ul.getLogro().getId(), ul);
-        }
-        List<LogroDto> respuesta = badgeService.listarCatalogo().stream()
-                .map((Logro logro) -> {
-                    UsuarioLogro ul = indexPorLogro.get(logro.getId());
-                    return ul != null ? LogroDto.desbloqueado(ul) : LogroDto.deCatalogo(logro);
-                })
-                .toList();
-        return ResponseEntity.ok(respuesta);
+        // El merge se hace dentro de la transacción del service para
+        // mantener la session abierta mientras accedemos a UsuarioLogro.logro
+        // (relación LAZY). Si lo hiciéramos aquí saldría LazyInitException.
+        return ResponseEntity.ok(badgeService.listarCatalogoConDesbloqueos(usuario));
     }
 }
