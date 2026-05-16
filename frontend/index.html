@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- PWA iconos: Android/Chrome usan icon-192/512 del manifest.webmanifest;
+         iOS requiere apple-touch-icon explícito (180x180) porque ignora el
+         manifest. Los meta apple-mobile-web-app-* controlan la UX al añadir
+         a la pantalla de inicio en iOS. Plan v2 §3.2. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AnimeShowdown" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0d0d12" />
     <meta name="description" content="Vota a tus personajes de anime favoritos en torneos cara a cara con sistema ELO en directo y bracket visuales." />

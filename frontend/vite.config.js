@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join, basename } from 'node:path'
 import {
@@ -146,11 +147,119 @@ function criticalCssPlugin() {
   }
 }
 
+/**
+ * Configuración PWA (Plan v2 §3.2). vite-plugin-pwa con autoUpdate:
+ *
+ *   - registerType:'autoUpdate' → el SW comprueba updates en cada nav y
+ *     refresca silenciosamente. Sin prompt al usuario.
+ *   - manifest con iconos 192/512 (estándar Android/Chrome) +
+ *     apple-touch-icon (iOS). theme_color magenta para la status bar.
+ *   - workbox runtime caching:
+ *       · /img/* → CacheFirst (300 entries, 30 días). Las imágenes son
+ *         inmutables por slug, no cambian salvo redeploy con asset nuevo.
+ *       · /api/personajes y /api/torneos → NetworkFirst con timeout 3s.
+ *         Si la red falla o tarda, devolvemos lo cacheado para no romper
+ *         la UI en redes flaky.
+ *       · /api/og/* → CacheFirst 7d (las OG son cacheables long-term).
+ *   - navigateFallback:'/index.html' → SPA routing offline.
+ *   - skipWaiting + clientsClaim → cambios entran inmediato sin esperar
+ *     a cerrar todas las pestañas.
+ */
+const pwaPlugin = VitePWA({
+  registerType: 'autoUpdate',
+  injectRegister: 'auto',
+  includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
+  manifest: {
+    name: 'AnimeShowdown',
+    short_name: 'AnimeShowdown',
+    description:
+      'Torneos de personajes anime con sistema ELO en vivo, brackets visuales y votación social.',
+    theme_color: '#0d0d12',
+    background_color: '#0d0d12',
+    display: 'standalone',
+    orientation: 'portrait-primary',
+    scope: '/',
+    start_url: '/',
+    lang: 'es',
+    categories: ['entertainment', 'games', 'social'],
+    icons: [
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
+  },
+  workbox: {
+    skipWaiting: true,
+    clientsClaim: true,
+    navigateFallback: '/index.html',
+    // Excluimos /api/* del precache — son dinámicos. También img/ porque
+    // 2800+ variantes inflarían el manifest y el browser tiraría OOM
+    // intentando precachearlas todas en su primer hit.
+    navigateFallbackDenylist: [/^\/api\//],
+    // Cap del bundle de cada chunk precacheado en 5MB.
+    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+    globPatterns: [
+      '**/*.{js,css,html,svg,woff2}',
+      // Solo iconos + logo, no las 2800 imágenes de personajes (van por
+      // runtimeCaching CacheFirst on-demand).
+      'icon-*.png',
+      'apple-touch-icon.png',
+      'logo.webp',
+    ],
+    globIgnores: ['img/**'],
+    runtimeCaching: [
+      {
+        urlPattern: ({ url }) => url.pathname.startsWith('/img/'),
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'imagenes-personajes',
+          expiration: {
+            maxEntries: 300,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+            purgeOnQuotaError: true,
+          },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+      {
+        urlPattern: ({ url }) => url.pathname.startsWith('/api/personajes'),
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'api-personajes',
+          networkTimeoutSeconds: 3,
+          expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+      {
+        urlPattern: ({ url }) => url.pathname.startsWith('/api/torneos'),
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'api-torneos',
+          networkTimeoutSeconds: 3,
+          expiration: { maxEntries: 50, maxAgeSeconds: 60 },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+      {
+        urlPattern: ({ url }) => url.pathname.startsWith('/api/og/'),
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'og-images',
+          expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+    ],
+  },
+})
+
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     imgFolderPlugin(),
+    pwaPlugin,
     // criticalCssPlugin va al final con enforce:'post' para que Vite ya
     // haya emitido el HTML cuando lo procesamos.
     criticalCssPlugin(),
