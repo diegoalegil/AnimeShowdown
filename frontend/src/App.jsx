@@ -42,6 +42,7 @@ const GuessAnimePage = lazy(() => import('./pages/GuessAnimePage'))
 const AnidelPage = lazy(() => import('./pages/AnidelPage'))
 const ImpostorPage = lazy(() => import('./pages/ImpostorPage'))
 const OmikujiPage = lazy(() => import('./pages/OmikujiPage'))
+const GlossaryPage = lazy(() => import('./pages/GlossaryPage'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -132,6 +133,7 @@ function App() {
                 <Route path="/games/anidel" element={<AnidelPage />} />
                 <Route path="/games/impostor" element={<ImpostorPage />} />
                 <Route path="/omikuji" element={<OmikujiPage />} />
+                <Route path="/glossary" element={<GlossaryPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
