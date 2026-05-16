@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Coffee } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
 import { personajes } from '../data/personajes'
 
@@ -26,6 +26,7 @@ const navLinks = [
   { to: '/faq', i18nKey: 'faq' },
   { to: '/api-docs', i18nKey: 'apiDocs' },
   { to: '/glossary', i18nKey: 'glossary' },
+  { to: '/apoya', i18nKey: 'apoya' },
 ]
 
 // Top 7 animes por cantidad de personajes en catálogo. Calculado en
@@ -123,6 +124,13 @@ function Footer() {
               {t('footer.verGithub')}
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
+            <Link
+              to="/apoya"
+              className="group inline-flex w-fit items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/5 px-2.5 py-1 text-[12px] font-medium text-amber-200 transition-colors hover:bg-amber-500/15"
+            >
+              <Coffee className="h-3.5 w-3.5" />
+              {t('footer.apoyaCta')}
+            </Link>
           </div>
         </div>
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
