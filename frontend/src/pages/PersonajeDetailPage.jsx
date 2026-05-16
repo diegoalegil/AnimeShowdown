@@ -97,9 +97,15 @@ function PersonajeDetailPage() {
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
   const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
   const next = personajes[(idx + 1) % personajes.length]
+  // Plan v2 §5.6: hasta 10 personajes del mismo anime como internal linking
+  // estructurado. Google sigue estos links para entender la red semántica
+  // ("Akame ga Kill!" → 10 personajes del anime); más de 10 saturaría la
+  // página y reduciría link equity por dilución.
   const relacionados = personajes
     .filter((p) => p.anime === personaje.anime && p.slug !== slug)
-    .slice(0, 6)
+    .slice(0, 10)
+  const totalAnime =
+    personajes.filter((p) => p.anime === personaje.anime).length
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -253,6 +259,8 @@ function PersonajeDetailPage() {
             >
               <Link
                 to={`/personajes/${prev.slug}`}
+                aria-label={`Ir al personaje anterior: ${prev.nombre} de ${prev.anime}`}
+                title={`${prev.nombre} de ${prev.anime}`}
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -260,6 +268,8 @@ function PersonajeDetailPage() {
               </Link>
               <Link
                 to={`/personajes/${next.slug}`}
+                aria-label={`Ir al personaje siguiente: ${next.nombre} de ${next.anime}`}
+                title={`${next.nombre} de ${next.anime}`}
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
               >
                 {next.nombre}
@@ -271,21 +281,47 @@ function PersonajeDetailPage() {
 
         {relacionados.length > 0 && (
           <div className="mt-16">
-            <div className="mb-6 flex items-end justify-between gap-4">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
                   Mismo universo
                 </span>
                 <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
-                  Más de {personaje.anime}
+                  Más personajes de {personaje.anime}
                 </h2>
               </div>
+              {totalAnime > relacionados.length + 1 && (
+                <Link
+                  to={`/personajes?anime=${encodeURIComponent(personaje.anime)}`}
+                  className="text-[13px] font-semibold text-accent hover:underline"
+                >
+                  Ver los {totalAnime} personajes de {personaje.anime} →
+                </Link>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
               {relacionados.map((p) => (
                 <PersonajeCard key={p.slug} {...p} />
               ))}
             </div>
+            <p className="mt-6 text-[13px] text-fg-muted">
+              ¿No conoces a alguno? Pulsa cualquier card para ver su ficha
+              completa con stats, citas y ranking ELO. También puedes{' '}
+              <Link
+                to="/ranking"
+                className="text-accent hover:underline"
+              >
+                ver el ranking global de personajes
+              </Link>{' '}
+              o{' '}
+              <Link
+                to="/torneos"
+                className="text-accent hover:underline"
+              >
+                explorar torneos activos
+              </Link>
+              .
+            </p>
           </div>
         )}
       </div>
