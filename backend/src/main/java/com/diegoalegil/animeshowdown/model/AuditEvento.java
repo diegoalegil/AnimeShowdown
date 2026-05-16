@@ -42,5 +42,17 @@ public enum AuditEvento {
     /** Revocación de TODAS las sesiones del usuario. */
     SESIONES_REVOCADAS_TODAS,
     /** Rol cambiado (USER ↔ ADMIN). Reservado para futuro panel admin. */
-    ROL_CAMBIADO
+    ROL_CAMBIADO,
+    /** El usuario activó 2FA TOTP en su cuenta (Plan v2 §2.3). */
+    TOTP_HABILITADO,
+    /** El usuario desactivó 2FA TOTP. */
+    TOTP_DESHABILITADO,
+    /** Login con 2FA completado correctamente (paso 2 del flow). */
+    TOTP_LOGIN_OK,
+    /** Login con 2FA fallido: código incorrecto o expirado. */
+    TOTP_LOGIN_FAIL,
+    /** Login con backup code (one-shot recovery). */
+    TOTP_BACKUP_CODE_USADO,
+    /** El usuario regeneró su set de backup codes (invalidando los anteriores). */
+    TOTP_BACKUP_CODES_REGENERADOS
 }
