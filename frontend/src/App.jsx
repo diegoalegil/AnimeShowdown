@@ -9,6 +9,7 @@ import CommandPalette from './components/CommandPalette'
 import Splash from './components/Splash'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
+import SakuraPetals from './components/SakuraPetals'
 
 // InicioPage es la landing — la carga en el bundle principal porque casi
 // todo visitante entra por '/' y queremos que renderice sin esperar a un
@@ -87,6 +88,10 @@ function App() {
       {/* Listener global de unlock: side-effect-only, sin UI. Se monta
           siempre — internamente skipea cuando no hay user logueado. */}
       <BadgeUnlockListener />
+      {/* Plan v2 §13.7: pétalos de sakura del 15 marzo al 15 abril
+          (hanami). Auto-off el resto del año. Toggle vía localStorage
+          animeshowdown.sakura = 'on' | 'off' para override manual. */}
+      <SakuraPetals />
       <EmailVerifyBanner />
       <main className="flex flex-1 flex-col">
         <AnimatePresence mode="wait">

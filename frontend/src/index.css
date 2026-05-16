@@ -189,3 +189,30 @@
     }
   }
 }
+
+/* Pétalos de sakura (Plan v2 §13.7). Caen verticales con sway lateral
+   vía --drift custom prop. opacity entra y sale para que aparezcan y se
+   vayan suaves. transform-origin centro para rotate natural. */
+@keyframes sakura-fall {
+  0% {
+    transform: translate(0, -10vh) rotate(var(--rot-start)) scale(var(--scale));
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--opacity-max);
+  }
+  90% {
+    opacity: var(--opacity-max);
+  }
+  100% {
+    transform: translate(var(--drift), 110vh) rotate(var(--rot-end)) scale(var(--scale));
+    opacity: 0;
+  }
+}
+
+.sakura-petal {
+  animation-name: sakura-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
