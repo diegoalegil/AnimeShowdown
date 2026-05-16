@@ -34,11 +34,13 @@ import com.diegoalegil.animeshowdown.dto.RegistroRequest;
 import com.diegoalegil.animeshowdown.dto.ResetPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.TokenRespuesta;
 import com.diegoalegil.animeshowdown.dto.UsuarioRespuesta;
+import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
+import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.EmailVerificationService;
 import com.diegoalegil.animeshowdown.service.PasswordResetService;
 import com.diegoalegil.animeshowdown.service.RefreshTokenService;
@@ -61,6 +63,7 @@ public class AuthController {
     private final PasswordResetService passwordResetService;
     private final RefreshTokenService refreshTokenService;
     private final EmailVerificationService emailVerificationService;
+    private final AuditLogService auditLogService;
     private final Set<String> adminEmails;
     private final boolean cookieSecure;
 
@@ -71,6 +74,7 @@ public class AuthController {
             PasswordResetService passwordResetService,
             RefreshTokenService refreshTokenService,
             EmailVerificationService emailVerificationService,
+            AuditLogService auditLogService,
             @Value("${admin.emails:diegogildam@gmail.com}") String adminEmailsCsv,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.usuarioRepository = usuarioRepository;
@@ -79,6 +83,7 @@ public class AuthController {
         this.passwordResetService = passwordResetService;
         this.refreshTokenService = refreshTokenService;
         this.emailVerificationService = emailVerificationService;
+        this.auditLogService = auditLogService;
         this.cookieSecure = cookieSecure;
         this.adminEmails = Arrays.stream(adminEmailsCsv.split(","))
                 .map(String::trim)
@@ -128,7 +133,8 @@ public class AuthController {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<?> registro(@Valid @RequestBody RegistroRequest request) {
+    public ResponseEntity<?> registro(@Valid @RequestBody RegistroRequest request,
+            HttpServletRequest httpRequest) {
 
         // Normaliza email a lowercase + trim para evitar duplicados por capitalización
         // (Gmail, Outlook etc. tratan emails como case-insensitive — la BBDD también debe)
@@ -171,6 +177,8 @@ public class AuthController {
         log.info("Usuario registrado (PENDIENTE verificación): id={} username={} rol={}",
                 guardado.getId(), guardado.getUsername(), guardado.getRol());
 
+        auditLogService.registrar(AuditEvento.REGISTRO, guardado, null, httpRequest);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new UsuarioRespuesta(guardado));
     }
@@ -181,9 +189,15 @@ public class AuthController {
      * Plan v2 §2.4.
      */
     @GetMapping("/verify")
-    public ResponseEntity<?> verifyEmail(@RequestParam String token) {
+    public ResponseEntity<?> verifyEmail(@RequestParam String token,
+            HttpServletRequest httpRequest) {
         boolean ok = emailVerificationService.verificar(token);
         if (ok) {
+            // El service ya logueó la activación; aquí solo auditamos el evento
+            // sin saber el usuario (el service lo conoce internamente). Para
+            // tener el usuario en el audit hacemos un lookup-light a través
+            // del service en el futuro; por ahora dejamos null y el evento.
+            auditLogService.registrar(AuditEvento.EMAIL_VERIFICADO, null, null, httpRequest);
             return ResponseEntity.ok(Map.of(
                     "message", "Email verificado correctamente",
                     "verificado", true));
@@ -200,7 +214,8 @@ public class AuthController {
      * solo está restringido para acciones como votar.
      */
     @PostMapping("/resend-verification")
-    public ResponseEntity<?> resendVerification(@AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<?> resendVerification(@AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -208,6 +223,7 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("message", "Tu email ya está verificado"));
         }
         emailVerificationService.emitir(usuario);
+        auditLogService.registrar(AuditEvento.EMAIL_VERIFICATION_REENVIADA, usuario, null, httpRequest);
         return ResponseEntity.ok(Map.of(
                 "message", "Hemos enviado un nuevo enlace a tu correo. Revisa la bandeja en unos segundos."));
     }
@@ -226,6 +242,9 @@ public class AuthController {
 
         if (usuarioOpt.isEmpty()) {
             log.warn("Login fallido (usuario/email no existe): {}", identificador);
+            auditLogService.registrar(AuditEvento.LOGIN_FAIL, null,
+                    Map.of("identificador", identificador, "razon", "usuario_no_existe"),
+                    httpRequest);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Credenciales inválidas");
         }
@@ -240,6 +259,8 @@ public class AuthController {
                     java.time.Duration.between(java.time.LocalDateTime.now(), usuario.getBloqueadoHasta()).toMinutes());
             log.warn("Login fallido (cuenta bloqueada): username={} minutos_restantes={}",
                     usuario.getUsername(), minutos);
+            auditLogService.registrar(AuditEvento.LOGIN_BLOQUEADO, usuario,
+                    Map.of("minutosRestantes", minutos), httpRequest);
             return ResponseEntity.status(HttpStatus.LOCKED)
                     .body(Map.of(
                             "message", "Cuenta bloqueada por intentos fallidos. Inténtalo en " + minutos + " min.",
@@ -249,9 +270,11 @@ public class AuthController {
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
             // Incrementa contador. A los 5 fallos consecutivos bloquea 15 min.
             int fallos = usuario.getIntentosFallidos() + 1;
+            boolean acabaDeBloquearse = false;
             if (fallos >= 5) {
                 usuario.setBloqueadoHasta(java.time.LocalDateTime.now().plusMinutes(15));
                 usuario.setIntentosFallidos(0);
+                acabaDeBloquearse = true;
                 log.warn("Cuenta BLOQUEADA 15min por 5 logins fallidos: username={}", usuario.getUsername());
             } else {
                 usuario.setIntentosFallidos(fallos);
@@ -259,6 +282,12 @@ public class AuthController {
             usuarioRepository.save(usuario);
             log.warn("Login fallido (password incorrecta): username={} intentos={}/5",
                     usuario.getUsername(), fallos);
+            auditLogService.registrar(AuditEvento.LOGIN_FAIL, usuario,
+                    Map.of("intentos", fallos, "razon", "password_incorrecta"), httpRequest);
+            if (acabaDeBloquearse) {
+                auditLogService.registrar(AuditEvento.CUENTA_BLOQUEADA, usuario,
+                        Map.of("minutosDuracion", 15, "razon", "5_logins_fallidos"), httpRequest);
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Credenciales inválidas");
         }
@@ -279,6 +308,7 @@ public class AuthController {
                 usuario, extraerUserAgent(httpRequest), extraerIp(httpRequest));
 
         log.info("Login exitoso: username={} rol={}", usuario.getUsername(), usuario.getRol());
+        auditLogService.registrar(AuditEvento.LOGIN_OK, usuario, null, httpRequest);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, construirCookieRefresh(refreshPlano).toString())
@@ -312,6 +342,7 @@ public class AuthController {
         }
         RefreshTokenService.RotarResultado r = opt.get();
         String nuevoJwt = jwtUtil.generarToken(r.usuario());
+        auditLogService.registrar(AuditEvento.REFRESH_TOKEN_ROTADO, r.usuario(), null, httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, construirCookieRefresh(r.nuevoTokenPlano()).toString())
                 .body(new TokenRespuesta(nuevoJwt, new UsuarioRespuesta(r.usuario())));
@@ -324,10 +355,16 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
-            @CookieValue(name = REFRESH_COOKIE, required = false) String refreshCookie) {
+            @CookieValue(name = REFRESH_COOKIE, required = false) String refreshCookie,
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
         if (refreshCookie != null && !refreshCookie.isBlank()) {
             refreshTokenService.revocar(refreshCookie);
         }
+        // Audit del logout — usuario puede ser null si el JWT ya expiró pero
+        // el cliente está cerrando sesión igualmente; en ese caso registramos
+        // sin usuario asociado.
+        auditLogService.registrar(AuditEvento.LOGOUT, usuario, null, httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
                 .body(Map.of("message", "Sesión cerrada"));
@@ -339,11 +376,14 @@ public class AuthController {
      * válido. Limpia también la cookie del dispositivo actual.
      */
     @PostMapping("/revoke-all")
-    public ResponseEntity<?> revokeAll(@AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<?> revokeAll(@AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         int n = refreshTokenService.revocarTodos(usuario);
+        auditLogService.registrar(AuditEvento.SESIONES_REVOCADAS_TODAS, usuario,
+                Map.of("sesionesCerradas", n), httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
                 .body(Map.of("message", "Todas las sesiones cerradas", "sesionesCerradas", n));
@@ -382,7 +422,8 @@ public class AuthController {
     @PutMapping("/me/password")
     public ResponseEntity<?> cambiarPassword(
             @Valid @RequestBody CambioPasswordRequest request,
-            @AuthenticationPrincipal Usuario usuario) {
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
         // Cambio de contraseña con usuario autenticado: requiere current_password
         // para evitar que si alguien deja la sesión abierta otro usuario cambie
         // la pass sin saber la actual (distinto del reset por email que sirve
@@ -410,26 +451,37 @@ public class AuthController {
         int sesionesCerradas = refreshTokenService.revocarTodos(usuario);
         log.info("Password cambiada: username={} (cerradas {} sesiones)",
                 usuario.getUsername(), sesionesCerradas);
+        auditLogService.registrar(AuditEvento.PASSWORD_CAMBIO, usuario,
+                Map.of("sesionesCerradas", sesionesCerradas), httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
                 .body(Map.of("message", "Contraseña actualizada. Inicia sesión otra vez."));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest httpRequest) {
         passwordResetService.solicitarReset(request.getEmail());
+        // Loguea siempre con email plano (no usuario) — el endpoint es público
+        // y no revela si el email existe en el cuerpo, pero el audit interno
+        // sí captura el intento para análisis forense.
+        auditLogService.registrar(AuditEvento.PASSWORD_RESET_SOLICITADO, null,
+                Map.of("email", request.getEmail()), httpRequest);
         return ResponseEntity.ok(Map.of(
                 "message",
                 "Si el email existe, te hemos enviado un código de 6 dígitos."));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request,
+            HttpServletRequest httpRequest) {
         try {
             passwordResetService.resetearPassword(
                     request.getEmail(),
                     request.getCodigo(),
                     request.getNewPassword());
+            auditLogService.registrar(AuditEvento.PASSWORD_RESET_OK, null,
+                    Map.of("email", request.getEmail()), httpRequest);
             return ResponseEntity.ok(Map.of("message", "Contraseña actualizada"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
