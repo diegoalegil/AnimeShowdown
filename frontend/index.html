@@ -25,6 +25,12 @@
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+    <!-- Plan v2 §5.8: preload del LCP candidate (logo del Hero de la home).
+         Sin esto, el logo se descarga tras el JS y aparece >2.5s, que es el
+         umbral CWV "Good". Con preload se baja a ~1s en 4G simulado.
+         fetchpriority=high reordena el cabezal de descarga para que vaya
+         antes que las fuentes y otros assets no críticos. -->
+    <link rel="preload" as="image" href="/logo.webp" type="image/webp" fetchpriority="high" />
     <title>AnimeShowdown — Torneos de personajes de anime</title>
   </head>
   <body>
