@@ -23,11 +23,19 @@ export function initSentry() {
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
+    // GDPR-friendly: NO enviamos IP del cliente ni cookies por defecto.
+    // Sentry recomienda true en su quickstart pero eso captura PII sin
+    // consentimiento explícito del usuario. Si en el futuro añadimos un
+    // banner de cookies que cubra "telemetría de errores", se puede subir
+    // a true. Servidor en .de.sentry.io = EU residency, otra capa GDPR.
+    sendDefaultPii: false,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({
         // Solo grabar replays cuando hay error — ahorra cuota y privacidad.
-        maskAllText: false,
+        // maskAllText: true para no leakear nombres de usuario, emails u
+        // otros datos en los replays grabados.
+        maskAllText: true,
         blockAllMedia: false,
       }),
     ],
