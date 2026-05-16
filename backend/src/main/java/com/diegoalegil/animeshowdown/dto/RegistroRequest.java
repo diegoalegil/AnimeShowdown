@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegistroRequest {
@@ -10,8 +11,17 @@ public class RegistroRequest {
     @Size(min = 3, max = 30, message = "El username debe tener entre 3 y 30 caracteres")
     private String username;
 
+    // Plan v2 §2.5: mínimo 8 chars, al menos una letra y un dígito. Antes
+    // permitía "123456" — passwords triviales que rompen al primer ataque
+    // automatizado. La regex es deliberadamente permisiva con caracteres
+    // especiales (Unicode, símbolos) para no frustrar a usuarios que ya
+    // usan passphrases buenas — el zxcvbn del frontend hace el filtrado
+    // fino con feedback visual.
     @NotBlank(message = "La password es obligatoria")
-    @Size(min = 6, message = "La password debe tener al menos 6 caracteres")
+    @Size(min = 8, max = 100, message = "La password debe tener entre 8 y 100 caracteres")
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,100}$",
+            message = "La password debe incluir al menos una letra y un número")
     private String password;
 
     @NotBlank(message = "El email es obligatorio")
