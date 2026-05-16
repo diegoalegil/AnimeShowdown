@@ -18,6 +18,7 @@ import { useSound } from '../contexts/SoundContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { endpoints, ApiError } from '../lib/api'
 import Avatar from '../components/Avatar'
+import Card2faSeguridad from '../components/Card2faSeguridad'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 
 const containerVariants = {
@@ -89,6 +90,7 @@ function PerfilPage() {
           <CardDatos user={user} />
           <CardAvatar user={user} updateUser={updateUser} />
           <CardPassword />
+          <Card2faSeguridad />
           <CardSesion onLogout={handleLogout} />
         </div>
       </div>
