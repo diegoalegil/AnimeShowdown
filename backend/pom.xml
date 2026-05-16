@@ -113,6 +113,15 @@
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- TwelveMonkeys ImageIO plugin para leer webp en BufferedImage.
+		     Java SE no soporta webp por defecto y las imágenes del catálogo
+		     están en webp. Plan v2 §1.2: OG image dinámica server-side. -->
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-webp</artifactId>
+			<version>3.13.1</version>
+		</dependency>
 	</dependencies>
 	
 	<build>
