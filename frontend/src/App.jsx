@@ -10,6 +10,7 @@ import Splash from './components/Splash'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
 import SakuraPetals from './components/SakuraPetals'
+import KonamiCode from './components/KonamiCode'
 
 // InicioPage es la landing — la carga en el bundle principal porque casi
 // todo visitante entra por '/' y queremos que renderice sin esperar a un
@@ -93,6 +94,8 @@ function App() {
           (hanami). Auto-off el resto del año. Toggle vía localStorage
           animeshowdown.sakura = 'on' | 'off' para override manual. */}
       <SakuraPetals />
+      {/* Plan v2 §13.12: easter egg ↑↑↓↓←→←→BA. */}
+      <KonamiCode />
       <EmailVerifyBanner />
       <main className="flex flex-1 flex-col">
         <AnimatePresence mode="wait">
