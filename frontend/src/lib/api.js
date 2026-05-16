@@ -205,6 +205,11 @@ export const endpoints = {
   refresh: () => api.post('/api/auth/refresh', undefined, { auth: false }),
   logout: () => api.post('/api/auth/logout', undefined, { auth: false }),
   revokeAll: () => api.post('/api/auth/revoke-all', undefined),
+  // Verificación de email (Plan v2 §2.4). /verify es público (el link
+  // viene del correo); /resend-verification requiere estar logueado.
+  verifyEmail: (token) =>
+    api.get(`/api/auth/verify?token=${encodeURIComponent(token)}`, { auth: false }),
+  resendVerification: () => api.post('/api/auth/resend-verification', undefined),
   forgotPassword: (email) =>
     api.post('/api/auth/forgot-password', { email }, { auth: false }),
   resetPassword: (data) =>
