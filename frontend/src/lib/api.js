@@ -243,6 +243,11 @@ export const endpoints = {
     api.post(`/api/notificaciones/${id}/leida`, undefined),
   notificacionesMarcarTodasLeidas: () =>
     api.post('/api/notificaciones/marcar-todas-leidas', undefined),
+  // Logros / badges (Plan v2 §4.2).
+  //   logros: público, devuelve catálogo completo de 14 badges.
+  //   misLogros: autenticado, catálogo enriquecido con desbloqueadoEn null/timestamp.
+  logros: () => api.get('/api/logros', { auth: false }),
+  misLogros: () => api.get('/api/logros/mios'),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>
