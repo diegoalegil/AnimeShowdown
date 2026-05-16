@@ -78,6 +78,28 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Plan v2 §3.10: bundle size budget. Falla la CI si el chunk
+      # principal (index-*.js) supera 250KB tras gzip. Catch temprano
+      # de regresiones por imports gordos olvidados. Personaje3D y
+      # otros chunks lazy no entran en el budget — solo el initial.
+      - name: Bundle size budget
+        run: |
+          MAX_KB=250
+          INDEX_FILE=$(ls dist/assets/index-*.js | head -1)
+          if [ -z "$INDEX_FILE" ]; then
+            echo "❌ No se encontró dist/assets/index-*.js"
+            exit 1
+          fi
+          GZIP_BYTES=$(gzip -c "$INDEX_FILE" | wc -c)
+          GZIP_KB=$((GZIP_BYTES / 1024))
+          echo "Main bundle: $INDEX_FILE"
+          echo "Gzip size: ${GZIP_KB}KB (budget: ${MAX_KB}KB)"
+          if [ "$GZIP_KB" -gt "$MAX_KB" ]; then
+            echo "❌ Bundle excede el presupuesto de ${MAX_KB}KB gzip"
+            exit 1
+          fi
+          echo "✅ Bundle dentro del presupuesto"
+
   sync-personajes-dry-run:
     name: sync-personajes (dry-run)
     runs-on: ubuntu-latest
