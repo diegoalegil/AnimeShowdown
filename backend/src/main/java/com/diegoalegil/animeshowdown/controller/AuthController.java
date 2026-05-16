@@ -179,10 +179,43 @@ public class AuthController {
 
         Usuario usuario = usuarioOpt.get();
 
+        // Plan v2 §2.2: account lockout. Si la cuenta está bloqueada por
+        // intentos fallidos consecutivos, ni siquiera comprobamos la
+        // password (defensa contra ataques que aprovechan timing).
+        if (usuario.estaBloqueado()) {
+            long minutos = Math.max(1,
+                    java.time.Duration.between(java.time.LocalDateTime.now(), usuario.getBloqueadoHasta()).toMinutes());
+            log.warn("Login fallido (cuenta bloqueada): username={} minutos_restantes={}",
+                    usuario.getUsername(), minutos);
+            return ResponseEntity.status(HttpStatus.LOCKED)
+                    .body(Map.of(
+                            "message", "Cuenta bloqueada por intentos fallidos. Inténtalo en " + minutos + " min.",
+                            "minutosRestantes", minutos));
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
-            log.warn("Login fallido (password incorrecta): username={}", usuario.getUsername());
+            // Incrementa contador. A los 5 fallos consecutivos bloquea 15 min.
+            int fallos = usuario.getIntentosFallidos() + 1;
+            if (fallos >= 5) {
+                usuario.setBloqueadoHasta(java.time.LocalDateTime.now().plusMinutes(15));
+                usuario.setIntentosFallidos(0);
+                log.warn("Cuenta BLOQUEADA 15min por 5 logins fallidos: username={}", usuario.getUsername());
+            } else {
+                usuario.setIntentosFallidos(fallos);
+            }
+            usuarioRepository.save(usuario);
+            log.warn("Login fallido (password incorrecta): username={} intentos={}/5",
+                    usuario.getUsername(), fallos);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Credenciales inválidas");
+        }
+
+        // Login OK: reset del contador de fallos (limpia historial cualquiera
+        // sea su estado previo).
+        if (usuario.getIntentosFallidos() > 0 || usuario.getBloqueadoHasta() != null) {
+            usuario.setIntentosFallidos(0);
+            usuario.setBloqueadoHasta(null);
+            usuarioRepository.save(usuario);
         }
 
         String token = jwtUtil.generarToken(usuario);
