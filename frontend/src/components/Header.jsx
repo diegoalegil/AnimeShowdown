@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useTheme } from '../contexts/ThemeContext'
 import Avatar from './Avatar'
+import NotifBell from './NotifBell'
 
 const navLinks = [
   { to: '/', label: 'Inicio' },
@@ -111,7 +112,10 @@ function Header() {
           )}
         </button>
         {user ? (
-          <UserBadge user={user} onLogout={logout} />
+          <>
+            <NotifBell />
+            <UserBadge user={user} onLogout={logout} />
+          </>
         ) : (
           <NavLink
             to="/login"
