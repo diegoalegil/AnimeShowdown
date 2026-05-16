@@ -257,6 +257,19 @@ export const endpoints = {
     ),
   aplicarReaccion: ({ targetType, targetId, tipo }) =>
     api.post('/api/reacciones', { targetType, targetId, tipo }),
+  // Predicciones de bracket (Plan v2 §4.4).
+  //   aplicarPrediccion: autenticado. Backend INSERT/UPDATE según UNIQUE.
+  //   misPredicciones(torneoId): autenticado. Lista del torneo concreto.
+  //   leaderboardPredicciones: público. Top predictores últimos N días.
+  aplicarPrediccion: ({ enfrentamientoId, personajePredichoId }) =>
+    api.post('/api/predicciones', { enfrentamientoId, personajePredichoId }),
+  misPredicciones: (torneoId) =>
+    api.get(`/api/predicciones/mias/torneo/${torneoId}`),
+  leaderboardPredicciones: ({ dias = 30, limit = 10 } = {}) =>
+    api.get(
+      `/api/predicciones/leaderboard?dias=${dias}&limit=${limit}`,
+      { auth: false },
+    ),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>
