@@ -270,6 +270,12 @@ export const endpoints = {
       `/api/predicciones/leaderboard?dias=${dias}&limit=${limit}`,
       { auth: false },
     ),
+  // Perfil del usuario autenticado (Plan v2 §4.1).
+  perfilStats: () => api.get('/api/perfil/me/stats'),
+  perfilHistorialVotos: ({ page = 0, size = 50 } = {}) =>
+    api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
+  perfilTop: ({ limit = 5 } = {}) =>
+    api.get(`/api/perfil/me/top?limit=${limit}`),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>

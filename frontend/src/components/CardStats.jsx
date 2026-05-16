@@ -1,0 +1,78 @@
+import { Activity, Award, Target, Vote } from 'lucide-react'
+import { usePerfilStats } from '../hooks/usePerfil'
+
+/**
+ * Card "Estadísticas" del perfil (Plan v2 §4.1).
+ *
+ * 4 KPIs en grid: votos totales, predicciones acertadas, % aciertos,
+ * badges desbloqueados. Si no hay datos aún (user nuevo), se muestran
+ * con valor 0 sin estados raros.
+ */
+function CardStats() {
+  const { data, isLoading } = usePerfilStats()
+  const stats = data ?? {
+    votosTotales: 0,
+    prediccionesAcertadas: 0,
+    prediccionesResueltas: 0,
+    porcentajeAciertos: 0,
+    badgesDesbloqueados: 0,
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Activity className="h-4 w-4 text-accent" />
+        <h2 className="text-lg font-bold text-fg-strong">Estadísticas</h2>
+      </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-6">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Kpi
+            icon={Vote}
+            label="Votos totales"
+            value={stats.votosTotales}
+          />
+          <Kpi
+            icon={Target}
+            label="Predicciones OK"
+            value={`${stats.prediccionesAcertadas}/${stats.prediccionesResueltas}`}
+          />
+          <Kpi
+            icon={Target}
+            label="% Aciertos"
+            value={`${stats.porcentajeAciertos}%`}
+            accent
+          />
+          <Kpi
+            icon={Award}
+            label="Logros"
+            value={`${stats.badgesDesbloqueados}/14`}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Kpi({ icon: Icon, label, value, accent = false }) {
+  return (
+    <div className="flex flex-col gap-1 rounded-lg border border-border bg-bg p-3">
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+        <Icon className="h-3 w-3" />
+        {label}
+      </span>
+      <span
+        className={`text-xl font-bold tabular-nums ${
+          accent ? 'text-accent' : 'text-fg-strong'
+        }`}
+      >
+        {value}
+      </span>
+    </div>
+  )
+}
+
+export default CardStats
