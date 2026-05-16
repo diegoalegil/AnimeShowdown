@@ -375,7 +375,7 @@ function GlossaryPage() {
                     {t.termino}
                   </dt>
                   {t.kanji && (
-                    <span className="font-mono text-[15px] text-accent">
+                    <span className="font-jp text-[15px] text-accent">
                       {t.kanji}
                     </span>
                   )}

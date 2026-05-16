@@ -47,7 +47,7 @@ function CardDanKyu({ data: dataProp = null }) {
                 : 'border-border bg-bg text-fg-muted'
             }`}
           >
-            <span className="mr-2 font-mono text-2xl font-bold">
+            <span className="font-jp mr-2 text-2xl">
               {actual.kanji}
             </span>
             <span className="text-lg font-bold">{actual.nombre}</span>
@@ -78,7 +78,7 @@ function CardDanKyu({ data: dataProp = null }) {
             </div>
           ) : (
             <p className="text-[11px] font-semibold text-amber-300">
-              Rango máximo alcanzado · 九段
+              Rango máximo alcanzado · <span className="font-jp">九段</span>
             </p>
           )}
         </div>

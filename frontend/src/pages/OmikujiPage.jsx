@@ -244,7 +244,7 @@ function OmikujiPage() {
             {SUERTES.map((s) => (
               <li key={s.kanji} className="flex items-baseline gap-3">
                 <span
-                  className={`inline-flex h-7 w-9 shrink-0 items-center justify-center rounded-md border font-bold ${COLOR_CLASSES[s.color]}`}
+                  className={`font-jp inline-flex h-7 w-9 shrink-0 items-center justify-center rounded-md border ${COLOR_CLASSES[s.color]}`}
                 >
                   {s.kanji}
                 </span>
@@ -280,7 +280,7 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
         className="mb-4 flex flex-col items-center text-center"
       >
         <span
-          className={`mb-4 inline-flex h-24 w-24 items-center justify-center rounded-2xl border-2 font-bold ${COLOR_CLASSES[suerte.color]} text-5xl`}
+          className={`font-jp mb-4 inline-flex h-24 w-24 items-center justify-center rounded-2xl border-2 ${COLOR_CLASSES[suerte.color]} text-5xl`}
         >
           {suerte.kanji}
         </span>

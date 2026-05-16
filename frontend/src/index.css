@@ -111,6 +111,14 @@
     background-size: 32px 32px;
   }
 
+  /* Tipografía japonesa secundaria (Plan v2 §13.3). Aplicada en kanjis
+     decorativos (badges, omikuji, glossary). El body sigue con Geist
+     para latinos — esto es solo para elementos JP. */
+  .font-jp {
+    font-family: 'Noto Sans JP', 'Geist', system-ui, sans-serif;
+    font-weight: 700;
+  }
+
   /* Patrones tradicionales japoneses (Plan v2 §13.4). SVG inline en
      data-url para que no añadan request HTTP. Opacidad ~5% — son acento
      decorativo, no foreground. Usados en perfil (asanoha) y logros
