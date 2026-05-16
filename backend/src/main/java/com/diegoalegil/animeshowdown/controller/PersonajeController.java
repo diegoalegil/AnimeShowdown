@@ -2,6 +2,9 @@ package com.diegoalegil.animeshowdown.controller;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,6 +42,12 @@ public class PersonajeController {
         this.votoRepository = votoRepository;
     }
 
+    /**
+     * Plan v2 §2.10: cache 5min del listado. Key por filtro (anime), o 'all'
+     * cuando no hay filtro. El catálogo es casi inmutable — las invalidaciones
+     * vienen de crear/actualizar/eliminar/batch que hacen evict global.
+     */
+    @Cacheable(value = "personajes-listado", key = "#anime ?: 'all'")
     @GetMapping
     public List<Personaje> listarTodos(@RequestParam(required = false) String anime) {
         if (anime != null) {
@@ -47,6 +56,8 @@ public class PersonajeController {
         return personajeRepository.findAll();
     }
 
+    /** Cache individual 5min por id — usado por /personajes/{id}. */
+    @Cacheable(value = "personajes-individual", key = "#id")
     @GetMapping("/{id}")
     public Personaje buscarPorId(@PathVariable Long id) {
         return personajeRepository.findById(id)
@@ -59,6 +70,10 @@ public class PersonajeController {
      * inválidos. Ahora PersonajeCrearRequest impone formato del slug,
      * longitudes y obligatoriedad de slug/nombre/anime.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-individual", allEntries = true)
+    })
     @PostMapping
     public ResponseEntity<Personaje> crear(@Valid @RequestBody PersonajeCrearRequest request) {
         Personaje p = new Personaje(
@@ -71,6 +86,10 @@ public class PersonajeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-individual", allEntries = true)
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         if (!personajeRepository.existsById(id)) {
@@ -85,6 +104,10 @@ public class PersonajeController {
      * Los null se ignoran (preservan el valor previo). PersonajeActualizar
      * Request valida formato y tamaño pero no obliga a estar presentes.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-individual", allEntries = true)
+    })
     @PutMapping("/{id}")
     public Personaje actualizar(
             @PathVariable Long id,
@@ -99,6 +122,10 @@ public class PersonajeController {
         return personajeRepository.save(p);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-individual", allEntries = true)
+    })
     @PostMapping("/batch")
     public List<Personaje> crearBatch(@RequestBody List<@Valid PersonajeCrearRequest> personajes) {
         return personajes.stream()
