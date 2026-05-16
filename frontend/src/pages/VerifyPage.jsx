@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle2, XCircle, MailWarning, ArrowRight } from 'lucide-react'
 import { endpoints, refreshSession } from '../lib/api'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 
 /**
  * Página /verify?token=XXX que cierra el flujo de email verification
@@ -19,7 +19,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
  *   - Network error → mensaje genérico, CTA reintentar.
  */
 function VerifyPage() {
-  useDocumentTitle('Verificando email')
+  useSeo({ title: 'Verificando email', noindex: true })
   const [params] = useSearchParams()
   const token = params.get('token')
 

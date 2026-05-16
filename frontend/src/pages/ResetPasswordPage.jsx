@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { KeyRound } from 'lucide-react'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 
@@ -17,7 +17,7 @@ const containerVariants = {
 }
 
 function ResetPasswordPage() {
-  useDocumentTitle('Nueva contraseña')
+  useSeo({ title: 'Nueva contraseña', noindex: true })
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const {

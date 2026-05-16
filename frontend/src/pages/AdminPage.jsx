@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import {
   useAprobarTorneo,
@@ -32,7 +32,7 @@ const containerVariants = {
 }
 
 function AdminPage() {
-  useDocumentTitle('Admin')
+  useSeo({ title: 'Admin', noindex: true })
   const { user } = useAuth()
   const [tab, setTab] = useState('mantenimiento')
   const { data: pendientes } = useTorneosPendientes()

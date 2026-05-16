@@ -7,7 +7,9 @@ import CardStats from '../components/CardStats'
 import CardTop5 from '../components/CardTop5'
 import CardLogros from '../components/CardLogros'
 import { useAuth } from '../contexts/AuthContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
+import { breadcrumbsSchema } from '../lib/schema'
+import JsonLd from '../components/JsonLd'
 import { usePerfilPublico, useToggleSeguir } from '../hooks/usePerfil'
 import { ApiError } from '../lib/api'
 
@@ -34,11 +36,24 @@ const containerVariants = {
 function UsuarioPage() {
   const { username } = useParams()
   const navigate = useNavigate()
-  useDocumentTitle(username ? `${username} · Perfil` : 'Perfil')
-
   const { user } = useAuth()
   const { data: perfil, isLoading, error } = usePerfilPublico(username)
   const toggleSeguir = useToggleSeguir(username)
+
+  // useSeo después de la query: cuando llega `perfil` el effect se vuelve
+  // a disparar y los meta tags se enriquecen con counts y avatar. Mientras
+  // tanto, el title genérico cubre el periodo de loading.
+  useSeo({
+    title: username ? `Perfil de ${username}` : 'Perfil',
+    description: perfil
+      ? `Perfil público de ${username} en AnimeShowdown · ${perfil.seguidores ?? 0} seguidores · ${perfil.stats?.votosTotales ?? 0} votos · top personajes y logros.`
+      : `Perfil público de ${username} en AnimeShowdown.`,
+    image: perfil?.avatarUrl || undefined,
+    type: 'profile',
+    // Marcamos noindex en 404 para que Google no indexe la URL inexistente
+    // con la copia de "Usuario no encontrado".
+    noindex: error?.status === 404,
+  })
 
   if (isLoading) {
     return (
@@ -100,6 +115,13 @@ function UsuarioPage() {
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: perfil.username, path: `/u/${perfil.username}` },
+        ])}
+      />
       <div className="mx-auto max-w-2xl">
         <motion.div
           initial="hidden"

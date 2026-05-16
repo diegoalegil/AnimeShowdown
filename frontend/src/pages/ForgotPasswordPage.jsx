@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { ArrowRight, Mail } from 'lucide-react'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 
 const containerVariants = {
@@ -17,7 +17,7 @@ const containerVariants = {
 }
 
 function ForgotPasswordPage() {
-  useDocumentTitle('Recuperar contraseña')
+  useSeo({ title: 'Recuperar contraseña', noindex: true })
   const navigate = useNavigate()
   const [enviado, setEnviado] = useState(false)
   const {
