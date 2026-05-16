@@ -39,6 +39,7 @@ const rutas = [
   { to: '/games/guess-anime', label: 'Guess the Anime', icon: Type },
   { to: '/games/anidel', label: 'Anidel (Wordle)', icon: Grid3X3 },
   { to: '/games/impostor', label: 'Detector de Impostor', icon: Sparkles },
+  { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles },
   { to: '/higher-or-lower', label: 'Higher or Lower', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
   { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },
