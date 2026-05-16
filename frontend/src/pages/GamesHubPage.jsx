@@ -115,6 +115,15 @@ function GamesHubPage() {
           ))}
         </div>
 
+        {/* Plan v2 §13.5: Omikuji como bono diario japonés (no juego strict, ritual). */}
+        <Link
+          to="/omikuji"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+        >
+          <span className="font-mono text-base">御籤</span>
+          ¿Y tu suerte del día? Tira el omikuji →
+        </Link>
+
         <div className="mt-12 rounded-xl border border-border bg-surface p-6">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
             Cómo funciona
