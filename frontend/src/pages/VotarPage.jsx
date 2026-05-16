@@ -6,7 +6,7 @@ import { Swords } from 'lucide-react'
 import { toast } from 'sonner'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { endpoints, ApiError } from '../lib/api'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 import { useSound } from '../contexts/SoundContext'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -42,7 +42,11 @@ function getRandomPair() {
 }
 
 function VotarPage() {
-  useDocumentTitle('Votar')
+  useSeo({
+    title: 'Votar',
+    description:
+      'Elige al ganador de cada enfrentamiento entre personajes anime. Cada voto suma al ranking ELO global de los dos.',
+  })
   const { play } = useSound()
   const { user } = useAuth()
   const navigate = useNavigate()

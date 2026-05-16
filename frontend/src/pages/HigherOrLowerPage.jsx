@@ -15,7 +15,7 @@ import {
   getStatsPersonaje,
 } from '../data/personajes'
 import { useSound } from '../contexts/SoundContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSeo } from '../hooks/useSeo'
 
 const BEST_KEY = 'animeshowdown.higherOrLower.best'
 
@@ -37,7 +37,11 @@ function pickDistinctElo(reference) {
 }
 
 function HigherOrLowerPage() {
-  useDocumentTitle('Higher or Lower')
+  useSeo({
+    title: 'Higher or Lower',
+    description:
+      'Mini-juego de adivinar quién tiene más ELO entre dos personajes anime. Sube tu mejor racha personal.',
+  })
   const { play } = useSound()
 
   // Mecánica clásica de Higher or Lower:
