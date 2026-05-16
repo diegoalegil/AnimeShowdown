@@ -51,6 +51,10 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
                                 "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
                         .permitAll()
+                        // Plan v2 §2.13: endpoint STOMP/WebSocket. El handshake
+                        // HTTP es público; la autenticación se hace en el frame
+                        // CONNECT con JWT (ver WebSocketConfig.JwtAuthChannelInterceptor).
+                        .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").authenticated()
