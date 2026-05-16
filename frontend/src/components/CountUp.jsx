@@ -10,12 +10,15 @@ import { useEffect, useState } from 'react'
  */
 function CountUp({ target, duration = 1.6, suffix = '' }) {
   const [value, setValue] = useState(0)
+  // Cuando target no es animable (no número o 0) renderizamos el valor
+  // directamente sin pasar por setState dentro del effect — el lint de
+  // react-compiler marca el setState síncrono al inicio de un effect
+  // como cascading render. Render derivado evita el problema.
+  const inanimable = typeof target !== 'number' || target === 0
+  const display = inanimable ? (target || 0) : value
 
   useEffect(() => {
-    if (typeof target !== 'number' || target === 0) {
-      setValue(target || 0)
-      return
-    }
+    if (inanimable) return
     let raf
     const start = performance.now()
     const step = (now) => {
@@ -27,11 +30,11 @@ function CountUp({ target, duration = 1.6, suffix = '' }) {
     }
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
-  }, [target, duration])
+  }, [target, duration, inanimable])
 
   return (
     <span>
-      {value}
+      {display}
       {suffix}
     </span>
   )

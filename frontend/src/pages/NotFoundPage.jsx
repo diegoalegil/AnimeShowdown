@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Home } from 'lucide-react'
@@ -24,9 +24,13 @@ const itemVariants = {
 
 function NotFoundPage() {
   useDocumentTitle('404')
-  const random = useMemo(
+  // useState con función inicializadora: se ejecuta UNA vez al montar y
+  // queda estable durante toda la vida del componente. Antes era useMemo
+  // pero el compilador de React marca Math.random() en useMemo como
+  // impure-during-render. El initializer de useState corre fuera del
+  // render, así que no rompe la regla.
+  const [random] = useState(
     () => personajes[Math.floor(Math.random() * personajes.length)],
-    [],
   )
 
   return (

@@ -1,19 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import * as sfx from '../lib/sounds'
 
-function despertarAudio() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext
-    if (!Ctx) return
-    const ctx = new Ctx()
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {})
-    // El contexto se queda en sounds.js — esto solo lo despierta vía gesture
-    sfx.__despertarCtx?.(ctx)
-  } catch {
-    // ignore
-  }
-}
-
 const SoundContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.muted'
 
@@ -75,6 +62,10 @@ export function SoundProvider({ children }) {
   )
 }
 
+// react-refresh/only-export-components: separar el hook a un archivo
+// useSound.js puro sería más limpio, pero el hook es de una línea y
+// vive junto al provider por simetría con el resto de contexts.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSound() {
   const ctx = useContext(SoundContext)
   if (!ctx) throw new Error('useSound debe usarse dentro de <SoundProvider>')
