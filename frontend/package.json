@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node ../scripts/generate-sitemap.mjs && vite build",
+    "build": "node scripts/generate-image-variants.mjs && node ../scripts/generate-sitemap.mjs && vite build",
+    "build:no-images": "node ../scripts/generate-sitemap.mjs && vite build",
     "build:no-sitemap": "vite build",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
+    "build:images": "node scripts/generate-image-variants.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -34,10 +36,12 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "beasties": "^0.4.2",
     "eslint": "^10.2.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
+    "sharp": "^0.34.5",
     "vite": "^8.0.10"
   }
 }
