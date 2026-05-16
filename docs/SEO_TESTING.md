@@ -154,6 +154,53 @@ Tras cada cambio importante de SEO:
 
 ---
 
+## 16.10 · UptimeRobot — monitor de salud
+
+Plan v2 §16.10 (también §16.18 status page).
+
+### Setup
+
+1. Crear cuenta gratuita en https://uptimerobot.com (50 monitors, ping 5min).
+2. Añadir monitor HTTP(s):
+   - **Type**: HTTP(s)
+   - **URL**: `https://animeshowdown-backend.up.railway.app/actuator/health`
+   - **Friendly name**: `AnimeShowdown · Backend health`
+   - **Monitoring Interval**: 5 minutos
+3. Añadir contacto:
+   - Email del autor para alerta inmediata si cae.
+   - (Opcional) Webhook Discord — crear webhook en canal #alerts y
+     pegar URL.
+4. Status page pública:
+   - Settings → Public status pages → Add new
+   - Nombre: `status.animeshowdown.dev`
+   - Monitors: el de health
+   - Custom domain (premium $7/mes) o subdomain free.
+
+### Verificación
+
+Tras 10 minutos UptimeRobot debe mostrar el monitor en verde "Up". Forzar
+una caída local con `docker stop` del backend (dev), confirmar que llega
+email + Discord webhook.
+
+### Endpoint en backend
+
+`/actuator/health` ya está expuesto y permitAll en SecurityConfig.
+Devuelve `{"status":"UP"}` cuando todo va bien, 503 si DB cae o si los
+checkers internos fallan.
+
+## 16.18 · Status page público
+
+Si quieres self-host la status page (sin depender de UptimeRobot premium):
+
+- **Cachet** (PHP) — feo pero gratis.
+- **Statping-ng** (Go single binary) — recomendado, despliegue en Railway
+  con 1 click.
+- **Better Stack Status pages** (free 1 status page).
+
+Para AnimeShowdown la status page de UptimeRobot free + dominio
+`status.animeshowdown.dev` apuntado al subdomain gratuito de UptimeRobot
+es la opción mínima viable.
+
 ## Referencias
 
 - Plan v2 §5 — SEO técnico completo
