@@ -1,4 +1,12 @@
-import { Trophy, Lock } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Check, Lock, Sparkles, Trophy } from 'lucide-react'
+import { toast } from 'sonner'
+import { useAuth } from '../contexts/AuthContext'
+import {
+  useAplicarPrediccion,
+  useMisPredicciones,
+} from '../hooks/usePredicciones'
+import { ApiError } from '../lib/api'
 
 /**
  * Renderiza un bracket de eliminación directa con datos vivos del backend.
