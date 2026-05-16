@@ -24,14 +24,17 @@ import com.diegoalegil.animeshowdown.security.JwtAuthFilter;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final com.diegoalegil.animeshowdown.security.RateLimitFilter rateLimitFilter;
     private final String allowedOriginsCsv;
     private final String allowedOriginPatternsCsv;
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthFilter,
+            com.diegoalegil.animeshowdown.security.RateLimitFilter rateLimitFilter,
             @Value("${cors.allowed-origins:}") String allowedOriginsCsv,
             @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.rateLimitFilter = rateLimitFilter;
         this.allowedOriginsCsv = allowedOriginsCsv;
         this.allowedOriginPatternsCsv = allowedOriginPatternsCsv;
     }
@@ -69,7 +72,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/me", "/api/auth/me/**").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // rateLimitFilter va ANTES del jwtAuthFilter para que las
+                // peticiones bloqueadas con 429 no consuman recursos parseando
+                // JWT. jwtAuthFilter sigue corriendo en peticiones permitidas.
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthFilter, com.diegoalegil.animeshowdown.security.RateLimitFilter.class);
 
         return http.build();
     }
