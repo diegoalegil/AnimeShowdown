@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-			<version>4.4.0</version>
+			<version>4.5.2</version>
 		</dependency>
 		<!-- Cache (Caffeine in-memory) + Resilience4j para JikanService:
 		     retry, circuit breaker, timeout y caché sobre llamadas a Jikan API.
