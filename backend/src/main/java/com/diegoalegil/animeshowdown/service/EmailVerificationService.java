@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.model.NotificacionTipo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -46,6 +47,7 @@ public class EmailVerificationService {
     private final EmailVerificationRepository repository;
     private final UsuarioRepository usuarioRepository;
     private final EmailService emailService;
+    private final NotificacionService notificacionService;
     private final String frontendBaseUrl;
     private final long ttlHoras;
 
@@ -53,11 +55,13 @@ public class EmailVerificationService {
             EmailVerificationRepository repository,
             UsuarioRepository usuarioRepository,
             EmailService emailService,
+            NotificacionService notificacionService,
             @Value("${app.frontend-base-url:https://animeshowdown.dev}") String frontendBaseUrl,
             @Value("${app.email-verification.ttl-hours:24}") long ttlHoras) {
         this.repository = repository;
         this.usuarioRepository = usuarioRepository;
         this.emailService = emailService;
+        this.notificacionService = notificacionService;
         this.frontendBaseUrl = frontendBaseUrl.endsWith("/")
                 ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1)
                 : frontendBaseUrl;
@@ -108,6 +112,18 @@ public class EmailVerificationService {
         u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
         usuarioRepository.save(u);
         log.info("Email verificado: usuario={}", u.getUsername());
+
+        // Plan v2 §2.13: notificación de bienvenida tras verificación. Es
+        // el primer item que verá el usuario en su campanita y demuestra
+        // que el sistema funciona. Trigger único por usuario — solo se
+        // dispara la primera vez (verificar() es idempotente y los siguientes
+        // calls salen por el return previo de "ya está usado").
+        notificacionService.crear(
+                u,
+                NotificacionTipo.BIENVENIDA,
+                "¡Bienvenido a AnimeShowdown, " + u.getUsername() + "!",
+                "Tu email está verificado y tu cuenta lista para votar, crear torneos y desbloquear logros.",
+                null);
         return true;
     }
 
