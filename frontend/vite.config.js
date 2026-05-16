@@ -264,4 +264,43 @@ export default defineConfig({
     // haya emitido el HTML cuando lo procesamos.
     criticalCssPlugin(),
   ],
+  build: {
+    // Vendor chunks explícitos: sin esto Rolldown junta todo en index y
+    // pasa de 150KB a 300KB+ gzip. Cada vendor se aísla en su propio
+    // chunk para que se cachee long-term separado (cambios en código de
+    // app no invalidan los vendor chunks). Plan v2 §3.10: budget 250KB.
+    //   - lucide-react: ~150KB gzip si va en index, peso muerto en muchas
+    //     páginas.
+    //   - framer-motion: ~50KB gzip, lo usan rutas con animación.
+    //   - i18n: ~30KB gzip (i18next + react-i18next + detector).
+    //   - react vendor: react/react-dom/react-router-dom siempre cargado.
+    rollupOptions: {
+      output: {
+        // Rolldown solo acepta manualChunks como función (no objeto, a
+        // diferencia de Rollup clásico). Devolvemos el nombre del chunk
+        // según el path del módulo en node_modules. id viene como path
+        // absoluto: `.../node_modules/lucide-react/dist/...`.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('lucide-react')) return 'lucide'
+          if (id.includes('framer-motion')) return 'framer'
+          if (
+            id.includes('i18next') ||
+            id.includes('react-i18next')
+          ) {
+            return 'i18n'
+          }
+          if (
+            id.includes('/react-router-dom/') ||
+            id.includes('/react-router/') ||
+            id.includes('/react-dom/') ||
+            id.match(/[/\\]node_modules[/\\]react[/\\]/)
+          ) {
+            return 'react-vendor'
+          }
+          return undefined
+        },
+      },
+    },
+  },
 })
