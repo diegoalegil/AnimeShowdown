@@ -37,16 +37,19 @@ public class TorneoAutoService {
     private final TorneoRepository torneoRepository;
     private final PersonajeRepository personajeRepository;
     private final BracketService bracketService;
+    private final IndexNowService indexNowService;
     private final boolean enabled;
 
     public TorneoAutoService(
             TorneoRepository torneoRepository,
             PersonajeRepository personajeRepository,
             BracketService bracketService,
+            IndexNowService indexNowService,
             @Value("${app.tournament.auto.enabled:true}") boolean enabled) {
         this.torneoRepository = torneoRepository;
         this.personajeRepository = personajeRepository;
         this.bracketService = bracketService;
+        this.indexNowService = indexNowService;
         this.enabled = enabled;
         log.info("TorneoAutoService inicializado: enabled={}", enabled);
     }
@@ -125,6 +128,11 @@ public class TorneoAutoService {
                 tamano,
                 enfs.size(),
                 seleccionados.stream().map(Personaje::getSlug).toList());
+
+        // Plan v2 §5.7: IndexNow ping para que el nuevo torneo se indexe
+        // en Bing/Yandex en minutos (Google se entera indirectamente vía
+        // Bing). Async + best-effort; no afecta al cron si falla.
+        indexNowService.notificarUna("/torneos/" + guardado.getSlug());
 
         return guardado;
     }
