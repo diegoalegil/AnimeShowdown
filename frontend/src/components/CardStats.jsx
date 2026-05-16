@@ -2,14 +2,28 @@ import { Activity, Award, Target, Vote } from 'lucide-react'
 import { usePerfilStats } from '../hooks/usePerfil'
 
 /**
- * Card "Estadísticas" del perfil (Plan v2 §4.1).
+ * Card "Estadísticas" del perfil (Plan v2 §4.1, §4.5).
  *
  * 4 KPIs en grid: votos totales, predicciones acertadas, % aciertos,
  * badges desbloqueados. Si no hay datos aún (user nuevo), se muestran
  * con valor 0 sin estados raros.
+ *
+ * <p>Modos de uso:
+ * <ul>
+ *   <li>Sin props: usa el hook {@code usePerfilStats} y muestra los
+ *       stats del usuario autenticado (perfil propio).</li>
+ *   <li>Con prop {@code data}: pinta lo que le pasen — usado por
+ *       {@code UsuarioPage} para mostrar stats de cualquier user
+ *       desde la respuesta agregada de {@code /api/perfil/{username}}.</li>
+ * </ul>
  */
-function CardStats() {
-  const { data, isLoading } = usePerfilStats()
+function CardStats({ data: dataProp = null }) {
+  const enabled = dataProp === null
+  const { data: dataHook, isLoading: isLoadingHook } = usePerfilStats({
+    enabled,
+  })
+  const data = dataProp ?? dataHook
+  const isLoading = dataProp === null && isLoadingHook
   const stats = data ?? {
     votosTotales: 0,
     prediccionesAcertadas: 0,

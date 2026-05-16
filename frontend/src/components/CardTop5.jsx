@@ -3,23 +3,37 @@ import { Link } from 'react-router-dom'
 import { usePerfilTop } from '../hooks/usePerfil'
 
 /**
- * Card "Tu Top 5" del perfil (Plan v2 §4.1).
+ * Card "Top personajes" del perfil (Plan v2 §4.1, §4.5).
  *
- * Lista los 5 personajes más votados por el usuario, con avatar + nombre
+ * Lista los personajes más votados por un usuario, con avatar + nombre
  * + anime + count. Click → /personajes/{slug}.
+ *
+ * <p>Sin props pinta el top del usuario autenticado (perfil propio).
+ * Con {@code data} pinta lo que le pasen — usado en perfil público.
+ * {@code titulo} y {@code mensajeVacio} permiten personalizar el copy
+ * cuando es de otra persona ("Top 5 de Diego" en vez de "Tu Top 5").
  */
-function CardTop5() {
-  const { data: top, isLoading } = usePerfilTop({ limit: 5 })
+function CardTop5({
+  data: dataProp = null,
+  titulo = 'Tu Top 5',
+  mensajeIntro = 'Los personajes a los que más has votado.',
+  mensajeVacio = null,
+}) {
+  const enabled = dataProp === null
+  const { data: dataHook, isLoading: isLoadingHook } = usePerfilTop({
+    limit: 5,
+    enabled,
+  })
+  const top = dataProp ?? dataHook
+  const isLoading = dataProp === null && isLoadingHook
 
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Heart className="h-4 w-4 text-rose-400" />
-        <h2 className="text-lg font-bold text-fg-strong">Tu Top 5</h2>
+        <h2 className="text-lg font-bold text-fg-strong">{titulo}</h2>
       </div>
-      <p className="mb-4 text-[12px] text-fg-muted">
-        Los personajes a los que más has votado.
-      </p>
+      <p className="mb-4 text-[12px] text-fg-muted">{mensajeIntro}</p>
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
@@ -27,13 +41,17 @@ function CardTop5() {
       ) : !top || top.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-6 text-fg-muted">
           <Inbox className="h-6 w-6" />
-          <p className="text-[12px]">
-            Aún no has votado a ningún personaje. Empieza desde{' '}
-            <Link to="/votar" className="text-accent hover:underline">
-              /votar
-            </Link>
-            .
-          </p>
+          {mensajeVacio ? (
+            <p className="text-[12px]">{mensajeVacio}</p>
+          ) : (
+            <p className="text-[12px]">
+              Aún no has votado a ningún personaje. Empieza desde{' '}
+              <Link to="/votar" className="text-accent hover:underline">
+                /votar
+              </Link>
+              .
+            </p>
+          )}
         </div>
       ) : (
         <ol className="flex flex-col gap-2">

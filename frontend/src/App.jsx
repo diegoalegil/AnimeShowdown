@@ -31,6 +31,7 @@ const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const PerfilPage = lazy(() => import('./pages/PerfilPage'))
+const UsuarioPage = lazy(() => import('./pages/UsuarioPage'))
 const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -105,6 +106,7 @@ function App() {
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />
+                <Route path="/u/:username" element={<UsuarioPage />} />
                 <Route path="/verify" element={<VerifyPage />} />
                 <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
                 <Route path="*" element={<NotFoundPage />} />

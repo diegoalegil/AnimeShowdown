@@ -276,6 +276,18 @@ export const endpoints = {
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
   perfilTop: ({ limit = 5 } = {}) =>
     api.get(`/api/perfil/me/top?limit=${limit}`),
+  // Perfil PÚBLICO de cualquier usuario (Plan v2 §4.5). Endpoint
+  // permitAll en el backend, pero si el caller está logueado el token
+  // viaja y el backend rellena `siguiendo` y `esMismoUsuario`. Si no
+  // hay token, esos campos vienen como null/false.
+  perfilPublico: (username) =>
+    api.get(`/api/perfil/${encodeURIComponent(username)}`),
+  // Friends / follow asimétrico (Plan v2 §4.5). seguir/dejarDeSeguir son
+  // idempotentes en el backend — la UI no necesita comprobar estado previo.
+  seguir: (usuarioId) =>
+    api.post(`/api/seguidores/${usuarioId}`),
+  dejarDeSeguir: (usuarioId) =>
+    api.del(`/api/seguidores/${usuarioId}`),
   // Ranking segmentado (Plan v2 §4.6).
   //   rankingSegmentado: periodo all|mes|trimestre|anio, anime opcional toma
   //     precedencia, limit max 200.
