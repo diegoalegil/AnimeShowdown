@@ -21,6 +21,7 @@ import {
   Eye,
   Type,
   Grid3X3,
+  BookOpen,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { useTorneos } from '../lib/torneosQueries'
@@ -40,6 +41,7 @@ const rutas = [
   { to: '/games/anidel', label: 'Anidel (Wordle)', icon: Grid3X3 },
   { to: '/games/impostor', label: 'Detector de Impostor', icon: Sparkles },
   { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles },
+  { to: '/glossary', label: 'Glosario otaku', icon: BookOpen },
   { to: '/higher-or-lower', label: 'Higher or Lower', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
   { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },

@@ -13,7 +13,8 @@
     "admin": "Admin",
     "salir": "Salir",
     "faq": "FAQ",
-    "apiDocs": "API docs"
+    "apiDocs": "API docs",
+    "glossary": "Glosario"
   },
   "header": {
     "cambiarTema": "Cambiar paleta de color",

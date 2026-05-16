@@ -152,6 +152,29 @@ export function animesListSchema(animesList = []) {
 }
 
 /**
+ * Schema {@code DefinedTermSet} (Plan v2 §13.8). Glosario de términos
+ * otaku. Cada término individual va como {@code DefinedTerm} dentro del
+ * mainEntity para captura long-tail SEO ("qué es tsundere", "qué es isekai").
+ *
+ * @param items array de {termino, definicion, ejemplos?: string[]}
+ */
+export function definedTermSetSchema(items, nombreGlosario = 'Glosario otaku') {
+  if (!items || items.length === 0) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    name: nombreGlosario,
+    inLanguage: 'es-ES',
+    hasDefinedTerm: items.map((it) => ({
+      '@type': 'DefinedTerm',
+      name: it.termino,
+      description: it.definicion,
+      inDefinedTermSet: nombreGlosario,
+    })),
+  }
+}
+
+/**
  * Schema {@code FAQPage} (Plan v2 §5.10). Cada item produce un acordeón
  * en el rich snippet de Google si la página alcanza autoridad suficiente.
  * Las respuestas se serializan como texto plano (HTML básico se permite
