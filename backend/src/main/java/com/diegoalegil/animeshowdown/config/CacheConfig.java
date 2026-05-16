@@ -38,7 +38,13 @@ public class CacheConfig {
         manager.setCaches(List.of(
                 buildCache("jikan-top-characters", Duration.ofHours(1), 128),
                 buildCache("og-personaje", Duration.ofDays(7), 500),
-                buildCache("og-torneo", Duration.ofDays(7), 50)));
+                buildCache("og-torneo", Duration.ofDays(7), 50),
+                // Plan v2 §2.10: catálogo de personajes apenas cambia
+                // (solo cuando admin importa o el seed corre). TTL 5min
+                // ahorra ~95% de hits a Postgres en horas pico sin que
+                // el usuario note staleness.
+                buildCache("personajes-listado", Duration.ofMinutes(5), 16),
+                buildCache("personajes-individual", Duration.ofMinutes(5), 2000)));
         return manager;
     }
 
