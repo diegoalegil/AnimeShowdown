@@ -107,31 +107,62 @@ export function AuthProvider({ children }) {
     }
   }, [user])
 
+  // Helper interno: aplica el resultado de un login exitoso (token + user)
+  // a la sesión local. Se llama tanto desde login() sin 2FA como desde
+  // completeLogin2fa() tras superar el segundo paso.
+  const aplicarSesion = (res, identificadorFallback) => {
+    if (res?.token) setToken(res.token)
+    const u =
+      buildLocalUser(res?.usuario) || {
+        username: identificadorFallback,
+        email: identificadorFallback?.includes('@') ? identificadorFallback : null,
+        rol: 'USER',
+      }
+    setUser(u)
+    const muted = localStorage.getItem('animeshowdown.muted') === 'true'
+    if (!muted) playMagic()
+    toast.success(`Bienvenido, ${u.username}`, {
+      description:
+        u.rol === 'ADMIN' ? 'Sesión ADMIN iniciada.' : 'Sesión iniciada.',
+    })
+    return u
+  }
+
+  /**
+   * Inicia sesión. Si el usuario tiene 2FA activo, el backend NO devuelve
+   * token sino { requires2fa, challengeToken, expiraEnSegundos } y aquí
+   * devolvemos ese mismo objeto al caller para que pinte el segundo paso.
+   * En el caso normal sin 2FA aplicamos la sesión y devolvemos null.
+   */
   const login = async (identificador, password) => {
     try {
       const res = await endpoints.login({
         username: identificador,
         password,
       })
-      if (res?.token) setToken(res.token)
-      const u =
-        buildLocalUser(res?.usuario) || {
-          username: identificador,
-          email: identificador.includes('@') ? identificador : null,
-          rol: 'USER',
+      if (res?.requires2fa) {
+        // No tocamos token ni user — el flujo se queda pausado hasta que
+        // el caller complete con completeLogin2fa.
+        return {
+          requires2fa: true,
+          challengeToken: res.challengeToken,
+          expiraEnSegundos: res.expiraEnSegundos,
+          identificador,
         }
-      setUser(u)
-      const muted = localStorage.getItem('animeshowdown.muted') === 'true'
-      if (!muted) playMagic()
-      toast.success(`Bienvenido, ${u.username}`, {
-        description:
-          u.rol === 'ADMIN' ? 'Sesión ADMIN iniciada.' : 'Sesión iniciada.',
-      })
+      }
+      aplicarSesion(res, identificador)
+      return null
     } catch (err) {
       const { title, description } = describeError(err)
       toast.error(title, { description })
       throw err
     }
+  }
+
+  /** Completa el paso 2 del login con 2FA. Devuelve el usuario logueado. */
+  const completeLogin2fa = async (challengeToken, codigo, identificador) => {
+    const res = await endpoints.verifyLogin2fa(challengeToken, codigo)
+    return aplicarSesion(res, identificador)
   }
 
   const register = async ({ username, email, password }) => {
@@ -167,7 +198,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, register, logout, updateUser }}
+      value={{ user, login, completeLogin2fa, register, logout, updateUser }}
     >
       {children}
     </AuthContext.Provider>

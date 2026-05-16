@@ -214,6 +214,24 @@ export const endpoints = {
     api.post('/api/auth/forgot-password', { email }, { auth: false }),
   resetPassword: (data) =>
     api.post('/api/auth/reset-password', data, { auth: false }),
+  // 2FA TOTP (Plan v2 §2.3).
+  //   setup2fa: autenticado. Genera secret y devuelve { secret, otpauthUri, qrCodeDataUri }.
+  //   enable2fa: autenticado. Body { codigo }. Devuelve { backupCodes: [...] }.
+  //   disable2fa: autenticado. Body { password, codigo }.
+  //   verifyLogin2fa: sin auth (usa challengeToken). Body { challengeToken, codigo }.
+  //   regenerateBackupCodes: autenticado. Body { codigo } (TOTP code para confirmar).
+  setup2fa: () => api.post('/api/auth/2fa/setup', undefined),
+  enable2fa: (codigo) => api.post('/api/auth/2fa/enable', { codigo }),
+  disable2fa: (password, codigo) =>
+    api.post('/api/auth/2fa/disable', { password, codigo }),
+  verifyLogin2fa: (challengeToken, codigo) =>
+    api.post(
+      '/api/auth/2fa/verify-login',
+      { challengeToken, codigo },
+      { auth: false },
+    ),
+  regenerateBackupCodes: (codigo) =>
+    api.post('/api/auth/2fa/backup-codes/regenerar', { codigo }),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>
