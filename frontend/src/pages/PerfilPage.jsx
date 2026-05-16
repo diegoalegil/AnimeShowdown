@@ -19,6 +19,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { endpoints, ApiError } from '../lib/api'
 import Avatar from '../components/Avatar'
 import Card2faSeguridad from '../components/Card2faSeguridad'
+import CardLogros from '../components/CardLogros'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 
 const containerVariants = {
@@ -88,6 +89,7 @@ function PerfilPage() {
 
         <div className="grid gap-6">
           <CardDatos user={user} />
+          <CardLogros />
           <CardAvatar user={user} updateUser={updateUser} />
           <CardPassword />
           <Card2faSeguridad />
