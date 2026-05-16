@@ -167,6 +167,17 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
 		</dependency>
+
+		<!-- TOTP (Plan v2 §2.3): generación de secrets base32, validación
+		     de códigos de 6 dígitos con drift de ±1 step (30s cada uno),
+		     y construcción de la URI otpauth:// que codificamos a QR
+		     para que el user la escanee con Google Authenticator, Authy,
+		     1Password, etc. Lib pura Java sin dependencias externas. -->
+		<dependency>
+			<groupId>dev.samstevens.totp</groupId>
+			<artifactId>totp</artifactId>
+			<version>1.7.1</version>
+		</dependency>
 	</dependencies>
 	
 	<build>

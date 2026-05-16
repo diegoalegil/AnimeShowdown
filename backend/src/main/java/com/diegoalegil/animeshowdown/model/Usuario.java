@@ -76,6 +76,42 @@ public class Usuario {
     @Column(name = "estado_verificacion", nullable = false, length = 20)
     private EstadoVerificacion estadoVerificacion = EstadoVerificacion.ACTIVO;
 
+    /**
+     * Secret TOTP activo cifrado (Plan v2 §2.3). null = el usuario NO tiene
+     * 2FA activado. Se almacena cifrado con AES (clave en env var
+     * TOTP_ENCRYPTION_KEY) — si la BBDD se filtra sin el .env, los secrets
+     * son inútiles. TotpService cifra/descifra al leer/escribir.
+     */
+    @JsonIgnore
+    @Column(name = "totp_secret")
+    private String totpSecret;
+
+    /**
+     * Secret pendiente de verificar tras /2fa/setup pero antes de /2fa/enable.
+     * El usuario ya lo escaneó del QR pero todavía no ha enviado un código
+     * válido — promueve a totpSecret en cuanto valide. Si abandona el flow,
+     * queda huérfano hasta el siguiente /2fa/setup (que lo sobrescribe).
+     */
+    @JsonIgnore
+    @Column(name = "totp_secret_pendiente")
+    private String totpSecretPendiente;
+
+    /**
+     * Flag explícito: el usuario completó el flow de setup y todo login
+     * futuro pasará por el paso de TOTP. Independiente de "secret != null"
+     * porque en flows futuros (recovery pausado) podríamos querer
+     * desactivar 2FA temporalmente sin perder el secret.
+     */
+    @Column(name = "totp_habilitado", nullable = false)
+    private Boolean totpHabilitado = false;
+
+    /**
+     * Fecha en la que el 2FA se activó. Solo informativo — la UI puede
+     * mostrar "2FA activo desde 12 de marzo".
+     */
+    @Column(name = "totp_habilitado_en")
+    private LocalDateTime totpHabilitadoEn;
+
     public Usuario() {
     }
 
@@ -185,6 +221,38 @@ public class Usuario {
     /** True si el usuario verificó email — habilitado para votar/crear torneos. */
     public boolean estaVerificado() {
         return getEstadoVerificacion() == EstadoVerificacion.ACTIVO;
+    }
+
+    public String getTotpSecret() {
+        return totpSecret;
+    }
+
+    public void setTotpSecret(String totpSecret) {
+        this.totpSecret = totpSecret;
+    }
+
+    public String getTotpSecretPendiente() {
+        return totpSecretPendiente;
+    }
+
+    public void setTotpSecretPendiente(String totpSecretPendiente) {
+        this.totpSecretPendiente = totpSecretPendiente;
+    }
+
+    public boolean isTotpHabilitado() {
+        return totpHabilitado != null && totpHabilitado;
+    }
+
+    public void setTotpHabilitado(boolean totpHabilitado) {
+        this.totpHabilitado = totpHabilitado;
+    }
+
+    public LocalDateTime getTotpHabilitadoEn() {
+        return totpHabilitadoEn;
+    }
+
+    public void setTotpHabilitadoEn(LocalDateTime totpHabilitadoEn) {
+        this.totpHabilitadoEn = totpHabilitadoEn;
     }
 
 }
