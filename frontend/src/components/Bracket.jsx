@@ -1,41 +1,27 @@
 import { Trophy, Lock } from 'lucide-react'
-import {
-  imagenPersonaje,
-  getPersonajeBySlug,
-  getStatsPersonaje,
-} from '../data/personajes'
 
-function generarBracket(slugs, revelarGanadores = true) {
-  if (slugs.length < 2) return { rounds: [], campeon: slugs[0] ?? null }
-  let current = [...slugs]
-  const rounds = []
-  while (current.length > 1) {
-    const matches = []
-    for (let i = 0; i < current.length; i += 2) {
-      const a = current[i]
-      const b = current[i + 1]
-      // Solo computamos ganador si revelarGanadores=true; en torneos 'proximo' o
-      // 'sin empezar' devolvemos null y el frontend muestra "?" en lugar del Trophy.
-      let winner = null
-      if (revelarGanadores) {
-        const eloA = getStatsPersonaje(a).elo
-        const eloB = getStatsPersonaje(b).elo
-        winner = eloA >= eloB ? a : b
-      }
-      matches.push({ a, b, winner })
-    }
-    rounds.push(matches)
-    // Para avanzar el bracket en torneos 'proximo' avanzamos por ELO igualmente
-    // (estructura del bracket), pero los matches no muestran ganador visualmente
-    current = matches.map((m) => {
-      if (m.winner) return m.winner
-      const eloA = getStatsPersonaje(m.a).elo
-      const eloB = getStatsPersonaje(m.b).elo
-      return eloA >= eloB ? m.a : m.b
-    })
-  }
-  return { rounds, campeon: current[0] }
-}
+/**
+ * Renderiza un bracket de eliminación directa con datos vivos del backend.
+ *
+ * Plan v2 §1.1 + §17.1 — antes el componente recibía `slugs` (array plano
+ * de participantes) y computaba el ganador local por ELO, lo que producía
+ * dos bugs:
+ *   1. Los torneos 'proximo' mostraban estructura completa hasta la final
+ *      como si las rondas hubieran ocurrido — el render no respetaba el
+ *      estado real del torneo.
+ *   2. Los ganadores eran inventados, no reflejaban los votos reales.
+ *
+ * Ahora el componente solo lee los DTOs que llegan del backend:
+ *
+ *   props.enfrentamientos: EnfrentamientoDto[] ya ordenados por
+ *     (ronda asc, id asc). Cada uno con `personaje1`/`personaje2`
+ *     posiblemente null (rondas futuras sin resolver) y `ganador`
+ *     null hasta que la ronda se cierre.
+ *   props.ganadorSlug: slug del campeón si el torneo está FINISHED.
+ *   props.totalRondas: para etiquetar columnas (Octavos / Cuartos / etc.).
+ *   props.estado: SCHEDULED / IN_PROGRESS / FINISHED (informativo —
+ *     el render progresivo emerge naturalmente del shape de los datos).
+ */
 
 const TITULOS = {
   4: ['Octavos', 'Cuartos', 'Semifinal', 'Final'],
@@ -44,30 +30,45 @@ const TITULOS = {
   1: ['Final'],
 }
 
-function Bracket({ slugs, ganadorReal, estado = 'finalizado' }) {
-  // En torneos 'proximo' el bracket se muestra pero sin trofeos ni campeón
-  // revelado — solo la estructura de cómo se enfrentarían los participantes.
-  // En 'finalizado' o 'en-curso' sí mostramos ganador computado por ELO.
-  const revelarGanadores = estado !== 'proximo'
-  const { rounds, campeon } = generarBracket(slugs, revelarGanadores)
-  if (rounds.length === 0) return null
-  const titulos = TITULOS[rounds.length] || []
-  const campeonFinal = revelarGanadores ? (ganadorReal || campeon) : null
+function Bracket({ enfrentamientos, ganadorSlug, totalRondas }) {
+  if (!enfrentamientos || enfrentamientos.length === 0) {
+    return null
+  }
+
+  // Agrupa los matches por ronda. enfrentamientos ya viene ordenado por
+  // (ronda, id) del backend, así que la inserción mantiene el orden visual.
+  const porRonda = new Map()
+  for (const enf of enfrentamientos) {
+    const r = enf.ronda
+    if (!porRonda.has(r)) porRonda.set(r, [])
+    porRonda.get(r).push(enf)
+  }
+  const rondas = [...porRonda.keys()].sort((a, b) => a - b)
+  const titulos = TITULOS[totalRondas] || []
+
+  // Campeón resuelto con dos fuentes (alineado con TorneoQueryService):
+  //   1. ganadorSlug del DTO (campo Torneo.ganadorPersonaje).
+  //   2. ganador del match de la última ronda en el array.
+  const ultimoMatch = porRonda.get(rondas[rondas.length - 1])?.[0]
+  const campeon =
+    findPersonajePorSlug(enfrentamientos, ganadorSlug) ??
+    ultimoMatch?.ganador ??
+    null
 
   return (
     <div className="scrollbar-hide -mx-5 overflow-x-auto px-5 sm:-mx-8 sm:px-8">
       <div className="flex min-w-max items-stretch gap-3">
-        {rounds.map((round, ri) => (
+        {rondas.map((ronda, i) => (
           <div
-            key={ri}
+            key={ronda}
             className="flex min-w-[180px] flex-col justify-around gap-3"
           >
             <h3 className="text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              {titulos[ri] || `Ronda ${ri + 1}`}
+              {titulos[i] || `Ronda ${ronda}`}
             </h3>
             <div className="flex flex-1 flex-col justify-around gap-3">
-              {round.map((match, mi) => (
-                <BracketMatch key={mi} match={match} />
+              {porRonda.get(ronda).map((match) => (
+                <BracketMatch key={match.id} match={match} />
               ))}
             </div>
           </div>
@@ -76,8 +77,8 @@ function Bracket({ slugs, ganadorReal, estado = 'finalizado' }) {
           <h3 className="text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
             Campeón
           </h3>
-          {campeonFinal ? (
-            <ChampionSlot slug={campeonFinal} />
+          {campeon ? (
+            <ChampionSlot personaje={campeon} />
           ) : (
             <ChampionPlaceholder />
           )}
@@ -87,19 +88,55 @@ function Bracket({ slugs, ganadorReal, estado = 'finalizado' }) {
   )
 }
 
+/**
+ * Busca un personaje (PersonajeMiniDto) por slug entre todos los matches
+ * — fallback para el campeón cuando solo nos pasan ganadorSlug y no la
+ * entidad completa.
+ */
+function findPersonajePorSlug(enfrentamientos, slug) {
+  if (!slug) return null
+  for (const e of enfrentamientos) {
+    if (e.personaje1?.slug === slug) return e.personaje1
+    if (e.personaje2?.slug === slug) return e.personaje2
+    if (e.ganador?.slug === slug) return e.ganador
+  }
+  return null
+}
+
 function BracketMatch({ match }) {
+  const ambosPersonajes = match.personaje1 && match.personaje2
+
+  // Match vacío (slot de ronda futura sin resolver): placeholder difuminado.
+  // Sigue el patrón ya existente del ChampionPlaceholder (border-dashed +
+  // Lock + texto) para coherencia visual.
+  if (!ambosPersonajes) {
+    return (
+      <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/30 px-2 py-3 opacity-60">
+        <Lock className="h-3 w-3 text-fg-muted" aria-hidden="true" />
+        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+          Por decidir
+        </span>
+      </div>
+    )
+  }
+
+  const ganadorId = match.ganador?.id
   return (
     <div className="rounded-lg border border-border bg-surface p-1.5">
-      <BracketSlot slug={match.a} winner={match.winner === match.a} />
+      <BracketSlot
+        personaje={match.personaje1}
+        winner={ganadorId === match.personaje1.id}
+      />
       <div className="my-1 h-px bg-border" />
-      <BracketSlot slug={match.b} winner={match.winner === match.b} />
+      <BracketSlot
+        personaje={match.personaje2}
+        winner={ganadorId === match.personaje2.id}
+      />
     </div>
   )
 }
 
-function BracketSlot({ slug, winner }) {
-  const p = getPersonajeBySlug(slug)
-  if (!p) return null
+function BracketSlot({ personaje, winner }) {
   return (
     <div
       className={`flex items-center gap-2 rounded px-1.5 py-1 ${
@@ -107,7 +144,7 @@ function BracketSlot({ slug, winner }) {
       }`}
     >
       <img
-        src={imagenPersonaje(slug)}
+        src={personaje.imagenUrl}
         alt=""
         loading="lazy"
         className="h-6 w-6 shrink-0 rounded object-cover object-top"
@@ -117,7 +154,7 @@ function BracketSlot({ slug, winner }) {
           winner ? 'text-fg-strong' : 'text-fg-muted'
         }`}
       >
-        {p.nombre}
+        {personaje.nombre}
       </span>
       {winner && (
         <Trophy className="h-3 w-3 shrink-0 text-accent" aria-hidden="true" />
@@ -126,22 +163,20 @@ function BracketSlot({ slug, winner }) {
   )
 }
 
-function ChampionSlot({ slug }) {
-  const p = getPersonajeBySlug(slug)
-  if (!p) return null
+function ChampionSlot({ personaje }) {
   return (
     <div
       className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-accent/40 bg-accent-soft p-3"
       style={{ boxShadow: '0 0 30px rgb(255 46 99 / 0.25)' }}
     >
       <img
-        src={imagenPersonaje(slug)}
-        alt={p.nombre}
+        src={personaje.imagenUrl}
+        alt={personaje.nombre}
         className="aspect-[2/3] w-full max-w-[110px] rounded-lg object-cover object-top"
       />
       <div className="text-center">
-        <p className="text-sm font-bold text-fg-strong">{p.nombre}</p>
-        <p className="text-[11px] text-fg-muted">{p.anime}</p>
+        <p className="text-sm font-bold text-fg-strong">{personaje.nombre}</p>
+        <p className="text-[11px] text-fg-muted">{personaje.anime}</p>
       </div>
     </div>
   )
@@ -154,7 +189,7 @@ function ChampionPlaceholder() {
       <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
         Por decidir
       </p>
-      <p className="text-[10px] text-fg-muted">El torneo aún no ha empezado</p>
+      <p className="text-[10px] text-fg-muted">El torneo aún no ha terminado</p>
     </div>
   )
 }

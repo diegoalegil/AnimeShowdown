@@ -3,11 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
-import { getTorneoBySlug, estadoBadge } from '../data/torneos'
-import {
-  getPersonajeBySlug,
-  imagenPersonaje,
-} from '../data/personajes'
+import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import NotFoundPage from './NotFoundPage'
 
@@ -20,29 +16,87 @@ const headerVariants = {
   },
 }
 
+/**
+ * Detalle de un torneo (/torneos/[slug]) consumiendo el backend vía
+ * useTorneoBySlug. Antes leía frontend/src/data/torneos.js estático con
+ * `getTorneoBySlug(slug)` — Plan v2 §1.1 elimina ese archivo.
+ *
+ * El hook hace polling de 30s automáticamente cuando estado === IN_PROGRESS
+ * (configurado en lib/torneosQueries.js), así el bracket se actualiza solo
+ * mientras los matches estén abiertos.
+ */
 function TorneoDetailPage() {
   const { slug } = useParams()
-  const torneo = getTorneoBySlug(slug)
+  const { data: torneo, isLoading, isError, error } = useTorneoBySlug(slug)
 
-  // Hooks arriba del early-return (Rules of Hooks). useDocumentTitle estaba
-  // después del `if (!torneo) return ...` y crashearía React si el user navega
-  // a un slug inexistente con la ruta cacheada.
-  useDocumentTitle(torneo?.nombre ?? '404')
+  // useDocumentTitle por encima del early-return (Rules of Hooks).
+  useDocumentTitle(torneo?.nombre ?? 'Torneo')
+
+  if (isLoading) {
+    return (
+      <section className="flex flex-1 items-center justify-center px-5 py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </section>
+    )
+  }
+
+  // 404 del backend → reutilizamos NotFoundPage; otros errores muestran
+  // mensaje simple para no asustar al usuario con stack traces.
+  if (isError) {
+    if (error?.status === 404) return <NotFoundPage />
+    return (
+      <section className="px-5 py-16 sm:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-2xl font-bold text-fg-strong">
+            No se pudo cargar el torneo
+          </h1>
+          <p className="mt-2 text-fg-muted">
+            {error?.message || 'Inténtalo de nuevo en unos segundos.'}
+          </p>
+          <Link
+            to="/torneos"
+            className="mt-6 inline-flex items-center gap-1.5 text-sm text-accent hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver a torneos
+          </Link>
+        </div>
+      </section>
+    )
+  }
 
   if (!torneo) return <NotFoundPage />
 
   const {
     nombre,
+    descripcion,
     estado,
-    participantes,
     fechaInicio,
-    fechaFin,
-    winner,
+    fechaFinalizacion,
+    numParticipantes,
+    totalRondas,
+    ganadorSlug,
+    enfrentamientos,
   } = torneo
-  const badge = estadoBadge[estado]
-  const winnerPersonaje = winner ? getPersonajeBySlug(winner) : null
-  const fechaInicioFmt = formatearFecha(fechaInicio)
-  const fechaFinFmt = fechaFin ? formatearFecha(fechaFin) : null
+
+  const badge = getEstadoBadge(estado)
+  const fechaInicioFmt = fechaInicio ? formatearFecha(fechaInicio) : null
+  const fechaFinFmt = fechaFinalizacion ? formatearFecha(fechaFinalizacion) : null
+
+  // Roster: extraemos los participantes únicos de la ronda 1 (siempre los
+  // tiene completos, incluso cuando rondas 2+ aún están vacías).
+  const rosterRonda1 = (enfrentamientos ?? [])
+    .filter((e) => e.ronda === 1)
+    .flatMap((e) => [e.personaje1, e.personaje2])
+    .filter(Boolean)
+
+  // El "campeón" para la card de cabecera. Si el torneo está FINISHED y el
+  // backend nos da ganadorSlug, lo resolvemos en los matches para tener
+  // nombre+anime+imagen sin viaje extra al endpoint de personajes.
+  const campeon =
+    ganadorSlug && enfrentamientos
+      ? findPersonajePorSlug(enfrentamientos, ganadorSlug)
+      : null
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -67,18 +121,22 @@ function TorneoDetailPage() {
           <h1 className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight">
             {nombre}
           </h1>
+          {descripcion && (
+            <p className="max-w-3xl text-fg-muted">{descripcion}</p>
+          )}
           <p className="text-fg-muted">
-            {participantes.length} personajes · {fechaInicioFmt}
+            {numParticipantes} personajes
+            {fechaInicioFmt && ` · ${fechaInicioFmt}`}
             {fechaFinFmt && ` → ${fechaFinFmt}`}
           </p>
         </motion.header>
-        {winnerPersonaje && (
+        {campeon && (
           <Link
-            to={`/personajes/${winner}`}
+            to={`/personajes/${campeon.slug}`}
             className="mb-10 flex items-center gap-4 rounded-xl border border-accent/40 bg-accent-soft p-4 transition-colors hover:bg-accent/20"
           >
             <img
-              src={imagenPersonaje(winner)}
+              src={campeon.imagenUrl}
               alt=""
               className="h-16 w-12 rounded-md object-cover"
             />
@@ -87,11 +145,9 @@ function TorneoDetailPage() {
                 Campeón del torneo
               </p>
               <p className="text-xl font-bold text-fg-strong">
-                {winnerPersonaje.nombre}
+                {campeon.nombre}
               </p>
-              <p className="text-[13px] text-fg-muted">
-                {winnerPersonaje.anime}
-              </p>
+              <p className="text-[13px] text-fg-muted">{campeon.anime}</p>
             </div>
           </Link>
         )}
@@ -99,20 +155,42 @@ function TorneoDetailPage() {
           Bracket
         </h2>
         <div className="mb-12">
-          <Bracket slugs={participantes} ganadorReal={winner} estado={estado} />
+          <Bracket
+            enfrentamientos={enfrentamientos}
+            ganadorSlug={ganadorSlug}
+            totalRondas={totalRondas}
+            estado={estado}
+          />
         </div>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
-          Roster
-        </h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {participantes.map((s) => {
-            const p = getPersonajeBySlug(s)
-            return p ? <PersonajeCard key={s} {...p} /> : null
-          })}
-        </div>
+        {rosterRonda1.length > 0 && (
+          <>
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+              Roster
+            </h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {rosterRonda1.map((p) => (
+                <PersonajeCard
+                  key={p.slug}
+                  slug={p.slug}
+                  nombre={p.nombre}
+                  anime={p.anime}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </section>
   )
+}
+
+function findPersonajePorSlug(enfrentamientos, slug) {
+  for (const e of enfrentamientos) {
+    if (e.personaje1?.slug === slug) return e.personaje1
+    if (e.personaje2?.slug === slug) return e.personaje2
+    if (e.ganador?.slug === slug) return e.ganador
+  }
+  return null
 }
 
 function formatearFecha(iso) {

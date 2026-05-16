@@ -3,6 +3,34 @@ import { endpoints } from './api.js'
 import { queryKeys } from './queryClient.js'
 
 /**
+ * Mapping del enum del backend (SCHEDULED/IN_PROGRESS/FINISHED) a las
+ * etiquetas visuales que usa el frontend. Reemplaza al `estadoBadge` que
+ * vivía en frontend/src/data/torneos.js con keys legacy en español.
+ */
+export const ESTADO_BADGE = {
+  SCHEDULED: {
+    label: 'Próximamente',
+    dot: 'bg-accent',
+    color: 'text-accent',
+  },
+  IN_PROGRESS: {
+    label: 'En curso',
+    dot: 'bg-emerald-400',
+    color: 'text-emerald-400',
+  },
+  FINISHED: {
+    label: 'Finalizado',
+    dot: 'bg-fg-muted',
+    color: 'text-fg-muted',
+  },
+}
+
+/** Fallback defensivo si llega un estado desconocido del backend. */
+export function getEstadoBadge(estado) {
+  return ESTADO_BADGE[estado] ?? ESTADO_BADGE.SCHEDULED
+}
+
+/**
  * Hooks react-query para todas las lecturas/escrituras de torneos.
  * Aislados aquí para que las páginas no sepan ni de queryKeys ni de
  * cómo se invalida cada cosa. Plan v2 §1.1.
