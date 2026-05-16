@@ -17,6 +17,11 @@ public class UsuarioRespuesta {
      * acciones que requieren ACTIVO (votar, crear torneos).
      */
     private EstadoVerificacion estadoVerificacion;
+    /**
+     * 2FA TOTP activo (Plan v2 §2.3). El frontend lo usa en /perfil para
+     * mostrar "Activar 2FA" vs "Desactivar 2FA" sin pedir info al usuario.
+     */
+    private boolean totpHabilitado;
 
     public UsuarioRespuesta(Usuario usuario) {
         this.id = usuario.getId();
@@ -25,6 +30,7 @@ public class UsuarioRespuesta {
         this.avatarUrl = usuario.getAvatarUrl();
         this.rol = usuario.getRol();
         this.estadoVerificacion = usuario.getEstadoVerificacion();
+        this.totpHabilitado = usuario.isTotpHabilitado();
     }
 
     public Long getId() { return id; }
@@ -33,4 +39,5 @@ public class UsuarioRespuesta {
     public String getAvatarUrl() { return avatarUrl; }
     public Rol getRol() { return rol; }
     public EstadoVerificacion getEstadoVerificacion() { return estadoVerificacion; }
+    public boolean isTotpHabilitado() { return totpHabilitado; }
 }

@@ -56,7 +56,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             "/api/auth/login",
             "/api/auth/registro",
             "/api/auth/forgot-password",
-            "/api/auth/reset-password");
+            "/api/auth/reset-password",
+            // Plan v2 §2.3: el endpoint que valida el segundo factor también
+            // necesita rate limit — sin él, alguien con el challengeToken
+            // (60s) podría intentar 10⁶ códigos en paralelo desde varias IPs.
+            // Bucket4j por IP no detiene el caso ideal pero sí frena el básico.
+            "/api/auth/2fa/verify-login");
 
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
