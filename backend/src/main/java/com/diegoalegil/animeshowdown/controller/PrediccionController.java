@@ -76,8 +76,9 @@ public class PrediccionController {
         }
         Torneo torneo = torneoRepository.findById(torneoId).orElse(null);
         if (torneo == null) return ResponseEntity.notFound().build();
-        List<PrediccionDto> mias = prediccionService.listarPorUsuarioYTorneo(usuario, torneo)
-                .stream().map(PrediccionDto::from).toList();
+        // El mapeo a DTO sucede dentro de la transacción del service para
+        // que el acceso lazy a personajePredicho no falle al hidratar.
+        List<PrediccionDto> mias = prediccionService.listarDtoPorUsuarioYTorneo(usuario, torneo);
         return ResponseEntity.ok(mias);
     }
 

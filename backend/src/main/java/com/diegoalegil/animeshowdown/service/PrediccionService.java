@@ -107,6 +107,20 @@ public class PrediccionService {
     }
 
     /**
+     * Devuelve las predicciones del usuario en el torneo ya mapeadas a DTO
+     * dentro de la transacción para evitar LazyInitializationException al
+     * acceder a {@code personajePredicho} desde el controller. Mismo patrón
+     * que en BadgeService.listarCatalogoConDesbloqueos.
+     */
+    @Transactional(readOnly = true)
+    public List<com.diegoalegil.animeshowdown.dto.PrediccionDto> listarDtoPorUsuarioYTorneo(
+            Usuario usuario, Torneo torneo) {
+        return repo.findByUsuarioAndTorneo(usuario, torneo).stream()
+                .map(com.diegoalegil.animeshowdown.dto.PrediccionDto::from)
+                .toList();
+    }
+
+    /**
      * Marca acertada=true/false en cada predicción del torneo comparando
      * contra el ganador del enfrentamiento correspondiente. Publica un
      * {@link PrediccionResueltaEvent} por usuario afectado con totales y
