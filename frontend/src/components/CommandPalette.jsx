@@ -42,6 +42,7 @@ const rutas = [
   { to: '/games/impostor', label: 'Detector de Impostor', icon: Sparkles },
   { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles },
   { to: '/glossary', label: 'Glosario otaku', icon: BookOpen },
+  { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles },
   { to: '/higher-or-lower', label: 'Higher or Lower', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
   { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },
