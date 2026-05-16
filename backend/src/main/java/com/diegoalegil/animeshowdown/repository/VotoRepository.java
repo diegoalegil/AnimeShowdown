@@ -23,6 +23,62 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             """)
     List<RankingItem> obtenerRanking();
 
+    /**
+     * Ranking all-time paginado (Plan v2 §4.6). Page para que la UI pueda
+     * pedir top 50 o top 100 sin volcar todo el catálogo.
+     */
+    @Query(value = """
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            FROM Voto v
+            GROUP BY v.personaje
+            ORDER BY COUNT(v) DESC
+            """,
+            countQuery = "SELECT COUNT(DISTINCT v.personaje) FROM Voto v")
+    org.springframework.data.domain.Page<RankingItem> rankingAllTime(
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Ranking dentro de una ventana temporal (Plan v2 §4.6 — top mensual,
+     * trimestral, etc). desde es inclusivo. Aplica el mismo GROUP BY que
+     * el all-time pero filtra por fecha del voto.
+     */
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            FROM Voto v
+            WHERE v.fecha >= :desde
+            GROUP BY v.personaje
+            ORDER BY COUNT(v) DESC
+            """)
+    List<RankingItem> rankingDesde(@Param("desde") java.time.LocalDateTime desde,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Ranking de personajes de un anime concreto (Plan v2 §4.6). Filtramos
+     * por nombre del anime (string del catálogo) — case-sensitive porque
+     * los nombres en BBDD vienen consistentes del seeder.
+     */
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            FROM Voto v
+            WHERE v.personaje.anime = :anime
+            GROUP BY v.personaje
+            ORDER BY COUNT(v) DESC
+            """)
+    List<RankingItem> rankingPorAnime(@Param("anime") String anime,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Lista única de animes que han recibido al menos un voto. Útil para
+     * popular el dropdown del tab "Por anime" en /ranking — no queremos
+     * mostrar 200 animes vacíos.
+     */
+    @Query("""
+            SELECT DISTINCT v.personaje.anime
+            FROM Voto v
+            ORDER BY v.personaje.anime ASC
+            """)
+    List<String> animesConVotos();
+
     boolean existsByPersonajeAndUsuario(Personaje personaje, Usuario usuario);
 
     boolean existsByEnfrentamientoAndUsuario(Enfrentamiento enfrentamiento, Usuario usuario);
