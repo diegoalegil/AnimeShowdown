@@ -67,13 +67,17 @@ function AnidelPage() {
       'Adivina el personaje secreto del día en 6 intentos. Pistas por anime, primera letra y ELO. Comparte tu resultado.',
   })
 
-  const objetivo = useMemo(() => personajeDelDia('anidel'), [])
+  const dailyObjetivo = useMemo(() => personajeDelDia('anidel'), [])
+  const [extraObjetivo, setExtraObjetivo] = useState(null)
+  const objetivo = extraObjetivo ?? dailyObjetivo
+  const esExtra = extraObjetivo !== null
   const eloObjetivo = useMemo(() => getStatsPersonaje(objetivo.slug)?.elo ?? 1500, [
     objetivo.slug,
   ])
-  const [estado, setEstado] = useState(() => loadEstado(objetivo.slug))
+  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug))
 
   useEffect(() => {
+    if (esExtra) return
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
@@ -85,7 +89,7 @@ function AnidelPage() {
         acertado: estado.acertado,
       }),
     )
-  }, [estado, objetivo.slug])
+  }, [estado, objetivo.slug, esExtra])
 
   const intentosUsados = estado.intentos.length + (estado.pistaLetra ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
@@ -142,9 +146,15 @@ function AnidelPage() {
     }))
   }
 
-  const handleReset = () => {
-    if (!confirm('¿Reiniciar el día?')) return
-    setEstado(loadEstado(objetivo.slug, true))
+  const jugarOtra = () => {
+    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    setExtraObjetivo(random)
+    setEstado(loadEstado(random.slug, true))
+  }
+
+  const volverAlDaily = () => {
+    setExtraObjetivo(null)
+    setEstado(loadEstado(dailyObjetivo.slug))
   }
 
   return (
@@ -262,15 +272,24 @@ function AnidelPage() {
         )}
 
         {estado.finalizado && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
               type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted transition-colors hover:text-accent"
+              onClick={jugarOtra}
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
             >
-              <RotateCcw className="h-3 w-3" />
-              Reiniciar (solo para testear)
+              <RotateCcw className="h-4 w-4" />
+              Jugar otra ronda
             </button>
+            {esExtra && (
+              <button
+                type="button"
+                onClick={volverAlDaily}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-3 text-[13px] font-semibold text-fg-muted transition-colors hover:text-fg-strong"
+              >
+                Volver al Daily
+              </button>
+            )}
           </div>
         )}
       </div>

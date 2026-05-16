@@ -55,11 +55,19 @@ function GuessCharacterPage() {
       'Adivina el personaje de anime del día por su imagen difuminada. 5 intentos. Comparte tu resultado estilo Wordle.',
   })
 
-  const objetivo = useMemo(() => personajeDelDia('guess-character'), [])
-  const [estado, setEstado] = useState(() => loadEstado(objetivo.slug))
+  // El "daily" usa personajeDelDia (determinístico, compartible). Cuando
+  // el user pulsa "Jugar otra" tras terminar, generamos un personaje
+  // random sin determinismo y sin compartir — modo endless improvisado.
+  const dailyObjetivo = useMemo(() => personajeDelDia('guess-character'), [])
+  const [extraObjetivo, setExtraObjetivo] = useState(null)
+  const objetivo = extraObjetivo ?? dailyObjetivo
+  const esExtra = extraObjetivo !== null
+  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug))
 
-  // Persistir cambios.
+  // Persistir cambios SOLO del Daily (no de las partidas extras random).
+  // En extra no queremos guardar nada — cada extra es efímera.
   useEffect(() => {
+    if (esExtra) return
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
@@ -71,7 +79,7 @@ function GuessCharacterPage() {
         acertado: estado.acertado,
       }),
     )
-  }, [estado, objetivo.slug])
+  }, [estado, objetivo.slug, esExtra])
 
   const intentosUsados = estado.intentos.length + (estado.pistaUsada ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
@@ -105,17 +113,17 @@ function GuessCharacterPage() {
     setEstado((s) => ({ ...s, pistaUsada: true }))
   }
 
-  const handleReset = () => {
-    // Solo permite reset si el día cambió o estamos en dev. No queremos
-    // que el user "haga trampa" reseteando un día perdido. Pero damos un
-    // escape hatch oculto para testing.
-    if (
-      !confirm(
-        '¿Reiniciar el día? Pierdes tu progreso actual. (El día sigue siendo el mismo, así que volverás al mismo personaje).',
-      )
-    )
-      return
-    setEstado(loadEstado(objetivo.slug, true))
+  /** Genera nueva partida con personaje random (no comparable con otros) */
+  const jugarOtra = () => {
+    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    setExtraObjetivo(random)
+    setEstado(loadEstado(random.slug, true))
+  }
+
+  /** Vuelve al daily — usado tras varias extras para volver al compartible. */
+  const volverAlDaily = () => {
+    setExtraObjetivo(null)
+    setEstado(loadEstado(dailyObjetivo.slug))
   }
 
   return (
@@ -225,15 +233,24 @@ function GuessCharacterPage() {
         )}
 
         {estado.finalizado && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
               type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted transition-colors hover:text-accent"
+              onClick={jugarOtra}
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
             >
-              <RotateCcw className="h-3 w-3" />
-              Reiniciar (solo para testear)
+              <RotateCcw className="h-4 w-4" />
+              Jugar otra ronda
             </button>
+            {esExtra && (
+              <button
+                type="button"
+                onClick={volverAlDaily}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-3 text-[13px] font-semibold text-fg-muted transition-colors hover:text-fg-strong"
+              >
+                Volver al Daily
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -21,7 +21,7 @@ import {
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { imagenPersonaje } from '../data/personajes'
+import { imagenPersonaje, personajes } from '../data/personajes'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-anime.v1'
@@ -50,10 +50,14 @@ function GuessAnimePage() {
       'Ves al personaje, ¿de qué anime es? 5 intentos para acertar. Pista opcional revelando el nombre.',
   })
 
-  const objetivo = useMemo(() => personajeDelDia('guess-anime'), [])
-  const [estado, setEstado] = useState(() => loadEstado(objetivo.slug))
+  const dailyObjetivo = useMemo(() => personajeDelDia('guess-anime'), [])
+  const [extraObjetivo, setExtraObjetivo] = useState(null)
+  const objetivo = extraObjetivo ?? dailyObjetivo
+  const esExtra = extraObjetivo !== null
+  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug))
 
   useEffect(() => {
+    if (esExtra) return
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
@@ -65,7 +69,7 @@ function GuessAnimePage() {
         acertado: estado.acertado,
       }),
     )
-  }, [estado, objetivo.slug])
+  }, [estado, objetivo.slug, esExtra])
 
   const intentosUsados = estado.intentos.length + (estado.pistaUsada ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
@@ -94,14 +98,15 @@ function GuessAnimePage() {
     setEstado((s) => ({ ...s, pistaUsada: true }))
   }
 
-  const handleReset = () => {
-    if (
-      !confirm(
-        '¿Reiniciar el día? Pierdes tu progreso actual.',
-      )
-    )
-      return
-    setEstado(loadEstado(objetivo.slug, true))
+  const jugarOtra = () => {
+    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    setExtraObjetivo(random)
+    setEstado(loadEstado(random.slug, true))
+  }
+
+  const volverAlDaily = () => {
+    setExtraObjetivo(null)
+    setEstado(loadEstado(dailyObjetivo.slug))
   }
 
   return (
@@ -207,15 +212,24 @@ function GuessAnimePage() {
         )}
 
         {estado.finalizado && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
               type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted transition-colors hover:text-accent"
+              onClick={jugarOtra}
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
             >
-              <RotateCcw className="h-3 w-3" />
-              Reiniciar (solo para testear)
+              <RotateCcw className="h-4 w-4" />
+              Jugar otra ronda
             </button>
+            {esExtra && (
+              <button
+                type="button"
+                onClick={volverAlDaily}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-3 text-[13px] font-semibold text-fg-muted transition-colors hover:text-fg-strong"
+              >
+                Volver al Daily
+              </button>
+            )}
           </div>
         )}
       </div>
