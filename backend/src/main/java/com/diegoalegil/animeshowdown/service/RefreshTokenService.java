@@ -119,7 +119,14 @@ public class RefreshTokenService {
             return new ResultadoRotacion.Invalido();
         }
         String hash = hashear(plano);
-        Optional<RefreshToken> opt = repository.findByTokenHash(hash);
+        // Audit P2 (2026-05-17): lock pesimista para serializar rotaciones
+        // concurrentes del mismo token. Sin esto, dos requests podían leer
+        // el token ACTIVO al mismo tiempo, ambas revocarlo y emitir un
+        // refresh nuevo cada una — el predecesor único se duplicaba en
+        // dos sucesores válidos. Con lock, la segunda espera a que la
+        // primera commitee y al leer ve el token ya revocado → cae en
+        // la rama de grace cross-tab correctamente.
+        Optional<RefreshToken> opt = repository.findByTokenHashForRotation(hash);
         if (opt.isEmpty()) {
             log.warn("RefreshToken rotar: hash no encontrado (posible token forjado)");
             return new ResultadoRotacion.Invalido();

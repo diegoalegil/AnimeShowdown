@@ -68,22 +68,38 @@ const DEFAULT_TIMEOUT_MS = 10000
 // la sesión por reuse-detection del backend.
 let refreshPromise = null
 
+/**
+ * Audit P1 (2026-05-17, 3ª iter): el backend devuelve 503 cuando la
+ * rotación cae en el grace cross-tab. Antes el frontend trataba
+ * cualquier no-2xx como sesión muerta — limpiaba tokenEnMemoria y
+ * desconectaba STOMP, aunque la cookie nueva de la otra tab estuviera
+ * viva. Ahora 503 dispara UN backoff corto + retry; si el segundo
+ * también falla, ahí sí limpiamos.
+ */
+const GRACE_RETRY_DELAY_MS = 350
 async function intentarRefresh() {
   if (refreshPromise) return refreshPromise
   refreshPromise = (async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      let res = await fetch(`${API_BASE}/api/auth/refresh`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
       })
+      if (res.status === 503) {
+        // Grace cross-tab: la otra pestaña acaba de rotar. Espera y reintenta
+        // una vez; la cookie nueva ya debe estar en este dominio.
+        await new Promise((r) => setTimeout(r, GRACE_RETRY_DELAY_MS))
+        res = await fetch(`${API_BASE}/api/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
       if (!res.ok) {
-        // Audit P1 (2026-05-17): antes asignaba tokenEnMemoria=null
-        // directo, sin notifyTokenChange. STOMP (que escucha onTokenChange
-        // para deactivar al cliente) no se enteraba — el WS seguía vivo
-        // con el JWT viejo hasta el siguiente reload. Una sesión revocada
-        // por el backend seguía recibiendo notificaciones a la cola del
-        // usuario hasta cerrar la pestaña.
+        // 503 persistente, 401, 5xx genuino, etc. — sesión muerta.
+        // Notifica el cambio para que STOMP deactive su cliente y
+        // AuthContext limpie el user optimista.
         const prev = tokenEnMemoria
         tokenEnMemoria = null
         if (prev !== null) notifyTokenChange()
