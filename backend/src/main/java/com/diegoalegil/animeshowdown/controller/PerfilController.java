@@ -18,10 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.EliminarCuentaRequest;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
-import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
-import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.PerfilService;
 import com.diegoalegil.animeshowdown.service.ReferralService;
 
@@ -46,16 +44,13 @@ public class PerfilController {
 
     private final PerfilService perfilService;
     private final UsuarioRepository usuarioRepository;
-    private final AuditLogService auditLogService;
     private final ReferralService referralService;
 
     public PerfilController(PerfilService perfilService,
             UsuarioRepository usuarioRepository,
-            AuditLogService auditLogService,
             ReferralService referralService) {
         this.perfilService = perfilService;
         this.usuarioRepository = usuarioRepository;
-        this.auditLogService = auditLogService;
         this.referralService = referralService;
     }
 
@@ -157,17 +152,14 @@ public class PerfilController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // Audit ANTES del delete: tras el delete el usuario ya no existe
-        // y el FK audit_log.usuario_id se setea a NULL (ON DELETE SET
-        // NULL). El detalle con username queda en el JSON como evidencia.
-        auditLogService.registrar(
-                AuditEvento.CUENTA_ELIMINADA,
-                usuario,
-                Map.of("username", usuario.getUsername(),
-                        "email", usuario.getEmail()),
-                httpRequest);
+        // Audit P2 (2026-05-17): el audit se hace AHORA dentro del service
+        // en la misma tx — después de verificar password y antes del delete.
+        // Antes se hacía aquí en el controller ANTES del verifyPassword:
+        // un password incorrecto generaba un registro CUENTA_ELIMINADA
+        // falso. Además el @Async podía persistir tras el delete con FK
+        // violation porque el usuario_id ya no existía.
         try {
-            perfilService.eliminarCuenta(usuario, body.getPassword());
+            perfilService.eliminarCuenta(usuario, body.getPassword(), httpRequest);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));

@@ -94,6 +94,29 @@ public class AuditLogService {
         registrar(evento, usuario, null, null);
     }
 
+    /**
+     * Versión SÍNCRONA: persiste en la tx del caller (no @Async, no
+     * REQUIRES_NEW). Pensada para eventos donde necesitamos garantizar el
+     * orden BBDD respecto a una mutación posterior — caso típico:
+     * CUENTA_ELIMINADA, que debe insertarse ANTES del DELETE del usuario
+     * para que el FK audit_log.usuario_id apunte a una fila aún viva (la
+     * cascada ON DELETE SET NULL lo limpia después). Con @Async, el
+     * registro podía llegar tras el delete y fallar con FK violation
+     * (audit P2 2026-05-17). Si la persistencia lanza, propaga — el caller
+     * decide si esa pérdida de audit invalida o no la operación de negocio.
+     */
+    @Transactional
+    public void registrarSync(
+            AuditEvento evento,
+            Usuario usuario,
+            Map<String, Object> detalles,
+            HttpServletRequest request) {
+        String detallesJson = serializar(detalles);
+        String ip = request != null ? clientIpExtractor.extract(request) : null;
+        String userAgent = request != null ? extraerUserAgent(request) : null;
+        repository.save(new AuditLog(evento, usuario, detallesJson, ip, userAgent));
+    }
+
     private String serializar(Map<String, Object> detalles) {
         if (detalles == null || detalles.isEmpty()) return null;
         try {
