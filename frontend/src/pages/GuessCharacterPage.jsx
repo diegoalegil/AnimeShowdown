@@ -300,54 +300,113 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   }
 
   return (
-    <div
-      className={`mb-6 rounded-xl border p-5 ${
+    <motion.div
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 180, damping: 18 }}
+      className={`relative mb-6 overflow-hidden rounded-2xl border p-6 ${
         acertado
-          ? 'border-emerald-500/40 bg-emerald-500/5'
-          : 'border-rose-500/40 bg-rose-500/5'
+          ? 'border-emerald-400/40 bg-gradient-to-br from-emerald-500/15 via-cyan-500/5 to-fuchsia-500/10'
+          : 'border-rose-400/40 bg-gradient-to-br from-rose-500/15 via-purple-500/5 to-slate-900/20'
       }`}
     >
-      <div className="mb-2 flex items-center gap-2">
-        {acertado ? (
-          <Check className="h-5 w-5 text-emerald-300" />
-        ) : (
-          <X className="h-5 w-5 text-rose-300" />
-        )}
-        <p
-          className={`text-sm font-bold ${
-            acertado ? 'text-emerald-200' : 'text-rose-200'
-          }`}
-        >
+      {/* Kanji decorativo de fondo — 結 (musubi, "lazo/resultado") si
+          aciertas, 残 (zan, "queda/resta") si no. Sutil, sirve de textura. */}
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none opacity-[0.07] ${
+          acertado ? 'text-emerald-200' : 'text-rose-200'
+        }`}
+      >
+        {acertado ? '結' : '残'}
+      </span>
+      {/* Sparkles decorativos */}
+      {acertado && (
+        <>
+          <Sparkles className="absolute right-4 top-4 h-4 w-4 animate-pulse text-emerald-300/70" />
+          <Sparkles className="absolute bottom-6 right-12 h-3 w-3 animate-pulse text-cyan-300/60 [animation-delay:0.4s]" />
+          <Sparkles className="absolute left-8 top-10 h-3 w-3 animate-pulse text-fuchsia-300/60 [animation-delay:0.8s]" />
+        </>
+      )}
+
+      <div className="relative">
+        <div className="mb-1 flex items-center gap-2">
+          <span
+            className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${
+              acertado
+                ? 'bg-emerald-500/30 text-emerald-100'
+                : 'bg-rose-500/25 text-rose-100'
+            }`}
+          >
+            {acertado ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <X className="h-4 w-4" />
+            )}
+          </span>
+          <p
+            className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
+              acertado ? 'text-emerald-200' : 'text-rose-200'
+            }`}
+          >
+            {acertado ? '勝利 · Victoria' : '敗北 · Sin intentos'}
+          </p>
+        </div>
+        <p className="mb-4 text-2xl font-extrabold leading-tight tracking-tight text-fg-strong">
           {acertado
-            ? `¡Acertaste en ${totalIntentos}/${MAX_INTENTOS}!`
-            : 'Sin intentos. Mañana otra.'}
+            ? `Acertaste en ${totalIntentos}/${MAX_INTENTOS}`
+            : `Era ${objetivo.nombre}`}
+        </p>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {intentos.map((i, idx) => (
+            <span
+              key={idx}
+              className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-base ${
+                i.acierto
+                  ? 'border border-emerald-400/40 bg-emerald-500/15'
+                  : 'border border-rose-400/30 bg-rose-500/10'
+              }`}
+              aria-label={i.acierto ? 'acierto' : 'fallo'}
+            >
+              {i.acierto ? '🌸' : '🍂'}
+            </span>
+          ))}
+          {pistaUsada && (
+            <span
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-400/40 bg-amber-500/15 text-base"
+              aria-label="pista usada"
+              title="Pista usada"
+            >
+              💡
+            </span>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={compartir}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          Copiar resultado
+        </button>
+
+        <p className="mt-4 text-[12px] text-fg-muted">
+          Próxima partida a medianoche local.{' '}
+          <Link to="/games" className="text-accent hover:underline">
+            Volver al hub
+          </Link>{' '}
+          ·{' '}
+          <Link
+            to={`/personajes/${objetivo.slug}`}
+            className="text-accent hover:underline"
+          >
+            Ver ficha de {objetivo.nombre}
+          </Link>
         </p>
       </div>
-      <p className="mb-3 font-mono text-2xl tabular-nums tracking-wider">
-        {buildShareSquares(intentos.map((i) => i.acierto), MAX_INTENTOS)}
-      </p>
-      <button
-        type="button"
-        onClick={compartir}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
-      >
-        <Copy className="h-3.5 w-3.5" />
-        Copiar resultado
-      </button>
-      <p className="mt-3 text-[12px] text-fg-muted">
-        Próxima partida a medianoche local.{' '}
-        <Link to="/games" className="text-accent hover:underline">
-          Volver al hub
-        </Link>{' '}
-        ·{' '}
-        <Link
-          to={`/personajes/${objetivo.slug}`}
-          className="text-accent hover:underline"
-        >
-          Ver ficha de {objetivo.nombre}
-        </Link>
-      </p>
-    </div>
+    </motion.div>
   )
 }
 
