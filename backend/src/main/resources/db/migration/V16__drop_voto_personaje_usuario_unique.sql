@@ -1,0 +1,12 @@
+-- Audit P1 (2026-05-17): el unique (personaje_id, usuario_id) impedía que un
+-- mismo usuario votara al mismo personaje en RONDAS distintas del mismo
+-- bracket. En cuanto un personaje avanza a R2/R3 y el usuario vota por él
+-- otra vez, EnfrentamientoController.votar pasa el check por enfrentamiento
+-- (que solo mira uk_voto_enfrentamiento_usuario) y revienta en save con
+-- DataIntegrityViolationException sobre uk_voto_personaje_usuario.
+--
+-- El uniqueness que SÍ tiene sentido (un voto por usuario y enfrentamiento)
+-- lo cubre uk_voto_enfrentamiento_usuario, que se mantiene intacto.
+--
+-- IF EXISTS por portabilidad entre Postgres y H2 (testing).
+ALTER TABLE votos DROP CONSTRAINT IF EXISTS uk_voto_personaje_usuario;

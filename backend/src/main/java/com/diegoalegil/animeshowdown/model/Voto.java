@@ -17,14 +17,19 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "votos", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_voto_personaje_usuario", columnNames = { "personaje_id", "usuario_id" }),
+        // Audit P1 (2026-05-17): se eliminó uk_voto_personaje_usuario (un voto
+        // por usuario y personaje globalmente). Bloqueaba votos legítimos en
+        // rondas distintas del bracket cuando un personaje avanzaba: usuario
+        // votó Luffy en R1 y al votarlo en R2 el constraint reventaba con
+        // 500. La V16 lo dropea de la BBDD; aquí lo eliminamos del modelo.
+        // El uniqueness real (un voto por usuario y enfrentamiento) lo cubre
+        // uk_voto_enfrentamiento_usuario, que sí es semánticamente correcto.
         @UniqueConstraint(name = "uk_voto_enfrentamiento_usuario", columnNames = { "enfrentamiento_id", "usuario_id" })
 }, indexes = {
         // Queries hot path: GROUP BY personaje en el ranking,
         // countByEnfrentamientoAndPersonaje al cerrar torneos, y los DELETE
-        // de cascada del DataSeeder. Postgres crea índice implícito para las
-        // uniqueConstraints compuestas pero queremos también índices simples
-        // sobre cada FK para acelerar lookups por una columna.
+        // de cascada del DataSeeder. Queremos índices simples sobre cada FK
+        // para acelerar lookups por una columna.
         @Index(name = "idx_votos_personaje", columnList = "personaje_id"),
         @Index(name = "idx_votos_enfrentamiento", columnList = "enfrentamiento_id")
 })

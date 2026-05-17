@@ -228,6 +228,36 @@ class EnfrentamientoControllerTest {
                         .exists());
     }
 
+    /**
+     * Regresión audit P1 (2026-05-17): antes existía un uniqueConstraint global
+     * (personaje_id, usuario_id) que rompía el caso legítimo "votar al mismo
+     * personaje en dos rondas distintas del bracket" — situación normal cuando
+     * un personaje avanza. La V16 lo elimina; este test confirma que dos votos
+     * por el mismo personaje en enfrentamientos distintos coexisten OK.
+     */
+    @Test
+    void votarMismoPersonajeEnDosEnfrentamientosDistintosFunciona() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_repeat_user", "votorepeat@example.com");
+        long[] ids = dosPersonajes();
+
+        long enf1 = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "rep1");
+        long enf2 = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "rep2");
+
+        Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
+        mvc.perform(post("/api/enfrentamientos/" + enf1 + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/enfrentamientos/" + enf2 + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk());
+    }
+
     @Test
     void votarDosVecesElMismoEnfrentamientoDevuelve409() throws Exception {
         String adminToken = tokenAdmin();
