@@ -15,6 +15,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompleteAnime from '../components/AutocompleteAnime'
+import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import {
   buildShareSquares,
   fechaDelDia,
@@ -45,7 +46,7 @@ const containerVariants = {
  */
 function GuessAnimePage() {
   useSeo({
-    title: 'Guess the Anime — Daily',
+    title: 'Anime Reveal · Guess the Anime — Daily',
     description:
       'Ves al personaje, ¿de qué anime es? 5 intentos para acertar. Pista opcional revelando el nombre.',
   })
@@ -116,7 +117,7 @@ function GuessAnimePage() {
         schema={breadcrumbsSchema([
           { label: 'Inicio', path: '/' },
           { label: 'Anime Games', path: '/games' },
-          { label: 'Guess the Anime', path: '/games/guess-anime' },
+          { label: 'Anime Reveal', path: '/games/anime-reveal' },
         ])}
       />
       <div className="mx-auto max-w-2xl">
@@ -147,13 +148,35 @@ function GuessAnimePage() {
           </p>
         </motion.header>
 
-        <div className="mb-6 overflow-hidden rounded-xl border border-border bg-surface">
-          <div className="relative aspect-[3/4] w-full overflow-hidden bg-bg">
+        <div
+          className={`relative mx-auto mb-6 max-w-sm overflow-hidden rounded-xl border bg-surface transition-all duration-500 ${
+            estado.acertado
+              ? 'border-amber-400/60 shadow-[0_0_60px_-10px_rgba(251,191,36,0.55)]'
+              : 'border-border'
+          }`}
+        >
+          <div className="relative aspect-[2/3] w-full overflow-hidden bg-bg">
             <img
               src={imagenPersonaje(objetivo.slug)}
               alt="Personaje a identificar"
-              className="h-full w-full object-cover object-top"
+              className="h-full w-full object-contain"
             />
+            {estado.acertado && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+                className="pointer-events-none absolute inset-0 flex items-center justify-center"
+              >
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 0.6, repeat: 1 }}
+                  className="rounded-full border-2 border-amber-300/80 bg-amber-500/20 px-5 py-2 text-lg font-extrabold uppercase tracking-[0.2em] text-amber-100 backdrop-blur-sm"
+                >
+                  ¡Acertaste!
+                </motion.div>
+              </motion.div>
+            )}
             {estado.finalizado && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4">
                 <p className="text-[11px] uppercase tracking-wider text-fg-muted">
@@ -237,9 +260,19 @@ function GuessAnimePage() {
   )
 }
 
+function tierAnimePara(intentos, pistaUsada) {
+  if (intentos === 1 && !pistaUsada) return 'Otaku certificado ✨'
+  if (intentos === 1) return 'Otaku con pista'
+  if (intentos === 2) return 'Ojo entrenado'
+  if (intentos === 3) return 'Bien hecho'
+  if (intentos === 4) return 'Por los pelos'
+  return 'Justo a tiempo'
+}
+
 function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
-  const squares = buildShareSquares(
+  const perfecto = acertado && totalIntentos === 1 && !pistaUsada
+  const squaresRaw = buildShareSquares(
     intentos.map((i) => i.acierto),
     MAX_INTENTOS,
   )
@@ -247,51 +280,29 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     acertado
       ? `✅ Acerté en ${totalIntentos}/${MAX_INTENTOS}`
       : `❌ Era ${objetivo.anime} (${objetivo.nombre})`
-  }\n${squares}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/guess-anime`
+  }\n${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/anime-reveal`
 
-  const compartir = async () => {
-    try {
-      await navigator.clipboard.writeText(texto)
-      toast.success('Resultado copiado al portapapeles')
-    } catch {
-      toast.error('No se pudo copiar')
-    }
-  }
+  const titulo = perfecto
+    ? `PERFECT CLEAR · ${objetivo.anime}`
+    : acertado
+      ? `${objetivo.anime} · ${totalIntentos}/${MAX_INTENTOS}`
+      : `Era ${objetivo.anime}`
+
+  const tier = acertado
+    ? tierAnimePara(totalIntentos, pistaUsada)
+    : 'Mañana cazas el siguiente'
 
   return (
-    <div
-      className={`mb-6 rounded-xl border p-5 ${
-        acertado
-          ? 'border-emerald-500/40 bg-emerald-500/5'
-          : 'border-rose-500/40 bg-rose-500/5'
-      }`}
+    <PanelResultadoAnime
+      acertado={acertado}
+      titulo={titulo}
+      tier={tier}
+      squares={intentos.map((i) => ({ ok: i.acierto }))}
+      bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareText={texto}
     >
-      <div className="mb-2 flex items-center gap-2">
-        {acertado ? (
-          <Check className="h-5 w-5 text-emerald-300" />
-        ) : (
-          <X className="h-5 w-5 text-rose-300" />
-        )}
-        <p
-          className={`text-sm font-bold ${
-            acertado ? 'text-emerald-200' : 'text-rose-200'
-          }`}
-        >
-          {acertado
-            ? `¡Acertaste en ${totalIntentos}/${MAX_INTENTOS}!`
-            : 'Sin intentos.'}
-        </p>
-      </div>
-      <p className="mb-3 font-mono text-2xl tabular-nums tracking-wider">{squares}</p>
-      <button
-        type="button"
-        onClick={compartir}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
-      >
-        <Copy className="h-3.5 w-3.5" />
-        Copiar resultado
-      </button>
-      <p className="mt-3 text-[12px] text-fg-muted">
+      <p className="text-[12px] text-fg-muted">
+        Próxima partida a medianoche local.{' '}
         <Link to="/games" className="text-accent hover:underline">
           Volver al hub
         </Link>{' '}
@@ -300,10 +311,10 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
           to={`/personajes/${objetivo.slug}`}
           className="text-accent hover:underline"
         >
-          Ver ficha
+          Ver ficha de {objetivo.nombre}
         </Link>
       </p>
-    </div>
+    </PanelResultadoAnime>
   )
 }
 

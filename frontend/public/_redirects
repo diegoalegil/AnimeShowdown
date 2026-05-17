@@ -1,1 +1,19 @@
+# Rebrand de Anime Daily Trials (Plan v2 §14) — 301 a nivel CDN para
+# preservar el SEO acumulado de las rutas viejas. Las nuevas son más
+# memorables y dan identidad ("ELO Duel" en vez de "Higher or Lower").
+# Estos 301 se procesan ANTES de servir el index.html, así Google los
+# sigue sin pasar por React Router.
+/games/guess-character    /games/shadow-guess        301
+/games/guess-character/*  /games/shadow-guess/:splat 301
+/games/guess-anime        /games/anime-reveal        301
+/games/guess-anime/*      /games/anime-reveal/:splat 301
+/games/anidel             /games/anigrid             301
+/games/anidel/*           /games/anigrid/:splat      301
+/games/impostor           /games/impostor-trial      301
+/games/impostor/*         /games/impostor-trial/:splat 301
+/higher-or-lower          /games/elo-duel            301
+/higher-or-lower/*        /games/elo-duel/:splat     301
+
+# SPA fallback — toda ruta no servida por un archivo estático carga
+# index.html para que React Router maneje el routing client-side.
 /*    /index.html   200

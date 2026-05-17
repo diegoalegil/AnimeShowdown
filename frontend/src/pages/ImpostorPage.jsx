@@ -14,6 +14,7 @@ import {
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import {
   fechaDelDia,
   impostorDelDia,
@@ -60,7 +61,7 @@ function generarRondas(salt = '') {
  */
 function ImpostorPage() {
   useSeo({
-    title: 'Detector de Impostor — Daily',
+    title: 'Impostor Trial · Detector de Impostor — Daily',
     description:
       '5 cartas de anime, 4 del mismo, 1 intrusa. Pulsa el impostor antes de que pase el tiempo. 3 rondas al día.',
   })
@@ -119,7 +120,7 @@ function ImpostorPage() {
         schema={breadcrumbsSchema([
           { label: 'Inicio', path: '/' },
           { label: 'Anime Games', path: '/games' },
-          { label: 'Detector de Impostor', path: '/games/impostor' },
+          { label: 'Impostor Trial', path: '/games/impostor-trial' },
         ])}
       />
       <div className="mx-auto max-w-3xl">
@@ -138,10 +139,10 @@ function ImpostorPage() {
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/40 bg-purple-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-purple-200">
             <Sparkles className="h-3 w-3" />
-            Detector de Impostor · Daily
+            裏 · Impostor Trial · Daily
           </span>
           <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight tracking-tight">
-            Encuentra el impostor
+            4 cartas. 1 traidor.
           </h1>
           {finalizadoDia ? (
             <p className="text-[13px] text-fg-muted">
@@ -149,8 +150,8 @@ function ImpostorPage() {
             </p>
           ) : (
             <p className="text-[13px] text-fg-muted">
-              Ronda <strong className="text-fg-strong">{estado.rondaIdx + 1}</strong>{' '}
-              de {rondas.length}. 4 personajes son del mismo anime, 1 no. ¿Cuál?
+              Detecta quién no pertenece al anime antes de que se acabe la
+              ronda. Tres rondas, tres oportunidades.
             </p>
           )}
         </motion.header>
@@ -159,6 +160,8 @@ function ImpostorPage() {
           <Ronda
             key={`${esExtra ? 'x' : 'd'}-${estado.rondaIdx}`}
             ronda={rondaActual}
+            rondaIdx={estado.rondaIdx}
+            totalRondas={rondas.length}
             onEleccion={handleEleccion}
           />
         )}
@@ -203,17 +206,33 @@ function ImpostorPage() {
   )
 }
 
-function Ronda({ ronda, onEleccion }) {
+function Ronda({ ronda, rondaIdx, totalRondas, onEleccion }) {
   return (
-    <div className="mb-6 rounded-xl border border-border bg-surface p-6">
-      <div className="mb-5 flex items-center gap-2">
-        <Timer className="h-4 w-4 text-purple-300" />
-        <p className="text-[13px] text-fg-muted">
-          Anime de los 4 normales:{' '}
-          <strong className="text-fg-strong">{ronda.anime}</strong>
-        </p>
+    <div className="relative mb-6 overflow-hidden rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-fuchsia-500/5 to-slate-900/30 p-6">
+      {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none text-purple-200 opacity-[0.06]"
+      >
+        裏
+      </span>
+
+      <div className="relative mb-5 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-7 items-center justify-center rounded-md bg-purple-500/20 px-2 font-mono text-[12px] font-extrabold text-purple-100">
+            R{rondaIdx + 1}/{totalRondas}
+          </span>
+          <p className="text-[13px] text-fg-muted">
+            Anime base:{' '}
+            <strong className="text-fg-strong">{ronda.anime}</strong>
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1 text-[11px] text-purple-200/70">
+          <Timer className="h-3 w-3" />
+          Pulsa al traidor
+        </span>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ronda.items.map((item) => (
           <Carta key={item.slug} item={item} onClick={() => onEleccion(item)} />
         ))}
@@ -274,61 +293,41 @@ function ProgresoRondas({ rondaActual, resultados, total }) {
   )
 }
 
+function tierImpostorPara(aciertos, total) {
+  if (aciertos === total && total >= 3) return 'Detective infalible ✨'
+  if (aciertos === total) return 'Sin fallos'
+  if (aciertos >= 2) return 'Buen ojo'
+  if (aciertos === 1) return 'Ronda salvada'
+  return 'Engaño total'
+}
+
 function PanelResultado({ resultados, esExtra }) {
   const aciertos = resultados.filter(Boolean).length
   const total = resultados.length
-  const squares = resultados.map((r) => (r ? '🟩' : '🟥')).join('')
+  const acertado = aciertos > 0
+  const perfecto = aciertos === total && total >= 3
+  const squaresShare = resultados.map((r) => (r ? '🟩' : '🟥')).join('')
 
-  const texto = `🕵️ Detector de Impostor — ${fechaDelDia()}${esExtra ? ' (Extra)' : ''}\n${aciertos}/${total} aciertos  ${squares}\nanimeshowdown.dev/games/impostor`
+  const texto = `🕵️ Impostor Trial — ${fechaDelDia()}${esExtra ? ' (Extra)' : ''}\n${aciertos}/${total} aciertos  ${squaresShare}\nanimeshowdown.dev/games/impostor-trial`
 
-  const compartir = async () => {
-    try {
-      await navigator.clipboard.writeText(texto)
-      toast.success('Resultado copiado')
-    } catch {
-      toast.error('No se pudo copiar')
-    }
-  }
+  const titulo = perfecto
+    ? `PERFECT CLEAR · ${aciertos}/${total} traidores detectados`
+    : `${aciertos}/${total} traidores detectados`
 
   return (
-    <div
-      className={`mb-6 rounded-xl border p-5 ${
-        aciertos === total
-          ? 'border-emerald-500/40 bg-emerald-500/5'
-          : aciertos > 0
-            ? 'border-amber-500/40 bg-amber-500/5'
-            : 'border-rose-500/40 bg-rose-500/5'
-      }`}
+    <PanelResultadoAnime
+      acertado={acertado}
+      titulo={titulo}
+      tier={tierImpostorPara(aciertos, total)}
+      squares={resultados.map((r) => ({ ok: r }))}
+      shareText={texto}
     >
-      <div className="mb-2 flex items-center gap-2">
-        {aciertos === total ? (
-          <Check className="h-5 w-5 text-emerald-300" />
-        ) : aciertos > 0 ? (
-          <Sparkles className="h-5 w-5 text-amber-300" />
-        ) : (
-          <X className="h-5 w-5 text-rose-300" />
-        )}
-        <p className="text-sm font-bold text-fg-strong">
-          {aciertos}/{total} aciertos
-        </p>
-      </div>
-      <p className="mb-3 font-mono text-2xl tabular-nums tracking-wider">
-        {squares}
-      </p>
-      <button
-        type="button"
-        onClick={compartir}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
-      >
-        <Copy className="h-3.5 w-3.5" />
-        Copiar resultado
-      </button>
-      <p className="mt-3 text-[12px] text-fg-muted">
+      <p className="text-[12px] text-fg-muted">
         <Link to="/games" className="text-accent hover:underline">
           Volver al hub
         </Link>
       </p>
-    </div>
+    </PanelResultadoAnime>
   )
 }
 

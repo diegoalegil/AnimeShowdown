@@ -8,6 +8,7 @@ import {
   ArrowUp,
   ArrowDown,
   HelpCircle,
+  Flame,
 } from 'lucide-react'
 import {
   personajes,
@@ -38,7 +39,7 @@ function pickDistinctElo(reference) {
 
 function HigherOrLowerPage() {
   useSeo({
-    title: 'Higher or Lower',
+    title: 'ELO Duel · Higher or Lower',
     description:
       'Mini-juego de adivinar quién tiene más ELO entre dos personajes anime. Sube tu mejor racha personal.',
   })
@@ -111,14 +112,14 @@ function HigherOrLowerPage() {
 
   return (
     <section className="relative flex flex-1 flex-col px-5 py-10 sm:px-8 sm:py-14">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex flex-col items-start gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            <Sparkles className="h-3 w-3 text-accent" />
-            Mini-juego
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-cyan-200">
+            <Sparkles className="h-3 w-3" />
+            戦 · ELO Duel · Endless
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            Higher or Lower
+            ELO Duel
           </h1>
           <p className="max-w-2xl text-fg-muted">
             ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO que el de la izquierda?
@@ -144,9 +145,10 @@ function HigherOrLowerPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid grid-cols-1 gap-4 md:grid-cols-2"
+              className="grid grid-cols-1 items-center gap-4 md:grid-cols-[1fr_auto_1fr] md:gap-6"
             >
               <ReferenceCard personaje={reference} />
+              <VsBadge revealed={revealed} />
               <ChallengerCard
                 personaje={challenger}
                 revealedState={revealed}
@@ -166,9 +168,22 @@ function HigherOrLowerPage() {
 }
 
 function ScoreBar({ score, best }) {
+  // Cerca del récord = a 2 o menos. Glow rosa para crear tensión "no te
+  // duermas, casi lo igualas". A partir del récord el glow se mantiene
+  // como recompensa de "estás en territorio nuevo".
+  const cerca = best > 0 && score >= best - 2
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-5 py-3">
+    <div
+      className={`flex items-center justify-between gap-3 rounded-xl border bg-surface px-5 py-3 transition-all duration-300 ${
+        cerca
+          ? 'border-accent/60 shadow-[0_0_40px_-12px_rgba(255,46,99,0.65)]'
+          : 'border-border'
+      }`}
+    >
       <div className="flex items-center gap-2">
+        <Flame
+          className={`h-4 w-4 ${cerca ? 'animate-pulse text-orange-400' : 'text-fg-muted'}`}
+        />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
           Racha actual
         </span>
@@ -189,6 +204,43 @@ function ScoreBar({ score, best }) {
   )
 }
 
+function VsBadge({ revealed }) {
+  // Separador animado entre las 2 cards. En mobile (grid-cols-1) se
+  // renderiza horizontal con un divisor inline; en desktop es un círculo
+  // con "VS" pulsante.
+  return (
+    <div className="flex items-center justify-center gap-2 md:flex-col md:gap-1">
+      <span className="hidden h-[1px] w-12 bg-border md:block" />
+      <motion.div
+        animate={
+          revealed === null
+            ? { scale: [1, 1.06, 1] }
+            : revealed === 'correct'
+              ? { rotate: [0, 8, -8, 0], scale: 1.15 }
+              : { x: [0, -4, 4, -2, 2, 0], scale: 1 }
+        }
+        transition={{
+          duration: revealed === null ? 1.8 : 0.5,
+          repeat: revealed === null ? Infinity : 0,
+          ease: 'easeInOut',
+        }}
+        className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 ${
+          revealed === 'correct'
+            ? 'border-emerald-400 bg-emerald-500/20 text-emerald-200'
+            : revealed === 'wrong'
+              ? 'border-rose-400 bg-rose-500/20 text-rose-200'
+              : 'border-accent/60 bg-accent-soft text-accent'
+        }`}
+      >
+        <span className="font-mono text-base font-extrabold tracking-tighter">
+          VS
+        </span>
+      </motion.div>
+      <span className="hidden h-[1px] w-12 bg-border md:block" />
+    </div>
+  )
+}
+
 function ReferenceCard({ personaje }) {
   return (
     <motion.div
@@ -198,12 +250,12 @@ function ReferenceCard({ personaje }) {
       transition={{ duration: 0.4, ease: 'easeOut' }}
       className="relative flex flex-col overflow-hidden rounded-xl border-2 border-border bg-surface"
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-alt">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt">
         <img
           src={imagenPersonaje(personaje.slug)}
           alt=""
           loading="lazy"
-          className="h-full w-full object-cover object-top"
+          className="h-full w-full object-contain"
         />
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 bg-black/60 p-4 text-center backdrop-blur-md">
           <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
@@ -241,12 +293,12 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
       transition={{ duration: 0.4, ease: 'easeOut' }}
       className={`relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-colors ${borderClass}`}
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-alt">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt">
         <img
           src={imagenPersonaje(personaje.slug)}
           alt=""
           loading="lazy"
-          className="h-full w-full object-cover object-top"
+          className="h-full w-full object-contain"
         />
         <AnimatePresence>
           {!isRevealed && (

@@ -18,6 +18,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
+import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import {
   fechaDelDia,
   personajeDelDia,
@@ -62,7 +63,7 @@ const containerVariants = {
  */
 function AnidelPage() {
   useSeo({
-    title: 'Anidel — Wordle de personajes anime',
+    title: 'AniGrid · Anidel — Wordle de personajes anime',
     description:
       'Adivina el personaje secreto del día en 6 intentos. Pistas por anime, primera letra y ELO. Comparte tu resultado.',
   })
@@ -164,7 +165,7 @@ function AnidelPage() {
         schema={breadcrumbsSchema([
           { label: 'Inicio', path: '/' },
           { label: 'Anime Games', path: '/games' },
-          { label: 'Anidel', path: '/games/anidel' },
+          { label: 'AniGrid', path: '/games/anigrid' },
         ])}
       />
       <div className="mx-auto max-w-2xl">
@@ -386,10 +387,22 @@ function SquaritoFlecha({ dir, elo }) {
   )
 }
 
+function tierAnidelPara(intentos, pistaUsada) {
+  if (intentos === 1 && !pistaUsada) return 'Telepatía pura ✨'
+  if (intentos === 1) return 'Telepatía con pista'
+  if (intentos <= 2) return 'Increíble deducción'
+  if (intentos <= 4) return 'Bien hecho'
+  return 'Justo a tiempo'
+}
+
 function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
-  // Cuadrados Wordle-style: 🟩 acierto, 🟨 algún match parcial, 🟥 nada.
-  const squares = intentos
+  const perfecto = acertado && totalIntentos === 1 && !pistaUsada
+
+  // Squares Wordle-style detallados (3 por fila) van en el share text.
+  // Para el panel visual usamos un emoji por intento: 🌸 si acertó, 🌟 si
+  // tuvo 2 de 3 matches (cerca), 🍂 si todo rojo. Más legible visualmente.
+  const squaresShare = intentos
     .map((i) => {
       if (i.acierto) return '🟩🟩🟩'
       const parts = [
@@ -401,57 +414,41 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     })
     .join('\n')
 
+  const squaresUI = intentos.map((i) => {
+    if (i.acierto) return { ok: true, emoji: '🌸' }
+    const matches =
+      (i.matchLetra ? 1 : 0) +
+      (i.matchAnime ? 1 : 0) +
+      (i.direccionElo === 'eq' ? 1 : 0)
+    return { ok: matches >= 2, emoji: matches >= 2 ? '🌟' : '🍂' }
+  })
+
   const texto = `🎴 Anidel — ${fechaDelDia()}\n${
     acertado
       ? `✅ ${totalIntentos}/${MAX_INTENTOS}`
       : `❌ X/${MAX_INTENTOS} — era ${objetivo.nombre}`
-  }${pistaUsada ? '  💡' : ''}\n${squares}\nanimeshowdown.dev/games/anidel`
+  }${pistaUsada ? '  💡' : ''}\n${squaresShare}\nanimeshowdown.dev/games/anigrid`
 
-  const compartir = async () => {
-    try {
-      await navigator.clipboard.writeText(texto)
-      toast.success('Resultado copiado')
-    } catch {
-      toast.error('No se pudo copiar')
-    }
-  }
+  const titulo = perfecto
+    ? `PERFECT CLEAR · ${objetivo.nombre}`
+    : acertado
+      ? `${objetivo.nombre} · ${totalIntentos}/${MAX_INTENTOS}`
+      : `Era ${objetivo.nombre}`
+
+  const tier = acertado
+    ? tierAnidelPara(totalIntentos, pistaUsada)
+    : `Era de ${objetivo.anime}. Mañana otra.`
 
   return (
-    <div
-      className={`mb-6 rounded-xl border p-5 ${
-        acertado
-          ? 'border-emerald-500/40 bg-emerald-500/5'
-          : 'border-rose-500/40 bg-rose-500/5'
-      }`}
+    <PanelResultadoAnime
+      acertado={acertado}
+      titulo={titulo}
+      tier={tier}
+      squares={squaresUI}
+      bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareText={texto}
     >
-      <div className="mb-2 flex items-center gap-2">
-        {acertado ? (
-          <Check className="h-5 w-5 text-emerald-300" />
-        ) : (
-          <X className="h-5 w-5 text-rose-300" />
-        )}
-        <p
-          className={`text-sm font-bold ${
-            acertado ? 'text-emerald-200' : 'text-rose-200'
-          }`}
-        >
-          {acertado
-            ? `¡${totalIntentos}/${MAX_INTENTOS}! Era ${objetivo.nombre}`
-            : `Sin intentos. Era ${objetivo.nombre} (${objetivo.anime})`}
-        </p>
-      </div>
-      <pre className="mb-3 whitespace-pre-wrap font-mono text-base leading-tight">
-        {squares}
-      </pre>
-      <button
-        type="button"
-        onClick={compartir}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
-      >
-        <Copy className="h-3.5 w-3.5" />
-        Copiar resultado
-      </button>
-      <p className="mt-3 text-[12px] text-fg-muted">
+      <p className="text-[12px] text-fg-muted">
         <Link to="/games" className="text-accent hover:underline">
           Volver al hub
         </Link>{' '}
@@ -463,7 +460,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
           Ver ficha de {objetivo.nombre}
         </Link>
       </p>
-    </div>
+    </PanelResultadoAnime>
   )
 }
 

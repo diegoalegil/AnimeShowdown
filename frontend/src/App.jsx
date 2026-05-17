@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
@@ -124,7 +124,13 @@ function App() {
                 <Route path="/torneos/crear" element={<CrearTorneoPage />} />
                 <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
                 <Route path="/ranking" element={<RankingPage />} />
-                <Route path="/higher-or-lower" element={<HigherOrLowerPage />} />
+                {/* Higher or Lower → ELO Duel rebrand (Plan v2 §14). La ruta
+                    vieja redirige client-side; el _redirects de Cloudflare
+                    hace 301 a nivel CDN para preservar SEO. */}
+                <Route
+                  path="/higher-or-lower"
+                  element={<Navigate replace to="/games/elo-duel" />}
+                />
                 <Route path="/votar" element={<VotarPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
@@ -138,10 +144,31 @@ function App() {
                 <Route path="/faq" element={<FaqPage />} />
                 <Route path="/api-docs" element={<ApiDocsPage />} />
                 <Route path="/games" element={<GamesHubPage />} />
-                <Route path="/games/guess-character" element={<GuessCharacterPage />} />
-                <Route path="/games/guess-anime" element={<GuessAnimePage />} />
-                <Route path="/games/anidel" element={<AnidelPage />} />
-                <Route path="/games/impostor" element={<ImpostorPage />} />
+                {/* Nombres rebrandeados (Plan v2 §14). Rutas viejas →
+                    Navigate replace para mantener funcionando los links
+                    indexados; el _redirects en /public emite 301 a nivel
+                    Cloudflare para que Google traslade el SEO. */}
+                <Route path="/games/shadow-guess" element={<GuessCharacterPage />} />
+                <Route path="/games/anime-reveal" element={<GuessAnimePage />} />
+                <Route path="/games/anigrid" element={<AnidelPage />} />
+                <Route path="/games/impostor-trial" element={<ImpostorPage />} />
+                <Route path="/games/elo-duel" element={<HigherOrLowerPage />} />
+                <Route
+                  path="/games/guess-character"
+                  element={<Navigate replace to="/games/shadow-guess" />}
+                />
+                <Route
+                  path="/games/guess-anime"
+                  element={<Navigate replace to="/games/anime-reveal" />}
+                />
+                <Route
+                  path="/games/anidel"
+                  element={<Navigate replace to="/games/anigrid" />}
+                />
+                <Route
+                  path="/games/impostor"
+                  element={<Navigate replace to="/games/impostor-trial" />}
+                />
                 <Route path="/omikuji" element={<OmikujiPage />} />
                 <Route path="/glossary" element={<GlossaryPage />} />
                 <Route path="/apoya" element={<ApoyaPage />} />
