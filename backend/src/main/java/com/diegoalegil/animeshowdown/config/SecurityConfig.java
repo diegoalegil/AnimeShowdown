@@ -62,7 +62,12 @@ public class SecurityConfig {
                         // tiene 2FA. La validación del secret se hace en
                         // CronTorneoController.
                         .requestMatchers("/api/cron/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").authenticated()
+                        // Audit P3 (2026-05-18): POST /api/personajes/*/votar
+                        // está deshabilitado (devuelve 410 GONE en el controller).
+                        // Antes requería auth → clientes anónimos veían 401, no
+                        // el 410 que comunica explícitamente la deprecación.
+                        // Lo hacemos público para que el 410 llegue siempre.
+                        .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").authenticated()
                         // Lectura pública para que VotarPage pueda mostrar el match aleatorio
                         // antes de pedir login (el voto sí requiere auth, regla de arriba).
