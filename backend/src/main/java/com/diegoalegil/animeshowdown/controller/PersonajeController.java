@@ -20,11 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
+import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.service.RecomendacionService;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -35,11 +37,14 @@ public class PersonajeController {
 
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
+    private final RecomendacionService recomendacionService;
 
     public PersonajeController(PersonajeRepository personajeRepository,
-            VotoRepository votoRepository) {
+            VotoRepository votoRepository,
+            RecomendacionService recomendacionService) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
+        this.recomendacionService = recomendacionService;
     }
 
     /**
@@ -72,7 +77,8 @@ public class PersonajeController {
      */
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true)
+            @CacheEvict(value = "personajes-individual", allEntries = true),
+            @CacheEvict(value = "personajes-similares", allEntries = true)
     })
     @PostMapping
     public ResponseEntity<Personaje> crear(@Valid @RequestBody PersonajeCrearRequest request) {
@@ -88,7 +94,8 @@ public class PersonajeController {
 
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true)
+            @CacheEvict(value = "personajes-individual", allEntries = true),
+            @CacheEvict(value = "personajes-similares", allEntries = true)
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
@@ -106,7 +113,8 @@ public class PersonajeController {
      */
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true)
+            @CacheEvict(value = "personajes-individual", allEntries = true),
+            @CacheEvict(value = "personajes-similares", allEntries = true)
     })
     @PutMapping("/{id}")
     public Personaje actualizar(
@@ -124,7 +132,8 @@ public class PersonajeController {
 
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true)
+            @CacheEvict(value = "personajes-individual", allEntries = true),
+            @CacheEvict(value = "personajes-similares", allEntries = true)
     })
     @PostMapping("/batch")
     public List<Personaje> crearBatch(@RequestBody List<@Valid PersonajeCrearRequest> personajes) {
@@ -133,6 +142,18 @@ public class PersonajeController {
                         r.getSlug(), r.getNombre(), r.getAnime(),
                         r.getDescripcion(), r.getImagenUrl())))
                 .toList();
+    }
+
+    /**
+     * Personajes similares al de un slug (Plan v2 §4.12). Discovery
+     * cross-anime basado en proximidad de votos.
+     *
+     * <p>Endpoint público. limit clampa entre 1 y 24; default 8.
+     */
+    @GetMapping("/{slug}/similares")
+    public List<PersonajeSimilarDto> similares(@PathVariable String slug,
+            @RequestParam(defaultValue = "8") int limit) {
+        return recomendacionService.similares(slug, limit);
     }
 
     @PostMapping("/{id}/votar")
