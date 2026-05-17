@@ -1,35 +1,24 @@
-import { imagenSources } from '../lib/imagen'
+import { imagenPersonaje } from '../data/personajes'
 
 /**
- * <img> de personaje con AVIF + WebP + srcset (Plan v2 §3.3-3.4).
+ * <img> de personaje (Plan v2 §3.3-3.4).
  *
- * Reemplaza el viejo patrón `<img src={imagenPersonaje(slug)}>` por un
- * <picture> con dos <source> que el browser negocia automáticamente:
- *   1. AVIF si lo soporta (~98% navegadores modernos en 2026).
- *   2. WebP si no.
- *   3. La original .webp como fallback final del <img>.
+ * Versión simplificada: usa solo la imagen original. Antes había <picture>
+ * con srcset AVIF + WebP por anchos (300/600/1024) generados por
+ * generate-image-variants.mjs, pero el build de Cloudflare usa
+ * build:no-images (para esquivar el timeout de 20 min) y por tanto las
+ * variantes no llegan a producción — el <picture> intentaba cargar URLs
+ * 404 y mostraba el icono de imagen rota.
  *
- * El `sizes` está pensado para layouts en grid; si lo usas en un contexto
- * donde la imagen ocupa más espacio (hero, detail page) pasa `sizes`
- * custom para que el browser elija el ancho correcto.
+ * Cuando movamos a build full en CF reactivamos el <picture> srcset.
+ * Mientras tanto este componente es un wrapper trivial que sigue
+ * dándonos un punto único para evolucionar.
  *
- * Props acepta cualquier prop válida de <img> (className, loading, alt,
- * onClick, etc) y las pasa a través.
+ * Props acepta cualquier prop válida de <img>.
  */
+// eslint-disable-next-line no-unused-vars
 function PersonajeImg({ slug, alt, sizes, ...imgProps }) {
-  const src = imagenSources(slug)
-  if (!src) {
-    // Fallback duro: slug sin entrada en el catálogo. Usamos el path
-    // determinista de imagenPersonaje (que devuelve /img/_missing/...).
-    return <img alt={alt} {...imgProps} />
-  }
-  return (
-    <picture>
-      <source type="image/avif" srcSet={src.avif} sizes={sizes ?? src.sizes} />
-      <source type="image/webp" srcSet={src.webp} sizes={sizes ?? src.sizes} />
-      <img src={src.fallback} alt={alt} {...imgProps} />
-    </picture>
-  )
+  return <img src={imagenPersonaje(slug)} alt={alt} {...imgProps} />
 }
 
 export default PersonajeImg
