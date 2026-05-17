@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   motion,
@@ -11,9 +11,71 @@ import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
 import { getStatsPersonaje } from '../data/personajes'
 
+// Detector singleton de hover capability. Audit (2026-05-17): cada
+// PersonajeCard creaba 2 motionValues + 2 springs + 4 transforms +
+// motionTemplate + handlers de mouse, INCLUSO en móvil donde no hay
+// hover y todo ese trabajo se desperdicia. Con 60 cards visibles eso
+// son ~600 motion subscribers innecesarios.
+let hoverCache = null
+function detectHover() {
+  if (hoverCache != null) return hoverCache
+  if (typeof window === 'undefined' || !window.matchMedia) {
+    hoverCache = false
+    return false
+  }
+  hoverCache = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  return hoverCache
+}
+
 function PersonajeCard({ slug, nombre, anime, rank }) {
-  const cardRef = useRef(null)
   const { play } = useSound()
+  // Lazy initializer: detecta una sola vez al mount (sin useEffect, que
+  // dispara linter react-hooks/set-state-in-effect). detectHover() ya
+  // guarda contra SSR retornando false.
+  const [hoverEnabled] = useState(detectHover)
+
+  const { elo, wins, losses } = getStatsPersonaje(slug)
+  const totalCombates = wins + losses
+  const winRate = totalCombates > 0 ? Math.round((wins / totalCombates) * 100) : null
+
+  if (hoverEnabled) {
+    return (
+      <CardWithTilt
+        slug={slug}
+        nombre={nombre}
+        anime={anime}
+        rank={rank}
+        elo={elo}
+        winRate={winRate}
+        onClick={() => play('playWhoosh')}
+      />
+    )
+  }
+  // Móvil/touch: render plano sin motion. Mantiene aspecto y badges,
+  // sin coste de framer-motion. Tap dispara sonido + nav igual.
+  return (
+    <Link
+      to={`/personajes/${slug}`}
+      onClick={() => play('playWhoosh')}
+      className="group block"
+    >
+      <article className="relative overflow-hidden rounded-xl border border-border bg-surface">
+        <PersonajeImg
+          slug={slug}
+          alt={nombre}
+          loading="lazy"
+          className="aspect-[2/3] w-full object-cover"
+        />
+        <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} winRate={winRate} />
+      </article>
+    </Link>
+  )
+}
+
+// Versión hover-only con tilt y spotlight. Mismo coste que antes pero
+// solo se monta cuando hay puntero fino (mouse) — móvil queda fuera.
+function CardWithTilt({ slug, nombre, anime, rank, elo, winRate, onClick }) {
+  const cardRef = useRef(null)
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
 
@@ -33,20 +95,15 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
     mouseX.set((e.clientX - rect.left) / rect.width)
     mouseY.set((e.clientY - rect.top) / rect.height)
   }
-
   const handleMouseLeave = () => {
     mouseX.set(0.5)
     mouseY.set(0.5)
   }
 
-  const { elo, wins, losses } = getStatsPersonaje(slug)
-  const totalCombates = wins + losses
-  const winRate = totalCombates > 0 ? Math.round((wins / totalCombates) * 100) : null
-
   return (
     <Link
       to={`/personajes/${slug}`}
-      onClick={() => play('playWhoosh')}
+      onClick={onClick}
       className="group block"
     >
       <motion.article
@@ -74,34 +131,37 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
           className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{ background: spotlight }}
         />
-
-        {/* Badge esquina superior izquierda: rank si está en top 10 */}
-        {rank && rank <= 10 && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md border border-yellow-400/50 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-yellow-300 backdrop-blur-sm">
-            #{rank}
-          </span>
-        )}
-
-        {/* Badge esquina superior derecha: ELO */}
-        <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-accent backdrop-blur-sm">
-          {elo}
-        </span>
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3.5 pt-10">
-          <h3 className="line-clamp-1 text-sm font-bold text-fg-strong">
-            {nombre}
-          </h3>
-          <div className="flex items-center justify-between gap-2">
-            <p className="line-clamp-1 text-[12px] text-fg-muted">{anime}</p>
-            {winRate != null && (
-              <span className="shrink-0 font-mono text-[10px] font-semibold text-emerald-300/90">
-                {winRate}% WR
-              </span>
-            )}
-          </div>
-        </div>
+        <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} winRate={winRate} />
       </motion.article>
     </Link>
+  )
+}
+
+function CardBadges({ rank, elo, nombre, anime, winRate }) {
+  return (
+    <>
+      {rank && rank <= 10 && (
+        <span className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md border border-yellow-400/50 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-yellow-300 backdrop-blur-sm">
+          #{rank}
+        </span>
+      )}
+      <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-accent backdrop-blur-sm">
+        {elo}
+      </span>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3.5 pt-10">
+        <h3 className="line-clamp-1 text-sm font-bold text-fg-strong">
+          {nombre}
+        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <p className="line-clamp-1 text-[12px] text-fg-muted">{anime}</p>
+          {winRate != null && (
+            <span className="shrink-0 font-mono text-[10px] font-semibold text-emerald-300/90">
+              {winRate}% WR
+            </span>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
 
