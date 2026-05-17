@@ -28,6 +28,7 @@ import CardLogros from '../components/CardLogros'
 import CardMisTorneos from '../components/CardMisTorneos'
 import CardReferral from '../components/CardReferral'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
+import PasswordInput from '../components/PasswordInput'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -573,17 +574,14 @@ function CardPassword() {
           >
             Contraseña actual
           </label>
-          <input
+          <PasswordInput
             id="currentPassword"
-            type="password"
             autoComplete="current-password"
+            error={Boolean(errors.currentPassword)}
+            placeholder="Tu contraseña actual"
             {...register('currentPassword', {
               required: 'Introduce tu contraseña actual',
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.currentPassword ? 'border-red-500' : 'border-border'
-            }`}
-            placeholder="Tu contraseña actual"
           />
           {errors.currentPassword && (
             <p className="text-[11px] text-red-400">
@@ -598,10 +596,11 @@ function CardPassword() {
           >
             Nueva contraseña
           </label>
-          <input
+          <PasswordInput
             id="newPassword"
-            type="password"
             autoComplete="new-password"
+            error={Boolean(errors.newPassword)}
+            placeholder="Mínimo 8, con letra y número"
             {...register('newPassword', {
               required: 'Introduce la contraseña nueva',
               minLength: { value: 8, message: 'Mínimo 8 caracteres' },
@@ -610,10 +609,6 @@ function CardPassword() {
                 message: 'Debe incluir al menos una letra y un número',
               },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.newPassword ? 'border-red-500' : 'border-border'
-            }`}
-            placeholder="Mínimo 8, con letra y número"
           />
           {errors.newPassword && (
             <p className="text-[11px] text-red-400">
@@ -629,19 +624,16 @@ function CardPassword() {
           >
             Confirma la nueva contraseña
           </label>
-          <input
+          <PasswordInput
             id="confirmNewPassword"
-            type="password"
             autoComplete="new-password"
+            error={Boolean(errors.confirmNewPassword)}
+            placeholder="Repite la nueva contraseña"
             {...register('confirmNewPassword', {
               required: 'Confirma la contraseña nueva',
               validate: (v) =>
                 v === newPassword || 'Las contraseñas no coinciden',
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.confirmNewPassword ? 'border-red-500' : 'border-border'
-            }`}
-            placeholder="Repite la nueva contraseña"
           />
           {errors.confirmNewPassword && (
             <p className="text-[11px] text-red-400">
@@ -807,15 +799,15 @@ function CardEliminarCuenta({ onEliminada }) {
             <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
               Confirma tu contraseña
             </label>
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={pendiente}
-              placeholder="••••••••"
-              className="mb-5 w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:border-rose-400/60 focus:outline-none"
-            />
+            <div className="mb-5">
+              <PasswordInput
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={pendiente}
+                placeholder="••••••••"
+              />
+            </div>
 
             <div className="flex items-center justify-end gap-2">
               <button

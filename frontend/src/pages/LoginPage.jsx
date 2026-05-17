@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
+import PasswordInput from '../components/PasswordInput'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -160,18 +161,15 @@ function Step1Credenciales({ login, onChallenge, onSuccess }) {
           >
             Contraseña
           </label>
-          <input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
+            error={Boolean(errors.password)}
+            placeholder="Tu contraseña"
             {...register('password', {
               required: 'Introduce tu contraseña',
               minLength: { value: 6, message: 'Mínimo 6 caracteres' },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.password ? 'border-red-500' : 'border-border'
-            }`}
-            placeholder="Tu contraseña"
           />
           {errors.password && (
             <p className="text-[12px] text-red-400">
