@@ -232,6 +232,18 @@ const pwaPlugin = VitePWA({
         },
       },
       {
+        // Audit P1 (2026-05-17): excluye /api/torneos/mios del cache del SW.
+        // Antes el catch-all '/api/torneos' (regla siguiente) guardaba
+        // "mis torneos" de cualquier usuario en la PWA; otro usuario en la
+        // misma instalación podía verlos offline o tras network timeout
+        // (workbox sirve cache si el fetch tarda > networkTimeoutSeconds).
+        // NetworkOnly nunca lee del cache para esta ruta. Las predicciones
+        // privadas viven bajo /api/predicciones/mias/*, que no entra en
+        // ninguna runtimeCaching y por tanto no se cachea por defecto.
+        urlPattern: ({ url }) => url.pathname === '/api/torneos/mios',
+        handler: 'NetworkOnly',
+      },
+      {
         urlPattern: ({ url }) => url.pathname.startsWith('/api/torneos'),
         handler: 'NetworkFirst',
         options: {
