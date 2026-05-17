@@ -38,6 +38,16 @@ const TITULOS = {
   1: ['Final'],
 }
 
+// Plan v2 §17.2: kanji decorativo por ronda. 一回戦 (primera ronda),
+// 二回戦, 準決勝 (semifinal), 決勝 (final). El sufijo encaja según el
+// número de rondas — la última siempre es 決勝.
+const KANJI_RONDA = {
+  4: ['一回戦', '二回戦', '準決勝', '決勝'],
+  3: ['一回戦', '準決勝', '決勝'],
+  2: ['準決勝', '決勝'],
+  1: ['決勝'],
+}
+
 function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId }) {
   // Plan v2 §4.4: cargamos las predicciones del usuario para este torneo
   // (skip si no hay user o no hay torneoId). El hook ya respeta esos
@@ -66,6 +76,17 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId }) {
   }
   const rondas = [...porRonda.keys()].sort((a, b) => a - b)
   const titulos = TITULOS[totalRondas] || []
+  const kanjis = KANJI_RONDA[totalRondas] || []
+
+  // Plan v2 §17.2: barra de progreso del torneo. Cuenta matches resueltos
+  // (con ganador) sobre el total. Útil de un vistazo para "X de Y matches".
+  const totalMatches = enfrentamientos.length
+  const matchesResueltos = enfrentamientos.filter((e) => e.ganador).length
+  const rondaActual =
+    rondas.find((r) =>
+      porRonda.get(r).some((m) => m.personaje1 && m.personaje2 && !m.ganador),
+    ) ?? rondas[rondas.length - 1]
+  const rondaActualIdx = rondas.indexOf(rondaActual)
 
   // Campeón resuelto con dos fuentes (alineado con TorneoQueryService):
   //   1. ganadorSlug del DTO (campo Torneo.ganadorPersonaje).
@@ -77,16 +98,55 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId }) {
     null
 
   return (
-    <div className="scrollbar-hide -mx-5 overflow-x-auto px-5 sm:-mx-8 sm:px-8">
+    <div>
+      {/* Plan v2 §17.2: barra de progreso superior con "X de Y matches"
+          y ronda actual. Solo se muestra si hay matches resueltos o el
+          torneo no es FINISHED (en ese caso, mostraría 100% redundante
+          con la card de campeón). */}
+      {totalMatches > 0 && matchesResueltos < totalMatches && (
+        <div className="mb-5 rounded-lg border border-border bg-surface p-3">
+          <div className="mb-1.5 flex items-baseline justify-between gap-2 text-[11px]">
+            <span className="font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              Progreso
+            </span>
+            <span className="font-mono tabular-nums text-fg-muted">
+              <strong className="text-fg-strong">{matchesResueltos}</strong> /{' '}
+              {totalMatches} matches · ronda{' '}
+              <strong className="text-fg-strong">
+                {rondaActualIdx + 1} de {rondas.length}
+              </strong>
+            </span>
+          </div>
+          <div className="relative h-1.5 overflow-hidden rounded-full bg-bg">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-accent via-fuchsia-400 to-purple-400 transition-all duration-700"
+              style={{
+                width: `${(matchesResueltos / totalMatches) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+      <div className="scrollbar-hide -mx-5 overflow-x-auto px-5 sm:-mx-8 sm:px-8">
       <div className="flex min-w-max items-stretch gap-3">
         {rondas.map((ronda, i) => (
           <div
             key={ronda}
             className="flex min-w-[180px] flex-col justify-around gap-3"
           >
-            <h3 className="text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              {titulos[i] || `Ronda ${ronda}`}
-            </h3>
+            <div className="flex flex-col items-center gap-0.5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                {titulos[i] || `Ronda ${ronda}`}
+              </h3>
+              {kanjis[i] && (
+                <span
+                  aria-hidden="true"
+                  className="font-jp text-[10px] text-accent/70"
+                >
+                  {kanjis[i]}
+                </span>
+              )}
+            </div>
             <div className="flex flex-1 flex-col justify-around gap-3">
               {porRonda.get(ronda).map((match) => (
                 <BracketMatch
@@ -100,15 +160,24 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId }) {
           </div>
         ))}
         <div className="flex min-w-[180px] flex-col items-stretch justify-around">
-          <h3 className="text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
-            Campeón
-          </h3>
+          <div className="flex flex-col items-center gap-0.5">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
+              Campeón
+            </h3>
+            <span
+              aria-hidden="true"
+              className="font-jp text-[10px] text-accent/70"
+            >
+              王者
+            </span>
+          </div>
           {campeon ? (
             <ChampionSlot personaje={campeon} />
           ) : (
             <ChampionPlaceholder />
           )}
         </div>
+      </div>
       </div>
     </div>
   )
