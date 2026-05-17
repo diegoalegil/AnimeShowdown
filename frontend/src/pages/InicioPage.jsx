@@ -18,6 +18,7 @@ import NombresMarquee from '../components/NombresMarquee'
 import TorneoCard from '../components/TorneoCard'
 import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
+import LazyOnView from '../components/LazyOnView'
 import { useTorneos } from '../lib/torneosQueries'
 import {
   personajes,
@@ -100,11 +101,15 @@ function InicioPage() {
       <SectionStats />
       <SectionLiveBattle />
       <SectionTop10Ranking />
-      <SectionRetosDiarios />
-      <SectionBento />
-      <SectionComoFunciona />
-      <SectionTorneosActivos />
-      <SectionPorAnime />
+      {/* Audit (2026-05-17): el resto de secciones eran below-the-fold
+          típico — montarlas solo cuando se acercan al viewport recorta
+          el initial DOM/JS a ~30%. LazyOnView mantiene el espacio
+          reservado para no causar layout shift. */}
+      <LazyOnView minHeight={620}><SectionRetosDiarios /></LazyOnView>
+      <LazyOnView minHeight={520}><SectionBento /></LazyOnView>
+      <LazyOnView minHeight={420}><SectionComoFunciona /></LazyOnView>
+      <LazyOnView minHeight={520}><SectionTorneosActivos /></LazyOnView>
+      <LazyOnView minHeight={520}><SectionPorAnime /></LazyOnView>
     </>
   )
 }
