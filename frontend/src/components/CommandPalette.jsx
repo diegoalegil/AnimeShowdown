@@ -56,8 +56,12 @@ const rutasInvitado = [
   { to: '/register', label: 'Crear cuenta', icon: UserPlus },
 ]
 
-function CommandPalette() {
-  const [open, setOpen] = useState(false)
+function CommandPalette({ initialOpen = false } = {}) {
+  // Audit P2 (2026-05-17): initialOpen permite al wrapper LazyMount abrir
+  // el dialog directamente al primer atajo, sin depender de re-dispatch
+  // del KeyboardEvent (que podía tragarse en redes lentas porque el
+  // listener interno aún no estaba registrado cuando se re-emitía).
+  const [open, setOpen] = useState(initialOpen)
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { muted, toggleMute } = useSound()
@@ -96,8 +100,20 @@ function CommandPalette() {
       open={open}
       onOpenChange={setOpen}
       label="Buscador rápido"
+      description="Busca personajes, torneos y secciones. Usa flechas para navegar y Enter para abrir."
       className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
     >
+      {/*
+        Audit a11y (2026-05-17): cmdk@1.x usa Radix Dialog por debajo y
+        emite warnings si falta DialogTitle/Description. Las renderizamos
+        sr-only — la pantalla ya muestra el icono Search y el placeholder
+        del input. Sin esto, consola escupia 'DialogContent requires a
+        DialogTitle' en cada apertura.
+      */}
+      <h2 className="sr-only">Buscador rápido</h2>
+      <p className="sr-only">
+        Busca personajes, torneos y secciones. Usa flechas para navegar y Enter para abrir.
+      </p>
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm"
         onClick={() => setOpen(false)}
