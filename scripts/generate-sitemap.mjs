@@ -160,6 +160,7 @@ const staticRoutes = [
   { path: '/mi-top5', priority: '0.5', changefreq: 'monthly' },
   { path: '/omikuji', priority: '0.6', changefreq: 'daily' },
   { path: '/glossary', priority: '0.7', changefreq: 'monthly' },
+  { path: '/logros', priority: '0.7', changefreq: 'weekly' },
   { path: '/apoya', priority: '0.4', changefreq: 'monthly' },
   { path: '/privacidad', priority: '0.3', changefreq: 'yearly' },
   { path: '/terminos', priority: '0.3', changefreq: 'yearly' },
