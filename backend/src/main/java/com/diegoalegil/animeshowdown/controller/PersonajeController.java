@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -24,9 +25,7 @@ import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
-import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
-import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.EloHistoryService;
 import com.diegoalegil.animeshowdown.service.RecomendacionService;
 
@@ -38,21 +37,15 @@ import jakarta.validation.Valid;
 public class PersonajeController {
 
     private final PersonajeRepository personajeRepository;
-    private final VotoRepository votoRepository;
     private final RecomendacionService recomendacionService;
     private final EloHistoryService eloHistoryService;
-    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public PersonajeController(PersonajeRepository personajeRepository,
-            VotoRepository votoRepository,
             RecomendacionService recomendacionService,
-            EloHistoryService eloHistoryService,
-            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+            EloHistoryService eloHistoryService) {
         this.personajeRepository = personajeRepository;
-        this.votoRepository = votoRepository;
         this.recomendacionService = recomendacionService;
         this.eloHistoryService = eloHistoryService;
-        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -176,55 +169,24 @@ public class PersonajeController {
 
     /**
      * Endpoint legacy de voto directo a personaje (sin enfrentamiento).
-     * El frontend usa {@code /api/enfrentamientos/{id}/votar} desde el
-     * Bloque 1; este se mantiene por compatibilidad pero queda con las
-     * mismas garantías de seguridad (audit P2.5 2026-05-17):
-     *   - Requiere email verificado.
-     *   - Cuenta para rate limit (RateLimitFilter incluye el path).
-     *   - Idempotente: 409 si el usuario ya votó al personaje.
+     * Deshabilitado (audit P2 2026-05-17): tras dropear el unique
+     * uk_voto_personaje_usuario en V16, el check app-level
+     * existsByPersonajeAndUsuario era vulnerable a doble voto bajo
+     * concurrencia (dos requests paralelas pasaban el check y ambas
+     * persistían). El endpoint canónico /api/enfrentamientos/{id}/votar
+     * ya cubre todos los flows de la UI nueva — no hay caller legítimo.
+     *
+     * <p>Devuelve 410 GONE con header Link al canónico para clientes
+     * antiguos que pudieran tenerlo en cache/bookmarks. No 404 porque
+     * el recurso existió y conviene comunicar la migración explícita.
      */
-    // Audit P3 (2026-05-17): @Transactional ahora obligatorio. Antes el save
-    // corría en auto-commit y el publishEvent quedaba fuera de tx → el
-    // BadgeEventListener (AFTER_COMMIT) descartaba el evento → este endpoint
-    // legacy no desbloqueaba primer_voto/cien_votos/mil_votos. Mismo patrón
-    // que /api/enfrentamientos/{id}/votar (audit P1 ronda anterior).
     @PostMapping("/{id}/votar")
-    @org.springframework.transaction.annotation.Transactional
-    public ResponseEntity<?> votar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
-        if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        if (!usuario.estaVerificado()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Necesitas verificar tu email antes de votar.");
-        }
-        Personaje personaje = personajeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
-
-        if (votoRepository.existsByPersonajeAndUsuario(personaje, usuario)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Ya has votado a este personaje");
-        }
-
-        Voto voto = new Voto(personaje, usuario);
-        // El check existsByPersonajeAndUsuario es app-level y vulnerable a
-        // race condition (V16 dropeó uk_voto_personaje_usuario porque
-        // bloqueaba el bracket legítimo). Defensivo: capturamos la posible
-        // violación si la migración se restaurase parcialmente; hoy esto es
-        // pasivo y permite dobles en concurrencia. Aceptable en este endpoint
-        // legacy que la UI nueva no usa; el voto canónico es por enfrentamiento.
-        Voto guardado;
-        try {
-            guardado = votoRepository.save(voto);
-        } catch (org.springframework.dao.DataIntegrityViolationException dup) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Ya has votado a este personaje");
-        }
-        // Evento para desbloquear badges de count global. enfrentamiento=null
-        // porque este voto no pertenece a un bracket; el listener solo usa
-        // usuario y cuenta total con countByUsuario.
-        eventPublisher.publishEvent(
-                new com.diegoalegil.animeshowdown.event.VotoRegistradoEvent(usuario, null));
-        return ResponseEntity.ok(guardado);
+    public ResponseEntity<?> votarLegacy(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.GONE)
+                .header("Link", "</api/enfrentamientos/{id}/votar>; rel=\"successor-version\"")
+                .body(Map.of(
+                        "message",
+                        "Endpoint deprecated. Usa POST /api/enfrentamientos/{id}/votar.",
+                        "personajeId", id));
     }
 }
