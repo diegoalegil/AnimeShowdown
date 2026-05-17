@@ -1,12 +1,15 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Quote,
   Share2,
+  Sparkles,
   Star,
   Swords,
   TrendingUp,
@@ -27,6 +30,7 @@ import { personajeSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PersonajeCard from '../components/PersonajeCard'
 import ReactionsBar from '../components/ReactionsBar'
+import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import NotFoundPage from './NotFoundPage'
 
 const Personaje3D = lazy(() => import('../components/Personaje3D'))
@@ -436,8 +440,81 @@ function PersonajeDetailPage() {
             </p>
           </div>
         )}
+
+        <CarruselSimilares slug={slug} nombre={personaje.nombre} />
       </div>
     </section>
+  )
+}
+
+/**
+ * Carrusel de personajes recomendados cross-anime (Plan v2 §4.12).
+ *
+ * <p>Se monta debajo de "Mismo universo" en la ficha de personaje.
+ * Backend devuelve top N por similitud de votos. Scroll horizontal con
+ * snap + flechas prev/next desktop.
+ */
+function CarruselSimilares({ slug, nombre }) {
+  const { data, isLoading } = usePersonajesSimilares(slug, { limit: 10 })
+  const scrollRef = useRef(null)
+
+  const handleScroll = (dir) => {
+    if (!scrollRef.current) return
+    const amount = scrollRef.current.clientWidth * 0.8
+    scrollRef.current.scrollBy({ left: dir * amount, behavior: 'smooth' })
+  }
+
+  if (isLoading) return null
+  if (!data || data.length === 0) return null
+
+  return (
+    <div className="mt-16">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <Sparkles className="h-3 w-3 text-accent" />
+            Más allá del universo
+          </span>
+          <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
+            Si te gusta {nombre}, también te gustarán
+          </h2>
+        </div>
+        <div className="hidden items-center gap-1.5 sm:flex">
+          <button
+            type="button"
+            onClick={() => handleScroll(-1)}
+            aria-label="Anterior"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-accent"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleScroll(1)}
+            aria-label="Siguiente"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-accent"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 scroll-smooth sm:-mx-8 sm:px-8"
+      >
+        {data.map((p) => (
+          <div
+            key={p.slug}
+            className="w-[140px] flex-none snap-start sm:w-[160px] lg:w-[180px]"
+          >
+            <PersonajeCard slug={p.slug} nombre={p.nombre} anime={p.anime} />
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[12px] text-fg-muted">
+        Recomendaciones basadas en proximidad de votos en el ranking global.
+      </p>
+    </div>
   )
 }
 
