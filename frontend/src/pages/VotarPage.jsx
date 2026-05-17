@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Swords } from 'lucide-react'
+import { ArrowRight, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { endpoints, ApiError } from '../lib/api'
@@ -11,28 +11,23 @@ import { useSound } from '../contexts/SoundContext'
 import { useAuth } from '../contexts/AuthContext'
 
 /**
- * VotarPage en modo HÍBRIDO (Plan v2 §1.1):
+ * VotarPage — arena de duelo rápido (rebrand Plan v2 §14).
  *
- *   1. Pide GET /api/enfrentamientos/aleatorio.
- *   2. Si llega un match abierto (200) → MODO BACKEND: muestra los dos
- *      personajes reales, votar manda POST /enfrentamientos/{id}/votar y
- *      el cache de torneos se invalida (afecta al bracket en vivo).
- *   3. Si responde 404 (no hay matches abiertos) → MODO CASUAL: pares
- *      sintéticos del catálogo local. El "voto" es un toast sin persistir
- *      en BBDD — útil para tener algo que hacer cuando no hay torneos.
+ * Pantalla diseñada para que todo el duelo quepa sin scroll:
+ *   - Cards con max-h 55vh + object-contain (no recortan al héroe).
+ *   - VS central grande con glow magenta.
+ *   - "Saltar" arriba a la derecha, siempre visible.
+ *   - Nombre + anime debajo de cada card (no overlay) → comparación rápida.
+ *   - Atajos de teclado: ← vota izquierda, → derecha, S saltar, Espacio
+ *     siguiente cuando ya hay voto.
+ *   - Modo rápido (toggle): tras votar carga el siguiente duelo en 1.2s.
  *
- * El estado de auth solo importa en modo backend: si el usuario no está
- * logueado y pulsa votar, redirigimos a /login con next=/votar.
+ * Mantiene el modo híbrido del backend (match real si hay torneo, casual
+ * con pares random local si no).
  */
 
-const headerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
+const STORAGE_FAST = 'animeshowdown.votar.fast'
+const NEXT_DELAY_MS = 1200
 
 function getRandomPair() {
   const a = Math.floor(Math.random() * personajes.length)
@@ -45,16 +40,13 @@ function VotarPage() {
   useSeo({
     title: 'Votar',
     description:
-      'Elige al ganador de cada enfrentamiento entre personajes anime. Cada voto suma al ranking ELO global de los dos.',
+      'Arena de duelos: elige al ganador de cada enfrentamiento entre personajes anime y mueve el ranking ELO de AnimeShowdown.',
   })
   const { play } = useSound()
   const { user } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  // Query del match real. Si 404 (no hay abiertos) caemos a modo casual.
-  // staleTime 0 + refetch on demand para que cada "siguiente" pida uno
-  // distinto. retry 0 porque el 404 NO es error transitorio, es señal.
   const {
     data: enfrentamiento,
     isLoading,
@@ -70,10 +62,23 @@ function VotarPage() {
     retry: false,
   })
 
-  // Estado local del modo casual (fallback cuando no hay match abierto).
   const [casualPair, setCasualPair] = useState(getRandomPair)
-  // Slug votado en esta sesión (independiente del modo). Bloquea doble voto.
   const [votedFor, setVotedFor] = useState(null)
+  const [fastMode, setFastMode] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_FAST) === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_FAST, String(fastMode))
+    } catch {
+      // ignore
+    }
+  }, [fastMode])
 
   const votarMutation = useMutation({
     mutationFn: ({ enfrentamientoId, personajeGanadorId }) =>
@@ -83,20 +88,13 @@ function VotarPage() {
     },
   })
 
-  // Modo backend si la query retornó datos; casual si vino 404 (status 404
-  // en ApiError) o cualquier otro error de red.
   const modoBackend = Boolean(enfrentamiento && !isError)
-  const sinMatchesAbiertos = isError && error instanceof ApiError && error.status === 404
+  const sinMatchesAbiertos =
+    isError && error instanceof ApiError && error.status === 404
 
-  if (isLoading) {
-    return (
-      <section className="flex flex-1 items-center justify-center px-5 py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </section>
-    )
-  }
-
-  // Datos a renderizar (uniforme para ambos modos).
+  // Datos a renderizar uniformes para ambos modos. Calculados antes del
+  // early-return de loading para que los handlers (useCallback) puedan
+  // capturarlos en su closure sin warning de eslint.
   let a, b, matchId
   if (modoBackend) {
     a = enfrentamiento.personaje1
@@ -107,53 +105,7 @@ function VotarPage() {
     matchId = null
   }
 
-  const handleVote = (personaje) => {
-    if (votedFor) return
-    play('playImpact')
-    play('playVote')
-
-    if (modoBackend) {
-      if (!user) {
-        toast.error('Inicia sesión para votar', {
-          description: 'Te llevamos al login.',
-        })
-        navigate(`/login?next=${encodeURIComponent('/votar')}`)
-        return
-      }
-      setVotedFor(personaje.slug)
-      votarMutation.mutate(
-        { enfrentamientoId: matchId, personajeGanadorId: personaje.id },
-        {
-          onSuccess: () => {
-            toast.success(`Voto registrado: ${personaje.nombre}`, {
-              description: `de ${personaje.anime}`,
-            })
-          },
-          onError: (err) => {
-            setVotedFor(null) // permite reintentar
-            const status = err instanceof ApiError ? err.status : 0
-            if (status === 409) {
-              toast.error('Ya votaste este enfrentamiento')
-            } else if (status === 401) {
-              navigate(`/login?next=${encodeURIComponent('/votar')}`)
-            } else {
-              toast.error('No se pudo registrar el voto', {
-                description: err?.message || 'Inténtalo de nuevo.',
-              })
-            }
-          },
-        },
-      )
-    } else {
-      // Modo casual: solo toast, sin persistencia.
-      setVotedFor(personaje.slug)
-      toast.success(`Voto registrado: ${personaje.nombre}`, {
-        description: `${personaje.anime} · sin torneo activo`,
-      })
-    }
-  }
-
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     play('playClick')
     setVotedFor(null)
     if (modoBackend) {
@@ -161,36 +113,207 @@ function VotarPage() {
     } else {
       setCasualPair(getRandomPair())
     }
+  }, [play, modoBackend, refetch])
+
+  const handleVote = useCallback(
+    (personaje) => {
+      if (votedFor) return
+      play('playImpact')
+      play('playVote')
+
+      if (modoBackend) {
+        if (!user) {
+          toast.error('Inicia sesión para votar', {
+            description: 'Te llevamos al login.',
+          })
+          navigate(`/login?next=${encodeURIComponent('/votar')}`)
+          return
+        }
+        setVotedFor(personaje.slug)
+        votarMutation.mutate(
+          { enfrentamientoId: matchId, personajeGanadorId: personaje.id },
+          {
+            onSuccess: () => {
+              toast.success(`+${personaje.nombre}`, {
+                description: 'Voto registrado · ranking actualizado',
+              })
+              if (fastMode) {
+                setTimeout(() => handleNext(), NEXT_DELAY_MS)
+              }
+            },
+            onError: (err) => {
+              setVotedFor(null)
+              const status = err instanceof ApiError ? err.status : 0
+              if (status === 409) {
+                toast.error('Ya votaste este enfrentamiento')
+              } else if (status === 401) {
+                navigate(`/login?next=${encodeURIComponent('/votar')}`)
+              } else {
+                toast.error('No se pudo registrar el voto', {
+                  description: err?.message || 'Inténtalo de nuevo.',
+                })
+              }
+            },
+          },
+        )
+      } else {
+        setVotedFor(personaje.slug)
+        toast.success(`+${personaje.nombre}`, {
+          description: 'Modo casual · sin torneo activo',
+        })
+        if (fastMode) {
+          setTimeout(() => handleNext(), NEXT_DELAY_MS)
+        }
+      }
+    },
+    [play, modoBackend, user, navigate, votarMutation, matchId, fastMode, handleNext, votedFor],
+  )
+
+  // Atajos de teclado: ← vota izquierda, → derecha, S saltar, Espacio
+  // siguiente si ya votó. Solo activos cuando el usuario no está en un
+  // input — el check `tagName` evita atrapar tecla cuando se escribe en
+  // otro sitio de la UI (no debería haberlos en /votar pero defensivo).
+  useEffect(() => {
+    if (isLoading || !a || !b) return
+    const onKey = (e) => {
+      const tag = e.target?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        handleVote(a)
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        handleVote(b)
+      } else if (e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        handleNext()
+      } else if (e.key === ' ' && votedFor) {
+        e.preventDefault()
+        handleNext()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isLoading, a, b, handleVote, handleNext, votedFor])
+
+  if (isLoading) {
+    return (
+      <section className="flex min-h-[calc(100vh-200px)] flex-1 flex-col items-center justify-center gap-3 px-5 py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        <p className="text-[12px] uppercase tracking-[0.18em] text-fg-muted">
+          Preparando duelo…
+        </p>
+      </section>
+    )
   }
 
-  // Para mostrar % de votos en modo backend usamos el total real si llegó
-  // del backend. En casual derivamos un split visual sintético (50/50)
-  // para no romper el layout — el dato no es real.
-  const showResult = Boolean(votedFor)
-  const pctA = 50
-  const pctB = 50
-
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
-      <div className="mx-auto max-w-5xl">
-        <motion.header
-          className="mb-10 flex flex-col items-center gap-3 text-center"
-          initial="hidden"
-          animate="visible"
-          variants={headerVariants}
-        >
-          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            {modoBackend ? 'Match en juego' : 'Enfrentamiento aleatorio'}
+    <section className="px-5 py-6 sm:px-8 sm:py-10">
+      <div className="mx-auto flex max-w-5xl flex-col gap-4">
+        {/* Top bar: badge + modo rápido + skip */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+            <span className="relative inline-flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            {modoBackend ? 'Match en juego · En vivo' : 'Enfrentamiento aleatorio'}
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setFastMode((f) => !f)}
+              aria-pressed={fastMode}
+              title={fastMode ? 'Desactivar modo rápido' : 'Activar modo rápido (auto-next tras votar)'}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition-all ${
+                fastMode
+                  ? 'border-yellow-400/60 bg-yellow-500/10 text-yellow-200'
+                  : 'border-border bg-surface text-fg-muted hover:border-yellow-400/40 hover:text-yellow-200'
+              }`}
+            >
+              <Zap className={`h-3.5 w-3.5 ${fastMode ? 'fill-yellow-300' : ''}`} />
+              Modo rápido
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={isFetching}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+            >
+              <SkipForward className="h-3.5 w-3.5" />
+              {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* Pregunta principal */}
+        <header className="flex flex-col items-center gap-1 text-center">
+          <h1 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-extrabold leading-tight tracking-tight">
             ¿A quién prefieres?
           </h1>
-          <p className="max-w-xl text-fg-muted">
+          <p className="max-w-xl text-[13px] text-fg-muted">
             {modoBackend
-              ? 'Tu voto cuenta para el bracket en directo. Necesitas haber iniciado sesión.'
+              ? 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
               : sinMatchesAbiertos
-                ? 'Ahora mismo no hay torneos en juego — pares aleatorios para que sigas votando sin parar.'
-                : 'Pulsa la card del personaje que crees que ganaría.'}
+                ? 'No hay torneos en juego — pares aleatorios para que sigas votando'
+                : 'Elige quién gana este duelo y ayuda a mover el ranking ELO'}
+          </p>
+        </header>
+
+        {/* Arena */}
+        <motion.div
+          key={`${a.slug}-${b.slug}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-3 sm:gap-6"
+        >
+          <VoteCard
+            personaje={a}
+            onClick={() => handleVote(a)}
+            isVoted={votedFor === a.slug}
+            isLoser={votedFor && votedFor !== a.slug}
+            showResult={Boolean(votedFor)}
+            side="left"
+          />
+          <VsBadge votedFor={votedFor} />
+          <VoteCard
+            personaje={b}
+            onClick={() => handleVote(b)}
+            isVoted={votedFor === b.slug}
+            isLoser={votedFor && votedFor !== b.slug}
+            showResult={Boolean(votedFor)}
+            side="right"
+          />
+        </motion.div>
+
+        {/* Atajos + (en sin matches) link a torneos */}
+        <div className="flex flex-col items-center gap-2">
+          <p className="hidden text-[11px] uppercase tracking-[0.15em] text-fg-muted sm:block">
+            Atajos:{' '}
+            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+              ←
+            </kbd>{' '}
+            izquierda ·{' '}
+            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+              →
+            </kbd>{' '}
+            derecha ·{' '}
+            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+              S
+            </kbd>{' '}
+            saltar
+            {votedFor && (
+              <>
+                {' '}·{' '}
+                <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+                  Espacio
+                </kbd>{' '}
+                siguiente
+              </>
+            )}
           </p>
           {sinMatchesAbiertos && (
             <Link
@@ -200,91 +323,94 @@ function VotarPage() {
               Ver torneos disponibles →
             </Link>
           )}
-        </motion.header>
-        <div
-          key={`${a.slug}-${b.slug}`}
-          className="grid items-center gap-4 md:grid-cols-[1fr_auto_1fr] md:gap-6"
-        >
-          <VoteCard
-            personaje={a}
-            onClick={() => handleVote(a)}
-            isVoted={votedFor === a.slug}
-            showResult={showResult}
-            pct={pctA}
-          />
-          <span className="flex h-14 w-14 items-center justify-center justify-self-center rounded-full border border-accent/40 bg-accent-soft text-accent">
-            <Swords className="h-6 w-6" />
-          </span>
-          <VoteCard
-            personaje={b}
-            onClick={() => handleVote(b)}
-            isVoted={votedFor === b.slug}
-            showResult={showResult}
-            pct={pctB}
-          />
-        </div>
-        <div className="mt-10 flex justify-center">
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={isFetching}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-          >
-            {votedFor ? 'Siguiente enfrentamiento →' : 'Saltar enfrentamiento →'}
-          </button>
         </div>
       </div>
     </section>
   )
 }
 
-function VoteCard({ personaje, onClick, isVoted, showResult, pct }) {
-  const dimmed = showResult && !isVoted
-  // En modo backend el personaje viene del DTO (PersonajeMiniDto con imagenUrl).
-  // En modo casual viene del catálogo local. Ambos tienen slug/nombre/anime
-  // y, para la imagen, preferimos imagenUrl del DTO; fallback a imagenPersonaje
-  // del catálogo local cuando viene del modo casual.
+function VsBadge({ votedFor }) {
+  return (
+    <motion.div
+      animate={
+        votedFor
+          ? { scale: [1, 1.25, 1], rotate: [0, 8, -8, 0] }
+          : { scale: [1, 1.06, 1] }
+      }
+      transition={{
+        duration: votedFor ? 0.5 : 1.8,
+        repeat: votedFor ? 0 : Infinity,
+        ease: 'easeInOut',
+      }}
+      className="relative flex h-14 w-14 items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-accent shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] sm:h-20 sm:w-20"
+    >
+      <Swords className="h-5 w-5 sm:h-7 sm:w-7" />
+      <span className="absolute -bottom-6 font-mono text-[10px] font-extrabold uppercase tracking-[0.25em] text-accent">
+        VS
+      </span>
+    </motion.div>
+  )
+}
+
+function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={showResult}
-      className={`group relative flex flex-col overflow-hidden rounded-xl border bg-surface text-left transition-all ${
-        isVoted
-          ? 'border-accent ring-2 ring-accent/40'
-          : 'border-border hover:border-accent/40 hover:-translate-y-1'
-      } ${dimmed ? 'opacity-50' : ''} disabled:cursor-default`}
-    >
-      <img
-        src={imgSrc}
-        alt={personaje.nombre}
-        className="aspect-[2/3] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-      />
-      <div className="flex flex-col gap-1 p-4">
-        <h3 className="text-base font-bold text-fg-strong">
+    <div className="flex flex-col gap-3">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={showResult}
+        aria-label={`Votar por ${personaje.nombre} de ${personaje.anime}`}
+        className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-all ${
+          isVoted
+            ? 'border-accent shadow-[0_0_60px_-10px_rgba(255,46,99,0.7)] ring-2 ring-accent/40'
+            : isLoser
+              ? 'border-border opacity-40 grayscale'
+              : 'border-border hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-15px_rgba(255,46,99,0.55)]'
+        } disabled:cursor-default`}
+      >
+        <div className="relative aspect-[2/3] max-h-[55vh] w-full overflow-hidden bg-bg">
+          <img
+            src={imgSrc}
+            alt={personaje.nombre}
+            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+          {isVoted && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+              className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4"
+            >
+              <span className="rounded-full border-2 border-accent bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.18em] text-accent backdrop-blur-sm">
+                ✓ Tu voto
+              </span>
+            </motion.div>
+          )}
+        </div>
+      </button>
+      {/* Info debajo de la card — comparación rápida sin overlay sobre la
+          imagen. Nombre + anime + (solo tras votar) link discreto a la ficha. */}
+      <div
+        className={`flex flex-col items-${side === 'right' ? 'end' : 'start'} px-1 text-${side === 'right' ? 'right' : 'left'}`}
+      >
+        <h2 className="line-clamp-1 text-base font-bold text-fg-strong sm:text-lg">
           {personaje.nombre}
-        </h3>
-        <p className="text-[12px] text-fg-muted">{personaje.anime}</p>
+        </h2>
+        <p className="line-clamp-1 text-[12px] text-fg-muted">
+          {personaje.anime}
+        </p>
         {showResult && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="mt-2"
+          <Link
+            to={`/personajes/${personaje.slug}`}
+            className="mt-1 inline-flex items-center gap-1 text-[11px] text-accent hover:underline"
           >
-            <div className="h-2 w-full overflow-hidden rounded-full bg-surface-alt">
-              <motion.div
-                className={`h-full ${isVoted ? 'bg-accent' : 'bg-fg-muted'}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-              />
-            </div>
-          </motion.div>
+            Ver ficha
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         )}
       </div>
-    </button>
+    </div>
   )
 }
 
