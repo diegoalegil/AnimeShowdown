@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.event.PrediccionResueltaEvent;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
+import com.diegoalegil.animeshowdown.model.EstadoRevision;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Prediccion;
@@ -75,6 +76,14 @@ public class PrediccionService {
         Enfrentamiento enf = enfRepo.findById(enfrentamientoId)
                 .orElseThrow(() -> new IllegalArgumentException("Enfrentamiento no encontrado"));
 
+        // Audit P1 (2026-05-17): si el torneo está PENDIENTE o RECHAZADO,
+        // las predicciones no aplican — el torneo no es público. Antes
+        // permitía crear una predicción sobre un torneo en cola de
+        // moderación, filtrando su existencia por id directo.
+        EstadoRevision rev = enf.getTorneo().getEstadoRevision();
+        if (rev == EstadoRevision.PENDIENTE || rev == EstadoRevision.RECHAZADO) {
+            throw new IllegalArgumentException("Enfrentamiento no encontrado");
+        }
         if (enf.getTorneo().getEstado() == EstadoTorneo.FINISHED) {
             throw new IllegalArgumentException("No puedes predecir en un torneo ya finalizado");
         }

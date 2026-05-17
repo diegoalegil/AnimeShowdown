@@ -76,6 +76,14 @@ public class PrediccionController {
         }
         Torneo torneo = torneoRepository.findById(torneoId).orElse(null);
         if (torneo == null) return ResponseEntity.notFound().build();
+        // Audit P1 (2026-05-17): mismo 404 que TorneoQueryService.findById
+        // para torneos PENDIENTE/RECHAZADO. Antes este endpoint dejaba al
+        // usuario consultar "mis predicciones" sobre un torneo en cola de
+        // moderación, filtrando su existencia por id.
+        if (torneo.getEstadoRevision() == com.diegoalegil.animeshowdown.model.EstadoRevision.PENDIENTE
+                || torneo.getEstadoRevision() == com.diegoalegil.animeshowdown.model.EstadoRevision.RECHAZADO) {
+            return ResponseEntity.notFound().build();
+        }
         // El mapeo a DTO sucede dentro de la transacción del service para
         // que el acceso lazy a personajePredicho no falle al hidratar.
         List<PrediccionDto> mias = prediccionService.listarDtoPorUsuarioYTorneo(usuario, torneo);

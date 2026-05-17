@@ -99,8 +99,22 @@ public class ReaccionService {
     private boolean existeTarget(ReaccionTargetType type, Long id) {
         return switch (type) {
             case PERSONAJE -> personajeRepository.existsById(id);
-            case TORNEO -> torneoRepository.existsById(id);
-            case MATCH -> enfrentamientoRepository.existsById(id);
+            // Audit P1 (2026-05-17): un torneo PENDIENTE o RECHAZADO no debe
+            // considerarse "existente" para el público — eso filtraba metadata
+            // de torneos en cola de moderación. Igualmente para MATCH: si su
+            // torneo está oculto, el match tampoco existe a efectos del API
+            // público.
+            case TORNEO -> torneoRepository.findById(id)
+                    .map(t -> t.getEstadoRevision() != com.diegoalegil.animeshowdown.model.EstadoRevision.PENDIENTE
+                            && t.getEstadoRevision() != com.diegoalegil.animeshowdown.model.EstadoRevision.RECHAZADO)
+                    .orElse(false);
+            case MATCH -> enfrentamientoRepository.findById(id)
+                    .map(e -> {
+                        var rev = e.getTorneo().getEstadoRevision();
+                        return rev != com.diegoalegil.animeshowdown.model.EstadoRevision.PENDIENTE
+                                && rev != com.diegoalegil.animeshowdown.model.EstadoRevision.RECHAZADO;
+                    })
+                    .orElse(false);
         };
     }
 

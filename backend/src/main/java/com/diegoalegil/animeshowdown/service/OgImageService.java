@@ -118,6 +118,15 @@ public class OgImageService {
             return Optional.empty();
         }
         Torneo t = opt.get();
+        // Audit P1 (2026-05-17): torneos PENDIENTE/RECHAZADO no son públicos —
+        // generar y servir su OG image filtraría nombre + descripción a
+        // cualquier scraper de Open Graph (Twitter, Discord, Slack). Same
+        // 404-equivalent que findBySlug/findById ya hacen.
+        var rev = t.getEstadoRevision();
+        if (rev == com.diegoalegil.animeshowdown.model.EstadoRevision.PENDIENTE
+                || rev == com.diegoalegil.animeshowdown.model.EstadoRevision.RECHAZADO) {
+            return Optional.empty();
+        }
         Personaje imagenFuente = t.getGanadorPersonaje();
         try {
             BufferedImage canvas = nuevoLienzo();
