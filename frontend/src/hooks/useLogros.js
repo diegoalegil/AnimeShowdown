@@ -21,12 +21,13 @@ export function useCatalogoLogros() {
   })
 }
 
+const QUERY_KEY_MIS_LOGROS = ['logros', 'mios']
+
 export function useMisLogros({ enabled = true } = {}) {
   const queryClient = useQueryClient()
-  const queryKey = ['logros', 'mios']
 
   const query = useQuery({
-    queryKey,
+    queryKey: QUERY_KEY_MIS_LOGROS,
     queryFn: endpoints.misLogros,
     enabled,
   })
@@ -40,7 +41,7 @@ export function useMisLogros({ enabled = true } = {}) {
   useEffect(() => {
     if (!lastMessage) return
     if (lastMessage?.tipo === 'BADGE_DESBLOQUEADO') {
-      queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY_MIS_LOGROS })
     }
   }, [lastMessage, queryClient])
 
