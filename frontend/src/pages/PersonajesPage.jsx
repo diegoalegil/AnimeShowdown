@@ -77,6 +77,20 @@ function PersonajesPage() {
   const [sort, setSort] = useState('popularidad')
   const [view, setView] = useState('grid')
 
+  // Audit (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
+  // DOM, ~790 imgs, scroll de >100k px en móvil. Paginación incremental:
+  // 60 cards iniciales + botón "Cargar más" para ampliar de 60 en 60.
+  // Reset automático al cambiar filtros: guardamos {key, count} juntos
+  // y derivamos visibleCount; si el key actual no coincide con el del
+  // state, devolvemos PAGE_SIZE (reset) en lugar de setState dentro de
+  // un useEffect (react-hooks/set-state-in-effect) o ref-en-render
+  // (react-hooks/refs).
+  const PAGE_SIZE = 60
+  const filterKey = `${search}|${animeFilter ?? ''}|${sort}|${view}`
+  const [pag, setPag] = useState({ key: filterKey, count: PAGE_SIZE })
+  const visibleCount = pag.key === filterKey ? pag.count : PAGE_SIZE
+  const cargarMas = () => setPag({ key: filterKey, count: visibleCount + PAGE_SIZE })
+
   useEffect(() => {
     const next = new URLSearchParams(searchParams)
     if (animeFilter) next.set('anime', animeFilter)
@@ -310,21 +324,53 @@ function PersonajesPage() {
             </button>
           </div>
         ) : view === 'grid' ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {filtered.map((p) => (
-              <PersonajeCard key={p.slug} rank={rankPorSlug.get(p.slug)} {...p} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {filtered.slice(0, visibleCount).map((p) => (
+                <PersonajeCard key={p.slug} rank={rankPorSlug.get(p.slug)} {...p} />
+              ))}
+            </div>
+            {visibleCount < filtered.length && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  type="button"
+                  onClick={cargarMas}
+                  className="rounded-lg border border-border bg-surface px-6 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                >
+                  Cargar {Math.min(PAGE_SIZE, filtered.length - visibleCount)} más
+                  <span className="ml-2 text-fg-muted">
+                    ({visibleCount} de {filtered.length})
+                  </span>
+                </button>
+              </div>
+            )}
+          </>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {filtered.map((p) => (
-              <PersonajeListRow
-                key={p.slug}
-                rank={rankPorSlug.get(p.slug)}
-                {...p}
-              />
-            ))}
-          </ul>
+          <>
+            <ul className="flex flex-col gap-2">
+              {filtered.slice(0, visibleCount).map((p) => (
+                <PersonajeListRow
+                  key={p.slug}
+                  rank={rankPorSlug.get(p.slug)}
+                  {...p}
+                />
+              ))}
+            </ul>
+            {visibleCount < filtered.length && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  type="button"
+                  onClick={cargarMas}
+                  className="rounded-lg border border-border bg-surface px-6 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                >
+                  Cargar {Math.min(PAGE_SIZE, filtered.length - visibleCount)} más
+                  <span className="ml-2 text-fg-muted">
+                    ({visibleCount} de {filtered.length})
+                  </span>
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* CTAs inferiores: dirigir al ranking, votar y explorar animes —
