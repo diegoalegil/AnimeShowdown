@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
@@ -131,6 +131,12 @@ function VotarPage() {
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
 
+  // Audit P3 (2026-05-17): ref para cancelar el timeout de auto-next si
+  // el usuario pulsa "Siguiente duelo" antes de que dispare (o si el
+  // componente se desmonta). Antes el timeout quedaba huérfano y podía
+  // disparar handleNext dos veces (manual + auto) saltando dos matches.
+  const autoNextTimeoutRef = useRef(null)
+
   const votarMutation = useMutation({
     mutationFn: ({ enfrentamientoId, personajeGanadorId }) =>
       endpoints.votar(enfrentamientoId, personajeGanadorId),
@@ -157,6 +163,12 @@ function VotarPage() {
   }
 
   const handleNext = useCallback(() => {
+    // Cancela cualquier auto-next pendiente — el user pulsó manual
+    // antes del timeout, no queremos saltar dos matches.
+    if (autoNextTimeoutRef.current != null) {
+      clearTimeout(autoNextTimeoutRef.current)
+      autoNextTimeoutRef.current = null
+    }
     play('playClick')
     setVotedFor(null)
     setVoteResult(null)
@@ -205,7 +217,10 @@ function VotarPage() {
                   : 'Voto registrado · ranking actualizado',
               })
               if (fastMode) {
-                setTimeout(() => handleNext(), NEXT_DELAY_MS)
+                autoNextTimeoutRef.current = setTimeout(() => {
+                  autoNextTimeoutRef.current = null
+                  handleNext()
+                }, NEXT_DELAY_MS)
               }
             },
             onError: (err) => {
@@ -235,6 +250,18 @@ function VotarPage() {
     },
     [play, modoBackend, user, navigate, votarMutation, matchId, fastMode, handleNext, votedFor],
   )
+
+  // Cleanup: si el componente se desmonta mientras hay un auto-next
+  // pendiente, lo cancelamos para evitar setState en componente
+  // desmontado + memory leak. Empty deps porque solo nos importa el
+  // unmount.
+  useEffect(() => {
+    return () => {
+      if (autoNextTimeoutRef.current != null) {
+        clearTimeout(autoNextTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Atajos de teclado: ← vota izquierda, → derecha, S saltar, Espacio
   // siguiente si ya votó. Solo activos cuando el usuario no está en un
