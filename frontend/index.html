@@ -32,6 +32,17 @@
          antes que las fuentes y otros assets no críticos. -->
     <link rel="preload" as="image" href="/logo.webp" type="image/webp" fetchpriority="high" />
     <title>AnimeShowdown — Torneos de personajes de anime</title>
+    <!-- Plan v2 §11.6 Light mode pre-paint: aplica la clase theme-light
+         antes del primer render para evitar flash of dark cuando el
+         usuario prefiere claro. Inline porque debe correr ANTES de
+         pintar. Try/catch porque iframe sin localStorage o private mode. -->
+    <script>
+      try {
+        if (localStorage.getItem('animeshowdown.theme') === 'light') {
+          document.documentElement.classList.add('theme-light')
+        }
+      } catch (_) { /* ignore */ }
+    </script>
   </head>
   <body>
     <div id="root"></div>

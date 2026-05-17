@@ -164,6 +164,34 @@
   }
 }
 
+/* Plan v2 §11.6 Light mode (opt-in).
+ *
+ * Por defecto la app es dark — toda la jerarquía visual (glow magenta,
+ * kanji decorativo, aurora animada, paletas WoW) está pensada para
+ * fondo oscuro. El light mode sobreescribe SOLO los tokens base de
+ * fondo/texto/borde dejando intactos el accent magenta, los amber/yellow
+ * de podio y los emerald/rose de win/loss. El resultado es legible sin
+ * traicionar la identidad.
+ *
+ * Activación: `<html class="theme-light">` (la pone Header.jsx leyendo
+ * localStorage). Sin clase, sigue el dark original.
+ */
+html.theme-light {
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f1f4;
+  --color-border: #d4d4dc;
+  --color-fg: #2c2c38;
+  --color-fg-strong: #0d0d12;
+  --color-fg-muted: #5b5b6a;
+  /* accent y accent-soft no cambian — el magenta funciona sobre claro. */
+  --color-accent-soft: rgb(255 46 99 / 0.10);
+}
+
+html.theme-light body {
+  color-scheme: light;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
