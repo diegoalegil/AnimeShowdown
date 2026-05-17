@@ -423,11 +423,18 @@ function VsBadge({ votedFor }) {
 
 function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, voteResult }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
+  // warm() en hover: anticipa que el user va a hacer click y resume el
+  // AudioContext si estaba suspended. Sin esto el primer playVote tras
+  // inactividad de pestaña tenía 50-200ms de lag mientras resolvía
+  // ctx.resume() ANTES de programar los oscillators.
+  const { warm } = useSound()
   return (
     <div className="flex flex-col gap-3">
       <button
         type="button"
         onClick={onClick}
+        onPointerEnter={warm}
+        onFocus={warm}
         disabled={showResult}
         aria-label={`Votar por ${personaje.nombre} de ${personaje.anime}`}
         className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-all ${
@@ -439,19 +446,24 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, vote
         } disabled:cursor-default`}
       >
         <div className="relative aspect-[2/3] max-h-[55vh] w-full overflow-hidden bg-surface-alt">
-          {/* Letterbox premium: la propia imagen muy borrosa como fondo
-              llena el contenedor y elimina los "huecos negros" cuando la
-              imagen real (object-contain) tiene aspect ratio distinto al
-              2:3 — el caso de cartas SSR con frame integrado. La capa
-              blur queda detrás (pointer-events none, aria-hidden) y la
-              imagen real va encima sin recortarse. */}
-          <img
-            src={imgSrc}
-            alt=""
+          {/* Letterbox premium con div + background-image en lugar de
+              <img>: garantiza cobertura total sin que se vea el edge del
+              blur (un <img> con scale + blur dejaba un halo sutil donde
+              acababa la imagen y empezaba el bg). El div con
+              background-size:cover + transform scale + filter blur llena
+              hasta los bordes con un degradado borroso de la propia
+              imagen, como hace Spotify con las portadas. */}
+          <div
             aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage: `url(${imgSrc})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'blur(48px)',
+              transform: 'scale(1.4)',
+              opacity: 0.85,
+            }}
           />
           <img
             src={imgSrc}
