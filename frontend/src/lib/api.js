@@ -79,6 +79,18 @@ export function setLoggingOut(value) {
   isLoggingOut = Boolean(value)
 }
 
+// Audit P1 (2026-05-18, 5ª iter): epoch de sesión. setLoggingOut(true)
+// cortaba refreshes NUEVOS, pero un refreshPromise YA en vuelo que
+// resolviera después seguía aplicando setToken → resucitaba la sesión.
+// Cada cambio de sesión (logout, login, refresh exitoso) incrementa el
+// epoch; cuando intentarRefresh resuelve, comprueba que el epoch sigue
+// siendo el suyo antes de propagar tokenEnMemoria / notify. Si cambió
+// (otro flow ya pasó por ahí), descarta el resultado silenciosamente.
+let sessionEpoch = 0
+export function bumpSessionEpoch() {
+  sessionEpoch++
+}
+
 /**
  * Audit P2 (2026-05-17, 4ª iter): grace cross-tab robusto.
  * El backend devuelve 503 + Retry-After cuando otra pestaña acaba de
@@ -101,15 +113,36 @@ function parseRetryAfterMs(headerValue, fallbackMs) {
   return fallbackMs
 }
 
+// Timeout específico del /refresh — más corto que el default (10s) porque
+// es bloqueante para bootstrap y para reintentos automáticos. Si Railway
+// está saturado, fail-fast en 6s evita spinners eternos.
+const REFRESH_TIMEOUT_MS = 6000
+
 async function intentarRefresh() {
   if (isLoggingOut) return null
   if (refreshPromise) return refreshPromise
+  // Captura el epoch al iniciar. Si cambia mientras la promesa está en
+  // vuelo (logout, login en otra tab, etc.), no aplicamos el resultado.
+  const myEpoch = sessionEpoch
   refreshPromise = (async () => {
-    const doFetch = () => fetch(`${API_BASE}/api/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    })
+    // Audit P2 (2026-05-18, 5ª iter): AbortController por intento para
+    // que /refresh tenga timeout propio. Antes el cliente global tenía
+    // timeout pero intentarRefresh hacía fetch directo sin abort, así
+    // que bootstrap y 401-retries quedaban colgados.
+    const doFetch = async () => {
+      const ctl = new AbortController()
+      const tid = setTimeout(() => ctl.abort(), REFRESH_TIMEOUT_MS)
+      try {
+        return await fetch(`${API_BASE}/api/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          signal: ctl.signal,
+        })
+      } finally {
+        clearTimeout(tid)
+      }
+    }
     try {
       let res = await doFetch()
       // Loop de retries solo para 503 grace. 401 / otros 5xx caen
@@ -122,10 +155,11 @@ async function intentarRefresh() {
         await new Promise((r) => setTimeout(r, retryAfterMs))
         res = await doFetch()
       }
+      // Si entre fetch y resolve cambió la sesión (logout, otro refresh),
+      // descartamos el resultado sin tocar tokenEnMemoria — no resucitamos
+      // sesión cerrada ni pisamos sesión nueva.
+      if (myEpoch !== sessionEpoch) return null
       if (!res.ok) {
-        // 401 (sesión inválida) o 503 persistente tras N retries.
-        // Notifica para que STOMP deactive y AuthContext limpie el
-        // user optimista.
         const prev = tokenEnMemoria
         tokenEnMemoria = null
         if (prev !== null) notifyTokenChange()
@@ -139,6 +173,7 @@ async function intentarRefresh() {
       }
       return data
     } catch {
+      if (myEpoch !== sessionEpoch) return null
       const prev = tokenEnMemoria
       tokenEnMemoria = null
       if (prev !== null) notifyTokenChange()
