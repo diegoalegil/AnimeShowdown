@@ -35,6 +35,7 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const PerfilPage = lazy(() => import('./pages/PerfilPage'))
 const UsuarioPage = lazy(() => import('./pages/UsuarioPage'))
+const UsuarioLogrosPage = lazy(() => import('./pages/UsuarioLogrosPage'))
 const CrearTorneoPage = lazy(() => import('./pages/CrearTorneoPage'))
 const FaqPage = lazy(() => import('./pages/FaqPage'))
 const ApiDocsPage = lazy(() => import('./pages/ApiDocsPage'))
@@ -142,6 +143,7 @@ function App() {
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />
                 <Route path="/u/:username" element={<UsuarioPage />} />
+                <Route path="/u/:username/logros" element={<UsuarioLogrosPage />} />
                 <Route path="/verify" element={<VerifyPage />} />
                 <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
                 <Route path="/faq" element={<FaqPage />} />
