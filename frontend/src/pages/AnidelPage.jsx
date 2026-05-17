@@ -213,19 +213,26 @@ function AnidelPage() {
           </div>
         )}
 
-        {/* Leyenda */}
+        {/* Leyenda — los squaritos verdes = match, rojos = no match. El
+            ejemplo "Aa" / "📺" / "↑↓" es genérico (la letra del intento varía). */}
         <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-border bg-surface p-3 text-[11px] text-fg-muted">
           <div className="flex items-center gap-1.5">
-            <span className="font-mono font-bold text-fg-strong">A</span>
-            <span>1ª letra</span>
+            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded bg-emerald-500/20 px-1 font-mono text-[10px] font-bold text-emerald-200">
+              Aa
+            </span>
+            <span>1ª letra coincide</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-fg-strong">📺</span>
-            <span>Anime</span>
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-500/20 text-[10px]">
+              📺
+            </span>
+            <span>Mismo anime</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <ArrowUp className="h-3 w-3 text-amber-300" />
-            <span>ELO ↑↓</span>
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-amber-500/15 text-amber-200">
+              <ArrowUp className="h-3 w-3" />
+            </span>
+            <span>ELO objetivo ↑</span>
           </div>
         </div>
 
