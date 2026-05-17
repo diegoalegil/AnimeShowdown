@@ -1,46 +1,51 @@
 package com.diegoalegil.animeshowdown.security;
 
+import org.springframework.stereotype.Component;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Extracción centralizada de la IP del cliente real para rate limit, account
- * lockout y audit log (Plan v2 §2.1/§2.2/§2.6).
+ * lockout y audit log (Plan v2 §2.1/§2.2/§2.6 + auditoría P1.4 2026-05-17).
  *
- * Estrategia: confiar solo en {@code CF-Connecting-IP}, que Cloudflare
- * sobrescribe siempre en el edge y no se preserva si el cliente la manda.
- * Si la cabecera falta (request directa al backend sin pasar por CF, o tests),
- * cae a {@link HttpServletRequest#getRemoteAddr()}.
+ * <p>Estrategia: confiar en {@code CF-Connecting-IP} <b>solo si</b> el
+ * {@code RemoteAddr} cae en un CIDR de {@link TrustedProxyChecker}
+ * (Cloudflare + loopback + private). Antes confiaba siempre — un
+ * atacante pegando directo a Railway podía rotar la cabecera por
+ * petición para bypassear el bucket de 5/min + 50/h y envenenar
+ * audit_log.
  *
- * <p><b>Por qué NO leer {@code X-Forwarded-For}</b>: cualquier proxy intermedio
- * puede añadirla y el backend de Railway acepta tráfico directo si alguien
- * descubre la URL interna. Antes el código tomaba el primer elemento del
- * header como IP del cliente — un atacante podía rotar la cabecera por
- * petición para bypassear el bucket de 5/min + 50/h y envenenar audit_log
- * con IPs falsas. Plan v2 §2.1 cierra ese vector.
+ * <p>Si la cabecera no está presente o el RemoteAddr no es trusted,
+ * se usa {@link HttpServletRequest#getRemoteAddr()} crudo. Esto
+ * preserva la funcionalidad legítima cuando Cloudflare hace de proxy
+ * (caso normal en producción) y cierra el vector cuando alguien
+ * accede directo al backend.
  *
- * <p>Si en el futuro se cambia el dominio a "DNS only" (sin proxy CF), las
- * peticiones legítimas llegarán sin {@code CF-Connecting-IP} y se usará
- * {@code RemoteAddr}. El rate limit seguirá funcionando con la IP del
- * primer salto — el problema es entonces de exposición de infra (Railway
- * sin allowlist), no de código.
+ * <p>Pasa de utility estática a {@code @Component} para inyectar
+ * {@link TrustedProxyChecker}. Los callers (RateLimitFilter,
+ * AuthController, AuditLogService) lo reciben por constructor.
  */
-public final class ClientIpExtractor {
+@Component
+public class ClientIpExtractor {
 
     private static final String CF_CONNECTING_IP = "CF-Connecting-IP";
 
-    private ClientIpExtractor() {
-        // utility
+    private final TrustedProxyChecker trustedProxy;
+
+    public ClientIpExtractor(TrustedProxyChecker trustedProxy) {
+        this.trustedProxy = trustedProxy;
     }
 
     /**
-     * Devuelve la IP del cliente real. Nunca devuelve null (cae a
-     * {@code RemoteAddr}, que el contenedor siempre tiene).
+     * Devuelve la IP real del cliente. Nunca devuelve null (cae a
+     * RemoteAddr si no hay otra fuente confiable).
      */
-    public static String extract(HttpServletRequest req) {
+    public String extract(HttpServletRequest req) {
+        String remote = req.getRemoteAddr();
         String cf = req.getHeader(CF_CONNECTING_IP);
-        if (cf != null && !cf.isBlank()) {
+        if (cf != null && !cf.isBlank() && trustedProxy.isTrusted(remote)) {
             return cf.trim();
         }
-        return req.getRemoteAddr();
+        return remote;
     }
 }
