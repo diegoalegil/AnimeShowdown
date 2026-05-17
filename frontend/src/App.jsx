@@ -22,6 +22,7 @@ import InicioPage from './pages/InicioPage'
 const PersonajesPage = lazy(() => import('./pages/PersonajesPage'))
 const PersonajeDetailPage = lazy(() => import('./pages/PersonajeDetailPage'))
 const AnimesPage = lazy(() => import('./pages/AnimesPage'))
+const AnimeDetailPage = lazy(() => import('./pages/AnimeDetailPage'))
 const TorneosPage = lazy(() => import('./pages/TorneosPage'))
 const TorneoDetailPage = lazy(() => import('./pages/TorneoDetailPage'))
 const RankingPage = lazy(() => import('./pages/RankingPage'))
@@ -120,6 +121,7 @@ function App() {
                 <Route path="/personajes" element={<PersonajesPage />} />
                 <Route path="/personajes/:slug" element={<PersonajeDetailPage />} />
                 <Route path="/animes" element={<AnimesPage />} />
+                <Route path="/animes/:slug" element={<AnimeDetailPage />} />
                 <Route path="/torneos" element={<TorneosPage />} />
                 <Route path="/torneos/crear" element={<CrearTorneoPage />} />
                 <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
