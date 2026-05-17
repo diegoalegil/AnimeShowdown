@@ -220,22 +220,20 @@ public class DataSeeder implements CommandLineRunner {
      *
      * El orden es crítico: si intentamos borrar el personaje antes que sus
      * votos, falla con constraint violation. Devuelve 1 si se borró el
-     * personaje, 0 si algo fue mal.
+     * personaje. Si algún paso falla, la excepción se propaga para que el
+     * @Transactional del método llamante (sincronizar) haga rollback global —
+     * preferimos abortar el seed entero a dejar la BBDD con votos huérfanos o
+     * enfrentamientos sin personaje.
      */
     private int borrarPersonajeConCascada(Personaje p) {
-        try {
-            int votosBorrados = votoRepository.deleteByPersonajeId(p.getId());
-            int votosEnEnfBorrados = votoRepository.deleteVotosEnEnfrentamientosDelPersonaje(p.getId());
-            int enfBorrados = enfrentamientoRepository.deleteByPersonajeId(p.getId());
-            personajeRepository.delete(p);
-            log.info(
-                    "DataSeeder DELETE: slug={} (votos={}, votosEnEnfrentamientos={}, enfrentamientos={})",
-                    p.getSlug(), votosBorrados, votosEnEnfBorrados, enfBorrados);
-            return 1;
-        } catch (Exception e) {
-            log.error("DataSeeder DELETE falló para slug={}: {}", p.getSlug(), e.getMessage());
-            return 0;
-        }
+        int votosBorrados = votoRepository.deleteByPersonajeId(p.getId());
+        int votosEnEnfBorrados = votoRepository.deleteVotosEnEnfrentamientosDelPersonaje(p.getId());
+        int enfBorrados = enfrentamientoRepository.deleteByPersonajeId(p.getId());
+        personajeRepository.delete(p);
+        log.info(
+                "DataSeeder DELETE: slug={} (votos={}, votosEnEnfrentamientos={}, enfrentamientos={})",
+                p.getSlug(), votosBorrados, votosEnEnfBorrados, enfBorrados);
+        return 1;
     }
 
     /**
