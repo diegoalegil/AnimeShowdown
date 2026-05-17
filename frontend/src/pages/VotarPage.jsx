@@ -244,7 +244,14 @@ function VotarPage() {
           description: 'Modo casual · sin torneo activo',
         })
         if (fastMode) {
-          setTimeout(() => handleNext(), NEXT_DELAY_MS)
+          // Mismo patrón que modo backend (línea 220): asignar a la ref para
+          // que handleNext() manual o el cleanup del unmount puedan cancelar.
+          // Sin esto, pulsar siguiente antes del auto-next o desmontar la
+          // página dispara doble salto / setState en componente desmontado.
+          autoNextTimeoutRef.current = setTimeout(() => {
+            autoNextTimeoutRef.current = null
+            handleNext()
+          }, NEXT_DELAY_MS)
         }
       }
     },
