@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
 import ReactionsBar from '../components/ReactionsBar'
+import ShareButtons from '../components/ShareButtons'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
@@ -248,6 +249,20 @@ function TorneoDetailPage() {
               .
             </p>
           </>
+        )}
+
+        {torneo?.slug && (
+          <div className="mt-10 rounded-xl border border-border bg-surface p-5">
+            <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              Comparte este torneo
+            </p>
+            <ShareButtons
+              url={typeof window !== 'undefined'
+                ? `${window.location.origin}/torneos/${torneo.slug}`
+                : `https://animeshowdown.dev/torneos/${torneo.slug}`}
+              texto={`Torneo "${torneo.nombre}" en AnimeShowdown — vota tu favorito`}
+            />
+          </div>
         )}
       </div>
     </section>
