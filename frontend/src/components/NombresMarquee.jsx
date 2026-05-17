@@ -1,6 +1,15 @@
-import { personajes } from '../data/personajes'
+import { personajes, getPopularidad } from '../data/personajes'
 
-const dobles = [...personajes, ...personajes]
+// Audit (2026-05-17): antes [...personajes, ...personajes] = 1460
+// spans + 1460 dots (~2920 nodos) en el marquee. Decorativo, no de
+// browsing. Cap a 80 nombres seleccionados por popularidad — la
+// rotación visual del marquee no se nota distinta y el DOM baja a
+// 160 nodos (~95% menos). El sort se hace una vez al import.
+const TOP_NOMBRES = 80
+const sample = [...personajes]
+  .sort((a, b) => getPopularidad(b.slug) - getPopularidad(a.slug))
+  .slice(0, TOP_NOMBRES)
+const dobles = [...sample, ...sample]
 
 function NombresMarquee() {
   return (
