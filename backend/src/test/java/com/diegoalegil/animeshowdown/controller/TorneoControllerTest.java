@@ -476,12 +476,12 @@ class TorneoControllerTest {
     }
 
     @Test
-    void finalizarTorneoSoloFuncionaSiEstaInProgress() throws Exception {
+    void finalizarTorneoEnEstadoNoInProgressDevuelve409() throws Exception {
         String token = tokenAdmin();
 
         Map<String, String> body = Map.of(
-                "nombre", "Torneo Finalizar",
-                "descripcion", "Test finalizar");
+                "nombre", "Torneo Finalizar Guard",
+                "descripcion", "Test guard estado");
 
         MvcResult res = mvc.perform(post("/api/torneos")
                 .header("Authorization", "Bearer " + token)
@@ -491,21 +491,109 @@ class TorneoControllerTest {
                 .andReturn();
         Long id = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
 
-        // Finalizar SCHEDULED → 409
+        // Estado SCHEDULED → finalizar devuelve 409 (guard de estado).
         mvc.perform(put("/api/torneos/" + id + "/finalizar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isConflict());
+    }
 
-        // Iniciar → IN_PROGRESS
-        mvc.perform(put("/api/torneos/" + id + "/iniciar")
-                .header("Authorization", "Bearer " + token))
+    /**
+     * Regresión audit P1 (2026-05-17): el bracket bloqueado dejaba que
+     * /finalizar marcase FINISHED sin haber jugado R2/R3. Este test valida
+     * el flow correcto con BracketAdvanceService:
+     *   - Torneo de 4 personajes ⇒ R1: 2 matches, R2 (final): 1 match.
+     *   - Vota R1 completos.
+     *   - /finalizar cierra R1, propaga ganadores a R2, los marca como
+     *     ganadores del único voto disponible (admin/auto-vote en R2 final).
+     * Más concreto: usamos solo R1 votada y comprobamos que /finalizar
+     * lanza 409 porque R2 no tiene votos — la cascada es correcta y
+     * fail-fast en lugar de mentir.
+     */
+    @Test
+    void finalizarTorneoConRondasIntermediasSinVotosDevuelve409() throws Exception {
+        String adminToken = tokenAdmin();
+
+        // 4 personajes del seed (luffy, zoro, naruto, sasuke). Si alguno no
+        // existe, el test fallará en el setUp con mensaje explícito.
+        long[] ids = new long[4];
+        java.util.List<String> slugs = java.util.List.of("luffy", "zoro", "naruto", "sasuke");
+        MvcResult resPers = mvc.perform(get("/api/personajes"))
+                .andExpect(status().isOk())
+                .andReturn();
+        com.fasterxml.jackson.databind.JsonNode arr = json.readTree(resPers.getResponse().getContentAsString());
+        for (com.fasterxml.jackson.databind.JsonNode p : arr) {
+            int idx = slugs.indexOf(p.get("slug").asText());
+            if (idx >= 0) ids[idx] = p.get("id").asLong();
+        }
+        for (int i = 0; i < ids.length; i++) {
+            org.junit.jupiter.api.Assertions.assertTrue(ids[i] > 0,
+                    "Personaje requerido por el test no está seedeado: " + slugs.get(i));
+        }
+
+        // Crear + iniciar con 4 personajes (bracket auto en BracketService).
+        MvcResult resT = mvc.perform(post("/api/torneos")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Torneo Bracket Cascada",
+                        "descripcion", "Test cascada"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        Long torneoId = json.readTree(resT.getResponse().getContentAsString()).get("id").asLong();
+
+        mvc.perform(put("/api/torneos/" + torneoId + "/iniciar")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("participantesIds", java.util.List.of(ids[0], ids[1], ids[2], ids[3])))))
                 .andExpect(status().isOk());
 
-        // Finalizar IN_PROGRESS → 200, estado FINISHED
-        mvc.perform(put("/api/torneos/" + id + "/finalizar")
-                .header("Authorization", "Bearer " + token))
+        // Vota R1 completos: usuario vota luffy en match1, naruto en match2.
+        String userToken = tokenUserRegistrado("voto_bracket_user", "votobracket@example.com");
+        var enfsRes = mvc.perform(get("/api/torneos/" + torneoId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("FINISHED"))
-                .andExpect(jsonPath("$.fechaFinalizacion").isString());
+                .andReturn();
+        com.fasterxml.jackson.databind.JsonNode detalle = json.readTree(enfsRes.getResponse().getContentAsString());
+        com.fasterxml.jackson.databind.JsonNode enfs = detalle.get("enfrentamientos");
+        java.util.List<Long> matchR1Ids = new java.util.ArrayList<>();
+        for (com.fasterxml.jackson.databind.JsonNode e : enfs) {
+            if (e.get("ronda").asInt() == 1) matchR1Ids.add(e.get("id").asLong());
+        }
+        org.junit.jupiter.api.Assertions.assertEquals(2, matchR1Ids.size(),
+                "Un torneo de 4 personajes debe tener 2 matches en R1");
+        // Vota el primer personaje de cada match (luffy y naruto, los seeds 0 y 2).
+        mvc.perform(post("/api/enfrentamientos/" + matchR1Ids.get(0) + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/enfrentamientos/" + matchR1Ids.get(1) + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[2]))))
+                .andExpect(status().isOk());
+
+        // /finalizar cierra R1 OK pero R2 (final) está sin votos: 409 en lugar
+        // de marcar FINISHED falsamente con uno de los ganadores de R1.
+        mvc.perform(put("/api/torneos/" + torneoId + "/finalizar")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isConflict());
+
+        // Tras el intento fallido, R2 debe tener participantes (la cascada del
+        // BracketAdvanceService propagó luffy y naruto a la final). El torneo
+        // sigue IN_PROGRESS.
+        var enfsRes2 = mvc.perform(get("/api/torneos/" + torneoId))
+                .andExpect(status().isOk())
+                .andReturn();
+        com.fasterxml.jackson.databind.JsonNode enfs2 = json.readTree(enfsRes2.getResponse().getContentAsString()).get("enfrentamientos");
+        boolean r2Poblada = false;
+        for (com.fasterxml.jackson.databind.JsonNode e : enfs2) {
+            if (e.get("ronda").asInt() == 2) {
+                r2Poblada = e.has("personaje1") && !e.get("personaje1").isNull()
+                        && e.has("personaje2") && !e.get("personaje2").isNull();
+                break;
+            }
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(r2Poblada,
+                "R2 debe tener ambos personajes propagados desde R1 tras el intento de finalización");
     }
 }

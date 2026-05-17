@@ -47,6 +47,7 @@ public class TorneoService {
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
     private final BracketService bracketService;
+    private final BracketAdvanceService bracketAdvanceService;
     private final PrediccionService prediccionService;
     private final NotificacionService notificacionService;
     private final IndexNowService indexNowService;
@@ -57,6 +58,7 @@ public class TorneoService {
             PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
             BracketService bracketService,
+            BracketAdvanceService bracketAdvanceService,
             PrediccionService prediccionService,
             NotificacionService notificacionService,
             IndexNowService indexNowService) {
@@ -65,6 +67,7 @@ public class TorneoService {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.bracketService = bracketService;
+        this.bracketAdvanceService = bracketAdvanceService;
         this.prediccionService = prediccionService;
         this.notificacionService = notificacionService;
         this.indexNowService = indexNowService;
@@ -352,6 +355,23 @@ public class TorneoService {
      * enfrentamiento. Si hay empate exacto el ganador queda null (se gestiona
      * en frontend con un fallback determinístico por ELO).
      */
+    /**
+     * Finaliza un torneo: cierra cada ronda en cascada (calculando ganadores
+     * por count de votos y propagando a la ronda siguiente vía
+     * {@link BracketAdvanceService}) hasta que llega a la final.
+     *
+     * <p>Audit P1 (2026-05-17): antes este método iteraba todos los
+     * enfrentamientos, saltaba los slots vacíos de rondas 2+ (que nunca se
+     * rellenaban porque el BracketAvanceScheduler prometido no existía) y
+     * marcaba el torneo como FINISHED igual. Resultado: torneos de 8/16
+     * podían "terminar" con ganador del primer enfrentamiento como
+     * "campeón". Ahora delega en BracketAdvanceService que sí propaga.
+     *
+     * <p>Si tras cerrar todas las rondas posibles el torneo NO queda
+     * FINISHED (empate sin resolver, slots vacíos por bracket malformado),
+     * se lanza IllegalStateException con mensaje accionable — preferimos
+     * fallar fuerte a dejar el torneo a medias.
+     */
     @Transactional
     public Torneo finalizar(Long id) {
         Torneo torneo = torneoRepository.findById(id)
@@ -361,50 +381,21 @@ public class TorneoService {
             throw new IllegalStateException("Solo se pueden finalizar torneos en estado IN_PROGRESS");
         }
 
-        List<Enfrentamiento> enfrentamientos = enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(torneo);
-        int maxRonda = 0;
-        for (Enfrentamiento enf : enfrentamientos) {
-            if (enf.getPersonaje1() == null || enf.getPersonaje2() == null) {
-                // Slot vacío (ronda futura sin resolver); no contamos votos.
-                continue;
-            }
-            long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, enf.getPersonaje1());
-            long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, enf.getPersonaje2());
+        BracketAdvanceService.Resultado res = bracketAdvanceService.cerrarTodasLasRondas(torneo);
 
-            if (votosP1 > votosP2) {
-                enf.setGanador(enf.getPersonaje1());
-            } else if (votosP2 > votosP1) {
-                enf.setGanador(enf.getPersonaje2());
-            }
-            enfrentamientoRepository.save(enf);
-            if (enf.getRonda() != null && enf.getRonda() > maxRonda) {
-                maxRonda = enf.getRonda();
-            }
+        if (res != BracketAdvanceService.Resultado.TORNEO_FINALIZADO) {
+            throw new IllegalStateException(
+                    "No se pudo finalizar el torneo: alguna ronda intermedia tiene empates o matches sin votos. "
+                            + "Resuelve los empates o espera a tener votos suficientes.");
         }
 
-        // Sincroniza Torneo.ganadorPersonaje con el ganador del match de la
-        // última ronda — fuente unificada de "quién ganó este torneo" para
-        // el DTO de respuesta (TorneoQueryService.calcularGanadorSlug).
-        if (maxRonda > 0) {
-            for (Enfrentamiento enf : enfrentamientos) {
-                if (Integer.valueOf(maxRonda).equals(enf.getRonda()) && enf.getGanador() != null) {
-                    torneo.setGanadorPersonaje(enf.getGanador());
-                    break;
-                }
-            }
-        }
-
-        torneo.setEstado(EstadoTorneo.FINISHED);
-        torneo.setFechaFinalizacion(LocalDateTime.now());
-        Torneo guardado = torneoRepository.save(torneo);
+        // Recargar tras los updates del advance service para tener el estado fresco
+        Torneo guardado = torneoRepository.findById(id).orElseThrow();
 
         // Plan v2 §4.4: resuelve todas las predicciones del torneo
-        // comparando contra los ganadores recién calculados. Publica un
-        // PrediccionResueltaEvent por usuario para que BadgeListener
-        // compruebe streaks consecutivos y el badge profeta.
+        // comparando contra los ganadores recién calculados.
         int resueltas = prediccionService.resolverParaTorneo(guardado);
-        log.info("Torneo {} finalizado: {} enfrentamientos + {} predicciones resueltas",
-                id, enfrentamientos.size(), resueltas);
+        log.info("Torneo {} finalizado en cascada: {} predicciones resueltas", id, resueltas);
         return guardado;
     }
 }
