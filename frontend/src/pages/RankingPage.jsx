@@ -1,12 +1,27 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, Trophy, Tv, Vote } from 'lucide-react'
+import {
+  ArrowRight,
+  Calendar,
+  ChevronDown,
+  Clock,
+  Crown,
+  HelpCircle,
+  Medal,
+  Search,
+  Sparkles,
+  Swords,
+  Trophy,
+  Tv,
+  Vote,
+  X,
+} from 'lucide-react'
 import {
   personajes,
-  imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import PersonajeImg from '../components/PersonajeImg'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -16,25 +31,36 @@ import {
 } from '../hooks/useRanking'
 
 /**
- * RankingPage con tabs segmentadas (Plan v2 §4.6).
+ * RankingPage rebranded (Plan v2 §14 — "salón de la fama" competitivo).
  *
  * Tabs:
- *   - ELO local — el ELO del catálogo, sin fetch (siempre disponible).
- *   - All-time — top votos absoluto desde el backend.
- *   - Mes — últimos 30 días.
- *   - Por anime — dropdown con animes que tienen al menos 1 voto.
+ *   - ELO actual — calculado desde catálogo, siempre disponible.
+ *   - Histórico — top votos absoluto del backend.
+ *   - Este mes — últimos 30 días.
+ *   - Por anime — dropdown de animes con al menos 1 voto.
  *
- * Atributos por género/época del plan §4.6 quedan pendientes hasta el
- * bloque 15 (atributos extendidos del catálogo).
+ * Estructura nueva:
+ *   - Header competitivo + CTAs
+ *   - Tabs
+ *   - Buscador + filtros
+ *   - Podio Top 3 (campeón centrado grande)
+ *   - Lista desde #4
+ *   - Hub "Sigue moviendo el ranking"
+ *   - Tabla extraíble plegable (datos técnicos)
  */
 
 const rankedElo = [...personajes]
   .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
   .sort((a, b) => b.elo - a.elo)
 
+const animeFilterOptions = (() => {
+  const set = new Set(personajes.map((p) => p.anime))
+  return ['', ...Array.from(set).sort()]
+})()
+
 const TABS = [
-  { id: 'elo', label: 'ELO local', icon: Trophy },
-  { id: 'all', label: 'All-time', icon: Vote },
+  { id: 'elo', label: 'ELO actual', icon: Trophy },
+  { id: 'all', label: 'Histórico', icon: Vote },
   { id: 'mes', label: 'Este mes', icon: Calendar },
   { id: 'anime', label: 'Por anime', icon: Tv },
 ]
@@ -47,7 +73,7 @@ const headerVariants = {
 function RankingPage() {
   useSeo({
     title: 'Ranking ELO',
-    description: `Top ${personajes.length} personajes de anime ordenados por ELO local, votos all-time y por mes. Filtra por anime para ver quién domina cada universo.`,
+    description: `Top ${personajes.length} personajes de anime ordenados por ELO. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
   })
   const [tab, setTab] = useState('elo')
 
@@ -60,25 +86,42 @@ function RankingPage() {
           { label: 'Ranking', path: '/ranking' },
         ])}
       />
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         <motion.header
           className="mb-8 flex flex-col items-start gap-3"
           initial="hidden"
           animate="visible"
           variants={headerVariants}
         >
-          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            Ranking
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+            <Sparkles className="h-3 w-3" />
+            Ranking ELO · Salón de la fama
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            ¿Quién manda?
+            ¿Quién domina AnimeShowdown?
           </h1>
           <p className="max-w-2xl text-fg-muted">
-            Cuatro ventanas sobre la misma pregunta. El{' '}
-            <strong>ELO local</strong> calcula la fuerza de cada personaje
-            desde el catálogo; las demás tabs leen los votos reales del
-            backend en distintos cortes.
+            Estos son los personajes que la comunidad ha llevado a la cima. Cada
+            voto afecta el ELO, cada duelo puede cambiar posiciones y ningún
+            puesto está garantizado.
           </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Link
+              to="/votar"
+              className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+            >
+              <Swords className="h-4 w-4" />
+              Votar ahora
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              to="/faq"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Cómo funciona el ELO
+            </Link>
+          </div>
         </motion.header>
 
         <Tabs activo={tab} onChange={setTab} />
@@ -98,139 +141,28 @@ function RankingPage() {
   )
 }
 
-/**
- * Tabla HTML semántica con el top 10 ELO local (Plan v2 §6.2). Sirve
- * dos públicos:
- *   - Crawlers de IA (GPTBot, ClaudeBot, PerplexityBot) que prefieren
- *     extraer datos tabulares estructurados antes que listas decoradas.
- *   - Usuarios que quieren copy/paste de los datos para un Sheets/post.
- *
- * Usa table/thead/tbody/th-scope estándar — sin estilos exóticos para
- * que los parsers de tablas (Common Crawl, Bing tables) la pillen.
- */
-function TablaExtraible() {
-  const top10 = rankedElo.slice(0, 10)
-  return (
-    <section
-      aria-labelledby="top10-elo-heading"
-      className="mt-12 rounded-xl border border-border bg-surface p-6"
-    >
-      <h2
-        id="top10-elo-heading"
-        className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted"
-      >
-        Top 10 ELO — datos extraíbles
-      </h2>
-      <p className="mb-4 text-[12px] text-fg-muted">
-        Tabla en formato estándar para copia rápida o referencia en posts.
-        Datos del ELO local calculado desde el catálogo (actualizado a fecha de
-        deploy).
-      </p>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[13px]">
-          <thead>
-            <tr className="border-b border-border text-left text-fg-muted">
-              <th scope="col" className="py-2 pr-3 font-semibold">
-                Rank
-              </th>
-              <th scope="col" className="py-2 pr-3 font-semibold">
-                Personaje
-              </th>
-              <th scope="col" className="py-2 pr-3 font-semibold">
-                Anime
-              </th>
-              <th
-                scope="col"
-                className="py-2 pr-3 text-right font-mono font-semibold tabular-nums"
-              >
-                ELO
-              </th>
-              <th
-                scope="col"
-                className="hidden py-2 pr-3 text-right font-semibold sm:table-cell"
-              >
-                W/L
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {top10.map((p, i) => (
-              <tr
-                key={p.slug}
-                className="border-b border-border/60 last:border-0"
-              >
-                <th
-                  scope="row"
-                  className="py-2 pr-3 font-mono font-semibold text-fg-strong tabular-nums"
-                >
-                  {i + 1}
-                </th>
-                <td className="py-2 pr-3 text-fg-strong">
-                  <Link
-                    to={`/personajes/${p.slug}`}
-                    className="hover:text-accent hover:underline"
-                  >
-                    {p.nombre}
-                  </Link>
-                </td>
-                <td className="py-2 pr-3 text-fg-muted">{p.anime}</td>
-                <td className="py-2 pr-3 text-right font-mono tabular-nums text-accent">
-                  {p.elo}
-                </td>
-                <td className="hidden py-2 pr-3 text-right font-mono text-fg-muted tabular-nums sm:table-cell">
-                  {p.wins}/{p.losses}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  )
-}
-
-/**
- * Sección hub al final de /ranking con links descriptivos (Plan v2 §5.6).
- * Ayuda al crawler a seguir hilos de contenido relacionado y al usuario
- * a descubrir secciones complementarias sin volver al menú superior.
- */
-function HubLinks() {
-  return (
-    <div className="mt-12 rounded-xl border border-border bg-surface p-6">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
-        Sigue explorando
-      </h2>
-      <p className="text-[13px] leading-relaxed text-fg-muted">
-        Para entender mejor el ranking puedes{' '}
-        <Link to="/faq" className="text-accent hover:underline">
-          leer cómo funciona el sistema ELO en AnimeShowdown
-        </Link>
-        , o explorar el{' '}
-        <Link to="/personajes" className="text-accent hover:underline">
-          catálogo completo de {personajes.length} personajes
-        </Link>{' '}
-        con filtros por anime. Si quieres ponerle números a tus discusiones,{' '}
-        <Link to="/votar" className="text-accent hover:underline">
-          vota en matches casuales
-        </Link>{' '}
-        o entra en{' '}
-        <Link to="/torneos" className="text-accent hover:underline">
-          uno de los torneos activos
-        </Link>{' '}
-        — cada voto cuenta hacia los ELO que ves aquí arriba.
-      </p>
-    </div>
-  )
-}
-
 function Tabs({ activo, onChange }) {
   return (
-    <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-surface p-1">
+    <div
+      role="tablist"
+      className="flex flex-wrap gap-1 rounded-lg border border-border bg-surface p-1"
+    >
       {TABS.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           type="button"
+          role="tab"
+          aria-selected={activo === id}
           onClick={() => onChange(id)}
+          title={
+            id === 'elo'
+              ? 'Calculado desde los datos del catálogo. Siempre disponible.'
+              : id === 'all'
+                ? 'Top de votos desde que abrió AnimeShowdown.'
+                : id === 'mes'
+                  ? 'Top de votos en los últimos 30 días.'
+                  : 'Selecciona un anime para ver su ranking interno.'
+          }
           className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
             activo === id
               ? 'bg-accent text-bg'
@@ -246,12 +178,201 @@ function Tabs({ activo, onChange }) {
 }
 
 function ListaEloLocal() {
+  const [search, setSearch] = useState('')
+  const [animeFilter, setAnimeFilter] = useState('')
+
+  const filtered = useMemo(() => {
+    let list = rankedElo
+    if (animeFilter) list = list.filter((p) => p.anime === animeFilter)
+    if (search) {
+      const s = search.toLowerCase()
+      list = list.filter(
+        (p) =>
+          p.nombre.toLowerCase().includes(s) ||
+          p.anime.toLowerCase().includes(s),
+      )
+    }
+    return list
+  }, [search, animeFilter])
+
+  const podio = filtered.slice(0, 3)
+  const resto = filtered.slice(3, 100)
+  const hayFiltros = Boolean(search) || Boolean(animeFilter)
+
   return (
-    <ol className="flex flex-col gap-2">
-      {rankedElo.slice(0, 100).map((p, i) => (
-        <RankRowElo key={p.slug} rank={i + 1} {...p} />
-      ))}
-    </ol>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar personaje…"
+            className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              aria-label="Limpiar búsqueda"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-muted transition-colors hover:text-fg-strong"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <select
+          value={animeFilter}
+          onChange={(e) => setAnimeFilter(e.target.value)}
+          aria-label="Filtrar por anime"
+          className="rounded-lg border border-border bg-surface py-2.5 px-3 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+        >
+          <option value="">Anime: Todos</option>
+          {animeFilterOptions.slice(1).map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <p className="text-base font-bold text-fg-strong">
+            Ningún personaje coincide
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('')
+              setAnimeFilter('')
+            }}
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Podio Top 3 — solo cuando no hay filtros activos. Si el
+              usuario filtra perdería sentido ver "Top 3 global" mezclado
+              con un subconjunto. */}
+          {!hayFiltros && podio.length === 3 && <Podio top3={podio} />}
+
+          {hayFiltros && (
+            <p className="text-[12px] text-fg-muted">
+              Mostrando{' '}
+              <strong className="text-fg-strong">{filtered.length}</strong>{' '}
+              personajes que coinciden
+              {animeFilter && <> en {animeFilter}</>}.
+            </p>
+          )}
+
+          <ol className="flex flex-col gap-2">
+            {(hayFiltros ? filtered.slice(0, 100) : resto).map((p, i) => (
+              <RankRowElo
+                key={p.slug}
+                rank={hayFiltros ? i + 1 : i + 4}
+                {...p}
+              />
+            ))}
+          </ol>
+        </>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Podio Top 3 — campeón al centro, plata izquierda, bronce derecha.
+ * Imagen grande y badges diferenciados por posición.
+ */
+function Podio({ top3 }) {
+  const [primero, segundo, tercero] = top3
+  return (
+    <div className="grid grid-cols-3 gap-3 sm:gap-6">
+      <PodioCard personaje={segundo} rank={2} />
+      <PodioCard personaje={primero} rank={1} highlighted />
+      <PodioCard personaje={tercero} rank={3} />
+    </div>
+  )
+}
+
+function PodioCard({ personaje, rank, highlighted }) {
+  const tone =
+    rank === 1
+      ? {
+          border: 'border-yellow-400/70',
+          bg: 'bg-gradient-to-b from-yellow-500/15 via-amber-500/5 to-transparent',
+          text: 'text-yellow-300',
+          glow: 'shadow-[0_0_80px_-15px_rgba(251,191,36,0.6)]',
+          icon: Crown,
+          label: 'Campeón actual',
+        }
+      : rank === 2
+        ? {
+            border: 'border-zinc-300/50',
+            bg: 'bg-gradient-to-b from-zinc-400/10 via-zinc-500/5 to-transparent',
+            text: 'text-zinc-200',
+            glow: 'shadow-[0_0_40px_-15px_rgba(244,244,245,0.4)]',
+            icon: Medal,
+            label: '2º puesto',
+          }
+        : {
+            border: 'border-orange-400/50',
+            bg: 'bg-gradient-to-b from-orange-500/10 via-amber-700/5 to-transparent',
+            text: 'text-orange-300',
+            glow: 'shadow-[0_0_40px_-15px_rgba(251,146,60,0.4)]',
+            icon: Medal,
+            label: '3er puesto',
+          }
+  const Icon = tone.icon
+  return (
+    <Link
+      to={`/personajes/${personaje.slug}`}
+      className={`group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border-2 p-3 text-center transition-all hover:-translate-y-1 ${tone.border} ${tone.bg} ${highlighted ? `pt-6 ${tone.glow}` : 'pt-4'}`}
+    >
+      <span
+        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.15em] ${tone.border} ${tone.text}`}
+      >
+        <Icon className="h-3 w-3" />
+        #{rank}
+        {highlighted && ` · ${tone.label}`}
+      </span>
+      <div
+        className={`relative aspect-[2/3] w-full overflow-hidden rounded-xl border ${tone.border} bg-surface ${highlighted ? '' : 'opacity-95'}`}
+      >
+        <PersonajeImg
+          slug={personaje.slug}
+          alt={personaje.nombre}
+          loading="eager"
+          className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+        />
+      </div>
+      <div className="flex flex-col items-center gap-0.5">
+        <h3
+          className={`line-clamp-1 font-bold text-fg-strong group-hover:text-accent ${
+            highlighted ? 'text-base sm:text-lg' : 'text-sm'
+          }`}
+        >
+          {personaje.nombre}
+        </h3>
+        <p className="line-clamp-1 text-[11px] text-fg-muted">
+          {personaje.anime}
+        </p>
+        <p
+          className={`mt-1 font-mono font-extrabold tabular-nums ${tone.text} ${
+            highlighted ? 'text-2xl' : 'text-lg'
+          }`}
+        >
+          {personaje.elo}
+          <span className="ml-1 text-[10px] uppercase tracking-wider opacity-70">
+            ELO
+          </span>
+        </p>
+      </div>
+    </Link>
   )
 }
 
@@ -276,7 +397,7 @@ function PorAnime() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-surface p-3">
+      <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-3 sm:flex-row sm:items-center">
         <label
           htmlFor="anime-select"
           className="text-[12px] font-semibold text-fg-muted"
@@ -301,14 +422,27 @@ function PorAnime() {
 
       {!anime ? (
         <p className="rounded-lg border border-dashed border-border bg-surface-alt/40 p-6 text-center text-[12px] text-fg-muted">
-          Selecciona un anime para ver el ranking de sus personajes.
+          Selecciona un anime para ver el ranking interno de sus personajes.
         </p>
       ) : (
-        <ListaVotosCommon
-          items={data}
-          isLoading={isLoading}
-          isError={isError}
-        />
+        <>
+          <ListaVotosCommon
+            items={data}
+            isLoading={isLoading}
+            isError={isError}
+          />
+          {data?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <Link
+                to="/votar"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              >
+                <Swords className="h-4 w-4" />
+                Votar personajes de {anime}
+              </Link>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -356,6 +490,7 @@ function ListaVotosCommon({ items, isLoading, isError }) {
 function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses }) {
   const total = wins + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
+  const esTop10 = rank <= 10
   return (
     <motion.li
       initial={{ opacity: 0, y: 12 }}
@@ -367,26 +502,41 @@ function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses }) {
         to={`/personajes/${slug}`}
         aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
         title={`${nombre} de ${anime} · ELO ${elo}`}
-        className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
+        className={`group flex items-center gap-3 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5 ${
+          esTop10
+            ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
+            : 'border-border bg-surface'
+        }`}
       >
         <RankBadge rank={rank} />
-        <img
-          src={imagenPersonaje(slug)}
+        <PersonajeImg
+          slug={slug}
           alt=""
           loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover"
+          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
-            {nombre}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
+              {nombre}
+            </p>
+            {esTop10 && (
+              <span className="hidden shrink-0 rounded border border-yellow-400/40 bg-yellow-500/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 sm:inline">
+                Top 10
+              </span>
+            )}
+          </div>
           <p className="truncate text-[12px] text-fg-muted">{anime}</p>
         </div>
         <div className="hidden text-right sm:block">
           <p className="text-[12px] text-fg-muted">
-            {wins}V · {losses}D
+            <span className="font-semibold text-emerald-300">{wins}V</span>
+            {' · '}
+            <span className="font-semibold text-rose-300">{losses}D</span>
           </p>
-          <p className="text-[12px] text-fg-muted">{winRate}% win rate</p>
+          <p className="text-[11px] font-semibold text-emerald-300/80">
+            {winRate}% WR
+          </p>
         </div>
         <div className="text-right">
           <p className="font-mono text-base font-bold text-accent">{elo}</p>
@@ -411,14 +561,14 @@ function RankRowVotos({ rank, personaje, votos }) {
         to={`/personajes/${personaje.slug}`}
         aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
         title={`${personaje.nombre} de ${personaje.anime}`}
-        className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
+        className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
       >
         <RankBadge rank={rank} />
-        <img
-          src={personaje.imagenUrl ?? imagenPersonaje(personaje.slug)}
+        <PersonajeImg
+          slug={personaje.slug}
           alt=""
           loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover"
+          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
@@ -452,8 +602,134 @@ function RankBadge({ rank }) {
               : 'bg-surface-alt text-fg-muted'
       }`}
     >
-      {rank === 1 ? <Trophy className="h-5 w-5" /> : rank}
+      {rank === 1 ? <Crown className="h-5 w-5" /> : rank}
     </span>
+  )
+}
+
+/**
+ * Hub "Sigue moviendo el ranking" — CTAs accionables, no párrafo de
+ * links inline como antes.
+ */
+function HubLinks() {
+  return (
+    <div className="mt-12 rounded-2xl border border-border bg-surface p-6">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+        Sigue moviendo el ranking
+      </h2>
+      <p className="mt-2 text-[13px] text-fg-muted">
+        Vota en nuevos duelos, explora personajes o revisa cómo funciona el
+        sistema ELO. Cada voto cuenta para cambiar esta tabla.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          to="/votar"
+          className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+        >
+          <Swords className="h-4 w-4" />
+          Votar ahora
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+        <Link
+          to="/personajes"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+        >
+          Explorar personajes
+        </Link>
+        <Link
+          to="/faq"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+        >
+          <HelpCircle className="h-4 w-4" />
+          Cómo funciona el ELO
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Tabla HTML semántica con el top 10 ELO local (Plan v2 §6.2). Sirve a
+ * crawlers de IA + usuarios que quieren copy/paste. Ahora dentro de un
+ * <details> plegable para no competir con el ranking visual.
+ */
+function TablaExtraible() {
+  const top10 = rankedElo.slice(0, 10)
+  return (
+    <details className="mt-6 rounded-xl border border-border bg-surface">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+            Datos técnicos
+          </h2>
+          <p className="mt-0.5 text-[11px] text-fg-muted">
+            Tabla en formato estándar para copia rápida o referencia.
+          </p>
+        </div>
+        <ChevronDown className="h-5 w-5 shrink-0 text-fg-muted transition-transform group-open:rotate-180 [details[open]_&]:rotate-180" />
+      </summary>
+      <div className="border-t border-border p-4">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-[13px]">
+            <thead>
+              <tr className="border-b border-border text-left text-fg-muted">
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  Rank
+                </th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  Personaje
+                </th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  Anime
+                </th>
+                <th
+                  scope="col"
+                  className="py-2 pr-3 text-right font-mono font-semibold tabular-nums"
+                >
+                  ELO
+                </th>
+                <th
+                  scope="col"
+                  className="hidden py-2 pr-3 text-right font-semibold sm:table-cell"
+                >
+                  W/L
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {top10.map((p, i) => (
+                <tr
+                  key={p.slug}
+                  className="border-b border-border/60 last:border-0"
+                >
+                  <th
+                    scope="row"
+                    className="py-2 pr-3 font-mono font-semibold text-fg-strong tabular-nums"
+                  >
+                    {i + 1}
+                  </th>
+                  <td className="py-2 pr-3 text-fg-strong">
+                    <Link
+                      to={`/personajes/${p.slug}`}
+                      className="hover:text-accent hover:underline"
+                    >
+                      {p.nombre}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-3 text-fg-muted">{p.anime}</td>
+                  <td className="py-2 pr-3 text-right font-mono tabular-nums text-accent">
+                    {p.elo}
+                  </td>
+                  <td className="hidden py-2 pr-3 text-right font-mono text-fg-muted tabular-nums sm:table-cell">
+                    {p.wins}/{p.losses}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
   )
 }
 
