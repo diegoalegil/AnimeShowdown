@@ -143,37 +143,43 @@ function RankingPage() {
 }
 
 function Tabs({ activo, onChange }) {
+  // Audit (2026-05-17): el flex-wrap hacía que 'Por anime' bajara a la
+  // segunda fila en 390px, dejando el control con apariencia rota.
+  // Solución: scroll horizontal en móvil (-mx para que sangre full-bleed)
+  // con whitespace-nowrap; en sm+ vuelve al grid sin scroll.
   return (
-    <div
-      role="tablist"
-      className="flex flex-wrap gap-1 rounded-lg border border-border bg-surface p-1"
-    >
-      {TABS.map(({ id, label, icon: Icon }) => (
-        <button
-          key={id}
-          type="button"
-          role="tab"
-          aria-selected={activo === id}
-          onClick={() => onChange(id)}
-          title={
-            id === 'elo'
-              ? 'Calculado desde los datos del catálogo. Siempre disponible.'
-              : id === 'all'
-                ? 'Top de votos desde que abrió AnimeShowdown.'
-                : id === 'mes'
-                  ? 'Top de votos en los últimos 30 días.'
-                  : 'Selecciona un anime para ver su ranking interno.'
-          }
-          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-            activo === id
-              ? 'bg-accent text-bg'
-              : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
-          }`}
-        >
-          <Icon className="h-3.5 w-3.5" />
-          {label}
-        </button>
-      ))}
+    <div className="-mx-5 overflow-x-auto sm:mx-0">
+      <div
+        role="tablist"
+        className="inline-flex w-max gap-1 whitespace-nowrap rounded-lg border border-border bg-surface p-1 sm:flex sm:w-full sm:flex-wrap"
+      >
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={activo === id}
+            onClick={() => onChange(id)}
+            title={
+              id === 'elo'
+                ? 'Calculado desde los datos del catálogo. Siempre disponible.'
+                : id === 'all'
+                  ? 'Top de votos desde que abrió AnimeShowdown.'
+                  : id === 'mes'
+                    ? 'Top de votos en los últimos 30 días.'
+                    : 'Selecciona un anime para ver su ranking interno.'
+            }
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+              activo === id
+                ? 'bg-accent text-bg'
+                : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
