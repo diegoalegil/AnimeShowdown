@@ -53,6 +53,22 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             org.springframework.data.domain.Pageable pageable);
 
     /**
+     * Ranking "histórico" (Plan v2 §4.x — indicadores ↑↓): cuenta solo
+     * votos EMITIDOS antes de la fecha dada. Sirve para comparar la
+     * posición de hace N días con la posición actual y calcular el
+     * movimiento de cada personaje.
+     */
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            FROM Voto v
+            WHERE v.fecha < :antesDe
+            GROUP BY v.personaje
+            ORDER BY COUNT(v) DESC
+            """)
+    List<RankingItem> rankingHasta(@Param("antesDe") java.time.LocalDateTime antesDe,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Ranking de personajes de un anime concreto (Plan v2 §4.6). Filtramos
      * por nombre del anime (string del catálogo) — case-sensitive porque
      * los nombres en BBDD vienen consistentes del seeder.

@@ -49,7 +49,10 @@ public class CacheConfig {
                 // entre votos (la similitud por votos casi no se mueve a
                 // escala minuto). Key compuesta slug+limit, max ~3000
                 // (730 slugs × 4 valores típicos de limit).
-                buildCache("personajes-similares", Duration.ofMinutes(5), 3000)));
+                buildCache("personajes-similares", Duration.ofMinutes(5), 3000),
+                // Plan v2 §4.x: ranking actual con deltas vs hace N días.
+                // Pesado (dos queries de COUNT con GROUP BY); cache 1min.
+                buildCache("ranking-movimientos", Duration.ofMinutes(1), 64)));
         return manager;
     }
 
