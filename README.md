@@ -10,9 +10,9 @@
 ![JWT](https://img.shields.io/badge/JWT-Auth0%20java--jwt-000000?logo=jsonwebtokens&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-App full-stack de torneos y rankings ELO de personajes anime. Frontend React premium con aurora hero, carruseles tipo Crunchyroll, búsqueda + filtros, command palette tipo Linear, sonidos anime sintetizados con Web Audio API, bracket visual y auth real con JWT. Backend Spring Boot + PostgreSQL en Railway/Neon, frontend en Cloudflare Pages.
+App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. Frontend React premium con aurora hero, podio Top 3, Anime Daily Trials (5 mini-juegos diarios con kanji + sparkles), carruseles tipo Crunchyroll, búsqueda + filtros, command palette tipo Linear, sonidos anime sintetizados con Web Audio API, bracket visual y auth real con JWT + 2FA TOTP. Backend Spring Boot + PostgreSQL en Railway/Neon, frontend en Cloudflare Pages.
 
-> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con 642 personajes en 60 animes (DataSeeder con insert/update/delete cascade)
+> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con 700 personajes únicos en 67 animes (DataSeeder con insert/update/delete cascade) · ✅ Rebrand competitivo "El ranking definitivo del anime lo decides tú"
 
 ---
 
@@ -36,7 +36,7 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 - **React 19** + **Vite 8** (HMR + Rolldown bundler)
 - **Tailwind CSS v4** vía `@tailwindcss/vite` con tokens nativos en `@theme` (paleta dark anime: `#0d0d12` bg + `#ff2e63` accent magenta)
 - **Framer Motion 12** para animaciones, parallax mouse-tracked, AnimatePresence en transiciones de ruta
-- **React Router 7** (BrowserRouter + 16 rutas — incluye `/higher-or-lower` mini-juego — + URL search params para filtros)
+- **React Router 7** (BrowserRouter + 24 rutas — incluye `/games` hub + 5 modos diarios — + URL search params para filtros + redirects 301 a nivel Cloudflare para rebrand de URLs)
 - **react-hook-form 7** para validación de formularios (Login + Register)
 - **Lucide React** + SVG inline para iconografía
 - **Sonner** para toast notifications
@@ -50,7 +50,7 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 - **PostgreSQL 17** (Neon en producción, local en dev)
 - **JWT** con `com.auth0:java-jwt 4.4.0` y BCrypt para hashing
 - **springdoc-openapi 2.8.5** (Swagger UI)
-- **DataSeeder con sincronización completa** que en cada arranque ajusta los 642 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
+- **DataSeeder con sincronización completa** que en cada arranque ajusta los 700 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
 - **Resilience4j** sobre `JikanService` (retry exponencial + circuit breaker + timeout 5s) y **caché Caffeine** sobre las páginas top con TTL 1h
 - **JUnit 5** + **MockMvc** + **H2** in-memory para tests
 - **Maven Wrapper** + **Docker** multi-stage para deploy
@@ -71,7 +71,7 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 
 ![Hero landing](docs/screenshots/hero.webp)
 
-**Galería de los 642 personajes con búsqueda, filtros por anime y view toggle**
+**Galería de 700 personajes con búsqueda, filtros, badges Top X y ELO+WR en cada card**
 
 ![Galería personajes](docs/screenshots/personajes.webp)
 
@@ -99,30 +99,61 @@ App full-stack de torneos y rankings ELO de personajes anime. Frontend React pre
 
 ## Features destacadas del frontend
 
+### Home
 - 🎨 **Aurora multilayer** en Hero: 3 blobs animados (magenta + purple + cyan) con CSS keyframes desfasados
 - 🎴 **8 cards flotantes** alrededor del logo con parallax mouse-tracked (3 niveles de profundidad)
-- 🌀 **3D tilt + spotlight** en cada card del catálogo (mouse-tracked + spring smoothing)
-- 🎠 **Carruseles horizontales por anime** estilo Netflix/Crunchyroll (snap-x scroll-smooth)
+- 🌑 **Texto shimmer animado** en H1 — "El ranking definitivo del anime lo decides tú"
+- ⚔️ **Duelo en vivo** auto-cyclando matchups cada 5s con AnimatePresence, VS pulsante con glow magenta y CTA "Votar este duelo"
 - 🏆 **Top 10 ELO** con números gigantes outline magenta solapando las cards (Crunchyroll vibe)
-- ⚔️ **Live Battle widget** auto-cyclando matchups cada 5s con AnimatePresence
-- 📜 **Marquee infinita** con los 642 nombres y fade en bordes
-- 🔢 **Stats counter rolling** (642 personajes / 13 torneos / 60 animes / ELO máx) con easeOutCubic en viewport
-- 🎁 **Bento grid** asimétrico con 4 features (Brackets, ELO, Cuenta, Comunidad)
-- 🌳 **Bracket SVG** que computa rounds y resuelve por mayor ELO, ganador con border accent y glow
-- ⌘ **Command palette** (`Cmd+K`) con cmdk: navega a páginas, personajes y torneos con búsqueda fuzzy
-- 🔍 **Búsqueda + filtros + sort + grid/list toggle** en `/personajes` (estilo MyAnimeList)
+- 🎮 **Anime Daily Trials** integrados en home como sección dedicada (5 modos con kanji: 影 / 謎 / 格 / 裏 / 戦)
+- 🔢 **Stats compactos** sin "0 torneos" en vacío (sustituido por badge ping "Ranking en vivo")
+- 🎁 **Bento grid** asimétrico con 4 features (Brackets estilo batalla, Ranking en directo, Tu historial, La comunidad decide)
+- 📜 **Marquee infinita** con los 700 nombres + fade en bordes (1300s/ciclo)
+
+### Catálogo + Universos
+- 🌀 **3D tilt + spotlight** en cada card del catálogo (mouse-tracked + spring smoothing) + ELO badge + WR + glow rosa en hover
+- 🖼️ **PersonajePlaceholder anti-roto**: si una imagen falla, se renderiza una carta con iniciales del personaje + nombre + anime + kanji 戦 decorativo (nunca se muestra el icono roto del navegador)
+- 🎠 **Carruseles horizontales por anime** estilo Netflix/Crunchyroll en home (snap-x scroll-smooth)
+- 🔍 **Búsqueda + 7 filtros de orden + grid/list toggle** en `/personajes` (estilo MyAnimeList) — Popularidad, Mayor/Menor ELO, Mejor WR, Nombre A-Z/Z-A, Anime
+- 🌌 **Universos anime** en `/animes/:slug` (ruta nueva): hero con collage representativo (top popularidad + top ELO, no random), stats agregados (Top ELO / ELO promedio / Combates), ranking interno con podio coloreado y CTA "Votar personajes de X"
+- 🔎 **Buscador con aliases** en `/animes`: "kimetsu" encuentra Demon Slayer, "snk" Attack on Titan, "mha" My Hero Academia
 - 🌐 **Filter persistente vía URL** (`/personajes?anime=Naruto`)
 - 🎭 **404 con personaje random** y número outline magenta detrás
-- 🎵 **Sonidos anime sintetizados** vía Web Audio API (7 efectos): click, hover, vote (acorde mayor + sparkle), whoosh, magic, impact, level-up. Toggle de mute en Header
-- 🍞 **Toast notifications** (Sonner) en login/logout/voto
+
+### Ranking & Votar
+- 🥇 **Podio Top 3** en `/ranking` con campeón centrado grande (Crown + glow yellow), plata y bronce a los lados
+- 📊 **4 tabs en ranking**: ELO actual / Histórico / Este mes / Por anime (con búsqueda y filtros)
+- ⚔️ **Arena de duelo** en `/votar`: cards compactas que caben sin scroll, VS central con glow magenta, atajos de teclado (`←` `→` `S` `Espacio`), modo rápido auto-next (persistido en localStorage)
+- 📋 **Tabla extraíble plegable** en ranking (datos técnicos) — preserva SEO para crawlers de IA sin competir con la experiencia visual
+
+### Anime Daily Trials (`/games`)
+- 🎌 **Hub épico** con kanji decorativo por modo + stats (Completados hoy / Mejor racha / Countdown reset)
+- 👁️ **Shadow Guess** (`/games/shadow-guess`): silueta borrosa que se nitidiza con cada fallo, 5 intentos, "PERFECT CLEAR ✨" si aciertas al primero
+- 📺 **Anime Reveal** (`/games/anime-reveal`): adivina el anime de un personaje con pistas opcionales
+- 🔠 **AniGrid** (`/games/anigrid`): Wordle de personajes, 6 intentos con comparación letra/anime/ELO
+- 🕵️ **Impostor Trial** (`/games/impostor-trial`): 4 cartas del mismo anime + 1 traidor, 3 rondas con kanji 裏
+- ⚔️ **ELO Duel** (`/games/elo-duel`): Higher or Lower endless con VS animado + glow rosa al acercarse al récord
+- 🎴 **PanelResultado anime**: kanji 結/残 decorativo + sparkles + 🌸/🍂 (en vez de 🟩🟥) + tiers ("Precisión legendaria", "Otaku certificado", "Telepatía pura"…)
+
+### Plataforma
+- ⌘ **Command palette** (`Cmd+K`) con cmdk: navega a páginas, personajes, torneos y modos con búsqueda fuzzy
+- 🎵 **Sonidos anime sintetizados** vía Web Audio API (7 efectos sin assets) con `latencyHint:'interactive'` para baja latencia; toggle de mute en Header
+- 🍞 **Toast notifications** (Sonner) en login/logout/voto/desbloqueo de logro
 - 📊 **Progress bar** del scroll arriba con glow magenta
 - 🪟 **Sticky Header frosted-glass** con backdrop-blur al scroll
-- 🌑 **Texto shimmer animado** en H1 del Hero
-- 🎯 **CTA pulse halo** en botón primario del Hero
 - 📱 **Responsive** con prefers-reduced-motion respetado
-- 🔐 **Auth real con JWT** (registro + login + olvidé contraseña con código por email vía Resend HTTP API + edición de avatar + rol ADMIN auto-promovido por `ADMIN_EMAILS` env)
-- 🎮 **Higher or Lower** mini-juego en `/higher-or-lower`: adivina qué personaje tiene más ELO entre 2 cards, el ganador se queda y aparece nuevo retador, racha + récord histórico en localStorage
-- 📧 **Sugiere personaje CTA** al final de `/personajes` y `/animes` con `mailto:` pre-rellenado a `noreply@animeshowdown.dev` (asunto + cuerpo URL-encoded para Mail.app, Gmail web, Outlook)
+- 🔐 **Auth real con JWT** + 2FA TOTP (registro + login en 2 pasos + reset por email vía Resend + edición avatar + rol ADMIN + backup codes one-shot)
+- 🌳 **Bracket SVG** que computa rounds desde el backend con WebSocket STOMP (push live de actualizaciones tras cada voto)
+- 🎯 **Predicciones de bracket** con badge verde/rojo al resolverse el torneo, ranking de profetas
+- 🏅 **Sistema de logros** (14 badges seed) con `BadgeUnlockListener` global + canvas-confetti escalado por rareza
+- ❤️ **Reactions emoji** (🔥❤️😂😭) en personajes y torneos
+- 👥 **Follow asimétrico** con perfil público `/u/:username`
+- 📧 **Sugiere personaje CTA** al final de `/personajes` y `/animes` con `mailto:` pre-rellenado
+- 📰 **Newsletter** con double opt-in (Resend) + footer compacto
+- 🎴 **Cards Perfil con tabs**: Resumen / Logros / Mis torneos / Ajustes (separa gamificación de seguridad)
+- 💝 **Página /apoya** con cards Ko-fi + GitHub Sponsors + sección "¿En qué ayuda tu apoyo?" (hosting, BBDD, dominio) + "También puedes ayudar gratis" (compartir, star, sugerir)
+- 🇯🇵 **Sakura petals** estacional (15 marzo → 15 abril) + 御籤 Omikuji diario integrado en hub de juegos
+- ⌨️ **Easter egg Konami code** (↑↑↓↓←→←→BA) con overlay CRT verde 8s
 
 ---
 
@@ -139,7 +170,7 @@ psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE animeshowdown_db TO animes
 cd backend
 ./mvnw spring-boot:run
 # Spring levanta en http://localhost:8080
-# DataSeeder sincroniza los 642 personajes con el seed: inserta nuevos, actualiza cambios y borra retirados
+# DataSeeder sincroniza los 700 personajes con el seed: inserta nuevos, actualiza cambios y borra retirados
 ```
 
 ### Frontend
@@ -366,33 +397,93 @@ erDiagram
 
 ## Roadmap
 
-- [x] Backend Spring Boot + JWT + PostgreSQL
-- [x] Despliegue backend en Railway
-- [x] Frontend React + Vite + Tailwind v4 + Framer Motion
-- [x] Despliegue frontend en Cloudflare Pages
-- [x] BBDD sincronizada con los 642 personajes (DataSeeder con insert/update/delete cascade desde `frontend/img/` como source of truth)
-- [x] Auth real con JWT (registro + login + reset por email vía Resend + edición avatar + rol ADMIN)
-- [x] Bracket visual SVG
-- [x] Búsqueda + filtros + view toggle
-- [x] Cmd+K command palette
-- [x] Sonidos anime sintetizados
-- [x] DataSeeder idempotente que sincroniza personajes incrementalmente (sin truncar BBDD)
-- [x] Email transaccional vía Resend HTTP API con dominio verificado `noreply@animeshowdown.dev`
-- [x] Dominio custom **animeshowdown.dev** (frontend) + **api.animeshowdown.dev** (backend) en Cloudflare Registrar + Cloudflare Pages + Railway custom domain
-- [x] Cron de torneos automáticos (GitHub Actions cada 3 días → endpoint admin con login OAuth y secret)
-- [x] Sitemap.xml dinámico (140+ URLs regeneradas en cada `npm run build`) + robots.txt
-- [x] Headers de seguridad CSP + HSTS + X-Frame-Options + Permissions-Policy en Cloudflare Pages `_headers`
-- [x] Tests backend ampliados a 23 (cobertura AuthController + TorneoController + EnfrentamientoController + /me + /me/avatar)
-- [x] Mini-juego Higher or Lower con racha persistente en localStorage
-- [x] Banner "Top votado en producción" en `/ranking` con fetch real al backend
-- [x] CTA "Sugerir personaje" con `mailto:` pre-rellenado al final de `/personajes` y `/animes`
-- [x] Hardening backend: email case-insensitive, reset-password anti-enumeration, JwtUtil sin info leak, PersonajeController PUT no destructivo, TorneoController `@Transactional`, validación distinct personajes
-- [ ] Wirea `/votar` y `/personajes` al backend en producción (hoy `/ranking` ya hace fetch, pero `/votar` y catálogo siguen siendo local-only)
+### Core (✅ completo)
+- [x] Backend Spring Boot + JWT + PostgreSQL + Flyway (V1-V12)
+- [x] Despliegue backend en Railway, frontend en Cloudflare Pages
+- [x] BBDD sincronizada con 700 personajes en 67 animes (DataSeeder con insert/update/delete cascade)
+- [x] Dominio custom **animeshowdown.dev** + **api.animeshowdown.dev**
+- [x] Email transaccional vía Resend HTTP API con dominio verificado
+
+### Auth & Seguridad (✅ completo)
+- [x] JWT + refresh tokens en httpOnly cookies (15min/30d) + auto-refresh on 401
+- [x] 2FA TOTP con `dev.samstevens.totp` + backup codes one-shot + login en 2 pasos
+- [x] Email verification + banner persistente + página `/verify`
+- [x] Password complexity + medidor visual
+- [x] Rate limiting Bucket4j (5/min + 50/h por IP en rutas críticas)
+- [x] Account lockout 5 intentos / 15min
+- [x] Audit log con 14 eventos cubriendo auth + sessions
+- [x] Headers de seguridad CSP + HSTS + X-Frame-Options + Permissions-Policy
+
+### Engagement (✅ completo)
+- [x] Sistema de logros (14 badges) con eventos `@TransactionalEventListener` + notif + confetti
+- [x] Reactions (🔥❤️😂😭) en personajes y torneos
+- [x] Predicciones de bracket con resolución automática al finalizar torneo
+- [x] Follow asimétrico + perfil público `/u/:username`
+- [x] Ranking segmentado: ELO actual / Histórico / Este mes / Por anime
+- [x] Newsletter double opt-in con tokens UUID
+- [x] Torneos creados por usuarios con flow APROBADO/RECHAZADO + admin
+
+### Notificaciones (✅ completo)
+- [x] WebSocket STOMP con `JwtAuthChannelInterceptor` + tabla `notificaciones` + 4 tipos
+- [x] NotifBell en Header con dropdown live + badge unread + push tras voto
+- [x] Bracket update en tiempo real tras cada voto en torneo activo
+
+### Anime Daily Trials (✅ completo MVP)
+- [x] Hub `/games` con 5 modos diarios + countdown reset + Omikuji integrado
+- [x] **Shadow Guess** (silueta borrosa, 5 intentos, PERFECT CLEAR)
+- [x] **Anime Reveal** (adivina el anime con pistas)
+- [x] **AniGrid** (Wordle de personajes, 6 intentos)
+- [x] **Impostor Trial** (4 cartas mismo anime + 1 traidor, 3 rondas)
+- [x] **ELO Duel** (Higher or Lower con racha persistente)
+- [x] PanelResultado anime compartido con kanji 結/残 + sparkles + 🌸/🍂
+- [x] "Jugar otra ronda" tras completar el daily (sin afectar progreso oficial)
+- [x] Redirects 301 a nivel Cloudflare para rebrand de URLs (`guess-character` → `shadow-guess` etc.)
+
+### Cultura japonesa (✅ parcial 9/16)
+- [x] Sakura petals estacional (15 marzo → 15 abril) con override localStorage
+- [x] Omikuji diario con 5 suertes tradicionales
+- [x] Glossary otaku `/glossary` con 30 términos + JsonLd DefinedTermSet
+- [x] Kanji decorativo de fondo en cards de juegos + paneles de resultado + universo anime
+- [x] Easter egg Konami code (↑↑↓↓←→←→BA) con overlay CRT verde
+
+### SEO + GEO LLMs (✅ completo)
+- [x] Sitemap dinámico (664+ URLs) + image sitemap + robots.txt con reglas explícitas para GPTBot/ClaudeBot/PerplexityBot
+- [x] `useSeo` hook custom con title + description + canonical + OG + Twitter + hreflang
+- [x] JSON-LD: WebSite + Person + SportsEvent + CollectionPage + BreadcrumbList + FAQPage + DefinedTermSet
+- [x] Microdata schema.org en ficha de personaje y torneo (Person + TVSeries + SportsEvent)
+- [x] `llms.txt` + API docs públicos en `/api-docs` + tabla extraíble en ranking
+- [x] FAQ con schema rich snippet + Internal linking estructurado en todas las páginas
+- [x] IndexNow para Bing/Yandex/Seznam tras torneos UGC aprobados o autogenerados
+- [x] Core Web Vitals: preload del logo Hero con fetchpriority=high
+
+### PWA + Performance (✅ completo)
+- [x] PWA con Workbox: CacheFirst /img/* y /api/og/*, NetworkFirst /api/personajes y /api/torneos
+- [x] AVIF + WebP responsive `<picture>` srcset 300/600/1024 (generador en build con sharp; build full opcional)
+- [x] Critical CSS inline con beasties (~5KB above-the-fold + bundle async)
+- [x] Bundle size budget 250KB gzip en CI
+- [x] Sentry + Web Vitals tracking con GDPR-safe defaults
+
+### Frontend rebrand "Plataforma de duelos" (✅ completo)
+- [x] Home: "El ranking definitivo del anime lo decides tú" + CTAs Votar / Ranking
+- [x] Ranking: podio Top 3 visual (Crown + glow yellow / plata / bronce) + búsqueda + filtros
+- [x] Votar: arena compacta sin scroll + VS pulsante con glow + atajos teclado (← → S Espacio) + modo rápido
+- [x] Personajes: PersonajePlaceholder anti-roto + cards con ELO + WR + badge Top X
+- [x] Animes: página individual `/animes/:slug` con stats agregados + roster + ranking interno + CTAs
+- [x] Apoya: cards Ko-fi + GitHub Sponsors + costes reales + "También puedes ayudar gratis"
+- [x] Perfil con tabs (Resumen / Logros / Mis torneos / Ajustes)
+
+### Operations (✅ parcial)
+- [x] DevOps: Dependabot scan semanal + groupings (react-vendor, i18n, tanstack…)
+- [x] Backups Neon → Cloudflare R2 (cron diario, rotación daily/weekly/monthly)
+- [x] Páginas legales: Privacy + Terms + DMCA con Footer extendido
+- [x] CI verde con tests backend 92/92
+
+### Pendiente
 - [ ] Tests E2E con Playwright
-- [ ] Refresh tokens (hoy JWT expira a 1h y obliga re-login)
-- [ ] Rate limiting con bucket4j en `/forgot-password` y `/login` (anti brute-force)
-- [ ] PWA + service worker para offline
-- [ ] OG images dinámicas server-side
+- [ ] OG images dinámicas server-side (Bloque 1.2 backend hecho, integrar meta tags client-side)
+- [ ] i18n: completar migración de strings al `t()` en páginas restantes (Home + Perfil + Votar + Ranking + Personajes + Animes pendientes)
+- [ ] Bloque 15: escalado del catálogo a 1000+ personajes con atributos extendidos para modos Hard/Speed
+- [ ] Bloque 11: TV mode + Mi Top 5 + Top voters completos
 
 ---
 
