@@ -72,3 +72,13 @@ logs/
 
 # macOS Icon residual
 Icon?
+
+# ===========================
+# Notas locales — fuera del repo
+# ===========================
+# memory/ contiene notas operativas del proyecto que mantengo en local
+# (briefs, estado actual, planes futuros). NO van al repo.
+memory/
+
+# .claude/ es del agente de Anthropic en local. Tampoco va al repo.
+.claude/
