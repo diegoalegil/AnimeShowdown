@@ -90,14 +90,26 @@ function AutocompletePersonaje({
     }
   }
 
+  const listboxId = `${inputId}-list`
+  const optionId = (idx) => `${inputId}-option-${idx}`
+
   return (
     <div className="relative">
+      {/*
+        Patrón combobox WAI-ARIA 1.2 (audit a11y 2026-05-17):
+        - role="combobox" en el input + aria-haspopup="listbox".
+        - aria-activedescendant referencia el <li> activo por id, para
+          que SR anuncie la opción navegada con flechas sin mover el
+          foco (que sigue en el input).
+        - <li> cada uno con id estable y aria-selected en el activo.
+      */}
       <div className="flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-2.5">
         <Search className="h-4 w-4 text-fg-muted" />
         <input
           id={inputId}
           ref={inputRef}
           type="text"
+          role="combobox"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -111,21 +123,31 @@ function AutocompletePersonaje({
           autoFocus={autoFocus}
           autoComplete="off"
           aria-autocomplete="list"
-          aria-controls={`${inputId}-list`}
+          aria-controls={listboxId}
           aria-expanded={abierto}
+          aria-haspopup="listbox"
+          aria-activedescendant={
+            abierto && opciones.length > 0 ? optionId(activo) : undefined
+          }
           className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
       {abierto && opciones.length > 0 && (
         <ul
-          id={`${inputId}-list`}
+          id={listboxId}
           role="listbox"
           className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface shadow-2xl"
         >
           {opciones.map((p, idx) => (
-            <li key={p.slug} role="option" aria-selected={idx === activo}>
+            <li
+              key={p.slug}
+              id={optionId(idx)}
+              role="option"
+              aria-selected={idx === activo}
+            >
               <button
                 type="button"
+                tabIndex={-1}
                 onMouseEnter={() => setActivo(idx)}
                 onMouseDown={(e) => {
                   // mousedown antes que onBlur del input para no cerrar.
