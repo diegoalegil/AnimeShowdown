@@ -161,4 +161,38 @@ class LogroControllerTest {
                 // Los demás siguen sin desbloquear.
                 .andExpect(jsonPath("$[?(@.codigo=='mil_votos' && @.desbloqueadoEn == null)]").exists());
     }
+
+    @Test
+    void statsPublicoDevuelve14CodigosConCount() throws Exception {
+        // Sin desbloqueos previos, el endpoint debe devolver los 14 codigos
+        // del catálogo con count=0 (no se omiten los que tienen 0).
+        mvc.perform(get("/api/logros/stats"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.primer_voto").exists())
+                .andExpect(jsonPath("$.mil_votos").exists())
+                .andExpect(jsonPath("$.primer_voto").value(org.hamcrest.Matchers.greaterThanOrEqualTo(0)));
+    }
+
+    @Test
+    void statsCuentaDesbloqueosDeMultiplesUsuarios() throws Exception {
+        Usuario u1 = crearUsuario("stats_alice", "stats_alice@example.com");
+        Usuario u2 = crearUsuario("stats_bob", "stats_bob@example.com");
+        long primerVotoAntes = primerVotoCount();
+
+        badgeService.desbloquear(u1, "primer_voto");
+        badgeService.desbloquear(u2, "primer_voto");
+
+        long primerVotoDespues = primerVotoCount();
+        assert primerVotoDespues == primerVotoAntes + 2
+                : "Debe sumar 2 desbloqueos; antes=" + primerVotoAntes
+                  + " despues=" + primerVotoDespues;
+    }
+
+    private long primerVotoCount() throws Exception {
+        var res = mvc.perform(get("/api/logros/stats"))
+                .andExpect(status().isOk())
+                .andReturn();
+        return json.readTree(res.getResponse().getContentAsString())
+                .get("primer_voto").asLong();
+    }
 }

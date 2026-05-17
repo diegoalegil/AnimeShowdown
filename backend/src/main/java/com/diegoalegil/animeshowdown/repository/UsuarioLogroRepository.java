@@ -3,6 +3,7 @@ package com.diegoalegil.animeshowdown.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.diegoalegil.animeshowdown.model.Logro;
 import com.diegoalegil.animeshowdown.model.Usuario;
@@ -17,4 +18,16 @@ public interface UsuarioLogroRepository extends JpaRepository<UsuarioLogro, Long
     boolean existsByUsuarioAndLogro(Usuario usuario, Logro logro);
 
     long countByUsuario(Usuario usuario);
+
+    /**
+     * Counts agregados por badge para la página pública /logros: cuántos
+     * usuarios han desbloqueado cada uno (proxy de rareza real, complementa
+     * la rareza nominal del catálogo).
+     *
+     * <p>Devuelve {@code [logroId, count]} para los logros con al menos 1
+     * desbloqueo. Los logros con 0 desbloqueos NO aparecen — el caller debe
+     * defaultear a 0 si no encuentra la entry.
+     */
+    @Query("select ul.logro.id, count(ul) from UsuarioLogro ul group by ul.logro.id")
+    List<Object[]> contarDesbloqueosPorLogro();
 }

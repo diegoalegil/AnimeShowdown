@@ -79,7 +79,10 @@ public class SecurityConfig {
                         // Plan v2 §4.2: catálogo de badges público (cacheable
                         // long-term en frontend); /mios requiere auth para
                         // saber a qué usuario pertenecen los desbloqueos.
+                        // §4.10: /stats agregado por badge es público — alimenta
+                        // la página /logros con la rareza real de la comunidad.
                         .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/logros/stats").permitAll()
                         .requestMatchers("/api/logros/mios").authenticated()
                         // Plan v2 §4.3: reactions emoji. GET público (todos
                         // ven los counts); POST autenticado (1 reaction por

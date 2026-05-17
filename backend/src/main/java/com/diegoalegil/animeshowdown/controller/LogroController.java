@@ -14,7 +14,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.BadgeService;
 
 /**
- * Endpoints de badges/logros (Plan v2 §4.2).
+ * Endpoints de badges/logros (Plan v2 §4.2, §4.10).
  *
  * <ul>
  *   <li>{@code GET /api/logros} — público. Catálogo de los 14 badges con
@@ -24,6 +24,9 @@ import com.diegoalegil.animeshowdown.service.BadgeService;
  *       {@code desbloqueadoEn} para los que el usuario tiene; null para
  *       los que aún le faltan. Pensado para pintar el grid completo en
  *       /perfil con los desbloqueados resaltados.</li>
+ *   <li>{@code GET /api/logros/stats} — público. Mapa codigo → count con
+ *       cuántos usuarios han desbloqueado cada badge. Alimenta /logros
+ *       para mostrar rareza real de la comunidad.</li>
  * </ul>
  */
 @RestController
@@ -51,5 +54,10 @@ public class LogroController {
         // mantener la session abierta mientras accedemos a UsuarioLogro.logro
         // (relación LAZY). Si lo hiciéramos aquí saldría LazyInitException.
         return ResponseEntity.ok(badgeService.listarCatalogoConDesbloqueos(usuario));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<java.util.Map<String, Long>> stats() {
+        return ResponseEntity.ok(badgeService.contarDesbloqueosPorBadge());
     }
 }
