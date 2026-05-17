@@ -312,6 +312,12 @@ export const endpoints = {
   //     precedencia, limit max 200.
   //   animesConVotos: lista de animes con al menos 1 voto, para popular
   //     el dropdown del tab 'Por anime'.
+  // Ranking actual con indicadores de movimiento (Plan v2 §4.x):
+  // delta vs hace N días + flag esNuevo para personajes que no aparecían.
+  rankingMovimientos: ({ limit = 50, dias = 7 } = {}) =>
+    api.get(`/api/votos/ranking/movimientos?limit=${limit}&dias=${dias}`, {
+      auth: false,
+    }),
   rankingSegmentado: ({ periodo = 'all', anime, limit = 50 } = {}) => {
     const params = new URLSearchParams({ periodo, limit: String(limit) })
     if (anime) params.set('anime', anime)

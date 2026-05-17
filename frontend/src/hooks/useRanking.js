@@ -31,3 +31,20 @@ export function useAnimesConVotos({ enabled = true } = {}) {
     staleTime: 10 * 60 * 1000, // 10 min: cambia muy lento
   })
 }
+
+/**
+ * Ranking actual con indicadores de movimiento ↑↓/Nuevo (Plan v2 §4.x).
+ * Comparativa frente al ranking de hace {@code dias} días.
+ */
+export function useRankingMovimientos({
+  limit = 50,
+  dias = 7,
+  enabled = true,
+} = {}) {
+  return useQuery({
+    queryKey: ['ranking', 'movimientos', limit, dias],
+    queryFn: () => endpoints.rankingMovimientos({ limit, dias }),
+    enabled,
+    staleTime: 60 * 1000,
+  })
+}

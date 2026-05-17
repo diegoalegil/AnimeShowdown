@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.RankingItem;
+import com.diegoalegil.animeshowdown.dto.RankingMovimientoItem;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.service.RankingMovimientosService;
 
 @RestController
 @RequestMapping("/api/votos")
@@ -20,9 +22,12 @@ public class VotoController {
     private static final int MAX_LIMIT = 200;
 
     private final VotoRepository votoRepository;
+    private final RankingMovimientosService rankingMovimientosService;
 
-    public VotoController(VotoRepository votoRepository) {
+    public VotoController(VotoRepository votoRepository,
+            RankingMovimientosService rankingMovimientosService) {
         this.votoRepository = votoRepository;
+        this.rankingMovimientosService = rankingMovimientosService;
     }
 
     /**
@@ -32,6 +37,20 @@ public class VotoController {
     @GetMapping("/ranking")
     public List<RankingItem> obtenerRanking() {
         return votoRepository.obtenerRanking();
+    }
+
+    /**
+     * Ranking actual con indicadores de movimiento (Plan v2 §4.x).
+     *
+     * <p>Compara la posición de cada personaje en el top-N actual contra
+     * su posición en el ranking de hace {@code dias} días. Devuelve
+     * delta (positivo si subió), null si era nuevo en el ranking.
+     */
+    @GetMapping("/ranking/movimientos")
+    public List<RankingMovimientoItem> rankingMovimientos(
+            @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(defaultValue = "7") int dias) {
+        return rankingMovimientosService.calcular(limit, dias);
     }
 
     /**

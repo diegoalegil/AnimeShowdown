@@ -27,6 +27,7 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import {
   useAnimesConVotos,
+  useRankingMovimientos,
   useRankingSegmentado,
 } from '../hooks/useRanking'
 
@@ -381,8 +382,24 @@ function ListaBackend({ periodo }) {
     periodo,
     limit: 100,
   })
+  // Solo cargamos movimientos en el tab "ELO actual" (periodo=all): es
+  // el único donde "subir/bajar vs hace 7d" tiene sentido. En mes ya
+  // tienes la ventana corta como contexto.
+  const { data: movimientos } = useRankingMovimientos({
+    limit: 100,
+    dias: 7,
+    enabled: periodo === 'all',
+  })
+  const movimientosPorSlug = movimientos
+    ? new Map(movimientos.map((m) => [m.slug, m]))
+    : null
   return (
-    <ListaVotosCommon items={data} isLoading={isLoading} isError={isError} />
+    <ListaVotosCommon
+      items={data}
+      isLoading={isLoading}
+      isError={isError}
+      movimientosPorSlug={movimientosPorSlug}
+    />
   )
 }
 
@@ -448,7 +465,7 @@ function PorAnime() {
   )
 }
 
-function ListaVotosCommon({ items, isLoading, isError }) {
+function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-10">
@@ -481,6 +498,7 @@ function ListaVotosCommon({ items, isLoading, isError }) {
           rank={i + 1}
           personaje={item.personaje}
           votos={item.votos}
+          movimiento={movimientosPorSlug?.get(item.personaje.slug) ?? null}
         />
       ))}
     </ol>
@@ -549,7 +567,7 @@ function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses }) {
   )
 }
 
-function RankRowVotos({ rank, personaje, votos }) {
+function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
   return (
     <motion.li
       initial={{ opacity: 0, y: 12 }}
@@ -571,9 +589,12 @@ function RankRowVotos({ rank, personaje, votos }) {
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
-            {personaje.nombre}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
+              {personaje.nombre}
+            </p>
+            {movimiento && <MovimientoBadge movimiento={movimiento} />}
+          </div>
           <p className="truncate text-[12px] text-fg-muted">
             {personaje.anime}
           </p>
@@ -603,6 +624,49 @@ function RankBadge({ rank }) {
       }`}
     >
       {rank === 1 ? <Crown className="h-5 w-5" /> : rank}
+    </span>
+  )
+}
+
+/**
+ * Badge ↑N / ↓N / = / Nuevo según el movimiento del personaje vs el
+ * ranking de hace 7 días (Plan v2 §4.x).
+ */
+function MovimientoBadge({ movimiento }) {
+  if (movimiento.esNuevo) {
+    return (
+      <span className="inline-flex shrink-0 items-center rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold uppercase tracking-wider text-accent">
+        Nuevo
+      </span>
+    )
+  }
+  const delta = movimiento.delta
+  if (delta == null || delta === 0) {
+    return (
+      <span
+        className="inline-flex shrink-0 items-center font-mono text-[11px] font-bold text-fg-muted"
+        title="Mantiene posición vs hace 7 días"
+      >
+        =
+      </span>
+    )
+  }
+  if (delta > 0) {
+    return (
+      <span
+        className="inline-flex shrink-0 items-center gap-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-emerald-300"
+        title={`Subió ${delta} posiciones vs hace 7 días`}
+      >
+        ↑{delta}
+      </span>
+    )
+  }
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-0.5 rounded border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-rose-300"
+      title={`Bajó ${Math.abs(delta)} posiciones vs hace 7 días`}
+    >
+      ↓{Math.abs(delta)}
     </span>
   )
 }
