@@ -21,6 +21,20 @@ export function useCatalogoLogros() {
   })
 }
 
+/**
+ * Stats agregadas por badge para la página /logros (Plan v2 §4.10):
+ * { [codigo]: count } con cuántos usuarios han desbloqueado cada uno.
+ * staleTime corto (5 min) para que la "rareza real comunidad" no se
+ * quede demasiado rancia entre visitas.
+ */
+export function useStatsLogros() {
+  return useQuery({
+    queryKey: ['logros', 'stats'],
+    queryFn: endpoints.logrosStats,
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
 const QUERY_KEY_MIS_LOGROS = ['logros', 'mios']
 
 export function useMisLogros({ enabled = true } = {}) {
