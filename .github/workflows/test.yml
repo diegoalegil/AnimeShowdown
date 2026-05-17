@@ -106,8 +106,8 @@ jobs:
           fi
           echo "✅ Bundle dentro del presupuesto"
 
-  sync-personajes-dry-run:
-    name: sync-personajes (dry-run)
+  sync-personajes-check:
+    name: sync-personajes (--check drift)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -117,8 +117,12 @@ jobs:
         with:
           node-version: '22'
 
-      # Smoke test del script de sincronización: garantiza que los JSON de
-      # overrides y display names parsean bien y que ningún cambio reciente
-      # en img/ deja al script en estado roto. No escribe nada.
-      - name: Dry-run sync-personajes
-        run: node scripts/sync-personajes.mjs --dry-run
+      # Audit P2 (2026-05-17): antes corríamos --dry-run, que no fallaba
+      # aunque hubiera carpetas enteras de personajes en img/ sin entrar al
+      # seed/personajes.js. Resultado: pushes que añadían imágenes pero
+      # NO llegaban al frontend ni a la BBDD hasta que alguien recordara
+      # correr sync. --check compara seed.json vs escaneo de img/ (con la
+      # WIP allowlist aplicada) y falla con exit 1 listando el drift, con
+      # mensaje accionable. También valida que los JSON parsean OK.
+      - name: Check sync-personajes drift
+        run: node scripts/sync-personajes.mjs --check

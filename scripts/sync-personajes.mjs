@@ -18,6 +18,8 @@
  * Uso:
  *   node scripts/sync-personajes.mjs           # regenera ambos outputs
  *   node scripts/sync-personajes.mjs --dry-run # solo imprime el resumen
+ *   node scripts/sync-personajes.mjs --check   # falla si seed.json no coincide
+ *                                              # con lo detectado (audit P2 CI)
  */
 
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
@@ -31,8 +33,10 @@ const OUT_FRONTEND = join(ROOT, 'frontend', 'src', 'data', 'personajes.js')
 const OUT_BACKEND = join(ROOT, 'backend', 'src', 'main', 'resources', 'personajes-seed.json')
 const ANIME_NAMES_FILE = join(__dirname, 'data', 'anime-display-names.json')
 const OVERRIDES_FILE = join(__dirname, 'data', 'personajes-overrides.json')
+const WIP_ALLOWLIST_FILE = join(__dirname, 'data', 'personajes-wip-allowlist.json')
 
 const DRY_RUN = process.argv.includes('--dry-run')
+const CHECK = process.argv.includes('--check')
 
 // ─── carga de configuración ─────────────────────────────────────────────────
 
@@ -40,6 +44,13 @@ const animeNames = JSON.parse(readFileSync(ANIME_NAMES_FILE, 'utf8'))
 const overrides = JSON.parse(readFileSync(OVERRIDES_FILE, 'utf8'))
 // _meta es solo documentación dentro del JSON, no es un slug
 delete overrides._meta
+
+// Audit P2 (2026-05-17): carpetas WIP que NO entran al seed. Permite tener
+// webp en construcción en frontend/img/ sin que el CI falle ni se filtren a
+// producción. Tanto el sync como el --check respetan esta lista.
+const wipAllowlist = JSON.parse(readFileSync(WIP_ALLOWLIST_FILE, 'utf8'))
+const wipFolders = new Set(wipAllowlist.folders ?? [])
+const wipSlugs = new Set(wipAllowlist.slugs ?? [])
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -76,8 +87,14 @@ function scanFolder() {
     .sort()
 
   let variantesIgnoradas = 0
+  let wipFoldersSkipped = 0
+  let wipSlugsSkipped = 0
   const nonWebp = []
   for (const folder of folders) {
+    if (wipFolders.has(folder)) {
+      wipFoldersSkipped++
+      continue
+    }
     const animeDisplay = getAnimeDisplayName(folder)
     const allFiles = readdirSync(join(IMG_DIR, folder), { withFileTypes: true })
       .filter(f => f.isFile())
@@ -102,12 +119,21 @@ function scanFolder() {
         variantesIgnoradas++
         continue
       }
+      if (wipSlugs.has(baseSlug)) {
+        wipSlugsSkipped++
+        continue
+      }
       raw.push({ baseSlug, folder, animeDisplay, file })
     }
   }
 
   if (variantesIgnoradas > 0) {
     console.log(`  ℹ ${variantesIgnoradas} variantes responsive (-300/-600/-1024) ignoradas`)
+  }
+  if (wipFoldersSkipped > 0 || wipSlugsSkipped > 0) {
+    console.log(
+      `  ℹ WIP allowlist: ${wipFoldersSkipped} carpeta(s) y ${wipSlugsSkipped} slug(s) saltados (personajes-wip-allowlist.json)`,
+    )
   }
   if (nonWebp.length > 0) {
     console.warn(`  ⚠ ${nonWebp.length} imagen(es) PNG/JPG sueltas — NO entran al catálogo (deben convertirse a .webp y renombrar al slug del personaje):`)
@@ -267,6 +293,11 @@ function main() {
   console.log(`  Con descripción curada: ${conOverride}`)
   console.log(`  Con descripción placeholder: ${sinOverride}`)
 
+  if (CHECK) {
+    runCheck(entries)
+    return
+  }
+
   if (DRY_RUN) {
     console.log('\n--dry-run: no se escribe nada.')
     return
@@ -280,6 +311,43 @@ function main() {
 
   writeFileSync(OUT_BACKEND, seedJson)
   console.log(`✓ Generado ${OUT_BACKEND}`)
+}
+
+/**
+ * Modo CI: verifica que el seed.json commiteado coincide con lo que el
+ * escaneo de img/ produce (ya filtrado por la WIP allowlist). Falla con
+ * exit 1 si hay drift, listando qué slugs sobran o faltan. Hasta este
+ * P2 (2026-05-17), CI solo hacía --dry-run y permitía pushear carpetas
+ * enteras de personajes sin que entraran nunca al frontend/backend.
+ */
+function runCheck(entries) {
+  const seed = JSON.parse(readFileSync(OUT_BACKEND, 'utf8'))
+  const seedSlugs = new Set(seed.map(e => e.slug))
+  const detectedSlugs = new Set(entries.map(e => e.slug))
+
+  const missingFromSeed = [...detectedSlugs].filter(s => !seedSlugs.has(s)).sort()
+  const extraInSeed = [...seedSlugs].filter(s => !detectedSlugs.has(s)).sort()
+
+  if (missingFromSeed.length === 0 && extraInSeed.length === 0) {
+    console.log(`\n✓ --check OK: seed.json (${seed.length}) coincide con el escaneo de img/ (${entries.length}).`)
+    return
+  }
+
+  console.error('\n❌ --check FALLÓ: seed.json no está en sync con frontend/img/')
+  if (missingFromSeed.length > 0) {
+    console.error(`\n  Slugs detectados en img/ pero AUSENTES del seed (${missingFromSeed.length}):`)
+    for (const s of missingFromSeed.slice(0, 30)) console.error(`    + ${s}`)
+    if (missingFromSeed.length > 30) console.error(`    ... (+${missingFromSeed.length - 30} más)`)
+  }
+  if (extraInSeed.length > 0) {
+    console.error(`\n  Slugs en seed pero AUSENTES de img/ (${extraInSeed.length}):`)
+    for (const s of extraInSeed.slice(0, 30)) console.error(`    - ${s}`)
+    if (extraInSeed.length > 30) console.error(`    ... (+${extraInSeed.length - 30} más)`)
+  }
+  console.error('\n  Fix: corre `node scripts/sync-personajes.mjs` y commitea')
+  console.error('       personajes.js + personajes-seed.json. O añade el folder/slug')
+  console.error('       a scripts/data/personajes-wip-allowlist.json si es WIP.')
+  process.exit(1)
 }
 
 main()
