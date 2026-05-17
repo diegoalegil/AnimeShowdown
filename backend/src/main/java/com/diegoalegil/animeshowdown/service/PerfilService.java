@@ -297,12 +297,16 @@ public class PerfilService {
         // dentro de la misma tx para que ambas escrituras commiteen juntas
         // o se rollee todo. La versión @Async anterior podía persistir
         // tarde con FK violation.
+        // Audit (2026-05-17): no incluir email en los detalles del audit.
+        // Los logs tienen retención larga (forensic/compliance) y exponer
+        // PII allí viola data minimization — el username es suficiente
+        // para forense del evento. Si necesitamos contactar al usuario
+        // tras el delete, podemos cruzar con la audit_log de eventos
+        // previos del mismo username que sí tenían email legítimo.
         auditLogService.registrarSync(
                 AuditEvento.CUENTA_ELIMINADA,
                 usuario,
-                java.util.Map.of(
-                        "username", usuario.getUsername(),
-                        "email", usuario.getEmail()),
+                java.util.Map.of("username", usuario.getUsername()),
                 request);
         usuarioRepository.delete(usuario);
     }

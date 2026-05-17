@@ -101,18 +101,22 @@ public class CronTorneoController {
 
     /**
      * Comparación constant-time para evitar timing attacks sobre el
-     * secret. {@code String.equals} sale antes en el primer char
-     * distinto; este recorre siempre todos los chars del más largo.
+     * secret. Delega en {@link java.security.MessageDigest#isEqual} que
+     * es la implementación canónica constant-time del JDK (mantiene el
+     * mismo tiempo de ejecución independientemente de dónde difieran
+     * los bytes — el early return por null ya no es vector).
+     *
+     * <p>Audit (2026-05-17): la implementación manual previa hacía un
+     * {@code if (a == null || b == null) return false;} antes del loop
+     * que permitía distinguir por timing "secret null" vs "secret
+     * wrong". MessageDigest.isEqual cubre ambos casos uniformemente
+     * (sigue O(max(len(a),len(b))) sin early exit).
      */
     private static boolean constantTimeEquals(String a, String b) {
-        if (a == null || b == null) return false;
-        int max = Math.max(a.length(), b.length());
-        int diff = a.length() ^ b.length();
-        for (int i = 0; i < max; i++) {
-            int ai = i < a.length() ? a.charAt(i) : 0;
-            int bi = i < b.length() ? b.charAt(i) : 0;
-            diff |= ai ^ bi;
-        }
-        return diff == 0;
+        byte[] ab = a == null ? new byte[0] : a.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] bb = b == null ? new byte[0] : b.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        // null vs null pasa como match — el caller debe verificar non-blank antes.
+        if (ab.length == 0 && bb.length == 0) return false;
+        return java.security.MessageDigest.isEqual(ab, bb);
     }
 }
