@@ -11,7 +11,9 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +68,15 @@ public class DataSeeder implements CommandLineRunner {
     private final BracketService bracketService;
     private final ObjectMapper objectMapper;
 
+    // Self-injection vía proxy para que @Transactional aplique al llamar
+    // self.sincronizar(). Sin esto, this.sincronizar() es una invocación
+    // directa al método del bean concreto (no del proxy) y Spring no
+    // intercepta — la "transacción" queda en auto-commit por entity y un
+    // fallo a mitad del seed deja la BBDD a medias.
+    @Autowired
+    @Lazy
+    private DataSeeder self;
+
     public DataSeeder(
             PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
@@ -84,18 +95,57 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         log.info("DataSeeder iniciado: sincronizando con {} y {}", SEED_FILE, SEED_TORNEOS_FILE);
-        try (InputStream is = new ClassPathResource(SEED_FILE).getInputStream()) {
-            List<SeedPersonaje> entradas = objectMapper.readValue(is, new TypeReference<>() {});
-            sincronizar(entradas);
-        } catch (Exception e) {
-            log.error("DataSeeder fallo global al leer {}: {}", SEED_FILE, e.getMessage(), e);
-        }
 
+        // Pre-flight: leer y validar el seed antes de tocar BBDD. Si hay
+        // slugs duplicados (regresión histórica del sync script que llegó a
+        // generar 2815 entries para 700 personajes reales), abortamos el
+        // arranque — preferible no arrancar a arrancar con catálogo corrupto.
+        List<SeedPersonaje> entradas;
+        try (InputStream is = new ClassPathResource(SEED_FILE).getInputStream()) {
+            entradas = objectMapper.readValue(is, new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "DataSeeder no puede leer " + SEED_FILE + ": " + e.getMessage(), e);
+        }
+        validarSinDuplicados(entradas);
+
+        // sincronizar via self.proxy → @Transactional realmente aplica.
+        // Si falla, dejar burbujear → Spring no arranca y el alerting de
+        // Railway lo detecta. Mejor "down" visible que "up" con BBDD a medias.
+        self.sincronizar(entradas);
+
+        // Torneos seed: best-effort. No es crítico para servir el API
+        // (los torneos UGC y el cron auto pueden regenerar el bracket).
         try (InputStream is = new ClassPathResource(SEED_TORNEOS_FILE).getInputStream()) {
             List<SeedTorneo> torneos = objectMapper.readValue(is, new TypeReference<>() {});
-            sincronizarTorneos(torneos);
+            self.sincronizarTorneos(torneos);
         } catch (Exception e) {
-            log.error("DataSeeder fallo global al leer {}: {}", SEED_TORNEOS_FILE, e.getMessage(), e);
+            log.error("DataSeeder fallo al sincronizar {} (no crítico): {}",
+                    SEED_TORNEOS_FILE, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Valida que el seed no contenga slugs duplicados. Es muy fácil que el
+     * script de sync genere duplicados accidentales (variantes de imagen,
+     * carpetas con/sin guion bajo). Si dejásemos pasar el seed con dups,
+     * el INSERT del primero comitearía y el segundo lanzaría Unique
+     * constraint violation a mitad de transacción — peor que el fail-fast.
+     */
+    private void validarSinDuplicados(List<SeedPersonaje> entradas) {
+        Map<String, Integer> count = new HashMap<>();
+        for (SeedPersonaje s : entradas) {
+            count.merge(s.slug, 1, Integer::sum);
+        }
+        List<String> dups = count.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(e -> e.getKey() + " (×" + e.getValue() + ")")
+                .toList();
+        if (!dups.isEmpty()) {
+            throw new IllegalStateException(
+                    "Seed " + SEED_FILE + " contiene " + dups.size()
+                    + " slugs duplicados — regenera con `node scripts/sync-personajes.mjs`. "
+                    + "Primeros: " + dups.stream().limit(5).toList());
         }
     }
 
@@ -104,7 +154,7 @@ public class DataSeeder implements CommandLineRunner {
      * crítico se hace rollback automático por @Transactional.
      */
     @Transactional
-    protected void sincronizar(List<SeedPersonaje> entradas) {
+    public void sincronizar(List<SeedPersonaje> entradas) {
         // Index del seed por slug para lookups O(1)
         Map<String, SeedPersonaje> seedPorSlug = new HashMap<>();
         for (SeedPersonaje s : entradas) {
@@ -231,7 +281,7 @@ public class DataSeeder implements CommandLineRunner {
      *     resultados reales).
      */
     @Transactional
-    protected void sincronizarTorneos(List<SeedTorneo> torneos) {
+    public void sincronizarTorneos(List<SeedTorneo> torneos) {
         Map<String, Personaje> personajesPorSlug = new HashMap<>();
         for (Personaje p : personajeRepository.findAll()) {
             personajesPorSlug.put(p.getSlug(), p);
