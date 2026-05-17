@@ -70,15 +70,20 @@ function createClient() {
   return c
 }
 
-// Audit P2 (2026-05-17, 4ª iter): flag que bloquea ensureConnected
-// mientras hay un deactivate() en curso. Sin esto, AuthContext o
-// cualquier subscribe() entre client=null y await deactivate podían
-// crear un cliente nuevo antes de que el viejo terminara de cerrar
-// su socket — dos WS vivos durante 50-200ms en cada cambio de token.
-let isReconnecting = false
+// Audit P2 (2026-05-18, 5ª iter): cadena de deactivations. Antes el
+// flag booleano isReconnecting no cubría dos reconnects consecutivos:
+// reconnect A guardaba stale, marcaba isReconnecting=true, hacía await
+// deactivate; reconnect B entraba MIENTRAS A esperaba, encontraba
+// client=null+stale=null, no esperaba al deactivate de A y al final
+// reseteaba isReconnecting=false antes de tiempo. Resultado:
+// ensureConnected podía abrir un cliente nuevo mientras A seguía
+// cerrando su socket. Ahora chain serializa todos los await
+// deactivate; ensureConnected espera mientras haya cualquiera
+// pendiente.
+let deactivationPromise = null
 
 export function ensureConnected() {
-  if (isReconnecting) return null
+  if (deactivationPromise) return null
   if (client) return client
   // Audit P2 (2026-05-17): el handshake HTTP /ws es público pero el frame
   // CONNECT requiere JWT (WebSocketConfig.JwtAuthChannelInterceptor). Sin
@@ -94,11 +99,24 @@ export function ensureConnected() {
   return client
 }
 
-export function disconnect() {
+export async function disconnect() {
   if (!client) return
-  client.deactivate()
+  const stale = client
   client = null
   notifyConnected(false)
+  // Audit P2 (2026-05-18, 5ª iter): await el deactivate y encadena en
+  // deactivationPromise para que ensureConnected lo respete igual que
+  // un reconnect. Antes era fire-and-forget y un subscribe inmediato
+  // podía crear cliente nuevo antes de cerrar el viejo.
+  const chained = deactivationPromise
+    ? deactivationPromise.then(() => stale.deactivate()).catch(() => {})
+    : stale.deactivate().catch(() => {})
+  deactivationPromise = chained
+  try {
+    await chained
+  } finally {
+    if (deactivationPromise === chained) deactivationPromise = null
+  }
 }
 
 // Audit P1 (2026-05-17): reconectar cuando el token cambia (logout, login
@@ -122,13 +140,7 @@ let reconnectGeneration = 0
 async function reconnect() {
   const gen = ++reconnectGeneration
   const stale = client
-  // Marca null inmediato + flag de reconnect en curso para que
-  // ensureConnected() devuelva null mientras esperamos a deactivate.
-  // Sin el flag, AuthContext.tryAttachPending o cualquier subscribe()
-  // entre medias creaba un cliente nuevo MIENTRAS el viejo aún cerraba
-  // su socket — dos WS vivos brevemente.
   client = null
-  isReconnecting = true
   for (const entry of subscriptions) {
     if (entry.activeListener) {
       connectedListeners.delete(entry.activeListener)
@@ -136,14 +148,22 @@ async function reconnect() {
     }
     entry.sub = null
   }
-  if (stale) {
-    try {
-      await stale.deactivate()
-    } catch {
-      /* deactivate puede rechazar si el socket murió antes — ignoramos. */
-    }
+  // Audit P2 (2026-05-18, 5ª iter): encadena el deactivate del cliente
+  // actual sobre cualquier deactivationPromise previa. ensureConnected
+  // ve deactivationPromise != null y devuelve null hasta el final de
+  // toda la cadena → cero solape entre cliente viejo y nuevo aunque
+  // lleguen N reconnects seguidos.
+  const myDeact = stale
+    ? (deactivationPromise
+        ? deactivationPromise.then(() => stale.deactivate()).catch(() => {})
+        : stale.deactivate().catch(() => {}))
+    : (deactivationPromise || Promise.resolve())
+  deactivationPromise = myDeact
+  try {
+    await myDeact
+  } finally {
+    if (deactivationPromise === myDeact) deactivationPromise = null
   }
-  isReconnecting = false
   // Si entre deactivate y tryAttach apareció otro reconnect (e.g. dos
   // setToken en rápida sucesión), abortamos: ese reconnect ya hará
   // su propio tryAttach con el token más reciente.
