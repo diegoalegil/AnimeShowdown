@@ -20,6 +20,12 @@ const supportsIO = typeof window !== 'undefined' && typeof IntersectionObserver 
 export default function LazyOnView({ minHeight = 600, rootMargin = '400px', children }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(!supportsIO)
+  // Audit (2026-05-17): rootMargin en deps causaba disconnect/recreate
+  // del IntersectionObserver en cada render del padre si pasaban un
+  // string literal (identidad nueva por render). Lo cacheamos en ref
+  // y solo lo leemos al montar; cambios posteriores se ignoran (no
+  // queremos re-observar tras la primera intersección de todas formas).
+  const rootMarginRef = useRef(rootMargin)
 
   useEffect(() => {
     if (visible || !supportsIO) return
@@ -32,11 +38,11 @@ export default function LazyOnView({ minHeight = 600, rootMargin = '400px', chil
           io.disconnect()
         }
       },
-      { rootMargin },
+      { rootMargin: rootMarginRef.current },
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [visible, rootMargin])
+  }, [visible])
 
   if (visible) return <>{children}</>
   return <div ref={ref} aria-hidden="true" style={{ minHeight }} />

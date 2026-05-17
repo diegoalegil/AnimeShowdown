@@ -29,12 +29,17 @@ function Splash() {
     }
   })
 
+  // Audit (2026-05-17): antes el effect tenía [visible] en deps. Cuando
+  // setVisible(false) disparaba, el effect re-ejecutaba con el guard
+  // `if (!visible) return` — innecesario y propenso a confusión. El
+  // effect solo necesita correr UNA vez al mount, sin deps.
   useEffect(() => {
     if (!visible) return
     try { sessionStorage.setItem(SHOWN_KEY, 'true') } catch { /* SSR/privacy */ }
     const t = setTimeout(() => setVisible(false), SHOW_MS)
     return () => clearTimeout(t)
-  }, [visible])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <AnimatePresence>

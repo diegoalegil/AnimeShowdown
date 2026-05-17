@@ -35,6 +35,7 @@ function KonamiCode() {
 
   useEffect(() => {
     let secuenciaActual = []
+    let autoOffTimer = null
 
     const onKey = (e) => {
       // Ignorar si el usuario está escribiendo en un input/textarea.
@@ -54,8 +55,13 @@ function KonamiCode() {
             icon: '👾',
             duration: 4000,
           })
-          // Auto-off tras 8s.
-          setTimeout(() => setActivo(false), 8000)
+          // Auto-off tras 8s. Audit (2026-05-17): antes timeout suelto
+          // sin tracking — si el componente se desmontaba antes (nav o
+          // route change), disparaba setState en componente desmontado.
+          // Trackeamos en autoOffTimer para cancelar en el cleanup del
+          // effect.
+          if (autoOffTimer) clearTimeout(autoOffTimer)
+          autoOffTimer = setTimeout(() => setActivo(false), 8000)
         }
       } else if (tecla === SECUENCIA[0]) {
         // Empieza nueva secuencia si la tecla fallida coincide con el
@@ -66,7 +72,10 @@ function KonamiCode() {
       }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      if (autoOffTimer) clearTimeout(autoOffTimer)
+    }
   }, [])
 
   if (!activo) return null

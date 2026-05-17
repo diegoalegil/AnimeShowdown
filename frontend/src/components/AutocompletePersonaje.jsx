@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { normalizar } from '../lib/games'
@@ -42,6 +42,13 @@ function AutocompletePersonaje({
     setActivo(0)
   }
   const inputRef = useRef(null)
+  // Audit (2026-05-17): el onBlur setTimeout queda colgando si el
+  // componente se desmonta antes de 120ms (típico al cerrar modal).
+  // Trackeamos en ref y limpiamos en cleanup del unmount.
+  const blurTimeoutRef = useRef(null)
+  useEffect(() => () => {
+    if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
+  }, [])
 
   const opciones = useMemo(() => {
     const q = normalizar(query)
@@ -116,7 +123,13 @@ function AutocompletePersonaje({
             setAbierto(true)
           }}
           onFocus={() => setAbierto(true)}
-          onBlur={() => setTimeout(() => setAbierto(false), 120)}
+          onBlur={() => {
+            if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
+            blurTimeoutRef.current = setTimeout(() => {
+              blurTimeoutRef.current = null
+              setAbierto(false)
+            }, 120)
+          }}
           onKeyDown={handleKey}
           placeholder={placeholder}
           disabled={disabled}
