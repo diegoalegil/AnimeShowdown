@@ -80,13 +80,20 @@ function LanguageToggle() {
             transition={{ duration: 0.15, ease: 'easeOut' }}
             className="absolute right-0 top-10 z-50 w-40 rounded-xl border border-border bg-surface py-1 shadow-2xl"
           >
+            {/*
+              Audit a11y (2026-05-17): role='menuitem' no anunciaba estado
+              de selección al lector de pantalla — solo el icono Check
+              visual revelaba el idioma activo. menuitemradio + aria-checked
+              hace que SR diga "Español, seleccionado" sin depender del icono.
+            */}
             {IDIOMAS.map((l) => {
               const elegido = l.code === activo.code
               return (
                 <button
                   key={l.code}
                   type="button"
-                  role="menuitem"
+                  role="menuitemradio"
+                  aria-checked={elegido}
                   onClick={() => elegir(l.code)}
                   className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-bg ${
                     elegido
@@ -98,7 +105,7 @@ function LanguageToggle() {
                     {l.short}
                   </span>
                   <span className="flex-1">{l.label}</span>
-                  {elegido && <Check className="h-3.5 w-3.5 text-accent" />}
+                  {elegido && <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />}
                 </button>
               )
             })}

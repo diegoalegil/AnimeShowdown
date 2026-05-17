@@ -185,6 +185,7 @@ function Step1Credenciales({ login, onChallenge, onSuccess }) {
         <button
           type="submit"
           disabled={isSubmitting}
+          aria-busy={isSubmitting}
           className="mt-2 inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Entrando…' : 'Entrar'}
@@ -316,6 +317,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
         <button
           type="submit"
           disabled={isSubmitting}
+          aria-busy={isSubmitting}
           className="mt-2 inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Verificando…' : 'Verificar'}
