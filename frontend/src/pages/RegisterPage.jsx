@@ -97,9 +97,14 @@ function RegisterPage() {
                 required: 'Elige un username',
                 minLength: { value: 3, message: 'Mínimo 3 caracteres' },
                 maxLength: { value: 30, message: 'Máximo 30 caracteres' },
+                // Audit P3 (2026-05-17): alineado con el @Pattern del
+                // backend (RegistroRequest). Antes el frontend permitía
+                // punto en el username pero el backend lo rechazaba con
+                // 400, dejando un mensaje de error desconcertante en
+                // el wizard.
                 pattern: {
-                  value: /^[A-Za-z0-9._-]+$/,
-                  message: 'Solo letras, números, puntos, guiones y barra baja',
+                  value: /^[A-Za-z0-9_-]+$/,
+                  message: 'Solo letras, números, guion y guion bajo',
                 },
               })}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${

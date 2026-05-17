@@ -203,16 +203,24 @@ cd backend && ./mvnw test
 
 ### Backend (`backend/.env`)
 
-| Variable | Default (dev) | Notas |
+> **Aviso (audit P3 2026-05-17):** desde `ProductionSecretsValidator` el boot
+> aborta si `DB_PASSWORD`, `JWT_SECRET` o `TOTP_ENCRYPTION_KEY` arrancan con
+> el placeholder `CHANGE_ME_IN_PROD…` fuera del profile `test`. Hay que
+> definirlos antes de arrancar la app en local sin profile test o en Railway.
+
+| Variable | Valor sugerido | Notas |
 |---|---|---|
 | `DATABASE_URL` | `jdbc:postgresql://localhost:5432/animeshowdown_db` | URL JDBC completa |
 | `DB_USER` | `animeshowdown_user` | |
-| `DB_PASSWORD` | `animeshowdown_dev_2026` | **regenerar en producción** |
-| `JWT_SECRET` | clave dev hardcodeada | **generar con `openssl rand -base64 64` para prod** |
-| `JWT_EXPIRATION` | `3600000` | ms (1 h) |
+| `DB_PASSWORD` | generar local + Neon | requerido en boot no-test |
+| `JWT_SECRET` | `openssl rand -base64 64` | requerido en boot no-test |
+| `TOTP_ENCRYPTION_KEY` | `openssl rand -base64 32` | requerido en boot no-test |
+| `JWT_EXPIRATION` | `900000` | ms (15 min) — refresh cookie cubre los 30 d |
 | `JPA_DDL` | `update` | `validate` o `none` en prod |
 | `SHOW_SQL` | `true` | `false` en prod |
 | `PORT` | `8080` | Railway lo inyecta |
+| `ADMIN_EMAILS` | `tu_email@dominio` | promueve a ADMIN tras verificar email |
+| `APP_CRON_SECRET` | string random largo | header `X-Cron-Secret` del cron |
 
 ### Frontend (`frontend/.env.local`)
 
