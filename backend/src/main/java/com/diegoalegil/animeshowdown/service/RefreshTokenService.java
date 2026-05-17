@@ -96,16 +96,33 @@ public class RefreshTokenService {
      * previo), revocamos todas las sesiones del usuario como defensa contra
      * replay attack. El usuario tendrá que volver a hacer login.
      */
+    /**
+     * Resultado tipado de {@link #rotar}. Audit P1 (2026-05-17): antes
+     * devolvía {@code Optional<RotarResultado>}, lo que forzaba al
+     * controller a tratar igual "token inválido/expired" y "race
+     * cross-tab dentro de grace". La diferencia importa: en el segundo
+     * caso NO debemos limpiar la cookie, porque la primera pestaña ya
+     * puso una nueva válida y el cliente espera mantenerla.
+     */
+    public sealed interface ResultadoRotacion {
+        /** Rotación exitosa: nuevo refresh emitido. Caller setea cookie nueva. */
+        record Ok(Usuario usuario, String nuevoTokenPlano) implements ResultadoRotacion {}
+        /** Token viejo presentado dentro del grace cross-tab. Caller responde 401 SIN tocar la cookie. */
+        record GraceCrossTab() implements ResultadoRotacion {}
+        /** Token inválido/expired/reuse genuino. Caller responde 401 y limpia cookie. */
+        record Invalido() implements ResultadoRotacion {}
+    }
+
     @Transactional
-    public Optional<RotarResultado> rotar(String plano, String userAgent, String ipAddr) {
+    public ResultadoRotacion rotar(String plano, String userAgent, String ipAddr) {
         if (plano == null || plano.isBlank()) {
-            return Optional.empty();
+            return new ResultadoRotacion.Invalido();
         }
         String hash = hashear(plano);
         Optional<RefreshToken> opt = repository.findByTokenHash(hash);
         if (opt.isEmpty()) {
             log.warn("RefreshToken rotar: hash no encontrado (posible token forjado)");
-            return Optional.empty();
+            return new ResultadoRotacion.Invalido();
         }
         RefreshToken viejo = opt.get();
 
@@ -123,24 +140,24 @@ public class RefreshTokenService {
             if (segundosDesdeRevoke <= REUSE_GRACE_SECONDS) {
                 log.info("RefreshToken race entre pestañas (revocado hace {}s, dentro de grace) — sin escalada",
                         segundosDesdeRevoke);
-                return Optional.empty();
+                return new ResultadoRotacion.GraceCrossTab();
             }
             int revocadas = repository.revocarTodosDelUsuario(viejo.getUsuario(), LocalDateTime.now());
             log.warn("RefreshToken REUSE detectado para usuario={} (revocado hace {}s), revocadas todas las sesiones ({})",
                     viejo.getUsuario().getUsername(), segundosDesdeRevoke, revocadas);
-            return Optional.empty();
+            return new ResultadoRotacion.Invalido();
         }
 
         if (viejo.getExpiraEn().isBefore(LocalDateTime.now())) {
             log.info("RefreshToken expirado para usuario={}", viejo.getUsuario().getUsername());
-            return Optional.empty();
+            return new ResultadoRotacion.Invalido();
         }
 
         viejo.revocar();
         repository.save(viejo);
 
         String nuevoPlano = emitir(viejo.getUsuario(), userAgent, ipAddr);
-        return Optional.of(new RotarResultado(viejo.getUsuario(), nuevoPlano));
+        return new ResultadoRotacion.Ok(viejo.getUsuario(), nuevoPlano);
     }
 
     /** Revoca específicamente el token que el cliente presenta (logout). */
@@ -185,10 +202,4 @@ public class RefreshTokenService {
         }
     }
 
-    /**
-     * Tupla devuelta por rotar(): el usuario al que pertenece la sesión +
-     * el nuevo refresh plano para setear como cookie.
-     */
-    public record RotarResultado(Usuario usuario, String nuevoTokenPlano) {
-    }
 }

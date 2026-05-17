@@ -352,9 +352,17 @@ public class AuthController {
      * el backend la valida, revoca la entrada vieja, emite una nueva, y
      * devuelve un access token JWT fresco + setea la nueva cookie refresh.
      *
-     * 401 + cookie limpia si el token está expirado, revocado o no existe
-     * (incluye caso de reuse: si llega un revocado, RefreshTokenService
-     * mata TODAS las sesiones del usuario como defensa).
+     * <p>Tres caminos según {@link RefreshTokenService.ResultadoRotacion}:
+     * <ul>
+     *   <li>{@code Ok}: 200 + nuevo JWT + nueva cookie refresh.</li>
+     *   <li>{@code GraceCrossTab}: 401 SIN tocar la cookie. Audit P1
+     *     (2026-05-17): antes este caso limpiaba la cookie del cliente,
+     *     pisando la cookie nueva que la otra pestaña ya había puesto
+     *     en el mismo dominio. Resultado: la segunda tab "ganaba"
+     *     reseteando la sesión recién rotada. Ahora dejamos la cookie
+     *     intacta y el cliente reintenta con el valor actualizado.</li>
+     *   <li>{@code Invalido}: 401 + cookie limpia (sesión muerta).</li>
+     * </ul>
      */
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(
@@ -365,19 +373,24 @@ public class AuthController {
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
                     .body(Map.of("message", "No hay sesión activa"));
         }
-        Optional<RefreshTokenService.RotarResultado> opt = refreshTokenService.rotar(
+        RefreshTokenService.ResultadoRotacion r = refreshTokenService.rotar(
                 refreshCookie, extraerUserAgent(httpRequest), clientIpExtractor.extract(httpRequest));
-        if (opt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        return switch (r) {
+            case RefreshTokenService.ResultadoRotacion.Ok ok -> {
+                String nuevoJwt = jwtUtil.generarToken(ok.usuario());
+                auditLogService.registrar(AuditEvento.REFRESH_TOKEN_ROTADO, ok.usuario(), null, httpRequest);
+                yield ResponseEntity.ok()
+                        .header(HttpHeaders.SET_COOKIE, construirCookieRefresh(ok.nuevoTokenPlano()).toString())
+                        .body(new TokenRespuesta(nuevoJwt, new UsuarioRespuesta(ok.usuario())));
+            }
+            case RefreshTokenService.ResultadoRotacion.GraceCrossTab __ -> ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Reintenta en unos segundos"));
+            case RefreshTokenService.ResultadoRotacion.Invalido __ -> ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
                     .body(Map.of("message", "Sesión expirada o inválida"));
-        }
-        RefreshTokenService.RotarResultado r = opt.get();
-        String nuevoJwt = jwtUtil.generarToken(r.usuario());
-        auditLogService.registrar(AuditEvento.REFRESH_TOKEN_ROTADO, r.usuario(), null, httpRequest);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, construirCookieRefresh(r.nuevoTokenPlano()).toString())
-                .body(new TokenRespuesta(nuevoJwt, new UsuarioRespuesta(r.usuario())));
+        };
     }
 
     /**
