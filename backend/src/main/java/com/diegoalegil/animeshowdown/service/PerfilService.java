@@ -9,13 +9,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import com.diegoalegil.animeshowdown.dto.ActividadItemDto;
 import com.diegoalegil.animeshowdown.dto.LogroDto;
 import com.diegoalegil.animeshowdown.dto.PerfilPublicoDto;
 import com.diegoalegil.animeshowdown.dto.PerfilStatsDto;
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
+import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.Prediccion;
+import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.model.UsuarioLogro;
+import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
@@ -145,6 +156,112 @@ public class PerfilService {
                     p.getImagenUrl(), p.getAnime(), count));
         }
         return resultado;
+    }
+
+    /**
+     * Feed combinado de actividad reciente (Plan v2 §4.1).
+     *
+     * <p>Combina 4 fuentes en un único stream temporal descendente:
+     * votos en enfrentamientos, logros desbloqueados, torneos creados y
+     * predicciones acertadas. Pedimos {@code limit} de cada fuente,
+     * mezclamos, ordenamos por fecha desc y devolvemos los {@code limit}
+     * más recientes en total. Es O(4·limit) — barato para limit ≤ 20.
+     *
+     * <p>No paginamos: la actividad es vista resumen, no historial
+     * completo. Para el historial detallado de votos ya está
+     * {@code /me/historial-votos}.
+     */
+    @Transactional(readOnly = true)
+    public List<ActividadItemDto> actividadReciente(Usuario usuario, int limit) {
+        int n = Math.min(50, Math.max(1, limit));
+        List<ActividadItemDto> out = new java.util.ArrayList<>();
+
+        for (Voto v : votoRepository.findByUsuarioOrderByFechaDesc(usuario,
+                PageRequest.of(0, n)).getContent()) {
+            Map<String, Object> payload = new LinkedHashMap<>();
+            Personaje p = v.getPersonaje();
+            if (p != null) {
+                payload.put("personajeSlug", p.getSlug());
+                payload.put("personajeNombre", p.getNombre());
+                payload.put("anime", p.getAnime());
+            }
+            Enfrentamiento enf = v.getEnfrentamiento();
+            if (enf != null) {
+                Personaje oponente = null;
+                if (enf.getPersonaje1() != null && p != null
+                        && !enf.getPersonaje1().getId().equals(p.getId())) {
+                    oponente = enf.getPersonaje1();
+                } else if (enf.getPersonaje2() != null && p != null
+                        && !enf.getPersonaje2().getId().equals(p.getId())) {
+                    oponente = enf.getPersonaje2();
+                }
+                if (oponente != null) {
+                    payload.put("oponenteSlug", oponente.getSlug());
+                    payload.put("oponenteNombre", oponente.getNombre());
+                }
+                if (enf.getTorneo() != null) {
+                    payload.put("torneoId", enf.getTorneo().getId());
+                    payload.put("torneoSlug", enf.getTorneo().getSlug());
+                    payload.put("torneoNombre", enf.getTorneo().getNombre());
+                }
+            }
+            out.add(new ActividadItemDto("VOTO", v.getFecha(), payload));
+        }
+
+        // Logros desbloqueados — usa el repo existente; trunca a N.
+        int contadorL = 0;
+        for (UsuarioLogro ul : usuarioLogroRepository
+                .findByUsuarioOrderByDesbloqueadoEnDesc(usuario)) {
+            if (contadorL++ >= n) break;
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("codigo", ul.getLogro().getCodigo());
+            payload.put("nombre", ul.getLogro().getNombre());
+            payload.put("descripcion", ul.getLogro().getDescripcion());
+            payload.put("icono", ul.getLogro().getIcono());
+            payload.put("rareza", ul.getLogro().getRareza());
+            out.add(new ActividadItemDto("LOGRO", ul.getDesbloqueadoEn(), payload));
+        }
+
+        // Torneos creados. El repo devuelve todos los estados; trunca a N
+        // y filtra los que tienen fechaCreacion (deberían tenerlas todos
+        // tras V12; defensivo por si algún torneo legacy quedó NULL).
+        int contadorT = 0;
+        for (Torneo t : torneoRepository.findByCreadoPorOrderByFechaCreacionDesc(usuario)) {
+            if (contadorT++ >= n) break;
+            if (t.getFechaCreacion() == null) continue;
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("torneoSlug", t.getSlug());
+            payload.put("torneoNombre", t.getNombre());
+            payload.put("estado", t.getEstado() != null ? t.getEstado().name() : null);
+            payload.put("estadoRevision", t.getEstadoRevision() != null ? t.getEstadoRevision().name() : null);
+            out.add(new ActividadItemDto("TORNEO_CREADO", t.getFechaCreacion(), payload));
+        }
+
+        // Predicciones acertadas — sub-stream del historial de predicciones
+        // del usuario. Filtramos por acertada=true.
+        for (Prediccion pred : prediccionRepository.findResueltasDelUsuarioDesc(
+                usuario, PageRequest.of(0, n * 2))) {
+            if (!Boolean.TRUE.equals(pred.getAcertada())) continue;
+            Map<String, Object> payload = new HashMap<>();
+            Personaje pp = pred.getPersonajePredicho();
+            Enfrentamiento enf = pred.getEnfrentamiento();
+            if (pp != null) {
+                payload.put("personajeSlug", pp.getSlug());
+                payload.put("personajeNombre", pp.getNombre());
+            }
+            if (enf != null) {
+                payload.put("enfrentamientoId", enf.getId());
+                if (enf.getTorneo() != null) {
+                    payload.put("torneoSlug", enf.getTorneo().getSlug());
+                    payload.put("torneoNombre", enf.getTorneo().getNombre());
+                }
+            }
+            out.add(new ActividadItemDto("PREDICCION_ACERTADA", pred.getFecha(), payload));
+        }
+
+        out.sort(Comparator.comparing(ActividadItemDto::fecha,
+                Comparator.nullsLast(Comparator.reverseOrder())));
+        return out.size() > n ? out.subList(0, n) : out;
     }
 
     /**

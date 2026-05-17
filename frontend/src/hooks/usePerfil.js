@@ -40,6 +40,22 @@ export function usePerfilTop({ limit = 5, enabled = true } = {}) {
 }
 
 /**
+ * Feed combinado de actividad reciente (Plan v2 §4.1). Devuelve un array
+ * de items {tipo, fecha, payload}. staleTime corto (15s) porque puede
+ * cambiar a cada voto/desbloqueo y queremos refresco rápido al volver
+ * al tab Resumen.
+ */
+export function usePerfilActividad({ limit = 20, enabled = true } = {}) {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: ['perfil', 'actividad', limit],
+    queryFn: () => endpoints.perfilActividad({ limit }),
+    enabled: enabled && Boolean(user),
+    staleTime: 15_000,
+  })
+}
+
+/**
  * Perfil PÚBLICO de cualquier usuario por username (Plan v2 §4.5).
  *
  * <p>No requiere auth — el endpoint backend es permitAll. Si el caller

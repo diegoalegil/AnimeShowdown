@@ -99,6 +99,19 @@ public class PerfilController {
     }
 
     /**
+     * Feed combinado de actividad reciente (Plan v2 §4.1). Mezcla votos
+     * en enfrentamientos, logros desbloqueados, torneos creados y
+     * predicciones acertadas en orden temporal descendente.
+     */
+    @GetMapping("/me/actividad")
+    public ResponseEntity<?> miActividad(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam(defaultValue = "20") int limit) {
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(perfilService.actividadReciente(usuario, limit));
+    }
+
+    /**
      * Eliminación irreversible de la cuenta (Plan v2 §4.1, GDPR right to
      * erasure). Requiere reconfirmar la contraseña actual aunque el
      * usuario tenga sesión.
