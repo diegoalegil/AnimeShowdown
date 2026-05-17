@@ -58,12 +58,20 @@ async function fileToBase64(file, maxSize = 256, quality = 0.82) {
   return canvas.toDataURL('image/jpeg', quality)
 }
 
+const PERFIL_TABS = [
+  { id: 'resumen', label: 'Resumen' },
+  { id: 'logros', label: 'Logros' },
+  { id: 'torneos', label: 'Mis torneos' },
+  { id: 'ajustes', label: 'Ajustes' },
+]
+
 function PerfilPage() {
   // noindex porque es vista privada del propio usuario — /u/{username}
   // es el perfil público que sí queremos indexar.
   useSeo({ title: 'Mi perfil', noindex: true })
   const { user, updateUser, logout } = useAuth()
   const navigate = useNavigate()
+  const [tab, setTab] = useState('resumen')
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -74,33 +82,68 @@ function PerfilPage() {
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <motion.header
-          className="mb-8 flex flex-col items-start gap-3"
+          className="mb-6 flex flex-col items-start gap-3"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            Mi cuenta
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+            <User className="h-3 w-3" />
+            Mi cuenta · Tu espacio personal
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            Perfil
+            Mi perfil
           </h1>
-          <p className="text-fg-muted">
-            Gestiona tus datos, tu avatar y la seguridad de tu cuenta.
+          <p className="max-w-2xl text-fg-muted">
+            Revisa tu progreso, personaliza tu avatar y gestiona tu cuenta
+            dentro de AnimeShowdown.
           </p>
         </motion.header>
 
+        {/* Tabs: separa la parte de gamificación (Resumen/Logros/Torneos)
+            de la parte sensible (Ajustes). Antes todas las cards iban
+            seguidas en un único scroll de ~3000px de alto. */}
+        <div
+          role="tablist"
+          className="mb-6 flex flex-wrap gap-1 rounded-lg border border-border bg-surface p-1"
+        >
+          {PERFIL_TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => setTab(t.id)}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+                tab === t.id
+                  ? 'bg-accent text-bg'
+                  : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <div className="grid gap-6">
-          <CardDatos user={user} />
-          <CardDanKyu />
-          <CardLogros />
-          <CardMisTorneos />
-          <CardAvatar user={user} updateUser={updateUser} />
-          <CardPassword />
-          <Card2faSeguridad />
-          <CardSesion onLogout={handleLogout} />
+          {tab === 'resumen' && (
+            <>
+              <CardDatos user={user} />
+              <CardDanKyu />
+            </>
+          )}
+          {tab === 'logros' && <CardLogros />}
+          {tab === 'torneos' && <CardMisTorneos />}
+          {tab === 'ajustes' && (
+            <>
+              <CardAvatar user={user} updateUser={updateUser} />
+              <CardPassword />
+              <Card2faSeguridad />
+              <CardSesion onLogout={handleLogout} />
+            </>
+          )}
         </div>
       </div>
     </section>
@@ -135,13 +178,24 @@ function CardDatos({ user }) {
           </p>
         </div>
       </div>
-      <Link
-        to={`/u/${encodeURIComponent(user.username)}`}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-fg-strong"
-      >
-        <ExternalLink className="h-3 w-3" />
-        Ver mi perfil público
-      </Link>
+      <p className="mt-3 text-[11px] italic text-fg-muted">
+        Tu email y datos de seguridad no se muestran en tu perfil público.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          to={`/u/${encodeURIComponent(user.username)}`}
+          className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-accent transition-colors hover:bg-accent/20"
+        >
+          <ExternalLink className="h-3 w-3" />
+          Ver mi perfil público
+        </Link>
+        <Link
+          to="/votar"
+          className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-accent-hover"
+        >
+          Votar ahora
+        </Link>
+      </div>
     </div>
   )
 }
@@ -151,9 +205,11 @@ function CardAvatar({ user, updateUser }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4">
-        <h2 className="text-lg font-bold text-fg-strong">Foto de perfil</h2>
+        <h2 className="text-lg font-bold text-fg-strong">Personaliza tu avatar</h2>
         <p className="text-[12px] text-fg-muted">
-          Sube una imagen desde tu equipo o pega una URL pública. Si lo dejas vacío, se usa el avatar generado de iniciales.
+          Sube una imagen desde tu equipo o pega una URL pública. Si no eliges
+          una imagen, se usa el avatar generado automáticamente con tus
+          iniciales.
         </p>
       </div>
       <div className="mb-5 flex items-center gap-4">
@@ -495,11 +551,12 @@ function CardPassword() {
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Key className="h-4 w-4 text-accent" />
-        <h2 className="text-lg font-bold text-fg-strong">Cambiar contraseña</h2>
+        <h2 className="text-lg font-bold text-fg-strong">Cambia tu contraseña</h2>
       </div>
       <p className="mb-5 text-[12px] text-fg-muted">
-        Necesitas la contraseña actual para confirmar el cambio. Si no la recuerdas,
-        usa el flujo de "Olvidé mi contraseña" desde el login.
+        Introduce tu contraseña actual y elige una nueva. Usa al menos 8
+        caracteres, incluyendo una letra y un número. Si no recuerdas la
+        actual, usa "Olvidé mi contraseña" desde el login.
       </p>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
@@ -594,7 +651,7 @@ function CardPassword() {
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Key className="h-4 w-4" />
-          {isSubmitting ? 'Guardando…' : 'Cambiar contraseña'}
+          {isSubmitting ? 'Guardando…' : 'Actualizar contraseña'}
         </button>
       </form>
     </div>
@@ -608,21 +665,22 @@ function CardSesion({ onLogout }) {
     onLogout()
   }
   return (
-    <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-6">
-      <div className="mb-3 flex items-center gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
+      <div className="flex items-center gap-3">
         <LogOut className="h-4 w-4 text-rose-300" />
-        <h2 className="text-lg font-bold text-fg-strong">Cerrar sesión</h2>
+        <div>
+          <p className="text-sm font-bold text-fg-strong">Cerrar sesión</p>
+          <p className="text-[11px] text-fg-muted">
+            Cierra tu sesión en este dispositivo.
+          </p>
+        </div>
       </div>
-      <p className="mb-4 text-[12px] text-fg-muted">
-        Cierra tu sesión en este dispositivo. Tu token JWT se borra del navegador,
-        tendrás que volver a entrar con tu username y contraseña.
-      </p>
       <button
         type="button"
         onClick={handleClick}
-        className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+        className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-[13px] font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-3.5 w-3.5" />
         Salir de mi cuenta
       </button>
     </div>
