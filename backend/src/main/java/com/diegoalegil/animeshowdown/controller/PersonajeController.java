@@ -172,21 +172,24 @@ public class PersonajeController {
      * Deshabilitado (audit P2 2026-05-17): tras dropear el unique
      * uk_voto_personaje_usuario en V16, el check app-level
      * existsByPersonajeAndUsuario era vulnerable a doble voto bajo
-     * concurrencia (dos requests paralelas pasaban el check y ambas
-     * persistían). El endpoint canónico /api/enfrentamientos/{id}/votar
-     * ya cubre todos los flows de la UI nueva — no hay caller legítimo.
+     * concurrencia. El endpoint canónico vive en otro recurso (enfrentamiento,
+     * no personaje), así que no hay redirect 1:1.
      *
-     * <p>Devuelve 410 GONE con header Link al canónico para clientes
-     * antiguos que pudieran tenerlo en cache/bookmarks. No 404 porque
-     * el recurso existió y conviene comunicar la migración explícita.
+     * <p>Audit P3 (2026-05-17, 4ª iter): quitado el header Link al
+     * canónico — apuntaba a /api/enfrentamientos/&#123;id&#125;/votar con el
+     * mismo id legacy (personajeId), pero el sucesor espera un
+     * enfrentamientoId. Eran recursos distintos y el Link confundía a
+     * clientes que lo siguieran ciegamente. El body explica el flow
+     * nuevo en lugar de un Link engañoso.
      */
     @PostMapping("/{id}/votar")
     public ResponseEntity<?> votarLegacy(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.GONE)
-                .header("Link", "</api/enfrentamientos/{id}/votar>; rel=\"successor-version\"")
                 .body(Map.of(
                         "message",
-                        "Endpoint deprecated. Usa POST /api/enfrentamientos/{id}/votar.",
-                        "personajeId", id));
+                        "Endpoint retirado. Vota dentro de un enfrentamiento concreto: "
+                                + "POST /api/enfrentamientos/{enfrentamientoId}/votar. "
+                                + "Para obtener un enfrentamiento aleatorio activo: GET /api/enfrentamientos/aleatorio.",
+                        "personajeIdRequested", id));
     }
 }
