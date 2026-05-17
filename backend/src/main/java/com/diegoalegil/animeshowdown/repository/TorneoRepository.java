@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -70,4 +71,17 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
 
     /** Count de torneos UGC creados por un usuario. Plan v2 §4.1 stats perfil. */
     long countByCreadoPor(Usuario creador);
+
+    /**
+     * Audit P2 (2026-05-17): pone a NULL la FK ganador_personaje_id de los
+     * torneos que apuntan al personaje dado. Usado por DataSeeder antes de
+     * borrar un personaje retirado del seed — preserva el torneo y sus
+     * enfrentamientos/votos históricos, solo pierde la asignación de ganador
+     * (que es metadata, recomputable a partir de los votos del bracket).
+     * Sin esto, retirar del seed un personaje que ganó un torneo rompe el
+     * arranque con constraint violation.
+     */
+    @Modifying
+    @Query("UPDATE Torneo t SET t.ganadorPersonaje = NULL WHERE t.ganadorPersonaje.id = :personajeId")
+    int clearGanadorByPersonajeId(@Param("personajeId") Long personajeId);
 }

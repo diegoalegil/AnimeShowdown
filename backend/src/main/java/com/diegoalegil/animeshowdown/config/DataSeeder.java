@@ -23,6 +23,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.BracketService;
@@ -66,6 +67,7 @@ public class DataSeeder implements CommandLineRunner {
     private final VotoRepository votoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final TorneoRepository torneoRepository;
+    private final PrediccionRepository prediccionRepository;
     private final BracketService bracketService;
     private final ReferralService referralService;
     private final ObjectMapper objectMapper;
@@ -84,6 +86,7 @@ public class DataSeeder implements CommandLineRunner {
             VotoRepository votoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
             TorneoRepository torneoRepository,
+            PrediccionRepository prediccionRepository,
             BracketService bracketService,
             ReferralService referralService,
             ObjectMapper objectMapper) {
@@ -91,6 +94,7 @@ public class DataSeeder implements CommandLineRunner {
         this.votoRepository = votoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.torneoRepository = torneoRepository;
+        this.prediccionRepository = prediccionRepository;
         this.bracketService = bracketService;
         this.referralService = referralService;
         this.objectMapper = objectMapper;
@@ -227,27 +231,37 @@ public class DataSeeder implements CommandLineRunner {
 
     /**
      * Borra el personaje y todos los datos que lo referencian, en orden:
-     * 1. Votos cuyo personaje sea este (Voto.personaje FK).
-     * 2. Votos de enfrentamientos donde participe (Voto.enfrentamiento FK
+     * 1. Predicciones cuyo personaje predicho sea este (FK restrictiva en
+     *    V9__predicciones.sql:30).
+     * 2. Limpia torneos.ganador_personaje_id = NULL para los torneos que lo
+     *    tenían marcado como ganador. Preserva torneo + bracket + votos
+     *    históricos; solo pierde la asignación (que es metadata recomputable).
+     * 3. Votos cuyo personaje sea este (Voto.personaje FK).
+     * 4. Votos de enfrentamientos donde participe (Voto.enfrentamiento FK
      *    apunta a un enfrentamiento que tiene FK al personaje).
-     * 3. Enfrentamientos donde aparezca como personaje1/2/ganador.
-     * 4. El personaje en sí.
+     * 5. Enfrentamientos donde aparezca como personaje1/2/ganador.
+     * 6. El personaje en sí.
      *
      * El orden es crítico: si intentamos borrar el personaje antes que sus
-     * votos, falla con constraint violation. Devuelve 1 si se borró el
-     * personaje. Si algún paso falla, la excepción se propaga para que el
-     * @Transactional del método llamante (sincronizar) haga rollback global —
-     * preferimos abortar el seed entero a dejar la BBDD con votos huérfanos o
-     * enfrentamientos sin personaje.
+     * referenciadores, falla con constraint violation. Audit P2 (2026-05-17):
+     * antes del fix, los pasos 1 y 2 faltaban — retirar del seed un personaje
+     * que ganó un torneo o fue predicho rompía el boot del backend en
+     * producción con FK constraint violation. Si algún paso falla, la
+     * excepción se propaga para que el @Transactional del método llamante
+     * (sincronizar) haga rollback global — preferimos abortar el seed entero
+     * a dejar la BBDD con votos/predicciones huérfanas o enfrentamientos sin
+     * personaje.
      */
     private int borrarPersonajeConCascada(Personaje p) {
+        int prediccionesBorradas = prediccionRepository.deleteByPersonajePredichoId(p.getId());
+        int torneosLimpiados = torneoRepository.clearGanadorByPersonajeId(p.getId());
         int votosBorrados = votoRepository.deleteByPersonajeId(p.getId());
         int votosEnEnfBorrados = votoRepository.deleteVotosEnEnfrentamientosDelPersonaje(p.getId());
         int enfBorrados = enfrentamientoRepository.deleteByPersonajeId(p.getId());
         personajeRepository.delete(p);
         log.info(
-                "DataSeeder DELETE: slug={} (votos={}, votosEnEnfrentamientos={}, enfrentamientos={})",
-                p.getSlug(), votosBorrados, votosEnEnfBorrados, enfBorrados);
+                "DataSeeder DELETE: slug={} (predicciones={}, torneosLimpiados={}, votos={}, votosEnEnfrentamientos={}, enfrentamientos={})",
+                p.getSlug(), prediccionesBorradas, torneosLimpiados, votosBorrados, votosEnEnfBorrados, enfBorrados);
         return 1;
     }
 
