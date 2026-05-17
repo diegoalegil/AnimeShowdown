@@ -145,13 +145,18 @@ const staticRoutes = [
   { path: '/torneos', priority: '0.9', changefreq: 'weekly' },
   { path: '/ranking', priority: '0.9', changefreq: 'daily' },
   { path: '/leaderboards', priority: '0.7', changefreq: 'daily' },
-  { path: '/higher-or-lower', priority: '0.7', changefreq: 'monthly' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
+  // Anime Daily Trials rebrand 2026-05-17: las URLs viejas
+  // (/higher-or-lower, /games/guess-character, /games/guess-anime,
+  // /games/anidel, /games/impostor) redirigen 301 vía _redirects de CF
+  // a las nuevas. Incluirlas aquí diluía el SEO/canonical — sólo
+  // entran las URLs finales rebrandeadas.
   { path: '/games', priority: '0.8', changefreq: 'weekly' },
-  { path: '/games/guess-character', priority: '0.7', changefreq: 'daily' },
-  { path: '/games/guess-anime', priority: '0.7', changefreq: 'daily' },
-  { path: '/games/anidel', priority: '0.7', changefreq: 'daily' },
-  { path: '/games/impostor', priority: '0.7', changefreq: 'daily' },
+  { path: '/games/shadow-guess', priority: '0.7', changefreq: 'daily' },
+  { path: '/games/anime-reveal', priority: '0.7', changefreq: 'daily' },
+  { path: '/games/anigrid', priority: '0.7', changefreq: 'daily' },
+  { path: '/games/impostor-trial', priority: '0.7', changefreq: 'daily' },
+  { path: '/games/elo-duel', priority: '0.7', changefreq: 'monthly' },
   { path: '/mi-top5', priority: '0.5', changefreq: 'monthly' },
   { path: '/omikuji', priority: '0.6', changefreq: 'daily' },
   { path: '/glossary', priority: '0.7', changefreq: 'monthly' },
