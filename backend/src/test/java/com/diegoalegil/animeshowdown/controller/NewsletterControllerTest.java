@@ -35,11 +35,15 @@ class NewsletterControllerTest {
 
     @Test
     void suscribirSinAuthDevuelve200() throws Exception {
+        // Audit P2 (2026-05-17): la response unifica mensaje (no expone
+        // CREADA/REENVIADA/YA_CONFIRMADA) para no enumerar suscriptores.
+        // Verificamos el estado real en BBDD en su lugar.
         mvc.perform(post("/api/newsletter")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("email", "newsletter_alice@example.com"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("CREADA"));
+                .andExpect(jsonPath("$.message").isString())
+                .andExpect(jsonPath("$.estado").doesNotExist());
 
         var sub = repo.findByEmail("newsletter_alice@example.com").orElseThrow();
         assert !sub.isConfirmado() : "Debe quedar no confirmada hasta el click del email";
@@ -86,15 +90,15 @@ class NewsletterControllerTest {
         mvc.perform(post("/api/newsletter")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("email", "newsletter_carla@example.com"))))
-                .andExpect(jsonPath("$.estado").value("CREADA"));
+                .andExpect(status().isOk());
         String tokenInicial = repo.findByEmail("newsletter_carla@example.com").orElseThrow().getTokenConfirm();
 
-        // Segunda con el mismo email → REENVIADA, token distinto
+        // Segunda con el mismo email: response identica (no enumera estado),
+        // pero el token interno se refresca.
         mvc.perform(post("/api/newsletter")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("email", "newsletter_carla@example.com"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("REENVIADA"));
+                .andExpect(status().isOk());
 
         String tokenNuevo = repo.findByEmail("newsletter_carla@example.com").orElseThrow().getTokenConfirm();
         assert !tokenInicial.equals(tokenNuevo) : "El token debe refrescarse en cada reenvío";

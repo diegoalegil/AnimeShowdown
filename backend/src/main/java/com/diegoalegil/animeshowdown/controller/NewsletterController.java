@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.NewsletterSubRequest;
 import com.diegoalegil.animeshowdown.service.NewsletterService;
-import com.diegoalegil.animeshowdown.service.NewsletterService.ResultadoSuscripcion;
 
 import jakarta.validation.Valid;
 
@@ -50,13 +49,16 @@ public class NewsletterController {
     @PostMapping
     public ResponseEntity<?> suscribir(@Valid @RequestBody NewsletterSubRequest req) {
         try {
-            ResultadoSuscripcion r = newsletterService.suscribir(req.getEmail());
-            String mensaje = switch (r) {
-                case CREADA -> "Te hemos enviado un email para confirmar la suscripción. Revisa tu bandeja.";
-                case REENVIADA -> "Te hemos reenviado el email de confirmación. Revisa tu bandeja.";
-                case YA_CONFIRMADA -> "Ya estás suscrito a la newsletter.";
-            };
-            return ResponseEntity.ok(Map.of("message", mensaje, "estado", r.name()));
+            // Audit P2 (2026-05-17): el servicio sigue distinguiendo CREADA /
+            // REENVIADA / YA_CONFIRMADA para sus métricas internas, pero la
+            // response al cliente unifica el mensaje. Antes "Ya estás
+            // suscrito" delataba qué emails están dados de alta — info
+            // suficiente para enumerar la base de suscriptores con un
+            // script. Ahora cualquier email válido recibe el mismo mensaje
+            // (consulta tu bandeja), y el estado real queda en server logs.
+            newsletterService.suscribir(req.getEmail());
+            return ResponseEntity.ok(Map.of(
+                    "message", "Si el email es válido, recibirás un correo de confirmación en breve."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
