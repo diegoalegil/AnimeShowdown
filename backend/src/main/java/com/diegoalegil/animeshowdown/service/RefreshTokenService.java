@@ -48,6 +48,14 @@ public class RefreshTokenService {
     private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
     private static final int TOKEN_BYTES = 32; // 256 bits de entropía
     private static final SecureRandom RANDOM = new SecureRandom();
+    // Audit P2 (2026-05-17): ventana de gracia para race entre pestañas.
+    // Si el token revocado vuelve a presentarse en menos de N segundos,
+    // probablemente es una segunda pestaña con el token viejo en flight
+    // (cuya cookie aún no se ha actualizado tras la rotación de la primera).
+    // En ese caso devolvemos empty SIN matar todas las sesiones — el cliente
+    // reintentará con el cookie ya actualizado y obtendrá el token nuevo.
+    // Más allá del grace, sigue siendo reuse genuino (token capturado).
+    private static final long REUSE_GRACE_SECONDS = 10;
 
     private final RefreshTokenRepository repository;
     private final Duration ttl;
@@ -104,10 +112,22 @@ public class RefreshTokenService {
         // Detección de reuse: token revocado siendo presentado de nuevo.
         // Sintoma clásico de compromise — alguien capturó el token después
         // de su rotación. Mata todas las sesiones del usuario.
+        //
+        // EXCEPCIÓN: ventana de gracia REUSE_GRACE_SECONDS para race entre
+        // pestañas. Si dos tabs refrescan a la vez con el mismo token
+        // viejo, la primera lo rota y la segunda lo presenta milisegundos
+        // después con el cookie aún sin actualizar. Sin esto, ambas tabs
+        // se quedaban sin sesión en cada navegación simultánea.
         if (viejo.getRevocadoEn() != null) {
+            long segundosDesdeRevoke = Duration.between(viejo.getRevocadoEn(), LocalDateTime.now()).getSeconds();
+            if (segundosDesdeRevoke <= REUSE_GRACE_SECONDS) {
+                log.info("RefreshToken race entre pestañas (revocado hace {}s, dentro de grace) — sin escalada",
+                        segundosDesdeRevoke);
+                return Optional.empty();
+            }
             int revocadas = repository.revocarTodosDelUsuario(viejo.getUsuario(), LocalDateTime.now());
-            log.warn("RefreshToken REUSE detectado para usuario={}, revocadas todas las sesiones ({})",
-                    viejo.getUsuario().getUsername(), revocadas);
+            log.warn("RefreshToken REUSE detectado para usuario={} (revocado hace {}s), revocadas todas las sesiones ({})",
+                    viejo.getUsuario().getUsername(), segundosDesdeRevoke, revocadas);
             return Optional.empty();
         }
 
