@@ -38,6 +38,7 @@ class PerfilControllerTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
+    @Autowired private com.diegoalegil.animeshowdown.repository.UsuarioRepository usuarioRepository;
 
     private String tokenDe(String username, String email) throws Exception {
         mvc.perform(post("/api/auth/registro")
@@ -55,7 +56,15 @@ class PerfilControllerTest {
     }
 
     private String tokenAdmin() throws Exception {
-        return tokenDe("admin_torneo_test", "diegogildam@gmail.com");
+        String token = tokenDe("admin_torneo_test", "diegogildam@gmail.com");
+        // Tras auditoría P1.1: la promoción a ADMIN ya no ocurre en
+        // registro. Forzamos verificación + ADMIN en BBDD para tests.
+        usuarioRepository.findByUsername("admin_torneo_test").ifPresent(u -> {
+            u.setEstadoVerificacion(com.diegoalegil.animeshowdown.model.EstadoVerificacion.ACTIVO);
+            u.setRol(com.diegoalegil.animeshowdown.model.Rol.ADMIN);
+            usuarioRepository.save(u);
+        });
+        return token;
     }
 
     @Test

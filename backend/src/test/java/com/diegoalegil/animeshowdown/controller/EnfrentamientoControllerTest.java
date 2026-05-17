@@ -39,6 +39,9 @@ class EnfrentamientoControllerTest {
     @Autowired
     private ObjectMapper json;
 
+    @Autowired
+    private com.diegoalegil.animeshowdown.repository.UsuarioRepository usuarioRepository;
+
     private String tokenUserRegistrado(String username, String email) throws Exception {
         Map<String, String> reg = Map.of(
                 "username", username,
@@ -63,7 +66,15 @@ class EnfrentamientoControllerTest {
         // Mismo username que TorneoControllerTest para que el contexto Spring cacheado
         // sirva tanto si arranca primero un test como otro (el email diegogildam@gmail.com
         // ya está registrado por el primero, no se puede registrar dos veces).
-        return tokenUserRegistrado("admin_torneo_test", "diegogildam@gmail.com");
+        // Tras auditoría P1.1, la promoción a ADMIN ya no ocurre en registro;
+        // forzamos verificación + ADMIN en BBDD para simular el flow completo.
+        String token = tokenUserRegistrado("admin_torneo_test", "diegogildam@gmail.com");
+        usuarioRepository.findByUsername("admin_torneo_test").ifPresent(u -> {
+            u.setEstadoVerificacion(com.diegoalegil.animeshowdown.model.EstadoVerificacion.ACTIVO);
+            u.setRol(com.diegoalegil.animeshowdown.model.Rol.ADMIN);
+            usuarioRepository.save(u);
+        });
+        return token;
     }
 
     /** Devuelve los ids reales de dos personajes seedeados (luffy y zoro por convención). */

@@ -75,9 +75,20 @@ class TorneoControllerTest {
         return body.get("token").asText();
     }
 
-    /** El email diegogildam@gmail.com se auto-promueve a ADMIN (admin.emails default). */
+    /**
+     * Tras auditoría P1.1, la auto-promoción a ADMIN ocurre en
+     * EmailVerificationService (no en registro) — el helper registra,
+     * marca el user como ACTIVO + ADMIN directamente en BBDD para
+     * simular el flow completo de verificación+promoción.
+     */
     private String tokenAdmin() throws Exception {
-        return tokenUserRegistrado("admin_torneo_test", "diegogildam@gmail.com");
+        String token = tokenUserRegistrado("admin_torneo_test", "diegogildam@gmail.com");
+        usuarioRepository.findByUsername("admin_torneo_test").ifPresent(u -> {
+            u.setEstadoVerificacion(com.diegoalegil.animeshowdown.model.EstadoVerificacion.ACTIVO);
+            u.setRol(com.diegoalegil.animeshowdown.model.Rol.ADMIN);
+            usuarioRepository.save(u);
+        });
+        return token;
     }
 
     @Test

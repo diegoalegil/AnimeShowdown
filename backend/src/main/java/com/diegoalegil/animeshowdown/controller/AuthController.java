@@ -20,13 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.diegoalegil.animeshowdown.dto.CambioPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.ForgotPasswordRequest;
@@ -79,7 +75,6 @@ public class AuthController {
     private final TwoFactorChallengeService twoFactorChallengeService;
     private final TotpBackupCodeService totpBackupCodeService;
     private final ReferralService referralService;
-    private final Set<String> adminEmails;
     private final boolean cookieSecure;
 
     public AuthController(
@@ -95,7 +90,6 @@ public class AuthController {
             TwoFactorChallengeService twoFactorChallengeService,
             TotpBackupCodeService totpBackupCodeService,
             ReferralService referralService,
-            @Value("${admin.emails:diegogildam@gmail.com}") String adminEmailsCsv,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
@@ -110,13 +104,7 @@ public class AuthController {
         this.totpBackupCodeService = totpBackupCodeService;
         this.referralService = referralService;
         this.cookieSecure = cookieSecure;
-        this.adminEmails = Arrays.stream(adminEmailsCsv.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(String::toLowerCase)
-                .collect(Collectors.toCollection(HashSet::new));
-        log.info("AuthController arrancado con {} email(s) auto-admin, cookieSecure={}",
-                adminEmails.size(), cookieSecure);
+        log.info("AuthController arrancado con cookieSecure={}", cookieSecure);
     }
 
     // === helpers para cookies de refresh token ===
@@ -176,11 +164,10 @@ public class AuthController {
         // Plan v2 §2.4: registros nuevos nacen PENDIENTE hasta verificar email.
         // No pueden votar ni crear torneos en este estado.
         nuevoUsuario.setEstadoVerificacion(EstadoVerificacion.PENDIENTE);
-
-        if (emailNormalizado != null && adminEmails.contains(emailNormalizado)) {
-            nuevoUsuario.setRol(Rol.ADMIN);
-            log.info("Auto-promoción a ADMIN: email={}", emailNormalizado);
-        }
+        // Audit P1.1: la auto-promoción a ADMIN NO ocurre aquí — se hace
+        // en EmailVerificationService.verificar() tras pasar a ACTIVO.
+        // Antes un atacante podía registrarse con el email del owner en
+        // una BBDD nueva y obtener ADMIN sin tocar el inbox.
 
         // Plan v2 §11.8: si el caller envía referralCode, intenta vincular.
         // Sin código o código inválido, el registro sigue normal sin referrer.
