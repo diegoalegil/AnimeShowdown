@@ -20,6 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.TestAsyncConfig;
+import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.model.Rol;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,6 +49,7 @@ class PrediccionControllerTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
+    @Autowired private UsuarioRepository usuarioRepository;
 
     private String tokenDe(String username, String email) throws Exception {
         mvc.perform(post("/api/auth/registro")
@@ -62,8 +66,17 @@ class PrediccionControllerTest {
         return json.readTree(res.getResponse().getContentAsString()).get("token").asText();
     }
 
+    // Auditoría P1.1 (2026-05-17): la auto-promoción a ADMIN ocurre tras verificar
+    // email (EmailVerificationService), no en /registro. El helper registra y
+    // luego fuerza ACTIVO + ADMIN directamente en BBDD para simular el flow.
     private String tokenAdmin() throws Exception {
-        return tokenDe("admin_torneo_test", "diegogildam@gmail.com");
+        String token = tokenDe("admin_torneo_test", "diegogildam@gmail.com");
+        usuarioRepository.findByUsername("admin_torneo_test").ifPresent(u -> {
+            u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
+            u.setRol(Rol.ADMIN);
+            usuarioRepository.save(u);
+        });
+        return token;
     }
 
     private long[] dosPersonajes() throws Exception {
