@@ -143,6 +143,12 @@ function Card2faSeguridad() {
 // ----------------------------------------------------------------------
 
 function ModalShell({ onClose, title, icon: Icon, children, wide }) {
+  // Audit (2026-05-17): focus trap completo + ESC para cerrar.
+  // Antes el tab podía escapar del modal hacia elementos del header/footer
+  // del fondo (WCAG 2.1 G109 modal management). Capturamos Tab/Shift+Tab
+  // entre los elementos focusables del dialog y rebotamos al primer/último.
+  // ESC también cierra. Body scroll lock se mantiene.
+  const dialogRef = useRef(null)
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -150,6 +156,42 @@ function ModalShell({ onClose, title, icon: Icon, children, wide }) {
       document.body.style.overflow = prev
     }
   }, [])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    // Mover foco al primer focusable del modal al montar.
+    const focusables = () => Array.from(dialog.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )).filter((el) => el.offsetParent !== null || el === document.activeElement)
+    const list = focusables()
+    if (list.length > 0) list[0].focus({ preventScroll: true })
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose?.()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const els = focusables()
+      if (els.length === 0) {
+        e.preventDefault()
+        return
+      }
+      const first = els[0]
+      const last = els[els.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    dialog.addEventListener('keydown', onKey)
+    return () => dialog.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   return (
     <motion.div
@@ -160,6 +202,7 @@ function ModalShell({ onClose, title, icon: Icon, children, wide }) {
       onClick={onClose}
     >
       <motion.div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         className={`relative w-full ${wide ? 'max-w-xl' : 'max-w-md'} rounded-2xl border border-border bg-surface p-6 shadow-2xl`}
