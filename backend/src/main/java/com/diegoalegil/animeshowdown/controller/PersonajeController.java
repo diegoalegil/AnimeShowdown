@@ -41,15 +41,18 @@ public class PersonajeController {
     private final VotoRepository votoRepository;
     private final RecomendacionService recomendacionService;
     private final EloHistoryService eloHistoryService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public PersonajeController(PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
             RecomendacionService recomendacionService,
-            EloHistoryService eloHistoryService) {
+            EloHistoryService eloHistoryService,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.recomendacionService = recomendacionService;
         this.eloHistoryService = eloHistoryService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -180,7 +183,13 @@ public class PersonajeController {
      *   - Cuenta para rate limit (RateLimitFilter incluye el path).
      *   - Idempotente: 409 si el usuario ya votó al personaje.
      */
+    // Audit P3 (2026-05-17): @Transactional ahora obligatorio. Antes el save
+    // corría en auto-commit y el publishEvent quedaba fuera de tx → el
+    // BadgeEventListener (AFTER_COMMIT) descartaba el evento → este endpoint
+    // legacy no desbloqueaba primer_voto/cien_votos/mil_votos. Mismo patrón
+    // que /api/enfrentamientos/{id}/votar (audit P1 ronda anterior).
     @PostMapping("/{id}/votar")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> votar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -198,6 +207,24 @@ public class PersonajeController {
         }
 
         Voto voto = new Voto(personaje, usuario);
-        return ResponseEntity.ok(votoRepository.save(voto));
+        // El check existsByPersonajeAndUsuario es app-level y vulnerable a
+        // race condition (V16 dropeó uk_voto_personaje_usuario porque
+        // bloqueaba el bracket legítimo). Defensivo: capturamos la posible
+        // violación si la migración se restaurase parcialmente; hoy esto es
+        // pasivo y permite dobles en concurrencia. Aceptable en este endpoint
+        // legacy que la UI nueva no usa; el voto canónico es por enfrentamiento.
+        Voto guardado;
+        try {
+            guardado = votoRepository.save(voto);
+        } catch (org.springframework.dao.DataIntegrityViolationException dup) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Ya has votado a este personaje");
+        }
+        // Evento para desbloquear badges de count global. enfrentamiento=null
+        // porque este voto no pertenece a un bracket; el listener solo usa
+        // usuario y cuenta total con countByUsuario.
+        eventPublisher.publishEvent(
+                new com.diegoalegil.animeshowdown.event.VotoRegistradoEvent(usuario, null));
+        return ResponseEntity.ok(guardado);
     }
 }
