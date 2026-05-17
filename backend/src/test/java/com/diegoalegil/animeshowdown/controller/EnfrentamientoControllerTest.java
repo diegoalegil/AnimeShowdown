@@ -42,6 +42,9 @@ class EnfrentamientoControllerTest {
     @Autowired
     private com.diegoalegil.animeshowdown.repository.UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository usuarioLogroRepository;
+
     private String tokenUserRegistrado(String username, String email) throws Exception {
         Map<String, String> reg = Map.of(
                 "username", username,
@@ -166,6 +169,63 @@ class EnfrentamientoControllerTest {
                 .andExpect(jsonPath("$.personajePerdedorId").value(ids[1]))
                 .andExpect(jsonPath("$.votosPerdedor").value(0))
                 .andExpect(jsonPath("$.delta").value(1));
+    }
+
+    /**
+     * Regresión audit P2 (2026-05-17): BadgeEventListener escucha
+     * VotoRegistradoEvent en AFTER_COMMIT con @Async. Si el endpoint /votar
+     * no abriera tx, el evento se publicaría fuera de tx y AFTER_COMMIT lo
+     * descartaría silenciosamente → primer_voto nunca se desbloquearía. Este
+     * test confirma la cadena entera end-to-end:
+     *   controller @Transactional → publishEvent → AFTER_COMMIT → @Async listener
+     *   → BadgeService.desbloquear → UsuarioLogro persistido en BBDD.
+     *
+     * <p>Nota técnica: este test NO usa TestAsyncConfig (SyncTaskExecutor)
+     * porque la combinación AFTER_COMMIT + @Async + SyncTaskExecutor genera
+     * un estado intermedio donde TransactionSynchronizationManager dice
+     * tx-active pero el EntityManager JPA no tiene tx iniciada — saveAndFlush
+     * lanza TransactionRequiredException. En producción el TaskExecutor real
+     * corre en otro hilo (estado limpio) y el @Transactional del service
+     * abre tx correctamente, así que aquí replicamos eso usando el executor
+     * por defecto + polling con timeout.
+     */
+    @Test
+    void votarDesbloqueaPrimerVotoBadge() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_badge_user", "votobadge@example.com");
+        long[] ids = dosPersonajes();
+
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "badge");
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        var u = usuarioRepository.findByUsername("voto_badge_user").orElseThrow();
+
+        // El @Async usa el TaskExecutor por defecto (otro hilo). Polling hasta
+        // 5s — en local tarda ~10–30 ms, generoso para CI lento.
+        long deadline = System.currentTimeMillis() + 5_000;
+        boolean unlocked = false;
+        while (System.currentTimeMillis() < deadline) {
+            if (!usuarioLogroRepository.findByUsuarioOrderByDesbloqueadoEnDesc(u).isEmpty()) {
+                unlocked = true;
+                break;
+            }
+            Thread.sleep(50);
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(
+                unlocked,
+                "primer_voto debería desbloquearse al votar, pero el listener "
+                        + "no persistió UsuarioLogro en 5s");
+
+        mvc.perform(get("/api/logros/mios")
+                .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.codigo=='primer_voto' && @.desbloqueadoEn != null)]")
+                        .exists());
     }
 
     @Test
