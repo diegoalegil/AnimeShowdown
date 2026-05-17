@@ -14,7 +14,8 @@ import { useAuth } from '../contexts/AuthContext'
  * VotarPage — arena de duelo rápido (rebrand Plan v2 §14).
  *
  * Pantalla diseñada para que todo el duelo quepa sin scroll:
- *   - Cards con max-h 55vh + object-contain (no recortan al héroe).
+ *   - Cards con max-h 55vh + object-cover object-top (llenan el contenedor;
+ *     antes object-contain dejaba huecos negros con cartas SSR/frame).
  *   - VS central grande con glow magenta.
  *   - "Saltar" arriba a la derecha, siempre visible.
  *   - Nombre + anime debajo de cada card (no overlay) → comparación rápida.
@@ -27,7 +28,11 @@ import { useAuth } from '../contexts/AuthContext'
  */
 
 const STORAGE_FAST = 'animeshowdown.votar.fast'
-const NEXT_DELAY_MS = 1200
+// Pausa entre voto y siguiente duelo. 1.8s da tiempo a ver el "+1 ELO"
+// animado y a confirmar visualmente quién ganó sin que el usuario tenga
+// que pulsar nada. Si se acorta a <1s no da pause para el overlay; si
+// se alarga >2s el flow se siente lento.
+const NEXT_DELAY_MS = 1800
 
 /**
  * Emparejamientos balanceados (propuesta Plan v2 §4.x).
@@ -98,11 +103,16 @@ function VotarPage() {
 
   const [casualPair, setCasualPair] = useState(getRandomPair)
   const [votedFor, setVotedFor] = useState(null)
+  // Auto-next por default (opt-out vía toggle). Antes era opt-in y la
+  // gente tenía que pulsar "Siguiente duelo" tras cada voto — un click
+  // extra por enfrentamiento que rompía el ritmo. Solo se respeta el
+  // valor de localStorage si fue setado explícitamente a "false";
+  // cualquier otro estado (incluido no haber preferencia) = true.
   const [fastMode, setFastMode] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_FAST) === 'true'
+      return localStorage.getItem(STORAGE_FAST) !== 'false'
     } catch {
-      return false
+      return true
     }
   })
 
@@ -158,7 +168,11 @@ function VotarPage() {
   const handleVote = useCallback(
     (personaje) => {
       if (votedFor) return
-      play('playImpact')
+      // Solo playVote: antes había también playImpact (sub-bass thump)
+      // pero los dos juntos disparaban 9 nodos Web Audio en el mismo
+      // tick del click handler y se percibía un lag perceptible entre
+      // el click y el primer sample. playVote ya tiene 4 notas + sparkle,
+      // suficiente para feedback contundente.
       play('playVote')
 
       if (modoBackend) {
@@ -276,7 +290,7 @@ function VotarPage() {
               type="button"
               onClick={() => setFastMode((f) => !f)}
               aria-pressed={fastMode}
-              title={fastMode ? 'Desactivar modo rápido' : 'Activar modo rápido (auto-next tras votar)'}
+              title={fastMode ? 'Auto-siguiente activo · clic para desactivar' : 'Auto-siguiente desactivado · clic para activar'}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition-all ${
                 fastMode
                   ? 'border-yellow-400/60 bg-yellow-500/10 text-yellow-200'
@@ -422,11 +436,15 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, vote
               : 'border-border hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-15px_rgba(255,46,99,0.55)]'
         } disabled:cursor-default`}
       >
-        <div className="relative aspect-[2/3] max-h-[55vh] w-full overflow-hidden bg-bg">
+        <div className="relative aspect-[2/3] max-h-[55vh] w-full overflow-hidden bg-surface-alt">
+          {/* object-cover en vez de object-contain: las cartas estilo SSR
+              (frame integrado, ratio raro) dejaban barras negras a los
+              lados que se veían fatal. Con cover llenan el contenedor;
+              object-top mantiene la cara/torso visible y recorta abajo. */}
           <img
             src={imgSrc}
             alt={personaje.nombre}
-            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
           />
           {isVoted && (
             <motion.div
