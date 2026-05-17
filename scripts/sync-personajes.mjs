@@ -181,20 +181,40 @@ function generatePersonajesJs(entries) {
 
   const arrayBlock = ['export const personajes = [', ...arrayLines, ']', '', ''].join('\n')
 
-  // Sustituye imagenPersonaje del helper antiguo por la nueva implementación
-  // que hace lookup en el array por slug y devuelve el campo imagen.
+  // Helper imagenPersonaje vía Map slug→imagen construido una vez al cargar
+  // el módulo. Antes este script generaba personajes.find() lineal — con
+  // 723 personajes y la home pintando varias decenas de cards por render,
+  // eso era O(n) por imagen. El Map es O(1) y se queda en memoria.
+  //
+  // Ojo: regresión histórica. En 2026-05-16 la regen del catálogo borró
+  // el Map (porque el helpers slice empieza en 'export function
+  // imagenPersonaje' y descarta lo de arriba) y el frontend rompió en
+  // producción con ReferenceError: slugToImagen is not defined → todas
+  // las cards salían con icono roto. Añadirlo aquí garantiza que cada
+  // regeneración lo emite junto al helper.
+  const slugToImagenBlock = [
+    '// Map slug → ruta de imagen para lookup O(1) en cada render.',
+    '// Generado por scripts/sync-personajes.mjs — no editar a mano.',
+    'const slugToImagen = new Map(personajes.map((p) => [p.slug, p.imagen]))',
+    '',
+  ].join('\n')
+
   const newImagenPersonaje = [
     'export function imagenPersonaje(slug) {',
-    '  const p = personajes.find((x) => x.slug === slug)',
-    '  return p ? p.imagen : `/img/${slug}.webp`',
+    '  // Fallback determinístico para slugs ausentes del catálogo: devolvemos',
+    '  // una ruta que dará 404 visible (PersonajePlaceholder vía onError) en',
+    '  // vez de undefined que dejaría el <img> en estado raro.',
+    '  return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`',
     '}',
     '',
   ].join('\n')
 
-  // Reemplaza el bloque antiguo de imagenPersonaje
+  // Reemplaza el bloque antiguo de imagenPersonaje (sea cual sea su
+  // implementación — find() lineal antiguo o Map nuevo). El [\s\S] no
+  // greedy + cierre exacto de la fn evita comerse helpers posteriores.
   const helpersWithoutOldImg = helpers.replace(
-    /export function imagenPersonaje\(slug\) \{[^}]*\}\n/,
-    newImagenPersonaje + '\n',
+    /export function imagenPersonaje\(slug\) \{[\s\S]*?\n\}\n/,
+    slugToImagenBlock + newImagenPersonaje + '\n',
   )
 
   return arrayBlock + helpersWithoutOldImg

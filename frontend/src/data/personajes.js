@@ -724,12 +724,16 @@ export const personajes = [
   { slug: 'yotsuha_miyamizu', nombre: 'Yotsuha Miyamizu', anime: 'Your Name', descripcion: 'Personaje del anime Your Name.', imagen: '/img/Your_Name/yotsuha_miyamizu.webp' },
 ]
 
+// Map slug → ruta de imagen para lookup O(1) en cada render.
+// Generado por scripts/sync-personajes.mjs — no editar a mano.
+const slugToImagen = new Map(personajes.map((p) => [p.slug, p.imagen]))
 export function imagenPersonaje(slug) {
-  // Fallback determinístico para slugs ausentes del catálogo: devolvemos una
-  // ruta que dará 404 visible (icono roto) en vez de undefined/cadena vacía,
-  // que dejan el <img> en estado raro y silencian el bug.
+  // Fallback determinístico para slugs ausentes del catálogo: devolvemos
+  // una ruta que dará 404 visible (PersonajePlaceholder vía onError) en
+  // vez de undefined que dejaría el <img> en estado raro.
   return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`
 }
+
 
 export function getPersonajeBySlug(slug) {
   return personajes.find((p) => p.slug === slug) ?? null
