@@ -104,13 +104,19 @@ export function disconnect() {
 // nuevo. Antes el guard `if (entry.activeListener) return` impedía la
 // re-suscripción y el closure viejo apuntaba a un cliente destruido →
 // notificaciones/brackets silenciosos hasta reload.
-function reconnect() {
-  // Limpia el client viejo (si existe) y el connectedListeners global
-  // registrado por attach() — sus closures apuntan al cliente desactivado.
-  if (client) {
-    client.deactivate()
-    client = null
-  }
+// Audit P3 (2026-05-17, 3ª iter): client.deactivate() es async — devuelve
+// Promise. Si llamamos tryAttachPending() inmediatamente, attach() crea
+// un cliente nuevo MIENTRAS el viejo aún cierra su socket. Resultado: dos
+// conexiones WS vivas durante 50-200ms en cada refresh/login rápido.
+// Esperamos al deactivate antes de re-attach. Marcamos un counter para
+// que reconnects superpuestos no se pisen.
+let reconnectGeneration = 0
+async function reconnect() {
+  const gen = ++reconnectGeneration
+  const stale = client
+  // Marca null inmediato para que llamadas a ensureConnected() entre
+  // medias no reutilicen el cliente moribundo.
+  client = null
   for (const entry of subscriptions) {
     if (entry.activeListener) {
       connectedListeners.delete(entry.activeListener)
@@ -118,13 +124,23 @@ function reconnect() {
     }
     entry.sub = null
   }
-  // Si hay token nuevo, attach() activará un cliente fresco con
-  // beforeConnect agarrando el JWT actual y registrará listeners nuevos.
+  if (stale) {
+    try {
+      await stale.deactivate()
+    } catch {
+      /* deactivate puede rechazar si el socket murió antes — ignoramos. */
+    }
+  }
+  // Si entre deactivate y tryAttach apareció otro reconnect (e.g. dos
+  // setToken en rápida sucesión), abortamos: ese reconnect ya hará
+  // su propio tryAttach con el token más reciente.
+  if (gen !== reconnectGeneration) return
   tryAttachPending()
 }
 
 // Subscriber global: cualquier cambio de token reinicia el cliente WS.
-onTokenChange(() => reconnect())
+// Pasamos por una arrow porque onTokenChange espera función sync.
+onTokenChange(() => { reconnect() })
 
 export function isConnected() {
   return !!client && client.connected
