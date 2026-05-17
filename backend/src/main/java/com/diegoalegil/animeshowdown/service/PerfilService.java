@@ -18,6 +18,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
@@ -36,17 +37,20 @@ public class PerfilService {
     private final PrediccionRepository prediccionRepository;
     private final UsuarioLogroRepository usuarioLogroRepository;
     private final SeguidorRepository seguidorRepository;
+    private final TorneoRepository torneoRepository;
     private final BadgeService badgeService;
 
     public PerfilService(VotoRepository votoRepository,
             PrediccionRepository prediccionRepository,
             UsuarioLogroRepository usuarioLogroRepository,
             SeguidorRepository seguidorRepository,
+            TorneoRepository torneoRepository,
             BadgeService badgeService) {
         this.votoRepository = votoRepository;
         this.prediccionRepository = prediccionRepository;
         this.usuarioLogroRepository = usuarioLogroRepository;
         this.seguidorRepository = seguidorRepository;
+        this.torneoRepository = torneoRepository;
         this.badgeService = badgeService;
     }
 
@@ -104,9 +108,10 @@ public class PerfilService {
                 ? 0.0
                 : (100.0 * prediccionesAcertadas) / prediccionesResueltas;
         long badges = usuarioLogroRepository.countByUsuario(usuario);
+        long torneosCreados = torneoRepository.countByCreadoPor(usuario);
         return new PerfilStatsDto(votosTotales, prediccionesTotales,
                 prediccionesAcertadas, prediccionesResueltas,
-                redondear(porcentaje, 1), badges);
+                redondear(porcentaje, 1), badges, torneosCreados);
     }
 
     @Transactional(readOnly = true)

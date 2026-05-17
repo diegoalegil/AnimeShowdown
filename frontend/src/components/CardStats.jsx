@@ -1,4 +1,4 @@
-import { Activity, Award, Target, Vote } from 'lucide-react'
+import { Activity, Award, Swords, Target, Vote } from 'lucide-react'
 import { usePerfilStats } from '../hooks/usePerfil'
 
 /**
@@ -30,6 +30,7 @@ function CardStats({ data: dataProp = null }) {
     prediccionesResueltas: 0,
     porcentajeAciertos: 0,
     badgesDesbloqueados: 0,
+    torneosCreados: 0,
   }
 
   return (
@@ -43,7 +44,7 @@ function CardStats({ data: dataProp = null }) {
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <Kpi
             icon={Vote}
             label="Votos totales"
@@ -64,6 +65,11 @@ function CardStats({ data: dataProp = null }) {
             icon={Award}
             label="Logros"
             value={`${stats.badgesDesbloqueados}/14`}
+          />
+          <Kpi
+            icon={Swords}
+            label="Torneos creados"
+            value={stats.torneosCreados ?? 0}
           />
         </div>
       )}

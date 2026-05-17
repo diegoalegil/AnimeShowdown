@@ -10,6 +10,8 @@ package com.diegoalegil.animeshowdown.dto;
  *   <li>{@code porcentajeAciertos} — sobre las ya RESUELTAS, no las totales,
  *       para no penalizar predicciones aún pendientes que aún pueden acertar.</li>
  *   <li>{@code badgesDesbloqueados} — count del usuario en usuario_logros.</li>
+ *   <li>{@code torneosCreados} — count de torneos UGC creados por el usuario
+ *       (todos los estados: pendientes, aprobados, rechazados).</li>
  * </ul>
  */
 public record PerfilStatsDto(
@@ -18,5 +20,6 @@ public record PerfilStatsDto(
         long prediccionesAcertadas,
         long prediccionesResueltas,
         double porcentajeAciertos,
-        long badgesDesbloqueados) {
+        long badgesDesbloqueados,
+        long torneosCreados) {
 }
