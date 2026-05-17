@@ -22,6 +22,26 @@ export function __warm() {
   getCtx()
 }
 
+/**
+ * Espera (si es necesario) a que el contexto esté en estado "running"
+ * antes de programar nada. Las funciones playXxx la llaman al principio
+ * para evitar el bug donde {@code ctx.currentTime} estaba "atrasado"
+ * porque el resume era asíncrono y el osc.start(now) caía en el pasado,
+ * arrancando con lag perceptible.
+ */
+async function ensureRunning() {
+  const ctx = getCtx()
+  if (!ctx) return null
+  if (ctx.state !== 'running') {
+    try {
+      await ctx.resume()
+    } catch {
+      /* iOS Safari puede rechazar si no hay user gesture activo */
+    }
+  }
+  return ctx
+}
+
 function noiseBuffer(ctx, duration) {
   const length = Math.floor(ctx.sampleRate * duration)
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate)
@@ -67,8 +87,8 @@ export function playHover() {
   osc.stop(now + 0.05)
 }
 
-export function playVote() {
-  const ctx = getCtx()
+export async function playVote() {
+  const ctx = await ensureRunning()
   if (!ctx) return
   const now = ctx.currentTime
   const notes = [

@@ -51,10 +51,22 @@ export function SoundProvider({ children }) {
     }
   }
 
+  // Warm-up explícito para componentes que sepan ANTES del click que va
+  // a haber sonido — caso de /votar, donde el hover sobre una card
+  // anticipa el click. Asegura que el AudioContext esté en estado
+  // running cuando llegue el click, evitando el lag del await resume().
+  const warm = () => {
+    try {
+      sfx.__warm?.()
+    } catch {
+      /* ignore */
+    }
+  }
+
   const toggleMute = () => setMuted((m) => !m)
 
   return (
-    <SoundContext.Provider value={{ muted, toggleMute, play }}>
+    <SoundContext.Provider value={{ muted, toggleMute, play, warm }}>
       {children}
     </SoundContext.Provider>
   )
