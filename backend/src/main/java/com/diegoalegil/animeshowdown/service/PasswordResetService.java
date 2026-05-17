@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.diegoalegil.animeshowdown.model.PasswordResetToken;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PasswordResetTokenRepository;
+import com.diegoalegil.animeshowdown.repository.RefreshTokenRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 @Service
@@ -24,6 +25,7 @@ public class PasswordResetService {
 
     private final PasswordResetTokenRepository tokenRepo;
     private final UsuarioRepository usuarioRepo;
+    private final RefreshTokenRepository refreshTokenRepo;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final SecureRandom random = new SecureRandom();
@@ -31,10 +33,12 @@ public class PasswordResetService {
     public PasswordResetService(
             PasswordResetTokenRepository tokenRepo,
             UsuarioRepository usuarioRepo,
+            RefreshTokenRepository refreshTokenRepo,
             EmailService emailService,
             PasswordEncoder passwordEncoder) {
         this.tokenRepo = tokenRepo;
         this.usuarioRepo = usuarioRepo;
+        this.refreshTokenRepo = refreshTokenRepo;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -84,7 +88,13 @@ public class PasswordResetService {
         usuarioRepo.save(u);
         token.setUsado(true);
         tokenRepo.save(token);
-        log.info("Password reseteada para userId={}", u.getId());
+        // Audit P2 (2026-05-17): tras reset, revoca TODAS las sesiones activas
+        // del usuario. Sin esto, una refresh cookie robada antes del reset
+        // seguía siendo válida hasta su expiración (30 días) — el flujo
+        // canónico "olvidé mi password" tenía que cerrar la puerta a sesiones
+        // potencialmente comprometidas, no solo cambiar la contraseña.
+        int revocados = refreshTokenRepo.revocarTodosDelUsuario(u, LocalDateTime.now());
+        log.info("Password reseteada para userId={} (refresh tokens revocados={})", u.getId(), revocados);
     }
 
     private String generarCodigo() {
