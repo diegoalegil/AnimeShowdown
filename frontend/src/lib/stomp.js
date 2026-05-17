@@ -97,12 +97,29 @@ export function disconnect() {
 // con otro usuario, refresh silencioso tras 401). Sin esto el WS singleton
 // seguía conectado con el JWT viejo y las notificaciones del usuario nuevo
 // iban a la cola del anterior. Se llama desde el listener registrado abajo.
+//
+// Audit P1 (2026-05-17, segunda iteración): además de deactivate el cliente,
+// hay que LIMPIAR el activeListener y sub de cada subscription para que
+// attach() las trate como pendientes y re-cree listeners contra el cliente
+// nuevo. Antes el guard `if (entry.activeListener) return` impedía la
+// re-suscripción y el closure viejo apuntaba a un cliente destruido →
+// notificaciones/brackets silenciosos hasta reload.
 function reconnect() {
-  if (!client) return
-  client.deactivate()
-  client = null
-  // Si hay token nuevo, el próximo subscribe (o tryAttachPending) re-activa
-  // un cliente fresco con beforeConnect agarrando el JWT actual.
+  // Limpia el client viejo (si existe) y el connectedListeners global
+  // registrado por attach() — sus closures apuntan al cliente desactivado.
+  if (client) {
+    client.deactivate()
+    client = null
+  }
+  for (const entry of subscriptions) {
+    if (entry.activeListener) {
+      connectedListeners.delete(entry.activeListener)
+      entry.activeListener = null
+    }
+    entry.sub = null
+  }
+  // Si hay token nuevo, attach() activará un cliente fresco con
+  // beforeConnect agarrando el JWT actual y registrará listeners nuevos.
   tryAttachPending()
 }
 
