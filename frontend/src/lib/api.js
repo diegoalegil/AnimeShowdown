@@ -247,9 +247,16 @@ export const endpoints = {
   //   logros: público, devuelve catálogo completo de 14 badges.
   //   misLogros: autenticado, catálogo enriquecido con desbloqueadoEn null/timestamp.
   //   logrosStats: público (Plan v2 §4.10), counts por badge { codigo: count }.
+  //   personajesSimilares: público (Plan v2 §4.12), recomendaciones cross-anime
+  //     por slug. Devuelve PersonajeSimilarDto[] con score y votos.
   logros: () => api.get('/api/logros', { auth: false }),
   misLogros: () => api.get('/api/logros/mios'),
   logrosStats: () => api.get('/api/logros/stats', { auth: false }),
+  personajesSimilares: (slug, { limit = 8 } = {}) =>
+    api.get(
+      `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,
+      { auth: false },
+    ),
   // Reactions (Plan v2 §4.3).
   //   getReacciones: público, devuelve {counts, miReaccion, total}.
   //   aplicarReaccion: autenticado. Backend gestiona toggle/swap automático.
