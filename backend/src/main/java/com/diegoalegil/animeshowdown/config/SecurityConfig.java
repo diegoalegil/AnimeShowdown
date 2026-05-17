@@ -152,7 +152,13 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(parseCsv(allowedOriginPatternsCsv));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
-        config.setExposedHeaders(List.of("Authorization"));
+        // Audit P2 (2026-05-18): expose Retry-After. El cliente lo lee en
+        // intentarRefresh() para respetar el backoff que indica el backend
+        // tras un 503 cross-tab. Sin esto, en producción (cross-origin
+        // animeshowdown.dev → api.animeshowdown.dev), headers.get('Retry-After')
+        // devuelve null y el fix de grace cae al backoff local — menos
+        // preciso y desperdicia la señal del servidor.
+        config.setExposedHeaders(List.of("Authorization", "Retry-After"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
