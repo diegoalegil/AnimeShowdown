@@ -20,6 +20,7 @@ import com.diegoalegil.animeshowdown.dto.PerfilPublicoDto;
 import com.diegoalegil.animeshowdown.dto.PerfilStatsDto;
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
+import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Prediccion;
@@ -33,6 +34,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -54,6 +56,7 @@ public class PerfilService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final BadgeService badgeService;
+    private final AuditLogService auditLogService;
 
     public PerfilService(VotoRepository votoRepository,
             PrediccionRepository prediccionRepository,
@@ -62,7 +65,8 @@ public class PerfilService {
             TorneoRepository torneoRepository,
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
-            BadgeService badgeService) {
+            BadgeService badgeService,
+            AuditLogService auditLogService) {
         this.votoRepository = votoRepository;
         this.prediccionRepository = prediccionRepository;
         this.usuarioLogroRepository = usuarioLogroRepository;
@@ -71,6 +75,7 @@ public class PerfilService {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.badgeService = badgeService;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -278,18 +283,28 @@ public class PerfilService {
      * coincide — el caller (controller) la traduce a 400.
      */
     @Transactional
-    public void eliminarCuenta(Usuario usuario, String passwordPlano) {
+    public void eliminarCuenta(Usuario usuario, String passwordPlano, HttpServletRequest request) {
         if (passwordPlano == null || passwordPlano.isBlank()) {
             throw new IllegalArgumentException("Password requerida para eliminar la cuenta");
         }
         if (!passwordEncoder.matches(passwordPlano, usuario.getPassword())) {
             throw new IllegalArgumentException("Password incorrecta");
         }
+        // Audit P2 (2026-05-17): registrar DESPUÉS de verificar password (sin
+        // password válido no hay borrado y no debe haber audit), pero ANTES
+        // del delete (el FK audit_log.usuario_id necesita una fila viva; la
+        // cascada ON DELETE SET NULL lo limpia tras el commit). Síncrono
+        // dentro de la misma tx para que ambas escrituras commiteen juntas
+        // o se rollee todo. La versión @Async anterior podía persistir
+        // tarde con FK violation.
+        auditLogService.registrarSync(
+                AuditEvento.CUENTA_ELIMINADA,
+                usuario,
+                java.util.Map.of(
+                        "username", usuario.getUsername(),
+                        "email", usuario.getEmail()),
+                request);
         usuarioRepository.delete(usuario);
-        // El audit del evento CUENTA_ELIMINADA se hace en el controller
-        // ANTES del delete (necesitamos el usuario aún vivo para el FK
-        // audit_log.usuario_id; tras el delete pasa a NULL por SET NULL,
-        // pero el detalle con username queda en el JSON).
     }
 
     private static double redondear(double v, int decimales) {
