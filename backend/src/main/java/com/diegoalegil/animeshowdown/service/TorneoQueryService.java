@@ -87,6 +87,14 @@ public class TorneoQueryService {
     public TorneoDetalleDto findById(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
+        // Audit P2 (2026-05-17): findBySlug filtra PENDIENTE/RECHAZADO pero
+        // findById no lo hacía — un atacante que enumere ids consecutivos
+        // podía leer torneos UGC en cola de moderación o rechazados. Mismo
+        // 404 que si no existiera para no filtrar metadata del bracket.
+        if (torneo.getEstadoRevision() == EstadoRevision.PENDIENTE
+                || torneo.getEstadoRevision() == EstadoRevision.RECHAZADO) {
+            throw new EntityNotFoundException("Torneo no encontrado: id=" + id);
+        }
         return toDetalle(torneo);
     }
 
