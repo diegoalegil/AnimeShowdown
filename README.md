@@ -324,7 +324,7 @@ erDiagram
 3. Selecciona `AnimeShowdown` → configura:
    - **Project name:** `animeshowdown`
    - **Production branch:** `main`
-   - **Build command:** `npm run build`
+   - **Build command:** `npm run build:no-images` (las variantes responsive `-300.webp` y `-600.webp` ya están commiteadas al repo desde 2026-05-17 para que CF no tenga que regenerarlas y esquive el timeout de 20 min del free tier; `build:no-images` solo regenera sitemap + bundle)
    - **Build output directory:** `dist`
    - **Root directory** (advanced): `frontend`
 4. **Environment variables:** `VITE_API_URL` = URL de tu backend

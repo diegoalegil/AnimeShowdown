@@ -74,12 +74,14 @@ jobs:
 
       # build:no-images salta el procesamiento de 700+ imágenes con sharp
       # (que tardaba 5-7min en CI cold). El CI solo VERIFICA que el bundle
-      # compila — no despliega nada; el deploy lo hace Cloudflare Pages
-      # que sí ejecuta `npm run build` completo con variantes AVIF/WebP.
+      # compila — no despliega nada.
       #
-      # Probamos con actions/cache pero subir 2800+ archivos pequeños al
-      # cache de GitHub tarda más que regenerarlos (~15min vs 5min).
-      - name: Build (sin generar variantes de imagen)
+      # MISMO comando que usa Cloudflare Pages en producción desde
+      # 2026-05-17: las variantes responsive -300.webp/-600.webp se
+      # commitean al repo y CF las sirve directamente sin regenerarlas.
+      # Antes la docu mencionaba que CF corría `npm run build` completo,
+      # que disparaba el timeout de 20 min del free tier.
+      - name: Build (sin regenerar variantes de imagen)
         run: npm run build:no-images
 
       # Plan v2 §3.10: bundle size budget. Falla la CI si el chunk
