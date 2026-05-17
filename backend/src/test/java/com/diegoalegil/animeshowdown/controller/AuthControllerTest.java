@@ -3,6 +3,8 @@ package com.diegoalegil.animeshowdown.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,6 +25,7 @@ import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.repository.AuditLogRepository;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
+import com.diegoalegil.animeshowdown.repository.RefreshTokenRepository;
 import com.diegoalegil.animeshowdown.repository.TotpBackupCodeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,6 +58,9 @@ class AuthControllerTest {
 
     @Autowired
     private TotpBackupCodeRepository totpBackupCodeRepository;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     /** Genera el código TOTP actual para un secret dado, usando la misma lib que el backend. */
     private String generarCodigoActual(String secretPlano) throws Exception {
@@ -537,5 +543,86 @@ class AuthControllerTest {
         assert usuario.getTotpSecret() == null : "El secret debe limpiarse";
         assert totpBackupCodeRepository.findByUsuario(usuario).isEmpty()
                 : "Tras disable, no debe quedar ningún backup code";
+    }
+
+    /**
+     * Regresión audit P1/P2 (2026-05-18): grace cross-tab cubre el caso
+     * dos pestañas refrescando con el mismo token viejo. La primera lo
+     * rota OK, la segunda recibe 503 + Retry-After SIN Set-Cookie limpia
+     * (no debe pisar la cookie nueva que la primera puso).
+     */
+    @Test
+    void refreshGraceCrossTabDevuelve503ConRetryAfterYSinLimpiarCookie() throws Exception {
+        registrarYLoguear("grace_user", "secreta123", "grace_user@example.com");
+        // Login devuelve cookie refresh — la extraemos para reusar en dos
+        // /refresh paralelos (simula misma cookie en dos pestañas).
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "grace_user", "password", "secreta123"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        String refreshCookie = loginRes.getResponse().getCookie("refresh_token").getValue();
+
+        // Primera rotación: 200 + nueva cookie.
+        mvc.perform(post("/api/auth/refresh")
+                .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("refresh_token"));
+
+        // Segunda rotación con la MISMA cookie vieja → grace cross-tab:
+        // 503 + Retry-After. CRITICAL: la respuesta NO debe contener
+        // Set-Cookie para refresh_token — pisaría la cookie nueva.
+        var graceRes = mvc.perform(post("/api/auth/refresh")
+                .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(header().exists("Retry-After"))
+                .andReturn();
+        assert graceRes.getResponse().getCookie("refresh_token") == null
+                : "GraceCrossTab no debe emitir Set-Cookie (pisaría la cookie nueva de la otra tab)";
+    }
+
+    /**
+     * Regresión audit P1 (2026-05-18, 5ª iter): logout con JWT válido
+     * revoca TODAS las sesiones del usuario, no solo la cookie presentada.
+     * Cubre la race "tab A logout mientras tab B tenía un refresh en
+     * vuelo del lado server" — tras el logout, en BD todos los refresh
+     * tokens activos del usuario quedan revocados.
+     *
+     * Nota: usamos verificación directa en BD en vez de un POST /refresh
+     * porque dentro de REUSE_GRACE_SECONDS (10s) la respuesta es 503
+     * (GraceCrossTab), no 401, lo que confunde la intención del test.
+     * Lo que importa es el estado: todos los tokens del usuario revocados.
+     */
+    @Test
+    void logoutRevocaTodasLasSesionesDelUsuario() throws Exception {
+        var s = registrarYLoguear("logout_user", "secreta123", "logout_user@example.com");
+        // Genera una SEGUNDA cookie haciendo otro login (simula otra pestaña/dispositivo).
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "logout_user", "password", "secreta123"))))
+                .andExpect(status().isOk());
+
+        var usuario = usuarioRepository.findByUsername("logout_user").orElseThrow();
+        long activosAntes = refreshTokenRepository.findAll().stream()
+                .filter(t -> t.getUsuario().getId().equals(usuario.getId()))
+                .filter(t -> t.getRevocadoEn() == null)
+                .count();
+        assert activosAntes == 2
+                : "Pre-logout: deben existir 2 sesiones activas, había " + activosAntes;
+
+        // Logout en la PRIMERA sesión con JWT válido.
+        mvc.perform(post("/api/auth/logout")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk());
+
+        // Tras logout: cero sesiones activas (revocarTodos cerró ambas).
+        long activosDespues = refreshTokenRepository.findAll().stream()
+                .filter(t -> t.getUsuario().getId().equals(usuario.getId()))
+                .filter(t -> t.getRevocadoEn() == null)
+                .count();
+        assert activosDespues == 0
+                : "Post-logout: deben quedar 0 sesiones activas, hay " + activosDespues;
     }
 }
