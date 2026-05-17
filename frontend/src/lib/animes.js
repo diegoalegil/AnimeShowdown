@@ -37,7 +37,7 @@ const ALIASES = {
   'Vinland Saga': ['vinland'],
   'Made in Abyss': ['abyss'],
   'Steins Gate': ['steins', 'steinsgate', 'el psy congroo'],
-  'Seishun_Buta_Yarou_(Bunny_Girl_Senpai)': ['bunny girl', 'bunny girl senpai', 'mai sakurajima'],
+  'Bunny Girl Senpai': ['bunny girl', 'bunny girl senpai', 'mai sakurajima', 'seishun buta yarou'],
 }
 
 // Lista de animes con datos competitivos pre-calculados. Construida una
