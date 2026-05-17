@@ -287,11 +287,17 @@ function UserBadge({ user, onLogout, t }) {
  * es dark (sin clase) — la app está pensada dark-first y el light es
  * opt-in para quien lo prefiera.
  */
+// Audit P2 (2026-05-17): la key 'animeshowdown.theme' la compartía con
+// ThemeContext (que la usa para magenta/cyan/violet/amber). Se pisaban
+// mutuamente y la preferencia se reseteaba al reload. Ahora cada uno
+// tiene su key: aquí 'animeshowdown.theme.mode' para light/dark. La
+// migración silenciosa la hace ThemeContext.leerPaletaInicial.
+const MODE_STORAGE_KEY = 'animeshowdown.theme.mode'
 function LightModeToggle() {
   const [light, setLight] = useState(() => {
     if (typeof document === 'undefined') return false
     try {
-      return localStorage.getItem('animeshowdown.theme') === 'light'
+      return localStorage.getItem(MODE_STORAGE_KEY) === 'light'
     } catch {
       return false
     }
@@ -302,10 +308,10 @@ function LightModeToggle() {
     const html = document.documentElement
     if (light) {
       html.classList.add('theme-light')
-      try { localStorage.setItem('animeshowdown.theme', 'light') } catch { /* ignore */ }
+      try { localStorage.setItem(MODE_STORAGE_KEY, 'light') } catch { /* ignore */ }
     } else {
       html.classList.remove('theme-light')
-      try { localStorage.setItem('animeshowdown.theme', 'dark') } catch { /* ignore */ }
+      try { localStorage.setItem(MODE_STORAGE_KEY, 'dark') } catch { /* ignore */ }
     }
   }, [light])
 

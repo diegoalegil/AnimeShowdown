@@ -37,18 +37,44 @@ export const themes = {
 }
 
 const order = ['magenta', 'cyan', 'violet', 'amber']
-const STORAGE_KEY = 'animeshowdown.theme'
+// Audit P2 (2026-05-17): antes esta key (animeshowdown.theme) era
+// compartida con LightModeToggle (que guardaba 'light'/'dark'). Al
+// reload, cualquiera de los dos pisaba al otro y la preferencia se
+// reseteaba a default. Separados:
+//   - animeshowdown.theme.palette → magenta/cyan/violet/amber
+//   - animeshowdown.theme.mode    → light/dark (LightModeToggle)
+// Migración silenciosa de la key legacy 'animeshowdown.theme':
+//   - Si vale 'light'/'dark' → lo movemos a .mode y borramos la vieja.
+//   - Si vale una paleta válida → lo movemos a .palette y borramos vieja.
+// Migra una sola vez por instalación.
+const STORAGE_KEY = 'animeshowdown.theme.palette'
+const LEGACY_KEY = 'animeshowdown.theme'
 const ThemeContext = createContext(null)
 
-export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      return stored && themes[stored] ? stored : 'magenta'
-    } catch {
-      return 'magenta'
+function leerPaletaInicial() {
+  try {
+    const direct = localStorage.getItem(STORAGE_KEY)
+    if (direct && themes[direct]) return direct
+    const legacy = localStorage.getItem(LEGACY_KEY)
+    if (legacy && themes[legacy]) {
+      localStorage.setItem(STORAGE_KEY, legacy)
+      localStorage.removeItem(LEGACY_KEY)
+      return legacy
     }
-  })
+    if (legacy === 'light' || legacy === 'dark') {
+      // Era una preferencia mode; lo movemos para que LightModeToggle
+      // la encuentre y dejamos la palette en default.
+      localStorage.setItem('animeshowdown.theme.mode', legacy)
+      localStorage.removeItem(LEGACY_KEY)
+    }
+    return 'magenta'
+  } catch {
+    return 'magenta'
+  }
+}
+
+export function ThemeProvider({ children }) {
+  const [theme, setThemeState] = useState(leerPaletaInicial)
 
   useEffect(() => {
     const t = themes[theme]
