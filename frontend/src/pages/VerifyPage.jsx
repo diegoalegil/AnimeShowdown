@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, XCircle, MailWarning, ArrowRight } from 'lucide-react'
 import { endpoints, refreshSession } from '../lib/api'
 import { useSeo } from '../hooks/useSeo'
+import { useAuth } from '../contexts/AuthContext'
 
 /**
  * Página /verify?token=XXX que cierra el flujo de email verification
@@ -22,6 +23,7 @@ function VerifyPage() {
   useSeo({ title: 'Verificando email', noindex: true })
   const [params] = useSearchParams()
   const token = params.get('token')
+  const { updateUser } = useAuth()
 
   // El estado 'sin_token' se deriva sincrónicamente del query string para
   // evitar setState dentro del effect (react-compiler marca cascading
@@ -41,9 +43,21 @@ function VerifyPage() {
         if (cancelado) return
         if (data?.verificado) {
           setResultado('ok')
-          // Refresca la sesión para actualizar AuthContext y que el banner
-          // desaparezca sin necesidad de F5 manual.
-          refreshSession().catch(() => {})
+          // Audit P2 (2026-05-17): refreshSession solo refresca el token y
+          // el state interno de api.js. Sin esto, AuthContext sigue con
+          // estadoVerificacion=PENDIENTE en memoria (el user de
+          // localStorage es viejo) y EmailVerifyBanner se mantiene aunque
+          // el backend ya marca el email como ACTIVO. Propagamos el user
+          // fresco al contexto vía updateUser.
+          refreshSession()
+            .then((res) => {
+              if (cancelado || !res?.usuario) return
+              updateUser({
+                estadoVerificacion: res.usuario.estadoVerificacion,
+                totpHabilitado: res.usuario.totpHabilitado === true,
+              })
+            })
+            .catch(() => {})
         } else {
           setResultado('invalido')
         }
@@ -55,7 +69,7 @@ function VerifyPage() {
     return () => {
       cancelado = true
     }
-  }, [token])
+  }, [token, updateUser])
 
   return (
     <section className="flex flex-1 items-center justify-center px-5 py-16 sm:px-8">
