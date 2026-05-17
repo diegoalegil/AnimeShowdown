@@ -194,6 +194,40 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<!-- Audit P1.3 (2026-05-17): Mockito inline mock-maker hace
+			     self-attach del ByteBuddy agent en runtime para poder
+			     mockear final classes/methods. En JDK 21+ esto genera
+			     warning ("Mockito is currently self-attaching") y en
+			     JDK 24+ está bloqueado por default a menos que pases
+			     -XX:+EnableDynamicAgentLoading o -javaagent explícito.
+
+			     Si el JDK del runner no permite self-attach (e.g. CI
+			     con flags restrictivos), todos los tests fallan en
+			     arranque. La forma portable es declarar byte-buddy-agent
+			     como dependencia explícita y pasarlo a Surefire como
+			     -javaagent — Mockito lo detecta y skipea el self-attach.
+
+			     dependency-plugin resolve la ruta del jar en local
+			     repo y la expone como property; Surefire la inyecta
+			     vía argLine. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>properties</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-javaagent:${net.bytebuddy:byte-buddy-agent:jar} -Xshare:off</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	
