@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -107,6 +107,56 @@ function CommandPalette({ initialOpen = false } = {}) {
     return () => { document.body.style.overflow = prev }
   }, [open])
 
+  // Audit P3 (2026-05-17, 4ª iter): focus trap + restore al cerrar.
+  // Sin esto, Tab escapa al header/footer del fondo y al cerrar el
+  // palette el foco se pierde a <body> en lugar de volver al trigger.
+  //  - Al abrir: guarda el elemento con foco previo.
+  //  - Tab/Shift+Tab dentro del dialog: rebota entre primer y último
+  //    focusable del dialog.
+  //  - Al cerrar: restaura el foco al elemento previo.
+  // No usamos `inert` sobre #root porque el dialog vive dentro del árbol
+  // React (no en un portal); inertar #root inertaría el dialog también.
+  // El focus trap manual cubre el caso keyboard-only correctamente.
+  const dialogRef = useRef(null)
+  const lastFocusRef = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const dialog = dialogRef.current
+    if (!dialog) return
+    lastFocusRef.current = document.activeElement
+
+    const focusables = () => Array.from(dialog.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )).filter((el) => el.offsetParent !== null || el === document.activeElement)
+
+    const onKey = (e) => {
+      if (e.key !== 'Tab') return
+      const els = focusables()
+      if (els.length === 0) {
+        e.preventDefault()
+        return
+      }
+      const first = els[0]
+      const last = els[els.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    dialog.addEventListener('keydown', onKey)
+    return () => {
+      dialog.removeEventListener('keydown', onKey)
+      // Restore focus al trigger original (header search, button, etc.)
+      const prev = lastFocusRef.current
+      if (prev && typeof prev.focus === 'function') {
+        try { prev.focus({ preventScroll: true }) } catch { /* element may be gone */ }
+      }
+    }
+  }, [open])
+
   const go = (path) => {
     setOpen(false)
     const muted = localStorage.getItem('animeshowdown.muted') === 'true'
@@ -126,6 +176,7 @@ function CommandPalette({ initialOpen = false } = {}) {
       .Dialog) sólo aporta el filtrado fuzzy de cmdk.
     */
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby={`${inputId}-title`}
