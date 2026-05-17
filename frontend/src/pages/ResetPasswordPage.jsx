@@ -6,6 +6,7 @@ import { KeyRound } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
+import PasswordInput from '../components/PasswordInput'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -141,10 +142,11 @@ function ResetPasswordPage() {
             >
               Nueva contraseña
             </label>
-            <input
+            <PasswordInput
               id="newPassword"
-              type="password"
               autoComplete="new-password"
+              error={Boolean(errors.newPassword)}
+              placeholder="••••••••"
               {...register('newPassword', {
                 required: 'Introduce una contraseña',
                 minLength: { value: 8, message: 'Mínimo 8 caracteres' },
@@ -153,10 +155,6 @@ function ResetPasswordPage() {
                   message: 'Debe incluir al menos una letra y un número',
                 },
               })}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.newPassword ? 'border-red-500' : 'border-border'
-              }`}
-              placeholder="••••••••"
             />
             {errors.newPassword && (
               <p className="text-[12px] text-red-400">
@@ -172,19 +170,16 @@ function ResetPasswordPage() {
             >
               Confirma la nueva contraseña
             </label>
-            <input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               autoComplete="new-password"
+              error={Boolean(errors.confirmPassword)}
+              placeholder="••••••••"
               {...register('confirmPassword', {
                 required: 'Confirma tu contraseña',
                 validate: (value) =>
                   value === password || 'Las contraseñas no coinciden',
               })}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.confirmPassword ? 'border-red-500' : 'border-border'
-              }`}
-              placeholder="••••••••"
             />
             {errors.confirmPassword && (
               <p className="text-[12px] text-red-400">

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
+import PasswordInput from '../components/PasswordInput'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -152,10 +153,11 @@ function RegisterPage() {
             >
               Contraseña
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="new-password"
+              error={Boolean(errors.password)}
+              placeholder="Mínimo 8, con letra y número"
               {...register('password', {
                 required: 'Introduce una contraseña',
                 minLength: { value: 8, message: 'Mínimo 8 caracteres' },
@@ -164,10 +166,6 @@ function RegisterPage() {
                   message: 'Debe incluir al menos una letra y un número',
                 },
               })}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.password ? 'border-red-500' : 'border-border'
-              }`}
-              placeholder="Mínimo 8, con letra y número"
             />
             {errors.password && (
               <p className="text-[12px] text-red-400">
@@ -183,19 +181,16 @@ function RegisterPage() {
             >
               Confirma la contraseña
             </label>
-            <input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               autoComplete="new-password"
+              error={Boolean(errors.confirmPassword)}
+              placeholder="Repite tu contraseña"
               {...register('confirmPassword', {
                 required: 'Confirma tu contraseña',
                 validate: (value) =>
                   value === password || 'Las contraseñas no coinciden',
               })}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.confirmPassword ? 'border-red-500' : 'border-border'
-              }`}
-              placeholder="Repite tu contraseña"
             />
             {errors.confirmPassword && (
               <p className="text-[12px] text-red-400">

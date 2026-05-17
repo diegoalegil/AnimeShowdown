@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { endpoints, ApiError } from '../lib/api'
+import PasswordInput from './PasswordInput'
 
 /**
  * Card de "Verificación en dos pasos" para /perfil (Plan v2 §2.3).
@@ -554,14 +555,11 @@ function Modal2faDisable({ onClose, onSuccess }) {
           >
             Contraseña actual
           </label>
-          <input
+          <PasswordInput
             id="disable-password"
-            type="password"
             autoComplete="current-password"
+            error={Boolean(errors.password)}
             {...register('password', { required: 'Introduce tu contraseña' })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.password ? 'border-red-500' : 'border-border'
-            }`}
           />
           {errors.password && (
             <p className="text-[11px] text-red-400">{errors.password.message}</p>
