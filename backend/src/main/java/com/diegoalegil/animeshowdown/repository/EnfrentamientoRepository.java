@@ -25,6 +25,23 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
     List<Enfrentamiento> findByTorneoOrderByRondaAscIdAsc(Torneo torneo);
 
     /**
+     * Audit (2026-05-17): query batch para evitar N+1 en TorneoQueryService
+     * .listarResumenes — antes hacía findByTorneoOrderBy... por CADA torneo
+     * visible (1 + N queries con N≈50 torneos). Esta query trae todos los
+     * enfrentamientos de los torneos pedidos en UNA sola, con JOIN FETCH
+     * de personajes para que el mapeo a DTO no dispare lazy load adicional.
+     */
+    @Query("""
+            SELECT e FROM Enfrentamiento e
+            LEFT JOIN FETCH e.personaje1
+            LEFT JOIN FETCH e.personaje2
+            LEFT JOIN FETCH e.ganador
+            WHERE e.torneo.id IN :torneoIds
+            ORDER BY e.torneo.id ASC, e.ronda ASC, e.id ASC
+            """)
+    List<Enfrentamiento> findByTorneoIdInOrdered(@Param("torneoIds") List<Long> torneoIds);
+
+    /**
      * Devuelve un enfrentamiento aleatorio "abierto" (ambos personajes
      * presentes y sin ganador) de cualquier torneo en estado IN_PROGRESS.
      * Usado por VotarPage modo backend: el usuario vota un match real

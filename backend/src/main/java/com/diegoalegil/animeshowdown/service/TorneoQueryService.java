@@ -64,9 +64,25 @@ public class TorneoQueryService {
      */
     @Transactional(readOnly = true)
     public List<TorneoResumenDto> listarResumenes() {
-        return torneoRepository.findVisiblesPublico().stream()
-                .map(this::toResumen)
-                .toList();
+        // Audit (2026-05-17): antes esto era N+1 — toResumen() llamaba
+        // findByTorneoOrderBy... por CADA torneo visible (1 + N queries
+        // con N≈50 torneos). Ahora: 1 query de torneos + 1 query batch
+        // de enfrentamientos (con JOIN FETCH de personajes) agrupada en
+        // memoria. Reduce a 2 queries totales.
+        List<Torneo> torneos = torneoRepository.findVisiblesPublico();
+        if (torneos.isEmpty()) return List.of();
+        List<Long> ids = torneos.stream().map(Torneo::getId).toList();
+        List<Enfrentamiento> todos = enfrentamientoRepository.findByTorneoIdInOrdered(ids);
+        Map<Long, List<Enfrentamiento>> porTorneo = new HashMap<>(torneos.size());
+        for (Enfrentamiento e : todos) {
+            porTorneo.computeIfAbsent(e.getTorneo().getId(), k -> new ArrayList<>()).add(e);
+        }
+        List<TorneoResumenDto> out = new ArrayList<>(torneos.size());
+        for (Torneo t : torneos) {
+            List<Enfrentamiento> matches = porTorneo.getOrDefault(t.getId(), List.of());
+            out.add(rellenarResumen(new TorneoResumenDto(), t, matches));
+        }
+        return out;
     }
 
     @Transactional(readOnly = true)
