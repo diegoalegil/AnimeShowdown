@@ -169,10 +169,19 @@ function scanFolder() {
       continue
     }
     seenFinalSlugs.add(finalSlug)
-    // El override se busca PRIMERO por el slug final con prefijo, y como
-    // fallback por el baseSlug original (para no perder descripciones curadas
-    // cuando el slug se desambigua).
-    const override = overrides[finalSlug] || overrides[r.baseSlug] || {}
+    // Lookup de override:
+    //   - Sin colisión: acepta baseSlug como fallback (preserva descripciones
+    //     curadas si el slug nunca cambió).
+    //   - Con colisión: SOLO finalSlug. El fallback a baseSlug era el bug
+    //     reportado el 2026-05-17 — overrides['lucy'] (descripción de Pokemon
+    //     Lucy) se copiaba a Cyberpunk Lucy y Elfen Lied Lucy porque las 3
+    //     compartían baseSlug. Ahora cada una requiere su propio override por
+    //     el slug final (pokemon_lucy / elfen_lied_lucy / cyberpunk_edgerunners_lucy)
+    //     o cae al placeholder genérico.
+    const hayColision = slugCount[r.baseSlug] > 1
+    const override = hayColision
+      ? (overrides[finalSlug] || {})
+      : (overrides[finalSlug] || overrides[r.baseSlug] || {})
     const nombre = override.nombre || deriveName(r.baseSlug)
     const descripcion = override.descripcion || `Personaje del anime ${r.animeDisplay}.`
     const imagenUrl = `/img/${r.folder}/${r.file}`
@@ -188,6 +197,27 @@ function scanFolder() {
   if (collisions.length > 0) {
     console.log(`  ⚠ ${collisions.length} colisiones de slug resueltas con prefijo de folder:`)
     for (const c of collisions) console.log(`    ${c}`)
+  }
+
+  // Avisa de overrides cuya clave es un baseSlug colisionado — esos overrides
+  // ya no se aplican a NINGÚN personaje (el fallback se desactivó en colisión)
+  // y deberían migrarse al slug final correcto o eliminarse del JSON.
+  const colisionadosKeys = new Set()
+  for (const baseSlug in slugCount) {
+    if (slugCount[baseSlug] > 1 && overrides[baseSlug]) {
+      colisionadosKeys.add(baseSlug)
+    }
+  }
+  if (colisionadosKeys.size > 0) {
+    console.warn(
+      `  ⚠ ${colisionadosKeys.size} override(s) huérfano(s) por colisión — la clave es ambigua y ya no aplica:`,
+    )
+    for (const k of colisionadosKeys) {
+      const finales = entries.length
+        ? entries.filter(e => e.slug.endsWith('_' + k) || e.slug === k).map(e => e.slug)
+        : []
+      console.warn(`     overrides['${k}'] → migrar a alguno de: ${finales.join(', ') || '(ver finalSlugs en collisions de arriba)'}`)
+    }
   }
 
   return entries
