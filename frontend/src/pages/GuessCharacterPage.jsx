@@ -16,6 +16,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
+import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import {
   buildShareSquares,
   fechaDelDia,
@@ -50,7 +51,7 @@ const containerVariants = {
  */
 function GuessCharacterPage() {
   useSeo({
-    title: 'Guess the Character — Daily',
+    title: 'Shadow Guess · Guess the Character — Daily',
     description:
       'Adivina el personaje de anime del día por su imagen difuminada. 5 intentos. Comparte tu resultado estilo Wordle.',
   })
@@ -133,7 +134,7 @@ function GuessCharacterPage() {
         schema={breadcrumbsSchema([
           { label: 'Inicio', path: '/' },
           { label: 'Anime Games', path: '/games' },
-          { label: 'Guess the Character', path: '/games/guess-character' },
+          { label: 'Shadow Guess', path: '/games/shadow-guess' },
         ])}
       />
       <div className="mx-auto max-w-2xl">
@@ -280,133 +281,59 @@ function GuessCharacterPage() {
   )
 }
 
+// Tiers de precisión según en qué intento aciertes. Sin pista penaliza
+// más alto en la jerarquía; con pista cap a "Aceptable" como mucho.
+function tierPara(intentos, pistaUsada) {
+  if (intentos === 1 && !pistaUsada) return 'Precisión legendaria ✨'
+  if (intentos === 1) return 'Precisión legendaria con pista'
+  if (intentos === 2) return 'Increíble reflejo'
+  if (intentos === 3) return 'Bien hecho'
+  if (intentos === 4) return 'Por los pelos'
+  return 'Justo a tiempo'
+}
+
 function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
-  const squares = buildShareSquares(
+  const perfecto = acertado && totalIntentos === 1 && !pistaUsada
+  const squaresRaw = buildShareSquares(
     intentos.map((i) => i.acierto),
     MAX_INTENTOS,
   )
   const texto = `🎴 Guess the Character — ${fechaDelDia()}\n${
     acertado ? `✅ Acerté en ${totalIntentos}/${MAX_INTENTOS}` : `❌ Era ${objetivo.nombre} (${objetivo.anime})`
-  }\n${squares}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/guess-character`
+  }\n${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/shadow-guess`
 
-  const compartir = async () => {
-    try {
-      await navigator.clipboard.writeText(texto)
-      toast.success('Resultado copiado al portapapeles')
-    } catch {
-      toast.error('No se pudo copiar', { description: 'Selecciona el texto a mano.' })
-    }
-  }
+  const titulo = perfecto
+    ? 'PERFECT CLEAR · Acertaste en 1 intento'
+    : acertado
+      ? `Acertaste en ${totalIntentos}/${MAX_INTENTOS}`
+      : `Era ${objetivo.nombre}`
+
+  const tier = acertado ? tierPara(totalIntentos, pistaUsada) : 'Mañana cazas la siguiente'
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 180, damping: 18 }}
-      className={`relative mb-6 overflow-hidden rounded-2xl border p-6 ${
-        acertado
-          ? 'border-emerald-400/40 bg-gradient-to-br from-emerald-500/15 via-cyan-500/5 to-fuchsia-500/10'
-          : 'border-rose-400/40 bg-gradient-to-br from-rose-500/15 via-purple-500/5 to-slate-900/20'
-      }`}
+    <PanelResultadoAnime
+      acertado={acertado}
+      titulo={titulo}
+      tier={tier}
+      squares={intentos.map((i) => ({ ok: i.acierto }))}
+      bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareText={texto}
     >
-      {/* Kanji decorativo de fondo — 結 (musubi, "lazo/resultado") si
-          aciertas, 残 (zan, "queda/resta") si no. Sutil, sirve de textura. */}
-      <span
-        aria-hidden="true"
-        className={`pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none opacity-[0.07] ${
-          acertado ? 'text-emerald-200' : 'text-rose-200'
-        }`}
-      >
-        {acertado ? '結' : '残'}
-      </span>
-      {/* Sparkles decorativos */}
-      {acertado && (
-        <>
-          <Sparkles className="absolute right-4 top-4 h-4 w-4 animate-pulse text-emerald-300/70" />
-          <Sparkles className="absolute bottom-6 right-12 h-3 w-3 animate-pulse text-cyan-300/60 [animation-delay:0.4s]" />
-          <Sparkles className="absolute left-8 top-10 h-3 w-3 animate-pulse text-fuchsia-300/60 [animation-delay:0.8s]" />
-        </>
-      )}
-
-      <div className="relative">
-        <div className="mb-1 flex items-center gap-2">
-          <span
-            className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${
-              acertado
-                ? 'bg-emerald-500/30 text-emerald-100'
-                : 'bg-rose-500/25 text-rose-100'
-            }`}
-          >
-            {acertado ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <X className="h-4 w-4" />
-            )}
-          </span>
-          <p
-            className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
-              acertado ? 'text-emerald-200' : 'text-rose-200'
-            }`}
-          >
-            {acertado ? '勝利 · Victoria' : '敗北 · Sin intentos'}
-          </p>
-        </div>
-        <p className="mb-4 text-2xl font-extrabold leading-tight tracking-tight text-fg-strong">
-          {acertado
-            ? `Acertaste en ${totalIntentos}/${MAX_INTENTOS}`
-            : `Era ${objetivo.nombre}`}
-        </p>
-
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          {intentos.map((i, idx) => (
-            <span
-              key={idx}
-              className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-base ${
-                i.acierto
-                  ? 'border border-emerald-400/40 bg-emerald-500/15'
-                  : 'border border-rose-400/30 bg-rose-500/10'
-              }`}
-              aria-label={i.acierto ? 'acierto' : 'fallo'}
-            >
-              {i.acierto ? '🌸' : '🍂'}
-            </span>
-          ))}
-          {pistaUsada && (
-            <span
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-400/40 bg-amber-500/15 text-base"
-              aria-label="pista usada"
-              title="Pista usada"
-            >
-              💡
-            </span>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={compartir}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
+      <p className="text-[12px] text-fg-muted">
+        Próxima partida a medianoche local.{' '}
+        <Link to="/games" className="text-accent hover:underline">
+          Volver al hub
+        </Link>{' '}
+        ·{' '}
+        <Link
+          to={`/personajes/${objetivo.slug}`}
+          className="text-accent hover:underline"
         >
-          <Copy className="h-3.5 w-3.5" />
-          Copiar resultado
-        </button>
-
-        <p className="mt-4 text-[12px] text-fg-muted">
-          Próxima partida a medianoche local.{' '}
-          <Link to="/games" className="text-accent hover:underline">
-            Volver al hub
-          </Link>{' '}
-          ·{' '}
-          <Link
-            to={`/personajes/${objetivo.slug}`}
-            className="text-accent hover:underline"
-          >
-            Ver ficha de {objetivo.nombre}
-          </Link>
-        </p>
-      </div>
-    </motion.div>
+          Ver ficha de {objetivo.nombre}
+        </Link>
+      </p>
+    </PanelResultadoAnime>
   )
 }
 
