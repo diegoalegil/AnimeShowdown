@@ -121,11 +121,22 @@ public class ReaccionService {
     /**
      * Devuelve el resumen del target: counts por tipo + mi reaction.
      * usuario puede ser null (anónimo) — en ese caso miReaccion=null.
+     *
+     * <p>Audit P2 (2026-05-17): valida visibilidad del target antes de
+     * agregar counts. Antes el GET retornaba conteos para cualquier
+     * (targetType, targetId), incluyendo torneos PENDIENTE/RECHAZADO
+     * (filtraba metadata) o ids inexistentes (revela cardinalidad de la
+     * tabla). Mismo trato 404-equivalente que el POST y el resto de APIs
+     * de visibilidad: si el target no existe o está oculto, devuelve un
+     * resumen vacío sin tocar el repo de counts.
      */
     @Transactional(readOnly = true)
     public ReaccionesResumen resumen(ReaccionTargetType targetType, Long targetId, Usuario usuario) {
         Map<ReaccionTipo, Long> counts = new EnumMap<>(ReaccionTipo.class);
         for (ReaccionTipo t : ReaccionTipo.values()) counts.put(t, 0L);
+        if (targetType == null || targetId == null || !existeTarget(targetType, targetId)) {
+            return new ReaccionesResumen(counts, null, 0);
+        }
         long total = 0;
         List<Object[]> filas = repo.contarPorTipo(targetType, targetId);
         for (Object[] fila : filas) {
