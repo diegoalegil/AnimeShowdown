@@ -82,7 +82,12 @@ function CommandPalette({ initialOpen = false } = {}) {
         setOpen(false)
         return
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      // Audit P3 (2026-05-18, 5ª iter): escucha K y J. Antes solo K;
+      // J solo funcionaba la primera vez (lo capturaba el wrapper
+      // LazyMount para armar el mount, pero tras cerrar y volver a
+      // pulsar J, el listener interno no respondía).
+      if ((e.metaKey || e.ctrlKey)
+          && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'j')) {
         e.preventDefault()
         setOpen((o) => {
           const next = !o
