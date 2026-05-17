@@ -198,17 +198,12 @@ function PersonajeDetailPage() {
             style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
             variants={itemVariants}
           >
-            <Suspense
-              fallback={
-                <img
-                  src={imagenPersonaje(slug)}
-                  alt={personaje.nombre}
-                  className="h-full w-full object-cover"
-                />
-              }
-            >
-              <Personaje3D slug={slug} />
-            </Suspense>
+            {/* Audit (2026-05-17): Personaje3D era opt-in al mount con
+                imagen como fallback, pero el chunk se descargaba siempre
+                al entrar a la ficha y disparaba 'THREE.Clock deprecated'
+                en consola. Cambio a static-first: imagen como default y
+                un botón 'Ver en 3D' monta el lazy chunk on-demand. */}
+            <PersonajeStaticOr3D slug={slug} nombre={personaje.nombre} />
           </motion.div>
           <motion.div
             className="flex flex-col items-start gap-4"
@@ -533,6 +528,46 @@ function CarruselSimilares({ slug, nombre }) {
         Recomendaciones basadas en proximidad de votos en el ranking global.
       </p>
     </div>
+  )
+}
+
+/**
+ * Render static-first del personaje. Por defecto img + botón "Ver en 3D".
+ * Al hacer click, monta el chunk lazy de Personaje3D. Evita pagar el
+ * coste de three.js/Three Fiber en cada visita a la ficha.
+ */
+function PersonajeStaticOr3D({ slug, nombre }) {
+  const [show3D, setShow3D] = useState(false)
+  if (!show3D) {
+    return (
+      <div className="relative h-full w-full">
+        <img
+          src={imagenPersonaje(slug)}
+          alt={nombre}
+          className="h-full w-full object-cover"
+        />
+        <button
+          type="button"
+          onClick={() => setShow3D(true)}
+          className="absolute bottom-3 right-3 rounded-full border border-border bg-surface/85 px-3 py-1.5 text-[11px] font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-accent"
+        >
+          Ver en 3D
+        </button>
+      </div>
+    )
+  }
+  return (
+    <Suspense
+      fallback={
+        <img
+          src={imagenPersonaje(slug)}
+          alt={nombre}
+          className="h-full w-full object-cover"
+        />
+      }
+    >
+      <Personaje3D slug={slug} />
+    </Suspense>
   )
 }
 
