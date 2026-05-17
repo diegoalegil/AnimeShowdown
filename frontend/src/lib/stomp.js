@@ -97,10 +97,61 @@ export function isConnected() {
   return !!client && client.connected
 }
 
+// Subscriptions abiertas (pendientes y activas). Cuando hay token y cliente,
+// cada entry tiene su sub real y su listener. Cuando no, queda pendiente y
+// se re-engancha vía tryAttachPending() (llamado al activar el cliente).
+const subscriptions = new Set()
+
+function attach(entry) {
+  const c = ensureConnected()
+  if (!c) return // No hay token todavía — queda pendiente.
+  if (entry.activeListener) return // Ya estaba enganchado.
+
+  const doSubscribe = () => {
+    if (!c.connected) return
+    entry.sub = c.subscribe(entry.destination, (message) => {
+      try {
+        const body = message.body ? JSON.parse(message.body) : null
+        entry.onMessage(body)
+      } catch {
+        entry.onMessage(message.body)
+      }
+    })
+  }
+  doSubscribe()
+  const onConnect = (connected) => {
+    if (connected) {
+      // Defensivo: si seguía referenciando una vieja, unsubscribe antes.
+      if (entry.sub) {
+        try {
+          entry.sub.unsubscribe()
+        } catch {
+          /* ignore */
+        }
+        entry.sub = null
+      }
+      doSubscribe()
+    } else {
+      // El WS cayó: olvida la sub local para que el próximo reconnect re-suscriba.
+      entry.sub = null
+    }
+  }
+  entry.activeListener = onConnect
+  connectedListeners.add(onConnect)
+}
+
 /**
- * Subscribe a un destination STOMP. Devuelve un cleanup que hace unsubscribe
- * y, si no quedan más subscripciones, desactiva el client (no estrictamente
- * necesario en SPA pero deja la app limpia).
+ * Intenta enganchar todas las subscriptions pendientes. Llamar desde
+ * AuthContext cuando setToken haya recibido un token nuevo — los hooks
+ * que se montaron sin token (bootstrap optimista desde localStorage)
+ * recuperan sus subscripciones sin remount.
+ */
+export function tryAttachPending() {
+  for (const entry of subscriptions) attach(entry)
+}
+
+/**
+ * Subscribe a un destination STOMP. Devuelve un cleanup que hace unsubscribe.
  *
  * @param {string} destination ej. '/topic/torneo.42.bracket' o
  *                             '/user/queue/notificaciones'.
@@ -109,66 +160,27 @@ export function isConnected() {
  * @returns {() => void} cleanup
  */
 export function subscribe(destination, onMessage) {
-  const c = ensureConnected()
-  if (!c) {
-    // No hay token JWT — no podemos abrir WS (CONNECT requiere auth).
-    // Devolvemos un cleanup no-op para que el caller pueda llamar igual.
-    return () => {}
-  }
-  let sub = null
-
-  // Si todavía no está conectado, dejamos el subscribe para el callback
-  // onConnect. STOMP no acepta subscribes antes del CONNECT confirmado.
-  const doSubscribe = () => {
-    if (!c.connected) return
-    sub = c.subscribe(destination, (message) => {
-      try {
-        const body = message.body ? JSON.parse(message.body) : null
-        onMessage(body)
-      } catch {
-        onMessage(message.body)
-      }
-    })
-  }
-
-  doSubscribe()
-  // Audit P2 (2026-05-17): antes el listener comprobaba `!sub` y NO
-  // re-suscribía tras reconnect — la primera sub seguía no-null aunque el
-  // WS ya hubiera caído, así que el cliente quedaba conectado pero sin
-  // escuchar el topic (silencio total tras un drop+reconnect típico de
-  // WiFi/sleep). Ahora: cuando notifyConnected(false), invalidamos sub
-  // localmente (server-side ya no existe). En cada onConnect(true)
-  // re-suscribimos siempre.
-  const onConnect = (connected) => {
-    if (connected) {
-      // Defensivo: si por algún motivo seguía referenciando la vieja,
-      // intentamos unsubscribe antes de la nueva (no-op si ya estaba muerta).
-      if (sub) {
-        try {
-          sub.unsubscribe()
-        } catch {
-          /* ignore */
-        }
-        sub = null
-      }
-      doSubscribe()
-    } else {
-      // El WS cayó: la sub del broker se descarta automáticamente. Olvida
-      // la referencia local para que el próximo onConnect(true) re-suscriba.
-      sub = null
-    }
-  }
-  connectedListeners.add(onConnect)
-
+  // Audit P2 (2026-05-17): registramos siempre la subscription, incluso
+  // sin token. Antes returnabamos no-op silencioso y el hook quedaba
+  // sordo — en bootstrap el user optimista de localStorage hacía que los
+  // hooks llamaran subscribe ANTES de que refreshSession trajera el JWT,
+  // y sus suscripciones se perdían hasta remount. Ahora attach se
+  // reintenta vía tryAttachPending tras setToken.
+  const entry = { destination, onMessage, sub: null, activeListener: null }
+  subscriptions.add(entry)
+  attach(entry)
   return () => {
-    if (sub) {
+    if (entry.sub) {
       try {
-        sub.unsubscribe()
+        entry.sub.unsubscribe()
       } catch {
         /* ignore */
       }
     }
-    connectedListeners.delete(onConnect)
+    if (entry.activeListener) {
+      connectedListeners.delete(entry.activeListener)
+    }
+    subscriptions.delete(entry)
   }
 }
 
