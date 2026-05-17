@@ -60,6 +60,13 @@ function deriveName(slug) {
 
 // ─── escaneo de img/ ────────────────────────────────────────────────────────
 
+// generate-image-variants.mjs escribe variantes responsive (-300/-600/-1024
+// + .avif) en frontend/img/. Si se cuela aquí, las trataríamos como
+// personajes nuevos e inyectaríamos 4x el catálogo + duplicados. Lección
+// aprendida en 2026-05-17: el seed terminó con 2815 entries (700 reales x
+// 4 variantes) y rompió el DataSeeder con Unique constraint violations.
+const VARIANT_SUFFIX = /-(?:300|600|1024)$/
+
 function scanFolder() {
   // Primera pasada: lista cruda sin resolver conflictos
   const raw = []
@@ -68,6 +75,7 @@ function scanFolder() {
     .map(d => d.name)
     .sort()
 
+  let variantesIgnoradas = 0
   for (const folder of folders) {
     const animeDisplay = getAnimeDisplayName(folder)
     const files = readdirSync(join(IMG_DIR, folder), { withFileTypes: true })
@@ -77,8 +85,18 @@ function scanFolder() {
 
     for (const file of files) {
       const baseSlug = basename(file, extname(file))
+      // Ignorar variantes responsive — no son personajes, son outputs del
+      // pipeline de imágenes.
+      if (VARIANT_SUFFIX.test(baseSlug)) {
+        variantesIgnoradas++
+        continue
+      }
       raw.push({ baseSlug, folder, animeDisplay, file })
     }
+  }
+
+  if (variantesIgnoradas > 0) {
+    console.log(`  ℹ ${variantesIgnoradas} variantes responsive (-300/-600/-1024) ignoradas`)
   }
 
   // Detecta colisiones de slug entre anime distintos. Si un mismo slug aparece
@@ -91,7 +109,9 @@ function scanFolder() {
   }
 
   const collisions = []
-  const entries = raw.map(r => {
+  const seenFinalSlugs = new Set()
+  const entries = []
+  for (const r of raw) {
     const folderPrefix = r.folder.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
     const finalSlug = slugCount[r.baseSlug] > 1
       ? `${folderPrefix}_${r.baseSlug}`
@@ -99,6 +119,14 @@ function scanFolder() {
     if (slugCount[r.baseSlug] > 1) {
       collisions.push(`${r.baseSlug} (${r.folder}) → ${finalSlug}`)
     }
+    // Dedup defensivo final: si por alguna razón el mismo finalSlug aparece
+    // dos veces (e.g. variante de carpeta + carpeta con espacio renombrada),
+    // nos quedamos con el primero. Mejor que duplicar y romper el seed.
+    if (seenFinalSlugs.has(finalSlug)) {
+      console.warn(`  ⚠ slug duplicado descartado: ${finalSlug} (${r.folder}/${r.file})`)
+      continue
+    }
+    seenFinalSlugs.add(finalSlug)
     // El override se busca PRIMERO por el slug final con prefijo, y como
     // fallback por el baseSlug original (para no perder descripciones curadas
     // cuando el slug se desambigua).
@@ -106,14 +134,14 @@ function scanFolder() {
     const nombre = override.nombre || deriveName(r.baseSlug)
     const descripcion = override.descripcion || `Personaje del anime ${r.animeDisplay}.`
     const imagenUrl = `/img/${r.folder}/${r.file}`
-    return {
+    entries.push({
       slug: finalSlug,
       nombre,
       anime: r.animeDisplay,
       descripcion,
       imagenUrl,
-    }
-  })
+    })
+  }
 
   if (collisions.length > 0) {
     console.log(`  ⚠ ${collisions.length} colisiones de slug resueltas con prefijo de folder:`)
