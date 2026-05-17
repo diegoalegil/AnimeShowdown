@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { ArrowRight, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { personajes, imagenPersonaje } from '../data/personajes'
+import { personajes, imagenPersonaje, getPopularidad } from '../data/personajes'
 import { endpoints, ApiError } from '../lib/api'
 import { useSeo } from '../hooks/useSeo'
 import { useSound } from '../contexts/SoundContext'
@@ -29,11 +29,45 @@ import { useAuth } from '../contexts/AuthContext'
 const STORAGE_FAST = 'animeshowdown.votar.fast'
 const NEXT_DELAY_MS = 1200
 
+/**
+ * Emparejamientos balanceados (propuesta Plan v2 §4.x).
+ *
+ * Antes era 100% random sobre los 730 personajes — salían combinaciones
+ * sin sentido (un nicho contra Luffy). Ahora:
+ *   1. A es completamente aleatorio.
+ *   2. B se busca con popularidad cercana a A (delta ≤ 12 puntos).
+ *   3. Si tras 25 intentos no encuentra match cercano (zona muy peculiar),
+ *      ampliamos a delta 25 con un intento más. Si tampoco, fallback a
+ *      random clásico (garantizamos siempre devolver un par).
+ *
+ * El delta 12 sobre popularidad [0,100] se traduce a ELO ~±84 (popularidad·7),
+ * range razonable para que el duelo se sienta competido sin clonar pares.
+ */
 function getRandomPair() {
-  const a = Math.floor(Math.random() * personajes.length)
-  let b = Math.floor(Math.random() * personajes.length)
-  while (b === a) b = Math.floor(Math.random() * personajes.length)
-  return [personajes[a], personajes[b]]
+  if (personajes.length < 2) return [personajes[0], personajes[0]]
+  const idxA = Math.floor(Math.random() * personajes.length)
+  const a = personajes[idxA]
+  const popA = getPopularidad(a.slug)
+
+  const buscarCercano = (deltaMax, intentos) => {
+    for (let i = 0; i < intentos; i++) {
+      const idxB = Math.floor(Math.random() * personajes.length)
+      if (idxB === idxA) continue
+      const b = personajes[idxB]
+      if (Math.abs(getPopularidad(b.slug) - popA) <= deltaMax) {
+        return b
+      }
+    }
+    return null
+  }
+
+  const b = buscarCercano(12, 25) ?? buscarCercano(25, 10)
+  if (b) return [a, b]
+
+  // Fallback random (debería pasar muy raro).
+  let idxFallback = Math.floor(Math.random() * personajes.length)
+  while (idxFallback === idxA) idxFallback = Math.floor(Math.random() * personajes.length)
+  return [a, personajes[idxFallback]]
 }
 
 function VotarPage() {
