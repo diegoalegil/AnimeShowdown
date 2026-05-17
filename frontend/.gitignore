@@ -23,10 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Variantes de imagen generadas en build time por scripts/generate-image-variants.mjs
-# (Plan v2 §3.3-3.4). Las originales (slug.webp) sí se commitean; las variantes
-# se regeneran en cada build de Cloudflare Pages.
-img/**/*-300.webp
-img/**/*-600.webp
+# Variantes responsive de imágenes (Plan v2 §3.3-3.4 + §3.6 perf 2026-05-17):
+#   - -300.webp y -600.webp SÍ se commitean — Cloudflare Pages las sirve
+#     directamente sin regenerar en cada build (esquiva timeout de 20 min).
+#   - -1024.webp se omite (el original ya cubre ese ancho).
+#   - AVIF se omite (sumaría +250MB al repo sin ganancia visible vs WebP).
 img/**/*-1024.webp
 img/**/*.avif
