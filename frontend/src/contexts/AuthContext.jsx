@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { endpoints, setToken, refreshSession, ApiError } from '../lib/api'
+import { endpoints, setToken, refreshSession, setLoggingOut, ApiError } from '../lib/api'
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
-import { tryAttachPending, disconnect as disconnectStomp } from '../lib/stomp'
+import { disconnect as disconnectStomp } from '../lib/stomp'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -94,14 +94,10 @@ export function AuthProvider({ children }) {
     refreshSession().then((data) => {
       if (cancelled) return
       if (data?.token && data.usuario) {
-        // refreshSession ya pone el token en memoria; solo actualizamos el user.
+        // refreshSession ya pone el token vía setToken → onTokenChange
+        // dispara stomp.reconnect que internamente hace tryAttachPending
+        // tras await deactivate. Solo actualizamos el user aquí.
         setUser(buildLocalUser(data.usuario))
-        // Audit P2 (2026-05-17): tras bootstrap exitoso, replay de las WS
-        // subscriptions que se quedaron pendientes porque los hooks
-        // intentaron suscribirse antes de que llegara el JWT (user
-        // optimista desde localStorage). Sin esto, en reload con sesión
-        // viva el cliente queda sin notificaciones hasta remount manual.
-        tryAttachPending()
       } else if (user) {
         // Había user optimista pero el refresh falló → la cookie ya no es
         // válida. Forzamos logout local.
@@ -128,10 +124,12 @@ export function AuthProvider({ children }) {
   // completeLogin2fa() tras superar el segundo paso.
   const aplicarSesion = (res, identificadorFallback) => {
     if (res?.token) {
+      // setToken dispara notifyTokenChange → stomp.reconnect (que internamente
+      // hace tryAttachPending tras await deactivate). Audit P2 (2026-05-17,
+      // 4ª iter): antes llamábamos tryAttachPending() aquí explícito, lo que
+      // creaba un cliente nuevo MIENTRAS reconnect aún esperaba al deactivate
+      // del viejo → dos sockets WS. Confiamos solo en el listener.
       setToken(res.token)
-      // Tras login (o 2FA), hooks WS pueden haber intentado suscribirse
-      // antes de tener token — re-engancha esas pendientes.
-      tryAttachPending()
     }
     const u =
       buildLocalUser(res?.usuario) || {
@@ -216,31 +214,38 @@ export function AuthProvider({ children }) {
   }
 
   const logout = async () => {
-    // Notificamos al backend para revocar el refresh y limpiar la cookie.
-    // Si falla la red lo loggeamos pero seguimos limpiando local — el
-    // usuario espera que "Cerrar sesión" funcione siempre.
+    // Audit P2 (2026-05-17, 4ª iter): marca isLoggingOut ANTES de pegar
+    // al backend. Si una request paralela recibe 401 mientras logout
+    // está en vuelo, intentarRefresh devolvía un refresh exitoso que
+    // resucitaba la sesión que el user acababa de cerrar. Con el flag,
+    // intentarRefresh devuelve null inmediato y la request queda
+    // 401-final. Liberamos el flag al final (try/finally) por si el
+    // logout falla y el user vuelve a usar la app sin reload.
+    setLoggingOut(true)
     try {
-      await endpoints.logout()
-    } catch (err) {
-      // ignore: revocación best-effort; el JWT en memoria se va a la papelera.
-      console.debug('logout backend falló (ignored):', err?.message)
+      // Notificamos al backend para revocar el refresh y limpiar la cookie.
+      // Si falla la red lo loggeamos pero seguimos limpiando local — el
+      // usuario espera que "Cerrar sesión" funcione siempre.
+      try {
+        await endpoints.logout()
+      } catch (err) {
+        // ignore: revocación best-effort; el JWT en memoria se va a la papelera.
+        console.debug('logout backend falló (ignored):', err?.message)
+      }
+      // Audit P1 (2026-05-17): vacía el cache de React Query antes de
+      // limpiar el user. Sin esto, queries privadas (perfil, notificaciones,
+      // mis torneos, logros) quedan en cache; si el siguiente usuario hace
+      // login en el mismo navegador, las verá un instante hasta que
+      // stale-time refresque. Equivalente a invalidar TODO.
+      queryClient.clear()
+      // Audit P1 (2026-05-17): cierra el WS singleton.
+      disconnectStomp()
+      setUser(null)
+      setToken(null)
+      toast('Hasta pronto', { description: 'Sesión cerrada.' })
+    } finally {
+      setLoggingOut(false)
     }
-    // Audit P1 (2026-05-17): vacía el cache de React Query antes de
-    // limpiar el user. Sin esto, queries privadas (perfil, notificaciones,
-    // mis torneos, logros) quedan en cache; si el siguiente usuario hace
-    // login en el mismo navegador, las verá un instante hasta que
-    // stale-time refresque. Equivalente a invalidar TODO.
-    queryClient.clear()
-    // Audit P1 (2026-05-17): cierra el WS singleton. Sin esto, el cliente
-    // STOMP seguía conectado con el JWT viejo del usuario anterior; el
-    // siguiente login reutilizaba ensureConnected (que solo crea cliente
-    // si no existe) y nunca volvía a hacer CONNECT con el JWT nuevo, así
-    // que el WS quedaba autenticado como el usuario previo. Toda
-    // notificación dirigida al nuevo user iba a la cola del anterior.
-    disconnectStomp()
-    setUser(null)
-    setToken(null)
-    toast('Hasta pronto', { description: 'Sesión cerrada.' })
   }
 
   return (
