@@ -23,12 +23,20 @@ const STORAGE_KEY = 'animeshowdown.user'
 
 function buildLocalUser(payload) {
   if (!payload) return null
+  // Audit P2 (2026-05-17): antes solo persistíamos id/username/email/
+  // avatarUrl/rol. Faltaban estadoVerificacion (rompía el banner de
+  // EmailVerifyBanner que tenía que asumir PENDIENTE por defecto) y
+  // totpHabilitado (Card2faSeguridad pintaba 2FA como desactivado
+  // aunque el usuario lo tuviera puesto). Ambos vienen en el payload
+  // del login y del refresh — no hay coste en propagarlos al estado.
   return {
     id: payload.id,
     username: payload.username,
     email: payload.email,
     avatarUrl: payload.avatarUrl,
     rol: payload.rol || 'USER',
+    estadoVerificacion: payload.estadoVerificacion || 'PENDIENTE',
+    totpHabilitado: payload.totpHabilitado === true,
   }
 }
 
