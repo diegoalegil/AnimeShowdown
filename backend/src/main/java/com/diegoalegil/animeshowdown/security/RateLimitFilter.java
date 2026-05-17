@@ -65,6 +65,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
+    // Audit P2.5 (2026-05-17): endpoint legacy /api/personajes/{id}/votar
+    // también entra al rate limit. Antes solo el moderno (enfrentamientos)
+    // estaba limitado y el legacy era un bypass trivial.
+    private static final String RUTA_VOTAR_PERSONAJE_PREFIJO = "/api/personajes/";
 
     private final boolean enabled;
     private final Cache<String, Bucket> buckets;
@@ -119,6 +123,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
         // /api/enfrentamientos/{id}/votar — id variable.
         if (uri.startsWith(RUTA_VOTAR_PREFIJO) && uri.endsWith(RUTA_VOTAR_SUFIJO)) {
+            return true;
+        }
+        // /api/personajes/{id}/votar — endpoint legacy (P2.5).
+        if (uri.startsWith(RUTA_VOTAR_PERSONAJE_PREFIJO) && uri.endsWith(RUTA_VOTAR_SUFIJO)) {
             return true;
         }
         return false;

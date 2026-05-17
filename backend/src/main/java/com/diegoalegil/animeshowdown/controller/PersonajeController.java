@@ -171,13 +171,30 @@ public class PersonajeController {
         return eloHistoryService.historial(slug, dias);
     }
 
+    /**
+     * Endpoint legacy de voto directo a personaje (sin enfrentamiento).
+     * El frontend usa {@code /api/enfrentamientos/{id}/votar} desde el
+     * Bloque 1; este se mantiene por compatibilidad pero queda con las
+     * mismas garantías de seguridad (audit P2.5 2026-05-17):
+     *   - Requiere email verificado.
+     *   - Cuenta para rate limit (RateLimitFilter incluye el path).
+     *   - Idempotente: 409 si el usuario ya votó al personaje.
+     */
     @PostMapping("/{id}/votar")
-    public ResponseEntity<Voto> votar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<?> votar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!usuario.estaVerificado()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Necesitas verificar tu email antes de votar.");
+        }
         Personaje personaje = personajeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
 
         if (votoRepository.existsByPersonajeAndUsuario(personaje, usuario)) {
-            throw new IllegalStateException("Ya has votado a este personaje");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Ya has votado a este personaje");
         }
 
         Voto voto = new Voto(personaje, usuario);
