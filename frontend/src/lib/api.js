@@ -285,6 +285,12 @@ export const endpoints = {
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
   perfilTop: ({ limit = 5 } = {}) =>
     api.get(`/api/perfil/me/top?limit=${limit}`),
+  // GDPR right to erasure (Plan v2 §4.1). Requiere password de nuevo
+  // en el body como reconfirmación; 400 si la password no coincide.
+  // Tras éxito el backend limpia la cookie de refresh; el cliente debe
+  // además limpiar tokens locales y redirigir a home.
+  eliminarMiCuenta: ({ password }) =>
+    api.del('/api/perfil/me', { body: { password } }),
   // Perfil PÚBLICO de cualquier usuario (Plan v2 §4.5). Endpoint
   // permitAll en el backend, pero si el caller está logueado el token
   // viaja y el backend rellena `siguiendo` y `esMismoUsuario`. Si no

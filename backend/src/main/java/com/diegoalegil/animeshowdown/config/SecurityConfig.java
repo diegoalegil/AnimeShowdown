@@ -107,6 +107,10 @@ public class SecurityConfig {
                         // /api/perfil/{username} muestra stats + top + logros
                         // públicos sin necesidad de login.
                         .requestMatchers(HttpMethod.GET, "/api/perfil/me/**").authenticated()
+                        // Plan v2 §4.1: DELETE /api/perfil/me (GDPR right to
+                        // erasure). Requiere sesión + reconfirmación de password
+                        // en el body.
+                        .requestMatchers(HttpMethod.DELETE, "/api/perfil/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/perfil/*").permitAll()
                         // OG images server-side (Plan v2 §1.2): los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.

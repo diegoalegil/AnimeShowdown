@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -199,5 +200,54 @@ class PerfilControllerTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].slug").value("luffy"))
                 .andExpect(jsonPath("$[0].votos").value(1));
+    }
+
+    @Test
+    void eliminarCuentaSinAuthDevuelveForbidden() throws Exception {
+        mvc.perform(delete("/api/perfil/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("password", "loquesea"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void eliminarCuentaConPasswordIncorrectaDevuelve400() throws Exception {
+        String token = tokenDe("delete_alice", "delete_alice@example.com");
+        mvc.perform(delete("/api/perfil/me")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("password", "passwordIncorrecta"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Password incorrecta"));
+    }
+
+    @Test
+    void eliminarCuentaOkBorraUsuarioYReturnNoContent() throws Exception {
+        String token = tokenDe("delete_bob", "delete_bob@example.com");
+        mvc.perform(delete("/api/perfil/me")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("password", "secreta123"))))
+                .andExpect(status().isNoContent());
+
+        // Verifica que tras el delete el perfil público devuelve 404.
+        mvc.perform(get("/api/perfil/delete_bob"))
+                .andExpect(status().isNotFound());
+
+        // Y que el JWT antiguo ya no puede acceder a /me/stats (usuario
+        // no existe → AuthenticationPrincipal queda null → 401/403).
+        mvc.perform(get("/api/perfil/me/stats")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void eliminarCuentaSinPasswordEnBodyDevuelve400() throws Exception {
+        String token = tokenDe("delete_carla", "delete_carla@example.com");
+        mvc.perform(delete("/api/perfil/me")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
     }
 }

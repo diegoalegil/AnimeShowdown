@@ -20,7 +20,9 @@ import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Stats agregadas del usuario para el perfil (Plan v2 §4.1).
@@ -38,6 +40,8 @@ public class PerfilService {
     private final UsuarioLogroRepository usuarioLogroRepository;
     private final SeguidorRepository seguidorRepository;
     private final TorneoRepository torneoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
     private final BadgeService badgeService;
 
     public PerfilService(VotoRepository votoRepository,
@@ -45,12 +49,16 @@ public class PerfilService {
             UsuarioLogroRepository usuarioLogroRepository,
             SeguidorRepository seguidorRepository,
             TorneoRepository torneoRepository,
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder,
             BadgeService badgeService) {
         this.votoRepository = votoRepository;
         this.prediccionRepository = prediccionRepository;
         this.usuarioLogroRepository = usuarioLogroRepository;
         this.seguidorRepository = seguidorRepository;
         this.torneoRepository = torneoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
         this.badgeService = badgeService;
     }
 
@@ -137,6 +145,34 @@ public class PerfilService {
                     p.getImagenUrl(), p.getAnime(), count));
         }
         return resultado;
+    }
+
+    /**
+     * Borra la cuenta del usuario (Plan v2 §4.1, GDPR right to erasure).
+     *
+     * <p>Verifica password antes de proceder. La cascada del schema
+     * (V13) elimina datos derivados: refresh tokens, email verifications,
+     * predicciones, logros, reacciones, notificaciones, follows, backup
+     * codes 2FA. Los votos se anonimizan (SET NULL) para preservar el
+     * agregado del ranking. Los torneos creados quedan con
+     * created_by_user_id=NULL (preservar el bracket público).
+     *
+     * <p>Lanza {@link IllegalArgumentException} si la password no
+     * coincide — el caller (controller) la traduce a 400.
+     */
+    @Transactional
+    public void eliminarCuenta(Usuario usuario, String passwordPlano) {
+        if (passwordPlano == null || passwordPlano.isBlank()) {
+            throw new IllegalArgumentException("Password requerida para eliminar la cuenta");
+        }
+        if (!passwordEncoder.matches(passwordPlano, usuario.getPassword())) {
+            throw new IllegalArgumentException("Password incorrecta");
+        }
+        usuarioRepository.delete(usuario);
+        // El audit del evento CUENTA_ELIMINADA se hace en el controller
+        // ANTES del delete (necesitamos el usuario aún vivo para el FK
+        // audit_log.usuario_id; tras el delete pasa a NULL por SET NULL,
+        // pero el detalle con username queda en el JSON).
     }
 
     private static double redondear(double v, int decimales) {
