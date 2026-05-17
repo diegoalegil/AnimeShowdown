@@ -27,6 +27,7 @@ const navLinks = [
   { to: '/faq', i18nKey: 'faq' },
   { to: '/api-docs', i18nKey: 'apiDocs' },
   { to: '/glossary', i18nKey: 'glossary' },
+  { to: '/logros', i18nKey: 'logros' },
   { to: '/apoya', i18nKey: 'apoya' },
 ]
 

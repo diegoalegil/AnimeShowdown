@@ -42,6 +42,7 @@ const rutas = [
   { to: '/games/impostor-trial', label: 'Impostor Trial (Detector de Impostor)', icon: Sparkles },
   { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles },
   { to: '/glossary', label: 'Glosario otaku', icon: BookOpen },
+  { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy },
   { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles },
   { to: '/games/elo-duel', label: 'ELO Duel (Higher or Lower)', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
