@@ -477,13 +477,30 @@ erDiagram
 - [x] Backups Neon → Cloudflare R2 (cron diario, rotación daily/weekly/monthly)
 - [x] Páginas legales: Privacy + Terms + DMCA con Footer extendido
 - [x] CI verde con tests backend 107/107
+- [x] **RUNBOOK.md** con procedimientos de incidente (9 escenarios + smoke test)
+- [x] CatalogoHealthIndicator custom en `/actuator/health` detecta BBDD vacía o catálogo contaminado
+
+### Polish + meta (✅ parcial 11/13)
+- [x] **Page pública /logros** + perfil público `/u/:username/logros` con grid de cards + rareza WoW + stats comunidad
+- [x] **Recomendaciones cross-anime** "Si te gusta X, también te gustarán" en ficha de personaje
+- [x] **Eliminar cuenta** (GDPR right to erasure) con doble confirmación
+- [x] **Actividad reciente** en perfil (votos + logros + torneos + predicciones acertadas en feed temporal)
+- [x] **Ranking ↑↓** indicadores de movimiento vs hace 7 días
+- [x] **Feedback +ELO** animado tras cada voto en enfrentamiento
+- [x] **Time machine ELO**: sparkline SVG con evolución últimos 30 días en ficha
+- [x] **Referral system** con código único, ?ref=XXX en /register, badge Reclutador
+- [x] **Light mode** opt-in con toggle Sun/Moon en Header
+- [x] **Share intents** multi-plataforma (X / Reddit / WhatsApp / Telegram / Bluesky)
+- [x] **Kanji + barra progreso** en bracket de torneos
 
 ### Pendiente
 - [ ] Tests E2E con Playwright
-- [ ] OG images dinámicas server-side (Bloque 1.2 backend hecho, integrar meta tags client-side)
-- [ ] i18n: completar migración de strings al `t()` en páginas restantes (Home + Perfil + Votar + Ranking + Personajes + Animes pendientes)
-- [ ] Bloque 15: escalado del catálogo a 1000+ personajes con atributos extendidos para modos Hard/Speed
-- [ ] Bloque 11: TV mode + Mi Top 5 + Top voters completos
+- [ ] OG images dinámicas para perfil y logros
+- [ ] i18n: completar migración de strings al `t()` en páginas restantes
+- [ ] Bloque 15: escalado del catálogo a 1000+ personajes con atributos extendidos
+- [ ] Bloque 11.2 AI character bio extendida (Claude API)
+- [ ] Bloque 11.4 API pública versionada con API keys
+- [ ] Bloque 17.3-17.5 normalización aspect ratio (bloqueado por Bloque 15)
 
 ---
 
