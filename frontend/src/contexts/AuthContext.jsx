@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { endpoints, setToken, refreshSession, ApiError } from '../lib/api'
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
-import { tryAttachPending } from '../lib/stomp'
+import { tryAttachPending, disconnect as disconnectStomp } from '../lib/stomp'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -231,6 +231,13 @@ export function AuthProvider({ children }) {
     // login en el mismo navegador, las verá un instante hasta que
     // stale-time refresque. Equivalente a invalidar TODO.
     queryClient.clear()
+    // Audit P1 (2026-05-17): cierra el WS singleton. Sin esto, el cliente
+    // STOMP seguía conectado con el JWT viejo del usuario anterior; el
+    // siguiente login reutilizaba ensureConnected (que solo crea cliente
+    // si no existe) y nunca volvía a hacer CONNECT con el JWT nuevo, así
+    // que el WS quedaba autenticado como el usuario previo. Toda
+    // notificación dirigida al nuevo user iba a la cola del anterior.
+    disconnectStomp()
     setUser(null)
     setToken(null)
     toast('Hasta pronto', { description: 'Sesión cerrada.' })
