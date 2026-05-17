@@ -384,8 +384,15 @@ public class AuthController {
                         .body(new TokenRespuesta(nuevoJwt, new UsuarioRespuesta(ok.usuario())));
             }
             case RefreshTokenService.ResultadoRotacion.GraceCrossTab __ -> ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Reintenta en unos segundos"));
+                    // Audit P1 (2026-05-17, 2ª iter): 401 → 503 con Retry-After.
+                    // El cliente trataba CUALQUIER no-2xx como sesión muerta y
+                    // limpiaba tokenEnMemoria + notificaba STOMP, aunque la
+                    // cookie nueva de la otra tab estuviera viva. 503 es
+                    // semánticamente "vuelve a intentar" — el frontend reintenta
+                    // tras backoff corto sin tocar la sesión local.
+                    .status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .header(HttpHeaders.RETRY_AFTER, "1")
+                    .body(Map.of("message", "Race entre pestañas, reintenta en unos segundos"));
             case RefreshTokenService.ResultadoRotacion.Invalido __ -> ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
