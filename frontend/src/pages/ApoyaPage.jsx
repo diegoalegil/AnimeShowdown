@@ -12,6 +12,7 @@ import {
   Share2,
   Sparkles,
   Star,
+  Target,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -25,6 +26,13 @@ const containerVariants = {
     transition: { duration: 0.5, ease: 'easeOut' },
   },
 }
+
+// Meta mensual transparente (Plan v2 §12.1). Actualizar a mano cada
+// vez que cambie el mes o lleguen donaciones — sin endpoint ni infra,
+// el valor más simple es vivir aquí. Si en algún momento entra Ko-fi
+// webhook o se quiere parametrizar, mover a variable de entorno.
+const META_OBJETIVO_EUR = 25
+const META_RECIBIDO_EUR = 0
 
 /**
  * Página /apoya (Plan v2 §12.1) — donaciones opcionales para que el
@@ -76,6 +84,12 @@ function ApoyaPage() {
             desarrollo, estas son las formas de echar una mano.
           </p>
         </motion.header>
+
+        {/* Meta mensual transparente */}
+        <MetaMensual
+          recibido={META_RECIBIDO_EUR}
+          objetivo={META_OBJETIVO_EUR}
+        />
 
         {/* Cards principales de aporte */}
         <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -209,6 +223,49 @@ function ApoyaPage() {
         </div>
       </div>
     </section>
+  )
+}
+
+function MetaMensual({ recibido, objetivo }) {
+  const porcentaje = Math.min(100, Math.round((recibido / objetivo) * 100))
+  const mes = new Date().toLocaleString('es-ES', {
+    month: 'long',
+    year: 'numeric',
+  })
+  const mesCapitalizado = mes.charAt(0).toUpperCase() + mes.slice(1)
+  return (
+    <div className="mb-10 rounded-2xl border border-border bg-surface p-5">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Target className="h-4 w-4 text-accent" />
+          <h2 className="text-base font-bold text-fg-strong">
+            Meta {mesCapitalizado}
+          </h2>
+        </div>
+        <p className="font-mono text-[13px] tabular-nums text-fg-muted">
+          <strong className="text-fg-strong">{recibido}€</strong>{' '}
+          <span className="text-fg-muted/70">/ {objetivo}€</span>
+        </p>
+      </div>
+      <div
+        role="progressbar"
+        aria-valuenow={recibido}
+        aria-valuemin={0}
+        aria-valuemax={objetivo}
+        aria-label={`Donaciones recibidas este mes: ${recibido} de ${objetivo} euros`}
+        className="relative h-2.5 overflow-hidden rounded-full bg-bg"
+      >
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-accent transition-all duration-700"
+          style={{ width: `${porcentaje}%` }}
+        />
+      </div>
+      <p className="mt-3 text-[12px] text-fg-muted">
+        Objetivo del mes para cubrir hosting backend y dominio. Cualquier
+        aporte ayuda — si la meta se cubre, el extra va a mejoras y
+        nuevos modos.
+      </p>
+    </div>
   )
 }
 
