@@ -12,7 +12,7 @@
 
 App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. Frontend React premium con aurora hero, podio Top 3, Anime Daily Trials (5 mini-juegos diarios con kanji + sparkles), carruseles tipo Crunchyroll, búsqueda + filtros, command palette tipo Linear, sonidos anime sintetizados con Web Audio API, bracket visual y auth real con JWT + 2FA TOTP. Backend Spring Boot + PostgreSQL en Railway/Neon, frontend en Cloudflare Pages.
 
-> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con 700 personajes únicos en 67 animes (DataSeeder con insert/update/delete cascade) · ✅ Rebrand competitivo "El ranking definitivo del anime lo decides tú"
+> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con 730 personajes únicos en 71 animes (DataSeeder con insert/update/delete cascade) · ✅ Rebrand competitivo "El ranking definitivo del anime lo decides tú"
 
 ---
 
@@ -50,7 +50,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 - **PostgreSQL 17** (Neon en producción, local en dev)
 - **JWT** con `com.auth0:java-jwt 4.4.0` y BCrypt para hashing
 - **springdoc-openapi 2.8.5** (Swagger UI)
-- **DataSeeder con sincronización completa** que en cada arranque ajusta los 700 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
+- **DataSeeder con sincronización completa** que en cada arranque ajusta los 730 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
 - **Resilience4j** sobre `JikanService` (retry exponencial + circuit breaker + timeout 5s) y **caché Caffeine** sobre las páginas top con TTL 1h
 - **JUnit 5** + **MockMvc** + **H2** in-memory para tests
 - **Maven Wrapper** + **Docker** multi-stage para deploy
@@ -71,7 +71,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 
 ![Hero landing](docs/screenshots/hero.webp)
 
-**Galería de 700 personajes con búsqueda, filtros, badges Top X y ELO+WR en cada card**
+**Galería de 730 personajes con búsqueda, filtros, badges Top X y ELO+WR en cada card**
 
 ![Galería personajes](docs/screenshots/personajes.webp)
 
@@ -108,7 +108,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 - 🎮 **Anime Daily Trials** integrados en home como sección dedicada (5 modos con kanji: 影 / 謎 / 格 / 裏 / 戦)
 - 🔢 **Stats compactos** sin "0 torneos" en vacío (sustituido por badge ping "Ranking en vivo")
 - 🎁 **Bento grid** asimétrico con 4 features (Brackets estilo batalla, Ranking en directo, Tu historial, La comunidad decide)
-- 📜 **Marquee infinita** con los 700 nombres + fade en bordes (1300s/ciclo)
+- 📜 **Marquee infinita** con los 730 nombres + fade en bordes (1300s/ciclo)
 
 ### Catálogo + Universos
 - 🌀 **3D tilt + spotlight** en cada card del catálogo (mouse-tracked + spring smoothing) + ELO badge + WR + glow rosa en hover
@@ -170,7 +170,7 @@ psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE animeshowdown_db TO animes
 cd backend
 ./mvnw spring-boot:run
 # Spring levanta en http://localhost:8080
-# DataSeeder sincroniza los 700 personajes con el seed: inserta nuevos, actualiza cambios y borra retirados
+# DataSeeder sincroniza los 730 personajes con el seed: inserta nuevos, actualiza cambios y borra retirados
 ```
 
 ### Frontend
@@ -400,7 +400,7 @@ erDiagram
 ### Core (✅ completo)
 - [x] Backend Spring Boot + JWT + PostgreSQL + Flyway (V1-V12)
 - [x] Despliegue backend en Railway, frontend en Cloudflare Pages
-- [x] BBDD sincronizada con 700 personajes en 67 animes (DataSeeder con insert/update/delete cascade)
+- [x] BBDD sincronizada con 730 personajes en 71 animes (DataSeeder con insert/update/delete cascade)
 - [x] Dominio custom **animeshowdown.dev** + **api.animeshowdown.dev**
 - [x] Email transaccional vía Resend HTTP API con dominio verificado
 

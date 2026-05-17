@@ -59,7 +59,7 @@ export function personajeDelDia(prefix = '', date = new Date()) {
  * obtienen 3 sets distintos pero estables para todos los visitantes.
  *
  * @returns {{anime: string, items: Array<{slug, nombre, anime, imagen, esImpostor: boolean}>}}
- *          o null si el catálogo no permite la ronda (debería pasar nunca con 642 personajes).
+ *          o null si el catálogo no permite la ronda (debería pasar nunca con 730 personajes).
  */
 export function impostorDelDia(date = new Date(), salt = '') {
   const seed = `impostor:${fechaDelDia(date)}:${salt}`

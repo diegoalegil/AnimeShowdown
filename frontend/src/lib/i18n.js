@@ -19,7 +19,7 @@ import en from '../locales/en.json'
  * persistente al cambiar idioma) y, si no hay valor, recurre a {@code navigator.language}.
  * Si el idioma detectado no está soportado vuelve a {@code fallbackLng=es}.
  *
- * <p>JP queda pendiente porque las descripciones de los 642 personajes
+ * <p>JP queda pendiente porque las descripciones de los 730 personajes
  * habría que traducirlas y eso es trabajo del Bloque 15.
  */
 i18n

@@ -36,7 +36,7 @@ const TAMANOS = [8, 16]
  *      contador para que la UI sepa cuántos esperar).
  *   2. Nombre + descripción opcional (react-hook-form).
  *   3. Grid de avatares con search en local — el catálogo cliente-side
- *      tiene 642+ personajes, queremos filtrar sin pedir al backend en
+ *      tiene 730+ personajes, queremos filtrar sin pedir al backend en
  *      cada keystroke.
  *   4. Submit con conversión slug → id del backend (lista cacheada via
  *      useQuery) antes de POST.
