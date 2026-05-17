@@ -285,6 +285,10 @@ export const endpoints = {
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
   perfilTop: ({ limit = 5 } = {}) =>
     api.get(`/api/perfil/me/top?limit=${limit}`),
+  // Feed combinado de actividad: votos, logros, torneos creados,
+  // predicciones acertadas. Cada item con {tipo, fecha, payload}.
+  perfilActividad: ({ limit = 20 } = {}) =>
+    api.get(`/api/perfil/me/actividad?limit=${limit}`),
   // GDPR right to erasure (Plan v2 §4.1). Requiere password de nuevo
   // en el body como reconfirmación; 400 si la password no coincide.
   // Tras éxito el backend limpia la cookie de refresh; el cliente debe

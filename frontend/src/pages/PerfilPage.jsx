@@ -22,6 +22,7 @@ import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import Avatar from '../components/Avatar'
 import Card2faSeguridad from '../components/Card2faSeguridad'
+import CardActividadReciente from '../components/CardActividadReciente'
 import CardDanKyu from '../components/CardDanKyu'
 import CardLogros from '../components/CardLogros'
 import CardMisTorneos from '../components/CardMisTorneos'
@@ -134,6 +135,7 @@ function PerfilPage() {
             <>
               <CardDatos user={user} />
               <CardDanKyu />
+              <CardActividadReciente />
             </>
           )}
           {tab === 'logros' && <CardLogros />}

@@ -250,4 +250,20 @@ class PerfilControllerTest {
                 .content("{}"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void actividadSinAuthDevuelveForbidden() throws Exception {
+        mvc.perform(get("/api/perfil/me/actividad"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void actividadUsuarioNuevoDevuelveListaVacia() throws Exception {
+        String token = tokenDe("activ_alice", "activ_alice@example.com");
+        mvc.perform(get("/api/perfil/me/actividad")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
 }
