@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import { Trophy } from 'lucide-react'
@@ -19,6 +20,7 @@ import { useStompSubscription } from '../hooks/useStompSubscription'
 function BadgeUnlockListener() {
   const { user } = useAuth()
   const { play } = useSound()
+  const navigate = useNavigate()
   const { lastMessage } = useStompSubscription(
     user ? '/user/queue/notificaciones' : null,
   )
@@ -70,13 +72,13 @@ function BadgeUnlockListener() {
       duration: 6000,
       action: {
         label: 'Ver',
-        onClick: () => {
-          // Si ya estás en /perfil esto solo recarga el scroll.
-          window.location.href = '/perfil'
-        },
+        // Audit (2026-05-17): antes window.location.href forzaba un
+        // hard reload — pierde el estado SPA, queryClient cache,
+        // sesión WS abierta, etc. SPA navigate respeta el contexto.
+        onClick: () => navigate('/perfil'),
       },
     })
-  }, [lastMessage, play])
+  }, [lastMessage, play, navigate])
 
   return null
 }
