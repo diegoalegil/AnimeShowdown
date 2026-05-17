@@ -76,14 +76,25 @@ function scanFolder() {
     .sort()
 
   let variantesIgnoradas = 0
+  const nonWebp = []
   for (const folder of folders) {
     const animeDisplay = getAnimeDisplayName(folder)
-    const files = readdirSync(join(IMG_DIR, folder), { withFileTypes: true })
-      .filter(f => f.isFile() && f.name.toLowerCase().endsWith('.webp'))
+    const allFiles = readdirSync(join(IMG_DIR, folder), { withFileTypes: true })
+      .filter(f => f.isFile())
       .map(f => f.name)
       .sort()
-
-    for (const file of files) {
+    for (const file of allFiles) {
+      const lower = file.toLowerCase()
+      // Audit P2.6 (2026-05-17): detecta PNG/JPG sueltos en folders de
+      // anime. El catálogo asume .webp como fuente; estos archivos no
+      // se incorporan al seed y por tanto no aparecen en producción.
+      // Suelen ser drops sin renombrar (nombres tipo hash). Warning
+      // accionable para que el usuario los convierta o renombre.
+      if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+        nonWebp.push(join(folder, file))
+        continue
+      }
+      if (!lower.endsWith('.webp')) continue
       const baseSlug = basename(file, extname(file))
       // Ignorar variantes responsive — no son personajes, son outputs del
       // pipeline de imágenes.
@@ -97,6 +108,11 @@ function scanFolder() {
 
   if (variantesIgnoradas > 0) {
     console.log(`  ℹ ${variantesIgnoradas} variantes responsive (-300/-600/-1024) ignoradas`)
+  }
+  if (nonWebp.length > 0) {
+    console.warn(`  ⚠ ${nonWebp.length} imagen(es) PNG/JPG sueltas — NO entran al catálogo (deben convertirse a .webp y renombrar al slug del personaje):`)
+    for (const p of nonWebp.slice(0, 10)) console.warn(`     ${p}`)
+    if (nonWebp.length > 10) console.warn(`     ... (+${nonWebp.length - 10} más)`)
   }
 
   // Detecta colisiones de slug entre anime distintos. Si un mismo slug aparece
