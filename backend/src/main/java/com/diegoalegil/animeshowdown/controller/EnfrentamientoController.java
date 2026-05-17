@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
 import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
+import com.diegoalegil.animeshowdown.dto.VotoRegistradoDto;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
@@ -117,30 +118,44 @@ public class EnfrentamientoController {
         Voto voto = new Voto(ganador, usuario, enf);
         Voto guardado = votoRepository.save(voto);
 
+        Personaje p1 = enf.getPersonaje1();
+        Personaje p2 = enf.getPersonaje2();
+        // Counts post-voto. Para el ganador es el total real; para el
+        // perdedor es el mismo que pre-voto. Los reutilizamos para el push
+        // WS para no hacer dos rondas a la BBDD.
+        long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p1);
+        long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p2);
+        Personaje perdedor = ganador.getId().equals(p1.getId()) ? p2 : p1;
+        long votosGanador = ganador.getId().equals(p1.getId()) ? votosP1 : votosP2;
+        long votosPerdedor = perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2;
+
         // Plan v2 §2.13: push del estado actualizado del match al topic del
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
-        publicarBracketUpdate(enf);
+        publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
 
         // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
         // Diseño extensible — futuros listeners podrán reaccionar también.
         eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf));
 
-        return ResponseEntity.ok(guardado);
+        return ResponseEntity.ok(new VotoRegistradoDto(
+                guardado.getId(),
+                ganador.getId(),
+                votosGanador,
+                perdedor.getId(),
+                votosPerdedor,
+                1));
     }
 
     /**
-     * Cuenta los votos actuales de cada personaje en el enfrentamiento y
-     * publica un {@link BracketUpdateEvent} al topic público del torneo.
+     * Publica un {@link BracketUpdateEvent} al topic público del torneo
+     * con los counts ya calculados por el caller (evitamos doble round-trip).
      */
-    private void publicarBracketUpdate(Enfrentamiento enf) {
+    private void publicarBracketUpdate(Enfrentamiento enf,
+            Personaje p1, long v1, Personaje p2, long v2) {
         if (messaging == null) return;
         try {
-            Personaje p1 = enf.getPersonaje1();
-            Personaje p2 = enf.getPersonaje2();
-            long v1 = p1 == null ? 0 : votoRepository.countByEnfrentamientoAndPersonaje(enf, p1);
-            long v2 = p2 == null ? 0 : votoRepository.countByEnfrentamientoAndPersonaje(enf, p2);
             BracketUpdateEvent ev = new BracketUpdateEvent(
                     enf.getTorneo().getId(),
                     enf.getId(),

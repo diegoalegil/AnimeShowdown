@@ -80,6 +80,11 @@ function VotarPage() {
     }
   }, [fastMode])
 
+  // Resultado del último voto registrado: el backend devuelve delta + votos
+  // post-voto. Sirve para pintar el overlay "+1 ELO" sobre la card ganadora.
+  // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
+  const [voteResult, setVoteResult] = useState(null)
+
   const votarMutation = useMutation({
     mutationFn: ({ enfrentamientoId, personajeGanadorId }) =>
       endpoints.votar(enfrentamientoId, personajeGanadorId),
@@ -108,6 +113,7 @@ function VotarPage() {
   const handleNext = useCallback(() => {
     play('playClick')
     setVotedFor(null)
+    setVoteResult(null)
     if (modoBackend) {
       refetch()
     } else {
@@ -133,9 +139,20 @@ function VotarPage() {
         votarMutation.mutate(
           { enfrentamientoId: matchId, personajeGanadorId: personaje.id },
           {
-            onSuccess: () => {
-              toast.success(`+${personaje.nombre}`, {
-                description: 'Voto registrado · ranking actualizado',
+            onSuccess: (data) => {
+              // Propuesta §4.x: el backend devuelve VotoRegistradoDto con
+              // delta + counts post. Lo guardamos para que VoteCard pinte
+              // el overlay "+1 ELO". Fallback defensivo si el payload
+              // viene incompleto (compat con versiones anteriores).
+              setVoteResult({
+                ganadorSlug: personaje.slug,
+                delta: data?.delta ?? 1,
+                votosGanador: data?.votosGanador ?? null,
+              })
+              toast.success(`+${data?.delta ?? 1} ELO · ${personaje.nombre}`, {
+                description: data?.votosGanador != null
+                  ? `Ahora suma ${data.votosGanador} votos en este match`
+                  : 'Voto registrado · ranking actualizado',
               })
               if (fastMode) {
                 setTimeout(() => handleNext(), NEXT_DELAY_MS)
@@ -277,6 +294,7 @@ function VotarPage() {
             isLoser={votedFor && votedFor !== a.slug}
             showResult={Boolean(votedFor)}
             side="left"
+            voteResult={voteResult?.ganadorSlug === a.slug ? voteResult : null}
           />
           <VsBadge votedFor={votedFor} />
           <VoteCard
@@ -286,6 +304,7 @@ function VotarPage() {
             isLoser={votedFor && votedFor !== b.slug}
             showResult={Boolean(votedFor)}
             side="right"
+            voteResult={voteResult?.ganadorSlug === b.slug ? voteResult : null}
           />
         </motion.div>
 
@@ -352,7 +371,7 @@ function VsBadge({ votedFor }) {
   )
 }
 
-function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side }) {
+function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, voteResult }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   return (
     <div className="flex flex-col gap-3">
@@ -384,6 +403,19 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side }) {
             >
               <span className="rounded-full border-2 border-accent bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.18em] text-accent backdrop-blur-sm">
                 ✓ Tu voto
+              </span>
+            </motion.div>
+          )}
+          {voteResult && (
+            <motion.div
+              key={voteResult.delta + ':' + (voteResult.votosGanador ?? 'x')}
+              initial={{ opacity: 0, y: 16, scale: 0.6 }}
+              animate={{ opacity: [0, 1, 1, 0], y: [-4, -32, -56, -88], scale: [0.7, 1.1, 1, 0.95] }}
+              transition={{ duration: 1.6, times: [0, 0.18, 0.7, 1], ease: 'easeOut' }}
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            >
+              <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-400/70 bg-black/75 px-3 py-1.5 font-mono text-sm font-extrabold text-emerald-300 backdrop-blur-sm shadow-[0_0_30px_-5px_rgba(52,211,153,0.6)]">
+                +{voteResult.delta} ELO
               </span>
             </motion.div>
           )}
