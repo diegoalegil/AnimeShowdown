@@ -15,7 +15,10 @@ import com.diegoalegil.animeshowdown.model.Reaccion;
 import com.diegoalegil.animeshowdown.model.ReaccionTargetType;
 import com.diegoalegil.animeshowdown.model.ReaccionTipo;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.ReaccionRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
 /**
  * Lógica de reactions emoji sobre personajes / torneos / matches (Plan v2 §4.3).
@@ -35,9 +38,18 @@ public class ReaccionService {
     private static final Logger log = LoggerFactory.getLogger(ReaccionService.class);
 
     private final ReaccionRepository repo;
+    private final PersonajeRepository personajeRepository;
+    private final TorneoRepository torneoRepository;
+    private final EnfrentamientoRepository enfrentamientoRepository;
 
-    public ReaccionService(ReaccionRepository repo) {
+    public ReaccionService(ReaccionRepository repo,
+            PersonajeRepository personajeRepository,
+            TorneoRepository torneoRepository,
+            EnfrentamientoRepository enfrentamientoRepository) {
         this.repo = repo;
+        this.personajeRepository = personajeRepository;
+        this.torneoRepository = torneoRepository;
+        this.enfrentamientoRepository = enfrentamientoRepository;
     }
 
     @Transactional
@@ -45,6 +57,17 @@ public class ReaccionService {
             Long targetId, ReaccionTipo tipo) {
         if (usuario == null || targetType == null || targetId == null || tipo == null) {
             return Optional.empty();
+        }
+        // Audit P2 (2026-05-17): antes el service persistía sin validar que
+        // el target existiera. Un cliente directo podía mandar
+        // targetType=PERSONAJE + targetId=999999 y la reacción se guardaba
+        // huérfana — no entraba en ningún resumen real pero contaba como
+        // entrada en la tabla y podía contaminar los counters por tipo.
+        // Ahora rechazamos con IllegalArgumentException que el controller
+        // traduce a 400.
+        if (!existeTarget(targetType, targetId)) {
+            throw new IllegalArgumentException(
+                    "Target inexistente: " + targetType + ":" + targetId);
         }
         Optional<Reaccion> existente = repo.findByUsuarioAndTargetTypeAndTargetId(
                 usuario, targetType, targetId);
@@ -71,6 +94,14 @@ public class ReaccionService {
         log.debug("Reaccion nueva: usuario={} target={}:{} tipo={}",
                 usuario.getUsername(), targetType, targetId, tipo);
         return Optional.of(guardada);
+    }
+
+    private boolean existeTarget(ReaccionTargetType type, Long id) {
+        return switch (type) {
+            case PERSONAJE -> personajeRepository.existsById(id);
+            case TORNEO -> torneoRepository.existsById(id);
+            case MATCH -> enfrentamientoRepository.existsById(id);
+        };
     }
 
     /**

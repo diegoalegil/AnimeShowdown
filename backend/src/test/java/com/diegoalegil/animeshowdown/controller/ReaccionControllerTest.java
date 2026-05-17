@@ -61,6 +61,34 @@ class ReaccionControllerTest {
         return Map.of("targetType", targetType, "targetId", targetId, "tipo", tipo);
     }
 
+    /**
+     * Audit P2 (2026-05-17): ReaccionService ahora valida que el target exista
+     * antes de persistir, así que los tests no pueden usar IDs sintéticos
+     * como 999010. Resolvemos el id real de un personaje por slug — luffy
+     * siempre está en el seed.
+     */
+    private long idPersonajeReal(String slug) throws Exception {
+        var res = mvc.perform(get("/api/personajes"))
+                .andExpect(status().isOk())
+                .andReturn();
+        var arr = json.readTree(res.getResponse().getContentAsString());
+        for (var p : arr) {
+            if (slug.equals(p.get("slug").asText())) return p.get("id").asLong();
+        }
+        throw new IllegalStateException("Personaje " + slug + " no seedeado");
+    }
+
+    private long idTorneoReal(String slug) throws Exception {
+        var res = mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andReturn();
+        var arr = json.readTree(res.getResponse().getContentAsString());
+        for (var t : arr) {
+            if (slug.equals(t.get("slug").asText())) return t.get("id").asLong();
+        }
+        throw new IllegalStateException("Torneo " + slug + " no seedeado");
+    }
+
     @Test
     void getResumenPublicoSinReaccionesDevuelveCerosYNullMia() throws Exception {
         mvc.perform(get("/api/reacciones?targetType=PERSONAJE&targetId=999001"))
@@ -91,7 +119,7 @@ class ReaccionControllerTest {
     @Test
     void aplicarMismoTipoDosVecesHaceToggleOff() throws Exception {
         String token = tokenDe("react_alice", "react_alice@example.com");
-        long targetId = 999010L;
+        long targetId = idPersonajeReal("luffy");
 
         // Primera: count[FIRE]=1, miReaccion=FIRE
         mvc.perform(post("/api/reacciones")
@@ -115,7 +143,7 @@ class ReaccionControllerTest {
     @Test
     void aplicarTipoDistintoCambiaLaReaccion() throws Exception {
         String token = tokenDe("react_bob", "react_bob@example.com");
-        long targetId = 999020L;
+        long targetId = idTorneoReal("shonen-showdown");
 
         mvc.perform(post("/api/reacciones")
                 .header("Authorization", "Bearer " + token)
@@ -140,7 +168,7 @@ class ReaccionControllerTest {
     void dosUsuariosDistintosSumanAlMismoTarget() throws Exception {
         String tokenA = tokenDe("react_carla", "react_carla@example.com");
         String tokenB = tokenDe("react_diana", "react_diana@example.com");
-        long targetId = 999030L;
+        long targetId = idPersonajeReal("zoro");
 
         mvc.perform(post("/api/reacciones")
                 .header("Authorization", "Bearer " + tokenA)
@@ -160,7 +188,7 @@ class ReaccionControllerTest {
     @Test
     void miReaccionSoloAparceConAuth() throws Exception {
         String token = tokenDe("react_eva", "react_eva@example.com");
-        long targetId = 999040L;
+        long targetId = idPersonajeReal("naruto");
 
         mvc.perform(post("/api/reacciones")
                 .header("Authorization", "Bearer " + token)
