@@ -61,6 +61,18 @@ public class BracketService {
     @Transactional
     public List<Enfrentamiento> crearBracket(Torneo torneo, List<Personaje> participantes) {
         validarTamano(participantes.size());
+        // Audit P3 (2026-05-17): antes solo se rechazaba el caso adyacente
+        // (p[i].id == p[i+1].id en un mismo match). Pero el mismo personaje
+        // en slots NO adyacentes seguía colando — admin podía iniciar un
+        // bracket con luffy x2 en posiciones 0 y 5 y el sistema lo aceptaba,
+        // dejando al ganador de R1 enfrentándose a "sí mismo" en R2 vía la
+        // cascada de propagación. Validación global up-front.
+        long unicos = participantes.stream().map(Personaje::getId).distinct().count();
+        if (unicos != participantes.size()) {
+            throw new IllegalArgumentException(
+                    "El bracket contiene personajes duplicados (" + participantes.size()
+                            + " participantes, " + unicos + " ids únicos)");
+        }
         int tamano = participantes.size();
         int totalRondas = log2(tamano);
 
@@ -72,6 +84,8 @@ public class BracketService {
         for (int i = 0; i < tamano; i += 2) {
             Personaje p1 = participantes.get(i);
             Personaje p2 = participantes.get(i + 1);
+            // Defensive check redundante: ya filtrado arriba, pero deja el
+            // error específico si por algún bug futuro el dedup falla.
             if (p1.getId().equals(p2.getId())) {
                 throw new IllegalArgumentException(
                         "Un personaje no puede enfrentarse a sí mismo en el bracket (slug=" + p1.getSlug() + ")");

@@ -77,7 +77,14 @@ public class BadgeService {
             return Optional.empty();
         }
         try {
-            UsuarioLogro guardado = usuarioLogroRepo.save(new UsuarioLogro(usuario, logro));
+            // Audit P3 (2026-05-17): saveAndFlush en lugar de save. Con save,
+            // Hibernate puede aplazar el INSERT hasta el commit; si dos
+            // listeners paralelos hacen el pre-check y avanzan, ambos save
+            // pasan en el primer-level cache y la violación UNIQUE salta en
+            // el commit final — FUERA de este try/catch. saveAndFlush fuerza
+            // el INSERT inmediato, así la DataIntegrityViolationException
+            // se lanza dentro del try y la atrapamos correctamente.
+            UsuarioLogro guardado = usuarioLogroRepo.saveAndFlush(new UsuarioLogro(usuario, logro));
             log.info("Badge desbloqueado: usuario={} codigo={} rareza={}",
                     usuario.getUsername(), logro.getCodigo(), logro.getRareza());
             notificarYAuditar(usuario, logro);
