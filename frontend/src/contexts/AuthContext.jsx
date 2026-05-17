@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { endpoints, setToken, refreshSession, ApiError } from '../lib/api'
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
+import { tryAttachPending } from '../lib/stomp'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -95,6 +96,12 @@ export function AuthProvider({ children }) {
       if (data?.token && data.usuario) {
         // refreshSession ya pone el token en memoria; solo actualizamos el user.
         setUser(buildLocalUser(data.usuario))
+        // Audit P2 (2026-05-17): tras bootstrap exitoso, replay de las WS
+        // subscriptions que se quedaron pendientes porque los hooks
+        // intentaron suscribirse antes de que llegara el JWT (user
+        // optimista desde localStorage). Sin esto, en reload con sesión
+        // viva el cliente queda sin notificaciones hasta remount manual.
+        tryAttachPending()
       } else if (user) {
         // Había user optimista pero el refresh falló → la cookie ya no es
         // válida. Forzamos logout local.
@@ -120,7 +127,12 @@ export function AuthProvider({ children }) {
   // a la sesión local. Se llama tanto desde login() sin 2FA como desde
   // completeLogin2fa() tras superar el segundo paso.
   const aplicarSesion = (res, identificadorFallback) => {
-    if (res?.token) setToken(res.token)
+    if (res?.token) {
+      setToken(res.token)
+      // Tras login (o 2FA), hooks WS pueden haber intentado suscribirse
+      // antes de tener token — re-engancha esas pendientes.
+      tryAttachPending()
+    }
     const u =
       buildLocalUser(res?.usuario) || {
         username: identificadorFallback,
