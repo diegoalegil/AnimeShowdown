@@ -14,8 +14,10 @@ import { useAuth } from '../contexts/AuthContext'
  * VotarPage — arena de duelo rápido (rebrand Plan v2 §14).
  *
  * Pantalla diseñada para que todo el duelo quepa sin scroll:
- *   - Cards con max-h 55vh + object-cover object-top (llenan el contenedor;
- *     antes object-contain dejaba huecos negros con cartas SSR/frame).
+ *   - Cards con max-h 55vh + object-contain (no recorta) + letterbox
+ *     blur de la propia imagen como fondo (rellena las barras sin
+ *     mostrar negro puro). Versión robusta tras intento fallido con
+ *     object-cover que recortaba info importante de cartas SSR.
  *   - VS central grande con glow magenta.
  *   - "Saltar" arriba a la derecha, siempre visible.
  *   - Nombre + anime debajo de cada card (no overlay) → comparación rápida.
@@ -437,14 +439,24 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, vote
         } disabled:cursor-default`}
       >
         <div className="relative aspect-[2/3] max-h-[55vh] w-full overflow-hidden bg-surface-alt">
-          {/* object-cover en vez de object-contain: las cartas estilo SSR
-              (frame integrado, ratio raro) dejaban barras negras a los
-              lados que se veían fatal. Con cover llenan el contenedor;
-              object-top mantiene la cara/torso visible y recorta abajo. */}
+          {/* Letterbox premium: la propia imagen muy borrosa como fondo
+              llena el contenedor y elimina los "huecos negros" cuando la
+              imagen real (object-contain) tiene aspect ratio distinto al
+              2:3 — el caso de cartas SSR con frame integrado. La capa
+              blur queda detrás (pointer-events none, aria-hidden) y la
+              imagen real va encima sin recortarse. */}
+          <img
+            src={imgSrc}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
+          />
           <img
             src={imgSrc}
             alt={personaje.nombre}
-            className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+            className="relative h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
           />
           {isVoted && (
             <motion.div
