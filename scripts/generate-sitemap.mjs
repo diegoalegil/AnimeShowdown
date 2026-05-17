@@ -107,6 +107,25 @@ const personajesCatalogo = extractPersonajesFromJs(
   join(ROOT, 'frontend/src/data/personajes.js'),
 )
 
+// Audit P2.7 (2026-05-17): derivamos lista de animes únicos del catálogo
+// para emitir una URL /animes/{slug} por cada uno. Antes faltaban — el
+// sitemap solo tenía /animes (listado) pero no las fichas individuales,
+// perdiendo ~70 páginas indexables con contenido único (top ELO, roster,
+// schema TVSeries, etc).
+const animesUnicos = [...new Set(personajesCatalogo.map((p) => p.anime))].sort()
+
+// Réplica de frontend/src/lib/animes.js:slugifyAnime para no depender
+// del runtime de Vite/React. Si cambia ese helper, actualizar aquí
+// también — el slug del sitemap DEBE coincidir con la ruta real.
+function slugifyAnime(nombre) {
+  return nombre
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 const torneosSeed = JSON.parse(
   readFileSync(
     join(ROOT, 'backend/src/main/resources/torneos-seed.json'),
@@ -211,6 +230,11 @@ ${personajesCatalogo
       ]),
     )
     .join('\n')}
+${animesUnicos
+    .map((anime) =>
+      urlBlock(`/animes/${slugifyAnime(anime)}`, '0.7', 'weekly', today),
+    )
+    .join('\n')}
 ${torneos
     .map((t) => {
       const priority = t.esDeUsuario ? '0.4' : '0.5'
@@ -236,10 +260,11 @@ writeFileSync(outPath, xml)
 console.log(`✅ sitemap.xml generado en ${outPath}`)
 console.log(`   - ${staticRoutes.length} rutas estáticas`)
 console.log(`   - ${personajesCatalogo.length} personajes (con image extension)`)
+console.log(`   - ${animesUnicos.length} fichas de anime`)
 console.log(
   `   - ${torneos.length} torneos (${apiData ? 'backend live' : 'seed fallback'})`,
 )
 console.log(`   - ${usuarios.length} usuarios públicos`)
 console.log(
-  `   - Total: ${staticRoutes.length + personajesCatalogo.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length} imágenes`,
+  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length} imágenes`,
 )
