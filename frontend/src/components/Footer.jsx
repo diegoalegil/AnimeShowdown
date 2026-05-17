@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowUpRight, Coffee } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
 import { personajes } from '../data/personajes'
+import { slugifyAnime } from '../lib/animes'
 
 function GithubIcon({ className }) {
   return (
@@ -141,9 +142,9 @@ function Footer() {
             {topAnimes.map(([anime, count]) => (
               <li key={anime}>
                 <Link
-                  to={`/personajes?anime=${encodeURIComponent(anime)}`}
+                  to={`/animes/${slugifyAnime(anime)}`}
                   className="text-fg-muted transition-colors hover:text-accent hover:underline"
-                  title={`${count} personajes de ${anime} en AnimeShowdown`}
+                  title={`Ranking interno y roster de ${anime} (${count} personajes)`}
                 >
                   {anime}{' '}
                   <span className="font-mono text-[10px] tabular-nums">
