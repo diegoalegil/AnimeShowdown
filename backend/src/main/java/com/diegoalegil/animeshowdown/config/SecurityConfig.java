@@ -56,6 +56,12 @@ public class SecurityConfig {
                         // CONNECT con JWT (ver WebSocketConfig.JwtAuthChannelInterceptor).
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Audit P2.10: /api/cron/** se autentica con
+                        // X-Cron-Secret header (no JWT), así el GitHub
+                        // Action no necesita login que falla si el admin
+                        // tiene 2FA. La validación del secret se hace en
+                        // CronTorneoController.
+                        .requestMatchers("/api/cron/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").authenticated()
                         // Lectura pública para que VotarPage pueda mostrar el match aleatorio

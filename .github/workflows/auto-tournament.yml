@@ -1,23 +1,23 @@
 name: Auto-generate tournament
 
-# Cron job que crea un torneo aleatorio cada 3 días llamando al endpoint admin del backend.
-# La acción primero hace login con credenciales de admin (secrets) para obtener un JWT
-# fresco (expira 1h), después usa ese JWT para llamar /api/admin/torneos/auto-generar.
+# Cron job que crea un torneo aleatorio cada 3 días llamando al endpoint
+# /api/cron/torneos/auto-generar del backend. Se autentica con
+# X-Cron-Secret header (no login JWT) — auditoría P2.10 (2026-05-17):
+# el flow anterior con login se rompía si el admin activaba 2FA TOTP.
 #
 # Para activar:
 # 1. Settings → Secrets and variables → Actions → New repository secret:
-#    - API_URL = https://animeshowdown-production-a9f4.up.railway.app
-#    - ADMIN_USERNAME = (username del admin registrado, ej: diegogil)
-#    - ADMIN_PASSWORD = (su password)
+#    - API_URL = https://api.animeshowdown.dev (o el upstream Railway)
+#    - CRON_SECRET = (string random largo, debe coincidir con
+#      APP_CRON_SECRET en Railway env vars)
 # 2. (opcional) Settings → Actions → workflow_dispatch para botón manual.
 #
 # Para desactivar el endpoint en caliente: en Railway Variables setear
 # TOURNAMENT_AUTO_ENABLED=false. La acción seguirá llamando pero el backend
-# devolverá 503 Service Unavailable y el job fallará — el workflow loggea pero
-# no bloquea otros deploys.
+# devolverá 503 Service Unavailable.
 #
-# Idempotencia 24h: si ya hay un torneo auto reciente, el endpoint devuelve 409 con
-# id del existente. La acción lo detecta y termina con éxito (no re-genera).
+# Idempotencia 24h: si ya hay un torneo auto reciente, el endpoint devuelve
+# 409 con id del existente. La acción lo detecta y termina con éxito.
 
 on:
   schedule:
@@ -45,42 +45,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Login admin → obtener JWT
-        id: login
+      - name: Call POST /api/cron/torneos/auto-generar
         env:
           API_URL: ${{ secrets.API_URL }}
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        run: |
-          if [ -z "$API_URL" ] || [ -z "$ADMIN_USERNAME" ] || [ -z "$ADMIN_PASSWORD" ]; then
-            echo "::error::Faltan secrets API_URL, ADMIN_USERNAME o ADMIN_PASSWORD en el repo"
-            exit 1
-          fi
-          RES=$(curl -fsS -X POST "$API_URL/api/auth/login" \
-            -H "Content-Type: application/json" \
-            -d "{\"username\":\"$ADMIN_USERNAME\",\"password\":\"$ADMIN_PASSWORD\"}")
-          TOKEN=$(echo "$RES" | python3 -c "import json,sys; print(json.load(sys.stdin)['token'])")
-          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-            echo "::error::Login fallido, respuesta: $RES"
-            exit 1
-          fi
-          echo "::add-mask::$TOKEN"
-          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
-          echo "✓ JWT obtenido (length=${#TOKEN})"
-
-      - name: Call POST /api/admin/torneos/auto-generar
-        env:
-          API_URL: ${{ secrets.API_URL }}
-          TOKEN: ${{ steps.login.outputs.token }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
           TAMANO: ${{ inputs.tamano || '8' }}
           FORCE: ${{ inputs.force || 'false' }}
         run: |
+          if [ -z "$API_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::Faltan secrets API_URL o CRON_SECRET en el repo"
+            exit 1
+          fi
           BODY="{\"tamano\":$TAMANO,\"force\":$FORCE}"
           echo "Body: $BODY"
 
           # -w para capturar status code, -o para guardar body
-          HTTP=$(curl -sS -X POST "$API_URL/api/admin/torneos/auto-generar" \
-            -H "Authorization: Bearer $TOKEN" \
+          HTTP=$(curl -sS -X POST "$API_URL/api/cron/torneos/auto-generar" \
+            -H "X-Cron-Secret: $CRON_SECRET" \
             -H "Content-Type: application/json" \
             -d "$BODY" \
             -w "%{http_code}" \
@@ -94,6 +75,10 @@ jobs:
               ID=$(python3 -c "import json; print(json.load(open('response.json'))['id'])")
               NOMBRE=$(python3 -c "import json; print(json.load(open('response.json'))['nombre'])")
               echo "::notice::✓ Torneo creado (id=$ID): $NOMBRE"
+              ;;
+            401)
+              echo "::error::Cron secret inválido — verifica CRON_SECRET en repo y APP_CRON_SECRET en Railway"
+              exit 1
               ;;
             409)
               echo "::warning::Ya existe un torneo auto en las últimas 24h. No se crea otro."
