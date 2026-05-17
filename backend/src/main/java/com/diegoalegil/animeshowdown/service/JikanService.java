@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -51,6 +53,16 @@ public class JikanService {
     private final RestClient restClient;
     private final PersonajeRepository personajeRepository;
 
+    // Self-injection vía proxy. Sin esto la llamada this.fetchTopCharactersPage
+    // desde importarTopPersonajes es invocación directa al método del bean
+    // concreto → Spring AOP no aplica → @Cacheable/@Retry/@CircuitBreaker se
+    // ignoran. Audit P2 (2026-05-17): la cabecera de fetchTopCharactersPage
+    // afirmaba que "no funcionan si se llaman desde dentro de la misma clase"
+    // pero el código de importarTopPersonajes hacía exactamente eso.
+    @Autowired
+    @Lazy
+    private JikanService self;
+
     public JikanService(PersonajeRepository personajeRepository) {
         // RestClient con timeout explícito. Antes se construía con
         // RestClient.create(BASE_URL) y el factory por defecto no impone
@@ -76,7 +88,7 @@ public class JikanService {
         int page = 1;
 
         while (importados.size() < cantidad && page <= MAX_PAGES) {
-            JsonNode response = fetchTopCharactersPage(page);
+            JsonNode response = self.fetchTopCharactersPage(page);
 
             if (response == null || !response.has("data")) {
                 break;
@@ -100,7 +112,17 @@ public class JikanService {
                 String descripcion = truncar(character.path("about").asText(""), 497);
                 String imagenUrl = character.path("images").path("jpg").path("image_url").asText("");
 
-                Personaje p = new Personaje(nombre, anime, descripcion, imagenUrl);
+                // Audit P2 (2026-05-17): el constructor 4-arg dejaba slug=null,
+                // y la columna slug es NOT NULL desde V1__initial_schema.sql.
+                // Cualquier import explotaba con NOT NULL violation. Derivamos
+                // un slug del nombre con slugify simple; si colisiona con un
+                // personaje existente, lo saltamos (idempotente).
+                String slug = slugify(nombre);
+                if (slug.isBlank() || personajeRepository.findBySlug(slug).isPresent()) {
+                    continue;
+                }
+
+                Personaje p = new Personaje(slug, nombre, anime, descripcion, imagenUrl);
                 importados.add(personajeRepository.save(p));
             }
 
@@ -119,8 +141,9 @@ public class JikanService {
     /**
      * Llamada cruda a /top/characters?page=N con resiliencia completa.
      * Separada como método público con anotaciones de cache + retry +
-     * circuit-breaker para que el proxy Spring/AOP las aplique (no funcionan
-     * si se llaman desde dentro de la misma clase, por eso queda public).
+     * circuit-breaker. Spring AOP solo se aplica vía proxy; importar
+     * desde dentro de la clase debe hacerse con self.fetchTopCharactersPage,
+     * no this.fetchTopCharactersPage. Ver el campo {@code self} arriba.
      */
     @Cacheable(value = "jikan-top-characters", key = "#page")
     @Retry(name = "jikan")
@@ -152,5 +175,16 @@ public class JikanService {
             return texto;
         }
         return texto.substring(0, max) + "...";
+    }
+
+    /** Slugify mínimo: NFD + strip diacríticos, lowercase, espacios/no-alnum → _. */
+    private String slugify(String nombre) {
+        if (nombre == null) return "";
+        String norm = java.text.Normalizer.normalize(nombre, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toLowerCase()
+                .replaceAll("[^a-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        return norm;
     }
 }
