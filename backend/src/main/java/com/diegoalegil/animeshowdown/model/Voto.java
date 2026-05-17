@@ -31,7 +31,12 @@ import java.time.LocalDateTime;
         // de cascada del DataSeeder. Queremos índices simples sobre cada FK
         // para acelerar lookups por una columna.
         @Index(name = "idx_votos_personaje", columnList = "personaje_id"),
-        @Index(name = "idx_votos_enfrentamiento", columnList = "enfrentamiento_id")
+        @Index(name = "idx_votos_enfrentamiento", columnList = "enfrentamiento_id"),
+        // Audit (2026-05-17): rankingDesde/rankingHasta filtran por
+        // votos.fecha (RankingMovimientosService). V18 lo materializa
+        // explícito en BBDD; declarar aquí mantiene en sync el esquema
+        // de Hibernate validate.
+        @Index(name = "idx_votos_fecha", columnList = "fecha")
 })
 public class Voto {
 
