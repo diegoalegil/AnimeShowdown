@@ -43,6 +43,7 @@ import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
+import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
 import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.EmailVerificationService;
@@ -140,16 +141,6 @@ public class AuthController {
         String ua = req.getHeader("User-Agent");
         if (ua == null) return null;
         return ua.length() > 500 ? ua.substring(0, 500) : ua;
-    }
-
-    private String extraerIp(HttpServletRequest req) {
-        // Railway/Cloudflare ponen la IP real en X-Forwarded-For. El RemoteAddr
-        // crudo sería la del proxy intermedio (no útil para auditoría).
-        String xff = req.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].trim();
-        }
-        return req.getRemoteAddr();
     }
 
     @PostMapping("/registro")
@@ -345,7 +336,7 @@ public class AuthController {
             HttpServletRequest httpRequest, AuditEvento eventoAudit) {
         String token = jwtUtil.generarToken(usuario);
         String refreshPlano = refreshTokenService.emitir(
-                usuario, extraerUserAgent(httpRequest), extraerIp(httpRequest));
+                usuario, extraerUserAgent(httpRequest), ClientIpExtractor.extract(httpRequest));
         log.info("Login exitoso: username={} rol={}", usuario.getUsername(), usuario.getRol());
         auditLogService.registrar(eventoAudit, usuario, null, httpRequest);
         return ResponseEntity.ok()
@@ -372,7 +363,7 @@ public class AuthController {
                     .body(Map.of("message", "No hay sesión activa"));
         }
         Optional<RefreshTokenService.RotarResultado> opt = refreshTokenService.rotar(
-                refreshCookie, extraerUserAgent(httpRequest), extraerIp(httpRequest));
+                refreshCookie, extraerUserAgent(httpRequest), ClientIpExtractor.extract(httpRequest));
         if (opt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())

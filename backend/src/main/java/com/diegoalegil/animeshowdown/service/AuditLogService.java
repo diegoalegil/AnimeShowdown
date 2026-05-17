@@ -13,6 +13,7 @@ import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.AuditLog;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.AuditLogRepository;
+import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,8 +38,8 @@ import jakarta.servlet.http.HttpServletRequest;
  *     ejecución sigue. El audit es complementario; perderlo no rompe la
  *     funcionalidad del producto.
  *
- *   - extraerContexto(request) saca IP (respetando X-Forwarded-For de
- *     Cloudflare/Railway) y User-Agent truncado a 500 chars.
+ *   - IP del cliente vía {@link ClientIpExtractor} (CF-Connecting-IP con
+ *     fallback a RemoteAddr) y User-Agent truncado a 500 chars.
  *
  * Llamadas típicas desde AuthController:
  *   auditLogService.registrar(LOGIN_OK, usuario, null, request);
@@ -73,7 +74,7 @@ public class AuditLogService {
             HttpServletRequest request) {
         try {
             String detallesJson = serializar(detalles);
-            String ip = request != null ? extraerIp(request) : null;
+            String ip = request != null ? ClientIpExtractor.extract(request) : null;
             String userAgent = request != null ? extraerUserAgent(request) : null;
             AuditLog entry = new AuditLog(evento, usuario, detallesJson, ip, userAgent);
             repository.save(entry);
@@ -98,14 +99,6 @@ public class AuditLogService {
             log.warn("AuditLogService: detalles no serializables: {}", e.getMessage());
             return null;
         }
-    }
-
-    private String extraerIp(HttpServletRequest req) {
-        String xff = req.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].trim();
-        }
-        return req.getRemoteAddr();
     }
 
     private String extraerUserAgent(HttpServletRequest req) {
