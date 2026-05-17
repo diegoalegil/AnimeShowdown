@@ -26,7 +26,7 @@
     "elegirIdioma": "Choose language"
   },
   "footer": {
-    "descripcion": "Head-to-head tournaments and ELO rankings of the most iconic anime characters. Open source portfolio project by Diego Alegil.",
+    "descripcion": "AnimeShowdown is a platform for duels, ELO rankings and visual tournaments of anime characters. Vote, compare and discover which characters dominate according to the community.",
     "newsletter": "Newsletter",
     "navegacion": "Navigation",
     "stack": "Stack",
@@ -40,7 +40,7 @@
     "enTenerife": "in Tenerife"
   },
   "newsletter": {
-    "intro": "Weekly digest with the top, new tournaments and featured predictions.",
+    "intro": "Get new tournaments, featured rankings and daily trials straight to your inbox.",
     "emailPlaceholder": "you@example.com",
     "submit": "Subscribe",
     "enviando": "Sending…",
@@ -52,12 +52,13 @@
     "errorEnvio": "Couldn't send. Try again in a few seconds."
   },
   "hero": {
-    "tituloAntes": "Vote for your favorite",
+    "tituloAntes": "The definitive",
     "tituloAnime": "anime",
-    "tituloDespues": "characters",
-    "subtitulo": "Head-to-head tournaments, visual brackets and live ELO rankings. Pick the champion of the next bracket.",
-    "ctaTorneos": "Browse tournaments",
-    "ctaRanking": "See ranking"
+    "tituloDespues": "ranking is yours to decide",
+    "subtitulo": "Face characters off in head-to-head duels, vote for your favorites and find out who dominates AnimeShowdown's ELO ranking. Every vote counts. Every duel shifts the meta.",
+    "ctaTorneos": "Vote now",
+    "ctaRanking": "See ranking",
+    "features": "Live duels · Visual brackets · Live ELO ranking · Daily anime trials"
   },
   "torneos": {
     "tituloPagina": "Tournaments",

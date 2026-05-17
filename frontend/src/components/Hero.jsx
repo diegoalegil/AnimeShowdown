@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, TrendingUp } from 'lucide-react'
+import { ArrowRight, Swords, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useSound } from '../contexts/SoundContext'
 
@@ -87,10 +87,11 @@ function Hero() {
           variants={itemVariants}
         >
           <Link
-            to="/torneos"
+            to="/votar"
             onClick={() => play('playClick')}
             className="group inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all animate-pulse-halo hover:-translate-y-0.5 hover:bg-accent-hover"
           >
+            <Swords className="h-4 w-4" />
             {t('hero.ctaTorneos')}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
@@ -103,6 +104,12 @@ function Hero() {
             {t('hero.ctaRanking')}
           </Link>
         </motion.div>
+        <motion.p
+          className="mt-2 text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted"
+          variants={itemVariants}
+        >
+          {t('hero.features')}
+        </motion.p>
       </motion.div>
     </section>
   )
