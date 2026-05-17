@@ -7,7 +7,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.myanimelist.net; connect-src 'self' https://api.animeshowdown.dev https://animeshowdown-production-a9f4.up.railway.app https://api.jikan.moe https://animechan.io https://animechan.xyz; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.myanimelist.net; connect-src 'self' https://api.animeshowdown.dev wss://api.animeshowdown.dev https://animeshowdown-production-a9f4.up.railway.app wss://animeshowdown-production-a9f4.up.railway.app https://api.jikan.moe https://animechan.io https://animechan.xyz; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
 # Caching agresivo para imágenes de personajes — viven bajo /img/<Anime>/
 # tras la migración de hace meses. La ruta /personajes/*.webp era de la
