@@ -68,6 +68,26 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     List<RankingItem> rankingHasta(@Param("antesDe") java.time.LocalDateTime antesDe,
             org.springframework.data.domain.Pageable pageable);
 
+    /** Total de votos de un personaje (Plan v2 §11.1 time machine baseline). */
+    long countByPersonajeId(Long personajeId);
+
+    /**
+     * Votos por día del personaje desde la fecha dada (Plan v2 §11.1).
+     * Devuelve {@code [fechaInicio-del-día, count]}. Usamos {@code CAST AS DATE}
+     * para que el GROUP BY funcione tanto en H2 como en Postgres sin
+     * funciones específicas de dialecto.
+     */
+    @Query("""
+            SELECT FUNCTION('DATE', v.fecha), COUNT(v)
+            FROM Voto v
+            WHERE v.personaje.id = :personajeId
+              AND v.fecha >= :desde
+            GROUP BY FUNCTION('DATE', v.fecha)
+            ORDER BY FUNCTION('DATE', v.fecha) ASC
+            """)
+    List<Object[]> votosPorDiaDesde(@Param("personajeId") Long personajeId,
+            @Param("desde") java.time.LocalDateTime desde);
+
     /**
      * Ranking de personajes de un anime concreto (Plan v2 §4.6). Filtramos
      * por nombre del anime (string del catálogo) — case-sensitive porque

@@ -257,6 +257,13 @@ export const endpoints = {
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,
       { auth: false },
     ),
+  // Time machine del ELO (Plan v2 §11.1): serie {fecha, votosAcumulados}
+  // por día. dias 1..90, default 30.
+  personajeEloHistory: (slug, { dias = 30 } = {}) =>
+    api.get(
+      `/api/personajes/${encodeURIComponent(slug)}/elo-history?dias=${dias}`,
+      { auth: false },
+    ),
   // Reactions (Plan v2 §4.3).
   //   getReacciones: público, devuelve {counts, miReaccion, total}.
   //   aplicarReaccion: autenticado. Backend gestiona toggle/swap automático.
