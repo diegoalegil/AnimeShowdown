@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import * as sfx from '../lib/sounds'
 
 const SoundContext = createContext(null)
@@ -39,36 +39,46 @@ export function SoundProvider({ children }) {
     }
   }, [])
 
-  const play = (name) => {
-    if (muted) return
-    const fn = sfx[name]
-    if (typeof fn === 'function') {
-      try {
-        fn()
-      } catch {
-        // ignore audio errors silently
+  // Audit (2026-05-17): play/toggleMute/warm y el objeto value se
+  // creaban nuevos en cada render del provider → toda la app re-renderizaba
+  // y los useEffect con `play` en deps re-corrían (case BadgeUnlockListener,
+  // VotarPage, etc.). useCallback + useMemo estabiliza identidades.
+  const play = useCallback(
+    (name) => {
+      if (muted) return
+      const fn = sfx[name]
+      if (typeof fn === 'function') {
+        try {
+          fn()
+        } catch {
+          // ignore audio errors silently
+        }
       }
-    }
-  }
+    },
+    [muted],
+  )
 
   // Warm-up explícito para componentes que sepan ANTES del click que va
   // a haber sonido — caso de /votar, donde el hover sobre una card
   // anticipa el click. Asegura que el AudioContext esté en estado
   // running cuando llegue el click, evitando el lag del await resume().
-  const warm = () => {
+  const warm = useCallback(() => {
     try {
       sfx.__warm?.()
     } catch {
       /* ignore */
     }
-  }
+  }, [])
 
-  const toggleMute = () => setMuted((m) => !m)
+  const toggleMute = useCallback(() => setMuted((m) => !m), [])
+
+  const value = useMemo(
+    () => ({ muted, toggleMute, play, warm }),
+    [muted, toggleMute, play, warm],
+  )
 
   return (
-    <SoundContext.Provider value={{ muted, toggleMute, play, warm }}>
-      {children}
-    </SoundContext.Provider>
+    <SoundContext.Provider value={value}>{children}</SoundContext.Provider>
   )
 }
 
