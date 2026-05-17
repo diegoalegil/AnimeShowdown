@@ -14,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.NotificacionTipo;
+import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
+import com.diegoalegil.animeshowdown.security.AdminEmails;
 
 /**
  * Orquesta el ciclo de verificación de email (Plan v2 §2.4):
@@ -50,6 +52,7 @@ public class EmailVerificationService {
     private final NotificacionService notificacionService;
     private final BadgeService badgeService;
     private final ReferralService referralService;
+    private final AdminEmails adminEmails;
     private final String frontendBaseUrl;
     private final long ttlHoras;
 
@@ -60,6 +63,7 @@ public class EmailVerificationService {
             NotificacionService notificacionService,
             BadgeService badgeService,
             ReferralService referralService,
+            AdminEmails adminEmails,
             @Value("${app.frontend-base-url:https://animeshowdown.dev}") String frontendBaseUrl,
             @Value("${app.email-verification.ttl-hours:24}") long ttlHoras) {
         this.repository = repository;
@@ -68,6 +72,7 @@ public class EmailVerificationService {
         this.notificacionService = notificacionService;
         this.badgeService = badgeService;
         this.referralService = referralService;
+        this.adminEmails = adminEmails;
         this.frontendBaseUrl = frontendBaseUrl.endsWith("/")
                 ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1)
                 : frontendBaseUrl;
@@ -116,6 +121,14 @@ public class EmailVerificationService {
         repository.save(ev);
         Usuario u = ev.getUsuario();
         u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
+        // Audit P1.1: la auto-promoción a ADMIN se hace AQUÍ (no en
+        // registro). Requiere que el dueño del email haya verificado
+        // realmente — sin acceso al inbox no hay promoción. Si la lista
+        // de admins está vacía (ADMIN_EMAILS no configurado), nadie sube.
+        if (u.getRol() != Rol.ADMIN && adminEmails.contains(u.getEmail())) {
+            u.setRol(Rol.ADMIN);
+            log.info("Auto-promoción a ADMIN tras verificar email: usuario={}", u.getUsername());
+        }
         usuarioRepository.save(u);
         log.info("Email verificado: usuario={}", u.getUsername());
 
