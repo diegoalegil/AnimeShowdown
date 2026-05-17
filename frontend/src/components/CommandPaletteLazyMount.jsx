@@ -7,10 +7,10 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 // y un fetch de torneos al primer paint — coste innecesario para la
 // mayoría de visitas que nunca lo abren.
 //
-// Tras primer key event: monta lazy. CommandPalette internamente abre
-// su state al detectar la misma combinación (su useEffect propio sigue
-// activo y dispara el open dentro del componente recién montado, en el
-// mismo tick del browser).
+// Tras primer key event: monta lazy con prop initialOpen={true} para
+// abrir el dialog inmediatamente sin depender de re-dispatch del
+// KeyboardEvent (que podía tragarse en redes lentas porque el listener
+// interno aún no estaba registrado cuando se re-emitía).
 const CommandPalette = lazy(() => import('./CommandPalette'))
 
 export default function CommandPaletteLazyMount() {
@@ -21,32 +21,18 @@ export default function CommandPaletteLazyMount() {
     const onKey = (e) => {
       const isMod = e.metaKey || e.ctrlKey
       if (isMod && (e.key === 'k' || e.key === 'K' || e.key === 'j' || e.key === 'J')) {
+        e.preventDefault()
         setArmed(true)
-        // No previene default — el listener de CommandPalette agarra el
-        // mismo evento tras el mount (los events de keydown se procesan
-        // por orden de registro; los handlers nuevos no ven el evento
-        // actual). Por eso simulamos un segundo dispatch tras el mount:
-        // ver useEffect siguiente.
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [armed])
 
-  useEffect(() => {
-    if (!armed) return
-    // Re-emite el evento Cmd+K tras un microtask para que el listener
-    // recién montado dentro de CommandPalette lo capture y abra el
-    // dialog. Sin esto, el primer Cmd+K queda "perdido" entre el mount
-    // y el listener — el usuario tendría que pulsar Cmd+K dos veces.
-    const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true })
-    queueMicrotask(() => window.dispatchEvent(ev))
-  }, [armed])
-
   if (!armed) return null
   return (
     <Suspense fallback={null}>
-      <CommandPalette />
+      <CommandPalette initialOpen />
     </Suspense>
   )
 }
