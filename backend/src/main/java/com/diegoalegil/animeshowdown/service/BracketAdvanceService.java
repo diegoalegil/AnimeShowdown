@@ -138,9 +138,16 @@ public class BracketAdvanceService {
             }
         }
 
-        // Calcular ganadores por count de votos. Empate ⇒ no se cierra (el
-        // admin tendrá que romperlo manualmente añadiendo un voto desde
-        // su cuenta o asignando ganador por API directa).
+        // Audit P2 (2026-05-17): two-phase commit lógico. Antes este loop
+        // hacía setGanador + save match a match; si un match POSTERIOR
+        // empataba y retornaba SIN_CAMBIOS, los matches previos ya quedaban
+        // mutados en BBDD (la tx REQUIRES_NEW commitea cada paso). Resultado:
+        // ronda 1/2 cerrada y ronda 1/2 abierta, estado inconsistente que
+        // el siguiente cerrarRondaYAvanzar interpretaba mal. Fase 1: calcula
+        // todos los ganadores sin tocar entidades. Si algún empate, return
+        // SIN_CAMBIOS sin escribir nada. Fase 2: persistir ahora que sabemos
+        // que toda la ronda se puede cerrar atómicamente dentro de esta tx.
+        List<Personaje> ganadores = new ArrayList<>(matches.size());
         for (Enfrentamiento m : matches) {
             long v1 = votoRepository.countByEnfrentamientoAndPersonaje(m, m.getPersonaje1());
             long v2 = votoRepository.countByEnfrentamientoAndPersonaje(m, m.getPersonaje2());
@@ -149,7 +156,11 @@ public class BracketAdvanceService {
                         torneo.getSlug(), rondaACerrar, m.getId(), v1, v2);
                 return Resultado.SIN_CAMBIOS;
             }
-            m.setGanador(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
+            ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
+        }
+        for (int i = 0; i < matches.size(); i++) {
+            Enfrentamiento m = matches.get(i);
+            m.setGanador(ganadores.get(i));
             enfrentamientoRepository.save(m);
         }
 
