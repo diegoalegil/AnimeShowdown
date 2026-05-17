@@ -158,6 +158,25 @@ public class BracketAdvanceService {
             }
             ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
         }
+
+        // Audit (2026-05-17): sanity check del bracket malformado ANTES de
+        // persistir cualquier ganador. Si no es la última ronda y la
+        // siguiente no existe o tiene tamaño incorrecto, abortar sin
+        // tocar BBDD. Antes el check estaba después de los setGanador +
+        // save, así que un bracket roto dejaba la ronda actual cerrada
+        // pero la siguiente nunca poblada — estado parcial irrecuperable.
+        List<Enfrentamiento> siguiente = null;
+        if (!rondaACerrar.equals(maxRonda)) {
+            siguiente = porRonda.get(rondaACerrar + 1);
+            if (siguiente == null || siguiente.size() != matches.size() / 2) {
+                log.error("Torneo {} ronda {}→{}: tamaños inconsistentes ({} vs esperados {}). Abortando sin escribir.",
+                        torneo.getSlug(), rondaACerrar, rondaACerrar + 1,
+                        siguiente == null ? 0 : siguiente.size(), matches.size() / 2);
+                return Resultado.SIN_CAMBIOS;
+            }
+        }
+
+        // Validado: ahora sí, persistir ganadores de la ronda.
         for (int i = 0; i < matches.size(); i++) {
             Enfrentamiento m = matches.get(i);
             m.setGanador(ganadores.get(i));
@@ -175,15 +194,7 @@ public class BracketAdvanceService {
             return Resultado.TORNEO_FINALIZADO;
         }
 
-        // Propaga ganadores a la ronda siguiente.
-        List<Enfrentamiento> siguiente = porRonda.get(rondaACerrar + 1);
-        if (siguiente == null || siguiente.size() != matches.size() / 2) {
-            // Sanity check: el bracket está malformado. No tocamos nada.
-            log.error("Torneo {} ronda {}→{}: tamaños inconsistentes ({} vs esperados {})",
-                    torneo.getSlug(), rondaACerrar, rondaACerrar + 1,
-                    siguiente == null ? 0 : siguiente.size(), matches.size() / 2);
-            return Resultado.SIN_CAMBIOS;
-        }
+        // Propaga ganadores a la ronda siguiente (ya validada arriba).
         for (int i = 0; i < matches.size(); i++) {
             Enfrentamiento src = matches.get(i);
             Enfrentamiento dst = siguiente.get(i / 2);
