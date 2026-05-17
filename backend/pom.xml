@@ -146,16 +146,13 @@
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
-		<!-- springdoc-openapi: auto-genera OpenAPI 3.0 spec + Swagger UI
-		     (Plan v2 §2.15). Disponible en /v3/api-docs y /swagger-ui.html
-		     (rutas ya permitidas en SecurityConfig). Sienta la base para
-		     publicar la API en SwaggerHub cuando llegue el bloque público
-		     de developers (Plan v2 §11.4). -->
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.7.0</version>
-		</dependency>
+		<!-- springdoc-openapi 2.8.5 declarada arriba (Plan v2 §2.15) —
+		     disponible en /v3/api-docs y /swagger-ui.html. Sienta base
+		     para publicar la API en SwaggerHub cuando llegue el bloque
+		     público de developers (Plan v2 §11.4). El duplicado previo
+		     con versión 2.7.0 se eliminó: Maven respeta el primer
+		     declarado pero el warning de "duplicate" amenazaba estabilidad
+		     futura. -->
 
 		<!-- spring-retry para @Retryable + @Recover en EmailService
 		     (Plan v2 §2.12). aspectjweaver lo arrastra spring-boot ya. -->
