@@ -1,24 +1,45 @@
-import { imagenPersonaje } from '../data/personajes'
+import { useState } from 'react'
+import { getPersonajeBySlug, imagenPersonaje } from '../data/personajes'
+import PersonajePlaceholder from './PersonajePlaceholder'
 
 /**
- * <img> de personaje (Plan v2 §3.3-3.4).
+ * <img> de personaje con fallback premium (Plan v2 §3.3-3.4).
  *
- * Versión simplificada: usa solo la imagen original. Antes había <picture>
- * con srcset AVIF + WebP por anchos (300/600/1024) generados por
- * generate-image-variants.mjs, pero el build de Cloudflare usa
- * build:no-images (para esquivar el timeout de 20 min) y por tanto las
- * variantes no llegan a producción — el <picture> intentaba cargar URLs
- * 404 y mostraba el icono de imagen rota.
+ * Si la imagen real falla (404 en producción, slug sin imagen, error de
+ * red…) renderiza un <PersonajePlaceholder> en su lugar — iniciales,
+ * anime y kanji decorativo. Nunca se muestra el icono de imagen rota
+ * del navegador.
  *
- * Cuando movamos a build full en CF reactivamos el <picture> srcset.
- * Mientras tanto este componente es un wrapper trivial que sigue
- * dándonos un punto único para evolucionar.
- *
- * Props acepta cualquier prop válida de <img>.
+ * Antes había un <picture> con srcset AVIF + WebP por anchos (300/600
+ * /1024) generados por generate-image-variants.mjs, pero el build de
+ * Cloudflare usa build:no-images (esquiva el timeout de 20 min) y las
+ * variantes no llegan a producción — el <picture> daba 404 en cascada.
  */
 // eslint-disable-next-line no-unused-vars
-function PersonajeImg({ slug, alt, sizes, ...imgProps }) {
-  return <img src={imagenPersonaje(slug)} alt={alt} {...imgProps} />
+function PersonajeImg({ slug, alt, sizes, className = '', ...imgProps }) {
+  const [errored, setErrored] = useState(false)
+  const src = imagenPersonaje(slug)
+
+  if (errored) {
+    const p = getPersonajeBySlug(slug)
+    return (
+      <PersonajePlaceholder
+        nombre={p?.nombre ?? slug}
+        anime={p?.anime ?? 'Anime desconocido'}
+        className={className}
+      />
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setErrored(true)}
+      {...imgProps}
+    />
+  )
 }
 
 export default PersonajeImg
