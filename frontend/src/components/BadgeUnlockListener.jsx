@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
-import * as Icons from 'lucide-react'
 import { Trophy } from 'lucide-react'
+import { iconoDeBadge } from '../lib/badgeIcons'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useStompSubscription } from '../hooks/useStompSubscription'
@@ -34,7 +34,7 @@ function BadgeUnlockListener() {
     } catch {
       /* payload inválido, seguimos con defaults */
     }
-    const IconBadge = Icons[payload.icono] ?? Trophy
+    const IconBadge = payload.icono ? iconoDeBadge(payload.icono) : Trophy
 
     // 1) Sonido — el playLevelUp ya respeta el toggle global de mute.
     try {

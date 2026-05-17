@@ -1,5 +1,5 @@
-import * as Icons from 'lucide-react'
-import { Lock, Check } from 'lucide-react'
+import { Check, Lock, Users } from 'lucide-react'
+import { iconoDeBadge } from '../lib/badgeIcons'
 import { kanjiDeBadge } from '../lib/badgeKanji'
 
 /**
@@ -58,7 +58,7 @@ const RAREZA_STYLE = {
 }
 
 function getIcon(nombre) {
-  return Icons[nombre] ?? Icons.Award
+  return iconoDeBadge(nombre)
 }
 
 function formatFecha(iso) {
@@ -147,7 +147,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0 }) {
 
       <footer className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-fg-muted">
         <span className="inline-flex items-center gap-1.5 tabular-nums">
-          <Icons.Users className="h-3 w-3" />
+          <Users className="h-3 w-3" />
           <strong className="font-semibold text-fg-strong">{count}</strong>
           {totalUsuarios > 0 && (
             <span>· {porcentaje}% de la comunidad</span>
