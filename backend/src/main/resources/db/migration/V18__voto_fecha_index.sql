@@ -1,0 +1,12 @@
+-- Audit (2026-05-17): RankingMovimientosService usa rankingDesde(desde)
+-- y rankingHasta(antesDe) que filtran WHERE v.fecha >= :desde / < :antesDe.
+-- Sin índice sobre votos.fecha, Postgres hace full table scan en cada
+-- request — costoso conforme crece la tabla (alimenta el ranking
+-- movimientos cached 1min, pero el primer hit tras cada bucket lo paga).
+--
+-- Btree simple sobre fecha. Para queries con GROUP BY personaje + WHERE
+-- fecha, Postgres puede combinarlo con idx_votos_personaje vía bitmap
+-- index scan sin necesidad de índice compuesto adicional.
+--
+-- IF NOT EXISTS para idempotencia (Postgres). H2 acepta sintaxis.
+CREATE INDEX IF NOT EXISTS idx_votos_fecha ON votos (fecha);
