@@ -118,10 +118,31 @@ export function subscribe(destination, onMessage) {
   }
 
   doSubscribe()
-  // Si no había conexión en el momento de llamar, lo retomamos cuando
-  // se conecte.
+  // Audit P2 (2026-05-17): antes el listener comprobaba `!sub` y NO
+  // re-suscribía tras reconnect — la primera sub seguía no-null aunque el
+  // WS ya hubiera caído, así que el cliente quedaba conectado pero sin
+  // escuchar el topic (silencio total tras un drop+reconnect típico de
+  // WiFi/sleep). Ahora: cuando notifyConnected(false), invalidamos sub
+  // localmente (server-side ya no existe). En cada onConnect(true)
+  // re-suscribimos siempre.
   const onConnect = (connected) => {
-    if (connected && !sub) doSubscribe()
+    if (connected) {
+      // Defensivo: si por algún motivo seguía referenciando la vieja,
+      // intentamos unsubscribe antes de la nueva (no-op si ya estaba muerta).
+      if (sub) {
+        try {
+          sub.unsubscribe()
+        } catch {
+          /* ignore */
+        }
+        sub = null
+      }
+      doSubscribe()
+    } else {
+      // El WS cayó: la sub del broker se descarta automáticamente. Olvida
+      // la referencia local para que el próximo onConnect(true) re-suscriba.
+      sub = null
+    }
   }
   connectedListeners.add(onConnect)
 
