@@ -9,8 +9,13 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.myanimelist.net; connect-src 'self' https://api.animeshowdown.dev https://animeshowdown-production-a9f4.up.railway.app https://api.jikan.moe https://animechan.io https://animechan.xyz; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
-# Caching agresivo para webp e imágenes (assets con hash en nombre)
-/personajes/*.webp
+# Caching agresivo para imágenes de personajes — viven bajo /img/<Anime>/
+# tras la migración de hace meses. La ruta /personajes/*.webp era de la
+# estructura plana antigua y ya no existe, así que la regla nunca aplicaba
+# y las imágenes se servían con cache default (~5min). Cambio a /img/*
+# para cubrir tanto los originales (.webp) como las variantes responsive
+# (-300/-600/-1024 .webp/.avif) cuando se reactive el build full.
+/img/*
   Cache-Control: public, max-age=31536000, immutable
 
 /assets/*
