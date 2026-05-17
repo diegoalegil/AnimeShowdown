@@ -147,8 +147,14 @@ class EnfrentamientoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.personaje.id").value(ids[0]));
+                // Tras propuesta §4.x: el endpoint devuelve VotoRegistradoDto
+                // con counts post-voto y delta, no la entidad Voto cruda.
+                .andExpect(jsonPath("$.votoId").isNumber())
+                .andExpect(jsonPath("$.personajeGanadorId").value(ids[0]))
+                .andExpect(jsonPath("$.votosGanador").value(1))
+                .andExpect(jsonPath("$.personajePerdedorId").value(ids[1]))
+                .andExpect(jsonPath("$.votosPerdedor").value(0))
+                .andExpect(jsonPath("$.delta").value(1));
     }
 
     @Test
