@@ -2,7 +2,17 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, ArrowRight, Quote, Star } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Quote,
+  Share2,
+  Star,
+  Swords,
+  TrendingUp,
+  Trophy,
+} from 'lucide-react'
+import { toast } from 'sonner'
 import {
   personajes,
   imagenPersonaje,
@@ -97,6 +107,35 @@ function PersonajeDetailPage() {
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
   const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
   const next = personajes[(idx + 1) % personajes.length]
+
+  // Rank global por ELO + rank dentro del anime. Una sola pasada por
+  // anime para no recalcular varias veces durante el render.
+  const eloOrdenado = [...personajes]
+    .map((p) => ({ slug: p.slug, elo: getStatsPersonaje(p.slug).elo }))
+    .sort((a, b) => b.elo - a.elo)
+  const rankGlobal = eloOrdenado.findIndex((p) => p.slug === slug) + 1
+  const animePersonajes = personajes.filter((p) => p.anime === personaje.anime)
+  const rankAnime =
+    [...animePersonajes]
+      .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
+      .findIndex((p) => p.slug === slug) + 1
+
+  const compartir = async () => {
+    const url = `https://animeshowdown.dev/personajes/${slug}`
+    const titulo = `${personaje.nombre} · ${personaje.anime} · AnimeShowdown`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: titulo, url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        toast.success('Enlace copiado al portapapeles')
+      }
+    } catch (e) {
+      if (e?.name !== 'AbortError') {
+        toast.error('No se pudo compartir')
+      }
+    }
+  }
   // Plan v2 §5.6: hasta 10 personajes del mismo anime como internal linking
   // estructurado. Google sigue estos links para entender la red semántica
   // ("Akame ga Kill!" → 10 personajes del anime); más de 10 saturaría la
@@ -169,19 +208,32 @@ function PersonajeDetailPage() {
             className="flex flex-col items-start gap-4"
             variants={containerVariants}
           >
-            <motion.span
-              className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted"
+            <motion.div
+              className="flex flex-wrap items-center gap-2"
               variants={itemVariants}
             >
-              Personaje {idx + 1} de {personajes.length}
-              {jikan?.favorites != null && (
-                <>
-                  {' · '}
-                  <Star className="ml-1 inline h-3 w-3 text-accent" />{' '}
-                  {jikan.favorites.toLocaleString('es-ES')} fans
-                </>
+              {rankGlobal <= 100 && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-200">
+                  <Trophy className="h-3 w-3" />
+                  #{rankGlobal} ranking ELO
+                </span>
               )}
-            </motion.span>
+              {animePersonajes.length > 1 && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent">
+                  #{rankAnime} de {personaje.anime}
+                </span>
+              )}
+              <span className="inline-flex rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+                Personaje {idx + 1} de {personajes.length}
+                {jikan?.favorites != null && (
+                  <>
+                    {' · '}
+                    <Star className="ml-1 inline h-3 w-3 text-accent" />{' '}
+                    {jikan.favorites.toLocaleString('es-ES')} fans
+                  </>
+                )}
+              </span>
+            </motion.div>
             <motion.h1
               itemProp="name"
               className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
@@ -203,6 +255,34 @@ function PersonajeDetailPage() {
                 <span itemProp="name">{personaje.anime}</span>
               </span>
             </motion.p>
+            <motion.div
+              className="flex flex-wrap gap-2"
+              variants={itemVariants}
+            >
+              <Link
+                to="/votar"
+                className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              >
+                <Swords className="h-4 w-4" />
+                Votar ahora
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                to="/ranking"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+              >
+                <TrendingUp className="h-4 w-4" />
+                Ver en ranking
+              </Link>
+              <button
+                type="button"
+                onClick={compartir}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartir ficha
+              </button>
+            </motion.div>
             {personajeBackendId && (
               <motion.div variants={itemVariants}>
                 <ReactionsBar
@@ -222,6 +302,14 @@ function PersonajeDetailPage() {
               />
               <Stat label="Win rate" value={`${winRate}%`} />
             </motion.div>
+            {total === 0 && (
+              <motion.p
+                className="text-[12px] italic text-fg-muted"
+                variants={itemVariants}
+              >
+                Stats disponibles cuando participe en más enfrentamientos.
+              </motion.p>
+            )}
             {personaje.descripcion && (
               <motion.div
                 className="rounded-lg border border-border bg-surface p-4"
@@ -279,19 +367,25 @@ function PersonajeDetailPage() {
                 to={`/personajes/${prev.slug}`}
                 aria-label={`Ir al personaje anterior: ${prev.nombre} de ${prev.anime}`}
                 title={`${prev.nombre} de ${prev.anime}`}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
+                className="inline-flex flex-col items-start gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
               >
-                <ArrowLeft className="h-4 w-4" />
-                {prev.nombre}
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-fg-muted">
+                  <ArrowLeft className="h-3 w-3" />
+                  Anterior
+                </span>
+                <span className="font-semibold">{prev.nombre}</span>
               </Link>
               <Link
                 to={`/personajes/${next.slug}`}
                 aria-label={`Ir al personaje siguiente: ${next.nombre} de ${next.anime}`}
                 title={`${next.nombre} de ${next.anime}`}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
+                className="inline-flex flex-col items-end gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
               >
-                {next.nombre}
-                <ArrowRight className="h-4 w-4" />
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-fg-muted">
+                  Siguiente
+                  <ArrowRight className="h-3 w-3" />
+                </span>
+                <span className="font-semibold">{next.nombre}</span>
               </Link>
             </motion.div>
           </motion.div>
