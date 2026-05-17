@@ -164,17 +164,39 @@ function GuessCharacterPage() {
           </p>
         </motion.header>
 
-        <div className="mb-6 overflow-hidden rounded-xl border border-border bg-surface">
-          <div className="relative aspect-[3/4] w-full overflow-hidden bg-bg">
+        <div
+          className={`relative mx-auto mb-6 max-w-sm overflow-hidden rounded-xl border bg-surface transition-all duration-500 ${
+            estado.acertado
+              ? 'border-emerald-400/60 shadow-[0_0_60px_-10px_rgba(52,211,153,0.55)]'
+              : 'border-border'
+          }`}
+        >
+          <div className="relative aspect-[2/3] w-full overflow-hidden bg-bg">
             <img
               src={imagenPersonaje(objetivo.slug)}
               alt={estado.finalizado ? objetivo.nombre : 'Personaje difuminado'}
-              className="h-full w-full object-cover object-top transition-all duration-500"
+              className="h-full w-full object-contain transition-all duration-500"
               style={{
                 filter: `blur(${blurPx}px)`,
                 transform: blurPx > 0 ? 'scale(1.05)' : 'scale(1)',
               }}
             />
+            {estado.acertado && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+                className="pointer-events-none absolute inset-0 flex items-center justify-center"
+              >
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 0.6, repeat: 1 }}
+                  className="rounded-full border-2 border-emerald-300/80 bg-emerald-500/20 px-5 py-2 text-lg font-extrabold uppercase tracking-[0.2em] text-emerald-100 backdrop-blur-sm"
+                >
+                  ¡Acertaste!
+                </motion.div>
+              </motion.div>
+            )}
             {estado.finalizado && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4">
                 <p className="text-[11px] uppercase tracking-wider text-fg-muted">
