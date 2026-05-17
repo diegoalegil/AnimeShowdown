@@ -85,7 +85,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             chain.doFilter(req, res);
             return;
         }
-        String ip = extraerIp(req);
+        String ip = ClientIpExtractor.extract(req);
         Bucket bucket = buckets.get(ip, k -> nuevoBucket());
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
         if (probe.isConsumed()) {
@@ -130,14 +130,4 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    private String extraerIp(HttpServletRequest req) {
-        // Railway/Cloudflare ponen la IP real en X-Forwarded-For. Si la
-        // request viene directa al backend (admin, healthcheck), uso
-        // RemoteAddr como fallback.
-        String xff = req.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].trim();
-        }
-        return req.getRemoteAddr();
-    }
 }
