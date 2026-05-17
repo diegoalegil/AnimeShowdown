@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import {
@@ -66,6 +66,13 @@ function HigherOrLowerPage() {
     }
   })
   const [gameOver, setGameOver] = useState(false)
+  // Audit (2026-05-17): los setTimeout de reveal (1100ms) no se
+  // cancelan en unmount — si el user navega tras el guess pero antes
+  // del reveal, el callback dispara setState en componente desmontado.
+  const revealTimerRef = useRef(null)
+  useEffect(() => () => {
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+  }, [])
 
   const handleGuess = (esMayor) => {
     if (revealed !== null) return
@@ -88,7 +95,9 @@ function HigherOrLowerPage() {
       // Después de 1100ms (suficiente para ver el reveal):
       // challenger se convierte en el nuevo reference (rota a la izquierda)
       // y aparece un nuevo challenger en la derecha
-      setTimeout(() => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+      revealTimerRef.current = setTimeout(() => {
+        revealTimerRef.current = null
         const nuevoChallenger = pickDistinctElo(challenger)
         setReference(challenger)
         setChallenger(nuevoChallenger)
@@ -96,7 +105,11 @@ function HigherOrLowerPage() {
       }, 1100)
     } else {
       play('playImpact')
-      setTimeout(() => setGameOver(true), 1100)
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+      revealTimerRef.current = setTimeout(() => {
+        revealTimerRef.current = null
+        setGameOver(true)
+      }, 1100)
     }
   }
 

@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { personajes } from '../data/personajes'
 import { normalizar } from '../lib/games'
@@ -38,6 +38,13 @@ function AutocompleteAnime({
     setActivo(0)
   }
   const inputRef = useRef(null)
+  // Audit (2026-05-17): cleanup del onBlur setTimeout para evitar
+  // setState en componente desmontado tras navegación rápida (mismo
+  // patrón que AutocompletePersonaje).
+  const blurTimeoutRef = useRef(null)
+  useEffect(() => () => {
+    if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
+  }, [])
 
   const opciones = useMemo(() => {
     const q = normalizar(query)
@@ -94,7 +101,13 @@ function AutocompleteAnime({
             setAbierto(true)
           }}
           onFocus={() => setAbierto(true)}
-          onBlur={() => setTimeout(() => setAbierto(false), 120)}
+          onBlur={() => {
+            if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
+            blurTimeoutRef.current = setTimeout(() => {
+              blurTimeoutRef.current = null
+              setAbierto(false)
+            }, 120)
+          }}
           onKeyDown={handleKey}
           placeholder={placeholder}
           disabled={disabled}

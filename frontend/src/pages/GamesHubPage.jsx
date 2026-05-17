@@ -199,9 +199,17 @@ function GamesHubPage() {
     return () => clearInterval(id)
   }, [])
 
-  // Estados leídos desde localStorage. Se recalculan al montar (cada
-  // navegación al hub). No reactivos a cambios dentro de la misma sesión
-  // — al volver al hub tras jugar uno, se ve el estado actualizado.
+  // Audit (2026-05-17): antes useMemo([]) leía localStorage UNA VEZ al
+  // mount. Si el user jugaba en otra pestaña/ruta y volvía al hub sin
+  // navegación SPA real (back button entre tabs, focus de window), los
+  // estados quedaban viejos hasta reload. Forzamos re-lectura cuando
+  // la window recupera el foco — sin coste si no cambió nada.
+  const [estadosTick, setEstadosTick] = useState(0)
+  useEffect(() => {
+    const onFocus = () => setEstadosTick((t) => t + 1)
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [])
   const estadosJuegos = useMemo(
     () =>
       Object.fromEntries(
@@ -213,7 +221,10 @@ function GamesHubPage() {
           },
         ]),
       ),
-    [],
+    // estadosTick es señal intencional: cambia con focus para refrescar
+    // los reads de localStorage aunque GAMES sea estático.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [estadosTick],
   )
 
   const completadosHoy = Object.values(estadosJuegos).filter(
