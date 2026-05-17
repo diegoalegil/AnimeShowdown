@@ -3,12 +3,15 @@ package com.diegoalegil.animeshowdown.service;
 import java.util.List;
 import java.util.Map;
 
+import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -82,7 +85,20 @@ public class EmailService {
         this.apiKey = apiKey;
         this.from = from;
         this.enabled = apiKey != null && !apiKey.isBlank();
-        this.restClient = RestClient.builder().baseUrl(RESEND_BASE).build();
+        // Audit P2 (2026-05-17): el RestClient se construía sin timeout —
+        // un Resend lento o colgado dejaba el hilo del emailExecutor
+        // bloqueado indefinidamente, llenando el pool (core 2 / max 5) y
+        // bloqueando emails reales detrás. Timeouts conservadores:
+        //   connect 3s — TLS handshake típico ~150-400ms; 3s cubre red mala.
+        //   read 10s — Resend responde ~50-300ms; 10s evita falsos timeout
+        //   en CIs lentos pero corta requests muertos.
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout((int) Duration.ofSeconds(3).toMillis());
+        factory.setReadTimeout((int) Duration.ofSeconds(10).toMillis());
+        this.restClient = RestClient.builder()
+                .baseUrl(RESEND_BASE)
+                .requestFactory(factory)
+                .build();
         if (this.enabled) {
             log.info("EmailService activo vía Resend: from={}", from);
         } else {
