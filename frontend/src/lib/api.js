@@ -78,7 +78,15 @@ async function intentarRefresh() {
         headers: { 'Content-Type': 'application/json' },
       })
       if (!res.ok) {
+        // Audit P1 (2026-05-17): antes asignaba tokenEnMemoria=null
+        // directo, sin notifyTokenChange. STOMP (que escucha onTokenChange
+        // para deactivar al cliente) no se enteraba — el WS seguía vivo
+        // con el JWT viejo hasta el siguiente reload. Una sesión revocada
+        // por el backend seguía recibiendo notificaciones a la cola del
+        // usuario hasta cerrar la pestaña.
+        const prev = tokenEnMemoria
         tokenEnMemoria = null
+        if (prev !== null) notifyTokenChange()
         return null
       }
       const data = await res.json()
@@ -89,7 +97,9 @@ async function intentarRefresh() {
       }
       return data
     } catch {
+      const prev = tokenEnMemoria
       tokenEnMemoria = null
+      if (prev !== null) notifyTokenChange()
       return null
     } finally {
       refreshPromise = null
