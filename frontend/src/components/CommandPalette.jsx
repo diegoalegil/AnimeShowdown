@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -62,6 +62,7 @@ function CommandPalette({ initialOpen = false } = {}) {
   // del KeyboardEvent (que podía tragarse en redes lentas porque el
   // listener interno aún no estaba registrado cuando se re-emitía).
   const [open, setOpen] = useState(initialOpen)
+  const inputId = useId()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { muted, toggleMute } = useSound()
@@ -72,6 +73,15 @@ function CommandPalette({ initialOpen = false } = {}) {
 
   useEffect(() => {
     const onKey = (e) => {
+      // Audit (2026-05-17): ESC cierra el dialog cuando ya no usamos
+      // Command.Dialog (Radix lo manejaba antes). Tab no necesita trap
+      // explicito porque el palette tiene solo un input focusable +
+      // los items son keyboard-navigable via cmdk internamente.
+      if (open && e.key === 'Escape') {
+        e.preventDefault()
+        setOpen(false)
+        return
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setOpen((o) => {
@@ -86,7 +96,16 @@ function CommandPalette({ initialOpen = false } = {}) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [open])
+
+  // Body scroll lock mientras el dialog está abierto (sustituye al lock
+  // que hacía Radix Dialog antes).
+  useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [open])
 
   const go = (path) => {
     setOpen(false)
@@ -95,33 +114,44 @@ function CommandPalette({ initialOpen = false } = {}) {
     navigate(path)
   }
 
+  if (!open) return null
+
   return (
-    <Command.Dialog
-      open={open}
-      onOpenChange={setOpen}
-      label="Buscador rápido"
-      description="Busca personajes, torneos y secciones. Usa flechas para navegar y Enter para abrir."
+    /*
+      Audit a11y (2026-05-17, 3ª iter): reemplazado Command.Dialog (que
+      delega en Radix Dialog y emitía DialogContent requires a DialogTitle
+      + aria-describedby a id inexistente porque cmdk@1.1.1 no expone los
+      slots de Radix). Dialog manual: overlay + content con role/aria
+      correctos y title/description sr-only con ids reales. Command (sin
+      .Dialog) sólo aporta el filtrado fuzzy de cmdk.
+    */
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={`${inputId}-title`}
+      aria-describedby={`${inputId}-desc`}
       className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
     >
-      {/*
-        Audit a11y (2026-05-17): cmdk@1.x usa Radix Dialog por debajo y
-        emite warnings si falta DialogTitle/Description. Las renderizamos
-        sr-only — la pantalla ya muestra el icono Search y el placeholder
-        del input. Sin esto, consola escupia 'DialogContent requires a
-        DialogTitle' en cada apertura.
-      */}
-      <h2 className="sr-only">Buscador rápido</h2>
-      <p className="sr-only">
+      <h2 id={`${inputId}-title`} className="sr-only">
+        Buscador rápido
+      </h2>
+      <p id={`${inputId}-desc`} className="sr-only">
         Busca personajes, torneos y secciones. Usa flechas para navegar y Enter para abrir.
       </p>
-      <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+      <button
+        type="button"
+        aria-label="Cerrar buscador"
+        className="fixed inset-0 cursor-default bg-black/70 backdrop-blur-sm"
         onClick={() => setOpen(false)}
       />
-      <div className="relative z-10 w-full max-w-xl rounded-xl border border-border bg-surface shadow-2xl">
+      <Command
+        label="Buscador rápido"
+        className="relative z-10 w-full max-w-xl rounded-xl border border-border bg-surface shadow-2xl"
+      >
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <Search className="h-4 w-4 text-fg-muted" />
           <Command.Input
+            autoFocus
             placeholder="Busca personajes, torneos o navega..."
             className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
           />
@@ -251,8 +281,8 @@ function CommandPalette({ initialOpen = false } = {}) {
             <kbd className="font-mono">↵</kbd> ir
           </span>
         </div>
-      </div>
-    </Command.Dialog>
+      </Command>
+    </div>
   )
 }
 
