@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -63,4 +64,17 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
             """)
     List<Object[]> leaderboardDesde(@Param("desde") LocalDateTime desde,
             org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Audit P2 (2026-05-17): borra todas las predicciones cuyo personaje
+     * predicho es el dado. Usado por DataSeeder al retirar un personaje
+     * del seed — sin esto, V9__predicciones.sql:30 tiene FK restrictiva
+     * (fk_pred_personaje sin ON DELETE) y el arranque revienta con
+     * constraint violation. Una predicción huérfana no tiene sentido
+     * de negocio (apuntaba a un personaje que ya no existe), así que
+     * borrar es coherente con el cascade existente de votos.
+     */
+    @Modifying
+    @Query("DELETE FROM Prediccion p WHERE p.personajePredicho.id = :personajeId")
+    int deleteByPersonajePredichoId(@Param("personajeId") Long personajeId);
 }
