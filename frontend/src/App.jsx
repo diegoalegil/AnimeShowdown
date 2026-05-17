@@ -5,7 +5,7 @@ import { Toaster } from 'sonner'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
-import CommandPalette from './components/CommandPalette'
+import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
 import Splash from './components/Splash'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
@@ -84,7 +84,7 @@ function App() {
     <div className="flex min-h-screen flex-col">
       <Splash />
       <ScrollProgress />
-      <CommandPalette />
+      <CommandPaletteLazyMount />
       <Toaster
         position="top-right"
         theme="dark"

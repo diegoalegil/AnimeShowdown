@@ -227,7 +227,8 @@ function CommandPalette() {
         </Command.List>
         <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 text-[11px] text-fg-muted">
           <span>
-            Cmd+K · Cmd+J para abrir
+            <kbd className="font-mono">⌘K</kbd> /{' '}
+            <kbd className="font-mono">Ctrl K</kbd> para abrir
           </span>
           <span>
             <kbd className="font-mono">↑↓</kbd> navegar ·{' '}
