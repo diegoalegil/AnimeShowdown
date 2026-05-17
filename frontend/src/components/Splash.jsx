@@ -1,13 +1,40 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
+// Audit (2026-05-17): el splash añadía 1.1s fijos + 0.5s fade en CADA
+// navegación directa, dando sensación de lentitud incluso cuando la app
+// ya estaba lista. Cambios:
+//  - Solo se muestra en la primera entrada de la pestaña (sessionStorage):
+//    si el usuario navega entre rutas de la SPA sin recargar, el splash
+//    ya no vuelve a aparecer y los reloads frecuentes dentro de la misma
+//    sesión tampoco lo disparan.
+//  - Duración reducida 1100→600 ms (mantiene branding sin penalizar TTI).
+//  - prefers-reduced-motion: skip total — usuarios con animaciones
+//    reducidas no esperan splash, va directo a la app.
+const SHOWN_KEY = 'animeshowdown.splash.shown'
+const SHOW_MS = 600
+
 function Splash() {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(() => {
+    try {
+      if (typeof window === 'undefined') return false
+      if (sessionStorage.getItem(SHOWN_KEY) === 'true') return false
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        sessionStorage.setItem(SHOWN_KEY, 'true')
+        return false
+      }
+      return true
+    } catch {
+      return false
+    }
+  })
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(false), 1100)
+    if (!visible) return
+    try { sessionStorage.setItem(SHOWN_KEY, 'true') } catch { /* SSR/privacy */ }
+    const t = setTimeout(() => setVisible(false), SHOW_MS)
     return () => clearTimeout(t)
-  }, [])
+  }, [visible])
 
   return (
     <AnimatePresence>
@@ -16,7 +43,7 @@ function Splash() {
           className="fixed inset-0 z-[70] flex items-center justify-center bg-bg"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
         >
           <div
             aria-hidden="true"
@@ -26,9 +53,9 @@ function Splash() {
           </div>
           <motion.div
             className="relative z-10 flex flex-col items-center gap-5"
-            initial={{ scale: 0.85, opacity: 0 }}
+            initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           >
             <motion.img
               src="/logo.webp"
