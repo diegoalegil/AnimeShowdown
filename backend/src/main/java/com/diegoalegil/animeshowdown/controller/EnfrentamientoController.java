@@ -100,6 +100,22 @@ public class EnfrentamientoController {
                     .body("Solo se puede votar en enfrentamientos de torneos IN_PROGRESS");
         }
 
+        // Audit P1 (2026-05-17): antes solo se validaba el estado del torneo.
+        // Por id directo el cliente podía votar:
+        //  - Matches ya resueltos (ganador != null): votos inflados sobre un
+        //    resultado cerrado, afectando counts post-bracket y stats.
+        //  - Matches de R2+ todavía sin participantes propagados (personaje1
+        //    o 2 null): NullPointerException al hacer .getId() abajo → 500.
+        // Ambos rechazados explícitamente con 409 + mensaje claro.
+        if (enf.getGanador() != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Este enfrentamiento ya está cerrado");
+        }
+        if (enf.getPersonaje1() == null || enf.getPersonaje2() == null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Este enfrentamiento aún no tiene participantes asignados (ronda futura del bracket)");
+        }
+
         // Plan v2 §2.4: usuarios PENDIENTE de verificación de email no
         // pueden votar. Toggle vía app.email-verification.required-to-vote
         // (true en prod, false en tests para no obligar al fixture a
