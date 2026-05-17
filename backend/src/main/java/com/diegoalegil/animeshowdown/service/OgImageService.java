@@ -202,9 +202,22 @@ public class OgImageService {
     }
 
     private BufferedImage leerImagen(String url) {
+        // Audit P2 (2026-05-17): ImageIO.read(URL) abre HttpURLConnection
+        // por debajo SIN timeouts (conn ni read), así que una imagen
+        // remota lenta o muerta dejaba el hilo del request OG bloqueado
+        // indefinidamente. Esto es accesible por públicos sin auth (OG
+        // crawlers de Twitter/Discord), por lo que un atacante podría
+        // disparar OG de varios torneos con URLs externas lentas y
+        // agotar el pool de Tomcat. Abrimos la conexión manualmente con
+        // timeouts conservadores y leemos el stream con ImageIO.
         try {
             URL u = URI.create(url).toURL();
-            return ImageIO.read(u);
+            java.net.URLConnection conn = u.openConnection();
+            conn.setConnectTimeout(3_000);
+            conn.setReadTimeout(5_000);
+            try (java.io.InputStream is = conn.getInputStream()) {
+                return ImageIO.read(is);
+            }
         } catch (IOException e) {
             log.warn("OgImageService no pudo leer imagen url={}: {}", url, e.getMessage());
             return null;
