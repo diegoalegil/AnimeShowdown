@@ -26,6 +26,7 @@ import CardActividadReciente from '../components/CardActividadReciente'
 import CardDanKyu from '../components/CardDanKyu'
 import CardLogros from '../components/CardLogros'
 import CardMisTorneos from '../components/CardMisTorneos'
+import CardReferral from '../components/CardReferral'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 
 const containerVariants = {
@@ -135,6 +136,7 @@ function PerfilPage() {
             <>
               <CardDatos user={user} />
               <CardDanKyu />
+              <CardReferral />
               <CardActividadReciente />
             </>
           )}

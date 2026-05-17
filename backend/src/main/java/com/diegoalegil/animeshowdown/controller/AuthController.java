@@ -45,6 +45,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
+import com.diegoalegil.animeshowdown.service.ReferralService;
 import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.EmailVerificationService;
 import com.diegoalegil.animeshowdown.service.PasswordResetService;
@@ -77,6 +78,7 @@ public class AuthController {
     private final TotpEncryptor totpEncryptor;
     private final TwoFactorChallengeService twoFactorChallengeService;
     private final TotpBackupCodeService totpBackupCodeService;
+    private final ReferralService referralService;
     private final Set<String> adminEmails;
     private final boolean cookieSecure;
 
@@ -92,6 +94,7 @@ public class AuthController {
             TotpEncryptor totpEncryptor,
             TwoFactorChallengeService twoFactorChallengeService,
             TotpBackupCodeService totpBackupCodeService,
+            ReferralService referralService,
             @Value("${admin.emails:diegogildam@gmail.com}") String adminEmailsCsv,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.usuarioRepository = usuarioRepository;
@@ -105,6 +108,7 @@ public class AuthController {
         this.totpEncryptor = totpEncryptor;
         this.twoFactorChallengeService = twoFactorChallengeService;
         this.totpBackupCodeService = totpBackupCodeService;
+        this.referralService = referralService;
         this.cookieSecure = cookieSecure;
         this.adminEmails = Arrays.stream(adminEmailsCsv.split(","))
                 .map(String::trim)
@@ -177,6 +181,15 @@ public class AuthController {
             nuevoUsuario.setRol(Rol.ADMIN);
             log.info("Auto-promoción a ADMIN: email={}", emailNormalizado);
         }
+
+        // Plan v2 §11.8: si el caller envía referralCode, intenta vincular.
+        // Sin código o código inválido, el registro sigue normal sin referrer.
+        if (request.getReferralCode() != null && !request.getReferralCode().isBlank()) {
+            referralService.resolverReferrer(request.getReferralCode())
+                    .ifPresent(nuevoUsuario::setReferredBy);
+        }
+        // Auto-genera su propio código (idempotente, no falla si ya tenía).
+        referralService.asignarCodigoSiHaceFalta(nuevoUsuario);
 
         Usuario guardado = usuarioRepository.save(nuevoUsuario);
 

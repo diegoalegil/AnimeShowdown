@@ -56,6 +56,20 @@ export function usePerfilActividad({ limit = 20, enabled = true } = {}) {
 }
 
 /**
+ * Stats de referral del usuario (Plan v2 §11.8). Código + count
+ * verificados. staleTime largo (5min) porque cambia despacio.
+ */
+export function usePerfilReferral({ enabled = true } = {}) {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: ['perfil', 'referral'],
+    queryFn: endpoints.perfilReferral,
+    enabled: enabled && Boolean(user),
+    staleTime: 5 * 60_000,
+  })
+}
+
+/**
  * Perfil PÚBLICO de cualquier usuario por username (Plan v2 §4.5).
  *
  * <p>No requiere auth — el endpoint backend es permitAll. Si el caller

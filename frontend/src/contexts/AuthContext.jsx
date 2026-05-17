@@ -165,9 +165,14 @@ export function AuthProvider({ children }) {
     return aplicarSesion(res, identificador)
   }
 
-  const register = async ({ username, email, password }) => {
+  const register = async ({ username, email, password, referralCode }) => {
     try {
-      await endpoints.register({ username, email, password })
+      await endpoints.register({
+        username,
+        email,
+        password,
+        referralCode: referralCode || undefined,
+      })
       // Backend register no devuelve token; hacemos login automático con username + password
       await login(username, password)
     } catch (err) {

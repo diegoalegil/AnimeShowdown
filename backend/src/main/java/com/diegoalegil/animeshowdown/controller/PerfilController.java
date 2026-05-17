@@ -23,6 +23,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.PerfilService;
+import com.diegoalegil.animeshowdown.service.ReferralService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -46,13 +47,16 @@ public class PerfilController {
     private final PerfilService perfilService;
     private final UsuarioRepository usuarioRepository;
     private final AuditLogService auditLogService;
+    private final ReferralService referralService;
 
     public PerfilController(PerfilService perfilService,
             UsuarioRepository usuarioRepository,
-            AuditLogService auditLogService) {
+            AuditLogService auditLogService,
+            ReferralService referralService) {
         this.perfilService = perfilService;
         this.usuarioRepository = usuarioRepository;
         this.auditLogService = auditLogService;
+        this.referralService = referralService;
     }
 
     /**
@@ -109,6 +113,24 @@ public class PerfilController {
             @RequestParam(defaultValue = "20") int limit) {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(perfilService.actividadReciente(usuario, limit));
+    }
+
+    /**
+     * Stats de referral del usuario (Plan v2 §11.8). Devuelve código
+     * único compartible + count de referidos verificados + tier badge.
+     */
+    @GetMapping("/me/referral")
+    public ResponseEntity<?> miReferral(@AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        // Si por alguna razón (race condition de migración, edge case)
+        // el usuario no tiene código, lo generamos al vuelo y persistimos.
+        if (usuario.getReferralCode() == null || usuario.getReferralCode().isBlank()) {
+            referralService.asignarCodigoSiHaceFalta(usuario);
+            if (usuario.getReferralCode() != null) {
+                usuarioRepository.save(usuario);
+            }
+        }
+        return ResponseEntity.ok(referralService.stats(usuario));
     }
 
     /**

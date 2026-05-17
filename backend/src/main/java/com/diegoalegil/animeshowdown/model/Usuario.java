@@ -112,6 +112,27 @@ public class Usuario {
     @Column(name = "totp_habilitado_en")
     private LocalDateTime totpHabilitadoEn;
 
+    /**
+     * Código único de referral (Plan v2 §11.8). Se genera en el
+     * registro y nunca cambia. 8 chars alfanuméricos. Sirve para que
+     * otros usuarios se registren con {@code ?ref={code}} y queden
+     * vinculados como referidos del dueño del código.
+     *
+     * <p>Nullable solo durante el backfill de usuarios pre-V14; tras
+     * el primer arranque está siempre presente para usuarios nuevos.
+     */
+    @Column(name = "referral_code", length = 8, unique = true)
+    private String referralCode;
+
+    /**
+     * Usuario referrer que invitó a éste con su código (Plan v2 §11.8).
+     * Null para registros directos. FK con ON DELETE SET NULL para
+     * preservar el referido si el referrer borra su cuenta.
+     */
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @jakarta.persistence.JoinColumn(name = "referred_by_user_id")
+    private Usuario referredBy;
+
     public Usuario() {
     }
 
@@ -253,6 +274,22 @@ public class Usuario {
 
     public void setTotpHabilitadoEn(LocalDateTime totpHabilitadoEn) {
         this.totpHabilitadoEn = totpHabilitadoEn;
+    }
+
+    public String getReferralCode() {
+        return referralCode;
+    }
+
+    public void setReferralCode(String referralCode) {
+        this.referralCode = referralCode;
+    }
+
+    public Usuario getReferredBy() {
+        return referredBy;
+    }
+
+    public void setReferredBy(Usuario referredBy) {
+        this.referredBy = referredBy;
     }
 
 }

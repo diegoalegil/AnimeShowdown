@@ -289,6 +289,9 @@ export const endpoints = {
   // predicciones acertadas. Cada item con {tipo, fecha, payload}.
   perfilActividad: ({ limit = 20 } = {}) =>
     api.get(`/api/perfil/me/actividad?limit=${limit}`),
+  // Referral del usuario (Plan v2 §11.8): código único + count
+  // verificados + tier badge.
+  perfilReferral: () => api.get('/api/perfil/me/referral'),
   // GDPR right to erasure (Plan v2 §4.1). Requiere password de nuevo
   // en el body como reconfirmación; 400 si la password no coincide.
   // Tras éxito el backend limpia la cookie de refresh; el cliente debe

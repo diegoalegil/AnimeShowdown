@@ -26,6 +26,7 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.BracketService;
+import com.diegoalegil.animeshowdown.service.ReferralService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -66,6 +67,7 @@ public class DataSeeder implements CommandLineRunner {
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final TorneoRepository torneoRepository;
     private final BracketService bracketService;
+    private final ReferralService referralService;
     private final ObjectMapper objectMapper;
 
     // Self-injection vía proxy para que @Transactional aplique al llamar
@@ -83,12 +85,14 @@ public class DataSeeder implements CommandLineRunner {
             EnfrentamientoRepository enfrentamientoRepository,
             TorneoRepository torneoRepository,
             BracketService bracketService,
+            ReferralService referralService,
             ObjectMapper objectMapper) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.torneoRepository = torneoRepository;
         this.bracketService = bracketService;
+        this.referralService = referralService;
         this.objectMapper = objectMapper;
     }
 
@@ -122,6 +126,17 @@ public class DataSeeder implements CommandLineRunner {
         } catch (Exception e) {
             log.error("DataSeeder fallo al sincronizar {} (no crítico): {}",
                     SEED_TORNEOS_FILE, e.getMessage(), e);
+        }
+
+        // Plan v2 §11.8: backfill de códigos de referral. Users pre-V14
+        // arrancan sin código; el primer boot tras la migración les asigna
+        // uno único. Idempotente: re-ejecutar sobre BBDD ya backfilleada
+        // no toca nada.
+        try {
+            referralService.backfillCodigos();
+        } catch (Exception e) {
+            log.error("DataSeeder fallo al backfill referral codes (no crítico): {}",
+                    e.getMessage(), e);
         }
     }
 
