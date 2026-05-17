@@ -31,6 +31,7 @@ import JsonLd from '../components/JsonLd'
 import EloHistoryChart from '../components/EloHistoryChart'
 import PersonajeCard from '../components/PersonajeCard'
 import ReactionsBar from '../components/ReactionsBar'
+import ShareButtons from '../components/ShareButtons'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import NotFoundPage from './NotFoundPage'
 
@@ -398,6 +399,18 @@ function PersonajeDetailPage() {
 
         <div className="mt-10">
           <EloHistoryChart slug={slug} />
+        </div>
+
+        <div className="mt-8 rounded-xl border border-border bg-surface p-5">
+          <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            Comparte la ficha de {personaje.nombre}
+          </p>
+          <ShareButtons
+            url={typeof window !== 'undefined'
+              ? `${window.location.origin}/personajes/${slug}`
+              : `https://animeshowdown.dev/personajes/${slug}`}
+            texto={`${personaje.nombre} de ${personaje.anime} en AnimeShowdown`}
+          />
         </div>
 
         {relacionados.length > 0 && (
