@@ -6,13 +6,10 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
-  Check,
-  Copy,
   Grid3X3,
   Lightbulb,
   Minus,
   RotateCcw,
-  X,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'

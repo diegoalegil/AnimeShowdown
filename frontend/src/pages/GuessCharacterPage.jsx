@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import {
   ArrowLeft,
   Check,
-  Copy,
   Eye,
   Lightbulb,
   RotateCcw,
