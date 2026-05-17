@@ -1,5 +1,7 @@
-import { Trophy } from 'lucide-react'
+import { ArrowRight, Share2, Trophy } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useMisLogros } from '../hooks/useLogros'
+import { useAuth } from '../contexts/AuthContext'
 import BadgeCard from './BadgeCard'
 
 /**
@@ -22,8 +24,10 @@ function CardLogros({
   const { data: dataHook, isLoading: isLoadingHook } = useMisLogros({
     enabled,
   })
+  const { user } = useAuth()
   const logros = dataProp ?? dataHook
   const isLoading = dataProp === null && isLoadingHook
+  const mostrarFooter = dataProp === null && Boolean(user?.username)
 
   const total = logros?.length ?? 0
   const desbloqueados = logros?.filter((l) => l.desbloqueadoEn).length ?? 0
@@ -49,6 +53,29 @@ function CardLogros({
           {logros.map((l) => (
             <BadgeCard key={l.codigo} logro={l} />
           ))}
+        </div>
+      )}
+      {mostrarFooter && (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+          <p className="text-[11px] text-fg-muted">
+            Comparte tu colección con otros usuarios.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/logros"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
+            >
+              Ver catálogo completo
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+            <Link
+              to={`/u/${user.username}/logros`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-accent transition-colors hover:bg-accent/15"
+            >
+              <Share2 className="h-3 w-3" />
+              Mi perfil público
+            </Link>
+          </div>
         </div>
       )}
     </div>
