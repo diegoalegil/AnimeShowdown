@@ -1,6 +1,18 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Coffee, Heart, MessageCircle } from 'lucide-react'
+import {
+  ArrowRight,
+  Coffee,
+  Database,
+  Globe,
+  Heart,
+  Lightbulb,
+  MessageCircle,
+  Server,
+  Share2,
+  Sparkles,
+  Star,
+} from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -16,19 +28,19 @@ const containerVariants = {
 
 /**
  * Página /apoya (Plan v2 §12.1) — donaciones opcionales para que el
- * proyecto siga vivo. Ko-fi como plataforma principal (no comisiones
- * mensuales, no scam Patreon). Sin pressure: AnimeShowdown sigue siendo
- * gratis aunque no doneis nada.
+ * proyecto siga vivo. Ko-fi como plataforma principal + GitHub Sponsors
+ * + ayuda gratis (compartir, star, sugerir). Sin pressure: AnimeShowdown
+ * sigue siendo gratis aunque no doneis nada.
  *
- * <p>Sin Stripe Premium ($3/mes, Plan v2 §12.2) por ahora — añadir un
- * tier de pago requiere setup de Stripe + features exclusivas + manejo
- * de roles de usuario. Cuando haya volumen real se evalúa.
+ * Tono: cercano, transparente, agradecido — nunca de venta. La página
+ * explica en qué se usa cada aporte (hosting, base de datos, dominio) y
+ * da el mismo peso visual a la ayuda gratis que a la donación.
  */
 function ApoyaPage() {
   useSeo({
     title: 'Apoya el proyecto',
     description:
-      'AnimeShowdown es gratis y open source. Si quieres ayudar a que siga vivo: Ko-fi, GitHub Sponsors o simplemente compartir el sitio.',
+      'AnimeShowdown es un proyecto gratuito hecho en horas libres. Apoya con Ko-fi, GitHub Sponsors o ayuda gratis compartiendo y dando una estrella en GitHub.',
   })
 
   return (
@@ -40,7 +52,7 @@ function ApoyaPage() {
           { label: 'Apoya', path: '/apoya' },
         ])}
       />
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <motion.header
           className="mb-10 flex flex-col items-start gap-3"
           initial="hidden"
@@ -49,132 +61,192 @@ function ApoyaPage() {
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
             <Heart className="h-3 w-3" />
-            Apoya
+            Apoya · Proyecto gratuito
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            Mantén vivo el proyecto
+            Ayuda a mantener AnimeShowdown vivo
           </h1>
           <p className="max-w-2xl text-fg-muted">
-            AnimeShowdown es gratis y siempre lo será. Sin anuncios, sin
-            tracking de terceros, sin tier de pago bloqueando features. Lo
-            mantengo en mis horas libres mientras estudio DAM. Si te ayuda o
-            te entretiene, estas son las formas de apoyar.
+            AnimeShowdown es un proyecto gratuito hecho en mis horas libres
+            mientras estudio DAM. No tiene anuncios, no vende tus datos y no
+            bloquea funciones importantes detrás de pagos.
+          </p>
+          <p className="max-w-2xl text-fg-muted">
+            Si la web te entretiene, te ayuda o simplemente quieres apoyar el
+            desarrollo, estas son las formas de echar una mano.
           </p>
         </motion.header>
 
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Cards principales de aporte */}
+        <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <a
             href="https://ko-fi.com/diegoalegil"
             target="_blank"
             rel="noreferrer"
-            className="group flex flex-col gap-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-6 transition-all hover:-translate-y-0.5 hover:border-amber-500/60"
+            className="group flex flex-col gap-3 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-amber-500/70 hover:shadow-[0_0_50px_-15px_rgba(251,191,36,0.5)]"
           >
             <div className="flex items-center gap-2">
               <Coffee className="h-5 w-5 text-amber-300" />
-              <p className="text-[12px] font-semibold uppercase tracking-wider text-amber-300">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-300">
                 Ko-fi
               </p>
             </div>
             <h2 className="text-lg font-bold text-fg-strong">
               Invítame a un café
             </h2>
-            <p className="text-[13px] text-fg-muted">
-              Donación puntual desde 3€. Sin comisiones mensuales, paypal o
-              tarjeta. Va directo a cubrir Railway, Neon y Cloudflare cuando
-              salgan de free tier.
+            <p className="text-[13px] leading-relaxed text-fg-muted">
+              Donación puntual desde 3€. Cada café ayuda a cubrir hosting,
+              base de datos, dominio y servicios del proyecto para que
+              AnimeShowdown siga creciendo sin anuncios.
             </p>
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-amber-300">
+              Donar en Ko-fi
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
           </a>
 
           <a
             href="https://github.com/sponsors/diegoalegil"
             target="_blank"
             rel="noreferrer"
-            className="group flex flex-col gap-2 rounded-xl border border-border bg-surface p-6 transition-all hover:-translate-y-0.5 hover:border-accent/40"
+            className="group flex flex-col gap-3 rounded-xl border border-fuchsia-500/40 bg-gradient-to-br from-fuchsia-500/10 via-pink-500/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-fuchsia-500/70 hover:shadow-[0_0_50px_-15px_rgba(217,70,239,0.5)]"
           >
             <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-fg-muted" />
-              <p className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
+              <Heart className="h-5 w-5 text-fuchsia-300" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-fuchsia-300">
                 GitHub Sponsors
               </p>
             </div>
             <h2 className="text-lg font-bold text-fg-strong">
               Sponsor recurrente
             </h2>
-            <p className="text-[13px] text-fg-muted">
-              Para apoyar el repositorio open source mensualmente. Visible
-              públicamente en mi perfil de GitHub.
+            <p className="text-[13px] leading-relaxed text-fg-muted">
+              Apoyo mensual para quienes quieran ayudar de forma constante al
+              desarrollo. Aparece como sponsor en mi perfil de GitHub.
             </p>
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-fuchsia-300">
+              Ser sponsor
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
           </a>
         </div>
 
-        <div className="mb-6 rounded-xl border border-border bg-surface p-6">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
-            Apoyar sin gastar
+        {/* ¿En qué ayuda tu apoyo? — transparencia sobre costes reales */}
+        <div className="mb-10 rounded-2xl border border-border bg-surface p-6">
+          <h2 className="mb-2 text-lg font-bold text-fg-strong">
+            ¿En qué ayuda tu apoyo?
           </h2>
-          <ul className="flex flex-col gap-3 text-[14px] text-fg-muted">
-            <li className="flex gap-3">
-              <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-bg text-accent">
-                <MessageCircle className="h-3.5 w-3.5" />
-              </span>
-              <span>
-                <strong className="text-fg-strong">Comparte</strong> en
-                Twitter/Discord/Reddit cuando voto en un torneo que te
-                interesa. La etiqueta @AnimeShowdown llega.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-bg text-accent">
-                <Heart className="h-3.5 w-3.5" />
-              </span>
-              <span>
-                <strong className="text-fg-strong">Star en GitHub</strong>{' '}
-                ayuda a que más devs descubran el proyecto y contribuyan.{' '}
-                <a
-                  href="https://github.com/diegoalegil/AnimeShowdown"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-accent hover:underline"
-                >
-                  Repositorio →
-                </a>
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-bg text-accent">
-                <Heart className="h-3.5 w-3.5" />
-              </span>
-              <span>
-                <strong className="text-fg-strong">Sugiere mejoras</strong> o
-                personajes que faltan{' '}
-                <a
-                  href="https://github.com/diegoalegil/AnimeShowdown/issues"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-accent hover:underline"
-                >
-                  abriendo un issue
-                </a>
-                . Cada idea ayuda a priorizar el roadmap.
-              </span>
-            </li>
+          <p className="mb-5 text-[13px] text-fg-muted">
+            Cada aporte ayuda a cubrir los costes reales de mantener
+            AnimeShowdown funcionando y a mejorar la plataforma con nuevas
+            funciones.
+          </p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <CosteTile icon={Server} label="Hosting backend" />
+            <CosteTile icon={Database} label="Base de datos" />
+            <CosteTile icon={Globe} label="Dominio + CDN" />
+            <CosteTile icon={Sparkles} label="Nuevos modos" />
+            <CosteTile icon={Heart} label="Más personajes" />
+            <CosteTile icon={Lightbulb} label="Mejoras visuales" />
+          </div>
+        </div>
+
+        {/* Ayuda gratis — mismo peso visual que las donaciones */}
+        <div className="mb-10 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-6">
+          <h2 className="mb-2 text-lg font-bold text-fg-strong">
+            También puedes ayudar gratis
+          </h2>
+          <p className="mb-5 text-[13px] text-fg-muted">
+            No hace falta donar para apoyar AnimeShowdown. Compartir la web,
+            dejar una estrella o sugerir mejoras también ayuda muchísimo.
+          </p>
+          <ul className="flex flex-col gap-3">
+            <AyudaGratis
+              icon={Share2}
+              titulo="Comparte AnimeShowdown"
+              texto="Pasa la web por Twitter, Discord, Reddit o cualquier comunidad anime cuando votes, juegues o veas un ranking interesante."
+            />
+            <AyudaGratis
+              icon={Star}
+              titulo="Dale una estrella en GitHub"
+              texto="Ayuda a que más devs descubran el proyecto, revisen el código y puedan contribuir."
+              cta={{
+                label: 'Repositorio',
+                href: 'https://github.com/diegoalegil/AnimeShowdown',
+              }}
+            />
+            <AyudaGratis
+              icon={Lightbulb}
+              titulo="Sugiere mejoras"
+              texto="Propón personajes, animes, bugs o ideas nuevas abriendo un issue. Cada sugerencia ayuda a priorizar el roadmap."
+              cta={{
+                label: 'Abrir issue',
+                href: 'https://github.com/diegoalegil/AnimeShowdown/issues',
+              }}
+            />
+            <AyudaGratis
+              icon={MessageCircle}
+              titulo="Invita a otros a votar"
+              texto="Cuanta más gente vote, más interesante y justo se vuelve el ranking ELO."
+            />
           </ul>
         </div>
 
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
-          <p className="text-[13px] text-emerald-200">
-            <strong>Promesa:</strong> AnimeShowdown nunca tendrá anuncios,
-            popups ni "pay to skip ads". Los datos del catálogo siempre
-            quedarán bajo licencia MIT.
+        {/* Promesa */}
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
+          <p className="text-[13px] leading-relaxed text-emerald-200">
+            <strong>Promesa del proyecto:</strong> AnimeShowdown seguirá siendo
+            gratuito, sin anuncios invasivos, sin popups molestos y sin
+            funciones importantes bloqueadas detrás de pagos. Los datos del
+            catálogo seguirán abiertos bajo licencia MIT.
           </p>
           <Link
             to="/"
-            className="mt-3 inline-flex text-[12px] text-emerald-300/80 hover:text-emerald-200 hover:underline"
+            className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-emerald-300/90 transition-colors hover:text-emerald-200 hover:underline"
           >
             ← Volver al inicio
           </Link>
         </div>
       </div>
     </section>
+  )
+}
+
+function CosteTile({ icon: Icon, label }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-2.5">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent">
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span className="text-[12px] font-semibold text-fg-strong">{label}</span>
+    </div>
+  )
+}
+
+function AyudaGratis({ icon: Icon, titulo, texto, cta }) {
+  return (
+    <li className="flex gap-3 rounded-lg border border-border bg-surface/50 p-3 transition-colors hover:border-emerald-500/40">
+      <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold text-fg-strong">{titulo}</p>
+        <p className="mt-0.5 text-[12px] leading-relaxed text-fg-muted">
+          {texto}
+        </p>
+        {cta && (
+          <a
+            href={cta.href}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-300 transition-colors hover:text-emerald-200 hover:underline"
+          >
+            {cta.label}
+            <ArrowRight className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+    </li>
   )
 }
 
