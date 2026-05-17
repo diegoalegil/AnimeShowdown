@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -275,11 +275,21 @@ function SetupForm({ setupData, onBackupCodes }) {
   }
 
   const [secretCopiado, setSecretCopiado] = useState(false)
+  // Audit (2026-05-17): el setTimeout queda colgando si el modal se cierra
+  // antes de 2s — setState en componente desmontado. Ref + cleanup.
+  const copiadoTimerRef = useRef(null)
+  useEffect(() => () => {
+    if (copiadoTimerRef.current) clearTimeout(copiadoTimerRef.current)
+  }, [])
   const copiarSecret = async () => {
     try {
       await navigator.clipboard.writeText(setupData.secret)
       setSecretCopiado(true)
-      setTimeout(() => setSecretCopiado(false), 2000)
+      if (copiadoTimerRef.current) clearTimeout(copiadoTimerRef.current)
+      copiadoTimerRef.current = setTimeout(() => {
+        copiadoTimerRef.current = null
+        setSecretCopiado(false)
+      }, 2000)
     } catch {
       toast.error('No se pudo copiar al portapapeles')
     }
@@ -377,12 +387,21 @@ function SetupForm({ setupData, onBackupCodes }) {
 function ModalBackupCodes({ codes, onClose, descripcion }) {
   const [copiado, setCopiado] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
+  // Audit (2026-05-17): ref + cleanup para evitar setState en unmount.
+  const copiadoTimerRef = useRef(null)
+  useEffect(() => () => {
+    if (copiadoTimerRef.current) clearTimeout(copiadoTimerRef.current)
+  }, [])
 
   const copiarTodos = async () => {
     try {
       await navigator.clipboard.writeText(codes.join('\n'))
       setCopiado(true)
-      setTimeout(() => setCopiado(false), 2000)
+      if (copiadoTimerRef.current) clearTimeout(copiadoTimerRef.current)
+      copiadoTimerRef.current = setTimeout(() => {
+        copiadoTimerRef.current = null
+        setCopiado(false)
+      }, 2000)
     } catch {
       toast.error('No se pudo copiar al portapapeles')
     }
