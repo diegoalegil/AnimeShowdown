@@ -308,6 +308,55 @@
     "imagenUrl": "/img/Ao_no_Exorcist/yukio_okumura.webp"
   },
   {
+    "slug": "akira_hana",
+    "nombre": "Akira Hana",
+    "anime": "Aoashi",
+    "descripcion": "Personaje del anime Aoashi.",
+    "imagenUrl": "/img/Aoashi/akira_hana.webp"
+  },
+  {
+    "slug": "ashito_aoi",
+    "nombre": "Ashito Aoi",
+    "anime": "Aoashi",
+    "descripcion": "Personaje del anime Aoashi.",
+    "imagenUrl": "/img/Aoashi/ashito_aoi.webp"
+  },
+  {
+    "slug": "eisaku_otomo",
+    "nombre": "Eisaku Otomo",
+    "anime": "Aoashi",
+    "descripcion": "Personaje del anime Aoashi.",
+    "imagenUrl": "/img/Aoashi/eisaku_otomo.webp"
+  },
+  {
+    "slug": "keiji_togashi",
+    "nombre": "Keiji Togashi",
+    "anime": "Aoashi",
+    "descripcion": "Personaje del anime Aoashi.",
+    "imagenUrl": "/img/Aoashi/keiji_togashi.webp"
+  },
+  {
+    "slug": "shun_anri",
+    "nombre": "Shun Anri",
+    "anime": "Aoashi",
+    "descripcion": "Personaje del anime Aoashi.",
+    "imagenUrl": "/img/Aoashi/shun_anri.webp"
+  },
+  {
+    "slug": "soichiro_tachibana",
+    "nombre": "Soichiro Tachibana",
+    "anime": "Aoashi",
+    "descripcion": "Personaje del anime Aoashi.",
+    "imagenUrl": "/img/Aoashi/soichiro_tachibana.webp"
+  },
+  {
+    "slug": "tatsuya_fukuda",
+    "nombre": "Tatsuya Fukuda",
+    "anime": "Aoashi",
+    "descripcion": "Personaje del anime Aoashi.",
+    "imagenUrl": "/img/Aoashi/tatsuya_fukuda.webp"
+  },
+  {
     "slug": "annie_leonhart",
     "nombre": "Annie Leonhart",
     "anime": "Attack on Titan",

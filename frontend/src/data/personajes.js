@@ -43,6 +43,13 @@ export const personajes = [
   { slug: 'shiemi_moriyama', nombre: 'Shiemi Moriyama', anime: 'Ao no Exorcist', descripcion: 'Personaje del anime Ao no Exorcist.', imagen: '/img/Ao_no_Exorcist/shiemi_moriyama.webp' },
   { slug: 'shura_kirigakure', nombre: 'Shura Kirigakure', anime: 'Ao no Exorcist', descripcion: 'Personaje del anime Ao no Exorcist.', imagen: '/img/Ao_no_Exorcist/shura_kirigakure.webp' },
   { slug: 'yukio_okumura', nombre: 'Yukio Okumura', anime: 'Ao no Exorcist', descripcion: 'Personaje del anime Ao no Exorcist.', imagen: '/img/Ao_no_Exorcist/yukio_okumura.webp' },
+  { slug: 'akira_hana', nombre: 'Akira Hana', anime: 'Aoashi', descripcion: 'Personaje del anime Aoashi.', imagen: '/img/Aoashi/akira_hana.webp' },
+  { slug: 'ashito_aoi', nombre: 'Ashito Aoi', anime: 'Aoashi', descripcion: 'Personaje del anime Aoashi.', imagen: '/img/Aoashi/ashito_aoi.webp' },
+  { slug: 'eisaku_otomo', nombre: 'Eisaku Otomo', anime: 'Aoashi', descripcion: 'Personaje del anime Aoashi.', imagen: '/img/Aoashi/eisaku_otomo.webp' },
+  { slug: 'keiji_togashi', nombre: 'Keiji Togashi', anime: 'Aoashi', descripcion: 'Personaje del anime Aoashi.', imagen: '/img/Aoashi/keiji_togashi.webp' },
+  { slug: 'shun_anri', nombre: 'Shun Anri', anime: 'Aoashi', descripcion: 'Personaje del anime Aoashi.', imagen: '/img/Aoashi/shun_anri.webp' },
+  { slug: 'soichiro_tachibana', nombre: 'Soichiro Tachibana', anime: 'Aoashi', descripcion: 'Personaje del anime Aoashi.', imagen: '/img/Aoashi/soichiro_tachibana.webp' },
+  { slug: 'tatsuya_fukuda', nombre: 'Tatsuya Fukuda', anime: 'Aoashi', descripcion: 'Personaje del anime Aoashi.', imagen: '/img/Aoashi/tatsuya_fukuda.webp' },
   { slug: 'annie_leonhart', nombre: 'Annie Leonhart', anime: 'Attack on Titan', descripcion: 'Cadete y guerrera de Marley. Heredera del Titán Hembra, se cristalizó tras la primera invasión.', imagen: '/img/Attack_On_Titan/annie_leonhart.webp' },
   { slug: 'armin_arlert', nombre: 'Armin Arlert', anime: 'Attack on Titan', descripcion: 'Mejor amigo de Eren y estratega del Cuerpo de Investigación. Heredero del Titán Colosal tras Bertholdt.', imagen: '/img/Attack_On_Titan/armin_arlert.webp' },
   { slug: 'eren_yeager', nombre: 'Eren Yeager', anime: 'Attack on Titan', descripcion: 'Cadete del 104º que jura matar a todos los titanes. Heredero del Ataque, del Fundador y del Martillo de Guerra.', imagen: '/img/Attack_On_Titan/eren_yeager.webp' },
@@ -733,6 +740,7 @@ export function imagenPersonaje(slug) {
   // vez de undefined que dejaría el <img> en estado raro.
   return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`
 }
+
 
 
 export function getPersonajeBySlug(slug) {
