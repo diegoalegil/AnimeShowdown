@@ -161,4 +161,25 @@ public class BadgeService {
     public long contarDesbloqueados(Usuario usuario) {
         return usuarioLogroRepo.countByUsuario(usuario);
     }
+
+    /**
+     * Mapa {@code codigo → count} con cuántos usuarios han desbloqueado
+     * cada badge. Los badges con 0 desbloqueos se incluyen explícitamente
+     * (count=0) para que el frontend no tenga que defaultear.
+     *
+     * <p>Pensado para /logros — sirve para mostrar rareza real comunidad
+     * al lado de la rareza nominal del catálogo.
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Long> contarDesbloqueosPorBadge() {
+        java.util.Map<Long, Long> porId = new java.util.HashMap<>();
+        for (Object[] row : usuarioLogroRepo.contarDesbloqueosPorLogro()) {
+            porId.put((Long) row[0], (Long) row[1]);
+        }
+        java.util.Map<String, Long> resultado = new java.util.LinkedHashMap<>();
+        for (Logro l : logroRepo.findAll()) {
+            resultado.put(l.getCodigo(), porId.getOrDefault(l.getId(), 0L));
+        }
+        return resultado;
+    }
 }
