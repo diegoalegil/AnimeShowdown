@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { endpoints, setToken, refreshSession, ApiError } from '../lib/api'
 import { playMagic } from '../lib/sounds'
+import { queryClient } from '../lib/queryClient'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -126,6 +127,14 @@ export function AuthProvider({ children }) {
         email: identificadorFallback?.includes('@') ? identificadorFallback : null,
         rol: 'USER',
       }
+    // Audit P1 (2026-05-17): limpia el cache de queries ANTES de cambiar
+    // user. Si el navegador venía con sesión de otro usuario (kiosko,
+    // logout incompleto, dispositivo compartido), las queries privadas
+    // cacheadas — perfil, notificaciones, "mis torneos", logros — se
+    // mostrarían un instante hasta que stale-time las refresque. Limpiar
+    // garantiza que la próxima ronda de queries vuelve a hacer fetch
+    // con el nuevo JWT.
+    queryClient.clear()
     setUser(u)
     const muted = localStorage.getItem('animeshowdown.muted') === 'true'
     if (!muted) playMagic()
@@ -204,6 +213,12 @@ export function AuthProvider({ children }) {
       // ignore: revocación best-effort; el JWT en memoria se va a la papelera.
       console.debug('logout backend falló (ignored):', err?.message)
     }
+    // Audit P1 (2026-05-17): vacía el cache de React Query antes de
+    // limpiar el user. Sin esto, queries privadas (perfil, notificaciones,
+    // mis torneos, logros) quedan en cache; si el siguiente usuario hace
+    // login en el mismo navegador, las verá un instante hasta que
+    // stale-time refresque. Equivalente a invalidar TODO.
+    queryClient.clear()
     setUser(null)
     setToken(null)
     toast('Hasta pronto', { description: 'Sesión cerrada.' })
