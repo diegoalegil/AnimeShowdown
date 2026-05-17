@@ -6,7 +6,7 @@ import { normalizar } from '../lib/games'
 /**
  * Combobox de selección de personaje (Bloque 14).
  *
- * <p>Catálogo cliente-side de 642+ personajes. Filtro local sin debounce
+ * <p>Catálogo cliente-side de 730+ personajes. Filtro local sin debounce
  * — el cómputo es O(n) sobre un array memoizado y corre en <5ms en
  * mid-range. La dropdown muestra hasta 8 resultados ordenados por
  * coincidencia (startsWith antes que includes).
