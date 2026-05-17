@@ -19,7 +19,7 @@
 //     se desconecta y los hooks notarán el cambio vía isConnected().
 
 import { Client } from '@stomp/stompjs'
-import { getToken } from './api'
+import { getToken, onTokenChange } from './api'
 
 const API_BASE =
   import.meta.env.VITE_API_URL ?? 'https://api.animeshowdown.dev'
@@ -92,6 +92,22 @@ export function disconnect() {
   client = null
   notifyConnected(false)
 }
+
+// Audit P1 (2026-05-17): reconectar cuando el token cambia (logout, login
+// con otro usuario, refresh silencioso tras 401). Sin esto el WS singleton
+// seguía conectado con el JWT viejo y las notificaciones del usuario nuevo
+// iban a la cola del anterior. Se llama desde el listener registrado abajo.
+function reconnect() {
+  if (!client) return
+  client.deactivate()
+  client = null
+  // Si hay token nuevo, el próximo subscribe (o tryAttachPending) re-activa
+  // un cliente fresco con beforeConnect agarrando el JWT actual.
+  tryAttachPending()
+}
+
+// Subscriber global: cualquier cambio de token reinicia el cliente WS.
+onTokenChange(() => reconnect())
 
 export function isConnected() {
   return !!client && client.connected

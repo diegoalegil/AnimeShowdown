@@ -29,8 +29,24 @@ export function getToken() {
   return tokenEnMemoria
 }
 
+// Audit P1 (2026-05-17): listeners para "token cambió". Permite a stomp.js
+// reconectar con JWT nuevo tras refresh silencioso (auto-refresh tras 401).
+// Sin esto, el WS singleton seguía con el JWT viejo hasta logout/reload.
+const tokenChangeListeners = new Set()
+export function onTokenChange(cb) {
+  tokenChangeListeners.add(cb)
+  return () => tokenChangeListeners.delete(cb)
+}
+function notifyTokenChange() {
+  for (const cb of tokenChangeListeners) {
+    try { cb(tokenEnMemoria) } catch { /* listener errors aren't ours */ }
+  }
+}
+
 export function setToken(token) {
+  const prev = tokenEnMemoria
   tokenEnMemoria = token || null
+  if (prev !== tokenEnMemoria) notifyTokenChange()
 }
 
 export class ApiError extends Error {
@@ -67,7 +83,9 @@ async function intentarRefresh() {
       }
       const data = await res.json()
       if (data?.token) {
+        const prev = tokenEnMemoria
         tokenEnMemoria = data.token
+        if (prev !== tokenEnMemoria) notifyTokenChange()
       }
       return data
     } catch {
