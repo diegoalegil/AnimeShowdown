@@ -7,8 +7,18 @@ import jakarta.validation.constraints.Size;
 
 public class RegistroRequest {
 
+    // Audit P2 (2026-05-17): el username ahora se restringe a alfanumérico +
+    // _ y -. Antes solo se validaba tamaño, así que un cliente directo
+    // podía registrar usernames con comillas, slashes, espacios, emoji o
+    // Unicode raro. Eso reventaba downstream — p. ej. SeguidorService
+    // construye JSON manualmente con el username y un username con
+    // {"}{ rompía el payload del WS de notificaciones. El regex también
+    // simplifica URLs públicas /u/{username}.
     @NotBlank(message = "El username es obligatorio")
     @Size(min = 3, max = 30, message = "El username debe tener entre 3 y 30 caracteres")
+    @Pattern(
+            regexp = "^[A-Za-z0-9_-]+$",
+            message = "El username solo puede contener letras, números, guión y guión bajo")
     private String username;
 
     // Plan v2 §2.5: mínimo 8 chars, al menos una letra y un dígito. Antes
