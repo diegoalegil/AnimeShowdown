@@ -5,7 +5,9 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -38,12 +40,16 @@ import com.diegoalegil.animeshowdown.repository.EmailFailureRepository;
  *     loguea el contenido (fallback). NO se persiste en la queue —
  *     no es un fallo real, es "modo offline" intencional.
  *
- * Métodos públicos `enviarCodigoReset` y `enviarVerificacion` delegan
- * al método compartido `enviarConRetry` que es el que tiene la anotación.
- * Spring Retry funciona vía proxy, así que la auto-invocación dentro del
- * mismo bean NO dispara los retries — por eso el método retryable es
- * público y se llama directamente desde fuera (vía @Async desde los
- * métodos wrapper).
+ * Métodos públicos `enviarCodigoReset`, `enviarVerificacion` y
+ * `enviarConfirmacionNewsletter` delegan al método compartido
+ * `enviarConRetry` que es el que lleva @Retryable/@Recover. Spring Retry
+ * (y @Async) funcionan vía proxy: una llamada `this.enviarConRetry` NO
+ * pasa por el proxy y los retries no se activan. Audit P2 (2026-05-17):
+ * los wrappers llamaban `this.enviarConRetry`, así que un fallo de Resend
+ * propagaba la excepción al hilo de emailExecutor y perdíamos el email
+ * sin pasar por @Recover ni email_failed_queue. Fix: self-injection con
+ * @Lazy para invocar via `self.enviarConRetry`, lo que sí pasa por proxy
+ * y activa la cadena retry/recover.
  */
 @Service
 public class EmailService {
@@ -56,6 +62,17 @@ public class EmailService {
     private final String apiKey;
     private final String from;
     private final boolean enabled;
+
+    // Self-injection vía proxy para que @Retryable y @Recover funcionen
+    // cuando los métodos @Async (enviarCodigoReset, enviarVerificacion,
+    // enviarConfirmacionNewsletter) invoquen enviarConRetry. Sin esto, la
+    // llamada this.enviarConRetry no pasa por el proxy de Spring Retry —
+    // la excepción se propaga al hilo del executor y el @Recover nunca se
+    // dispara, así que un fallo de Resend perdía el email silenciosamente
+    // sin entrar en email_failed_queue para revisión manual.
+    @Autowired
+    @Lazy
+    private EmailService self;
 
     public EmailService(
             EmailFailureRepository emailFailureRepository,
@@ -82,7 +99,7 @@ public class EmailService {
                 "    " + codigo + "\n\n" +
                 "El código expira en 15 minutos. Si no fuiste tú, ignora este mensaje.\n\n" +
                 "— AnimeShowdown";
-        enviarConRetry(EmailTipo.RESET_PASSWORD, to, subject, text);
+        self.enviarConRetry(EmailTipo.RESET_PASSWORD, to, subject, text);
     }
 
     /** Verificación de email post-registro (Plan v2 §2.4). */
@@ -94,7 +111,7 @@ public class EmailService {
                 linkVerificacion + "\n\n" +
                 "El enlace caduca en 24 horas. Si no fuiste tú quien se registró, ignora este mensaje.\n\n" +
                 "— AnimeShowdown";
-        enviarConRetry(EmailTipo.VERIFICACION, to, subject, text);
+        self.enviarConRetry(EmailTipo.VERIFICACION, to, subject, text);
     }
 
     /** Confirmación double opt-in de suscripción a newsletter (Plan v2 §4.8). */
@@ -108,7 +125,7 @@ public class EmailService {
                 "El enlace caduca en 48 horas. Si no fuiste tú, ignora este mensaje —\n" +
                 "no quedará rastro de tu email en nuestra base.\n\n" +
                 "— AnimeShowdown";
-        enviarConRetry(EmailTipo.NEWSLETTER_CONFIRMACION, to, subject, text);
+        self.enviarConRetry(EmailTipo.NEWSLETTER_CONFIRMACION, to, subject, text);
     }
 
     /**
