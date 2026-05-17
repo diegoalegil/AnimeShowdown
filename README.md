@@ -475,7 +475,7 @@ erDiagram
 - [x] DevOps: Dependabot scan semanal + groupings (react-vendor, i18n, tanstack…)
 - [x] Backups Neon → Cloudflare R2 (cron diario, rotación daily/weekly/monthly)
 - [x] Páginas legales: Privacy + Terms + DMCA con Footer extendido
-- [x] CI verde con tests backend 92/92
+- [x] CI verde con tests backend 107/107
 
 ### Pendiente
 - [ ] Tests E2E con Playwright
