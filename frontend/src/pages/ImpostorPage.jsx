@@ -22,6 +22,7 @@ import {
 
 const RONDAS_POR_DIA = 3
 const STORAGE_KEY = 'animeshowdown.impostor.v1'
+const SEGUNDOS_POR_RONDA = 15
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -100,6 +101,15 @@ function ImpostorPage() {
     }))
   }
 
+  const handleTimeout = () => {
+    if (finalizadoDia || !rondaActual) return
+    toast.error(`Se acabó el tiempo. El impostor era de ${rondaActual.items.find((i) => i.esImpostor)?.anime ?? '?'}.`)
+    setEstado((s) => ({
+      rondaIdx: s.rondaIdx + 1,
+      resultados: [...s.resultados, false],
+    }))
+  }
+
   const jugarOtra = () => {
     setRondas(generarRondas(`extra-${Date.now()}-`))
     setEsExtra(true)
@@ -162,6 +172,7 @@ function ImpostorPage() {
             rondaIdx={estado.rondaIdx}
             totalRondas={rondas.length}
             onEleccion={handleEleccion}
+            onTimeout={handleTimeout}
           />
         )}
 
@@ -205,7 +216,27 @@ function ImpostorPage() {
   )
 }
 
-function Ronda({ ronda, rondaIdx, totalRondas, onEleccion }) {
+function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
+  // Timer por ronda (Plan v2 §14.5). El `key` del componente cambia al
+  // avanzar de ronda, así que useState reinicializa automáticamente —
+  // no necesitamos resetear manualmente al cambiar de ronda.
+  const [segundos, setSegundos] = useState(SEGUNDOS_POR_RONDA)
+
+  useEffect(() => {
+    if (segundos <= 0) {
+      onTimeout?.()
+      return
+    }
+    const id = setTimeout(() => setSegundos((s) => s - 1), 1000)
+    return () => clearTimeout(id)
+    // onTimeout no se incluye en deps a propósito: viene del padre y es
+    // estable durante la vida del componente (key cambia al avanzar de
+    // ronda). Incluirla causaría re-disparos espurios del timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segundos])
+
+  const porcentajeRestante = (segundos / SEGUNDOS_POR_RONDA) * 100
+  const critico = segundos <= 5
   return (
     <div className="relative mb-6 overflow-hidden rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-fuchsia-500/5 to-slate-900/30 p-6">
       {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
@@ -216,7 +247,7 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion }) {
         裏
       </span>
 
-      <div className="relative mb-5 flex flex-wrap items-center justify-between gap-2">
+      <div className="relative mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-7 items-center justify-center rounded-md bg-purple-500/20 px-2 font-mono text-[12px] font-extrabold text-purple-100">
             R{rondaIdx + 1}/{totalRondas}
@@ -226,11 +257,38 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion }) {
             <strong className="text-fg-strong">{ronda.anime}</strong>
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 text-[11px] text-purple-200/70">
-          <Timer className="h-3 w-3" />
-          Pulsa al traidor
+        <span
+          className={`inline-flex items-center gap-1 font-mono text-[12px] font-bold tabular-nums ${
+            critico ? 'text-rose-300' : 'text-purple-100'
+          }`}
+          aria-live="polite"
+        >
+          <Timer className={`h-3 w-3 ${critico ? 'animate-pulse' : ''}`} />
+          0:{String(Math.max(0, segundos)).padStart(2, '0')}
         </span>
       </div>
+
+      {/* Barra visual de tiempo. ARIA con valuemin/now/max para que SR
+          anuncien progreso. transition lineal en width para que se vea
+          cómo baja en tiempo real, sin "saltos" entre segundos. */}
+      <div
+        role="progressbar"
+        aria-valuenow={segundos}
+        aria-valuemin={0}
+        aria-valuemax={SEGUNDOS_POR_RONDA}
+        aria-label="Tiempo restante de la ronda"
+        className="relative mb-5 h-1.5 overflow-hidden rounded-full bg-bg/60"
+      >
+        <div
+          className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${
+            critico
+              ? 'bg-gradient-to-r from-rose-500 via-red-500 to-orange-400'
+              : 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-400'
+          }`}
+          style={{ width: `${porcentajeRestante}%` }}
+        />
+      </div>
+
       <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ronda.items.map((item) => (
           <Carta key={item.slug} item={item} onClick={() => onEleccion(item)} />
