@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Trophy, ArrowLeft } from 'lucide-react'
 import Avatar from '../components/Avatar'
 import BadgeCardCatalogo from '../components/BadgeCardCatalogo'
@@ -39,6 +40,7 @@ const FILTROS_RAREZA = [
 function UsuarioLogrosPage() {
   const { username } = useParams()
   const navigate = useNavigate()
+  const { i18n } = useTranslation()
   const { data: perfil, isLoading, error } = usePerfilPublico(username)
   const { data: stats } = useStatsLogros()
   const [filtroRareza, setFiltroRareza] = useState(null)
@@ -58,9 +60,10 @@ function UsuarioLogrosPage() {
         return a.desbloqueadoEn ? -1 : 1
       }
       if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      return a.nombre.localeCompare(b.nombre, 'es')
+      // Audit (2026-05-17): locale dinámico, antes 'es' hardcoded.
+      return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
     })
-  }, [logros, filtroRareza])
+  }, [logros, filtroRareza, i18n.language])
 
   useSeo({
     title: username ? `Logros de ${username}` : 'Logros',

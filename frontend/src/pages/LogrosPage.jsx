@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Trophy, Users, ArrowRight } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, logrosCollectionSchema } from '../lib/schema'
@@ -46,6 +47,7 @@ const FILTROS_RAREZA = [
  */
 function LogrosPage() {
   const { user } = useAuth()
+  const { i18n } = useTranslation()
   const { data: catalogo, isLoading: cargandoCatalogo } = useCatalogoLogros()
   const { data: mios } = useMisLogros({ enabled: Boolean(user) })
   const { data: stats } = useStatsLogros()
@@ -66,9 +68,12 @@ function LogrosPage() {
     // Ordena por rareza desc (legendarios primero) y luego alfabético.
     return [...filtrados].sort((a, b) => {
       if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      return a.nombre.localeCompare(b.nombre, 'es')
+      // Audit (2026-05-17): locale dinámico segun el idioma activo en
+      // i18n, no hardcoded 'es'. Si el user cambia a EN, ordena con
+      // collation inglés (los acentos y ñ rankean distinto).
+      return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
     })
-  }, [fuente, filtroRareza])
+  }, [fuente, filtroRareza, i18n.language])
 
   const total = catalogo?.length ?? 14
   const desbloqueados = mios?.filter((l) => l.desbloqueadoEn).length ?? 0
