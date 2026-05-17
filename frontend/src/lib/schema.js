@@ -152,6 +152,39 @@ export function animesListSchema(animesList = []) {
 }
 
 /**
+ * Schema {@code CollectionPage} con {@code ItemList} de logros (Plan v2 §4.10).
+ * Cada badge entra como {@code Achievement} (subtype de CreativeWork con
+ * mejor cobertura semántica que Thing) — el frontend lo pinta además con
+ * Microdata inline en cada card.
+ *
+ * @param logros array de {codigo, nombre, descripcion}
+ */
+export function logrosCollectionSchema(logros = []) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Catálogo de logros — AnimeShowdown',
+    url: abs('/logros'),
+    description: `Los ${logros.length} logros que puedes desbloquear en AnimeShowdown — votos, predicciones, torneos y rachas diarias.`,
+    isPartOf: { '@type': 'WebSite', name: 'AnimeShowdown', url: SITIO },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: logros.length,
+      itemListElement: logros.map((l, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'Achievement',
+          name: l.nombre,
+          description: l.descripcion,
+          identifier: l.codigo,
+        },
+      })),
+    },
+  }
+}
+
+/**
  * Schema {@code DefinedTermSet} (Plan v2 §13.8). Glosario de términos
  * otaku. Cada término individual va como {@code DefinedTerm} dentro del
  * mainEntity para captura long-tail SEO ("qué es tsundere", "qué es isekai").

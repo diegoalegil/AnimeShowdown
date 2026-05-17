@@ -1,0 +1,166 @@
+import * as Icons from 'lucide-react'
+import { Lock, Check } from 'lucide-react'
+import { kanjiDeBadge } from '../lib/badgeKanji'
+
+/**
+ * Card de badge para la página /logros (Plan v2 §4.10).
+ *
+ * Diferencias con {@link BadgeCard} (el del perfil):
+ *   - Más grande y con descripción visible por default (no en tooltip).
+ *   - Muestra stats comunidad: "X usuarios lo tienen (Y%)".
+ *   - Si el usuario está logueado y lo tiene desbloqueado, marca con check
+ *     y borde accent. Si no, sigue mostrando todo el contenido (no oculta
+ *     la pista de "cómo conseguirlo").
+ *   - Sin animaciones expandibles — toda la info ya está visible.
+ */
+
+const RAREZA_STYLE = {
+  1: {
+    nombre: 'Común',
+    borde: 'border-zinc-400/40',
+    glow: '',
+    icono: 'text-zinc-300',
+    chip: 'bg-zinc-400/10 text-zinc-300 border-zinc-400/40',
+    kanjiBg: 'bg-zinc-400/15',
+  },
+  2: {
+    nombre: 'Poco común',
+    borde: 'border-emerald-500/50',
+    glow: 'shadow-[0_0_20px_-6px_rgb(16,185,129,0.5)]',
+    icono: 'text-emerald-300',
+    chip: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/40',
+    kanjiBg: 'bg-emerald-500/15',
+  },
+  3: {
+    nombre: 'Raro',
+    borde: 'border-sky-500/50',
+    glow: 'shadow-[0_0_20px_-6px_rgb(56,189,248,0.55)]',
+    icono: 'text-sky-300',
+    chip: 'bg-sky-500/10 text-sky-300 border-sky-500/40',
+    kanjiBg: 'bg-sky-500/15',
+  },
+  4: {
+    nombre: 'Épico',
+    borde: 'border-purple-500/55',
+    glow: 'shadow-[0_0_24px_-6px_rgb(168,85,247,0.6)]',
+    icono: 'text-purple-300',
+    chip: 'bg-purple-500/10 text-purple-300 border-purple-500/40',
+    kanjiBg: 'bg-purple-500/15',
+  },
+  5: {
+    nombre: 'Legendario',
+    borde: 'border-amber-400/60',
+    glow: 'shadow-[0_0_32px_-6px_rgb(251,191,36,0.7)] animate-pulse-halo',
+    icono: 'text-amber-300',
+    chip: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+    kanjiBg: 'bg-amber-500/15',
+  },
+}
+
+function getIcon(nombre) {
+  return Icons[nombre] ?? Icons.Award
+}
+
+function formatFecha(iso) {
+  if (!iso) return null
+  return new Date(iso).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0 }) {
+  const desbloqueado = Boolean(logro.desbloqueadoEn)
+  const style = RAREZA_STYLE[logro.rareza] ?? RAREZA_STYLE[1]
+  const Icon = getIcon(logro.icono)
+  const kanji = kanjiDeBadge(logro.codigo)
+  const porcentaje =
+    totalUsuarios > 0 ? Math.round((count / totalUsuarios) * 100) : null
+
+  return (
+    <article
+      className={`relative flex h-full flex-col gap-4 rounded-xl border ${
+        desbloqueado ? style.borde : 'border-border'
+      } ${desbloqueado ? `bg-surface ${style.glow}` : 'bg-surface/60'} p-5 transition-all`}
+      itemScope
+      itemType="https://schema.org/Achievement"
+    >
+      {desbloqueado && (
+        <span
+          aria-label="Desbloqueado"
+          className="absolute -right-2 -top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent bg-bg"
+        >
+          <Check className="h-4 w-4 text-accent" />
+        </span>
+      )}
+
+      <header className="flex items-start gap-4">
+        <span
+          className={`relative inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-xl ${
+            desbloqueado ? 'bg-bg' : 'bg-bg/40'
+          }`}
+        >
+          {/* eslint-disable-next-line react-hooks/static-components -- icon
+              es lookup dinámico por logro.icono; el componente sí es estable
+              entre renders del mismo badge (mismo logro = mismo icono). */}
+          <Icon
+            className={`h-8 w-8 ${desbloqueado ? style.icono : 'text-fg-muted/40'}`}
+          />
+          {!desbloqueado && (
+            <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/55">
+              <Lock className="h-5 w-5 text-fg-muted" />
+            </span>
+          )}
+          {kanji && (
+            <span
+              aria-hidden="true"
+              className={`font-jp absolute -right-1.5 -top-1.5 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md border border-border ${style.kanjiBg} px-1 text-[12px] leading-none ${style.icono}`}
+            >
+              {kanji}
+            </span>
+          )}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <span
+            className={`inline-flex w-fit rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
+          >
+            {style.nombre}
+          </span>
+          <h3
+            itemProp="name"
+            className={`text-base font-bold leading-tight ${
+              desbloqueado ? 'text-fg-strong' : 'text-fg/80'
+            }`}
+          >
+            {logro.nombre}
+          </h3>
+        </div>
+      </header>
+
+      <p
+        itemProp="description"
+        className="text-[13px] leading-relaxed text-fg-muted"
+      >
+        {logro.descripcion}
+      </p>
+
+      <footer className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-fg-muted">
+        <span className="inline-flex items-center gap-1.5 tabular-nums">
+          <Icons.Users className="h-3 w-3" />
+          <strong className="font-semibold text-fg-strong">{count}</strong>
+          {totalUsuarios > 0 && (
+            <span>· {porcentaje}% de la comunidad</span>
+          )}
+        </span>
+        {desbloqueado && (
+          <span className="text-fg-muted/80">
+            {formatFecha(logro.desbloqueadoEn)}
+          </span>
+        )}
+      </footer>
+    </article>
+  )
+}
+
+export default BadgeCardCatalogo

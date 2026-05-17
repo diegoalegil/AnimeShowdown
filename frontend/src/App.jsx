@@ -45,6 +45,7 @@ const AnidelPage = lazy(() => import('./pages/AnidelPage'))
 const ImpostorPage = lazy(() => import('./pages/ImpostorPage'))
 const OmikujiPage = lazy(() => import('./pages/OmikujiPage'))
 const GlossaryPage = lazy(() => import('./pages/GlossaryPage'))
+const LogrosPage = lazy(() => import('./pages/LogrosPage'))
 const ApoyaPage = lazy(() => import('./pages/ApoyaPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
@@ -173,6 +174,7 @@ function App() {
                 />
                 <Route path="/omikuji" element={<OmikujiPage />} />
                 <Route path="/glossary" element={<GlossaryPage />} />
+                <Route path="/logros" element={<LogrosPage />} />
                 <Route path="/apoya" element={<ApoyaPage />} />
                 <Route path="/privacidad" element={<PrivacyPage />} />
                 <Route path="/terminos" element={<TermsPage />} />
