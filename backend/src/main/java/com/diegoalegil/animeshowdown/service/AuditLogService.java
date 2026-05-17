@@ -53,10 +53,13 @@ public class AuditLogService {
 
     private final AuditLogRepository repository;
     private final ObjectMapper objectMapper;
+    private final ClientIpExtractor clientIpExtractor;
 
-    public AuditLogService(AuditLogRepository repository, ObjectMapper objectMapper) {
+    public AuditLogService(AuditLogRepository repository, ObjectMapper objectMapper,
+            ClientIpExtractor clientIpExtractor) {
         this.repository = repository;
         this.objectMapper = objectMapper;
+        this.clientIpExtractor = clientIpExtractor;
     }
 
     /**
@@ -74,7 +77,7 @@ public class AuditLogService {
             HttpServletRequest request) {
         try {
             String detallesJson = serializar(detalles);
-            String ip = request != null ? ClientIpExtractor.extract(request) : null;
+            String ip = request != null ? clientIpExtractor.extract(request) : null;
             String userAgent = request != null ? extraerUserAgent(request) : null;
             AuditLog entry = new AuditLog(evento, usuario, detallesJson, ip, userAgent);
             repository.save(entry);

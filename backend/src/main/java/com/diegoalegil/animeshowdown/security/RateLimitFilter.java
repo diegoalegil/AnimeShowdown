@@ -68,9 +68,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final boolean enabled;
     private final Cache<String, Bucket> buckets;
+    private final ClientIpExtractor clientIpExtractor;
 
-    public RateLimitFilter(@Value("${app.ratelimit.enabled:true}") boolean enabled) {
+    public RateLimitFilter(@Value("${app.ratelimit.enabled:true}") boolean enabled,
+            ClientIpExtractor clientIpExtractor) {
         this.enabled = enabled;
+        this.clientIpExtractor = clientIpExtractor;
         this.buckets = Caffeine.newBuilder()
                 .maximumSize(10_000)
                 .expireAfterAccess(Duration.ofHours(2))
@@ -85,7 +88,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             chain.doFilter(req, res);
             return;
         }
-        String ip = ClientIpExtractor.extract(req);
+        String ip = clientIpExtractor.extract(req);
         Bucket bucket = buckets.get(ip, k -> nuevoBucket());
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
         if (probe.isConsumed()) {
