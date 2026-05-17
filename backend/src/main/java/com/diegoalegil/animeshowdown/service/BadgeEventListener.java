@@ -18,11 +18,13 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
  *
  * <p>Por qué {@code @TransactionalEventListener(AFTER_COMMIT)} en lugar de
  * {@code @EventListener}: el evento {@link VotoRegistradoEvent} se publica
- * desde dentro de la transacción del voto. Si esperáramos al commit y al
- * evento le da por fallar (BBDD lenta, etc.), perderíamos el badge. Pero
- * si no esperáramos al commit y la transacción del voto rolleara, el
- * listener desbloquearía el badge sin que el voto existiera en BBDD —
- * inconsistencia. AFTER_COMMIT es el balance correcto.
+ * desde dentro de la transacción del voto ({@code EnfrentamientoController.votar}
+ * está anotado {@code @Transactional} desde el audit P2 2026-05-17 — antes
+ * NO lo estaba y el listener descartaba los eventos al no haber tx activa,
+ * resultado: badges no se desbloqueaban). Si no esperáramos al commit y la
+ * transacción del voto rolleara, el listener desbloquearía el badge sin
+ * que el voto existiera en BBDD — inconsistencia. AFTER_COMMIT es el
+ * balance correcto.
  *
  * <p>{@code @Async} porque el badge no debe bloquear la respuesta HTTP del
  * voto. El listener corre en el pool de Spring tras devolver el 200 al

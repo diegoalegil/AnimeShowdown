@@ -30,6 +30,7 @@ import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.validation.Valid;
 
@@ -73,7 +74,16 @@ public class EnfrentamientoController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Audit P2 (2026-05-17): @Transactional es OBLIGATORIO aquí, no estético.
+    // Sin él, votoRepository.save() corre en auto-commit (su propia tx), y
+    // cuando llega `eventPublisher.publishEvent(new VotoRegistradoEvent(...))`
+    // ya no hay tx activa. BadgeEventListener escucha en AFTER_COMMIT, que sin
+    // tx por defecto descarta el evento silenciosamente → badges como
+    // primer_voto / cien_votos / mil_votos nunca se desbloquean por el flujo
+    // real, solo por desbloqueo manual desde BadgeService. spring.jpa.open-in-view
+    // está off, así que el filtro web tampoco abre una tx implícita.
     @PostMapping("/{id}/votar")
+    @Transactional
     public ResponseEntity<?> votar(@PathVariable Long id,
             @Valid @RequestBody VotoEnfrentamientoRequest request,
             @AuthenticationPrincipal Usuario usuario) {
