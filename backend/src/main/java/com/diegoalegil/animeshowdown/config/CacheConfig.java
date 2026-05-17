@@ -44,7 +44,12 @@ public class CacheConfig {
                 // ahorra ~95% de hits a Postgres en horas pico sin que
                 // el usuario note staleness.
                 buildCache("personajes-listado", Duration.ofMinutes(5), 16),
-                buildCache("personajes-individual", Duration.ofMinutes(5), 2000)));
+                buildCache("personajes-individual", Duration.ofMinutes(5), 2000),
+                // Plan v2 §4.12: similares cross-anime por slug. Estable
+                // entre votos (la similitud por votos casi no se mueve a
+                // escala minuto). Key compuesta slug+limit, max ~3000
+                // (730 slugs × 4 valores típicos de limit).
+                buildCache("personajes-similares", Duration.ofMinutes(5), 3000)));
         return manager;
     }
 
