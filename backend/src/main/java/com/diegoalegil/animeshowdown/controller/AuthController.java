@@ -404,13 +404,27 @@ public class AuthController {
      * Revoca el refresh token de la cookie actual y la limpia. El access
      * JWT en memoria del cliente sigue siendo válido hasta que expire (15
      * min máx), pero sin refresh ya no se puede renovar.
+     *
+     * <p>Audit P1 (2026-05-18, 5ª iter): si el cliente envía JWT válido
+     * (usuario != null), revocamos TODAS las sesiones activas del usuario
+     * — no solo el token de la cookie presentada. Cubre el caso "tab A
+     * pulsa logout mientras tab B tenía un refresh en vuelo": antes el
+     * refresh de B podía completar tras el logout y emitir un token
+     * nuevo que resucitaba la sesión. Ahora, al revocar todas las
+     * familias, cualquier refresh posterior (incluso en vuelo del lado
+     * server) cae en reuse-detection o sin token activo válido.
+     * Si NO hay JWT (sesión ya muerta o nunca existió), solo revoca la
+     * cookie presentada para preservar otras sesiones legítimas.
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
             @CookieValue(name = REFRESH_COOKIE, required = false) String refreshCookie,
             @AuthenticationPrincipal Usuario usuario,
             HttpServletRequest httpRequest) {
-        if (refreshCookie != null && !refreshCookie.isBlank()) {
+        if (usuario != null) {
+            int n = refreshTokenService.revocarTodos(usuario);
+            log.info("Logout: revocadas {} sesiones del usuario={}", n, usuario.getUsername());
+        } else if (refreshCookie != null && !refreshCookie.isBlank()) {
             refreshTokenService.revocar(refreshCookie);
         }
         // Audit del logout — usuario puede ser null si el JWT ya expiró pero

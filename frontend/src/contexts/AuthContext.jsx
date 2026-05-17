@@ -1,6 +1,13 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { endpoints, setToken, refreshSession, setLoggingOut, ApiError } from '../lib/api'
+import {
+  endpoints,
+  setToken,
+  refreshSession,
+  setLoggingOut,
+  bumpSessionEpoch,
+  ApiError,
+} from '../lib/api'
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
 import { disconnect as disconnectStomp } from '../lib/stomp'
@@ -124,11 +131,11 @@ export function AuthProvider({ children }) {
   // completeLogin2fa() tras superar el segundo paso.
   const aplicarSesion = (res, identificadorFallback) => {
     if (res?.token) {
-      // setToken dispara notifyTokenChange → stomp.reconnect (que internamente
-      // hace tryAttachPending tras await deactivate). Audit P2 (2026-05-17,
-      // 4ª iter): antes llamábamos tryAttachPending() aquí explícito, lo que
-      // creaba un cliente nuevo MIENTRAS reconnect aún esperaba al deactivate
-      // del viejo → dos sockets WS. Confiamos solo en el listener.
+      // Audit P1 (2026-05-18, 5ª iter): bump epoch ANTES de setToken para
+      // invalidar cualquier refreshPromise que pudiera estar en vuelo.
+      // Si un refresh viejo resuelve tras este punto, su epoch capturado
+      // no coincide y descarta el resultado sin tocar tokenEnMemoria.
+      bumpSessionEpoch()
       setToken(res.token)
     }
     const u =
@@ -222,6 +229,11 @@ export function AuthProvider({ children }) {
     // 401-final. Liberamos el flag al final (try/finally) por si el
     // logout falla y el user vuelve a usar la app sin reload.
     setLoggingOut(true)
+    // Bump epoch para invalidar cualquier refreshPromise en vuelo que
+    // pudiera resolver tras este punto. Sin esto, un refresh iniciado
+    // antes del logout podía completar después y aplicar setToken
+    // (resucitando la sesión cerrada).
+    bumpSessionEpoch()
     try {
       // Notificamos al backend para revocar el refresh y limpiar la cookie.
       // Si falla la red lo loggeamos pero seguimos limpiando local — el
