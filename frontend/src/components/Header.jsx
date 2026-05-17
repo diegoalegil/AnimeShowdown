@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogOut, Palette, Shield, Volume2, VolumeX } from 'lucide-react'
+import { LogOut, Moon, Palette, Shield, Sun, Volume2, VolumeX } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
@@ -103,6 +103,7 @@ function Header() {
         >
           <Palette className="h-4 w-4" />
         </button>
+        <LightModeToggle />
         <button
           type="button"
           onClick={() => {
@@ -171,6 +172,47 @@ function UserBadge({ user, onLogout, t }) {
         {t('nav.salir')}
       </button>
     </div>
+  )
+}
+
+/**
+ * Toggle light/dark (Plan v2 §11.6). Lee/persiste en localStorage y
+ * aplica/quita la clase {@code theme-light} en {@code html}. El default
+ * es dark (sin clase) — la app está pensada dark-first y el light es
+ * opt-in para quien lo prefiera.
+ */
+function LightModeToggle() {
+  const [light, setLight] = useState(() => {
+    if (typeof document === 'undefined') return false
+    try {
+      return localStorage.getItem('animeshowdown.theme') === 'light'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const html = document.documentElement
+    if (light) {
+      html.classList.add('theme-light')
+      try { localStorage.setItem('animeshowdown.theme', 'light') } catch { /* ignore */ }
+    } else {
+      html.classList.remove('theme-light')
+      try { localStorage.setItem('animeshowdown.theme', 'dark') } catch { /* ignore */ }
+    }
+  }, [light])
+
+  return (
+    <button
+      type="button"
+      onClick={() => setLight((l) => !l)}
+      aria-label={light ? 'Activar modo oscuro' : 'Activar modo claro'}
+      title={light ? 'Modo oscuro' : 'Modo claro'}
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-accent"
+    >
+      {light ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+    </button>
   )
 }
 
