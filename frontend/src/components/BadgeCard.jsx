@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import * as Icons from 'lucide-react'
 import { Lock } from 'lucide-react'
+import { iconoDeBadge } from '../lib/badgeIcons'
 import { kanjiDeBadge } from '../lib/badgeKanji'
 
 /**
@@ -57,7 +57,7 @@ const RAREZA_STYLE = {
 }
 
 function getIcon(nombre) {
-  return Icons[nombre] ?? Icons.Award
+  return iconoDeBadge(nombre)
 }
 
 function formatFecha(iso) {
