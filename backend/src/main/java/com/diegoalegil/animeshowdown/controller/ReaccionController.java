@@ -60,8 +60,17 @@ public class ReaccionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Necesitas iniciar sesión para reaccionar."));
         }
-        reaccionService.aplicar(usuario, request.getTargetType(),
-                request.getTargetId(), request.getTipo());
+        try {
+            reaccionService.aplicar(usuario, request.getTargetType(),
+                    request.getTargetId(), request.getTipo());
+        } catch (IllegalArgumentException e) {
+            // Audit P2 (2026-05-17): el service valida que el target exista
+            // y lanza IllegalArgumentException si no. Traducimos a 400 con
+            // el mensaje original — útil para clientes mal hechos sin
+            // delatar internals de la BBDD.
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
         return ResponseEntity.ok(reaccionService.resumen(
                 request.getTargetType(), request.getTargetId(), usuario));
     }
