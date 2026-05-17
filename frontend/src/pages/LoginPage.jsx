@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -29,6 +29,16 @@ function LoginPage() {
   })
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()
+  // Audit P2 (2026-05-17): rutas protegidas (CrearTorneoPage, etc.)
+  // redirigían a /login?next=... pero LoginPage navegaba siempre a /
+  // tras éxito. Honramos el next si está presente Y es relativo —
+  // negar absolutas/protocol-relative evita open-redirect.
+  const [params] = useSearchParams()
+  const rawNext = params.get('next')
+  const nextSeguro =
+    rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
+      ? rawNext
+      : '/'
 
   // Si está seteado: el paso 1 fue OK pero el backend pide TOTP.
   // {challengeToken, expiraEnSegundos, identificador}.
@@ -53,7 +63,7 @@ function LoginPage() {
             >
               <Step2Totp
                 challenge={pendingChallenge}
-                onSuccess={() => navigate('/')}
+                onSuccess={() => navigate(nextSeguro)}
                 onCancel={() => setPendingChallenge(null)}
                 completeLogin2fa={completeLogin2fa}
               />
@@ -69,7 +79,7 @@ function LoginPage() {
               <Step1Credenciales
                 login={login}
                 onChallenge={setPendingChallenge}
-                onSuccess={() => navigate('/')}
+                onSuccess={() => navigate(nextSeguro)}
               />
             </motion.div>
           )}
