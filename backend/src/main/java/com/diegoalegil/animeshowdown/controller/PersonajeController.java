@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diegoalegil.animeshowdown.dto.EloHistoryPoint;
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
@@ -26,6 +27,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.service.EloHistoryService;
 import com.diegoalegil.animeshowdown.service.RecomendacionService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -38,13 +40,16 @@ public class PersonajeController {
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
     private final RecomendacionService recomendacionService;
+    private final EloHistoryService eloHistoryService;
 
     public PersonajeController(PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
-            RecomendacionService recomendacionService) {
+            RecomendacionService recomendacionService,
+            EloHistoryService eloHistoryService) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.recomendacionService = recomendacionService;
+        this.eloHistoryService = eloHistoryService;
     }
 
     /**
@@ -154,6 +159,16 @@ public class PersonajeController {
     public List<PersonajeSimilarDto> similares(@PathVariable String slug,
             @RequestParam(defaultValue = "8") int limit) {
         return recomendacionService.similares(slug, limit);
+    }
+
+    /**
+     * Time machine del ELO (Plan v2 §11.1) — serie temporal de votos
+     * acumulados día a día. dias clampa entre 1 y 90; default 30.
+     */
+    @GetMapping("/{slug}/elo-history")
+    public List<EloHistoryPoint> eloHistory(@PathVariable String slug,
+            @RequestParam(defaultValue = "30") int dias) {
+        return eloHistoryService.historial(slug, dias);
     }
 
     @PostMapping("/{id}/votar")

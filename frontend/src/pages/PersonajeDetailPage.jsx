@@ -28,6 +28,7 @@ import { citaPersonaje } from '../lib/animechan'
 import { endpoints } from '../lib/api'
 import { personajeSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import EloHistoryChart from '../components/EloHistoryChart'
 import PersonajeCard from '../components/PersonajeCard'
 import ReactionsBar from '../components/ReactionsBar'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
@@ -394,6 +395,10 @@ function PersonajeDetailPage() {
             </motion.div>
           </motion.div>
         </motion.article>
+
+        <div className="mt-10">
+          <EloHistoryChart slug={slug} />
+        </div>
 
         {relacionados.length > 0 && (
           <div className="mt-16">

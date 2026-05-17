@@ -52,7 +52,11 @@ public class CacheConfig {
                 buildCache("personajes-similares", Duration.ofMinutes(5), 3000),
                 // Plan v2 §4.x: ranking actual con deltas vs hace N días.
                 // Pesado (dos queries de COUNT con GROUP BY); cache 1min.
-                buildCache("ranking-movimientos", Duration.ofMinutes(1), 64)));
+                buildCache("ranking-movimientos", Duration.ofMinutes(1), 64),
+                // Plan v2 §11.1: time machine ELO por personaje. La curva
+                // del pasado no cambia (solo extiende al cierre del día);
+                // cache largo 1h.
+                buildCache("personaje-elo-history", Duration.ofHours(1), 1500)));
         return manager;
     }
 
