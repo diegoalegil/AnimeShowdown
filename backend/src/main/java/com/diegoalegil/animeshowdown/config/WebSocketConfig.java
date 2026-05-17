@@ -60,11 +60,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtUtil jwtUtil;
     private final UsuarioRepository usuarioRepository;
     private final List<String> allowedOrigins;
+    private final List<String> allowedOriginPatterns;
 
     public WebSocketConfig(
             JwtUtil jwtUtil,
             UsuarioRepository usuarioRepository,
-            @Value("${cors.allowed-origins:}") String allowedOriginsCsv) {
+            @Value("${cors.allowed-origins:}") String allowedOriginsCsv,
+            @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv) {
         this.jwtUtil = jwtUtil;
         this.usuarioRepository = usuarioRepository;
         // Reutilizamos la misma lista de orígenes que SecurityConfig para CORS:
@@ -73,6 +75,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         this.allowedOrigins = allowedOriginsCsv == null || allowedOriginsCsv.isBlank()
                 ? List.of()
                 : List.of(allowedOriginsCsv.split("\\s*,\\s*"));
+        // Audit P3 (2026-05-17): SecurityConfig acepta patrones con wildcard
+        // (cors.allowed-origin-patterns, ej. https://*.pages.dev) pero
+        // WebSocketConfig solo leía allowed-origins literales. Previews y
+        // dominios dinámicos tenían REST OK pero handshake STOMP rechazado
+        // por el browser. Soporte ambas listas, aplicadas con su API
+        // correspondiente en registerStompEndpoints.
+        this.allowedOriginPatterns = allowedOriginPatternsCsv == null || allowedOriginPatternsCsv.isBlank()
+                ? List.of()
+                : List.of(allowedOriginPatternsCsv.split("\\s*,\\s*"));
     }
 
     @Override
@@ -94,6 +105,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         var endpoint = registry.addEndpoint("/ws");
         if (!allowedOrigins.isEmpty()) {
             endpoint.setAllowedOrigins(allowedOrigins.toArray(String[]::new));
+        }
+        if (!allowedOriginPatterns.isEmpty()) {
+            endpoint.setAllowedOriginPatterns(allowedOriginPatterns.toArray(String[]::new));
         }
         // Sin .withSockJS() — confiamos en WebSocket nativo. Si surge algún
         // entorno bloqueado, el frontend usa el fallback al polling REST

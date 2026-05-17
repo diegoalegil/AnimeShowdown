@@ -87,14 +87,24 @@ function AutocompleteAnime({
     }
   }
 
+  const listboxId = `${inputId}-list`
+  const optionId = (idx) => `${inputId}-option-${idx}`
+
   return (
     <div className="relative">
+      {/*
+        Audit P2 (2026-05-17): mismo patrón combobox WAI-ARIA 1.2 que
+        AutocompletePersonaje. role='combobox' + aria-haspopup='listbox'
+        + aria-activedescendant para que SR anuncie la opción navegada
+        sin mover el foco del input.
+      */}
       <div className="flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-2.5">
         <Search className="h-4 w-4 text-fg-muted" />
         <input
           id={inputId}
           ref={inputRef}
           type="text"
+          role="combobox"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -114,21 +124,31 @@ function AutocompleteAnime({
           autoFocus={autoFocus}
           autoComplete="off"
           aria-autocomplete="list"
-          aria-controls={`${inputId}-list`}
+          aria-controls={listboxId}
           aria-expanded={abierto}
+          aria-haspopup="listbox"
+          aria-activedescendant={
+            abierto && opciones.length > 0 ? optionId(activo) : undefined
+          }
           className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
       {abierto && opciones.length > 0 && (
         <ul
-          id={`${inputId}-list`}
+          id={listboxId}
           role="listbox"
           className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface shadow-2xl"
         >
           {opciones.map((o, idx) => (
-            <li key={o.anime} role="option" aria-selected={idx === activo}>
+            <li
+              key={o.anime}
+              id={optionId(idx)}
+              role="option"
+              aria-selected={idx === activo}
+            >
               <button
                 type="button"
+                tabIndex={-1}
                 onMouseEnter={() => setActivo(idx)}
                 onMouseDown={(e) => {
                   e.preventDefault()
