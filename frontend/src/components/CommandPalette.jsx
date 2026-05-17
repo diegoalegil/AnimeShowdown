@@ -128,7 +128,11 @@ function CommandPalette({ initialOpen = false } = {}) {
     if (!open) return
     const dialog = dialogRef.current
     if (!dialog) return
+    // Captura el trigger ANTES de mover foco (autoFocus quitado del input).
     lastFocusRef.current = document.activeElement
+    // Foco manual al primer input del dialog tras capturar el previo.
+    const input = dialog.querySelector('input')
+    if (input) try { input.focus({ preventScroll: true }) } catch { /* ignore */ }
 
     const focusables = () => Array.from(dialog.querySelectorAll(
       'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
@@ -206,8 +210,15 @@ function CommandPalette({ initialOpen = false } = {}) {
       >
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <Search className="h-4 w-4 text-fg-muted" />
+          {/*
+            Audit P3 (2026-05-18, 5ª iter): sin autoFocus. Antes el input
+            se autofocuseaba en el commit y mi useEffect del focus trap
+            capturaba activeElement DESPUÉS — terminaba guardando el
+            propio input como "trigger previo" y al cerrar intentaba
+            restaurar a un nodo desmontado. Ahora el effect captura el
+            previo PRIMERO y luego enfoca el input manualmente.
+          */}
           <Command.Input
-            autoFocus
             placeholder="Busca personajes, torneos o navega..."
             className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
           />
