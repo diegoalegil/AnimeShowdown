@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
@@ -22,13 +23,25 @@ function RegisterPage() {
   })
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const refDeQuery = searchParams.get('ref') ?? ''
   const {
     register,
     handleSubmit,
     watch,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
-  } = useForm()
+  } = useForm({
+    defaultValues: { referralCode: refDeQuery },
+  })
+
+  // Si la query string cambia (rare in this page) re-aplicamos el código
+  // para que el campo siempre refleje ?ref=XXX cuando el usuario llega
+  // desde un enlace compartido por otro.
+  useEffect(() => {
+    if (refDeQuery) setValue('referralCode', refDeQuery)
+  }, [refDeQuery, setValue])
 
   const password = watch('password')
 
@@ -38,6 +51,7 @@ function RegisterPage() {
         username: data.username,
         email: data.email,
         password: data.password,
+        referralCode: data.referralCode || undefined,
       })
       navigate('/')
     } catch {
@@ -181,6 +195,36 @@ function RegisterPage() {
             {errors.confirmPassword && (
               <p className="text-[12px] text-red-400">
                 {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="referralCode"
+              className="text-[13px] font-medium text-fg-strong"
+            >
+              Código de referral{' '}
+              <span className="text-[11px] font-normal text-fg-muted">
+                (opcional)
+              </span>
+            </label>
+            <input
+              id="referralCode"
+              type="text"
+              autoComplete="off"
+              maxLength={16}
+              {...register('referralCode', {
+                maxLength: {
+                  value: 16,
+                  message: 'El código es demasiado largo',
+                },
+              })}
+              className="rounded-lg border border-border bg-bg px-3.5 py-2.5 font-mono text-sm tracking-[0.18em] text-fg-strong uppercase placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+              placeholder="Si un amigo te invitó…"
+            />
+            {errors.referralCode && (
+              <p className="text-[12px] text-red-400">
+                {errors.referralCode.message}
               </p>
             )}
           </div>

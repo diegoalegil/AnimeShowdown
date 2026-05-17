@@ -28,6 +28,14 @@ public class RegistroRequest {
     @Email(message = "El email no tiene formato válido")
     private String email;
 
+    /**
+     * Plan v2 §11.8: si se envía un código válido (8 chars), el usuario
+     * registrado queda vinculado como referido del dueño del código.
+     * Opcional — registros sin código siguen funcionando.
+     */
+    @Size(max = 16, message = "El código de referral es demasiado largo")
+    private String referralCode;
+
     public RegistroRequest() {
     }
 
@@ -53,6 +61,14 @@ public class RegistroRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getReferralCode() {
+        return referralCode;
+    }
+
+    public void setReferralCode(String referralCode) {
+        this.referralCode = referralCode;
     }
 
 }

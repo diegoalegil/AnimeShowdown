@@ -48,6 +48,8 @@ public class EmailVerificationService {
     private final UsuarioRepository usuarioRepository;
     private final EmailService emailService;
     private final NotificacionService notificacionService;
+    private final BadgeService badgeService;
+    private final ReferralService referralService;
     private final String frontendBaseUrl;
     private final long ttlHoras;
 
@@ -56,12 +58,16 @@ public class EmailVerificationService {
             UsuarioRepository usuarioRepository,
             EmailService emailService,
             NotificacionService notificacionService,
+            BadgeService badgeService,
+            ReferralService referralService,
             @Value("${app.frontend-base-url:https://animeshowdown.dev}") String frontendBaseUrl,
             @Value("${app.email-verification.ttl-hours:24}") long ttlHoras) {
         this.repository = repository;
         this.usuarioRepository = usuarioRepository;
         this.emailService = emailService;
         this.notificacionService = notificacionService;
+        this.badgeService = badgeService;
+        this.referralService = referralService;
         this.frontendBaseUrl = frontendBaseUrl.endsWith("/")
                 ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1)
                 : frontendBaseUrl;
@@ -124,6 +130,22 @@ public class EmailVerificationService {
                 "¡Bienvenido a AnimeShowdown, " + u.getUsername() + "!",
                 "Tu email está verificado y tu cuenta lista para votar, crear torneos y desbloquear logros.",
                 null);
+
+        // Plan v2 §11.8: si este usuario vino con referrer, su verificación
+        // hace que cuente como referido "activo". Comprobamos si el referrer
+        // alcanza ya el umbral para desbloquear el badge reclutador.
+        try {
+            Usuario referrer = u.getReferredBy();
+            if (referrer != null) {
+                long cuenta = referralService.stats(referrer).invitadosVerificados();
+                if (cuenta >= ReferralService.UMBRAL_RECLUTADOR) {
+                    badgeService.desbloquear(referrer, "reclutador");
+                }
+            }
+        } catch (Exception e) {
+            log.warn("EmailVerification: re-evaluación badge reclutador falló: {}",
+                    e.getMessage());
+        }
         return true;
     }
 
