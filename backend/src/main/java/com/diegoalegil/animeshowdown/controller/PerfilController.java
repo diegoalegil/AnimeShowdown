@@ -45,13 +45,20 @@ public class PerfilController {
     private final PerfilService perfilService;
     private final UsuarioRepository usuarioRepository;
     private final ReferralService referralService;
+    // Mismo flag que usa AuthController para que la cookie de borrado
+    // coincida en attributes con la cookie original; algunos navegadores
+    // requieren matching de Secure + SameSite para considerar la cookie
+    // "la misma" y reemplazarla / borrarla.
+    private final boolean cookieSecure;
 
     public PerfilController(PerfilService perfilService,
             UsuarioRepository usuarioRepository,
-            ReferralService referralService) {
+            ReferralService referralService,
+            @org.springframework.beans.factory.annotation.Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.perfilService = perfilService;
         this.usuarioRepository = usuarioRepository;
         this.referralService = referralService;
+        this.cookieSecure = cookieSecure;
     }
 
     /**
@@ -166,10 +173,15 @@ public class PerfilController {
         }
         // Limpia la cookie de refresh para que el frontend no quede con
         // sesión zombie. JS de cliente debe además limpiar el access token.
+        // Audit P3 (2026-05-17): antes hardcodeaba secure=true + SameSite=Lax,
+        // pero AuthController emite la cookie con secure=cookieSecure +
+        // SameSite=Strict. El mismatch de attributes hace que algunos
+        // navegadores no consideren la cookie "la misma" y no la borren —
+        // el user queda con refresh zombie en disco hasta que expire.
         ResponseCookie clear = ResponseCookie.from(REFRESH_COOKIE, "")
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
+                .secure(cookieSecure)
+                .sameSite("Strict")
                 .path("/")
                 .maxAge(0)
                 .build();
