@@ -70,7 +70,15 @@ function createClient() {
   return c
 }
 
+// Audit P2 (2026-05-17, 4ª iter): flag que bloquea ensureConnected
+// mientras hay un deactivate() en curso. Sin esto, AuthContext o
+// cualquier subscribe() entre client=null y await deactivate podían
+// crear un cliente nuevo antes de que el viejo terminara de cerrar
+// su socket — dos WS vivos durante 50-200ms en cada cambio de token.
+let isReconnecting = false
+
 export function ensureConnected() {
+  if (isReconnecting) return null
   if (client) return client
   // Audit P2 (2026-05-17): el handshake HTTP /ws es público pero el frame
   // CONNECT requiere JWT (WebSocketConfig.JwtAuthChannelInterceptor). Sin
@@ -114,9 +122,13 @@ let reconnectGeneration = 0
 async function reconnect() {
   const gen = ++reconnectGeneration
   const stale = client
-  // Marca null inmediato para que llamadas a ensureConnected() entre
-  // medias no reutilicen el cliente moribundo.
+  // Marca null inmediato + flag de reconnect en curso para que
+  // ensureConnected() devuelva null mientras esperamos a deactivate.
+  // Sin el flag, AuthContext.tryAttachPending o cualquier subscribe()
+  // entre medias creaba un cliente nuevo MIENTRAS el viejo aún cerraba
+  // su socket — dos WS vivos brevemente.
   client = null
+  isReconnecting = true
   for (const entry of subscriptions) {
     if (entry.activeListener) {
       connectedListeners.delete(entry.activeListener)
@@ -131,6 +143,7 @@ async function reconnect() {
       /* deactivate puede rechazar si el socket murió antes — ignoramos. */
     }
   }
+  isReconnecting = false
   // Si entre deactivate y tryAttach apareció otro reconnect (e.g. dos
   // setToken en rápida sucesión), abortamos: ese reconnect ya hará
   // su propio tryAttach con el token más reciente.

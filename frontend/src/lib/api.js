@@ -68,38 +68,64 @@ const DEFAULT_TIMEOUT_MS = 10000
 // la sesión por reuse-detection del backend.
 let refreshPromise = null
 
+// Audit P2 (2026-05-17, 4ª iter): flag que bloquea intentarRefresh durante
+// el logout. Si una request paralela recibe 401 y dispara refresh DESPUÉS
+// de que el user haya pulsado logout pero ANTES de que el backend revoque
+// el refresh, el refresh "exitoso" emite una cookie nueva y resucita la
+// sesión que el user acababa de cerrar. Al activar el flag, cualquier
+// intentarRefresh devuelve null inmediato y la request queda 401-final.
+let isLoggingOut = false
+export function setLoggingOut(value) {
+  isLoggingOut = Boolean(value)
+}
+
 /**
- * Audit P1 (2026-05-17, 3ª iter): el backend devuelve 503 cuando la
- * rotación cae en el grace cross-tab. Antes el frontend trataba
- * cualquier no-2xx como sesión muerta — limpiaba tokenEnMemoria y
- * desconectaba STOMP, aunque la cookie nueva de la otra tab estuviera
- * viva. Ahora 503 dispara UN backoff corto + retry; si el segundo
- * también falla, ahí sí limpiamos.
+ * Audit P2 (2026-05-17, 4ª iter): grace cross-tab robusto.
+ * El backend devuelve 503 + Retry-After cuando otra pestaña acaba de
+ * rotar el refresh. El cliente respeta Retry-After (segundos) y hace
+ * hasta GRACE_MAX_RETRIES intentos antes de considerar muerta la
+ * sesión. Solo limpiamos tokenEnMemoria ante 401 explícito o cuando
+ * agotamos retries — antes un único retry de 350ms podía perderse si
+ * el navegador aún no había aplicado la cookie nueva al dominio.
  */
-const GRACE_RETRY_DELAY_MS = 350
+const GRACE_MAX_RETRIES = 3
+const GRACE_MIN_DELAY_MS = 300
+
+function parseRetryAfterMs(headerValue, fallbackMs) {
+  if (!headerValue) return fallbackMs
+  // Retry-After estándar HTTP: segundos enteros (o fecha HTTP-date).
+  const seconds = parseInt(headerValue, 10)
+  if (!Number.isNaN(seconds) && seconds >= 0) {
+    return Math.max(GRACE_MIN_DELAY_MS, seconds * 1000)
+  }
+  return fallbackMs
+}
+
 async function intentarRefresh() {
+  if (isLoggingOut) return null
   if (refreshPromise) return refreshPromise
   refreshPromise = (async () => {
+    const doFetch = () => fetch(`${API_BASE}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    })
     try {
-      let res = await fetch(`${API_BASE}/api/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      })
-      if (res.status === 503) {
-        // Grace cross-tab: la otra pestaña acaba de rotar. Espera y reintenta
-        // una vez; la cookie nueva ya debe estar en este dominio.
-        await new Promise((r) => setTimeout(r, GRACE_RETRY_DELAY_MS))
-        res = await fetch(`${API_BASE}/api/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        })
+      let res = await doFetch()
+      // Loop de retries solo para 503 grace. 401 / otros 5xx caen
+      // directo a la rama de sesión muerta.
+      for (let attempt = 0; attempt < GRACE_MAX_RETRIES && res.status === 503; attempt++) {
+        const retryAfterMs = parseRetryAfterMs(
+          res.headers.get('Retry-After'),
+          GRACE_MIN_DELAY_MS + attempt * 400, // backoff: 300, 700, 1100
+        )
+        await new Promise((r) => setTimeout(r, retryAfterMs))
+        res = await doFetch()
       }
       if (!res.ok) {
-        // 503 persistente, 401, 5xx genuino, etc. — sesión muerta.
-        // Notifica el cambio para que STOMP deactive su cliente y
-        // AuthContext limpie el user optimista.
+        // 401 (sesión inválida) o 503 persistente tras N retries.
+        // Notifica para que STOMP deactive y AuthContext limpie el
+        // user optimista.
         const prev = tokenEnMemoria
         tokenEnMemoria = null
         if (prev !== null) notifyTokenChange()
