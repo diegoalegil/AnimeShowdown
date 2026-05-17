@@ -198,16 +198,35 @@ const pwaPlugin = VitePWA({
     navigateFallbackDenylist: [/^\/api\//],
     // Cap del bundle de cada chunk precacheado en 5MB.
     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+    // Audit (2026-05-17): el precache anterior incluía '**/*.{js,...}'
+    // → workbox descargaba TODOS los chunks lazy en el primer install
+    // del SW, anulando el split. Resultado: ~3MB de bundle inicial pese
+    // a tener split correcto en vite/rolldown. Reducido al shell mínimo
+    // (HTML, CSS, fonts, icons). Los chunks JS y SVG van por
+    // runtimeCaching StaleWhileRevalidate: se cachean en la primera
+    // navegación que los pida y desde ahí cargan offline.
     globPatterns: [
-      '**/*.{js,css,html,svg,woff2}',
-      // Solo iconos + logo, no las 2800 imágenes de personajes (van por
-      // runtimeCaching CacheFirst on-demand).
+      '**/*.{css,html,woff2}',
       'icon-*.png',
       'apple-touch-icon.png',
       'logo.webp',
     ],
-    globIgnores: ['img/**'],
+    globIgnores: ['img/**', 'assets/**.js', 'assets/**.svg'],
     runtimeCaching: [
+      {
+        // Chunks JS bajo demanda. SWR: sirve cache + fetch en background
+        // para próxima carga. Cache largo (30d) porque los nombres
+        // llevan hash y rotan en cada deploy.
+        urlPattern: ({ url }) =>
+          url.pathname.startsWith('/assets/') &&
+          (url.pathname.endsWith('.js') || url.pathname.endsWith('.svg')),
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'chunks-js',
+          expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
       {
         urlPattern: ({ url }) => url.pathname.startsWith('/img/'),
         handler: 'CacheFirst',
