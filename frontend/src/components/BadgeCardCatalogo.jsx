@@ -70,7 +70,7 @@ function formatFecha(iso) {
   })
 }
 
-function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0 }) {
+function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = false }) {
   const desbloqueado = Boolean(logro.desbloqueadoEn)
   const style = RAREZA_STYLE[logro.rareza] ?? RAREZA_STYLE[1]
   const Icon = getIcon(logro.icono)
@@ -80,9 +80,16 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0 }) {
 
   return (
     <article
+      id={`logro-${logro.codigo}`}
       className={`relative flex h-full flex-col gap-4 rounded-xl border ${
         desbloqueado ? style.borde : 'border-border'
-      } ${desbloqueado ? `bg-surface ${style.glow}` : 'bg-surface/60'} p-5 transition-all`}
+      } ${
+        desbloqueado ? `bg-surface ${style.glow}` : 'bg-surface/60'
+      } scroll-mt-28 p-5 transition-all ${
+        destacado
+          ? 'ring-2 ring-amber-300/80 shadow-[0_0_38px_-12px_rgba(251,191,36,0.9)]'
+          : ''
+      }`}
       itemScope
       itemType="https://schema.org/Achievement"
     >

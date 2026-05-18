@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Trophy, Users, ArrowRight } from 'lucide-react'
@@ -48,6 +48,7 @@ const FILTROS_RAREZA = [
 function LogrosPage() {
   const { user } = useAuth()
   const { i18n } = useTranslation()
+  const [searchParams] = useSearchParams()
   const { data: catalogo, isLoading: cargandoCatalogo } = useCatalogoLogros()
   const { data: mios } = useMisLogros({ enabled: Boolean(user) })
   const { data: stats } = useStatsLogros()
@@ -77,6 +78,17 @@ function LogrosPage() {
 
   const total = catalogo?.length ?? 14
   const desbloqueados = mios?.filter((l) => l.desbloqueadoEn).length ?? 0
+  const logroDestacado = searchParams.get('logro')
+
+  useEffect(() => {
+    if (!logroDestacado || visibles.length === 0) return undefined
+    const frame = window.requestAnimationFrame(() => {
+      document
+        .getElementById(`logro-${logroDestacado}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [logroDestacado, visibles.length])
 
   useSeo({
     title: 'Logros desbloqueables',
@@ -185,6 +197,7 @@ function LogrosPage() {
                 key={l.codigo}
                 logro={l}
                 count={stats?.[l.codigo] ?? 0}
+                destacado={l.codigo === logroDestacado}
               />
             ))}
           </div>
