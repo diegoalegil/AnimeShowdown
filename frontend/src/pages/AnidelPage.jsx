@@ -211,26 +211,26 @@ function AnidelPage() {
           </div>
         )}
 
-        {/* Leyenda — los squaritos verdes = match, rojos = no match. El
-            ejemplo "Aa" / "📺" / "↑↓" es genérico (la letra del intento varía). */}
+        {/* Leyenda de columnas: neutral para no parecer una pista resuelta.
+            En las filas, verde = coincide, rojo = no coincide, ámbar = dirección. */}
         <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-border bg-surface p-3 text-[11px] text-fg-muted">
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded bg-emerald-500/20 px-1 font-mono text-[10px] font-bold text-emerald-200">
+            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-bg px-1 font-mono text-[10px] font-bold text-fg-strong">
               Aa
             </span>
-            <span>1ª letra coincide</span>
+            <span>Letra inicial</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-500/20 text-[10px]">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-[10px]">
               📺
             </span>
-            <span>Mismo anime</span>
+            <span>Anime</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-amber-500/15 text-amber-200">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-fg-strong">
               <ArrowUp className="h-3 w-3" />
             </span>
-            <span>ELO objetivo ↑</span>
+            <span>ELO objetivo</span>
           </div>
         </div>
 
@@ -335,16 +335,30 @@ function FilaIntento({ intento }) {
           <p className="truncate text-[11px] text-fg-muted">{intento.anime}</p>
         </div>
       </div>
-      <Squarito ok={intento.matchLetra} label={intento.nombre.charAt(0)} />
-      <Squarito ok={intento.matchAnime} label="📺" />
+      <Squarito
+        ok={intento.matchLetra}
+        label={intento.nombre.charAt(0)}
+        title={
+          intento.matchLetra
+            ? `La inicial ${intento.nombre.charAt(0).toUpperCase()} coincide`
+            : `La inicial ${intento.nombre.charAt(0).toUpperCase()} no coincide`
+        }
+      />
+      <Squarito
+        ok={intento.matchAnime}
+        label="📺"
+        title={intento.matchAnime ? 'Mismo anime' : 'Anime distinto'}
+      />
       <SquaritoFlecha dir={intento.direccionElo} elo={intento.elo} />
     </div>
   )
 }
 
-function Squarito({ ok, label }) {
+function Squarito({ ok, label, title }) {
   return (
     <span
+      title={title}
+      aria-label={title}
       className={`inline-flex h-7 w-7 items-center justify-center rounded-md font-mono text-[11px] font-bold ${
         ok
           ? 'bg-emerald-500/20 text-emerald-200'
