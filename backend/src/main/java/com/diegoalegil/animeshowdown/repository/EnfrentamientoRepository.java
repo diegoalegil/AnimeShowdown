@@ -54,7 +54,7 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
      * puede cambiar a una estrategia con OFFSET aleatorio.
      */
     @Query(value = """
-            SELECT * FROM enfrentamientos e
+            SELECT e.* FROM enfrentamientos e
             JOIN torneos t ON e.torneo_id = t.id
             WHERE t.estado = 'IN_PROGRESS'
               AND e.personaje1_id IS NOT NULL

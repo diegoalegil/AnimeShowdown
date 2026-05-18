@@ -171,6 +171,22 @@ class EnfrentamientoControllerTest {
                 .andExpect(jsonPath("$.delta").value(1));
     }
 
+    @Test
+    void aleatorioDevuelveMatchAbiertoConDtoCompleto() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+
+        crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "aleatorio");
+
+        mvc.perform(get("/api/enfrentamientos/aleatorio"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.ronda").isNumber())
+                .andExpect(jsonPath("$.personaje1.id").isNumber())
+                .andExpect(jsonPath("$.personaje2.id").isNumber())
+                .andExpect(jsonPath("$.ganador").doesNotExist());
+    }
+
     /**
      * Regresión audit P2 (2026-05-17): BadgeEventListener escucha
      * VotoRegistradoEvent en AFTER_COMMIT con @Async. Si el endpoint /votar
