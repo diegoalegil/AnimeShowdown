@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CheckCircle2, Clock, PlayCircle, Trophy, Users } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Clock, PlayCircle, Trophy, Users } from 'lucide-react'
 import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
 
@@ -14,6 +14,16 @@ const ESTADO_ICON = {
   SCHEDULED: Clock,
   IN_PROGRESS: PlayCircle,
   FINISHED: CheckCircle2,
+}
+
+// Audit producto (2026-05-18): cada estado tiene una acción dominante
+// distinta. La card antes solo era una caja de info — ahora cierra con
+// un CTA contextual al estado, así un usuario que escanea la lista de
+// torneos entiende DE UN VISTAZO qué puede hacer en cada uno.
+const ESTADO_CTA = {
+  SCHEDULED: 'Ver participantes',
+  IN_PROGRESS: 'Votar duelos abiertos',
+  FINISHED: 'Ver resultados',
 }
 
 function TorneoCard({ torneo }) {
@@ -96,6 +106,10 @@ function TorneoCard({ torneo }) {
           </div>
         </div>
       )}
+      <span className="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-accent opacity-70 transition-all group-hover:translate-x-0.5 group-hover:opacity-100">
+        {ESTADO_CTA[estado] ?? 'Ver torneo'}
+        <ArrowRight className="h-3 w-3" />
+      </span>
     </Link>
   )
 }
