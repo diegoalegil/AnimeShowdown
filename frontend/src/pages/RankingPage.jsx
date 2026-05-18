@@ -224,16 +224,21 @@ function SeccionCategoria({ seccion }) {
     purple: 'text-purple-300 border-purple-500/40 bg-purple-500/10',
   }
   const tonoClase = TONO_CLASES[seccion.tono] ?? TONO_CLASES.sky
+  // Sprint 5h (2026-05-18): el chip eyebrow era un <span> — sin landmark
+  // semántico para screen readers ni structure outline. Usamos un h2
+  // visualmente igual al chip anterior (mismo padding/colores/uppercase)
+  // pero etiquetado como heading para a11y + SEO.
   return (
-    <section className="flex flex-col gap-4">
+    <section aria-labelledby={`cat-${seccion.id}`} className="flex flex-col gap-4">
       <div className="flex items-center gap-3 border-b border-border pb-3">
-        <span
+        <h2
+          id={`cat-${seccion.id}`}
           className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.1em] ${tonoClase}`}
         >
           <span aria-hidden="true">{seccion.emoji}</span>
           {seccion.label}
-        </span>
-        <span className="font-mono text-[11px] text-fg-muted tabular-nums">
+        </h2>
+        <span className="font-mono text-[11px] text-fg-muted tabular-nums" aria-label={`${seccion.personajes.length} personajes en esta categoría`}>
           {seccion.personajes.length}
         </span>
       </div>

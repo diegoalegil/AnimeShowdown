@@ -98,7 +98,11 @@ function App() {
           },
         }}
       />
-      <Header />
+      {/* Sprint 5h (2026-05-18): /tv tiene su propio header fullscreen
+          fixed z-50; el global Header queda detrás z-30 y solo añade DOM
+          noise + paint costoso del logo flotante. Skipeamos cuando la
+          ruta es /tv para que el browser no monte ambos. */}
+      {!location.pathname.startsWith('/tv') && <Header />}
       {/* Listener global de unlock: side-effect-only, sin UI. Se monta
           siempre — internamente skipea cuando no hay user logueado. */}
       <BadgeUnlockListener />
