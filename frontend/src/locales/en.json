@@ -27,18 +27,20 @@
     "elegirIdioma": "Choose language"
   },
   "footer": {
-    "descripcion": "AnimeShowdown is a platform for duels, ELO rankings and visual tournaments of anime characters. Vote, compare and discover which characters dominate according to the community.",
+    "descripcion": "A platform for head-to-head duels, ELO ranking and visual tournaments between the most iconic anime characters. You decide who rules.",
     "newsletter": "Newsletter",
-    "navegacion": "Navigation",
-    "stack": "Stack",
-    "verGithub": "View on GitHub",
-    "apoyaCta": "Buy me a coffee",
+    "producto": "Product",
+    "comunidad": "Community",
+    "soporte": "Support",
+    "codigoAbierto": "Open source",
+    "codigoAbiertoTitulo": "View the project source on GitHub",
+    "apoyaCta": "Support the project",
     "privacidad": "Privacy",
     "terminos": "Terms",
     "contacto": "Contact",
-    "copyright": "© 2026 Diego Alegil — DAM 1st year",
-    "hechoCon": "Made with",
-    "enTenerife": "in Tenerife"
+    "animesPopulares": "Animes with most characters",
+    "copyright": "© 2026 AnimeShowdown",
+    "origen": "From Tenerife"
   },
   "newsletter": {
     "intro": "Get new tournaments, featured rankings and daily trials straight to your inbox.",
