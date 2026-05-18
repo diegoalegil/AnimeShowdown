@@ -364,6 +364,12 @@ export const endpoints = {
     ),
   // Time machine del ELO (Plan v2 §11.1): serie {fecha, votosAcumulados}
   // por día. dias 1..90, default 30.
+  // Historial competitivo de un personaje (Plan producto 2026-05-18).
+  // Ambos endpoints son públicos y devuelven 404 si el slug no existe.
+  duelosRecientesPersonaje: (slug, { limit = 10 } = {}) =>
+    api.get(`/api/personajes/${encodeURIComponent(slug)}/duelos-recientes?limit=${limit}`, { auth: false }),
+  matchupsPersonaje: (slug) =>
+    api.get(`/api/personajes/${encodeURIComponent(slug)}/matchups`, { auth: false }),
   personajeEloHistory: (slug, { dias = 30 } = {}) =>
     api.get(
       `/api/personajes/${encodeURIComponent(slug)}/elo-history?dias=${dias}`,
