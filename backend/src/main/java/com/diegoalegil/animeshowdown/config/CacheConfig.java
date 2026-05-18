@@ -56,7 +56,15 @@ public class CacheConfig {
                 // Plan v2 §11.1: time machine ELO por personaje. La curva
                 // del pasado no cambia (solo extiende al cierre del día);
                 // cache largo 1h.
-                buildCache("personaje-elo-history", Duration.ofHours(1), 1500)));
+                buildCache("personaje-elo-history", Duration.ofHours(1), 1500),
+                // Plan v2 §4.12 step 1: mapeo nombre+anime → mal_id resuelto
+                // contra Jikan /characters?q=. El mapeo es prácticamente
+                // inmutable (un personaje no cambia de mal_id); TTL 30d
+                // para cubrir el catálogo entero con un solo barrido inicial.
+                buildCache("jikan-character-malid", Duration.ofDays(30), 2000),
+                // URLs de /characters/{mal_id}/pictures. Las imágenes
+                // adicionales de un personaje cambian rara vez; TTL 7d.
+                buildCache("jikan-character-pictures", Duration.ofDays(7), 2000)));
         return manager;
     }
 
