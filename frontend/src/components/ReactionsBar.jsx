@@ -58,38 +58,59 @@ function ReactionsBar({ targetType, targetId, className = '' }) {
     })
   }
 
+  // Audit producto (2026-05-18): invitado clicando un emoji recibe un
+  // toast con CTA "Entrar", pero antes del click no había pista visual
+  // de que estaba pendiente de auth. El tooltip nativo (title) + un
+  // pequeño hint debajo de la barra anclan el contexto al primer
+  // vistazo, sin convertir el componente en un wall-block.
+  const tooltipInvitado = user
+    ? null
+    : 'Inicia sesión para añadir tu reacción'
+
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
-      {EMOJIS.map(({ tipo, glyph, label }) => {
-        const seleccionada = mia === tipo
-        const count = counts[tipo] ?? 0
-        return (
-          <motion.button
-            key={tipo}
-            type="button"
-            onClick={() => handleClick(tipo)}
-            disabled={mutation.isPending || isLoading}
-            aria-label={label}
-            aria-pressed={seleccionada}
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.05 }}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-              seleccionada
-                ? 'border-accent bg-accent/15 text-fg-strong'
-                : 'border-border bg-surface text-fg hover:border-accent/40 hover:bg-surface-alt'
-            }`}
-          >
-            <span className="text-lg leading-none" aria-hidden="true">
-              {glyph}
-            </span>
-            <span className="tabular-nums">{count}</span>
-          </motion.button>
-        )
-      })}
-      {total > 0 && (
-        <span className="ml-1 text-[11px] text-fg-muted">
-          · {total} reacci{total === 1 ? 'ón' : 'ones'}
-        </span>
+    <div className={`flex flex-col gap-1.5 ${className}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        {EMOJIS.map(({ tipo, glyph, label }) => {
+          const seleccionada = mia === tipo
+          const count = counts[tipo] ?? 0
+          return (
+            <motion.button
+              key={tipo}
+              type="button"
+              onClick={() => handleClick(tipo)}
+              disabled={mutation.isPending || isLoading}
+              aria-label={tooltipInvitado ? `${label} — ${tooltipInvitado}` : label}
+              aria-pressed={seleccionada}
+              title={tooltipInvitado || label}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05 }}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                seleccionada
+                  ? 'border-accent bg-accent/15 text-fg-strong'
+                  : 'border-border bg-surface text-fg hover:border-accent/40 hover:bg-surface-alt'
+              }`}
+            >
+              <span className="text-lg leading-none" aria-hidden="true">
+                {glyph}
+              </span>
+              <span className="tabular-nums">{count}</span>
+            </motion.button>
+          )
+        })}
+        {total > 0 && (
+          <span className="ml-1 text-[11px] text-fg-muted">
+            · {total} reacci{total === 1 ? 'ón' : 'ones'}
+          </span>
+        )}
+      </div>
+      {!user && (
+        <button
+          type="button"
+          onClick={() => navigate('/login')}
+          className="self-start text-[11px] text-fg-muted underline-offset-2 hover:text-accent hover:underline"
+        >
+          Inicia sesión para reaccionar →
+        </button>
       )}
     </div>
   )
