@@ -134,6 +134,14 @@ function SectionPulso() {
   const campeonReal = ranking?.[0]
   const campeon = campeonReal ?? CAMPEON_FALLBACK
   const esFallback = !campeonReal
+  // Audit producto (2026-05-18): el backend devuelve top por COUNT(votos),
+  // así que en una DB joven con 1-5 votos totales presentar al top como
+  // "campeón actual" es engañoso. Sumamos los votos del ranking servido
+  // y aplicamos disclaimer si el total comunidad es pequeño.
+  const totalVotosComunidad = Array.isArray(ranking)
+    ? ranking.reduce((acc, r) => acc + Number(r.votos ?? 0), 0)
+    : 0
+  const comunidadArrancando = !esFallback && totalVotosComunidad < 30
   const topMovers = (movimientos || [])
     .filter((m) => m.delta != null && m.delta !== 0)
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
@@ -141,6 +149,10 @@ function SectionPulso() {
   const torneoActivo =
     torneos.find((t) => t.estado === 'IN_PROGRESS') ??
     torneos.find((t) => t.estado === 'SCHEDULED')
+  // Torneo en marcha (estado IN_PROGRESS) — fallback para DueloAbiertoCard
+  // cuando el endpoint /enfrentamientos/aleatorio devuelve null. En vez
+  // de un dead-end "sin duelos", apuntamos al bracket donde sí los hay.
+  const torneoEnCurso = torneos.find((t) => t.estado === 'IN_PROGRESS')
   const retoPersonaje = personajeDelDia('guess-character')
 
   return (
@@ -171,7 +183,12 @@ function SectionPulso() {
 
         {/* Fila superior: Campeón (más grande) + Movers de la semana */}
         <div className="mb-3 grid grid-cols-1 gap-3 md:mb-4 md:grid-cols-2 md:gap-4">
-          <CampeonCard campeon={campeon} esFallback={esFallback} loading={rankingLoading} />
+          <CampeonCard
+            campeon={campeon}
+            esFallback={esFallback}
+            loading={rankingLoading}
+            comunidadArrancando={comunidadArrancando}
+          />
           <MoversCard movers={topMovers} />
         </div>
 
@@ -193,7 +210,7 @@ function SectionPulso() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-4">
           <RetoCard personaje={retoPersonaje} />
           <TorneoActivoCard torneo={torneoActivo} />
-          <DueloAbiertoCard duelo={duelo} />
+          <DueloAbiertoCard duelo={duelo} torneoEnCurso={torneoEnCurso} />
           <UltimosVotosCard votos={ultimosVotos} />
         </div>
       </div>
@@ -231,21 +248,29 @@ function CardEyebrow({ icon: Icon, label, tono = 'text-accent' }) {
   )
 }
 
-function CampeonCard({ campeon, esFallback, loading }) {
+function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
-        <CardEyebrow icon={Crown} label="Campeón actual" tono="text-amber-300" />
+        <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-amber-300" />
         <p className="text-sm text-fg-muted">Cargando al rey del ranking…</p>
       </PulseCard>
     )
   }
   const p = campeon.personaje
   const votos = Number(campeon.votos ?? 0)
-  // Etiqueta dinámica: si vino del backend ranking, "Campeón actual";
-  // si es fallback local sin votos en backend, "Top del catálogo" para
-  // no presentarlo falsamente como votado por la comunidad.
-  const eyebrow = esFallback ? 'Top del catálogo' : 'Campeón actual'
+  // Etiqueta dinámica:
+  //   - esFallback: backend sin votos → "Top del catálogo" (ELO base).
+  //   - comunidadArrancando: muy pocos votos totales → "Líder provisional"
+  //     para que un personaje con 1-2 votos no se presente como
+  //     "campeón" engañando al usuario nuevo.
+  //   - normal: "Líder del ranking" (más honesto que "Campeón actual"
+  //     porque la métrica son votos acumulados, no un título oficial).
+  const eyebrow = esFallback
+    ? 'Top del catálogo'
+    : comunidadArrancando
+      ? 'Líder provisional'
+      : 'Líder del ranking'
   return (
     <Link
       to={`/personajes/${p.slug}`}
@@ -275,8 +300,13 @@ function CampeonCard({ campeon, esFallback, loading }) {
             <p className="mt-2 font-mono text-2xl font-bold text-amber-300 tabular-nums">
               {votos.toLocaleString('es-ES')}
               <span className="ml-1 text-[11px] font-medium uppercase text-fg-muted">
-                votos
+                {votos === 1 ? 'voto' : 'votos'}
               </span>
+            </p>
+          )}
+          {comunidadArrancando && (
+            <p className="mt-1 text-[11px] leading-snug text-amber-200/70">
+              Comunidad arrancando — tu voto puede cambiar el meta.
             </p>
           )}
         </div>
@@ -452,14 +482,41 @@ function TorneoActivoCard({ torneo }) {
   )
 }
 
-function DueloAbiertoCard({ duelo }) {
+function DueloAbiertoCard({ duelo, torneoEnCurso }) {
+  // Sin duelo del endpoint /enfrentamientos/aleatorio: dos escenarios.
+  //  1) Hay torneo IN_PROGRESS → es muy probable que sí queden duelos
+  //     pendientes (el endpoint puede haber fallado o estar entre
+  //     batches). NO digamos "sin duelos", redirigimos al bracket
+  //     donde sí los hay.
+  //  2) Sin torneo en curso → modo casual real, copy honesto.
   if (!duelo || !duelo.personajeA || !duelo.personajeB) {
+    if (torneoEnCurso) {
+      return (
+        <Link
+          to={`/torneos/${torneoEnCurso.slug}`}
+          className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
+        >
+          <CardEyebrow icon={Swords} label="Duelos pendientes" />
+          <p className="text-[13px] leading-snug text-fg-muted">
+            Hay duelos esperando en{' '}
+            <span className="font-semibold text-fg-strong">
+              {torneoEnCurso.nombre}
+            </span>
+            . Entra al bracket y vota.
+          </p>
+          <span className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+            Ir al bracket
+            <ArrowRight className="h-3 w-3" />
+          </span>
+        </Link>
+      )
+    }
     return (
       <PulseCard tono="accent">
-        <CardEyebrow icon={Swords} label="Duelo abierto" />
+        <CardEyebrow icon={Swords} label="Modo casual" />
         <p className="text-[13px] text-fg-muted">
-          Sin duelos abiertos ahora. Empieza un torneo o entra al modo
-          casual.
+          Sin torneos abiertos ahora. Entra al modo casual y vota duelos
+          random del catálogo.
         </p>
         <Link
           to="/votar"
