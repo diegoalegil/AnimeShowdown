@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { ArrowLeft, Download, Image as ImageIcon, Plus, X } from 'lucide-react'
+import { ArrowLeft, Download, Image as ImageIcon, Plus, Sparkles, X } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -20,6 +20,18 @@ const containerVariants = {
 
 const SLOTS = 5
 const STORAGE_KEY = 'animeshowdown.mitop5.v1'
+
+/**
+ * Sugerencias rápidas para arrancar — 8 personajes muy reconocidos del
+ * catálogo. Si alguno no existe (catálogo evoluciona), filtramos.
+ * Audit producto (2026-05-18): los slots vacíos enormes en móvil
+ * parecían herramienta rota. Añadir "Empieza con tu favorito" + chips
+ * de personajes top reduce la fricción de la primera selección.
+ */
+const SUGERENCIAS_RAPIDAS_SLUGS = [
+  'luffy', 'naruto_uzumaki', 'satoru_gojo', 'son_goku',
+  'levi_ackerman', 'roronoa_zoro', 'tanjiro_kamado', 'eren_yeager',
+]
 
 /**
  * Generador "Mi Top 5" (Plan v2 §11.10) — el usuario elige 5 personajes
@@ -82,6 +94,28 @@ function MiTop5Page() {
   const quitarSlot = (idx) => setSlot(idx, null)
 
   const completo = slots.every(Boolean)
+  const slotsVacios = slots.filter((s) => !s).length
+
+  // Sugerencias = top slugs que aún no están en el top del user
+  const sugerenciasDisponibles = useMemo(() => {
+    return SUGERENCIAS_RAPIDAS_SLUGS
+      .map((slug) => personajes.find((p) => p.slug === slug))
+      .filter((p) => p && !slots.includes(p.slug))
+      .slice(0, 6)
+  }, [slots])
+
+  const addSlugAlPrimerSlotLibre = (slug) => {
+    const idx = slots.findIndex((s) => !s)
+    if (idx === -1) {
+      toast.info('Top 5 completo. Quita uno para añadir otro.')
+      return
+    }
+    if (slots.includes(slug)) {
+      toast.info('Ese personaje ya está en tu top.')
+      return
+    }
+    setSlot(idx, slug)
+  }
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -120,29 +154,57 @@ function MiTop5Page() {
           </p>
         </motion.header>
 
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-5">
+        {/* Audit producto (2026-05-18): antes los slots usaban grid 1-col
+            en mobile → cada uno aspect-2/3 full-width = ~580px de alto
+            vacío. Cambio a grid-cols-5 en TODAS las viewports con tamaño
+            compacto que se escala con sm:; los slots vacíos quedan
+            pequeños y el resto de la página (buscador + sugerencias)
+            entra dentro del primer viewport. */}
+        <div className="mb-5 grid grid-cols-5 gap-2 sm:mb-8 sm:gap-4">
           {slots.map((slug, i) => (
             <Slot key={i} slug={slug} index={i} onQuitar={() => quitarSlot(i)} />
           ))}
         </div>
 
-        <div className="mb-6 rounded-xl border border-border bg-surface p-5">
-          <p className="mb-3 text-sm font-semibold text-fg-strong">
-            Añadir personaje al primer slot vacío
+        {/* Sugerencias rápidas — solo cuando hay slots vacíos */}
+        {slotsVacios > 0 && sugerenciasDisponibles.length > 0 && (
+          <div className="mb-5 rounded-xl border border-border bg-surface/60 p-4 sm:p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-accent" />
+              <p className="text-[13px] font-semibold text-fg-strong">
+                Empieza con tu favorito
+              </p>
+              <span className="text-[11px] text-fg-muted">
+                ({slotsVacios} {slotsVacios === 1 ? 'slot libre' : 'slots libres'})
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {sugerenciasDisponibles.map((p) => (
+                <button
+                  key={p.slug}
+                  type="button"
+                  onClick={() => addSlugAlPrimerSlotLibre(p.slug)}
+                  className="group inline-flex items-center gap-2 rounded-full border border-border bg-bg px-2 py-1 text-[12px] font-medium text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                >
+                  <img
+                    src={imagenPersonaje(p.slug)}
+                    alt=""
+                    loading="lazy"
+                    className="h-5 w-5 rounded-full object-cover object-top"
+                  />
+                  {p.nombre}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-6 rounded-xl border border-border bg-surface p-4 sm:p-5">
+          <p className="mb-3 text-[13px] font-semibold text-fg-strong">
+            O busca cualquier personaje del catálogo
           </p>
           <AutocompletePersonaje
-            onSelect={(slug) => {
-              const idx = slots.findIndex((s) => !s)
-              if (idx === -1) {
-                toast.info('Top 5 completo. Quita uno para añadir otro.')
-                return
-              }
-              if (slots.includes(slug)) {
-                toast.info('Ese personaje ya está en tu top.')
-                return
-              }
-              setSlot(idx, slug)
-            }}
+            onSelect={addSlugAlPrimerSlotLibre}
             placeholder="Busca y selecciona…"
             filtroExtra={(p) => !slots.includes(p.slug)}
           />
@@ -157,24 +219,30 @@ function MiTop5Page() {
 function Slot({ slug, index, onQuitar }) {
   if (!slug) {
     return (
-      <div className="flex aspect-[2/3] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-bg/30 text-fg-muted">
-        <Plus className="h-6 w-6" />
-        <span className="text-[11px] font-semibold">#{index + 1}</span>
+      <div className="flex aspect-[2/3] flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border bg-bg/30 text-fg-muted sm:gap-2 sm:rounded-xl">
+        <Plus className="h-4 w-4 sm:h-6 sm:w-6" />
+        <span className="text-[10px] font-semibold sm:text-[11px]">
+          #{index + 1}
+        </span>
       </div>
     )
   }
   const p = personajes.find((x) => x.slug === slug)
   return (
-    <div className="group relative aspect-[2/3] overflow-hidden rounded-xl border border-border">
+    <div className="group relative aspect-[2/3] overflow-hidden rounded-lg border border-border sm:rounded-xl">
       <img
         src={imagenPersonaje(slug)}
         alt={p?.nombre ?? slug}
         className="h-full w-full object-cover object-top"
       />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-accent">
-          #{index + 1}
-        </p>
+      {/* Rank chip arriba — siempre visible para que la posición se lea
+          de un vistazo aunque la card sea pequeña en mobile. */}
+      <span className="absolute left-1 top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-md bg-accent px-1 text-[10px] font-extrabold text-bg sm:left-1.5 sm:top-1.5 sm:h-6 sm:min-w-[24px] sm:text-[11px]">
+        #{index + 1}
+      </span>
+      {/* Nombre + anime: solo en sm+ (en mobile la card es demasiado
+          estrecha para texto legible — la prioridad es ver el rostro). */}
+      <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 sm:block">
         <p className="line-clamp-1 text-[12px] font-bold text-fg-strong">
           {p?.nombre ?? slug}
         </p>
@@ -183,8 +251,8 @@ function Slot({ slug, index, onQuitar }) {
       <button
         type="button"
         onClick={onQuitar}
-        aria-label="Quitar"
-        className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-bg/80 text-fg-muted opacity-0 backdrop-blur-md transition-opacity hover:text-rose-300 group-hover:opacity-100"
+        aria-label={`Quitar ${p?.nombre ?? 'personaje'} del top`}
+        className="absolute right-0.5 top-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-opacity hover:text-rose-300 sm:right-1 sm:top-1 sm:h-6 sm:w-6 sm:opacity-0 sm:group-hover:opacity-100"
       >
         <X className="h-3 w-3" />
       </button>
