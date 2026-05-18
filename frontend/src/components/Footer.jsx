@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowUpRight, Coffee } from 'lucide-react'
+import { Coffee } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
 import { personajes } from '../data/personajes'
 import { slugifyAnime } from '../lib/animes'
@@ -18,23 +18,28 @@ function GithubIcon({ className }) {
   )
 }
 
-const navLinks = [
+// Audit producto (2026-05-18): el footer antes mostraba el stack
+// técnico (React 19, Vite, Spring Boot, Java 21…) y un copyright
+// "Diego Alegil — DAM 1.º". Quitamos ambos: el footer público
+// representa la plataforma, no un portfolio. GitHub queda solo
+// como link discreto en Comunidad bajo la etiqueta "código abierto".
+const productoLinks = [
   { to: '/', i18nKey: 'inicio' },
   { to: '/personajes', i18nKey: 'personajes' },
+  { to: '/animes', i18nKey: 'animes' },
   { to: '/torneos', i18nKey: 'torneos' },
   { to: '/votar', i18nKey: 'votar' },
   { to: '/ranking', i18nKey: 'ranking' },
-  { to: '/faq', i18nKey: 'faq' },
-  { to: '/api-docs', i18nKey: 'apiDocs' },
-  { to: '/glossary', i18nKey: 'glossary' },
+  { to: '/games', i18nKey: 'games' },
   { to: '/logros', i18nKey: 'logros' },
-  { to: '/apoya', i18nKey: 'apoya' },
 ]
 
-// Top 7 animes por cantidad de personajes en catálogo. Calculado en
-// module load (estable, no cambia entre renders). Plan v2 §5.6: footer
-// sitemap con anchor descriptivo para que el crawler siga los animes
-// "estrella" en cada visita al footer (toda página los expone).
+const soporteLinks = [
+  { to: '/faq', i18nKey: 'faq' },
+  { to: '/glossary', i18nKey: 'glossary' },
+  { to: '/api-docs', i18nKey: 'apiDocs' },
+]
+
 const topAnimes = (() => {
   const counts = {}
   personajes.forEach((p) => {
@@ -45,24 +50,13 @@ const topAnimes = (() => {
     .slice(0, 7)
 })()
 
-const techStack = [
-  'React 19',
-  'Vite 8',
-  'Tailwind v4',
-  'Framer Motion',
-  'React Router 7',
-  'Spring Boot 3',
-  'Java 21',
-  'PostgreSQL',
-  'JWT',
-]
-
 function Footer() {
   const { t } = useTranslation()
   return (
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+          {/* Marca + claim */}
           <div className="flex flex-col gap-3">
             <Link to="/" className="flex items-center gap-3">
               <img
@@ -80,18 +74,14 @@ function Footer() {
               {t('footer.descripcion')}
             </p>
           </div>
-          <div className="flex min-w-0 flex-col gap-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              {t('footer.newsletter')}
-            </h3>
-            <NewsletterForm />
-          </div>
+
+          {/* Producto (navegación principal) */}
           <div className="flex flex-col gap-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              {t('footer.navegacion')}
+              {t('footer.producto')}
             </h3>
             <nav className="flex flex-col gap-2">
-              {navLinks.map(({ to, i18nKey }) => (
+              {productoLinks.map(({ to, i18nKey }) => (
                 <Link
                   key={to}
                   to={to}
@@ -102,42 +92,63 @@ function Footer() {
               ))}
             </nav>
           </div>
+
+          {/* Comunidad */}
+          <div className="flex min-w-0 flex-col gap-4">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              {t('footer.comunidad')}
+            </h3>
+            <NewsletterForm />
+            <div className="flex flex-col gap-2">
+              <Link
+                to="/apoya"
+                className="inline-flex w-fit items-center gap-1.5 text-[13px] text-fg transition-colors hover:text-accent"
+              >
+                <Coffee className="h-3.5 w-3.5 text-amber-300" />
+                {t('footer.apoyaCta')}
+              </Link>
+              <a
+                href="https://github.com/diegoalegil/AnimeShowdown"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-fit items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-accent"
+                title={t('footer.codigoAbiertoTitulo')}
+              >
+                <GithubIcon className="h-3.5 w-3.5" />
+                {t('footer.codigoAbierto')}
+              </a>
+            </div>
+          </div>
+
+          {/* Soporte */}
           <div className="flex flex-col gap-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              {t('footer.stack')}
+              {t('footer.soporte')}
             </h3>
-            <div className="flex flex-wrap gap-1.5">
-              {techStack.map((tech) => (
-                <span
-                  key={tech}
-                  className="inline-flex items-center rounded-md bg-surface-alt px-2 py-1 font-mono text-[11px] font-medium text-fg-muted"
+            <nav className="flex flex-col gap-2">
+              {soporteLinks.map(({ to, i18nKey }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className="w-fit text-[13px] text-fg transition-colors hover:text-accent"
                 >
-                  {tech}
-                </span>
+                  {t(`nav.${i18nKey}`)}
+                </Link>
               ))}
-            </div>
-            <a
-              href="https://github.com/diegoalegil/AnimeShowdown"
-              target="_blank"
-              rel="noreferrer"
-              className="group inline-flex w-fit items-center gap-1.5 text-[13px] font-medium text-fg-strong transition-colors hover:text-accent"
-            >
-              <GithubIcon className="h-4 w-4" />
-              {t('footer.verGithub')}
-              <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
-            <Link
-              to="/apoya"
-              className="group inline-flex w-fit items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/5 px-2.5 py-1 text-[12px] font-medium text-amber-200 transition-colors hover:bg-amber-500/15"
-            >
-              <Coffee className="h-3.5 w-3.5" />
-              {t('footer.apoyaCta')}
-            </Link>
+              <a
+                href="mailto:soporte@animeshowdown.dev"
+                className="w-fit text-[13px] text-fg transition-colors hover:text-accent"
+              >
+                {t('footer.contacto')}
+              </a>
+            </nav>
           </div>
         </div>
+
+        {/* SEO internal linking: top animes por roster */}
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-            Animes con más personajes
+            {t('footer.animesPopulares')}
           </p>
           <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
             {topAnimes.map(([anime, count]) => (
@@ -156,7 +167,9 @@ function Footer() {
             ))}
           </ul>
         </div>
-        <div className="mt-6 flex flex-col gap-4 border-t border-border pt-6 text-[12px] text-fg-muted">
+
+        {/* Legal + copyright minimalista */}
+        <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6 text-[12px] text-fg-muted">
           <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-start">
             <li>
               <Link to="/privacidad" className="hover:text-accent hover:underline">
@@ -173,21 +186,10 @@ function Footer() {
                 DMCA
               </Link>
             </li>
-            <li>
-              <a
-                href="mailto:diegogildam@gmail.com"
-                className="hover:text-accent hover:underline"
-              >
-                {t('footer.contacto')}
-              </a>
-            </li>
           </ul>
           <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
             <p>{t('footer.copyright')}</p>
-            <p>
-              {t('footer.hechoCon')} <span className="text-accent">♥</span>{' '}
-              {t('footer.enTenerife')}
-            </p>
+            <p>{t('footer.origen')}</p>
           </div>
         </div>
       </div>

@@ -27,18 +27,20 @@
     "elegirIdioma": "Elegir idioma"
   },
   "footer": {
-    "descripcion": "AnimeShowdown es una plataforma de duelos, rankings ELO y torneos visuales de personajes anime. Vota, compara y descubre qué personajes dominan según la comunidad.",
+    "descripcion": "Plataforma de duelos cara a cara, ranking ELO y torneos visuales entre los personajes anime más icónicos. Tú decides quién manda.",
     "newsletter": "Newsletter",
-    "navegacion": "Navegación",
-    "stack": "Stack",
-    "verGithub": "Ver en GitHub",
-    "apoyaCta": "Invítame a un café",
+    "producto": "Producto",
+    "comunidad": "Comunidad",
+    "soporte": "Soporte",
+    "codigoAbierto": "Código abierto",
+    "codigoAbiertoTitulo": "Ver el código del proyecto en GitHub",
+    "apoyaCta": "Apoya el proyecto",
     "privacidad": "Privacidad",
     "terminos": "Términos",
     "contacto": "Contacto",
-    "copyright": "© 2026 Diego Alegil — DAM 1.º",
-    "hechoCon": "Hecho con",
-    "enTenerife": "en Tenerife"
+    "animesPopulares": "Animes con más personajes",
+    "copyright": "© 2026 AnimeShowdown",
+    "origen": "Desde Tenerife"
   },
   "newsletter": {
     "intro": "Recibe nuevos torneos, rankings destacados y retos diarios directamente en tu correo.",
