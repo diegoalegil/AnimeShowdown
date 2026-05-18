@@ -73,7 +73,12 @@
     "loading": "…",
     "errorLoad": "Couldn't load tournaments. {{error}}",
     "errorFallback": "Try again in a few seconds.",
-    "vacio": "No active tournaments yet. The auto-tournament cron runs every 3 days."
+    "seccionEnCurso": "Live",
+    "seccionProximos": "Coming up",
+    "seccionHistorial": "History",
+    "vacioTitulo": "Season is preparing the brackets",
+    "vacioSub": "The next tournament is auto-generated every few days. Meanwhile, vote the open duels of casual mode and push your favorite characters up the ELO.",
+    "vacioCtaVotar": "Vote open duels"
   },
   "votar": {
     "tituloPagina": "Vote",

@@ -73,7 +73,12 @@
     "loading": "…",
     "errorLoad": "No se pudieron cargar los torneos. {{error}}",
     "errorFallback": "Inténtalo de nuevo en unos segundos.",
-    "vacio": "Aún no hay torneos activos. El cron de auto-torneos genera uno nuevo cada 3 días."
+    "seccionEnCurso": "En curso",
+    "seccionProximos": "Próximamente",
+    "seccionHistorial": "Historial",
+    "vacioTitulo": "Temporada preparando brackets",
+    "vacioSub": "El próximo torneo se genera automáticamente cada pocos días. Mientras, vota los duelos abiertos del modo casual y sube el ELO de tus personajes favoritos.",
+    "vacioCtaVotar": "Vota duelos abiertos"
   },
   "votar": {
     "tituloPagina": "Votar",

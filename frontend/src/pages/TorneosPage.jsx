@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Sparkles } from 'lucide-react'
+import {
+  CalendarClock,
+  CheckCircle2,
+  PlayCircle,
+  Sparkles,
+  Swords,
+  Trophy,
+} from 'lucide-react'
 import TorneoCard from '../components/TorneoCard'
 import { useTorneos } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
@@ -18,6 +25,19 @@ const headerVariants = {
   },
 }
 
+/**
+ * Audit producto (2026-05-18): la página antes era título + spinner +
+ * footer y un grid plano sin separar estados. Ahora:
+ *
+ * <ul>
+ *   <li>Skeleton de 6 cards mientras carga (perceptual mejor que spinner).</li>
+ *   <li>Secciones agrupadas por estado: En curso · Próximamente · Historial.
+ *       Cada sección solo aparece si tiene items, así no hay headers vacíos.</li>
+ *   <li>Empty state premium cuando no hay torneos en BD: copy explicativo
+ *       sobre el cron de auto-torneos + CTAs reales (votar duelos abiertos
+ *       y crear torneo propio si el user está logueado).</li>
+ * </ul>
+ */
 function TorneosPage() {
   const { t } = useTranslation()
   useSeo({
@@ -26,6 +46,11 @@ function TorneosPage() {
   })
   const { data: torneos, isLoading, isError, error } = useTorneos()
   const { user } = useAuth()
+
+  const total = torneos?.length ?? 0
+  const enCurso = (torneos ?? []).filter((it) => it.estado === 'IN_PROGRESS')
+  const proximos = (torneos ?? []).filter((it) => it.estado === 'SCHEDULED')
+  const historial = (torneos ?? []).filter((it) => it.estado === 'FINISHED')
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -46,7 +71,7 @@ function TorneosPage() {
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
             {isLoading
               ? t('torneos.loading')
-              : t('torneos.contadorPlural', { count: torneos?.length ?? 0 })}
+              : t('torneos.contadorPlural', { count: total })}
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             {t('torneos.tituloPagina')}
@@ -62,32 +87,144 @@ function TorneosPage() {
             </Link>
           )}
         </motion.header>
-        {isLoading && (
-          <div className="flex justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-          </div>
-        )}
+
+        {isLoading && <TorneosSkeleton />}
+
         {isError && (
-          <p className="rounded-lg border border-border bg-surface p-4 text-fg-muted">
+          <p className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 text-rose-200">
             {t('torneos.errorLoad', {
               error: error?.message || t('torneos.errorFallback'),
             })}
           </p>
         )}
-        {!isLoading && !isError && torneos && torneos.length === 0 && (
-          <p className="rounded-lg border border-border bg-surface p-4 text-fg-muted">
-            {t('torneos.vacio')}
-          </p>
+
+        {!isLoading && !isError && total === 0 && (
+          <EmptyState user={user} t={t} />
         )}
-        {!isLoading && !isError && torneos && torneos.length > 0 && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-            {torneos.map((t) => (
-              <TorneoCard key={t.slug} torneo={t} />
-            ))}
+
+        {!isLoading && !isError && total > 0 && (
+          <div className="flex flex-col gap-12">
+            {enCurso.length > 0 && (
+              <TorneosSeccion
+                icon={PlayCircle}
+                tono="text-emerald-300"
+                dotColor="bg-emerald-400"
+                titulo={t('torneos.seccionEnCurso')}
+                count={enCurso.length}
+                torneos={enCurso}
+              />
+            )}
+            {proximos.length > 0 && (
+              <TorneosSeccion
+                icon={CalendarClock}
+                tono="text-cyan-300"
+                dotColor="bg-cyan-400"
+                titulo={t('torneos.seccionProximos')}
+                count={proximos.length}
+                torneos={proximos}
+              />
+            )}
+            {historial.length > 0 && (
+              <TorneosSeccion
+                icon={CheckCircle2}
+                tono="text-fg-muted"
+                dotColor="bg-fg-muted"
+                titulo={t('torneos.seccionHistorial')}
+                count={historial.length}
+                torneos={historial}
+              />
+            )}
           </div>
         )}
       </div>
     </section>
+  )
+}
+
+function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 border-b border-border pb-3">
+        <span className={`flex h-6 w-6 items-center justify-center rounded-md bg-surface ${tono}`}>
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+        <h2 className={`text-[13px] font-semibold uppercase tracking-[0.1em] ${tono}`}>
+          {titulo}
+        </h2>
+        <span className="font-mono text-[11px] text-fg-muted tabular-nums">
+          ({count})
+        </span>
+        <span className={`ml-auto h-1.5 w-1.5 rounded-full ${dotColor}`} aria-hidden="true" />
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+        {torneos.map((it) => (
+          <TorneoCard key={it.slug} torneo={it} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TorneosSkeleton() {
+  // 6 cards en grid igual que el real para que el cambio loading → loaded
+  // no recalcule el layout (cero CLS). Avatares fake + h3 fake + meta fake.
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex animate-pulse flex-col gap-4 rounded-xl border border-border bg-surface p-5"
+          aria-hidden="true"
+        >
+          <div className="flex -space-x-3">
+            {Array.from({ length: 5 }).map((_, j) => (
+              <div
+                key={j}
+                className="h-10 w-10 rounded-full border-2 border-surface bg-surface-alt"
+              />
+            ))}
+          </div>
+          <div className="h-5 w-3/4 rounded bg-surface-alt" />
+          <div className="h-3 w-1/2 rounded bg-surface-alt" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function EmptyState({ user, t }) {
+  return (
+    <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-surface p-8 text-center sm:p-12">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <Trophy className="h-7 w-7" />
+      </div>
+      <div className="flex max-w-md flex-col gap-3">
+        <h2 className="text-2xl font-bold tracking-tight text-fg-strong">
+          {t('torneos.vacioTitulo')}
+        </h2>
+        <p className="text-[14px] leading-relaxed text-fg-muted">
+          {t('torneos.vacioSub')}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <Link
+          to="/votar"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+        >
+          <Swords className="h-4 w-4" />
+          {t('torneos.vacioCtaVotar')}
+        </Link>
+        {user && (
+          <Link
+            to="/torneos/crear"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-5 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/20"
+          >
+            <Sparkles className="h-4 w-4" />
+            {t('torneos.crearCta')}
+          </Link>
+        )}
+      </div>
+    </div>
   )
 }
 
