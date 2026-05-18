@@ -31,6 +31,7 @@ import JsonLd from '../components/JsonLd'
 import EloHistoryChart from '../components/EloHistoryChart'
 import HistorialCompetitivo from '../components/HistorialCompetitivo'
 import PersonajeCard from '../components/PersonajeCard'
+import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import PersonajeGaleria from '../components/PersonajeGaleria'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
@@ -593,15 +594,15 @@ function PersonajeStaticOr3D({ imagenUrl, slug, nombre }) {
   if (!show3D) {
     return (
       <div className="relative h-full w-full">
-        <img
-          src={imagenUrl}
-          alt={nombre}
-          className="h-full w-full object-cover"
-        />
+        {/* Sprint holo (2026-05-18): la imagen del personaje (cards SSR
+            del catálogo) se renderiza con efecto Pokémon-TCG-style
+            (tilt 3D + specular shine + rainbow holo). PersonajeCardHolo
+            es zero-lib y respeta prefers-reduced-motion. */}
+        <PersonajeCardHolo src={imagenUrl} alt={nombre} />
         <button
           type="button"
           onClick={() => setShow3D(true)}
-          className="absolute bottom-3 right-3 rounded-full border border-border bg-surface/85 px-3 py-1.5 text-[11px] font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-accent"
+          className="absolute bottom-3 right-3 z-10 rounded-full border border-border bg-surface/85 px-3 py-1.5 text-[11px] font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-accent"
         >
           Ver en 3D
         </button>
