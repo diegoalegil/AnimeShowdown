@@ -25,7 +25,8 @@
     "paletaToast": "Palette: {{nombre}}",
     "idioma": "Language",
     "elegirIdioma": "Choose language",
-    "ctaVotar": "Vote now"
+    "ctaVotar": "Vote now",
+    "ctaVotarCompact": "Vote"
   },
   "footer": {
     "descripcion": "A platform for head-to-head duels, ELO ranking and visual tournaments between the most iconic anime characters. You decide who rules.",
