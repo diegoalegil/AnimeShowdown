@@ -50,7 +50,7 @@
     "enviando": "Enviando…",
     "okDefault": "Te hemos enviado un email para confirmar.",
     "reintentar": "Suscribir otro email",
-    "doubleOptIn": "Double opt-in: necesitas confirmar via email. Puedes darte de baja en cualquier momento desde el footer de cada envío.",
+    "doubleOptIn": "Te mandamos un correo para confirmar la suscripción. Puedes darte de baja cuando quieras desde cualquier envío.",
     "errorRequired": "Introduce tu email",
     "errorInvalido": "Email no válido",
     "errorEnvio": "No se pudo enviar. Inténtalo de nuevo en unos segundos."

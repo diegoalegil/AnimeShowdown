@@ -50,7 +50,7 @@
     "enviando": "Sending…",
     "okDefault": "We've sent you a confirmation email.",
     "reintentar": "Subscribe another email",
-    "doubleOptIn": "Double opt-in: you need to confirm via email. You can unsubscribe at any time from any newsletter footer.",
+    "doubleOptIn": "We'll send you a confirmation email. You can unsubscribe any time from any newsletter footer.",
     "errorRequired": "Enter your email",
     "errorInvalido": "Invalid email",
     "errorEnvio": "Couldn't send. Try again in a few seconds."
