@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
 import { imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Strip "Duelos abiertos" arriba del bracket en /torneos/:slug.
@@ -169,6 +170,7 @@ function FighterTile({ personaje, alignRight = false }) {
         src={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
         alt=""
         loading="lazy"
+        onError={ocultaImgRota}
         className="h-12 w-10 shrink-0 rounded-md object-cover object-top"
       />
       <div className="min-w-0">
