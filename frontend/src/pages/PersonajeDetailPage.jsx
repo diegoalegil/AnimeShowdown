@@ -31,6 +31,7 @@ import JsonLd from '../components/JsonLd'
 import EloHistoryChart from '../components/EloHistoryChart'
 import HistorialCompetitivo from '../components/HistorialCompetitivo'
 import PersonajeCard from '../components/PersonajeCard'
+import PersonajeGaleria from '../components/PersonajeGaleria'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
@@ -82,6 +83,18 @@ function PersonajeDetailPage() {
   )
   const [jikan, setJikan] = useState(null)
   const [cita, setCita] = useState(null)
+  // Imagen mostrada en el hero. Default = imagen del catálogo. La galería
+  // (PersonajeGaleria) actualiza este state al clickar una thumbnail.
+  // Reset al cambiar de slug usando el patrón "storing info from previous
+  // renders" de React docs — evita el anti-patrón useEffect+setState que
+  // dispara un render extra: https://react.dev/reference/react/useState
+  const imagenCatalogo = personaje ? imagenPersonaje(slug) : null
+  const [imagenActiva, setImagenActiva] = useState(imagenCatalogo)
+  const [slugAnterior, setSlugAnterior] = useState(slug)
+  if (slug !== slugAnterior) {
+    setSlugAnterior(slug)
+    setImagenActiva(imagenCatalogo)
+  }
 
   useEffect(() => {
     if (!personaje) return
@@ -201,16 +214,35 @@ function PersonajeDetailPage() {
               fuera del primer viewport. En desktop el orden y el aspect-ratio
               originales se preservan vía md:* classes. */}
           <motion.div
-            className="relative order-2 mx-auto aspect-[2/3] w-auto max-h-[55vh] overflow-hidden rounded-2xl border border-border bg-surface md:order-1 md:mx-0 md:w-full md:max-w-md md:max-h-none"
-            style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
+            className="order-2 mx-auto w-auto md:order-1 md:mx-0 md:w-full md:max-w-md"
             variants={itemVariants}
           >
-            {/* Audit (2026-05-17): Personaje3D era opt-in al mount con
-                imagen como fallback, pero el chunk se descargaba siempre
-                al entrar a la ficha y disparaba 'THREE.Clock deprecated'
-                en consola. Cambio a static-first: imagen como default y
-                un botón 'Ver en 3D' monta el lazy chunk on-demand. */}
-            <PersonajeStaticOr3D slug={slug} nombre={personaje.nombre} />
+            <div
+              className="relative aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:w-full md:max-h-none"
+              style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
+            >
+              {/* Audit (2026-05-17): Personaje3D era opt-in al mount con
+                  imagen como fallback, pero el chunk se descargaba siempre
+                  al entrar a la ficha y disparaba 'THREE.Clock deprecated'
+                  en consola. Cambio a static-first: imagen como default y
+                  un botón 'Ver en 3D' monta el lazy chunk on-demand.
+
+                  Sprint galería (2026-05-18): la imagen del hero ahora
+                  es la del state `imagenActiva` que PersonajeGaleria
+                  cambia al hacer click en una thumbnail. PersonajeStaticOr3D
+                  recibe la URL como prop en vez de calcularla. */}
+              <PersonajeStaticOr3D
+                imagenUrl={imagenActiva}
+                slug={slug}
+                nombre={personaje.nombre}
+              />
+            </div>
+            <PersonajeGaleria
+              slug={slug}
+              principalUrl={imagenCatalogo}
+              imagenActiva={imagenActiva}
+              onSelect={setImagenActiva}
+            />
           </motion.div>
           <motion.div
             className="order-1 flex flex-col items-start gap-4 md:order-2"
@@ -550,14 +582,19 @@ function CarruselSimilares({ slug, nombre }) {
  * Render static-first del personaje. Por defecto img + botón "Ver en 3D".
  * Al hacer click, monta el chunk lazy de Personaje3D. Evita pagar el
  * coste de three.js/Three Fiber en cada visita a la ficha.
+ *
+ * <p>Sprint galería (2026-05-18): imagenUrl viene del state externo
+ * `imagenActiva` para que PersonajeGaleria pueda cambiarla; el slug se
+ * mantiene como prop separada porque Personaje3D lo necesita para cargar
+ * el modelo lazy con sus propios assets.
  */
-function PersonajeStaticOr3D({ slug, nombre }) {
+function PersonajeStaticOr3D({ imagenUrl, slug, nombre }) {
   const [show3D, setShow3D] = useState(false)
   if (!show3D) {
     return (
       <div className="relative h-full w-full">
         <img
-          src={imagenPersonaje(slug)}
+          src={imagenUrl}
           alt={nombre}
           className="h-full w-full object-cover"
         />
@@ -575,7 +612,7 @@ function PersonajeStaticOr3D({ slug, nombre }) {
     <Suspense
       fallback={
         <img
-          src={imagenPersonaje(slug)}
+          src={imagenUrl}
           alt={nombre}
           className="h-full w-full object-cover"
         />
