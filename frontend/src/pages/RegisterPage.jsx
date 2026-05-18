@@ -89,7 +89,7 @@ function RegisterPage() {
               htmlFor="username"
               className="text-[13px] font-medium text-fg-strong"
             >
-              Username
+              Nombre de usuario
             </label>
             <input
               id="username"

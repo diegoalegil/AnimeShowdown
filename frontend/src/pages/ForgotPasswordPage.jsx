@@ -55,7 +55,7 @@ function ForgotPasswordPage() {
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
             Recuperar acceso
           </span>
-          <h1 className="text-3xl tracking-tight">Olvidaste tu contraseña</h1>
+          <h1 className="text-3xl tracking-tight">¿Olvidaste tu contraseña?</h1>
           <p className="text-fg-muted">
             Te enviamos un código de 6 dígitos al email que usaste para registrarte. Tendrás 15 minutos para usarlo.
           </p>
@@ -120,7 +120,7 @@ function ForgotPasswordPage() {
             to="/login"
             className="font-semibold text-accent hover:text-accent-hover"
           >
-            Volver a Login
+            Volver a inicio de sesión
           </Link>
         </p>
       </motion.div>

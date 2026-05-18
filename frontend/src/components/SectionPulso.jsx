@@ -371,7 +371,7 @@ function RetoCard({ personaje }) {
             Adivina la silueta
           </h3>
           <p className="text-[12px] leading-snug text-fg-muted">
-            Cinco intentos. Cada fallo nítida un poco la imagen.
+            Cinco intentos. Cada fallo aclara un poco la imagen.
           </p>
         </div>
       </div>
