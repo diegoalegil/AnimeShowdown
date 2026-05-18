@@ -95,6 +95,25 @@ function EventoDetailPage() {
         ? `Empieza en ${restante}`
         : 'Finalizado'
 
+  // Sprint UX (2026-05-18): mini-stats agregadas + "Misión del evento"
+  // — la página antes era header + grid plano. Falta sentido competitivo.
+  // Calculamos en cliente desde el catálogo (sin tocar backend) para
+  // dar contexto rápido: cuántos top 100 globales hay, cuántos top 25,
+  // ELO máximo. Lo bastante para hacer del evento "una temporada con
+  // tier list" en vez de "una lista de personajes".
+  const top100 = participantes.filter((p) => p.elo >= 1750).length
+  const top25 = participantes.filter((p) => p.elo >= 1950).length
+  const eloMax = participantes[0]?.elo ?? 0
+  const misionPorEstado = {
+    [ESTADO_EVENTO.ACTIVO]:
+      'Vota duelos entre estos personajes para mover su ELO durante la ventana del evento. El podio final se cierra cuando termine el countdown.',
+    [ESTADO_EVENTO.PROXIMO]:
+      'Aún no está abierto. Elige tus favoritos del roster y vuelve cuando empiece el countdown — el ranking del evento se calculará desde el momento del start.',
+    [ESTADO_EVENTO.PASADO]:
+      'Evento cerrado. El podio que ves es el resultado final acumulado durante su ventana activa.',
+  }
+  const misionEvento = misionPorEstado[estado]
+
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
@@ -153,6 +172,28 @@ function EventoDetailPage() {
           )}
         </motion.header>
 
+        {/* Sprint UX (2026-05-18): bloque de "Misión del evento" + stats
+            agregadas para que la página se sienta como una temporada
+            con métricas propias, no un grid plano. */}
+        {participantes.length > 0 && (
+          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr] sm:gap-4">
+            <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface p-4 sm:p-5">
+              <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
+                <Sparkles className="h-3 w-3" />
+                Misión del evento
+              </span>
+              <p className="text-[13px] leading-relaxed text-fg-muted sm:text-[14px]">
+                {misionEvento}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 rounded-xl border border-border bg-surface p-3 sm:p-4">
+              <MiniStat label="Participantes" value={participantes.length} />
+              <MiniStat label="Top 100" value={top100} tone="amber" />
+              <MiniStat label="ELO máx" value={eloMax || '—'} mono />
+            </div>
+          </div>
+        )}
+
         <div className="mb-4 flex items-end justify-between gap-3 border-b border-border pb-3">
           <div className="flex flex-col gap-1">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
@@ -160,7 +201,11 @@ function EventoDetailPage() {
               Ranking del evento
             </span>
             <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
-              Participantes ordenados por ELO
+              {participantes.length === 0
+                ? 'Participantes'
+                : top25 > 0
+                  ? `Podio interno · ${top25} entre top 25 global`
+                  : 'Participantes ordenados por ELO'}
             </h2>
           </div>
           <span className="font-mono text-[12px] text-fg-muted tabular-nums">
@@ -228,6 +273,23 @@ function ParticipanteCard({ rank, personaje, tono }) {
         </p>
       </Link>
     </li>
+  )
+}
+
+function MiniStat({ label, value, tone, mono }) {
+  const toneClass =
+    tone === 'amber' ? 'text-amber-300' : 'text-fg-strong'
+  return (
+    <div className="flex flex-col items-center gap-0.5 text-center">
+      <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-fg-muted sm:text-[10px]">
+        {label}
+      </p>
+      <p
+        className={`${mono ? 'font-mono tabular-nums' : ''} text-base font-extrabold ${toneClass} sm:text-lg`}
+      >
+        {value}
+      </p>
+    </div>
   )
 }
 
