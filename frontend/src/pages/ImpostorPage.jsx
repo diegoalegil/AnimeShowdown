@@ -19,6 +19,7 @@ import {
   impostorDelDia,
   safeStorage,
 } from '../lib/games'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 const RONDAS_POR_DIA = 3
 const STORAGE_KEY = 'animeshowdown.impostor.v1'
@@ -311,6 +312,7 @@ function Carta({ item, onClick }) {
           src={item.imagen}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-full w-full object-contain transition-transform group-hover:scale-105"
         />
       </div>
