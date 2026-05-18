@@ -93,7 +93,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           const next = !o
           if (next) {
             const muted = localStorage.getItem('animeshowdown.muted') === 'true'
-            if (!muted) playWhoosh()
+            if (!muted) playWhoosh().catch(() => {})
           }
           return next
         })
