@@ -20,6 +20,7 @@ import {
   getPersonajesEvento,
 } from '../data/eventos'
 import { imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Índice de eventos temporales (Plan producto 2026-05-18). Tres
@@ -178,6 +179,7 @@ function EventoCard({ evento, now, etiqueta }) {
             src={imagenPersonaje(p.slug)}
             alt=""
             loading="lazy"
+            onError={ocultaImgRota}
             className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
           />
         ))}
