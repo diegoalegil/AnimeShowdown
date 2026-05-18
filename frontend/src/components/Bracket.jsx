@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Check, Lock, Sparkles, Trophy } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
@@ -7,6 +8,7 @@ import {
   useMisPredicciones,
 } from '../hooks/usePredicciones'
 import { ApiError } from '../lib/api'
+import { useVotarEnfrentamiento } from '../lib/torneosQueries'
 
 /**
  * Renderiza un bracket de eliminación directa con datos vivos del backend.
@@ -48,7 +50,7 @@ const KANJI_RONDA = {
   1: ['決勝'],
 }
 
-function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId }) {
+function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSlug, estado }) {
   // Plan v2 §4.4: cargamos las predicciones del usuario para este torneo
   // (skip si no hay user o no hay torneoId). El hook ya respeta esos
   // gates internamente. Se indexa por enfrentamientoId para que cada
@@ -153,6 +155,8 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId }) {
                   key={match.id}
                   match={match}
                   torneoId={torneoId}
+                  torneoSlug={torneoSlug}
+                  estado={estado}
                   prediccion={prediccionesPorEnf.get(match.id)}
                 />
               ))}
@@ -198,7 +202,7 @@ function findPersonajePorSlug(enfrentamientos, slug) {
   return null
 }
 
-function BracketMatch({ match, torneoId, prediccion }) {
+function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion }) {
   const ambosPersonajes = match.personaje1 && match.personaje2
 
   // Match vacío (slot de ronda futura sin resolver): placeholder difuminado.
@@ -217,6 +221,7 @@ function BracketMatch({ match, torneoId, prediccion }) {
 
   const ganadorId = match.ganador?.id
   const resuelto = Boolean(ganadorId)
+  const abiertoParaVotar = estado === 'IN_PROGRESS' && !resuelto
 
   return (
     <div className="rounded-lg border border-border bg-surface p-1.5">
@@ -229,6 +234,9 @@ function BracketMatch({ match, torneoId, prediccion }) {
         personaje={match.personaje2}
         winner={ganadorId === match.personaje2.id}
       />
+      {abiertoParaVotar && (
+        <VotoRow match={match} torneoSlug={torneoSlug} />
+      )}
       {/* Plan v2 §4.4: picker de predicciones. Solo aparece si el match
           está abierto Y tenemos torneoId (i.e. user logueado, el hook
           padre cargó misPredicciones). Si resuelto, mostramos badge con
@@ -242,6 +250,102 @@ function BracketMatch({ match, torneoId, prediccion }) {
         />
       )}
     </div>
+  )
+}
+
+function VotoRow({ match, torneoSlug }) {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const mutation = useVotarEnfrentamiento(torneoSlug)
+  const [votadoLocal, setVotadoLocal] = useState(null)
+
+  const totalVotos = match.totalVotos ?? 0
+  const disabled = mutation.isPending || Boolean(votadoLocal)
+
+  const onVote = (personaje) => {
+    if (!user) {
+      toast.error('Entra para votar este duelo', {
+        description: 'Te devolvemos al torneo después.',
+      })
+      const next = `${location.pathname}${location.search}${location.hash}`
+      navigate(`/login?next=${encodeURIComponent(next)}`)
+      return
+    }
+
+    mutation.mutate(
+      { enfrentamientoId: match.id, personajeGanadorId: personaje.id },
+      {
+        onSuccess: (data) => {
+          setVotadoLocal(personaje.id)
+          toast.success(`Voto para ${personaje.nombre}`, {
+            description: data?.votosGanador != null
+              ? `${data.votosGanador} votos en este match`
+              : 'Bracket actualizado',
+          })
+        },
+        onError: (err) => {
+          const status = err instanceof ApiError ? err.status : 0
+          if (status === 409) {
+            setVotadoLocal('ya-votado')
+            toast.error('Ya votaste este enfrentamiento')
+          } else if (status === 401 || status === 403) {
+            const next = `${location.pathname}${location.search}${location.hash}`
+            navigate(`/login?next=${encodeURIComponent(next)}`)
+          } else {
+            toast.error('No se pudo registrar el voto', {
+              description: err?.message || 'Inténtalo de nuevo.',
+            })
+          }
+        },
+      },
+    )
+  }
+
+  return (
+    <div className="mt-1.5 rounded-md border border-accent/25 bg-accent/5 p-1.5">
+      <div className="mb-1 flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-muted">
+        <span>Vota este duelo</span>
+        <span className="font-mono tabular-nums">{totalVotos} votos</span>
+      </div>
+      <div className="flex gap-1">
+        <VotoButton
+          personaje={match.personaje1}
+          active={votadoLocal === match.personaje1.id}
+          disabled={disabled}
+          onClick={() => onVote(match.personaje1)}
+        />
+        <VotoButton
+          personaje={match.personaje2}
+          active={votadoLocal === match.personaje2.id}
+          disabled={disabled}
+          onClick={() => onVote(match.personaje2)}
+        />
+      </div>
+      {votadoLocal && (
+        <p className="mt-1 text-center text-[10px] font-medium text-accent">
+          Voto registrado
+        </p>
+      )}
+    </div>
+  )
+}
+
+function VotoButton({ personaje, active, disabled, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={`Votar a ${personaje.nombre}`}
+      className={`min-w-0 flex-1 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+        active
+          ? 'border-accent bg-accent text-bg'
+          : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-accent'
+      }`}
+    >
+      <span className="block truncate">{personaje.nombre}</span>
+    </button>
   )
 }
 
