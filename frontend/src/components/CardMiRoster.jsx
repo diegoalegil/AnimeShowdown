@@ -3,6 +3,7 @@ import { ArrowRight, Heart, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMisFavoritos, useToggleFavorito } from '../hooks/useFavoritos'
 import { getStatsPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Card "Mi roster" en /perfil (Plan producto 2026-05-18).
@@ -77,6 +78,7 @@ function RosterCard({ favorito }) {
               src={imagenUrl}
               alt=""
               loading="lazy"
+              onError={ocultaImgRota}
               className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
             />
           ) : (

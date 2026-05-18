@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { normalizar } from '../lib/games'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Combobox de selección de personaje (Bloque 14).
@@ -175,6 +176,7 @@ function AutocompletePersonaje({
                   src={imagenPersonaje(p.slug)}
                   alt=""
                   loading="lazy"
+                  onError={ocultaImgRota}
                   className="h-9 w-7 shrink-0 rounded object-cover object-top"
                 />
                 <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">

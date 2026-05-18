@@ -24,6 +24,7 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 import { useTorneos } from '../lib/torneosQueries'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
@@ -328,6 +329,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   src={imagenPersonaje(p.slug)}
                   alt=""
                   loading="lazy"
+                  onError={ocultaImgRota}
                   className="h-7 w-5 shrink-0 rounded object-cover object-top"
                 />
                 <span>{p.nombre}</span>

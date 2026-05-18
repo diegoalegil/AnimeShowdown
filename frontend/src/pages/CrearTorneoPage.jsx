@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
+import { ocultaImgRota } from '../lib/imgFallback'
 import { endpoints, ApiError } from '../lib/api'
 import { personajes as catalogoCliente } from '../data/personajes'
 
@@ -397,6 +398,7 @@ function CardSeleccion({
                 src={p.imagen}
                 alt=""
                 loading="lazy"
+                onError={ocultaImgRota}
                 className="h-16 w-12 rounded object-cover object-top"
               />
               <span className="line-clamp-1 text-[11px] font-semibold text-fg-strong">

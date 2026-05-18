@@ -8,6 +8,7 @@ import {
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * TV Mode (Plan v2 §11.3) — vista pantalla completa sin chrome de la
@@ -157,6 +158,7 @@ function VistaTop10() {
             <img
               src={imagenPersonaje(p.slug)}
               alt=""
+              onError={ocultaImgRota}
               className="h-24 w-20 rounded-lg object-cover object-top sm:h-32 sm:w-24"
             />
             <p className="line-clamp-1 text-center text-[13px] font-bold sm:text-sm">{p.nombre}</p>
@@ -188,6 +190,7 @@ function VistaSpotlight({ tick }) {
       <motion.img
         src={imagenPersonaje(p.slug)}
         alt={p.nombre}
+        onError={ocultaImgRota}
         className="mx-auto aspect-[2/3] w-auto max-h-[40vh] rounded-2xl object-cover object-top sm:rounded-3xl md:max-h-none md:w-full md:max-w-md"
         style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.4))' }}
       />
@@ -267,6 +270,7 @@ function Versus({ personaje, elo, esFavorito }) {
       <img
         src={imagenPersonaje(personaje.slug)}
         alt=""
+        onError={ocultaImgRota}
         className="h-28 w-20 rounded-lg object-cover object-top sm:h-64 sm:w-48"
       />
       <p className="line-clamp-1 text-center text-sm font-bold sm:text-2xl">{personaje.nombre}</p>
