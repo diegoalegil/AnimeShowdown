@@ -48,7 +48,7 @@ function ApoyaPage() {
   useSeo({
     title: 'Apoya el proyecto',
     description:
-      'AnimeShowdown es un proyecto gratuito hecho en horas libres. Apoya con Ko-fi, GitHub Sponsors o ayuda gratis compartiendo y dando una estrella en GitHub.',
+      'AnimeShowdown es gratuito y sin anuncios. Si te entretiene, échame una mano con Ko-fi, GitHub Sponsors o ayuda gratis compartiendo la web.',
   })
 
   return (
@@ -75,13 +75,13 @@ function ApoyaPage() {
             Ayuda a mantener AnimeShowdown vivo
           </h1>
           <p className="max-w-2xl text-fg-muted">
-            AnimeShowdown es un proyecto gratuito hecho en mis horas libres
-            mientras estudio DAM. No tiene anuncios, no vende tus datos y no
-            bloquea funciones importantes detrás de pagos.
+            AnimeShowdown es gratuito, sin anuncios y sin venta de datos.
+            Lo mantengo en mis horas libres y cualquier euro va directo a
+            servidor, dominio y mejoras.
           </p>
           <p className="max-w-2xl text-fg-muted">
-            Si la web te entretiene, te ayuda o simplemente quieres apoyar el
-            desarrollo, estas son las formas de echar una mano.
+            Si la web te entretiene o te ayuda y quieres devolver algo,
+            estas son las formas de echar una mano.
           </p>
         </motion.header>
 
@@ -209,10 +209,10 @@ function ApoyaPage() {
         {/* Promesa */}
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
           <p className="text-[13px] leading-relaxed text-emerald-200">
-            <strong>Promesa del proyecto:</strong> AnimeShowdown seguirá siendo
+            <strong>Compromiso:</strong> AnimeShowdown seguirá siendo
             gratuito, sin anuncios invasivos, sin popups molestos y sin
-            funciones importantes bloqueadas detrás de pagos. Los datos del
-            catálogo seguirán abiertos bajo licencia MIT.
+            funciones importantes detrás de un muro de pago. El código y el
+            catálogo se mantienen abiertos en GitHub.
           </p>
           <Link
             to="/"
@@ -261,9 +261,8 @@ function MetaMensual({ recibido, objetivo }) {
         />
       </div>
       <p className="mt-3 text-[12px] text-fg-muted">
-        Objetivo del mes para cubrir hosting backend y dominio. Cualquier
-        aporte ayuda — si la meta se cubre, el extra va a mejoras y
-        nuevos modos.
+        Objetivo del mes para cubrir servidor y dominio. Cualquier aporte
+        ayuda — si la meta se cubre, el extra va a nuevos modos y mejoras.
       </p>
     </div>
   )
