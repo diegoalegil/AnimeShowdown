@@ -28,6 +28,7 @@ import {
 } from '../data/eventos'
 import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Campeón fallback derivado del catálogo local. Útil cuando el ranking
@@ -286,6 +287,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
           src={p.imagenUrl || imagenPersonaje(p.slug)}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-28 w-20 shrink-0 rounded-lg object-cover object-top sm:h-32 sm:w-24"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -394,6 +396,7 @@ function MoverRow({ mover, actividad }) {
           src={mover.imagenUrl || imagenPersonaje(mover.slug)}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-10 w-8 rounded object-cover object-top"
         />
       </Link>
@@ -440,6 +443,7 @@ function RetoCard({ personaje }) {
             src={imagenPersonaje(personaje.slug)}
             alt=""
             loading="lazy"
+            onError={ocultaImgRota}
             className="h-full w-full object-cover object-top"
             style={{ filter: 'blur(10px)', transform: 'scale(1.1)' }}
           />
@@ -623,6 +627,7 @@ function VotoRow({ voto }) {
           src={ganador.imagenUrl || imagenPersonaje(ganador.slug)}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-7 w-7 rounded object-cover object-top"
         />
       </Link>
@@ -690,6 +695,7 @@ function DueloAvatar({ personaje }) {
         src={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
         alt=""
         loading="lazy"
+        onError={ocultaImgRota}
         className="h-16 w-12 rounded-md object-cover object-top"
       />
       <p className="line-clamp-1 max-w-full text-center text-[11px] font-semibold text-fg-strong">
@@ -772,6 +778,7 @@ function EventoHeadlineBanner() {
                 src={imagenPersonaje(p.slug)}
                 alt=""
                 loading="lazy"
+                onError={ocultaImgRota}
                 className="h-10 w-10 rounded-full border-2 border-bg object-cover object-top"
               />
             ))}

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { endpoints, ApiError } from '../lib/api'
 import { imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
 
 /**
@@ -230,6 +231,7 @@ function DueloRow({ duelo }) {
             src={rival.imagenUrl || imagenPersonaje(rival.slug)}
             alt=""
             loading="lazy"
+            onError={ocultaImgRota}
             className="h-12 w-9 rounded object-cover object-top"
           />
         </Link>
@@ -443,6 +445,7 @@ function MatchupRow({ item, tipo }) {
           src={rival.imagenUrl || imagenPersonaje(rival.slug)}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-7 w-5 rounded object-cover object-top"
         />
       </Link>
