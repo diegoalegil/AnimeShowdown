@@ -57,13 +57,13 @@
     "errorEnvio": "Couldn't send. Try again in a few seconds."
   },
   "hero": {
-    "tituloAntes": "The definitive",
+    "tituloAntes": "Who rules",
     "tituloAnime": "anime",
-    "tituloDespues": "ranking is yours to decide",
-    "subtitulo": "Face characters off in head-to-head duels, vote for your favorites and find out who dominates AnimeShowdown's ELO ranking. Every vote counts. Every duel shifts the meta.",
-    "ctaTorneos": "Vote now",
-    "ctaRanking": "See ranking",
-    "features": "Live duels · Visual brackets · Live ELO ranking · Daily anime trials"
+    "tituloDespues": "is up to you.",
+    "subtitulo": "1v1 duels, live ELO ranking and new tournaments every week. Your vote moves the meta.",
+    "ctaTorneos": "Start voting",
+    "ctaRanking": "See the meta",
+    "features": "Vote duels · Compete in tournaments · Climb the ELO ranking"
   },
   "torneos": {
     "tituloPagina": "Tournaments",
