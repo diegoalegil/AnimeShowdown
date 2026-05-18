@@ -618,18 +618,30 @@ function PersonajeStaticOr3D({ imagenUrl, slug, nombre }) {
       </div>
     )
   }
+  // Modo 3D activo: incluimos el chunk lazy del modelo + toggle reverso
+  // para volver a la imagen estática. Antes no había forma de salir del
+  // modo 3D sin recargar la página — bug reportado audit externa.
   return (
-    <Suspense
-      fallback={
-        <img
-          src={imagenUrl}
-          alt={nombre}
-          className="h-full w-full object-cover"
-        />
-      }
-    >
-      <Personaje3D slug={slug} />
-    </Suspense>
+    <div className="relative h-full w-full">
+      <Suspense
+        fallback={
+          <img
+            src={imagenUrl}
+            alt={nombre}
+            className="h-full w-full object-cover"
+          />
+        }
+      >
+        <Personaje3D slug={slug} />
+      </Suspense>
+      <button
+        type="button"
+        onClick={() => setShow3D(false)}
+        className="absolute bottom-3 right-3 z-10 rounded-full border border-accent/60 bg-bg/85 px-3 py-1.5 text-[11px] font-semibold text-accent backdrop-blur transition-colors hover:border-accent hover:bg-accent/15"
+      >
+        Volver a imagen
+      </button>
+    </div>
   )
 }
 
