@@ -1,4 +1,5 @@
 let audioContext = null
+let resumePromise = null
 
 function getCtx() {
   if (!audioContext) {
@@ -9,17 +10,7 @@ function getCtx() {
     // latency puede subir a 100ms+, que se percibe como sonido tardío.
     audioContext = new Ctx({ latencyHint: 'interactive' })
   }
-  if (audioContext.state === 'suspended') {
-    audioContext.resume().catch(() => {})
-  }
   return audioContext
-}
-
-// Warm-up: lo llama SoundProvider al primer gesture del usuario para que el
-// AudioContext esté en estado "running" antes del primer play() y no haya lag
-// ni primer-sonido-mudo por la política de autoplay del navegador.
-export function __warm() {
-  getCtx()
 }
 
 /**
@@ -28,32 +19,70 @@ export function __warm() {
  * para evitar el bug donde {@code ctx.currentTime} estaba "atrasado"
  * porque el resume era asíncrono y el osc.start(now) caía en el pasado,
  * arrancando con lag perceptible.
+ *
+ * <p>Audit performance (2026-05-18): cachea la promesa del resume en
+ * curso. Antes, cada playXxx llamaba `ctx.resume()` sin await — si dos
+ * sonidos disparaban en paralelo durante el primer gesture, ambos
+ * arrancaban con el ctx aún suspendido. Ahora todas las llamadas
+ * esperan al MISMO resumePromise; el segundo play no dispara su propio
+ * resume.
  */
 async function ensureRunning() {
   const ctx = getCtx()
   if (!ctx) return null
-  if (ctx.state !== 'running') {
-    try {
-      await ctx.resume()
-    } catch {
-      /* iOS Safari puede rechazar si no hay user gesture activo */
-    }
+  if (ctx.state === 'running') return ctx
+  if (!resumePromise) {
+    resumePromise = ctx
+      .resume()
+      .catch(() => {
+        /* iOS Safari puede rechazar si no hay user gesture activo */
+      })
+      .finally(() => {
+        resumePromise = null
+      })
   }
+  await resumePromise
   return ctx
 }
 
-function noiseBuffer(ctx, duration) {
+// Warm-up: lo llama SoundProvider al primer gesture del usuario para que el
+// AudioContext esté en estado "running" antes del primer play() y no haya lag
+// ni primer-sonido-mudo por la política de autoplay del navegador.
+//
+// Audit (2026-05-18): async. Antes era sync sin await; el primer click
+// caía sobre un ctx aún suspendido aunque __warm() acabara de ser
+// invocado en el mismo tick.
+export async function __warm() {
+  await ensureRunning()
+}
+
+// Audit performance (2026-05-18): cachéa buffers de ruido. Antes
+// playWhoosh y playImpact generaban un Float32Array entero con
+// Math.random() en cada click — en móviles bajos era un coste medible
+// (~2-4ms para 0.25s @ 48kHz = 12k samples). Ahora 1 buffer por
+// duración, generado a demanda, reutilizado para siempre.
+let _noiseShort = null // 0.12s (impact)
+let _noiseLong = null // 0.25s (whoosh)
+
+function getNoiseBuffer(ctx, duration) {
+  const wantLong = duration >= 0.2
+  const slot = wantLong ? _noiseLong : _noiseShort
+  // Si el sampleRate del ctx cambió (raro: solo si el browser recrea el
+  // device de audio), invalidamos y regeneramos.
+  if (slot && slot.sampleRate === ctx.sampleRate) return slot
   const length = Math.floor(ctx.sampleRate * duration)
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate)
   const data = buffer.getChannelData(0)
   for (let i = 0; i < length; i++) {
     data[i] = (Math.random() * 2 - 1) * (1 - i / length)
   }
+  if (wantLong) _noiseLong = buffer
+  else _noiseShort = buffer
   return buffer
 }
 
-export function playClick() {
-  const ctx = getCtx()
+export async function playClick() {
+  const ctx = await ensureRunning()
   if (!ctx) return
   const now = ctx.currentTime
   const osc = ctx.createOscillator()
@@ -70,8 +99,8 @@ export function playClick() {
   osc.stop(now + 0.1)
 }
 
-export function playHover() {
-  const ctx = getCtx()
+export async function playHover() {
+  const ctx = await ensureRunning()
   if (!ctx) return
   const now = ctx.currentTime
   const osc = ctx.createOscillator()
@@ -124,12 +153,12 @@ export async function playVote() {
 }
 
 // Sword whoosh — bandpass-swept noise (transición/menu open)
-export function playWhoosh() {
-  const ctx = getCtx()
+export async function playWhoosh() {
+  const ctx = await ensureRunning()
   if (!ctx) return
   const now = ctx.currentTime
   const src = ctx.createBufferSource()
-  src.buffer = noiseBuffer(ctx, 0.25)
+  src.buffer = getNoiseBuffer(ctx, 0.25)
   const filter = ctx.createBiquadFilter()
   filter.type = 'bandpass'
   filter.Q.value = 6
@@ -145,8 +174,8 @@ export function playWhoosh() {
 }
 
 // Magic sparkle — 6 sines high-freq apilados aleatoriamente (login/register success)
-export function playMagic() {
-  const ctx = getCtx()
+export async function playMagic() {
+  const ctx = await ensureRunning()
   if (!ctx) return
   const now = ctx.currentTime
   const baseFreqs = [1568, 1760, 2093, 2349, 2637, 3136]
@@ -167,8 +196,8 @@ export function playMagic() {
 }
 
 // Impact — sub-bass thump + filtered noise (kapow al votar contundente o VS reveal)
-export function playImpact() {
-  const ctx = getCtx()
+export async function playImpact() {
+  const ctx = await ensureRunning()
   if (!ctx) return
   const now = ctx.currentTime
   // Sub-bass thump
@@ -186,7 +215,7 @@ export function playImpact() {
   osc.stop(now + 0.22)
   // Crack noise
   const src = ctx.createBufferSource()
-  src.buffer = noiseBuffer(ctx, 0.12)
+  src.buffer = getNoiseBuffer(ctx, 0.12)
   const filter = ctx.createBiquadFilter()
   filter.type = 'bandpass'
   filter.frequency.setValueAtTime(1800, now)
@@ -201,8 +230,8 @@ export function playImpact() {
 }
 
 // Level up / power up — fanfare ascendente largo (achievement)
-export function playLevelUp() {
-  const ctx = getCtx()
+export async function playLevelUp() {
+  const ctx = await ensureRunning()
   if (!ctx) return
   const now = ctx.currentTime
   // Arpegio mayor mas rápido y más alto
