@@ -3,6 +3,7 @@ package com.diegoalegil.animeshowdown.service;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +155,114 @@ public class JikanService {
                 .uri("/top/characters?page={page}", page)
                 .retrieve()
                 .body(JsonNode.class);
+    }
+
+    /**
+     * Busca el mal_id de un personaje por nombre, filtrando por anime para
+     * desambiguar homónimos comunes ("Lucy" existe en Pokemon, Elfen Lied y
+     * Cyberpunk Edgerunners; "Yui" en Angel Beats y SAO; etc).
+     *
+     * <p>Estrategia:
+     * <ol>
+     *   <li>Trae hasta 10 candidatos por nombre.</li>
+     *   <li>Recorre cada uno y mira sus animes asociados; si el título Jikan
+     *       y el {@code anime} de nuestra BBDD se contienen mutuamente
+     *       (case-insensitive), match exacto y devolvemos su mal_id.</li>
+     *   <li>Si nadie matchea, devolvemos el primer candidato con mal_id
+     *       válido como fallback — mejor que nada porque suele acertar para
+     *       nombres únicos.</li>
+     *   <li>Optional.empty si Jikan no devuelve nada o todos los candidatos
+     *       carecen de mal_id.</li>
+     * </ol>
+     *
+     * <p>Cacheable 30d implícito (TTL definido en application.properties
+     * cache 'jikan-character-malid'); el mapeo nombre→mal_id es estable.
+     */
+    @Cacheable(value = "jikan-character-malid", key = "#nombre + '|' + #anime")
+    @Retry(name = "jikan")
+    @CircuitBreaker(name = "jikan", fallbackMethod = "searchMalIdFallback")
+    public Optional<Integer> searchCharacterMalId(String nombre, String anime) {
+        log.debug("Jikan: search /characters?q={}", nombre);
+        JsonNode response = restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/characters")
+                        .queryParam("q", nombre)
+                        .queryParam("limit", 10)
+                        .build())
+                .retrieve()
+                .body(JsonNode.class);
+        if (response == null || !response.has("data")) {
+            return Optional.empty();
+        }
+        JsonNode data = response.get("data");
+        if (!data.isArray() || data.size() == 0) {
+            return Optional.empty();
+        }
+        String animeLower = anime == null ? "" : anime.toLowerCase();
+        Integer fallbackId = null;
+        for (JsonNode character : data) {
+            if (!character.path("mal_id").isInt()) continue;
+            int malId = character.path("mal_id").asInt();
+            JsonNode animes = character.path("anime");
+            if (!animeLower.isBlank() && animes.isArray()) {
+                for (JsonNode entry : animes) {
+                    String titulo = entry.path("anime").path("title").asText("").toLowerCase();
+                    if (!titulo.isBlank()
+                            && (titulo.contains(animeLower) || animeLower.contains(titulo))) {
+                        return Optional.of(malId);
+                    }
+                }
+            }
+            if (fallbackId == null) fallbackId = malId;
+        }
+        return Optional.ofNullable(fallbackId);
+    }
+
+    /**
+     * Fallback del circuit breaker para searchCharacterMalId. Signature debe
+     * matchear la del método original + Throwable; el binding lo hace
+     * resilience4j por reflexión.
+     */
+    @SuppressWarnings("unused")
+    public Optional<Integer> searchMalIdFallback(String nombre, String anime, Throwable t) {
+        log.warn("Jikan search mal_id fallback (nombre={}, anime={}): {}", nombre, anime, t.getMessage());
+        return Optional.empty();
+    }
+
+    /**
+     * Trae las URLs de imágenes adicionales de un personaje desde
+     * /characters/{mal_id}/pictures. Devuelve lista vacía si Jikan no
+     * responde, no hay data o todas las entradas vienen sin URL.
+     *
+     * <p>Cacheable 7d (TTL en application.properties cache
+     * 'jikan-character-pictures'); las imágenes apenas cambian.
+     */
+    @Cacheable(value = "jikan-character-pictures", key = "#malId")
+    @Retry(name = "jikan")
+    @CircuitBreaker(name = "jikan", fallbackMethod = "fetchPicturesFallback")
+    public List<String> fetchCharacterPictures(int malId) {
+        log.debug("Jikan: fetch /characters/{}/pictures", malId);
+        JsonNode response = restClient.get()
+                .uri("/characters/{id}/pictures", malId)
+                .retrieve()
+                .body(JsonNode.class);
+        if (response == null || !response.has("data")) {
+            return List.of();
+        }
+        JsonNode data = response.get("data");
+        if (!data.isArray()) return List.of();
+        List<String> urls = new ArrayList<>();
+        for (JsonNode entry : data) {
+            String url = entry.path("jpg").path("image_url").asText("");
+            if (!url.isBlank()) urls.add(url);
+        }
+        return urls;
+    }
+
+    @SuppressWarnings("unused")
+    public List<String> fetchPicturesFallback(int malId, Throwable t) {
+        log.warn("Jikan pictures fallback (malId={}): {}", malId, t.getMessage());
+        return List.of();
     }
 
     private String extraerPrimerAnime(JsonNode character) {

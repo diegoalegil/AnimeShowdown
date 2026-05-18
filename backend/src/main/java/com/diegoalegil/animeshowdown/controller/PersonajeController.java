@@ -31,6 +31,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.service.EloHistoryService;
+import com.diegoalegil.animeshowdown.service.JikanService;
 import com.diegoalegil.animeshowdown.service.PersonajeMatchupService;
 import com.diegoalegil.animeshowdown.service.RecomendacionService;
 import com.diegoalegil.animeshowdown.service.VotosPeriodoService;
@@ -48,19 +49,22 @@ public class PersonajeController {
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final PersonajeMatchupService personajeMatchupService;
     private final VotosPeriodoService votosPeriodoService;
+    private final JikanService jikanService;
 
     public PersonajeController(PersonajeRepository personajeRepository,
             RecomendacionService recomendacionService,
             EloHistoryService eloHistoryService,
             EnfrentamientoRepository enfrentamientoRepository,
             PersonajeMatchupService personajeMatchupService,
-            VotosPeriodoService votosPeriodoService) {
+            VotosPeriodoService votosPeriodoService,
+            JikanService jikanService) {
         this.personajeRepository = personajeRepository;
         this.recomendacionService = recomendacionService;
         this.eloHistoryService = eloHistoryService;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeMatchupService = personajeMatchupService;
         this.votosPeriodoService = votosPeriodoService;
+        this.jikanService = jikanService;
     }
 
     /**
@@ -269,6 +273,35 @@ public class PersonajeController {
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /**
+     * Galería de imágenes adicionales del personaje desde Jikan (Plan v2
+     * §4.12 step 1 — multi-image oficial). Devuelve hasta 12 URLs de
+     * /characters/{mal_id}/pictures. Lista vacía si:
+     *   - Jikan no encuentra mal_id para el nombre+anime,
+     *   - el personaje no tiene pictures registradas,
+     *   - Jikan caído o circuit-breaker abierto.
+     *
+     * <p>404 solo si el slug no existe en nuestra BBDD. Las dos llamadas
+     * a JikanService están cacheadas (mal_id 30d, pictures 7d), así que el
+     * coste real es del primer hit por personaje.
+     */
+    @GetMapping("/{slug}/imagenes")
+    public ResponseEntity<List<String>> imagenes(@PathVariable String slug) {
+        var personajeOpt = personajeRepository.findBySlug(slug);
+        if (personajeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        var personaje = personajeOpt.get();
+        var malIdOpt = jikanService.searchCharacterMalId(personaje.getNombre(), personaje.getAnime());
+        if (malIdOpt.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<String> urls = jikanService.fetchCharacterPictures(malIdOpt.get()).stream()
+                .limit(12)
+                .toList();
+        return ResponseEntity.ok(urls);
     }
 
     /**
