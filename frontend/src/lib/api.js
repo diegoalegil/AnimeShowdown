@@ -370,6 +370,17 @@ export const endpoints = {
     api.get(`/api/personajes/${encodeURIComponent(slug)}/duelos-recientes?limit=${limit}`, { auth: false }),
   matchupsPersonaje: (slug) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/matchups`, { auth: false }),
+
+  // Mi roster / favoritos (Plan producto 2026-05-18). Todos requieren auth.
+  // POST/DELETE son idempotentes server-side, así el hook puede hacer
+  // optimistic update sin chequear estado previo.
+  misFavoritos: () => api.get('/api/me/favoritos'),
+  seguirPersonaje: (slug) =>
+    api.post(`/api/personajes/${encodeURIComponent(slug)}/favorito`, undefined),
+  dejarDeSeguirPersonaje: (slug) =>
+    api.del(`/api/personajes/${encodeURIComponent(slug)}/favorito`),
+  estadoFavoritoPersonaje: (slug) =>
+    api.get(`/api/personajes/${encodeURIComponent(slug)}/favorito`),
   personajeEloHistory: (slug, { dias = 30 } = {}) =>
     api.get(
       `/api/personajes/${encodeURIComponent(slug)}/elo-history?dias=${dias}`,

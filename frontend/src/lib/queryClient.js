@@ -37,4 +37,7 @@ export const queryKeys = {
   torneos: () => ['torneos'],
   torneoBySlug: (slug) => ['torneos', 'slug', slug],
   torneoById: (id) => ['torneos', 'id', id],
+  // Mi roster / favoritos (Plan producto 2026-05-18)
+  misFavoritos: () => ['favoritos', 'me'],
+  favoritoSlug: (slug) => ['favoritos', 'slug', slug],
 }
