@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Card holográfica estilo TCG (Pokémon holo / Yu-Gi-Oh prismatic).
@@ -24,10 +24,14 @@ import { useEffect, useRef } from 'react'
  * disponible), aunque por simplicidad inicial dejamos solo mouse — en
  * touch el holo queda en idle (no molesta) y la imagen sigue legible.
  */
-function PersonajeCardHolo({ src, alt, className = '' }) {
+function PersonajeCardHolo({ src, alt, className = '', fallbackSrc }) {
   const rootRef = useRef(null)
   const rafRef = useRef(0)
   const pendingRef = useRef(null)
+  const [failedSources, setFailedSources] = useState(() => new Set())
+  const shouldUseFallback = failedSources.has(src) && fallbackSrc && !failedSources.has(fallbackSrc)
+  const currentSrc = shouldUseFallback ? fallbackSrc : src
+  const imageFailed = failedSources.has(currentSrc)
 
   useEffect(() => {
     const el = rootRef.current
@@ -83,17 +87,31 @@ function PersonajeCardHolo({ src, alt, className = '' }) {
         '--active': '0',
       }}
     >
-      <img
-        src={src}
-        alt={alt}
-        // referrerPolicy no-referrer para que cuando el src sea una
-        // URL de myanimelist.net (escogida desde PersonajeGaleria) el
-        // hotlink protection de MAL no devuelva 403. En src de
-        // catálogo local no afecta — el header simplemente no se manda.
-        referrerPolicy="no-referrer"
-        className="card-holo__img h-full w-full object-cover"
-        draggable={false}
-      />
+      {imageFailed ? (
+        <div className="card-holo__img flex h-full w-full flex-col items-center justify-center gap-2 bg-surface px-6 text-center">
+          <span className="text-lg font-semibold text-fg-strong">{alt}</span>
+          <span className="text-xs text-fg-muted">Imagen no disponible</span>
+        </div>
+      ) : (
+        <img
+          src={currentSrc}
+          alt={alt}
+          // ReferrerPolicy no-referrer como defensa extra para imagenes
+          // externas de MyAnimeList. Si aun asi fallan, volvemos a la imagen
+          // local del catalogo para no dejar la ficha en blanco.
+          referrerPolicy="no-referrer"
+          className="card-holo__img h-full w-full object-cover"
+          draggable={false}
+          onError={() => {
+            setFailedSources((prev) => {
+              if (prev.has(currentSrc)) return prev
+              const next = new Set(prev)
+              next.add(currentSrc)
+              return next
+            })
+          }}
+        />
+      )}
       <div className="card-holo__shine" aria-hidden="true" />
       <div className="card-holo__rainbow" aria-hidden="true" />
     </div>

@@ -241,6 +241,7 @@ function PersonajeDetailPage() {
                   recibe la URL como prop en vez de calcularla. */}
               <PersonajeStaticOr3D
                 imagenUrl={imagenActiva}
+                fallbackUrl={imagenCatalogo}
                 slug={slug}
                 nombre={personaje.nombre}
               />
@@ -598,7 +599,7 @@ function CarruselSimilares({ slug, nombre }) {
  * mantiene como prop separada porque Personaje3D lo necesita para cargar
  * el modelo lazy con sus propios assets.
  */
-function PersonajeStaticOr3D({ imagenUrl, slug, nombre }) {
+function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   const [show3D, setShow3D] = useState(false)
   if (!show3D) {
     return (
@@ -607,7 +608,7 @@ function PersonajeStaticOr3D({ imagenUrl, slug, nombre }) {
             del catálogo) se renderiza con efecto Pokémon-TCG-style
             (tilt 3D + specular shine + rainbow holo). PersonajeCardHolo
             es zero-lib y respeta prefers-reduced-motion. */}
-        <PersonajeCardHolo src={imagenUrl} alt={nombre} />
+        <PersonajeCardHolo src={imagenUrl} alt={nombre} fallbackSrc={fallbackUrl} />
         <button
           type="button"
           onClick={() => setShow3D(true)}
@@ -626,7 +627,7 @@ function PersonajeStaticOr3D({ imagenUrl, slug, nombre }) {
       <Suspense
         fallback={
           <img
-            src={imagenUrl}
+            src={fallbackUrl || imagenUrl}
             alt={nombre}
             className="h-full w-full object-cover"
           />

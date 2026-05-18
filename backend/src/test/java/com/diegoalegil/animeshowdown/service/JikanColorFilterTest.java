@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,6 +27,30 @@ import org.springframework.test.context.ActiveProfiles;
 class JikanColorFilterTest {
 
     @Autowired private JikanService jikanService;
+
+    @Test
+    void normalizaImagenesMalAlCdnPermitidoPorCsp() {
+        String url = JikanService.normalizarImagenMyAnimeListUrl(
+                "https://myanimelist.net/images/characters/9/55741.jpg");
+
+        assertEquals("https://cdn.myanimelist.net/images/characters/9/55741.jpg", url);
+    }
+
+    @Test
+    void conservaImagenesQueYaVienenDelCdn() {
+        String url = JikanService.normalizarImagenMyAnimeListUrl(
+                "https://cdn.myanimelist.net/images/characters/9/55741.jpg");
+
+        assertEquals("https://cdn.myanimelist.net/images/characters/9/55741.jpg", url);
+    }
+
+    @Test
+    void conservaOtrosHostsSinTocarlos() {
+        String url = JikanService.normalizarImagenMyAnimeListUrl(
+                "https://example.com/images/characters/9/55741.jpg");
+
+        assertEquals("https://example.com/images/characters/9/55741.jpg", url);
+    }
 
     @Test
     void imagenSolidaColorEsColor() {
