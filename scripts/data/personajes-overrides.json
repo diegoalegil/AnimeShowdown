@@ -525,5 +525,10 @@
   "bjorn": { "nombre": "Bjorn", "descripcion": "Mano derecha de Askeladd y berserker que mastica hongos para entrar en frenesí. Su lealtad al capitán sella su destino final." },
   "einar": { "nombre": "Einar", "descripcion": "Esclavo inglés capturado tras perder a su familia. Mejor amigo de Thorfinn en la granja y quien le devuelve la fe en cultivar la tierra." },
   "arnheid": { "nombre": "Arnheid", "descripcion": "Esclava de origen guerrero refugiada en la granja de Ketil. Su tragedia personal empuja a Thorfinn hacia la no violencia." },
-  "leif_ericson": { "nombre": "Leif Ericson", "descripcion": "Explorador islandés y figura paterna de la infancia de Thorfinn. Promete a Helga traer al niño de vuelta y lo busca por toda Europa." }
+  "leif_ericson": { "nombre": "Leif Ericson", "descripcion": "Explorador islandés y figura paterna de la infancia de Thorfinn. Promete a Helga traer al niño de vuelta y lo busca por toda Europa." },
+
+  "kousei_arima": { "nombre": "Kousei Arima", "descripcion": "Pianista prodigio que perdió la capacidad de oír las notas tras la muerte de su madre. Kaori lo devuelve al teclado y al color del mundo." },
+  "kaori_miyazono": { "nombre": "Kaori Miyazono", "descripcion": "Violinista libre y luminosa que arrastra a Kousei de vuelta a la música. Su secreto convierte cada actuación en una despedida disfrazada." },
+  "tsubaki_sawabe": { "nombre": "Tsubaki Sawabe", "descripcion": "Amiga de la infancia de Kousei y su vecina. Softball, hermana mayor de facto; descubre tarde lo que de verdad siente por él." },
+  "ryouta_watari": { "nombre": "Ryouta Watari", "descripcion": "Mejor amigo de Kousei desde la infancia. Capitán del equipo de fútbol y rival natural por la atención de Kaori." }
 }

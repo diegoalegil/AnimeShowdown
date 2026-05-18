@@ -1039,6 +1039,10 @@ export const personajes = [
   { slug: 'meiko', nombre: 'Meiko', anime: 'Vocaloid', descripcion: 'Personaje del anime Vocaloid.', imagen: '/img/Vocaloid/meiko.webp' },
   { slug: 'miku', nombre: 'Hatsune Miku', anime: 'Vocaloid', descripcion: 'Vocaloid pop turquesa. Voz sintetizada que puebla millones de canciones por todo el planeta.', imagen: '/img/Vocaloid/miku.webp' },
   { slug: 'yuzuki_yukari', nombre: 'Yuzuki Yukari', anime: 'Vocaloid', descripcion: 'Personaje del anime Vocaloid.', imagen: '/img/Vocaloid/yuzuki_yukari.webp' },
+  { slug: 'kaori_miyazono', nombre: 'Kaori Miyazono', anime: 'Your Lie in April', descripcion: 'Violinista libre y luminosa que arrastra a Kousei de vuelta a la música. Su secreto convierte cada actuación en una despedida disfrazada.', imagen: '/img/Your_Lie_In_April/kaori_miyazono.webp' },
+  { slug: 'kousei_arima', nombre: 'Kousei Arima', anime: 'Your Lie in April', descripcion: 'Pianista prodigio que perdió la capacidad de oír las notas tras la muerte de su madre. Kaori lo devuelve al teclado y al color del mundo.', imagen: '/img/Your_Lie_In_April/kousei_arima.webp' },
+  { slug: 'ryouta_watari', nombre: 'Ryouta Watari', anime: 'Your Lie in April', descripcion: 'Mejor amigo de Kousei desde la infancia. Capitán del equipo de fútbol y rival natural por la atención de Kaori.', imagen: '/img/Your_Lie_In_April/ryouta_watari.webp' },
+  { slug: 'tsubaki_sawabe', nombre: 'Tsubaki Sawabe', anime: 'Your Lie in April', descripcion: 'Amiga de la infancia de Kousei y su vecina. Softball, hermana mayor de facto; descubre tarde lo que de verdad siente por él.', imagen: '/img/Your_Lie_In_April/tsubaki_sawabe.webp' },
   { slug: 'el_hilo_rojo', nombre: 'El Hilo Rojo', anime: 'Your Name', descripcion: 'Personaje del anime Your Name.', imagen: '/img/Your_Name/el_hilo_rojo.webp' },
   { slug: 'hitoha_miyamizu', nombre: 'Hitoha Miyamizu', anime: 'Your Name', descripcion: 'Personaje del anime Your Name.', imagen: '/img/Your_Name/hitoha_miyamizu.webp' },
   { slug: 'katsuhiko_teshigawara', nombre: 'Katsuhiko Teshigawara', anime: 'Your Name', descripcion: 'Personaje del anime Your Name.', imagen: '/img/Your_Name/katsuhiko_teshigawara.webp' },
@@ -1058,6 +1062,7 @@ export function imagenPersonaje(slug) {
   // vez de undefined que dejaría el <img> en estado raro.
   return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`
 }
+
 
 
 
