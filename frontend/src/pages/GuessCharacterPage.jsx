@@ -160,7 +160,7 @@ function GuessCharacterPage() {
           <p className="text-[13px] text-fg-muted">
             {estado.finalizado
               ? 'Partida del día completada. Comparte tu resultado o vuelve mañana.'
-              : `Tienes ${restantes} intentos. Cada fallo nítida un poco la imagen.`}
+              : `Tienes ${restantes} intentos. Cada fallo aclara un poco la imagen.`}
           </p>
         </motion.header>
 
