@@ -24,6 +24,7 @@ import {
 } from '../lib/games'
 import { imagenPersonaje, personajes } from '../data/personajes'
 import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from '../components/PersonajeImg'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-character.v1'
@@ -177,10 +178,9 @@ function GuessCharacterPage() {
           }`}
         >
           <div className="relative aspect-[2/3] h-[42vh] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
-            <img
-              src={imagenPersonaje(objetivo.slug)}
+            <PersonajeImg
+              slug={objetivo.slug}
               alt={estado.finalizado ? objetivo.nombre : 'Personaje difuminado'}
-              onError={ocultaImgRota}
               className="h-full w-full object-contain transition-all duration-500"
               style={{
                 filter: `blur(${blurPx}px)`,

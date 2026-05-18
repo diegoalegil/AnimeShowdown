@@ -10,6 +10,7 @@ import {
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
 import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Renderiza un bracket de eliminación directa con datos vivos del backend.
@@ -503,10 +504,9 @@ function ChampionSlot({ personaje }) {
       className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-accent/40 bg-accent-soft p-3"
       style={{ boxShadow: '0 0 30px rgb(255 46 99 / 0.25)' }}
     >
-      <img
-        src={personaje.imagenUrl}
+      <PersonajeImg
+        slug={personaje.slug}
         alt={personaje.nombre}
-        onError={ocultaImgRota}
         className="aspect-[2/3] w-full max-w-[110px] rounded-lg object-cover object-top"
       />
       <div className="text-center">
