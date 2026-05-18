@@ -269,7 +269,7 @@ public class JikanService {
         if (!data.isArray()) return List.of();
         List<String> urls = new ArrayList<>();
         for (JsonNode entry : data) {
-            String url = entry.path("jpg").path("image_url").asText("");
+            String url = normalizarImagenMyAnimeListUrl(entry.path("jpg").path("image_url").asText(""));
             if (!url.isBlank()) urls.add(url);
         }
         // Filtrado B&W. Llamada vía self para que el @Cacheable per-URL
@@ -323,6 +323,37 @@ public class JikanService {
             return true;
         }
         return analyzeHasColor(img);
+    }
+
+    /**
+     * Jikan devuelve algunas imagenes como myanimelist.net/images/..., pero la
+     * CSP publica solo permite cdn.myanimelist.net. Ambas rutas existen; usar
+     * el CDN evita que el navegador bloquee la galeria por politica de imagenes.
+     */
+    static String normalizarImagenMyAnimeListUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return "";
+        }
+        try {
+            URI uri = URI.create(url);
+            String host = uri.getHost();
+            String path = uri.getRawPath();
+            if ("myanimelist.net".equalsIgnoreCase(host) && path != null && path.startsWith("/images/")) {
+                StringBuilder normalizada = new StringBuilder("https://cdn.myanimelist.net").append(path);
+                String query = uri.getRawQuery();
+                if (query != null) {
+                    normalizada.append('?').append(query);
+                }
+                String fragment = uri.getRawFragment();
+                if (fragment != null) {
+                    normalizada.append('#').append(fragment);
+                }
+                return normalizada.toString();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Si la URL viene rara, dejamos que el flujo existente la trate.
+        }
+        return url;
     }
 
     private static final int COLOR_SAMPLES = 200;

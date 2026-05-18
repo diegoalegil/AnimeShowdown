@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
 
 /**
@@ -23,9 +23,10 @@ import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
  */
 function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
   const { data: extras, isLoading } = useImagenesPersonaje(slug)
+  const [urlsFallidas, setUrlsFallidas] = useState(() => new Set())
 
   const items = useMemo(() => {
-    const arr = [{ url: principalUrl, label: 'Principal' }]
+    const arr = [{ url: principalUrl, label: 'Principal', esPrincipal: true }]
     const extrasUrls = Array.isArray(extras) ? extras : []
     extrasUrls
       .filter((u) => u && u !== principalUrl)
@@ -33,8 +34,13 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
     return arr
   }, [principalUrl, extras])
 
+  const itemsVisibles = useMemo(
+    () => items.filter((item) => item.esPrincipal || !urlsFallidas.has(item.url)),
+    [items, urlsFallidas],
+  )
+
   if (isLoading) return null
-  if (items.length <= 1) return null
+  if (itemsVisibles.length <= 1) return null
 
   return (
     <section
@@ -43,7 +49,7 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
     >
       <div className="mb-3 flex items-baseline justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
-          Galería · {items.length} imágenes
+          Galería · {itemsVisibles.length} imágenes
         </h3>
         <span className="text-[10px] text-fg-muted">
           Fuente: MyAnimeList vía Jikan
@@ -53,7 +59,7 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
         className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin] [scroll-snap-type:x_mandatory]"
         style={{ scrollPaddingLeft: '8px' }}
       >
-        {items.map((item) => {
+        {itemsVisibles.map((item) => {
           const activa = item.url === imagenActiva
           return (
             <button
@@ -73,18 +79,23 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
                 src={item.url}
                 alt={item.label}
                 loading="lazy"
-                // myanimelist.net bloquea hotlinking devolviendo 403 cuando
-                // el Referer es otro dominio (animeshowdown.dev en prod,
-                // localhost en dev). Con referrerPolicy="no-referrer"
-                // el browser no manda Referer y MAL acepta la petición.
-                // Sin esto, TODAS las thumbnails de Jikan se ven vacías.
+                // Defensa extra para imagenes externas de MyAnimeList. Las URLs
+                // se normalizan en backend al CDN permitido por CSP; no-referrer
+                // evita que hotlink protections puntuales rompan la galeria.
                 referrerPolicy="no-referrer"
                 className="h-full w-full object-cover"
                 onError={(e) => {
-                  // Si una imagen de Jikan falla (URL cambiada o caída),
-                  // ocultamos la thumbnail entera. El boton sigue allí
-                  // pero vacío; preferible a un icono roto.
+                  // Si una extra falla, la retiramos del strip para que no se
+                  // pueda seleccionar y dejar el hero apuntando a una URL rota.
                   e.currentTarget.style.opacity = '0'
+                  if (!item.esPrincipal) {
+                    setUrlsFallidas((prev) => {
+                      if (prev.has(item.url)) return prev
+                      const next = new Set(prev)
+                      next.add(item.url)
+                      return next
+                    })
+                  }
                 }}
               />
             </button>
