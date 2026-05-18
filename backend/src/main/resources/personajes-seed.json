@@ -1303,37 +1303,37 @@
   },
   {
     "slug": "cc",
-    "nombre": "Cc",
+    "nombre": "C.C.",
     "anime": "Code Geass",
-    "descripcion": "Personaje del anime Code Geass.",
+    "descripcion": "Inmortal de pelo verde que dio el Geass a Lelouch. Vive por pizza y un Code que solo otro inmortal puede heredar.",
     "imagenUrl": "/img/Code_Geass/cc.webp"
   },
   {
     "slug": "euphemia_li_britannia",
-    "nombre": "Euphemia Li Britannia",
+    "nombre": "Euphemia li Britannia",
     "anime": "Code Geass",
-    "descripcion": "Personaje del anime Code Geass.",
+    "descripcion": "Princesa pacifista de Britannia. Su sueño de coexistencia se rompió por un Geass mal pronunciado.",
     "imagenUrl": "/img/Code_Geass/euphemia_li_britannia.webp"
   },
   {
     "slug": "kallen_kozuki",
     "nombre": "Kallen Kozuki",
     "anime": "Code Geass",
-    "descripcion": "Personaje del anime Code Geass.",
+    "descripcion": "Mestiza japonesa-británica, piloto del Guren. As de los Caballeros Negros y devota incondicional a Zero.",
     "imagenUrl": "/img/Code_Geass/kallen_kozuki.webp"
   },
   {
     "slug": "lelouch_lamperouge",
-    "nombre": "Lelouch Lamperouge",
+    "nombre": "Lelouch vi Britannia",
     "anime": "Code Geass",
-    "descripcion": "Personaje del anime Code Geass.",
+    "descripcion": "Príncipe exiliado convertido en Zero, líder de la Orden de los Caballeros Negros. Geass: dominio absoluto en una orden.",
     "imagenUrl": "/img/Code_Geass/lelouch_lamperouge.webp"
   },
   {
     "slug": "suzaku_kururugi",
     "nombre": "Suzaku Kururugi",
     "anime": "Code Geass",
-    "descripcion": "Personaje del anime Code Geass.",
+    "descripcion": "Hijo del último primer ministro japonés. Piloto del Lancelot. Mejor amigo y mayor enemigo de Lelouch.",
     "imagenUrl": "/img/Code_Geass/suzaku_kururugi.webp"
   },
   {
@@ -2509,140 +2509,140 @@
     "slug": "alex_louis_armstrong",
     "nombre": "Alex Louis Armstrong",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "El Alquimista del Brazo Fuerte. Físico imposible heredado por generaciones y técnica que brilla literal.",
     "imagenUrl": "/img/Fullmetal_Alchemist/alex_louis_armstrong.webp"
   },
   {
     "slug": "alphonse_elric",
     "nombre": "Alphonse Elric",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Alma de Al sellada en una armadura tras el fallo alquímico. El verdadero corazón de los hermanos.",
     "imagenUrl": "/img/Fullmetal_Alchemist/alphonse_elric.webp"
   },
   {
     "slug": "edward_elric",
     "nombre": "Edward Elric",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "El Alquimista de Acero. Pierde brazo y pierna intentando resucitar a su madre. Sin transmutación de círculo.",
     "imagenUrl": "/img/Fullmetal_Alchemist/edward_elric.webp"
   },
   {
     "slug": "envy",
     "nombre": "Envy",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Homúnculo de la Envidia. Cambia de forma y disfruta del sufrimiento ajeno. Odio puro hacia los humanos.",
     "imagenUrl": "/img/Fullmetal_Alchemist/envy.webp"
   },
   {
     "slug": "father",
     "nombre": "Father",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "El Enano del Frasco. Padre de los homúnculos y orquestador del plan que convierte Amestris en gigantesco círculo alquímico.",
     "imagenUrl": "/img/Fullmetal_Alchemist/father.webp"
   },
   {
     "slug": "gluttony",
     "nombre": "Gluttony",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Homúnculo de la Gula. Boca-portal entre dimensiones, devora todo a su paso bajo la guía de Lust.",
     "imagenUrl": "/img/Fullmetal_Alchemist/gluttony.webp"
   },
   {
     "slug": "greed",
     "nombre": "Greed",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Homúnculo de la Avaricia. Escudo de carbono Final Form. Lo quiere todo: dinero, mujeres, poder, amigos.",
     "imagenUrl": "/img/Fullmetal_Alchemist/greed.webp"
   },
   {
     "slug": "izumi_curtis",
     "nombre": "Izumi Curtis",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Sensei alquímica de los Elric. Solo una ama de casa — con la fuerza para destruir una calle si la enfadas.",
     "imagenUrl": "/img/Fullmetal_Alchemist/izumi_curtis.webp"
   },
   {
     "slug": "lan_fan",
     "nombre": "Lan Fan",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Guardaespaldas leal del príncipe Ling Yao. Sacrifica un brazo por su señor durante la búsqueda de la Piedra.",
     "imagenUrl": "/img/Fullmetal_Alchemist/lan_fan.webp"
   },
   {
     "slug": "ling_yao",
     "nombre": "Ling Yao",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Décimo segundo príncipe de Xing. Apetito sin fondo. Acepta convertirse en Greed para conseguir el trono.",
     "imagenUrl": "/img/Fullmetal_Alchemist/ling_yao.webp"
   },
   {
     "slug": "lust",
     "nombre": "Lust",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Homúnculo de la Lujuria. Dedos lanza imparables. Buscaba lo que la hacía humana antes del calor de Mustang.",
     "imagenUrl": "/img/Fullmetal_Alchemist/lust.webp"
   },
   {
     "slug": "maes_hughes",
     "nombre": "Maes Hughes",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Teniente coronel de investigaciones. Cuelga fotos de su hija a todo el mundo. El amigo que el alma necesita.",
     "imagenUrl": "/img/Fullmetal_Alchemist/maes_hughes.webp"
   },
   {
     "slug": "olivier_armstrong",
     "nombre": "Olivier Armstrong",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "La Reina de Hielo del Norte. General mayor de Briggs. Lidera la fortaleza del frío y comanda con espada.",
     "imagenUrl": "/img/Fullmetal_Alchemist/olivier_armstrong.webp"
   },
   {
     "slug": "pride",
     "nombre": "Pride",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Homúnculo primogénito de Padre. Encarna como Selim Bradley. Sombras dentadas en cualquier oscuridad.",
     "imagenUrl": "/img/Fullmetal_Alchemist/pride.webp"
   },
   {
     "slug": "riza_hawkeye",
     "nombre": "Riza Hawkeye",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Teniente francotiradora bajo Mustang. Tatuaje alquímico en la espalda y lealtad absoluta a su coronel.",
     "imagenUrl": "/img/Fullmetal_Alchemist/riza_hawkeye.webp"
   },
   {
     "slug": "roy_mustang",
     "nombre": "Roy Mustang",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Coronel Llama. Alquimista de fuego que apunta a Führer. Guantes con sello para chispa y combustión.",
     "imagenUrl": "/img/Fullmetal_Alchemist/roy_mustang.webp"
   },
   {
     "slug": "scar",
     "nombre": "Scar",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Ishvalita superviviente del genocidio. Alquimista de destrucción con tatuaje hermano. Venganza contra los estatales.",
     "imagenUrl": "/img/Fullmetal_Alchemist/scar.webp"
   },
   {
     "slug": "van_hohenheim",
     "nombre": "Van Hohenheim",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Padre ausente de los Elric. Alquimia sin transmutación interna y vida de siglos por su Piedra Filosofal viviente.",
     "imagenUrl": "/img/Fullmetal_Alchemist/van_hohenheim.webp"
   },
   {
     "slug": "winry_rockbell",
     "nombre": "Winry Rockbell",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Mecánica de auto-mail de Rush Valley. Amiga de infancia de los Elric y la única que puede repararle el brazo a Ed.",
     "imagenUrl": "/img/Fullmetal_Alchemist/winry_rockbell.webp"
   },
   {
     "slug": "wrath_king_bradley",
-    "nombre": "Wrath King Bradley",
+    "nombre": "Wrath",
     "anime": "Fullmetal Alchemist",
-    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "descripcion": "Führer King Bradley, homúnculo de la Ira. Ojo Ouroboros que predice cada movimiento. Espadachín letal sin alquimia.",
     "imagenUrl": "/img/Fullmetal_Alchemist/wrath_king_bradley.webp"
   },
   {
@@ -3139,14 +3139,14 @@
     "slug": "biscuit_krueger",
     "nombre": "Biscuit Krueger",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Hunter doble estrella. Parece niña dulce; bajo el Nen es musculosa y entrena con dureza a Gon y Killua.",
     "imagenUrl": "/img/Hunter_x_Hunter/biscuit_krueger.webp"
   },
   {
     "slug": "chrollo_lucilfer",
     "nombre": "Chrollo Lucilfer",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Líder de la Brigada Fantasma. Specialist con el libro Skill Hunter: roba habilidades Nen de otros.",
     "imagenUrl": "/img/Hunter_x_Hunter/chrollo_lucilfer.webp"
   },
   {
@@ -3160,21 +3160,21 @@
     "slug": "ging_freecss",
     "nombre": "Ging Freecss",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Padre desaparecido de Gon. Doble estrella Hunter y uno de los Cinco Cabezas Cero. Vive para los misterios.",
     "imagenUrl": "/img/Hunter_x_Hunter/ging_freecss.webp"
   },
   {
     "slug": "gon_freecss",
     "nombre": "Gon Freecss",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Protagonista que busca a su padre Hunter. Enhancer con la técnica Jajanken: piedra, papel, tijera.",
     "imagenUrl": "/img/Hunter_x_Hunter/gon_freecss.webp"
   },
   {
     "slug": "hisoka_morow",
     "nombre": "Hisoka Morow",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Mago payaso de naipes. Transmuter con Bungee Gum elástico-pegajoso. Vive para luchar contra rivales fuertes.",
     "imagenUrl": "/img/Hunter_x_Hunter/hisoka_morow.webp"
   },
   {
@@ -3188,14 +3188,14 @@
     "slug": "isaac_netero",
     "nombre": "Isaac Netero",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Presidente del Hunter Association. Maestro de las Cien Tipos de Manos Guanyin. Murió frente al Rey Hormiga.",
     "imagenUrl": "/img/Hunter_x_Hunter/isaac_netero.webp"
   },
   {
     "slug": "killua_zoldyck",
     "nombre": "Killua Zoldyck",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Hijo de la familia de asesinos Zoldyck. Mejor amigo de Gon. Transmuter de electricidad pura, Godspeed.",
     "imagenUrl": "/img/Hunter_x_Hunter/killua_zoldyck.webp"
   },
   {
@@ -3209,14 +3209,14 @@
     "slug": "kurapika",
     "nombre": "Kurapika",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Último Kuruta. Conjurer de cadenas escarlatas. Vive para vengar a su clan masacrado por la Brigada Fantasma.",
     "imagenUrl": "/img/Hunter_x_Hunter/kurapika.webp"
   },
   {
     "slug": "leorio_paladiknight",
     "nombre": "Leorio Paladiknight",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Aspirante a médico que se hizo Hunter por el dinero. Emitter con onda de aura. Voz de la razón del grupo.",
     "imagenUrl": "/img/Hunter_x_Hunter/leorio_paladiknight.webp"
   },
   {
@@ -3230,7 +3230,7 @@
     "slug": "meruem",
     "nombre": "Meruem",
     "anime": "Hunter x Hunter",
-    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "descripcion": "Rey de las Quimera Hormiga. Nacido invencible, evoluciona descubriendo la humanidad junto a Komugi.",
     "imagenUrl": "/img/Hunter_x_Hunter/meruem.webp"
   },
   {
@@ -4798,7 +4798,7 @@
     "slug": "denki_kaminari",
     "nombre": "Denki Kaminari",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Estudiante de la clase 1-A con quirk Electrificación. Carismático pero se cortocircuita al pasarse de voltaje.",
     "imagenUrl": "/img/My_Hero_Academia/denki_kaminari.webp"
   },
   {
@@ -4812,7 +4812,7 @@
     "slug": "eijiro_kirishima",
     "nombre": "Eijiro Kirishima",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Red Riot. Quirk Endurecimiento — convierte su piel en roca irrompible. Símbolo de virilidad y honor.",
     "imagenUrl": "/img/My_Hero_Academia/eijiro_kirishima.webp"
   },
   {
@@ -4840,7 +4840,7 @@
     "slug": "fumikage_tokoyami",
     "nombre": "Fumikage Tokoyami",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Estudiante con cabeza de cuervo y quirk Dark Shadow. Edgelord poético en cuerpo de adolescente.",
     "imagenUrl": "/img/My_Hero_Academia/fumikage_tokoyami.webp"
   },
   {
@@ -4875,7 +4875,7 @@
     "slug": "hitoshi_shinso",
     "nombre": "Hitoshi Shinso",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "General que sueña con ser héroe. Quirk Lavado de cerebro: domina a quien le responda en voz alta.",
     "imagenUrl": "/img/My_Hero_Academia/hitoshi_shinso.webp"
   },
   {
@@ -4896,7 +4896,7 @@
     "slug": "kyoka_jiro",
     "nombre": "Kyoka Jiro",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Earphone Jack. Estudiante de la 1-A con cables auditivos de música rock y onda sonora destructiva.",
     "imagenUrl": "/img/My_Hero_Academia/kyoka_jiro.webp"
   },
   {
@@ -4952,7 +4952,7 @@
     "slug": "mina_ashido",
     "nombre": "Mina Ashido",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Pinky. Quirk Ácido, baila y crea fluido corrosivo. Conector social de la 1-A con energía infinita.",
     "imagenUrl": "/img/My_Hero_Academia/mina_ashido.webp"
   },
   {
@@ -4966,7 +4966,7 @@
     "slug": "mirko",
     "nombre": "Mirko",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Heroína #5 del ranking. Mujer-conejo con melee puro. Entró sola a un nomu lab por su cuenta.",
     "imagenUrl": "/img/My_Hero_Academia/mirko.webp"
   },
   {
@@ -5015,7 +5015,7 @@
     "slug": "present_mic",
     "nombre": "Present Mic",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Profesor de inglés en UA y DJ con quirk Voice. Voz capaz de derribar muros y a sus alumnos por la mañana.",
     "imagenUrl": "/img/My_Hero_Academia/present_mic.webp"
   },
   {
@@ -5050,7 +5050,7 @@
     "slug": "sir_nighteye",
     "nombre": "Sir Nighteye",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Ex-sidekick de All Might con quirk Premonition. Detective de futuros y mentor de Mirio.",
     "imagenUrl": "/img/My_Hero_Academia/sir_nighteye.webp"
   },
   {
@@ -5085,7 +5085,7 @@
     "slug": "tenya_iida",
     "nombre": "Tenya Iida",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Ingenium. Delegado serio de la 1-A. Quirk Engine: motores en las piernas para velocidad y patadas mecánicas.",
     "imagenUrl": "/img/My_Hero_Academia/tenya_iida.webp"
   },
   {
@@ -5134,7 +5134,7 @@
     "slug": "yuga_aoyama",
     "nombre": "Yuga Aoyama",
     "anime": "My Hero Academia",
-    "descripcion": "Personaje del anime My Hero Academia.",
+    "descripcion": "Navel Laser. Estudiante francés-glitter con haz que sale del ombligo. Quirk prestado de All For One.",
     "imagenUrl": "/img/My_Hero_Academia/yuga_aoyama.webp"
   },
   {
@@ -5181,9 +5181,9 @@
   },
   {
     "slug": "hashirama",
-    "nombre": "Hashirama",
+    "nombre": "Hashirama Senju",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Primer Hokage y fundador de Konoha. El Dios de los Shinobi, único usuario del Mokuton verdadero.",
     "imagenUrl": "/img/Naruto/hashirama.webp"
   },
   {
@@ -5216,9 +5216,9 @@
   },
   {
     "slug": "jiraya",
-    "nombre": "Jiraya",
+    "nombre": "Jiraiya",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Sannin sapo, autor de novelas pervertidas y mentor de Naruto. Ermitaño del Monte Myoboku con técnicas Sennin.",
     "imagenUrl": "/img/Naruto/jiraya.webp"
   },
   {
@@ -5293,16 +5293,16 @@
   },
   {
     "slug": "madara",
-    "nombre": "Madara",
+    "nombre": "Madara Uchiha",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Co-fundador de Konoha y leyenda del clan Uchiha. Sharingan Eterno, Susanoo perfecto y el Plan Ojo de Luna.",
     "imagenUrl": "/img/Naruto/madara.webp"
   },
   {
     "slug": "minato",
-    "nombre": "Minato",
+    "nombre": "Minato Namikaze",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Cuarto Hokage, el Rayo Amarillo de Konoha. Padre de Naruto y creador del Rasengan. Sellador del Kyūbi.",
     "imagenUrl": "/img/Naruto/minato.webp"
   },
   {
@@ -5344,7 +5344,7 @@
     "slug": "pain",
     "nombre": "Pain",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Líder visible de Akatsuki. Seis caminos del Rinnegan controlados por Nagato. Filosofía del dolor como verdad.",
     "imagenUrl": "/img/Naruto/pain.webp"
   },
   {
@@ -5372,7 +5372,7 @@
     "slug": "sasori",
     "nombre": "Sasori",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Marionetista de Akatsuki de la Arena. Convirtió su propio cuerpo en marioneta eterna. Arte que perdura para siempre.",
     "imagenUrl": "/img/Naruto/sasori.webp"
   },
   {
@@ -5386,7 +5386,7 @@
     "slug": "shikamaru_nara",
     "nombre": "Shikamaru Nara",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Genio estratega de Konoha. IQ por encima de 200, técnica de manipulación de sombras del clan Nara.",
     "imagenUrl": "/img/Naruto/shikamaru_nara.webp"
   },
   {
@@ -5414,7 +5414,7 @@
     "slug": "tsunade",
     "nombre": "Tsunade",
     "anime": "Naruto",
-    "descripcion": "Personaje del anime Naruto.",
+    "descripcion": "Quinta Hokage. Sannin médica con fuerza monstruosa y eterna juventud. Nieta de Hashirama.",
     "imagenUrl": "/img/Naruto/tsunade.webp"
   },
   {
@@ -5615,23 +5615,23 @@
   },
   {
     "slug": "charlotte_linlin",
-    "nombre": "Charlotte Linlin",
+    "nombre": "Big Mom",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Yonkō capitana de los Big Mom Pirates. Reina obsesionada con los dulces de Whole Cake Island y madre de decenas de hijos.",
     "imagenUrl": "/img/One_Piece/charlotte_linlin.webp"
   },
   {
     "slug": "dracule_mihawk",
     "nombre": "Dracule Mihawk",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "El espadachín más fuerte del mundo. Ojo de halcón, espada negra Yoru y maestro de Zoro durante el timeskip.",
     "imagenUrl": "/img/One_Piece/dracule_mihawk.webp"
   },
   {
     "slug": "edward_newgate",
     "nombre": "Edward Newgate",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Whitebeard. Capitán Yonkō de los Whitebeard Pirates y considerado el hombre más fuerte del mundo. Fruta Gura Gura.",
     "imagenUrl": "/img/One_Piece/edward_newgate.webp"
   },
   {
@@ -5643,16 +5643,16 @@
   },
   {
     "slug": "gol_d_roger",
-    "nombre": "Gol D Roger",
+    "nombre": "Gol D. Roger",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Rey de los Piratas. El único que encontró el One Piece y dio inicio a la Gran Era Pirata desde el cadalso.",
     "imagenUrl": "/img/One_Piece/gol_d_roger.webp"
   },
   {
     "slug": "jinbe",
     "nombre": "Jinbe",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Caballero del Mar y ex-capitán de los Sun Pirates. Timonel de los Sombrero de Paja y maestro del Karate Gyojin.",
     "imagenUrl": "/img/One_Piece/jinbe.webp"
   },
   {
@@ -5664,16 +5664,16 @@
   },
   {
     "slug": "marshall_d_teach",
-    "nombre": "Marshall D Teach",
+    "nombre": "Blackbeard",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Marshall D. Teach. Yonkō que robó el poder de Whitebeard. Único capaz de portar dos frutas: Yami Yami y Gura Gura.",
     "imagenUrl": "/img/One_Piece/marshall_d_teach.webp"
   },
   {
     "slug": "monkey_d_dragon",
-    "nombre": "Monkey D Dragon",
+    "nombre": "Monkey D. Dragon",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Líder del Ejército Revolucionario, el hombre más buscado del mundo. Padre de Luffy aunque no se han cruzado.",
     "imagenUrl": "/img/One_Piece/monkey_d_dragon.webp"
   },
   {
@@ -5694,21 +5694,21 @@
     "slug": "nefertari_vivi",
     "nombre": "Nefertari Vivi",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Princesa de Alabasta y miembro honorario de los Sombrero de Paja durante la saga del desierto.",
     "imagenUrl": "/img/One_Piece/nefertari_vivi.webp"
   },
   {
     "slug": "nico_robin",
     "nombre": "Nico Robin",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Arqueóloga superviviente de Ohara. Única capaz de leer los Poneglyphs. Fruta Hana Hana, manos que florecen.",
     "imagenUrl": "/img/One_Piece/nico_robin.webp"
   },
   {
     "slug": "portgas_d_ace",
-    "nombre": "Portgas D Ace",
+    "nombre": "Portgas D. Ace",
     "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
+    "descripcion": "Hermano juramentado de Luffy y Sabo. Hijo de Gol D. Roger. Comandante de la 2ª división de Whitebeard, fruta Mera Mera.",
     "imagenUrl": "/img/One_Piece/portgas_d_ace.webp"
   },
   {
