@@ -369,7 +369,7 @@ function VotarPage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-3 sm:gap-6"
+          className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 sm:gap-6"
         >
           <VoteCard
             personaje={a}
@@ -534,12 +534,12 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, vote
       {/* Info debajo de la card — comparación rápida sin overlay sobre la
           imagen. Nombre + anime + (solo tras votar) link discreto a la ficha. */}
       <div
-        className={`flex flex-col items-${side === 'right' ? 'end' : 'start'} px-1 text-${side === 'right' ? 'right' : 'left'}`}
+        className={`flex min-w-0 flex-col items-${side === 'right' ? 'end' : 'start'} px-1 text-${side === 'right' ? 'right' : 'left'}`}
       >
-        <h2 className="line-clamp-1 text-base font-bold text-fg-strong sm:text-lg">
+        <h2 className="line-clamp-1 w-full text-base font-bold text-fg-strong sm:text-lg">
           {personaje.nombre}
         </h2>
-        <p className="line-clamp-1 text-[12px] text-fg-muted">
+        <p className="line-clamp-1 w-full text-[12px] text-fg-muted">
           {personaje.anime}
         </p>
         {showResult && (

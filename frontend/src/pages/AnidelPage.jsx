@@ -181,7 +181,7 @@ function AnidelPage() {
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-emerald-200">
             <Grid3X3 className="h-3 w-3" />
-            Anidel · Daily
+            AniGrid · Daily
           </span>
           <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight tracking-tight">
             Wordle de personajes

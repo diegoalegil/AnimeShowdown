@@ -135,7 +135,7 @@ function GuessAnimePage() {
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-amber-200 sm:px-3.5 sm:py-1.5 sm:text-[12px]">
             <Type className="h-3 w-3" />
-            Guess the Anime · Daily
+            Anime Reveal · Daily
           </span>
           <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] leading-tight tracking-tight">
             ¿De qué anime es?
