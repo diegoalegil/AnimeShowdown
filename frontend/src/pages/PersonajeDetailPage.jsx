@@ -29,6 +29,7 @@ import { endpoints } from '../lib/api'
 import { personajeSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import EloHistoryChart from '../components/EloHistoryChart'
+import HistorialCompetitivo from '../components/HistorialCompetitivo'
 import PersonajeCard from '../components/PersonajeCard'
 import ReactionsBar from '../components/ReactionsBar'
 import ShareButtons from '../components/ShareButtons'
@@ -458,6 +459,13 @@ function PersonajeDetailPage() {
             </p>
           </div>
         )}
+
+        {/* Historial competitivo (Plan producto 2026-05-18): "Últimos
+            duelos" + "Contra quién". Lo metemos aquí, entre "Mismo
+            universo" y "Más allá del universo", para que el bloque
+            historial-competitivo aparezca tras los datos básicos pero
+            antes del discovery cross-anime. */}
+        <HistorialCompetitivo slug={slug} nombre={personaje.nombre} />
 
         <CarruselSimilares slug={slug} nombre={personaje.nombre} />
       </div>
