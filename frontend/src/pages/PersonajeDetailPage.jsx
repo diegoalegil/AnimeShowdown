@@ -215,11 +215,18 @@ function PersonajeDetailPage() {
               fuera del primer viewport. En desktop el orden y el aspect-ratio
               originales se preservan vía md:* classes. */}
           <motion.div
-            className="order-2 mx-auto w-auto md:order-1 md:mx-0 md:w-full md:max-w-md"
+            className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
             variants={itemVariants}
           >
+            {/* Audit P1 (auditoría externa 2026-05-18): el motion.div parent
+                era w-auto + tenía PersonajeGaleria dentro (strip con 13
+                thumbs × 72px ≈ 936px). En mobile (~380px) el w-auto se
+                estiraba al ancho del hijo más ancho → overflow horizontal
+                real. Fix: w-full min-w-0 max-w-sm en parent (mobile) y
+                max-w-md en md+. Galería respeta su contenedor y hace
+                scroll horizontal interno como debe. */}
             <div
-              className="relative aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:w-full md:max-h-none"
+              className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
             >
               {/* Audit (2026-05-17): Personaje3D era opt-in al mount con
