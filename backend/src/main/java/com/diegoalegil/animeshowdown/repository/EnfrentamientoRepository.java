@@ -79,4 +79,48 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
                OR e.ganador.id = :personajeId
             """)
     int deleteByPersonajeId(@Param("personajeId") Long personajeId);
+
+    /**
+     * Historial de enfrentamientos donde el personaje participó (como
+     * personaje1 o personaje2), incluidos los aún sin ganador (PENDING),
+     * ordenados por fecha descendente. JOIN FETCH para evitar N+1 cuando
+     * el caller mapea a DueloRecienteDto.
+     *
+     * <p>Plan producto (2026-05-18): consumido por
+     * /api/personajes/{slug}/duelos-recientes — "Últimos duelos" en la
+     * ficha. Pageable acota a un puñado de items.
+     */
+    @Query("""
+            SELECT e FROM Enfrentamiento e
+            LEFT JOIN FETCH e.personaje1
+            LEFT JOIN FETCH e.personaje2
+            LEFT JOIN FETCH e.ganador
+            LEFT JOIN FETCH e.torneo
+            WHERE e.personaje1.id = :personajeId
+               OR e.personaje2.id = :personajeId
+            ORDER BY e.fechaCreacion DESC, e.id DESC
+            """)
+    List<Enfrentamiento> findHistorialPorPersonaje(
+            @Param("personajeId") Long personajeId,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Enfrentamientos DECIDIDOS (ganador != null) en los que participó
+     * el personaje. Usado por PersonajeMatchupService para agregar
+     * mejores/peores/frecuentes rivales — necesitamos solo los resueltos
+     * porque sin ganador no se puede contar W/L.
+     *
+     * <p>Sin paginación: si un personaje tiene 5.000 duelos resueltos
+     * los traemos todos para agregar. En el rango realista del proyecto
+     * (cientos máximo por personaje top), es asumible.
+     */
+    @Query("""
+            SELECT e FROM Enfrentamiento e
+            LEFT JOIN FETCH e.personaje1
+            LEFT JOIN FETCH e.personaje2
+            LEFT JOIN FETCH e.ganador
+            WHERE e.ganador IS NOT NULL
+              AND (e.personaje1.id = :personajeId OR e.personaje2.id = :personajeId)
+            """)
+    List<Enfrentamiento> findDecididosPorPersonaje(@Param("personajeId") Long personajeId);
 }
