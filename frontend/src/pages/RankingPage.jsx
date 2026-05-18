@@ -30,6 +30,7 @@ import {
   getPersonajesPorCategoria,
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
+import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -279,6 +280,7 @@ function CategoriaCard({ rank, personaje, tono }) {
             src={imagenPersonaje(personaje.slug)}
             alt=""
             loading="lazy"
+            onError={ocultaImgRota}
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
           <span
@@ -358,6 +360,7 @@ function MoverChip({ mover }) {
         src={mover.imagenUrl || imagenPersonaje(mover.slug)}
         alt=""
         loading="lazy"
+        onError={ocultaImgRota}
         className="h-12 w-9 shrink-0 rounded object-cover object-top"
       />
       <div className="min-w-0 flex-1">

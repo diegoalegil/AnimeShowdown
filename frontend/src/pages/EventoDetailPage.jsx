@@ -21,6 +21,7 @@ import {
   getPersonajesEvento,
 } from '../data/eventos'
 import { getStatsPersonaje, imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 import NotFoundPage from './NotFoundPage'
 
 /**
@@ -252,6 +253,7 @@ function ParticipanteCard({ rank, personaje, tono }) {
             src={imagenPersonaje(personaje.slug)}
             alt=""
             loading="lazy"
+            onError={ocultaImgRota}
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
           <span
