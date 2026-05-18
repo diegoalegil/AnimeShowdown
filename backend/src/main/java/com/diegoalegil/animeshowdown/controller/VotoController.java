@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.dto.RankingMovimientoItem;
+import com.diegoalegil.animeshowdown.dto.VotoFeedItem;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.RankingMovimientosService;
 
@@ -37,6 +38,25 @@ public class VotoController {
     @GetMapping("/ranking")
     public List<RankingItem> obtenerRanking() {
         return votoRepository.obtenerRanking();
+    }
+
+    /**
+     * Feed público de los últimos N votos (Plan producto, 2026-05-18).
+     *
+     * <p>Pensado para la home (SectionPulso): pintar "hace 3 min @user
+     * votó por Luffy frente a Zoro" y dar señal real de comunidad activa.
+     * Sin auth — es transparencia pública, igual que el ranking.
+     *
+     * <p>limit se acota a [1, 20] para no permitir traer toda la tabla
+     * con un query string trivial.
+     */
+    @GetMapping("/recientes")
+    public List<VotoFeedItem> votosRecientes(
+            @RequestParam(defaultValue = "10") int limit) {
+        int sane = Math.max(1, Math.min(20, limit));
+        return votoRepository.findRecentesParaFeed(PageRequest.of(0, sane)).stream()
+                .map(VotoFeedItem::from)
+                .toList();
     }
 
     /**
