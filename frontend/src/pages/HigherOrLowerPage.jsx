@@ -124,17 +124,17 @@ function HigherOrLowerPage() {
   }
 
   return (
-    <section className="relative flex flex-1 flex-col px-5 py-10 sm:px-8 sm:py-14">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <header className="flex flex-col items-start gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-cyan-200">
+    <section className="relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-14">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 sm:gap-6">
+        <header className="flex flex-col items-start gap-2 sm:gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-cyan-200 sm:py-1.5">
             <Sparkles className="h-3 w-3" />
             戦 · ELO Duel · Endless
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(1.5rem,5vw,3rem)] leading-tight tracking-tight">
             ELO Duel
           </h1>
-          <p className="max-w-2xl text-fg-muted">
+          <p className="max-w-2xl text-[13px] text-fg-muted sm:text-base">
             ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO que el de la izquierda?
             Cada acierto el misterio se desvela y se convierte en el nuevo punto de comparación.
           </p>
@@ -158,7 +158,11 @@ function HigherOrLowerPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid grid-cols-1 items-center gap-4 md:grid-cols-[1fr_auto_1fr] md:gap-6"
+              /* Audit visual (2026-05-18): 3 columnas desde mobile —
+                 antes stack vertical empujaba los botones Más/Menos
+                 fuera del primer viewport. Side-by-side compacta todo
+                 el duelo en un solo fold. */
+              className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 md:items-center md:gap-6"
             >
               <ReferenceCard personaje={reference} />
               <VsBadge revealed={revealed} />
@@ -218,11 +222,10 @@ function ScoreBar({ score, best }) {
 }
 
 function VsBadge({ revealed }) {
-  // Separador animado entre las 2 cards. En mobile (grid-cols-1) se
-  // renderiza horizontal con un divisor inline; en desktop es un círculo
-  // con "VS" pulsante.
+  // Separador animado entre las 2 cards. Compacto en mobile (h-9), grande
+  // en desktop (h-14) con líneas decorativas a ambos lados.
   return (
-    <div className="flex items-center justify-center gap-2 md:flex-col md:gap-1">
+    <div className="flex flex-col items-center justify-center gap-1">
       <span className="hidden h-[1px] w-12 bg-border md:block" />
       <motion.div
         animate={
@@ -237,7 +240,7 @@ function VsBadge({ revealed }) {
           repeat: revealed === null ? Infinity : 0,
           ease: 'easeInOut',
         }}
-        className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 ${
+        className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 sm:h-14 sm:w-14 ${
           revealed === 'correct'
             ? 'border-emerald-400 bg-emerald-500/20 text-emerald-200'
             : revealed === 'wrong'
@@ -245,7 +248,7 @@ function VsBadge({ revealed }) {
               : 'border-accent/60 bg-accent-soft text-accent'
         }`}
       >
-        <span className="font-mono text-base font-extrabold tracking-tighter">
+        <span className="font-mono text-xs font-extrabold tracking-tighter sm:text-base">
           VS
         </span>
       </motion.div>
@@ -270,18 +273,18 @@ function ReferenceCard({ personaje }) {
           loading="lazy"
           className="h-full w-full object-contain"
         />
-        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 bg-black/60 p-4 text-center backdrop-blur-md">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
+        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
             ELO conocido
           </span>
-          <span className="font-mono text-4xl font-extrabold text-white tabular-nums">
+          <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
             {personaje.elo}
           </span>
         </div>
       </div>
-      <div className="flex flex-col gap-1 px-4 py-3">
-        <h3 className="text-base font-bold text-fg-strong">{personaje.nombre}</h3>
-        <p className="text-[12px] text-fg-muted">{personaje.anime}</p>
+      <div className="flex flex-col gap-0.5 px-2 py-2 sm:gap-1 sm:px-4 sm:py-3">
+        <h3 className="line-clamp-1 text-[13px] font-bold text-fg-strong sm:text-base">{personaje.nombre}</h3>
+        <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[12px]">{personaje.anime}</p>
       </div>
     </motion.div>
   )
@@ -319,12 +322,12 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               key="hidden"
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 bg-black/60 p-4 text-center backdrop-blur-md"
+              className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4"
             >
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
                 ELO misterio
               </span>
-              <HelpCircle className="h-9 w-9 text-white/90" />
+              <HelpCircle className="h-6 w-6 text-white/90 sm:h-9 sm:w-9" />
             </motion.div>
           )}
           {isRevealed && (
@@ -332,42 +335,42 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               key="revealed"
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              className={`absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 p-4 text-center backdrop-blur-md ${
+              className={`absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4 ${
                 isCorrect ? 'bg-emerald-500/90' : 'bg-rose-500/90'
               }`}
             >
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
                 ELO real
               </span>
-              <span className="font-mono text-4xl font-extrabold text-white tabular-nums">
+              <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
                 {personaje.elo}
               </span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-      <div className="flex flex-col gap-3 px-4 py-3">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-base font-bold text-fg-strong">{personaje.nombre}</h3>
-          <p className="text-[12px] text-fg-muted">{personaje.anime}</p>
+      <div className="flex flex-col gap-2 px-2 py-2 sm:gap-3 sm:px-4 sm:py-3">
+        <div className="flex flex-col gap-0.5 sm:gap-1">
+          <h3 className="line-clamp-1 text-[13px] font-bold text-fg-strong sm:text-base">{personaje.nombre}</h3>
+          <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[12px]">{personaje.anime}</p>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-1.5 sm:grid sm:grid-cols-2 sm:gap-2">
           <button
             type="button"
             onClick={onMayor}
             disabled={isRevealed}
-            className="group inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2.5 text-sm font-semibold text-emerald-300 transition-all hover:-translate-y-0.5 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-2 text-[12px] font-semibold text-emerald-300 transition-all hover:-translate-y-0.5 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
           >
-            <ArrowUp className="h-4 w-4" />
+            <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Más ELO
           </button>
           <button
             type="button"
             onClick={onMenor}
             disabled={isRevealed}
-            className="group inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2.5 text-sm font-semibold text-rose-300 transition-all hover:-translate-y-0.5 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/40 bg-rose-500/10 px-2 py-2 text-[12px] font-semibold text-rose-300 transition-all hover:-translate-y-0.5 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
           >
-            <ArrowDown className="h-4 w-4" />
+            <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Menos ELO
           </button>
         </div>
