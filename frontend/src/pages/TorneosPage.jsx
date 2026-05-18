@@ -108,7 +108,11 @@ function TorneosPage() {
           animate="visible"
           variants={headerVariants}
         >
-          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          {/* Acento rojo bracket (audit producto 2026-05-18): torneos =
+              rojo combate. Distingue del magenta de votar y del oro de
+              ranking, refuerza la idea de eliminación directa. */}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-rose-300">
+            <Trophy className="h-3 w-3" />
             {isLoading
               ? t('torneos.loading')
               : t('torneos.contadorPlural', { count: total })}

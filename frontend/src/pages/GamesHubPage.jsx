@@ -251,9 +251,12 @@ function GamesHubPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          {/* Acento violeta del sistema (audit producto 2026-05-18):
+              juegos = cyan/violeta. Diferencia el hub de retos del
+              magenta de votos/torneos. */}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/40 bg-violet-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-violet-300">
             <Gamepad2 className="h-3 w-3" />
-            御 · Anime Daily Trials
+            Anime Daily Trials
           </span>
           <h1 className="text-[clamp(2rem,5vw,3.25rem)] leading-tight tracking-tight">
             Retos diarios de AnimeShowdown
