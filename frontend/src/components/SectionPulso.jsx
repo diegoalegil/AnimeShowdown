@@ -175,11 +175,10 @@ function SectionPulso() {
             En vivo
           </span>
           <h2 className="text-[clamp(1.5rem,3.5vw,2.25rem)] tracking-tight">
-            Pulso de AnimeShowdown
+            Ahora mismo
           </h2>
           <p className="max-w-2xl text-[14px] text-fg-muted">
-            Qué está pasando ahora: campeón actual, movimientos de la semana,
-            torneo en marcha y duelo abierto esperando tu voto.
+            Torneos, duelos y rankings que se mueven mientras lees. Tu voto los empuja.
           </p>
         </div>
 

@@ -57,13 +57,13 @@
     "errorEnvio": "No se pudo enviar. Inténtalo de nuevo en unos segundos."
   },
   "hero": {
-    "tituloAntes": "El ranking definitivo del",
+    "tituloAntes": "Quién manda en el",
     "tituloAnime": "anime",
-    "tituloDespues": "lo decides tú",
-    "subtitulo": "Enfrenta personajes en duelos cara a cara, vota por tus favoritos y descubre quién domina el ranking ELO. Cada voto cuenta. Cada duelo cambia el meta.",
-    "ctaTorneos": "Votar ahora",
-    "ctaRanking": "Ver ranking",
-    "features": "Duelos activos · Brackets visuales · Ranking ELO en vivo · Retos diarios de anime"
+    "tituloDespues": "lo decides tú.",
+    "subtitulo": "Duelos 1v1, ranking ELO en vivo y torneos cada semana. Tu voto mueve el meta.",
+    "ctaTorneos": "Empieza a votar",
+    "ctaRanking": "Ver el meta",
+    "features": "Vota duelos · Compite en torneos · Sube en el ranking ELO"
   },
   "torneos": {
     "tituloPagina": "Torneos",
