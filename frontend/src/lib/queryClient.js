@@ -40,4 +40,7 @@ export const queryKeys = {
   // Mi roster / favoritos (Plan producto 2026-05-18)
   misFavoritos: () => ['favoritos', 'me'],
   favoritoSlug: (slug) => ['favoritos', 'slug', slug],
+  // Actividad reciente de votos (sprint 2026-05-18)
+  votosPeriodoSlug: (slug, dias = 7) => ['votos-periodo', 'slug', slug, dias],
+  votosPeriodoBatch: (slugs, dias = 7) => ['votos-periodo', 'batch', [...slugs].sort().join(','), dias],
 }

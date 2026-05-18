@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
+  Activity,
   Clock,
   History,
   Minus,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react'
 import { endpoints, ApiError } from '../lib/api'
 import { imagenPersonaje } from '../data/personajes'
+import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
 
 /**
  * Historial competitivo de un personaje (Plan producto 2026-05-18 —
@@ -49,9 +51,109 @@ function useMatchups(slug) {
 
 function HistorialCompetitivo({ slug, nombre }) {
   return (
-    <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-[1.2fr_1fr]">
-      <UltimosDuelos slug={slug} nombre={nombre} />
-      <ContraQuien slug={slug} nombre={nombre} />
+    <div className="mt-16 flex flex-col gap-8">
+      {/* Actividad reciente full-width arriba — 1 línea visual rápida
+          que da contexto temporal antes de bajar a duelos/matchups. */}
+      <ActividadReciente slug={slug} nombre={nombre} />
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.2fr_1fr]">
+        <UltimosDuelos slug={slug} nombre={nombre} />
+        <ContraQuien slug={slug} nombre={nombre} />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Banner "Actividad reciente" (sprint 2026-05-18). Pinta votos del
+ * último periodo + delta vs periodo anterior, con tono según signo.
+ * Empty state limpio cuando no hay actividad.
+ */
+function ActividadReciente({ slug, nombre }) {
+  const { data, isLoading, isError } = useVotosPeriodo(slug, { dias: 7 })
+
+  if (isError) return null
+  if (isLoading) return <ActividadSkeleton />
+
+  const actual = data?.votosPeriodoActual ?? 0
+  const anterior = data?.votosPeriodoAnterior ?? 0
+  const delta = data?.delta ?? 0
+  const tieneActividad = actual > 0 || anterior > 0
+
+  if (!tieneActividad) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-border bg-surface/40 p-4 sm:p-5">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-alt text-fg-muted">
+          <Activity className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            Actividad reciente
+          </p>
+          <p className="mt-0.5 text-[13px] text-fg-muted">
+            {nombre} aún no recibe votos esta semana. Vota por él para
+            empezar a moverlo en el ranking.
+          </p>
+        </div>
+        <Link
+          to="/votar"
+          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-strong hover:border-accent hover:text-accent"
+        >
+          Vota ahora
+        </Link>
+      </div>
+    )
+  }
+
+  const subio = delta > 0
+  const bajo = delta < 0
+  const tonoBorde = subio
+    ? 'border-emerald-500/30 bg-emerald-500/5'
+    : bajo
+      ? 'border-rose-500/30 bg-rose-500/5'
+      : 'border-border bg-surface/60'
+  const tonoIcono = subio
+    ? 'bg-emerald-500/15 text-emerald-300'
+    : bajo
+      ? 'bg-rose-500/15 text-rose-300'
+      : 'bg-surface-alt text-fg-muted'
+  const DeltaIcon = subio ? TrendingUp : bajo ? TrendingDown : Minus
+  const deltaTexto = delta === 0
+    ? 'Mismo ritmo que la semana pasada'
+    : `${subio ? '+' : ''}${delta} vs la semana pasada`
+
+  return (
+    <div className={`flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5 ${tonoBorde}`}>
+      <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tonoIcono}`}>
+        <Activity className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          Actividad reciente · últimos 7 días
+        </p>
+        <p className="mt-0.5 text-[15px] font-bold text-fg-strong">
+          <span className="font-mono tabular-nums">{actual.toLocaleString('es-ES')}</span>{' '}
+          {actual === 1 ? 'voto' : 'votos'}
+        </p>
+      </div>
+      <div className="inline-flex items-center gap-1.5 self-start rounded-md border border-border bg-bg/40 px-2.5 py-1 sm:self-auto">
+        <DeltaIcon className={`h-3.5 w-3.5 ${subio ? 'text-emerald-300' : bajo ? 'text-rose-300' : 'text-fg-muted'}`} />
+        <span className={`font-mono text-[12px] font-bold tabular-nums ${subio ? 'text-emerald-300' : bajo ? 'text-rose-300' : 'text-fg-muted'}`}>
+          {deltaTexto}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function ActividadSkeleton() {
+  return (
+    <div className="flex animate-pulse items-center gap-3 rounded-xl border border-border bg-surface/40 p-4 sm:p-5" aria-hidden="true">
+      <div className="h-10 w-10 rounded-lg bg-surface-alt" />
+      <div className="flex-1 space-y-1.5">
+        <div className="h-2.5 w-1/4 rounded bg-surface-alt" />
+        <div className="h-3 w-1/3 rounded bg-surface-alt" />
+      </div>
+      <div className="h-6 w-32 rounded bg-surface-alt" />
     </div>
   )
 }

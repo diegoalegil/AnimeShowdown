@@ -371,6 +371,16 @@ export const endpoints = {
   matchupsPersonaje: (slug) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/matchups`, { auth: false }),
 
+  // Actividad reciente de votos (sprint 2026-05-18). Públicos sin auth.
+  // Individual para fichas, batch para listas (Pulso Movers, Favoritos).
+  votosPeriodoPersonaje: (slug, { dias = 7 } = {}) =>
+    api.get(`/api/personajes/${encodeURIComponent(slug)}/votos-periodo?dias=${dias}`, { auth: false }),
+  votosPeriodoBatch: ({ slugs, dias = 7 }) => {
+    const lista = slugs.filter(Boolean).slice(0, 50).join(',')
+    if (!lista) return Promise.resolve([])
+    return api.get(`/api/personajes/votos-periodo?slugs=${encodeURIComponent(lista)}&dias=${dias}`, { auth: false })
+  },
+
   // Mi roster / favoritos (Plan producto 2026-05-18). Todos requieren auth.
   // POST/DELETE son idempotentes server-side, así el hook puede hacer
   // optimistic update sin chequear estado previo.
