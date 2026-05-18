@@ -30,6 +30,7 @@ import {
   getPersonajesPorCategoria,
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
+import RankingMetaReport from '../components/RankingMetaReport'
 import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -138,6 +139,12 @@ function RankingPage() {
           </div>
         </motion.header>
 
+        {/* Sprint Meta Report (auditoría externa 2026-05-18): párrafo
+            narrativo arriba del MoversStrip — convierte "ranking
+            congelado" en "reportaje del meta". Lee los mismos endpoints
+            que ya carga la página (react-query deduplica), genera 2-3
+            frases con top 3 + subidas/caídas notables + CTA votar. */}
+        <RankingMetaReport />
         {/* Audit producto (2026-05-18): el ranking se sentía estático.
             MoversStrip arriba pinta los 3 personajes con más movimiento
             de la semana — da sensación de vida temporal incluso antes
