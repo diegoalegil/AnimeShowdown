@@ -64,7 +64,13 @@ public class CacheConfig {
                 buildCache("jikan-character-malid", Duration.ofDays(30), 2000),
                 // URLs de /characters/{mal_id}/pictures. Las imágenes
                 // adicionales de un personaje cambian rara vez; TTL 7d.
-                buildCache("jikan-character-pictures", Duration.ofDays(7), 2000)));
+                buildCache("jikan-character-pictures", Duration.ofDays(7), 2000),
+                // Clasificador B&W vs color por URL de imagen. Una imagen
+                // dada no cambia de naturaleza, así que TTL muy largo
+                // (30d) basta para nunca re-descargar la misma URL en una
+                // misma semana operativa. maxSize alto porque cubrimos
+                // hasta ~12000 URLs (~1052 personajes × 12 pictures).
+                buildCache("jikan-image-is-color", Duration.ofDays(30), 15000)));
         return manager;
     }
 
