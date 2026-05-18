@@ -171,7 +171,7 @@
     "slug": "angel_beats_yui",
     "nombre": "Yui",
     "anime": "Angel Beats!",
-    "descripcion": "Hija IA adoptada por Kirito y Asuna en SAO. Pequeña hada en los juegos posteriores.",
+    "descripcion": "Personaje del anime Angel Beats!.",
     "imagenUrl": "/img/Angel_Beats/yui.webp"
   },
   {
@@ -357,6 +357,76 @@
     "imagenUrl": "/img/Aoashi/tatsuya_fukuda.webp"
   },
   {
+    "slug": "gakuhou_asano",
+    "nombre": "Gakuhou Asano",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/gakuhou_asano.webp"
+  },
+  {
+    "slug": "gakushuu_asano",
+    "nombre": "Gakushuu Asano",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/gakushuu_asano.webp"
+  },
+  {
+    "slug": "irina_jelavic",
+    "nombre": "Irina Jelavic",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/irina_jelavic.webp"
+  },
+  {
+    "slug": "itona_horibe",
+    "nombre": "Itona Horibe",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/itona_horibe.webp"
+  },
+  {
+    "slug": "kaede_kayano",
+    "nombre": "Kaede Kayano",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/kaede_kayano.webp"
+  },
+  {
+    "slug": "karma_akabane",
+    "nombre": "Karma Akabane",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/karma_akabane.webp"
+  },
+  {
+    "slug": "koro_sensei",
+    "nombre": "Koro Sensei",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/koro_sensei.webp"
+  },
+  {
+    "slug": "nagisa_shiota",
+    "nombre": "Nagisa Shiota",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/nagisa_shiota.webp"
+  },
+  {
+    "slug": "ritsu",
+    "nombre": "Ritsu",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/ritsu.webp"
+  },
+  {
+    "slug": "tadaomi_karasuma",
+    "nombre": "Tadaomi Karasuma",
+    "anime": "Assassination Classroom",
+    "descripcion": "Personaje del anime Assassination Classroom.",
+    "imagenUrl": "/img/Assassination_Classroom/tadaomi_karasuma.webp"
+  },
+  {
     "slug": "annie_leonhart",
     "nombre": "Annie Leonhart",
     "anime": "Attack on Titan",
@@ -446,6 +516,188 @@
     "anime": "Attack on Titan",
     "descripcion": "Hermano mayor de Eren y guerrero de Marley. Heredero del Titán Bestia con plan eutanásico.",
     "imagenUrl": "/img/Attack_On_Titan/zeke_yeager.webp"
+  },
+  {
+    "slug": "daichi_sumeragi",
+    "nombre": "Daichi Sumeragi",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/daichi_sumeragi.webp"
+  },
+  {
+    "slug": "gingka_hagane",
+    "nombre": "Gingka Hagane",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/gingka_hagane.webp"
+  },
+  {
+    "slug": "kai_hiwatari",
+    "nombre": "Kai Hiwatari",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/kai_hiwatari.webp"
+  },
+  {
+    "slug": "kenny",
+    "nombre": "Kenny",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/kenny.webp"
+  },
+  {
+    "slug": "max_tate",
+    "nombre": "Max Tate",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/max_tate.webp"
+  },
+  {
+    "slug": "ray_kon",
+    "nombre": "Ray Kon",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/ray_kon.webp"
+  },
+  {
+    "slug": "tyson_granger",
+    "nombre": "Tyson Granger",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/tyson_granger.webp"
+  },
+  {
+    "slug": "valt_aoi",
+    "nombre": "Valt Aoi",
+    "anime": "Beyblade",
+    "descripcion": "Personaje del anime Beyblade.",
+    "imagenUrl": "/img/Beyblade/valt_aoi.webp"
+  },
+  {
+    "slug": "asta",
+    "nombre": "Asta",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/asta.webp"
+  },
+  {
+    "slug": "charlotte_roselei",
+    "nombre": "Charlotte Roselei",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/charlotte_roselei.webp"
+  },
+  {
+    "slug": "finral_roulacase",
+    "nombre": "Finral Roulacase",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/finral_roulacase.webp"
+  },
+  {
+    "slug": "gauche_adlai",
+    "nombre": "Gauche Adlai",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/gauche_adlai.webp"
+  },
+  {
+    "slug": "julius_novachrono",
+    "nombre": "Julius Novachrono",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/julius_novachrono.webp"
+  },
+  {
+    "slug": "licht",
+    "nombre": "Licht",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/licht.webp"
+  },
+  {
+    "slug": "luck_voltia",
+    "nombre": "Luck Voltia",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/luck_voltia.webp"
+  },
+  {
+    "slug": "magna_swing",
+    "nombre": "Magna Swing",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/magna_swing.webp"
+  },
+  {
+    "slug": "mereoleona_vermillion",
+    "nombre": "Mereoleona Vermillion",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/mereoleona_vermillion.webp"
+  },
+  {
+    "slug": "mimosa_vermillion",
+    "nombre": "Mimosa Vermillion",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/mimosa_vermillion.webp"
+  },
+  {
+    "slug": "noelle_silva",
+    "nombre": "Noelle Silva",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/noelle_silva.webp"
+  },
+  {
+    "slug": "nozel_silva",
+    "nombre": "Nozel Silva",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/nozel_silva.webp"
+  },
+  {
+    "slug": "patolli",
+    "nombre": "Patolli",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/patolli.webp"
+  },
+  {
+    "slug": "secre_swallowtail",
+    "nombre": "Secre Swallowtail",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/secre_swallowtail.webp"
+  },
+  {
+    "slug": "vanessa_enoteca",
+    "nombre": "Vanessa Enoteca",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/vanessa_enoteca.webp"
+  },
+  {
+    "slug": "william_vangeance",
+    "nombre": "William Vangeance",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/william_vangeance.webp"
+  },
+  {
+    "slug": "yami_sukehiro",
+    "nombre": "Yami Sukehiro",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/yami_sukehiro.webp"
+  },
+  {
+    "slug": "yuno",
+    "nombre": "Yuno",
+    "anime": "Black Clover",
+    "descripcion": "Personaje del anime Black Clover.",
+    "imagenUrl": "/img/Black_Clover/yuno.webp"
   },
   {
     "slug": "balalaika",
@@ -1085,6 +1337,118 @@
     "imagenUrl": "/img/Code_Geass/suzaku_kururugi.webp"
   },
   {
+    "slug": "edward_wong",
+    "nombre": "Edward Wong",
+    "anime": "Cowboy Bebop",
+    "descripcion": "Personaje del anime Cowboy Bebop.",
+    "imagenUrl": "/img/Cowboy_Bebop/edward_wong.webp"
+  },
+  {
+    "slug": "ein",
+    "nombre": "Ein",
+    "anime": "Cowboy Bebop",
+    "descripcion": "Personaje del anime Cowboy Bebop.",
+    "imagenUrl": "/img/Cowboy_Bebop/ein.webp"
+  },
+  {
+    "slug": "faye_valentine",
+    "nombre": "Faye Valentine",
+    "anime": "Cowboy Bebop",
+    "descripcion": "Personaje del anime Cowboy Bebop.",
+    "imagenUrl": "/img/Cowboy_Bebop/faye_valentine.webp"
+  },
+  {
+    "slug": "jet_black",
+    "nombre": "Jet Black",
+    "anime": "Cowboy Bebop",
+    "descripcion": "Personaje del anime Cowboy Bebop.",
+    "imagenUrl": "/img/Cowboy_Bebop/jet_black.webp"
+  },
+  {
+    "slug": "julia",
+    "nombre": "Julia",
+    "anime": "Cowboy Bebop",
+    "descripcion": "Personaje del anime Cowboy Bebop.",
+    "imagenUrl": "/img/Cowboy_Bebop/julia.webp"
+  },
+  {
+    "slug": "spike_spiegel",
+    "nombre": "Spike Spiegel",
+    "anime": "Cowboy Bebop",
+    "descripcion": "Personaje del anime Cowboy Bebop.",
+    "imagenUrl": "/img/Cowboy_Bebop/spike_spiegel.webp"
+  },
+  {
+    "slug": "vicious",
+    "nombre": "Vicious",
+    "anime": "Cowboy Bebop",
+    "descripcion": "Personaje del anime Cowboy Bebop.",
+    "imagenUrl": "/img/Cowboy_Bebop/vicious.webp"
+  },
+  {
+    "slug": "adam_smasher",
+    "nombre": "Adam Smasher",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/adam_smasher.webp"
+  },
+  {
+    "slug": "david_martinez",
+    "nombre": "David Martinez",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/david_martinez.webp"
+  },
+  {
+    "slug": "dorio",
+    "nombre": "Dorio",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/dorio.webp"
+  },
+  {
+    "slug": "falco",
+    "nombre": "Falco",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/falco.webp"
+  },
+  {
+    "slug": "kiwi",
+    "nombre": "Kiwi",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/kiwi.webp"
+  },
+  {
+    "slug": "cyberpunk_edgerunners_lucy",
+    "nombre": "Lucy",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/lucy.webp"
+  },
+  {
+    "slug": "maine",
+    "nombre": "Maine",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/maine.webp"
+  },
+  {
+    "slug": "pilar",
+    "nombre": "Pilar",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/pilar.webp"
+  },
+  {
+    "slug": "rebecca",
+    "nombre": "Rebecca",
+    "anime": "Cyberpunk Edgerunners",
+    "descripcion": "Personaje del anime Cyberpunk Edgerunners.",
+    "imagenUrl": "/img/Cyberpunk_Edgerunners/rebecca.webp"
+  },
+  {
     "slug": "aira_shiratori",
     "nombre": "Aira Shiratori",
     "anime": "Dandadan",
@@ -1181,13 +1545,6 @@
     "anime": "Date A Live",
     "descripcion": "Espíritu del tiempo con dos pistolas y un aura aterradora. Apellido oscuro, sonrisa peor.",
     "imagenUrl": "/img/Date_a_Live/kurumi.webp"
-  },
-  {
-    "slug": "kurumi_tokisaki",
-    "nombre": "Kurumi Tokisaki",
-    "anime": "Date A Live",
-    "descripcion": "Personaje del anime Date A Live.",
-    "imagenUrl": "/img/Date_a_Live/kurumi_tokisaki.webp"
   },
   {
     "slug": "origami_tobiichi",
@@ -1582,7 +1939,7 @@
     "imagenUrl": "/img/Dr_Stone/gen_asagiri.webp"
   },
   {
-    "slug": "kohaku",
+    "slug": "dr_stone_kohaku",
     "nombre": "Kohaku",
     "anime": "Dr. Stone",
     "descripcion": "Personaje del anime Dr. Stone.",
@@ -1739,7 +2096,7 @@
     "slug": "elfen_lied_lucy",
     "nombre": "Lucy",
     "anime": "Elfen Lied",
-    "descripcion": "Pico Pareja del Battle Frontier en Kanto. Su Seviper enrosca rivales hasta capitular.",
+    "descripcion": "Personaje del anime Elfen Lied.",
     "imagenUrl": "/img/Elfen_Lied/lucy.webp"
   },
   {
@@ -1762,6 +2119,41 @@
     "anime": "Elfen Lied",
     "descripcion": "Personaje del anime Elfen Lied.",
     "imagenUrl": "/img/Elfen_Lied/yuka.webp"
+  },
+  {
+    "slug": "airi_katagiri",
+    "nombre": "Airi Katagiri",
+    "anime": "Erased",
+    "descripcion": "Personaje del anime Erased.",
+    "imagenUrl": "/img/Erased/airi_katagiri.webp"
+  },
+  {
+    "slug": "gaku_yashiro",
+    "nombre": "Gaku Yashiro",
+    "anime": "Erased",
+    "descripcion": "Personaje del anime Erased.",
+    "imagenUrl": "/img/Erased/gaku_yashiro.webp"
+  },
+  {
+    "slug": "kayo_hinazuki",
+    "nombre": "Kayo Hinazuki",
+    "anime": "Erased",
+    "descripcion": "Personaje del anime Erased.",
+    "imagenUrl": "/img/Erased/kayo_hinazuki.webp"
+  },
+  {
+    "slug": "sachiko_fujinuma",
+    "nombre": "Sachiko Fujinuma",
+    "anime": "Erased",
+    "descripcion": "Personaje del anime Erased.",
+    "imagenUrl": "/img/Erased/sachiko_fujinuma.webp"
+  },
+  {
+    "slug": "satoru_fujinuma",
+    "nombre": "Satoru Fujinuma",
+    "anime": "Erased",
+    "descripcion": "Personaje del anime Erased.",
+    "imagenUrl": "/img/Erased/satoru_fujinuma.webp"
   },
   {
     "slug": "erza_scarlet",
@@ -2044,13 +2436,6 @@
     "imagenUrl": "/img/Fire_Force/tamaki_kotatsu.webp"
   },
   {
-    "slug": "1921344b018b586a8da38a55337f8656612612b0f4a2257e404b90518cca25a1",
-    "nombre": "1921344b018b586a8da38a55337f8656612612b0f4a2257e404b90518cca25a1",
-    "anime": "Frieren: Beyond Journey's End",
-    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
-    "imagenUrl": "/img/Frieren/1921344b018b586a8da38a55337f8656612612b0f4a2257e404b90518cca25a1.webp"
-  },
-  {
     "slug": "aura_the_guillotine",
     "nombre": "Aura The Guillotine",
     "anime": "Frieren: Beyond Journey's End",
@@ -2070,6 +2455,13 @@
     "anime": "Frieren: Beyond Journey's End",
     "descripcion": "Aprendiz humana de Frieren. Magia de Maestra a velocidad récord, paciencia legendaria.",
     "imagenUrl": "/img/Frieren/fern.webp"
+  },
+  {
+    "slug": "flamme",
+    "nombre": "Flamme",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/flamme.webp"
   },
   {
     "slug": "frieren",
@@ -2114,6 +2506,342 @@
     "imagenUrl": "/img/Frieren/ubel.webp"
   },
   {
+    "slug": "alex_louis_armstrong",
+    "nombre": "Alex Louis Armstrong",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/alex_louis_armstrong.webp"
+  },
+  {
+    "slug": "alphonse_elric",
+    "nombre": "Alphonse Elric",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/alphonse_elric.webp"
+  },
+  {
+    "slug": "edward_elric",
+    "nombre": "Edward Elric",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/edward_elric.webp"
+  },
+  {
+    "slug": "envy",
+    "nombre": "Envy",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/envy.webp"
+  },
+  {
+    "slug": "father",
+    "nombre": "Father",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/father.webp"
+  },
+  {
+    "slug": "gluttony",
+    "nombre": "Gluttony",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/gluttony.webp"
+  },
+  {
+    "slug": "greed",
+    "nombre": "Greed",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/greed.webp"
+  },
+  {
+    "slug": "izumi_curtis",
+    "nombre": "Izumi Curtis",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/izumi_curtis.webp"
+  },
+  {
+    "slug": "lan_fan",
+    "nombre": "Lan Fan",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/lan_fan.webp"
+  },
+  {
+    "slug": "ling_yao",
+    "nombre": "Ling Yao",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/ling_yao.webp"
+  },
+  {
+    "slug": "lust",
+    "nombre": "Lust",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/lust.webp"
+  },
+  {
+    "slug": "maes_hughes",
+    "nombre": "Maes Hughes",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/maes_hughes.webp"
+  },
+  {
+    "slug": "olivier_armstrong",
+    "nombre": "Olivier Armstrong",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/olivier_armstrong.webp"
+  },
+  {
+    "slug": "pride",
+    "nombre": "Pride",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/pride.webp"
+  },
+  {
+    "slug": "riza_hawkeye",
+    "nombre": "Riza Hawkeye",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/riza_hawkeye.webp"
+  },
+  {
+    "slug": "roy_mustang",
+    "nombre": "Roy Mustang",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/roy_mustang.webp"
+  },
+  {
+    "slug": "scar",
+    "nombre": "Scar",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/scar.webp"
+  },
+  {
+    "slug": "van_hohenheim",
+    "nombre": "Van Hohenheim",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/van_hohenheim.webp"
+  },
+  {
+    "slug": "winry_rockbell",
+    "nombre": "Winry Rockbell",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/winry_rockbell.webp"
+  },
+  {
+    "slug": "wrath_king_bradley",
+    "nombre": "Wrath King Bradley",
+    "anime": "Fullmetal Alchemist",
+    "descripcion": "Personaje del anime Fullmetal Alchemist.",
+    "imagenUrl": "/img/Fullmetal_Alchemist/wrath_king_bradley.webp"
+  },
+  {
+    "slug": "bon",
+    "nombre": "Bon",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/bon.webp"
+  },
+  {
+    "slug": "fushi",
+    "nombre": "Fushi",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/fushi.webp"
+  },
+  {
+    "slug": "gugu",
+    "nombre": "Gugu",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/gugu.webp"
+  },
+  {
+    "slug": "hayase",
+    "nombre": "Hayase",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/hayase.webp"
+  },
+  {
+    "slug": "kahaku",
+    "nombre": "Kahaku",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/kahaku.webp"
+  },
+  {
+    "slug": "march",
+    "nombre": "March",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/march.webp"
+  },
+  {
+    "slug": "pioran",
+    "nombre": "Pioran",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/pioran.webp"
+  },
+  {
+    "slug": "tonari",
+    "nombre": "Tonari",
+    "anime": "Fumetsu no Anata e",
+    "descripcion": "Personaje del anime Fumetsu no Anata e.",
+    "imagenUrl": "/img/Fumetsu_no_Anata_e/tonari.webp"
+  },
+  {
+    "slug": "chiwa",
+    "nombre": "Chiwa",
+    "anime": "Gachiakuta",
+    "descripcion": "Personaje del anime Gachiakuta.",
+    "imagenUrl": "/img/Gachiakuta/chiwa.webp"
+  },
+  {
+    "slug": "engineer",
+    "nombre": "Engineer",
+    "anime": "Gachiakuta",
+    "descripcion": "Personaje del anime Gachiakuta.",
+    "imagenUrl": "/img/Gachiakuta/engineer.webp"
+  },
+  {
+    "slug": "enjin",
+    "nombre": "Enjin",
+    "anime": "Gachiakuta",
+    "descripcion": "Personaje del anime Gachiakuta.",
+    "imagenUrl": "/img/Gachiakuta/enjin.webp"
+  },
+  {
+    "slug": "riyou",
+    "nombre": "Riyou",
+    "anime": "Gachiakuta",
+    "descripcion": "Personaje del anime Gachiakuta.",
+    "imagenUrl": "/img/Gachiakuta/riyou.webp"
+  },
+  {
+    "slug": "rudo",
+    "nombre": "Rudo",
+    "anime": "Gachiakuta",
+    "descripcion": "Personaje del anime Gachiakuta.",
+    "imagenUrl": "/img/Gachiakuta/rudo.webp"
+  },
+  {
+    "slug": "semiu",
+    "nombre": "Semiu",
+    "anime": "Gachiakuta",
+    "descripcion": "Personaje del anime Gachiakuta.",
+    "imagenUrl": "/img/Gachiakuta/semiu.webp"
+  },
+  {
+    "slug": "elizabeth",
+    "nombre": "Elizabeth",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/elizabeth.webp"
+  },
+  {
+    "slug": "gintoki_sakata",
+    "nombre": "Gintoki Sakata",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/gintoki_sakata.webp"
+  },
+  {
+    "slug": "isao_kondo",
+    "nombre": "Isao Kondo",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/isao_kondo.webp"
+  },
+  {
+    "slug": "kagura",
+    "nombre": "Kagura",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/kagura.webp"
+  },
+  {
+    "slug": "kamui",
+    "nombre": "Kamui",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/kamui.webp"
+  },
+  {
+    "slug": "kotaro_katsura",
+    "nombre": "Kotaro Katsura",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/kotaro_katsura.webp"
+  },
+  {
+    "slug": "sadaharu",
+    "nombre": "Sadaharu",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/sadaharu.webp"
+  },
+  {
+    "slug": "sakamoto_tatsuma",
+    "nombre": "Sakamoto Tatsuma",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/sakamoto_tatsuma.webp"
+  },
+  {
+    "slug": "shinpachi_shimura",
+    "nombre": "Shinpachi Shimura",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/shinpachi_shimura.webp"
+  },
+  {
+    "slug": "shinsuke_takasugi",
+    "nombre": "Shinsuke Takasugi",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/shinsuke_takasugi.webp"
+  },
+  {
+    "slug": "sougo_okita",
+    "nombre": "Sougo Okita",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/sougo_okita.webp"
+  },
+  {
+    "slug": "tae_shimura",
+    "nombre": "Tae Shimura",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/tae_shimura.webp"
+  },
+  {
+    "slug": "toshiro_hijikata",
+    "nombre": "Toshiro Hijikata",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/toshiro_hijikata.webp"
+  },
+  {
+    "slug": "tsukuyo",
+    "nombre": "Tsukuyo",
+    "anime": "Gintama",
+    "descripcion": "Personaje del anime Gintama.",
+    "imagenUrl": "/img/Gintama/tsukuyo.webp"
+  },
+  {
     "slug": "kamina",
     "nombre": "Kamina",
     "anime": "Gurren Lagann",
@@ -2147,6 +2875,146 @@
     "anime": "Gurren Lagann",
     "descripcion": "Personaje del anime Gurren Lagann.",
     "imagenUrl": "/img/Gurren_Lagann/yoko_littner.webp"
+  },
+  {
+    "slug": "asahi_azumane",
+    "nombre": "Asahi Azumane",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/asahi_azumane.webp"
+  },
+  {
+    "slug": "atsumu_miya",
+    "nombre": "Atsumu Miya",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/atsumu_miya.webp"
+  },
+  {
+    "slug": "daichi_sawamura",
+    "nombre": "Daichi Sawamura",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/daichi_sawamura.webp"
+  },
+  {
+    "slug": "hajime_iwaizumi",
+    "nombre": "Hajime Iwaizumi",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/hajime_iwaizumi.webp"
+  },
+  {
+    "slug": "hitoka_yachi",
+    "nombre": "Hitoka Yachi",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/hitoka_yachi.webp"
+  },
+  {
+    "slug": "kei_tsukishima",
+    "nombre": "Kei Tsukishima",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/kei_tsukishima.webp"
+  },
+  {
+    "slug": "keiji_akaashi",
+    "nombre": "Keiji Akaashi",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/keiji_akaashi.webp"
+  },
+  {
+    "slug": "kenma_kozume",
+    "nombre": "Kenma Kozume",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/kenma_kozume.webp"
+  },
+  {
+    "slug": "kiyoko_shimizu",
+    "nombre": "Kiyoko Shimizu",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/kiyoko_shimizu.webp"
+  },
+  {
+    "slug": "koshi_sugawara",
+    "nombre": "Koshi Sugawara",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/koshi_sugawara.webp"
+  },
+  {
+    "slug": "kotaro_bokuto",
+    "nombre": "Kotaro Bokuto",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/kotaro_bokuto.webp"
+  },
+  {
+    "slug": "osamu_miya",
+    "nombre": "Osamu Miya",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/osamu_miya.webp"
+  },
+  {
+    "slug": "ryunosuke_tanaka",
+    "nombre": "Ryunosuke Tanaka",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/ryunosuke_tanaka.webp"
+  },
+  {
+    "slug": "shoyo_hinata",
+    "nombre": "Shoyo Hinata",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/shoyo_hinata.webp"
+  },
+  {
+    "slug": "tadashi_yamaguchi",
+    "nombre": "Tadashi Yamaguchi",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/tadashi_yamaguchi.webp"
+  },
+  {
+    "slug": "tetsuro_kuroo",
+    "nombre": "Tetsuro Kuroo",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/tetsuro_kuroo.webp"
+  },
+  {
+    "slug": "tobio_kageyama",
+    "nombre": "Tobio Kageyama",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/tobio_kageyama.webp"
+  },
+  {
+    "slug": "toru_oikawa",
+    "nombre": "Toru Oikawa",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/toru_oikawa.webp"
+  },
+  {
+    "slug": "wakatoshi_ushijima",
+    "nombre": "Wakatoshi Ushijima",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/wakatoshi_ushijima.webp"
+  },
+  {
+    "slug": "yu_nishinoya",
+    "nombre": "Yu Nishinoya",
+    "anime": "Haikyuu",
+    "descripcion": "Personaje del anime Haikyuu.",
+    "imagenUrl": "/img/Haikyuu/yu_nishinoya.webp"
   },
   {
     "slug": "alexander_anderson",
@@ -2268,6 +3136,104 @@
     "imagenUrl": "/img/Himouto_Umaru_chan/umaru_doma.webp"
   },
   {
+    "slug": "biscuit_krueger",
+    "nombre": "Biscuit Krueger",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/biscuit_krueger.webp"
+  },
+  {
+    "slug": "chrollo_lucilfer",
+    "nombre": "Chrollo Lucilfer",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/chrollo_lucilfer.webp"
+  },
+  {
+    "slug": "feitan_portor",
+    "nombre": "Feitan Portor",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/feitan_portor.webp"
+  },
+  {
+    "slug": "ging_freecss",
+    "nombre": "Ging Freecss",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/ging_freecss.webp"
+  },
+  {
+    "slug": "gon_freecss",
+    "nombre": "Gon Freecss",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/gon_freecss.webp"
+  },
+  {
+    "slug": "hisoka_morow",
+    "nombre": "Hisoka Morow",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/hisoka_morow.webp"
+  },
+  {
+    "slug": "illumi_zoldyck",
+    "nombre": "Illumi Zoldyck",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/illumi_zoldyck.webp"
+  },
+  {
+    "slug": "isaac_netero",
+    "nombre": "Isaac Netero",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/isaac_netero.webp"
+  },
+  {
+    "slug": "killua_zoldyck",
+    "nombre": "Killua Zoldyck",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/killua_zoldyck.webp"
+  },
+  {
+    "slug": "komugi",
+    "nombre": "Komugi",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/komugi.webp"
+  },
+  {
+    "slug": "kurapika",
+    "nombre": "Kurapika",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/kurapika.webp"
+  },
+  {
+    "slug": "leorio_paladiknight",
+    "nombre": "Leorio Paladiknight",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/leorio_paladiknight.webp"
+  },
+  {
+    "slug": "machi_komacine",
+    "nombre": "Machi Komacine",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/machi_komacine.webp"
+  },
+  {
+    "slug": "meruem",
+    "nombre": "Meruem",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/meruem.webp"
+  },
+  {
     "slug": "eru_chitanda",
     "nombre": "Eru Chitanda",
     "anime": "Hyouka",
@@ -2301,6 +3267,216 @@
     "anime": "Hyouka",
     "descripcion": "Personaje del anime Hyouka.",
     "imagenUrl": "/img/Hyouka/tomoe_oreki.webp"
+  },
+  {
+    "slug": "aki_kino",
+    "nombre": "Aki Kino",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/aki_kino.webp"
+  },
+  {
+    "slug": "aphrodi_terumi",
+    "nombre": "Aphrodi Terumi",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/aphrodi_terumi.webp"
+  },
+  {
+    "slug": "fudou_akio",
+    "nombre": "Fudou Akio",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/fudou_akio.webp"
+  },
+  {
+    "slug": "hiroto_kiyama",
+    "nombre": "Hiroto Kiyama",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/hiroto_kiyama.webp"
+  },
+  {
+    "slug": "ichinose_kazuya",
+    "nombre": "Ichinose Kazuya",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/ichinose_kazuya.webp"
+  },
+  {
+    "slug": "jirou_sakuma",
+    "nombre": "Jirou Sakuma",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/jirou_sakuma.webp"
+  },
+  {
+    "slug": "kazemaru_ichirouta",
+    "nombre": "Kazemaru Ichirouta",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/kazemaru_ichirouta.webp"
+  },
+  {
+    "slug": "mamoru_endou",
+    "nombre": "Mamoru Endou",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/mamoru_endou.webp"
+  },
+  {
+    "slug": "midorikawa_ryuuji",
+    "nombre": "Midorikawa Ryuuji",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/midorikawa_ryuuji.webp"
+  },
+  {
+    "slug": "natsumi_raimon",
+    "nombre": "Natsumi Raimon",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/natsumi_raimon.webp"
+  },
+  {
+    "slug": "ryuugo_someoka",
+    "nombre": "Ryuugo Someoka",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/ryuugo_someoka.webp"
+  },
+  {
+    "slug": "shirou_fubuki",
+    "nombre": "Shirou Fubuki",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/shirou_fubuki.webp"
+  },
+  {
+    "slug": "shuuya_gouenji",
+    "nombre": "Shuuya Gouenji",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/shuuya_gouenji.webp"
+  },
+  {
+    "slug": "tachimukai_yuuki",
+    "nombre": "Tachimukai Yuuki",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/tachimukai_yuuki.webp"
+  },
+  {
+    "slug": "toramaru_utsunomiya",
+    "nombre": "Toramaru Utsunomiya",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/toramaru_utsunomiya.webp"
+  },
+  {
+    "slug": "yuuto_kidou",
+    "nombre": "Yuuto Kidou",
+    "anime": "Inazuma Eleven",
+    "descripcion": "Personaje del anime Inazuma Eleven.",
+    "imagenUrl": "/img/Inazuma_Eleven/yuuto_kidou.webp"
+  },
+  {
+    "slug": "ayame",
+    "nombre": "Ayame",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/ayame.webp"
+  },
+  {
+    "slug": "inuyasha",
+    "nombre": "Inuyasha",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/inuyasha.webp"
+  },
+  {
+    "slug": "jaken",
+    "nombre": "Jaken",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/jaken.webp"
+  },
+  {
+    "slug": "kagome_higurashi",
+    "nombre": "Kagome Higurashi",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/kagome_higurashi.webp"
+  },
+  {
+    "slug": "kikyo",
+    "nombre": "Kikyo",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/kikyo.webp"
+  },
+  {
+    "slug": "kirara",
+    "nombre": "Kirara",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/kirara.webp"
+  },
+  {
+    "slug": "koga",
+    "nombre": "Koga",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/koga.webp"
+  },
+  {
+    "slug": "inuyasha_kohaku",
+    "nombre": "Kohaku",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/kohaku.webp"
+  },
+  {
+    "slug": "miroku",
+    "nombre": "Miroku",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/miroku.webp"
+  },
+  {
+    "slug": "naraku",
+    "nombre": "Naraku",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/naraku.webp"
+  },
+  {
+    "slug": "rin",
+    "nombre": "Rin",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/rin.webp"
+  },
+  {
+    "slug": "sango",
+    "nombre": "Sango",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/sango.webp"
+  },
+  {
+    "slug": "sesshomaru",
+    "nombre": "Sesshomaru",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/sesshomaru.webp"
+  },
+  {
+    "slug": "shippou",
+    "nombre": "Shippou",
+    "anime": "Inuyasha",
+    "descripcion": "Personaje del anime Inuyasha.",
+    "imagenUrl": "/img/Inuyasha/shippou.webp"
   },
   {
     "slug": "aoi_todo",
@@ -2506,6 +3682,363 @@
     "imagenUrl": "/img/Jujutsu_Kaisen/yuta_okkotsu.webp"
   },
   {
+    "slug": "itsuki_sumeragi",
+    "nombre": "Itsuki Sumeragi",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/itsuki_sumeragi.webp"
+  },
+  {
+    "slug": "kirari_momobami",
+    "nombre": "Kirari Momobami",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/kirari_momobami.webp"
+  },
+  {
+    "slug": "mary_saotome",
+    "nombre": "Mary Saotome",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/mary_saotome.webp"
+  },
+  {
+    "slug": "midari_ikishima",
+    "nombre": "Midari Ikishima",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/midari_ikishima.webp"
+  },
+  {
+    "slug": "ririka_momobami",
+    "nombre": "Ririka Momobami",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/ririka_momobami.webp"
+  },
+  {
+    "slug": "runa_yomozuki",
+    "nombre": "Runa Yomozuki",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/runa_yomozuki.webp"
+  },
+  {
+    "slug": "ryouta_suzui",
+    "nombre": "Ryouta Suzui",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/ryouta_suzui.webp"
+  },
+  {
+    "slug": "sayaka_igarashi",
+    "nombre": "Sayaka Igarashi",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/sayaka_igarashi.webp"
+  },
+  {
+    "slug": "yumeko_jabami",
+    "nombre": "Yumeko Jabami",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/yumeko_jabami.webp"
+  },
+  {
+    "slug": "yuriko_nishinotouin",
+    "nombre": "Yuriko Nishinotouin",
+    "anime": "Kakegurui",
+    "descripcion": "Personaje del anime Kakegurui.",
+    "imagenUrl": "/img/Kakegurui/yuriko_nishinotouin.webp"
+  },
+  {
+    "slug": "ayato_shirakura",
+    "nombre": "Ayato Shirakura",
+    "anime": "Kaoru Hana wa Rin to Saku",
+    "descripcion": "Personaje del anime Kaoru Hana wa Rin to Saku.",
+    "imagenUrl": "/img/Kaoru_Hana_wa_Rin_to_Saku/ayato_shirakura.webp"
+  },
+  {
+    "slug": "kaoruko_waguri",
+    "nombre": "Kaoruko Waguri",
+    "anime": "Kaoru Hana wa Rin to Saku",
+    "descripcion": "Personaje del anime Kaoru Hana wa Rin to Saku.",
+    "imagenUrl": "/img/Kaoru_Hana_wa_Rin_to_Saku/kaoruko_waguri.webp"
+  },
+  {
+    "slug": "rintarou_tsumugi",
+    "nombre": "Rintarou Tsumugi",
+    "anime": "Kaoru Hana wa Rin to Saku",
+    "descripcion": "Personaje del anime Kaoru Hana wa Rin to Saku.",
+    "imagenUrl": "/img/Kaoru_Hana_wa_Rin_to_Saku/rintarou_tsumugi.webp"
+  },
+  {
+    "slug": "shouhei_takagi",
+    "nombre": "Shouhei Takagi",
+    "anime": "Kaoru Hana wa Rin to Saku",
+    "descripcion": "Personaje del anime Kaoru Hana wa Rin to Saku.",
+    "imagenUrl": "/img/Kaoru_Hana_wa_Rin_to_Saku/shouhei_takagi.webp"
+  },
+  {
+    "slug": "subaru_usami",
+    "nombre": "Subaru Usami",
+    "anime": "Kaoru Hana wa Rin to Saku",
+    "descripcion": "Personaje del anime Kaoru Hana wa Rin to Saku.",
+    "imagenUrl": "/img/Kaoru_Hana_wa_Rin_to_Saku/subaru_usami.webp"
+  },
+  {
+    "slug": "houka_inumuta",
+    "nombre": "Houka Inumuta",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/houka_inumuta.webp"
+  },
+  {
+    "slug": "ira_gamagori",
+    "nombre": "Ira Gamagori",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/ira_gamagori.webp"
+  },
+  {
+    "slug": "mako_mankanshoku",
+    "nombre": "Mako Mankanshoku",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/mako_mankanshoku.webp"
+  },
+  {
+    "slug": "nonon_jakuzure",
+    "nombre": "Nonon Jakuzure",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/nonon_jakuzure.webp"
+  },
+  {
+    "slug": "nui_harime",
+    "nombre": "Nui Harime",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/nui_harime.webp"
+  },
+  {
+    "slug": "ragyo_kiryuin",
+    "nombre": "Ragyo Kiryuin",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/ragyo_kiryuin.webp"
+  },
+  {
+    "slug": "ryuko_matoi",
+    "nombre": "Ryuko Matoi",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/ryuko_matoi.webp"
+  },
+  {
+    "slug": "satsuki_kiryuin",
+    "nombre": "Satsuki Kiryuin",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/satsuki_kiryuin.webp"
+  },
+  {
+    "slug": "senketsu",
+    "nombre": "Senketsu",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/senketsu.webp"
+  },
+  {
+    "slug": "uzu_sanageyama",
+    "nombre": "Uzu Sanageyama",
+    "anime": "Kill la Kill",
+    "descripcion": "Personaje del anime Kill la Kill.",
+    "imagenUrl": "/img/Kill_la_Kill/uzu_sanageyama.webp"
+  },
+  {
+    "slug": "haruki_shiga",
+    "nombre": "Haruki Shiga",
+    "anime": "Kimi no Suizou wo Tabetai",
+    "descripcion": "Personaje del anime Kimi no Suizou wo Tabetai.",
+    "imagenUrl": "/img/Kimi_no_Suizou_wo_Tabetai/haruki_shiga.webp"
+  },
+  {
+    "slug": "kyoko_takimoto",
+    "nombre": "Kyoko Takimoto",
+    "anime": "Kimi no Suizou wo Tabetai",
+    "descripcion": "Personaje del anime Kimi no Suizou wo Tabetai.",
+    "imagenUrl": "/img/Kimi_no_Suizou_wo_Tabetai/kyoko_takimoto.webp"
+  },
+  {
+    "slug": "sakura_yamauchi",
+    "nombre": "Sakura Yamauchi",
+    "anime": "Kimi no Suizou wo Tabetai",
+    "descripcion": "Personaje del anime Kimi no Suizou wo Tabetai.",
+    "imagenUrl": "/img/Kimi_no_Suizou_wo_Tabetai/sakura_yamauchi.webp"
+  },
+  {
+    "slug": "elma",
+    "nombre": "Elma",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/elma.webp"
+  },
+  {
+    "slug": "fafnir",
+    "nombre": "Fafnir",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/fafnir.webp"
+  },
+  {
+    "slug": "ilulu",
+    "nombre": "Ilulu",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/ilulu.webp"
+  },
+  {
+    "slug": "kanna_kamui",
+    "nombre": "Kanna Kamui",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/kanna_kamui.webp"
+  },
+  {
+    "slug": "kobayashi",
+    "nombre": "Kobayashi",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/kobayashi.webp"
+  },
+  {
+    "slug": "lucoa",
+    "nombre": "Lucoa",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/lucoa.webp"
+  },
+  {
+    "slug": "takiya",
+    "nombre": "Takiya",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/takiya.webp"
+  },
+  {
+    "slug": "tohru",
+    "nombre": "Tohru",
+    "anime": "Kobayashi san Chi no Maidragon",
+    "descripcion": "Personaje del anime Kobayashi san Chi no Maidragon.",
+    "imagenUrl": "/img/Kobayashi_san_Chi_no_Maidragon/tohru.webp"
+  },
+  {
+    "slug": "miki_kawai",
+    "nombre": "Miki Kawai",
+    "anime": "Koe no Katachi",
+    "descripcion": "Personaje del anime Koe no Katachi.",
+    "imagenUrl": "/img/Koe_no_Katachi/miki_kawai.webp"
+  },
+  {
+    "slug": "naoka_ueno",
+    "nombre": "Naoka Ueno",
+    "anime": "Koe no Katachi",
+    "descripcion": "Personaje del anime Koe no Katachi.",
+    "imagenUrl": "/img/Koe_no_Katachi/naoka_ueno.webp"
+  },
+  {
+    "slug": "satoshi_mashiba",
+    "nombre": "Satoshi Mashiba",
+    "anime": "Koe no Katachi",
+    "descripcion": "Personaje del anime Koe no Katachi.",
+    "imagenUrl": "/img/Koe_no_Katachi/satoshi_mashiba.webp"
+  },
+  {
+    "slug": "shoko_nishimiya",
+    "nombre": "Shoko Nishimiya",
+    "anime": "Koe no Katachi",
+    "descripcion": "Personaje del anime Koe no Katachi.",
+    "imagenUrl": "/img/Koe_no_Katachi/shoko_nishimiya.webp"
+  },
+  {
+    "slug": "shoya_ishida",
+    "nombre": "Shoya Ishida",
+    "anime": "Koe no Katachi",
+    "descripcion": "Personaje del anime Koe no Katachi.",
+    "imagenUrl": "/img/Koe_no_Katachi/shoya_ishida.webp"
+  },
+  {
+    "slug": "tomohiro_nagatsuka",
+    "nombre": "Tomohiro Nagatsuka",
+    "anime": "Koe no Katachi",
+    "descripcion": "Personaje del anime Koe no Katachi.",
+    "imagenUrl": "/img/Koe_no_Katachi/tomohiro_nagatsuka.webp"
+  },
+  {
+    "slug": "yuzuru_nishimiya",
+    "nombre": "Yuzuru Nishimiya",
+    "anime": "Koe no Katachi",
+    "descripcion": "Personaje del anime Koe no Katachi.",
+    "imagenUrl": "/img/Koe_no_Katachi/yuzuru_nishimiya.webp"
+  },
+  {
+    "slug": "chocolat",
+    "nombre": "Chocolat",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/chocolat.webp"
+  },
+  {
+    "slug": "himiko_agari",
+    "nombre": "Himiko Agari",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/himiko_agari.webp"
+  },
+  {
+    "slug": "hitohito_tadano",
+    "nombre": "Hitohito Tadano",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/hitohito_tadano.webp"
+  },
+  {
+    "slug": "makoto_katai",
+    "nombre": "Makoto Katai",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/makoto_katai.webp"
+  },
+  {
+    "slug": "najimi_osana",
+    "nombre": "Najimi Osana",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/najimi_osana.webp"
+  },
+  {
+    "slug": "omoharu_nakanaka",
+    "nombre": "Omoharu Nakanaka",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/omoharu_nakanaka.webp"
+  },
+  {
+    "slug": "ren_yamai",
+    "nombre": "Ren Yamai",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/ren_yamai.webp"
+  },
+  {
+    "slug": "shoko_komi",
+    "nombre": "Shoko Komi",
+    "anime": "Komi san wa Komyushou Desu",
+    "descripcion": "Personaje del anime Komi san wa Komyushou Desu.",
+    "imagenUrl": "/img/Komi_san_wa_Komyushou_Desu/shoko_komi.webp"
+  },
+  {
     "slug": "aqua",
     "nombre": "Aqua",
     "anime": "KonoSuba",
@@ -2693,6 +4226,48 @@
     "anime": "Made in Abyss",
     "descripcion": "Personaje del anime Made in Abyss.",
     "imagenUrl": "/img/Made_in_Abyss/riko.webp"
+  },
+  {
+    "slug": "homura_akemi",
+    "nombre": "Homura Akemi",
+    "anime": "Madoka Magica",
+    "descripcion": "Personaje del anime Madoka Magica.",
+    "imagenUrl": "/img/Madoka_Magica/homura_akemi.webp"
+  },
+  {
+    "slug": "kyoko_sakura",
+    "nombre": "Kyoko Sakura",
+    "anime": "Madoka Magica",
+    "descripcion": "Personaje del anime Madoka Magica.",
+    "imagenUrl": "/img/Madoka_Magica/kyoko_sakura.webp"
+  },
+  {
+    "slug": "kyubey",
+    "nombre": "Kyubey",
+    "anime": "Madoka Magica",
+    "descripcion": "Personaje del anime Madoka Magica.",
+    "imagenUrl": "/img/Madoka_Magica/kyubey.webp"
+  },
+  {
+    "slug": "madoka_kaname",
+    "nombre": "Madoka Kaname",
+    "anime": "Madoka Magica",
+    "descripcion": "Personaje del anime Madoka Magica.",
+    "imagenUrl": "/img/Madoka_Magica/madoka_kaname.webp"
+  },
+  {
+    "slug": "mami_tomoe",
+    "nombre": "Mami Tomoe",
+    "anime": "Madoka Magica",
+    "descripcion": "Personaje del anime Madoka Magica.",
+    "imagenUrl": "/img/Madoka_Magica/mami_tomoe.webp"
+  },
+  {
+    "slug": "sayaka_miki",
+    "nombre": "Sayaka Miki",
+    "anime": "Madoka Magica",
+    "descripcion": "Personaje del anime Madoka Magica.",
+    "imagenUrl": "/img/Madoka_Magica/sayaka_miki.webp"
   },
   {
     "slug": "aphrodite_a",
@@ -2889,6 +4464,265 @@
     "anime": "Mirai Nikki",
     "descripcion": "Personaje del anime Mirai Nikki.",
     "imagenUrl": "/img/Mirai_Nikki/yukiteru_amano.webp"
+  },
+  {
+    "slug": "arataka_reigen",
+    "nombre": "Arataka Reigen",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/arataka_reigen.webp"
+  },
+  {
+    "slug": "dimple",
+    "nombre": "Dimple",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/dimple.webp"
+  },
+  {
+    "slug": "ritsu_kageyama",
+    "nombre": "Ritsu Kageyama",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/ritsu_kageyama.webp"
+  },
+  {
+    "slug": "shigeo_kageyama",
+    "nombre": "Shigeo Kageyama",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/shigeo_kageyama.webp"
+  },
+  {
+    "slug": "shou_suzuki",
+    "nombre": "Shou Suzuki",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/shou_suzuki.webp"
+  },
+  {
+    "slug": "teruki_hanazawa",
+    "nombre": "Teruki Hanazawa",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/teruki_hanazawa.webp"
+  },
+  {
+    "slug": "toichiro_suzuki",
+    "nombre": "Toichiro Suzuki",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/toichiro_suzuki.webp"
+  },
+  {
+    "slug": "tome_kurata",
+    "nombre": "Tome Kurata",
+    "anime": "Mob Psycho 100",
+    "descripcion": "Personaje del anime Mob Psycho 100.",
+    "imagenUrl": "/img/Mob_Psycho_100/tome_kurata.webp"
+  },
+  {
+    "slug": "hitagi_senjougahara",
+    "nombre": "Hitagi Senjougahara",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/hitagi_senjougahara.webp"
+  },
+  {
+    "slug": "izuko_gaen",
+    "nombre": "Izuko Gaen",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/izuko_gaen.webp"
+  },
+  {
+    "slug": "karen_araragi",
+    "nombre": "Karen Araragi",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/karen_araragi.webp"
+  },
+  {
+    "slug": "koyomi_araragi",
+    "nombre": "Koyomi Araragi",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/koyomi_araragi.webp"
+  },
+  {
+    "slug": "mayoi_hachikuji",
+    "nombre": "Mayoi Hachikuji",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/mayoi_hachikuji.webp"
+  },
+  {
+    "slug": "meme_oshino",
+    "nombre": "Meme Oshino",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/meme_oshino.webp"
+  },
+  {
+    "slug": "nadeko_sengoku",
+    "nombre": "Nadeko Sengoku",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/nadeko_sengoku.webp"
+  },
+  {
+    "slug": "shinobu_oshino",
+    "nombre": "Shinobu Oshino",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/shinobu_oshino.webp"
+  },
+  {
+    "slug": "suruga_kanbaru",
+    "nombre": "Suruga Kanbaru",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/suruga_kanbaru.webp"
+  },
+  {
+    "slug": "tsubasa_hanekawa",
+    "nombre": "Tsubasa Hanekawa",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/tsubasa_hanekawa.webp"
+  },
+  {
+    "slug": "tsukihi_araragi",
+    "nombre": "Tsukihi Araragi",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/tsukihi_araragi.webp"
+  },
+  {
+    "slug": "yotsugi_ononoki",
+    "nombre": "Yotsugi Ononoki",
+    "anime": "Monogatari Series",
+    "descripcion": "Personaje del anime Monogatari Series.",
+    "imagenUrl": "/img/Monogatari_Series/yotsugi_ononoki.webp"
+  },
+  {
+    "slug": "anna_liebert",
+    "nombre": "Anna Liebert",
+    "anime": "Monster",
+    "descripcion": "Personaje del anime Monster.",
+    "imagenUrl": "/img/Monster/anna_liebert.webp"
+  },
+  {
+    "slug": "eva_heinemann",
+    "nombre": "Eva Heinemann",
+    "anime": "Monster",
+    "descripcion": "Personaje del anime Monster.",
+    "imagenUrl": "/img/Monster/eva_heinemann.webp"
+  },
+  {
+    "slug": "heinrich_lunge",
+    "nombre": "Heinrich Lunge",
+    "anime": "Monster",
+    "descripcion": "Personaje del anime Monster.",
+    "imagenUrl": "/img/Monster/heinrich_lunge.webp"
+  },
+  {
+    "slug": "johan_liebert",
+    "nombre": "Johan Liebert",
+    "anime": "Monster",
+    "descripcion": "Personaje del anime Monster.",
+    "imagenUrl": "/img/Monster/johan_liebert.webp"
+  },
+  {
+    "slug": "kenzou_tenma",
+    "nombre": "Kenzou Tenma",
+    "anime": "Monster",
+    "descripcion": "Personaje del anime Monster.",
+    "imagenUrl": "/img/Monster/kenzou_tenma.webp"
+  },
+  {
+    "slug": "wolfgang_grimmer",
+    "nombre": "Wolfgang Grimmer",
+    "anime": "Monster",
+    "descripcion": "Personaje del anime Monster.",
+    "imagenUrl": "/img/Monster/wolfgang_grimmer.webp"
+  },
+  {
+    "slug": "adashino",
+    "nombre": "Adashino",
+    "anime": "Mushishi",
+    "descripcion": "Personaje del anime Mushishi.",
+    "imagenUrl": "/img/Mushishi/adashino.webp"
+  },
+  {
+    "slug": "ginko",
+    "nombre": "Ginko",
+    "anime": "Mushishi",
+    "descripcion": "Personaje del anime Mushishi.",
+    "imagenUrl": "/img/Mushishi/ginko.webp"
+  },
+  {
+    "slug": "tanyuu_karibusa",
+    "nombre": "Tanyuu Karibusa",
+    "anime": "Mushishi",
+    "descripcion": "Personaje del anime Mushishi.",
+    "imagenUrl": "/img/Mushishi/tanyuu_karibusa.webp"
+  },
+  {
+    "slug": "eris_boreas_greyrat",
+    "nombre": "Eris Boreas Greyrat",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/eris_boreas_greyrat.webp"
+  },
+  {
+    "slug": "nanahoshi_shizuka",
+    "nombre": "Nanahoshi Shizuka",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/nanahoshi_shizuka.webp"
+  },
+  {
+    "slug": "paul_greyrat",
+    "nombre": "Paul Greyrat",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/paul_greyrat.webp"
+  },
+  {
+    "slug": "roxy_migurdia",
+    "nombre": "Roxy Migurdia",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/roxy_migurdia.webp"
+  },
+  {
+    "slug": "rudeus_greyrat",
+    "nombre": "Rudeus Greyrat",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/rudeus_greyrat.webp"
+  },
+  {
+    "slug": "ruijerd_superdia",
+    "nombre": "Ruijerd Superdia",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/ruijerd_superdia.webp"
+  },
+  {
+    "slug": "sylphiette",
+    "nombre": "Sylphiette",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/sylphiette.webp"
+  },
+  {
+    "slug": "zenith_greyrat",
+    "nombre": "Zenith Greyrat",
+    "anime": "Mushoku Tensei",
+    "descripcion": "Personaje del anime Mushoku Tensei.",
+    "imagenUrl": "/img/Mushoku_Tensei/zenith_greyrat.webp"
   },
   {
     "slug": "marin_kitagawa",
@@ -3773,13 +5607,6 @@
     "imagenUrl": "/img/One_Piece/boa_hancock.webp"
   },
   {
-    "slug": "boa_hancock_alt",
-    "nombre": "Boa Hancock Alt",
-    "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
-    "imagenUrl": "/img/One_Piece/boa_hancock_alt.webp"
-  },
-  {
     "slug": "brook",
     "nombre": "Brook",
     "anime": "One Piece",
@@ -3883,13 +5710,6 @@
     "anime": "One Piece",
     "descripcion": "Personaje del anime One Piece.",
     "imagenUrl": "/img/One_Piece/portgas_d_ace.webp"
-  },
-  {
-    "slug": "roronoa_zoro",
-    "nombre": "Roronoa Zoro",
-    "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
-    "imagenUrl": "/img/One_Piece/roronoa_zoro.webp"
   },
   {
     "slug": "sabo",
@@ -4587,49 +6407,49 @@
   {
     "slug": "kaede_azusagawa",
     "nombre": "Kaede Azusagawa",
-    "anime": "Seishun Buta Yarou (Bunny Girl Senpai)",
-    "descripcion": "Personaje del anime Seishun Buta Yarou (Bunny Girl Senpai).",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Personaje del anime Bunny Girl Senpai.",
     "imagenUrl": "/img/Seishun_Buta_Yarou_(Bunny_Girl_Senpai)/kaede_azusagawa.webp"
   },
   {
     "slug": "mai_sakurajima",
     "nombre": "Mai Sakurajima",
-    "anime": "Seishun Buta Yarou (Bunny Girl Senpai)",
+    "anime": "Bunny Girl Senpai",
     "descripcion": "Idol y actriz invisible para todos por el Síndrome de la Pubertad. Solo Sakuta puede verla.",
     "imagenUrl": "/img/Seishun_Buta_Yarou_(Bunny_Girl_Senpai)/mai_sakurajima.webp"
   },
   {
     "slug": "nodoka_toyohama",
     "nombre": "Nodoka Toyohama",
-    "anime": "Seishun Buta Yarou (Bunny Girl Senpai)",
-    "descripcion": "Personaje del anime Seishun Buta Yarou (Bunny Girl Senpai).",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Personaje del anime Bunny Girl Senpai.",
     "imagenUrl": "/img/Seishun_Buta_Yarou_(Bunny_Girl_Senpai)/nodoka_toyohama.webp"
   },
   {
     "slug": "rio_futaba",
     "nombre": "Rio Futaba",
-    "anime": "Seishun Buta Yarou (Bunny Girl Senpai)",
+    "anime": "Bunny Girl Senpai",
     "descripcion": "Compañera científica de Sakuta. Analiza el Síndrome de la Pubertad con bata blanca y pragmatismo.",
     "imagenUrl": "/img/Seishun_Buta_Yarou_(Bunny_Girl_Senpai)/rio_futaba.webp"
   },
   {
     "slug": "sakuta_azusagawa",
     "nombre": "Sakuta Azusagawa",
-    "anime": "Seishun Buta Yarou (Bunny Girl Senpai)",
+    "anime": "Bunny Girl Senpai",
     "descripcion": "Protagonista de Bunny Girl Senpai. Soporta el Síndrome de la Pubertad ajeno para proteger a las afectadas.",
     "imagenUrl": "/img/Seishun_Buta_Yarou_(Bunny_Girl_Senpai)/sakuta_azusagawa.webp"
   },
   {
     "slug": "shouko_makinohara",
     "nombre": "Shouko Makinohara",
-    "anime": "Seishun Buta Yarou (Bunny Girl Senpai)",
-    "descripcion": "Personaje del anime Seishun Buta Yarou (Bunny Girl Senpai).",
+    "anime": "Bunny Girl Senpai",
+    "descripcion": "Personaje del anime Bunny Girl Senpai.",
     "imagenUrl": "/img/Seishun_Buta_Yarou_(Bunny_Girl_Senpai)/shouko_makinohara.webp"
   },
   {
     "slug": "tomoe_koga",
     "nombre": "Tomoe Koga",
-    "anime": "Seishun Buta Yarou (Bunny Girl Senpai)",
+    "anime": "Bunny Girl Senpai",
     "descripcion": "Estudiante popular atrapada en un bucle temporal por el Síndrome. Sakuta finge ser su novio.",
     "imagenUrl": "/img/Seishun_Buta_Yarou_(Bunny_Girl_Senpai)/tomoe_koga.webp"
   },
@@ -4639,6 +6459,13 @@
     "anime": "Serial Experiments Lain",
     "descripcion": "Personaje del anime Serial Experiments Lain.",
     "imagenUrl": "/img/Serial_Experiments_Lain/alice_mizuki.webp"
+  },
+  {
+    "slug": "lain_iwakura",
+    "nombre": "Lain Iwakura",
+    "anime": "Serial Experiments Lain",
+    "descripcion": "Personaje del anime Serial Experiments Lain.",
+    "imagenUrl": "/img/Serial_Experiments_Lain/lain_iwakura.webp"
   },
   {
     "slug": "masami_eiri",
@@ -4660,6 +6487,62 @@
     "anime": "Serial Experiments Lain",
     "descripcion": "Personaje del anime Serial Experiments Lain.",
     "imagenUrl": "/img/Serial_Experiments_Lain/yasuo_iwakura.webp"
+  },
+  {
+    "slug": "baek_yoonho",
+    "nombre": "Baek Yoonho",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/baek_yoonho.webp"
+  },
+  {
+    "slug": "beru",
+    "nombre": "Beru",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/beru.webp"
+  },
+  {
+    "slug": "cha_hae_in",
+    "nombre": "Cha Hae In",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/cha_hae_in.webp"
+  },
+  {
+    "slug": "go_gunhee",
+    "nombre": "Go Gunhee",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/go_gunhee.webp"
+  },
+  {
+    "slug": "igris",
+    "nombre": "Igris",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/igris.webp"
+  },
+  {
+    "slug": "liu_zhigang",
+    "nombre": "Liu Zhigang",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/liu_zhigang.webp"
+  },
+  {
+    "slug": "sung_jinwoo",
+    "nombre": "Sung Jinwoo",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/sung_jinwoo.webp"
+  },
+  {
+    "slug": "thomas_andre",
+    "nombre": "Thomas Andre",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/thomas_andre.webp"
   },
   {
     "slug": "black_star",
@@ -4744,6 +6627,41 @@
     "anime": "Spy × Family",
     "descripcion": "Asesina conocida como Thorn Princess. Madre fingida de Anya y esposa fingida de Loid.",
     "imagenUrl": "/img/Spy_x_Family/yor_forger.webp"
+  },
+  {
+    "slug": "itaru_hashida",
+    "nombre": "Itaru Hashida",
+    "anime": "Steins Gate",
+    "descripcion": "Personaje del anime Steins Gate.",
+    "imagenUrl": "/img/Steins_Gate/itaru_hashida.webp"
+  },
+  {
+    "slug": "kurisu_makise",
+    "nombre": "Kurisu Makise",
+    "anime": "Steins Gate",
+    "descripcion": "Personaje del anime Steins Gate.",
+    "imagenUrl": "/img/Steins_Gate/kurisu_makise.webp"
+  },
+  {
+    "slug": "mayuri_shiina",
+    "nombre": "Mayuri Shiina",
+    "anime": "Steins Gate",
+    "descripcion": "Personaje del anime Steins Gate.",
+    "imagenUrl": "/img/Steins_Gate/mayuri_shiina.webp"
+  },
+  {
+    "slug": "rintarou_okabe",
+    "nombre": "Rintarou Okabe",
+    "anime": "Steins Gate",
+    "descripcion": "Personaje del anime Steins Gate.",
+    "imagenUrl": "/img/Steins_Gate/rintarou_okabe.webp"
+  },
+  {
+    "slug": "suzuha_amane",
+    "nombre": "Suzuha Amane",
+    "anime": "Steins Gate",
+    "descripcion": "Personaje del anime Steins Gate.",
+    "imagenUrl": "/img/Steins_Gate/suzuha_amane.webp"
   },
   {
     "slug": "alice_zuberg",
@@ -4886,6 +6804,55 @@
     "imagenUrl": "/img/The_Angel_Next_Door/mahiru_shiina.webp"
   },
   {
+    "slug": "don",
+    "nombre": "Don",
+    "anime": "The Promised Neverland",
+    "descripcion": "Personaje del anime The Promised Neverland.",
+    "imagenUrl": "/img/The_Promised_Neverland/don.webp"
+  },
+  {
+    "slug": "emma",
+    "nombre": "Emma",
+    "anime": "The Promised Neverland",
+    "descripcion": "Personaje del anime The Promised Neverland.",
+    "imagenUrl": "/img/The_Promised_Neverland/emma.webp"
+  },
+  {
+    "slug": "gilda",
+    "nombre": "Gilda",
+    "anime": "The Promised Neverland",
+    "descripcion": "Personaje del anime The Promised Neverland.",
+    "imagenUrl": "/img/The_Promised_Neverland/gilda.webp"
+  },
+  {
+    "slug": "isabella",
+    "nombre": "Isabella",
+    "anime": "The Promised Neverland",
+    "descripcion": "Personaje del anime The Promised Neverland.",
+    "imagenUrl": "/img/The_Promised_Neverland/isabella.webp"
+  },
+  {
+    "slug": "krone",
+    "nombre": "Krone",
+    "anime": "The Promised Neverland",
+    "descripcion": "Personaje del anime The Promised Neverland.",
+    "imagenUrl": "/img/The_Promised_Neverland/krone.webp"
+  },
+  {
+    "slug": "norman",
+    "nombre": "Norman",
+    "anime": "The Promised Neverland",
+    "descripcion": "Personaje del anime The Promised Neverland.",
+    "imagenUrl": "/img/The_Promised_Neverland/norman.webp"
+  },
+  {
+    "slug": "ray",
+    "nombre": "Ray",
+    "anime": "The Promised Neverland",
+    "descripcion": "Personaje del anime The Promised Neverland.",
+    "imagenUrl": "/img/The_Promised_Neverland/ray.webp"
+  },
+  {
     "slug": "ayato_kirishima",
     "nombre": "Ayato Kirishima",
     "anime": "Tokyo Ghoul",
@@ -4942,11 +6909,214 @@
     "imagenUrl": "/img/Tokyo_Ghoul/uta.webp"
   },
   {
+    "slug": "ami_kawashima",
+    "nombre": "Ami Kawashima",
+    "anime": "Toradora!",
+    "descripcion": "Personaje del anime Toradora!.",
+    "imagenUrl": "/img/Toradora/ami_kawashima.webp"
+  },
+  {
+    "slug": "minori_kushieda",
+    "nombre": "Minori Kushieda",
+    "anime": "Toradora!",
+    "descripcion": "Personaje del anime Toradora!.",
+    "imagenUrl": "/img/Toradora/minori_kushieda.webp"
+  },
+  {
+    "slug": "ryuuji_takasu",
+    "nombre": "Ryuuji Takasu",
+    "anime": "Toradora!",
+    "descripcion": "Personaje del anime Toradora!.",
+    "imagenUrl": "/img/Toradora/ryuuji_takasu.webp"
+  },
+  {
+    "slug": "taiga_aisaka",
+    "nombre": "Taiga Aisaka",
+    "anime": "Toradora!",
+    "descripcion": "Personaje del anime Toradora!.",
+    "imagenUrl": "/img/Toradora/taiga_aisaka.webp"
+  },
+  {
     "slug": "yusaku_kitamura",
     "nombre": "Yusaku Kitamura",
     "anime": "Toradora!",
     "descripcion": "Personaje del anime Toradora!.",
     "imagenUrl": "/img/Toradora/yusaku_kitamura.webp"
+  },
+  {
+    "slug": "anaak_jahad",
+    "nombre": "Anaak Jahad",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/anaak_jahad.webp"
+  },
+  {
+    "slug": "endorsi_zahard",
+    "nombre": "Endorsi Zahard",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/endorsi_zahard.webp"
+  },
+  {
+    "slug": "evan_edrok",
+    "nombre": "Evan Edrok",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/evan_edrok.webp"
+  },
+  {
+    "slug": "hatsu",
+    "nombre": "Hatsu",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/hatsu.webp"
+  },
+  {
+    "slug": "hwa_ryun",
+    "nombre": "Hwa Ryun",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/hwa_ryun.webp"
+  },
+  {
+    "slug": "khun_aguero_agnis",
+    "nombre": "Khun Aguero Agnis",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/khun_aguero_agnis.webp"
+  },
+  {
+    "slug": "rak_wraithraiser",
+    "nombre": "Rak Wraithraiser",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/rak_wraithraiser.webp"
+  },
+  {
+    "slug": "shibisu",
+    "nombre": "Shibisu",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/shibisu.webp"
+  },
+  {
+    "slug": "twenty_fifth_bam",
+    "nombre": "Twenty Fifth Bam",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/twenty_fifth_bam.webp"
+  },
+  {
+    "slug": "yuri_zahard",
+    "nombre": "Yuri Zahard",
+    "anime": "Tower of God",
+    "descripcion": "Personaje del anime Tower of God.",
+    "imagenUrl": "/img/Tower_of_God/yuri_zahard.webp"
+  },
+  {
+    "slug": "agnes_tachyon",
+    "nombre": "Agnes Tachyon",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/agnes_tachyon.webp"
+  },
+  {
+    "slug": "daiwa_scarlet",
+    "nombre": "Daiwa Scarlet",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/daiwa_scarlet.webp"
+  },
+  {
+    "slug": "el_condor_pasa",
+    "nombre": "El Condor Pasa",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/el_condor_pasa.webp"
+  },
+  {
+    "slug": "gold_ship",
+    "nombre": "Gold Ship",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/gold_ship.webp"
+  },
+  {
+    "slug": "grass_wonder",
+    "nombre": "Grass Wonder",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/grass_wonder.webp"
+  },
+  {
+    "slug": "manhattan_cafe",
+    "nombre": "Manhattan Cafe",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/manhattan_cafe.webp"
+  },
+  {
+    "slug": "mejiro_mcqueen",
+    "nombre": "Mejiro Mcqueen",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/mejiro_mcqueen.webp"
+  },
+  {
+    "slug": "mihono_bourbon",
+    "nombre": "Mihono Bourbon",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/mihono_bourbon.webp"
+  },
+  {
+    "slug": "oguri_cap",
+    "nombre": "Oguri Cap",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/oguri_cap.webp"
+  },
+  {
+    "slug": "rice_shower",
+    "nombre": "Rice Shower",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/rice_shower.webp"
+  },
+  {
+    "slug": "silence_suzuka",
+    "nombre": "Silence Suzuka",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/silence_suzuka.webp"
+  },
+  {
+    "slug": "special_week",
+    "nombre": "Special Week",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/special_week.webp"
+  },
+  {
+    "slug": "symboli_rudolf",
+    "nombre": "Symboli Rudolf",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/symboli_rudolf.webp"
+  },
+  {
+    "slug": "tokai_teio",
+    "nombre": "Tokai Teio",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/tokai_teio.webp"
+  },
+  {
+    "slug": "vodka",
+    "nombre": "Vodka",
+    "anime": "Uma Musume",
+    "descripcion": "Personaje del anime Uma Musume.",
+    "imagenUrl": "/img/Uma_Musume/vodka.webp"
   },
   {
     "slug": "benedict_blue",
