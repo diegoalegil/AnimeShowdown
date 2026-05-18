@@ -24,7 +24,8 @@
     "activarSonidos": "Activar sonidos",
     "paletaToast": "Paleta: {{nombre}}",
     "idioma": "Idioma",
-    "elegirIdioma": "Elegir idioma"
+    "elegirIdioma": "Elegir idioma",
+    "ctaVotar": "Votar ahora"
   },
   "footer": {
     "descripcion": "Plataforma de duelos cara a cara, ranking ELO y torneos visuales entre los personajes anime más icónicos. Tú decides quién manda.",
