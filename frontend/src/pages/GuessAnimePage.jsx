@@ -110,7 +110,7 @@ function GuessAnimePage() {
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="px-5 py-5 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -122,22 +122,22 @@ function GuessAnimePage() {
       <div className="mx-auto max-w-2xl">
         <Link
           to="/games"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
+          className="mb-3 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong sm:mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Hub de juegos
         </Link>
         <motion.header
-          className="mb-8 flex flex-col items-start gap-3"
+          className="mb-4 flex flex-col items-start gap-2 sm:mb-8 sm:gap-3"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-amber-200">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-amber-200 sm:px-3.5 sm:py-1.5 sm:text-[12px]">
             <Type className="h-3 w-3" />
             Guess the Anime · Daily
           </span>
-          <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] leading-tight tracking-tight">
             ¿De qué anime es?
           </h1>
           <p className="text-[13px] text-fg-muted">
@@ -147,14 +147,16 @@ function GuessAnimePage() {
           </p>
         </motion.header>
 
+        {/* Audit visual (2026-05-18): cap mobile a 42vh para que el input
+            quede dentro del primer viewport. Width sigue al aspect-ratio. */}
         <div
-          className={`relative mx-auto mb-6 max-w-sm overflow-hidden rounded-xl border bg-surface transition-all duration-500 ${
+          className={`relative mx-auto mb-4 w-fit overflow-hidden rounded-xl border bg-surface transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
             estado.acertado
               ? 'border-amber-400/60 shadow-[0_0_60px_-10px_rgba(251,191,36,0.55)]'
               : 'border-border'
           }`}
         >
-          <div className="relative aspect-[2/3] w-full overflow-hidden bg-bg">
+          <div className="relative aspect-[2/3] h-[42vh] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
             <img
               src={imagenPersonaje(objetivo.slug)}
               alt="Personaje a identificar"
