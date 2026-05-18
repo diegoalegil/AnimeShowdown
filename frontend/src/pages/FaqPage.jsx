@@ -30,52 +30,52 @@ const FAQ = [
   {
     pregunta: '¿Qué es AnimeShowdown?',
     respuesta:
-      'AnimeShowdown es una plataforma para votar enfrentamientos cara a cara entre personajes de anime. Cada voto suma puntos al ranking ELO global de cada personaje y los torneos van resolviendo el bracket en directo. Es gratis y open source.',
+      'Una plataforma para enfrentar a personajes de anime cara a cara. Tú votas en cada duelo y la comunidad va decidiendo quién manda en el ranking ELO. Gratis y sin anuncios.',
   },
   {
     pregunta: '¿Cómo funciona el ranking ELO?',
     respuesta:
-      'Cada personaje empieza con 1500 puntos. Al ganar un enfrentamiento sube su ELO en función del rival (subes más si ganas a uno con ELO alto; menos si vencias a uno más bajo). Es el mismo sistema que usan chess.com y otras competiciones competitivas. El ranking se actualiza al instante después de cada voto.',
+      'Cada personaje empieza con 1500 puntos. Ganar un duelo le suma puntos en función del rival: si bates a alguien fuerte sube mucho, si vences a alguien por debajo sube poco. Es el mismo sistema que se usa en ajedrez competitivo. El ranking se actualiza al instante con cada voto.',
   },
   {
     pregunta: '¿Qué son los torneos?',
     respuesta:
-      'Brackets de 8 o 16 personajes en eliminación directa. Cada ronda dura mientras la comunidad vota; al cerrarse, el ganador pasa a la siguiente ronda. Hay torneos creados por administradores (catálogo curado) y torneos creados por usuarios verificados, todos visibles en /torneos.',
+      'Brackets de 8 o 16 personajes a eliminación directa. Cada ronda dura mientras la comunidad vota; cuando cierra, el ganador pasa a la siguiente. Hay torneos curados por nosotros y torneos creados por usuarios verificados — todos visibles en /torneos.',
   },
   {
     pregunta: '¿Puedo crear mi propio torneo?',
     respuesta:
-      'Sí, cualquier cuenta con email verificado puede crear torneos personalizados desde /torneos/crear. Eliges 8 o 16 personajes, le pones nombre y descripción, y queda en cola de revisión. Un admin lo revisa antes de hacerlo público (suele ser <24h).',
+      'Sí. Cualquier cuenta con email verificado puede crearlo desde /torneos/crear: eliges 8 o 16 personajes, le pones nombre y descripción, y lo revisamos antes de hacerlo público (suele ser en menos de 24 horas).',
   },
   {
     pregunta: '¿Qué son las predicciones?',
     respuesta:
-      'Mientras un torneo está activo puedes predecir quién avanzará en cada bracket. Cuando el match se resuelve, AnimeShowdown comprueba tus predicciones y suma puntos a tu ratio de aciertos. Acertar 3, 10 o 20 predicciones seguidas desbloquea logros específicos.',
+      'Mientras un torneo está activo puedes predecir quién avanzará en cada match. Cuando el duelo se resuelve, sumas un acierto a tu ratio. Encadenar 3, 10 o 20 aciertos seguidos desbloquea logros.',
   },
   {
     pregunta: '¿Cómo veo el perfil de otros usuarios?',
     respuesta:
-      'Cada usuario tiene su perfil público en /u/{username} con sus stats, top de personajes votados, logros desbloqueados y followers. Desde ahí puedes seguir a otros y recibir notificaciones cuando ellos te sigan a ti.',
+      'Cada usuario tiene su perfil público en /u/su-nombre con sus stats, su top de personajes, sus logros y a quién sigue. Desde ahí puedes empezar a seguirle y recibir aviso cuando él te siga.',
   },
   {
     pregunta: '¿AnimeShowdown es gratis?',
     respuesta:
-      'Sí, totalmente. Sin anuncios, sin tracking de terceros y sin planes de pago. Es un proyecto portfolio open source — el código vive en GitHub bajo licencia MIT.',
+      'Sí, gratis y sin anuncios. Sin trackers de terceros, sin planes de pago, sin funciones bloqueadas. Si quieres echar una mano, hay una página /apoya con donaciones opcionales.',
   },
   {
-    pregunta: '¿Quién creó AnimeShowdown?',
+    pregunta: '¿Quién está detrás del proyecto?',
     respuesta:
-      'Lo desarrolla Diego Alegil, estudiante de DAM (Desarrollo de Aplicaciones Multiplataforma). El stack es React 19 + Vite 8 + Tailwind v4 en el frontend, Spring Boot 3 + Java 21 + PostgreSQL en el backend, desplegado en Cloudflare Pages + Railway + Neon.',
+      'AnimeShowdown lo mantiene una persona en sus horas libres, desde Tenerife. Si tienes una idea, un bug o quieres saludar, escribe a soporte@animeshowdown.dev.',
   },
   {
     pregunta: '¿Cómo añado un personaje que falta?',
     respuesta:
-      'Si echas en falta a alguien, hay un botón "Sugiere un personaje" en /personajes que abre un issue en GitHub. También puedes proponer animes enteros — el ingesto se hace por lotes desde Jikan/AniList.',
+      'Encontrarás un botón "Sugiere un personaje" en /personajes. Sirve para proponer un personaje suelto o un anime entero — la sugerencia se revisa y se añade al catálogo si encaja.',
   },
   {
     pregunta: '¿Mis datos están seguros?',
     respuesta:
-      'Sí. Las contraseñas se guardan con bcrypt, JWT corto de 15min en memoria + refresh token httpOnly de 30d, opción de 2FA TOTP con códigos de respaldo, rate limiting en login (5 intentos/minuto) y verificación de email obligatoria. Sin trackers de terceros: solo telemetría agregada con Sentry para errores en frontend.',
+      'Sí. La contraseña se guarda cifrada, puedes activar verificación en dos pasos, hay límite de intentos de login y el email tiene que estar verificado para acciones sensibles. No usamos trackers de publicidad ni vendemos tus datos a nadie.',
   },
 ]
 
@@ -113,9 +113,9 @@ function FaqPage() {
             Preguntas frecuentes
           </h1>
           <p className="max-w-2xl text-fg-muted">
-            Todo lo que necesitas saber sobre AnimeShowdown, sin tener que
-            mandar un mensaje. Si tu pregunta no está aquí, puedes abrir un
-            issue en GitHub.
+            Todo lo que necesitas saber sobre AnimeShowdown sin tener que
+            escribirnos. Si tu pregunta no está aquí, puedes mandarnos un
+            correo a soporte@animeshowdown.dev.
           </p>
         </motion.header>
 
@@ -135,18 +135,27 @@ function FaqPage() {
             ¿No has encontrado tu respuesta?
           </h2>
           <p className="mt-2 text-[13px] text-fg-muted">
-            El proyecto es open source — puedes abrir un issue en GitHub,
-            sugerir personajes nuevos o revisar el código directamente.
+            Escríbenos a soporte@animeshowdown.dev — leemos todo. Si
+            quieres ojear el código o reportar un bug técnico, también
+            tenemos repo público en GitHub.
           </p>
-          <a
-            href="https://github.com/diegoalegil/AnimeShowdown/issues"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Abrir issue en GitHub
-          </a>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              href="mailto:soporte@animeshowdown.dev"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+            >
+              Escribir a soporte
+            </a>
+            <a
+              href="https://github.com/diegoalegil/AnimeShowdown/issues"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Reportar bug en GitHub
+            </a>
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3 text-[13px] text-fg-muted">
