@@ -78,7 +78,13 @@
     "seccionHistorial": "History",
     "vacioTitulo": "Season is preparing the brackets",
     "vacioSub": "The next tournament is auto-generated every few days. Meanwhile, vote the open duels of casual mode and push your favorite characters up the ELO.",
-    "vacioCtaVotar": "Vote open duels"
+    "vacioContador": "Next bracket within the next few days",
+    "vacioCtaVotar": "Vote open duels",
+    "sugerenciasTitulo": "Upcoming brackets suggestions",
+    "sugerenciasNota": "Ideas — not real tournaments yet",
+    "sugerenciaBadge": "Schedulable",
+    "sugerenciaCtaCrear": "Create with this preset",
+    "sugerenciaCtaVotar": "Vote open duels"
   },
   "votar": {
     "tituloPagina": "Vote",
