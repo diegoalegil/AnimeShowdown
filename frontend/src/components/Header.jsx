@@ -20,6 +20,7 @@ const navLinks = [
   { to: '/personajes', i18nKey: 'personajes' },
   { to: '/animes', i18nKey: 'animes' },
   { to: '/torneos', i18nKey: 'torneos' },
+  { to: '/eventos', i18nKey: 'eventos' },
   { to: '/games', i18nKey: 'games' },
   { to: '/ranking', i18nKey: 'ranking' },
 ]
