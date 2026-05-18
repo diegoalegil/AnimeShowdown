@@ -26,6 +26,7 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
+import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 
 /**
  * Campeón fallback derivado del catálogo local. Útil cuando el ranking
@@ -83,9 +84,13 @@ function useRanking() {
 }
 
 function useMovimientos() {
+  // limit 100: cubre el top de movers Y la mayoría de slugs que un usuario
+  // pueda tener en su roster — esto comparte cache con
+  // FavoritosPulsoBanner, que cruza favoritos vs movimientos sin hacer
+  // su propia request.
   return useQuery({
     queryKey: ['pulso', 'movimientos', 7],
-    queryFn: () => endpoints.rankingMovimientos({ dias: 7, limit: 20 }),
+    queryFn: () => endpoints.rankingMovimientos({ dias: 7, limit: 100 }),
     staleTime: PULSE_STALE,
   })
 }
@@ -174,6 +179,12 @@ function SectionPulso() {
             sin dejar hueco. Full-width entre filas para que el "tema
             de la temporada" tenga su propio espacio. */}
         <EventoHeadlineBanner />
+
+        {/* Banner personalizado del roster del user. Solo se renderiza
+            si está logueado (3 estados: sin favoritos, sin movs, con
+            movs). Para invitados queda invisible — Pulso global ya
+            cubre la propuesta de valor sin extras. */}
+        <FavoritosPulsoBanner />
 
         {/* Fila inferior: Reto + Torneo + Duelo + ÚltimosVotos.
             En md+ los 4 caben en una sola fila (cards ~280px en max-w-6xl);
