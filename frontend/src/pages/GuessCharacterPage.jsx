@@ -23,6 +23,7 @@ import {
   safeStorage,
 } from '../lib/games'
 import { imagenPersonaje, personajes } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-character.v1'
@@ -179,6 +180,7 @@ function GuessCharacterPage() {
             <img
               src={imagenPersonaje(objetivo.slug)}
               alt={estado.finalizado ? objetivo.nombre : 'Personaje difuminado'}
+              onError={ocultaImgRota}
               className="h-full w-full object-contain transition-all duration-500"
               style={{
                 filter: `blur(${blurPx}px)`,
@@ -360,6 +362,7 @@ function ListaIntentos({ intentos, objetivo }) {
               src={imagenPersonaje(i.slug)}
               alt=""
               loading="lazy"
+              onError={ocultaImgRota}
               className="h-10 w-8 shrink-0 rounded object-cover object-top"
             />
             <div className="min-w-0 flex-1">

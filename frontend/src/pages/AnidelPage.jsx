@@ -26,6 +26,7 @@ import {
   personajes,
   getStatsPersonaje,
 } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 const MAX_INTENTOS = 6
 const STORAGE_KEY = 'animeshowdown.anidel.v1'
@@ -326,6 +327,7 @@ function FilaIntento({ intento }) {
           src={imagenPersonaje(intento.slug)}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-9 w-7 shrink-0 rounded object-cover object-top"
         />
         <div className="min-w-0">
