@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
+import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
 import ReactionsBar from '../components/ReactionsBar'
 import ShareButtons from '../components/ShareButtons'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
@@ -199,6 +200,18 @@ function TorneoDetailPage() {
               <p className="text-[13px] text-fg-muted">{campeon.anime}</p>
             </div>
           </Link>
+        )}
+        {/* Sprint UX (2026-05-18): "Duelos abiertos" arriba del bracket
+            para que el usuario que aterriza en un torneo IN_PROGRESS no
+            tenga que cazar a mano qué match está abierto en el bracket.
+            Solo se renderiza si hay matches votables; el bracket sigue
+            siendo el mapa global del torneo. */}
+        {estado === 'IN_PROGRESS' && (
+          <DuelosAbiertosStrip
+            enfrentamientos={enfrentamientos}
+            torneoId={torneo.id}
+            torneoSlug={torneo.slug}
+          />
         )}
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
           Bracket
