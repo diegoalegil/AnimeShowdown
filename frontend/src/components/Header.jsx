@@ -180,13 +180,16 @@ function Header() {
             </Link>
           </>
         ) : (
+          /* Audit producto (2026-05-18): "Votar ahora" en 2 líneas comía
+             demasiado del header móvil. Cambio a "Votar" + icono Swords:
+             una palabra cabe en una línea y deja respirar al hamburger. */
           <NavLink
             to="/votar"
             onClick={() => play('playClick')}
-            className="inline-flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-[13px] font-semibold text-bg"
+            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-semibold text-bg"
           >
             <Swords className="h-3.5 w-3.5" />
-            {t('header.ctaVotar')}
+            {t('header.ctaVotarCompact')}
           </NavLink>
         )}
         <button
