@@ -500,6 +500,11 @@ export const endpoints = {
   // deleteTorneo eliminado: TorneoController no expone @DeleteMapping todavía,
   // si el frontend lo llamaba caía con 405. Se restaurará cuando se implemente backend-side.
   ranking: () => api.get('/api/votos/ranking'),
+  // Feed público "últimos votos" — Plan producto (2026-05-18). Lo
+  // consume SectionPulso para pintar actividad real ("X votó por Y vs Z
+  // hace 2 min"). Limit acotado server-side a [1, 20].
+  votosRecientes: ({ limit = 10 } = {}) =>
+    api.get(`/api/votos/recientes?limit=${limit}`, { auth: false }),
   // Match aleatorio abierto (Plan v2 §1.1). Devuelve EnfrentamientoDto o
   // 404 (modo casual del frontend toma el control). No requiere auth.
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/aleatorio', { auth: false }),
