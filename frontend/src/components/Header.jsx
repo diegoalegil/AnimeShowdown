@@ -9,6 +9,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
+import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 
 // Audit producto (2026-05-18): /votar sale de navLinks regular y pasa a
 // CTA principal del header. El login deja de ser el botón accent (estaba
@@ -61,6 +62,11 @@ function Header() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { muted, toggleMute, play } = useSound()
+  // Audit perf 2026-05-18: CTAs principales del header con pointerdown
+  // para que el sonido vaya por delante del click (más perceptible como
+  // "instantáneo"). Aplica al "Votar ahora" desktop + "Votar" mobile.
+  const ctaVotarDesktop = useInstantSoundPress('playClick')
+  const ctaVotarMobile = useInstantSoundPress('playClick')
   const { cycleTheme } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -117,7 +123,8 @@ function Header() {
         {/* CTA principal: votar siempre visible, no requiere login. */}
         <NavLink
           to="/votar"
-          onClick={() => play('playClick')}
+          onPointerDown={ctaVotarDesktop.onPointerDown}
+          onClick={ctaVotarDesktop.onClick}
           className={ctaVotarClass}
         >
           <Swords className="h-4 w-4" />
@@ -186,7 +193,8 @@ function Header() {
              una palabra cabe en una línea y deja respirar al hamburger. */
           <NavLink
             to="/votar"
-            onClick={() => play('playClick')}
+            onPointerDown={ctaVotarMobile.onPointerDown}
+            onClick={ctaVotarMobile.onClick}
             className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-semibold text-bg"
           >
             <Swords className="h-3.5 w-3.5" />
