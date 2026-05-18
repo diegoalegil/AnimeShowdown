@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Search, Sparkles, Trophy, X } from 'lucide-react'
 import PersonajeImg from '../components/PersonajeImg'
+import LazyOnView from '../components/LazyOnView'
 import { useSeo } from '../hooks/useSeo'
 import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -154,10 +155,21 @@ function AnimesPage() {
             </button>
           </div>
         ) : (
+          // Audit visual (2026-05-18): 77 tiles × 4 thumbnails = ~307 imgs
+          // en DOM ahogaban el initial paint. Las 6 primeras (above the
+          // fold) van eager para evitar placeholder flash; el resto se
+          // monta vía IntersectionObserver al acercarse al viewport.
+          // Combinado con 2 thumbnails en móvil (4 en desktop).
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtrados.map((a) => (
-              <AnimeTile key={a.slug} animeData={a} />
-            ))}
+            {filtrados.map((a, i) =>
+              i < 6 ? (
+                <AnimeTile key={a.slug} animeData={a} />
+              ) : (
+                <LazyOnView key={a.slug} minHeight={280} rootMargin="500px">
+                  <AnimeTile animeData={a} />
+                </LazyOnView>
+              ),
+            )}
           </div>
         )}
 
@@ -178,23 +190,32 @@ function AnimeTile({ animeData }) {
       onClick={() => play('playWhoosh')}
       className="group relative block overflow-hidden rounded-xl border border-border bg-surface p-4 transition-all hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-12px_rgba(255,46,99,0.55)]"
     >
-      {/* Collage de portada: protagonistas + top ELO, no random. */}
-      <div className="mb-4 grid grid-cols-4 gap-1.5">
-        {portada.map((p) => (
+      {/* Collage de portada: protagonistas + top ELO, no random. En móvil
+          solo 2 thumbnails (display:none en los 2 últimos → browser skip
+          load con loading=lazy); en sm+ los 4 del collage completo. */}
+      <div className="mb-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        {portada.map((p, i) => (
           <PersonajeImg
             key={p.slug}
             slug={p.slug}
             alt=""
             loading="lazy"
-            className="aspect-[2/3] w-full rounded-md object-cover object-top transition-transform duration-300 group-hover:scale-105"
+            className={`aspect-[2/3] w-full rounded-md object-cover object-top transition-transform duration-300 group-hover:scale-105 ${
+              i >= 2 ? 'hidden sm:block' : ''
+            }`}
           />
         ))}
-        {Array.from({ length: 4 - portada.length }).map((_, i) => (
-          <div
-            key={`empty-${i}`}
-            className="aspect-[2/3] w-full rounded-md bg-surface-alt"
-          />
-        ))}
+        {Array.from({ length: 4 - portada.length }).map((_, i) => {
+          const absIdx = portada.length + i
+          return (
+            <div
+              key={`empty-${i}`}
+              className={`aspect-[2/3] w-full rounded-md bg-surface-alt ${
+                absIdx >= 2 ? 'hidden sm:block' : ''
+              }`}
+            />
+          )
+        })}
       </div>
 
       <div className="flex flex-col gap-2 px-1">
