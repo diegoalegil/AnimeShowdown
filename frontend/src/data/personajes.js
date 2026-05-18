@@ -1015,6 +1015,15 @@ export const personajes = [
   { slug: 'symboli_rudolf', nombre: 'Symboli Rudolf', anime: 'Uma Musume', descripcion: 'Personaje del anime Uma Musume.', imagen: '/img/Uma_Musume/symboli_rudolf.webp' },
   { slug: 'tokai_teio', nombre: 'Tokai Teio', anime: 'Uma Musume', descripcion: 'Personaje del anime Uma Musume.', imagen: '/img/Uma_Musume/tokai_teio.webp' },
   { slug: 'vodka', nombre: 'Vodka', anime: 'Uma Musume', descripcion: 'Personaje del anime Uma Musume.', imagen: '/img/Uma_Musume/vodka.webp' },
+  { slug: 'arnheid', nombre: 'Arnheid', anime: 'Vinland Saga', descripcion: 'Esclava de origen guerrero refugiada en la granja de Ketil. Su tragedia personal empuja a Thorfinn hacia la no violencia.', imagen: '/img/Vinland_Saga/arnheid.webp' },
+  { slug: 'askeladd', nombre: 'Askeladd', anime: 'Vinland Saga', descripcion: 'Comandante mestizo galés-danés y líder mercenario que adopta a Thorfinn. Cínico brillante; muere protegiendo el destino de Canute.', imagen: '/img/Vinland_Saga/askeladd.webp' },
+  { slug: 'bjorn', nombre: 'Bjorn', anime: 'Vinland Saga', descripcion: 'Mano derecha de Askeladd y berserker que mastica hongos para entrar en frenesí. Su lealtad al capitán sella su destino final.', imagen: '/img/Vinland_Saga/bjorn.webp' },
+  { slug: 'canute', nombre: 'Canute', anime: 'Vinland Saga', descripcion: 'Príncipe danés tímido transformado en rey implacable tras Askeladd. Quiere construir un paraíso terrenal al precio de su humanidad.', imagen: '/img/Vinland_Saga/canute.webp' },
+  { slug: 'einar', nombre: 'Einar', anime: 'Vinland Saga', descripcion: 'Esclavo inglés capturado tras perder a su familia. Mejor amigo de Thorfinn en la granja y quien le devuelve la fe en cultivar la tierra.', imagen: '/img/Vinland_Saga/einar.webp' },
+  { slug: 'leif_ericson', nombre: 'Leif Ericson', anime: 'Vinland Saga', descripcion: 'Explorador islandés y figura paterna de la infancia de Thorfinn. Promete a Helga traer al niño de vuelta y lo busca por toda Europa.', imagen: '/img/Vinland_Saga/leif_ericson.webp' },
+  { slug: 'thorfinn', nombre: 'Thorfinn', anime: 'Vinland Saga', descripcion: 'Hijo de Thors. Pasa de niño asesino sediento de venganza a granjero pacifista. Sueña con fundar Vinland, una tierra sin guerra ni esclavitud.', imagen: '/img/Vinland_Saga/thorfinn.webp' },
+  { slug: 'thorkell', nombre: 'Thorkell', anime: 'Vinland Saga', descripcion: 'Gigante jomsviking adicto a la batalla. Cambia de bando hacia Canute tras enfrentarse a Thors. Busca eternamente al guerrero más fuerte.', imagen: '/img/Vinland_Saga/thorkell.webp' },
+  { slug: 'thors', nombre: 'Thors', anime: 'Vinland Saga', descripcion: 'Antiguo capitán jomsviking conocido como \'el Troll de Jom\'. Padre de Thorfinn; abandona la guerra por el pacifismo y cae a manos de Askeladd.', imagen: '/img/Vinland_Saga/thors.webp' },
   { slug: 'benedict_blue', nombre: 'Benedict Blue', anime: 'Violet Evergarden', descripcion: 'Personaje del anime Violet Evergarden.', imagen: '/img/Violet_Evergarden/benedict_blue.webp' },
   { slug: 'cattleya_baudelaire', nombre: 'Cattleya Baudelaire', anime: 'Violet Evergarden', descripcion: 'Personaje del anime Violet Evergarden.', imagen: '/img/Violet_Evergarden/cattleya_baudelaire.webp' },
   { slug: 'gilbert_bougainvillea', nombre: 'Gilbert Bougainvillea', anime: 'Violet Evergarden', descripcion: 'Personaje del anime Violet Evergarden.', imagen: '/img/Violet_Evergarden/gilbert_bougainvillea.webp' },
@@ -1049,6 +1058,7 @@ export function imagenPersonaje(slug) {
   // vez de undefined que dejaría el <img> en estado raro.
   return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`
 }
+
 
 
 
