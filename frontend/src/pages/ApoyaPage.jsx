@@ -156,7 +156,7 @@ function ApoyaPage() {
             funciones.
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <CosteTile icon={Server} label="Hosting backend" />
+            <CosteTile icon={Server} label="Servidor" />
             <CosteTile icon={Database} label="Base de datos" />
             <CosteTile icon={Globe} label="Dominio + CDN" />
             <CosteTile icon={Sparkles} label="Nuevos modos" />
