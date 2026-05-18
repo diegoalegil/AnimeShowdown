@@ -72,6 +72,16 @@ public class SecurityConfig {
                         // Lectura pública para que VotarPage pueda mostrar el match aleatorio
                         // antes de pedir login (el voto sí requiere auth, regla de arriba).
                         .requestMatchers(HttpMethod.GET, "/api/enfrentamientos/**").permitAll()
+                        // Plan producto (2026-05-18): Mi roster / favoritos.
+                        // Estas rutas tienen que aparecer ANTES de las reglas
+                        // generales de /api/personajes/** porque Spring
+                        // Security matchea por orden. Sin esto, POST/DELETE
+                        // /favorito caía en hasRole("ADMIN") y se rechazaba
+                        // a usuarios normales.
+                        .requestMatchers(HttpMethod.GET, "/api/personajes/*/favorito").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/personajes/*/favorito").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/personajes/*/favorito").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/me/favoritos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/personajes/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/personajes/**").hasRole("ADMIN")
