@@ -19,14 +19,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diegoalegil.animeshowdown.dto.DueloRecienteDto;
 import com.diegoalegil.animeshowdown.dto.EloHistoryPoint;
+import com.diegoalegil.animeshowdown.dto.MatchupResumenDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.service.EloHistoryService;
+import com.diegoalegil.animeshowdown.service.PersonajeMatchupService;
 import com.diegoalegil.animeshowdown.service.RecomendacionService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -39,13 +43,19 @@ public class PersonajeController {
     private final PersonajeRepository personajeRepository;
     private final RecomendacionService recomendacionService;
     private final EloHistoryService eloHistoryService;
+    private final EnfrentamientoRepository enfrentamientoRepository;
+    private final PersonajeMatchupService personajeMatchupService;
 
     public PersonajeController(PersonajeRepository personajeRepository,
             RecomendacionService recomendacionService,
-            EloHistoryService eloHistoryService) {
+            EloHistoryService eloHistoryService,
+            EnfrentamientoRepository enfrentamientoRepository,
+            PersonajeMatchupService personajeMatchupService) {
         this.personajeRepository = personajeRepository;
         this.recomendacionService = recomendacionService;
         this.eloHistoryService = eloHistoryService;
+        this.enfrentamientoRepository = enfrentamientoRepository;
+        this.personajeMatchupService = personajeMatchupService;
     }
 
     /**
@@ -165,6 +175,51 @@ public class PersonajeController {
     public List<EloHistoryPoint> eloHistory(@PathVariable String slug,
             @RequestParam(defaultValue = "30") int dias) {
         return eloHistoryService.historial(slug, dias);
+    }
+
+    /**
+     * Historial de duelos recientes del personaje (Plan producto 2026-05-18).
+     *
+     * <p>Devuelve los últimos N enfrentamientos donde participó (como
+     * personaje1 o 2), incluyendo los aún sin ganador (resultado PENDING).
+     * Sin auth — el historial es público igual que el ranking.
+     *
+     * <p>limit clampa entre 1 y 20.
+     */
+    @GetMapping("/{slug}/duelos-recientes")
+    public ResponseEntity<List<DueloRecienteDto>> duelosRecientes(
+            @PathVariable String slug,
+            @RequestParam(defaultValue = "10") int limit) {
+        var personajeOpt = personajeRepository.findBySlug(slug);
+        if (personajeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        var personaje = personajeOpt.get();
+        int sane = Math.max(1, Math.min(20, limit));
+        var pageable = org.springframework.data.domain.PageRequest.of(0, sane);
+        var lista = enfrentamientoRepository
+                .findHistorialPorPersonaje(personaje.getId(), pageable)
+                .stream()
+                .map(e -> DueloRecienteDto.from(e, personaje))
+                .toList();
+        return ResponseEntity.ok(lista);
+    }
+
+    /**
+     * Resumen agregado "Contra quién" — mejores/peores/frecuentes
+     * matchups (Plan producto 2026-05-18). Sin auth.
+     *
+     * <p>404 si el slug no existe; 200 con listas vacías y total=0 si
+     * el personaje no tiene aún enfrentamientos decididos (el frontend
+     * pinta empty state "Aún necesita más duelos").
+     */
+    @GetMapping("/{slug}/matchups")
+    public ResponseEntity<MatchupResumenDto> matchups(@PathVariable String slug) {
+        try {
+            return ResponseEntity.ok(personajeMatchupService.calcular(slug));
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
