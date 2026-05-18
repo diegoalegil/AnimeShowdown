@@ -13,6 +13,7 @@ import {
 import { endpoints } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { useMisFavoritos } from '../hooks/useFavoritos'
+import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import { imagenPersonaje } from '../data/personajes'
 
 /**
@@ -49,11 +50,25 @@ function FavoritosPulsoBanner() {
     enabled: Boolean(user),
   })
 
+  const slugsFavoritos = useMemo(
+    () => (favoritos ?? []).map((f) => f.slug),
+    [favoritos],
+  )
+  // Sprint actividad reciente (2026-05-18): 1 batch request por la
+  // lista de favoritos para enriquecer cada slug con su delta de
+  // votos. Si un favorito no movió ELO pero recibió votos, igual
+  // aparece como "actividad" en vez de quedarse fuera.
+  const { bySlug: votosBySlug } = useVotosPeriodoBatch(slugsFavoritos, { dias: 7 })
+
   const movidos = useMemo(() => {
     if (!favoritos || favoritos.length === 0) return []
     const mapMovs = new Map((movimientos || []).map((m) => [m.slug, m]))
     return favoritos
-      .map((f) => ({ favorito: f, movimiento: mapMovs.get(f.slug) }))
+      .map((f) => ({
+        favorito: f,
+        movimiento: mapMovs.get(f.slug),
+        actividad: votosBySlug.get(f.slug),
+      }))
       .filter(
         ({ movimiento }) =>
           movimiento &&
@@ -65,16 +80,27 @@ function FavoritosPulsoBanner() {
           Math.abs(b.movimiento.delta) - Math.abs(a.movimiento.delta),
       )
       .slice(0, 5)
-  }, [favoritos, movimientos])
+  }, [favoritos, movimientos, votosBySlug])
+
+  // Favoritos sin movimiento ELO pero CON votos esta semana — "activos
+  // sin cambio de puesto". Solo aparecen si NO hay movs (caso BannerEstable).
+  const activosSinMov = useMemo(() => {
+    if (!favoritos || favoritos.length === 0) return []
+    return favoritos
+      .map((f) => ({ favorito: f, actividad: votosBySlug.get(f.slug) }))
+      .filter(({ actividad }) => actividad && actividad.votosPeriodoActual > 0)
+      .sort((a, b) => b.actividad.votosPeriodoActual - a.actividad.votosPeriodoActual)
+      .slice(0, 5)
+  }, [favoritos, votosBySlug])
 
   if (!user) return null
   if (favLoading) return <BannerSkeleton />
 
   const totalFavoritos = favoritos?.length ?? 0
   if (totalFavoritos === 0) return <BannerSinFavoritos />
-  if (movidos.length === 0) return <BannerEstable total={totalFavoritos} />
-
-  return <BannerConMovs items={movidos} total={totalFavoritos} />
+  if (movidos.length > 0) return <BannerConMovs items={movidos} total={totalFavoritos} />
+  if (activosSinMov.length > 0) return <BannerConActividad items={activosSinMov} total={totalFavoritos} />
+  return <BannerEstable total={totalFavoritos} />
 }
 
 function BannerWrapper({ children, tono = 'pink' }) {
@@ -164,11 +190,12 @@ function BannerConMovs({ items, total }) {
             </span>
           </div>
           <ul className="mt-2 flex flex-wrap items-center gap-3">
-            {items.map(({ favorito, movimiento }) => (
+            {items.map(({ favorito, movimiento, actividad }) => (
               <FavoritoMovido
                 key={favorito.slug}
                 favorito={favorito}
                 movimiento={movimiento}
+                actividad={actividad}
               />
             ))}
           </ul>
@@ -185,16 +212,50 @@ function BannerConMovs({ items, total }) {
   )
 }
 
-function FavoritoMovido({ favorito, movimiento }) {
+function BannerConActividad({ items, total }) {
+  return (
+    <BannerWrapper tono="emerald">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <TrendingUp className="h-3 w-3 text-emerald-300" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-300">
+              Tus favoritos están activos · últimos 7 días
+            </span>
+          </div>
+          <ul className="mt-2 flex flex-wrap items-center gap-3">
+            {items.map(({ favorito, actividad }) => (
+              <FavoritoActivo
+                key={favorito.slug}
+                favorito={favorito}
+                actividad={actividad}
+              />
+            ))}
+          </ul>
+        </div>
+        <Link
+          to="/perfil"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/5 px-3 py-1.5 text-[12px] font-semibold text-emerald-200 hover:bg-emerald-500/15"
+        >
+          Mi roster ({total})
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </BannerWrapper>
+  )
+}
+
+function FavoritoMovido({ favorito, movimiento, actividad }) {
   const subio = movimiento.delta > 0
   const Icon = subio ? TrendingUp : TrendingDown
   const colorClase = subio ? 'text-emerald-300' : 'text-rose-300'
+  const votos = actividad?.votosPeriodoActual ?? 0
   return (
     <li>
       <Link
         to={`/personajes/${favorito.slug}`}
         className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-pink-400/60"
-        title={`${favorito.nombre} ${subio ? 'subió' : 'bajó'} ${Math.abs(movimiento.delta)} posiciones esta semana`}
+        title={`${favorito.nombre} ${subio ? 'subió' : 'bajó'} ${Math.abs(movimiento.delta)} posiciones · ${votos} votos esta semana`}
       >
         <img
           src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
@@ -208,6 +269,37 @@ function FavoritoMovido({ favorito, movimiento }) {
         <span className={`inline-flex items-center gap-0.5 font-mono text-[11px] font-extrabold ${colorClase}`}>
           <Icon className="h-3 w-3" />
           {Math.abs(movimiento.delta)}
+        </span>
+        {votos > 0 && (
+          <span className="font-mono text-[10px] text-fg-muted tabular-nums">
+            · +{votos} votos
+          </span>
+        )}
+      </Link>
+    </li>
+  )
+}
+
+function FavoritoActivo({ favorito, actividad }) {
+  const votos = actividad?.votosPeriodoActual ?? 0
+  return (
+    <li>
+      <Link
+        to={`/personajes/${favorito.slug}`}
+        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-emerald-400/60"
+        title={`${favorito.nombre}: ${votos} votos esta semana · sin cambio de puesto`}
+      >
+        <img
+          src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
+          alt=""
+          loading="lazy"
+          className="h-6 w-6 rounded-full object-cover object-top"
+        />
+        <span className="line-clamp-1 font-semibold text-fg-strong">
+          {favorito.nombre}
+        </span>
+        <span className="inline-flex items-center gap-0.5 font-mono text-[11px] font-extrabold text-emerald-300">
+          +{votos}
         </span>
       </Link>
     </li>
