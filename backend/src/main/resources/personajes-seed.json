@@ -7280,6 +7280,34 @@
     "imagenUrl": "/img/Vocaloid/yuzuki_yukari.webp"
   },
   {
+    "slug": "kaori_miyazono",
+    "nombre": "Kaori Miyazono",
+    "anime": "Your Lie in April",
+    "descripcion": "Violinista libre y luminosa que arrastra a Kousei de vuelta a la música. Su secreto convierte cada actuación en una despedida disfrazada.",
+    "imagenUrl": "/img/Your_Lie_In_April/kaori_miyazono.webp"
+  },
+  {
+    "slug": "kousei_arima",
+    "nombre": "Kousei Arima",
+    "anime": "Your Lie in April",
+    "descripcion": "Pianista prodigio que perdió la capacidad de oír las notas tras la muerte de su madre. Kaori lo devuelve al teclado y al color del mundo.",
+    "imagenUrl": "/img/Your_Lie_In_April/kousei_arima.webp"
+  },
+  {
+    "slug": "ryouta_watari",
+    "nombre": "Ryouta Watari",
+    "anime": "Your Lie in April",
+    "descripcion": "Mejor amigo de Kousei desde la infancia. Capitán del equipo de fútbol y rival natural por la atención de Kaori.",
+    "imagenUrl": "/img/Your_Lie_In_April/ryouta_watari.webp"
+  },
+  {
+    "slug": "tsubaki_sawabe",
+    "nombre": "Tsubaki Sawabe",
+    "anime": "Your Lie in April",
+    "descripcion": "Amiga de la infancia de Kousei y su vecina. Softball, hermana mayor de facto; descubre tarde lo que de verdad siente por él.",
+    "imagenUrl": "/img/Your_Lie_In_April/tsubaki_sawabe.webp"
+  },
+  {
     "slug": "el_hilo_rojo",
     "nombre": "El Hilo Rojo",
     "anime": "Your Name",
