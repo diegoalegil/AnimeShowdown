@@ -113,6 +113,76 @@
     background-size: 32px 32px;
   }
 
+  /* Card holográfica estilo TCG — efecto Pokémon holo / Yu-Gi-Oh prism.
+     El componente PersonajeCardHolo aplica tilt 3D + specular shine +
+     rainbow holographic overlay, todo conducido por 3 CSS custom props
+     que JS actualiza vía requestAnimationFrame:
+       --mx, --my : posición normalizada del cursor (0..1)
+       --active   : 0 idle, 1 con cursor encima — modulador suave de la
+                    intensidad del efecto al entrar/salir. */
+  .card-holo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    perspective: 1200px;
+    transform-style: preserve-3d;
+    transform: rotateY(calc((var(--mx) - 0.5) * 14deg * var(--active)))
+      rotateX(calc((var(--my) - 0.5) * -14deg * var(--active)));
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card-holo__img {
+    display: block;
+    border-radius: inherit;
+  }
+  /* Specular highlight: punto de luz blanco que sigue al cursor.
+     soft-light suma a las claras sin quemar; máximo 38% alpha. */
+  .card-holo__shine {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      rgb(255 255 255 / calc(0.38 * var(--active))) 0%,
+      transparent 35%
+    );
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+    transition: opacity 220ms;
+  }
+  /* Rainbow holográfico: conic-gradient cromático que rota con --mx.
+     color-dodge enciende solo donde la imagen tiene luminancia >0 →
+     no destruye los negros del frame oscuro de la card. Blur suaviza
+     las bandas para que parezca pelo de pavo real / nácar y no rayas
+     sólidas. */
+  .card-holo__rainbow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: conic-gradient(
+      from calc(var(--mx) * 360deg) at 50% 50%,
+      rgb(255 46 99 / 0.55),
+      rgb(180 80 255 / 0.55),
+      rgb(50 230 200 / 0.55),
+      rgb(255 220 80 / 0.55),
+      rgb(255 46 99 / 0.55)
+    );
+    opacity: calc(0.32 * var(--active));
+    mix-blend-mode: color-dodge;
+    filter: blur(10px);
+    pointer-events: none;
+    transition: opacity 220ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card-holo {
+      transform: none !important;
+      transition: none !important;
+    }
+    .card-holo__shine,
+    .card-holo__rainbow {
+      display: none !important;
+    }
+  }
+
   /* Tipografía japonesa secundaria (Plan v2 §13.3). Aplicada en kanjis
      decorativos (badges, omikuji, glossary). El body sigue con Geist
      para latinos — esto es solo para elementos JP. */
