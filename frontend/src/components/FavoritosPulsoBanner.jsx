@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useMisFavoritos } from '../hooks/useFavoritos'
 import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import { imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Banner de Pulso personalizado por usuario logueado (Plan producto
@@ -261,6 +262,7 @@ function FavoritoMovido({ favorito, movimiento, actividad }) {
           src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-6 w-6 rounded-full object-cover object-top"
         />
         <span className="line-clamp-1 font-semibold text-fg-strong">
@@ -293,6 +295,7 @@ function FavoritoActivo({ favorito, actividad }) {
           src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
           alt=""
           loading="lazy"
+          onError={ocultaImgRota}
           className="h-6 w-6 rounded-full object-cover object-top"
         />
         <span className="line-clamp-1 font-semibold text-fg-strong">
