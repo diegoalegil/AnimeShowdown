@@ -65,7 +65,7 @@ function BadgeUnlockListener() {
       }
     }
 
-    // 3) Toast 6s con el icono del badge. Click → /perfil.
+    // 3) Toast 6s con el icono del badge. Click → logro concreto.
     toast.success(lastMessage.titulo || '¡Logro desbloqueado!', {
       description: lastMessage.mensaje,
       icon: <IconBadge className="h-5 w-5 text-amber-300" />,
@@ -75,7 +75,12 @@ function BadgeUnlockListener() {
         // Audit (2026-05-17): antes window.location.href forzaba un
         // hard reload — pierde el estado SPA, queryClient cache,
         // sesión WS abierta, etc. SPA navigate respeta el contexto.
-        onClick: () => navigate('/perfil'),
+        onClick: () => {
+          const destino = payload.codigo
+            ? `/logros?logro=${encodeURIComponent(payload.codigo)}`
+            : '/logros'
+          navigate(destino)
+        },
       },
     })
   }, [lastMessage, play, navigate])

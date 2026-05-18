@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -72,13 +72,18 @@ const PERFIL_TABS = [
   { id: 'ajustes', label: 'Ajustes' },
 ]
 
+function tabValida(id) {
+  return PERFIL_TABS.some((t) => t.id === id) ? id : 'resumen'
+}
+
 function PerfilPage() {
   // noindex porque es vista privada del propio usuario — /u/{username}
   // es el perfil público que sí queremos indexar.
   useSeo({ title: 'Mi perfil', noindex: true })
   const { user, updateUser, logout } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('resumen')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = tabValida(searchParams.get('tab'))
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -122,7 +127,11 @@ function PerfilPage() {
               type="button"
               role="tab"
               aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => {
+                setSearchParams(t.id === 'resumen' ? {} : { tab: t.id }, {
+                  replace: true,
+                })
+              }}
               className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                 tab === t.id
                   ? 'bg-accent text-bg'
