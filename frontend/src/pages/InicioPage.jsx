@@ -25,6 +25,7 @@ import {
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 import { useSound } from '../contexts/SoundContext'
 
 const totalPersonajes = personajes.length
@@ -196,6 +197,7 @@ function SectionBento() {
                   <img
                     src={imagenPersonaje(s)}
                     alt=""
+                    onError={ocultaImgRota}
                     className="h-12 w-12 rounded-md border border-border object-cover object-top"
                   />
                   {i < featuredAvatars.length - 1 && (
@@ -232,6 +234,7 @@ function SectionBento() {
                   key={s}
                   src={imagenPersonaje(s)}
                   alt=""
+                  onError={ocultaImgRota}
                   className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
                 />
               ))}
@@ -466,6 +469,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
               src={imagenPersonaje(slug)}
               alt={nombre}
               loading="lazy"
+              onError={ocultaImgRota}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>

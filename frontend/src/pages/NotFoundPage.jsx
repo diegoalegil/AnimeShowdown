@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Home } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
 
 const containerVariants = {
@@ -59,6 +60,7 @@ function NotFoundPage() {
           <img
             src={imagenPersonaje(random.slug)}
             alt=""
+            onError={ocultaImgRota}
             className="relative aspect-[2/3] w-full rounded-2xl border border-border bg-surface object-cover shadow-2xl"
             style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.25))' }}
           />
