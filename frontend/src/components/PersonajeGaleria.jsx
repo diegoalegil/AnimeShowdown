@@ -73,6 +73,12 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
                 src={item.url}
                 alt={item.label}
                 loading="lazy"
+                // myanimelist.net bloquea hotlinking devolviendo 403 cuando
+                // el Referer es otro dominio (animeshowdown.dev en prod,
+                // localhost en dev). Con referrerPolicy="no-referrer"
+                // el browser no manda Referer y MAL acepta la petición.
+                // Sin esto, TODAS las thumbnails de Jikan se ven vacías.
+                referrerPolicy="no-referrer"
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   // Si una imagen de Jikan falla (URL cambiada o caída),

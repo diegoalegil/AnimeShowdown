@@ -86,6 +86,11 @@ function PersonajeCardHolo({ src, alt, className = '' }) {
       <img
         src={src}
         alt={alt}
+        // referrerPolicy no-referrer para que cuando el src sea una
+        // URL de myanimelist.net (escogida desde PersonajeGaleria) el
+        // hotlink protection de MAL no devuelva 403. En src de
+        // catálogo local no afecta — el header simplemente no se manda.
+        referrerPolicy="no-referrer"
         className="card-holo__img h-full w-full object-cover"
         draggable={false}
       />
