@@ -58,15 +58,15 @@ class ErrorBoundary extends Component {
             <AlertTriangle className="h-5 w-5" />
           </span>
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-2xl tracking-tight">Ups, algo fue mal</h1>
+            <h1 className="text-2xl tracking-tight">Algo se ha torcido</h1>
             <p className="text-[13px] text-fg-muted">
-              Hemos detectado un error inesperado en la web y ya lo estamos
-              registrando. Prueba a recargar; si vuelve a pasar dínoslo en{' '}
+              Se ha colado un error inesperado en la web — ya lo estamos
+              registrando. Prueba a recargar; si vuelve a pasar, dínoslo en{' '}
               <a
-                href="mailto:diegogildam@gmail.com"
+                href="mailto:soporte@animeshowdown.dev"
                 className="text-accent hover:text-accent-hover"
               >
-                diegogildam@gmail.com
+                soporte@animeshowdown.dev
               </a>
               .
             </p>
