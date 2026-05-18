@@ -47,12 +47,18 @@ export function SoundProvider({ children }) {
     (name) => {
       if (muted) return
       const fn = sfx[name]
-      if (typeof fn === 'function') {
-        try {
-          fn()
-        } catch {
-          // ignore audio errors silently
+      if (typeof fn !== 'function') return
+      // Audit performance (2026-05-18): los playXxx son async ahora
+      // (esperan resume() del AudioContext). El caller no necesita
+      // await; agarramos la Promise para silenciar rechazos y evitar
+      // unhandled-rejection en consola.
+      try {
+        const result = fn()
+        if (result && typeof result.then === 'function') {
+          result.catch(() => { /* audio errors silenced */ })
         }
+      } catch {
+        // ignore audio errors silently
       }
     },
     [muted],
@@ -64,7 +70,10 @@ export function SoundProvider({ children }) {
   // running cuando llegue el click, evitando el lag del await resume().
   const warm = useCallback(() => {
     try {
-      sfx.__warm?.()
+      const result = sfx.__warm?.()
+      if (result && typeof result.then === 'function') {
+        result.catch(() => { /* ignore */ })
+      }
     } catch {
       /* ignore */
     }

@@ -154,7 +154,8 @@ export function AuthProvider({ children }) {
     queryClient.clear()
     setUser(u)
     const muted = localStorage.getItem('animeshowdown.muted') === 'true'
-    if (!muted) playMagic()
+    // playMagic es async (audit perf 2026-05-18); silenciamos posible rejection.
+    if (!muted) playMagic().catch(() => {})
     toast.success(`Bienvenido, ${u.username}`, {
       description:
         u.rol === 'ADMIN' ? 'Sesión ADMIN iniciada.' : 'Sesión iniciada.',
