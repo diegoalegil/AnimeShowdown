@@ -12,7 +12,7 @@
 
 App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. Frontend React premium con aurora hero, podio Top 3, Anime Daily Trials (5 mini-juegos diarios con kanji + sparkles), carruseles tipo Crunchyroll, búsqueda + filtros, command palette tipo Linear, sonidos anime sintetizados con Web Audio API, bracket visual y auth real con JWT + 2FA TOTP. Backend Spring Boot + PostgreSQL en Railway/Neon, frontend en Cloudflare Pages.
 
-> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con 730 personajes únicos en 71 animes (DataSeeder con insert/update/delete cascade) · ✅ Rebrand competitivo "El ranking definitivo del anime lo decides tú"
+> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con **1052 personajes únicos en 105 animes** (DataSeeder con insert/update/delete cascade) · ✅ Rebrand competitivo "El ranking definitivo del anime lo decides tú" · ✅ Audio performance audit (latencia <30ms por click)
 
 ---
 
@@ -50,7 +50,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 - **PostgreSQL 17** (Neon en producción, local en dev)
 - **JWT** con `com.auth0:java-jwt 4.4.0` y BCrypt para hashing
 - **springdoc-openapi 2.8.5** (Swagger UI)
-- **DataSeeder con sincronización completa** que en cada arranque ajusta los 730 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
+- **DataSeeder con sincronización completa** que en cada arranque ajusta los 1052 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
 - **Resilience4j** sobre `JikanService` (retry exponencial + circuit breaker + timeout 5s) y **caché Caffeine** sobre las páginas top con TTL 1h
 - **JUnit 5** + **MockMvc** + **H2** in-memory para tests
 - **Maven Wrapper** + **Docker** multi-stage para deploy
@@ -71,7 +71,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 
 ![Hero landing](docs/screenshots/hero.webp)
 
-**Galería de 730 personajes con búsqueda, filtros, badges Top X y ELO+WR en cada card**
+**Galería de 1052 personajes con búsqueda, filtros, badges Top X y ELO+WR en cada card**
 
 ![Galería personajes](docs/screenshots/personajes.webp)
 
@@ -108,7 +108,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 - 🎮 **Anime Daily Trials** integrados en home como sección dedicada (5 modos con kanji: 影 / 謎 / 格 / 裏 / 戦)
 - 🔢 **Stats compactos** sin "0 torneos" en vacío (sustituido por badge ping "Ranking en vivo")
 - 🎁 **Bento grid** asimétrico con 4 features (Brackets estilo batalla, Ranking en directo, Tu historial, La comunidad decide)
-- 📜 **Marquee infinita** con los 730 nombres + fade en bordes (1300s/ciclo)
+- 📜 **Marquee infinita** con los 1052 nombres + fade en bordes (1300s/ciclo)
 
 ### Catálogo + Universos
 - 🌀 **3D tilt + spotlight** en cada card del catálogo (mouse-tracked + spring smoothing) + ELO badge + WR + glow rosa en hover
@@ -170,7 +170,7 @@ psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE animeshowdown_db TO animes
 cd backend
 ./mvnw spring-boot:run
 # Spring levanta en http://localhost:8080
-# DataSeeder sincroniza los 730 personajes con el seed: inserta nuevos, actualiza cambios y borra retirados
+# DataSeeder sincroniza los 1052 personajes con el seed: inserta nuevos, actualiza cambios y borra retirados
 ```
 
 ### Frontend
@@ -408,7 +408,7 @@ erDiagram
 ### Core (✅ completo)
 - [x] Backend Spring Boot + JWT + PostgreSQL + Flyway (V1-V12)
 - [x] Despliegue backend en Railway, frontend en Cloudflare Pages
-- [x] BBDD sincronizada con 730 personajes en 71 animes (DataSeeder con insert/update/delete cascade)
+- [x] BBDD sincronizada con **1052 personajes en 105 animes** (DataSeeder con insert/update/delete cascade)
 - [x] Dominio custom **animeshowdown.dev** + **api.animeshowdown.dev**
 - [x] Email transaccional vía Resend HTTP API con dominio verificado
 
@@ -455,7 +455,7 @@ erDiagram
 - [x] Easter egg Konami code (↑↑↓↓←→←→BA) con overlay CRT verde
 
 ### SEO + GEO LLMs (✅ completo)
-- [x] Sitemap dinámico (664+ URLs) + image sitemap + robots.txt con reglas explícitas para GPTBot/ClaudeBot/PerplexityBot
+- [x] Sitemap dinámico (1170+ URLs tras crecer el catálogo) + image sitemap + robots.txt con reglas explícitas para GPTBot/ClaudeBot/PerplexityBot
 - [x] `useSeo` hook custom con title + description + canonical + OG + Twitter + hreflang
 - [x] JSON-LD: WebSite + Person + SportsEvent + CollectionPage + BreadcrumbList + FAQPage + DefinedTermSet
 - [x] Microdata schema.org en ficha de personaje y torneo (Person + TVSeries + SportsEvent)
@@ -484,11 +484,11 @@ erDiagram
 - [x] DevOps: Dependabot scan semanal + groupings (react-vendor, i18n, tanstack…)
 - [x] Backups Neon → Cloudflare R2 (cron diario, rotación daily/weekly/monthly)
 - [x] Páginas legales: Privacy + Terms + DMCA con Footer extendido
-- [x] CI verde con tests backend 107/107
+- [x] CI verde con tests backend 114/114
 - [x] **RUNBOOK.md** con procedimientos de incidente (9 escenarios + smoke test)
 - [x] CatalogoHealthIndicator custom en `/actuator/health` detecta BBDD vacía o catálogo contaminado
 
-### Polish + meta (✅ parcial 11/13)
+### Polish + meta (✅ creciendo)
 - [x] **Page pública /logros** + perfil público `/u/:username/logros` con grid de cards + rareza WoW + stats comunidad
 - [x] **Recomendaciones cross-anime** "Si te gusta X, también te gustarán" en ficha de personaje
 - [x] **Eliminar cuenta** (GDPR right to erasure) con doble confirmación
@@ -500,15 +500,19 @@ erDiagram
 - [x] **Light mode** opt-in con toggle Sun/Moon en Header
 - [x] **Share intents** multi-plataforma (X / Reddit / WhatsApp / Telegram / Bluesky)
 - [x] **Kanji + barra progreso** en bracket de torneos
+- [x] **Pulso de votos por periodo** con `MoversCard` + `FavoritosBanner` + sección "Actividad reciente" en ficha de personaje (endpoints individual + batch en backend)
+- [x] **Votar duelos abiertos desde el bracket** sin tener que ir a la página de votar
+- [x] **Audio performance audit**: `ensureRunning` async + `resumePromise` compartido + `noiseBuffer` cacheado + hook `useInstantSoundPress` (sonido en `onPointerDown` con dedup teclado) — latencia perceptible <30ms vs los ~200ms previos en primer click
 
 ### Pendiente
 - [ ] Tests E2E con Playwright
 - [ ] OG images dinámicas para perfil y logros
 - [ ] i18n: completar migración de strings al `t()` en páginas restantes
-- [ ] Bloque 15: escalado del catálogo a 1000+ personajes con atributos extendidos
+- [ ] Bloque 15: **atributos extendidos** del catálogo (género personaje, era, popularidad MAL/AniList) — el escalado a 1000+ ya está cumplido con los 1052 actuales
 - [ ] Bloque 11.2 AI character bio extendida (Claude API)
 - [ ] Bloque 11.4 API pública versionada con API keys
-- [ ] Bloque 17.3-17.5 normalización aspect ratio (bloqueado por Bloque 15)
+- [ ] Bloque 17.3-17.5 normalización aspect ratio (bloqueado por atributos del Bloque 15)
+- [ ] Bloque 4.12 Hero card 3D — stack apilado (galería multi-imagen → recorte + parallax + fondo contextual → aura shader → Live Portrait top 30-50); aplazado a fase de polish
 
 ---
 
