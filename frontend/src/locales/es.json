@@ -78,7 +78,13 @@
     "seccionHistorial": "Historial",
     "vacioTitulo": "Temporada preparando brackets",
     "vacioSub": "El próximo torneo se genera automáticamente cada pocos días. Mientras, vota los duelos abiertos del modo casual y sube el ELO de tus personajes favoritos.",
-    "vacioCtaVotar": "Vota duelos abiertos"
+    "vacioContador": "Próximo bracket en los próximos días",
+    "vacioCtaVotar": "Vota duelos abiertos",
+    "sugerenciasTitulo": "Próximos brackets sugeridos",
+    "sugerenciasNota": "Ideas — no son torneos reales todavía",
+    "sugerenciaBadge": "Programable",
+    "sugerenciaCtaCrear": "Crear con este preset",
+    "sugerenciaCtaVotar": "Vota duelos abiertos"
   },
   "votar": {
     "tituloPagina": "Votar",
