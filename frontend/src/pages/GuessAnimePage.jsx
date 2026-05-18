@@ -15,13 +15,14 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompleteAnime from '../components/AutocompleteAnime'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
+import PersonajeImg from '../components/PersonajeImg'
 import {
   buildShareSquares,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { imagenPersonaje, personajes } from '../data/personajes'
+import { personajes } from '../data/personajes'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-anime.v1'
@@ -157,8 +158,15 @@ function GuessAnimePage() {
           }`}
         >
           <div className="relative aspect-[2/3] h-[42vh] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
-            <img
-              src={imagenPersonaje(objetivo.slug)}
+            {/* Audit P1 (auditoría externa 2026-05-18): el <img> plano
+                no tenía fallback, así que personajes con imagen problemática
+                (ej. roy_mustang con naturalWidth=0 reportado) salían como
+                icono roto. PersonajeImg renderiza PersonajePlaceholder
+                (kanji 戦 + iniciales + anime) si la carga falla — la
+                ronda diaria queda jugable visualmente aunque el asset
+                tenga issues puntuales. */}
+            <PersonajeImg
+              slug={objetivo.slug}
               alt="Personaje a identificar"
               className="h-full w-full object-contain"
             />
