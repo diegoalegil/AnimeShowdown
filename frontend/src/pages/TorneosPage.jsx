@@ -22,6 +22,7 @@ import {
   imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Sugerencias temáticas computadas en module load. Cuando la BD está vacía
@@ -326,6 +327,7 @@ function SugerenciaCard({ sugerencia, user, t }) {
               src={imagenPersonaje(p.slug)}
               alt=""
               loading="lazy"
+              onError={ocultaImgRota}
               className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
             />
           ))}

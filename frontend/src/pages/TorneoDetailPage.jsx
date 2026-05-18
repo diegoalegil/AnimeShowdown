@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
 import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
+import { ocultaImgRota } from '../lib/imgFallback'
 import ReactionsBar from '../components/ReactionsBar'
 import ShareButtons from '../components/ShareButtons'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
@@ -188,6 +189,7 @@ function TorneoDetailPage() {
             <img
               src={campeon.imagenUrl}
               alt=""
+              onError={ocultaImgRota}
               className="h-16 w-12 rounded-md object-cover"
             />
             <div className="min-w-0">

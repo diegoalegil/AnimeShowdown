@@ -9,6 +9,7 @@ import {
 } from '../hooks/usePredicciones'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Renderiza un bracket de eliminación directa con datos vivos del backend.
@@ -460,6 +461,7 @@ function PickButton({ personaje, onClick, disabled }) {
       <img
         src={personaje.imagenUrl}
         alt=""
+        onError={ocultaImgRota}
         className="h-4 w-4 shrink-0 rounded object-cover object-top"
       />
       <span className="truncate">{personaje.nombre}</span>
@@ -478,6 +480,7 @@ function BracketSlot({ personaje, winner }) {
         src={personaje.imagenUrl}
         alt=""
         loading="lazy"
+        onError={ocultaImgRota}
         className="h-6 w-6 shrink-0 rounded object-cover object-top"
       />
       <span
@@ -503,6 +506,7 @@ function ChampionSlot({ personaje }) {
       <img
         src={personaje.imagenUrl}
         alt={personaje.nombre}
+        onError={ocultaImgRota}
         className="aspect-[2/3] w-full max-w-[110px] rounded-lg object-cover object-top"
       />
       <div className="text-center">

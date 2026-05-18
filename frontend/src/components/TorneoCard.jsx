@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle2, Clock, PlayCircle, Trophy, Users } from 'lucide-react'
 import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Card individual de torneo en /torneos. Antes recibía el torneo legacy
@@ -62,6 +63,7 @@ function TorneoCard({ torneo }) {
               src={p.imagenUrl}
               alt=""
               loading="lazy"
+              onError={ocultaImgRota}
               className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
             />
           ))}
@@ -94,6 +96,7 @@ function TorneoCard({ torneo }) {
           <img
             src={ganadorAvatar.imagenUrl}
             alt=""
+            onError={ocultaImgRota}
             className="h-9 w-9 rounded-md object-cover object-top"
           />
           <div className="min-w-0">
