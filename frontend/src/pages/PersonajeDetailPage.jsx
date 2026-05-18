@@ -32,6 +32,7 @@ import EloHistoryChart from '../components/EloHistoryChart'
 import HistorialCompetitivo from '../components/HistorialCompetitivo'
 import PersonajeCard from '../components/PersonajeCard'
 import ReactionsBar from '../components/ReactionsBar'
+import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import NotFoundPage from './NotFoundPage'
@@ -289,6 +290,7 @@ function PersonajeDetailPage() {
                 <Share2 className="h-4 w-4" />
                 Compartir ficha
               </button>
+              <SeguirPersonajeButton slug={slug} nombre={personaje.nombre} />
             </motion.div>
             {personajeBackendId && (
               <motion.div variants={itemVariants}>
