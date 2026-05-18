@@ -72,6 +72,48 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByPersonajeId(Long personajeId);
 
     /**
+     * Cuenta votos del personaje dentro del rango [desde, hasta) — desde
+     * inclusivo, hasta exclusivo para que el caller pueda concatenar
+     * periodos sin solape. Plan producto 2026-05-18 (sprint actividad
+     * reciente): usado por VotosPeriodoService para calcular delta entre
+     * periodo actual y anterior.
+     */
+    @Query("""
+            SELECT COUNT(v)
+            FROM Voto v
+            WHERE v.personaje.id = :personajeId
+              AND v.fecha >= :desde
+              AND v.fecha < :hasta
+            """)
+    long countByPersonajeIdInRange(
+            @Param("personajeId") Long personajeId,
+            @Param("desde") java.time.LocalDateTime desde,
+            @Param("hasta") java.time.LocalDateTime hasta);
+
+    /**
+     * Versión batch: cuenta votos para una lista de personajes en el
+     * rango [desde, hasta). Devuelve {@code [personajeId, count]} por
+     * cada personaje con AL MENOS 1 voto en el rango — los que tienen
+     * 0 NO aparecen (caller debe asumir 0 para los ausentes).
+     *
+     * <p>Una sola query SQL por rango × lista, evita N+1 desde el
+     * frontend cuando muestra "+N votos esta semana" sobre múltiples
+     * personajes a la vez (Pulso Movers, FavoritosBanner).
+     */
+    @Query("""
+            SELECT v.personaje.id, COUNT(v)
+            FROM Voto v
+            WHERE v.personaje.id IN :personajeIds
+              AND v.fecha >= :desde
+              AND v.fecha < :hasta
+            GROUP BY v.personaje.id
+            """)
+    List<Object[]> countByPersonajeIdsInRange(
+            @Param("personajeIds") java.util.Collection<Long> personajeIds,
+            @Param("desde") java.time.LocalDateTime desde,
+            @Param("hasta") java.time.LocalDateTime hasta);
+
+    /**
      * Votos por día del personaje desde la fecha dada (Plan v2 §11.1).
      * Devuelve {@code [fechaInicio-del-día, count]}. Usamos {@code CAST AS DATE}
      * para que el GROUP BY funcione tanto en H2 como en Postgres sin

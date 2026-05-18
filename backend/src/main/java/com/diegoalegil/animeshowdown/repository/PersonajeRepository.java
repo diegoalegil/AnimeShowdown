@@ -15,6 +15,9 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
     /** Lookup por slug URL-safe — usado por OG image y endpoints públicos. */
     Optional<Personaje> findBySlug(String slug);
 
+    /** Batch lookup por lista de slugs. Sprint 2026-05-18 actividad reciente. */
+    List<Personaje> findBySlugIn(java.util.Collection<String> slugs);
+
     boolean existsByNombre(String nombre);
 
     /**

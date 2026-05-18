@@ -25,6 +25,7 @@ import com.diegoalegil.animeshowdown.dto.MatchupResumenDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
+import com.diegoalegil.animeshowdown.dto.VotosPeriodoDto;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
@@ -32,6 +33,7 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.service.EloHistoryService;
 import com.diegoalegil.animeshowdown.service.PersonajeMatchupService;
 import com.diegoalegil.animeshowdown.service.RecomendacionService;
+import com.diegoalegil.animeshowdown.service.VotosPeriodoService;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -45,17 +47,20 @@ public class PersonajeController {
     private final EloHistoryService eloHistoryService;
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final PersonajeMatchupService personajeMatchupService;
+    private final VotosPeriodoService votosPeriodoService;
 
     public PersonajeController(PersonajeRepository personajeRepository,
             RecomendacionService recomendacionService,
             EloHistoryService eloHistoryService,
             EnfrentamientoRepository enfrentamientoRepository,
-            PersonajeMatchupService personajeMatchupService) {
+            PersonajeMatchupService personajeMatchupService,
+            VotosPeriodoService votosPeriodoService) {
         this.personajeRepository = personajeRepository;
         this.recomendacionService = recomendacionService;
         this.eloHistoryService = eloHistoryService;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeMatchupService = personajeMatchupService;
+        this.votosPeriodoService = votosPeriodoService;
     }
 
     /**
@@ -203,6 +208,50 @@ public class PersonajeController {
                 .map(e -> DueloRecienteDto.from(e, personaje))
                 .toList();
         return ResponseEntity.ok(lista);
+    }
+
+    /**
+     * Actividad reciente de votos del personaje (Plan producto sprint
+     * 2026-05-18 — actividad real por votos recientes).
+     *
+     * <p>Devuelve votos absolutos en la ventana actual + ventana
+     * anterior + delta. Sin auth — son agregados públicos.
+     * dias acotado [1, 90], 404 si slug no existe.
+     */
+    @GetMapping("/{slug}/votos-periodo")
+    public ResponseEntity<VotosPeriodoDto> votosPeriodoSlug(
+            @PathVariable String slug,
+            @RequestParam(defaultValue = "7") int dias) {
+        int saneDias = Math.max(1, Math.min(90, dias));
+        try {
+            return ResponseEntity.ok(votosPeriodoService.calcularSlug(slug, saneDias));
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Versión batch del endpoint anterior — evita N+1 cuando el frontend
+     * necesita actividad para múltiples personajes a la vez (Pulso Movers,
+     * FavoritosBanner). Una sola request → mapeo {slug → VotosPeriodoDto}.
+     *
+     * <p>slugs viene como CSV en query string ({@code ?slugs=luffy,naruto,zoro}).
+     * Limit hard server-side de 50 slugs para evitar abuso y queries muy
+     * grandes; si el caller manda más, se recortan los primeros 50.
+     * Slugs inexistentes se omiten silenciosamente.
+     */
+    @GetMapping("/votos-periodo")
+    public List<VotosPeriodoDto> votosPeriodoBatch(
+            @RequestParam String slugs,
+            @RequestParam(defaultValue = "7") int dias) {
+        int saneDias = Math.max(1, Math.min(90, dias));
+        List<String> lista = java.util.Arrays.stream(slugs.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .limit(50)
+                .toList();
+        return votosPeriodoService.calcularBatch(lista, saneDias);
     }
 
     /**
