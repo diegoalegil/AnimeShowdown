@@ -10,6 +10,7 @@ import {
   HelpCircle,
   Medal,
   Search,
+  Sparkles,
   Swords,
   TrendingDown,
   TrendingUp,
@@ -23,6 +24,11 @@ import {
   getStatsPersonaje,
   imagenPersonaje,
 } from '../data/personajes'
+import {
+  CATEGORIAS,
+  MIN_PARA_SECCION,
+  getPersonajesPorCategoria,
+} from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -63,6 +69,7 @@ const animeFilterOptions = (() => {
 
 const TABS = [
   { id: 'elo', label: 'ELO actual', icon: Trophy },
+  { id: 'categorias', label: 'Categorías', icon: Sparkles },
   { id: 'all', label: 'Histórico', icon: Vote },
   { id: 'mes', label: 'Este mes', icon: Calendar },
   { id: 'anime', label: 'Por anime', icon: Tv },
@@ -140,6 +147,7 @@ function RankingPage() {
 
         <div className="mt-6">
           {tab === 'elo' && <ListaEloLocal />}
+          {tab === 'categorias' && <ListaCategoriasOtaku />}
           {tab === 'all' && <ListaBackend periodo="all" />}
           {tab === 'mes' && <ListaBackend periodo="mes" />}
           {tab === 'anime' && <PorAnime />}
@@ -150,6 +158,143 @@ function RankingPage() {
         <TablaExtraible />
       </div>
     </section>
+  )
+}
+
+/**
+ * Tab "Categorías otaku" — secciones independientes por arquetipo
+ * (héroes, villanos, waifus, husbandos, protagonistas, rivales,
+ * mentores, antihéroes). Cada sección lista los personajes tagueados
+ * ordenados por ELO local, máximo 10 por sección. Se omite la
+ * categoría si tiene menos de MIN_PARA_SECCION personajes (3) —
+ * mejor no enseñar "Top mentores: 1 personaje" que se ve raro.
+ *
+ * Audit producto (2026-05-18 — visión "estadio otaku"): el ranking
+ * por ELO global es la "tabla de la liga"; estas categorías son las
+ * "competiciones temáticas" (Top heroínas, copa villanos, etc).
+ * Tags vienen del archivo data/personajes-tags.js, sin backend.
+ */
+function ListaCategoriasOtaku() {
+  const secciones = useMemo(() => {
+    return CATEGORIAS
+      .map((cat) => {
+        const personajesCat = getPersonajesPorCategoria(cat.id, personajes)
+          .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
+          .sort((a, b) => b.elo - a.elo)
+          .slice(0, 10)
+        return { ...cat, personajes: personajesCat }
+      })
+      .filter((s) => s.personajes.length >= MIN_PARA_SECCION)
+  }, [])
+
+  if (secciones.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-border bg-surface-alt/40 p-6 text-center text-[13px] text-fg-muted">
+        Aún no hay personajes tagueados por categoría. Añade tags en{' '}
+        <code className="font-mono text-[12px]">data/personajes-tags.js</code>.
+      </p>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-10">
+      <p className="text-[13px] text-fg-muted">
+        Rankings temáticos por arquetipo de personaje. Solo aparecen las
+        categorías con suficientes personajes etiquetados.
+      </p>
+      {secciones.map((seccion) => (
+        <SeccionCategoria key={seccion.id} seccion={seccion} />
+      ))}
+    </div>
+  )
+}
+
+function SeccionCategoria({ seccion }) {
+  // Colores tematizados por arquetipo (sky héroes, rose villanos, pink
+  // waifus, violet husbandos, amber protagonistas, orange rivales,
+  // emerald mentores, purple antihéroes).
+  const TONO_CLASES = {
+    sky: 'text-sky-300 border-sky-500/40 bg-sky-500/10',
+    rose: 'text-rose-300 border-rose-500/40 bg-rose-500/10',
+    pink: 'text-pink-300 border-pink-500/40 bg-pink-500/10',
+    violet: 'text-violet-300 border-violet-500/40 bg-violet-500/10',
+    amber: 'text-amber-300 border-amber-500/40 bg-amber-500/10',
+    orange: 'text-orange-300 border-orange-500/40 bg-orange-500/10',
+    emerald: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
+    purple: 'text-purple-300 border-purple-500/40 bg-purple-500/10',
+  }
+  const tonoClase = TONO_CLASES[seccion.tono] ?? TONO_CLASES.sky
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex items-center gap-3 border-b border-border pb-3">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.1em] ${tonoClase}`}
+        >
+          <span aria-hidden="true">{seccion.emoji}</span>
+          {seccion.label}
+        </span>
+        <span className="font-mono text-[11px] text-fg-muted tabular-nums">
+          {seccion.personajes.length}
+        </span>
+      </div>
+      <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {seccion.personajes.map((p, i) => (
+          <CategoriaCard
+            key={p.slug}
+            rank={i + 1}
+            personaje={p}
+            tono={seccion.tono}
+          />
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+function CategoriaCard({ rank, personaje, tono }) {
+  const RANK_TONO = {
+    sky: 'bg-sky-500/20 text-sky-200',
+    rose: 'bg-rose-500/20 text-rose-200',
+    pink: 'bg-pink-500/20 text-pink-200',
+    violet: 'bg-violet-500/20 text-violet-200',
+    amber: 'bg-amber-500/20 text-amber-200',
+    orange: 'bg-orange-500/20 text-orange-200',
+    emerald: 'bg-emerald-500/20 text-emerald-200',
+    purple: 'bg-purple-500/20 text-purple-200',
+  }
+  const rankTono = RANK_TONO[tono] ?? RANK_TONO.sky
+  return (
+    <li>
+      <Link
+        to={`/personajes/${personaje.slug}`}
+        className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"
+      >
+        <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-bg">
+          <img
+            src={imagenPersonaje(personaje.slug)}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+          />
+          <span
+            className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded px-1 font-mono text-[10px] font-extrabold ${rankTono}`}
+          >
+            #{rank}
+          </span>
+        </div>
+        <div className="min-w-0">
+          <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-accent sm:text-[13px]">
+            {personaje.nombre}
+          </p>
+          <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[11px]">
+            {personaje.anime}
+          </p>
+        </div>
+        <p className="font-mono text-[11px] font-bold text-accent">
+          {personaje.elo}
+        </p>
+      </Link>
+    </li>
   )
 }
 
