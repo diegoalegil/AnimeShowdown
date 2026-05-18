@@ -112,6 +112,25 @@ const TAGS_OVERRIDE = {
   // ====== Fate ======
   saber: ['waifu', 'hero'],
 
+  // ====== Fullmetal Alchemist ======
+  edward_elric: ['hero', 'protagonist'],
+  alphonse_elric: ['hero'],
+  roy_mustang: ['mentor', 'husbando'],
+  riza_hawkeye: ['waifu'],
+  maes_hughes: ['mentor'],
+  olivier_armstrong: ['waifu'],
+  van_hohenheim: ['mentor'],
+  scar: ['antihero'],
+  lust: ['villain', 'waifu'],
+  pride: ['villain'],
+  wrath_king_bradley: ['villain'],
+
+  // ====== Frieren ======
+  flamme: ['mentor'],
+
+  // ====== Fumetsu no Anata e ======
+  fushi: ['protagonist'],
+
   // ====== Otros icónicos por nombre ======
   mai_sakurajima: ['waifu'],
   asuna: ['waifu'],
