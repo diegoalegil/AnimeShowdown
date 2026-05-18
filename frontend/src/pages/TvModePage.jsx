@@ -79,27 +79,28 @@ function TvModePage() {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-black text-fg-strong">
-      <header className="flex items-center justify-between border-b border-white/10 bg-black/40 px-8 py-4 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <img src="/logo.webp" alt="" className="h-10 w-10" />
-          <span className="text-2xl font-extrabold tracking-tight">
+      <header className="flex items-center justify-between gap-2 border-b border-white/10 bg-black/40 px-3 py-2.5 backdrop-blur-xl sm:px-8 sm:py-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <img src="/logo.webp" alt="" className="h-7 w-7 sm:h-10 sm:w-10" />
+          <span className="truncate text-base font-extrabold tracking-tight sm:text-2xl">
             AnimeShowdown
           </span>
-          <span className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent">
+          <span className="ml-1 inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent sm:ml-2 sm:gap-1.5 sm:px-3 sm:py-1 sm:text-[11px]">
             <Tv className="h-3 w-3" />
-            TV Mode
+            TV
           </span>
         </div>
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg-strong"
+          className="inline-flex shrink-0 items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg-strong"
         >
           <ArrowLeft className="h-3 w-3" />
-          Salir (Esc para fullscreen off)
+          <span>Salir</span>
+          <span className="hidden sm:inline">(Esc para fullscreen off)</span>
         </Link>
       </header>
 
-      <main className="relative flex flex-1 items-center justify-center overflow-hidden">
+      <main className="relative flex flex-1 items-center justify-center overflow-y-auto overflow-x-hidden">
         {/* Aurora fondo decorativa */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-32 left-1/4 h-[40rem] w-[40rem] rounded-full bg-accent opacity-25 blur-3xl animate-aurora-1" />
@@ -113,15 +114,15 @@ function TvModePage() {
         </AnimatePresence>
       </main>
 
-      <footer className="flex items-center justify-between border-t border-white/10 bg-black/40 px-8 py-3 backdrop-blur-xl">
-        <div className="flex items-center gap-2 text-[11px] text-fg-muted">
-          <span>Rotando cada {DURACION_S}s</span>
+      <footer className="flex items-center justify-between gap-2 border-t border-white/10 bg-black/40 px-3 py-2 backdrop-blur-xl sm:px-8 sm:py-3">
+        <div className="flex min-w-0 items-center gap-2 text-[10px] text-fg-muted sm:text-[11px]">
+          <span className="truncate">Rotando cada {DURACION_S}s</span>
           <span aria-hidden="true">·</span>
           <span className="font-mono">
             {vistaIdx + 1}/{VISTAS.length}
           </span>
         </div>
-        <p className="text-[11px] text-fg-muted">animeshowdown.dev</p>
+        <p className="shrink-0 text-[10px] text-fg-muted sm:text-[11px]">animeshowdown.dev</p>
       </footer>
     </div>
   )
@@ -134,21 +135,21 @@ function VistaTop10() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="relative z-10 w-full max-w-7xl px-8"
+      className="relative z-10 w-full max-w-7xl px-4 py-6 sm:px-8 sm:py-0"
     >
-      <div className="mb-6 flex flex-col items-center text-center">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.3em] text-accent">
+      <div className="mb-4 flex flex-col items-center text-center sm:mb-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-accent sm:text-[12px]">
           Top 10 ELO global
         </p>
-        <h2 className="mt-2 text-[clamp(2.5rem,6vw,5rem)] font-extrabold leading-none">
+        <h2 className="mt-2 text-[clamp(1.5rem,6vw,5rem)] font-extrabold leading-none">
           ¿Quién manda hoy?
         </h2>
       </div>
-      <ol className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <ol className="grid grid-cols-2 gap-2.5 sm:grid-cols-5 sm:gap-3">
         {top10.map((p, i) => (
           <li
             key={p.slug}
-            className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md"
+            className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md sm:gap-2 sm:p-4"
           >
             <span className="font-mono text-[11px] font-bold text-accent">
               #{i + 1}
@@ -156,13 +157,13 @@ function VistaTop10() {
             <img
               src={imagenPersonaje(p.slug)}
               alt=""
-              className="h-32 w-24 rounded-lg object-cover object-top"
+              className="h-24 w-20 rounded-lg object-cover object-top sm:h-32 sm:w-24"
             />
-            <p className="line-clamp-1 text-center text-sm font-bold">{p.nombre}</p>
-            <p className="line-clamp-1 text-center text-[11px] text-fg-muted">
+            <p className="line-clamp-1 text-center text-[13px] font-bold sm:text-sm">{p.nombre}</p>
+            <p className="line-clamp-1 text-center text-[10px] text-fg-muted sm:text-[11px]">
               {p.anime}
             </p>
-            <p className="font-mono text-lg font-bold text-accent">{p.elo}</p>
+            <p className="font-mono text-base font-bold text-accent sm:text-lg">{p.elo}</p>
           </li>
         ))}
       </ol>
@@ -182,29 +183,29 @@ function VistaSpotlight({ tick }) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="relative z-10 grid w-full max-w-6xl items-center gap-12 px-8 md:grid-cols-2"
+      className="relative z-10 grid w-full max-w-6xl items-center gap-6 px-4 py-6 sm:gap-12 sm:px-8 sm:py-0 md:grid-cols-2"
     >
       <motion.img
         src={imagenPersonaje(p.slug)}
         alt={p.nombre}
-        className="aspect-[2/3] w-full max-w-md rounded-3xl object-cover object-top"
+        className="mx-auto aspect-[2/3] w-auto max-h-[40vh] rounded-2xl object-cover object-top sm:rounded-3xl md:max-h-none md:w-full md:max-w-md"
         style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.4))' }}
       />
-      <div className="flex flex-col gap-4">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.3em] text-accent">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-accent sm:text-[12px]">
           Personaje destacado
         </p>
-        <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-none">
+        <h2 className="text-[clamp(1.75rem,6vw,4.5rem)] font-extrabold leading-none">
           {p.nombre}
         </h2>
-        <p className="text-2xl text-fg-muted">{p.anime}</p>
-        <div className="mt-4 grid grid-cols-3 gap-3">
+        <p className="text-base text-fg-muted sm:text-2xl">{p.anime}</p>
+        <div className="mt-2 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-3">
           <Kpi label="ELO" value={stats.elo} accent />
           <Kpi label="Victorias" value={stats.wins} />
           <Kpi label="Win rate" value={`${winRate}%`} />
         </div>
         {p.descripcion && (
-          <p className="line-clamp-3 text-lg leading-relaxed text-fg-muted">
+          <p className="line-clamp-3 text-sm leading-relaxed text-fg-muted sm:text-lg">
             {p.descripcion}
           </p>
         )}
@@ -229,25 +230,27 @@ function VistaMatchup({ tick }) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -30 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="relative z-10 w-full max-w-6xl px-8"
+      className="relative z-10 w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-0"
     >
-      <div className="mb-8 flex flex-col items-center text-center">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.3em] text-accent">
+      <div className="mb-5 flex flex-col items-center text-center sm:mb-8">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-accent sm:text-[12px]">
           Matchup random
         </p>
-        <h2 className="mt-2 text-[clamp(2rem,5vw,4rem)] font-extrabold leading-none">
+        <h2 className="mt-2 text-[clamp(1.5rem,5vw,4rem)] font-extrabold leading-none">
           ¿Quién ganaría?
         </h2>
       </div>
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-6">
         <Versus personaje={a} elo={eloA} esFavorito={favorito.slug === a.slug} />
-        <span className="font-mono text-5xl font-extrabold text-accent">VS</span>
+        <span className="order-first col-span-2 text-center font-mono text-3xl font-extrabold text-accent sm:order-none sm:col-span-1 sm:text-5xl">
+          VS
+        </span>
         <Versus personaje={b} elo={eloB} esFavorito={favorito.slug === b.slug} />
       </div>
-      <p className="mt-6 text-center text-fg-muted">
+      <p className="mt-4 text-center text-[12px] text-fg-muted sm:mt-6 sm:text-base">
         Diferencia ELO: <strong className="text-accent">{diff}</strong>
         {' · '}
-        Favorito según el ranking:{' '}
+        Favorito:{' '}
         <strong className="text-fg-strong">{favorito.nombre}</strong>
       </p>
     </motion.section>
@@ -257,32 +260,32 @@ function VistaMatchup({ tick }) {
 function Versus({ personaje, elo, esFavorito }) {
   return (
     <div
-      className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-6 backdrop-blur-md ${
+      className={`flex flex-col items-center gap-2 rounded-xl border-2 p-3 backdrop-blur-md sm:gap-3 sm:rounded-2xl sm:p-6 ${
         esFavorito ? 'border-accent bg-accent/10' : 'border-white/10 bg-white/5'
       }`}
     >
       <img
         src={imagenPersonaje(personaje.slug)}
         alt=""
-        className="h-48 w-36 rounded-lg object-cover object-top sm:h-64 sm:w-48"
+        className="h-28 w-20 rounded-lg object-cover object-top sm:h-64 sm:w-48"
       />
-      <p className="text-center text-xl font-bold sm:text-2xl">{personaje.nombre}</p>
-      <p className="text-center text-[12px] text-fg-muted sm:text-sm">
+      <p className="line-clamp-1 text-center text-sm font-bold sm:text-2xl">{personaje.nombre}</p>
+      <p className="line-clamp-1 text-center text-[10px] text-fg-muted sm:text-sm">
         {personaje.anime}
       </p>
-      <p className="font-mono text-2xl font-extrabold text-accent">{elo}</p>
+      <p className="font-mono text-lg font-extrabold text-accent sm:text-2xl">{elo}</p>
     </div>
   )
 }
 
 function Kpi({ label, value, accent = false }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-3 backdrop-blur-md">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+    <div className="rounded-lg border border-white/10 bg-white/5 p-2.5 backdrop-blur-md sm:p-3">
+      <p className="text-[9px] font-medium uppercase tracking-wider text-fg-muted sm:text-[10px]">
         {label}
       </p>
       <p
-        className={`mt-1 font-mono text-2xl font-bold ${
+        className={`mt-1 font-mono text-lg font-bold sm:text-2xl ${
           accent ? 'text-accent' : 'text-fg-strong'
         }`}
       >
