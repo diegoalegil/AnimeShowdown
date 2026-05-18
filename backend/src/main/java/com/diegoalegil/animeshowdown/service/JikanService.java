@@ -1,9 +1,18 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+
+import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,11 +240,18 @@ public class JikanService {
 
     /**
      * Trae las URLs de imágenes adicionales de un personaje desde
-     * /characters/{mal_id}/pictures. Devuelve lista vacía si Jikan no
-     * responde, no hay data o todas las entradas vienen sin URL.
+     * /characters/{mal_id}/pictures, filtra las que son blanco y negro
+     * (paneles de manga, scans grises) y devuelve solo las en color
+     * (frames del anime, key visuals).
      *
-     * <p>Cacheable 7d (TTL en application.properties cache
-     * 'jikan-character-pictures'); las imágenes apenas cambian.
+     * <p>El filtrado descarga cada imagen al primer hit por personaje y
+     * samplea pixels (ver {@link #imageHasColor}); el resultado FILTRADO
+     * se cachea 7d. La heurística de color tolera escenas oscuras o con
+     * tints (azul nocturno, sepia) — solo descarta imágenes verdaderamente
+     * grayscale.
+     *
+     * <p>Devuelve lista vacía si Jikan no responde, no hay data o todas
+     * las entradas vienen sin URL.
      */
     @Cacheable(value = "jikan-character-pictures", key = "#malId")
     @Retry(name = "jikan")
@@ -256,7 +272,86 @@ public class JikanService {
             String url = entry.path("jpg").path("image_url").asText("");
             if (!url.isBlank()) urls.add(url);
         }
-        return urls;
+        // Filtrado B&W. Llamada vía self para que el @Cacheable per-URL
+        // funcione (Spring AOP solo aplica via proxy). Si imageHasColor
+        // lanza, asumimos color (no perdemos imágenes por fallos transitorios).
+        List<String> soloColor = new ArrayList<>();
+        for (String url : urls) {
+            boolean keep = true;
+            try {
+                keep = self.imageHasColor(url);
+            } catch (Exception e) {
+                log.warn("No se pudo analizar color de {}: {} — la mantenemos", url, e.getMessage());
+            }
+            if (keep) soloColor.add(url);
+        }
+        return soloColor;
+    }
+
+    /**
+     * Heurística de detección "blanco y negro" para una imagen accesible
+     * por URL. Descarga la imagen, samplea {@value #COLOR_SAMPLES} pixels
+     * aleatorios y cuenta los "grises" (delta R/G/B < {@value
+     * #COLOR_DELTA_THRESHOLD}). Si más del {@value #COLOR_GRAY_RATIO_MAX
+     * } * 100% son grises, la imagen es B&W → devuelve false.
+     *
+     * <p>Cacheable indefinido: la naturaleza color/B&W de una URL
+     * concreta no cambia, así que un acierto evita la descarga otra vez.
+     * Excepciones NO se cachean (Spring @Cacheable comportamiento
+     * default), así que un fallo transitorio reintenta en próxima llamada.
+     *
+     * <p>Devuelve true si la imagen es color o si por alguna razón el
+     * análisis no puede concluir (max RGB delta del sample fue 0 — imagen
+     * sólida sin contenido útil, raro).
+     */
+    @Cacheable(value = "jikan-image-is-color", key = "#url")
+    public boolean imageHasColor(String url) throws IOException {
+        URL u = URI.create(url).toURL();
+        URLConnection conn = u.openConnection();
+        conn.setConnectTimeout(3000);
+        conn.setReadTimeout(5000);
+        // User-Agent realista — algunos CDNs rechazan default "Java/x.x.x".
+        conn.setRequestProperty("User-Agent", "AnimeShowdown/1.0 (+https://animeshowdown.dev)");
+        BufferedImage img;
+        try (InputStream in = conn.getInputStream()) {
+            img = ImageIO.read(in);
+        }
+        if (img == null) {
+            // ImageIO no pudo decodificar (formato no soportado o stream vacío).
+            // No bloqueamos la galería por eso.
+            log.debug("ImageIO.read=null para {} — asumimos color", url);
+            return true;
+        }
+        return analyzeHasColor(img);
+    }
+
+    private static final int COLOR_SAMPLES = 200;
+    private static final int COLOR_DELTA_THRESHOLD = 18;
+    private static final double COLOR_GRAY_RATIO_MAX = 0.75;
+
+    /**
+     * Sampler de pixels para el clasificador B&W. Separado del método con
+     * @Cacheable para poder testear con BufferedImage in-memory sin red.
+     */
+    boolean analyzeHasColor(BufferedImage img) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        if (width < 4 || height < 4) return true;
+        int gris = 0;
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        for (int i = 0; i < COLOR_SAMPLES; i++) {
+            int x = rnd.nextInt(width);
+            int y = rnd.nextInt(height);
+            int rgb = img.getRGB(x, y);
+            int r = (rgb >> 16) & 0xFF;
+            int g = (rgb >> 8) & 0xFF;
+            int b = rgb & 0xFF;
+            int max = Math.max(r, Math.max(g, b));
+            int min = Math.min(r, Math.min(g, b));
+            if (max - min < COLOR_DELTA_THRESHOLD) gris++;
+        }
+        double ratioGris = (double) gris / COLOR_SAMPLES;
+        return ratioGris <= COLOR_GRAY_RATIO_MAX;
     }
 
     @SuppressWarnings("unused")
