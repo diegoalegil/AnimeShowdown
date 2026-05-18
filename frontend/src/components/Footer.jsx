@@ -28,6 +28,7 @@ const productoLinks = [
   { to: '/personajes', i18nKey: 'personajes' },
   { to: '/animes', i18nKey: 'animes' },
   { to: '/torneos', i18nKey: 'torneos' },
+  { to: '/eventos', i18nKey: 'eventos' },
   { to: '/votar', i18nKey: 'votar' },
   { to: '/ranking', i18nKey: 'ranking' },
   { to: '/games', i18nKey: 'games' },
