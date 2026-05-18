@@ -102,8 +102,13 @@ function LogrosPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-            <Trophy className="h-3 w-3 text-amber-400" />
+          {/* Acento oro místico (audit producto 2026-05-18): logros tira
+              al mismo dorado del ranking pero con tono más ámbar oscuro
+              para evocar "salón de trofeos" / coleccionismo. Mantenemos
+              el kanji 勲章 (medalla) — tiene intención semántica directa
+              con el tema de la página. */}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-amber-300">
+            <Trophy className="h-3 w-3" />
             勲章 · Logros
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">

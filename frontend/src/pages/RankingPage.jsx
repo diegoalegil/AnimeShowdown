@@ -10,7 +10,6 @@ import {
   HelpCircle,
   Medal,
   Search,
-  Sparkles,
   Swords,
   TrendingDown,
   TrendingUp,
@@ -97,8 +96,11 @@ function RankingPage() {
           animate="visible"
           variants={headerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
-            <Sparkles className="h-3 w-3" />
+          {/* Acento dorado del sistema (audit producto 2026-05-18): ranking
+              = oro / salón de la fama. Da identidad visual diferenciada
+              del magenta de marca sin perder coherencia. */}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-amber-300">
+            <Trophy className="h-3 w-3" />
             Ranking ELO · Salón de la fama
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
