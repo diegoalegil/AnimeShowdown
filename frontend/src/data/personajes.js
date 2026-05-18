@@ -810,7 +810,6 @@ export const personajes = [
   { slug: 'luffy', nombre: 'Monkey D. Luffy', anime: 'One Piece', descripcion: 'Capitán pirata de los Sombrero de Paja. Comió la fruta Goma-Goma y será el Rey de los Piratas.', imagen: '/img/One_Piece/luffy.webp' },
   { slug: 'marshall_d_teach', nombre: 'Blackbeard', anime: 'One Piece', descripcion: 'Marshall D. Teach. Yonkō que robó el poder de Whitebeard. Único capaz de portar dos frutas: Yami Yami y Gura Gura.', imagen: '/img/One_Piece/marshall_d_teach.webp' },
   { slug: 'monkey_d_dragon', nombre: 'Monkey D. Dragon', anime: 'One Piece', descripcion: 'Líder del Ejército Revolucionario, el hombre más buscado del mundo. Padre de Luffy aunque no se han cruzado.', imagen: '/img/One_Piece/monkey_d_dragon.webp' },
-  { slug: 'monkey_d_luffy', nombre: 'Monkey D Luffy', anime: 'One Piece', descripcion: 'Personaje del anime One Piece.', imagen: '/img/One_Piece/monkey_d_luffy.webp' },
   { slug: 'nami', nombre: 'Nami', anime: 'One Piece', descripcion: 'Navegante de los Sombrero de Paja. Sueña con dibujar el mapa completo del mundo.', imagen: '/img/One_Piece/nami.webp' },
   { slug: 'nefertari_vivi', nombre: 'Nefertari Vivi', anime: 'One Piece', descripcion: 'Princesa de Alabasta y miembro honorario de los Sombrero de Paja durante la saga del desierto.', imagen: '/img/One_Piece/nefertari_vivi.webp' },
   { slug: 'nico_robin', nombre: 'Nico Robin', anime: 'One Piece', descripcion: 'Arqueóloga superviviente de Ohara. Única capaz de leer los Poneglyphs. Fruta Hana Hana, manos que florecen.', imagen: '/img/One_Piece/nico_robin.webp' },
@@ -1050,6 +1049,7 @@ export function imagenPersonaje(slug) {
   // vez de undefined que dejaría el <img> en estado raro.
   return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`
 }
+
 
 
 
