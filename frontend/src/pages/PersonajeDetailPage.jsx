@@ -193,8 +193,13 @@ function PersonajeDetailPage() {
             content={`https://animeshowdown.dev${imagenPersonaje(slug)}`}
           />
           <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
+          {/* Audit visual (2026-05-18): en móvil reordenamos para que la
+              identidad (badges + H1 + CTAs) aparezca antes que la imagen,
+              y capamos la imagen a 55vh — antes empujaba todo el contenido
+              fuera del primer viewport. En desktop el orden y el aspect-ratio
+              originales se preservan vía md:* classes. */}
           <motion.div
-            className="relative aspect-[2/3] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-surface"
+            className="relative order-2 mx-auto aspect-[2/3] w-auto max-h-[55vh] overflow-hidden rounded-2xl border border-border bg-surface md:order-1 md:mx-0 md:w-full md:max-w-md md:max-h-none"
             style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
             variants={itemVariants}
           >
@@ -206,7 +211,7 @@ function PersonajeDetailPage() {
             <PersonajeStaticOr3D slug={slug} nombre={personaje.nombre} />
           </motion.div>
           <motion.div
-            className="flex flex-col items-start gap-4"
+            className="order-1 flex flex-col items-start gap-4 md:order-2"
             variants={containerVariants}
           >
             <motion.div
