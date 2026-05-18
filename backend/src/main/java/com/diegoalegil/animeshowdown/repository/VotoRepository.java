@@ -154,6 +154,27 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByEnfrentamientoAndPersonaje(Enfrentamiento enfrentamiento, Personaje personaje);
 
     /**
+     * Feed público de los últimos N votos, con personaje + enfrentamiento +
+     * usuario fetcheados eagerly para evitar N+1 al mapear a VotoFeedItem.
+     *
+     * <p>Plan producto (2026-05-18): consumido por SectionPulso en la home
+     * para mostrar actividad real ("X votó por Y vs Z hace 2 min"). Sin
+     * filtro de usuario — el feed incluye votos anónimos (frontend los
+     * etiqueta como "alguien"). Pageable acota a un puñado de items para
+     * no traer toda la tabla.
+     */
+    @Query("""
+            SELECT v FROM Voto v
+            LEFT JOIN FETCH v.personaje
+            LEFT JOIN FETCH v.usuario
+            LEFT JOIN FETCH v.enfrentamiento e
+            LEFT JOIN FETCH e.personaje1
+            LEFT JOIN FETCH e.personaje2
+            ORDER BY v.fecha DESC
+            """)
+    List<Voto> findRecentesParaFeed(org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Historial de votos del usuario, ordenados por fecha desc (más recientes
      * primero). Page para paginación; el frontend pide page=0,size=50 típicamente.
      * Plan v2 §4.1.
