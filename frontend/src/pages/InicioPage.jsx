@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
 import { webSiteSchema } from '../lib/schema'
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react'
 import Hero from '../components/Hero'
 import NombresMarquee from '../components/NombresMarquee'
+import SectionPulso from '../components/SectionPulso'
 import TorneoCard from '../components/TorneoCard'
 import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
@@ -97,9 +97,13 @@ function InicioPage() {
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
       <Hero />
+      {/* Audit producto (2026-05-18): Pulso sustituye al antiguo
+          SectionLiveBattle (duelo random cliente-side, no era "live").
+          Cinco señales reales desde backend arriba del fold para que
+          la home muestre producto en marcha, no solo feature list. */}
+      <SectionPulso />
       <NombresMarquee />
       <SectionStats />
-      <SectionLiveBattle />
       <SectionTop10Ranking />
       {/* Audit (2026-05-17): el resto de secciones eran below-the-fold
           típico — montarlas solo cuando se acercan al viewport recorta
@@ -141,148 +145,6 @@ function SectionPorAnime() {
         />
       ))}
     </motion.div>
-  )
-}
-
-function getRandomPair() {
-  const a = Math.floor(Math.random() * personajes.length)
-  let b = Math.floor(Math.random() * personajes.length)
-  while (b === a) b = Math.floor(Math.random() * personajes.length)
-  return [personajes[a], personajes[b]]
-}
-
-function SectionLiveBattle() {
-  const [pair, setPair] = useState(getRandomPair)
-
-  useEffect(() => {
-    const id = setInterval(() => setPair(getRandomPair()), 5000)
-    return () => clearInterval(id)
-  }, [])
-
-  const [a, b] = pair
-  const eloA = getStatsPersonaje(a.slug).elo
-  const eloB = getStatsPersonaje(b.slug).elo
-  const total = eloA + eloB
-  const pctA = Math.round((eloA / total) * 100)
-  const pctB = 100 - pctA
-
-  return (
-    <motion.section
-      className="relative overflow-hidden bg-surface/40 px-5 py-16 sm:px-8 sm:py-20"
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-    >
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-8 flex flex-col gap-3">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="flex flex-col gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-                <span className="relative inline-flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                </span>
-                En vivo · Tu voto cambia el ELO
-              </span>
-              <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
-                Duelo en vivo
-              </h2>
-              <p className="max-w-xl text-[14px] text-fg-muted">
-                Dos personajes. Un voto. Solo uno sube en el ranking. Elige
-                quién gana este combate y ayuda a decidir qué personaje merece
-                estar más alto en AnimeShowdown.
-              </p>
-            </div>
-          </div>
-        </div>
-        {/*
-          Antes había 2 AnimatePresence (una por slot) con mode="popLayout":
-          al cambiar el par cada 5s, cada slot transicionaba independientemente
-          y el elemento saliente se ponía position:absolute → el grid se quedaba
-          con frames asimétricos donde solo aparecía UNA card grande hasta que
-          la otra entraba. Ahora un único AnimatePresence mode="wait" envuelve
-          todo el grid: las dos cards salen juntas, esperan a que termine el
-          fade-out, y entran juntas. Sin glitch visual.
-        */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${a.slug}-vs-${b.slug}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6"
-          >
-            <BattleSlot personaje={a} pct={pctA} />
-            <motion.span
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{
-                duration: 1.6,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-              className="relative flex h-16 w-16 items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-accent shadow-[0_0_40px_-10px_rgba(255,46,99,0.6)] sm:h-20 sm:w-20"
-            >
-              <Swords className="h-6 w-6 sm:h-8 sm:w-8" />
-              <span className="absolute -bottom-6 font-mono text-[10px] font-extrabold uppercase tracking-[0.2em] text-accent">
-                VS
-              </span>
-            </motion.span>
-            <BattleSlot personaje={b} pct={pctB} />
-          </motion.div>
-        </AnimatePresence>
-        <div className="mt-10 flex flex-col items-center gap-3">
-          <Link
-            to="/votar"
-            className="group inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-          >
-            <Swords className="h-4 w-4" />
-            Votar este duelo
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <p className="text-[11px] uppercase tracking-[0.15em] text-fg-muted">
-            Ranking afectado por cada voto
-          </p>
-        </div>
-      </div>
-    </motion.section>
-  )
-}
-
-function BattleSlot({ personaje, pct }) {
-  return (
-    <Link
-      to="/votar"
-      className="group flex flex-col gap-2 overflow-hidden rounded-xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:border-accent/60"
-    >
-      <img
-        src={imagenPersonaje(personaje.slug)}
-        alt={personaje.nombre}
-        className="aspect-[4/5] w-full object-cover object-top"
-      />
-      <div className="flex flex-col gap-2 p-3">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
-            {personaje.nombre}
-          </p>
-          <p className="truncate text-[11px] text-fg-muted">{personaje.anime}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-alt">
-            <motion.div
-              className="h-full bg-accent"
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}
-            />
-          </div>
-          <span className="font-mono text-[11px] font-bold text-accent">
-            {pct}%
-          </span>
-        </div>
-      </div>
-    </Link>
   )
 }
 
