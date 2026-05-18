@@ -515,5 +515,15 @@
   "lelouch_lamperouge": { "nombre": "Lelouch vi Britannia", "descripcion": "Príncipe exiliado convertido en Zero, líder de la Orden de los Caballeros Negros. Geass: dominio absoluto en una orden." },
   "suzaku_kururugi": { "nombre": "Suzaku Kururugi", "descripcion": "Hijo del último primer ministro japonés. Piloto del Lancelot. Mejor amigo y mayor enemigo de Lelouch." },
   "kallen_kozuki": { "nombre": "Kallen Kozuki", "descripcion": "Mestiza japonesa-británica, piloto del Guren. As de los Caballeros Negros y devota incondicional a Zero." },
-  "euphemia_li_britannia": { "nombre": "Euphemia li Britannia", "descripcion": "Princesa pacifista de Britannia. Su sueño de coexistencia se rompió por un Geass mal pronunciado." }
+  "euphemia_li_britannia": { "nombre": "Euphemia li Britannia", "descripcion": "Princesa pacifista de Britannia. Su sueño de coexistencia se rompió por un Geass mal pronunciado." },
+
+  "thorfinn": { "nombre": "Thorfinn", "descripcion": "Hijo de Thors. Pasa de niño asesino sediento de venganza a granjero pacifista. Sueña con fundar Vinland, una tierra sin guerra ni esclavitud." },
+  "thors": { "nombre": "Thors", "descripcion": "Antiguo capitán jomsviking conocido como 'el Troll de Jom'. Padre de Thorfinn; abandona la guerra por el pacifismo y cae a manos de Askeladd." },
+  "askeladd": { "nombre": "Askeladd", "descripcion": "Comandante mestizo galés-danés y líder mercenario que adopta a Thorfinn. Cínico brillante; muere protegiendo el destino de Canute." },
+  "thorkell": { "nombre": "Thorkell", "descripcion": "Gigante jomsviking adicto a la batalla. Cambia de bando hacia Canute tras enfrentarse a Thors. Busca eternamente al guerrero más fuerte." },
+  "canute": { "nombre": "Canute", "descripcion": "Príncipe danés tímido transformado en rey implacable tras Askeladd. Quiere construir un paraíso terrenal al precio de su humanidad." },
+  "bjorn": { "nombre": "Bjorn", "descripcion": "Mano derecha de Askeladd y berserker que mastica hongos para entrar en frenesí. Su lealtad al capitán sella su destino final." },
+  "einar": { "nombre": "Einar", "descripcion": "Esclavo inglés capturado tras perder a su familia. Mejor amigo de Thorfinn en la granja y quien le devuelve la fe en cultivar la tierra." },
+  "arnheid": { "nombre": "Arnheid", "descripcion": "Esclava de origen guerrero refugiada en la granja de Ketil. Su tragedia personal empuja a Thorfinn hacia la no violencia." },
+  "leif_ericson": { "nombre": "Leif Ericson", "descripcion": "Explorador islandés y figura paterna de la infancia de Thorfinn. Promete a Helga traer al niño de vuelta y lo busca por toda Europa." }
 }
