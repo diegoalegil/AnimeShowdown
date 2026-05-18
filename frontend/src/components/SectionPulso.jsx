@@ -28,6 +28,7 @@ import {
 } from '../data/eventos'
 import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
+import PersonajeImg from './PersonajeImg'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
@@ -283,11 +284,9 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
     >
       <CardEyebrow icon={Crown} label={eyebrow} tono="text-amber-300" />
       <div className="flex items-start gap-4">
-        <img
-          src={p.imagenUrl || imagenPersonaje(p.slug)}
-          alt=""
-          loading="lazy"
-          onError={ocultaImgRota}
+        <PersonajeImg
+          slug={p.slug}
+          alt={p.nombre}
           className="h-28 w-20 shrink-0 rounded-lg object-cover object-top sm:h-32 sm:w-24"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-1">

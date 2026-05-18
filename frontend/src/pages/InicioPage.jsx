@@ -26,6 +26,7 @@ import {
   getStatsPersonaje,
 } from '../data/personajes'
 import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 
 const totalPersonajes = personajes.length
@@ -465,11 +466,9 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
         </span>
         <div className="relative z-10 flex w-[140px] flex-col gap-1 sm:w-[160px]">
           <div className="aspect-[2/3] overflow-hidden rounded-lg border border-border bg-surface transition-all group-hover:-translate-y-1 group-hover:border-accent/40">
-            <img
-              src={imagenPersonaje(slug)}
+            <PersonajeImg
+              slug={slug}
               alt={nombre}
-              loading="lazy"
-              onError={ocultaImgRota}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>

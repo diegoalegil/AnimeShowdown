@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
 import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
-import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from '../components/PersonajeImg'
 import ReactionsBar from '../components/ReactionsBar'
 import ShareButtons from '../components/ShareButtons'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
@@ -186,10 +186,9 @@ function TorneoDetailPage() {
             to={`/personajes/${campeon.slug}`}
             className="mb-10 flex items-center gap-4 rounded-xl border border-accent/40 bg-accent-soft p-4 transition-colors hover:bg-accent/20"
           >
-            <img
-              src={campeon.imagenUrl}
-              alt=""
-              onError={ocultaImgRota}
+            <PersonajeImg
+              slug={campeon.slug}
+              alt={campeon.nombre}
               className="h-16 w-12 rounded-md object-cover"
             />
             <div className="min-w-0">

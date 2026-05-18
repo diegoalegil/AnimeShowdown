@@ -12,10 +12,9 @@ import {
 } from 'lucide-react'
 import {
   personajes,
-  imagenPersonaje,
   getStatsPersonaje,
 } from '../data/personajes'
-import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
 
@@ -268,11 +267,9 @@ function ReferenceCard({ personaje }) {
       className="relative flex flex-col overflow-hidden rounded-xl border-2 border-border bg-surface"
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt">
-        <img
-          src={imagenPersonaje(personaje.slug)}
-          alt=""
-          loading="lazy"
-          onError={ocultaImgRota}
+        <PersonajeImg
+          slug={personaje.slug}
+          alt={personaje.nombre}
           className="h-full w-full object-contain"
         />
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
@@ -312,11 +309,9 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
       className={`relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-colors ${borderClass}`}
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt">
-        <img
-          src={imagenPersonaje(personaje.slug)}
-          alt=""
-          loading="lazy"
-          onError={ocultaImgRota}
+        <PersonajeImg
+          slug={personaje.slug}
+          alt={personaje.nombre}
           className="h-full w-full object-contain"
         />
         <AnimatePresence>

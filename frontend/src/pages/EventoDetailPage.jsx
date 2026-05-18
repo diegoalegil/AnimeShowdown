@@ -20,8 +20,8 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
-import { getStatsPersonaje, imagenPersonaje } from '../data/personajes'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { getStatsPersonaje } from '../data/personajes'
+import PersonajeImg from '../components/PersonajeImg'
 import NotFoundPage from './NotFoundPage'
 
 /**
@@ -249,11 +249,9 @@ function ParticipanteCard({ rank, personaje, tono }) {
         className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"
       >
         <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-bg">
-          <img
-            src={imagenPersonaje(personaje.slug)}
-            alt=""
-            loading="lazy"
-            onError={ocultaImgRota}
+          <PersonajeImg
+            slug={personaje.slug}
+            alt={personaje.nombre}
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
           <span

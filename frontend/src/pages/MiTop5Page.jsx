@@ -9,6 +9,7 @@ import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import { personajes, imagenPersonaje } from '../data/personajes'
 import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from '../components/PersonajeImg'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -232,10 +233,9 @@ function Slot({ slug, index, onQuitar }) {
   const p = personajes.find((x) => x.slug === slug)
   return (
     <div className="group relative aspect-[2/3] overflow-hidden rounded-lg border border-border sm:rounded-xl">
-      <img
-        src={imagenPersonaje(slug)}
+      <PersonajeImg
+        slug={slug}
         alt={p?.nombre ?? slug}
-        onError={ocultaImgRota}
         className="h-full w-full object-cover object-top"
       />
       {/* Rank chip arriba — siempre visible para que la posición se lea

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Home } from 'lucide-react'
-import { personajes, imagenPersonaje } from '../data/personajes'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { personajes } from '../data/personajes'
+import PersonajeImg from '../components/PersonajeImg'
 import { useSeo } from '../hooks/useSeo'
 
 const containerVariants = {
@@ -57,13 +57,16 @@ function NotFoundPage() {
           >
             404
           </span>
-          <img
-            src={imagenPersonaje(random.slug)}
-            alt=""
-            onError={ocultaImgRota}
-            className="relative aspect-[2/3] w-full rounded-2xl border border-border bg-surface object-cover shadow-2xl"
+          <div
+            className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
             style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.25))' }}
-          />
+          >
+            <PersonajeImg
+              slug={random.slug}
+              alt={random.nombre}
+              className="h-full w-full object-cover"
+            />
+          </div>
         </motion.div>
         <div className="flex flex-col gap-4 text-center md:order-1 md:text-left">
           <motion.span
