@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 const cards = [
   { slug: 'momo_ayase', top: '5%', left: '3%', rotate: -8 },
@@ -64,6 +65,7 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
       <motion.img
         src={imagenPersonaje(card.slug)}
         alt=""
+        onError={ocultaImgRota}
         className="h-32 w-auto rounded-lg lg:h-44"
         style={{
           filter: 'drop-shadow(0 18px 36px rgb(255 46 99 / 0.25))',

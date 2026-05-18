@@ -2,6 +2,7 @@ import { Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { usePerfilTop } from '../hooks/usePerfil'
 import { pickVacio } from './Kaomoji'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
  * Card "Top personajes" del perfil (Plan v2 §4.1, §4.5).
@@ -71,6 +72,7 @@ function CardTop5({
                   src={p.imagenUrl}
                   alt=""
                   loading="lazy"
+                  onError={ocultaImgRota}
                   className="h-10 w-8 shrink-0 rounded object-cover object-top"
                 />
                 <div className="min-w-0 flex-1">
