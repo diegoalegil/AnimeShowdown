@@ -1,0 +1,231 @@
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import {
+  ArrowRight,
+  Heart,
+  Minus,
+  Sparkles,
+  Swords,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
+import { endpoints } from '../lib/api'
+import { useAuth } from '../contexts/AuthContext'
+import { useMisFavoritos } from '../hooks/useFavoritos'
+import { imagenPersonaje } from '../data/personajes'
+
+/**
+ * Banner de Pulso personalizado por usuario logueado (Plan producto
+ * 2026-05-18). Cruza el roster del user (useMisFavoritos) con los
+ * movimientos de la última semana (rankingMovimientos) — sin pegar al
+ * backend para esto, ambas queries ya viven en cache global desde Pulso.
+ *
+ * <p>3 estados visibles para usuarios logueados:
+ *   1. Sin favoritos → empty state sutil "Sigue personajes para ver tu
+ *      pulso personalizado" + CTA a /personajes.
+ *   2. Con favoritos + intersección con movers → "Tus favoritos se
+ *      movieron" + lista compacta con avatares y ↑↓.
+ *   3. Con favoritos pero ninguno movió esta semana → "Tu roster está
+ *      estable" + CTA a /votar para alimentar el ranking.
+ *
+ * <p>Para usuarios NO logueados → return null. Decisión: mantener Pulso
+ * limpio para invitados. El CTA para "guarda tu roster" ya vive en la
+ * ficha de personaje (botón Heart ghost que invita a /login?next=).
+ *
+ * <p>Reutiliza la misma queryKey ['pulso', 'movimientos', 7] que
+ * SectionPulso para evitar requests duplicadas — limit 100 cubre la
+ * mayoría de slugs que un usuario casual puede tener en su roster.
+ */
+function FavoritosPulsoBanner() {
+  const { user } = useAuth()
+  const { data: favoritos, isLoading: favLoading } = useMisFavoritos()
+  // Reuso del cache de Pulso. Si Pulso ya cargó la query, este hook
+  // devuelve los datos al instante; si no, dispara fetch.
+  const { data: movimientos } = useQuery({
+    queryKey: ['pulso', 'movimientos', 7],
+    queryFn: () => endpoints.rankingMovimientos({ dias: 7, limit: 100 }),
+    staleTime: 60 * 1000,
+    enabled: Boolean(user),
+  })
+
+  const movidos = useMemo(() => {
+    if (!favoritos || favoritos.length === 0) return []
+    const mapMovs = new Map((movimientos || []).map((m) => [m.slug, m]))
+    return favoritos
+      .map((f) => ({ favorito: f, movimiento: mapMovs.get(f.slug) }))
+      .filter(
+        ({ movimiento }) =>
+          movimiento &&
+          movimiento.delta != null &&
+          movimiento.delta !== 0,
+      )
+      .sort(
+        (a, b) =>
+          Math.abs(b.movimiento.delta) - Math.abs(a.movimiento.delta),
+      )
+      .slice(0, 5)
+  }, [favoritos, movimientos])
+
+  if (!user) return null
+  if (favLoading) return <BannerSkeleton />
+
+  const totalFavoritos = favoritos?.length ?? 0
+  if (totalFavoritos === 0) return <BannerSinFavoritos />
+  if (movidos.length === 0) return <BannerEstable total={totalFavoritos} />
+
+  return <BannerConMovs items={movidos} total={totalFavoritos} />
+}
+
+function BannerWrapper({ children, tono = 'pink' }) {
+  const tonos = {
+    pink: 'border-pink-500/30 bg-gradient-to-br from-pink-500/15 via-pink-500/5 to-transparent',
+    emerald: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent',
+    surface: 'border-border bg-surface/60',
+  }
+  return (
+    <div className={`mb-3 rounded-xl border p-4 sm:mb-4 sm:p-5 ${tonos[tono]}`}>
+      {children}
+    </div>
+  )
+}
+
+function BannerSinFavoritos() {
+  return (
+    <BannerWrapper tono="surface">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pink-500/15 text-pink-300">
+            <Heart className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-bold text-fg-strong">
+              Sigue personajes para ver tu pulso personalizado
+            </p>
+            <p className="mt-0.5 text-[12px] text-fg-muted">
+              Cuando tu roster se mueva en el ranking, aparecerá aquí.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/personajes"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-pink-400/40 bg-pink-500/5 px-3 py-1.5 text-[12px] font-semibold text-pink-200 hover:bg-pink-500/15"
+        >
+          <Sparkles className="h-3 w-3" />
+          Explorar catálogo
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </BannerWrapper>
+  )
+}
+
+function BannerEstable({ total }) {
+  return (
+    <BannerWrapper tono="emerald">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
+            <Minus className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-bold text-fg-strong">
+              Tu roster está estable
+            </p>
+            <p className="mt-0.5 text-[12px] text-fg-muted">
+              Ninguno de tus {total}{' '}
+              {total === 1 ? 'favorito' : 'favoritos'} se movió en el
+              ranking esta semana. Sigue votando para cambiar el meta.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/votar"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-1.5 text-[12px] font-semibold text-emerald-200 hover:bg-emerald-500/20"
+        >
+          <Swords className="h-3 w-3" />
+          Vota ahora
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </BannerWrapper>
+  )
+}
+
+function BannerConMovs({ items, total }) {
+  return (
+    <BannerWrapper tono="pink">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <Heart className="h-3 w-3 fill-current text-pink-300" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-pink-300">
+              Tus favoritos se movieron · últimos 7 días
+            </span>
+          </div>
+          <ul className="mt-2 flex flex-wrap items-center gap-3">
+            {items.map(({ favorito, movimiento }) => (
+              <FavoritoMovido
+                key={favorito.slug}
+                favorito={favorito}
+                movimiento={movimiento}
+              />
+            ))}
+          </ul>
+        </div>
+        <Link
+          to="/perfil"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-pink-400/40 bg-pink-500/5 px-3 py-1.5 text-[12px] font-semibold text-pink-200 hover:bg-pink-500/15"
+        >
+          Mi roster ({total})
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </BannerWrapper>
+  )
+}
+
+function FavoritoMovido({ favorito, movimiento }) {
+  const subio = movimiento.delta > 0
+  const Icon = subio ? TrendingUp : TrendingDown
+  const colorClase = subio ? 'text-emerald-300' : 'text-rose-300'
+  return (
+    <li>
+      <Link
+        to={`/personajes/${favorito.slug}`}
+        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-pink-400/60"
+        title={`${favorito.nombre} ${subio ? 'subió' : 'bajó'} ${Math.abs(movimiento.delta)} posiciones esta semana`}
+      >
+        <img
+          src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
+          alt=""
+          loading="lazy"
+          className="h-6 w-6 rounded-full object-cover object-top"
+        />
+        <span className="line-clamp-1 font-semibold text-fg-strong">
+          {favorito.nombre}
+        </span>
+        <span className={`inline-flex items-center gap-0.5 font-mono text-[11px] font-extrabold ${colorClase}`}>
+          <Icon className="h-3 w-3" />
+          {Math.abs(movimiento.delta)}
+        </span>
+      </Link>
+    </li>
+  )
+}
+
+function BannerSkeleton() {
+  return (
+    <BannerWrapper tono="surface">
+      <div className="flex animate-pulse items-center gap-3" aria-hidden="true">
+        <div className="h-9 w-9 rounded-lg bg-surface-alt" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3 w-1/3 rounded bg-surface-alt" />
+          <div className="h-2.5 w-1/2 rounded bg-surface-alt" />
+        </div>
+      </div>
+    </BannerWrapper>
+  )
+}
+
+export default FavoritosPulsoBanner
