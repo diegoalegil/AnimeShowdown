@@ -252,25 +252,29 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
-        <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-amber-300" />
-        <p className="text-sm text-fg-muted">Cargando al rey del ranking…</p>
+        <CardEyebrow icon={Crown} label="Líder por votos" tono="text-amber-300" />
+        <p className="text-sm text-fg-muted">Cargando al líder…</p>
       </PulseCard>
     )
   }
   const p = campeon.personaje
   const votos = Number(campeon.votos ?? 0)
-  // Etiqueta dinámica:
-  //   - esFallback: backend sin votos → "Top del catálogo" (ELO base).
-  //   - comunidadArrancando: muy pocos votos totales → "Líder provisional"
-  //     para que un personaje con 1-2 votos no se presente como
-  //     "campeón" engañando al usuario nuevo.
-  //   - normal: "Líder del ranking" (más honesto que "Campeón actual"
-  //     porque la métrica son votos acumulados, no un título oficial).
+  // Audit producto (auditoría externa 2026-05-18): el copy anterior
+  // "Líder del ranking" inducía a equiparar esta card con el ranking
+  // ELO global de /ranking — pero la métrica detrás es COUNT(votos)
+  // del endpoint /api/votos/ranking, que puede divergir del orden por
+  // ELO local. Distinguimos claramente:
+  //   - esFallback: backend sin votos → "Top del catálogo (ELO base)".
+  //   - comunidadArrancando: muy pocos votos totales → "Más votado ahora".
+  //   - normal: "Más votado · global" (la métrica son votos acumulados;
+  //     no es el #1 del ranking ELO necesariamente).
+  // Y siempre añadimos un CTA visible al ranking ELO completo, para
+  // que el user que quiere el "salón de la fama" tenga adónde ir.
   const eyebrow = esFallback
     ? 'Top del catálogo'
     : comunidadArrancando
-      ? 'Líder provisional'
-      : 'Líder del ranking'
+      ? 'Más votado ahora'
+      : 'Más votado · global'
   return (
     <Link
       to={`/personajes/${p.slug}`}
@@ -304,17 +308,31 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
               </span>
             </p>
           )}
-          {comunidadArrancando && (
+          {comunidadArrancando ? (
             <p className="mt-1 text-[11px] leading-snug text-amber-200/70">
               Comunidad arrancando — tu voto puede cambiar el meta.
+            </p>
+          ) : (
+            <p className="mt-1 text-[11px] leading-snug text-fg-muted">
+              Por votos acumulados · el ranking ELO global puede diferir.
             </p>
           )}
         </div>
       </div>
-      <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-amber-300 opacity-0 transition-opacity group-hover:opacity-100">
-        Ver ficha
-        <ArrowRight className="h-3 w-3" />
-      </span>
+      <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+        <Link
+          to="/ranking"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted hover:text-amber-300"
+        >
+          Ver ranking ELO
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+        <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-amber-300 opacity-0 transition-opacity group-hover:opacity-100">
+          Ver ficha
+          <ArrowRight className="h-3 w-3" />
+        </span>
+      </div>
     </Link>
   )
 }
