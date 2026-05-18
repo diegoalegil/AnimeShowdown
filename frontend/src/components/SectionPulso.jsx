@@ -26,6 +26,7 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
+import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 
 /**
@@ -289,6 +290,12 @@ function CampeonCard({ campeon, esFallback, loading }) {
 }
 
 function MoversCard({ movers }) {
+  // Sprint actividad reciente (2026-05-18): 1 request batch para los
+  // 3 movers visibles — añade "+N votos" debajo del delta de posición.
+  // Misma queryKey que otros consumidores del mismo set → cache hit.
+  const slugs = movers.map((m) => m.slug)
+  const { bySlug: votosBySlug } = useVotosPeriodoBatch(slugs, { dias: 7 })
+
   return (
     <PulseCard tono="emerald">
       <CardEyebrow icon={TrendingUp} label="Movers · 7 días" tono="text-emerald-300" />
@@ -300,7 +307,11 @@ function MoversCard({ movers }) {
       ) : (
         <ul className="flex flex-col divide-y divide-border">
           {movers.map((m) => (
-            <MoverRow key={m.slug} mover={m} />
+            <MoverRow
+              key={m.slug}
+              mover={m}
+              actividad={votosBySlug.get(m.slug)}
+            />
           ))}
         </ul>
       )}
@@ -315,10 +326,11 @@ function MoversCard({ movers }) {
   )
 }
 
-function MoverRow({ mover }) {
+function MoverRow({ mover, actividad }) {
   const subio = mover.delta > 0
   const Icon = subio ? TrendingUp : TrendingDown
   const colorClase = subio ? 'text-emerald-300' : 'text-rose-300'
+  const votosPeriodo = actividad?.votosPeriodoActual ?? 0
   return (
     <li className="flex items-center gap-3 py-2">
       <Link to={`/personajes/${mover.slug}`} className="shrink-0">
@@ -336,9 +348,19 @@ function MoverRow({ mover }) {
         >
           {mover.nombre}
         </Link>
-        <p className="line-clamp-1 text-[11px] text-fg-muted">{mover.anime}</p>
+        <p className="line-clamp-1 text-[11px] text-fg-muted">
+          {mover.anime}
+          {votosPeriodo > 0 && (
+            <span className="ml-1 font-mono tabular-nums text-emerald-300/80">
+              · +{votosPeriodo} votos
+            </span>
+          )}
+        </p>
       </div>
-      <div className={`flex items-center gap-1 text-[13px] font-bold ${colorClase}`}>
+      <div
+        className={`flex items-center gap-1 text-[13px] font-bold ${colorClase}`}
+        title={`${subio ? 'Subió' : 'Bajó'} ${Math.abs(mover.delta)} posiciones · ${votosPeriodo} votos esta semana`}
+      >
         <Icon className="h-3.5 w-3.5" />
         <span className="tabular-nums">{Math.abs(mover.delta)}</span>
       </div>
