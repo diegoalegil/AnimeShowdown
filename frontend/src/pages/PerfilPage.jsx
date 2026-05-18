@@ -25,6 +25,7 @@ import Card2faSeguridad from '../components/Card2faSeguridad'
 import CardActividadReciente from '../components/CardActividadReciente'
 import CardDanKyu from '../components/CardDanKyu'
 import CardLogros from '../components/CardLogros'
+import CardMiRoster from '../components/CardMiRoster'
 import CardMisTorneos from '../components/CardMisTorneos'
 import CardReferral from '../components/CardReferral'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
@@ -65,6 +66,7 @@ async function fileToBase64(file, maxSize = 256, quality = 0.82) {
 
 const PERFIL_TABS = [
   { id: 'resumen', label: 'Resumen' },
+  { id: 'roster', label: 'Mi roster' },
   { id: 'logros', label: 'Logros' },
   { id: 'torneos', label: 'Mis torneos' },
   { id: 'ajustes', label: 'Ajustes' },
@@ -141,6 +143,7 @@ function PerfilPage() {
               <CardActividadReciente />
             </>
           )}
+          {tab === 'roster' && <CardMiRoster />}
           {tab === 'logros' && <CardLogros />}
           {tab === 'torneos' && <CardMisTorneos />}
           {tab === 'ajustes' && (
