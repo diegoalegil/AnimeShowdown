@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import {
   ArrowRight,
   Calendar,
+  CalendarClock,
   Crown,
   Radio,
   Sparkles,
@@ -12,10 +13,19 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { endpoints, ApiError } from '../lib/api'
 import { useTorneos } from '../lib/torneosQueries'
 import { imagenPersonaje, personajes, getStatsPersonaje } from '../data/personajes'
 import { personajeDelDia } from '../lib/games'
+import {
+  ESTADO_EVENTO,
+  formatRestante,
+  getEstadoEvento,
+  getEventoHeadline,
+  getMsRestantes,
+  getPersonajesEvento,
+} from '../data/eventos'
 
 /**
  * Campeón fallback derivado del catálogo local. Útil cuando el ranking
@@ -158,6 +168,12 @@ function SectionPulso() {
           <CampeonCard campeon={campeon} esFallback={esFallback} loading={rankingLoading} />
           <MoversCard movers={topMovers} />
         </div>
+
+        {/* Banner de evento headline. Solo aparece si hay un evento
+            activo o próximo en data/eventos.js — sin nada, se omite
+            sin dejar hueco. Full-width entre filas para que el "tema
+            de la temporada" tenga su propio espacio. */}
+        <EventoHeadlineBanner />
 
         {/* Fila inferior: Reto + Torneo + Duelo + ÚltimosVotos.
             En md+ los 4 caben en una sola fila (cards ~280px en max-w-6xl);
@@ -563,6 +579,96 @@ function DueloAvatar({ personaje }) {
       <p className="line-clamp-1 max-w-full text-center text-[11px] font-semibold text-fg-strong">
         {personaje.nombre}
       </p>
+    </div>
+  )
+}
+
+/**
+ * Banner del evento "headline" (Plan producto 2026-05-18). Muestra el
+ * primer evento activo, o el próximo más cercano si no hay activos.
+ * Auto-refresh del contador cada 60s para que "termina en 3h" baje a
+ * "termina en 2h" sin recargar la página.
+ */
+function EventoHeadlineBanner() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const evento = getEventoHeadline(now)
+  if (!evento) return null
+
+  const estado = getEstadoEvento(evento, now)
+  const ms = getMsRestantes(evento, now)
+  const restante = formatRestante(ms)
+  const participantes = getPersonajesEvento(evento).length
+  const preview = getPersonajesEvento(evento).slice(0, 5)
+
+  const tonosBg = {
+    rose: 'border-rose-500/30 bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent',
+    violet: 'border-violet-500/30 bg-gradient-to-br from-violet-500/15 via-violet-500/5 to-transparent',
+    amber: 'border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent',
+    pink: 'border-pink-500/30 bg-gradient-to-br from-pink-500/15 via-pink-500/5 to-transparent',
+    cyan: 'border-cyan-500/30 bg-gradient-to-br from-cyan-500/15 via-cyan-500/5 to-transparent',
+  }
+  const tonosTexto = {
+    rose: 'text-rose-200',
+    violet: 'text-violet-200',
+    amber: 'text-amber-200',
+    pink: 'text-pink-200',
+    cyan: 'text-cyan-200',
+  }
+  const tonoBg = tonosBg[evento.color] ?? tonosBg.amber
+  const tonoTexto = tonosTexto[evento.color] ?? tonosTexto.amber
+
+  const ctaLabel = estado === ESTADO_EVENTO.ACTIVO ? 'Entrar al evento' : 'Ver detalles'
+  const tiempoLabel = estado === ESTADO_EVENTO.ACTIVO
+    ? `Termina en ${restante}`
+    : `Empieza en ${restante}`
+  const eyebrowLabel = estado === ESTADO_EVENTO.ACTIVO ? 'Evento en curso' : 'Próximo evento'
+
+  return (
+    <div className={`mb-3 rounded-xl border p-4 sm:mb-4 sm:p-5 ${tonoBg}`}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className={`inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
+            <CalendarClock className="h-3 w-3" />
+            {eyebrowLabel} · {tiempoLabel}
+          </span>
+          <div className="flex items-center gap-2">
+            <span aria-hidden="true" className="text-xl sm:text-2xl">
+              {evento.emoji}
+            </span>
+            <h3 className="text-lg font-extrabold text-fg-strong sm:text-xl">
+              {evento.titulo}
+            </h3>
+          </div>
+          <p className="line-clamp-2 text-[13px] text-fg-muted">
+            {evento.descripcionCorta} · {participantes} personajes
+          </p>
+        </div>
+        <div className="flex items-center gap-3 sm:flex-col sm:items-end">
+          <div className="flex -space-x-2">
+            {preview.map((p) => (
+              <img
+                key={p.slug}
+                src={imagenPersonaje(p.slug)}
+                alt=""
+                loading="lazy"
+                className="h-10 w-10 rounded-full border-2 border-bg object-cover object-top"
+              />
+            ))}
+          </div>
+          <Link
+            to={`/eventos/${evento.slug}`}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border bg-bg/40 px-4 py-2 text-[13px] font-semibold ${tonoTexto} hover:bg-bg/60`}
+          >
+            {ctaLabel}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
