@@ -408,7 +408,7 @@ function GlossaryPage() {
             <Link to="/personajes" className="text-accent hover:underline">
               el catálogo completo
             </Link>{' '}
-            con 730+ personajes anime, o{' '}
+            con más de 1.000 personajes anime, o{' '}
             <Link to="/ranking" className="text-accent hover:underline">
               el ranking ELO
             </Link>{' '}
