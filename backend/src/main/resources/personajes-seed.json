@@ -5677,13 +5677,6 @@
     "imagenUrl": "/img/One_Piece/monkey_d_dragon.webp"
   },
   {
-    "slug": "monkey_d_luffy",
-    "nombre": "Monkey D Luffy",
-    "anime": "One Piece",
-    "descripcion": "Personaje del anime One Piece.",
-    "imagenUrl": "/img/One_Piece/monkey_d_luffy.webp"
-  },
-  {
     "slug": "nami",
     "nombre": "Nami",
     "anime": "One Piece",

@@ -1,5 +1,5 @@
 {
   "_meta": "Audit P2 (2026-05-17): carpetas/slugs en construcción que NO entran al seed automáticamente. sync-personajes.mjs (modo --check del CI) ignora sus contenidos, así que se pueden commitear webp WIP sin que rompa la build ni se filtren a producción. Para promover a publicado: quitar la entrada de aquí y correr 'node scripts/sync-personajes.mjs' localmente. Sprint 5h (2026-05-18): vaciado de folders tras promover fullmetal_alchemist + fumetsu_no_anata_e al seed. Slugs filtran duplicados naming (mismo personaje, dos webp distintos): kurumi/kurumi_tokisaki, boa_hancock/boa_hancock_alt, zoro/roronoa_zoro — se conserva el slug canónico curado y se ignora el extra para evitar dos entries del mismo personaje en BBDD.",
   "folders": [],
-  "slugs": ["kurumi_tokisaki", "boa_hancock_alt", "roronoa_zoro"]
+  "slugs": ["kurumi_tokisaki", "boa_hancock_alt", "roronoa_zoro", "monkey_d_luffy"]
 }
