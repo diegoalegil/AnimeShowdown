@@ -266,14 +266,16 @@ function PersonajeDetailPage() {
               )}
               <span className="inline-flex rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
                 Personaje {idx + 1} de {personajes.length}
-                {jikan?.favorites != null && (
-                  <>
-                    {' · '}
-                    <Star className="ml-1 inline h-3 w-3 text-accent" />{' '}
-                    {jikan.favorites.toLocaleString('es-ES')} fans
-                  </>
-                )}
               </span>
+              {jikan?.favorites != null && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted"
+                  title="Favoritos contados por MyAnimeList — métrica externa, no del ranking interno de AnimeShowdown"
+                >
+                  <Star className="h-3 w-3 text-accent" />
+                  {jikan.favorites.toLocaleString('es-ES')} fans MAL
+                </span>
+              )}
             </motion.div>
             <motion.h1
               itemProp="name"
