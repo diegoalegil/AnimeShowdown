@@ -330,10 +330,18 @@ function MoversCard({ movers }) {
     <PulseCard tono="emerald">
       <CardEyebrow icon={TrendingUp} label="Movers · 7 días" tono="text-emerald-300" />
       {movers.length === 0 ? (
-        <p className="flex-1 text-sm text-fg-muted">
-          Sin movimientos significativos esta semana. Empezarán a aparecer
-          conforme la comunidad vote.
-        </p>
+        <div className="flex-1 space-y-2">
+          <p className="text-sm text-fg-muted">
+            Aún sin movimientos esta semana — la comunidad está empezando.
+          </p>
+          <Link
+            to="/votar"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-300 hover:text-emerald-200"
+          >
+            Vota tú y mueve el meta
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
       ) : (
         <ul className="flex flex-col divide-y divide-border">
           {movers.map((m) => (

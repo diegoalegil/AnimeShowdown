@@ -60,13 +60,32 @@ const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
-// Fallback de Suspense compartido. Minimalista a propósito: la página entera
-// está dentro de <AnimatePresence motion fade>, así que el flash de carga
-// dura milisegundos en navegación normal y la animación oculta el cambio.
+// Fallback de Suspense compartido. Audit producto (2026-05-18): el
+// spinner solo sobre fondo negro hacía que una carga lenta (1ª visita,
+// red mala, chunk grande) pareciera la página rota. Ahora damos un
+// shell mínimo con identidad y label legible — sigue siendo barato
+// (cero requests, todo CSS), pero comunica "estoy cargando" en vez
+// de "no pasa nada".
 function PageLoader() {
   return (
-    <div className="flex flex-1 items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+    <div
+      className="flex flex-1 items-center justify-center px-5 py-20"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative h-12 w-12">
+          <div className="absolute inset-0 rounded-full border-2 border-accent/30" />
+          <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-accent" />
+        </div>
+        <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+          Cargando
+        </p>
+        <span className="sr-only">
+          Cargando la página de AnimeShowdown, un momento.
+        </span>
+      </div>
     </div>
   )
 }
