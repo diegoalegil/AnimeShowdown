@@ -8,6 +8,7 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import { personajes, imagenPersonaje } from '../data/personajes'
+import { ocultaImgRota } from '../lib/imgFallback'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -190,6 +191,7 @@ function MiTop5Page() {
                     src={imagenPersonaje(p.slug)}
                     alt=""
                     loading="lazy"
+                    onError={ocultaImgRota}
                     className="h-5 w-5 rounded-full object-cover object-top"
                   />
                   {p.nombre}
@@ -233,6 +235,7 @@ function Slot({ slug, index, onQuitar }) {
       <img
         src={imagenPersonaje(slug)}
         alt={p?.nombre ?? slug}
+        onError={ocultaImgRota}
         className="h-full w-full object-cover object-top"
       />
       {/* Rank chip arriba — siempre visible para que la posición se lea
