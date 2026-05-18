@@ -59,8 +59,9 @@ function PrivacyPage() {
           </h1>
           <p className="max-w-2xl text-[13px] text-fg-muted">
             Última actualización: 16 mayo 2026. AnimeShowdown es un proyecto
-            portafolio open source de Diego Alegil. Esta política explica qué
-            datos personales recopilamos y cómo se usan.
+            independiente mantenido por una persona, con código abierto en
+            GitHub. Esta política explica qué datos personales recopilamos
+            y cómo se usan.
           </p>
         </motion.header>
 
@@ -79,7 +80,7 @@ function PrivacyPage() {
                 diegogildam@gmail.com
               </a>
               . AnimeShowdown no es una entidad jurídica registrada — es un
-              proyecto de portafolio open source bajo licencia MIT.
+              proyecto independiente con código abierto bajo licencia MIT.
             </p>
           </section>
 

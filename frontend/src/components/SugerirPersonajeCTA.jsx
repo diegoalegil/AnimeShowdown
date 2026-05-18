@@ -1,10 +1,10 @@
 import { Mail, ArrowUpRight } from 'lucide-react'
 
-const EMAIL = 'diegogildam@gmail.com'
+const EMAIL = 'soporte@animeshowdown.dev'
 const SUBJECT = 'AnimeShowdown — Sugerencia de personaje'
-const BODY = `Hola Diego,
+const BODY = `Hola,
 
-Me gustaría que añadieras este personaje al catálogo de AnimeShowdown:
+Me gustaría que añadieran este personaje al catálogo de AnimeShowdown:
 
 · Nombre:
 · Anime:
