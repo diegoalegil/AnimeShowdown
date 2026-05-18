@@ -121,7 +121,8 @@ function Step1Credenciales({ login, onChallenge, onSuccess }) {
         </span>
         <h1 className="text-3xl tracking-tight">Inicia sesión</h1>
         <p className="text-fg-muted">
-          Crea torneos, vota enfrentamientos y sigue tu historial. Puedes entrar con tu username o tu email.
+          Vuelve a tu roster, sigue votando y mantén tu racha. Puedes
+          entrar con tu nombre de usuario o con tu email.
         </p>
       </div>
       <form

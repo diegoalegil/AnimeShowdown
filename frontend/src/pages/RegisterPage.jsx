@@ -76,7 +76,8 @@ function RegisterPage() {
           </span>
           <h1 className="text-3xl tracking-tight">Únete a AnimeShowdown</h1>
           <p className="text-fg-muted">
-            Crea torneos, vota enfrentamientos y sigue tu historial. Tu username será visible cuando votes.
+            Crea torneos, sigue a tus personajes favoritos y compite en
+            el ranking. Tu nombre de usuario aparece junto a tus votos.
           </p>
         </div>
         <form
