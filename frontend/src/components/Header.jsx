@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogOut, Menu, Moon, Palette, Shield, Sun, Volume2, VolumeX, X } from 'lucide-react'
+import { LogOut, Menu, Moon, Palette, Shield, Sun, Swords, Volume2, VolumeX, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
@@ -10,12 +10,16 @@ import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
 
+// Audit producto (2026-05-18): /votar sale de navLinks regular y pasa a
+// CTA principal del header. El login deja de ser el botón accent (estaba
+// pidiendo a un usuario nuevo registrarse antes de aportar valor) y
+// queda como link ghost discreto: ahora la primera acción visible es
+// participar (votar) y el login es secundario para usuarios existentes.
 const navLinks = [
   { to: '/', i18nKey: 'inicio' },
   { to: '/personajes', i18nKey: 'personajes' },
   { to: '/animes', i18nKey: 'animes' },
   { to: '/torneos', i18nKey: 'torneos' },
-  { to: '/votar', i18nKey: 'votar' },
   { to: '/games', i18nKey: 'games' },
   { to: '/ranking', i18nKey: 'ranking' },
 ]
@@ -30,12 +34,21 @@ function regularLinkClass({ isActive }) {
   }`
 }
 
-// CTA principal del header (Login). Texto en --color-bg (#0d0d12) sobre
-// magenta --color-accent: contraste 5.4:1 cumple WCAG AA (Plan v2 §3.9).
-// Antes era text-white sobre el mismo bg → solo 3.6:1, fallaba AA.
-function ctaLinkClass({ isActive }) {
-  return `${navLinkBase} ml-2 font-semibold text-bg ${
+// CTA principal nueva: "Votar ahora". Texto en --color-bg (#0d0d12)
+// sobre magenta --color-accent → contraste 5.4:1 (WCAG AA, Plan v2 §3.9).
+function ctaVotarClass({ isActive }) {
+  return `${navLinkBase} ml-2 inline-flex items-center gap-1.5 font-semibold text-bg ${
     isActive ? 'bg-accent-hover' : 'bg-accent hover:bg-accent-hover'
+  }`
+}
+
+// Login pasa a ghost: borde sutil, texto neutro, hover acent. No grita,
+// pero está siempre a la vista para los usuarios que ya tienen cuenta.
+function loginGhostClass({ isActive }) {
+  return `${navLinkBase} ml-1 border font-medium ${
+    isActive
+      ? 'border-accent bg-accent-soft text-accent'
+      : 'border-border text-fg-muted hover:border-accent hover:text-accent'
   }`
 }
 
@@ -100,6 +113,15 @@ function Header() {
             {t(`nav.${i18nKey}`)}
           </NavLink>
         ))}
+        {/* CTA principal: votar siempre visible, no requiere login. */}
+        <NavLink
+          to="/votar"
+          onClick={() => play('playClick')}
+          className={ctaVotarClass}
+        >
+          <Swords className="h-4 w-4" />
+          {t('header.ctaVotar')}
+        </NavLink>
         <LanguageToggle />
         <button
           type="button"
@@ -134,14 +156,17 @@ function Header() {
           <NavLink
             to="/login"
             onClick={() => play('playClick')}
-            className={ctaLinkClass}
+            className={loginGhostClass}
           >
             {t('nav.login')}
           </NavLink>
         )}
       </nav>
 
-      {/* Cluster móvil: avatar/notif si logueado, login si no, + hamburger. */}
+      {/* Cluster móvil: avatar/notif si logueado, CTA Votar si no, +
+          hamburger. El Login en mobile pasa al panel del hamburger
+          (audit producto 2026-05-18: primero participar, después
+          registrarse — login secundario hasta que haya valor acumulado). */}
       <div className="flex items-center gap-1.5 sm:hidden">
         {user ? (
           <>
@@ -156,11 +181,12 @@ function Header() {
           </>
         ) : (
           <NavLink
-            to="/login"
+            to="/votar"
             onClick={() => play('playClick')}
-            className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-semibold text-bg"
+            className="inline-flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-[13px] font-semibold text-bg"
           >
-            {t('nav.login')}
+            <Swords className="h-3.5 w-3.5" />
+            {t('header.ctaVotar')}
           </NavLink>
         )}
         <button
@@ -206,6 +232,28 @@ function Header() {
                   {t(`nav.${i18nKey}`)}
                 </NavLink>
               ))}
+              <NavLink
+                to="/votar"
+                onClick={() => { play('playClick'); closeMobile() }}
+                className={({ isActive }) =>
+                  `rounded-md px-3 py-2.5 text-sm font-medium ${
+                    isActive
+                      ? 'bg-surface-alt text-fg-strong'
+                      : 'text-fg hover:bg-surface-alt'
+                  }`
+                }
+              >
+                {t('nav.votar')}
+              </NavLink>
+              {!user && (
+                <NavLink
+                  to="/login"
+                  onClick={() => { play('playClick'); closeMobile() }}
+                  className="mt-1 inline-flex items-center justify-center rounded-md border border-border px-3 py-2.5 text-sm font-medium text-fg-muted hover:border-accent hover:text-accent"
+                >
+                  {t('nav.login')}
+                </NavLink>
+              )}
             </div>
             <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
               <LanguageToggle />
