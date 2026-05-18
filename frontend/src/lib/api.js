@@ -362,6 +362,11 @@ export const endpoints = {
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,
       { auth: false },
     ),
+  // Galería multi-imagen oficial (Plan v2 §4.12 step 1). Devuelve hasta
+  // 12 URLs de Jikan /characters/{mal_id}/pictures. 404 solo si el slug
+  // no existe; lista vacía si Jikan no resuelve mal_id o cae circuit.
+  imagenesPersonaje: (slug) =>
+    api.get(`/api/personajes/${encodeURIComponent(slug)}/imagenes`, { auth: false }),
   // Time machine del ELO (Plan v2 §11.1): serie {fecha, votosAcumulados}
   // por día. dias 1..90, default 30.
   // Historial competitivo de un personaje (Plan producto 2026-05-18).

@@ -1,0 +1,92 @@
+import { useMemo } from 'react'
+import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
+
+/**
+ * Strip horizontal de thumbnails con la imagen principal del catálogo
+ * + las imágenes oficiales adicionales que devuelve Jikan
+ * (/characters/{mal_id}/pictures). Click en una thumbnail la sube como
+ * imagen activa de la ficha vía onSelect.
+ *
+ * <p>Plan v2 §4.12 step 1 — primer eslabón del stack de visualización
+ * enriquecida del personaje (multi-imagen → recorte+parallax → aura
+ * shader → Live Portrait top tier).
+ *
+ * <p>No renderiza nada si:
+ *   - Jikan no devuelve extras (catálogo ya pinta la principal grande).
+ *   - el hook está loading o ha errorizado.
+ *
+ * <p>Props:
+ *   - slug: para llamar al endpoint
+ *   - principalUrl: URL del catálogo (siempre primera del strip, label "Principal")
+ *   - imagenActiva: URL actualmente mostrada arriba (para resaltar thumbnail)
+ *   - onSelect: callback al hacer click en una thumbnail
+ */
+function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
+  const { data: extras, isLoading } = useImagenesPersonaje(slug)
+
+  const items = useMemo(() => {
+    const arr = [{ url: principalUrl, label: 'Principal' }]
+    const extrasUrls = Array.isArray(extras) ? extras : []
+    extrasUrls
+      .filter((u) => u && u !== principalUrl)
+      .forEach((u, i) => arr.push({ url: u, label: `Vista ${i + 2}` }))
+    return arr
+  }, [principalUrl, extras])
+
+  if (isLoading) return null
+  if (items.length <= 1) return null
+
+  return (
+    <section
+      aria-label="Galería de imágenes del personaje"
+      className="mt-6"
+    >
+      <div className="mb-3 flex items-baseline justify-between">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+          Galería · {items.length} imágenes
+        </h3>
+        <span className="text-[10px] text-fg-muted">
+          Fuente: MyAnimeList vía Jikan
+        </span>
+      </div>
+      <div
+        className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin] [scroll-snap-type:x_mandatory]"
+        style={{ scrollPaddingLeft: '8px' }}
+      >
+        {items.map((item) => {
+          const activa = item.url === imagenActiva
+          return (
+            <button
+              key={item.url}
+              type="button"
+              onClick={() => onSelect?.(item.url)}
+              aria-label={`Ver ${item.label}`}
+              aria-pressed={activa}
+              className={`relative shrink-0 overflow-hidden rounded-lg border-2 transition-all [scroll-snap-align:start] ${
+                activa
+                  ? 'border-accent shadow-[0_0_0_3px_rgb(255_46_99_/_0.18)]'
+                  : 'border-border hover:border-fg-muted'
+              }`}
+              style={{ width: '64px', height: '96px' }}
+            >
+              <img
+                src={item.url}
+                alt={item.label}
+                loading="lazy"
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  // Si una imagen de Jikan falla (URL cambiada o caída),
+                  // ocultamos la thumbnail entera. El boton sigue allí
+                  // pero vacío; preferible a un icono roto.
+                  e.currentTarget.style.opacity = '0'
+                }}
+              />
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+export default PersonajeGaleria
