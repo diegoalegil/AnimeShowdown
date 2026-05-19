@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -251,6 +251,7 @@ function CardEyebrow({ icon: Icon, label, tono = 'text-accent' }) {
 }
 
 function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
+  const navigate = useNavigate()
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
@@ -277,9 +278,18 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
     : comunidadArrancando
       ? 'Más votado ahora'
       : 'Más votado · global'
+  const irAFicha = () => navigate(`/personajes/${p.slug}`)
+  const activarFichaConTeclado = (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    e.preventDefault()
+    irAFicha()
+  }
   return (
-    <Link
-      to={`/personajes/${p.slug}`}
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={irAFicha}
+      onKeyDown={activarFichaConTeclado}
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5"
     >
       <CardEyebrow icon={Crown} label={eyebrow} tono="text-amber-300" />
@@ -334,7 +344,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
           <ArrowRight className="h-3 w-3" />
         </span>
       </div>
-    </Link>
+    </article>
   )
 }
 
