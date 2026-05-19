@@ -111,7 +111,7 @@ function GuessAnimePage() {
   }
 
   return (
-    <section className="as-stage as-stage-purple px-5 py-5 sm:px-8 sm:py-10">
+    <section className="as-stage as-stage-purple as-stage-visual as-stage-reveal px-5 py-5 sm:px-8 sm:py-10">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

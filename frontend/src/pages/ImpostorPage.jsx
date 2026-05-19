@@ -124,7 +124,7 @@ function ImpostorPage() {
   }
 
   return (
-    <section className="as-stage as-stage-purple px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple as-stage-visual as-stage-impostor px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

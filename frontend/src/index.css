@@ -204,6 +204,82 @@
     pointer-events: none;
   }
 
+  .as-stage-visual::before {
+    background:
+      linear-gradient(180deg, rgb(5 6 12 / 0.86), rgb(5 6 12 / 0.20) 34%, rgb(5 6 12 / 0.88) 100%),
+      radial-gradient(circle at 50% 34%, rgb(255 46 99 / 0.16), transparent 40rem),
+      var(--as-stage-image),
+      radial-gradient(circle at 12% 20%, rgb(255 46 99 / 0.22) 0 1px, transparent 2px);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    mask-image: linear-gradient(to bottom, black 0%, black 74%, transparent 100%);
+    opacity: 1;
+  }
+
+  .as-stage-visual::after {
+    content: var(--as-stage-kanji, "戦");
+    color: rgb(255 46 99 / 0.06);
+    text-shadow: 0 0 80px rgb(255 46 99 / 0.22);
+  }
+
+  .as-stage-home {
+    --as-stage-image: url('/img/stage/home-hero.webp');
+    --as-stage-kanji: "決";
+  }
+
+  .as-stage-pulse {
+    --as-stage-image: url('/img/stage/home-pulse.webp');
+    --as-stage-kanji: "今";
+  }
+
+  .as-stage-games,
+  .as-stage-shadow,
+  .as-stage-anigrid {
+    --as-stage-image: url('/img/stage/games-stage.webp');
+    --as-stage-kanji: "影";
+  }
+
+  .as-stage-reveal {
+    --as-stage-image: url('/img/stage/anime-reveal.webp');
+    --as-stage-kanji: "謎";
+  }
+
+  .as-stage-duel {
+    --as-stage-image: url('/img/stage/elo-duel.webp');
+    --as-stage-kanji: "対";
+  }
+
+  .as-stage-impostor {
+    --as-stage-image: url('/img/stage/impostor.webp');
+    --as-stage-kanji: "裏";
+  }
+
+  .as-stage-ranking {
+    --as-stage-image: url('/img/stage/ranking.webp');
+    --as-stage-kanji: "冠";
+  }
+
+  .as-stage-animes {
+    --as-stage-image: url('/img/stage/animes.webp');
+    --as-stage-kanji: "界";
+  }
+
+  .as-stage-torneos {
+    --as-stage-image: url('/img/stage/torneos.webp');
+    --as-stage-kanji: "戦";
+  }
+
+  .as-stage-eventos {
+    --as-stage-image: url('/img/stage/eventos.webp');
+    --as-stage-kanji: "祭";
+  }
+
+  .as-stage-omikuji {
+    --as-stage-image: url('/img/stage/omikuji.webp');
+    --as-stage-kanji: "吉";
+  }
+
   .as-stage-cyan {
     background:
       radial-gradient(circle at 70% 10%, rgb(34 211 238 / 0.16), transparent 30rem),

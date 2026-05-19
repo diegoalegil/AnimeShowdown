@@ -236,7 +236,7 @@ function GamesHubPage() {
   const otros = GAMES.filter((g) => g.to !== destacado.to)
 
   return (
-    <section className="as-stage as-stage-purple px-5 py-8 sm:px-8 sm:py-10">
+    <section className="as-stage as-stage-purple as-stage-visual as-stage-games px-5 py-8 sm:px-8 sm:py-10">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

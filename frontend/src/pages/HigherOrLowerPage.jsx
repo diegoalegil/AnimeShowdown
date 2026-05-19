@@ -124,7 +124,7 @@ function HigherOrLowerPage() {
   }
 
   return (
-    <section className="as-stage relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-10">
+    <section className="as-stage as-stage-visual as-stage-duel relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-10">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
         <header className="flex flex-col items-start gap-2 sm:gap-3">
           <span className="as-kicker border-cyan-500/45 bg-cyan-500/10 text-cyan-200">
