@@ -171,7 +171,7 @@ function PersonajeDetailPage() {
     personajes.filter((p) => p.anime === personaje.anime).length
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="personaje"
         schema={personajeSchema(personaje, stats)}
