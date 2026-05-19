@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
 import { imagenPersonaje } from '../data/personajes'
-import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeCutImg from './PersonajeCutImg'
 
 /**
  * Strip "Duelos abiertos" arriba del bracket en /torneos/:slug.
@@ -164,20 +164,21 @@ function DueloAbiertoCard({ match, torneoSlug }) {
 function FighterTile({ personaje, alignRight = false }) {
   return (
     <div
-      className={`flex items-center gap-2 ${alignRight ? 'flex-row-reverse text-right' : ''}`}
+      className={`flex min-w-0 flex-col items-center gap-2 ${alignRight ? 'text-right' : ''}`}
     >
-      <img
-        src={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
+      <PersonajeCutImg
+        slug={personaje.slug}
+        fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
         alt=""
         loading="lazy"
-        onError={ocultaImgRota}
-        className="h-12 w-10 shrink-0 rounded-md object-cover object-top"
+        className="h-24 w-20 shrink-0 rounded-xl border border-accent/15"
+        imgClassName="p-1"
       />
       <div className="min-w-0">
-        <p className="line-clamp-1 text-[13px] font-semibold text-fg-strong">
+        <p className="line-clamp-1 text-center text-[13px] font-semibold text-fg-strong">
           {personaje.nombre}
         </p>
-        <p className="line-clamp-1 text-[11px] text-fg-muted">{personaje.anime}</p>
+        <p className="line-clamp-1 text-center text-[11px] text-fg-muted">{personaje.anime}</p>
       </div>
     </div>
   )

@@ -21,6 +21,7 @@ import {
   getPersonajesEvento,
 } from '../data/eventos'
 import { getStatsPersonaje } from '../data/personajes'
+import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeImg from '../components/PersonajeImg'
 import NotFoundPage from './NotFoundPage'
 
@@ -217,17 +218,91 @@ function EventoDetailPage() {
         {participantes.length === 0 ? (
           <EmptyEvento />
         ) : (
-          <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {participantes.map((p, i) => (
-              <ParticipanteCard
-                key={p.slug}
-                rank={i + 1}
-                personaje={p}
-                tono={evento.color}
-              />
-            ))}
-          </ol>
+          <>
+            <PodioEvento participantes={participantes.slice(0, 3)} tono={evento.color} />
+            <ol className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {participantes.map((p, i) => (
+                <ParticipanteCard
+                  key={p.slug}
+                  rank={i + 1}
+                  personaje={p}
+                  tono={evento.color}
+                />
+              ))}
+            </ol>
+          </>
         )}
+      </div>
+    </section>
+  )
+}
+
+function PodioEvento({ participantes, tono }) {
+  if (participantes.length === 0) return null
+  const [primero, segundo, tercero] = participantes
+  const ring = {
+    rose: 'border-rose-500/35 from-rose-500/20',
+    violet: 'border-violet-500/35 from-violet-500/20',
+    amber: 'border-amber-500/35 from-amber-500/20',
+    pink: 'border-pink-500/35 from-pink-500/20',
+    cyan: 'border-cyan-500/35 from-cyan-500/20',
+  }[tono] ?? 'border-amber-500/35 from-amber-500/20'
+
+  return (
+    <section className={`grid gap-3 rounded-2xl border bg-gradient-to-br via-surface to-bg p-4 sm:grid-cols-[1.25fr_0.85fr] sm:p-5 ${ring}`}>
+      <Link
+        to={`/personajes/${primero.slug}`}
+        className="group relative grid overflow-hidden rounded-xl border border-amber-300/35 bg-bg/55 p-4 sm:grid-cols-[minmax(150px,220px)_1fr] sm:items-center"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_20%,rgb(255_199_44_/_0.24),transparent_40%)]" />
+        <PersonajeCutImg
+          slug={primero.slug}
+          alt={primero.nombre}
+          className="relative h-64 w-full rounded-xl border border-amber-300/25 sm:h-72"
+          imgClassName="p-2 transition-transform duration-300 group-hover:scale-105"
+          loading="eager"
+        />
+        <div className="relative mt-4 min-w-0 sm:mt-0 sm:pl-5">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-300/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-amber-200">
+            <Crown className="h-3.5 w-3.5" />
+            #1 del evento
+          </span>
+          <h3 className="mt-3 text-3xl font-black leading-tight text-fg-strong">
+            {primero.nombre}
+          </h3>
+          <p className="mt-1 text-sm text-fg-muted">{primero.anime}</p>
+          <p className="mt-4 font-mono text-sm font-bold text-accent">
+            ELO {primero.elo}
+          </p>
+        </div>
+      </Link>
+      <div className="grid gap-3">
+        {[segundo, tercero].filter(Boolean).map((p, idx) => (
+          <Link
+            key={p.slug}
+            to={`/personajes/${p.slug}`}
+            className="group grid grid-cols-[96px_1fr] items-center gap-3 rounded-xl border border-border bg-bg/45 p-3 transition-colors hover:border-accent/45"
+          >
+            <PersonajeCutImg
+              slug={p.slug}
+              alt={p.nombre}
+              className="h-28 w-24 rounded-lg border border-accent/15"
+              imgClassName="p-1 transition-transform duration-300 group-hover:scale-105"
+            />
+            <div className="min-w-0">
+              <span className="font-mono text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">
+                #{idx + 2}
+              </span>
+              <p className="mt-1 line-clamp-1 text-sm font-bold text-fg-strong">
+                {p.nombre}
+              </p>
+              <p className="line-clamp-1 text-[12px] text-fg-muted">{p.anime}</p>
+              <p className="mt-2 font-mono text-[12px] font-bold text-accent">
+                ELO {p.elo}
+              </p>
+            </div>
+          </Link>
+        ))}
       </div>
     </section>
   )
