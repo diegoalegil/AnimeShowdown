@@ -200,6 +200,26 @@ export function AuthProvider({ children }) {
     return aplicarSesion(res, identificador)
   }
 
+  /**
+   * Finaliza un login externo (Google/Discord). El backend ya dejó la
+   * refresh cookie httpOnly en el callback OAuth; aquí solo pedimos un JWT
+   * corto vía /refresh y aplicamos la sesión al estado React.
+   */
+  const finalizeOAuthLogin = async () => {
+    try {
+      const res = await refreshSession()
+      if (!res?.token || !res?.usuario) {
+        throw new Error('OAuth session refresh failed')
+      }
+      return aplicarSesion(res, res.usuario.username)
+    } catch (err) {
+      toast.error('No se pudo completar el acceso externo', {
+        description: 'Vuelve a intentarlo o entra con email y contraseña.',
+      })
+      throw err
+    }
+  }
+
   const register = async ({ username, email, password, referralCode }) => {
     try {
       await endpoints.register({
@@ -263,7 +283,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, completeLogin2fa, register, logout, updateUser }}
+      value={{
+        user,
+        login,
+        completeLogin2fa,
+        finalizeOAuthLogin,
+        register,
+        logout,
+        updateUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

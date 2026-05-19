@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ShieldCheck } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import PasswordInput from '../components/PasswordInput'
+import AuthSocialButtons from '../components/AuthSocialButtons'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -40,6 +42,15 @@ function LoginPage() {
     rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
       ? rawNext
       : '/'
+  const oauthError = params.get('oauth') === 'error'
+
+  useEffect(() => {
+    if (oauthError) {
+      toast.error('No se pudo entrar con el proveedor externo', {
+        description: 'Prueba otra vez o continúa con email.',
+      })
+    }
+  }, [oauthError])
 
   // Si está seteado: el paso 1 fue OK pero el backend pide TOTP.
   // {challengeToken, expiraEnSegundos, identificador}.
@@ -81,6 +92,7 @@ function LoginPage() {
                 login={login}
                 onChallenge={setPendingChallenge}
                 onSuccess={() => navigate(nextSeguro)}
+                next={nextSeguro}
               />
             </motion.div>
           )}
@@ -90,7 +102,7 @@ function LoginPage() {
   )
 }
 
-function Step1Credenciales({ login, onChallenge, onSuccess }) {
+function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
   const {
     register,
     handleSubmit,
@@ -125,6 +137,7 @@ function Step1Credenciales({ login, onChallenge, onSuccess }) {
           entrar con tu nombre de usuario o con tu email.
         </p>
       </div>
+      <AuthSocialButtons next={next} />
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"

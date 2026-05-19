@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
+import AuthSocialButtons from '../components/AuthSocialButtons'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -80,6 +81,7 @@ function RegisterPage() {
             el ranking. Tu nombre de usuario aparece junto a tus votos.
           </p>
         </div>
+        <AuthSocialButtons action="Crear cuenta" next="/" />
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"

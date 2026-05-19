@@ -32,6 +32,7 @@ const HigherOrLowerPage = lazy(() => import('./pages/HigherOrLowerPage'))
 const VotarPage = lazy(() => import('./pages/VotarPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
@@ -165,6 +166,7 @@ function App() {
                 <Route path="/votar" element={<VotarPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/admin" element={<AdminPage />} />
