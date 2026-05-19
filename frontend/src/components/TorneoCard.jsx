@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, Clock, PlayCircle, Trophy, Users } from 'luci
 import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
 import { ocultaImgRota } from '../lib/imgFallback'
+import CharacterStrip from './CharacterStrip'
 
 /**
  * Card individual de torneo en /torneos. Antes recibía el torneo legacy
@@ -53,66 +54,56 @@ function TorneoCard({ torneo }) {
     <Link
       to={`/torneos/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-all hover:-translate-y-1 hover:border-accent/40"
+      className="as-panel group flex flex-col overflow-hidden rounded-xl border-border p-0 transition-all hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_0_50px_-22px_rgba(255,46,99,0.8)]"
     >
-      <div className="mb-4 flex items-center">
-        <div className="flex -space-x-3">
-          {avatares.map((p) => (
-            <img
-              key={p.slug}
-              src={p.imagenUrl}
-              alt=""
-              loading="lazy"
-              onError={ocultaImgRota}
-              className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
-            />
-          ))}
-        </div>
-        {numParticipantes > avatares.length && (
-          <span className="ml-3 text-[12px] font-medium text-fg-muted">
-            +{numParticipantes - avatares.length}
+      <CharacterStrip
+        personajes={avatares}
+        total={numParticipantes}
+        max={5}
+        className="h-40 rounded-none"
+        imageClassName="transition-transform duration-500 group-hover:scale-105"
+      />
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="text-xl font-extrabold text-fg-strong group-hover:text-accent">
+          {nombre}
+        </h3>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-fg-muted">
+          <span className={`inline-flex items-center gap-1.5 ${badge.color}`}>
+            <Icon className="h-3.5 w-3.5" />
+            <span className="uppercase tracking-wider">{badge.label}</span>
           </span>
-        )}
-      </div>
-      <h3 className="text-lg font-bold text-fg-strong group-hover:text-accent">
-        {nombre}
-      </h3>
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-fg-muted">
-        <span className={`inline-flex items-center gap-1.5 ${badge.color}`}>
-          <Icon className="h-3.5 w-3.5" />
-          <span className="uppercase tracking-wider">{badge.label}</span>
-        </span>
-        <span className="text-border">·</span>
-        <span className="inline-flex items-center gap-1">
-          <Users className="h-3.5 w-3.5" />
-          {numParticipantes}
-        </span>
-      </div>
-      {ganadorAvatar && (
-        <div className="mt-4 flex items-center gap-3 rounded-lg bg-accent-soft p-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">
-            <Trophy className="h-4 w-4" />
-          </div>
-          <img
-            src={ganadorAvatar.imagenUrl}
-            alt=""
-            onError={ocultaImgRota}
-            className="h-9 w-9 rounded-md object-cover object-top"
-          />
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-              Campeón
-            </p>
-            <p className="truncate text-sm font-bold text-fg-strong">
-              {ganadorAvatar.nombre}
-            </p>
-          </div>
+          <span className="text-border">·</span>
+          <span className="inline-flex items-center gap-1">
+            <Users className="h-3.5 w-3.5" />
+            {numParticipantes} participantes
+          </span>
         </div>
-      )}
-      <span className="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-accent opacity-70 transition-all group-hover:translate-x-0.5 group-hover:opacity-100">
-        {ESTADO_CTA[estado] ?? 'Ver torneo'}
-        <ArrowRight className="h-3 w-3" />
-      </span>
+        {ganadorAvatar && (
+          <div className="mt-4 flex items-center gap-3 rounded-lg bg-accent-soft p-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">
+              <Trophy className="h-4 w-4" />
+            </div>
+            <img
+              src={ganadorAvatar.imagenUrl}
+              alt=""
+              onError={ocultaImgRota}
+              className="h-9 w-9 rounded-md object-cover object-top"
+            />
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+                Campeón
+              </p>
+              <p className="truncate text-sm font-bold text-fg-strong">
+                {ganadorAvatar.nombre}
+              </p>
+            </div>
+          </div>
+        )}
+        <span className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-accent opacity-80 transition-all group-hover:translate-x-0.5 group-hover:opacity-100">
+          {ESTADO_CTA[estado] ?? 'Ver torneo'}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </span>
+      </div>
     </Link>
   )
 }

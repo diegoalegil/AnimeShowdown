@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Search, Sparkles, Trophy, X } from 'lucide-react'
-import PersonajeImg from '../components/PersonajeImg'
 import LazyOnView from '../components/LazyOnView'
 import { useSeo } from '../hooks/useSeo'
 import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
@@ -10,6 +9,7 @@ import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { animesCatalogo, buscarAnimes } from '../lib/animes'
+import CharacterStrip from '../components/CharacterStrip'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -63,7 +63,7 @@ function AnimesPage() {
   }, [search, sort])
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-cyan px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="animes-list"
         schema={animesListSchema(animesCatalogo.map((a) => a.anime))}
@@ -82,11 +82,11 @@ function AnimesPage() {
           animate="visible"
           variants={headerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="as-kicker">
             <Sparkles className="h-3 w-3" />
             Catálogo anime · {animesCatalogo.length} universos
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(2.4rem,6vw,4.5rem)] font-extrabold leading-tight tracking-tight">
             Universos anime
           </h1>
           <p className="max-w-2xl text-fg-muted">
@@ -104,7 +104,7 @@ function AnimesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Busca anime, saga o universo… (ej: kimetsu, snk, mha)"
-              className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="as-panel w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
             />
             {search && (
               <button
@@ -121,7 +121,7 @@ function AnimesPage() {
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             aria-label="Ordenar por"
-            className="rounded-lg border border-border bg-surface py-2.5 px-3 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="as-panel rounded-lg py-2.5 px-3 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
           >
             {Object.entries(SORT_LABELS).map(([k, v]) => (
               <option key={k} value={k}>
@@ -188,37 +188,17 @@ function AnimeTile({ animeData }) {
     <Link
       to={`/animes/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="group relative block overflow-hidden rounded-xl border border-border bg-surface p-4 transition-all hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-12px_rgba(255,46,99,0.55)]"
+      className="as-panel group relative block overflow-hidden rounded-xl p-0 transition-all hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_50px_-18px_rgba(255,46,99,0.75)]"
     >
-      {/* Collage de portada: protagonistas + top ELO, no random. En móvil
-          solo 2 thumbnails (display:none en los 2 últimos → browser skip
-          load con loading=lazy); en sm+ los 4 del collage completo. */}
-      <div className="mb-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-        {portada.map((p, i) => (
-          <PersonajeImg
-            key={p.slug}
-            slug={p.slug}
-            alt=""
-            loading="lazy"
-            className={`aspect-[2/3] w-full rounded-md object-cover object-top transition-transform duration-300 group-hover:scale-105 ${
-              i >= 2 ? 'hidden sm:block' : ''
-            }`}
-          />
-        ))}
-        {Array.from({ length: 4 - portada.length }).map((_, i) => {
-          const absIdx = portada.length + i
-          return (
-            <div
-              key={`empty-${i}`}
-              className={`aspect-[2/3] w-full rounded-md bg-surface-alt ${
-                absIdx >= 2 ? 'hidden sm:block' : ''
-              }`}
-            />
-          )
-        })}
-      </div>
+      <CharacterStrip
+        personajes={portada}
+        total={total}
+        max={4}
+        className="h-40 rounded-none"
+        imageClassName="transition-transform duration-500 group-hover:scale-105"
+      />
 
-      <div className="flex flex-col gap-2 px-1">
+      <div className="flex flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="line-clamp-1 text-base font-bold text-fg-strong group-hover:text-accent">
             {anime}

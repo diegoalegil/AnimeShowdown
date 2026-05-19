@@ -19,8 +19,7 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
-import { imagenPersonaje } from '../data/personajes'
-import { ocultaImgRota } from '../lib/imgFallback'
+import CharacterStrip from '../components/CharacterStrip'
 
 /**
  * Índice de eventos temporales (Plan producto 2026-05-18). Tres
@@ -46,7 +45,7 @@ function EventosIndexPage() {
   const total = activos.length + proximos.length + pasados.length
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -54,18 +53,18 @@ function EventosIndexPage() {
           { label: 'Eventos', path: '/eventos' },
         ])}
       />
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <motion.header
           className="mb-10 flex flex-col items-start gap-3"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="as-kicker">
             <CalendarClock className="h-3 w-3" />
             Temporadas · Copas · Semanas
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-tight tracking-tight">
             Eventos de AnimeShowdown
           </h1>
           <p className="max-w-2xl text-fg-muted">
@@ -136,7 +135,7 @@ function Seccion({ icon: Icon, tono, dotColor, titulo, count, eventos, now, etiq
         </span>
         <span className={`ml-auto h-1.5 w-1.5 rounded-full ${dotColor}`} aria-hidden="true" />
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {eventos.map((e) => (
           <EventoCard key={e.slug} evento={e} now={now} etiqueta={etiqueta} />
         ))}
@@ -170,45 +169,37 @@ function EventoCard({ evento, now, etiqueta }) {
   return (
     <Link
       to={`/eventos/${evento.slug}`}
-      className={`group flex flex-col gap-3 rounded-xl border bg-surface p-4 transition-all hover:-translate-y-1 sm:p-5 ${tono}`}
+      className={`as-panel group flex flex-col overflow-hidden rounded-xl border p-0 transition-all hover:-translate-y-1 ${tono}`}
     >
-      <div className="flex -space-x-2">
-        {preview.map((p) => (
-          <img
-            key={p.slug}
-            src={imagenPersonaje(p.slug)}
-            alt=""
-            loading="lazy"
-            onError={ocultaImgRota}
-            className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
-          />
-        ))}
-        {participantes.length > preview.length && (
-          <span className="z-10 inline-flex h-10 min-w-[40px] items-center justify-center rounded-full border-2 border-surface bg-bg px-2 text-[11px] font-bold text-fg-muted">
-            +{participantes.length - preview.length}
+      <CharacterStrip
+        personajes={preview}
+        total={participantes.length}
+        max={5}
+        className="h-44 rounded-none"
+        imageClassName="transition-transform duration-500 group-hover:scale-105"
+      />
+      <div className="flex flex-col gap-3 p-5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl shadow-lg" aria-hidden="true">
+            {evento.emoji}
           </span>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <span aria-hidden="true" className="text-xl">
-          {evento.emoji}
-        </span>
-        <h3 className="text-base font-bold text-fg-strong group-hover:text-accent sm:text-lg">
-          {evento.titulo}
-        </h3>
-      </div>
-      <p className="line-clamp-2 text-[12px] text-fg-muted">
-        {evento.descripcionCorta}
-      </p>
-      <div className="mt-auto flex items-center justify-between text-[11px] text-fg-muted">
-        <span className="inline-flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          {restanteLabel}
-        </span>
-        <span className="inline-flex items-center gap-1 font-semibold text-accent group-hover:translate-x-0.5">
-          Ver
-          <ArrowRight className="h-3 w-3" />
-        </span>
+          <h3 className="text-xl font-extrabold text-fg-strong group-hover:text-accent sm:text-2xl">
+            {evento.titulo}
+          </h3>
+        </div>
+        <p className="line-clamp-2 text-[13px] text-fg-muted">
+          {evento.descripcionCorta}
+        </p>
+        <div className="mt-auto flex items-center justify-between text-[12px] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            {restanteLabel}
+          </span>
+          <span className="inline-flex items-center gap-1 font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+            Ver
+            <ArrowRight className="h-3.5 w-3.5" />
+          </span>
+        </div>
       </div>
     </Link>
   )

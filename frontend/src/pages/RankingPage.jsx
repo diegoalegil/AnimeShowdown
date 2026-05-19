@@ -90,7 +90,7 @@ function RankingPage() {
   const [tab, setTab] = useState('elo')
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-amber px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -98,9 +98,9 @@ function RankingPage() {
           { label: 'Ranking', path: '/ranking' },
         ])}
       />
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <motion.header
-          className="mb-8 flex flex-col items-start gap-3"
+          className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-end"
           initial="hidden"
           animate="visible"
           variants={headerVariants}
@@ -108,33 +108,51 @@ function RankingPage() {
           {/* Acento dorado del sistema (audit producto 2026-05-18): ranking
               = oro / salón de la fama. Da identidad visual diferenciada
               del magenta de marca sin perder coherencia. */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-amber-300">
-            <Trophy className="h-3 w-3" />
-            Ranking ELO · Salón de la fama
-          </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            ¿Quién domina AnimeShowdown?
-          </h1>
-          <p className="max-w-2xl text-fg-muted">
-            Estos son los personajes que la comunidad ha llevado a la cima. Cada
-            voto afecta el ELO, cada duelo puede cambiar posiciones y ningún
-            puesto está garantizado.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="flex flex-col items-start gap-3">
+            <span className="as-kicker border-amber-500/45 bg-amber-500/10 text-amber-300">
+              <Trophy className="h-3 w-3" />
+              Ranking ELO · Salón de la fama
+            </span>
+            <h1 className="text-[clamp(2.4rem,6vw,4.5rem)] font-extrabold leading-tight tracking-tight">
+              ¿Quién domina <span className="as-title-gradient">AnimeShowdown?</span>
+            </h1>
+            <p className="max-w-2xl text-fg-muted">
+              Estos son los personajes que la comunidad ha llevado a la cima. Cada
+              voto afecta el ELO, cada duelo puede cambiar posiciones y ningún
+              puesto está garantizado.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Link
+                to="/votar"
+                className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              >
+                <Swords className="h-4 w-4" />
+                Votar ahora
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                to="/faq"
+                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+              >
+                <HelpCircle className="h-4 w-4" />
+                Cómo funciona el ELO
+              </Link>
+            </div>
+          </div>
+          <div className="as-panel border-amber-500/35 rounded-2xl p-5">
+            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.14em] text-amber-300">
+              Meta report · esta semana
+            </p>
+            <p className="text-sm leading-relaxed text-fg-muted">
+              La tabla cambia con cada duelo. Entra a votar si quieres mover el
+              podio antes del próximo corte semanal.
+            </p>
             <Link
               to="/votar"
-              className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-500/20"
             >
-              <Swords className="h-4 w-4" />
-              Votar ahora
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              to="/faq"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
-            >
-              <HelpCircle className="h-4 w-4" />
-              Cómo funciona el ELO
+              Votar duelos abiertos
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </motion.header>

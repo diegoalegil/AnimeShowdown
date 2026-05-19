@@ -57,9 +57,9 @@
     "errorEnvio": "Couldn't send. Try again in a few seconds."
   },
   "hero": {
-    "tituloAntes": "Who rules",
+    "tituloAntes": "You decide who rules",
     "tituloAnime": "anime",
-    "tituloDespues": "is up to you.",
+    "tituloDespues": "now.",
     "subtitulo": "1v1 duels, live ELO ranking and new tournaments every week. Your vote moves the meta.",
     "ctaTorneos": "Start voting",
     "ctaRanking": "See the meta",

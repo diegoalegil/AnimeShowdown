@@ -66,13 +66,13 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
         src={imagenPersonaje(card.slug)}
         alt=""
         onError={ocultaImgRota}
-        className="h-32 w-auto rounded-lg lg:h-44"
+        className="h-36 w-auto rounded-xl border border-white/15 bg-surface object-cover shadow-2xl ring-1 ring-accent/20 lg:h-52"
         style={{
-          filter: 'drop-shadow(0 18px 36px rgb(255 46 99 / 0.25))',
+          filter: 'drop-shadow(0 24px 44px rgb(255 46 99 / 0.32)) saturate(1.15)',
         }}
         initial={{ opacity: 0, scale: 0.85, rotate: card.rotate }}
         animate={{
-          opacity: 0.7,
+          opacity: 0.82,
           scale: 1,
           y: [0, -12],
           rotate: [card.rotate, card.rotate + 2.5],

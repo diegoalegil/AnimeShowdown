@@ -129,7 +129,7 @@ function GuessCharacterPage() {
   }
 
   return (
-    <section className="px-5 py-5 sm:px-8 sm:py-16">
+    <section className="as-stage px-5 py-5 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -138,7 +138,7 @@ function GuessCharacterPage() {
           { label: 'Shadow Guess', path: '/games/shadow-guess' },
         ])}
       />
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-4xl">
         <Link
           to="/games"
           className="mb-3 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong sm:mb-6"
@@ -147,16 +147,16 @@ function GuessCharacterPage() {
           Hub de juegos
         </Link>
         <motion.header
-          className="mb-4 flex flex-col items-start gap-2 sm:mb-8 sm:gap-3"
+          className="mb-4 flex flex-col items-center gap-2 text-center sm:mb-8 sm:gap-3"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-rose-200 sm:px-3.5 sm:py-1.5 sm:text-[12px]">
+          <span className="as-kicker border-rose-500/45 bg-rose-500/10 text-rose-200">
             <Eye className="h-3 w-3" />
             Shadow Guess · Daily
           </span>
-          <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(2.2rem,6vw,4.2rem)] font-extrabold leading-tight tracking-tight">
             ¿Quién es este personaje?
           </h1>
           <p className="text-[13px] text-fg-muted">
@@ -171,7 +171,7 @@ function GuessCharacterPage() {
             anchura desde la altura (≈28vh wide) y queda centrada — sin
             barras vacías. En sm+ vuelve al max-w-sm original. */}
         <div
-          className={`relative mx-auto mb-4 w-fit overflow-hidden rounded-xl border bg-surface transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
+          className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
             estado.acertado
               ? 'border-emerald-400/60 shadow-[0_0_60px_-10px_rgba(52,211,153,0.55)]'
               : 'border-border'
@@ -239,7 +239,7 @@ function GuessCharacterPage() {
               type="button"
               onClick={handlePista}
               disabled={estado.pistaUsada || restantes <= 1}
-              className="inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Lightbulb className="h-3.5 w-3.5" />
               {estado.pistaUsada

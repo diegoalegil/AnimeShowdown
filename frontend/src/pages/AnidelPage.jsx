@@ -157,7 +157,7 @@ function AnidelPage() {
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-cyan px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -166,7 +166,7 @@ function AnidelPage() {
           { label: 'AniGrid', path: '/games/anigrid' },
         ])}
       />
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-4xl">
         <Link
           to="/games"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
@@ -180,11 +180,11 @@ function AnidelPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-emerald-200">
+          <span className="as-kicker border-emerald-500/45 bg-emerald-500/10 text-emerald-200">
             <Grid3X3 className="h-3 w-3" />
             AniGrid · Daily
           </span>
-          <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(2.2rem,6vw,4.2rem)] font-extrabold leading-tight tracking-tight">
             Wordle de personajes
           </h1>
           <p className="text-[13px] text-fg-muted">
@@ -214,7 +214,7 @@ function AnidelPage() {
 
         {/* Leyenda de columnas: neutral para no parecer una pista resuelta.
             En las filas, verde = coincide, rojo = no coincide, ámbar = dirección. */}
-        <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-border bg-surface p-3 text-[11px] text-fg-muted">
+        <div className="as-panel mb-4 grid grid-cols-3 gap-2 rounded-lg p-3 text-[11px] text-fg-muted">
           <div className="flex items-center gap-1.5">
             <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-bg px-1 font-mono text-[10px] font-bold text-fg-strong">
               Aa
@@ -260,7 +260,7 @@ function AnidelPage() {
               type="button"
               onClick={handlePista}
               disabled={estado.pistaLetra || restantes <= 1}
-              className="inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Lightbulb className="h-3.5 w-3.5" />
               {estado.pistaLetra
@@ -291,7 +291,7 @@ function AnidelPage() {
               <button
                 type="button"
                 onClick={volverAlDaily}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-3 text-[13px] font-semibold text-fg-muted transition-colors hover:text-fg-strong"
+                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-3 text-[13px] font-semibold text-fg-muted transition-colors hover:text-fg-strong"
               >
                 Volver al Daily
               </button>

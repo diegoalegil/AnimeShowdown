@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowRight, Swords, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
+import { personajes, getStatsPersonaje } from '../data/personajes'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -36,24 +37,33 @@ const logoVariants = {
 
 function Hero() {
   const { t } = useTranslation()
+  const totalPersonajes = personajes.length
+  const universos = new Set(personajes.map((p) => p.anime)).size
+  const top100Promedio = Math.round(
+    [...personajes]
+      .map((p) => getStatsPersonaje(p.slug).elo)
+      .sort((a, b) => b - a)
+      .slice(0, 100)
+      .reduce((acc, elo) => acc + elo, 0) / 100,
+  )
   // Audit perf 2026-05-18: CTAs principales del hero usan pointerdown
   // para feedback inmediato. La nav del Link sigue ocurriendo en click
   // (default del browser); el sonido va por delante.
   const ctaVotar = useInstantSoundPress('playClick')
   const ctaRanking = useInstantSoundPress('playClick')
   return (
-    <section className="relative flex min-h-[80vh] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
+    <section className="as-stage relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
-        <div className="absolute -top-24 left-1/4 h-[28rem] w-[28rem] rounded-full bg-accent opacity-30 blur-3xl animate-aurora-1" />
-        <div className="absolute top-1/4 right-1/4 h-[24rem] w-[24rem] rounded-full bg-purple-500 opacity-25 blur-3xl animate-aurora-2" />
-        <div className="absolute -bottom-16 left-1/2 h-[26rem] w-[26rem] rounded-full bg-cyan-400 opacity-15 blur-3xl animate-aurora-3" />
+        <div className="absolute -top-24 left-1/4 h-[28rem] w-[28rem] rounded-full bg-accent opacity-28 blur-3xl animate-aurora-1" />
+        <div className="absolute top-1/4 right-1/4 h-[24rem] w-[24rem] rounded-full bg-purple-500 opacity-22 blur-3xl animate-aurora-2" />
+        <div className="absolute -bottom-16 left-1/2 h-[26rem] w-[26rem] rounded-full bg-cyan-400 opacity-14 blur-3xl animate-aurora-3" />
       </div>
       <FloatingCards />
       <motion.div
-        className="relative z-10 flex max-w-3xl flex-col items-center gap-6 text-center"
+        className="relative z-10 flex max-w-4xl flex-col items-center gap-6 text-center"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -63,12 +73,12 @@ function Hero() {
           alt=""
           width={240}
           height={240}
-          className="h-44 w-44 object-contain sm:h-56 sm:w-56"
-          style={{ filter: 'drop-shadow(0 0 50px rgb(255 46 99 / 0.4))' }}
+          className="h-40 w-40 object-contain sm:h-56 sm:w-56"
+          style={{ filter: 'drop-shadow(0 0 60px rgb(255 46 99 / 0.48))' }}
           variants={logoVariants}
         />
         <motion.h1
-          className="text-[clamp(2.25rem,6vw,4rem)] leading-[1.05] tracking-tight"
+          className="max-w-4xl text-[clamp(2.65rem,7vw,5.2rem)] font-extrabold leading-[0.98] tracking-tight"
           variants={itemVariants}
         >
           {t('hero.tituloAntes')}{' '}
@@ -81,7 +91,7 @@ function Hero() {
           {' '}{t('hero.tituloDespues')}
         </motion.h1>
         <motion.p
-          className="max-w-xl text-[clamp(0.9375rem,1.6vw,1.125rem)] leading-relaxed text-fg-muted"
+          className="max-w-2xl text-[clamp(0.98rem,1.7vw,1.2rem)] leading-relaxed text-fg-muted"
           variants={itemVariants}
         >
           {t('hero.subtitulo')}
@@ -116,8 +126,33 @@ function Hero() {
         >
           {t('hero.features')}
         </motion.p>
+        <motion.div
+          className="as-panel mt-5 grid w-full max-w-4xl grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:grid-cols-4"
+          variants={itemVariants}
+        >
+          <HeroStat icon="⚔" value={`${totalPersonajes}`} label="Personajes" />
+          <HeroStat icon="🏆" value="13" label="Torneos" />
+          <HeroStat icon="👥" value={`${universos}`} label="Universos" />
+          <HeroStat icon="↗" value={`${top100Promedio}`} label="ELO top 100" />
+        </motion.div>
       </motion.div>
     </section>
+  )
+}
+
+function HeroStat({ icon, value, label }) {
+  return (
+    <div className="flex items-center justify-center gap-3 border-white/10 px-4 py-4 even:border-l sm:border-l first:sm:border-l-0">
+      <span className="text-2xl" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="text-left">
+        <p className="font-mono text-2xl font-extrabold text-fg-strong tabular-nums">
+          {value}
+        </p>
+        <p className="text-[11px] text-fg-muted">{label}</p>
+      </div>
+    </div>
   )
 }
 

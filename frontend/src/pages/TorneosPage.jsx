@@ -94,7 +94,7 @@ function TorneosPage() {
   const historial = (torneos ?? []).filter((it) => it.estado === 'FINISHED')
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-cyan px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -112,13 +112,13 @@ function TorneosPage() {
           {/* Acento rojo bracket (audit producto 2026-05-18): torneos =
               rojo combate. Distingue del magenta de votar y del oro de
               ranking, refuerza la idea de eliminación directa. */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-rose-300">
+          <span className="as-kicker">
             <Trophy className="h-3 w-3" />
             {isLoading
               ? t('torneos.loading')
               : t('torneos.contadorPlural', { count: total })}
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-tight tracking-tight">
             {t('torneos.tituloPagina')}
           </h1>
           <p className="max-w-2xl text-fg-muted">{t('torneos.subtitulo')}</p>
