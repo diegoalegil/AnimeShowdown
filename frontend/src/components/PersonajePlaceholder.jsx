@@ -11,6 +11,8 @@
  * directamente cuando sabemos que no hay imagen aún.
  */
 
+import KanjiStroke from './KanjiStroke'
+
 // Genera iniciales del nombre — "Monkey D. Luffy" → "ML", "Akame" → "AK".
 function iniciales(nombre) {
   const palabras = nombre.trim().split(/\s+/).filter((w) => w.length > 1)
@@ -46,12 +48,21 @@ function PersonajePlaceholder({ nombre, anime, className = '' }) {
       <div
         className={`absolute inset-0 bg-gradient-to-br to-slate-900/40 ${tono.from} ${tono.via}`}
       />
-      {/* Patrón decorativo: kanji 戦 (sen, "batalla") de fondo */}
+      {/* Patrón decorativo: kanji 戦 (sen, "batalla") de fondo, dibujado
+          trazo a trazo cada vez que el placeholder monta. Cae al
+          carácter unicode si KanjiVG no tiene este kanji (siempre lo
+          tiene — es de los 77 que generamos). */}
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute font-mono text-[10rem] leading-none opacity-[0.06] ${tono.text}`}
+        className={`pointer-events-none absolute opacity-[0.08] ${tono.text}`}
       >
-        戦
+        <KanjiStroke
+          kanji="戦"
+          size="10rem"
+          strokeMs={600}
+          gapMs={150}
+          strokeWidth={3}
+        />
       </span>
       <div className="relative z-10 flex flex-col items-center gap-1 px-3 text-center">
         <span

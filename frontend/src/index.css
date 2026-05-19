@@ -110,6 +110,11 @@
   }
 }
 
+@keyframes kanji-stroke-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
 @layer utilities {
   .scrollbar-hide {
     scrollbar-width: none;
@@ -126,6 +131,25 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .kanji-ink {
+      animation: none !important;
+    }
+  }
+
+  /* KanjiStroke — cada path se normaliza con pathLength="1" y se anima
+     el stroke-dashoffset 1 → 0 para simular un pincel dibujando el
+     trazo de inicio a fin. forwards mantiene el trazo dibujado al
+     terminar; el delay por path se inyecta inline desde el componente.
+     ease-out emula la deceleración natural del pincel al levantar. */
+  .kanji-stroke__path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation-name: kanji-stroke-draw;
+    animation-timing-function: cubic-bezier(0.65, 0.05, 0.36, 1);
+    animation-fill-mode: forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kanji-stroke__path {
+      stroke-dashoffset: 0 !important;
       animation: none !important;
     }
   }

@@ -6,6 +6,7 @@ import { ArrowLeft, Copy, RotateCcw, Sparkles } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import KanjiStroke from '../components/KanjiStroke'
 import { fechaDelDia, safeStorage } from '../lib/games'
 
 const STORAGE_KEY = 'animeshowdown.omikuji.v1'
@@ -302,9 +303,15 @@ function OmikujiPage() {
                     // 5 brillen "out of sync" — sensación viva, no robot.
                     '--glow-delay': `${i * 0.4}s`,
                   }}
-                  className={`kanji-ink font-jp inline-flex h-12 w-14 shrink-0 cursor-default items-center justify-center self-start rounded-md border text-lg ${COLOR_CLASSES[s.color]}`}
+                  className={`kanji-ink inline-flex h-14 w-14 shrink-0 cursor-default items-center justify-center self-start rounded-md border ${COLOR_CLASSES[s.color]}`}
                 >
-                  {s.kanji}
+                  <KanjiStroke
+                    kanji={s.kanji}
+                    size="2.25em"
+                    strokeMs={520}
+                    gapMs={120}
+                    strokeWidth={5}
+                  />
                 </motion.span>
                 <div className="flex flex-1 flex-col gap-1">
                   <span>
@@ -344,16 +351,11 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
         className="mb-4 flex flex-col items-center text-center"
       >
         <motion.span
-          initial={{ opacity: 0, scale: 0.4, rotate: -12, clipPath: 'inset(0 100% 0 0)' }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            rotate: 0,
-            clipPath: 'inset(0 0% 0 0)',
-          }}
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{
-            delay: 0.3,
-            duration: 0.9,
+            delay: 0.15,
+            duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           }}
           whileHover={{
@@ -364,9 +366,19 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
           style={{
             '--glow-rgb': GLOW_RGB[suerte.color],
           }}
-          className={`kanji-ink font-jp mb-4 inline-flex h-24 w-24 cursor-default items-center justify-center rounded-2xl border-2 ${COLOR_CLASSES[suerte.color]} text-5xl`}
+          className={`kanji-ink mb-4 inline-flex h-32 w-32 cursor-default items-center justify-center rounded-2xl border-2 ${COLOR_CLASSES[suerte.color]}`}
         >
-          {suerte.kanji}
+          {/* KanjiStroke con replayKey = suerte.kanji para que cuando el
+              user resetee y vuelva a tirar, los trazos se redibujen en
+              vez de aparecer instantáneos. */}
+          <KanjiStroke
+            kanji={suerte.kanji}
+            size="5em"
+            strokeMs={700}
+            gapMs={160}
+            strokeWidth={5}
+            replayKey={suerte.kanji}
+          />
         </motion.span>
         <p className="text-[12px] uppercase tracking-wider text-fg-muted">
           {suerte.romaji}

@@ -11,6 +11,7 @@ import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
 import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from './PersonajeImg'
+import KanjiStroke from './KanjiStroke'
 
 /**
  * Renderiza un bracket de eliminación directa con datos vivos del backend.
@@ -145,9 +146,15 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
               {kanjis[i] && (
                 <span
                   aria-hidden="true"
-                  className="font-jp text-[10px] text-accent/70"
+                  className="inline-flex items-center gap-0.5 text-accent/70"
                 >
-                  {kanjis[i]}
+                  <KanjiStroke
+                    kanji={kanjis[i]}
+                    size="0.95em"
+                    strokeMs={380}
+                    gapMs={70}
+                    strokeWidth={6}
+                  />
                 </span>
               )}
             </div>
@@ -172,9 +179,15 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
             </h3>
             <span
               aria-hidden="true"
-              className="font-jp text-[10px] text-accent/70"
+              className="inline-flex items-center gap-0.5 text-accent/80"
             >
-              王者
+              <KanjiStroke
+                kanji="王者"
+                size="0.95em"
+                strokeMs={420}
+                gapMs={80}
+                strokeWidth={6}
+              />
             </span>
           </div>
           {campeon ? (
