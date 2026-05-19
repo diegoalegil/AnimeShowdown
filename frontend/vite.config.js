@@ -155,8 +155,9 @@ function criticalCssPlugin() {
  *   - manifest con iconos 192/512 (estándar Android/Chrome) +
  *     apple-touch-icon (iOS). theme_color magenta para la status bar.
  *   - workbox runtime caching:
- *       · /img/* → CacheFirst (300 entries, 30 días). Las imágenes son
- *         inmutables por slug, no cambian salvo redeploy con asset nuevo.
+ *       · /img/* → NetworkFirst mientras el catálogo sigue en curación.
+ *         Hay cartas que se reemplazan manteniendo el mismo slug/path; servir
+ *         CacheFirst hacía que sesiones antiguas vieran imágenes viejas/rotas.
  *       · /api/personajes y /api/torneos → NetworkFirst con timeout 3s.
  *         Si la red falla o tarda, devolvemos lo cacheado para no romper
  *         la UI en redes flaky.
@@ -229,12 +230,14 @@ const pwaPlugin = VitePWA({
       },
       {
         urlPattern: ({ url }) => url.pathname.startsWith('/img/'),
-        handler: 'CacheFirst',
+        handler: 'NetworkFirst',
         options: {
-          cacheName: 'imagenes-personajes',
+          cacheName: 'imagenes-personajes-v2',
+          networkTimeoutSeconds: 3,
+          fetchOptions: { cache: 'reload' },
           expiration: {
             maxEntries: 300,
-            maxAgeSeconds: 60 * 60 * 24 * 30,
+            maxAgeSeconds: 60 * 60 * 24 * 7,
             purgeOnQuotaError: true,
           },
           cacheableResponse: { statuses: [0, 200] },
