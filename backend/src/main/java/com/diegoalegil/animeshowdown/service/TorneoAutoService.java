@@ -129,12 +129,26 @@ public class TorneoAutoService {
                 enfs.size(),
                 seleccionados.stream().map(Personaje::getSlug).toList());
 
-        // Plan v2 §5.7: IndexNow ping para que el nuevo torneo se indexe
-        // en Bing/Yandex en minutos (Google se entera indirectamente vía
-        // Bing). Async + best-effort; no afecta al cron si falla.
-        indexNowService.notificarUna("/torneos/" + guardado.getSlug());
+        // Plan v2 §5.7 + SEO duelos (2026-05-19): IndexNow ping para que
+        // el nuevo torneo y sus landings /duelos/A-vs-B se descubran en
+        // Bing/Yandex en minutos. Async + best-effort; no afecta al cron
+        // si falla.
+        indexNowService.notificar(indexNowUrlsParaTorneo(guardado, seleccionados));
 
         return guardado;
+    }
+
+    private static List<String> indexNowUrlsParaTorneo(Torneo torneo, List<Personaje> participantes) {
+        List<String> rutas = new ArrayList<>();
+        rutas.add("/torneos/" + torneo.getSlug());
+        for (int i = 0; i < participantes.size(); i++) {
+            for (int j = i + 1; j < participantes.size(); j++) {
+                rutas.add("/duelos/%s-vs-%s".formatted(
+                        participantes.get(i).getSlug(),
+                        participantes.get(j).getSlug()));
+            }
+        }
+        return rutas;
     }
 
     /**
