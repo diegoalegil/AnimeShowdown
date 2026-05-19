@@ -80,6 +80,43 @@ const COLOR_CLASSES = {
   rose: 'border-rose-500/40 bg-rose-500/10 text-rose-200',
 }
 
+// RGB del glow latente de cada suerte — se inyecta como CSS custom
+// prop --glow-rgb en el <span> del kanji y el keyframe kanji-glow
+// del index.css modula el drop-shadow infinito en ese color.
+// Coincide con los tones de Tailwind 400-500 para que el resplandor
+// case con el borde y el texto sin chocar.
+const GLOW_RGB = {
+  amber: '251 191 36',
+  emerald: '52 211 153',
+  cyan: '34 211 238',
+  purple: '168 85 247',
+  rose: '244 63 94',
+}
+
+// Entry "pincelada": el kanji se revela de izquierda a derecha con
+// clip-path mientras escala desde 0.55 y rota -8° → 0°. Da sensación
+// de tinta cayendo en papel washi, no de pop-in genérico. El stagger
+// por índice (i * 0.14s) hace que los 5 kanji caigan en cascada.
+const kanjiEntryVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.55,
+    rotate: -8,
+    clipPath: 'inset(0 100% 0 0)',
+  },
+  visible: (i) => ({
+    opacity: 1,
+    scale: 1,
+    rotate: 0,
+    clipPath: 'inset(0 0% 0 0)',
+    transition: {
+      delay: i * 0.14,
+      duration: 0.65,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  }),
+}
+
 function djb2(s) {
   let h = 5381
   for (let i = 0; i < s.length; i++) h = (h * 33) ^ s.charCodeAt(i)
@@ -246,13 +283,29 @@ function OmikujiPage() {
             Las 5 suertes y su kanji
           </h2>
           <ul className="flex flex-col gap-4 text-[13px] text-fg-muted">
-            {SUERTES.map((s) => (
+            {SUERTES.map((s, i) => (
               <li key={s.kanji} className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                <span
-                  className={`font-jp inline-flex h-12 w-14 shrink-0 items-center justify-center self-start rounded-md border text-lg ${COLOR_CLASSES[s.color]}`}
+                <motion.span
+                  custom={i}
+                  variants={kanjiEntryVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.3 }}
+                  whileHover={{
+                    scale: 1.12,
+                    rotate: [0, -3, 3, 0],
+                    transition: { duration: 0.5 },
+                  }}
+                  style={{
+                    '--glow-rgb': GLOW_RGB[s.color],
+                    // Cada kanji late con un pequeño desfase para que los
+                    // 5 brillen "out of sync" — sensación viva, no robot.
+                    '--glow-delay': `${i * 0.4}s`,
+                  }}
+                  className={`kanji-ink font-jp inline-flex h-12 w-14 shrink-0 cursor-default items-center justify-center self-start rounded-md border text-lg ${COLOR_CLASSES[s.color]}`}
                 >
                   {s.kanji}
-                </span>
+                </motion.span>
                 <div className="flex flex-1 flex-col gap-1">
                   <span>
                     <strong className="text-fg-strong">{s.nombre}</strong>{' '}
@@ -290,11 +343,31 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
         animate="visible"
         className="mb-4 flex flex-col items-center text-center"
       >
-        <span
-          className={`font-jp mb-4 inline-flex h-24 w-24 items-center justify-center rounded-2xl border-2 ${COLOR_CLASSES[suerte.color]} text-5xl`}
+        <motion.span
+          initial={{ opacity: 0, scale: 0.4, rotate: -12, clipPath: 'inset(0 100% 0 0)' }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            rotate: 0,
+            clipPath: 'inset(0 0% 0 0)',
+          }}
+          transition={{
+            delay: 0.3,
+            duration: 0.9,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          whileHover={{
+            scale: 1.08,
+            rotate: [0, -2, 2, 0],
+            transition: { duration: 0.6 },
+          }}
+          style={{
+            '--glow-rgb': GLOW_RGB[suerte.color],
+          }}
+          className={`kanji-ink font-jp mb-4 inline-flex h-24 w-24 cursor-default items-center justify-center rounded-2xl border-2 ${COLOR_CLASSES[suerte.color]} text-5xl`}
         >
           {suerte.kanji}
-        </span>
+        </motion.span>
         <p className="text-[12px] uppercase tracking-wider text-fg-muted">
           {suerte.romaji}
         </p>
