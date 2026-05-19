@@ -21,8 +21,23 @@
 import { Client } from '@stomp/stompjs'
 import { getToken, onTokenChange } from './api'
 
-const API_BASE =
-  import.meta.env.VITE_API_URL ?? 'https://api.animeshowdown.dev'
+const DEFAULT_API_BASE = 'https://api.animeshowdown.dev'
+
+function normalizarApiBase(value) {
+  const raw = typeof value === 'string' ? value.trim() : ''
+  if (!raw) return DEFAULT_API_BASE
+  try {
+    const url = new URL(raw)
+    if (import.meta.env.PROD && /\.up\.railway\.app$/i.test(url.hostname)) {
+      return DEFAULT_API_BASE
+    }
+    return url.toString().replace(/\/$/, '')
+  } catch {
+    return DEFAULT_API_BASE
+  }
+}
+
+const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 
 // Convierte el API base HTTP en URL WS: https → wss, http → ws.
 const BROKER_URL = API_BASE.replace(/^http/, 'ws') + '/ws'

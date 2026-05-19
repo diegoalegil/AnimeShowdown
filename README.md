@@ -231,7 +231,7 @@ cd backend && ./mvnw test
 
 | Variable | Default | Notas |
 |---|---|---|
-| `VITE_API_URL` | URL pública de Railway | Apunta a tu backend local en dev si lo prefieres |
+| `VITE_API_URL` | `https://api.animeshowdown.dev` | En prod debe ser el subdominio API, no el dominio bruto de Railway. Apunta a tu backend local en dev si lo prefieres |
 
 ### OAuth setup
 
@@ -364,7 +364,7 @@ erDiagram
    - **Build command:** `npm run build:no-images` (las variantes responsive `-300.webp` y `-600.webp` ya están commiteadas al repo desde 2026-05-17 para que CF no tenga que regenerarlas y esquive el timeout de 20 min del free tier; `build:no-images` solo regenera sitemap + bundle)
    - **Build output directory:** `dist`
    - **Root directory** (advanced): `frontend`
-4. **Environment variables:** `VITE_API_URL` = URL de tu backend
+4. **Environment variables:** `VITE_API_URL=https://api.animeshowdown.dev` en producción. No uses el dominio bruto de Railway aquí: rompe cookies de refresh y OAuth social.
 5. Save and Deploy → ~1-2 min y tienes `https://animeshowdown.pages.dev`
 6. **`frontend/public/_redirects`** ya configurado con `/* /index.html 200` para SPA routing
 
