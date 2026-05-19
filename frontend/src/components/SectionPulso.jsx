@@ -28,6 +28,7 @@ import {
 } from '../data/eventos'
 import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
+import PersonajeCutImg from './PersonajeCutImg'
 import PersonajeImg from './PersonajeImg'
 import { ocultaImgRota } from '../lib/imgFallback'
 
@@ -688,13 +689,14 @@ function formatRelativo(isoString) {
 
 function DueloAvatar({ personaje }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col items-center gap-1">
-      <img
-        src={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+      <PersonajeCutImg
+        slug={personaje.slug}
+        fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
         alt=""
         loading="lazy"
-        onError={ocultaImgRota}
-        className="h-16 w-12 rounded-md object-cover object-top"
+        className="h-28 w-24 rounded-xl border border-accent/20"
+        imgClassName="p-1"
       />
       <p className="line-clamp-1 max-w-full text-center text-[11px] font-semibold text-fg-strong">
         {personaje.nombre}
