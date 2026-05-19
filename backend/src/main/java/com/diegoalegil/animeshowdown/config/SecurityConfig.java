@@ -6,11 +6,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -159,6 +161,15 @@ public class SecurityConfig {
                 // JWT. jwtAuthFilter sigue corriendo en peticiones permitidas.
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtAuthFilter, com.diegoalegil.animeshowdown.security.RateLimitFilter.class)
+                // oauth2Login instala un entry point de navegador que
+                // redirige a /login. Para /api/** eso es una regresión:
+                // clientes SPA/tests necesitan un status HTTP, no HTML ni
+                // 302. Dejamos el redirect para rutas web/OAuth y fijamos
+                // 403 en API sin sesión, igual que antes del OAuth sprint.
+                .exceptionHandling(ex -> ex
+                        .defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.FORBIDDEN),
+                                request -> request.getServletPath().startsWith("/api/")))
                 .oauth2Login(oauth -> oauth
                         .successHandler(oauth2LoginSuccessHandler)
                         .failureHandler(oauth2LoginFailureHandler));
