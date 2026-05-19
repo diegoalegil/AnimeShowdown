@@ -23,6 +23,8 @@ import {
 import { getStatsPersonaje } from '../data/personajes'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeImg from '../components/PersonajeImg'
+import EditorialCover from '../components/EditorialCover'
+import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
 import NotFoundPage from './NotFoundPage'
 
 /**
@@ -89,6 +91,7 @@ function EventoDetailPage() {
   }
   const tonoBg = tonosBg[evento.color] ?? tonosBg.amber
   const tonoTexto = tonosTexto[evento.color] ?? tonosTexto.amber
+  const visual = getEventVisual(evento.slug, evento.titulo)
 
   const estadoLabel =
     estado === ESTADO_EVENTO.ACTIVO
@@ -139,13 +142,18 @@ function EventoDetailPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className={`mb-10 flex flex-col gap-4 rounded-2xl border p-6 sm:p-8 ${tonoBg}`}
+          className={`relative mb-10 flex min-h-80 flex-col justify-end gap-4 overflow-hidden rounded-2xl border p-6 sm:p-8 ${tonoBg}`}
         >
-          <span className={`inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
+          <EditorialCover
+            visual={visual}
+            className="absolute inset-0 rounded-none border-0 opacity-90"
+            imageClassName="saturate-125 contrast-110"
+          />
+          <span className={`relative inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
             <CalendarClock className="h-3 w-3" />
             {estadoLabel}
           </span>
-          <div className="flex items-center gap-3">
+          <div className="relative flex items-center gap-3">
             <span aria-hidden="true" className="text-3xl sm:text-4xl">
               {evento.emoji}
             </span>
@@ -153,9 +161,9 @@ function EventoDetailPage() {
               {evento.titulo}
             </h1>
           </div>
-          <p className="max-w-2xl text-fg-muted">{evento.descripcionCorta}</p>
+          <p className="relative max-w-2xl text-fg-muted">{evento.descripcionCorta}</p>
           {estado === ESTADO_EVENTO.ACTIVO && (
-            <div className="flex flex-wrap items-center gap-2 pt-2">
+            <div className="relative flex flex-wrap items-center gap-2 pt-2">
               <Link
                 to="/votar"
                 className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
@@ -370,11 +378,16 @@ function MiniStat({ label, value, tone, mono }) {
 
 function EmptyEvento() {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-surface/40 p-8 text-center">
-      <p className="text-[14px] font-semibold text-fg-strong">
+    <div className="relative flex min-h-72 flex-col items-center justify-center gap-3 overflow-hidden rounded-lg border border-dashed border-border bg-surface/40 p-8 text-center">
+      <EditorialCover
+        visual={BRAND_VISUALS.empty}
+        className="absolute inset-0 rounded-none border-0 opacity-60"
+        imageClassName="saturate-125 contrast-110"
+      />
+      <p className="relative text-[14px] font-semibold text-fg-strong">
         Sin participantes
       </p>
-      <p className="max-w-xs text-[12px] text-fg-muted">
+      <p className="relative max-w-xs text-[12px] text-fg-muted">
         El filtro del evento no encontró personajes en el catálogo. Si
         crees que falta alguien, su slug puede no estar tagueado todavía
         en personajes-tags.js.

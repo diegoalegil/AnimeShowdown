@@ -6,11 +6,13 @@ import Bracket from '../components/Bracket'
 import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
 import PersonajeImg from '../components/PersonajeImg'
 import ReactionsBar from '../components/ReactionsBar'
+import EditorialCover from '../components/EditorialCover'
 import ShareButtons from '../components/ShareButtons'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import { getTournamentVisual } from '../data/visual-assets'
 import NotFoundPage from './NotFoundPage'
 
 const headerVariants = {
@@ -104,6 +106,7 @@ function TorneoDetailPage() {
   const badge = getEstadoBadge(estado)
   const fechaInicioFmt = fechaInicio ? formatearFecha(fechaInicio) : null
   const fechaFinFmt = fechaFinalizacion ? formatearFecha(fechaFinalizacion) : null
+  const visual = getTournamentVisual(torneo.slug, nombre)
 
   // Roster: extraemos los participantes únicos de la ronda 1 (siempre los
   // tiene completos, incluso cuando rondas 2+ aún están vacías).
@@ -148,37 +151,44 @@ function TorneoDetailPage() {
         <motion.header
           itemScope
           itemType="https://schema.org/SportsEvent"
-          className="mb-10 flex flex-col items-start gap-3"
+          className="relative mb-10 flex min-h-96 flex-col items-start justify-end gap-3 overflow-hidden rounded-2xl border border-border p-6 sm:p-8"
           initial="hidden"
           animate="visible"
           variants={headerVariants}
         >
+          <EditorialCover
+            visual={visual}
+            className="absolute inset-0 rounded-none border-0 opacity-95"
+            imageClassName="saturate-125 contrast-110"
+          />
           <meta itemProp="url" content={`https://animeshowdown.dev/torneos/${torneo.slug}`} />
           {fechaInicio && <meta itemProp="startDate" content={fechaInicio} />}
           {fechaFinalizacion && <meta itemProp="endDate" content={fechaFinalizacion} />}
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="relative inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted backdrop-blur">
             <span className={`h-2 w-2 rounded-full ${badge.dot}`} />
             {badge.label}
           </span>
           <h1
             itemProp="name"
-            className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
+            className="relative text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
           >
             {nombre}
           </h1>
           {descripcion && (
-            <p itemProp="description" className="max-w-3xl text-fg-muted">
+            <p itemProp="description" className="relative max-w-3xl text-fg-muted">
               {descripcion}
             </p>
           )}
-          <p className="text-fg-muted">
+          <p className="relative text-fg-muted">
             {numParticipantes} personajes
             {fechaInicioFmt && ` · ${fechaInicioFmt}`}
             {fechaFinFmt && ` → ${fechaFinFmt}`}
           </p>
           {/* Plan v2 §4.3: reactions sobre el torneo. */}
           {torneo?.id && (
-            <ReactionsBar targetType="TORNEO" targetId={torneo.id} />
+            <div className="relative">
+              <ReactionsBar targetType="TORNEO" targetId={torneo.id} />
+            </div>
           )}
         </motion.header>
         {campeon && (

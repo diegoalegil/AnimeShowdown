@@ -19,7 +19,8 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
-import CharacterStrip from '../components/CharacterStrip'
+import EditorialCover from '../components/EditorialCover'
+import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
 
 /**
  * Índice de eventos temporales (Plan producto 2026-05-18). Tres
@@ -148,7 +149,7 @@ function EventoCard({ evento, now, etiqueta }) {
   const ms = getMsRestantes(evento, now)
   const restante = formatRestante(ms)
   const participantes = getPersonajesEvento(evento)
-  const preview = participantes.slice(0, 4)
+  const visual = getEventVisual(evento.slug, evento.titulo)
 
   const TONOS = {
     rose: 'border-rose-500/30 hover:border-rose-500/60',
@@ -171,12 +172,13 @@ function EventoCard({ evento, now, etiqueta }) {
       to={`/eventos/${evento.slug}`}
       className={`as-panel group flex flex-col overflow-hidden rounded-xl border p-0 transition-all hover:-translate-y-1 ${tono}`}
     >
-      <CharacterStrip
-        personajes={preview}
-        total={participantes.length}
-        max={5}
-        className="h-44 rounded-none"
-        imageClassName="transition-transform duration-500 group-hover:scale-105"
+      <EditorialCover
+        visual={visual}
+        title={evento.titulo}
+        eyebrow={etiqueta}
+        meta={`${participantes.length} personajes · ${evento.descripcionCorta}`}
+        className="h-48 rounded-none border-0"
+        compact
       />
       <div className="flex flex-col gap-3 p-5">
         <div className="flex items-center gap-3">
@@ -207,12 +209,17 @@ function EventoCard({ evento, now, etiqueta }) {
 
 function EmptyTodos() {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-surface/40 p-12 text-center">
-      <CalendarClock className="h-10 w-10 text-fg-muted" />
-      <p className="text-lg font-bold text-fg-strong">
+    <div className="relative flex min-h-80 flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border border-dashed border-border bg-surface/40 p-12 text-center">
+      <EditorialCover
+        visual={BRAND_VISUALS.empty}
+        className="absolute inset-0 rounded-none border-0 opacity-60"
+        imageClassName="saturate-125 contrast-110"
+      />
+      <CalendarClock className="relative h-10 w-10 text-fg-muted" />
+      <p className="relative text-lg font-bold text-fg-strong">
         Sin eventos en el calendario
       </p>
-      <p className="max-w-md text-[13px] text-fg-muted">
+      <p className="relative max-w-md text-[13px] text-fg-muted">
         Cuando preparamos una nueva temporada (Semana X, Copa Y…), aparece
         aquí con su contador. Vuelve pronto.
       </p>
