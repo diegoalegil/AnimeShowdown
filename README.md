@@ -221,12 +221,41 @@ cd backend && ./mvnw test
 | `PORT` | `8080` | Railway lo inyecta |
 | `ADMIN_EMAILS` | `tu_email@dominio` | promueve a ADMIN tras verificar email |
 | `APP_CRON_SECRET` | string random largo | header `X-Cron-Secret` del cron |
+| `GOOGLE_CLIENT_ID` | Google Cloud Console | OAuth Google |
+| `GOOGLE_CLIENT_SECRET` | Google Cloud Console | OAuth Google |
+| `DISCORD_CLIENT_ID` | Discord Developer Portal | OAuth Discord |
+| `DISCORD_CLIENT_SECRET` | Discord Developer Portal | OAuth Discord |
+| `APP_OAUTH_REDIRECT_BASE` | `https://animeshowdown.dev` | frontend al que vuelve OAuth (`/auth/callback`) |
 
 ### Frontend (`frontend/.env.local`)
 
 | Variable | Default | Notas |
 |---|---|---|
 | `VITE_API_URL` | URL pública de Railway | Apunta a tu backend local en dev si lo prefieres |
+
+### OAuth setup
+
+AnimeShowdown soporta login/signup con Google y Discord usando el flujo OAuth2 de Spring Security. El backend recibe el callback, linkea por email si ya existe una cuenta, o crea un usuario `ACTIVO` nuevo si el email viene verificado por el proveedor. Después emite la misma cookie `refresh_token` httpOnly que el login clásico y redirige al frontend `/auth/callback`, donde la SPA recupera el JWT corto vía `/api/auth/refresh`.
+
+**Google Cloud Console**
+
+1. Crea un OAuth Client tipo Web application.
+2. Authorized JavaScript origins: `https://api.animeshowdown.dev` y, para local, `http://localhost:8080`.
+3. Authorized redirect URIs:
+   - `https://api.animeshowdown.dev/login/oauth2/code/google`
+   - `http://localhost:8080/login/oauth2/code/google` si pruebas local.
+4. Copia `Client ID` → `GOOGLE_CLIENT_ID` y `Client secret` → `GOOGLE_CLIENT_SECRET` en Railway.
+
+**Discord Developer Portal**
+
+1. Crea una app en Discord Developer Portal → OAuth2.
+2. Redirects:
+   - `https://api.animeshowdown.dev/login/oauth2/code/discord`
+   - `http://localhost:8080/login/oauth2/code/discord` si pruebas local.
+3. Scopes usados por la app: `identify email`.
+4. Copia `Client ID` → `DISCORD_CLIENT_ID` y `Client Secret` → `DISCORD_CLIENT_SECRET` en Railway.
+
+En Railway define también `APP_OAUTH_REDIRECT_BASE=https://animeshowdown.dev`. En desarrollo local puedes usar `APP_OAUTH_REDIRECT_BASE=http://localhost:5173` y `FRONTEND_BASE_URL=http://localhost:5173`.
 
 ---
 
