@@ -236,7 +236,7 @@ function GamesHubPage() {
   const otros = GAMES.filter((g) => g.to !== destacado.to)
 
   return (
-    <section className="as-stage as-stage-purple px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple px-5 py-8 sm:px-8 sm:py-10">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -246,7 +246,7 @@ function GamesHubPage() {
       />
       <div className="mx-auto max-w-6xl">
         <motion.header
-          className="mb-8 flex flex-col items-start gap-3"
+          className="mb-6 flex flex-col items-start gap-3"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
@@ -258,8 +258,8 @@ function GamesHubPage() {
             <Gamepad2 className="h-3 w-3" />
             Anime Daily Trials
           </span>
-          <h1 className="text-[clamp(2.4rem,6vw,4.7rem)] font-extrabold leading-tight tracking-tight">
-            Retos diarios de AnimeShowdown
+          <h1 className="text-[clamp(2.35rem,6vw,4.15rem)] font-extrabold leading-tight tracking-tight">
+            Retos diarios
           </h1>
           <p className="max-w-2xl text-fg-muted">
             Una ronda al día. Una racha que proteger. Un ranking que escalar.
@@ -269,7 +269,7 @@ function GamesHubPage() {
         </motion.header>
 
         {/* Stats bar — racha hoy, mejor récord, countdown reinicio */}
-        <div className="as-panel mb-8 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:p-5">
+        <div className="as-panel mb-6 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:p-5">
           <StatTile
             icon={Flame}
             iconColor="text-orange-400"

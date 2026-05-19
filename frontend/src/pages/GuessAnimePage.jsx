@@ -111,7 +111,7 @@ function GuessAnimePage() {
   }
 
   return (
-    <section className="as-stage as-stage-purple px-5 py-5 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple px-5 py-5 sm:px-8 sm:py-10">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -157,7 +157,7 @@ function GuessAnimePage() {
               : 'border-border'
           }`}
         >
-          <div className="relative aspect-[2/3] h-[52vh] max-h-[560px] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
+          <div className="relative aspect-[2/3] h-[44vh] max-h-[440px] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
             {/* Audit P1 (auditoría externa 2026-05-18): el <img> plano
                 no tenía fallback, así que personajes con imagen problemática
                 (ej. roy_mustang con naturalWidth=0 reportado) salían como
@@ -168,7 +168,7 @@ function GuessAnimePage() {
             <PersonajeImg
               slug={objetivo.slug}
               alt="Personaje a identificar"
-              className={`h-full w-full object-contain ${!estado.finalizado ? 'blur-xl scale-105 saturate-125' : ''}`}
+              className={`h-full w-full object-contain ${!estado.finalizado ? 'blur-lg scale-105 saturate-125' : ''}`}
             />
             {estado.acertado && (
               <motion.div
@@ -215,7 +215,7 @@ function GuessAnimePage() {
             <AutocompleteAnime
               onSelect={handleGuess}
               placeholder="¿De qué anime es?"
-              autoFocus
+              autoFocus={false}
               filtroExtra={(anime) => !estado.intentos.some((i) => i.anime === anime)}
             />
             <button
