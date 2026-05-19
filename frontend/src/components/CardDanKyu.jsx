@@ -72,7 +72,7 @@ function CardDanKyu({ data: dataProp = null }) {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-bg">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-accent via-fuchsia-400 to-amber-400 transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-electric transition-all"
                   style={{ width: `${Math.round(progreso * 100)}%` }}
                 />
               </div>

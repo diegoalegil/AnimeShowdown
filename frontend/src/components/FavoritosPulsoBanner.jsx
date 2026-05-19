@@ -104,9 +104,9 @@ function FavoritosPulsoBanner() {
   return <BannerEstable total={totalFavoritos} />
 }
 
-function BannerWrapper({ children, tono = 'pink' }) {
+function BannerWrapper({ children, tono = 'roster' }) {
   const tonos = {
-    pink: 'border-pink-500/30 bg-gradient-to-br from-pink-500/15 via-pink-500/5 to-transparent',
+    roster: 'border-gold/30 bg-gradient-to-br from-gold/14 via-accent/8 to-transparent',
     emerald: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent',
     surface: 'border-border bg-surface/60',
   }
@@ -122,7 +122,7 @@ function BannerSinFavoritos() {
     <BannerWrapper tono="surface">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pink-500/15 text-pink-300">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gold/12 text-gold">
             <Heart className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
@@ -136,7 +136,7 @@ function BannerSinFavoritos() {
         </div>
         <Link
           to="/personajes"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-pink-400/40 bg-pink-500/5 px-3 py-1.5 text-[12px] font-semibold text-pink-200 hover:bg-pink-500/15"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/8 px-3 py-1.5 text-[12px] font-semibold text-gold hover:bg-gold/14"
         >
           <Sparkles className="h-3 w-3" />
           Explorar catálogo
@@ -181,12 +181,12 @@ function BannerEstable({ total }) {
 
 function BannerConMovs({ items, total }) {
   return (
-    <BannerWrapper tono="pink">
+    <BannerWrapper tono="roster">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <Heart className="h-3 w-3 fill-current text-pink-300" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-pink-300">
+            <Heart className="h-3 w-3 fill-current text-gold" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
               Tus favoritos se movieron · últimos 7 días
             </span>
           </div>
@@ -203,7 +203,7 @@ function BannerConMovs({ items, total }) {
         </div>
         <Link
           to="/perfil"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-pink-400/40 bg-pink-500/5 px-3 py-1.5 text-[12px] font-semibold text-pink-200 hover:bg-pink-500/15"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/8 px-3 py-1.5 text-[12px] font-semibold text-gold hover:bg-gold/14"
         >
           Mi roster ({total})
           <ArrowRight className="h-3 w-3" />
@@ -255,7 +255,7 @@ function FavoritoMovido({ favorito, movimiento, actividad }) {
     <li>
       <Link
         to={`/personajes/${favorito.slug}`}
-        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-pink-400/60"
+        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-gold/60"
         title={`${favorito.nombre} ${subio ? 'subió' : 'bajó'} ${Math.abs(movimiento.delta)} posiciones · ${votos} votos esta semana`}
       >
         <img

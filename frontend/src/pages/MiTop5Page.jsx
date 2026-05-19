@@ -321,7 +321,7 @@ function CanvasPreview({ slots, completo }) {
         }
 
         // Rank
-        ctx.fillStyle = '#ff2e63'
+        ctx.fillStyle = '#9f1d2c'
         ctx.font = 'bold 24px Geist, system-ui, sans-serif'
         ctx.fillText(`#${i + 1}`, x + 12, startY + 290)
 

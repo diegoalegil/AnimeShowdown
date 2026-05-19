@@ -45,7 +45,7 @@ function PersonajeCutImg({
       className={`relative overflow-hidden bg-bg ${className}`.trim()}
       style={{
         background:
-          'radial-gradient(circle at 50% 28%, rgb(255 46 99 / 0.32), rgb(255 199 44 / 0.12) 34%, rgb(13 13 18 / 0.94) 70%)',
+          'radial-gradient(circle at 50% 28%, rgb(159 29 44 / 0.30), rgb(197 161 90 / 0.14) 34%, rgb(8 11 18 / 0.94) 70%)',
       }}
     >
       <div

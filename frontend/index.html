@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="AnimeShowdown" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0d0d12" />
+    <meta name="theme-color" content="#080b12" />
     <meta name="description" content="Vota a tus personajes de anime favoritos en torneos cara a cara con sistema ELO en directo y bracket visuales." />
     <meta property="og:title" content="AnimeShowdown — Torneos de personajes de anime" />
     <meta property="og:description" content="125 personajes, brackets visuales, ranking ELO en directo. Vota a tu favorito y corona al campeón." />
@@ -32,17 +32,6 @@
          antes que las fuentes y otros assets no críticos. -->
     <link rel="preload" as="image" href="/logo.webp" type="image/webp" fetchpriority="high" />
     <title>AnimeShowdown — Torneos de personajes de anime</title>
-    <!-- Plan v2 §11.6 Light mode pre-paint: aplica la clase theme-light
-         antes del primer render para evitar flash of dark cuando el
-         usuario prefiere claro. Inline porque debe correr ANTES de
-         pintar. Try/catch porque iframe sin localStorage o private mode. -->
-    <script>
-      try {
-        if (localStorage.getItem('animeshowdown.theme') === 'light') {
-          document.documentElement.classList.add('theme-light')
-        }
-      } catch (_) { /* ignore */ }
-    </script>
   </head>
   <body>
     <div id="root"></div>

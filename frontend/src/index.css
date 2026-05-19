@@ -1,16 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0d0d12;
-  --color-surface: #16161e;
-  --color-surface-alt: #1c1c26;
-  --color-border: #2a2a36;
-  --color-fg: #c4c4d4;
-  --color-fg-strong: #f5f5fa;
-  --color-fg-muted: #8a8a9a;
-  --color-accent: #ff2e63;
-  --color-accent-hover: #ff5483;
-  --color-accent-soft: rgb(255 46 99 / 0.12);
+  --color-bg: #080b12;
+  --color-surface: #101620;
+  --color-surface-alt: #171f2c;
+  --color-border: #273244;
+  --color-fg: #c9cedb;
+  --color-fg-strong: #f7f3ea;
+  --color-fg-muted: #8c95a8;
+  --color-accent: #9f1d2c;
+  --color-accent-hover: #be2b38;
+  --color-accent-soft: rgb(159 29 44 / 0.16);
+  --color-gold: #c5a15a;
+  --color-gold-soft: rgb(197 161 90 / 0.15);
+  --color-electric: #24c6dc;
+  --color-electric-soft: rgb(36 198 220 / 0.12);
 
   --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", Consolas, monospace;
@@ -30,13 +34,13 @@
 
 @keyframes pulse-halo {
   0% {
-    box-shadow: 0 0 0 0 rgb(255 46 99 / 0.6);
+    box-shadow: 0 0 0 0 rgb(159 29 44 / 0.58);
   }
   70% {
-    box-shadow: 0 0 0 16px rgb(255 46 99 / 0);
+    box-shadow: 0 0 0 16px rgb(159 29 44 / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgb(255 46 99 / 0);
+    box-shadow: 0 0 0 0 rgb(159 29 44 / 0);
   }
 }
 
@@ -157,7 +161,7 @@
   .bg-dots {
     background-image: radial-gradient(
       circle at 1px 1px,
-      rgb(255 46 99 / 0.12) 1px,
+      rgb(197 161 90 / 0.10) 1px,
       transparent 0
     );
     background-size: 32px 32px;
@@ -168,10 +172,10 @@
     isolation: isolate;
     overflow: hidden;
     background:
-      radial-gradient(circle at 50% 0%, rgb(255 46 99 / 0.16), transparent 34rem),
-      radial-gradient(circle at 86% 18%, rgb(34 211 238 / 0.10), transparent 24rem),
-      radial-gradient(circle at 12% 38%, rgb(168 85 247 / 0.10), transparent 24rem),
-      linear-gradient(180deg, rgb(13 13 18 / 0.98), rgb(7 8 14 / 1) 70%);
+      radial-gradient(circle at 50% 0%, rgb(159 29 44 / 0.18), transparent 34rem),
+      radial-gradient(circle at 86% 18%, rgb(36 198 220 / 0.09), transparent 24rem),
+      radial-gradient(circle at 12% 38%, rgb(197 161 90 / 0.08), transparent 24rem),
+      linear-gradient(180deg, rgb(8 11 18 / 0.99), rgb(4 7 12 / 1) 70%);
   }
 
   .as-stage::before {
@@ -181,9 +185,9 @@
     z-index: -2;
     pointer-events: none;
     background:
-      radial-gradient(circle at 12% 20%, rgb(255 46 99 / 0.22) 0 1px, transparent 2px),
-      radial-gradient(circle at 82% 34%, rgb(255 46 99 / 0.18) 0 1px, transparent 2px),
-      radial-gradient(circle at 38% 76%, rgb(168 85 247 / 0.16) 0 1px, transparent 2px);
+      radial-gradient(circle at 12% 20%, rgb(159 29 44 / 0.22) 0 1px, transparent 2px),
+      radial-gradient(circle at 82% 34%, rgb(197 161 90 / 0.16) 0 1px, transparent 2px),
+      radial-gradient(circle at 38% 76%, rgb(36 198 220 / 0.12) 0 1px, transparent 2px);
     background-size: 92px 92px, 132px 132px, 156px 156px;
     mask-image: linear-gradient(to bottom, black, transparent 92%);
     opacity: 0.8;
@@ -199,17 +203,17 @@
     font-size: clamp(9rem, 20vw, 19rem);
     font-weight: 900;
     line-height: 1;
-    color: rgb(255 46 99 / 0.045);
-    text-shadow: 0 0 60px rgb(255 46 99 / 0.16);
+    color: rgb(197 161 90 / 0.04);
+    text-shadow: 0 0 60px rgb(159 29 44 / 0.14);
     pointer-events: none;
   }
 
   .as-stage-visual::before {
     background:
       linear-gradient(180deg, rgb(5 6 12 / 0.86), rgb(5 6 12 / 0.20) 34%, rgb(5 6 12 / 0.88) 100%),
-      radial-gradient(circle at 50% 34%, rgb(255 46 99 / 0.16), transparent 40rem),
+      radial-gradient(circle at 50% 34%, rgb(159 29 44 / 0.18), transparent 40rem),
       var(--as-stage-image),
-      radial-gradient(circle at 12% 20%, rgb(255 46 99 / 0.22) 0 1px, transparent 2px);
+      radial-gradient(circle at 12% 20%, rgb(197 161 90 / 0.14) 0 1px, transparent 2px);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -219,8 +223,8 @@
 
   .as-stage-visual::after {
     content: var(--as-stage-kanji, "戦");
-    color: rgb(255 46 99 / 0.06);
-    text-shadow: 0 0 80px rgb(255 46 99 / 0.22);
+    color: rgb(197 161 90 / 0.055);
+    text-shadow: 0 0 80px rgb(159 29 44 / 0.22);
   }
 
   .as-stage-home {
@@ -282,22 +286,22 @@
 
   .as-stage-cyan {
     background:
-      radial-gradient(circle at 70% 10%, rgb(34 211 238 / 0.16), transparent 30rem),
-      radial-gradient(circle at 16% 24%, rgb(255 46 99 / 0.12), transparent 24rem),
+      radial-gradient(circle at 70% 10%, rgb(36 198 220 / 0.14), transparent 30rem),
+      radial-gradient(circle at 16% 24%, rgb(159 29 44 / 0.12), transparent 24rem),
       linear-gradient(180deg, rgb(8 10 18 / 0.99), rgb(4 8 14 / 1) 72%);
   }
 
   .as-stage-amber {
     background:
-      radial-gradient(circle at 78% 12%, rgb(251 191 36 / 0.16), transparent 28rem),
-      radial-gradient(circle at 18% 28%, rgb(255 46 99 / 0.12), transparent 24rem),
+      radial-gradient(circle at 78% 12%, rgb(197 161 90 / 0.18), transparent 28rem),
+      radial-gradient(circle at 18% 28%, rgb(159 29 44 / 0.12), transparent 24rem),
       linear-gradient(180deg, rgb(13 12 18 / 0.99), rgb(8 7 12 / 1) 72%);
   }
 
   .as-stage-purple {
     background:
-      radial-gradient(circle at 78% 18%, rgb(168 85 247 / 0.18), transparent 30rem),
-      radial-gradient(circle at 22% 22%, rgb(255 46 99 / 0.12), transparent 24rem),
+      radial-gradient(circle at 78% 18%, rgb(82 67 130 / 0.18), transparent 30rem),
+      radial-gradient(circle at 22% 22%, rgb(159 29 44 / 0.12), transparent 24rem),
       linear-gradient(180deg, rgb(10 8 18 / 0.99), rgb(7 6 13 / 1) 72%);
   }
 
@@ -306,41 +310,41 @@
     align-items: center;
     gap: 0.375rem;
     border-radius: 999px;
-    border: 1px solid rgb(255 46 99 / 0.45);
-    background: linear-gradient(135deg, rgb(255 46 99 / 0.13), rgb(168 85 247 / 0.08));
+    border: 1px solid rgb(197 161 90 / 0.42);
+    background: linear-gradient(135deg, rgb(159 29 44 / 0.16), rgb(197 161 90 / 0.10));
     padding: 0.38rem 0.9rem;
-    color: rgb(255 117 156);
+    color: rgb(214 177 100);
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.095em;
     text-transform: uppercase;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 0 34px -18px rgb(255 46 99 / 0.8);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 0 34px -18px rgb(159 29 44 / 0.85);
   }
 
   .as-panel {
     border: 1px solid rgb(255 255 255 / 0.10);
     background:
       linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.015)),
-      rgb(13 13 20 / 0.82);
+      rgb(10 14 21 / 0.86);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.05),
-      0 18px 70px -48px rgb(255 46 99 / 0.55);
+      0 18px 70px -48px rgb(159 29 44 / 0.55);
     backdrop-filter: blur(18px);
   }
 
   .as-panel-hot {
-    border-color: rgb(255 46 99 / 0.42);
+    border-color: rgb(159 29 44 / 0.44);
     background:
-      radial-gradient(circle at 82% 18%, rgb(255 46 99 / 0.16), transparent 34%),
-      linear-gradient(135deg, rgb(255 46 99 / 0.12), rgb(13 13 20 / 0.86) 52%),
-      rgb(13 13 20 / 0.84);
+      radial-gradient(circle at 82% 18%, rgb(197 161 90 / 0.16), transparent 34%),
+      linear-gradient(135deg, rgb(159 29 44 / 0.15), rgb(10 14 21 / 0.88) 52%),
+      rgb(10 14 21 / 0.86);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.06),
-      0 0 65px -36px rgb(255 46 99 / 0.95);
+      0 0 65px -36px rgb(159 29 44 / 0.92);
   }
 
   .as-title-gradient {
-    background: linear-gradient(90deg, #fff 0%, #fff 45%, #ff6b9b 72%, #c084fc 100%);
+    background: linear-gradient(90deg, #fff7ec 0%, #fff 42%, #d6b36a 68%, #b7333f 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -350,7 +354,7 @@
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at 55% 30%, rgb(255 46 99 / 0.14), transparent 42%),
+      radial-gradient(circle at 55% 30%, rgb(159 29 44 / 0.14), transparent 42%),
       rgb(15 15 24);
   }
 
@@ -368,10 +372,10 @@
     border: 1px solid rgb(255 255 255 / 0.14);
     background:
       linear-gradient(180deg, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0.01)),
-      rgb(17 17 26);
+      rgb(13 17 25);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.06),
-      0 18px 70px -44px rgb(255 46 99 / 0.5);
+      0 18px 70px -44px rgb(159 29 44 / 0.48);
   }
 
   .as-ssr-card::before {
@@ -436,11 +440,11 @@
     border-radius: inherit;
     background: conic-gradient(
       from calc(var(--mx) * 360deg) at 50% 50%,
-      rgb(255 46 99 / 0.55),
-      rgb(180 80 255 / 0.55),
-      rgb(50 230 200 / 0.55),
-      rgb(255 220 80 / 0.55),
-      rgb(255 46 99 / 0.55)
+      rgb(159 29 44 / 0.58),
+      rgb(197 161 90 / 0.50),
+      rgb(36 198 220 / 0.45),
+      rgb(89 75 150 / 0.48),
+      rgb(159 29 44 / 0.58)
     );
     opacity: calc(0.32 * var(--active));
     mix-blend-mode: color-dodge;
@@ -472,13 +476,13 @@
      decorativo, no foreground. Usados en perfil (asanoha) y logros
      (seigaiha) para identidad visual otaku sin caer en weeb cringe. */
   .bg-asanoha {
-    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23ff2e63' stroke-width='0.6' opacity='0.4'%3E%3Cpolygon points='30,0 60,17 60,43 30,60 0,43 0,17'/%3E%3Cline x1='0' y1='17' x2='60' y2='43'/%3E%3Cline x1='60' y1='17' x2='0' y2='43'/%3E%3Cline x1='30' y1='0' x2='30' y2='60'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%239f1d2c' stroke-width='0.6' opacity='0.4'%3E%3Cpolygon points='30,0 60,17 60,43 30,60 0,43 0,17'/%3E%3Cline x1='0' y1='17' x2='60' y2='43'/%3E%3Cline x1='60' y1='17' x2='0' y2='43'/%3E%3Cline x1='30' y1='0' x2='30' y2='60'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 60px 60px;
     background-position: center;
   }
 
   .bg-seigaiha {
-    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%23a855f7' stroke-width='0.5' opacity='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3Ccircle cx='0' cy='20' r='8'/%3E%3Ccircle cx='40' cy='20' r='8'/%3E%3Ccircle cx='20' cy='0' r='8'/%3E%3Ccircle cx='20' cy='40' r='8'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%2324c6dc' stroke-width='0.5' opacity='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3Ccircle cx='0' cy='20' r='8'/%3E%3Ccircle cx='40' cy='20' r='8'/%3E%3Ccircle cx='20' cy='0' r='8'/%3E%3Ccircle cx='20' cy='40' r='8'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 40px 20px;
   }
 
@@ -499,43 +503,15 @@
   .pattern-overlay-asanoha::before {
     /* Asanoha (hojas de cáñamo) — patrón asociado a juventud, crecimiento.
        Usado en CardDatos del perfil para evocar progreso del usuario. */
-    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23ff8fbf' stroke-width='0.6'%3E%3Cpolygon points='30,0 60,17 60,43 30,60 0,43 0,17'/%3E%3Cline x1='0' y1='17' x2='60' y2='43'/%3E%3Cline x1='60' y1='17' x2='0' y2='43'/%3E%3Cline x1='30' y1='0' x2='30' y2='60'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23d6b36a' stroke-width='0.6'%3E%3Cpolygon points='30,0 60,17 60,43 30,60 0,43 0,17'/%3E%3Cline x1='0' y1='17' x2='60' y2='43'/%3E%3Cline x1='60' y1='17' x2='0' y2='43'/%3E%3Cline x1='30' y1='0' x2='30' y2='60'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 60px 60px;
   }
   .pattern-overlay-seigaiha::before {
     /* Seigaiha (olas) — patrón asociado a buena suerte, paz, longevidad.
        Usado en CardLogros del perfil como fondo de los badges. */
-    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%23a855f7' stroke-width='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%2324c6dc' stroke-width='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 40px 20px;
   }
-}
-
-/* Plan v2 §11.6 Light mode (opt-in).
- *
- * Por defecto la app es dark — toda la jerarquía visual (glow magenta,
- * kanji decorativo, aurora animada, paletas WoW) está pensada para
- * fondo oscuro. El light mode sobreescribe SOLO los tokens base de
- * fondo/texto/borde dejando intactos el accent magenta, los amber/yellow
- * de podio y los emerald/rose de win/loss. El resultado es legible sin
- * traicionar la identidad.
- *
- * Activación: `<html class="theme-light">` (la pone Header.jsx leyendo
- * localStorage). Sin clase, sigue el dark original.
- */
-html.theme-light {
-  --color-bg: #fafafa;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f1f1f4;
-  --color-border: #d4d4dc;
-  --color-fg: #2c2c38;
-  --color-fg-strong: #0d0d12;
-  --color-fg-muted: #5b5b6a;
-  /* accent y accent-soft no cambian — el magenta funciona sobre claro. */
-  --color-accent-soft: rgb(255 46 99 / 0.10);
-}
-
-html.theme-light body {
-  color-scheme: light;
 }
 
 @layer base {
@@ -543,10 +519,20 @@ html.theme-light body {
     box-sizing: border-box;
   }
 
+  html {
+    background:
+      radial-gradient(circle at 78% 0%, rgb(36 198 220 / 0.08), transparent 26rem),
+      radial-gradient(circle at 12% 18%, rgb(159 29 44 / 0.14), transparent 30rem),
+      linear-gradient(180deg, #080b12 0%, #070a11 45%, #04070c 100%);
+  }
+
   body {
     margin: 0;
     min-height: 100vh;
-    background-color: var(--color-bg);
+    background:
+      radial-gradient(circle at 70% 8%, rgb(36 198 220 / 0.05), transparent 26rem),
+      radial-gradient(circle at 16% 12%, rgb(159 29 44 / 0.10), transparent 32rem),
+      linear-gradient(180deg, #080b12 0%, #070a11 48%, #04070c 100%);
     color: var(--color-fg);
     color-scheme: dark;
     font-family: var(--font-sans);
@@ -561,7 +547,7 @@ html.theme-light body {
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.04;
+    opacity: 0.055;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }

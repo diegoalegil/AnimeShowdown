@@ -23,17 +23,17 @@ function iniciales(nombre) {
   return (palabras[0][0] + palabras[palabras.length - 1][0]).toUpperCase()
 }
 
-// Hash determinístico para elegir un tono — el mismo personaje siempre
-// usa el mismo color, distintos personajes varían.
+// Hash determinístico dentro de la paleta fija de marca. El personaje
+// conserva variación visual sin convertir la web en selector de colores.
 function tonoPara(nombre) {
   let h = 0
   for (let i = 0; i < nombre.length; i++) h = (h * 31 + nombre.charCodeAt(i)) >>> 0
   const tonos = [
-    { from: 'from-rose-500/20', via: 'via-fuchsia-500/10', text: 'text-rose-200/80' },
-    { from: 'from-purple-500/20', via: 'via-indigo-500/10', text: 'text-purple-200/80' },
-    { from: 'from-cyan-500/20', via: 'via-blue-500/10', text: 'text-cyan-200/80' },
-    { from: 'from-amber-500/20', via: 'via-orange-500/10', text: 'text-amber-200/80' },
-    { from: 'from-emerald-500/20', via: 'via-teal-500/10', text: 'text-emerald-200/80' },
+    { from: 'from-accent/24', via: 'via-gold/8', text: 'text-gold/80' },
+    { from: 'from-gold/20', via: 'via-accent/8', text: 'text-gold/80' },
+    { from: 'from-electric/18', via: 'via-accent/8', text: 'text-electric/80' },
+    { from: 'from-surface-alt', via: 'via-accent/10', text: 'text-fg-strong/75' },
+    { from: 'from-accent/18', via: 'via-electric/8', text: 'text-fg-strong/75' },
   ]
   return tonos[h % tonos.length]
 }

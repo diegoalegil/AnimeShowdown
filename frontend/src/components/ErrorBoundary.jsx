@@ -58,7 +58,7 @@ class ErrorBoundary extends Component {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(circle_at_30%_48%,rgba(255,46,99,0.18),transparent_32%),linear-gradient(90deg,rgba(8,8,13,0.92)_0%,rgba(8,8,13,0.72)_36%,rgba(8,8,13,0.28)_70%,rgba(8,8,13,0.08)_100%)]"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_30%_48%,rgba(159,29,44,0.18),transparent_32%),radial-gradient(circle_at_18%_18%,rgba(197,161,90,0.10),transparent_28%),linear-gradient(90deg,rgba(8,11,18,0.94)_0%,rgba(8,11,18,0.76)_36%,rgba(8,11,18,0.30)_70%,rgba(8,11,18,0.08)_100%)]"
         />
         <div
           aria-hidden="true"
@@ -66,13 +66,13 @@ class ErrorBoundary extends Component {
         />
 
         <div className="relative z-10 flex min-h-[100svh] w-full items-center px-5 py-12 sm:px-10 lg:px-20">
-          <div className="w-full max-w-xl rounded-2xl border border-accent/45 bg-[#160916]/72 p-6 shadow-[0_0_80px_rgba(255,46,99,0.18)] backdrop-blur-xl sm:p-9">
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-accent/30 bg-accent/15 text-rose-200 shadow-[0_0_32px_rgba(255,46,99,0.24)]">
+          <div className="w-full max-w-xl rounded-2xl border border-accent/42 bg-[#0b1018]/76 p-6 shadow-[0_0_88px_rgba(159,29,44,0.20),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-9">
+            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold shadow-[0_0_32px_rgba(197,161,90,0.18)]">
               <AlertTriangle className="h-6 w-6" />
             </span>
 
             <div className="mt-8 flex flex-col gap-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-accent">
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-gold">
                 Error de escena
               </p>
               <h1 className="max-w-sm text-3xl font-black tracking-tight sm:text-4xl">
@@ -83,7 +83,7 @@ class ErrorBoundary extends Component {
                 combate; si vuelve a pasar, avísanos en{' '}
                 <a
                   href="mailto:soporte@animeshowdown.dev"
-                  className="font-semibold text-accent hover:text-accent-hover"
+                  className="font-semibold text-gold hover:text-fg-strong"
                 >
                   soporte@animeshowdown.dev
                 </a>
@@ -95,14 +95,14 @@ class ErrorBoundary extends Component {
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_28px_rgba(255,46,99,0.32)] transition-colors hover:bg-accent-hover"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_34px_-12px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 <RefreshCw className="h-4 w-4" />
                 Recargar página
               </button>
               <a
                 href="/"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/5 px-5 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-accent/45 hover:text-accent"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/5 px-5 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
               >
                 <Home className="h-4 w-4" />
                 Volver al inicio
@@ -120,7 +120,7 @@ class ErrorBoundary extends Component {
                 <summary className="cursor-pointer text-[11px] font-mono text-fg-muted">
                   Stack (solo en dev)
                 </summary>
-                <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-white/10 bg-bg/85 p-3 text-[11px] text-rose-300">
+                <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-white/10 bg-bg/85 p-3 text-[11px] text-gold">
                   {String(this.state.error.stack || this.state.error)}
                 </pre>
               </details>

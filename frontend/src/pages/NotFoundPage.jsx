@@ -59,7 +59,7 @@ function NotFoundPage() {
           </span>
           <div
             className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
-            style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.25))' }}
+            style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.25))' }}
           >
             <PersonajeImg
               slug={random.slug}
