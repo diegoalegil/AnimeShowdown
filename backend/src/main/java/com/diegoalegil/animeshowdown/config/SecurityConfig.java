@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.diegoalegil.animeshowdown.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.diegoalegil.animeshowdown.security.JwtAuthFilter;
 import com.diegoalegil.animeshowdown.security.OAuth2LoginFailureHandler;
 import com.diegoalegil.animeshowdown.security.OAuth2LoginSuccessHandler;
@@ -29,6 +30,7 @@ public class SecurityConfig {
     private final com.diegoalegil.animeshowdown.security.RateLimitFilter rateLimitFilter;
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
     private final OAuth2LoginFailureHandler oauth2LoginFailureHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final String allowedOriginsCsv;
     private final String allowedOriginPatternsCsv;
 
@@ -37,12 +39,14 @@ public class SecurityConfig {
             com.diegoalegil.animeshowdown.security.RateLimitFilter rateLimitFilter,
             OAuth2LoginSuccessHandler oauth2LoginSuccessHandler,
             OAuth2LoginFailureHandler oauth2LoginFailureHandler,
+            HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository,
             @Value("${cors.allowed-origins:}") String allowedOriginsCsv,
             @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.oauth2LoginSuccessHandler = oauth2LoginSuccessHandler;
         this.oauth2LoginFailureHandler = oauth2LoginFailureHandler;
+        this.authorizationRequestRepository = authorizationRequestRepository;
         this.allowedOriginsCsv = allowedOriginsCsv;
         this.allowedOriginPatternsCsv = allowedOriginPatternsCsv;
     }
@@ -171,6 +175,15 @@ public class SecurityConfig {
                                 new HttpStatusEntryPoint(HttpStatus.FORBIDDEN),
                                 request -> request.getServletPath().startsWith("/api/")))
                 .oauth2Login(oauth -> oauth
+                        // Cookie-based authorization request repository.
+                        // El default (HttpSessionOAuth2AuthorizationRequestRepository)
+                        // guarda el state OAuth en la HttpSession, que Safari ITP
+                        // descartaba al rebotar desde accounts.google.com aun con
+                        // JSESSIONID=Lax+Secure, devolviendo [authorization_request_not_found].
+                        // Con cookie dedicada (HttpOnly+Secure+Lax, TTL 3 min) el flow
+                        // funciona en Safari/Chrome/Firefox/Brave por igual.
+                        .authorizationEndpoint(endpoint -> endpoint
+                                .authorizationRequestRepository(authorizationRequestRepository))
                         .successHandler(oauth2LoginSuccessHandler)
                         .failureHandler(oauth2LoginFailureHandler));
 
