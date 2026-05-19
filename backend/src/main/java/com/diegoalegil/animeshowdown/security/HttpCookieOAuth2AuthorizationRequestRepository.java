@@ -56,8 +56,17 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, COOKIE_NAME);
         if (cookie == null) {
+            // Diagnóstico: si el cookie no llega, queremos saber qué cookies SÍ
+            // llegan, así sabemos si Safari las descartó todas o solo la nuestra.
+            String allCookies = request.getCookies() == null ? "[null]"
+                    : java.util.Arrays.stream(request.getCookies())
+                            .map(c -> c.getName() + "(" + c.getValue().length() + "b)")
+                            .reduce((a, b) -> a + ", " + b).orElse("[vacío]");
+            log.warn("OAuth load: cookie '{}' NO presente en el request. Cookies recibidas: {}",
+                    COOKIE_NAME, allCookies);
             return null;
         }
+        log.debug("OAuth load: cookie '{}' recibida con {} chars", COOKIE_NAME, cookie.getValue().length());
         return deserialize(cookie.getValue());
     }
 
@@ -74,6 +83,9 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
         }
         String encoded = serialize(authorizationRequest);
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(encoded, COOKIE_TTL_SECONDS).toString());
+        log.info("OAuth save: cookie '{}' set con {} chars (provider={})",
+                COOKIE_NAME, encoded.length(),
+                authorizationRequest.getAttributes().get("registration_id"));
     }
 
     @Override
