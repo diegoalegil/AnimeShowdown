@@ -88,10 +88,17 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     }
 
     private ResponseCookie buildCookie(String value, long maxAgeSeconds) {
+        // SameSite=None + Secure es OBLIGATORIO para flows OAuth que cruzan
+        // entre el provider (accounts.google.com, discord.com) y nuestro
+        // backend. Safari ITP descarta la cookie con SameSite=Lax cuando
+        // detecta la secuencia animeshowdown.dev → provider → api.animeshowdown.dev
+        // aunque sea navegación top-level GET. El state OAuth aleatorio ya
+        // protege contra CSRF, así que aflojar a None no introduce nuevo
+        // riesgo. HttpOnly evita acceso desde JS y Secure exige HTTPS.
         return ResponseCookie.from(COOKIE_NAME, value)
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("Lax")
+                .sameSite("None")
                 .path(COOKIE_PATH)
                 .maxAge(maxAgeSeconds)
                 .build();
