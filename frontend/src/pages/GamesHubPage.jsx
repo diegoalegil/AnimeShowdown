@@ -295,6 +295,18 @@ function GamesHubPage() {
           />
         </div>
 
+        {/* Audit producto (2026-05-19): el Omikuji va PRIMERO ahora.
+            Sentido: el ritual diario abre el día — el palito que sacas
+            puede regalarte la pista gratis de los retos de abajo. Antes
+            estaba al final, justo después de los retos, lo cual era
+            absurdo (¿de qué te sirve la pista si ya jugaste todo?). */}
+        <section className="mb-6">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+            Ritual diario
+          </h2>
+          <OmikujiCard />
+        </section>
+
         {/* Reto destacado del día */}
         <section className="mb-6">
           <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
@@ -304,7 +316,7 @@ function GamesHubPage() {
         </section>
 
         {/* Otros retos de hoy */}
-        <section className="mb-6">
+        <section className="mb-10">
           <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
             Otros retos de hoy
           </h2>
@@ -313,14 +325,6 @@ function GamesHubPage() {
               <CardMini key={g.to} game={g} estado={estadosJuegos[g.to]} />
             ))}
           </div>
-        </section>
-
-        {/* Omikuji integrado como sexta card — ritual diario japonés */}
-        <section className="mb-10">
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
-            Ritual diario
-          </h2>
-          <OmikujiCard />
         </section>
 
         {/* Cómo funciona — compacto */}
