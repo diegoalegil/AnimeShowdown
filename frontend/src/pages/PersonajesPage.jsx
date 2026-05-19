@@ -147,7 +147,7 @@ function PersonajesPage() {
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

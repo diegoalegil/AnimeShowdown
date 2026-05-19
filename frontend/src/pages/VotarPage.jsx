@@ -309,7 +309,7 @@ function VotarPage() {
   }
 
   return (
-    <section className="px-5 py-6 sm:px-8 sm:py-10">
+    <section className="as-stage px-5 py-6 sm:px-8 sm:py-10">
       <div className="mx-auto flex max-w-5xl flex-col gap-4">
         {/* Top bar: badge + modo rápido + skip */}
         <div className="flex flex-wrap items-center justify-between gap-3">
