@@ -206,7 +206,7 @@ function OmikujiPage() {
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-visual as-stage-omikuji px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

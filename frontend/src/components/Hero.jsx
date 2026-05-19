@@ -52,7 +52,7 @@ function Hero() {
   const ctaVotar = useInstantSoundPress('playClick')
   const ctaRanking = useInstantSoundPress('playClick')
   return (
-    <section className="as-stage relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
+    <section className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"

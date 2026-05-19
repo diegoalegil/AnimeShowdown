@@ -90,7 +90,7 @@ function RankingPage() {
   const [tab, setTab] = useState('elo')
 
   return (
-    <section className="as-stage as-stage-amber px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-amber as-stage-visual as-stage-ranking px-5 py-10 sm:px-8 sm:py-12">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -100,7 +100,7 @@ function RankingPage() {
       />
       <div className="mx-auto max-w-7xl">
         <motion.header
-          className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-end"
+          className="mb-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-end"
           initial="hidden"
           animate="visible"
           variants={headerVariants}
@@ -113,7 +113,7 @@ function RankingPage() {
               <Trophy className="h-3 w-3" />
               Ranking ELO · Salón de la fama
             </span>
-            <h1 className="text-[clamp(2.4rem,6vw,4.5rem)] font-extrabold leading-tight tracking-tight">
+            <h1 className="text-[clamp(2.35rem,5.2vw,4rem)] font-extrabold leading-tight tracking-tight">
               ¿Quién domina <span className="as-title-gradient">AnimeShowdown?</span>
             </h1>
             <p className="max-w-2xl text-fg-muted">

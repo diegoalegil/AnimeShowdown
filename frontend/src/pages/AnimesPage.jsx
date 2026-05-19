@@ -63,7 +63,7 @@ function AnimesPage() {
   }, [search, sort])
 
   return (
-    <section className="as-stage as-stage-cyan px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-cyan as-stage-visual as-stage-animes px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="animes-list"
         schema={animesListSchema(animesCatalogo.map((a) => a.anime))}

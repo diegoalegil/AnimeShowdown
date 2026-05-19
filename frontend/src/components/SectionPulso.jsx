@@ -160,7 +160,7 @@ function SectionPulso() {
 
   return (
     <motion.section
-      className="px-5 py-10 sm:px-8 sm:py-14"
+      className="as-stage as-stage-visual as-stage-pulse px-5 py-10 sm:px-8 sm:py-14"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}

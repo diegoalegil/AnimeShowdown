@@ -117,7 +117,7 @@ function EventoDetailPage() {
   const misionEvento = misionPorEstado[estado]
 
   return (
-    <section className="as-stage as-stage-purple px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple as-stage-visual as-stage-eventos px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
