@@ -10,8 +10,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,22 +17,30 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.diegoalegil.animeshowdown.security.JwtAuthFilter;
+import com.diegoalegil.animeshowdown.security.OAuth2LoginFailureHandler;
+import com.diegoalegil.animeshowdown.security.OAuth2LoginSuccessHandler;
 
 @Configuration
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final com.diegoalegil.animeshowdown.security.RateLimitFilter rateLimitFilter;
+    private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+    private final OAuth2LoginFailureHandler oauth2LoginFailureHandler;
     private final String allowedOriginsCsv;
     private final String allowedOriginPatternsCsv;
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthFilter,
             com.diegoalegil.animeshowdown.security.RateLimitFilter rateLimitFilter,
+            OAuth2LoginSuccessHandler oauth2LoginSuccessHandler,
+            OAuth2LoginFailureHandler oauth2LoginFailureHandler,
             @Value("${cors.allowed-origins:}") String allowedOriginsCsv,
             @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
+        this.oauth2LoginSuccessHandler = oauth2LoginSuccessHandler;
+        this.oauth2LoginFailureHandler = oauth2LoginFailureHandler;
         this.allowedOriginsCsv = allowedOriginsCsv;
         this.allowedOriginPatternsCsv = allowedOriginPatternsCsv;
     }
@@ -44,9 +50,14 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // OAuth2 necesita conservar la authorization request entre
+                // /oauth2/authorization/* y /login/oauth2/code/*. El resto
+                // del API sigue usando JWT stateless; Spring solo crea
+                // sesión cuando el flujo OAuth la requiere.
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
                                 "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
@@ -147,14 +158,12 @@ public class SecurityConfig {
                 // peticiones bloqueadas con 429 no consuman recursos parseando
                 // JWT. jwtAuthFilter sigue corriendo en peticiones permitidas.
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtAuthFilter, com.diegoalegil.animeshowdown.security.RateLimitFilter.class);
+                .addFilterAfter(jwtAuthFilter, com.diegoalegil.animeshowdown.security.RateLimitFilter.class)
+                .oauth2Login(oauth -> oauth
+                        .successHandler(oauth2LoginSuccessHandler)
+                        .failureHandler(oauth2LoginFailureHandler));
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean
