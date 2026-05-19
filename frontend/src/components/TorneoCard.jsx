@@ -3,7 +3,8 @@ import { ArrowRight, CheckCircle2, Clock, PlayCircle, Trophy, Users } from 'luci
 import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
 import { ocultaImgRota } from '../lib/imgFallback'
-import CharacterStrip from './CharacterStrip'
+import { getTournamentVisual } from '../data/visual-assets'
+import EditorialCover from './EditorialCover'
 
 /**
  * Card individual de torneo en /torneos. Antes recibía el torneo legacy
@@ -40,6 +41,7 @@ function TorneoCard({ torneo }) {
   const badge = getEstadoBadge(estado)
   const Icon = ESTADO_ICON[estado] ?? Clock
   const { play } = useSound()
+  const visual = getTournamentVisual(slug, nombre)
 
   const avatares = avataresPrincipales ?? []
   // Solo destacamos el campeón si tenemos el avatar resuelto entre los
@@ -54,17 +56,18 @@ function TorneoCard({ torneo }) {
     <Link
       to={`/torneos/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="as-panel group flex flex-col overflow-hidden rounded-xl border-border p-0 transition-all hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_0_50px_-22px_rgba(255,46,99,0.8)]"
+      className="as-panel group flex flex-col overflow-hidden rounded-xl border-border p-0 transition-all hover:-translate-y-1 hover:border-gold/40 hover:shadow-[0_0_50px_-22px_rgba(197,161,90,0.52)]"
     >
-      <CharacterStrip
-        personajes={avatares}
-        total={numParticipantes}
-        max={5}
-        className="h-40 rounded-none"
-        imageClassName="transition-transform duration-500 group-hover:scale-105"
+      <EditorialCover
+        visual={visual}
+        title={nombre}
+        eyebrow="Bracket"
+        meta={`${numParticipantes} participantes`}
+        className="h-44 rounded-none border-0"
+        compact
       />
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-xl font-extrabold text-fg-strong group-hover:text-accent">
+        <h3 className="text-xl font-extrabold text-fg-strong group-hover:text-gold">
           {nombre}
         </h3>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-fg-muted">

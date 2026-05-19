@@ -12,18 +12,14 @@ import {
   Users,
 } from 'lucide-react'
 import TorneoCard from '../components/TorneoCard'
-import CharacterStrip from '../components/CharacterStrip'
+import EditorialCover from '../components/EditorialCover'
 import { useTorneos } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
-import {
-  personajes,
-  imagenPersonaje,
-  getStatsPersonaje,
-} from '../data/personajes'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { personajes, getStatsPersonaje } from '../data/personajes'
+import { BRAND_VISUALS, getTournamentVisual } from '../data/visual-assets'
 
 /**
  * Sugerencias temáticas computadas en module load. Cuando la BD está vacía
@@ -57,10 +53,6 @@ const SUGERENCIAS_TORNEO = (() => {
     { titulo: 'Best Girls 2026', descripcion: 'Las más votadas por la comunidad', cast: bestGirls.length >= 4 ? bestGirls : top8.slice(2, 8) },
   ]
 })()
-
-const HERO_TORNEO_CAST = ['deku', 'sukuna', 'bakugo', 'shoto_todoroki', 'allmight', 'tomura_shigaraki']
-  .map((slug) => personajes.find((p) => p.slug === slug))
-  .filter(Boolean)
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -219,18 +211,16 @@ function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) 
 }
 
 function TorneosHeroBanner() {
+  const visual = getTournamentVisual('mha-heroes-vs-villains', 'Arena de torneos')
   return (
     <div className="as-panel-hot relative hidden min-h-64 overflow-hidden rounded-2xl border border-cyan-500/20 lg:block">
-      <CharacterStrip
-        personajes={HERO_TORNEO_CAST}
-        total={HERO_TORNEO_CAST.length}
-        max={6}
-        className="absolute inset-0 h-full rounded-none opacity-95"
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0"
         imageClassName="saturate-125 contrast-110"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-bg/95 via-bg/35 to-bg/70" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="rounded-full border border-accent/50 bg-accent/15 px-6 py-3 text-5xl font-black uppercase tracking-tighter text-accent shadow-[0_0_60px_-14px_rgba(255,46,99,0.95)]">
+        <div className="rounded-full border border-gold/50 bg-gold-soft px-6 py-3 text-5xl font-black uppercase tracking-tighter text-gold shadow-[0_0_60px_-14px_rgba(197,161,90,0.85)]">
           VS
         </div>
       </div>
@@ -286,11 +276,16 @@ function EmptyState({ user, t }) {
   return (
     <div className="flex flex-col gap-8">
       {/* Hero del empty state */}
-      <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-surface p-8 text-center sm:p-12">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-accent">
+      <div className="relative flex min-h-96 flex-col items-center justify-center gap-6 overflow-hidden rounded-2xl border border-border bg-surface p-8 text-center sm:p-12">
+        <EditorialCover
+          visual={BRAND_VISUALS.empty}
+          className="absolute inset-0 rounded-none border-0 opacity-65"
+          imageClassName="saturate-125 contrast-110"
+        />
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-accent">
           <Trophy className="h-7 w-7" />
         </div>
-        <div className="flex max-w-md flex-col gap-3">
+        <div className="relative flex max-w-md flex-col gap-3">
           <h2 className="text-2xl font-bold tracking-tight text-fg-strong">
             {t('torneos.vacioTitulo')}
           </h2>
@@ -302,7 +297,7 @@ function EmptyState({ user, t }) {
             {t('torneos.vacioContador')}
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="relative flex flex-wrap items-center justify-center gap-3">
           <Link
             to="/votar"
             className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
@@ -356,33 +351,23 @@ function EmptyState({ user, t }) {
  */
 function SugerenciaCard({ sugerencia, user, t }) {
   const { titulo, descripcion, cast } = sugerencia
-  const preview = cast.slice(0, 5)
   const presetSlug = titulo.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
   const destino = user ? `/torneos/crear?preset=${presetSlug}` : '/votar'
   const ctaLabel = user
     ? t('torneos.sugerenciaCtaCrear')
     : t('torneos.sugerenciaCtaVotar')
+  const visual = getTournamentVisual(presetSlug, titulo)
   return (
-    <div className="flex flex-col rounded-xl border border-dashed border-accent/30 bg-surface/60 p-5 transition-colors hover:border-accent/60">
-      <div className="mb-4 flex items-center">
-        <div className="flex -space-x-3">
-          {preview.map((p) => (
-            <img
-              key={p.slug}
-              src={imagenPersonaje(p.slug)}
-              alt=""
-              loading="lazy"
-              onError={ocultaImgRota}
-              className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
-            />
-          ))}
-        </div>
-        {cast.length > preview.length && (
-          <span className="ml-3 text-[12px] font-medium text-fg-muted">
-            +{cast.length - preview.length}
-          </span>
-        )}
-      </div>
+    <div className="flex flex-col overflow-hidden rounded-xl border border-dashed border-accent/30 bg-surface/60 transition-colors hover:border-gold/50">
+      <EditorialCover
+        visual={visual}
+        title={titulo}
+        eyebrow="Preset"
+        meta={descripcion}
+        className="h-36 rounded-none border-0"
+        compact
+      />
+      <div className="flex flex-col p-5">
       <h3 className="text-lg font-bold text-fg-strong">{titulo}</h3>
       <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-fg-muted">
         {descripcion}
@@ -401,6 +386,7 @@ function SugerenciaCard({ sugerencia, user, t }) {
         {ctaLabel}
         <Sparkles className="h-3 w-3" />
       </Link>
+      </div>
     </div>
   )
 }

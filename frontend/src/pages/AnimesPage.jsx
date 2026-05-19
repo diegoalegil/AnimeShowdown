@@ -9,7 +9,8 @@ import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { animesCatalogo, buscarAnimes } from '../lib/animes'
-import CharacterStrip from '../components/CharacterStrip'
+import EditorialCover from '../components/EditorialCover'
+import { getAnimeVisual } from '../data/visual-assets'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -155,11 +156,10 @@ function AnimesPage() {
             </button>
           </div>
         ) : (
-          // Audit visual (2026-05-18): 77 tiles × 4 thumbnails = ~307 imgs
-          // en DOM ahogaban el initial paint. Las 6 primeras (above the
-          // fold) van eager para evitar placeholder flash; el resto se
-          // monta vía IntersectionObserver al acercarse al viewport.
-          // Combinado con 2 thumbnails en móvil (4 en desktop).
+          // Audit visual (2026-05-19): cada anime usa una portada editorial,
+          // no collage de cards. Mantenemos LazyOnView porque el grid puede
+          // superar 100 universos y no hace falta montar todo en el primer
+          // paint.
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtrados.map((a, i) =>
               i < 6 ? (
@@ -182,40 +182,50 @@ function AnimesPage() {
 }
 
 function AnimeTile({ animeData }) {
-  const { anime, slug, total, topElo, portada } = animeData
+  const { anime, slug, total, topElo } = animeData
   const { play } = useSound()
+  const visual = getAnimeVisual(slug, anime)
   return (
     <Link
       to={`/animes/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="as-panel group relative block overflow-hidden rounded-xl p-0 transition-all hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_50px_-18px_rgba(255,46,99,0.75)]"
+      className="as-panel group relative block overflow-hidden rounded-xl p-0 transition-all hover:-translate-y-1 hover:border-gold/45 hover:shadow-[0_0_50px_-18px_rgba(197,161,90,0.48)]"
     >
-      <CharacterStrip
-        personajes={portada}
-        total={total}
-        max={4}
-        className="h-40 rounded-none"
-        imageClassName="transition-transform duration-500 group-hover:scale-105"
-      />
+      <EditorialCover
+        visual={visual}
+        title={anime}
+        eyebrow="Universo"
+        className="h-44 rounded-none border-0"
+        imageClassName="saturate-125 contrast-110"
+        compact
+      >
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span className="rounded-md border border-white/10 bg-bg/60 px-2 py-0.5 font-mono text-[10px] font-semibold text-fg-muted backdrop-blur">
+            {total} personajes
+          </span>
+          {topElo && (
+            <span className="rounded-md border border-gold/35 bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-bold text-gold">
+              ELO {topElo.elo}
+            </span>
+          )}
+        </div>
+      </EditorialCover>
 
       <div className="flex flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-1 text-base font-bold text-fg-strong group-hover:text-accent">
+          <h3 className="line-clamp-1 text-base font-bold text-fg-strong group-hover:text-gold">
             {anime}
           </h3>
-          <span className="shrink-0 rounded-md border border-border bg-bg px-2 py-0.5 font-mono text-[10px] font-semibold text-fg-muted">
-            {total}
-          </span>
         </div>
         {topElo && (
           <p className="line-clamp-1 text-[12px] text-fg-muted">
             <Trophy className="mr-1 inline h-3 w-3 text-yellow-400" />
             Top ELO:{' '}
             <strong className="text-fg-strong">{topElo.nombre}</strong>
-            <span className="font-mono text-accent"> · {topElo.elo}</span>
+            <span className="font-mono text-gold"> · {topElo.elo}</span>
           </p>
         )}
-        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold opacity-0 transition-opacity group-hover:opacity-100">
           Explorar universo
           <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
         </span>

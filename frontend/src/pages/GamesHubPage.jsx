@@ -17,6 +17,8 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { fechaDelDia, safeStorage } from '../lib/games'
+import EditorialCover from '../components/EditorialCover'
+import { getGameVisual } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -374,22 +376,17 @@ function CardDestacado({ game, estado }) {
   const Icon = game.icon
   const theme = COLOR_THEMES[game.color]
   const done = estado?.completadoHoy
+  const visual = getGameVisual(game.to, game.titulo)
   return (
     <Link
       to={game.to}
       className={`as-panel-hot group relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all hover:-translate-y-1 sm:flex-row sm:items-center sm:gap-6 sm:p-8 ${theme.border} hover:${theme.glow}`}
     >
-      {/* Background gradient */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-br opacity-50 ${theme.gradient}`}
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0 opacity-95"
+        imageClassName="saturate-125 contrast-110"
       />
-      {/* Kanji decorativo grande */}
-      <span
-        aria-hidden="true"
-        className={`pointer-events-none absolute -right-4 -top-6 select-none font-mono text-[11rem] leading-none opacity-[0.06] ${theme.text}`}
-      >
-        {game.kanji}
-      </span>
 
       <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-2 sm:h-32 sm:w-32">
         <div
@@ -434,20 +431,17 @@ function CardMini({ game, estado }) {
   const theme = COLOR_THEMES[game.color]
   const done = estado?.completadoHoy
   const best = estado?.best
+  const visual = getGameVisual(game.to, game.titulo)
   return (
     <Link
       to={game.to}
       className={`as-panel group relative flex gap-3 overflow-hidden rounded-xl border p-4 transition-all hover:-translate-y-0.5 ${theme.border} hover:${theme.glow}`}
     >
-      <div
-        className={`absolute inset-0 bg-gradient-to-br opacity-30 ${theme.gradient}`}
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0 opacity-85"
+        imageClassName="saturate-125 contrast-110"
       />
-      <span
-        aria-hidden="true"
-        className={`pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[5rem] leading-none opacity-[0.07] ${theme.text}`}
-      >
-        {game.kanji}
-      </span>
 
       <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border">
         <div
@@ -493,14 +487,17 @@ function CardMini({ game, estado }) {
 }
 
 function OmikujiCard() {
+  const visual = getGameVisual('/omikuji', 'Omikuji diario')
   return (
     <Link
       to="/omikuji"
       className="as-panel-hot group relative flex items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-4 transition-all hover:-translate-y-0.5"
     >
-      <span className="pointer-events-none absolute -right-2 -top-3 select-none font-mono text-[5rem] leading-none text-accent opacity-[0.08]">
-        御籤
-      </span>
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0 opacity-80"
+        imageClassName="saturate-125 contrast-110"
+      />
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 border-accent/40 bg-accent/10">
         <span className="font-mono text-lg font-extrabold text-accent">御</span>
       </div>

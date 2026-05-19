@@ -30,7 +30,13 @@ import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 import PersonajeCutImg from './PersonajeCutImg'
 import PersonajeImg from './PersonajeImg'
+import EditorialCover from './EditorialCover'
 import { ocultaImgRota } from '../lib/imgFallback'
+import {
+  getEventVisual,
+  getGameVisual,
+  getTournamentVisual,
+} from '../data/visual-assets'
 
 /**
  * Campeón fallback derivado del catálogo local. Útil cuando el ranking
@@ -436,26 +442,22 @@ function MoverRow({ mover, actividad }) {
   )
 }
 
-function RetoCard({ personaje }) {
+function RetoCard() {
+  const visual = getGameVisual('/games/shadow-guess', 'Shadow Guess')
   return (
     <Link
       to="/games/shadow-guess"
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-rose-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-rose-500/60 sm:p-5"
     >
-      <CardEyebrow icon={Calendar} label="Reto del día" tono="text-rose-300" />
-      <div className="flex items-start gap-3">
-        <div
-          className="relative h-20 w-14 shrink-0 overflow-hidden rounded-md bg-bg"
-          aria-hidden="true"
-        >
-          <img
-            src={imagenPersonaje(personaje.slug)}
-            alt=""
-            loading="lazy"
-            onError={ocultaImgRota}
-            className="h-full w-full object-cover object-top"
-            style={{ filter: 'blur(10px)', transform: 'scale(1.1)' }}
-          />
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0 opacity-90"
+        imageClassName="saturate-125 contrast-110"
+      />
+      <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-rose-300" />
+      <div className="relative flex items-start gap-3">
+        <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-rose-500/35 bg-bg/65 font-mono text-3xl font-black text-rose-200 shadow-[0_0_34px_-16px_rgba(159,29,44,0.9)]">
+          影
         </div>
         <div className="flex flex-col gap-1">
           <h3 className="text-[15px] font-bold text-fg-strong">
@@ -466,7 +468,7 @@ function RetoCard({ personaje }) {
           </p>
         </div>
       </div>
-      <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-rose-300 transition-transform group-hover:translate-x-0.5">
+      <span className="relative inline-flex items-center gap-1 text-[12px] font-semibold text-rose-300 transition-transform group-hover:translate-x-0.5">
         Jugar daily
         <ArrowRight className="h-3 w-3" />
       </span>
@@ -488,13 +490,19 @@ function TorneoActivoCard({ torneo }) {
   }
   const enCurso = torneo.estado === 'IN_PROGRESS'
   const estadoLabel = enCurso ? 'En curso' : 'Próximamente'
+  const visual = getTournamentVisual(torneo.slug, torneo.nombre)
   return (
     <Link
       to={`/torneos/${torneo.slug}`}
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-cyan-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-cyan-500/60 sm:p-5"
     >
-      <CardEyebrow icon={Trophy} label="Torneo activo" tono="text-cyan-300" />
-      <div className="flex flex-col gap-1">
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0 opacity-85"
+        imageClassName="saturate-125 contrast-110"
+      />
+      <CardEyebrow icon={Trophy} label="Torneo activo" tono="relative text-cyan-300" />
+      <div className="relative flex flex-col gap-1">
         <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-fg-strong">
           {torneo.nombre}
         </h3>
@@ -513,7 +521,7 @@ function TorneoActivoCard({ torneo }) {
           ) : null}
         </p>
       </div>
-      <span className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-cyan-300 transition-transform group-hover:translate-x-0.5">
+      <span className="relative mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-cyan-300 transition-transform group-hover:translate-x-0.5">
         Ver bracket
         <ArrowRight className="h-3 w-3" />
       </span>
@@ -530,20 +538,26 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
   //  2) Sin torneo en curso → modo casual real, copy honesto.
   if (!duelo || !duelo.personajeA || !duelo.personajeB) {
     if (torneoEnCurso) {
+      const visual = getTournamentVisual(torneoEnCurso.slug, torneoEnCurso.nombre)
       return (
         <Link
           to={`/torneos/${torneoEnCurso.slug}`}
           className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
         >
+          <EditorialCover
+            visual={visual}
+            className="absolute inset-0 rounded-none border-0 opacity-85"
+            imageClassName="saturate-125 contrast-110"
+          />
           <CardEyebrow icon={Swords} label="Duelos pendientes" />
-          <p className="text-[13px] leading-snug text-fg-muted">
+          <p className="relative text-[13px] leading-snug text-fg-muted">
             Hay duelos esperando en{' '}
             <span className="font-semibold text-fg-strong">
               {torneoEnCurso.nombre}
             </span>
             . Entra al bracket y vota.
           </p>
-          <span className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+          <span className="relative mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-accent transition-transform group-hover:translate-x-0.5">
             Ir al bracket
             <ArrowRight className="h-3 w-3" />
           </span>
@@ -735,7 +749,7 @@ function EventoHeadlineBanner() {
   const ms = getMsRestantes(evento, now)
   const restante = formatRestante(ms)
   const participantes = getPersonajesEvento(evento).length
-  const preview = getPersonajesEvento(evento).slice(0, 5)
+  const visual = getEventVisual(evento.slug, evento.titulo)
 
   const tonosBg = {
     rose: 'border-rose-500/30 bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent',
@@ -761,8 +775,13 @@ function EventoHeadlineBanner() {
   const eyebrowLabel = estado === ESTADO_EVENTO.ACTIVO ? 'Evento en curso' : 'Próximo evento'
 
   return (
-    <div className={`mb-3 rounded-xl border p-4 sm:mb-4 sm:p-5 ${tonoBg}`}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className={`relative mb-3 overflow-hidden rounded-xl border p-4 sm:mb-4 sm:p-5 ${tonoBg}`}>
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0 opacity-80"
+        imageClassName="saturate-125 contrast-110"
+      />
+      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
           <span className={`inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
             <CalendarClock className="h-3 w-3" />
@@ -781,18 +800,9 @@ function EventoHeadlineBanner() {
           </p>
         </div>
         <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-          <div className="flex -space-x-2">
-            {preview.map((p) => (
-              <img
-                key={p.slug}
-                src={imagenPersonaje(p.slug)}
-                alt=""
-                loading="lazy"
-                onError={ocultaImgRota}
-                className="h-10 w-10 rounded-full border-2 border-bg object-cover object-top"
-              />
-            ))}
-          </div>
+          <span className="rounded-full border border-white/10 bg-bg/55 px-3 py-1 font-mono text-[11px] font-bold text-fg-muted backdrop-blur">
+            {participantes} participantes
+          </span>
           <Link
             to={`/eventos/${evento.slug}`}
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border bg-bg/40 px-4 py-2 text-[13px] font-semibold ${tonoTexto} hover:bg-bg/60`}
