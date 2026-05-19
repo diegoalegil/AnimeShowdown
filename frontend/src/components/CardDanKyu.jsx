@@ -1,6 +1,7 @@
 import { Award } from 'lucide-react'
 import { usePerfilStats } from '../hooks/usePerfil'
 import { calcularPuntos, rangoDe } from '../lib/danKyu'
+import KanjiStroke from './KanjiStroke'
 
 /**
  * Card del rango dan/kyū del usuario (Plan v2 §13.2). Muestra el rango
@@ -47,8 +48,15 @@ function CardDanKyu({ data: dataProp = null }) {
                 : 'border-border bg-bg text-fg-muted'
             }`}
           >
-            <span className="font-jp mr-2 text-2xl">
-              {actual.kanji}
+            <span className="mr-2 inline-flex items-center gap-0.5">
+              <KanjiStroke
+                kanji={actual.kanji}
+                size="1.5em"
+                strokeMs={420}
+                gapMs={90}
+                strokeWidth={6}
+                replayKey={actual.id}
+              />
             </span>
             <span className="text-lg font-bold">{actual.nombre}</span>
           </span>
