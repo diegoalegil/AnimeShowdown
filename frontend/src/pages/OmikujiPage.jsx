@@ -28,6 +28,7 @@ const SUERTES = [
     color: 'amber',
     perk: 'Pista gratis disponible en cualquier juego del día.',
     weight: 31,
+    etimologia: '大 es la persona con los brazos extendidos al máximo — el carácter de "grande, enorme". 吉 muestra a un sabio (士) sobre su boca (口): las palabras del erudito traen buen augurio. Juntos: el mayor de los presagios.',
   },
   {
     kanji: '中吉',
@@ -37,6 +38,7 @@ const SUERTES = [
     color: 'emerald',
     perk: 'Buen día para predecir el bracket de un torneo activo.',
     weight: 17,
+    etimologia: '中 es una flecha clavada en el centro de la diana — el carácter de "medio, centrado, equilibrio". Combinado con 吉 (buen augurio) da una fortuna justa: sin excesos, certera al blanco.',
   },
   {
     kanji: '小吉',
@@ -46,6 +48,7 @@ const SUERTES = [
     color: 'cyan',
     perk: 'Tu primer voto del día tendrá doble peso visual.',
     weight: 18,
+    etimologia: '小 son tres partículas diminutas cayendo — "pequeño, menor". Con 吉 forma "buen augurio en lo pequeño": no cambia el mundo, pero acompaña.',
   },
   {
     kanji: '末吉',
@@ -55,15 +58,17 @@ const SUERTES = [
     color: 'purple',
     perk: 'Buen día para mirar el ranking ELO y planear estrategia.',
     weight: 17,
+    etimologia: '末 es el carácter de árbol (木) con una línea horizontal marcando la punta más alta — "el extremo, el final". Con 吉 significa que la buena suerte llega tarde: aguanta el principio del día y cosecha al final.',
   },
   {
     kanji: '凶',
     romaji: 'kyō',
     nombre: 'Mala suerte',
-    desc: 'Las cosas se tuercen pero no se rompen. Para según tradición japonesa: ata tu omikuji a un árbol y déjalo allí (o ciérralo y vuelve mañana).',
+    desc: 'Las cosas se tuercen pero no se rompen. Por tradición japonesa: ata tu omikuji a un árbol y déjalo allí (o ciérralo y vuelve mañana).',
     color: 'rose',
     perk: 'Día perfecto para descubrir un anime que no conocías.',
     weight: 17,
+    etimologia: '凶 es un pozo (凵) con un aspa (✕) clavada en el fondo — el pictograma de "caer en una trampa, calamidad". Es un kanji solo, sin compañía: la ausencia del 吉 ya lo dice todo.',
   },
 ]
 
@@ -238,31 +243,37 @@ function OmikujiPage() {
 
         <div className="mt-10 rounded-xl border border-border bg-surface p-6">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
-            Las 5 suertes
+            Las 5 suertes y su kanji
           </h2>
-          <ul className="flex flex-col gap-2 text-[13px] text-fg-muted">
+          <ul className="flex flex-col gap-4 text-[13px] text-fg-muted">
             {SUERTES.map((s) => (
-              <li key={s.kanji} className="flex items-baseline gap-3">
+              <li key={s.kanji} className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                 <span
-                  className={`font-jp inline-flex h-7 w-9 shrink-0 items-center justify-center rounded-md border ${COLOR_CLASSES[s.color]}`}
+                  className={`font-jp inline-flex h-12 w-14 shrink-0 items-center justify-center self-start rounded-md border text-lg ${COLOR_CLASSES[s.color]}`}
                 >
                   {s.kanji}
                 </span>
-                <span className="flex-1">
-                  <strong className="text-fg-strong">{s.nombre}</strong> ·{' '}
-                  {s.romaji}
-                </span>
-                <span className="font-mono text-[11px] tabular-nums">
-                  {s.weight}%
-                </span>
+                <div className="flex flex-1 flex-col gap-1">
+                  <span>
+                    <strong className="text-fg-strong">{s.nombre}</strong>{' '}
+                    <span className="text-fg-muted">·</span>{' '}
+                    <em className="not-italic font-mono text-[12px] text-fg-muted">
+                      {s.romaji}
+                    </em>
+                  </span>
+                  <p className="text-[12px] leading-relaxed text-fg-muted">
+                    {s.etimologia}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-[11px] text-fg-muted">
-            Probabilidades aproximadas de un omikuji real del santuario
-            Meiji-jingu. Si te toca 凶 (kyō, mala suerte), la tradición
-            dice que ates el papel a un árbol del santuario y dejes que el
-            viento se lleve el mal augurio.
+          <p className="mt-5 text-[11px] leading-relaxed text-fg-muted">
+            Las 5 suertes del omikuji vienen de la tradición de los
+            santuarios japoneses. Si te toca 凶 (kyō, mala suerte),
+            la costumbre dice que ates el papel a un pino del santuario
+            (松 matsu — homófono de "esperar"): dejas el mal augurio
+            atado allí y el viento se lo lleva.
           </p>
         </div>
       </div>
