@@ -5,7 +5,7 @@ import { join, relative, sep } from 'node:path'
 const repoRoot = new URL('..', import.meta.url).pathname
 const publicAssetsDir = join(repoRoot, 'frontend/public/assets')
 const manifestPath = join(repoRoot, 'frontend/src/data/visual-assets-manifest.js')
-const exts = new Set(['.webp', '.png', '.jpg', '.jpeg', '.avif'])
+const exts = new Set(['.webp', '.png', '.jpg', '.jpeg', '.avif', '.svg'])
 
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true })
