@@ -97,6 +97,18 @@
   }
 }
 
+/* Kanji con glow latente tipo "tinta sobre papel washi". Cada suerte
+   pasa su color como CSS custom prop --glow-rgb (formato "R G B" sin
+   espacios) y el keyframe modula la intensidad del drop-shadow. */
+@keyframes kanji-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgb(var(--glow-rgb) / 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgb(var(--glow-rgb) / 0.85));
+  }
+}
+
 @layer utilities {
   .scrollbar-hide {
     scrollbar-width: none;
@@ -104,6 +116,17 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .kanji-ink {
+    animation: kanji-glow 3.6s ease-in-out infinite;
+    animation-delay: var(--glow-delay, 0s);
+    will-change: filter, transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kanji-ink {
+      animation: none !important;
+    }
   }
 
   .bg-dots {
