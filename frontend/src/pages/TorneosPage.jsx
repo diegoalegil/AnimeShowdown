@@ -12,6 +12,7 @@ import {
   Users,
 } from 'lucide-react'
 import TorneoCard from '../components/TorneoCard'
+import CharacterStrip from '../components/CharacterStrip'
 import { useTorneos } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -56,6 +57,10 @@ const SUGERENCIAS_TORNEO = (() => {
     { titulo: 'Best Girls 2026', descripcion: 'Las más votadas por la comunidad', cast: bestGirls.length >= 4 ? bestGirls : top8.slice(2, 8) },
   ]
 })()
+
+const HERO_TORNEO_CAST = ['deku', 'sukuna', 'bakugo', 'shoto_todoroki', 'allmight', 'tomura_shigaraki']
+  .map((slug) => personajes.find((p) => p.slug === slug))
+  .filter(Boolean)
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -104,7 +109,7 @@ function TorneosPage() {
       />
       <div className="mx-auto max-w-6xl">
         <motion.header
-          className="mb-10 flex flex-col items-start gap-3"
+          className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(26rem,1fr)] lg:items-end"
           initial="hidden"
           animate="visible"
           variants={headerVariants}
@@ -112,25 +117,28 @@ function TorneosPage() {
           {/* Acento rojo bracket (audit producto 2026-05-18): torneos =
               rojo combate. Distingue del magenta de votar y del oro de
               ranking, refuerza la idea de eliminación directa. */}
-          <span className="as-kicker">
-            <Trophy className="h-3 w-3" />
-            {isLoading
-              ? t('torneos.loading')
-              : t('torneos.contadorPlural', { count: total })}
-          </span>
-          <h1 className="text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-tight tracking-tight">
-            {t('torneos.tituloPagina')}
-          </h1>
-          <p className="max-w-2xl text-fg-muted">{t('torneos.subtitulo')}</p>
-          {user && (
-            <Link
-              to="/torneos/crear"
-              className="mt-2 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
-            >
-              <Sparkles className="h-4 w-4" />
-              {t('torneos.crearCta')}
-            </Link>
-          )}
+          <div className="flex flex-col items-start gap-3">
+            <span className="as-kicker">
+              <Trophy className="h-3 w-3" />
+              {isLoading
+                ? t('torneos.loading')
+                : t('torneos.contadorPlural', { count: total })}
+            </span>
+            <h1 className="text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-tight tracking-tight">
+              {t('torneos.tituloPagina')}
+            </h1>
+            <p className="max-w-2xl text-fg-muted">{t('torneos.subtitulo')}</p>
+            {user && (
+              <Link
+                to="/torneos/crear"
+                className="mt-2 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+              >
+                <Sparkles className="h-4 w-4" />
+                {t('torneos.crearCta')}
+              </Link>
+            )}
+          </div>
+          <TorneosHeroBanner />
         </motion.header>
 
         {isLoading && <TorneosSkeleton />}
@@ -205,6 +213,43 @@ function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) 
         {torneos.map((it) => (
           <TorneoCard key={it.slug} torneo={it} />
         ))}
+      </div>
+    </div>
+  )
+}
+
+function TorneosHeroBanner() {
+  return (
+    <div className="as-panel-hot relative hidden min-h-64 overflow-hidden rounded-2xl border border-cyan-500/20 lg:block">
+      <CharacterStrip
+        personajes={HERO_TORNEO_CAST}
+        total={HERO_TORNEO_CAST.length}
+        max={6}
+        className="absolute inset-0 h-full rounded-none opacity-95"
+        imageClassName="saturate-125 contrast-110"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-bg/95 via-bg/35 to-bg/70" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="rounded-full border border-accent/50 bg-accent/15 px-6 py-3 text-5xl font-black uppercase tracking-tighter text-accent shadow-[0_0_60px_-14px_rgba(255,46,99,0.95)]">
+          VS
+        </div>
+      </div>
+      <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+            Brackets en vivo
+          </p>
+          <p className="mt-1 max-w-sm text-sm text-fg-muted">
+            Héroes, villanos y favoritos del catálogo cara a cara.
+          </p>
+        </div>
+        <Link
+          to="/votar"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/20"
+        >
+          Votar duelos
+          <Swords className="h-3.5 w-3.5" />
+        </Link>
       </div>
     </div>
   )
