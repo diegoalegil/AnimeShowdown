@@ -33,6 +33,7 @@ import HistorialCompetitivo from '../components/HistorialCompetitivo'
 import PersonajeCard from '../components/PersonajeCard'
 import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import PersonajeGaleria from '../components/PersonajeGaleria'
+import PersonajeImg from '../components/PersonajeImg'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
@@ -165,6 +166,7 @@ function PersonajeDetailPage() {
   const relacionados = personajes
     .filter((p) => p.anime === personaje.anime && p.slug !== slug)
     .slice(0, 10)
+  const duelosPopulares = getDuelosPopulares(personaje)
   const totalAnime =
     personajes.filter((p) => p.anime === personaje.anime).length
 
@@ -459,6 +461,54 @@ function PersonajeDetailPage() {
           />
         </div>
 
+        {duelosPopulares.length > 0 && (
+          <section className="mt-8 rounded-xl border border-accent/25 bg-[linear-gradient(135deg,rgb(255_46_99_/_0.10),rgb(20_20_30_/_0.92))] p-5">
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
+                  <Swords className="h-3.5 w-3.5" />
+                  Duelos populares
+                </span>
+                <h2 className="mt-1 text-xl font-bold text-fg-strong">
+                  ¿Contra quién pondrías a {personaje.nombre}?
+                </h2>
+              </div>
+              <Link
+                to="/votar"
+                className="text-[13px] font-semibold text-accent hover:underline"
+              >
+                Votar ahora →
+              </Link>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {duelosPopulares.map((rival) => (
+                <Link
+                  key={rival.slug}
+                  to={`/duelos/${personaje.slug}-vs-${rival.slug}`}
+                  className="group flex items-center gap-3 rounded-lg border border-border bg-bg/45 p-2.5 transition-colors hover:border-accent/50 hover:bg-accent-soft"
+                >
+                  <span className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-border bg-surface">
+                    <PersonajeImg
+                      slug={rival.slug}
+                      alt={rival.nombre}
+                      className="h-full w-full object-cover"
+                      sizes="44px"
+                    />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-fg-strong">
+                      {personaje.nombre} vs {rival.nombre}
+                    </span>
+                    <span className="block truncate text-[12px] text-fg-muted">
+                      {rival.anime}
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {relacionados.length > 0 && (
           <div className="mt-16">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -516,6 +566,25 @@ function PersonajeDetailPage() {
       </div>
     </section>
   )
+}
+
+function getDuelosPopulares(personaje) {
+  const usados = new Set([personaje.slug])
+  const mismos = personajes
+    .filter((p) => p.anime === personaje.anime && !usados.has(p.slug))
+    .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
+  const globales = [...personajes]
+    .filter((p) => p.anime !== personaje.anime && !usados.has(p.slug))
+    .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
+
+  const out = []
+  for (const candidato of [...mismos, ...globales]) {
+    if (usados.has(candidato.slug)) continue
+    usados.add(candidato.slug)
+    out.push(candidato)
+    if (out.length >= 6) break
+  }
+  return out
 }
 
 /**
