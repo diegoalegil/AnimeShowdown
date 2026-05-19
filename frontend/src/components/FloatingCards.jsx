@@ -68,7 +68,7 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
         onError={ocultaImgRota}
         className="h-36 w-auto rounded-xl border border-white/15 bg-surface object-cover shadow-2xl ring-1 ring-accent/20 lg:h-52"
         style={{
-          filter: 'drop-shadow(0 24px 44px rgb(255 46 99 / 0.32)) saturate(1.15)',
+          filter: 'drop-shadow(0 24px 44px rgb(159 29 44 / 0.32)) saturate(1.15)',
         }}
         initial={{ opacity: 0, scale: 0.85, rotate: card.rotate }}
         animate={{

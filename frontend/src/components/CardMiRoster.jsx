@@ -20,7 +20,7 @@ function CardMiRoster() {
     <div className="rounded-xl border border-border bg-surface p-5 sm:p-6">
       <div className="mb-5 flex items-end justify-between gap-3 border-b border-border pb-3">
         <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-pink-300">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
             <Heart className="h-3 w-3 fill-current" />
             Mi roster
           </span>
@@ -89,7 +89,7 @@ function RosterCard({ favorito }) {
             onClick={onQuitar}
             disabled={isPending}
             aria-label={`Quitar ${nombre} del roster`}
-            className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-colors hover:text-rose-300 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
+            className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-colors hover:text-gold disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
           >
             <X className="h-3 w-3" />
           </button>
@@ -135,8 +135,8 @@ function RosterSkeleton() {
 function RosterEmpty() {
   return (
     <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border bg-bg/40 p-8 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-pink-400/40 bg-pink-500/10">
-        <Heart className="h-6 w-6 text-pink-300" />
+      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
+        <Heart className="h-6 w-6 text-gold" />
       </div>
       <div className="flex max-w-md flex-col gap-2">
         <p className="text-[15px] font-bold text-fg-strong">

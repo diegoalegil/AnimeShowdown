@@ -45,8 +45,8 @@ function BadgeUnlockListener() {
       /* ignore */
     }
 
-    // 2) Confetti suave verde esmeralda (color de unlock/achievement).
-    //    Skip en reduced-motion para usuarios sensibles.
+    // 2) Confetti sobrio con la paleta fija de marca. Skip en
+    //    reduced-motion para usuarios sensibles.
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       try {
         confetti({
@@ -55,10 +55,10 @@ function BadgeUnlockListener() {
           origin: { y: 0.7 },
           colors:
             payload.rareza === 5
-              ? ['#fbbf24', '#f59e0b', '#fde68a'] // dorado para legendarios
+              ? ['#c5a15a', '#e4c36f', '#f7e6a2'] // dorado para legendarios
               : payload.rareza === 4
-                ? ['#a855f7', '#c084fc', '#ddd6fe'] // morado épico
-                : ['#10b981', '#34d399', '#6ee7b7'], // verde general
+                ? ['#24c6dc', '#8ddfed', '#c4f4fb'] // eléctrico para épicos
+                : ['#9f1d2c', '#be2b38', '#c5a15a'], // carmesí + oro general
         })
       } catch {
         /* canvas-confetti puede fallar en jsdom o navegadores sin canvas */

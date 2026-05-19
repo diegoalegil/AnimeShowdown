@@ -19,10 +19,8 @@
     "apoya": "Support"
   },
   "header": {
-    "cambiarTema": "Change color palette",
     "silenciar": "Mute sounds",
     "activarSonidos": "Unmute sounds",
-    "paletaToast": "Palette: {{nombre}}",
     "idioma": "Language",
     "elegirIdioma": "Choose language",
     "ctaVotar": "Vote now",

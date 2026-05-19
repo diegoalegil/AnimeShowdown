@@ -29,11 +29,11 @@ function CardMesh({ slug }) {
 }
 
 function getAccent() {
-  if (typeof window === 'undefined') return '#ff2e63'
+  if (typeof window === 'undefined') return '#9f1d2c'
   return (
     getComputedStyle(document.documentElement)
       .getPropertyValue('--color-accent')
-      .trim() || '#ff2e63'
+      .trim() || '#9f1d2c'
   )
 }
 

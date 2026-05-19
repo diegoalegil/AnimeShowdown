@@ -192,7 +192,7 @@ function VistaSpotlight({ tick }) {
         alt={p.nombre}
         onError={ocultaImgRota}
         className="mx-auto aspect-[2/3] w-auto max-h-[40vh] rounded-2xl object-cover object-top sm:rounded-3xl md:max-h-none md:w-full md:max-w-md"
-        style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.4))' }}
+        style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.38))' }}
       />
       <div className="flex flex-col gap-3 sm:gap-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-accent sm:text-[12px]">

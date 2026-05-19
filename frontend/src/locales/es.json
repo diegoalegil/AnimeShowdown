@@ -19,10 +19,8 @@
     "apoya": "Apoya"
   },
   "header": {
-    "cambiarTema": "Cambiar paleta de color",
     "silenciar": "Silenciar sonidos",
     "activarSonidos": "Activar sonidos",
-    "paletaToast": "Paleta: {{nombre}}",
     "idioma": "Idioma",
     "elegirIdioma": "Elegir idioma",
     "ctaVotar": "Votar ahora",

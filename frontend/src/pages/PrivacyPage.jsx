@@ -110,7 +110,7 @@ function PrivacyPage() {
               </li>
               <li>
                 <strong className="text-fg-strong">localStorage local</strong>{' '}
-                con preferencias (idioma, paleta, progreso de juegos diarios).
+                con preferencias (idioma, sesión y progreso de juegos diarios).
                 Nunca sale de tu navegador.
               </li>
             </ul>
@@ -235,7 +235,7 @@ function PrivacyPage() {
               </li>
               <li>
                 <code className="text-fg-strong">localStorage</code> con
-                preferencias (paleta, idioma, progreso de juegos). Nunca sale de
+                preferencias (idioma, sesión, progreso de juegos). Nunca sale de
                 tu navegador.
               </li>
             </ul>

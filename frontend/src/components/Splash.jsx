@@ -68,7 +68,7 @@ function Splash() {
               width={140}
               height={140}
               className="h-32 w-32 object-contain"
-              style={{ filter: 'drop-shadow(0 0 40px rgb(255 46 99 / 0.55))' }}
+              style={{ filter: 'drop-shadow(0 0 40px rgb(159 29 44 / 0.55))' }}
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />

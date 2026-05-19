@@ -124,7 +124,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
           </div>
           <div className="relative h-1.5 overflow-hidden rounded-full bg-bg">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-accent via-fuchsia-400 to-purple-400 transition-all duration-700"
+              className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-electric transition-all duration-700"
               style={{
                 width: `${(matchesResueltos / totalMatches) * 100}%`,
               }}
@@ -515,7 +515,7 @@ function ChampionSlot({ personaje }) {
   return (
     <div
       className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-accent/40 bg-accent-soft p-3"
-      style={{ boxShadow: '0 0 30px rgb(255 46 99 / 0.25)' }}
+      style={{ boxShadow: '0 0 30px rgb(159 29 44 / 0.25)' }}
     >
       <PersonajeImg
         slug={personaje.slug}

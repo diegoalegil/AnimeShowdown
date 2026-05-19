@@ -229,7 +229,7 @@ function PersonajeDetailPage() {
                 scroll horizontal interno como debe. */}
             <div
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
-              style={{ filter: 'drop-shadow(0 30px 60px rgb(255 46 99 / 0.18))' }}
+              style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
             >
               {/* Audit (2026-05-17): Personaje3D era opt-in al mount con
                   imagen como fallback, pero el chunk se descargaba siempre

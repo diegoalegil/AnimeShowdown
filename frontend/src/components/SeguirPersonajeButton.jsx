@@ -60,13 +60,13 @@ function SeguirPersonajeButton({ slug, nombre }) {
 
   const baseClasses = 'inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50'
 
-  // Tres estilos: invitado (ghost rosa), siguiendo (relleno accent
-  // semi-transparente con corazón lleno), no siguiendo (ghost border).
+  // Tres estilos dentro de la identidad fija: invitado ghost, siguiendo
+  // con oro tenue, no siguiendo ghost con borde de torneo.
   const stateClasses = !user
-    ? 'border border-pink-400/40 bg-pink-500/5 text-pink-200 hover:border-pink-400/60 hover:bg-pink-500/15'
+    ? 'border border-gold/35 bg-gold/8 text-gold hover:border-gold/60 hover:bg-gold/14'
     : isFollowing
-      ? 'border border-pink-400/60 bg-pink-500/15 text-pink-100 hover:bg-pink-500/25'
-      : 'border border-border bg-surface text-fg-strong hover:border-pink-400/50 hover:text-pink-200'
+      ? 'border border-gold/55 bg-gold/14 text-gold hover:bg-gold/20'
+      : 'border border-border bg-surface text-fg-strong hover:border-gold/45 hover:text-gold'
 
   return (
     <button

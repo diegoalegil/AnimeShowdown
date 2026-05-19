@@ -57,9 +57,9 @@ function Hero() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
-        <div className="absolute -top-24 left-1/4 h-[28rem] w-[28rem] rounded-full bg-accent opacity-28 blur-3xl animate-aurora-1" />
-        <div className="absolute top-1/4 right-1/4 h-[24rem] w-[24rem] rounded-full bg-purple-500 opacity-22 blur-3xl animate-aurora-2" />
-        <div className="absolute -bottom-16 left-1/2 h-[26rem] w-[26rem] rounded-full bg-cyan-400 opacity-14 blur-3xl animate-aurora-3" />
+        <div className="absolute -top-24 left-1/4 h-[28rem] w-[28rem] rounded-full bg-accent opacity-24 blur-3xl animate-aurora-1" />
+        <div className="absolute top-1/4 right-1/4 h-[24rem] w-[24rem] rounded-full bg-gold opacity-16 blur-3xl animate-aurora-2" />
+        <div className="absolute -bottom-16 left-1/2 h-[26rem] w-[26rem] rounded-full bg-electric opacity-12 blur-3xl animate-aurora-3" />
       </div>
       <FloatingCards />
       <motion.div
@@ -74,7 +74,7 @@ function Hero() {
           width={240}
           height={240}
           className="h-40 w-40 object-contain sm:h-56 sm:w-56"
-          style={{ filter: 'drop-shadow(0 0 60px rgb(255 46 99 / 0.48))' }}
+          style={{ filter: 'drop-shadow(0 0 60px rgb(159 29 44 / 0.52))' }}
           variants={logoVariants}
         />
         <motion.h1
@@ -83,7 +83,7 @@ function Hero() {
         >
           {t('hero.tituloAntes')}{' '}
           <span
-            className="bg-gradient-to-r from-accent via-fuchsia-400 to-pink-300 bg-clip-text text-transparent animate-shimmer"
+            className="bg-gradient-to-r from-fg-strong via-gold to-accent bg-clip-text text-transparent animate-shimmer"
             style={{ backgroundSize: '200% auto' }}
           >
             {t('hero.tituloAnime')}
@@ -104,7 +104,7 @@ function Hero() {
             to="/votar"
             onPointerDown={ctaVotar.onPointerDown}
             onClick={ctaVotar.onClick}
-            className="group inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all animate-pulse-halo hover:-translate-y-0.5 hover:bg-accent-hover"
+            className="group inline-flex items-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_34px_-14px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] transition-all animate-pulse-halo hover:-translate-y-0.5 hover:brightness-110"
           >
             <Swords className="h-4 w-4" />
             {t('hero.ctaTorneos')}
@@ -114,7 +114,7 @@ function Hero() {
             to="/ranking"
             onPointerDown={ctaRanking.onPointerDown}
             onClick={ctaRanking.onClick}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-5 py-3 text-sm font-semibold text-fg-strong backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-surface/60 px-5 py-3 text-sm font-semibold text-fg-strong backdrop-blur-md transition-colors hover:border-gold/55 hover:text-gold"
           >
             <TrendingUp className="h-4 w-4" />
             {t('hero.ctaRanking')}

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogOut, Menu, Moon, Palette, Shield, Sun, Swords, Volume2, VolumeX, X } from 'lucide-react'
-import { toast } from 'sonner'
+import { LogOut, Menu, Shield, Swords, Volume2, VolumeX, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
-import { useTheme } from '../contexts/ThemeContext'
 import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
@@ -26,21 +24,20 @@ const navLinks = [
   { to: '/ranking', i18nKey: 'ranking' },
 ]
 
-const navLinkBase = 'rounded-md px-3.5 py-2 text-sm transition-colors'
+const navLinkBase = 'relative rounded-md px-3.5 py-2 text-sm transition-colors'
 
 function regularLinkClass({ isActive }) {
   return `${navLinkBase} font-medium ${
     isActive
-      ? 'bg-surface-alt text-fg-strong'
-      : 'text-fg hover:bg-surface-alt hover:text-fg-strong'
+      ? 'bg-white/5 text-fg-strong shadow-[inset_0_-1px_0_var(--color-accent),0_12px_34px_-26px_var(--color-accent)]'
+      : 'text-fg hover:bg-white/5 hover:text-fg-strong'
   }`
 }
 
-// CTA principal nueva: "Votar ahora". Texto en --color-bg (#0d0d12)
-// sobre magenta --color-accent → contraste 5.4:1 (WCAG AA, Plan v2 §3.9).
+// CTA principal de torneo: carmesí fijo + brillo dorado muy controlado.
 function ctaVotarClass({ isActive }) {
-  return `${navLinkBase} ml-2 inline-flex items-center gap-1.5 font-semibold text-bg ${
-    isActive ? 'bg-accent-hover' : 'bg-accent hover:bg-accent-hover'
+  return `${navLinkBase} ml-2 inline-flex items-center gap-1.5 border border-accent/50 bg-gradient-to-b from-accent-hover to-accent font-black text-white shadow-[0_0_34px_-16px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] ${
+    isActive ? 'brightness-110' : 'hover:-translate-y-0.5 hover:brightness-110'
   }`
 }
 
@@ -67,15 +64,8 @@ function Header() {
   // "instantáneo"). Aplica al "Votar ahora" desktop + "Votar" mobile.
   const ctaVotarDesktop = useInstantSoundPress('playClick')
   const ctaVotarMobile = useInstantSoundPress('playClick')
-  const { cycleTheme } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-
-  const handleCycleTheme = () => {
-    const nuevoNombre = cycleTheme()
-    play('playLevelUp')
-    toast(t('header.paletaToast', { nombre: nuevoNombre }), { duration: 1500 })
-  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -88,10 +78,10 @@ function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,backdrop-filter,border-color] duration-200 sm:gap-6 sm:px-8 sm:py-4 ${
+      className={`sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-200 sm:gap-6 sm:px-8 sm:py-4 ${
         scrolled
-          ? 'border-b border-border bg-surface/70 backdrop-blur-xl'
-          : 'border-b border-transparent bg-transparent backdrop-blur-0'
+          ? 'border-b border-white/10 bg-bg/78 shadow-[0_18px_70px_-48px_rgb(0_0_0_/_0.9)] backdrop-blur-2xl'
+          : 'border-b border-white/8 bg-bg/52 backdrop-blur-xl'
       }`}
     >
       <Link to="/" className="flex items-center gap-2.5">
@@ -131,15 +121,6 @@ function Header() {
           {t('header.ctaVotar')}
         </NavLink>
         <LanguageToggle />
-        <button
-          type="button"
-          onClick={handleCycleTheme}
-          aria-label={t('header.cambiarTema')}
-          className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-accent"
-        >
-          <Palette className="h-4 w-4" />
-        </button>
-        <LightModeToggle />
         <button
           type="button"
           onClick={() => {
@@ -195,7 +176,7 @@ function Header() {
             to="/votar"
             onPointerDown={ctaVotarMobile.onPointerDown}
             onClick={ctaVotarMobile.onClick}
-            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-semibold text-bg"
+            className="inline-flex items-center gap-1.5 rounded-md border border-accent/50 bg-gradient-to-b from-accent-hover to-accent px-3 py-1.5 text-[13px] font-black text-white shadow-[0_0_24px_-14px_var(--color-accent)]"
           >
             <Swords className="h-3.5 w-3.5" />
             {t('header.ctaVotarCompact')}
@@ -224,7 +205,7 @@ function Header() {
           />
           <div
             id="mobile-nav-panel"
-            className="absolute inset-x-0 top-full z-30 border-b border-border bg-surface px-5 py-4 shadow-lg sm:hidden"
+            className="absolute inset-x-0 top-full z-30 border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl sm:hidden"
           >
             <div className="flex flex-col gap-1">
               {navLinks.map(({ to, i18nKey }) => (
@@ -269,15 +250,6 @@ function Header() {
             </div>
             <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
               <LanguageToggle />
-              <button
-                type="button"
-                onClick={handleCycleTheme}
-                aria-label={t('header.cambiarTema')}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted hover:bg-surface-alt hover:text-accent"
-              >
-                <Palette className="h-4 w-4" />
-              </button>
-              <LightModeToggle />
               <button
                 type="button"
                 onClick={() => { toggleMute(); if (muted) play('playClick') }}
@@ -338,53 +310,6 @@ function UserBadge({ user, onLogout, t }) {
         {t('nav.salir')}
       </button>
     </div>
-  )
-}
-
-/**
- * Toggle light/dark (Plan v2 §11.6). Lee/persiste en localStorage y
- * aplica/quita la clase {@code theme-light} en {@code html}. El default
- * es dark (sin clase) — la app está pensada dark-first y el light es
- * opt-in para quien lo prefiera.
- */
-// Audit P2 (2026-05-17): la key 'animeshowdown.theme' la compartía con
-// ThemeContext (que la usa para magenta/cyan/violet/amber). Se pisaban
-// mutuamente y la preferencia se reseteaba al reload. Ahora cada uno
-// tiene su key: aquí 'animeshowdown.theme.mode' para light/dark. La
-// migración silenciosa la hace ThemeContext.leerPaletaInicial.
-const MODE_STORAGE_KEY = 'animeshowdown.theme.mode'
-function LightModeToggle() {
-  const [light, setLight] = useState(() => {
-    if (typeof document === 'undefined') return false
-    try {
-      return localStorage.getItem(MODE_STORAGE_KEY) === 'light'
-    } catch {
-      return false
-    }
-  })
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-    const html = document.documentElement
-    if (light) {
-      html.classList.add('theme-light')
-      try { localStorage.setItem(MODE_STORAGE_KEY, 'light') } catch { /* ignore */ }
-    } else {
-      html.classList.remove('theme-light')
-      try { localStorage.setItem(MODE_STORAGE_KEY, 'dark') } catch { /* ignore */ }
-    }
-  }, [light])
-
-  return (
-    <button
-      type="button"
-      onClick={() => setLight((l) => !l)}
-      aria-label={light ? 'Activar modo oscuro' : 'Activar modo claro'}
-      title={light ? 'Modo oscuro' : 'Modo claro'}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-accent"
-    >
-      {light ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-    </button>
   )
 }
 
