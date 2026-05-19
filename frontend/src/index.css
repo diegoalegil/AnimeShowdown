@@ -19,11 +19,12 @@
   --animate-aurora-2: aurora-2 18s ease-in-out infinite;
   --animate-aurora-3: aurora-3 16s ease-in-out infinite;
   --animate-shimmer: shimmer 5s ease-in-out infinite;
-  /* Marquee de 180s (3 min/ciclo) — sensación de "comunidad activa
-     pasando por delante". Antes era 1300s (~22 min) que parecía estático
-     en pantalla. A 180s, con 80 nombres duplicados, ~2s por nombre
-     visible: legible pero claramente en movimiento. */
-  --animate-marquee: marquee 180s linear infinite;
+  /* Marquee de 90s (1.5 min/ciclo) — pasada de "comunidad pasando" a
+     "stream activo". Antes era 1300s (estático), luego 180s (lento
+     legible), ahora 90s con 80 nombres duplicados → ~1.1s por nombre
+     visible: claramente rápido pero aún legible. Si saturase, subir
+     a 110-120s. Si pareciera lento otra vez, bajar a 60s. */
+  --animate-marquee: marquee 90s linear infinite;
   --animate-pulse-halo: pulse-halo 2.4s ease-out infinite;
 }
 
