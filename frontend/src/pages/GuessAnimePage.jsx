@@ -39,10 +39,10 @@ const containerVariants = {
 /**
  * Guess the Anime — Daily (Plan v2 §14.3).
  *
- * <p>A diferencia de Guess the Character, aquí la imagen del personaje
- * se ve nítida desde el principio. Lo que hay que adivinar es de qué
- * anime es. 5 intentos. La pista opcional revela el nombre del
- * personaje y gasta un intento.
+ * <p>A diferencia de Guess the Character, aquí se intuye la carta del
+ * personaje desde el principio con blur visual progresivo. Lo que hay
+ * que adivinar es de qué anime es. 5 intentos. La pista opcional revela
+ * el nombre del personaje y gasta un intento.
  */
 function GuessAnimePage() {
   useSeo({
@@ -111,7 +111,7 @@ function GuessAnimePage() {
   }
 
   return (
-    <section className="px-5 py-5 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple px-5 py-5 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -120,7 +120,7 @@ function GuessAnimePage() {
           { label: 'Anime Reveal', path: '/games/anime-reveal' },
         ])}
       />
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-5xl">
         <Link
           to="/games"
           className="mb-3 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong sm:mb-6"
@@ -129,17 +129,17 @@ function GuessAnimePage() {
           Hub de juegos
         </Link>
         <motion.header
-          className="mb-4 flex flex-col items-start gap-2 sm:mb-8 sm:gap-3"
+          className="mb-4 flex flex-col items-center gap-2 text-center sm:mb-8 sm:gap-3"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-amber-200 sm:px-3.5 sm:py-1.5 sm:text-[12px]">
+          <span className="as-kicker border-amber-500/45 bg-amber-500/10 text-amber-200">
             <Type className="h-3 w-3" />
             Anime Reveal · Daily
           </span>
-          <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] leading-tight tracking-tight">
-            ¿De qué anime es?
+          <h1 className="text-[clamp(2.2rem,6vw,4.6rem)] font-extrabold leading-tight tracking-tight">
+            ¿De qué <span className="as-title-gradient">anime</span> es?
           </h1>
           <p className="text-[13px] text-fg-muted">
             {estado.finalizado
@@ -151,13 +151,13 @@ function GuessAnimePage() {
         {/* Audit visual (2026-05-18): cap mobile a 42vh para que el input
             quede dentro del primer viewport. Width sigue al aspect-ratio. */}
         <div
-          className={`relative mx-auto mb-4 w-fit overflow-hidden rounded-xl border bg-surface transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
+          className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
             estado.acertado
               ? 'border-amber-400/60 shadow-[0_0_60px_-10px_rgba(251,191,36,0.55)]'
               : 'border-border'
           }`}
         >
-          <div className="relative aspect-[2/3] h-[42vh] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
+          <div className="relative aspect-[2/3] h-[52vh] max-h-[560px] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
             {/* Audit P1 (auditoría externa 2026-05-18): el <img> plano
                 no tenía fallback, así que personajes con imagen problemática
                 (ej. roy_mustang con naturalWidth=0 reportado) salían como
@@ -168,7 +168,7 @@ function GuessAnimePage() {
             <PersonajeImg
               slug={objetivo.slug}
               alt="Personaje a identificar"
-              className="h-full w-full object-contain"
+              className={`h-full w-full object-contain ${!estado.finalizado ? 'blur-xl scale-105 saturate-125' : ''}`}
             />
             {estado.acertado && (
               <motion.div
@@ -222,7 +222,7 @@ function GuessAnimePage() {
               type="button"
               onClick={handlePista}
               disabled={estado.pistaUsada || restantes <= 1}
-              className="inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Lightbulb className="h-3.5 w-3.5" />
               {estado.pistaUsada
@@ -329,7 +329,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
 
 function ListaIntentosAnime({ intentos }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
+    <div className="as-panel rounded-xl p-4">
       <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
         Tus intentos
       </p>

@@ -236,7 +236,7 @@ function GamesHubPage() {
   const otros = GAMES.filter((g) => g.to !== destacado.to)
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -244,7 +244,7 @@ function GamesHubPage() {
           { label: 'Anime Daily Trials', path: '/games' },
         ])}
       />
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <motion.header
           className="mb-8 flex flex-col items-start gap-3"
           initial="hidden"
@@ -254,11 +254,11 @@ function GamesHubPage() {
           {/* Acento violeta del sistema (audit producto 2026-05-18):
               juegos = cyan/violeta. Diferencia el hub de retos del
               magenta de votos/torneos. */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/40 bg-violet-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-violet-300">
+          <span className="as-kicker border-violet-500/45 bg-violet-500/10 text-violet-300">
             <Gamepad2 className="h-3 w-3" />
             Anime Daily Trials
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3.25rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(2.4rem,6vw,4.7rem)] font-extrabold leading-tight tracking-tight">
             Retos diarios de AnimeShowdown
           </h1>
           <p className="max-w-2xl text-fg-muted">
@@ -269,7 +269,7 @@ function GamesHubPage() {
         </motion.header>
 
         {/* Stats bar — racha hoy, mejor récord, countdown reinicio */}
-        <div className="mb-8 grid grid-cols-2 gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-3 sm:p-5">
+        <div className="as-panel mb-8 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:p-5">
           <StatTile
             icon={Flame}
             iconColor="text-orange-400"
@@ -377,7 +377,7 @@ function CardDestacado({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`group relative flex flex-col gap-4 overflow-hidden rounded-2xl border bg-surface p-6 transition-all hover:-translate-y-1 sm:flex-row sm:items-center sm:gap-6 sm:p-8 ${theme.border} hover:${theme.glow}`}
+      className={`as-panel-hot group relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all hover:-translate-y-1 sm:flex-row sm:items-center sm:gap-6 sm:p-8 ${theme.border} hover:${theme.glow}`}
     >
       {/* Background gradient */}
       <div
@@ -437,7 +437,7 @@ function CardMini({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`group relative flex gap-3 overflow-hidden rounded-xl border bg-surface p-4 transition-all hover:-translate-y-0.5 ${theme.border} hover:${theme.glow}`}
+      className={`as-panel group relative flex gap-3 overflow-hidden rounded-xl border p-4 transition-all hover:-translate-y-0.5 ${theme.border} hover:${theme.glow}`}
     >
       <div
         className={`absolute inset-0 bg-gradient-to-br opacity-30 ${theme.gradient}`}
@@ -496,7 +496,7 @@ function OmikujiCard() {
   return (
     <Link
       to="/omikuji"
-      className="group relative flex items-center gap-4 overflow-hidden rounded-xl border border-accent/40 bg-accent-soft px-5 py-4 transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+      className="as-panel-hot group relative flex items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-4 transition-all hover:-translate-y-0.5"
     >
       <span className="pointer-events-none absolute -right-2 -top-3 select-none font-mono text-[5rem] leading-none text-accent opacity-[0.08]">
         御籤

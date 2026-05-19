@@ -124,7 +124,7 @@ function ImpostorPage() {
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <section className="as-stage as-stage-purple px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -133,7 +133,7 @@ function ImpostorPage() {
           { label: 'Impostor Trial', path: '/games/impostor-trial' },
         ])}
       />
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-6xl">
         <Link
           to="/games"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
@@ -147,11 +147,11 @@ function ImpostorPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/40 bg-purple-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-purple-200">
+          <span className="as-kicker border-purple-500/45 bg-purple-500/10 text-purple-200">
             <Sparkles className="h-3 w-3" />
             裏 · Impostor Trial · Daily
           </span>
-          <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight tracking-tight">
+          <h1 className="text-[clamp(2.4rem,6vw,4.6rem)] font-extrabold leading-tight tracking-tight">
             4 cartas. 1 traidor.
           </h1>
           {finalizadoDia ? (
@@ -239,7 +239,7 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
   const porcentajeRestante = (segundos / SEGUNDOS_POR_RONDA) * 100
   const critico = segundos <= 5
   return (
-    <div className="relative mb-6 overflow-hidden rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-fuchsia-500/5 to-slate-900/30 p-6">
+    <div className="as-panel relative mb-6 overflow-hidden rounded-xl border-purple-500/30 p-6">
       {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
       <span
         aria-hidden="true"
@@ -305,7 +305,7 @@ function Carta({ item, onClick }) {
       type="button"
       onClick={onClick}
       aria-label={`${item.nombre} de ${item.anime} — ¿impostor?`}
-      className="group relative overflow-hidden rounded-lg border border-border bg-bg text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/40"
+      className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/60"
     >
       <div className="aspect-[3/4] w-full overflow-hidden bg-surface-alt">
         <img
@@ -313,7 +313,7 @@ function Carta({ item, onClick }) {
           alt=""
           loading="lazy"
           onError={ocultaImgRota}
-          className="h-full w-full object-contain transition-transform group-hover:scale-105"
+          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
         />
       </div>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2.5">
@@ -325,7 +325,7 @@ function Carta({ item, onClick }) {
 
 function ProgresoRondas({ rondaActual, resultados, total }) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2 rounded-lg border border-border bg-surface p-3">
+    <div className="as-panel flex flex-wrap items-center justify-center gap-2 rounded-lg p-3">
       {[...Array(total)].map((_, i) => {
         const resultado = resultados[i]
         const esActual = i === rondaActual && resultado == null

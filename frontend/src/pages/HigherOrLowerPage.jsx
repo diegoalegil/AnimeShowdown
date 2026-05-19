@@ -124,15 +124,15 @@ function HigherOrLowerPage() {
   }
 
   return (
-    <section className="relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-14">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 sm:gap-6">
+    <section className="as-stage relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
         <header className="flex flex-col items-start gap-2 sm:gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-cyan-200 sm:py-1.5">
+          <span className="as-kicker border-cyan-500/45 bg-cyan-500/10 text-cyan-200">
             <Sparkles className="h-3 w-3" />
             戦 · ELO Duel · Endless
           </span>
-          <h1 className="text-[clamp(1.5rem,5vw,3rem)] leading-tight tracking-tight">
-            ELO Duel
+          <h1 className="text-[clamp(2.4rem,7vw,4.45rem)] font-extrabold leading-tight tracking-tight">
+            <span className="as-title-gradient">ELO</span> Duel
           </h1>
           <p className="max-w-2xl text-[13px] text-fg-muted sm:text-base">
             ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO que el de la izquierda?
@@ -162,7 +162,7 @@ function HigherOrLowerPage() {
                  antes stack vertical empujaba los botones Más/Menos
                  fuera del primer viewport. Side-by-side compacta todo
                  el duelo en un solo fold. */
-              className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 md:items-center md:gap-6"
+              className="mx-auto grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 md:items-center md:gap-6"
             >
               <ReferenceCard personaje={reference} />
               <VsBadge revealed={revealed} />
@@ -191,7 +191,7 @@ function ScoreBar({ score, best }) {
   const cerca = best > 0 && score >= best - 2
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-xl border bg-surface px-5 py-3 transition-all duration-300 ${
+      className={`as-panel flex items-center justify-between gap-3 rounded-xl px-5 py-3 transition-all duration-300 ${
         cerca
           ? 'border-accent/60 shadow-[0_0_40px_-12px_rgba(255,46,99,0.65)]'
           : 'border-border'
@@ -264,9 +264,9 @@ function ReferenceCard({ personaje }) {
       initial={{ x: 40, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="relative flex flex-col overflow-hidden rounded-xl border-2 border-border bg-surface"
+      className="as-ssr-card relative flex flex-col overflow-hidden rounded-2xl border-2 border-border"
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt sm:aspect-auto sm:h-[40vh] sm:max-h-[470px]">
         <PersonajeImg
           slug={personaje.slug}
           alt={personaje.nombre}
@@ -306,9 +306,9 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
       initial={{ x: -40, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className={`relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-colors ${borderClass}`}
+      className={`as-ssr-card relative flex flex-col overflow-hidden rounded-2xl border-2 transition-colors ${borderClass}`}
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt sm:aspect-auto sm:h-[40vh] sm:max-h-[470px]">
         <PersonajeImg
           slug={personaje.slug}
           alt={personaje.nombre}
@@ -384,7 +384,7 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="flex flex-col items-center gap-4 rounded-xl border border-rose-500/30 bg-rose-500/5 p-8 text-center"
+      className="as-panel flex flex-col items-center gap-4 rounded-xl border-rose-500/30 bg-rose-500/5 p-8 text-center"
     >
       <span className="inline-flex rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-rose-300">
         Game Over
