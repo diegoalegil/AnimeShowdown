@@ -22,6 +22,10 @@ public enum AuditEvento {
     CUENTA_BLOQUEADA,
     /** Registro de nueva cuenta. */
     REGISTRO,
+    /** Registro creado desde proveedor OAuth externo. */
+    OAUTH_REGISTRO,
+    /** Login/link de cuenta completado desde proveedor OAuth externo. */
+    OAUTH_LOGIN_OK,
     /** Email verificado (Plan v2 §2.4). */
     EMAIL_VERIFICADO,
     /** Reenvio del email de verificación. */
