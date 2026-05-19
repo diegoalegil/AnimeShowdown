@@ -35,6 +35,20 @@ const PALETTES = [
   { accent: '#4b327f', accentRgb: '75 50 127', glow: '#c5a15a', glowRgb: '197 161 90' },
 ]
 
+const EXTENSIONS = ['webp', 'avif', 'png', 'jpg', 'jpeg', 'svg']
+
+function resolveAsset(path) {
+  if (!path) return null
+  if (VISUAL_ASSET_PATHS.has(path)) return path
+
+  const base = path.replace(/\.(webp|avif|png|jpe?g|svg)$/i, '')
+  for (const ext of EXTENSIONS) {
+    const candidate = `${base}.${ext}`
+    if (VISUAL_ASSET_PATHS.has(candidate)) return candidate
+  }
+  return null
+}
+
 function palette(seed = '') {
   let hash = 0
   for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
@@ -57,9 +71,7 @@ function makeVisual({
   glowRgb,
 }) {
   const p = palette(paletteSeed)
-  const resolvedImage = image ?? (
-    expectedPath && VISUAL_ASSET_PATHS.has(expectedPath) ? expectedPath : null
-  )
+  const resolvedImage = image ?? resolveAsset(expectedPath)
   return {
     slug,
     title,
@@ -367,6 +379,58 @@ export const BRAND_VISUALS = {
     fallbackImage: STAGE.pulse,
     expectedPath: '/assets/brand/backgrounds/home-pulse.webp',
   }),
+  ranking: makeVisual({
+    slug: 'ranking-hero',
+    title: 'Salón de la fama',
+    type: 'brand',
+    kanji: '冠',
+    fallbackImage: STAGE.ranking,
+    expectedPath: '/assets/brand/backgrounds/ranking-hero.webp',
+    accent: '#c5a15a',
+    accentRgb: '197 161 90',
+    glow: '#9f1d2c',
+    glowRgb: '159 29 44',
+  }),
+  animes: makeVisual({
+    slug: 'anime-catalog',
+    title: 'Universos anime',
+    type: 'brand',
+    kanji: '界',
+    fallbackImage: STAGE.animes,
+    expectedPath: '/assets/brand/backgrounds/anime-catalog.webp',
+  }),
+  torneos: makeVisual({
+    slug: 'tournament-catalog',
+    title: 'Torneos',
+    type: 'brand',
+    kanji: '戦',
+    fallbackImage: STAGE.torneos,
+    expectedPath: '/assets/brand/backgrounds/tournament-catalog.webp',
+    accent: '#1f6b83',
+    accentRgb: '31 107 131',
+    glow: '#9f1d2c',
+    glowRgb: '159 29 44',
+  }),
+  eventos: makeVisual({
+    slug: 'events-hero',
+    title: 'Eventos',
+    type: 'brand',
+    kanji: '祭',
+    fallbackImage: STAGE.eventos,
+    expectedPath: '/assets/brand/backgrounds/events-hero.webp',
+    accent: '#4b327f',
+    accentRgb: '75 50 127',
+    glow: '#c5a15a',
+    glowRgb: '197 161 90',
+  }),
+  games: makeVisual({
+    slug: 'games-hub',
+    title: 'Retos diarios',
+    type: 'brand',
+    kanji: '遊',
+    fallbackImage: STAGE.games,
+    expectedPath: '/assets/brand/backgrounds/games-hub.webp',
+  }),
   error: makeVisual({
     slug: 'error-rain',
     title: 'Error scene',
@@ -445,6 +509,9 @@ export const VISUAL_ASSET_ROOTS = [
   '/assets/game-covers/',
   '/assets/error-scenes/',
   '/assets/empty-states/',
+  '/assets/fallbacks/',
   '/assets/particles/',
   '/assets/overlays/',
+  '/assets/brand/decorations/',
+  '/assets/brand/kanji/',
 ]
