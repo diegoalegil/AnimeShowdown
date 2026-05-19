@@ -27,6 +27,7 @@ const TorneosPage = lazy(() => import('./pages/TorneosPage'))
 const TorneoDetailPage = lazy(() => import('./pages/TorneoDetailPage'))
 const EventosIndexPage = lazy(() => import('./pages/EventosIndexPage'))
 const EventoDetailPage = lazy(() => import('./pages/EventoDetailPage'))
+const DueloVersusPage = lazy(() => import('./pages/DueloVersusPage'))
 const RankingPage = lazy(() => import('./pages/RankingPage'))
 const HigherOrLowerPage = lazy(() => import('./pages/HigherOrLowerPage'))
 const VotarPage = lazy(() => import('./pages/VotarPage'))
@@ -155,6 +156,7 @@ function App() {
                 <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
                 <Route path="/eventos" element={<EventosIndexPage />} />
                 <Route path="/eventos/:slug" element={<EventoDetailPage />} />
+                <Route path="/duelos/:par" element={<DueloVersusPage />} />
                 <Route path="/ranking" element={<RankingPage />} />
                 {/* Higher or Lower → ELO Duel rebrand (Plan v2 §14). La ruta
                     vieja redirige client-side; el _redirects de Cloudflare
