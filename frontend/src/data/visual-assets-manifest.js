@@ -9,7 +9,6 @@ export const VISUAL_ASSET_PATHS = new Set([
   "/assets/anime-banners/chainsaw-man.webp",
   "/assets/anime-banners/death-note.svg",
   "/assets/anime-banners/demon-slayer.svg",
-  "/assets/anime-banners/demon-slayer.webp",
   "/assets/anime-banners/fullmetal-alchemist.svg",
   "/assets/anime-banners/fullmetal-alchemist.webp",
   "/assets/anime-banners/haikyuu.svg",
