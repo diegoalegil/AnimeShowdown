@@ -4,33 +4,29 @@
  *
  * Lee prompts.json, abre Chromium headed con un userDataDir persistente
  * (te logueas UNA vez la primera ejecucion y la sesion se reusa), y
- * itera por cada prompt: nuevo chat -> pega -> envia -> espera respuesta
- * por estado del UI (NO por timer fijo) -> descarga la imagen -> renombra
- * a slug.png -> wait random 8-20s -> siguiente.
+ * itera por cada prompt: nuevo chat -> tipea -> envia -> espera la
+ * <img> generada en el DOM -> descarga via Playwright request (cookies
+ * de la sesion) -> guarda como <slug>.png -> wait random -> siguiente.
  *
  * RIESGO: viola los TOS de OpenAI (seccion 2(a)(iii) prohibe "automated
  * or programmatic method to extract output"). Cuenta Pro puede ser
- * baneada. Defensas implementadas que reducen pero NO eliminan el riesgo:
+ * baneada. Defensas anti-deteccion implementadas reducen pero NO
+ * eliminan el riesgo.
  *
- *  - Browser HEADED real (no headless — detectable al instante).
- *  - userDataDir persistente: misma sesion del navegador real, cookies y
- *    fingerprint estables.
- *  - Delays random entre acciones (8-20s entre prompts).
- *  - Tipeo caracter-a-caracter con random delay (humanos no pegan).
- *  - Pausa larga (3-5min) cada 15 prompts para parecer human.
- *  - Captcha guard: si aparece un challenge, pausa y avisa para resolver
- *    a mano antes de continuar.
- *  - Estado persistente en state.json: si crashea o pausas con Ctrl+C,
- *    `npm run resume` retoma donde se quedo.
- *  - Logs detallados — cada accion se loggea con timestamp.
- *
- * NO usar contra cuenta principal sin entender el riesgo. Si OpenAI
- * detecta el patron de uso, el ban es a la cuenta entera (Pro + API +
- * billing). Recomendado: probar con primero los 3-4 prompts y observar.
+ * Iteraciones aprendidas en ejecucion real:
+ *  - viewport=null: la ventana es libre de redimensionar.
+ *  - No depender del boton "Stop generating" — aparece y desaparece
+ *    erratico en ChatGPT 5 sin correlacion con cuando la imagen
+ *    realmente termina.
+ *  - Prefijo "Generate this image: " es CRITICO en GPT-5 Auto.
+ *  - Descarga via context.request.get() en lugar de page.evaluate(fetch).
+ *  - Auto-retry x2 antes de saltar un prompt definitivamente.
+ *  - Screenshot en errors/ para diagnostico cuando falla.
+ *  - lastIndex solo avanza con exito real.
  */
 
 import { chromium } from 'playwright'
-import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -39,24 +35,28 @@ const PROMPTS_FILE = join(__dirname, 'prompts.json')
 const STATE_FILE = join(__dirname, 'state.json')
 const USER_DATA_DIR = join(__dirname, 'user-data')
 const DOWNLOADS_DIR = join(__dirname, 'downloads')
+const ERRORS_DIR = join(__dirname, 'errors')
 
-// Knobs anti-deteccion. NO subas estos numeros sin necesidad — cuanto
-// mas rapido, mas evidente que es un bot.
-const DELAY_BETWEEN_PROMPTS = [8000, 20000]   // 8-20s entre prompts
-const TYPE_DELAY_PER_CHAR = [30, 70]          // ms entre caracteres al tipear
-const LONG_PAUSE_EVERY = 15                   // cada N prompts, pausa larga
-const LONG_PAUSE_DURATION = [180000, 300000]  // 3-5min de respiracion
-const RESPONSE_TIMEOUT_MS = 180000            // hasta 3min para generar una imagen
-const POST_GENERATION_WAIT = [2000, 5000]     // espera tras detectar imagen
+// Knobs anti-deteccion. NO subas estos sin necesidad.
+const DELAY_BETWEEN_PROMPTS = [8000, 20000]
+const TYPE_DELAY_PER_CHAR = [25, 65]
+const LONG_PAUSE_EVERY = 15
+const LONG_PAUSE_DURATION = [180000, 300000]
+const RESPONSE_TIMEOUT_MS = 240000 // 4 min — ChatGPT 5 a veces tarda
+const POST_GENERATION_WAIT = [2000, 5000]
+const MAX_RETRIES_PER_PROMPT = 2
 
-// Selectores. Si OpenAI cambia el DOM, hay que actualizar AQUI.
 const SELECTORS = {
-  promptTextarea: '#prompt-textarea, textarea[data-id], textarea[placeholder*="Message"]',
-  sendButton: 'button[data-testid="send-button"], button[aria-label*="Send"]',
-  stopGenerating: 'button[aria-label*="Stop"], button[data-testid="stop-button"]',
-  newChatButton: 'a[href="/"], button[aria-label*="New chat"]',
-  generatedImage: 'img[src*="oaiusercontent"], img[alt*="Generated"]',
-  challengeIframe: 'iframe[src*="challenges.cloudflare.com"], iframe[title*="hCaptcha"], iframe[title*="reCAPTCHA"]',
+  promptTextarea: [
+    '#prompt-textarea',
+    'textarea[data-id]',
+    'textarea[placeholder*="Message"]',
+    'textarea[placeholder*="mensaje" i]',
+    'div[contenteditable="true"][role="textbox"]',
+    'div[contenteditable="true"]',
+  ].join(', '),
+  challengeIframe:
+    'iframe[src*="challenges.cloudflare.com"], iframe[title*="hCaptcha"], iframe[title*="reCAPTCHA"]',
 }
 
 const log = (...args) => {
@@ -72,8 +72,7 @@ const randInt = (range) => {
 }
 
 function loadPrompts() {
-  const data = JSON.parse(readFileSync(PROMPTS_FILE, 'utf8'))
-  return data.prompts
+  return JSON.parse(readFileSync(PROMPTS_FILE, 'utf8')).prompts
 }
 
 function loadState() {
@@ -94,9 +93,12 @@ async function detectChallenge(page) {
   } catch {
     /* ignore */
   }
-  // Algunas paginas devuelven texto "Verify you are human"
-  const txt = await page.content()
-  if (/verify you are human|attention required|cloudflare/i.test(txt)) return true
+  try {
+    const txt = await page.content()
+    if (/verify you are human|attention required|cloudflare/i.test(txt)) return true
+  } catch {
+    /* ignore */
+  }
   return false
 }
 
@@ -110,30 +112,59 @@ async function waitForChallenge(page) {
   log('✅ Challenge resuelto. Continuando.')
 }
 
+async function dismissDialogs(page) {
+  // Cerrar popups de bienvenida, banners de cookies, modal de "what's new"
+  // que ChatGPT a veces muestra al cargar el chat. Patrones comunes:
+  //   - Botones con texto "OK", "Accept", "Got it", "Aceptar", "Entendido"
+  //   - Botones con aria-label="Close" o icono X en modal/dialog
+  try {
+    const candidatos = await page.$$('button:visible')
+    for (const btn of candidatos) {
+      try {
+        const txt = await btn.textContent()
+        if (!txt) continue
+        const t = txt.trim().toLowerCase()
+        if (
+          t === 'ok' ||
+          t === 'accept' ||
+          t === 'aceptar' ||
+          t === 'got it' ||
+          t === 'entendido' ||
+          t === 'continue' ||
+          t === 'continuar' ||
+          t === 'okay' ||
+          t === "let's go" ||
+          t === 'okay, got it'
+        ) {
+          await btn.click({ timeout: 2000 })
+          await wait(500)
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 async function startNewChat(page) {
-  // ChatGPT mantiene la conversacion abierta indefinidamente; abrir un
-  // nuevo chat por cada prompt evita que la context window se sature y
-  // que el modelo "recuerde" prompts anteriores que puedan sesgar la
-  // imagen generada.
-  //
-  // OJO: NO forzamos modelo via query param porque ChatGPT5 ignora
-  // ?model=gpt-4o y mantiene la seleccion del usuario. Antes de empezar
-  // el batch, asegurate manualmente que el modo seleccionado NO es
-  // "Thinking" (no genera imagenes) — usa "Auto" o ChatGPT 5 sin
-  // razonamiento extendido.
   await page.goto('https://chatgpt.com/', {
     waitUntil: 'domcontentloaded',
   })
   await wait(randInt([1500, 3000]))
   await waitForChallenge(page)
+  await dismissDialogs(page)
 }
 
-async function typeHumanLike(page, selector, text) {
-  // pegar (page.fill) es detectable. Tipear caracter a caracter con
-  // delay random es indistinguible de un humano rapido.
-  const el = await page.waitForSelector(selector, { timeout: 30000 })
+async function typeHumanLike(page, text) {
+  const selector = SELECTORS.promptTextarea
+  const el = await page.waitForSelector(selector, { timeout: 30000, state: 'visible' })
   await el.click()
   await wait(randInt([200, 600]))
+  // Tipear caracter a caracter. Si el target es contenteditable (div),
+  // page.keyboard.type ya escribe en el elemento con foco — funciona en
+  // ambos: textarea legacy y contenteditable del composer moderno.
   for (const ch of text) {
     await page.keyboard.type(ch, { delay: randInt(TYPE_DELAY_PER_CHAR) })
   }
@@ -141,139 +172,174 @@ async function typeHumanLike(page, selector, text) {
 }
 
 async function sendPrompt(page) {
-  // Primary: Enter sobre el textarea. Funciona en todas las versiones de
-  // chatgpt.com y no depende de selectores que cambian. El textarea sigue
-  // focuseado tras el typeHumanLike anterior asi que el Enter se aplica a
-  // el directamente.
-  //
-  // Si por alguna razon Enter no dispara el send (ej. modo "Thinking" que
-  // bloquea image generation y deshabilita el shortcut), probamos varios
-  // selectores conocidos para el boton circular azul.
+  // Enter es el envio. En ChatGPT moderno el shortcut esta SIEMPRE
+  // habilitado para el composer principal. Si por algun motivo el
+  // textarea NO esta focuseado (improbable tras typeHumanLike), Enter
+  // no hace nada y el bucle de waitForResponse hara timeout sin imagen.
   await page.keyboard.press('Enter')
-  await wait(800)
-  // Verificar que la respuesta empezo: buscar el stop button. Si NO
-  // aparece tras Enter, intentar click del send button como backup.
-  const empezo = await page.$(SELECTORS.stopGenerating)
-  if (!empezo) {
-    log('   Enter no disparo el envio — intentando click del send button…')
-    const sendSelectors = [
-      'button[data-testid="send-button"]',
-      'button[aria-label*="Send" i]',
-      'button[aria-label*="Enviar" i]',
-      'button[type="submit"][class*="primary" i]',
-      'form button[type="submit"]',
-      // Como ultimo recurso: cualquier boton circular azul del composer
-      'main button.rounded-full[class*="bg-"]',
+}
+
+async function detectRechazo(page) {
+  // ChatGPT a veces se niega a generar imagenes con texto tipo "I can't
+  // help with that" o "I'm unable to generate that image". Devuelve true
+  // si detectamos ese patron — saltar el prompt en lugar de esperar 3min.
+  try {
+    const txt = (await page.evaluate(() => document.body.innerText || '')).toLowerCase()
+    const patrones = [
+      "i can't help",
+      "i can't generate",
+      "i'm unable to",
+      "i won't generate",
+      "i'm not able to",
+      'no puedo generar',
+      'no puedo ayudar',
+      'this content is not allowed',
+      'against the content policy',
+      'against our usage policies',
     ]
-    for (const sel of sendSelectors) {
-      const btn = await page.$(sel)
-      if (btn) {
-        log(`   click ${sel}`)
-        await btn.click()
-        break
-      }
-    }
+    return patrones.some((p) => txt.includes(p))
+  } catch {
+    return false
   }
 }
 
-async function waitForResponse(page) {
-  // Audit (ejecucion real 2026-05-20): antes esperabamos el boton
-  // "Stop generating" como proxy de "terminado". Mala idea — en ChatGPT 5
-  // ese boton aparece brevemente para el texto inicial ("Voy a generar
-  // esta imagen…") y luego desaparece MIENTRAS la imagen aun se esta
-  // generando en background. El script abortaba a los 5s "porque
-  // termino" y no encontraba imagen.
-  //
-  // Nuevo enfoque: esperar DIRECTAMENTE a que aparezca el <img> generado
-  // de oaiusercontent.com con naturalWidth >= 256. Cero ambiguedad —
-  // si la imagen esta, listos; si no, esperamos. Timeout 3min para
-  // generaciones lentas.
+async function findGeneratedImage(page) {
+  // Devuelve { src, width, height } de la imagen generada mas reciente
+  // y completamente cargada, o null si todavia no esta.
+  return await page.evaluate(() => {
+    const imgs = Array.from(document.querySelectorAll('img'))
+      .filter((i) => /oaiusercontent\.com|cdn\.openai\.com|files\.oaiusercontent/.test(i.src))
+      // Excluir avatares/icons UI por tamaño
+      .filter((i) => (i.naturalWidth || i.width) >= 384)
+      // SOLO imagenes completamente cargadas
+      .filter((i) => i.complete && i.naturalWidth > 0)
+    if (!imgs.length) return null
+    const last = imgs[imgs.length - 1]
+    return {
+      src: last.src,
+      width: last.naturalWidth,
+      height: last.naturalHeight,
+    }
+  })
+}
+
+async function waitForGeneratedImage(page) {
   const t0 = Date.now()
   let lastLog = 0
   while (Date.now() - t0 < RESPONSE_TIMEOUT_MS) {
-    const tieneImg = await page.evaluate(() => {
-      const imgs = Array.from(document.querySelectorAll('img'))
-        .filter((i) => /oaiusercontent\.com|cdn\.openai\.com/.test(i.src))
-        .filter((i) => (i.naturalWidth || i.width) >= 256)
-      return imgs.length > 0
-    })
-    if (tieneImg) {
-      // Damos 4s mas para que la imagen termine de cargar en alta
-      // resolucion (puede aparecer un placeholder de baja calidad primero
-      // y luego cargar el final).
-      await wait(4000)
-      return true
+    const img = await findGeneratedImage(page)
+    if (img) {
+      // Damos 3s mas para asegurar que es la version final (no un
+      // placeholder de baja resolucion que se reemplaza).
+      await wait(3000)
+      const img2 = await findGeneratedImage(page)
+      // Si la URL cambio (placeholder -> final), usar la nueva.
+      return img2 || img
     }
+    // Detectar rechazo temprano
     const elapsed = Math.round((Date.now() - t0) / 1000)
+    if (elapsed >= 30 && elapsed % 30 === 0) {
+      // Check de rechazo solo despues de 30s (los primeros 30s ChatGPT
+      // puede mostrar "Pensando…" sin contenido aun)
+      if (await detectRechazo(page)) {
+        log('   ⚠️  ChatGPT respondio con rechazo de generacion')
+        return null
+      }
+    }
     if (elapsed >= lastLog + 20) {
-      log(`   ⏳ ${elapsed}s elapsed, sigo esperando imagen…`)
+      log(`   ⏳ ${elapsed}s elapsed, esperando imagen…`)
       lastLog = elapsed
     }
     await wait(2500)
   }
   log(`   ⌛ Timeout tras ${Math.round((Date.now() - t0) / 1000)}s sin imagen`)
-  return false
+  return null
 }
 
-async function downloadImage(page, slug, downloadsDir) {
-  // Las imagenes generadas tienen src en oaiusercontent.com. Las hacemos
-  // fetch en el contexto del browser (cookies validas) → blob → save.
-  const imgSrc = await page.evaluate(() => {
-    const imgs = Array.from(document.querySelectorAll('img'))
-      .filter((i) => /oaiusercontent\.com|cdn\.openai\.com/.test(i.src))
-      .filter((i) => (i.naturalWidth || i.width) >= 256)
-    return imgs.length ? imgs[imgs.length - 1].src : null
-  })
-  if (!imgSrc) throw new Error('No se detecto imagen generada')
-  const buffer = await page.evaluate(async (src) => {
-    const r = await fetch(src, { credentials: 'include' })
-    if (!r.ok) throw new Error('fetch fallo ' + r.status)
-    const b = await r.blob()
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.readAsArrayBuffer(b)
-    })
-  }, imgSrc)
-  // page.evaluate devuelve un ArrayBuffer serializado como objeto;
-  // Playwright lo convierte a Buffer transparentemente.
-  const buf = Buffer.from(buffer)
-  if (!existsSync(downloadsDir)) mkdirSync(downloadsDir, { recursive: true })
-  const outPath = join(downloadsDir, `${slug}.png`)
+async function downloadImage(context, imgInfo, slug) {
+  // context.request.get hereda las cookies del contexto del browser
+  // (sesion ChatGPT) y descarga server-side desde Playwright. Mas
+  // robusto que page.evaluate(fetch) — sin problemas de serializacion
+  // del ArrayBuffer entre browser y Node.
+  if (!existsSync(DOWNLOADS_DIR)) mkdirSync(DOWNLOADS_DIR, { recursive: true })
+  const resp = await context.request.get(imgInfo.src)
+  if (!resp.ok()) {
+    throw new Error(`download HTTP ${resp.status()}`)
+  }
+  const buf = await resp.body()
+  if (buf.length < 1024) {
+    throw new Error(`download demasiado pequeno (${buf.length} bytes) — posible error`)
+  }
+  const outPath = join(DOWNLOADS_DIR, `${slug}.png`)
   writeFileSync(outPath, buf)
+  return outPath
+}
+
+async function saveErrorScreenshot(page, slug) {
+  try {
+    if (!existsSync(ERRORS_DIR)) mkdirSync(ERRORS_DIR, { recursive: true })
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const path = join(ERRORS_DIR, `${slug}-${ts}.png`)
+    await page.screenshot({ path, fullPage: false })
+    log(`   📸 Screenshot del error: ${path}`)
+  } catch {
+    /* ignore */
+  }
+}
+
+async function procesarPrompt(page, context, slug, prompt, intento) {
+  await startNewChat(page)
+  const promptForzado = `Generate this image: ${prompt}`
+  await typeHumanLike(page, promptForzado)
+  log(`   Tipeado (${promptForzado.length} chars), enviando…`)
+  await sendPrompt(page)
+  log('   Esperando imagen…')
+  const img = await waitForGeneratedImage(page)
+  if (!img) {
+    throw new Error(intento < MAX_RETRIES_PER_PROMPT ? 'no-image (will retry)' : 'no-image (final)')
+  }
+  log(`   Imagen detectada (${img.width}x${img.height}), descargando…`)
+  await wait(randInt(POST_GENERATION_WAIT))
+  const outPath = await downloadImage(context, img, slug)
   return outPath
 }
 
 async function run() {
   const resume = process.argv.includes('--resume')
   const prompts = loadPrompts()
-  const state = resume ? loadState() : { done: [], lastIndex: -1, startedAt: new Date().toISOString() }
+  const state = resume
+    ? loadState()
+    : { done: [], skipped: [], lastIndex: -1, startedAt: new Date().toISOString() }
+  if (!state.skipped) state.skipped = []
 
   log(`Cargados ${prompts.length} prompts. ${resume ? 'Reanudando' : 'Iniciando desde cero'}.`)
-  log(`Ya hechos: ${state.done.length}. Siguiente: index ${state.lastIndex + 1}.`)
+  log(`Ya hechos: ${state.done.length}. Saltados: ${state.skipped.length}. Siguiente: index ${state.lastIndex + 1}.`)
 
   if (!existsSync(DOWNLOADS_DIR)) mkdirSync(DOWNLOADS_DIR, { recursive: true })
 
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     headless: false,
-    viewport: { width: 1366, height: 900 },
+    // viewport: null deja que la ventana ajuste a su tamaño nativo y
+    // permite que el usuario la redimensione libremente sin que Playwright
+    // fuerce un tamaño fijo. Modo ventana cómodo.
+    viewport: null,
     locale: 'es-ES',
     timezoneId: 'Europe/Madrid',
-    // Args para minimizar fingerprint de automation
     args: [
       '--disable-blink-features=AutomationControlled',
       '--disable-features=IsolateOrigins,site-per-process',
+      // Ventana maximizada al arrancar, pero el user puede redimensionar
+      '--start-maximized',
     ],
   })
   const page = context.pages()[0] || (await context.newPage())
 
-  // Si es primera vez (userDataDir vacio): el user debe loguearse.
   const cookies = await context.cookies('https://chatgpt.com')
   const tieneSesion = cookies.some((c) => c.name.includes('__Secure-next-auth.session-token'))
   if (!tieneSesion) {
     log('⚠️  No hay sesion guardada. Abriendo ChatGPT — loguea con tu cuenta Pro.')
     await page.goto('https://chatgpt.com/auth/login')
-    log('   Cuando estes en chat (interfaz principal), pulsa ENTER en esta terminal para continuar.')
+    log('   Cuando estes en la interfaz del chat, vuelve a esta terminal y pulsa ENTER.')
     process.stdin.resume()
     await new Promise((resolve) => process.stdin.once('data', resolve))
     process.stdin.pause()
@@ -284,36 +350,35 @@ async function run() {
   for (let i = state.lastIndex + 1; i < prompts.length; i++) {
     const { slug, prompt, category } = prompts[i]
     log(`\n━━━ [${i + 1}/${prompts.length}] ${slug} (${category}) ━━━`)
-    try {
-      await startNewChat(page)
-      // Prefijo CRITICO: ChatGPT 5 con "Auto" a veces decide buscar en
-      // internet en lugar de generar imagen si el prompt parece una
-      // descripcion. Forzando "Generate this image:" elimina la ambiguedad
-      // y el modelo arranca image generation directo.
-      const promptForzado = `Generate this image: ${prompt}`
-      await typeHumanLike(page, SELECTORS.promptTextarea, promptForzado)
-      log('   Prompt tipeado, enviando…')
-      await sendPrompt(page)
-      log('   Esperando respuesta…')
-      const ok = await waitForResponse(page)
-      if (!ok) {
-        log('   ⏱️  Timeout esperando respuesta — saltando este prompt')
+
+    let exito = false
+    let ultError = null
+    for (let intento = 1; intento <= MAX_RETRIES_PER_PROMPT + 1; intento++) {
+      try {
+        if (intento > 1) log(`   🔁 Retry ${intento}/${MAX_RETRIES_PER_PROMPT + 1}`)
+        const outPath = await procesarPrompt(page, context, slug, prompt, intento)
+        log(`   ✅ Guardado: ${outPath}`)
+        state.done.push({ slug, index: i, savedAt: new Date().toISOString() })
         state.lastIndex = i
         saveState(state)
-        continue
+        promptsDesdePausaLarga++
+        exito = true
+        break
+      } catch (err) {
+        ultError = err
+        log(`   ❌ Intento ${intento} fallo: ${err.message}`)
+        await saveErrorScreenshot(page, `${slug}-attempt${intento}`)
+        if (intento <= MAX_RETRIES_PER_PROMPT) {
+          const espera = randInt([10000, 25000])
+          log(`   Esperando ${Math.round(espera / 1000)}s antes de retry…`)
+          await wait(espera)
+        }
       }
-      await wait(randInt(POST_GENERATION_WAIT))
-      log('   Descargando imagen…')
-      const outPath = await downloadImage(page, slug, DOWNLOADS_DIR)
-      log(`   ✅ Guardado: ${outPath}`)
-      state.done.push({ slug, index: i, savedAt: new Date().toISOString() })
-      state.lastIndex = i
-      saveState(state)
-      promptsDesdePausaLarga++
-    } catch (err) {
-      log(`   ❌ Error en ${slug}: ${err.message}`)
-      log('   Pausa de 30s para que ChatGPT se recupere y siguiente…')
-      await wait(30000)
+    }
+
+    if (!exito) {
+      log(`   ⏭️  Saltando ${slug} tras ${MAX_RETRIES_PER_PROMPT + 1} intentos fallidos`)
+      state.skipped.push({ slug, index: i, error: ultError?.message, at: new Date().toISOString() })
       state.lastIndex = i
       saveState(state)
     }
@@ -333,6 +398,11 @@ async function run() {
 
   log('\n✅ Batch completo.')
   log(`Imagenes en: ${DOWNLOADS_DIR}`)
+  log(`OK: ${state.done.length} | SKIPPED: ${state.skipped.length}`)
+  if (state.skipped.length) {
+    log('Saltados:')
+    state.skipped.forEach((s) => log(`  - ${s.slug} (${s.error})`))
+  }
   await context.close()
 }
 

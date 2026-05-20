@@ -80,13 +80,21 @@ Si rerun con cambios sin `--resume`, vuelve a generar desde cero.
 |---|---|
 | Browser **headed** (no headless) | Headless es detectable por > 30 heurísticos |
 | `userDataDir` persistente | Cookies, localStorage, fingerprint estables entre runs |
-| Tipeo carácter a carácter con delay 30-70ms | Humanos no pegan instantáneo |
+| `viewport: null` | Ventana redimensionable libre por el usuario (no tamaño fijo) |
+| `--start-maximized` | Arranca maximizada pero ajustable |
+| Tipeo carácter a carácter con delay 25-65ms | Humanos no pegan instantáneo |
 | Delay random 8-20s entre prompts | Cadencia no robótica |
 | Pausa larga 3-5min cada 15 prompts | Simula "respiración" humana |
-| Detección de respuesta por estado UI | No por timer fijo (más natural) |
+| Detección de imagen DIRECTAMENTE en DOM | No por botón Stop (errático en GPT-5), poll del `<img>` con `complete && naturalWidth>0` |
+| Prefijo `"Generate this image:"` | Fuerza image gen en GPT-5 Auto (sin ese prefijo a veces busca en web) |
+| `context.request.get()` para download | Server-side desde Playwright con cookies, más robusto que `page.evaluate(fetch)` |
+| Auto-retry ×2 por prompt | Reintenta antes de saltar definitivamente |
+| Screenshot en `errors/<slug>-<ts>.png` | Diagnóstico cuando falla |
 | `disable-blink-features=AutomationControlled` | Quita el flag `navigator.webdriver` |
 | Captcha guard | Pausa al detectar Cloudflare/captcha challenge |
-| State.json para reanudar | Resilencia ante cortes |
+| Dialog dismisser | Cierra popups "Got it / Aceptar / Entendido" automáticamente |
+| Detección de rechazo de ChatGPT | "I can't help with that" → saltar prompt, no esperar 4min |
+| State.json — `lastIndex` solo avanza con éxito | Resilencia ante cortes |
 
 ## Procesamiento tras descargar
 
