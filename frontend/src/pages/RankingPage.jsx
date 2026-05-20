@@ -31,6 +31,8 @@ import {
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -77,11 +79,6 @@ const TABS = [
   { id: 'anime', label: 'Por anime', icon: Tv },
 ]
 
-const headerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-}
-
 function RankingPage() {
   useSeo({
     title: 'Ranking ELO',
@@ -90,7 +87,7 @@ function RankingPage() {
   const [tab, setTab] = useState('elo')
 
   return (
-    <section className="as-stage as-stage-amber as-stage-visual as-stage-ranking px-5 py-10 sm:px-8 sm:py-12">
+    <VisualPageShell visual={BRAND_VISUALS.ranking} className="py-10 sm:py-12">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -99,29 +96,18 @@ function RankingPage() {
         ])}
       />
       <div className="mx-auto max-w-7xl">
-        <motion.header
-          className="mb-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-end"
-          initial="hidden"
-          animate="visible"
-          variants={headerVariants}
-        >
-          {/* Acento dorado del sistema (audit producto 2026-05-18): ranking
-              = oro / salón de la fama. Da identidad visual diferenciada
-              del magenta de marca sin perder coherencia. */}
-          <div className="flex flex-col items-start gap-3">
-            <span className="as-kicker border-amber-500/45 bg-amber-500/10 text-amber-300">
-              <Trophy className="h-3 w-3" />
-              Ranking ELO · Salón de la fama
-            </span>
-            <h1 className="text-[clamp(2.35rem,5.2vw,4rem)] font-extrabold leading-tight tracking-tight">
+        <CinematicHero
+          visual={BRAND_VISUALS.ranking}
+          icon={Trophy}
+          eyebrow="Ranking ELO · Salón de la fama"
+          title={
+            <>
               ¿Quién domina <span className="as-title-gradient">AnimeShowdown?</span>
-            </h1>
-            <p className="max-w-2xl text-fg-muted">
-              Estos son los personajes que la comunidad ha llevado a la cima. Cada
-              voto afecta el ELO, cada duelo puede cambiar posiciones y ningún
-              puesto está garantizado.
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
+            </>
+          }
+          subtitle="Estos son los personajes que la comunidad ha llevado a la cima. Cada voto afecta el ELO, cada duelo puede cambiar posiciones y ningún puesto está garantizado."
+          actions={
+            <>
               <Link
                 to="/votar"
                 className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
@@ -137,9 +123,10 @@ function RankingPage() {
                 <HelpCircle className="h-4 w-4" />
                 Cómo funciona el ELO
               </Link>
-            </div>
-          </div>
-          <div className="as-panel border-amber-500/35 rounded-2xl p-5">
+            </>
+          }
+          aside={
+            <div className="as-panel rounded-2xl border-amber-500/35 p-5">
             <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.14em] text-amber-300">
               Meta report · esta semana
             </p>
@@ -155,7 +142,8 @@ function RankingPage() {
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-        </motion.header>
+          }
+        />
 
         {/* Sprint Meta Report (auditoría externa 2026-05-18): párrafo
             narrativo arriba del MoversStrip — convierte "ranking
@@ -183,7 +171,7 @@ function RankingPage() {
 
         <TablaExtraible />
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

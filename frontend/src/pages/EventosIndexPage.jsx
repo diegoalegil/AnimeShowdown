@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
   ArrowRight,
   CalendarClock,
@@ -20,6 +19,7 @@ import {
   getPersonajesEvento,
 } from '../data/eventos'
 import EditorialCover from '../components/EditorialCover'
+import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
 
 /**
@@ -46,7 +46,7 @@ function EventosIndexPage() {
   const total = activos.length + proximos.length + pasados.length
 
   return (
-    <section className="as-stage as-stage-purple as-stage-visual as-stage-eventos px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={BRAND_VISUALS.eventos}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -55,26 +55,13 @@ function EventosIndexPage() {
         ])}
       />
       <div className="mx-auto max-w-6xl">
-        <motion.header
-          className="mb-10 flex flex-col items-start gap-3"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-        >
-          <span className="as-kicker">
-            <CalendarClock className="h-3 w-3" />
-            Temporadas · Copas · Semanas
-          </span>
-          <h1 className="text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-tight tracking-tight">
-            Eventos de AnimeShowdown
-          </h1>
-          <p className="max-w-2xl text-fg-muted">
-            Semanas temáticas, copas de villanos, arcos de héroes. Cada
-            evento agrupa personajes por criterio y los enfrenta durante
-            unos días. El ranking ELO global no se toca — los eventos
-            son competiciones paralelas.
-          </p>
-        </motion.header>
+        <CinematicHero
+          visual={BRAND_VISUALS.eventos}
+          icon={CalendarClock}
+          eyebrow="Temporadas · Copas · Semanas"
+          title="Eventos de AnimeShowdown"
+          subtitle="Semanas temáticas, copas de villanos y arcos de héroes con portada de campaña propia. El ranking ELO global no se toca: los eventos son competiciones paralelas."
+        />
 
         {total === 0 && <EmptyTodos />}
 
@@ -117,7 +104,7 @@ function EventosIndexPage() {
           />
         )}
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 
@@ -209,21 +196,17 @@ function EventoCard({ evento, now, etiqueta }) {
 
 function EmptyTodos() {
   return (
-    <div className="relative flex min-h-80 flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border border-dashed border-border bg-surface/40 p-12 text-center">
-      <EditorialCover
-        visual={BRAND_VISUALS.empty}
-        className="absolute inset-0 rounded-none border-0 opacity-60"
-        imageClassName="saturate-125 contrast-110"
-      />
-      <CalendarClock className="relative h-10 w-10 text-fg-muted" />
-      <p className="relative text-lg font-bold text-fg-strong">
-        Sin eventos en el calendario
-      </p>
-      <p className="relative max-w-md text-[13px] text-fg-muted">
+    <EmptyStateScene
+      visual={BRAND_VISUALS.empty}
+      icon={CalendarClock}
+      title="Sin eventos en el calendario"
+      action={{ to: '/votar', label: 'Votar mientras tanto' }}
+    >
+      <p>
         Cuando preparamos una nueva temporada (Semana X, Copa Y…), aparece
         aquí con su contador. Vuelve pronto.
       </p>
-    </div>
+    </EmptyStateScene>
   )
 }
 

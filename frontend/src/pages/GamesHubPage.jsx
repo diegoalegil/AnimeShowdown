@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
   ArrowRight,
   Eye,
@@ -18,16 +17,8 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { fechaDelDia, safeStorage } from '../lib/games'
 import EditorialCover from '../components/EditorialCover'
-import { getGameVisual } from '../data/visual-assets'
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
 
 /**
  * Hub de modos de juego (Plan v2 §14.1).
@@ -238,7 +229,7 @@ function GamesHubPage() {
   const otros = GAMES.filter((g) => g.to !== destacado.to)
 
   return (
-    <section className="as-stage as-stage-purple as-stage-visual as-stage-games px-5 py-8 sm:px-8 sm:py-10">
+    <VisualPageShell visual={BRAND_VISUALS.games} className="py-8 sm:py-10">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -247,28 +238,24 @@ function GamesHubPage() {
         ])}
       />
       <div className="mx-auto max-w-6xl">
-        <motion.header
-          className="mb-6 flex flex-col items-start gap-3"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          {/* Acento violeta del sistema (audit producto 2026-05-18):
-              juegos = cyan/violeta. Diferencia el hub de retos del
-              magenta de votos/torneos. */}
-          <span className="as-kicker border-violet-500/45 bg-violet-500/10 text-violet-300">
-            <Gamepad2 className="h-3 w-3" />
-            Anime Daily Trials
-          </span>
-          <h1 className="text-[clamp(2.35rem,6vw,4.15rem)] font-extrabold leading-tight tracking-tight">
-            Retos diarios
-          </h1>
-          <p className="max-w-2xl text-fg-muted">
-            Una ronda al día. Una racha que proteger. Un ranking que escalar.
-            Cada reto se elige a las 00:00 hora local — mismo para todos los
-            jugadores.
-          </p>
-        </motion.header>
+        <CinematicHero
+          visual={BRAND_VISUALS.games}
+          icon={Gamepad2}
+          eyebrow="Anime Daily Trials"
+          title="Retos diarios"
+          subtitle="Una ronda al día. Una racha que proteger. Un ranking que escalar. Cada minijuego tiene portada propia y una identidad visual distinta."
+          aside={
+            <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                Reset diario
+              </p>
+              <p className="mt-3 font-mono text-4xl font-black text-fg-strong">
+                {reinicio.h}h {reinicio.m}m
+              </p>
+              <p className="text-sm text-fg-muted">hasta que cambie la suerte.</p>
+            </div>
+          }
+        />
 
         {/* Stats bar — racha hoy, mejor récord, countdown reinicio */}
         <div className="as-panel mb-6 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:p-5">
@@ -350,7 +337,7 @@ function GamesHubPage() {
           </ul>
         </div>
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

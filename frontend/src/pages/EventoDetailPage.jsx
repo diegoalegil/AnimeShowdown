@@ -120,7 +120,13 @@ function EventoDetailPage() {
   const misionEvento = misionPorEstado[estado]
 
   return (
-    <section className="as-stage as-stage-purple as-stage-visual as-stage-eventos px-5 py-12 sm:px-8 sm:py-16">
+    <section
+      className="as-stage as-stage-purple as-stage-visual as-stage-eventos px-5 py-12 sm:px-8 sm:py-16"
+      style={{
+        '--as-stage-image': `url("${visual.image || visual.fallbackImage}")`,
+        '--as-stage-kanji': `"${visual.kanji}"`,
+      }}
+    >
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

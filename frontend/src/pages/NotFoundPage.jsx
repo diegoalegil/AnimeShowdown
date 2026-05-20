@@ -1,114 +1,54 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowRight, Home } from 'lucide-react'
-import { personajes } from '../data/personajes'
-import PersonajeImg from '../components/PersonajeImg'
+import { ArrowRight, Home, MapPinned } from 'lucide-react'
+import { EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 import { useSeo } from '../hooks/useSeo'
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
 
 function NotFoundPage() {
   useSeo({ title: '404 — Página no encontrada', noindex: true })
-  // useState con función inicializadora: se ejecuta UNA vez al montar y
-  // queda estable durante toda la vida del componente. Antes era useMemo
-  // pero el compilador de React marca Math.random() en useMemo como
-  // impure-during-render. El initializer de useState corre fuera del
-  // render, así que no rompe la regla.
-  const [random] = useState(
-    () => personajes[Math.floor(Math.random() * personajes.length)],
-  )
+
+  const visual = {
+    ...BRAND_VISUALS.error,
+    image: '/assets/error-scenes/not-found-lost-shinobi.svg',
+    kanji: '迷',
+    title: '404',
+  }
 
   return (
-    <section className="flex flex-1 items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
-      <motion.div
-        className="grid w-full max-w-4xl grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
+    <VisualPageShell
+      visual={visual}
+      className="flex min-h-[calc(100svh-5rem)] items-center py-16 sm:py-20"
+      contentClassName="mx-auto w-full max-w-5xl"
+    >
+      <h1 className="sr-only">404 — Página no encontrada</h1>
+      <EmptyStateScene
+        visual={visual}
+        icon={MapPinned}
+        title="Esta ruta se perdió entre la niebla"
+        className="min-h-[28rem]"
       >
-        <motion.div
-          className="relative mx-auto w-full max-w-xs md:order-2"
-          variants={itemVariants}
-        >
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-12 left-1/2 -z-10 -translate-x-1/2 select-none font-extrabold leading-none tracking-tighter text-[clamp(8rem,18vw,14rem)]"
-            style={{
-              WebkitTextStroke: '2px var(--color-accent)',
-              color: 'transparent',
-              opacity: 0.6,
-            }}
+        <p>
+          La página que buscas no existe o cambió de lugar. Vuelve al inicio o
+          entra al archivo de personajes para seguir explorando AnimeShowdown.
+        </p>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent px-5 py-3 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
           >
-            404
-          </span>
-          <div
-            className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
-            style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.25))' }}
+            <Home className="h-4 w-4" />
+            Volver al inicio
+          </Link>
+          <Link
+            to="/personajes"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/5 px-5 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
           >
-            <PersonajeImg
-              slug={random.slug}
-              alt={random.nombre}
-              className="h-full w-full object-cover"
-            />
-          </div>
-        </motion.div>
-        <div className="flex flex-col gap-4 text-center md:order-1 md:text-left">
-          <motion.span
-            className="inline-flex w-fit self-center rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted md:self-start"
-            variants={itemVariants}
-          >
-            Error 404
-          </motion.span>
-          <motion.h1
-            className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
-            variants={itemVariants}
-          >
-            {random.nombre} no encuentra esta página
-          </motion.h1>
-          <motion.p
-            className="text-fg-muted leading-relaxed"
-            variants={itemVariants}
-          >
-            La ruta que buscas no existe o se ha movido. Vuelve al inicio o explora el catálogo de personajes para seguir adelante.
-          </motion.p>
-          <motion.div
-            className="mt-2 flex flex-wrap justify-center gap-3 md:justify-start"
-            variants={itemVariants}
-          >
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
-            >
-              <Home className="h-4 w-4" />
-              Volver al inicio
-            </Link>
-            <Link
-              to="/personajes"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
-            >
-              Ver personajes
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </motion.div>
+            Ver personajes
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
-      </motion.div>
-    </section>
+      </EmptyStateScene>
+    </VisualPageShell>
   )
 }
 

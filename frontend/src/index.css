@@ -228,59 +228,67 @@
   }
 
   .as-stage-home {
-    --as-stage-image: url('/img/stage/home-hero.webp');
+    --as-stage-image: url('/assets/brand/backgrounds/home-hero.svg');
     --as-stage-kanji: "決";
   }
 
   .as-stage-pulse {
-    --as-stage-image: url('/img/stage/home-pulse.webp');
+    --as-stage-image: url('/assets/brand/backgrounds/home-pulse.svg');
     --as-stage-kanji: "今";
   }
 
-  .as-stage-games,
-  .as-stage-shadow,
-  .as-stage-anigrid {
-    --as-stage-image: url('/img/stage/games-stage.webp');
+  .as-stage-games {
+    --as-stage-image: url('/assets/brand/backgrounds/games-hub.svg');
+    --as-stage-kanji: "遊";
+  }
+
+  .as-stage-shadow {
+    --as-stage-image: url('/assets/game-covers/shadow-guess.svg');
     --as-stage-kanji: "影";
   }
 
+  .as-stage-anigrid {
+    --as-stage-image: url('/assets/game-covers/anigrid.svg');
+    --as-stage-kanji: "格";
+  }
+
   .as-stage-reveal {
-    --as-stage-image: url('/img/stage/anime-reveal.webp');
+    --as-stage-image: url('/assets/game-covers/anime-reveal.svg');
     --as-stage-kanji: "謎";
   }
 
   .as-stage-duel {
-    --as-stage-image: url('/img/stage/elo-duel.webp');
+    --as-stage-image: url('/assets/game-covers/elo-duel.svg');
     --as-stage-kanji: "対";
   }
 
   .as-stage-impostor {
-    --as-stage-image: url('/img/stage/impostor.webp');
+    --as-stage-image: url('/assets/game-covers/impostor-trial.svg');
     --as-stage-kanji: "裏";
   }
 
   .as-stage-ranking {
-    --as-stage-image: url('/img/stage/ranking.webp');
+    --as-stage-image: url('/assets/brand/backgrounds/ranking-hero.svg');
     --as-stage-kanji: "冠";
   }
 
   .as-stage-animes {
-    --as-stage-image: url('/img/stage/animes.webp');
+    --as-stage-image: url('/assets/brand/backgrounds/anime-catalog.svg');
     --as-stage-kanji: "界";
   }
 
   .as-stage-torneos {
-    --as-stage-image: url('/img/stage/torneos.webp');
+    --as-stage-image: url('/assets/brand/backgrounds/tournament-catalog.svg');
     --as-stage-kanji: "戦";
   }
 
   .as-stage-eventos {
-    --as-stage-image: url('/img/stage/eventos.webp');
+    --as-stage-image: url('/assets/brand/backgrounds/events-hero.svg');
     --as-stage-kanji: "祭";
   }
 
   .as-stage-omikuji {
-    --as-stage-image: url('/img/stage/omikuji.webp');
+    --as-stage-image: url('/assets/game-covers/omikuji.svg');
     --as-stage-kanji: "吉";
   }
 

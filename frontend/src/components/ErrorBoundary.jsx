@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { Sentry } from '../lib/sentry'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 /**
  * Error boundary global (Plan v2 §3.7).
@@ -49,12 +50,15 @@ class ErrorBoundary extends Component {
 
   render() {
     if (!this.state.hasError) return this.props.children
+    const visual = BRAND_VISUALS.error
+    const image = visual.image || visual.fallbackImage || '/img/stage/error-rain.webp'
 
     return (
       <section className="relative min-h-[100svh] overflow-hidden bg-bg text-fg-strong">
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[url('/img/stage/error-rain.webp')] bg-cover bg-[63%_center] sm:bg-center"
+          className="absolute inset-0 bg-cover bg-[63%_center] sm:bg-center"
+          style={{ backgroundImage: `url("${image}")` }}
         />
         <div
           aria-hidden="true"

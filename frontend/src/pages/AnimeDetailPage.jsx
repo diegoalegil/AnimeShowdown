@@ -1,5 +1,4 @@
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,24 +14,9 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PersonajeCard from '../components/PersonajeCard'
 import PersonajeImg from '../components/PersonajeImg'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { getAnimeVisual } from '../data/visual-assets'
 import NotFoundPage from './NotFoundPage'
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
-  },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
 
 /**
  * Ficha de un universo anime — mini-home del anime con stats agregados,
@@ -63,9 +47,10 @@ function AnimeDetailPage() {
   // narrativa que competición.
   const destacados = porPopularidad.slice(0, 6)
   const top10 = porElo.slice(0, 10)
+  const visual = getAnimeVisual(slug, anime)
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={visual}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -83,59 +68,49 @@ function AnimeDetailPage() {
           Volver a animes
         </Link>
 
-        <motion.header
-          className="mb-10 flex flex-col items-start gap-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+        <CinematicHero
+          visual={visual}
+          icon={Sparkles}
+          eyebrow="Universo anime"
+          title={anime}
+          subtitle={`Explora el roster de ${anime}, revisa sus personajes mejor posicionados y descubre quién domina su ranking interno.`}
+          actions={
+            <>
+            <Link
+              to="/votar"
+              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/50 bg-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_0_34px_-14px_var(--color-accent)] transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+            >
+              <Swords className="h-4 w-4" />
+              Votar personajes de {anime}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              to="/ranking"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/12 bg-white/5 px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/45 hover:text-gold"
+            >
+              <TrendingUp className="h-4 w-4" />
+              Ranking global
+            </Link>
+            </>
+          }
+          aside={
+            <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)] backdrop-blur-md">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                Dossier del universo
+              </p>
+              <p className="mt-3 text-sm leading-7 text-fg-muted">
+                Portada editorial propia: {visual.mood || 'atmósfera cinematográfica de marca'}.
+              </p>
+              <p className="mt-4 font-mono text-4xl font-black text-fg-strong">
+                {total}
+              </p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-fg-muted">
+                personajes listos para competir
+              </p>
+            </div>
+          }
         >
-          <motion.span
-            className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent"
-            variants={itemVariants}
-          >
-            <Sparkles className="h-3 w-3" />
-            Universo anime
-          </motion.span>
-          <motion.h1
-            className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
-            variants={itemVariants}
-          >
-            {anime}
-          </motion.h1>
-          <motion.p
-            className="max-w-2xl text-fg-muted"
-            variants={itemVariants}
-          >
-            Explora el roster de {anime}, revisa sus personajes mejor
-            posicionados y descubre quién domina el ranking interno.
-          </motion.p>
-
-          {/* Collage hero — los 4 de portada (top popularidad + top ELO) */}
-          <motion.div
-            className="mt-2 grid w-full grid-cols-4 gap-2 sm:gap-3"
-            variants={itemVariants}
-          >
-            {data.portada.map((p) => (
-              <Link
-                key={p.slug}
-                to={`/personajes/${p.slug}`}
-                className="group block overflow-hidden rounded-xl border border-border bg-surface transition-all hover:-translate-y-1 hover:border-accent/40"
-              >
-                <PersonajeImg
-                  slug={p.slug}
-                  alt={p.nombre}
-                  loading="eager"
-                  className="aspect-[2/3] w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
-                />
-              </Link>
-            ))}
-          </motion.div>
-
-          {/* Stats agregados del universo */}
-          <motion.div
-            className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4"
-            variants={itemVariants}
-          >
+          <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
             <StatTile icon={Users} label="Personajes" value={total} />
             <StatTile
               icon={Trophy}
@@ -154,30 +129,8 @@ function AnimeDetailPage() {
               label="Combates totales"
               value={totalVotos.toLocaleString('es-ES')}
             />
-          </motion.div>
-
-          {/* CTAs principales */}
-          <motion.div
-            className="flex flex-wrap gap-2"
-            variants={itemVariants}
-          >
-            <Link
-              to="/votar"
-              className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-            >
-              <Swords className="h-4 w-4" />
-              Votar personajes de {anime}
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              to="/ranking"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
-            >
-              <TrendingUp className="h-4 w-4" />
-              Ranking global
-            </Link>
-          </motion.div>
-        </motion.header>
+          </div>
+        </CinematicHero>
 
         {/* Personajes destacados — top 6 por popularidad */}
         <section className="mb-12">
@@ -265,7 +218,7 @@ function AnimeDetailPage() {
           y cambia el ranking de {anime}.
         </p>
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

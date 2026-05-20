@@ -5,6 +5,7 @@ import { ArrowRight, Swords, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { personajes, getStatsPersonaje } from '../data/personajes'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -51,8 +52,16 @@ function Hero() {
   // (default del browser); el sonido va por delante.
   const ctaVotar = useInstantSoundPress('playClick')
   const ctaRanking = useInstantSoundPress('playClick')
+  const heroVisual = BRAND_VISUALS.homeHero
+  const heroImage = heroVisual.image || heroVisual.fallbackImage
   return (
-    <section className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20">
+    <section
+      className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20"
+      style={{
+        '--as-stage-image': `url("${heroImage}")`,
+        '--as-stage-kanji': `"${heroVisual.kanji}"`,
+      }}
+    >
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
