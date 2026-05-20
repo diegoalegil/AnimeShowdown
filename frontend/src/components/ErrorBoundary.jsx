@@ -2,6 +2,10 @@ import { Component } from 'react'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { Sentry } from '../lib/sentry'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import {
+  isStaleAssetError,
+  recoverFromStaleAssetError,
+} from '../lib/staleAssetRecovery'
 
 /**
  * Error boundary global (Plan v2 §3.7).
@@ -21,13 +25,20 @@ import { BRAND_VISUALS } from '../data/visual-assets'
  * usuario verá la UI siempre y al menos no es pantalla en blanco.
  */
 class ErrorBoundary extends Component {
-  state = { hasError: false, error: null }
+  state = { hasError: false, error: null, staleAsset: false }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error }
+    return { hasError: true, error, staleAsset: isStaleAssetError(error) }
   }
 
   componentDidCatch(error, info) {
+    const recoveringStaleAsset = recoverFromStaleAssetError(error)
+
+    if (recoveringStaleAsset) {
+      console.warn('[ErrorBoundary] stale asset detectado; recargando shell', error)
+      return
+    }
+
     // Reporta a Sentry si está inicializado (lib/sentry.js solo llama
     // init si hay VITE_SENTRY_DSN). Si no, captureException es no-op
     // silencioso del propio SDK. Pasamos componentStack como contexto.
@@ -52,6 +63,12 @@ class ErrorBoundary extends Component {
     if (!this.state.hasError) return this.props.children
     const visual = BRAND_VISUALS.error
     const image = visual.image || visual.fallbackImage || '/img/stage/error-rain.webp'
+    const staleAsset = this.state.staleAsset
+    const eyebrow = staleAsset ? 'Nueva versión disponible' : 'Error de escena'
+    const title = staleAsset ? 'Actualizando la arena' : 'La batalla se ha interrumpido'
+    const copy = staleAsset
+      ? 'Tu navegador tenía una pieza antigua de la página. Recarga para tomar la versión nueva y volver al combate.'
+      : 'Algo falló al cargar esta pantalla. Recarga para volver al combate; si vuelve a pasar, avísanos en'
 
     return (
       <section className="relative min-h-[100svh] overflow-hidden bg-bg text-fg-strong">
@@ -77,21 +94,25 @@ class ErrorBoundary extends Component {
 
             <div className="mt-8 flex flex-col gap-3">
               <p className="text-[11px] font-black uppercase tracking-[0.28em] text-gold">
-                Error de escena
+                {eyebrow}
               </p>
               <h1 className="max-w-sm text-3xl font-black tracking-tight sm:text-4xl">
-                La batalla se ha interrumpido
+                {title}
               </h1>
               <p className="max-w-md text-sm leading-7 text-fg-muted sm:text-base">
-                Algo falló al cargar esta pantalla. Recarga para volver al
-                combate; si vuelve a pasar, avísanos en{' '}
-                <a
-                  href="mailto:soporte@animeshowdown.dev"
-                  className="font-semibold text-gold hover:text-fg-strong"
-                >
-                  soporte@animeshowdown.dev
-                </a>
-                .
+                {copy}
+                {!staleAsset && (
+                  <>
+                    {' '}
+                    <a
+                      href="mailto:soporte@animeshowdown.dev"
+                      className="font-semibold text-gold hover:text-fg-strong"
+                    >
+                      soporte@animeshowdown.dev
+                    </a>
+                    .
+                  </>
+                )}
               </p>
             </div>
 
