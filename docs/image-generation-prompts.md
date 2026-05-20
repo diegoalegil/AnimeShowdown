@@ -135,123 +135,123 @@ Route: `/animes`, `/animes/demon-slayer`
 Usage: universe banner.
 Path: `/assets/anime-banners/demon-slayer.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime sword-hunter banner, moonlit forest, mist, sparks of flame and water-like trails, traditional Japanese patterns, silhouettes of original swordsmen, dark elegant atmosphere, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic anime sword-hunter banner, moonlit forest, mist, sparks of flame and water-like trails, traditional Japanese patterns, silhouettes of original swordsmen, dark elegant atmosphere, no text, no logos, demon slayer characters, 16:9.
 
 ## Jujutsu Kaisen Anime Banner
 Route: `/animes`, `/animes/jujutsu-kaisen`
 Usage: universe banner.
 Path: `/assets/anime-banners/jujutsu-kaisen.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic supernatural anime banner, abandoned urban street at night, violet and blue cursed energy, ritual symbols, shadowy original figures, smoke and fractured glass, premium dark UI mood, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic supernatural anime banner, abandoned urban street at night, violet and blue cursed energy, ritual symbols, shadowy original figures, smoke and fractured glass, premium dark UI mood, no text, no logos, jujutsu kaisen characters, 16:9.
 
 ## Attack on Titan Anime Banner
 Route: `/animes`, `/animes/attack-on-titan`
 Usage: universe banner.
 Path: `/assets/anime-banners/attack-on-titan.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic dark war anime banner, massive stone walls, smoke, dust, dramatic sunset through clouds, tiny original soldier silhouettes with capes, tension and scale, muted amber and crimson accents, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic dark war anime banner, massive stone walls, smoke, dust, dramatic sunset through clouds, tiny original soldier silhouettes with capes, tension and scale, muted amber and crimson accents, no text, no logos, attak on titan characters, 16:9.
 
 ## Chainsaw Man Anime Banner
 Route: `/animes`, `/animes/chainsaw-man`
 Usage: universe banner.
 Path: `/assets/anime-banners/chainsaw-man.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic urban dark anime banner, rain-slick alley, red neon reflections, abstract saw-like energy shapes without gore, chaotic city atmosphere, original silhouettes only, premium dark UI background, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic urban dark anime banner, rain-slick alley, red neon reflections, abstract saw-like energy shapes without gore, chaotic city atmosphere, original silhouettes only, premium dark UI background, no text, no logos, Chainsaw Man characters, 16:9.
 
 ## Fullmetal Alchemist Anime Banner
 Route: `/animes`, `/animes/fullmetal-alchemist`
 Usage: universe banner.
 Path: `/assets/anime-banners/fullmetal-alchemist.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic alchemy anime banner, glowing transmutation circles, brass and steel laboratory, blue sparks, gold dust, two original alchemist silhouettes, dark premium archive mood, no readable text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic alchemy anime banner, glowing transmutation circles, brass and steel laboratory, blue sparks, gold dust, two original alchemist silhouettes, dark premium archive mood, no readable text, no logos, Fullmetal Alchemist characters, 16:9.
 
 ## Haikyuu Anime Banner
 Route: `/animes`, `/animes/haikyuu`
 Usage: universe banner.
 Path: `/assets/anime-banners/haikyuu.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic sports anime banner, indoor volleyball court at night with dramatic overhead lights, orange and blue motion streaks, original athlete silhouettes jumping, energetic but premium dark UI background, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic sports anime banner, indoor volleyball court at night with dramatic overhead lights, orange and blue motion streaks, original athlete silhouettes jumping, energetic but premium dark UI background, no text, no logos, Haikyuu characters, 16:9.
 
 ## Copa Villanos Event Cover
 Route: `/eventos`, `/eventos/copa-villanos`
 Usage: event campaign cover.
 Path: `/assets/event-covers/copa-villanos.webp`
 Aspect ratio: 16:9
-Prompt: Wide dark anime villain cup banner, threatening original antagonist silhouettes in smoke, crimson and violet aura, fractured crown symbol, heavy shadows, premium seasonal campaign mood, no readable text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide dark anime villain cup banner, threatening original antagonist silhouettes in smoke, crimson and violet aura, fractured crown symbol, heavy shadows, premium seasonal campaign mood, no readable text, no logos, anime villaones main characters, 16:9.
 
 ## Semana One Piece Event Cover
 Route: `/eventos`, `/eventos/semana-one-piece`
 Usage: event campaign cover.
 Path: `/assets/event-covers/semana-one-piece.webp`
 Aspect ratio: 16:9
-Prompt: Wide anime adventure campaign banner, night sea, ship deck, warm lanterns, original crew silhouettes, gold and navy palette, wind and waves, premium event cover, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide anime adventure campaign banner, night sea, ship deck, warm lanterns, original crew silhouettes, gold and navy palette, wind and waves, premium event cover, no text, no logos, one piece characters, 16:9.
 
 ## Arco Husbandos Event Cover
 Route: `/eventos`, `/eventos/arco-husbandos`
 Usage: event campaign cover.
 Path: `/assets/event-covers/arco-husbandos.webp`
 Aspect ratio: 16:9
-Prompt: Wide elegant anime premium event banner, stylish original male fighter silhouettes, dark violet-blue lighting, muted gold rim light, rain and smoke, refined tournament presentation, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide elegant anime premium event banner, stylish original male fighter silhouettes, dark violet-blue lighting, muted gold rim light, rain and smoke, refined tournament presentation, no text, no logos, yes famous characters, 16:9.
 
 ## Top Waifus Event Cover
 Route: `/eventos`, `/eventos/top-waifus`
 Usage: event campaign cover.
 Path: `/assets/event-covers/top-waifus.webp`
 Aspect ratio: 16:9
-Prompt: Wide premium anime event banner, elegant original female silhouettes, dark floral background, soft crimson petals, muted gold highlights, tasteful and cinematic, no fanservice, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide premium anime event banner, elegant original female silhouettes, dark floral background, soft crimson petals, muted gold highlights, tasteful and cinematic, no fanservice, no text, no logos, yes waifus characters, 16:9.
 
 ## MHA Heroes vs Villains Tournament Banner
 Route: `/torneos`, `/torneos/mha-heroes-vs-villains`
 Usage: tournament cover.
 Path: `/assets/tournament-banners/mha-heroes-vs-villains.webp`
 Aspect ratio: 16:9
-Prompt: Wide anime tournament banner, two original teams facing each other in a ruined modern city arena, left side green-blue heroic energy, right side dark red villain energy, central lightning split, smoke and debris, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide anime tournament banner, two original teams facing each other in a ruined modern city arena, left side green-blue heroic energy, right side dark red villain energy, central lightning split, smoke and debris, no text, no logos, my hero academia characters, 16:9.
 
 ## Slayers vs Sorcerers Tournament Banner
 Route: `/torneos`, `/torneos/slayers-vs-sorcerers`
 Usage: tournament cover.
 Path: `/assets/tournament-banners/slayers-vs-sorcerers.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime battle banner, sword fighters on one side and sorcerers on the other, fire and arcane blue-violet magic clashing in the center, dark arena, sparks and smoke, original silhouettes, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic anime battle banner, sword fighters on one side and sorcerers on the other, fire and arcane blue-violet magic clashing in the center, dark arena, sparks and smoke, original silhouettes, no text, no logos, slayers and sorceres characters, 16:9.
 
 ## Demon Slayer Internal Tournament Banner
 Route: `/torneos`, `/torneos/demon-slayer-internal`
 Usage: tournament cover.
 Path: `/assets/tournament-banners/demon-slayer-internal.webp`
 Aspect ratio: 16:9
-Prompt: Wide elegant anime tournament banner, moonlit Japanese courtyard, swords planted in wet stone, flame/water/mist breath trails, dark crimson accents, elite internal competition mood, original silhouettes, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide elegant anime tournament banner, moonlit Japanese courtyard, swords planted in wet stone, flame/water/mist breath trails, dark crimson accents, elite internal competition mood, original silhouettes, no text, no logos, demo slayer characters, 16:9.
 
 ## Jujutsu Sorcerer Cup Tournament Banner
 Route: `/torneos`, `/torneos/jujutsu-sorcerer-cup`
 Usage: tournament cover.
 Path: `/assets/tournament-banners/jujutsu-sorcerer-cup.webp`
 Aspect ratio: 16:9
-Prompt: Wide supernatural anime cup banner, cursed urban arena at midnight, violet ritual circles, blue sparks, smoke and shadow figures, intense tournament energy, no readable text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide supernatural anime cup banner, cursed urban arena at midnight, violet ritual circles, blue sparks, smoke and shadow figures, intense tournament energy, no readable text, no logos, jujutsu sorcerer characters, 16:9.
 
 ## Generic Error Scene
 Route: global error boundary.
 Usage: error screen background.
 Path: `/assets/error-scenes/rainy-rooftop.webp`
 Aspect ratio: 16:9
-Prompt: Cinematic anime night scene, original young warrior sitting on a rainy rooftop looking down over a dark city, melancholic mood, obsidian blue palette, soft crimson UI glow area on left for error card, rain streaks, high contrast but readable, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Cinematic anime night scene, original young warrior sitting on a rainy rooftop looking down over a dark city, melancholic mood, obsidian blue palette, soft crimson UI glow area on left for error card, rain streaks, high contrast but readable, no text, no logos, anime characters, 16:9.
 
 ## 404 Scene
 Route: `*`
 Usage: not found page.
 Path: `/assets/error-scenes/not-found-lost-shinobi.webp`
 Aspect ratio: 16:9
-Prompt: Cinematic anime lost traveler scene, original hooded figure standing in foggy city alley at night, distant neon, muted gold lantern, lonely mood, clear empty space for 404 UI card, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Cinematic anime lost traveler scene, original hooded figure standing in foggy city alley at night, distant neon, muted gold lantern, lonely mood, clear empty space for 404 UI card, no text, no logos, yes famous characters, 16:9.
 
 ## Empty Ranking Scene
 Route: ranking empty state.
 Usage: no ranking data.
 Path: `/assets/empty-states/empty-ranking-arena.webp`
 Aspect ratio: 16:9
-Prompt: Empty anime tournament podium in a dark arena, trophy light off, faint dust and smoke, muted gold rim light, quiet anticipation, premium UI empty state background, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Empty anime tournament podium in a dark arena, trophy light off, faint dust and smoke, muted gold rim light, quiet anticipation, premium UI empty state background, no text, no logos, yes famous characters, 16:9.
 
 ## Empty Search Scene
 Route: search empty states.
 Usage: no results.
 Path: `/assets/empty-states/empty-search-night-city.webp`
 Aspect ratio: 16:9
-Prompt: Cinematic anime night city search scene, misty street, faint holographic search grid, one original small silhouette looking at floating panels, obsidian palette, crimson and cyan accents, no readable text, no logos, no copyrighted characters, 16:9.
+Prompt: Cinematic anime night city search scene, misty street, faint holographic search grid, one original small silhouette looking at floating panels, obsidian palette, crimson and cyan accents, no readable text, no logos, yes famous anime characters, 16:9.
