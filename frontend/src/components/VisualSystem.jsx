@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import EditorialCover from './EditorialCover'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { AtmospherePreset } from './AtmosphereEffects'
+import VisualDebugBadge from './VisualDebugBadge'
 
 function visualImage(visual, fallback = BRAND_VISUALS.empty) {
   return visual?.image || visual?.fallbackImage || fallback.image || fallback.fallbackImage
@@ -166,6 +167,7 @@ export function VisualPageShell({
       <ParticleLayer density={density} />
       {atmosphereNode}
       {usarLateral && <LateralKanjiPair kanji={kanjiLateral} visual={visual} />}
+      <VisualDebugBadge visual={visual} where="VisualPageShell" />
       <div className={`relative z-10 ${contentClassName}`}>{children}</div>
     </section>
   )

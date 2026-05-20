@@ -1,3 +1,5 @@
+import VisualDebugBadge from './VisualDebugBadge'
+
 function EditorialCover({
   visual,
   title,
@@ -80,6 +82,7 @@ function EditorialCover({
       >
         {kanji}
       </span>
+      <VisualDebugBadge visual={cover} where="EditorialCover" />
       <div
         className={`relative flex h-full flex-col justify-end ${
           compact ? 'p-4' : 'p-5 sm:p-6'
