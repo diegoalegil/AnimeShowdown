@@ -940,12 +940,8 @@ function MovimientoBadge({ movimiento }) {
 function HubLinks() {
   return (
     <div className="as-panel-hot relative mt-12 overflow-hidden rounded-2xl p-6 sm:p-7">
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-8 -top-10 font-mono text-[9rem] font-black leading-none text-gold/10"
-      >
-        競
-      </span>
+      {/* Audit user feedback (2026-05-20): re-eliminado kanji 競 fantasma que
+          su glow/gradient propio, no necesita glyph encima. */}
       <div className="relative max-w-2xl">
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
           Meta en movimiento
