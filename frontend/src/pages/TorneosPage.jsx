@@ -195,7 +195,7 @@ function TorneosHeroBanner() {
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="rounded-full border border-gold/50 bg-gold-soft px-6 py-3 text-5xl font-black uppercase tracking-tighter text-gold shadow-[0_0_60px_-14px_rgba(197,161,90,0.85)]">
@@ -258,7 +258,7 @@ function EmptyState({ user, t }) {
         <EditorialCover
           visual={BRAND_VISUALS.empty}
           className="absolute inset-0 rounded-none border-0 opacity-65"
-          imageClassName="saturate-125 contrast-110"
+          imageClassName="saturate-110 contrast-105"
         />
         <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-accent">
           <Trophy className="h-7 w-7" />

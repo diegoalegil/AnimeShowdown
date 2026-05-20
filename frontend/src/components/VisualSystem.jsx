@@ -56,18 +56,23 @@ export function VisualPageShell({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center opacity-55"
+        className="absolute inset-0 bg-cover bg-center opacity-75"
         style={{
           backgroundImage: `url("${image}")`,
           backgroundPosition: visual?.objectPosition ?? 'center',
         }}
       />
+      {/* Audit visual (2026-05-20): el gradient anterior empezaba en
+          rgb(7 10 18 / 0.82) (82% oscuro arriba) y subia a 0.97 al medio,
+          apagando la imagen entera. Nuevo: arriba semi-transparente para
+          que la imagen respire, vignette progresiva hacia abajo para que
+          el contenido textual encima sea legible. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgb(7 10 18 / 0.82), rgb(7 10 18 / 0.97) 46%, rgb(7 10 18 / 1)), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.24), transparent 30rem), radial-gradient(circle at 82% 0%, rgb(var(--visual-glow) / 0.14), transparent 26rem)',
+            'linear-gradient(180deg, rgb(7 10 18 / 0.42) 0%, rgb(7 10 18 / 0.78) 55%, rgb(7 10 18 / 0.94) 100%), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.20), transparent 30rem), radial-gradient(circle at 82% 0%, rgb(var(--visual-glow) / 0.10), transparent 26rem)',
         }}
       />
       <ParticleLayer density={density} />
@@ -172,7 +177,7 @@ export function VisualCard({
         eyebrow={eyebrow}
         meta={meta}
         className={`${coverClassName} rounded-none border-0`}
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
         compact
       />
       {children && <div className="p-5">{children}</div>}
@@ -199,7 +204,7 @@ export function EmptyStateScene({
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-70"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
       {Icon && (
         <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/35 bg-gold/10 text-gold shadow-[0_0_42px_-18px_rgba(197,161,90,0.8)]">

@@ -457,7 +457,7 @@ function RetoCard() {
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-90"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
       <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-rose-300" />
       <div className="relative flex items-start gap-3">
@@ -504,7 +504,7 @@ function TorneoActivoCard({ torneo }) {
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-85"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
       <CardEyebrow icon={Trophy} label="Torneo activo" tono="relative text-cyan-300" />
       <div className="relative flex flex-col gap-1">
@@ -552,7 +552,7 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
           <EditorialCover
             visual={visual}
             className="absolute inset-0 rounded-none border-0 opacity-85"
-            imageClassName="saturate-125 contrast-110"
+            imageClassName="saturate-110 contrast-105"
           />
           <CardEyebrow icon={Swords} label="Duelos pendientes" />
           <p className="relative text-[13px] leading-snug text-fg-muted">
@@ -784,7 +784,7 @@ function EventoHeadlineBanner() {
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-80"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
