@@ -297,12 +297,10 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
           background: `radial-gradient(circle at 88% 0%, ${tone.glow}, transparent 13rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 42%)`,
         }}
       />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-8 -top-10 font-mono text-[7rem] font-black leading-none text-white/[0.035] transition-opacity group-hover:opacity-90"
-      >
-        戦
-      </span>
+      {/* Audit user feedback (2026-05-20): re-eliminado kanji 戦 fantasma que
+          ChatGPT volvio a anadir en commit 2c58a29. Las pulse-cards ya
+          tienen identidad con su tone + glow + backdrop-blur, no necesitan
+          glyph japones decorativo encima. */}
       {children}
     </div>
   )

@@ -163,7 +163,7 @@ function PersonajesPage() {
 
   return (
     <VisualPageShell
-      visual={{ ...BRAND_VISUALS.homeHero, kanji: '人' }}
+      visual={BRAND_VISUALS.personajes}
       contentClassName="mx-auto max-w-7xl"
       lateralKanji={{ left: '英', right: '雄' }}
       atmosphere="archive"
@@ -177,7 +177,7 @@ function PersonajesPage() {
       />
         <motion.div initial="hidden" animate="visible" variants={headerVariants}>
           <CinematicHero
-            visual={{ ...BRAND_VISUALS.homeHero, kanji: '人' }}
+            visual={BRAND_VISUALS.personajes}
             icon={Sparkles}
             eyebrow={`Catálogo completo · ${personajes.length} combatientes`}
             title="Archivo de personajes"
