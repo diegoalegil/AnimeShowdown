@@ -502,19 +502,28 @@ export const BRAND_VISUALS = {
     title: 'Error scene',
     type: 'error',
     kanji: '雨',
+    // Audit 2026-05-20: rainy-rooftop.webp aun no esta generado (pendiente
+    // en docs/visual-assets-pendientes.md). Mientras no exista, apuntamos
+    // expectedPath a not-found-lost-shinobi.webp (si esta poblado y es
+    // tematicamente compatible: shinobi melancolico bajo neon). El
+    // fallbackImage sigue siendo STAGE.error como ultima red.
     fallbackImage: STAGE.error,
-    expectedPath: '/assets/error-scenes/rainy-rooftop.webp',
-    mood: 'lluvia, tejado, ciudad nocturna y pausa emocional',
-    objectPosition: '65% center',
+    expectedPath: '/assets/error-scenes/not-found-lost-shinobi.webp',
+    mood: 'shinobi perdido bajo neon nocturno, ambiente melancolico',
+    objectPosition: '50% center',
   }),
   empty: makeVisual({
     slug: 'empty-state',
     title: 'Empty state',
     type: 'empty',
     kanji: '待',
+    // Audit 2026-05-20: quiet-arena.webp pendiente, mientras tanto
+    // usamos empty-search-night-city.webp como visual provisional —
+    // mantiene la idea de "no hay nada que mostrar" en composicion
+    // urbana nocturna en vez del stage generico vacio.
     fallbackImage: STAGE.error,
-    expectedPath: '/assets/empty-states/quiet-arena.webp',
-    mood: 'arena vacía, humo tenue y espera',
+    expectedPath: '/assets/empty-states/empty-search-night-city.webp',
+    mood: 'ciudad nocturna en silencio, sensacion de espera',
     objectPosition: 'center',
   }),
 }
