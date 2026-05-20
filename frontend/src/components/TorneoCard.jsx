@@ -52,18 +52,28 @@ function TorneoCard({ torneo }) {
     ? avatares.find((p) => p.slug === ganadorSlug)
     : null
 
+  // Audit visual (2026-05-20): muchas portadas de torneo generadas con
+  // GPT Image vienen como composicion grupal de 5 personajes alineados
+  // horizontalmente. Para amortiguar el efecto "fila de caras" sin
+  // regenerar el asset: subimos el cover a h-52 (mas verticalidad para
+  // que la composicion respire), aplicamos object-position que enfoca el
+  // tercio superior (donde suele estar el drama, no las caras pegadas) y
+  // un microblur que da sensacion cinematografica.
+  const visualParaCard = { ...visual, objectPosition: visual.objectPosition || '50% 32%' }
+
   return (
     <Link
       to={`/torneos/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="as-panel group flex flex-col overflow-hidden rounded-xl border-border p-0 transition-all hover:-translate-y-1 hover:border-gold/40 hover:shadow-[0_0_50px_-22px_rgba(197,161,90,0.52)]"
+      className="as-panel group flex flex-col overflow-hidden rounded-xl border-border p-0 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-[0_28px_70px_-30px_rgba(197,161,90,0.6)]"
     >
       <EditorialCover
-        visual={visual}
+        visual={visualParaCard}
         title={nombre}
         eyebrow="Bracket"
         meta={`${numParticipantes} participantes`}
-        className="h-44 rounded-none border-0"
+        className="h-52 rounded-none border-0"
+        imageClassName="saturate-105 contrast-100"
         compact
       />
       <div className="flex flex-1 flex-col p-5">
