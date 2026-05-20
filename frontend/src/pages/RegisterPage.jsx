@@ -67,7 +67,7 @@ function RegisterPage() {
 
   return (
     <VisualPageShell
-      visual={BRAND_VISUALS.authRegister}
+      visual={BRAND_VISUALS.authRegister} lateralKanji={{left: "新", right: "生"}}
       className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
       contentClassName="w-full max-w-md"
     >

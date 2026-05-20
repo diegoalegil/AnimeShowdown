@@ -19,6 +19,7 @@ function NotFoundPage() {
       visual={visual}
       className="flex min-h-[calc(100svh-5rem)] items-center py-16 sm:py-20"
       contentClassName="mx-auto w-full max-w-5xl"
+      lateralKanji={{left: "迷", right: "路"}}
     >
       <h1 className="sr-only">404 — Página no encontrada</h1>
       <EmptyStateScene

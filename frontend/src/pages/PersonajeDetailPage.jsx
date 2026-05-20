@@ -183,6 +183,7 @@ function PersonajeDetailPage() {
       visual={visualAnime}
       contentClassName="mx-auto max-w-6xl"
       density="low"
+      lateralKanji={{ left: visualAnime?.kanji ?? '人', right: '心' }}
     >
       <JsonLd
         id="personaje"

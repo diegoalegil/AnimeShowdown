@@ -60,7 +60,7 @@ function LoginPage() {
 
   return (
     <VisualPageShell
-      visual={BRAND_VISUALS.authLogin}
+      visual={BRAND_VISUALS.authLogin} lateralKanji={{left: "入", right: "門"}}
       className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
       contentClassName="w-full max-w-md"
     >

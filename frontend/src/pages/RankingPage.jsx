@@ -87,7 +87,7 @@ function RankingPage() {
   const [tab, setTab] = useState('elo')
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.ranking} className="py-10 sm:py-12">
+    <VisualPageShell visual={BRAND_VISUALS.ranking} className="py-10 sm:py-12" lateralKanji={{left: "頂", right: "点"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

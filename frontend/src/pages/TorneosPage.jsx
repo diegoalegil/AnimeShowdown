@@ -82,7 +82,7 @@ function TorneosPage() {
   const historial = (torneos ?? []).filter((it) => it.estado === 'FINISHED')
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.torneos}>
+    <VisualPageShell visual={BRAND_VISUALS.torneos} lateralKanji={{left: "戦", right: "場"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -92,7 +92,7 @@ function TorneosPage() {
       />
       <div className="mx-auto max-w-6xl">
         <CinematicHero
-          visual={BRAND_VISUALS.torneos}
+          visual={BRAND_VISUALS.torneos} lateralKanji={{left: "戦", right: "場"}}
           icon={Trophy}
           eyebrow={isLoading ? t('torneos.loading') : t('torneos.contadorPlural', { count: total })}
           title={t('torneos.tituloPagina')}

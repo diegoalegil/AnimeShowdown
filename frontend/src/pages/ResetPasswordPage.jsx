@@ -60,7 +60,7 @@ function ResetPasswordPage() {
 
   return (
     <VisualPageShell
-      visual={BRAND_VISUALS.authLogin}
+      visual={BRAND_VISUALS.authLogin} lateralKanji={{left: "更", right: "新"}}
       className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
       contentClassName="w-full max-w-md"
     >

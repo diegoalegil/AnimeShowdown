@@ -1,39 +1,102 @@
 import { useEffect } from 'react'
 import { motion, useMotionValue, useTransform } from 'framer-motion'
 
+/**
+ * Tarjetas decorativas flotando alrededor del hero de la home.
+ *
+ * Audit producto (2026-05-20, peticion explicita user): antes mostraban
+ * UN KANJI gigante en cada card como decoracion abstracta. Eso "vendia"
+ * la idea de torneo japones pero no contaba nada de lo que hay dentro.
+ * Ahora cada card es un mini-poster real de un anime iconico de la
+ * plataforma — luce los banners cinematicos generados por el bot
+ * ChatGPT en batches 1 y 2, da preview de lo que el visitante va a
+ * encontrar.
+ *
+ * Las 6 cards son aria-hidden y pointer-events-none — decorativas,
+ * no CTA. El CTA principal sigue siendo el boton "Empieza a votar"
+ * del hero central.
+ */
 const cards = [
-  { id: 'duel-left', kanji: '戦', top: '10%', left: '4%', rotate: -10, tone: 'crimson' },
-  { id: 'rank-right', kanji: '冠', top: '9%', right: '5%', rotate: 8, tone: 'gold' },
-  { id: 'event-left', kanji: '祭', top: '36%', left: '1%', rotate: -6, tone: 'electric' },
-  { id: 'shadow-right', kanji: '影', top: '36%', right: '1%', rotate: 7, tone: 'violet' },
-  { id: 'arena-left', kanji: '闘', bottom: '12%', left: '6%', rotate: 8, tone: 'gold' },
-  { id: 'meta-right', kanji: '決', bottom: '12%', right: '7%', rotate: -7, tone: 'crimson' },
+  {
+    id: 'demon-slayer-tl',
+    slug: 'demon-slayer',
+    title: 'Demon Slayer',
+    top: '10%',
+    left: '4%',
+    rotate: -10,
+    tone: 'crimson',
+  },
+  {
+    id: 'one-piece-tr',
+    slug: 'one-piece',
+    title: 'One Piece',
+    top: '9%',
+    right: '5%',
+    rotate: 8,
+    tone: 'gold',
+  },
+  {
+    id: 'jjk-ml',
+    slug: 'jujutsu-kaisen',
+    title: 'Jujutsu Kaisen',
+    top: '36%',
+    left: '1%',
+    rotate: -6,
+    tone: 'electric',
+  },
+  {
+    id: 'tokyo-ghoul-mr',
+    slug: 'tokyo-ghoul',
+    title: 'Tokyo Ghoul',
+    top: '36%',
+    right: '1%',
+    rotate: 7,
+    tone: 'violet',
+  },
+  {
+    id: 'mha-bl',
+    slug: 'my-hero-academia',
+    title: 'My Hero Academia',
+    bottom: '12%',
+    left: '6%',
+    rotate: 8,
+    tone: 'gold',
+  },
+  {
+    id: 'aot-br',
+    slug: 'attack-on-titan',
+    title: 'Attack on Titan',
+    bottom: '12%',
+    right: '7%',
+    rotate: -7,
+    tone: 'crimson',
+  },
 ]
 
 const tones = {
   crimson: {
     border: 'border-accent/40',
-    text: 'text-accent',
     glow: 'rgb(159 29 44 / 0.45)',
-    bg: 'from-accent/18 via-bg/35 to-bg/80',
+    labelText: 'text-accent',
+    labelBg: 'bg-accent/15 border-accent/35',
   },
   gold: {
     border: 'border-gold/40',
-    text: 'text-gold',
     glow: 'rgb(197 161 90 / 0.38)',
-    bg: 'from-gold/16 via-bg/35 to-bg/80',
+    labelText: 'text-gold',
+    labelBg: 'bg-gold/15 border-gold/35',
   },
   electric: {
     border: 'border-electric/35',
-    text: 'text-electric',
     glow: 'rgb(36 198 220 / 0.34)',
-    bg: 'from-electric/14 via-bg/35 to-bg/80',
+    labelText: 'text-electric',
+    labelBg: 'bg-electric/14 border-electric/30',
   },
   violet: {
     border: 'border-violet-500/35',
-    text: 'text-violet-300',
     glow: 'rgb(139 92 246 / 0.35)',
-    bg: 'from-violet-500/14 via-bg/35 to-bg/80',
+    labelText: 'text-violet-300',
+    labelBg: 'bg-violet-500/14 border-violet-500/30',
   },
 }
 
@@ -73,10 +136,11 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
   const parallaxX = useTransform(mouseX, (v) => v * 18 * depth)
   const parallaxY = useTransform(mouseY, (v) => v * 12 * depth)
   const tone = tones[card.tone] ?? tones.crimson
+  const bannerUrl = `/assets/anime-banners/${card.slug}.webp`
 
   return (
     <motion.div
-      className={`absolute h-40 w-28 overflow-hidden rounded-2xl border bg-gradient-to-br ${tone.border} ${tone.bg} shadow-2xl backdrop-blur-sm lg:h-56 lg:w-40`}
+      className={`absolute h-40 w-28 overflow-hidden rounded-2xl border ${tone.border} bg-bg shadow-2xl lg:h-56 lg:w-40`}
       style={{
         top: card.top,
         left: card.left,
@@ -88,7 +152,7 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
       }}
       initial={{ opacity: 0, scale: 0.85, rotate: card.rotate }}
       animate={{
-        opacity: 0.72,
+        opacity: 0.85,
         scale: 1,
         y: [0, -12],
         rotate: [card.rotate, card.rotate + 2.5],
@@ -112,58 +176,32 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
         },
       }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgb(255_255_255_/_0.12),transparent_34%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.42))]" />
+      {/* Banner como background. object-cover + object-center recorta
+          bien la composicion 16:9 al formato vertical 7:10 de las
+          mini-cards. El banner es decorativo (aria-hidden en el contenedor
+          padre), no necesita alt descriptivo. */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url("${bannerUrl}")` }}
+      />
+      {/* Vignette inferior para legibilidad del label */}
+      <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/45 to-transparent" />
+      {/* Borde decorativo arriba y abajo — recuerda al estilo de
+          trading-card holografico */}
       <div className="absolute inset-x-3 top-3 h-px bg-white/20" />
       <div className="absolute inset-x-3 bottom-3 h-px bg-white/10" />
-      <motion.span
-        aria-hidden="true"
-        className={`absolute inset-0 flex items-center justify-center font-mono text-6xl font-black ${tone.text} lg:text-8xl`}
-        style={{ textShadow: `0 0 44px ${tone.glow}` }}
-        initial={{ opacity: 0, scale: 0.85, rotate: card.rotate }}
-        animate={{
-          opacity: [0.55, 0.82],
-          scale: [1, 1.04],
-        }}
-        transition={{
-          duration: 3.6 + index * 0.2,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-        }}
+
+      {/* Label inferior con el nombre del anime */}
+      <span
+        className={`absolute inset-x-2 bottom-2 truncate rounded-md border px-2 py-1 text-center text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm lg:text-[11px] ${tone.labelBg} ${tone.labelText}`}
+        style={{ textShadow: '0 1px 4px rgb(0 0 0 / 0.6)' }}
       >
-        {card.kanji}
-      </motion.span>
+        {card.title}
+      </span>
+
+      {/* Shimmer holografico que pasa cada ~6s */}
       <motion.div
-        className="absolute left-1/2 top-0 h-full w-px bg-white/15"
-        animate={{ opacity: [0.12, 0.38, 0.12] }}
-        transition={{
-          duration: 3 + index * 0.3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.div
-        className="absolute inset-y-8 left-4 w-px bg-current opacity-40"
-        animate={{ y: [-14, 14] }}
-        transition={{
-          duration: 4.2 + index * 0.25,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.div
-        className="absolute bottom-5 right-4 h-10 w-10 rounded-full border border-current opacity-30"
-        animate={{ scale: [0.85, 1.15], opacity: [0.15, 0.4] }}
-        transition={{
-          duration: 4.8 + index * 0.2,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/12 to-transparent"
         initial={{ x: '-120%' }}
         animate={{ x: '120%' }}
         transition={{

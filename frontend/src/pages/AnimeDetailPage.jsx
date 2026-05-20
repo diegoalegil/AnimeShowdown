@@ -50,7 +50,7 @@ function AnimeDetailPage() {
   const visual = getAnimeVisual(slug, anime)
 
   return (
-    <VisualPageShell visual={visual}>
+    <VisualPageShell visual={visual} lateralKanji={{left: visual?.kanji ?? "界", right: "界"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

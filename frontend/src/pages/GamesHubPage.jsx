@@ -229,7 +229,7 @@ function GamesHubPage() {
   const otros = GAMES.filter((g) => g.to !== destacado.to)
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.games} className="py-8 sm:py-10">
+    <VisualPageShell visual={BRAND_VISUALS.games} className="py-8 sm:py-10" lateralKanji={{left: "遊", right: "戯"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

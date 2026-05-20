@@ -55,7 +55,7 @@ function AnimesPage() {
   }, [search, sort])
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.animes}>
+    <VisualPageShell visual={BRAND_VISUALS.animes} lateralKanji={{left: "世", right: "界"}}>
       <JsonLd
         id="animes-list"
         schema={animesListSchema(animesCatalogo.map((a) => a.anime))}
@@ -69,7 +69,7 @@ function AnimesPage() {
       />
       <div className="mx-auto max-w-7xl">
         <CinematicHero
-          visual={BRAND_VISUALS.animes}
+          visual={BRAND_VISUALS.animes} lateralKanji={{left: "世", right: "界"}}
           icon={Sparkles}
           eyebrow={`Catálogo anime · ${animesCatalogo.length} universos`}
           title="Universos anime"
