@@ -38,6 +38,7 @@ import {
   getGameVisual,
   getTournamentVisual,
 } from '../data/visual-assets'
+import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
 
 /**
  * Campeón fallback derivado del catálogo local. Útil cuando el ranking
@@ -165,19 +166,41 @@ function SectionPulso() {
   const torneoEnCurso = torneos.find((t) => t.estado === 'IN_PROGRESS')
   const retoPersonaje = personajeDelDia('guess-character')
 
+  // Visual de "ahora mismo": kanji 今 (ima, "ahora") + 動 (do, "movimiento")
+  // a los lados para reforzar la idea de actividad en vivo.
+  const pulseVisual = BRAND_VISUALS.pulse
+  const pulseImage = pulseVisual.image || pulseVisual.fallbackImage
   return (
     <motion.section
-      className="as-stage as-stage-visual as-stage-pulse px-5 py-10 sm:px-8 sm:py-14"
+      className="relative isolate overflow-hidden px-5 py-10 sm:px-8 sm:py-14"
       style={{
-        '--as-stage-image': `url("${BRAND_VISUALS.pulse.image || BRAND_VISUALS.pulse.fallbackImage}")`,
-        '--as-stage-kanji': `"${BRAND_VISUALS.pulse.kanji}"`,
+        '--visual-accent': pulseVisual.accentRgb,
+        '--visual-glow': pulseVisual.glowRgb,
       }}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-      <div className="mx-auto max-w-6xl">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center opacity-65"
+        style={{
+          backgroundImage: `url("${pulseImage}")`,
+          backgroundPosition: pulseVisual.objectPosition ?? 'center',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(180deg, rgb(7 10 18 / 0.62) 0%, rgb(7 10 18 / 0.86) 55%, rgb(7 10 18 / 0.96) 100%), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.18), transparent 30rem), radial-gradient(circle at 80% 5%, rgb(var(--visual-glow) / 0.10), transparent 26rem)',
+        }}
+      />
+      <ParticleLayer density="normal" />
+      <LateralKanjiPair kanji={{ left: '今', right: '動' }} visual={pulseVisual} intensity="soft" />
+      <div className="relative mx-auto max-w-6xl">
         <div className="mb-6 flex flex-col gap-2">
           <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-300">
             <span className="relative flex h-1.5 w-1.5">
