@@ -108,9 +108,14 @@ function LeaderboardsPage() {
           </p>
         )}
         {!isLoading && !isError && (!data || data.length === 0) && (
-          <div className="rounded-lg border border-dashed border-border bg-surface-alt/40 p-8 text-center text-[13px] text-fg-muted">
-            Aún no hay votos en esta ventana. Vuelve cuando haya tráfico real.
-          </div>
+          <EmptyStateScene
+            icon={Clock}
+            title="Sin votos en esta ventana"
+            action={{ to: '/votar', label: 'Votar ahora' }}
+          >
+            Todavía no hay tráfico suficiente para esta ventana de tiempo.
+            El leaderboard se rellena con votos reales — sé tú el primero.
+          </EmptyStateScene>
         )}
         {!isLoading && !isError && data && data.length > 0 && (
           <ol className="flex flex-col gap-2">

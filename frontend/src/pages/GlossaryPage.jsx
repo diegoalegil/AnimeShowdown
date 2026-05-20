@@ -6,6 +6,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, definedTermSetSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { normalizar } from '../lib/games'
+import { EmptyStateScene } from '../components/VisualSystem'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -358,9 +359,14 @@ function GlossaryPage() {
         </div>
 
         {visibles.length === 0 ? (
-          <p className="rounded-lg border border-border bg-surface p-6 text-center text-fg-muted">
-            No hay términos que coincidan con "{filtro}".
-          </p>
+          <EmptyStateScene
+            icon={BookOpen}
+            title={`Sin términos para "${filtro}"`}
+            action={{ to: '/glosario', label: 'Limpiar búsqueda' }}
+          >
+            Prueba con otra palabra o limpia el filtro para ver el glosario
+            completo.
+          </EmptyStateScene>
         ) : (
           <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {visibles.map((t) => (

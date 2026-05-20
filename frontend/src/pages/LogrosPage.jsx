@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Trophy, Users, ArrowRight } from 'lucide-react'
+import { Trophy, Users, ArrowRight, Sparkles, Award } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, logrosCollectionSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
-import { VisualPageShell } from '../components/VisualSystem'
+import { VisualPageShell, EmptyStateScene } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import {
   useCatalogoLogros,
@@ -81,6 +81,13 @@ function LogrosPage() {
   const total = catalogo?.length ?? 14
   const desbloqueados = mios?.filter((l) => l.desbloqueadoEn).length ?? 0
   const logroDestacado = searchParams.get('logro')
+
+  // Stats derivadas: legendarios desbloqueados, rareza media de coleccion.
+  // Util como "tarjetas grandes" tipo cabecera para sentir el progreso
+  // sin tener que leer 14 cards.
+  const legendariosDesbloqueados = mios?.filter((l) => l.desbloqueadoEn && l.rareza === 5).length ?? 0
+  const legendariosTotal = catalogo?.filter((l) => l.rareza === 5).length ?? 0
+  const progresoPct = total > 0 ? Math.round((desbloqueados / total) * 100) : 0
 
   useEffect(() => {
     if (!logroDestacado || visibles.length === 0) return undefined
@@ -160,6 +167,49 @@ function LogrosPage() {
           )}
         </motion.header>
 
+        {/* Stats tiles + progress bar (solo si user logueado).
+            Diseño: 3 tarjetas grandes que cuentan la historia visual del
+            progreso. La barra debajo da el % concreto. Antes solo habia
+            "X / 14" en el parrafo — facil de pasar por alto. */}
+        {user && (
+          <motion.div
+            className="mb-8 grid gap-3 sm:grid-cols-3"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+          >
+            <StatTile
+              icon={Trophy}
+              valor={desbloqueados}
+              total={total}
+              label="Desbloqueados"
+              accentClass="text-amber-300 border-amber-500/30 bg-amber-500/5"
+            />
+            <StatTile
+              icon={Sparkles}
+              valor={legendariosDesbloqueados}
+              total={legendariosTotal}
+              label="Legendarios"
+              accentClass="text-fuchsia-300 border-fuchsia-500/30 bg-fuchsia-500/5"
+            />
+            <StatTile
+              icon={Award}
+              valor={`${progresoPct}%`}
+              label="Progreso total"
+              accentClass="text-emerald-300 border-emerald-500/30 bg-emerald-500/5"
+            >
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg/60">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-amber-300 to-fuchsia-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progresoPct}%` }}
+                  transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+                />
+              </div>
+            </StatTile>
+          </motion.div>
+        )}
+
         <div className="mb-6 flex flex-wrap gap-1.5">
           {FILTROS_RAREZA.map((f) => {
             const n =
@@ -184,13 +234,39 @@ function LogrosPage() {
         </div>
 
         {cargandoCatalogo ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          // Skeletons en grid: pre-llena 6 cards con shimmer animado.
+          // Mejor que spinner solo porque "anuncia" la forma de lo que va
+          // a aparecer — reduce layout shift y se siente mas premium.
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="relative h-40 overflow-hidden rounded-xl border border-border bg-gradient-to-r from-surface/40 via-surface/70 to-surface/40 bg-[length:200%_100%] animate-shimmer"
+              >
+                <div className="absolute inset-4 flex flex-col justify-between">
+                  <div className="h-8 w-8 rounded-lg bg-bg/40" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-2/3 rounded bg-bg/40" />
+                    <div className="h-2 w-1/2 rounded bg-bg/30" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : visibles.length === 0 ? (
-          <p className="rounded-lg border border-border bg-surface p-6 text-center text-fg-muted">
-            No hay logros con esta rareza.
-          </p>
+          // Empty state cinematic: aprovecha quiet-arena + Trophy + accion.
+          // Antes era solo un parrafo gris, ahora es una escena completa
+          // que invita a quitar el filtro.
+          <EmptyStateScene
+            icon={Trophy}
+            title={`No hay logros ${FILTROS_RAREZA.find((f) => f.value === filtroRareza)?.label.toLowerCase() ?? ''}.`}
+            action={{ to: '/logros', label: 'Ver todos los logros' }}
+          >
+            Prueba con otra rareza o explora el catálogo completo. Cada
+            rareza es una categoría diferente — los legendarios son los
+            más difíciles, los comunes los que casi todo el mundo
+            consigue empezando.
+          </EmptyStateScene>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibles.map((l) => (
@@ -224,6 +300,34 @@ function LogrosPage() {
           </div>
         )}
     </VisualPageShell>
+  )
+}
+
+/**
+ * Tarjeta de stat de cabecera. Tres en fila: desbloqueados, legendarios,
+ * progreso. accentClass controla el color (amber/fuchsia/emerald) para que
+ * cada tile tenga su propio acento visual sin que el accent del tema se
+ * mezcle. children sirve para meter la barra de progreso en la tercera.
+ */
+function StatTile({ icon: Icon, valor, total, label, accentClass, children }) {
+  return (
+    <div className={`relative overflow-hidden rounded-xl border bg-surface/40 p-4 backdrop-blur-sm ${accentClass}`}>
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg/30">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="flex-1">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-black tabular-nums text-fg-strong">{valor}</span>
+            {total != null && (
+              <span className="text-sm text-fg-muted tabular-nums">/ {total}</span>
+            )}
+          </div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider opacity-80">{label}</p>
+        </div>
+      </div>
+      {children}
+    </div>
   )
 }
 
