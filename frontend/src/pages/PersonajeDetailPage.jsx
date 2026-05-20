@@ -39,6 +39,9 @@ import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import NotFoundPage from './NotFoundPage'
+import { VisualPageShell } from '../components/VisualSystem'
+import { getAnimeVisual } from '../data/visual-assets'
+import { slugifyAnime } from '../lib/animes'
 
 const Personaje3D = lazy(() => import('../components/Personaje3D'))
 
@@ -169,9 +172,18 @@ function PersonajeDetailPage() {
   const duelosPopulares = getDuelosPopulares(personaje)
   const totalAnime =
     personajes.filter((p) => p.anime === personaje.anime).length
+  // Visual del anime al que pertenece el personaje: usa el banner editorial
+  // del universo (naruto.webp, demon-slayer.webp...) como ambient hero
+  // detras del shell, en lugar de la as-stage genérica.
+  const animeSlug = slugifyAnime(personaje.anime)
+  const visualAnime = getAnimeVisual(animeSlug, personaje.anime)
 
   return (
-    <section className="as-stage px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell
+      visual={visualAnime}
+      contentClassName="mx-auto max-w-6xl"
+      density="low"
+    >
       <JsonLd
         id="personaje"
         schema={personajeSchema(personaje, stats)}
@@ -184,7 +196,6 @@ function PersonajeDetailPage() {
           { label: personaje.nombre, path: `/personajes/${personaje.slug}` },
         ])}
       />
-      <div className="mx-auto max-w-6xl">
         <Link
           to="/personajes"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
@@ -560,11 +571,10 @@ function PersonajeDetailPage() {
             universo" y "Más allá del universo", para que el bloque
             historial-competitivo aparezca tras los datos básicos pero
             antes del discovery cross-anime. */}
-        <HistorialCompetitivo slug={slug} nombre={personaje.nombre} />
+      <HistorialCompetitivo slug={slug} nombre={personaje.nombre} />
 
-        <CarruselSimilares slug={slug} nombre={personaje.nombre} />
-      </div>
-    </section>
+      <CarruselSimilares slug={slug} nombre={personaje.nombre} />
+    </VisualPageShell>
   )
 }
 

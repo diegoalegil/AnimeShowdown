@@ -13,6 +13,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { getTournamentVisual } from '../data/visual-assets'
+import { VisualPageShell } from '../components/VisualSystem'
 import NotFoundPage from './NotFoundPage'
 
 const headerVariants = {
@@ -124,13 +125,7 @@ function TorneoDetailPage() {
       : null
 
   return (
-    <section
-      className="as-stage as-stage-cyan as-stage-visual as-stage-torneos px-5 py-12 sm:px-8 sm:py-16"
-      style={{
-        '--as-stage-image': `url("${visual.image || visual.fallbackImage}")`,
-        '--as-stage-kanji': `"${visual.kanji}"`,
-      }}
-    >
+    <VisualPageShell visual={visual} contentClassName="mx-auto max-w-6xl" density="low">
       <JsonLd
         id="torneo"
         schema={torneoSchema(torneo, rosterRonda1)}
@@ -143,7 +138,6 @@ function TorneoDetailPage() {
           { label: torneo.nombre, path: `/torneos/${torneo.slug}` },
         ])}
       />
-      <div className="mx-auto max-w-6xl">
         <Link
           to="/torneos"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
@@ -295,8 +289,7 @@ function TorneoDetailPage() {
             />
           </div>
         )}
-      </div>
-    </section>
+    </VisualPageShell>
   )
 }
 
