@@ -177,21 +177,41 @@ async function sendPrompt(page) {
 }
 
 async function waitForResponse(page) {
-  // Esperar a que aparezca el boton "Stop generating" (la respuesta esta
-  // empezando a generarse) y luego a que desaparezca (terminada).
+  // Audit (ejecucion real 2026-05-20): antes esperabamos el boton
+  // "Stop generating" como proxy de "terminado". Mala idea — en ChatGPT 5
+  // ese boton aparece brevemente para el texto inicial ("Voy a generar
+  // esta imagen…") y luego desaparece MIENTRAS la imagen aun se esta
+  // generando en background. El script abortaba a los 5s "porque
+  // termino" y no encontraba imagen.
+  //
+  // Nuevo enfoque: esperar DIRECTAMENTE a que aparezca el <img> generado
+  // de oaiusercontent.com con naturalWidth >= 256. Cero ambiguedad —
+  // si la imagen esta, listos; si no, esperamos. Timeout 3min para
+  // generaciones lentas.
   const t0 = Date.now()
-  // Aparecer
-  try {
-    await page.waitForSelector(SELECTORS.stopGenerating, { timeout: 30000 })
-  } catch {
-    log('   No aparecio Stop generating — el envio quizas fallo')
-  }
-  // Desaparecer
+  let lastLog = 0
   while (Date.now() - t0 < RESPONSE_TIMEOUT_MS) {
-    const still = await page.$(SELECTORS.stopGenerating)
-    if (!still) return true
-    await wait(2000)
+    const tieneImg = await page.evaluate(() => {
+      const imgs = Array.from(document.querySelectorAll('img'))
+        .filter((i) => /oaiusercontent\.com|cdn\.openai\.com/.test(i.src))
+        .filter((i) => (i.naturalWidth || i.width) >= 256)
+      return imgs.length > 0
+    })
+    if (tieneImg) {
+      // Damos 4s mas para que la imagen termine de cargar en alta
+      // resolucion (puede aparecer un placeholder de baja calidad primero
+      // y luego cargar el final).
+      await wait(4000)
+      return true
+    }
+    const elapsed = Math.round((Date.now() - t0) / 1000)
+    if (elapsed >= lastLog + 20) {
+      log(`   ⏳ ${elapsed}s elapsed, sigo esperando imagen…`)
+      lastLog = elapsed
+    }
+    await wait(2500)
   }
+  log(`   ⌛ Timeout tras ${Math.round((Date.now() - t0) / 1000)}s sin imagen`)
   return false
 }
 
@@ -266,7 +286,12 @@ async function run() {
     log(`\n━━━ [${i + 1}/${prompts.length}] ${slug} (${category}) ━━━`)
     try {
       await startNewChat(page)
-      await typeHumanLike(page, SELECTORS.promptTextarea, prompt)
+      // Prefijo CRITICO: ChatGPT 5 con "Auto" a veces decide buscar en
+      // internet en lugar de generar imagen si el prompt parece una
+      // descripcion. Forzando "Generate this image:" elimina la ambiguedad
+      // y el modelo arranca image generation directo.
+      const promptForzado = `Generate this image: ${prompt}`
+      await typeHumanLike(page, SELECTORS.promptTextarea, promptForzado)
       log('   Prompt tipeado, enviando…')
       await sendPrompt(page)
       log('   Esperando respuesta…')
