@@ -322,6 +322,7 @@ function VotarPage() {
       contentClassName="mx-auto flex max-w-5xl flex-col gap-4"
       lateralKanji={{ left: '挑', right: '闘' }}
       className="py-6 sm:py-10"
+      atmosphere="arena-storm"
     >
         {/* Top bar: badge + modo rápido + skip */}
         <div className="flex flex-wrap items-center justify-between gap-3">

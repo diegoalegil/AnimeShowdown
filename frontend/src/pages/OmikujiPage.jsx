@@ -208,7 +208,7 @@ function OmikujiPage() {
   }
 
   return (
-    <VisualPageShell visual={getGameVisual("/omikuji", "Omikuji diario")} contentClassName="mx-auto max-w-3xl" lateralKanji={{left: "御", right: "籤"}}>
+    <VisualPageShell visual={getGameVisual("/omikuji", "Omikuji diario")} contentClassName="mx-auto max-w-3xl" lateralKanji={{left: "御", right: "籤"}} atmosphere="ritual">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

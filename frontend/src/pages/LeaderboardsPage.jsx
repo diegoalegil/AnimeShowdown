@@ -49,7 +49,7 @@ function LeaderboardsPage() {
   })
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.ranking} contentClassName="mx-auto max-w-6xl" lateralKanji={{left: "覇", right: "者"}}>
+    <VisualPageShell visual={BRAND_VISUALS.ranking} contentClassName="mx-auto max-w-6xl" lateralKanji={{left: "覇", right: "者"}} atmosphere="tribute">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
