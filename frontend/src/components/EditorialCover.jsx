@@ -15,7 +15,6 @@ function EditorialCover({
   const image = cover.image || cover.fallbackImage || '/img/stage/home-pulse.webp'
   const accentRgb = cover.accentRgb ?? '159 29 44'
   const glowRgb = cover.glowRgb ?? '197 161 90'
-  const kanji = cover.kanji ?? '戦'
   const objectPosition = cover.objectPosition ?? 'center'
 
   return (
@@ -72,16 +71,11 @@ function EditorialCover({
           maskImage: 'linear-gradient(to bottom, black, transparent 50%)',
         }}
       />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-6 -top-8 select-none font-mono text-[6rem] font-black leading-none opacity-[0.055] sm:text-[8.5rem] sm:opacity-[0.06]"
-        style={{
-          color: `rgb(${glowRgb} / 1)`,
-          textShadow: `0 0 60px rgb(${accentRgb} / 0.35)`,
-        }}
-      >
-        {kanji}
-      </span>
+      {/* Audit user feedback (2026-05-20): el kanji enorme decorativo de la
+          esquina top-right se veia como "fantasma raro" sobre las cards.
+          Eliminado — el shell de la pagina ya tiene el lateralKanji
+          LARGE a izq/dch (estilo ELO Duel), no necesitamos kanji extra
+          en cada card individual. */}
       <VisualDebugBadge visual={cover} where="EditorialCover" />
       <div
         className={`relative flex h-full flex-col justify-end ${
