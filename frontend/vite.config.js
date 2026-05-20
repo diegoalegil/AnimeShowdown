@@ -192,40 +192,58 @@ const pwaPlugin = VitePWA({
   workbox: {
     skipWaiting: true,
     clientsClaim: true,
-    navigateFallback: '/index.html',
-    // Excluimos /api/* del precache — son dinámicos. También img/ porque
-    // 2800+ variantes inflarían el manifest y el browser tiraría OOM
-    // intentando precachearlas todas en su primer hit.
+    // Audit P1 (2026-05-20): el SW estaba precacheando index.html con
+    // `globPatterns: '**/*.{...,html,...}'` y luego sirviendo esa version
+    // cacheada via `navigateFallback`. Cada deploy de Cloudflare Pages cambia
+    // los hashes de los chunks lazy (PersonajesPage-XXXX.js, etc.); cuando
+    // un usuario tenia el index.html del deploy anterior cacheado por el SW,
+    // navegar a /personajes intentaba cargar el chunk del deploy viejo, que
+    // ya no existe en CF Pages → CF respondia con index.html (regla SPA
+    // `/* /index.html 200`) → el browser intentaba parsear HTML como JS →
+    // TypeError "'text/html' is not a valid JavaScript MIME type" → todo
+    // el arbol caia al ErrorBoundary global.
+    //
+    // Fix: el HTML no se precachea. Las navegaciones SPA van directamente
+    // a red. Si la red falla, el browser muestra su pantalla offline en vez
+    // de servir un HTML stale que apunta a chunks fantasma. Es menos
+    // amistoso offline pero garantiza que cada deploy se ve consistente.
+    navigateFallback: null,
     navigateFallbackDenylist: [/^\/api\//],
-    // Cap del bundle de cada chunk precacheado en 5MB.
     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-    // Audit (2026-05-17): el precache anterior incluía '**/*.{js,...}'
-    // → workbox descargaba TODOS los chunks lazy en el primer install
-    // del SW, anulando el split. Resultado: ~3MB de bundle inicial pese
-    // a tener split correcto en vite/rolldown. Reducido al shell mínimo
-    // (HTML, CSS, fonts, icons). Los chunks JS y SVG van por
-    // runtimeCaching StaleWhileRevalidate: se cachean en la primera
-    // navegación que los pida y desde ahí cargan offline.
+    // Shell minimo sin HTML: CSS, fonts e icons que cambian poco entre deploys.
+    // Cuando el HTML cambia, el browser hace fetch nuevo y el SW solo provee
+    // assets estaticos compartidos.
     globPatterns: [
-      '**/*.{css,html,woff2}',
+      '**/*.{css,woff2}',
       'icon-*.png',
       'apple-touch-icon.png',
       'logo.webp',
     ],
-    globIgnores: ['img/**', 'assets/**.js', 'assets/**.svg'],
+    globIgnores: ['img/**', 'assets/**.js', 'assets/**.svg', '**/*.html'],
     runtimeCaching: [
       {
-        // Chunks JS bajo demanda. SWR: sirve cache + fetch en background
-        // para próxima carga. Cache largo (30d) porque los nombres
-        // llevan hash y rotan en cada deploy.
+        // Audit P1 (2026-05-20): los chunks JS pasan de StaleWhileRevalidate
+        // a NetworkFirst con timeout 3s. SWR servia el chunk cacheado primero
+        // mientras revalidaba; cuando el HTML era nuevo pero el chunk cached
+        // era de otro deploy, el browser cargaba codigo incompatible y
+        // disparaba runtime errors silenciosos. NetworkFirst pide siempre la
+        // version actual; cache es solo fallback offline.
+        //
+        // Tambien `statuses: [200]` (sin 0): un chunk JS que viene como HTML
+        // de la regla SPA fallback `/* /index.html 200` llega con status 200
+        // pero Content-Type text/html. Workbox no valida content-type, asi
+        // que si lo cacheamos quedamos atrapados en el bug. Con `[200]` aun
+        // se cachea, pero el reactivo de chunkErrorRecovery limpia el SW
+        // cuando detecta el TypeError de MIME.
         urlPattern: ({ url }) =>
           url.pathname.startsWith('/assets/') &&
           (url.pathname.endsWith('.js') || url.pathname.endsWith('.svg')),
-        handler: 'StaleWhileRevalidate',
+        handler: 'NetworkFirst',
         options: {
-          cacheName: 'chunks-js',
+          cacheName: 'chunks-js-v2',
+          networkTimeoutSeconds: 3,
           expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
-          cacheableResponse: { statuses: [0, 200] },
+          cacheableResponse: { statuses: [200] },
         },
       },
       {
