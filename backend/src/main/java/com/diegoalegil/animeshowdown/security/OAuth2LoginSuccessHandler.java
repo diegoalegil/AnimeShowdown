@@ -70,20 +70,22 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         String provider = token.getAuthorizedClientRegistrationId();
         Map<String, Object> attributes = oauthUser.getAttributes();
+        String ip = clientIpExtractor.extract(request);
+        String userAgent = extraerUserAgent(request);
         try {
             OAuthAccountService.ResultadoOAuth result =
                     oauthAccountService.resolverOCrear(provider, attributes);
             Usuario usuario = result.usuario();
             String refreshPlano = refreshTokenService.emitir(
-                    usuario, extraerUserAgent(request), clientIpExtractor.extract(request));
+                    usuario, userAgent, ip);
 
             response.addHeader(HttpHeaders.SET_COOKIE, construirCookieRefresh(refreshPlano).toString());
             if (result.creado()) {
-                auditLogService.registrar(AuditEvento.OAUTH_REGISTRO, usuario,
-                        Map.of("provider", provider), request);
+                auditLogService.registrarConContexto(AuditEvento.OAUTH_REGISTRO, usuario,
+                        Map.of("provider", provider), ip, userAgent);
             }
-            auditLogService.registrar(AuditEvento.OAUTH_LOGIN_OK, usuario,
-                    Map.of("provider", provider), request);
+            auditLogService.registrarConContexto(AuditEvento.OAUTH_LOGIN_OK, usuario,
+                    Map.of("provider", provider), ip, userAgent);
 
             log.info("OAuth login OK: provider={} username={} creado={}",
                     provider, usuario.getUsername(), result.creado());

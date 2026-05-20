@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -55,6 +57,10 @@ public class AuditLogService {
     private final ObjectMapper objectMapper;
     private final ClientIpExtractor clientIpExtractor;
 
+    @Autowired
+    @Lazy
+    private AuditLogService self;
+
     public AuditLogService(AuditLogRepository repository, ObjectMapper objectMapper,
             ClientIpExtractor clientIpExtractor) {
         this.repository = repository;
@@ -68,18 +74,33 @@ public class AuditLogService {
      * request puede ser null cuando el evento no tiene HttpServletRequest
      * (e.g. eventos disparados por cron jobs).
      */
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void registrar(
             AuditEvento evento,
             Usuario usuario,
             Map<String, Object> detalles,
             HttpServletRequest request) {
+        String ip = request != null ? clientIpExtractor.extract(request) : null;
+        String userAgent = request != null ? extraerUserAgent(request) : null;
+        self.registrarConContexto(evento, usuario, detalles, ip, userAgent);
+    }
+
+    /**
+     * Versión asíncrona con contexto HTTP ya materializado. Es importante que
+     * el caller capture IP/User-Agent antes de entrar al executor: Tomcat
+     * recicla el HttpServletRequest cuando la response termina y leerlo desde
+     * un hilo @Async puede fallar con "request object has been recycled".
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarConContexto(
+            AuditEvento evento,
+            Usuario usuario,
+            Map<String, Object> detalles,
+            String ip,
+            String userAgent) {
         try {
             String detallesJson = serializar(detalles);
-            String ip = request != null ? clientIpExtractor.extract(request) : null;
-            String userAgent = request != null ? extraerUserAgent(request) : null;
-            AuditLog entry = new AuditLog(evento, usuario, detallesJson, ip, userAgent);
+            AuditLog entry = new AuditLog(evento, usuario, detallesJson, ip, truncarUserAgent(userAgent));
             repository.save(entry);
         } catch (Exception e) {
             // Audit no debe romper el flujo principal. Logueo con suficiente
@@ -91,7 +112,7 @@ public class AuditLogService {
 
     /** Versión simplificada sin detalles ni request — para eventos cron. */
     public void registrarSimple(AuditEvento evento, Usuario usuario) {
-        registrar(evento, usuario, null, null);
+        self.registrarConContexto(evento, usuario, null, null, null);
     }
 
     /**
@@ -129,6 +150,10 @@ public class AuditLogService {
 
     private String extraerUserAgent(HttpServletRequest req) {
         String ua = req.getHeader("User-Agent");
+        return truncarUserAgent(ua);
+    }
+
+    private String truncarUserAgent(String ua) {
         if (ua == null) return null;
         return ua.length() > 500 ? ua.substring(0, 500) : ua;
     }
