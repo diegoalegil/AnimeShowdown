@@ -180,21 +180,25 @@ export function CinematicHero({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center opacity-75"
+        className="absolute inset-0 bg-cover bg-center opacity-85"
         style={{
           backgroundImage: `url("${visualImage(visual)}")`,
           backgroundPosition: visual?.objectPosition ?? 'center',
         }}
       />
+      {/* Audit visual (2026-05-20): gradient horizontal 94%→30% izq→der
+          apagaba el lado izquierdo donde va el titulo. Cambio a vertical
+          + sutil oscuro lateral izquierdo para que la imagen respire en
+          el centro y la derecha quede mas clara. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(90deg, rgb(7 10 18 / 0.94), rgb(7 10 18 / 0.74) 45%, rgb(7 10 18 / 0.30) 100%), linear-gradient(180deg, rgb(7 10 18 / 0.22), rgb(7 10 18 / 0.88)), radial-gradient(circle at 20% 16%, rgb(var(--hero-accent) / 0.26), transparent 24rem), radial-gradient(circle at 78% 18%, rgb(var(--hero-glow) / 0.18), transparent 22rem)',
+            'linear-gradient(180deg, rgb(7 10 18 / 0.34) 0%, rgb(7 10 18 / 0.68) 70%, rgb(7 10 18 / 0.92) 100%), linear-gradient(90deg, rgb(7 10 18 / 0.62) 0%, rgb(7 10 18 / 0.18) 45%, transparent 80%), radial-gradient(circle at 20% 16%, rgb(var(--hero-accent) / 0.24), transparent 24rem), radial-gradient(circle at 82% 12%, rgb(var(--hero-glow) / 0.16), transparent 22rem)',
         }}
       />
-      <ParticleLayer density="low" />
+      <ParticleLayer density="normal" />
       <KanjiBackdrop kanji={visual?.kanji} visual={visual} className="top-1/2 -translate-y-1/2" />
 
       <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.42fr)] lg:items-end">

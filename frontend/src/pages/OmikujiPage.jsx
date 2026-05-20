@@ -7,6 +7,8 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import KanjiStroke from '../components/KanjiStroke'
+import { VisualPageShell } from '../components/VisualSystem'
+import { getGameVisual } from '../data/visual-assets'
 import { fechaDelDia, safeStorage } from '../lib/games'
 
 const STORAGE_KEY = 'animeshowdown.omikuji.v1'
@@ -206,7 +208,7 @@ function OmikujiPage() {
   }
 
   return (
-    <section className="as-stage as-stage-visual as-stage-omikuji px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={getGameVisual("/omikuji", "Omikuji diario")} contentClassName="mx-auto max-w-3xl" lateralKanji={{left: "御", right: "籤"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -337,7 +339,7 @@ function OmikujiPage() {
           </p>
         </div>
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

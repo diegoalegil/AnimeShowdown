@@ -9,6 +9,9 @@ import { endpoints, ApiError } from '../lib/api'
 import { useSeo } from '../hooks/useSeo'
 import { useSound } from '../contexts/SoundContext'
 import { useAuth } from '../contexts/AuthContext'
+import { VisualPageShell } from '../components/VisualSystem'
+import KanjiSpinner from '../components/KanjiSpinner'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 /**
  * VotarPage — arena de duelo rápido (rebrand Plan v2 §14).
@@ -299,18 +302,27 @@ function VotarPage() {
 
   if (isLoading) {
     return (
-      <section className="flex min-h-[calc(100vh-200px)] flex-1 flex-col items-center justify-center gap-3 px-5 py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <VisualPageShell
+        visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
+        className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
+        contentClassName="flex flex-col items-center gap-3"
+        lateralKanji={null}
+      >
+        <KanjiSpinner kanji="闘" size="lg" tone="accent" />
         <p className="text-[12px] uppercase tracking-[0.18em] text-fg-muted">
           Preparando duelo…
         </p>
-      </section>
+      </VisualPageShell>
     )
   }
 
   return (
-    <section className="as-stage px-5 py-6 sm:px-8 sm:py-10">
-      <div className="mx-auto flex max-w-5xl flex-col gap-4">
+    <VisualPageShell
+      visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
+      contentClassName="mx-auto flex max-w-5xl flex-col gap-4"
+      lateralKanji={{ left: '挑', right: '闘' }}
+      className="py-6 sm:py-10"
+    >
         {/* Top bar: badge + modo rápido + skip */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
@@ -427,8 +439,7 @@ function VotarPage() {
             </Link>
           )}
         </div>
-      </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

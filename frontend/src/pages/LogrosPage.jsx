@@ -7,6 +7,8 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, logrosCollectionSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 import {
   useCatalogoLogros,
   useMisLogros,
@@ -96,7 +98,7 @@ function LogrosPage() {
   })
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={BRAND_VISUALS.ranking} contentClassName="mx-auto max-w-6xl" lateralKanji={{left: "勲", right: "章"}}>
       {catalogo && (
         <JsonLd id="logros-collection" schema={logrosCollectionSchema(catalogo)} />
       )}
@@ -107,7 +109,6 @@ function LogrosPage() {
           { label: 'Logros', path: '/logros' },
         ])}
       />
-      <div className="mx-auto max-w-6xl">
         <motion.header
           className="mb-10 flex flex-col items-start gap-3"
           initial="hidden"
@@ -222,8 +223,7 @@ function LogrosPage() {
             </Link>
           </div>
         )}
-      </div>
-    </section>
+    </VisualPageShell>
   )
 }
 
