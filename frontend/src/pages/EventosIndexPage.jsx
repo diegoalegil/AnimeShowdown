@@ -154,17 +154,32 @@ function EventoCard({ evento, now, etiqueta }) {
         ? `Empieza en ${restante}`
         : 'Finalizado'
 
+  // Audit visual (2026-05-20): cover h-48 era muy bajo para las
+  // composiciones generadas con GPT Image (que son ricas en personajes,
+  // siluetas y fondo). Subimos a h-56 para que respire y la imagen sea
+  // protagonista. Glow hover con accent del propio evento (rose/violet/
+  // amber/pink/cyan) en lugar del genérico amber.
+  const glowHover = {
+    rose: 'hover:shadow-[0_28px_70px_-30px_rgba(244,63,94,0.55)]',
+    violet: 'hover:shadow-[0_28px_70px_-30px_rgba(139,92,246,0.55)]',
+    amber: 'hover:shadow-[0_28px_70px_-30px_rgba(245,158,11,0.55)]',
+    pink: 'hover:shadow-[0_28px_70px_-30px_rgba(236,72,153,0.55)]',
+    cyan: 'hover:shadow-[0_28px_70px_-30px_rgba(6,182,212,0.55)]',
+  }
+  const sombra = glowHover[evento.color] ?? glowHover.amber
+
   return (
     <Link
       to={`/eventos/${evento.slug}`}
-      className={`as-panel group flex flex-col overflow-hidden rounded-xl border p-0 transition-all hover:-translate-y-1 ${tono}`}
+      className={`as-panel group flex flex-col overflow-hidden rounded-xl border p-0 transition-all duration-300 hover:-translate-y-1.5 ${tono} ${sombra}`}
     >
       <EditorialCover
         visual={visual}
         title={evento.titulo}
         eyebrow={etiqueta}
         meta={`${participantes.length} personajes · ${evento.descripcionCorta}`}
-        className="h-48 rounded-none border-0"
+        className="h-56 rounded-none border-0"
+        imageClassName="saturate-105 contrast-100"
         compact
       />
       <div className="flex flex-col gap-3 p-5">
