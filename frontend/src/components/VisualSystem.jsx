@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import EditorialCover from './EditorialCover'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import { AtmospherePreset } from './AtmosphereEffects'
 
 function visualImage(visual, fallback = BRAND_VISUALS.empty) {
   return visual?.image || visual?.fallbackImage || fallback.image || fallback.fallbackImage
@@ -113,8 +114,18 @@ export function VisualPageShell({
   contentClassName = 'mx-auto max-w-7xl',
   density = 'normal',
   lateralKanji,
+  atmosphere,
 }) {
   const image = visualImage(visual)
+  // atmosphere puede venir como:
+  // - string ('demon-slayer', 'arena', etc.) → render AtmospherePreset
+  // - React node directo → render tal cual
+  // - null/undefined → leer del visual.atmosphere si existe (auto por slug)
+  const atmosphereNode =
+    typeof atmosphere === 'string'
+      ? <AtmospherePreset preset={atmosphere} />
+      : atmosphere ??
+        (visual?.atmosphere ? <AtmospherePreset preset={visual.atmosphere} /> : null)
   // Patrón visual de referencia (Anime Reveal, ELO Duel): un kanji ENORME
   // a cada lado en vertical, dando marco cinematográfico al contenido.
   // Si la página pasa lateralKanji={{left, right}} usamos esa pareja
@@ -153,6 +164,7 @@ export function VisualPageShell({
         }}
       />
       <ParticleLayer density={density} />
+      {atmosphereNode}
       {usarLateral && <LateralKanjiPair kanji={kanjiLateral} visual={visual} />}
       <div className={`relative z-10 ${contentClassName}`}>{children}</div>
     </section>

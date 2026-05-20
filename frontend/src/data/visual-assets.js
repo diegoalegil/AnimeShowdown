@@ -71,6 +71,7 @@ function makeVisual({
   accentRgb,
   glow,
   glowRgb,
+  atmosphere,
 }) {
   const p = palette(paletteSeed)
   const resolvedImage = image ?? resolveAsset(expectedPath)
@@ -89,12 +90,14 @@ function makeVisual({
     accentRgb: accentRgb ?? p.accentRgb,
     glow: glow ?? p.glow,
     glowRgb: glowRgb ?? p.glowRgb,
+    atmosphere,
   }
 }
 
 export const ANIME_VISUALS = {
   naruto: makeVisual({
     slug: 'naruto',
+    atmosphere: 'naruto',
     title: 'Naruto',
     type: 'anime',
     kanji: '忍',
@@ -107,6 +110,7 @@ export const ANIME_VISUALS = {
   }),
   'one-piece': makeVisual({
     slug: 'one-piece',
+    atmosphere: 'one-piece',
     title: 'One Piece',
     type: 'anime',
     kanji: '海',
@@ -119,6 +123,7 @@ export const ANIME_VISUALS = {
   }),
   'my-hero-academia': makeVisual({
     slug: 'my-hero-academia',
+    atmosphere: 'arena',
     title: 'My Hero Academia',
     type: 'anime',
     kanji: '英',
@@ -133,6 +138,7 @@ export const ANIME_VISUALS = {
   }),
   'demon-slayer': makeVisual({
     slug: 'demon-slayer',
+    atmosphere: 'demon-slayer',
     title: 'Demon Slayer',
     type: 'anime',
     kanji: '滅',
@@ -145,6 +151,7 @@ export const ANIME_VISUALS = {
   }),
   'jujutsu-kaisen': makeVisual({
     slug: 'jujutsu-kaisen',
+    atmosphere: 'jujutsu-kaisen',
     title: 'Jujutsu Kaisen',
     type: 'anime',
     kanji: '呪',
@@ -159,6 +166,7 @@ export const ANIME_VISUALS = {
   }),
   'attack-on-titan': makeVisual({
     slug: 'attack-on-titan',
+    atmosphere: 'attack-on-titan',
     title: 'Attack on Titan',
     type: 'anime',
     kanji: '壁',
@@ -187,6 +195,7 @@ export const ANIME_VISUALS = {
   }),
   'fullmetal-alchemist': makeVisual({
     slug: 'fullmetal-alchemist',
+    atmosphere: 'fullmetal',
     title: 'Fullmetal Alchemist',
     type: 'anime',
     kanji: '錬',
@@ -202,6 +211,7 @@ export const ANIME_VISUALS = {
 export const TOURNAMENT_VISUALS = {
   'mha-heroes-vs-villains': makeVisual({
     slug: 'mha-heroes-vs-villains',
+    atmosphere: 'arena-storm',
     title: 'MHA: Heroes vs Villanos',
     type: 'tournament',
     kanji: '対',
@@ -216,6 +226,7 @@ export const TOURNAMENT_VISUALS = {
   }),
   'one-piece-strawhats': makeVisual({
     slug: 'one-piece-strawhats',
+    atmosphere: 'one-piece',
     title: 'One Piece — Sombrero de Paja',
     type: 'tournament',
     kanji: '海',
@@ -228,6 +239,7 @@ export const TOURNAMENT_VISUALS = {
   }),
   'slayers-vs-sorcerers': makeVisual({
     slug: 'slayers-vs-sorcerers',
+    atmosphere: 'arena-storm',
     title: 'Slayers vs Sorcerers',
     type: 'tournament',
     kanji: '術',
@@ -242,6 +254,7 @@ export const TOURNAMENT_VISUALS = {
   }),
   'demon-slayer-internal': makeVisual({
     slug: 'demon-slayer-internal',
+    atmosphere: 'demon-slayer',
     title: 'Demon Slayer Internal',
     type: 'tournament',
     kanji: '柱',
@@ -417,6 +430,7 @@ export const GAME_VISUALS = {
 export const BRAND_VISUALS = {
   homeHero: makeVisual({
     slug: 'home-hero',
+    atmosphere: 'arena',
     title: 'AnimeShowdown',
     type: 'brand',
     kanji: '決',
@@ -437,6 +451,7 @@ export const BRAND_VISUALS = {
   }),
   ranking: makeVisual({
     slug: 'ranking-hero',
+    atmosphere: 'tribute',
     title: 'Salón de la fama',
     type: 'brand',
     kanji: '冠',
@@ -451,6 +466,7 @@ export const BRAND_VISUALS = {
   }),
   animes: makeVisual({
     slug: 'anime-catalog',
+    atmosphere: 'archive',
     title: 'Universos anime',
     type: 'brand',
     kanji: '界',
@@ -461,6 +477,7 @@ export const BRAND_VISUALS = {
   }),
   torneos: makeVisual({
     slug: 'tournament-catalog',
+    atmosphere: 'arena',
     title: 'Torneos',
     type: 'brand',
     kanji: '戦',
@@ -475,6 +492,7 @@ export const BRAND_VISUALS = {
   }),
   eventos: makeVisual({
     slug: 'events-hero',
+    atmosphere: 'ritual',
     title: 'Eventos',
     type: 'brand',
     kanji: '祭',
