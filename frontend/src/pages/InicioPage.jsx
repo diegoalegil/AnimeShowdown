@@ -569,31 +569,41 @@ function SectionRetosDiarios() {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {RETOS_DIARIOS.map((r) => (
-            <Link
-              key={r.to}
-              to={r.to}
-              className={`group relative flex flex-col gap-2 overflow-hidden rounded-xl border bg-surface p-4 transition-all hover:-translate-y-1 ${RETO_COLORS[r.color]}`}
-            >
-              <span
-                aria-hidden="true"
-                className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] leading-none opacity-[0.1] ${RETO_COLORS[r.color].split(' ').find((c) => c.startsWith('text-'))}`}
+          {RETOS_DIARIOS.map((r) => {
+            const colorClasses = RETO_COLORS[r.color]
+            const textColor =
+              colorClasses?.split(' ').find((c) => c.startsWith('text-')) || ''
+            return (
+              <Link
+                key={r.to}
+                to={r.to}
+                className={`group relative flex flex-col gap-2 overflow-hidden rounded-xl border bg-surface/85 p-4 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-[0_18px_60px_-25px_rgba(159,29,44,0.65)] backdrop-blur-sm ${colorClasses}`}
               >
-                {r.kanji}
-              </span>
-              <div
-                className={`relative flex h-12 w-12 items-center justify-center rounded-lg border-2 ${RETO_COLORS[r.color]}`}
-              >
-                <span className="font-mono text-2xl font-extrabold">
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] leading-none opacity-[0.08] transition-all duration-500 group-hover:opacity-[0.22] group-hover:-translate-y-1 ${textColor}`}
+                  style={{ textShadow: '0 0 35px currentColor' }}
+                >
                   {r.kanji}
                 </span>
-              </div>
-              <h3 className="relative text-sm font-bold text-fg-strong group-hover:text-accent">
-                {r.titulo}
-              </h3>
-              <p className="relative text-[11px] text-fg-muted">{r.desc}</p>
-            </Link>
-          ))}
+                <div
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_28px_-6px_currentColor] ${colorClasses}`}
+                >
+                  <span className="font-mono text-2xl font-extrabold">
+                    {r.kanji}
+                  </span>
+                </div>
+                <h3 className="relative text-sm font-bold text-fg-strong transition-colors group-hover:text-accent">
+                  {r.titulo}
+                </h3>
+                <p className="relative text-[11px] text-fg-muted">{r.desc}</p>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-3 bottom-2 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-accent/60 to-transparent transition-transform duration-300 group-hover:scale-x-100"
+                />
+              </Link>
+            )
+          })}
         </div>
       </div>
     </motion.section>
