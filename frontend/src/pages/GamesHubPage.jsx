@@ -419,23 +419,33 @@ function CardMini({ game, estado }) {
   const done = estado?.completadoHoy
   const best = estado?.best
   const visual = getGameVisual(game.to, game.titulo)
+  // Card mini de juego con su portada cinematografica visible. Antes la
+  // imagen iba con opacity-85 + un kanji card con bg theme opaco encima
+  // que tapaba 80% del contenido. Ahora opacity-95 y el kanji card pasa
+  // a bg theme/15 (semi-transparente) para que la imagen sea la
+  // protagonista, no el panel de color.
   return (
     <Link
       to={game.to}
-      className={`as-panel group relative flex gap-3 overflow-hidden rounded-xl border p-4 transition-all hover:-translate-y-0.5 ${theme.border} hover:${theme.glow}`}
+      className={`as-panel group relative flex min-h-[7.5rem] gap-3 overflow-hidden rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] ${theme.border} hover:${theme.glow}`}
     >
       <EditorialCover
         visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-85"
+        className="absolute inset-0 rounded-none border-0 opacity-95"
         imageClassName="saturate-110 contrast-105"
       />
 
-      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border">
+      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border backdrop-blur-md">
         <div
-          className={`absolute inset-0 rounded-xl border-2 ${theme.border} ${theme.bg}`}
+          className={`absolute inset-0 rounded-xl border-2 ${theme.border}`}
+          style={{
+            background:
+              'linear-gradient(135deg, rgb(7 10 18 / 0.55) 0%, rgb(7 10 18 / 0.25) 100%)',
+          }}
         />
         <span
           className={`relative font-mono text-2xl font-extrabold ${theme.text}`}
+          style={{ textShadow: '0 0 18px currentColor, 0 2px 6px rgb(0 0 0 / 0.6)' }}
         >
           {game.kanji}
         </span>
@@ -444,28 +454,28 @@ function CardMini({ game, estado }) {
       <div className="relative min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-1.5">
           <span
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${theme.border} ${theme.bg} ${theme.text}`}
+            className={`inline-flex items-center gap-1 rounded-full border bg-bg/55 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] backdrop-blur-md ${theme.border} ${theme.text}`}
           >
             <Icon className="h-2.5 w-2.5" />
             {game.rarity}
           </span>
           {done && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-emerald-200">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-emerald-200 backdrop-blur-md">
               ✓
             </span>
           )}
           {best != null && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-yellow-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-yellow-200">
+            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-yellow-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-yellow-200 backdrop-blur-md">
               <Trophy className="h-2.5 w-2.5" />
               Récord {best}
             </span>
           )}
         </div>
-        <h3 className="truncate text-base font-bold text-fg-strong group-hover:text-accent">
+        <h3 className="truncate text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-accent">
           {game.titulo}
         </h3>
-        <p className="line-clamp-2 text-[12px] text-fg-muted">{game.desc}</p>
-        <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+        <p className="line-clamp-2 text-[12px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">{game.desc}</p>
+        <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-fg-muted/90">
           {game.cadencia}
         </p>
       </div>
@@ -478,25 +488,30 @@ function OmikujiCard() {
   return (
     <Link
       to="/omikuji"
-      className="as-panel-hot group relative flex items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-4 transition-all hover:-translate-y-0.5"
+      className="as-panel-hot group relative flex items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-4 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_20px_55px_-25px_rgba(255,46,99,0.55)]"
     >
       <EditorialCover
         visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-80"
+        className="absolute inset-0 rounded-none border-0 opacity-95"
         imageClassName="saturate-110 contrast-105"
       />
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 border-accent/40 bg-accent/10">
-        <span className="font-mono text-lg font-extrabold text-accent">御</span>
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 border-accent/40 backdrop-blur-md"
+        style={{ background: 'linear-gradient(135deg, rgb(255 46 99 / 0.22) 0%, rgb(7 10 18 / 0.45) 100%)' }}
+      >
+        <span
+          className="font-mono text-lg font-extrabold text-accent"
+          style={{ textShadow: '0 0 16px currentColor, 0 2px 5px rgb(0 0 0 / 0.65)' }}
+        >御</span>
       </div>
       <div className="relative flex-1">
-        <h3 className="text-base font-bold text-fg-strong group-hover:text-accent">
+        <h3 className="text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-accent">
           Omikuji diario
         </h3>
-        <p className="text-[12px] text-fg-muted">
+        <p className="text-[12px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
           Tira tu suerte del día al estilo de los santuarios japoneses.
         </p>
       </div>
-      <ArrowRight className="h-4 w-4 text-accent transition-transform group-hover:translate-x-1" />
+      <ArrowRight className="relative h-4 w-4 text-accent transition-transform group-hover:translate-x-1" />
     </Link>
   )
 }
