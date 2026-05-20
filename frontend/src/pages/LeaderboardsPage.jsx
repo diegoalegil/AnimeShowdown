@@ -8,7 +8,7 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import Avatar from '../components/Avatar'
 import { endpoints } from '../lib/api'
-import { VisualPageShell } from '../components/VisualSystem'
+import { EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
