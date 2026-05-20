@@ -23,6 +23,8 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -147,7 +149,11 @@ function PersonajesPage() {
   }
 
   return (
-    <section className="as-stage as-stage-visual as-stage-home px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell
+      visual={{ ...BRAND_VISUALS.homeHero, kanji: '人' }}
+      contentClassName="mx-auto max-w-7xl"
+      lateralKanji={{ left: '英', right: '雄' }}
+    >
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -155,7 +161,6 @@ function PersonajesPage() {
           { label: 'Personajes', path: '/personajes' },
         ])}
       />
-      <div className="mx-auto max-w-7xl">
         <motion.header
           className="mb-8 flex flex-col items-start gap-3"
           initial="hidden"
@@ -411,8 +416,7 @@ function PersonajesPage() {
         <div className="mt-6">
           <SugerirPersonajeCTA titulo="¿No está tu personaje favorito?" />
         </div>
-      </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

@@ -8,6 +8,8 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import Avatar from '../components/Avatar'
 import { endpoints } from '../lib/api'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -47,7 +49,7 @@ function LeaderboardsPage() {
   })
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={BRAND_VISUALS.ranking} contentClassName="mx-auto max-w-6xl" lateralKanji={{left: "覇", right: "者"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -139,7 +141,7 @@ function LeaderboardsPage() {
           </p>
         </div>
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 
