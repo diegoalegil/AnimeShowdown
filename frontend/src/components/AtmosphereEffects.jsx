@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 /**
  * Efectos atmosfericos canvas para reforzar el feel cinematografico de
@@ -22,11 +22,17 @@ import { useEffect, useRef, useState } from 'react'
  */
 
 function useReducedMotion() {
-  const [reduced, setReduced] = useState(false)
+  // Lazy initializer: computa el valor inicial DURANTE el primer render
+  // (no via setState desde un useEffect, que dispara un re-render extra y
+  // que ESLint marca como anti-patron en React 19 con la regla
+  // react-hooks/set-state-in-effect).
+  const [reduced, setReduced] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  })
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduced(mq.matches)
     const handler = (e) => setReduced(e.matches)
     mq.addEventListener?.('change', handler)
     return () => mq.removeEventListener?.('change', handler)
@@ -87,11 +93,18 @@ export function SakuraPetals({ density = 'normal', tone = 'rose' }) {
   useCanvasResize(canvasRef)
 
   const count = density === 'low' ? 12 : density === 'high' ? 40 : 24
-  const colors = {
-    rose: ['rgb(220 80 110)', 'rgb(180 50 80)', 'rgb(155 30 60)'],
-    pink: ['rgb(244 114 182)', 'rgb(219 39 119)', 'rgb(190 24 93)'],
-    gold: ['rgb(217 169 95)', 'rgb(180 130 60)', 'rgb(140 95 30)'],
-  }[tone] ?? ['rgb(220 80 110)', 'rgb(180 50 80)', 'rgb(155 30 60)']
+  // useMemo para que el array de colores no cambie en cada render — sin
+  // esto el useEffect de abajo recrea petalos cada render, perdiendo el
+  // estado de animacion. ESLint react-hooks/exhaustive-deps lo flagea.
+  const colors = useMemo(
+    () =>
+      ({
+        rose: ['rgb(220 80 110)', 'rgb(180 50 80)', 'rgb(155 30 60)'],
+        pink: ['rgb(244 114 182)', 'rgb(219 39 119)', 'rgb(190 24 93)'],
+        gold: ['rgb(217 169 95)', 'rgb(180 130 60)', 'rgb(140 95 30)'],
+      }[tone] ?? ['rgb(220 80 110)', 'rgb(180 50 80)', 'rgb(155 30 60)']),
+    [tone],
+  )
 
   useEffect(() => {
     if (reduced || !visible) {
