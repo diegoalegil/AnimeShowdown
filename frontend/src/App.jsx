@@ -69,6 +69,11 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 // (cero requests, todo CSS), pero comunica "estoy cargando" en vez
 // de "no pasa nada".
 function PageLoader() {
+  // Audit user feedback (2026-05-20): el spinner anterior tenia un kanji 戦
+  // gigante girando en el centro — se veia raro/desconcertante para usuarios
+  // que no lo entienden. Reemplazo por un orb dorado pulsando con 3 dots
+  // animados — mantiene identidad premium (no spinner-generico-SaaS) sin
+  // depender de iconografia japonesa que asuste.
   return (
     <div
       className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20"
@@ -76,13 +81,18 @@ function PageLoader() {
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="as-panel relative flex min-w-64 flex-col items-center gap-4 rounded-2xl p-7 shadow-[0_0_70px_-34px_var(--color-gold)]">
-        <div className="relative h-16 w-16">
-          <div className="absolute inset-0 rounded-full border border-gold/30 bg-gold/10" />
-          <div className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-t-gold" />
-          <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-black text-gold">
-            戦
-          </span>
+      <div className="as-panel relative flex min-w-64 flex-col items-center gap-5 rounded-2xl p-8 shadow-[0_0_70px_-34px_var(--color-gold)]">
+        {/* Orb dorado con halo + glow pulsante */}
+        <div className="relative h-14 w-14">
+          <div className="absolute inset-0 animate-ping rounded-full bg-gold/30" style={{ animationDuration: '2s' }} />
+          <div className="absolute inset-2 rounded-full bg-gradient-to-br from-gold via-amber-400 to-gold/60 shadow-[0_0_30px_rgb(197_161_90_/_0.7)]" />
+          <div className="absolute inset-3 rounded-full bg-gradient-to-tr from-amber-200 to-gold opacity-90" />
+        </div>
+        {/* 3 dots animados estilo thinking */}
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70" style={{ animationDelay: '0ms' }} />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70" style={{ animationDelay: '160ms' }} />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70" style={{ animationDelay: '320ms' }} />
         </div>
         <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
           Preparando arena
