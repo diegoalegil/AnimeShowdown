@@ -8,18 +8,39 @@ function visualImage(visual, fallback = BRAND_VISUALS.empty) {
 }
 
 export function ParticleLayer({ className = '', density = 'normal' }) {
-  const opacity = density === 'low' ? 'opacity-[0.10]' : 'opacity-[0.16]'
+  // Audit visual (2026-05-20): "no pusiste particulas de fondo" — habia
+  // ParticleLayer pero estaba en density=low (opacity 0.10) por defecto y
+  // muchas paginas no la pasaban con density=normal. Ahora dos capas
+  // superpuestas: partículas pequeñas tipo polvo + partículas medianas con
+  // halo carmesí sutil, para que se sienta una atmósfera viva sin
+  // distraer del contenido. La densidad sigue siendo configurable.
+  const opacityDots = density === 'low' ? 'opacity-[0.10]' : density === 'high' ? 'opacity-[0.22]' : 'opacity-[0.17]'
+  const opacityGlow = density === 'low' ? 'opacity-[0.05]' : density === 'high' ? 'opacity-[0.14]' : 'opacity-[0.09]'
+  const sizeDots = density === 'low' ? '56px 56px' : density === 'high' ? '30px 30px' : '38px 38px'
   return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 ${opacity} ${className}`}
-      style={{
-        backgroundImage:
-          'radial-gradient(circle at 2px 2px, rgb(255 255 255 / 0.22) 1px, transparent 0)',
-        backgroundSize: density === 'low' ? '54px 54px' : '38px 38px',
-        maskImage: 'linear-gradient(to bottom, black, transparent 82%)',
-      }}
-    />
+    <>
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 ${opacityDots} ${className}`}
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 2px 2px, rgb(255 255 255 / 0.24) 1px, transparent 0)',
+          backgroundSize: sizeDots,
+          maskImage: 'linear-gradient(to bottom, black, transparent 82%)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 ${opacityGlow}`}
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 3px 3px, rgb(255 80 120 / 0.55) 1.4px, transparent 0)',
+          backgroundSize: '92px 92px',
+          backgroundPosition: '12px 24px',
+          maskImage: 'linear-gradient(to bottom, transparent, black 25%, black 70%, transparent)',
+        }}
+      />
+    </>
   )
 }
 
@@ -38,14 +59,72 @@ export function KanjiBackdrop({ kanji = '戦', visual, className = '' }) {
   )
 }
 
+/**
+ * Par de kanjis enormes a ambos lados verticales del hero, estilo ELO Duel
+ * (referencia visual del producto): el kanji izquierdo gira en vertical-rl
+ * a media altura, el derecho hace lo mismo en espejo. Da un marco
+ * cinematografico inmediato sin saturar el contenido central.
+ *
+ * <p>Si se pasa un solo kanji, se duplica con leve cambio de tono. Si se
+ * pasan dos ({ left, right }), se usan tal cual — util cuando el contexto
+ * tiene una pareja semantica (ELO Duel: 競争 vs 対決, Anime Reveal: 謎 vs 影).
+ */
+export function LateralKanjiPair({ kanji, visual, intensity = 'normal' }) {
+  const left = typeof kanji === 'object' ? kanji.left : kanji
+  const right = typeof kanji === 'object' ? kanji.right : kanji
+  const opacity = intensity === 'soft' ? 'opacity-[0.05] sm:opacity-[0.07]' : 'opacity-[0.07] sm:opacity-[0.10]'
+  const glow = visual?.glowRgb ?? '197 161 90'
+  const accent = visual?.accentRgb ?? '159 29 44'
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute left-[-2vw] top-1/2 hidden -translate-y-1/2 select-none font-mono text-[18vw] font-black leading-none lg:block ${opacity}`}
+        style={{
+          color: `rgb(${glow} / 1)`,
+          textShadow: `0 0 110px rgb(${accent} / 0.4)`,
+          writingMode: 'vertical-rl',
+          textOrientation: 'mixed',
+        }}
+      >
+        {left}
+      </span>
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute right-[-2vw] top-1/2 hidden -translate-y-1/2 select-none font-mono text-[18vw] font-black leading-none lg:block ${opacity}`}
+        style={{
+          color: `rgb(${accent} / 1)`,
+          textShadow: `0 0 110px rgb(${glow} / 0.32)`,
+          writingMode: 'vertical-rl',
+          textOrientation: 'mixed',
+          transform: 'translateY(-50%) scaleX(-1)',
+        }}
+      >
+        {right}
+      </span>
+    </>
+  )
+}
+
 export function VisualPageShell({
   visual = BRAND_VISUALS.homeHero,
   children,
   className = '',
   contentClassName = 'mx-auto max-w-7xl',
-  density = 'low',
+  density = 'normal',
+  lateralKanji,
 }) {
   const image = visualImage(visual)
+  // Patrón visual de referencia (Anime Reveal, ELO Duel): un kanji ENORME
+  // a cada lado en vertical, dando marco cinematográfico al contenido.
+  // Si la página pasa lateralKanji={{left, right}} usamos esa pareja
+  // semántica; si pasa lateralKanji=null lo deshabilita; sino se duplica
+  // el kanji del visual.
+  const usarLateral = lateralKanji !== null
+  const kanjiLateral =
+    lateralKanji && typeof lateralKanji === 'object'
+      ? lateralKanji
+      : { left: visual?.kanji ?? '戦', right: visual?.kanji ?? '戦' }
   return (
     <section
       className={`relative isolate overflow-hidden px-5 py-12 sm:px-8 sm:py-16 ${className}`}
@@ -62,11 +141,9 @@ export function VisualPageShell({
           backgroundPosition: visual?.objectPosition ?? 'center',
         }}
       />
-      {/* Audit visual (2026-05-20): el gradient anterior empezaba en
-          rgb(7 10 18 / 0.82) (82% oscuro arriba) y subia a 0.97 al medio,
-          apagando la imagen entera. Nuevo: arriba semi-transparente para
-          que la imagen respire, vignette progresiva hacia abajo para que
-          el contenido textual encima sea legible. */}
+      {/* Audit visual (2026-05-20): vignette progresiva hacia abajo en lugar
+          del overlay plano oscuro que apagaba la imagen entera. La imagen
+          respira arriba y el texto queda legible abajo. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
@@ -76,7 +153,7 @@ export function VisualPageShell({
         }}
       />
       <ParticleLayer density={density} />
-      <KanjiBackdrop kanji={visual?.kanji} visual={visual} />
+      {usarLateral && <LateralKanjiPair kanji={kanjiLateral} visual={visual} />}
       <div className={`relative z-10 ${contentClassName}`}>{children}</div>
     </section>
   )
