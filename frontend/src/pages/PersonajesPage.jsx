@@ -23,7 +23,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
-import { VisualPageShell } from '../components/VisualSystem'
+import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 
 const headerVariants = {
@@ -63,6 +63,19 @@ const sortLabels = {
   nombre_az: 'Nombre A-Z',
   nombre_za: 'Nombre Z-A',
   anime: 'Anime A-Z',
+}
+
+function MiniHeroStat({ label, value }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.045] p-3">
+      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-fg-muted">
+        {label}
+      </p>
+      <p className="mt-1 font-mono text-2xl font-black text-gold tabular-nums">
+        {Number(value).toLocaleString('es-ES')}
+      </p>
+    </div>
+  )
 }
 
 function PersonajesPage() {
@@ -162,27 +175,47 @@ function PersonajesPage() {
           { label: 'Personajes', path: '/personajes' },
         ])}
       />
-        <motion.header
-          className="mb-8 flex flex-col items-start gap-3"
-          initial="hidden"
-          animate="visible"
-          variants={headerVariants}
-        >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
-            <Sparkles className="h-3 w-3" />
-            Catálogo completo · {personajes.length} personajes
-          </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            Personajes
-          </h1>
-          <p className="max-w-2xl text-fg-muted">
-            Explora todos los personajes que compiten por subir en el ranking
-            ELO. Busca a tus favoritos, filtra por universo y revisa sus stats
-            de combate antes de votar.
-          </p>
-        </motion.header>
+        <motion.div initial="hidden" animate="visible" variants={headerVariants}>
+          <CinematicHero
+            visual={{ ...BRAND_VISUALS.homeHero, kanji: '人' }}
+            icon={Sparkles}
+            eyebrow={`Catálogo completo · ${personajes.length} combatientes`}
+            title="Archivo de personajes"
+            subtitle="Busca, filtra y compara a los personajes que sostienen el meta. Cada ficha funciona como entrada de archivo y como carta de combate para saltar directo al duelo."
+            actions={
+              <>
+                <Link
+                  to="/votar"
+                  className="as-button-primary inline-flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-black"
+                >
+                  <Swords className="h-4 w-4" />
+                  Votar ahora
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/ranking"
+                  className="as-button-ghost inline-flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-bold"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Ver ranking
+                </Link>
+              </>
+            }
+            aside={
+              <div className="grid gap-3 rounded-2xl border border-white/10 bg-bg/62 p-5 backdrop-blur-xl">
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                  Estado del archivo
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <MiniHeroStat label="Universos" value={animes.length} />
+                  <MiniHeroStat label="Top ELO" value={Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))} />
+                </div>
+              </div>
+            }
+          />
+        </motion.div>
 
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="as-panel mb-4 grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
             <input
@@ -190,7 +223,7 @@ function PersonajesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Busca personaje, anime o alias…"
-              className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+              className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
             />
             {search && (
               <button
@@ -210,7 +243,7 @@ function PersonajesPage() {
               play('playClick')
             }}
             aria-label="Ordenar por"
-            className="rounded-lg border border-border bg-surface py-2.5 px-3 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
           >
             {Object.entries(sortLabels).map(([k, v]) => (
               <option key={k} value={k}>
@@ -218,7 +251,7 @@ function PersonajesPage() {
               </option>
             ))}
           </select>
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
+          <div className="as-control flex items-center gap-1 rounded-lg p-1">
             <button
               type="button"
               onClick={() => {
@@ -228,8 +261,8 @@ function PersonajesPage() {
               aria-label="Vista cuadrícula"
               className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
                 view === 'grid'
-                  ? 'bg-surface-alt text-fg-strong'
-                  : 'text-fg-muted hover:text-fg-strong'
+                  ? 'bg-gold/15 text-gold'
+                  : 'text-fg-muted hover:bg-white/5 hover:text-fg-strong'
               }`}
             >
               <LayoutGrid className="h-4 w-4" />
@@ -243,8 +276,8 @@ function PersonajesPage() {
               aria-label="Vista lista"
               className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
                 view === 'list'
-                  ? 'bg-surface-alt text-fg-strong'
-                  : 'text-fg-muted hover:text-fg-strong'
+                  ? 'bg-gold/15 text-gold'
+                  : 'text-fg-muted hover:bg-white/5 hover:text-fg-strong'
               }`}
             >
               <List className="h-4 w-4" />
@@ -275,10 +308,10 @@ function PersonajesPage() {
               setAnimeFilter(null)
               play('playClick')
             }}
-            className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
+            className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
               animeFilter === null
-                ? 'border-accent bg-accent text-white'
-                : 'border-border bg-surface text-fg-muted hover:border-accent/40 hover:text-fg-strong'
+                ? 'as-chip-active'
+                : 'as-chip hover:border-gold/40 hover:text-fg-strong'
             }`}
           >
             Todos · {personajes.length}
@@ -291,10 +324,10 @@ function PersonajesPage() {
                 setAnimeFilter(anime)
                 play('playClick')
               }}
-              className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
+              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
                 animeFilter === anime
-                  ? 'border-accent bg-accent text-white'
-                  : 'border-border bg-surface text-fg-muted hover:border-accent/40 hover:text-fg-strong'
+                  ? 'as-chip-active'
+                  : 'as-chip hover:border-gold/40 hover:text-fg-strong'
               }`}
             >
               {anime} · {count}
@@ -314,21 +347,24 @@ function PersonajesPage() {
         </p>
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <p className="text-lg font-bold text-fg-strong">
-              Ningún personaje coincide
-            </p>
-            <p className="text-sm text-fg-muted">
-              Prueba con otra búsqueda o limpia los filtros.
+          <EmptyStateScene
+            visual={BRAND_VISUALS.empty}
+            icon={Search}
+            title="No hay combatientes con esos filtros"
+          >
+            <p>
+              El archivo no encontró coincidencias. Prueba con otro universo,
+              busca por nombre alternativo o limpia filtros para volver al
+              roster completo.
             </p>
             <button
               type="button"
               onClick={limpiarFiltros}
-              className="mt-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+              className="as-button-ghost mt-3 inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-bold"
             >
               Limpiar filtros
             </button>
-          </div>
+          </EmptyStateScene>
         ) : view === 'grid' ? (
           <>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -341,7 +377,7 @@ function PersonajesPage() {
                 <button
                   type="button"
                   onClick={cargarMas}
-                  className="rounded-lg border border-border bg-surface px-6 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                  className="as-button-ghost rounded-lg px-6 py-2.5 text-sm font-bold"
                 >
                   Cargar {Math.min(PAGE_SIZE, filtered.length - visibleCount)} más
                   <span className="ml-2 text-fg-muted">
@@ -367,7 +403,7 @@ function PersonajesPage() {
                 <button
                   type="button"
                   onClick={cargarMas}
-                  className="rounded-lg border border-border bg-surface px-6 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                  className="as-button-ghost rounded-lg px-6 py-2.5 text-sm font-bold"
                 >
                   Cargar {Math.min(PAGE_SIZE, filtered.length - visibleCount)} más
                   <span className="ml-2 text-fg-muted">

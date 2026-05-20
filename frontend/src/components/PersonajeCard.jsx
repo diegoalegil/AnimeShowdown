@@ -59,7 +59,7 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
       onClick={() => play('playWhoosh')}
       className="group block"
     >
-      <article className="relative overflow-hidden rounded-xl border border-border bg-surface">
+      <article className="as-ssr-card relative overflow-hidden rounded-xl transition-all group-hover:-translate-y-1 group-hover:border-gold/45 group-hover:shadow-[0_24px_70px_-38px_rgba(197,161,90,0.55)]">
         <PersonajeImg
           slug={slug}
           alt={nombre}
@@ -119,7 +119,7 @@ function CardWithTilt({ slug, nombre, anime, rank, elo, winRate, onClick }) {
           rotateY,
           transformPerspective: 800,
         }}
-        className="relative overflow-hidden rounded-xl border border-border bg-surface transition-all group-hover:border-accent/60 group-hover:shadow-[0_0_30px_-10px_rgba(255,46,99,0.45)]"
+        className="as-ssr-card relative overflow-hidden rounded-xl transition-all group-hover:border-gold/50 group-hover:shadow-[0_28px_80px_-38px_rgba(197,161,90,0.58)]"
       >
         <PersonajeImg
           slug={slug}
