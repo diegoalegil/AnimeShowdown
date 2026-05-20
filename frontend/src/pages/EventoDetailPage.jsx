@@ -121,7 +121,7 @@ function EventoDetailPage() {
   const misionEvento = misionPorEstado[estado]
 
   return (
-    <VisualPageShell visual={visual} contentClassName="mx-auto max-w-5xl" density="low">
+    <VisualPageShell visual={visual} contentClassName="mx-auto max-w-5xl" density="low" lateralKanji={{left: visual?.kanji ?? "祭", right: "祭"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

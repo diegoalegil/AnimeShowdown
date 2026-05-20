@@ -117,7 +117,7 @@ function UsuarioPage() {
   }
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.usuarioHero} contentClassName="mx-auto max-w-2xl" density="low">
+    <VisualPageShell visual={BRAND_VISUALS.usuarioHero} contentClassName="mx-auto max-w-2xl" density="low" lateralKanji={{left: "客", right: "人"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([

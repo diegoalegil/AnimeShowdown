@@ -47,7 +47,7 @@ function ForgotPasswordPage() {
 
   return (
     <VisualPageShell
-      visual={BRAND_VISUALS.authLogin}
+      visual={BRAND_VISUALS.authLogin} lateralKanji={{left: "忘", right: "記"}}
       className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
       contentClassName="w-full max-w-md"
     >

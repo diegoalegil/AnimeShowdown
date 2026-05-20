@@ -101,7 +101,7 @@ function PerfilPage() {
   }
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.perfilHero} contentClassName="mx-auto max-w-3xl" density="low">
+    <VisualPageShell visual={BRAND_VISUALS.perfilHero} contentClassName="mx-auto max-w-3xl" density="low" lateralKanji={{left: "我", right: "道"}}>
       <motion.header
           className="mb-6 flex flex-col items-start gap-3"
           initial="hidden"

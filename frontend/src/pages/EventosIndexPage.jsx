@@ -46,7 +46,7 @@ function EventosIndexPage() {
   const total = activos.length + proximos.length + pasados.length
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.eventos}>
+    <VisualPageShell visual={BRAND_VISUALS.eventos} lateralKanji={{left: "祭", right: "典"}}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -56,7 +56,7 @@ function EventosIndexPage() {
       />
       <div className="mx-auto max-w-6xl">
         <CinematicHero
-          visual={BRAND_VISUALS.eventos}
+          visual={BRAND_VISUALS.eventos} lateralKanji={{left: "祭", right: "典"}}
           icon={CalendarClock}
           eyebrow="Temporadas · Copas · Semanas"
           title="Eventos de AnimeShowdown"
