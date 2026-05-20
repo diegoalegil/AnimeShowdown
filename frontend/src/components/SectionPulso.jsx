@@ -456,7 +456,7 @@ function RetoCard() {
     >
       <EditorialCover
         visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-90"
+        className="absolute inset-0 rounded-none border-0 opacity-95"
         imageClassName="saturate-110 contrast-105"
       />
       <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-rose-300" />
@@ -465,7 +465,7 @@ function RetoCard() {
           影
         </div>
         <div className="flex flex-col gap-1">
-          <h3 className="text-[15px] font-bold text-fg-strong">
+          <h3 className="text-[15px] font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
             Adivina la silueta
           </h3>
           <p className="text-[12px] leading-snug text-fg-muted">
@@ -503,12 +503,12 @@ function TorneoActivoCard({ torneo }) {
     >
       <EditorialCover
         visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-85"
+        className="absolute inset-0 rounded-none border-0 opacity-95"
         imageClassName="saturate-110 contrast-105"
       />
       <CardEyebrow icon={Trophy} label="Torneo activo" tono="relative text-cyan-300" />
       <div className="relative flex flex-col gap-1">
-        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-fg-strong">
+        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
           {torneo.nombre}
         </h3>
         <p className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted">
@@ -551,7 +551,7 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
         >
           <EditorialCover
             visual={visual}
-            className="absolute inset-0 rounded-none border-0 opacity-85"
+            className="absolute inset-0 rounded-none border-0 opacity-95"
             imageClassName="saturate-110 contrast-105"
           />
           <CardEyebrow icon={Swords} label="Duelos pendientes" />
@@ -783,8 +783,8 @@ function EventoHeadlineBanner() {
     <div className={`relative mb-3 overflow-hidden rounded-xl border p-4 sm:mb-4 sm:p-5 ${tonoBg}`}>
       <EditorialCover
         visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-80"
-        imageClassName="saturate-110 contrast-105"
+        className="absolute inset-0 rounded-none border-0 opacity-95"
+        imageClassName="saturate-105 contrast-100"
       />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
@@ -796,11 +796,11 @@ function EventoHeadlineBanner() {
             <span aria-hidden="true" className="text-xl sm:text-2xl">
               {evento.emoji}
             </span>
-            <h3 className="text-lg font-extrabold text-fg-strong sm:text-xl">
+            <h3 className="text-lg font-extrabold text-fg-strong drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:text-xl">
               {evento.titulo}
             </h3>
           </div>
-          <p className="line-clamp-2 text-[13px] text-fg-muted">
+          <p className="line-clamp-2 text-[13px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
             {evento.descripcionCorta} · {participantes} personajes
           </p>
         </div>
