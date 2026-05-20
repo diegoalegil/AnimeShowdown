@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Trophy, ArrowLeft } from 'lucide-react'
 import Avatar from '../components/Avatar'
 import BadgeCardCatalogo from '../components/BadgeCardCatalogo'
+import { EmptyStateScene } from '../components/VisualSystem'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -176,9 +177,14 @@ function UsuarioLogrosPage() {
         </div>
 
         {visibles.length === 0 ? (
-          <p className="rounded-lg border border-border bg-surface p-6 text-center text-fg-muted">
-            No hay logros con esta rareza.
-          </p>
+          <EmptyStateScene
+            icon={Trophy}
+            title="Sin logros en esta rareza"
+            action={{ to: `/u/${perfil.username}/logros`, label: 'Ver todos' }}
+          >
+            Prueba otra rareza o vuelve al listado completo de logros del
+            perfil.
+          </EmptyStateScene>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibles.map((l) => (

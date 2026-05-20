@@ -31,7 +31,7 @@ import {
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
-import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
@@ -737,12 +737,14 @@ function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null
   }
   if (!items || items.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/40 p-8 text-fg-muted">
-        <Clock className="h-6 w-6" />
-        <p className="text-[12px]">
-          Aún no hay votos en esta ventana. Vuelve cuando haya tráfico real.
-        </p>
-      </div>
+      <EmptyStateScene
+        icon={Clock}
+        title="Sin actividad en esta ventana"
+        action={{ to: '/votar', label: 'Votar ahora' }}
+      >
+        Todavía no hay votos suficientes para esta ventana de tiempo. El
+        ranking se rellena cuando hay tráfico real — sé tú el primero.
+      </EmptyStateScene>
     )
   }
   return (
