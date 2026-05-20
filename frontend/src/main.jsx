@@ -7,10 +7,17 @@ import { SoundProvider } from './contexts/SoundContext.jsx'
 import { queryClient } from './lib/queryClient.js'
 import { initSentry } from './lib/sentry.js'
 import { initWebVitals } from './lib/vitals.js'
+import { installStaleAssetRecovery } from './lib/staleAssetRecovery.js'
 import './lib/i18n.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
 import App from './App.jsx'
+
+// Primer guardarraíl del bootstrap: si una pestaña antigua o el Service
+// Worker pide un chunk ya reemplazado y Cloudflare responde index.html,
+// Safari lanza "text/html is not a valid JavaScript MIME type". Limpiamos
+// caches runtime y recargamos una vez antes de dejar caer la app al boundary.
+installStaleAssetRecovery()
 
 // Bootstrap Sentry antes de montar React. No-op si VITE_SENTRY_DSN no está
 // definida (dev local sin .env). Plan v2 §3.7.
