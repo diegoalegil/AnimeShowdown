@@ -67,18 +67,24 @@ const pasos = [
     titulo: 'Elige tu lado',
     descripcion:
       'Explora personajes de distintos animes y entra en duelos donde solo uno puede ganar.',
+    tone: 'rose',
+    kanji: '撰',
   },
   {
     icon: Swords,
     titulo: 'Vota cara a cara',
     descripcion:
       'Decide quién merece subir. Tus votos afectan el ELO y pueden cambiar la posición de cada personaje.',
+    tone: 'cyan',
+    kanji: '闘',
   },
   {
     icon: Trophy,
     titulo: 'Corona al campeón',
     descripcion:
       'Sigue los rankings, mira qué personajes dominan y descubre quién se mantiene en la cima.',
+    tone: 'gold',
+    kanji: '冠',
   },
 ]
 
@@ -189,6 +195,8 @@ function SectionBento() {
             className="md:col-span-2"
             icon={Trophy}
             eyebrow="Brackets"
+            tone="gold"
+            kanji="戦"
             titulo="Brackets estilo batalla"
             descripcion="Sigue cada ronda como si fuera un torneo shonen: enfrentamientos directos, favoritos eliminados y campeones que se ganan su puesto voto a voto."
           >
@@ -213,12 +221,16 @@ function SectionBento() {
           <BentoCard
             icon={TrendingUp}
             eyebrow="ELO"
+            tone="crimson"
+            kanji="冠"
             titulo="Ranking en directo"
             descripcion="Cada voto suma o resta puntos. El ranking se actualiza con los resultados y muestra qué personajes dominan el meta."
           />
           <BentoCard
             icon={User}
             eyebrow="Cuenta"
+            tone="violet"
+            kanji="私"
             titulo="Tu historial, tus votos"
             descripcion="Inicia sesión para guardar tus votos, seguir tus personajes favoritos y construir tu propio recorrido dentro de AnimeShowdown."
           />
@@ -226,6 +238,8 @@ function SectionBento() {
             className="md:col-span-2"
             icon={Users}
             eyebrow="Comunidad"
+            tone="cyan"
+            kanji="衆"
             titulo="La comunidad decide"
             descripcion="Cada enfrentamiento recoge la opinión de otros fans y convierte el ranking en una decisión colectiva. Los tapados pueden sorprender."
           >
@@ -250,6 +264,48 @@ function SectionBento() {
   )
 }
 
+// Paletas por tone para BentoCard: cada feature tiene SU color en lugar
+// del rojo accent monotono que daba look "landing SaaS". El glow del
+// hover, el icon halo y el eyebrow border heredan el mismo tone.
+const BENTO_TONES = {
+  gold: {
+    eyebrow: 'border-amber-500/45 bg-amber-500/12 text-amber-200',
+    iconRing: 'border-amber-500/45 bg-amber-500/10 text-amber-300',
+    iconGlow: '0 0 28px -4px rgba(245,158,11,0.55)',
+    titleHover: 'group-hover:text-amber-200',
+    hover: 'hover:border-amber-500/55 hover:shadow-[0_20px_60px_-30px_rgba(245,158,11,0.55)]',
+    kanji: 'text-amber-300',
+    kanjiShadow: '0 0 70px rgba(245,158,11,0.40)',
+  },
+  crimson: {
+    eyebrow: 'border-rose-500/45 bg-rose-500/12 text-rose-200',
+    iconRing: 'border-rose-500/45 bg-rose-500/10 text-rose-300',
+    iconGlow: '0 0 28px -4px rgba(244,63,94,0.55)',
+    titleHover: 'group-hover:text-rose-200',
+    hover: 'hover:border-rose-500/55 hover:shadow-[0_20px_60px_-30px_rgba(244,63,94,0.55)]',
+    kanji: 'text-rose-300',
+    kanjiShadow: '0 0 70px rgba(244,63,94,0.40)',
+  },
+  violet: {
+    eyebrow: 'border-violet-500/45 bg-violet-500/12 text-violet-200',
+    iconRing: 'border-violet-500/45 bg-violet-500/10 text-violet-300',
+    iconGlow: '0 0 28px -4px rgba(139,92,246,0.55)',
+    titleHover: 'group-hover:text-violet-200',
+    hover: 'hover:border-violet-500/55 hover:shadow-[0_20px_60px_-30px_rgba(139,92,246,0.55)]',
+    kanji: 'text-violet-300',
+    kanjiShadow: '0 0 70px rgba(139,92,246,0.40)',
+  },
+  cyan: {
+    eyebrow: 'border-cyan-500/45 bg-cyan-500/12 text-cyan-200',
+    iconRing: 'border-cyan-500/45 bg-cyan-500/10 text-cyan-300',
+    iconGlow: '0 0 28px -4px rgba(6,182,212,0.55)',
+    titleHover: 'group-hover:text-cyan-200',
+    hover: 'hover:border-cyan-500/55 hover:shadow-[0_20px_60px_-30px_rgba(6,182,212,0.55)]',
+    kanji: 'text-cyan-300',
+    kanjiShadow: '0 0 70px rgba(6,182,212,0.40)',
+  },
+}
+
 function BentoCard({
   icon: Icon,
   eyebrow,
@@ -257,26 +313,46 @@ function BentoCard({
   descripcion,
   className = '',
   children,
+  tone = 'crimson',
+  kanji,
 }) {
+  const t = BENTO_TONES[tone] ?? BENTO_TONES.crimson
   return (
     <div
-      className={`group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border bg-surface p-6 transition-colors hover:border-accent/40 ${className}`}
+      className={`group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-white/8 bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hover} ${className}`}
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
+      {/* Kanji decorativo de background por card */}
+      {kanji && (
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute -right-4 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-[0.07] sm:text-[9rem] sm:opacity-[0.10] ${t.kanji}`}
+          style={{ textShadow: t.kanjiShadow }}
+        >
+          {kanji}
+        </span>
+      )}
+      <div className="relative flex items-center gap-3">
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-xl border ${t.iconRing}`}
+          style={{ boxShadow: t.iconGlow }}
+        >
           <Icon className="h-5 w-5" />
         </div>
         {eyebrow && (
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+          <span
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${t.eyebrow}`}
+          >
             {eyebrow}
           </span>
         )}
       </div>
-      <div className="flex flex-col gap-2">
-        <h3 className="text-xl font-bold text-fg-strong">{titulo}</h3>
+      <div className="relative flex flex-col gap-2">
+        <h3 className={`text-xl font-bold text-fg-strong transition-colors ${t.titleHover}`}>
+          {titulo}
+        </h3>
         <p className="text-sm leading-relaxed text-fg-muted">{descripcion}</p>
       </div>
-      {children && <div className="mt-auto pt-2">{children}</div>}
+      {children && <div className="relative mt-auto pt-2">{children}</div>}
     </div>
   )
 }
@@ -638,19 +714,72 @@ function SectionComoFunciona() {
   )
 }
 
-function PasoCard({ numero, icon: Icon, titulo, descripcion }) {
+const PASO_TONES = {
+  rose: {
+    border: 'border-rose-500/35',
+    hoverBorder: 'hover:border-rose-500/55',
+    iconRing: 'border-rose-500/45 bg-rose-500/10 text-rose-300',
+    iconGlow: '0 0 28px -6px rgba(244,63,94,0.55)',
+    hoverShadow: 'hover:shadow-[0_20px_60px_-30px_rgba(244,63,94,0.50)]',
+    titleHover: 'group-hover:text-rose-200',
+    kanji: 'text-rose-300',
+    kanjiShadow: '0 0 70px rgba(244,63,94,0.40)',
+    number: 'text-rose-300/70',
+  },
+  cyan: {
+    border: 'border-cyan-500/35',
+    hoverBorder: 'hover:border-cyan-500/55',
+    iconRing: 'border-cyan-500/45 bg-cyan-500/10 text-cyan-300',
+    iconGlow: '0 0 28px -6px rgba(6,182,212,0.55)',
+    hoverShadow: 'hover:shadow-[0_20px_60px_-30px_rgba(6,182,212,0.50)]',
+    titleHover: 'group-hover:text-cyan-200',
+    kanji: 'text-cyan-300',
+    kanjiShadow: '0 0 70px rgba(6,182,212,0.40)',
+    number: 'text-cyan-300/70',
+  },
+  gold: {
+    border: 'border-amber-500/35',
+    hoverBorder: 'hover:border-amber-500/55',
+    iconRing: 'border-amber-500/45 bg-amber-500/10 text-amber-300',
+    iconGlow: '0 0 28px -6px rgba(245,158,11,0.55)',
+    hoverShadow: 'hover:shadow-[0_20px_60px_-30px_rgba(245,158,11,0.50)]',
+    titleHover: 'group-hover:text-amber-200',
+    kanji: 'text-amber-300',
+    kanjiShadow: '0 0 70px rgba(245,158,11,0.40)',
+    number: 'text-amber-300/70',
+  },
+}
+
+function PasoCard({ numero, icon: Icon, titulo, descripcion, tone = 'rose', kanji }) {
+  const t = PASO_TONES[tone] ?? PASO_TONES.rose
   return (
-    <div className="rounded-xl border border-border bg-surface p-6 transition-colors hover:border-accent/40">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
+    <div
+      className={`group relative overflow-hidden rounded-xl border ${t.border} bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hoverBorder} ${t.hoverShadow}`}
+    >
+      {kanji && (
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute -right-4 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-[0.08] sm:text-[9rem] sm:opacity-[0.12] ${t.kanji}`}
+          style={{ textShadow: t.kanjiShadow }}
+        >
+          {kanji}
+        </span>
+      )}
+      <div className="relative mb-4 flex items-center gap-3">
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-xl border ${t.iconRing}`}
+          style={{ boxShadow: t.iconGlow }}
+        >
           <Icon className="h-5 w-5" />
         </div>
-        <span className="font-mono text-[12px] font-semibold text-fg-muted">
+        <span className={`font-mono text-[28px] font-black tabular-nums leading-none ${t.number}`}>
           0{numero}
         </span>
       </div>
-      <h3 className="text-lg font-bold text-fg-strong">{titulo}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+      <h3 className={`relative text-lg font-bold text-fg-strong transition-colors ${t.titleHover}`}>
+        {titulo}
+      </h3>
+      <p className="relative mt-2 text-sm leading-relaxed text-fg-muted">
         {descripcion}
       </p>
     </div>
