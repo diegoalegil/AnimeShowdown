@@ -457,7 +457,7 @@ function ListaEloLocal() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="as-panel grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
           <input
@@ -465,7 +465,7 @@ function ListaEloLocal() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar personaje…"
-            className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
           />
           {search && (
             <button
@@ -482,7 +482,7 @@ function ListaEloLocal() {
           value={animeFilter}
           onChange={(e) => setAnimeFilter(e.target.value)}
           aria-label="Filtrar por anime"
-          className="rounded-lg border border-border bg-surface py-2.5 px-3 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
         >
           <option value="">Anime: Todos</option>
           {animeFilterOptions.slice(1).map((a) => (
@@ -494,9 +494,14 @@ function ListaEloLocal() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <p className="text-base font-bold text-fg-strong">
-            Ningún personaje coincide
+        <EmptyStateScene
+          visual={BRAND_VISUALS.empty}
+          icon={Search}
+          title="El salón de la fama no encontró ese combatiente"
+        >
+          <p>
+            Revisa el nombre, prueba otro universo o limpia filtros para volver
+            al ranking completo.
           </p>
           <button
             type="button"
@@ -504,11 +509,11 @@ function ListaEloLocal() {
               setSearch('')
               setAnimeFilter('')
             }}
-            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+            className="as-button-ghost mt-3 rounded-lg px-5 py-3 text-sm font-bold"
           >
             Limpiar filtros
           </button>
-        </div>
+        </EmptyStateScene>
       ) : (
         <>
           {/* Podio Top 3 — solo cuando no hay filtros activos. Si el
@@ -934,18 +939,29 @@ function MovimientoBadge({ movimiento }) {
  */
 function HubLinks() {
   return (
-    <div className="mt-12 rounded-2xl border border-border bg-surface p-6">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
-        Sigue moviendo el ranking
-      </h2>
-      <p className="mt-2 text-[13px] text-fg-muted">
-        Vota en nuevos duelos, explora personajes o revisa cómo funciona el
-        sistema ELO. Cada voto cuenta para cambiar esta tabla.
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2">
+    <div className="as-panel-hot relative mt-12 overflow-hidden rounded-2xl p-6 sm:p-7">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-8 -top-10 font-mono text-[9rem] font-black leading-none text-gold/10"
+      >
+        競
+      </span>
+      <div className="relative max-w-2xl">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          Meta en movimiento
+        </p>
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-fg-strong">
+          Sigue empujando el ranking
+        </h2>
+        <p className="mt-2 text-sm leading-7 text-fg-muted">
+          Vota en nuevos duelos, explora personajes o revisa cómo funciona el
+          sistema ELO. Cada voto deja una marca visible en la tabla.
+        </p>
+      </div>
+      <div className="relative mt-5 flex flex-wrap gap-2">
         <Link
           to="/votar"
-          className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+          className="as-button-primary group inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-black"
         >
           <Swords className="h-4 w-4" />
           Votar ahora
@@ -953,13 +969,13 @@ function HubLinks() {
         </Link>
         <Link
           to="/personajes"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+          className="as-button-ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
         >
           Explorar personajes
         </Link>
         <Link
           to="/faq"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+          className="as-button-ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
         >
           <HelpCircle className="h-4 w-4" />
           Cómo funciona el ELO

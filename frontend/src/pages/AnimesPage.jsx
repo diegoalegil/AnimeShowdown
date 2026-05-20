@@ -9,7 +9,7 @@ import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { animesCatalogo, buscarAnimes } from '../lib/animes'
 import EditorialCover from '../components/EditorialCover'
-import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getAnimeVisual } from '../data/visual-assets'
 
 const SORT_LABELS = {
@@ -73,20 +73,21 @@ function AnimesPage() {
           icon={Sparkles}
           eyebrow={`Catálogo anime · ${animesCatalogo.length} universos`}
           title="Universos anime"
-          subtitle="Entra en cada universo, descubre sus personajes más fuertes y compara quién domina su ranking interno. Cada anime tiene portada editorial propia, no un collage de cartas."
+          subtitle="Entra en cada universo, descubre sus personajes más fuertes y compara quién domina su ranking interno. Cada saga se presenta como una escena propia dentro del archivo."
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
-                Archivo premium
+                Archivo de universos
               </p>
               <p className="mt-3 text-sm leading-7 text-fg-muted">
-                Cada banner apunta a una escena 16:9 sustituible por WebP/AVIF final cuando esté generado.
+                Roster, ranking interno y rutas rápidas para saltar del anime
+                al duelo sin perder el hilo del meta.
               </p>
             </div>
           }
         />
 
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="as-panel mb-6 grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
             <input
@@ -94,7 +95,7 @@ function AnimesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Busca anime, saga o universo… (ej: kimetsu, snk, mha)"
-            className="as-panel w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+              className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
             />
             {search && (
               <button
@@ -111,7 +112,7 @@ function AnimesPage() {
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             aria-label="Ordenar por"
-            className="as-panel rounded-lg py-2.5 px-3 text-sm text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
           >
             {Object.entries(SORT_LABELS).map(([k, v]) => (
               <option key={k} value={k}>
@@ -128,22 +129,23 @@ function AnimesPage() {
         </p>
 
         {filtrados.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <p className="text-lg font-bold text-fg-strong">
-              Ningún anime coincide
-            </p>
-            <p className="text-sm text-fg-muted">
+          <EmptyStateScene
+            visual={BRAND_VISUALS.empty}
+            icon={Search}
+            title="No aparece ese universo"
+          >
+            <p>
               Prueba con un nombre alternativo (kimetsu, mha, snk…) o limpia
-              la búsqueda.
+              la búsqueda para volver al catálogo completo.
             </p>
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="mt-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+              className="as-button-ghost mt-3 rounded-lg px-5 py-3 text-sm font-bold"
             >
               Limpiar búsqueda
             </button>
-          </div>
+          </EmptyStateScene>
         ) : (
           // Audit visual (2026-05-19): cada anime usa una portada editorial,
           // no collage de cards. Mantenemos LazyOnView porque el grid puede

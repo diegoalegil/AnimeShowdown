@@ -96,7 +96,7 @@ function TorneosPage() {
           icon={Trophy}
           eyebrow={isLoading ? t('torneos.loading') : t('torneos.contadorPlural', { count: total })}
           title={t('torneos.tituloPagina')}
-          subtitle={`${t('torneos.subtitulo')} Cada bracket usa portada de competición propia, con los participantes dentro del evento pero sin convertir la portada en un collage de cartas.`}
+          subtitle={`${t('torneos.subtitulo')} Cada bracket se siente como una cartelera de combate, con estado, participantes y ruta directa a los duelos abiertos.`}
           actions={
             user && (
               <Link
