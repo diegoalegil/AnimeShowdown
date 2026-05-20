@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Coffee } from 'lucide-react'
+import { Coffee, Swords } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
 import { personajes } from '../data/personajes'
 import { slugifyAnime } from '../lib/animes'
@@ -54,8 +54,36 @@ const topAnimes = (() => {
 function Footer() {
   const { t } = useTranslation()
   return (
-    <footer className="border-t border-border bg-surface">
-      <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
+    <footer className="relative isolate overflow-hidden border-t border-white/10 bg-bg/95">
+      {/* Capas atmosféricas del footer: kanji 終 (fin), gradiente accent y particle dust.
+          Sin esto el footer era una franja plana de bg-surface, ahora cierra la marca
+          con la misma identidad cinematográfica que VisualPageShell. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(circle at 12% 0%, rgb(159 29 44 / 0.16), transparent 28rem), radial-gradient(circle at 88% 0%, rgb(197 161 90 / 0.12), transparent 26rem), linear-gradient(180deg, rgb(7 10 18 / 0.78), rgb(7 10 18 / 0.96))',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 2px 2px, rgb(255 255 255 / 0.22) 1px, transparent 0)',
+          backgroundSize: '52px 52px',
+          maskImage: 'linear-gradient(to bottom, transparent, black 35%, black)',
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-6 top-1/2 -translate-y-1/2 select-none font-mono text-[13rem] font-black leading-none text-gold/[0.04] sm:text-[18rem]"
+        style={{ textShadow: '0 0 90px rgb(159 29 44 / 0.32)' }}
+      >
+        終
+      </span>
+      <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
           {/* Marca + claim */}
           <div className="flex flex-col gap-3">
@@ -169,8 +197,29 @@ function Footer() {
           </ul>
         </div>
 
+        {/* CTA de cierre: el footer ahora termina con una nota visual de
+            marca, no con un copyright seco. Pequeña tarjeta carmesí que
+            invita a votar antes de salir. */}
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/12 via-bg/70 to-gold/[0.06] p-5 backdrop-blur-md sm:flex-row sm:p-6">
+          <div className="flex flex-col gap-1 text-center sm:text-left">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              {t('footer.ctaKicker', 'Antes de irte')}
+            </p>
+            <p className="text-base font-bold text-fg-strong sm:text-lg">
+              {t('footer.ctaTitle', 'Tu voto puede mover el ranking de hoy.')}
+            </p>
+          </div>
+          <Link
+            to="/votar"
+            className="inline-flex items-center gap-2 rounded-lg border border-accent/55 bg-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_36px_-12px_rgba(255,46,99,0.65)] transition-transform hover:-translate-y-0.5 hover:bg-accent-hover"
+          >
+            <Swords className="h-4 w-4" />
+            {t('footer.ctaButton', 'Votar ahora')}
+          </Link>
+        </div>
+
         {/* Legal + copyright minimalista */}
-        <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6 text-[12px] text-fg-muted">
+        <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-fg-muted">
           <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-start">
             <li>
               <Link to="/privacidad" className="hover:text-accent hover:underline">

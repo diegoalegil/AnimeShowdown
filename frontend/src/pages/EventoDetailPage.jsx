@@ -25,6 +25,7 @@ import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeImg from '../components/PersonajeImg'
 import EditorialCover from '../components/EditorialCover'
 import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
+import { VisualPageShell } from '../components/VisualSystem'
 import NotFoundPage from './NotFoundPage'
 
 /**
@@ -120,13 +121,7 @@ function EventoDetailPage() {
   const misionEvento = misionPorEstado[estado]
 
   return (
-    <section
-      className="as-stage as-stage-purple as-stage-visual as-stage-eventos px-5 py-12 sm:px-8 sm:py-16"
-      style={{
-        '--as-stage-image': `url("${visual.image || visual.fallbackImage}")`,
-        '--as-stage-kanji': `"${visual.kanji}"`,
-      }}
-    >
+    <VisualPageShell visual={visual} contentClassName="mx-auto max-w-5xl" density="low">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -135,7 +130,6 @@ function EventoDetailPage() {
           { label: evento.titulo, path: `/eventos/${evento.slug}` },
         ])}
       />
-      <div className="mx-auto max-w-5xl">
         <Link
           to="/eventos"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
@@ -246,8 +240,7 @@ function EventoDetailPage() {
             </ol>
           </>
         )}
-      </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

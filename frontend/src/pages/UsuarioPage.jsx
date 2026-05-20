@@ -13,6 +13,8 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { usePerfilPublico, useToggleSeguir } from '../hooks/usePerfil'
 import { ApiError } from '../lib/api'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -115,7 +117,7 @@ function UsuarioPage() {
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={BRAND_VISUALS.homeHero} contentClassName="mx-auto max-w-2xl" density="low">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -123,7 +125,6 @@ function UsuarioPage() {
           { label: perfil.username, path: `/u/${perfil.username}` },
         ])}
       />
-      <div className="mx-auto max-w-2xl">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -149,8 +150,7 @@ function UsuarioPage() {
             mensajeIntro={`Los logros que ${perfil.username} ha conseguido. En gris los que aún le faltan.`}
           />
         </motion.div>
-      </div>
-    </section>
+    </VisualPageShell>
   )
 }
 

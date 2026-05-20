@@ -30,6 +30,8 @@ import CardMisTorneos from '../components/CardMisTorneos'
 import CardReferral from '../components/CardReferral'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -93,9 +95,8 @@ function PerfilPage() {
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 sm:py-16">
-      <div className="mx-auto max-w-3xl">
-        <motion.header
+    <VisualPageShell visual={BRAND_VISUALS.homeHero} contentClassName="mx-auto max-w-3xl" density="low">
+      <motion.header
           className="mb-6 flex flex-col items-start gap-3"
           initial="hidden"
           animate="visible"
@@ -165,8 +166,7 @@ function PerfilPage() {
             </>
           )}
         </div>
-      </div>
-    </section>
+    </VisualPageShell>
   )
 }
 
