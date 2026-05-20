@@ -1,6 +1,7 @@
 import { Award } from 'lucide-react'
 import { usePerfilStats } from '../hooks/usePerfil'
 import { calcularPuntos, rangoDe } from '../lib/danKyu'
+import KanjiSpinner from './KanjiSpinner'
 import KanjiStroke from './KanjiStroke'
 
 /**
@@ -37,7 +38,7 @@ function CardDanKyu({ data: dataProp = null }) {
       </p>
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <KanjiSpinner size="sm" />
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3">
