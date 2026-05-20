@@ -364,10 +364,17 @@ function CardDestacado({ game, estado }) {
   const theme = COLOR_THEMES[game.color]
   const done = estado?.completadoHoy
   const visual = getGameVisual(game.to, game.titulo)
+  // Audit visual (2026-05-20): antes habia un kanji-panel h-32 w-32 con
+  // text-6xl ocupando media card a la izquierda + el kanji decorativo
+  // sutil de EditorialCover en esquina. Resultado: dos kanjis del mismo
+  // caracter compitiendo + la imagen del juego (shadow-guess.webp)
+  // queda reducida a fondo apagado. Nuevo enfoque: la IMAGEN es el
+  // protagonista (min-h-44), kanji solo como badge corner inferior con
+  // glow + texto encima de un panel translucido para legibilidad.
   return (
     <Link
       to={game.to}
-      className={`as-panel-hot group relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all hover:-translate-y-1 sm:flex-row sm:items-center sm:gap-6 sm:p-8 ${theme.border} hover:${theme.glow}`}
+      className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} hover:${theme.glow}`}
     >
       <EditorialCover
         visual={visual}
@@ -375,35 +382,35 @@ function CardDestacado({ game, estado }) {
         imageClassName="saturate-110 contrast-105"
       />
 
-      <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-2 sm:h-32 sm:w-32">
-        <div
-          className={`absolute inset-0 rounded-2xl border-2 ${theme.border} ${theme.bg}`}
-        />
-        <span
-          className={`relative font-mono text-5xl font-extrabold sm:text-6xl ${theme.text}`}
-        >
-          {game.kanji}
-        </span>
-      </div>
+      {/* Kanji decorativo grande detrás (mood), no panel separado */}
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute -right-6 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-15 sm:text-[10rem] ${theme.text}`}
+        style={{ textShadow: '0 0 60px currentColor' }}
+      >
+        {game.kanji}
+      </span>
 
-      <div className="relative flex-1">
-        <div className="mb-2 flex items-center gap-2">
+      <div className="relative flex flex-col gap-3">
+        <div className="flex items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme.border} ${theme.bg} ${theme.text}`}
+            className={`inline-flex items-center gap-1 rounded-full border bg-bg/55 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] backdrop-blur-md ${theme.border} ${theme.text}`}
           >
             <Icon className="h-3 w-3" />
             {game.rarity} · Reto del día
           </span>
           {done && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-200">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-200 backdrop-blur-md">
               ✓ Completado
             </span>
           )}
         </div>
-        <h3 className="mb-1 text-2xl font-extrabold leading-tight text-fg-strong sm:text-3xl">
+        <h3 className="text-2xl font-extrabold leading-tight text-fg-strong drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] sm:text-4xl">
           {game.titulo}
         </h3>
-        <p className="mb-3 text-[13px] text-fg-muted">{game.desc}</p>
+        <p className="max-w-lg text-[13px] text-fg-muted drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] sm:text-sm">
+          {game.desc}
+        </p>
         <p className={`inline-flex items-center gap-1 text-[12px] font-semibold ${theme.text}`}>
           {done ? 'Ver resultado' : 'Jugar ahora'}
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
@@ -427,7 +434,7 @@ function CardMini({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`as-panel group relative flex min-h-[7.5rem] gap-3 overflow-hidden rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] ${theme.border} hover:${theme.glow}`}
+      className={`as-panel group relative flex min-h-[8.5rem] flex-col justify-end overflow-hidden rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] ${theme.border} hover:${theme.glow}`}
     >
       <EditorialCover
         visual={visual}
@@ -435,21 +442,14 @@ function CardMini({ game, estado }) {
         imageClassName="saturate-110 contrast-105"
       />
 
-      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border backdrop-blur-md">
-        <div
-          className={`absolute inset-0 rounded-xl border-2 ${theme.border}`}
-          style={{
-            background:
-              'linear-gradient(135deg, rgb(7 10 18 / 0.55) 0%, rgb(7 10 18 / 0.25) 100%)',
-          }}
-        />
-        <span
-          className={`relative font-mono text-2xl font-extrabold ${theme.text}`}
-          style={{ textShadow: '0 0 18px currentColor, 0 2px 6px rgb(0 0 0 / 0.6)' }}
-        >
-          {game.kanji}
-        </span>
-      </div>
+      {/* Kanji decorativo en background sin panel separado */}
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] font-extrabold leading-none opacity-20 sm:text-[6rem] ${theme.text}`}
+        style={{ textShadow: '0 0 40px currentColor' }}
+      >
+        {game.kanji}
+      </span>
 
       <div className="relative min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-1.5">
