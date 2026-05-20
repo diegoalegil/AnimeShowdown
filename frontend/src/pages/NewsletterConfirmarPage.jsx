@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints } from '../lib/api'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 /**
  * Página de confirmación de suscripción a newsletter (Plan v2 §4.8).
@@ -60,12 +62,16 @@ function NewsletterConfirmarPage() {
   }, [token])
 
   return (
-    <section className="flex flex-1 items-center justify-center px-5 py-16 sm:px-8 sm:py-20">
+    <VisualPageShell
+      visual={BRAND_VISUALS.homeHero}
+      className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
+      contentClassName="w-full max-w-md"
+    >
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full max-w-md"
+        className="w-full"
       >
         {estado.tipo === 'loading' && (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface p-8 text-center">
@@ -105,7 +111,7 @@ function NewsletterConfirmarPage() {
           </div>
         )}
       </motion.div>
-    </section>
+    </VisualPageShell>
   )
 }
 

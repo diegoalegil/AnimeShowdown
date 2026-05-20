@@ -5,6 +5,8 @@ import { CheckCircle2, XCircle, MailWarning, ArrowRight } from 'lucide-react'
 import { endpoints, refreshSession } from '../lib/api'
 import { useSeo } from '../hooks/useSeo'
 import { useAuth } from '../contexts/AuthContext'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 /**
  * Página /verify?token=XXX que cierra el flujo de email verification
@@ -72,12 +74,16 @@ function VerifyPage() {
   }, [token, updateUser])
 
   return (
-    <section className="flex flex-1 items-center justify-center px-5 py-16 sm:px-8">
+    <VisualPageShell
+      visual={BRAND_VISUALS.homeHero}
+      className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
+      contentClassName="w-full max-w-md"
+    >
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full max-w-md rounded-xl border border-border bg-surface p-8 text-center"
+        className="w-full rounded-xl border border-border bg-surface/85 p-8 text-center backdrop-blur-md shadow-[0_0_60px_-30px_rgba(159,29,44,0.55)]"
       >
         {estado === 'verificando' && <Verificando />}
         {estado === 'ok' && <Exito />}
@@ -85,7 +91,7 @@ function VerifyPage() {
         {estado === 'sin_token' && <SinToken />}
         {estado === 'error_red' && <ErrorRed />}
       </motion.div>
-    </section>
+    </VisualPageShell>
   )
 }
 

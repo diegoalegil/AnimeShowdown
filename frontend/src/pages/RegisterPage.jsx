@@ -7,6 +7,8 @@ import { useSeo } from '../hooks/useSeo'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
 import AuthSocialButtons from '../components/AuthSocialButtons'
+import { VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -64,9 +66,13 @@ function RegisterPage() {
   }
 
   return (
-    <section className="flex flex-1 items-center justify-center px-5 py-16 sm:px-8 sm:py-20">
+    <VisualPageShell
+      visual={BRAND_VISUALS.homeHero}
+      className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
+      contentClassName="w-full max-w-md"
+    >
       <motion.div
-        className="w-full max-w-md"
+        className="w-full"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
@@ -253,7 +259,7 @@ function RegisterPage() {
           </Link>
         </p>
       </motion.div>
-    </section>
+    </VisualPageShell>
   )
 }
 
