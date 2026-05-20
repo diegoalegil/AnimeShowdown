@@ -410,8 +410,8 @@ function MoverRow({ mover, actividad }) {
   const colorClase = subio ? 'text-emerald-300' : 'text-rose-300'
   const votosPeriodo = actividad?.votosPeriodoActual ?? 0
   return (
-    <li className="flex items-center gap-3 py-2">
-      <Link to={`/personajes/${mover.slug}`} className="shrink-0">
+    <li className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/[0.04]">
+      <Link to={`/personajes/${mover.slug}`} className="shrink-0 transition-transform hover:scale-105">
         <img
           src={mover.imagenUrl || imagenPersonaje(mover.slug)}
           alt=""
