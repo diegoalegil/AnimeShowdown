@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Sparkles, Trophy } from 'lucide-react'
 import { useMisTorneos } from '../hooks/useTorneosCreados'
+import KanjiSpinner from './KanjiSpinner'
 import { pickVacio } from './Kaomoji'
 
 /**
@@ -32,7 +33,7 @@ function CardMisTorneos() {
       </p>
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <KanjiSpinner size="sm" />
         </div>
       ) : !torneos || torneos.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-6 text-center text-fg-muted">

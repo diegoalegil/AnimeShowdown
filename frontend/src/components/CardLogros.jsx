@@ -2,6 +2,7 @@ import { ArrowRight, Share2, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useMisLogros } from '../hooks/useLogros'
 import { useAuth } from '../contexts/AuthContext'
+import KanjiSpinner from './KanjiSpinner'
 import BadgeCard from './BadgeCard'
 
 /**
@@ -46,7 +47,7 @@ function CardLogros({
       <p className="mb-5 text-[12px] text-fg-muted">{mensajeIntro}</p>
       {isLoading ? (
         <div className="flex items-center justify-center py-10">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <KanjiSpinner size="sm" />
         </div>
       ) : (
         <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-7">

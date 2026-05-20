@@ -1,5 +1,6 @@
 import { Activity, Award, Swords, Target, Vote } from 'lucide-react'
 import { usePerfilStats } from '../hooks/usePerfil'
+import KanjiSpinner from './KanjiSpinner'
 
 /**
  * Card "Estadísticas" del perfil (Plan v2 §4.1, §4.5).
@@ -41,7 +42,7 @@ function CardStats({ data: dataProp = null }) {
       </div>
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <KanjiSpinner size="sm" />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

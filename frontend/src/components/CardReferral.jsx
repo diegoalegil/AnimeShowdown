@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Copy, Share2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { usePerfilReferral } from '../hooks/usePerfil'
+import KanjiSpinner from './KanjiSpinner'
 
 /**
  * Card de referral (Plan v2 §11.8) — código único compartible + count
@@ -18,7 +19,7 @@ function CardReferral() {
     return (
       <div className="rounded-xl border border-border bg-surface p-6">
         <div className="flex items-center justify-center py-4">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <KanjiSpinner size="sm" />
         </div>
       </div>
     )

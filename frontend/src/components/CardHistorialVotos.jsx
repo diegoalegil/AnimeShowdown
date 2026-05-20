@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Clock, Inbox } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { usePerfilHistorial } from '../hooks/usePerfil'
+import KanjiSpinner from './KanjiSpinner'
 
 /**
  * Card "Historial de votos" del perfil (Plan v2 §4.1).
@@ -38,7 +39,7 @@ function CardHistorialVotos() {
       </div>
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <KanjiSpinner size="sm" />
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-6 text-fg-muted">
