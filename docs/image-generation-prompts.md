@@ -5,7 +5,7 @@ Este documento define los assets editoriales finales de AnimeShowdown. Las rutas
 Reglas globales para todos los prompts:
 
 - Anime-inspired cinematic illustration, original characters only.
-- No copyrighted characters, no logos, no readable text.
+- Cinematic anime style, recognizable character archetypes welcome (ninjas, pirates, demon slayers, sorcerers, heroes). Original composition, but evoking the iconic visual identity of each universe.
 - Designed as website UI background with safe dark overlay area for text.
 - Premium dark tournament platform aesthetic, obsidian blue/black base, deep crimson, muted gold, subtle cyan/violet accents.
 - High contrast, atmospheric particles, fog/smoke/rain/energy as appropriate.
@@ -16,7 +16,7 @@ Route: `/`
 Usage: first viewport hero.
 Path: `/assets/brand/backgrounds/home-hero.webp`
 Aspect ratio: 21:9
-Prompt: Wide cinematic anime-style website hero, original anime tournament arena at night, distant neon city skyline, subtle rain and drifting ember particles, one serious original fighter silhouette in the middle distance, crimson and muted gold energy arcs forming a competitive stage, deep obsidian blue shadows, premium dark UI background, no text, no logos, no copyrighted characters, center composition with safe text area in the middle, 21:9.
+Prompt: Wide cinematic anime-style website hero, original anime tournament arena at night, distant neon city skyline, subtle rain and drifting ember particles, one serious original fighter silhouette in the middle distance, crimson and muted gold energy arcs forming a competitive stage, deep obsidian blue shadows, premium dark UI background, no text, no logos, center composition with safe text area in the middle, 21:9.
 
 ## Global Dark Background
 Route: all pages
@@ -30,14 +30,14 @@ Route: `/ranking`
 Usage: ranking hero and hall of fame.
 Path: `/assets/brand/backgrounds/ranking-hero.webp`
 Aspect ratio: 21:9
-Prompt: Wide cinematic anime hall of fame, dark tournament podium under a huge muted gold trophy light, empty arena seats fading into darkness, crimson banners and subtle kanji shapes, premium competitive ranking UI background, dramatic gold rim light, no text, no logos, no copyrighted characters, safe text space left, 21:9.
+Prompt: Wide cinematic anime hall of fame, dark tournament podium under a huge muted gold trophy light, empty arena seats fading into darkness, crimson banners and subtle kanji shapes, premium competitive ranking UI background, dramatic gold rim light, no text, no logos, safe text space left, 21:9.
 
 ## Personajes Hero
 Route: `/personajes`
 Usage: character archive landing.
 Path: `/assets/brand/backgrounds/personajes-hero.webp`
 Aspect ratio: 21:9
-Prompt: Wide cinematic anime archive room, holographic character dossiers floating in dark air, obsidian walls, muted crimson interface lines, gold dust, soft blue scanner light, original silhouettes only, no readable text, no logos, no copyrighted characters, premium character database UI background, 21:9.
+Prompt: Wide cinematic anime archive room, holographic character dossiers floating in dark air, obsidian walls, muted crimson interface lines, gold dust, soft blue scanner light, original silhouettes only, no readable text, no logos, premium character database UI background, 21:9.
 
 ## Anime Catalog Hero
 Route: `/animes`
@@ -58,7 +58,7 @@ Route: `/eventos`
 Usage: seasonal campaigns index.
 Path: `/assets/brand/backgrounds/events-hero.webp`
 Aspect ratio: 21:9
-Prompt: Wide cinematic anime seasonal campaign board, night festival atmosphere, torii silhouettes, event banners without readable text, crimson lantern glow, violet fog, drifting petals, premium dark campaign UI background, no logos, no copyrighted characters, 21:9.
+Prompt: Wide cinematic anime seasonal campaign board, night festival atmosphere, torii silhouettes, event banners without readable text, crimson lantern glow, violet fog, drifting petals, premium dark campaign UI background, no logos, 21:9.
 
 ## Games Hub Hero
 Route: `/games`
@@ -72,84 +72,84 @@ Route: `/games`, `/games/shadow-guess`
 Usage: game cover and page background.
 Path: `/assets/game-covers/shadow-guess.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime-style website banner, mysterious original character silhouette standing in front of a large crimson moon, dark rainy night, floating red petals and particles, large translucent Japanese kanji 影 in background, smoky fog, premium dark mystery game UI aesthetic, high contrast, no readable text, no logos, no copyrighted character, space on left side for UI text overlay, 16:9.
+Prompt: Wide cinematic anime-style website banner, mysterious original character silhouette standing in front of a large crimson moon, dark rainy night, floating red petals and particles, large translucent Japanese kanji 影 in background, smoky fog, premium dark mystery game UI aesthetic, high contrast, no readable text, no logos, space on left side for UI text overlay, 16:9.
 
 ## Anime Reveal Cover
 Route: `/games`, `/games/anime-reveal`
 Usage: game cover and page background.
 Path: `/assets/game-covers/anime-reveal.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime mystery reveal banner, blurred original anime character in the center with distorted glass and light refraction, dark violet and crimson energy around the figure, soft fog, UI-friendly negative space left, no readable text, no logos, no copyrighted character, 16:9.
+Prompt: Wide cinematic anime mystery reveal banner, blurred original anime character in the center with distorted glass and light refraction, dark violet and crimson energy around the figure, soft fog, UI-friendly negative space left, no readable text, no logos, 16:9.
 
 ## AniGrid Cover
 Route: `/games`, `/games/anigrid`
 Usage: game cover and page background.
 Path: `/assets/game-covers/anigrid.webp`
 Aspect ratio: 16:9
-Prompt: Wide anime puzzle UI banner, glowing grid panels floating in a dark room, teal and cyan clue symbols, subtle character silhouettes hidden behind panels, clean logical Wordle-like mood, premium dark interface, no readable text, no logos, no copyrighted characters, safe left text area, 16:9.
+Prompt: Wide anime puzzle UI banner, glowing grid panels floating in a dark room, teal and cyan clue symbols, subtle character silhouettes hidden behind panels, clean logical Wordle-like mood, premium dark interface, no readable text, no logos, safe left text area, 16:9.
 
 ## Impostor Trial Cover
 Route: `/games`, `/games/impostor-trial`
 Usage: game cover and page background.
 Path: `/assets/game-covers/impostor-trial.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime trial scene, four original character silhouettes standing under dim spotlights, one silhouette has a subtle violet/crimson aura that feels suspicious, dark courtroom/arena background, smoke and particles, kanji 裏 faint in background, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic anime trial scene, four original character silhouettes standing under dim spotlights, one silhouette has a subtle violet/crimson aura that feels suspicious, dark courtroom/arena background, smoke and particles, kanji 裏 faint in background, no text, no logos, 16:9.
 
 ## ELO Duel Cover
 Route: `/games`, `/games/elo-duel`
 Usage: game cover and page background.
 Path: `/assets/game-covers/elo-duel.webp`
 Aspect ratio: 16:9
-Prompt: Wide anime VS arena banner, two original fighters facing each other from opposite sides, cyan energy on the left and crimson energy on the right, central glowing VS shape without readable letters, dark battlefield floor, sparks, premium competitive mood, no logos, no copyrighted characters, safe top/left overlay space, 16:9.
+Prompt: Wide anime VS arena banner, two original fighters facing each other from opposite sides, cyan energy on the left and crimson energy on the right, central glowing VS shape without readable letters, dark battlefield floor, sparks, premium competitive mood, no logos, safe top/left overlay space, 16:9.
 
 ## Omikuji Cover
 Route: `/games`, `/omikuji`
 Usage: daily ritual cover.
 Path: `/assets/game-covers/omikuji.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime shrine at night, torii gate, omikuji paper strips moving in gentle wind, muted gold lanterns, crimson accents, rain-slick stone path, spiritual calm, premium dark UI background, no readable text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic anime shrine at night, torii gate, omikuji paper strips moving in gentle wind, muted gold lanterns, crimson accents, rain-slick stone path, spiritual calm, premium dark UI background, no readable text, no logos, 16:9.
 
 ## Naruto Anime Banner
 Route: `/animes`, `/animes/naruto`
 Usage: universe banner.
 Path: `/assets/anime-banners/naruto.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime-inspired banner for a ninja universe, hidden village at night, orange chakra glow, blue lightning traces, paper scrolls, silhouettes of three original ninja figures, dramatic clouds, subtle Japanese patterns, premium dark UI background, no readable text, no logos, no copyrighted characters, space for title overlay, 16:9.
+Prompt: Wide cinematic anime-inspired banner for a ninja universe, hidden village at night, orange chakra glow, blue lightning traces, paper scrolls, silhouettes of three original ninja figures, dramatic clouds, subtle Japanese patterns, premium dark UI background, no readable text, no logos, space for title overlay, 16:9.
 
 ## One Piece Anime Banner
 Route: `/animes`, `/animes/one-piece`
 Usage: universe banner.
 Path: `/assets/anime-banners/one-piece.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime-inspired adventure banner, dark ocean at sunset/night, sailing ship silhouette, warm gold lantern light, wind, waves, crew silhouettes as original figures, sense of freedom and treasure, premium dark UI background, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic anime-inspired adventure banner, dark ocean at sunset/night, sailing ship silhouette, warm gold lantern light, wind, waves, crew silhouettes as original figures, sense of freedom and treasure, premium dark UI background, no text, no logos, 16:9.
 
 ## My Hero Academia Anime Banner
 Route: `/animes`, `/animes/my-hero-academia`
 Usage: universe banner.
 Path: `/assets/anime-banners/my-hero-academia.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime superhero academy banner, modern city at night, green-blue heroic lightning versus dark red villain smoke, silhouettes of original students and villains on rooftops, dramatic action energy, premium dark UI background, no text, no logos, no copyrighted characters, 16:9.
+Prompt: Wide cinematic anime superhero academy banner, modern city at night, green-blue heroic lightning versus dark red villain smoke, silhouettes of original students and villains on rooftops, dramatic action energy, premium dark UI background, no text, no logos, 16:9.
 
 ## Demon Slayer Anime Banner
 Route: `/animes`, `/animes/demon-slayer`
 Usage: universe banner.
 Path: `/assets/anime-banners/demon-slayer.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic anime sword-hunter banner, moonlit forest, mist, sparks of flame and water-like trails, traditional Japanese patterns, silhouettes of original swordsmen, dark elegant atmosphere, no text, no logos, demon slayer characters, 16:9.
+Prompt: Wide cinematic anime sword-hunter banner, moonlit forest, mist, sparks of flame and water-like trails, traditional Japanese patterns, silhouettes of original swordsmen, dark elegant atmosphere, no text, no logos, 16:9.
 
 ## Jujutsu Kaisen Anime Banner
 Route: `/animes`, `/animes/jujutsu-kaisen`
 Usage: universe banner.
 Path: `/assets/anime-banners/jujutsu-kaisen.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic supernatural anime banner, abandoned urban street at night, violet and blue cursed energy, ritual symbols, shadowy original figures, smoke and fractured glass, premium dark UI mood, no text, no logos, jujutsu kaisen characters, 16:9.
+Prompt: Wide cinematic supernatural anime banner, abandoned urban street at night, violet and blue cursed energy, ritual symbols, shadowy original figures, smoke and fractured glass, premium dark UI mood, no text, no logos, 16:9.
 
 ## Attack on Titan Anime Banner
 Route: `/animes`, `/animes/attack-on-titan`
 Usage: universe banner.
 Path: `/assets/anime-banners/attack-on-titan.webp`
 Aspect ratio: 16:9
-Prompt: Wide cinematic dark war anime banner, massive stone walls, smoke, dust, dramatic sunset through clouds, tiny original soldier silhouettes with capes, tension and scale, muted amber and crimson accents, no text, no logos, attak on titan characters, 16:9.
+Prompt: Wide cinematic dark war anime banner, massive stone walls, smoke, dust, dramatic sunset through clouds, tiny original soldier silhouettes with capes, tension and scale, muted amber and crimson accents, no text, no logos, 16:9.
 
 ## Chainsaw Man Anime Banner
 Route: `/animes`, `/animes/chainsaw-man`

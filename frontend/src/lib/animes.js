@@ -5,7 +5,14 @@ import { personajes, getPopularidad, getStatsPersonaje } from '../data/personaje
 //   "My Hero Academia" → "my-hero-academia"
 //   "Re:Zero kara Hajimeru" → "re-zero-kara-hajimeru"
 //   "JoJo's Bizarre Adventure" → "jojo-s-bizarre-adventure"
+//
+// Defensive guard (2026-05-20): si por una mala data un personaje llega
+// con anime null/undefined, devolvemos string vacio en lugar de tirar
+// TypeError. PersonajeDetailPage usa el resultado como expectedPath de
+// `/assets/anime-banners/${slug}.webp` — un slug vacio cae al fallback
+// editorial del catalogo en lugar de romper el ErrorBoundary global.
 export function slugifyAnime(nombre) {
+  if (typeof nombre !== 'string' || nombre.length === 0) return ''
   return nombre
     .toLowerCase()
     .normalize('NFD')
