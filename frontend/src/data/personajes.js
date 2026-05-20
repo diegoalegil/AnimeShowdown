@@ -1056,11 +1056,24 @@ export const personajes = [
 // Map slug → ruta de imagen para lookup O(1) en cada render.
 // Generado por scripts/sync-personajes.mjs — no editar a mano.
 const slugToImagen = new Map(personajes.map((p) => [p.slug, p.imagen]))
+const IMAGE_CACHE_BUST_VERSION = 'cf-case-20260520'
+const IMAGE_CACHE_BUST_PREFIXES = [
+  '/img/Erased/',
+  '/img/Fullmetal_Alchemist/',
+]
+
+function versionarImagenSiHaceFalta(src) {
+  if (!src || !IMAGE_CACHE_BUST_PREFIXES.some((prefix) => src.startsWith(prefix))) {
+    return src
+  }
+  return `${src}${src.includes('?') ? '&' : '?'}v=${IMAGE_CACHE_BUST_VERSION}`
+}
+
 export function imagenPersonaje(slug) {
   // Fallback determinístico para slugs ausentes del catálogo: devolvemos
   // una ruta que dará 404 visible (PersonajePlaceholder vía onError) en
   // vez de undefined que dejaría el <img> en estado raro.
-  return slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`
+  return versionarImagenSiHaceFalta(slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`)
 }
 
 
