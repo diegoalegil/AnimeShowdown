@@ -93,7 +93,7 @@ Si rerun con cambios sin `--resume`, vuelve a generar desde cero.
 | `disable-blink-features=AutomationControlled` | Quita el flag `navigator.webdriver` |
 | Captcha guard | Pausa al detectar Cloudflare/captcha challenge |
 | Dialog dismisser | Cierra popups "Got it / Aceptar / Entendido" automáticamente |
-| Detección de rechazo de ChatGPT | "I can't help with that" → saltar prompt, no esperar 4min |
+| Auto "try again" en rechazo | "I can't help with that" → reenvia "try again" hasta 4 veces en el mismo chat (frecuente que acepte tras insistir) |
 | State.json — `lastIndex` solo avanza con éxito | Resilencia ante cortes |
 
 ## Procesamiento tras descargar

@@ -45,6 +45,15 @@ const LONG_PAUSE_DURATION = [180000, 300000]
 const RESPONSE_TIMEOUT_MS = 240000 // 4 min — ChatGPT 5 a veces tarda
 const POST_GENERATION_WAIT = [2000, 5000]
 const MAX_RETRIES_PER_PROMPT = 2
+// Cuando ChatGPT responde "no puedo por copyright/policy", el user confirma
+// que mandar "try again" varias veces en el MISMO chat termina funcionando.
+const MAX_REJECTION_RETRIES = 4
+const REJECTION_MESSAGES = [
+  'Try again, generate the image please.',
+  'Please try again, generate that image.',
+  'Please try once more — generate the image.',
+  'Try again, generate it as a fully original artwork in your own style.',
+]
 
 const SELECTORS = {
   promptTextarea: [
@@ -297,9 +306,14 @@ async function dumpImagesForDebug(page) {
 }
 
 async function waitForGeneratedImage(page) {
-  const t0 = Date.now()
+  // El timer se resetea tras un "try again" porque cada reintento es una
+  // nueva generacion que merece sus propios 4min.
+  let timerStart = Date.now()
   let lastLog = 0
-  while (Date.now() - t0 < RESPONSE_TIMEOUT_MS) {
+  let lastRejectionCheck = 0
+  let rejectionRetries = 0
+  let lastTextSnapshot = ''
+  while (Date.now() - timerStart < RESPONSE_TIMEOUT_MS) {
     const img = await findGeneratedImage(page)
     if (img) {
       // ChatGPT a veces genera 2 imagenes (A/B preference). Esperamos un
@@ -318,23 +332,54 @@ async function waitForGeneratedImage(page) {
       }
       return final
     }
-    // Detectar rechazo temprano
-    const elapsed = Math.round((Date.now() - t0) / 1000)
-    if (elapsed >= 30 && elapsed % 30 === 0) {
-      // Check de rechazo solo despues de 30s (los primeros 30s ChatGPT
-      // puede mostrar "Pensando…" sin contenido aun)
+    // Detectar rechazo temprano. Lo chequeamos cada 15s tras los primeros
+    // 15s (antes de eso, ChatGPT puede mostrar "Pensando…" sin texto).
+    const elapsed = Math.round((Date.now() - timerStart) / 1000)
+    if (elapsed >= 15 && elapsed - lastRejectionCheck >= 15) {
+      lastRejectionCheck = elapsed
       if (await detectRechazo(page)) {
-        log('   ⚠️  ChatGPT respondio con rechazo de generacion')
-        return null
+        if (rejectionRetries >= MAX_REJECTION_RETRIES) {
+          log(`   ⛔ Rechazo persistente tras ${MAX_REJECTION_RETRIES} retries — abandonando`)
+          return null
+        }
+        const msg = REJECTION_MESSAGES[rejectionRetries % REJECTION_MESSAGES.length]
+        rejectionRetries++
+        log(`   🔁 Rechazo detectado — try again ${rejectionRetries}/${MAX_REJECTION_RETRIES} en el mismo chat`)
+        try {
+          // Pequena pausa para no parecer bot inmediato tras leer "no"
+          await wait(randInt([2000, 4500]))
+          await typeHumanLike(page, msg)
+          await sendPrompt(page)
+          // Reset el timer y los chequeos — empieza nueva generacion
+          timerStart = Date.now()
+          lastLog = 0
+          lastRejectionCheck = 0
+          lastTextSnapshot = ''
+          await wait(3000)
+          continue
+        } catch (e) {
+          log(`   ⚠️  No pude reenviar try-again: ${e.message}`)
+          return null
+        }
       }
     }
     if (elapsed >= lastLog + 20) {
       log(`   ⏳ ${elapsed}s elapsed, esperando imagen…`)
       lastLog = elapsed
+      // Log breve si el texto cambio mucho — ayuda a ver si esta "pensando"
+      // o "buscando en web" etc. Solo en cada log de 20s, no spam.
+      try {
+        const t = (await page.evaluate(() => (document.body.innerText || '').slice(-300))).trim()
+        if (t && t !== lastTextSnapshot) {
+          lastTextSnapshot = t
+        }
+      } catch {
+        /* ignore */
+      }
     }
     await wait(2500)
   }
-  log(`   ⌛ Timeout tras ${Math.round((Date.now() - t0) / 1000)}s sin imagen`)
+  log(`   ⌛ Timeout tras ${Math.round((Date.now() - timerStart) / 1000)}s sin imagen`)
   try {
     const debug = await dumpImagesForDebug(page)
     if (debug && debug.length) {
