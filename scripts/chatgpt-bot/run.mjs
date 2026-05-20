@@ -204,22 +204,95 @@ async function detectRechazo(page) {
 }
 
 async function findGeneratedImage(page) {
-  // Devuelve { src, width, height } de la imagen generada mas reciente
-  // y completamente cargada, o null si todavia no esta.
+  // Devuelve { src, width, height, total } de la imagen generada mas
+  // reciente, o null si todavia no esta. total = numero de imagenes
+  // generadas encontradas (util para detectar el caso "2 imagenes A/B").
+  //
+  // Audit (ejecucion real 2026-05-20): el filtro por dominio era
+  // demasiado estricto. ChatGPT 5 puede servir las imagenes generadas
+  // desde:
+  //   - oaiusercontent.com (canon viejo)
+  //   - files.oaiusercontent.com
+  //   - chatgpt.com/backend-api/files/...
+  //   - sdmntpreusercontent (CDN nuevo de Sora/imagenes)
+  //   - blob: URLs locales mientras la imagen se renderiza
+  //   - <div style="background-image"> en lugar de <img>
+  //
+  // Nueva estrategia: filtrar por TAMAÑO Y posición (dentro del area del
+  // chat, no sidebar/avatar) en lugar de por dominio. Cualquier <img>
+  // grande dentro de un mensaje del assistant es la generada.
   return await page.evaluate(() => {
-    const imgs = Array.from(document.querySelectorAll('img'))
-      .filter((i) => /oaiusercontent\.com|cdn\.openai\.com|files\.oaiusercontent/.test(i.src))
-      // Excluir avatares/icons UI por tamaño
-      .filter((i) => (i.naturalWidth || i.width) >= 384)
-      // SOLO imagenes completamente cargadas
+    // Heuristica de "dentro del chat": el assistant message vive bajo
+    // [data-message-author-role="assistant"] o dentro de un main.
+    const main = document.querySelector('main') || document.body
+
+    // Recoger TODAS las <img> visibles del chat con tamaño razonable.
+    const imgs = Array.from(main.querySelectorAll('img'))
+      // Excluir avatares del sidebar y user
+      .filter((i) => {
+        const rect = i.getBoundingClientRect()
+        return rect.width >= 200 && rect.height >= 200
+      })
+      // Excluir las que no se hayan cargado todavia
       .filter((i) => i.complete && i.naturalWidth > 0)
-    if (!imgs.length) return null
+      // Excluir las pequeñas (avatares, thumbs de input)
+      .filter((i) => i.naturalWidth >= 256)
+      // Excluir si src es data: muy chico (placeholder svg)
+      .filter((i) => !i.src.startsWith('data:image/svg'))
+      // Excluir logos/iconos de cabecera con clase obvia
+      .filter((i) => {
+        const cls = (i.className || '') + ' ' + (i.alt || '').toLowerCase()
+        return !/avatar|logo|icon|profile/i.test(cls)
+      })
+
+    if (imgs.length === 0) {
+      // Fallback: buscar div con background-image: url(...) grande
+      const divs = Array.from(main.querySelectorAll('div')).filter((d) => {
+        const bg = window.getComputedStyle(d).backgroundImage || ''
+        if (!/url\(["']?https?:\/\//.test(bg)) return false
+        const rect = d.getBoundingClientRect()
+        return rect.width >= 256 && rect.height >= 256
+      })
+      if (divs.length === 0) return null
+      const last = divs[divs.length - 1]
+      const m = (window.getComputedStyle(last).backgroundImage || '').match(/url\(["']?([^"')]+)/)
+      if (!m) return null
+      return {
+        src: m[1],
+        width: Math.round(last.getBoundingClientRect().width),
+        height: Math.round(last.getBoundingClientRect().height),
+        total: 1,
+        viaBackground: true,
+      }
+    }
+
     const last = imgs[imgs.length - 1]
     return {
       src: last.src,
       width: last.naturalWidth,
       height: last.naturalHeight,
+      total: imgs.length,
+      viaBackground: false,
     }
+  })
+}
+
+async function dumpImagesForDebug(page) {
+  // Para diagnostico cuando findGeneratedImage devuelve null pero el
+  // user ve la imagen en pantalla. Devuelve src + size de TODAS las
+  // <img> >= 100x100 para poder ajustar selectores.
+  return await page.evaluate(() => {
+    const main = document.querySelector('main') || document.body
+    return Array.from(main.querySelectorAll('img'))
+      .filter((i) => i.naturalWidth >= 100 || i.width >= 100)
+      .slice(-10) // ultimas 10
+      .map((i) => ({
+        src: (i.src || '').slice(0, 120),
+        natural: `${i.naturalWidth}x${i.naturalHeight}`,
+        rect: `${Math.round(i.getBoundingClientRect().width)}x${Math.round(i.getBoundingClientRect().height)}`,
+        complete: i.complete,
+        alt: (i.alt || '').slice(0, 40),
+      }))
   })
 }
 
@@ -229,12 +302,21 @@ async function waitForGeneratedImage(page) {
   while (Date.now() - t0 < RESPONSE_TIMEOUT_MS) {
     const img = await findGeneratedImage(page)
     if (img) {
-      // Damos 3s mas para asegurar que es la version final (no un
-      // placeholder de baja resolucion que se reemplaza).
-      await wait(3000)
+      // ChatGPT a veces genera 2 imagenes (A/B preference). Esperamos un
+      // poco mas para que se complete la segunda si esta llegando, y
+      // descargamos la mas reciente. No clickeamos "Prefer A/B" — el
+      // boton no aporta nada al objetivo (solo guarda telemetria de
+      // OpenAI) y ahorrarse el click reduce signal de bot.
+      await wait(4000)
       const img2 = await findGeneratedImage(page)
-      // Si la URL cambio (placeholder -> final), usar la nueva.
-      return img2 || img
+      const final = img2 || img
+      if (final.total >= 2) {
+        log(`   🎴 ChatGPT genero ${final.total} variantes — descargando la mas reciente (${final.width}x${final.height})`)
+      }
+      if (final.viaBackground) {
+        log('   🖼️  Imagen via background-image (no <img> tradicional)')
+      }
+      return final
     }
     // Detectar rechazo temprano
     const elapsed = Math.round((Date.now() - t0) / 1000)
@@ -253,6 +335,20 @@ async function waitForGeneratedImage(page) {
     await wait(2500)
   }
   log(`   ⌛ Timeout tras ${Math.round((Date.now() - t0) / 1000)}s sin imagen`)
+  try {
+    const debug = await dumpImagesForDebug(page)
+    if (debug && debug.length) {
+      log(`   🔍 DOM tenia ${debug.length} <img> >= 100px — diagnostico:`)
+      debug.forEach((d, i) => {
+        log(`      [${i}] ${d.natural} rect=${d.rect} complete=${d.complete} alt="${d.alt}"`)
+        log(`          src=${d.src}`)
+      })
+    } else {
+      log('   🔍 DOM no tiene ninguna <img> >= 100px (ni siquiera placeholders)')
+    }
+  } catch (e) {
+    log(`   🔍 dumpImagesForDebug fallo: ${e.message}`)
+  }
   return null
 }
 
