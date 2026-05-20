@@ -153,6 +153,7 @@ function PersonajesPage() {
       visual={{ ...BRAND_VISUALS.homeHero, kanji: '人' }}
       contentClassName="mx-auto max-w-7xl"
       lateralKanji={{ left: '英', right: '雄' }}
+      atmosphere="archive"
     >
       <JsonLd
         id="breadcrumbs"
