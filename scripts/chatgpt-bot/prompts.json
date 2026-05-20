@@ -1,0 +1,156 @@
+{
+  "_comment": "Plan de prompts numerados. El script ejecuta en orden. Cada uno con un slug que dictara el nombre del PNG descargado (slug.png). Si quieres reorganizar o quitar, edita y rerun.",
+  "_globalStyle": "16:9 cinematic anime illustration, premium dark tournament platform aesthetic, obsidian blue/black base, deep crimson, muted gold, subtle cyan/violet accents, high contrast, atmospheric particles, fog/smoke/rain/energy as appropriate. Anime cinematic, dark, premium feel. Safe text area on left third unless noted. No readable text, no logos.",
+  "prompts": [
+    {
+      "slug": "demon-slayer",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Demon Slayer anime universe. Moonlit Japanese forest at night, thick rolling mist on the ground, a lone swordsman silhouette holding a glowing red nichirin blade, fire embers floating, distant ominous red-eyed demon silhouette in the trees, deep midnight blue sky with a pale full moon. Palette: navy blue + crimson red + amber fire glow + cold moonlight. Traditional Japanese folklore horror aesthetic. NO purple, NO green city, NO modern setting. Safe text area on left third. No text, no logos."
+    },
+    {
+      "slug": "my-hero-academia",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for My Hero Academia universe. Modern hero city skyline at twilight with skyscrapers, green One For All lightning + blue Endeavor flames + red Shigaraki villain aura clashing in mid-air, three hero silhouettes in foreground capes flowing. Palette: deep blue + emerald green + crimson red + golden city lights. Premium dark UI background. Safe text area on left third. No text, no logos."
+    },
+    {
+      "slug": "home-pulse",
+      "category": "brand-background",
+      "prompt": "Wide 16:9 cinematic anime arena dashboard view at night, distant neon city lights blurred, holographic tournament bracket lines floating in air, drifting embers and dust particles, soft crimson glow center, premium dark UI background designed for live data overlay. Safe text area center. Subtle and atmospheric, NOT a portrait. No text, no logos."
+    },
+    {
+      "slug": "rainy-rooftop",
+      "category": "error-scene",
+      "prompt": "Cinematic 16:9 anime scene of a lone hooded figure standing on a wet rooftop in heavy rain at night, distant neon city lights blurred by rain, melancholic mood, deep blue and crimson palette, dramatic backlight, atmospheric haze. Designed as error page background. Safe text area on left. No text, no logos."
+    },
+    {
+      "slug": "quiet-arena",
+      "category": "empty-state",
+      "prompt": "Cinematic 16:9 anime view of an empty tournament arena at dusk, dust drifting, single spotlight in the center on empty ground, distant bleachers in shadow, crimson banners hanging still, contemplative mood, premium dark anime aesthetic. Designed as empty-state background. Safe text area center. No text, no logos."
+    },
+    {
+      "slug": "one-piece-strawhats",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for a One Piece pirate tournament. Pirate galleon silhouette on open sea at golden hour, crew of warriors silhouetted on deck, jolly roger flag flying high, dramatic sunset clouds, sea spray, sense of adventure. Palette: golden orange + deep blue ocean + sky pink + dark ship silhouette. Premium dark UI background. Safe text area on left. No text, no logos."
+    },
+    {
+      "slug": "pillars-of-the-corps",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for an elite warriors tournament called Pillars of the Corps. Nine silhouetted swordsmen and women standing in a half circle on a stone platform at night, each surrounded by their elemental aura (fire, water, lightning, wind, stone, sound, mist, love, snake), heavy fog at their feet, moonlit. Palette: midnight blue + multicolored aura accents + cold steel + amber moonlight. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "shonen-showdown",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for a multi-anime shonen showdown tournament. Anime arena under thunderclouds, fragments of different worlds (ninja village, pirate ship, hero city, demon forest) collaged as floating portals around a central VS energy clash, dynamic motion lines, intense aura. Palette: crimson + electric blue + golden energy + deep purple shadows. Premium dark UI. Safe text area center. No text, no logos."
+    },
+    {
+      "slug": "batalla-de-magos",
+      "category": "event-cover",
+      "prompt": "Cinematic 16:9 event banner for a Battle of Mages anime tournament. Ancient arcane circle glowing on a stone floor, robed wizard silhouettes channeling distinct colored magics (red fire, blue ice, green earth, violet curse, gold lightning), arcane runes floating in the air, stormy sky with magical aurora. Palette: deep purple + electric gold + crimson + arcane cyan. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "arco-saiyajin",
+      "category": "event-cover",
+      "prompt": "Cinematic 16:9 event banner for a Saiyan-themed tournament arc. Stratosphere battle scene, two warrior silhouettes mid-air with golden energy auras radiating outward, planet curvature visible at the bottom, golden aura particles trailing, dramatic light bursts, devastated ground crater in foreground. Palette: golden yellow + electric blue + crimson energy + deep space blue. Premium dark UI. Safe text area center. No text, no logos."
+    },
+    {
+      "slug": "cazadores-vs-demonios",
+      "category": "event-cover",
+      "prompt": "Cinematic 16:9 event banner for Hunters vs Demons tournament. Moonlit cliff edge at night, on one side three demon hunter silhouettes with swords drawn glowing red, on the other side three demon silhouettes with predatory red eyes and tendrils of dark energy, mist rolling between them, dramatic standoff composition, full moon overhead. Palette: midnight blue + crimson + bone white moonlight + jet black demons. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "death-note",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Death Note universe. Modern Tokyo cityscape at night seen from a high window, a dark figure silhouetted from behind looking down at the city, an open notebook glowing faintly on a desk, single apple on the page, golden divine light from above clashing with violet shadow from below, cerebral psychological thriller mood. Palette: navy black + golden divine + violet shadow + city sodium-amber distant lights. Premium dark UI. Safe text area left. No text, no logos."
+    },
+    {
+      "slug": "bleach",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Bleach universe. Soul reaper silhouette in shihakusho robe holding a giant glowing zanpakuto sword, white spirit cloak flowing in spectral wind, hollow mask fragments floating in the air, otherworldly soul society sky with sakura petals and ash drifting, dimensional cracks in reality. Palette: pure white + jet black + crimson blood + soul-pale cyan. Premium dark UI. Safe text area left. No text, no logos."
+    },
+    {
+      "slug": "hunter-x-hunter",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Hunter x Hunter universe. Vast jungle landscape at dawn from a high cliff vantage, four young hunter silhouettes (one with spiky black hair, one with blonde hair and pin, one tall one short) facing away looking at the horizon, Nen aura energy glowing around them in distinct colors, sense of adventure and danger. Palette: dawn orange + jungle green + nen aura multicolor (gold, blue, crimson, violet) + cliff shadow. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "mob-psycho",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Mob Psycho 100 universe. Suburban Japanese street at sunset with telephone poles, a deceptively normal teenage boy silhouette in school uniform standing in the middle, immense psychic aura exploding upward around him in spiraling cyan and magenta energy that bends reality, distant city floating in the sky, surreal but grounded. Palette: warm sunset orange + electric cyan psychic + magenta + dramatic shadows. Premium dark UI. Safe text area left. No text, no logos."
+    },
+    {
+      "slug": "tokyo-revengers",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Tokyo Revengers universe. Empty Tokyo night street with cherry blossom petals scattered on wet asphalt, distant biker gang silhouettes leaning on motorcycles under a streetlight, leather jackets and pompadours, gritty urban delinquent aesthetic, neon signs reflected in puddles, melancholic but intense. Palette: cherry blossom pink + jet black leather + neon teal + wet asphalt grey. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "vinland-saga",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Vinland Saga universe. Viking warrior silhouette holding two short swords standing on the prow of a longship at icy dawn, frozen northern sea spray, distant snow-capped cliffs of Vinland, fur cloak whipping in wind, axe and round shield strapped to his back, brutal and atmospheric. Palette: ice blue + bone white + iron grey + bloodstain crimson + dawn gold. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "spy-x-family",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Spy x Family universe. Elegant European city street at twilight, three silhouettes — a sharp-dressed spy in coat and hat, a graceful assassin in long gown, a small psychic girl holding a peanut up like a treasure — walking together looking like a normal family, while behind them subtle dark intrigue (shadow agents in alleys, sniper red dots on roofs) hints at hidden danger. Palette: warm sepia + crimson sunset + steel grey + golden lamplight. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "cyberpunk-edgerunners",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Cyberpunk Edgerunners universe. Neo-noir Night City skyline with massive holographic ads and neon kanji, a cybernetically enhanced runner silhouette on a rooftop firing a glowing weapon at a flying drone, rain and steam, cyberpunk grit, mohawk hair lit by magenta neon. Palette: hot pink neon + electric cyan + acid yellow + jet black wet street + amber explosion. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "frieren",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Frieren Beyond Journey's End universe. Elf mage with long silver hair standing alone in a vast misty meadow at dawn, looking up at the empty sky with quiet melancholy, ancient ruins overgrown by wildflowers in the foreground, faint magical glow around her staff, peaceful but profoundly lonely mood. Palette: dawn pastel pink + lavender mist + soft gold + cool dusk green + faint mana cyan. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "solo-leveling",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Solo Leveling universe. A lone hunter silhouette in dark armored coat standing in front of a colossal dungeon portal of swirling purple shadows, kneeling shadow soldiers emerging from the ground in formation behind him, glowing violet aura, dramatic monarch posture. Palette: deep violet + obsidian black + crimson red eyes + amber portal edge. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "code-geass",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Code Geass universe. Caped figure in a royal mask standing on the bow of a colossal hovering mech (Knightmare Frame) above a burning Tokyo at night, geass red bird symbol glowing in one eye, chess pieces scattered on the floor below, regal and tyrannical drama. Palette: imperial red + amethyst purple + black armor + golden royal accents + city fire orange. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "dragon-ball",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Dragon Ball universe. Spiky-haired warrior silhouette charging a massive blue ki blast with both hands cupped at his side, golden aura exploding outward, rocky barren battlefield with crater, mountains crumbling in the distance, sense of cosmic power, energy waves bending the air. Palette: golden saiyan aura + electric blue ki + dust beige + sky blue + crimson dust. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "one-punch-man",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for One Punch Man universe. Bald caped hero silhouette in yellow jumpsuit standing in a destroyed urban crater, distant titanic monster collapsing from a single punch as the city blocks shatter outward in slow-motion debris, hero looks bored, absurd power scale contrast. Palette: hero yellow + cape red + city dust grey + sky orange + crimson explosion. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "black-clover",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Black Clover universe. Young mage silhouette holding a massive grimoire of black anti-magic, swirling black energy and red lightning erupting from it, opposing dueling magic spells (golden lion light, wind blade, water serpent) clashing in mid-air around him, magic knights kingdom castle at distance. Palette: jet anti-magic black + crimson lightning + golden royal + emerald + azure spells. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "re-zero",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Re:Zero universe. Black-haired protagonist silhouette in a tracksuit staring at a clock-faced witch of envy floating behind him in spectral form, her purple miasma tendrils wrapping his body, distant fantasy capital Lugnica at dusk with castle and dragon carving silhouettes, melancholic time-loop dread. Palette: spectral violet + black miasma + crimson eye glow + dawn fantasy gold + cool stone grey. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "fairy-tail",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Fairy Tail universe. A rowdy guild hall interior at night, four mage silhouettes (one with dragon fire, one with celestial keys, one with armor, one ice maker) bursting through the front door magic explosion behind them, fairy tail emblem flag waving, splintering wood furniture, warmth and chaos. Palette: dragon fire orange + celestial gold + ice cyan + guild lantern amber + cherry wood. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "kakegurui",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Kakegurui universe. Elite gambling hall at night with chandelier light, schoolgirl silhouette with long black hair and red eyes leaning over a poker table with insane smile and chips raining, opposing player drowning in shadow, ace card flying mid-air, decadent and unhinged. Palette: emerald felt + chip red and white + gold chandelier + jet shadow + crimson lipstick. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "kill-la-kill",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Kill la Kill universe. Schoolgirl warrior silhouette with red-streaked hair holding half of a giant scissor blade, sentient sailor uniform with one eye on the chest, sparks and crimson life-fiber threads exploding around her, dramatic backlit slash, over-the-top Imaishi-style action. Palette: crimson red + sailor blue + electric white + jet shadow + fiber gold accents. Premium dark UI. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "tower-of-god",
+      "category": "anime-banner",
+      "prompt": "Cinematic 16:9 banner for Tower of God universe. Colossal mystical tower stretching beyond the clouds, each floor a different biome (water, fire, sky, forest, wasteland), young protagonist silhouette stepping onto the first floor portal with bewildered look, irregular black-haired guide watching from a balcony above. Palette: cosmic indigo sky + tower stone grey + multicolored floor accents + shinsoo blue energy + golden lantern. Premium dark UI. Safe text area top. No text, no logos."
+    }
+  ]
+}
