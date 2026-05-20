@@ -115,7 +115,13 @@ async function startNewChat(page) {
   // nuevo chat por cada prompt evita que la context window se sature y
   // que el modelo "recuerde" prompts anteriores que puedan sesgar la
   // imagen generada.
-  await page.goto('https://chatgpt.com/?model=gpt-4o', {
+  //
+  // OJO: NO forzamos modelo via query param porque ChatGPT5 ignora
+  // ?model=gpt-4o y mantiene la seleccion del usuario. Antes de empezar
+  // el batch, asegurate manualmente que el modo seleccionado NO es
+  // "Thinking" (no genera imagenes) — usa "Auto" o ChatGPT 5 sin
+  // razonamiento extendido.
+  await page.goto('https://chatgpt.com/', {
     waitUntil: 'domcontentloaded',
   })
   await wait(randInt([1500, 3000]))
@@ -135,13 +141,38 @@ async function typeHumanLike(page, selector, text) {
 }
 
 async function sendPrompt(page) {
-  // Algunos browsers requieren click; otros aceptan Enter. Probamos click
-  // primero (mas natural visualmente). Enter como fallback.
-  const sendBtn = await page.$(SELECTORS.sendButton)
-  if (sendBtn) {
-    await sendBtn.click()
-  } else {
-    await page.keyboard.press('Enter')
+  // Primary: Enter sobre el textarea. Funciona en todas las versiones de
+  // chatgpt.com y no depende de selectores que cambian. El textarea sigue
+  // focuseado tras el typeHumanLike anterior asi que el Enter se aplica a
+  // el directamente.
+  //
+  // Si por alguna razon Enter no dispara el send (ej. modo "Thinking" que
+  // bloquea image generation y deshabilita el shortcut), probamos varios
+  // selectores conocidos para el boton circular azul.
+  await page.keyboard.press('Enter')
+  await wait(800)
+  // Verificar que la respuesta empezo: buscar el stop button. Si NO
+  // aparece tras Enter, intentar click del send button como backup.
+  const empezo = await page.$(SELECTORS.stopGenerating)
+  if (!empezo) {
+    log('   Enter no disparo el envio — intentando click del send button…')
+    const sendSelectors = [
+      'button[data-testid="send-button"]',
+      'button[aria-label*="Send" i]',
+      'button[aria-label*="Enviar" i]',
+      'button[type="submit"][class*="primary" i]',
+      'form button[type="submit"]',
+      // Como ultimo recurso: cualquier boton circular azul del composer
+      'main button.rounded-full[class*="bg-"]',
+    ]
+    for (const sel of sendSelectors) {
+      const btn = await page.$(sel)
+      if (btn) {
+        log(`   click ${sel}`)
+        await btn.click()
+        break
+      }
+    }
   }
 }
 
