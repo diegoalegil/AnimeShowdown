@@ -20,3 +20,4 @@
 - Mantener `frontend/public/sitemap.xml` fuera del commit cuando lo regenere el build local.
 - Los `*-1024.webp` de Erased/Fullmetal están ignorados por `.gitignore`; el cache-bust se aplicó y commiteó solo sobre los 75 assets trackeados.
 - Cloudflare conservaba `index.html` como HIT immutable bajo las rutas sin query; `imagenPersonaje()` versiona solo Erased/Fullmetal para forzar un cache key nuevo.
+- En este repo local queda configurado `git config core.ignorecase false` para detectar futuros renames case-only antes de pushearlos.
