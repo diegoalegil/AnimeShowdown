@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
   CalendarClock,
@@ -13,6 +12,7 @@ import {
 } from 'lucide-react'
 import TorneoCard from '../components/TorneoCard'
 import EditorialCover from '../components/EditorialCover'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { useTorneos } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -54,15 +54,6 @@ const SUGERENCIAS_TORNEO = (() => {
   ]
 })()
 
-const headerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
-
 /**
  * Audit producto (2026-05-18): la página antes era título + spinner +
  * footer y un grid plano sin separar estados. Ahora:
@@ -91,7 +82,7 @@ function TorneosPage() {
   const historial = (torneos ?? []).filter((it) => it.estado === 'FINISHED')
 
   return (
-    <section className="as-stage as-stage-cyan as-stage-visual as-stage-torneos px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={BRAND_VISUALS.torneos}>
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
@@ -100,38 +91,25 @@ function TorneosPage() {
         ])}
       />
       <div className="mx-auto max-w-6xl">
-        <motion.header
-          className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(26rem,1fr)] lg:items-end"
-          initial="hidden"
-          animate="visible"
-          variants={headerVariants}
-        >
-          {/* Acento rojo bracket (audit producto 2026-05-18): torneos =
-              rojo combate. Distingue del magenta de votar y del oro de
-              ranking, refuerza la idea de eliminación directa. */}
-          <div className="flex flex-col items-start gap-3">
-            <span className="as-kicker">
-              <Trophy className="h-3 w-3" />
-              {isLoading
-                ? t('torneos.loading')
-                : t('torneos.contadorPlural', { count: total })}
-            </span>
-            <h1 className="text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-tight tracking-tight">
-              {t('torneos.tituloPagina')}
-            </h1>
-            <p className="max-w-2xl text-fg-muted">{t('torneos.subtitulo')}</p>
-            {user && (
+        <CinematicHero
+          visual={BRAND_VISUALS.torneos}
+          icon={Trophy}
+          eyebrow={isLoading ? t('torneos.loading') : t('torneos.contadorPlural', { count: total })}
+          title={t('torneos.tituloPagina')}
+          subtitle={`${t('torneos.subtitulo')} Cada bracket usa portada de competición propia, con los participantes dentro del evento pero sin convertir la portada en un collage de cartas.`}
+          actions={
+            user && (
               <Link
                 to="/torneos/crear"
-                className="mt-2 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+                className="inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_34px_-14px_var(--color-accent)] transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Sparkles className="h-4 w-4" />
                 {t('torneos.crearCta')}
               </Link>
-            )}
-          </div>
-          <TorneosHeroBanner />
-        </motion.header>
+            )
+          }
+          aside={<TorneosHeroBanner />}
+        />
 
         {isLoading && <TorneosSkeleton />}
 
@@ -182,7 +160,7 @@ function TorneosPage() {
           </div>
         )}
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 
@@ -213,7 +191,7 @@ function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) 
 function TorneosHeroBanner() {
   const visual = getTournamentVisual('mha-heroes-vs-villains', 'Arena de torneos')
   return (
-    <div className="as-panel-hot relative hidden min-h-64 overflow-hidden rounded-2xl border border-cyan-500/20 lg:block">
+    <div className="as-panel-hot relative min-h-64 overflow-hidden rounded-2xl border border-cyan-500/20">
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0"

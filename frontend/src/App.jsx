@@ -71,18 +71,21 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 function PageLoader() {
   return (
     <div
-      className="flex flex-1 items-center justify-center px-5 py-20"
+      className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20"
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative h-12 w-12">
-          <div className="absolute inset-0 rounded-full border-2 border-accent/30" />
-          <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-accent" />
+      <div className="as-panel relative flex min-w-64 flex-col items-center gap-4 rounded-2xl p-7 shadow-[0_0_70px_-34px_var(--color-gold)]">
+        <div className="relative h-16 w-16">
+          <div className="absolute inset-0 rounded-full border border-gold/30 bg-gold/10" />
+          <div className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-t-gold" />
+          <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-black text-gold">
+            戦
+          </span>
         </div>
         <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
-          Cargando
+          Preparando arena
         </p>
         <span className="sr-only">
           Cargando la página de AnimeShowdown, un momento.

@@ -33,6 +33,7 @@ import PersonajeImg from './PersonajeImg'
 import EditorialCover from './EditorialCover'
 import { ocultaImgRota } from '../lib/imgFallback'
 import {
+  BRAND_VISUALS,
   getEventVisual,
   getGameVisual,
   getTournamentVisual,
@@ -167,6 +168,10 @@ function SectionPulso() {
   return (
     <motion.section
       className="as-stage as-stage-visual as-stage-pulse px-5 py-10 sm:px-8 sm:py-14"
+      style={{
+        '--as-stage-image': `url("${BRAND_VISUALS.pulse.image || BRAND_VISUALS.pulse.fallbackImage}")`,
+        '--as-stage-kanji': `"${BRAND_VISUALS.pulse.kanji}"`,
+      }}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}

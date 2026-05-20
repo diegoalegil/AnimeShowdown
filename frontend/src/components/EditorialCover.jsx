@@ -14,10 +14,13 @@ function EditorialCover({
   const accentRgb = cover.accentRgb ?? '159 29 44'
   const glowRgb = cover.glowRgb ?? '197 161 90'
   const kanji = cover.kanji ?? '戦'
+  const objectPosition = cover.objectPosition ?? 'center'
 
   return (
     <div
       data-editorial-cover="true"
+      data-visual-type={cover.type}
+      data-visual-slug={cover.slug}
       className={`group/cover relative isolate overflow-hidden rounded-xl border border-white/10 bg-bg ${className}`}
       style={{
         '--cover-accent': accentRgb,
@@ -26,7 +29,10 @@ function EditorialCover({
     >
       <div
         className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/cover:scale-[1.035] ${imageClassName}`}
-        style={{ backgroundImage: `url("${image}")` }}
+        style={{
+          backgroundImage: `url("${image}")`,
+          backgroundPosition: objectPosition,
+        }}
         aria-hidden="true"
       />
       <div

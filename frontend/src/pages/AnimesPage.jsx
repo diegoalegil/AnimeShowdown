@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Search, Sparkles, Trophy, X } from 'lucide-react'
 import LazyOnView from '../components/LazyOnView'
@@ -10,16 +9,8 @@ import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { animesCatalogo, buscarAnimes } from '../lib/animes'
 import EditorialCover from '../components/EditorialCover'
-import { getAnimeVisual } from '../data/visual-assets'
-
-const headerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { BRAND_VISUALS, getAnimeVisual } from '../data/visual-assets'
 
 const SORT_LABELS = {
   destacados: 'Destacados',
@@ -64,7 +55,7 @@ function AnimesPage() {
   }, [search, sort])
 
   return (
-    <section className="as-stage as-stage-cyan as-stage-visual as-stage-animes px-5 py-12 sm:px-8 sm:py-16">
+    <VisualPageShell visual={BRAND_VISUALS.animes}>
       <JsonLd
         id="animes-list"
         schema={animesListSchema(animesCatalogo.map((a) => a.anime))}
@@ -77,25 +68,23 @@ function AnimesPage() {
         ])}
       />
       <div className="mx-auto max-w-7xl">
-        <motion.header
-          className="mb-8 flex flex-col items-start gap-3"
-          initial="hidden"
-          animate="visible"
-          variants={headerVariants}
-        >
-          <span className="as-kicker">
-            <Sparkles className="h-3 w-3" />
-            Catálogo anime · {animesCatalogo.length} universos
-          </span>
-          <h1 className="text-[clamp(2.4rem,6vw,4.5rem)] font-extrabold leading-tight tracking-tight">
-            Universos anime
-          </h1>
-          <p className="max-w-2xl text-fg-muted">
-            Entra en cada universo, descubre sus personajes más fuertes y
-            compara quién domina su ranking interno. Cada anime tiene su
-            roster, sus favoritos y su propia competición.
-          </p>
-        </motion.header>
+        <CinematicHero
+          visual={BRAND_VISUALS.animes}
+          icon={Sparkles}
+          eyebrow={`Catálogo anime · ${animesCatalogo.length} universos`}
+          title="Universos anime"
+          subtitle="Entra en cada universo, descubre sus personajes más fuertes y compara quién domina su ranking interno. Cada anime tiene portada editorial propia, no un collage de cartas."
+          aside={
+            <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                Archivo premium
+              </p>
+              <p className="mt-3 text-sm leading-7 text-fg-muted">
+                Cada banner apunta a una escena 16:9 sustituible por WebP/AVIF final cuando esté generado.
+              </p>
+            </div>
+          }
+        />
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
@@ -177,7 +166,7 @@ function AnimesPage() {
           <SugerirPersonajeCTA titulo="¿Falta un universo importante?" />
         </div>
       </div>
-    </section>
+    </VisualPageShell>
   )
 }
 
