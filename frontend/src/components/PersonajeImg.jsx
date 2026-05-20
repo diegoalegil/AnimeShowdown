@@ -41,10 +41,13 @@ function PersonajeImg({ slug, alt, sizes, className = '', loading, decoding, ...
   // (sumarían +500MB al repo sin ganancia perceptible — el original cubre
   // pantallas grandes y ficha de personaje). El src original (1024px) es
   // el fallback que pinta el <img>.
-  const base = src.replace(/\.webp$/i, '')
-  const isWebp = /\.webp$/i.test(src)
+  const queryIndex = src.indexOf('?')
+  const srcPath = queryIndex === -1 ? src : src.slice(0, queryIndex)
+  const srcQuery = queryIndex === -1 ? '' : src.slice(queryIndex)
+  const base = srcPath.replace(/\.webp$/i, '')
+  const isWebp = /\.webp$/i.test(srcPath)
   const srcsetWebp = isWebp
-    ? `${base}-300.webp 300w, ${base}-600.webp 600w`
+    ? `${base}-300.webp${srcQuery} 300w, ${base}-600.webp${srcQuery} 600w`
     : undefined
   // sizes default: estimación conservadora para que el browser no
   // sobre-descargue en mobile. El caller puede pasar sizes específico
