@@ -372,7 +372,7 @@ function CardDestacado({ game, estado }) {
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
 
       <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-2 sm:h-32 sm:w-32">
@@ -427,7 +427,7 @@ function CardMini({ game, estado }) {
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-85"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
 
       <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border">
@@ -483,7 +483,7 @@ function OmikujiCard() {
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-80"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 border-accent/40 bg-accent/10">
         <span className="font-mono text-lg font-extrabold text-accent">御</span>

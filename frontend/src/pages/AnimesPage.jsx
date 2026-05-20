@@ -185,7 +185,7 @@ function AnimeTile({ animeData }) {
         title={anime}
         eyebrow="Universo"
         className="h-44 rounded-none border-0"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
         compact
       >
         <div className="mt-3 flex items-center justify-between gap-2">

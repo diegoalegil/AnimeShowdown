@@ -147,7 +147,7 @@ function EventoDetailPage() {
           <EditorialCover
             visual={visual}
             className="absolute inset-0 rounded-none border-0 opacity-90"
-            imageClassName="saturate-125 contrast-110"
+            imageClassName="saturate-110 contrast-105"
           />
           <span className={`relative inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
             <CalendarClock className="h-3 w-3" />
@@ -381,7 +381,7 @@ function EmptyEvento() {
       <EditorialCover
         visual={BRAND_VISUALS.empty}
         className="absolute inset-0 rounded-none border-0 opacity-60"
-        imageClassName="saturate-125 contrast-110"
+        imageClassName="saturate-110 contrast-105"
       />
       <p className="relative text-[14px] font-semibold text-fg-strong">
         Sin participantes

@@ -28,47 +28,54 @@ function EditorialCover({
       }}
     >
       <div
-        className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/cover:scale-[1.035] ${imageClassName}`}
+        className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/cover:scale-[1.04] ${imageClassName}`}
         style={{
           backgroundImage: `url("${image}")`,
           backgroundPosition: objectPosition,
         }}
         aria-hidden="true"
       />
+      {/* Audit visual (2026-05-20): el overlay anterior aplicaba un gradient
+          horizontal 94%->22% sobre la imagen completa Y encima un tinte
+          accent radial al 30%. Resultado: Naruto se veia amarillo opaco,
+          One Piece quedaba apagado, y la silueta de los personajes
+          desaparecia detras de capas oscuras. Nuevo enfoque: vignette
+          SOLO en el bottom (donde va el texto) + glow accent muy sutil
+          en esquinas para identidad sin tintar la imagen. La imagen real
+          ahora ocupa el 60% superior visible. */}
       <div
         className="absolute inset-0"
         aria-hidden="true"
         style={{
           background:
-            'linear-gradient(90deg, rgb(5 8 14 / 0.94), rgb(5 8 14 / 0.58) 46%, rgb(5 8 14 / 0.22) 100%)',
+            'linear-gradient(180deg, transparent 0%, transparent 38%, rgb(5 8 14 / 0.55) 70%, rgb(5 8 14 / 0.92) 100%)',
         }}
       />
       <div
-        className="absolute inset-0 opacity-90"
+        className="absolute inset-0"
         aria-hidden="true"
         style={{
           background:
-            `radial-gradient(circle at 18% 20%, rgb(var(--cover-accent) / 0.30), transparent 23rem), ` +
-            `radial-gradient(circle at 82% 16%, rgb(var(--cover-glow) / 0.18), transparent 22rem), ` +
-            'linear-gradient(180deg, transparent 0%, rgb(5 8 14 / 0.74) 100%)',
+            `radial-gradient(circle at 8% 100%, rgb(var(--cover-accent) / 0.22), transparent 18rem), ` +
+            `radial-gradient(circle at 92% 0%, rgb(var(--cover-glow) / 0.10), transparent 14rem)`,
         }}
       />
       <div
-        className="absolute inset-0 opacity-[0.18]"
+        className="absolute inset-0 opacity-[0.09]"
         aria-hidden="true"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.16) 1px, transparent 0)',
-          backgroundSize: '34px 34px',
-          maskImage: 'linear-gradient(to bottom, black, transparent 78%)',
+            'radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.14) 1px, transparent 0)',
+          backgroundSize: '40px 40px',
+          maskImage: 'linear-gradient(to bottom, black, transparent 50%)',
         }}
       />
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -right-5 -top-7 select-none font-mono text-[7rem] font-black leading-none opacity-[0.085] sm:text-[10rem]"
+        className="pointer-events-none absolute -right-6 -top-8 select-none font-mono text-[6rem] font-black leading-none opacity-[0.055] sm:text-[8.5rem] sm:opacity-[0.06]"
         style={{
           color: `rgb(${glowRgb} / 1)`,
-          textShadow: `0 0 70px rgb(${accentRgb} / 0.45)`,
+          textShadow: `0 0 60px rgb(${accentRgb} / 0.35)`,
         }}
       >
         {kanji}

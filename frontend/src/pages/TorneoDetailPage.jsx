@@ -159,7 +159,7 @@ function TorneoDetailPage() {
           <EditorialCover
             visual={visual}
             className="absolute inset-0 rounded-none border-0 opacity-95"
-            imageClassName="saturate-125 contrast-110"
+            imageClassName="saturate-110 contrast-105"
           />
           <meta itemProp="url" content={`https://animeshowdown.dev/torneos/${torneo.slug}`} />
           {fechaInicio && <meta itemProp="startDate" content={fechaInicio} />}
