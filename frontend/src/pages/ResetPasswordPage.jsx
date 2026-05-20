@@ -60,7 +60,7 @@ function ResetPasswordPage() {
 
   return (
     <VisualPageShell
-      visual={BRAND_VISUALS.homeHero}
+      visual={BRAND_VISUALS.authLogin}
       className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
       contentClassName="w-full max-w-md"
     >
