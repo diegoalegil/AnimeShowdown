@@ -1,0 +1,47 @@
+name: pr hygiene
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commit-messages:
+    name: conventional commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 22 LTS
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Validate PR commit messages
+        run: node scripts/commitlint.mjs --range "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+  pr-template:
+    name: PR template coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Warn when PR template sections are missing
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          missing=0
+          for section in "## Qué cambia" "## Por qué" "## Cómo verificarlo" "## Riesgos y rollback"; do
+            if ! grep -Fq "$section" <<< "$PR_BODY"; then
+              echo "::warning title=PR template incompleta::Falta la sección '$section' en la descripción del PR."
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 0 ]; then
+            echo "PR template sections present."
+          fi
+
