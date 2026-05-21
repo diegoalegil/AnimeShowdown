@@ -38,24 +38,38 @@
 -- │ existirá; el otro es no-op. Luego se crea el nuevo con el nombre   │
 -- │ estable que el resto del schema espera.                            │
 -- └─────────────────────────────────────────────────────────────────────┘
+--
+-- Audit fix #5 (2026-05-21): añadido ALTER TABLE IF EXISTS a TODAS las
+-- sentencias. Antes la migración asumía que las tablas (votos,
+-- refresh_tokens, email_verifications) existían, lo cual es cierto
+-- en el flujo Flyway sano (V1 crea, V13 modifica). Pero falla si se
+-- ejecuta contra una DB baselined desde un V > 1 donde alguna tabla
+-- aún no se haya creado en ese punto del histórico.
+--
+-- IF EXISTS está soportado por Postgres 9.1+ y H2 1.4+, ambas
+-- versiones muy por encima de las que usamos. Si la tabla NO
+-- existe, la migración hace no-op silencioso en lugar de fallar —
+-- invariante: si después V14+ espera el FK CASCADE, ddl-auto=validate
+-- catchearia el problema en arranque (mejor catch temprano que falla
+-- silenciosa en eliminacion-cuenta a runtime).
 
 -- Votos: preserva la fila como voto anónimo.
-ALTER TABLE votos DROP CONSTRAINT IF EXISTS fk_voto_usuario;
-ALTER TABLE votos DROP CONSTRAINT IF EXISTS votos_usuario_id_fkey;
-ALTER TABLE votos
+ALTER TABLE IF EXISTS votos DROP CONSTRAINT IF EXISTS fk_voto_usuario;
+ALTER TABLE IF EXISTS votos DROP CONSTRAINT IF EXISTS votos_usuario_id_fkey;
+ALTER TABLE IF EXISTS votos
     ADD CONSTRAINT fk_voto_usuario
     FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE SET NULL;
 
 -- Refresh tokens: sin usuario el token es basura, borra en cascada.
-ALTER TABLE refresh_tokens DROP CONSTRAINT IF EXISTS fk_refresh_usuario;
-ALTER TABLE refresh_tokens DROP CONSTRAINT IF EXISTS refresh_tokens_usuario_id_fkey;
-ALTER TABLE refresh_tokens
+ALTER TABLE IF EXISTS refresh_tokens DROP CONSTRAINT IF EXISTS fk_refresh_usuario;
+ALTER TABLE IF EXISTS refresh_tokens DROP CONSTRAINT IF EXISTS refresh_tokens_usuario_id_fkey;
+ALTER TABLE IF EXISTS refresh_tokens
     ADD CONSTRAINT fk_refresh_usuario
     FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE;
 
 -- Email verifications: pendiente sin usuario = ruido en la tabla.
-ALTER TABLE email_verifications DROP CONSTRAINT IF EXISTS fk_email_verif_usuario;
-ALTER TABLE email_verifications DROP CONSTRAINT IF EXISTS email_verifications_usuario_id_fkey;
-ALTER TABLE email_verifications
+ALTER TABLE IF EXISTS email_verifications DROP CONSTRAINT IF EXISTS fk_email_verif_usuario;
+ALTER TABLE IF EXISTS email_verifications DROP CONSTRAINT IF EXISTS email_verifications_usuario_id_fkey;
+ALTER TABLE IF EXISTS email_verifications
     ADD CONSTRAINT fk_email_verif_usuario
     FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE;
