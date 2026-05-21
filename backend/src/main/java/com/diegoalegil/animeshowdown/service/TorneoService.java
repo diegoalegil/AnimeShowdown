@@ -311,8 +311,32 @@ public class TorneoService {
         Torneo guardado = torneoRepository.save(torneo);
 
         if (request != null && request.getParticipantesIds() != null && !request.getParticipantesIds().isEmpty()) {
+            // Audit fix #10 (2026-05-21): antes la ruta admin (iniciarTorneo)
+            // creaba el bracket sin validar tamaño ni duplicados, mientras
+            // que crearPorUsuario validaba ambos. Resultado: admin podía
+            // crear torneos con 7 o 12 personajes (estructura rota) o con
+            // duplicados (el mismo personaje en 2 enfrentamientos de la
+            // misma ronda).
+            //
+            // Admin es más permisivo que crearPorUsuario (que exige 8 o
+            // 16): aceptamos cualquier potencia de 2 entre 2 y 64. BracketService
+            // requiere potencia de 2 para que el bracket cuadre, asi que validar
+            // aqui antes da error claro en lugar de NPE/IllegalState dentro del
+            // service.
+            List<Long> ids = request.getParticipantesIds();
+            int n = ids.size();
+            boolean potenciaDe2 = n >= 2 && n <= 64 && (n & (n - 1)) == 0;
+            if (!potenciaDe2) {
+                throw new IllegalArgumentException(
+                        "El torneo debe tener una potencia de 2 entre 2 y 64 personajes (recibido: "
+                                + n + ")");
+            }
+            if (new java.util.HashSet<>(ids).size() != n) {
+                throw new IllegalArgumentException(
+                        "La lista de participantes no puede tener duplicados");
+            }
             List<Personaje> participantes = new ArrayList<>();
-            for (Long pid : request.getParticipantesIds()) {
+            for (Long pid : ids) {
                 Personaje p = personajeRepository.findById(pid)
                         .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + pid));
                 participantes.add(p);
