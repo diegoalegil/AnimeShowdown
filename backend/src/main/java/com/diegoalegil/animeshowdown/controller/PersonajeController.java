@@ -83,10 +83,18 @@ public class PersonajeController {
 
     /** Cache individual 5min por id — usado por /personajes/{id}. */
     @Cacheable(value = "personajes-individual", key = "#id")
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public Personaje buscarPorId(@PathVariable Long id) {
         return personajeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
+    }
+
+    /** Cache individual 5min por slug — usado por clientes públicos y docs. */
+    @Cacheable(value = "personajes-individual", key = "'slug:' + #slug")
+    @GetMapping("/{slug:[A-Za-z][A-Za-z0-9_-]*}")
+    public Personaje buscarPorSlug(@PathVariable String slug) {
+        return personajeRepository.findBySlug(slug)
+                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: slug=" + slug));
     }
 
     /**

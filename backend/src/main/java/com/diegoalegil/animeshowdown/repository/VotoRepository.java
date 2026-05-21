@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.dto.RankingItem;
+import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
+import com.diegoalegil.animeshowdown.dto.TopVoterItem;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
@@ -26,10 +28,12 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * paginadas (sin riesgo de duplicar/saltar entries entre paginas).
      */
     @Query("""
-            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
+                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl, COUNT(v))
             FROM Voto v
-            GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC, v.personaje.id ASC
+            JOIN v.personaje p
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            ORDER BY COUNT(v) DESC, p.id ASC
             """)
     List<RankingItem> obtenerRanking();
 
@@ -38,12 +42,14 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * pedir top 50 o top 100 sin volcar todo el catálogo.
      */
     @Query(value = """
-            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
+                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl, COUNT(v))
             FROM Voto v
-            GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC, v.personaje.id ASC
+            JOIN v.personaje p
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            ORDER BY COUNT(v) DESC, p.id ASC
             """,
-            countQuery = "SELECT COUNT(DISTINCT v.personaje) FROM Voto v")
+            countQuery = "SELECT COUNT(DISTINCT v.personaje.id) FROM Voto v")
     org.springframework.data.domain.Page<RankingItem> rankingAllTime(
             org.springframework.data.domain.Pageable pageable);
 
@@ -53,11 +59,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * el all-time pero filtra por fecha del voto.
      */
     @Query("""
-            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
+                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl, COUNT(v))
             FROM Voto v
+            JOIN v.personaje p
             WHERE v.fecha >= :desde
-            GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC, v.personaje.id ASC
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            ORDER BY COUNT(v) DESC, p.id ASC
             """)
     List<RankingItem> rankingDesde(@Param("desde") java.time.LocalDateTime desde,
             org.springframework.data.domain.Pageable pageable);
@@ -69,11 +77,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * movimiento de cada personaje.
      */
     @Query("""
-            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
+                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl, COUNT(v))
             FROM Voto v
+            JOIN v.personaje p
             WHERE v.fecha < :antesDe
-            GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC, v.personaje.id ASC
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            ORDER BY COUNT(v) DESC, p.id ASC
             """)
     List<RankingItem> rankingHasta(@Param("antesDe") java.time.LocalDateTime antesDe,
             org.springframework.data.domain.Pageable pageable);
@@ -155,11 +165,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * los nombres en BBDD vienen consistentes del seeder.
      */
     @Query("""
-            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
+                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl, COUNT(v))
             FROM Voto v
-            WHERE v.personaje.anime = :anime
-            GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC, v.personaje.id ASC
+            JOIN v.personaje p
+            WHERE p.anime = :anime
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            ORDER BY COUNT(v) DESC, p.id ASC
             """)
     List<RankingItem> rankingPorAnime(@Param("anime") String anime,
             org.springframework.data.domain.Pageable pageable);
@@ -189,26 +201,33 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * para la página /leaderboards/voters.
      */
     @Query("""
-            SELECT v.usuario, COUNT(v)
+            SELECT new com.diegoalegil.animeshowdown.dto.TopVoterItem(
+                u.username,
+                COALESCE(u.avatarUrl, ''),
+                COUNT(v))
             FROM Voto v
-            WHERE v.usuario IS NOT NULL
-            GROUP BY v.usuario
-            ORDER BY COUNT(v) DESC, v.usuario.id ASC
+            JOIN v.usuario u
+            GROUP BY u.id, u.username, u.avatarUrl
+            ORDER BY COUNT(v) DESC, u.id ASC
             """)
-    List<Object[]> topVoters(org.springframework.data.domain.Pageable pageable);
+    List<TopVoterItem> topVoters(org.springframework.data.domain.Pageable pageable);
 
     /**
      * Top voters de los últimos N días (semanal/mensual). Mismo shape que
      * topVoters pero con WHERE fecha > :desde para ventana temporal.
      */
     @Query("""
-            SELECT v.usuario, COUNT(v)
+            SELECT new com.diegoalegil.animeshowdown.dto.TopVoterItem(
+                u.username,
+                COALESCE(u.avatarUrl, ''),
+                COUNT(v))
             FROM Voto v
-            WHERE v.usuario IS NOT NULL AND v.fecha > :desde
-            GROUP BY v.usuario
-            ORDER BY COUNT(v) DESC, v.usuario.id ASC
+            JOIN v.usuario u
+            WHERE v.fecha > :desde
+            GROUP BY u.id, u.username, u.avatarUrl
+            ORDER BY COUNT(v) DESC, u.id ASC
             """)
-    List<Object[]> topVotersDesde(
+    List<TopVoterItem> topVotersDesde(
             @Param("desde") java.time.LocalDateTime desde,
             org.springframework.data.domain.Pageable pageable);
 
@@ -248,13 +267,15 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Plan v2 §4.1 — sección "Tu Top 5" del perfil.
      */
     @Query("""
-            SELECT v.personaje, COUNT(v)
+            SELECT new com.diegoalegil.animeshowdown.dto.TopPersonajeItem(
+                p.id, p.slug, p.nombre, p.imagenUrl, p.anime, COUNT(v))
             FROM Voto v
+            JOIN v.personaje p
             WHERE v.usuario = :usuario
-            GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC, v.personaje.id ASC
+            GROUP BY p.id, p.slug, p.nombre, p.imagenUrl, p.anime
+            ORDER BY COUNT(v) DESC, p.id ASC
             """)
-    List<Object[]> topPorUsuario(
+    List<TopPersonajeItem> topPorUsuario(
             @Param("usuario") Usuario usuario,
             org.springframework.data.domain.Pageable pageable);
 

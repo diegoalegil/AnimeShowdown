@@ -145,6 +145,8 @@ function RankingPage() {
           }
         />
 
+        <EloExplainer />
+
         {/* Sprint Meta Report (auditoría externa 2026-05-18): párrafo
             narrativo arriba del MoversStrip — convierte "ranking
             congelado" en "reportaje del meta". Lee los mismos endpoints
@@ -172,6 +174,70 @@ function RankingPage() {
         <TablaExtraible />
       </div>
     </VisualPageShell>
+  )
+}
+
+function EloExplainer() {
+  const pasos = [
+    {
+      icon: Swords,
+      titulo: 'Cada duelo compara expectativas',
+      texto:
+        'Si gana el favorito, el cambio es pequeño. Si gana quien venía por debajo, el salto pesa más.',
+    },
+    {
+      icon: TrendingUp,
+      titulo: 'El ELO sube y baja al instante',
+      texto:
+        'El ganador suma y el perdedor resta según la diferencia previa entre ambos personajes.',
+    },
+    {
+      icon: Medal,
+      titulo: 'El ranking separa histórico y momento',
+      texto:
+        'El histórico acumula toda la actividad; el mes enseña qué personajes vienen moviendo el meta ahora.',
+    },
+  ]
+
+  return (
+    <section
+      aria-labelledby="elo-explicacion"
+      className="as-panel mt-8 rounded-2xl p-5 sm:p-6"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-gold">
+            Cómo se mueve la tabla
+          </p>
+          <h2 id="elo-explicacion" className="mt-1 text-2xl">
+            El ELO no es popularidad plana: premia sorpresas y constancia
+          </h2>
+        </div>
+        <Link
+          to="/faq"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+        >
+          Leer FAQ
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {pasos.map(({ icon: Icon, titulo, texto }) => (
+          <div
+            key={titulo}
+            className="rounded-xl border border-border bg-bg/45 p-4"
+          >
+            <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-accent/35 bg-accent-soft text-accent">
+              <Icon className="h-4 w-4" />
+            </span>
+            <h3 className="text-base">{titulo}</h3>
+            <p className="mt-2 text-[13px] leading-relaxed text-fg-muted">
+              {texto}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 

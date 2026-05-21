@@ -11,6 +11,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.diegoalegil.animeshowdown.event.PrediccionResueltaEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
@@ -38,10 +39,13 @@ public class BadgeEventListener {
 
     private final BadgeService badgeService;
     private final VotoRepository votoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public BadgeEventListener(BadgeService badgeService, VotoRepository votoRepository) {
+    public BadgeEventListener(BadgeService badgeService, VotoRepository votoRepository,
+            UsuarioRepository usuarioRepository) {
         this.badgeService = badgeService;
         this.votoRepository = votoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     /**
@@ -80,9 +84,13 @@ public class BadgeEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPrediccionResuelta(PrediccionResueltaEvent ev) {
-        Usuario usuario = ev.usuario();
+        Usuario usuario = usuarioRepository.findById(ev.usuarioId()).orElse(null);
+        if (usuario == null) {
+            log.warn("Predicción resuelta: usuario eliminado antes del badge id={}", ev.usuarioId());
+            return;
+        }
         log.debug("Predicción resuelta: usuario={} total={} racha={}",
-                usuario.getUsername(), ev.totalAciertos(), ev.rachaConsecutivaActual());
+                ev.username(), ev.totalAciertos(), ev.rachaConsecutivaActual());
 
         if (ev.rachaConsecutivaActual() >= 3) {
             badgeService.desbloquear(usuario, "predicciones_3_seguidas");

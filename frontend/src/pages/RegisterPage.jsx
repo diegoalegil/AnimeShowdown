@@ -7,6 +7,7 @@ import { useSeo } from '../hooks/useSeo'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
 import AuthSocialButtons from '../components/AuthSocialButtons'
+import AuthLegalNote from '../components/AuthLegalNote'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 
@@ -88,9 +89,10 @@ function RegisterPage() {
           </p>
         </div>
         <AuthSocialButtons action="Crear cuenta" next="/" />
+        <AuthLegalNote action="crear tu cuenta" />
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
+          className="mt-4 flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
         >
           <div className="flex flex-col gap-1.5">
             <label

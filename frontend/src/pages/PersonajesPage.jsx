@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
+  Filter,
   LayoutGrid,
   List,
   Search,
@@ -91,6 +92,7 @@ function PersonajesPage() {
   )
   const [sort, setSort] = useState('popularidad')
   const [view, setView] = useState('grid')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   // Audit (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
   // DOM, ~790 imgs, scroll de >100k px en móvil. Paginación incremental:
@@ -158,8 +160,24 @@ function PersonajesPage() {
   const limpiarFiltros = () => {
     setSearch('')
     setAnimeFilter(null)
+    setFiltersOpen(false)
     play('playClick')
   }
+
+  const seleccionarAnime = (anime) => {
+    setAnimeFilter(anime)
+    setFiltersOpen(false)
+    play('playClick')
+  }
+
+  useEffect(() => {
+    if (!filtersOpen) return undefined
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [filtersOpen])
 
   return (
     <VisualPageShell
@@ -301,13 +319,33 @@ function PersonajesPage() {
           )}
         </div>
 
-        <div className="scrollbar-hide -mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 sm:-mx-0 sm:px-0">
+        <button
+          type="button"
+          onClick={() => {
+            setFiltersOpen(true)
+            play('playClick')
+          }}
+          className="as-control mb-4 flex w-full items-center justify-between rounded-lg px-3.5 py-3 text-left text-sm font-bold text-fg-strong sm:hidden"
+          aria-haspopup="dialog"
+          aria-expanded={filtersOpen}
+        >
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <Filter className="h-4 w-4 shrink-0 text-gold" />
+            <span className="truncate">
+              {animeFilter ? `Universo: ${animeFilter}` : 'Filtrar por universo'}
+            </span>
+          </span>
+          <span className="shrink-0 rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] text-fg-muted">
+            {animeFilter
+              ? animes.find(([anime]) => anime === animeFilter)?.[1] ?? 0
+              : personajes.length}
+          </span>
+        </button>
+
+        <div className="scrollbar-hide -mx-5 mb-6 hidden gap-2 overflow-x-auto px-5 pb-1 sm:flex sm:-mx-0 sm:px-0">
           <button
             type="button"
-            onClick={() => {
-              setAnimeFilter(null)
-              play('playClick')
-            }}
+            onClick={() => seleccionarAnime(null)}
             className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
               animeFilter === null
                 ? 'as-chip-active'
@@ -320,10 +358,7 @@ function PersonajesPage() {
             <button
               key={anime}
               type="button"
-              onClick={() => {
-                setAnimeFilter(anime)
-                play('playClick')
-              }}
+              onClick={() => seleccionarAnime(anime)}
               className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
                 animeFilter === anime
                   ? 'as-chip-active'
@@ -334,6 +369,75 @@ function PersonajesPage() {
             </button>
           ))}
         </div>
+
+        {filtersOpen && (
+          <div className="fixed inset-0 z-50 sm:hidden" role="presentation">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+              aria-label="Cerrar filtros"
+              onClick={() => setFiltersOpen(false)}
+            />
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-label="Filtrar personajes por universo"
+              className="absolute inset-x-0 bottom-0 max-h-[82vh] rounded-t-2xl border border-border bg-surface shadow-[0_-24px_80px_rgb(0_0_0_/_0.5)]"
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+                    Universo
+                  </p>
+                  <p className="truncate text-sm font-bold text-fg-strong">
+                    {animeFilter ?? 'Todos los personajes'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen(false)}
+                  aria-label="Cerrar filtros"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-bg text-fg-muted transition-colors hover:text-fg-strong"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="max-h-[calc(82vh-72px)] overflow-y-auto px-3 py-3">
+                <button
+                  type="button"
+                  onClick={() => seleccionarAnime(null)}
+                  className={`mb-1 flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-bold transition-colors ${
+                    animeFilter === null
+                      ? 'bg-gold/15 text-gold'
+                      : 'text-fg-strong hover:bg-white/5'
+                  }`}
+                >
+                  <span>Todos</span>
+                  <span className="font-mono text-[12px] text-fg-muted">
+                    {personajes.length}
+                  </span>
+                </button>
+                {animes.map(([anime, count]) => (
+                  <button
+                    key={anime}
+                    type="button"
+                    onClick={() => seleccionarAnime(anime)}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
+                      animeFilter === anime
+                        ? 'bg-gold/15 text-gold'
+                        : 'text-fg-strong hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="min-w-0 truncate pr-3">{anime}</span>
+                    <span className="font-mono text-[12px] text-fg-muted">
+                      {count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
 
         <p className="mb-4 text-[11px] text-fg-muted">
           Mostrando <strong className="text-fg-strong">{filtered.length}</strong>{' '}

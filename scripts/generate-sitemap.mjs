@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // scripts/generate-sitemap.mjs
 // Genera frontend/public/sitemap.xml combinando:
-//   1. Catálogo cliente-side de personajes (~642 con slug+nombre+anime+imagen,
+//   1. Catálogo cliente-side de personajes (~1052 con slug+nombre+anime+imagen,
 //      parseado de personajes.js via regex sin deps).
 //   2. Rutas estáticas indexables.
 //   3. Datos dinámicos de backend (torneos APROBADO + perfiles públicos),

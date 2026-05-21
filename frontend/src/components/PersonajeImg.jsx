@@ -35,19 +35,18 @@ function PersonajeImg({ slug, alt, sizes, className = '', loading, decoding, ...
     )
   }
 
-  // Variantes responsive desde el src original. Solo -300 y -600 webp
-  // (decisión 2026-05-17): cubren cards pequeñas/medianas con ahorro 5-15%
-  // del peso original. -1024 y AVIF se generan pero NO se commitean
-  // (sumarían +500MB al repo sin ganancia perceptible — el original cubre
-  // pantallas grandes y ficha de personaje). El src original (1024px) es
-  // el fallback que pinta el <img>.
+  // Variantes responsive desde el src original. El browser prioriza AVIF
+  // cuando lo soporta, cae a WebP si no, y finalmente usa el src original.
   const queryIndex = src.indexOf('?')
   const srcPath = queryIndex === -1 ? src : src.slice(0, queryIndex)
   const srcQuery = queryIndex === -1 ? '' : src.slice(queryIndex)
   const base = srcPath.replace(/\.webp$/i, '')
   const isWebp = /\.webp$/i.test(srcPath)
+  const srcsetAvif = isWebp
+    ? `${base}-300.avif${srcQuery} 300w, ${base}-600.avif${srcQuery} 600w, ${base}-1024.avif${srcQuery} 1024w`
+    : undefined
   const srcsetWebp = isWebp
-    ? `${base}-300.webp${srcQuery} 300w, ${base}-600.webp${srcQuery} 600w`
+    ? `${base}-300.webp${srcQuery} 300w, ${base}-600.webp${srcQuery} 600w, ${base}-1024.webp${srcQuery} 1024w`
     : undefined
   // sizes default: estimación conservadora para que el browser no
   // sobre-descargue en mobile. El caller puede pasar sizes específico
@@ -56,6 +55,9 @@ function PersonajeImg({ slug, alt, sizes, className = '', loading, decoding, ...
 
   return (
     <picture>
+      {srcsetAvif && (
+        <source type="image/avif" srcSet={srcsetAvif} sizes={sizesAttr} />
+      )}
       {srcsetWebp && (
         <source type="image/webp" srcSet={srcsetWebp} sizes={sizesAttr} />
       )}

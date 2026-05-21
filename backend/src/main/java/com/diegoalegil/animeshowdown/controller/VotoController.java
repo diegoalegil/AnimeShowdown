@@ -135,7 +135,7 @@ public class VotoController {
         int saneLimit = Math.max(1, Math.min(50, limit));
         org.springframework.data.domain.Pageable pg = org.springframework.data.domain.PageRequest.of(
                 0, saneLimit);
-        List<Object[]> filas;
+        List<com.diegoalegil.animeshowdown.dto.TopVoterItem> filas;
         switch (periodo) {
             case "semana":
                 filas = votoRepository.topVotersDesde(
@@ -150,15 +150,10 @@ public class VotoController {
                 filas = votoRepository.topVoters(pg);
         }
         return filas.stream()
-                .map((fila) -> {
-                    com.diegoalegil.animeshowdown.model.Usuario u =
-                            (com.diegoalegil.animeshowdown.model.Usuario) fila[0];
-                    Long count = (Long) fila[1];
-                    return java.util.Map.<String, Object>of(
-                            "username", u.getUsername(),
-                            "avatarUrl", u.getAvatarUrl() == null ? "" : u.getAvatarUrl(),
-                            "votos", count);
-                })
+                .map((fila) -> java.util.Map.<String, Object>of(
+                        "username", fila.username(),
+                        "avatarUrl", fila.avatarUrl() == null ? "" : fila.avatarUrl(),
+                        "votos", fila.votos()))
                 .toList();
     }
 }

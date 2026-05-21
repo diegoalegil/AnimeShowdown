@@ -48,6 +48,11 @@ const SECCIONES = [
         path: '/api/personajes/{id}',
         desc: 'Detalle de un personaje por id numérico.',
       },
+      {
+        metodo: 'GET',
+        path: '/api/personajes/{slug}',
+        desc: 'Detalle de un personaje por slug URL-safe.',
+      },
     ],
   },
   {

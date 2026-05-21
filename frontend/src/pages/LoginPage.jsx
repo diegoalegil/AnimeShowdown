@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import PasswordInput from '../components/PasswordInput'
 import AuthSocialButtons from '../components/AuthSocialButtons'
+import AuthLegalNote from '../components/AuthLegalNote'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 
@@ -144,9 +145,10 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
         </p>
       </div>
       <AuthSocialButtons next={next} />
+      <AuthLegalNote action="entrar" />
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
+        className="mt-4 flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
       >
         <div className="flex flex-col gap-1.5">
           <label
