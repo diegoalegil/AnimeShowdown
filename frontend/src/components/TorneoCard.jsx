@@ -1,5 +1,13 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CheckCircle2, Clock, PlayCircle, Trophy, Users } from 'lucide-react'
+import {
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  PlayCircle,
+  Trophy,
+  Users,
+} from 'lucide-react'
 import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
 import { ocultaImgRota } from '../lib/imgFallback'
@@ -29,6 +37,30 @@ const ESTADO_CTA = {
   FINISHED: 'Ver resultados',
 }
 
+function formatearFechaCorta(fecha) {
+  if (!fecha) return null
+  const parsed = new Date(fecha)
+  if (Number.isNaN(parsed.getTime())) return null
+
+  return new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit',
+    month: 'short',
+  }).format(parsed)
+}
+
+function getFechaLabel(estado, fechaInicio, fechaFinalizacion, fechaCreacion) {
+  if (estado === 'FINISHED') {
+    const fecha = formatearFechaCorta(fechaFinalizacion)
+    return fecha ? `Final ${fecha}` : null
+  }
+  if (estado === 'SCHEDULED') {
+    const fecha = formatearFechaCorta(fechaInicio)
+    return fecha ? `Inicio ${fecha}` : 'Próximamente'
+  }
+  const fecha = formatearFechaCorta(fechaInicio || fechaCreacion)
+  return fecha ? `Desde ${fecha}` : 'En directo'
+}
+
 function TorneoCard({ torneo }) {
   const {
     slug,
@@ -37,6 +69,12 @@ function TorneoCard({ torneo }) {
     numParticipantes,
     avataresPrincipales,
     ganadorSlug,
+    descripcion,
+    fechaCreacion,
+    fechaInicio,
+    fechaFinalizacion,
+    totalRondas,
+    rondaActual,
   } = torneo
   const badge = getEstadoBadge(estado)
   const Icon = ESTADO_ICON[estado] ?? Clock
@@ -60,6 +98,12 @@ function TorneoCard({ torneo }) {
   // tercio superior (donde suele estar el drama, no las caras pegadas) y
   // un microblur que da sensacion cinematografica.
   const visualParaCard = { ...visual, objectPosition: visual.objectPosition || '50% 32%' }
+  const fechaLabel = getFechaLabel(estado, fechaInicio, fechaFinalizacion, fechaCreacion)
+  const rondaLabel = totalRondas
+    ? estado === 'IN_PROGRESS' && rondaActual
+      ? `Ronda ${rondaActual}/${totalRondas}`
+      : `${totalRondas} rondas`
+    : null
 
   return (
     <Link
@@ -91,6 +135,27 @@ function TorneoCard({ torneo }) {
             {numParticipantes} participantes
           </span>
         </div>
+        {descripcion && (
+          <p className="mt-3 line-clamp-2 text-[13px] leading-relaxed text-fg-muted">
+            {descripcion}
+          </p>
+        )}
+        {(fechaLabel || rondaLabel) && (
+          <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-fg-muted">
+            {fechaLabel && (
+              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-bg/55 px-2 py-1">
+                <CalendarDays className="h-3 w-3" />
+                {fechaLabel}
+              </span>
+            )}
+            {rondaLabel && (
+              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-bg/55 px-2 py-1">
+                <Trophy className="h-3 w-3" />
+                {rondaLabel}
+              </span>
+            )}
+          </div>
+        )}
         {ganadorAvatar && (
           <div className="mt-4 flex items-center gap-3 rounded-lg bg-accent-soft p-2.5">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">

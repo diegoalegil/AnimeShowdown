@@ -1,7 +1,5 @@
 package com.diegoalegil.animeshowdown.event;
 
-import com.diegoalegil.animeshowdown.model.Usuario;
-
 /**
  * Evento publicado tras resolver predicciones al finalizar un torneo
  * (Plan v2 §4.4).
@@ -11,7 +9,8 @@ import com.diegoalegil.animeshowdown.model.Usuario;
  * para que listeners (badges) puedan disparar lógica sin re-consultar BBDD.
  */
 public record PrediccionResueltaEvent(
-        Usuario usuario,
+        Long usuarioId,
+        String username,
         long totalAciertos,
         int rachaConsecutivaActual) {
 }

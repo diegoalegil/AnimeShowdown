@@ -11,9 +11,9 @@ Idioma principal: español (español / inglés disponibles)
 
 ## Datos clave (mayo 2026)
 
-- **Catálogo**: 642+ personajes de anime con slug, nombre, anime de origen,
+- **Catálogo**: 1052 personajes de anime con slug, nombre, anime de origen,
   ranking ELO y URL de imagen estable.
-- **Animes representados**: ~80 universos (Attack on Titan, Demon Slayer,
+- **Animes representados**: 105 universos (Attack on Titan, Demon Slayer,
   Naruto, One Piece, Jujutsu Kaisen, Frieren, etc.).
 - **Sistema de ranking**: ELO clásico (Arpad Elo, 1960) — cada voto
   ajusta los puntos de ambos personajes según expectativa basada en su
@@ -31,6 +31,7 @@ Idioma principal: español (español / inglés disponibles)
 
 ```
 GET /api/personajes              — catálogo completo
+GET /api/personajes/{id|slug}    — detalle de personaje por id numérico o slug
 GET /api/torneos                 — torneos visibles (APROBADO + NO_APLICA)
 GET /api/torneos/slug/{slug}     — detalle del torneo + bracket
 GET /api/votos/ranking            — ELO ranking flat

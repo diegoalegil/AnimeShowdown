@@ -1,6 +1,5 @@
 package com.diegoalegil.animeshowdown.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -151,16 +150,7 @@ public class PerfilService {
     @Transactional(readOnly = true)
     public List<TopPersonajeItem> top(Usuario usuario, int limit) {
         Pageable pg = PageRequest.of(0, Math.min(20, Math.max(1, limit)));
-        List<Object[]> filas = votoRepository.topPorUsuario(usuario, pg);
-        List<TopPersonajeItem> resultado = new ArrayList<>(filas.size());
-        for (Object[] fila : filas) {
-            Personaje p = (Personaje) fila[0];
-            Long count = (Long) fila[1];
-            resultado.add(new TopPersonajeItem(
-                    p.getId(), p.getSlug(), p.getNombre(),
-                    p.getImagenUrl(), p.getAnime(), count));
-        }
-        return resultado;
+        return votoRepository.topPorUsuario(usuario, pg);
     }
 
     /**

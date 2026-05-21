@@ -98,6 +98,11 @@ export function AuthProvider({ children }) {
   // limpia y aparece como invitado.
   useEffect(() => {
     let cancelled = false
+    if (!user) {
+      return () => {
+        cancelled = true
+      }
+    }
     refreshSession().then((data) => {
       if (cancelled) return
       if (data?.token && data.usuario) {

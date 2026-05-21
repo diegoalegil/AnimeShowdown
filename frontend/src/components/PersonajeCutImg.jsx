@@ -14,6 +14,15 @@ function PersonajeCutImg({
 }) {
   const [failed, setFailed] = useState(false)
   const canUseCut = hasCut(slug) && !failed
+  const cutSrc = canUseCut ? cutUrl(slug) : null
+  const cutBase = cutSrc?.replace(/\.webp$/i, '')
+  const cutSrcSetAvif = cutBase
+    ? `${cutBase}-300.avif 300w, ${cutBase}-600.avif 600w, ${cutBase}-1024.avif 1024w`
+    : undefined
+  const cutSrcSetWebp = cutBase
+    ? `${cutBase}-300.webp 300w, ${cutBase}-600.webp 600w, ${cutBase}-1024.webp 1024w`
+    : undefined
+  const sizesAttr = imgProps.sizes ?? '(min-width: 1024px) 360px, (min-width: 640px) 280px, 220px'
 
   if (!canUseCut) {
     if (!slug && fallback) {
@@ -52,15 +61,19 @@ function PersonajeCutImg({
         className="absolute inset-x-4 bottom-1 h-1/3 rounded-full bg-accent/25 blur-2xl"
         aria-hidden="true"
       />
-      <img
-        src={cutUrl(slug)}
-        alt={alt}
-        loading={loading ?? 'lazy'}
-        decoding={decoding ?? 'async'}
-        className={`relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_18px_22px_rgb(0_0_0_/_0.55)] ${imgClassName}`.trim()}
-        onError={() => setFailed(true)}
-        {...imgProps}
-      />
+      <picture className="contents">
+        <source type="image/avif" srcSet={cutSrcSetAvif} sizes={sizesAttr} />
+        <source type="image/webp" srcSet={cutSrcSetWebp} sizes={sizesAttr} />
+        <img
+          src={cutSrc}
+          alt={alt}
+          loading={loading ?? 'lazy'}
+          decoding={decoding ?? 'async'}
+          className={`relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_18px_22px_rgb(0_0_0_/_0.55)] ${imgClassName}`.trim()}
+          onError={() => setFailed(true)}
+          {...imgProps}
+        />
+      </picture>
     </div>
   )
 }

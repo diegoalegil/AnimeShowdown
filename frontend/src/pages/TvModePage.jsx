@@ -142,9 +142,9 @@ function VistaTop10() {
         <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-accent sm:text-[12px]">
           Top 10 ELO global
         </p>
-        <h2 className="mt-2 text-[clamp(1.5rem,6vw,5rem)] font-extrabold leading-none">
+        <h1 className="mt-2 text-[clamp(1.5rem,6vw,5rem)] font-extrabold leading-none">
           ¿Quién manda hoy?
-        </h2>
+        </h1>
       </div>
       <ol className="grid grid-cols-2 gap-2.5 sm:grid-cols-5 sm:gap-3">
         {top10.map((p, i) => (
