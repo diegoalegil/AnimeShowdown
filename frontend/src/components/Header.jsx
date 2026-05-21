@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LogOut, Menu, Shield, Swords, Volume2, VolumeX, X } from 'lucide-react'
@@ -66,6 +66,8 @@ function Header() {
   const ctaVotarMobile = useInstantSoundPress('playClick')
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const mobileToggleRef = useRef(null)
+  const mobilePanelRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -73,6 +75,58 @@ function Header() {
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Audit fix #8 (2026-05-21): cuando el menu movil esta abierto, el
+  // fondo se podia seguir scrolleando (perdia el contexto del panel
+  // sobre la pagina) y el foco no quedaba atrapado dentro — Tab salia
+  // a links del DOM detras del overlay. Tres cosas:
+  //   1. Bloquear scroll del body con overflow: hidden mientras open.
+  //   2. Trap de Tab dentro del panel (Tab al ultimo → primero,
+  //      Shift+Tab al primero → ultimo).
+  //   3. Escape cierra el menu y devuelve foco al toggle button.
+  //   4. Al abrir, mover foco al primer NavLink del panel.
+  useEffect(() => {
+    if (!mobileOpen) return undefined
+    // Scroll-lock del body
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    // Mover foco al primer NavLink del panel tras animacion
+    const focusTimer = window.setTimeout(() => {
+      const first = mobilePanelRef.current?.querySelector(
+        'a, button, [tabindex]:not([tabindex="-1"])'
+      )
+      first?.focus()
+    }, 50)
+    // Handler combinado Escape + Tab trap
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setMobileOpen(false)
+        mobileToggleRef.current?.focus()
+        return
+      }
+      if (e.key !== 'Tab' || !mobilePanelRef.current) return
+      const focusables = mobilePanelRef.current.querySelectorAll(
+        'a, button, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.clearTimeout(focusTimer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [mobileOpen])
 
   const closeMobile = () => setMobileOpen(false)
 
@@ -183,6 +237,7 @@ function Header() {
           </NavLink>
         )}
         <button
+          ref={mobileToggleRef}
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
@@ -204,8 +259,12 @@ function Header() {
             className="fixed inset-0 top-0 z-20 bg-black/40 sm:hidden"
           />
           <div
+            ref={mobilePanelRef}
             id="mobile-nav-panel"
-            className="absolute inset-x-0 top-full z-30 border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl sm:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú de navegación"
+            className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl sm:hidden"
           >
             <div className="flex flex-col gap-1">
               {navLinks.map(({ to, i18nKey }) => (
