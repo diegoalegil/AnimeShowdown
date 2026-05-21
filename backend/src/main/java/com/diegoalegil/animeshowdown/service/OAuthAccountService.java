@@ -4,6 +4,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import com.diegoalegil.animeshowdown.security.AdminEmails;
 @Service
 public class OAuthAccountService {
 
+    private static final Logger log = LoggerFactory.getLogger(OAuthAccountService.class);
     private static final int USERNAME_MAX = 30;
 
     private final UsuarioRepository usuarioRepository;
@@ -111,7 +114,21 @@ public class OAuthAccountService {
             case "discord" -> attributes.get("verified");
             default -> null;
         };
-        return value == null || Boolean.TRUE.equals(value) || "true".equalsIgnoreCase(value.toString());
+        // Audit fix #13 (2026-05-21): antes retornabamos `value == null || ...`
+        // — si el provider no enviaba el flag, tratabamos el email como
+        // verificado. Riesgo de account-takeover: un attacker podria registrar
+        // un email ajeno via provider que no envie verified flag (o provider
+        // nuevo no contemplado en el switch) y obtener cuenta verificada
+        // automaticamente, eligible para link con cuenta legitima por email.
+        //
+        // Ahora: si el flag falta, NO confiamos. Solo verificamos cuando el
+        // provider devuelve true explicito. Log warning para detectar
+        // providers nuevos que requieran handling en el switch.
+        if (value == null) {
+            log.warn("Provider OAuth '{}' no devolvio flag email_verified — tratando como NO verificado por seguridad", provider);
+            return false;
+        }
+        return Boolean.TRUE.equals(value) || "true".equalsIgnoreCase(value.toString());
     }
 
     private static String extraerAvatar(String provider, Map<String, Object> attributes) {
