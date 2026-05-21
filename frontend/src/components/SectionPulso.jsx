@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -317,7 +317,6 @@ function CardEyebrow({ icon: Icon, label, tono = 'text-accent' }) {
 }
 
 function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
-  const navigate = useNavigate()
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
@@ -344,20 +343,23 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
     : comunidadArrancando
       ? 'Más votado ahora'
       : 'Más votado · global'
-  const irAFicha = () => navigate(`/personajes/${p.slug}`)
-  const activarFichaConTeclado = (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return
-    e.preventDefault()
-    irAFicha()
-  }
+  // Audit fix #9 (2026-05-21): antes el article tenia role="link" + onClick
+  // + tabIndex={0}, y dentro habia otro <Link> a /ranking con stopPropagation
+  // — accesibilidad ambigua (screen readers leian 2 links en el mismo
+  // componente). Patron nuevo "stretched link": el article es semantico
+  // (article), y un Link absoluto invisible cubre toda la card. El CTA
+  // interno a /ranking queda por encima con z-10, sigue siendo independiente.
   return (
-    <article
-      role="link"
-      tabIndex={0}
-      onClick={irAFicha}
-      onKeyDown={activarFichaConTeclado}
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5"
-    >
+    <article className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5">
+      {/* Stretched link invisible que hace TODA la card clickeable.
+          z-0 + el resto de elementos en z relativo (no absolute) =
+          la card es accesible con teclado y screen-reader como un solo
+          link a la ficha del personaje. */}
+      <Link
+        to={`/personajes/${p.slug}`}
+        className="absolute inset-0 z-0"
+        aria-label={`Ver ficha de ${p.nombre}`}
+      />
       <CardEyebrow icon={Crown} label={eyebrow} tono="text-amber-300" />
       <div className="flex items-start gap-4">
         <PersonajeImg
@@ -396,10 +398,12 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
           )}
         </div>
       </div>
-      <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+      {/* mt-auto + relative z-10 → el CTA queda POR ENCIMA del stretched
+          link. Sin stopPropagation: ya no es necesario, no hay onClick
+          en el padre. */}
+      <div className="relative z-10 mt-auto flex items-center justify-between gap-2 pt-1">
         <Link
           to="/ranking"
-          onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted hover:text-amber-300"
         >
           Ver ranking ELO
