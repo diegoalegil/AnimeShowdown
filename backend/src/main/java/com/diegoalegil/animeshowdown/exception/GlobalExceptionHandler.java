@@ -139,6 +139,26 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Audit fix #11 follow-up (2026-05-21): handler explicito para
+     * ResponseStatusException. Sin este handler, el catch-all
+     * Exception.class de abajo capturaba las ResponseStatusException
+     * antes que Spring's ResponseStatusExceptionResolver pudiera
+     * procesarlas, devolviendo 500 en lugar del status especificado.
+     * Ahora preservamos status + razon + el shape estandar del resto
+     * de handlers.
+     */
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(
+            org.springframework.web.server.ResponseStatusException ex,
+            HttpServletRequest req) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        String message = ex.getReason() != null
+                ? ex.getReason()
+                : status.getReasonPhrase();
+        return buildResponse(status, message, req);
+    }
+
+    /**
      * Fallback para cualquier cosa que no hayamos contemplado. NO devolvemos
      * el mensaje real al cliente (puede contener stack trace, info interna),
      * pero sí lo logueamos para diagnóstico.

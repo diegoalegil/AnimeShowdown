@@ -231,7 +231,12 @@ class TorneoControllerTest {
     }
 
     @Test
-    void crearMioConUserNoVerificadoDevuelve400() throws Exception {
+    void crearMioConUserNoVerificadoDevuelve403() throws Exception {
+        // Audit fix #11 (2026-05-21): antes este endpoint devolvia 400
+        // (IllegalArgumentException) cuando el user no estaba verificado.
+        // Semanticamente correcto es 403 — el user esta autenticado pero
+        // le falta permiso (verificacion). Ahora el service lanza
+        // ResponseStatusException(FORBIDDEN, ...).
         String token = tokenUserRegistrado("user_no_verif_torneo", "user_no_verif_torneo@example.com");
 
         mvc.perform(post("/api/torneos/mio")
@@ -240,7 +245,7 @@ class TorneoControllerTest {
                 .content(json.writeValueAsString(Map.of(
                         "nombre", "Mi torneo pendiente verif",
                         "participantesIds", primerosNPersonajes(8)))))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     @Test
