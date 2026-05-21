@@ -94,6 +94,23 @@ const SECCIONES = [
     ],
   },
   {
+    titulo: 'Votar',
+    descripcion:
+      'Duelos casuales y sugeridos para que el usuario pueda participar incluso cuando no hay torneo abierto.',
+    endpoints: [
+      {
+        metodo: 'GET',
+        path: '/api/votar/sugerir-duelo',
+        desc: 'Propone dos personajes del top 200 con ELO estimado similar y baja exposición reciente. Cache-Control: no-store.',
+      },
+      {
+        metodo: 'GET',
+        path: '/api/enfrentamientos/aleatorio',
+        desc: 'Devuelve un enfrentamiento real abierto de torneo, si existe; 404 activa el modo casual.',
+      },
+    ],
+  },
+  {
     titulo: 'Perfiles públicos',
     descripcion:
       'Datos públicos por username (sin email). Si vas autenticado, el endpoint añade flags siguiendo/esMismoUsuario.',
@@ -129,6 +146,17 @@ const SECCIONES = [
         metodo: 'GET',
         path: '/api/predicciones/leaderboard?dias=30&limit=10',
         desc: 'Top predictores en los últimos N días.',
+      },
+    ],
+  },
+  {
+    titulo: 'Estado',
+    descripcion: 'Disponibilidad pública calculada desde muestras persistidas del healthcheck backend.',
+    endpoints: [
+      {
+        metodo: 'GET',
+        path: '/api/status',
+        desc: 'Uptime y latencia agregados para 24h, 7d, 30d y 90d. Cache-Control: no-store.',
       },
     ],
   },
