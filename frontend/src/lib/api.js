@@ -609,6 +609,7 @@ export const endpoints = {
   // Match aleatorio abierto (Plan v2 §1.1). Devuelve EnfrentamientoDto o
   // 404 (modo casual del frontend toma el control). No requiere auth.
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/aleatorio', { auth: false }),
+  dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),
   votar: (enfrentamientoId, personajeId) =>
     // El backend espera el campo personajeGanadorId (validado con @NotNull en
     // VotoEnfrentamientoRequest); antes mandábamos personajeId y rebotaba con 400.

@@ -116,6 +116,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/torneos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/votar/**").permitAll()
                         .requestMatchers("/api/votos/**").permitAll()
                         // Plan v2 §4.2: catálogo de badges público (cacheable
                         // long-term en frontend); /mios requiere auth para
