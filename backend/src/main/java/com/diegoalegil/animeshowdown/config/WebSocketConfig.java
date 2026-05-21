@@ -41,15 +41,15 @@ import com.diegoalegil.animeshowdown.security.JwtUtil;
  * <h3>Autenticación</h3>
  * El cliente envía en el frame CONNECT:
  * <pre>Authorization: Bearer &lt;JWT&gt;</pre>
- * Un {@link ChannelInterceptor} valida el token, busca el usuario y setea
- * el {@link java.security.Principal} en la sesión STOMP — eso permite usar
- * <code>convertAndSendToUser(usuario.getUsername(), ...)</code> desde el
- * server. Sin JWT válido, el CONNECT se rechaza (cliente recibe ERROR).
+ * Si el cliente envía JWT, un {@link ChannelInterceptor} valida el token,
+ * busca el usuario y setea el {@link java.security.Principal} en la sesión
+ * STOMP — eso permite usar <code>convertAndSendToUser(usuario.getUsername(), ...)</code>.
+ * Si no envía token, el CONNECT queda anónimo y solo sirve para topics
+ * públicos como ranking/brackets.
  *
  * <p>Los topics <code>/topic/**</code> permiten suscripciones sin auth (son
- * broadcast público), pero requieren CONNECT autenticado primero — política
- * de "todos los clientes WS deben identificarse" para poder rastrear quién
- * ve qué bracket si fuera necesario más adelante.
+ * broadcast público). Las colas <code>/user/**</code> solo reciben eventos
+ * útiles cuando el CONNECT incluye JWT y hay Principal.
  */
 @Configuration
 @EnableWebSocketMessageBroker
@@ -121,7 +121,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /**
      * Lee el header Authorization del frame CONNECT, valida el JWT y setea
-     * el principal en la sesión STOMP. Sin JWT válido el CONNECT falla.
+     * el principal en la sesión STOMP. Sin header queda anónimo para topics
+     * públicos; con header inválido sí se rechaza.
      */
     private class JwtAuthChannelInterceptor implements ChannelInterceptor {
         @Override
@@ -132,9 +133,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 return message;
             }
             String authHeader = accessor.getFirstNativeHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                log.warn("WS CONNECT sin header Authorization Bearer — rechazado");
-                throw new IllegalArgumentException("Falta token JWT en CONNECT");
+            if (authHeader == null || authHeader.isBlank()) {
+                log.debug("WS CONNECT anónimo — permitido para topics públicos");
+                return message;
+            }
+            if (!authHeader.startsWith("Bearer ")) {
+                log.warn("WS CONNECT con header Authorization mal formado — rechazado");
+                throw new IllegalArgumentException("Header Authorization inválido");
             }
             String token = authHeader.substring(7);
             if (!jwtUtil.validarToken(token)) {

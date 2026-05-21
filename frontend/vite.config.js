@@ -334,6 +334,14 @@ export default defineConfig({
         // absoluto: `.../node_modules/lucide-react/dist/...`.
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
+          if (
+            id.includes('@react-three/') ||
+            id.includes('/three/') ||
+            id.includes('\\three\\') ||
+            id.includes('three-stdlib')
+          ) {
+            return 'personaje3d'
+          }
           if (id.includes('lucide-react')) return 'lucide'
           if (id.includes('framer-motion')) return 'framer'
           if (

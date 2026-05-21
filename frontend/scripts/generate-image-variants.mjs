@@ -10,10 +10,10 @@
 //   <slug>-600.avif   (600px, q 50)
 //   <slug>-1024.avif  (1024px, q 50)
 //
-// Las variantes NO se commitean al repo (.gitignore). Se generan en build
-// time tanto en local como en Cloudflare Pages CI. Idempotente: si la
-// variante ya existe y es más nueva que la fuente, no la regenera — así
-// builds incrementales son rápidos.
+// Las variantes se generan fuera del build normal. El workflow
+// image-variants.yml corre sharp solo cuando cambia frontend/img/** y publica
+// un artefacto reutilizable. Idempotente: si la variante ya existe y es más
+// nueva que la fuente, no la regenera — así builds incrementales son rápidos.
 //
 // Salida típica para 700 imágenes desde cero: ~2-3 min con sharp en M1.
 // Builds posteriores (cache hit) terminan en <2s.

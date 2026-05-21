@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -37,13 +37,27 @@ import PersonajeImg from '../components/PersonajeImg'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
+import ComentariosPersonaje from '../components/ComentariosPersonaje'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/visual-assets'
 import { slugifyAnime } from '../lib/animes'
 
-const Personaje3D = lazy(() => import('../components/Personaje3D'))
+const loadPersonaje3D = () => import('../components/Personaje3D')
+const Personaje3D = lazy(loadPersonaje3D)
+
+function preloadPersonaje3DOnIdle() {
+  if (typeof window === 'undefined') return
+  const preload = () => {
+    void loadPersonaje3D()
+  }
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(preload, { timeout: 1800 })
+  } else {
+    window.setTimeout(preload, 250)
+  }
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -473,6 +487,8 @@ function PersonajeDetailPage() {
           />
         </div>
 
+        <ComentariosPersonaje slug={slug} nombre={personaje.nombre} />
+
         {duelosPopulares.length > 0 && (
           <section className="mt-8 rounded-xl border border-accent/25 bg-[linear-gradient(135deg,rgb(255_46_99_/_0.10),rgb(20_20_30_/_0.92))] p-5">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -681,6 +697,10 @@ function CarruselSimilares({ slug, nombre }) {
  */
 function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   const [show3D, setShow3D] = useState(false)
+  const preload3D = useCallback(() => {
+    preloadPersonaje3DOnIdle()
+  }, [])
+
   if (!show3D) {
     return (
       <div className="relative h-full w-full">
@@ -691,6 +711,8 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
         <PersonajeCardHolo src={imagenUrl} alt={nombre} fallbackSrc={fallbackUrl} />
         <button
           type="button"
+          onFocus={preload3D}
+          onPointerEnter={preload3D}
           onClick={() => setShow3D(true)}
           className="absolute bottom-3 right-3 z-10 rounded-full border border-border bg-surface/85 px-3 py-1.5 text-[11px] font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-accent"
         >

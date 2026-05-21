@@ -25,6 +25,17 @@ const navLinks = [
 ]
 
 const navLinkBase = 'relative rounded-md px-3.5 py-2 text-sm transition-colors'
+const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
+const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
+
+function readLocalVoteCount() {
+  try {
+    const value = Number(localStorage.getItem(STORAGE_VOTES_COUNT) || '0')
+    return Number.isFinite(value) && value > 0 ? value : 0
+  } catch {
+    return 0
+  }
+}
 
 function regularLinkClass({ isActive }) {
   return `${navLinkBase} font-medium ${
@@ -66,6 +77,7 @@ function Header() {
   const ctaVotarMobile = useInstantSoundPress('playClick')
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [voteCount, setVoteCount] = useState(readLocalVoteCount)
   const mobileToggleRef = useRef(null)
   const mobilePanelRef = useRef(null)
 
@@ -74,6 +86,16 @@ function Header() {
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    const refreshVoteCount = () => setVoteCount(readLocalVoteCount())
+    window.addEventListener('storage', refreshVoteCount)
+    window.addEventListener(VOTES_COUNT_EVENT, refreshVoteCount)
+    return () => {
+      window.removeEventListener('storage', refreshVoteCount)
+      window.removeEventListener(VOTES_COUNT_EVENT, refreshVoteCount)
+    }
   }, [])
 
   // Audit fix #8 (2026-05-21): cuando el menu movil esta abierto, el
@@ -173,6 +195,14 @@ function Header() {
         >
           <Swords className="h-4 w-4" />
           {t('header.ctaVotar')}
+          {voteCount > 0 && (
+            <span
+              className="ml-0.5 rounded-full bg-white/18 px-1.5 py-0.5 font-mono text-[10px] leading-none text-white"
+              aria-label={`${voteCount} votos en esta sesión`}
+            >
+              {voteCount}
+            </span>
+          )}
         </NavLink>
         <LanguageToggle />
         <button
@@ -234,6 +264,14 @@ function Header() {
           >
             <Swords className="h-3.5 w-3.5" />
             {t('header.ctaVotarCompact')}
+            {voteCount > 0 && (
+              <span
+                className="rounded-full bg-white/18 px-1.5 py-0.5 font-mono text-[10px] leading-none text-white"
+                aria-label={`${voteCount} votos en esta sesión`}
+              >
+                {voteCount}
+              </span>
+            )}
           </NavLink>
         )}
         <button

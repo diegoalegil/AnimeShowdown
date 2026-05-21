@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { endpoints } from '../lib/api.js'
+import { subscribe } from '../lib/stomp.js'
 
 /**
  * Hooks de ranking segmentado (Plan v2 §4.6).
@@ -20,6 +22,7 @@ export function useRankingSegmentado({
     queryFn: () => endpoints.rankingSegmentado({ periodo, anime, limit }),
     enabled,
     staleTime: 60 * 1000, // 1 min: el ranking no cambia tan rápido
+    refetchInterval: 30 * 1000, // fallback si WebSocket no conecta
   })
 }
 
@@ -46,5 +49,44 @@ export function useRankingMovimientos({
     queryFn: () => endpoints.rankingMovimientos({ limit, dias }),
     enabled,
     staleTime: 60 * 1000,
+    refetchInterval: 30 * 1000,
   })
+}
+
+export function useRankingDeltaSubscription({ enabled = true } = {}) {
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (!enabled) return undefined
+    return subscribe('/topic/ranking-delta', (delta) => {
+      if (!delta?.personaje?.slug) return
+      queryClient
+        .getQueriesData({ queryKey: ['ranking', 'segmentado'] })
+        .forEach(([queryKey, old]) => {
+          if (!Array.isArray(old)) return
+          const [, , periodo = 'all', anime = '', limit = old.length] = queryKey
+          if (anime && anime !== delta.personaje.anime) return
+          const index = old.findIndex((item) => item?.personaje?.slug === delta.personaje.slug)
+          const votos =
+            periodo === 'all'
+              ? delta.votos
+              : Math.max(0, (index === -1 ? 0 : old[index].votos || 0) + (delta.delta || 1))
+          const nextItem = {
+            personaje: delta.personaje,
+            votos,
+          }
+          const next =
+            index === -1
+              ? [...old, nextItem]
+              : old.map((item, i) => (i === index ? { ...item, votos } : item))
+          next.sort((a, b) => {
+            const byVotes = (b.votos || 0) - (a.votos || 0)
+            if (byVotes !== 0) return byVotes
+            return (a.personaje?.id || 0) - (b.personaje?.id || 0)
+          })
+          queryClient.setQueryData(queryKey, next.slice(0, Number(limit) || next.length))
+        })
+      queryClient.invalidateQueries({ queryKey: ['ranking', 'movimientos'] })
+    })
+  }, [enabled, queryClient])
 }

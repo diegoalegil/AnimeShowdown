@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -26,6 +26,8 @@ import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import { endpoints } from '../lib/api'
+import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -35,26 +37,6 @@ const headerVariants = {
     transition: { duration: 0.5, ease: 'easeOut' },
   },
 }
-
-const animes = (() => {
-  const counts = {}
-  personajes.forEach((p) => {
-    counts[p.anime] = (counts[p.anime] || 0) + 1
-  })
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])
-})()
-
-// Pre-cálculo del rank por ELO — para mostrar "#1, #2…" en las cards
-// del top 10. Estable entre renders (no cambia mientras no se recargue
-// el catálogo).
-const rankPorSlug = (() => {
-  const map = new Map()
-  const ordenado = [...personajes]
-    .map((p) => ({ slug: p.slug, elo: getStatsPersonaje(p.slug).elo }))
-    .sort((a, b) => b.elo - a.elo)
-  ordenado.forEach((p, i) => map.set(p.slug, i + 1))
-  return map
-})()
 
 const sortLabels = {
   popularidad: 'Popularidad',
@@ -79,10 +61,55 @@ function MiniHeroStat({ label, value }) {
   )
 }
 
+function HighlightMatch({ text, query }) {
+  if (!query) return text
+  const lower = text.toLowerCase()
+  const needle = query.toLowerCase()
+  const idx = lower.indexOf(needle)
+  if (idx === -1) return text
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="rounded bg-gold/20 px-0.5 text-gold">
+        {text.slice(idx, idx + needle.length)}
+      </mark>
+      {text.slice(idx + needle.length)}
+    </>
+  )
+}
+
 function PersonajesPage() {
+  const { data: catalogoRemoto } = useCatalogoPersonajes()
+  const catalogoPersonajes = useMemo(() => {
+    if (!Array.isArray(catalogoRemoto) || catalogoRemoto.length === 0) {
+      return personajes
+    }
+    return catalogoRemoto.map((p) => ({
+      ...p,
+      imagen: p.imagenUrl ?? p.imagen,
+    }))
+  }, [catalogoRemoto])
+
+  const animes = useMemo(() => {
+    const counts = {}
+    catalogoPersonajes.forEach((p) => {
+      counts[p.anime] = (counts[p.anime] || 0) + 1
+    })
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])
+  }, [catalogoPersonajes])
+
+  const rankPorSlug = useMemo(() => {
+    const map = new Map()
+    const ordenado = [...catalogoPersonajes]
+      .map((p) => ({ slug: p.slug, elo: getStatsPersonaje(p.slug).elo }))
+      .sort((a, b) => b.elo - a.elo)
+    ordenado.forEach((p, i) => map.set(p.slug, i + 1))
+    return map
+  }, [catalogoPersonajes])
+
   useSeo({
     title: 'Personajes',
-    description: `Catálogo de ${personajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
+    description: `Catálogo de ${catalogoPersonajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
   })
   const { play } = useSound()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -93,6 +120,15 @@ function PersonajesPage() {
   const [sort, setSort] = useState('popularidad')
   const [view, setView] = useState('grid')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const deferredSearch = useDeferredValue(search)
+  const autocompleteQuery = deferredSearch.trim()
+  const [suggestions, setSuggestions] = useState([])
+  const [suggestionsQuery, setSuggestionsQuery] = useState('')
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [suggestionsError, setSuggestionsError] = useState(null)
+  const visibleSuggestions = suggestionsQuery === autocompleteQuery ? suggestions : []
+  const visibleSuggestionsError =
+    suggestionsQuery === autocompleteQuery ? suggestionsError : null
 
   // Audit (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
   // DOM, ~790 imgs, scroll de >100k px en móvil. Paginación incremental:
@@ -116,7 +152,7 @@ function PersonajesPage() {
   }, [animeFilter, searchParams, setSearchParams])
 
   const filtered = useMemo(() => {
-    let list = personajes
+    let list = catalogoPersonajes
     if (animeFilter) list = list.filter((p) => p.anime === animeFilter)
     if (search) {
       const s = search.toLowerCase()
@@ -154,7 +190,46 @@ function PersonajesPage() {
       list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
     }
     return list
-  }, [search, animeFilter, sort])
+  }, [catalogoPersonajes, search, animeFilter, sort])
+
+  useEffect(() => {
+    if (autocompleteQuery.length < 2) {
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      setSuggestionsLoading(true)
+      setSuggestionsError(null)
+      endpoints
+        .buscarPersonajes({
+          q: autocompleteQuery,
+          limit: 10,
+          signal: controller.signal,
+        })
+        .then((data) => {
+          if (!controller.signal.aborted) {
+            setSuggestions(Array.isArray(data) ? data : [])
+            setSuggestionsQuery(autocompleteQuery)
+          }
+        })
+        .catch((err) => {
+          if (!controller.signal.aborted) {
+            setSuggestions([])
+            setSuggestionsQuery(autocompleteQuery)
+            setSuggestionsError(err.message || 'No se pudo buscar')
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setSuggestionsLoading(false)
+        })
+    }, 150)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [autocompleteQuery])
 
   const hayFiltros = Boolean(search) || Boolean(animeFilter)
   const limpiarFiltros = () => {
@@ -197,7 +272,7 @@ function PersonajesPage() {
           <CinematicHero
             visual={BRAND_VISUALS.personajes}
             icon={Sparkles}
-            eyebrow={`Catálogo completo · ${personajes.length} combatientes`}
+            eyebrow={`Catálogo completo · ${catalogoPersonajes.length} combatientes`}
             title="Archivo de personajes"
             subtitle="Busca, filtra y compara a los personajes que sostienen el meta. Cada ficha funciona como entrada de archivo y como carta de combate para saltar directo al duelo."
             actions={
@@ -226,7 +301,7 @@ function PersonajesPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <MiniHeroStat label="Universos" value={animes.length} />
-                  <MiniHeroStat label="Top ELO" value={Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))} />
+                  <MiniHeroStat label="Top ELO" value={Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))} />
                 </div>
               </div>
             }
@@ -241,6 +316,8 @@ function PersonajesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Busca personaje, anime o alias…"
+              aria-expanded={autocompleteQuery.length >= 2}
+              aria-controls="personajes-search-results"
               className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
             />
             {search && (
@@ -252,6 +329,55 @@ function PersonajesPage() {
               >
                 <X className="h-4 w-4" />
               </button>
+            )}
+            {autocompleteQuery.length >= 2 && (
+              <div
+                id="personajes-search-results"
+                role="listbox"
+                className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-xl border border-white/10 bg-surface/98 shadow-[0_24px_80px_-36px_rgb(0_0_0_/_0.95)] backdrop-blur-xl"
+              >
+                {suggestionsLoading ? (
+                  <p className="px-3.5 py-3 text-[12px] font-semibold text-fg-muted">
+                    Buscando…
+                  </p>
+                ) : visibleSuggestionsError ? (
+                  <p className="px-3.5 py-3 text-[12px] font-semibold text-accent">
+                    {visibleSuggestionsError}
+                  </p>
+                ) : visibleSuggestions.length > 0 ? (
+                  <ul className="max-h-80 overflow-y-auto py-1">
+                    {visibleSuggestions.map((item) => (
+                      <li key={item.slug} role="option" aria-selected="false">
+                        <Link
+                          to={`/personajes/${item.slug}`}
+                          onClick={() => play('playClick')}
+                          className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-white/6"
+                        >
+                          <PersonajeImg
+                            slug={item.slug}
+                            nombre={item.nombre}
+                            src={item.imagenUrl}
+                            className="h-11 w-11 rounded-lg border border-white/10 object-cover"
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-black text-fg-strong">
+                              <HighlightMatch text={item.nombre} query={autocompleteQuery} />
+                            </span>
+                            <span className="block truncate text-[11px] font-semibold text-fg-muted">
+                              <HighlightMatch text={item.anime} query={autocompleteQuery} />
+                            </span>
+                          </span>
+                          <ArrowRight className="h-4 w-4 shrink-0 text-gold" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="px-3.5 py-3 text-[12px] font-semibold text-fg-muted">
+                    Sin resultados rápidos. El filtro local sigue activo abajo.
+                  </p>
+                )}
+              </div>
             )}
           </div>
           <select
@@ -338,7 +464,7 @@ function PersonajesPage() {
           <span className="shrink-0 rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] text-fg-muted">
             {animeFilter
               ? animes.find(([anime]) => anime === animeFilter)?.[1] ?? 0
-              : personajes.length}
+              : catalogoPersonajes.length}
           </span>
         </button>
 
@@ -352,7 +478,7 @@ function PersonajesPage() {
                 : 'as-chip hover:border-gold/40 hover:text-fg-strong'
             }`}
           >
-            Todos · {personajes.length}
+            Todos · {catalogoPersonajes.length}
           </button>
           {animes.map(([anime, count]) => (
             <button
@@ -414,7 +540,7 @@ function PersonajesPage() {
                 >
                   <span>Todos</span>
                   <span className="font-mono text-[12px] text-fg-muted">
-                    {personajes.length}
+                    {catalogoPersonajes.length}
                   </span>
                 </button>
                 {animes.map(([anime, count]) => (
@@ -441,7 +567,7 @@ function PersonajesPage() {
 
         <p className="mb-4 text-[11px] text-fg-muted">
           Mostrando <strong className="text-fg-strong">{filtered.length}</strong>{' '}
-          de {personajes.length} personajes
+          de {catalogoPersonajes.length} personajes
           {animeFilter && (
             <>
               {' '}· Universo:{' '}

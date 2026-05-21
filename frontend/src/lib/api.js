@@ -414,6 +414,26 @@ export const endpoints = {
     api.get(`/api/personajes/${encodeURIComponent(slug)}/duelos-recientes?limit=${limit}`, { auth: false }),
   matchupsPersonaje: (slug) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/matchups`, { auth: false }),
+  comentariosPersonaje: (slug, { page = 0, size = 10 } = {}) =>
+    api.get(
+      `/api/personajes/${encodeURIComponent(slug)}/comentarios?page=${page}&size=${size}`,
+    ),
+  crearComentarioPersonaje: (slug, contenido) =>
+    api.post(`/api/personajes/${encodeURIComponent(slug)}/comentarios`, {
+      contenido,
+    }),
+  editarComentario: (id, contenido) =>
+    api.put(`/api/comentarios/${id}`, { contenido }),
+  eliminarComentario: (id) => api.del(`/api/comentarios/${id}`),
+  reportarComentario: (id) =>
+    api.post(`/api/comentarios/${id}/reportar`, undefined),
+  adminComentarios: ({ estado = 'PENDIENTE_REVISION', page = 0, size = 20 } = {}) => {
+    const params = new URLSearchParams({ page: String(page), size: String(size) })
+    if (estado) params.set('estado', estado)
+    return api.get(`/api/admin/comentarios?${params}`)
+  },
+  adminCambiarEstadoComentario: (id, estado) =>
+    api.put(`/api/admin/comentarios/${id}/estado`, { estado }),
 
   // Actividad reciente de votos (sprint 2026-05-18). Públicos sin auth.
   // Individual para fichas, batch para listas (Pulso Movers, Favoritos).
@@ -534,6 +554,16 @@ export const endpoints = {
   changePassword: (currentPassword, newPassword) =>
     api.put('/api/auth/me/password', { currentPassword, newPassword }),
   personajes: () => api.get('/api/personajes'),
+  personajesCatalogo: ({ fields = 'slug,nombre,anime,imagenUrl' } = {}) =>
+    api.get(`/api/personajes/catalogo?fields=${encodeURIComponent(fields)}`, {
+      auth: false,
+      timeoutMs: 8000,
+    }),
+  buscarPersonajes: ({ q, limit = 10, signal } = {}) =>
+    api.get(
+      `/api/personajes/buscar?q=${encodeURIComponent(q || '')}&limit=${limit}`,
+      { auth: false, signal, timeoutMs: 4000 },
+    ),
   personaje: (id) => api.get(`/api/personajes/${id}`),
   createPersonaje: (data) => api.post('/api/personajes', data),
   deletePersonaje: (id) => api.del(`/api/personajes/${id}`),

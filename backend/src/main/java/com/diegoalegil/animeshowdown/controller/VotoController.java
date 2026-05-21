@@ -14,6 +14,7 @@ import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.dto.RankingMovimientoItem;
 import com.diegoalegil.animeshowdown.dto.VotoFeedItem;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
 import com.diegoalegil.animeshowdown.service.RankingMovimientosService;
 
 @RestController
@@ -24,11 +25,14 @@ public class VotoController {
 
     private final VotoRepository votoRepository;
     private final RankingMovimientosService rankingMovimientosService;
+    private final AnimeShowdownMetrics metrics;
 
     public VotoController(VotoRepository votoRepository,
-            RankingMovimientosService rankingMovimientosService) {
+            RankingMovimientosService rankingMovimientosService,
+            AnimeShowdownMetrics metrics) {
         this.votoRepository = votoRepository;
         this.rankingMovimientosService = rankingMovimientosService;
+        this.metrics = metrics;
     }
 
     /**
@@ -37,7 +41,7 @@ public class VotoController {
      */
     @GetMapping("/ranking")
     public List<RankingItem> obtenerRanking() {
-        return votoRepository.obtenerRanking();
+        return metrics.recordRanking(votoRepository::obtenerRanking);
     }
 
     /**
@@ -94,7 +98,8 @@ public class VotoController {
         var pageable = PageRequest.of(0, saneLimit);
 
         if (anime != null && !anime.isBlank()) {
-            return ResponseEntity.ok(votoRepository.rankingPorAnime(anime, pageable));
+            return metrics.recordRanking(() ->
+                    ResponseEntity.ok(votoRepository.rankingPorAnime(anime, pageable)));
         }
 
         LocalDateTime desde = switch (periodo == null ? "all" : periodo.toLowerCase()) {
@@ -105,10 +110,11 @@ public class VotoController {
         };
 
         if (desde == null) {
-            return ResponseEntity.ok(
-                    votoRepository.rankingAllTime(pageable).getContent());
+            return metrics.recordRanking(() -> ResponseEntity.ok(
+                    votoRepository.rankingAllTime(pageable).getContent()));
         }
-        return ResponseEntity.ok(votoRepository.rankingDesde(desde, pageable));
+        return metrics.recordRanking(() ->
+                ResponseEntity.ok(votoRepository.rankingDesde(desde, pageable)));
     }
 
     /**

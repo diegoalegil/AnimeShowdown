@@ -26,12 +26,36 @@ Idioma principal: español (español / inglés disponibles)
   acumula racha consecutiva. Logros por 3/10/20 aciertos seguidos.
 - **Perfiles públicos**: cada usuario tiene `/u/{username}` con stats,
   top de personajes votados, logros desbloqueados, seguidores/seguidos.
+- **Observabilidad**: el backend expone Prometheus en `/actuator/prometheus`
+  con métricas `as_votos_total` y `as_ranking_recalc_duration_seconds`.
+- **Calidad frontend**: el build separa el visor 3D de personaje en el
+  chunk `personaje3d-*`; el visor solo se monta tras interacción del usuario.
+- **E2E**: Playwright cubre home, registro/perfil, voto, deeplink de
+  personaje con visor 3D bajo demanda y banner de anime desde URL directa.
+- **Catálogo API**: `GET /api/personajes/catalogo?fields=slug,nombre,anime,imagenUrl`
+  devuelve una vista compacta con ETag y cache CDN. `GET /api/personajes/buscar`
+  ofrece autocomplete server-side para personajes/anime/descripción.
+- **Tiempo real**: STOMP en `/ws`; el ranking escucha `/topic/ranking-delta`
+  y aplica deltas optimistas con polling REST de 30s como fallback.
+- **Comentarios**: las fichas de personaje incluyen hilo moderado con estados
+  VISIBLE, PENDIENTE_REVISION, OCULTO y ELIMINADO. Los usuarios pueden
+  comentar/reportar; admin revisa desde `/admin/comentarios`.
+- **Cache distribuida**: local usa Caffeine. Producción puede activar Redis
+  con `spring.cache.type=redis` y `SPRING_DATA_REDIS_URL`; las keys llevan
+  prefijo `as:` y TTL por dominio (ranking 60s, catálogo 1h).
+- **Imágenes**: `npm run build` ya no genera variantes con sharp. El workflow
+  `image-variants.yml` genera WebP/AVIF responsive solo cuando cambia
+  `frontend/img/**` y sube `image-variants.tgz` como artefacto de CI.
+- **Navegación móvil**: la PWA muestra una bottom bar fija con accesos a
+  Inicio, Personajes, Votar y Ranking para reducir fricción en sesiones
+  móviles.
 
 ## Endpoints públicos (no requieren auth)
 
 ```
 GET /api/personajes              — catálogo completo
 GET /api/personajes/{id|slug}    — detalle de personaje por id numérico o slug
+GET /api/personajes/{slug}/comentarios — comentarios visibles de la ficha
 GET /api/torneos                 — torneos visibles (APROBADO + NO_APLICA)
 GET /api/torneos/slug/{slug}     — detalle del torneo + bracket
 GET /api/votos/ranking            — ELO ranking flat

@@ -59,6 +59,7 @@ function KanjiStroke({
     <span
       role="img"
       aria-label={kanji}
+      lang="ja"
       className={`inline-flex items-center gap-1 ${className}`}
     >
       {chars.map((c, i) => (
@@ -96,6 +97,7 @@ function SingleKanji({
     return (
       <span
         aria-label={char}
+        lang="ja"
         className={className}
         style={{ display: 'inline-block', width: size, height: size, textAlign: 'center', lineHeight: 1 }}
       >
@@ -111,6 +113,7 @@ function SingleKanji({
       height={size}
       role="img"
       aria-label={char}
+      lang="ja"
       className={`kanji-stroke ${className}`}
       style={{ overflow: 'visible' }}
     >

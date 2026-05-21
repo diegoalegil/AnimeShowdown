@@ -33,6 +33,8 @@ import { BRAND_VISUALS } from '../data/visual-assets'
  */
 
 const STORAGE_FAST = 'animeshowdown.votar.fast'
+const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
+const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 // Pausa entre voto y siguiente duelo. 1.8s da tiempo a ver el "+1 ELO"
 // animado y a confirmar visualmente quién ganó sin que el usuario tenga
 // que pulsar nada. Si se acorta a <1s no da pause para el overlay; si
@@ -78,6 +80,17 @@ function getRandomPair() {
   let idxFallback = Math.floor(Math.random() * personajes.length)
   while (idxFallback === idxA) idxFallback = Math.floor(Math.random() * personajes.length)
   return [a, personajes[idxFallback]]
+}
+
+function incrementarContadorLocalVotos() {
+  try {
+    const current = Number(localStorage.getItem(STORAGE_VOTES_COUNT) || '0')
+    const next = Number.isFinite(current) ? current + 1 : 1
+    localStorage.setItem(STORAGE_VOTES_COUNT, String(next))
+    window.dispatchEvent(new CustomEvent(VOTES_COUNT_EVENT, { detail: next }))
+  } catch {
+    // localStorage puede fallar en privacy mode; votar no debe depender de esto.
+  }
 }
 
 function VotarPage() {
@@ -151,6 +164,7 @@ function VotarPage() {
   const modoBackend = Boolean(enfrentamiento && !isError)
   const sinMatchesAbiertos =
     isError && error instanceof ApiError && error.status === 404
+  const requiereCuentaParaVotar = modoBackend && !user
 
   // Datos a renderizar uniformes para ambos modos. Calculados antes del
   // early-return de loading para que los handlers (useCallback) puedan
@@ -195,9 +209,12 @@ function VotarPage() {
       if (modoBackend) {
         if (!user) {
           toast.error('Inicia sesión para votar', {
-            description: 'Te llevamos al login.',
+            description: 'Tu voto moverá el ranking cuando entres.',
           })
-          navigate(`/login?next=${encodeURIComponent('/votar')}`)
+          navigate({
+            pathname: '/login',
+            search: `?next=${encodeURIComponent('/votar')}`,
+          })
           return
         }
         setVotedFor(personaje.slug)
@@ -205,6 +222,7 @@ function VotarPage() {
           { enfrentamientoId: matchId, personajeGanadorId: personaje.id },
           {
             onSuccess: (data) => {
+              incrementarContadorLocalVotos()
               // Propuesta §4.x: el backend devuelve VotoRegistradoDto con
               // delta + counts post. Lo guardamos para que VoteCard pinte
               // el overlay "+1 ELO". Fallback defensivo si el payload
@@ -232,7 +250,10 @@ function VotarPage() {
               if (status === 409) {
                 toast.error('Ya votaste este enfrentamiento')
               } else if (status === 401) {
-                navigate(`/login?next=${encodeURIComponent('/votar')}`)
+                navigate({
+                  pathname: '/login',
+                  search: `?next=${encodeURIComponent('/votar')}`,
+                })
               } else {
                 toast.error('No se pudo registrar el voto', {
                   description: err?.message || 'Inténtalo de nuevo.',
@@ -243,6 +264,7 @@ function VotarPage() {
         )
       } else {
         setVotedFor(personaje.slug)
+        incrementarContadorLocalVotos()
         toast.success(`+${personaje.nombre}`, {
           description: 'Modo casual · sin torneo activo',
         })
@@ -369,12 +391,23 @@ function VotarPage() {
           </h1>
           <p className="max-w-xl text-[13px] text-fg-muted">
             {modoBackend
-              ? 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
+              ? requiereCuentaParaVotar
+                ? 'Inicia sesión para registrar votos en vivo y mover el ELO'
+                : 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
               : sinMatchesAbiertos
                 ? 'No hay torneos en juego — pares aleatorios para que sigas votando'
                 : 'Elige quién gana este duelo y ayuda a mover el ranking ELO'}
           </p>
         </header>
+
+        {requiereCuentaParaVotar && (
+          <div className="rounded-lg border border-gold/40 bg-gold-soft px-4 py-3 text-center text-[13px] font-medium text-gold">
+            Este duelo es competitivo: necesitas cuenta para que el voto afecte al ranking.
+            <Link to="/login?next=%2Fvotar" className="ml-1 underline decoration-gold/50 underline-offset-4 hover:text-fg-strong">
+              Entrar tarda unos segundos.
+            </Link>
+          </div>
+        )}
 
         {/* Arena */}
         <motion.div
@@ -391,6 +424,7 @@ function VotarPage() {
             isLoser={votedFor && votedFor !== a.slug}
             showResult={Boolean(votedFor)}
             side="left"
+            requiresLogin={requiereCuentaParaVotar}
             voteResult={voteResult?.ganadorSlug === a.slug ? voteResult : null}
           />
           <VsBadge votedFor={votedFor} />
@@ -401,6 +435,7 @@ function VotarPage() {
             isLoser={votedFor && votedFor !== b.slug}
             showResult={Boolean(votedFor)}
             side="right"
+            requiresLogin={requiereCuentaParaVotar}
             voteResult={voteResult?.ganadorSlug === b.slug ? voteResult : null}
           />
         </motion.div>
@@ -467,7 +502,7 @@ function VsBadge({ votedFor }) {
   )
 }
 
-function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, voteResult }) {
+function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, requiresLogin, voteResult }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   // warm() en hover: anticipa que el user va a hacer click y resume el
   // AudioContext si estaba suspended. Sin esto el primer playVote tras
@@ -482,7 +517,11 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, vote
         onPointerEnter={warm}
         onFocus={warm}
         disabled={showResult}
-        aria-label={`Votar por ${personaje.nombre} de ${personaje.anime}`}
+        aria-label={
+          requiresLogin
+            ? `Iniciar sesión para votar por ${personaje.nombre} de ${personaje.anime}`
+            : `Votar por ${personaje.nombre} de ${personaje.anime}`
+        }
         className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-all ${
           isVoted
             ? 'border-accent shadow-[0_0_60px_-10px_rgba(255,46,99,0.7)] ring-2 ring-accent/40'
@@ -540,6 +579,11 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, vote
                 +{voteResult.delta} ELO
               </span>
             </motion.div>
+          )}
+          {requiresLogin && !showResult && (
+            <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-gold backdrop-blur-sm">
+              Inicia sesión para votar
+            </div>
           )}
         </div>
       </button>

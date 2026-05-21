@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Languages } from 'lucide-react'
 
 const IDIOMAS = [
   { code: 'es', label: 'Español', short: 'ES' },
   { code: 'en', label: 'English', short: 'EN' },
+  { code: 'ja', label: '日本語', short: 'JA' },
 ]
 
 /**
@@ -70,48 +70,42 @@ function LanguageToggle() {
         </span>
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="menu"
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute right-0 top-10 z-50 w-40 rounded-xl border border-border bg-surface py-1 shadow-2xl"
-          >
-            {/*
-              Audit a11y (2026-05-17): role='menuitem' no anunciaba estado
-              de selección al lector de pantalla — solo el icono Check
-              visual revelaba el idioma activo. menuitemradio + aria-checked
-              hace que SR diga "Español, seleccionado" sin depender del icono.
-            */}
-            {IDIOMAS.map((l) => {
-              const elegido = l.code === activo.code
-              return (
-                <button
-                  key={l.code}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={elegido}
-                  onClick={() => elegir(l.code)}
-                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-bg ${
-                    elegido
-                      ? 'font-semibold text-fg-strong'
-                      : 'text-fg-muted'
-                  }`}
-                >
-                  <span className="inline-flex w-7 font-mono text-[11px] font-bold uppercase">
-                    {l.short}
-                  </span>
-                  <span className="flex-1">{l.label}</span>
-                  {elegido && <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />}
-                </button>
-              )
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-10 z-50 w-40 origin-top-right rounded-xl border border-border bg-surface py-1 opacity-100 shadow-2xl transition-[opacity,transform] duration-150 ease-out"
+        >
+          {/*
+            Audit a11y (2026-05-17): role='menuitem' no anunciaba estado
+            de selección al lector de pantalla — solo el icono Check
+            visual revelaba el idioma activo. menuitemradio + aria-checked
+            hace que SR diga "Español, seleccionado" sin depender del icono.
+          */}
+          {IDIOMAS.map((l) => {
+            const elegido = l.code === activo.code
+            return (
+              <button
+                key={l.code}
+                type="button"
+                role="menuitemradio"
+                aria-checked={elegido}
+                onClick={() => elegir(l.code)}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-bg ${
+                  elegido
+                    ? 'font-semibold text-fg-strong'
+                    : 'text-fg-muted'
+                }`}
+              >
+                <span className="inline-flex w-7 font-mono text-[11px] font-bold uppercase">
+                  {l.short}
+                </span>
+                <span className="flex-1">{l.label}</span>
+                {elegido && <Check className="h-3.5 w-3.5 text-gold" aria-hidden="true" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
