@@ -40,7 +40,10 @@ export default function VisualDebugBadge({ visual, where, className = '' }) {
   const type = visual.type ?? '<no-type>'
   const objectPosition = visual.objectPosition ?? 'center'
   const path = visual.image || visual.expectedPath || visual.fallbackImage || '<no-path>'
-  const fromFallback = !visual.image && visual.fallbackImage
+  // Si visual.image es null/undefined pero hay expectedPath, significa que
+  // resolveAsset() no encontro el archivo en VISUAL_ASSET_PATHS — esta
+  // cayendo al fallback genérico (STAGE.* tipico de TCG-fan repetido).
+  const expectedNotFound = !visual.image && visual.expectedPath
 
   const handleClick = (e) => {
     e.stopPropagation()
@@ -64,7 +67,11 @@ export default function VisualDebugBadge({ visual, where, className = '' }) {
     >
       <span className="font-bold text-amber-200">
         {slug}
-        {fromFallback && <span className="ml-1 text-rose-300">(fallback)</span>}
+        {expectedNotFound && (
+          <span className="ml-1 text-rose-300" title="expectedPath no se encontro en VISUAL_ASSET_PATHS (manifest probablemente cacheado por SW)">
+            (manifest miss)
+          </span>
+        )}
       </span>
       <span className="opacity-80">{type} · {objectPosition}</span>
       <span className="max-w-[260px] truncate opacity-60" title={path}>
