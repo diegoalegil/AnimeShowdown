@@ -39,6 +39,7 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import {
   useAnimesConVotos,
+  useRankingDeltaSubscription,
   useRankingMovimientos,
   useRankingSegmentado,
 } from '../hooks/useRanking'
@@ -80,6 +81,7 @@ const TABS = [
 ]
 
 function RankingPage() {
+  useRankingDeltaSubscription()
   useSeo({
     title: 'Ranking ELO',
     description: `Top ${personajes.length} personajes de anime ordenados por ELO. Quién domina AnimeShowdown — cada voto mueve la tabla.`,

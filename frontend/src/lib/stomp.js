@@ -15,8 +15,8 @@
 //   - Si WS no es soportado o el backend lo rechaza, el cliente intenta
 //     reconectar cada 5s indefinidamente. El consumidor (hooks de UI)
 //     debe combinarlo con un fallback al polling REST tras N segundos.
-//   - Si el JWT expira, el frame CONNECT vuelve con ERROR; el cliente
-//     se desconecta y los hooks notarán el cambio vía isConnected().
+//   - Los topics públicos conectan incluso sin JWT. Si hay JWT, viaja en
+//     CONNECT para habilitar colas privadas /user/**.
 
 import { Client } from '@stomp/stompjs'
 import { getToken, onTokenChange } from './api'
@@ -100,15 +100,6 @@ let deactivationPromise = null
 export function ensureConnected() {
   if (deactivationPromise) return null
   if (client) return client
-  // Audit P2 (2026-05-17): el handshake HTTP /ws es público pero el frame
-  // CONNECT requiere JWT (WebSocketConfig.JwtAuthChannelInterceptor). Sin
-  // token, intentar conectar dispara un loop de error frame + reconnect
-  // cada 5s en páginas públicas — log noise y peticiones inútiles. Si no
-  // hay JWT, devolvemos null y los subscribe quedan no-op silencioso.
-  // Cuando el usuario haga login, el siguiente subscribe (o llamada
-  // explícita a ensureConnected) sí activa el cliente.
-  const token = getToken()
-  if (!token) return null
   client = createClient()
   client.activate()
   return client

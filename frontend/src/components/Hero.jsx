@@ -6,6 +6,7 @@ import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { personajes, getStatsPersonaje } from '../data/personajes'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import { useTorneos } from '../lib/torneosQueries'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -40,13 +41,9 @@ function Hero() {
   const { t } = useTranslation()
   const totalPersonajes = personajes.length
   const universos = new Set(personajes.map((p) => p.anime)).size
-  const top100Promedio = Math.round(
-    [...personajes]
-      .map((p) => getStatsPersonaje(p.slug).elo)
-      .sort((a, b) => b - a)
-      .slice(0, 100)
-      .reduce((acc, elo) => acc + elo, 0) / 100,
-  )
+  const { data: torneos = [] } = useTorneos()
+  const eloMax = Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))
+  const torneosVisibles = torneos.length || 13
   // Audit perf 2026-05-18: CTAs principales del hero usan pointerdown
   // para feedback inmediato. La nav del Link sigue ocurriendo en click
   // (default del browser); el sonido va por delante.
@@ -113,7 +110,7 @@ function Hero() {
             to="/votar"
             onPointerDown={ctaVotar.onPointerDown}
             onClick={ctaVotar.onClick}
-            className="group inline-flex items-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_34px_-14px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] transition-all animate-pulse-halo hover:-translate-y-0.5 hover:brightness-110"
+            className="group inline-flex items-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_34px_-14px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] transition-all hover:-translate-y-0.5 hover:brightness-110"
           >
             <Swords className="h-4 w-4" />
             {t('hero.ctaTorneos')}
@@ -140,9 +137,9 @@ function Hero() {
           variants={itemVariants}
         >
           <HeroStat icon="⚔" value={`${totalPersonajes}`} label="Personajes" />
-          <HeroStat icon="🏆" value="13" label="Torneos" />
+          <HeroStat icon="🏆" value={`${torneosVisibles}`} label="Torneos visibles" />
           <HeroStat icon="👥" value={`${universos}`} label="Universos" />
-          <HeroStat icon="↗" value={`${top100Promedio}`} label="ELO top 100" />
+          <HeroStat icon="↗" value={`${eloMax}`} label="ELO máximo" />
         </motion.div>
       </motion.div>
     </section>

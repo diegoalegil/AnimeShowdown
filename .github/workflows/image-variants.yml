@@ -1,0 +1,65 @@
+name: image variants
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/img/**'
+      - 'frontend/scripts/generate-image-variants.mjs'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - '.github/workflows/image-variants.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/img/**'
+      - 'frontend/scripts/generate-image-variants.mjs'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - '.github/workflows/image-variants.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: image-variants-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: sharp variants cache
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22 LTS
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Generate responsive WebP/AVIF variants
+        run: npm run build:images
+
+      - name: Pack generated variants
+        run: |
+          find img -type f \( \
+            -name '*-300.webp' -o -name '*-600.webp' -o -name '*-1024.webp' -o \
+            -name '*-300.avif' -o -name '*-600.avif' -o -name '*-1024.avif' \
+          \) -print0 | tar --null -czf image-variants.tgz --files-from -
+          du -h image-variants.tgz
+
+      - name: Upload image variants artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-variants-${{ github.sha }}
+          path: frontend/image-variants.tgz
+          retention-days: 30

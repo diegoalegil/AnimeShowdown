@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-image-variants.mjs && node ../scripts/generate-sitemap.mjs && vite build",
+    "build": "node ../scripts/generate-sitemap.mjs && vite build",
     "build:no-images": "node ../scripts/generate-sitemap.mjs && vite build",
     "build:no-sitemap": "vite build",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
     "build:images": "node scripts/generate-image-variants.mjs",
     "build:stage-assets": "node scripts/generate-stage-assets.mjs",
+    "test:bundle": "node scripts/check-bundle-budget.mjs",
+    "test:e2e": "playwright test",
     "lint": "eslint .",
     "preview": "vite preview",
     "audit:a11y": "npx --yes @axe-core/cli@4.11.0 http://localhost:4173/ http://localhost:4173/personajes http://localhost:4173/animes http://localhost:4173/torneos http://localhost:4173/ranking http://localhost:4173/login http://localhost:4173/register --tags wcag2a,wcag2aa,wcag21a,wcag21aa --exit"

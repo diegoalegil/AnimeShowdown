@@ -64,7 +64,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
                                 "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
                         .permitAll()
@@ -98,6 +98,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/personajes/*/favorito").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/favorito").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/personajes/*/favorito").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/personajes/*/comentarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/personajes/*/comentarios").authenticated()
+                        .requestMatchers("/api/comentarios/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/me/favoritos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/personajes/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/personajes/**").hasRole("ADMIN")

@@ -77,7 +77,7 @@ const tones = {
   crimson: {
     border: 'border-accent/40',
     glow: 'rgb(159 29 44 / 0.45)',
-    labelText: 'text-accent',
+    labelText: 'text-gold',
     labelBg: 'bg-accent/15 border-accent/35',
   },
   gold: {
@@ -154,26 +154,12 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
       animate={{
         opacity: 0.85,
         scale: 1,
-        y: [0, -12],
-        rotate: [card.rotate, card.rotate + 2.5],
+        rotate: card.rotate,
       }}
       transition={{
         opacity: { duration: 1.4, delay: 0.5 + index * 0.15 },
         scale: { duration: 1.4, delay: 0.5 + index * 0.15 },
-        y: {
-          duration: 4 + index * 0.35,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-          delay: 1,
-        },
-        rotate: {
-          duration: 6 + index * 0.45,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-          delay: 1,
-        },
+        rotate: { duration: 1.4, delay: 0.5 + index * 0.15 },
       }}
     >
       {/* Banner como background. object-cover + object-center recorta
@@ -193,24 +179,11 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
 
       {/* Label inferior con el nombre del anime */}
       <span
-        className={`absolute inset-x-2 bottom-2 truncate rounded-md border px-2 py-1 text-center text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm lg:text-[11px] ${tone.labelBg} ${tone.labelText}`}
+        className={`absolute inset-x-2 bottom-2 truncate rounded-md border px-2 py-1 text-center text-[12px] font-bold uppercase tracking-wider backdrop-blur-sm ${tone.labelBg} ${tone.labelText}`}
         style={{ textShadow: '0 1px 4px rgb(0 0 0 / 0.6)' }}
       >
         {card.title}
       </span>
-
-      {/* Shimmer holografico que pasa cada ~6s */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/12 to-transparent"
-        initial={{ x: '-120%' }}
-        animate={{ x: '120%' }}
-        transition={{
-          duration: 6 + index * 0.5,
-          delay: 1.2 + index * 0.3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
     </motion.div>
   )
 }

@@ -94,7 +94,7 @@ function InicioPage() {
   // explícito y aseguramos OG con la imagen del logo.
   useSeo({
     description:
-      'Vota a tus personajes de anime favoritos en torneos cara a cara. Brackets visuales, ranking ELO al instante y predicciones para tu bracket.',
+      '1052 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el meta cada semana.',
     canonical: 'https://animeshowdown.dev/',
   })
   return (
@@ -176,7 +176,7 @@ function SectionBento() {
     >
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 flex flex-col items-start gap-3">
-          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             Plataforma
           </span>
           <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
@@ -325,6 +325,7 @@ function BentoCard({
       {kanji && (
         <span
           aria-hidden="true"
+          lang="ja"
           className={`pointer-events-none absolute -right-4 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-[0.07] sm:text-[9rem] sm:opacity-[0.10] ${t.kanji}`}
           style={{ textShadow: t.kanjiShadow }}
         >
@@ -340,7 +341,7 @@ function BentoCard({
         </div>
         {eyebrow && (
           <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${t.eyebrow}`}
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] ${t.eyebrow}`}
           >
             {eyebrow}
           </span>
@@ -377,7 +378,7 @@ function SectionStats() {
           <Stat target={animeUniversos} label="Animes" />
           <Stat target={eloMax} label="ELO máximo" />
           {hayTorneos ? (
-            <Stat target={torneos.length} label="Torneos activos" />
+            <Stat target={torneos.length} label="Torneos visibles" />
           ) : (
             <StatBadge
               label="Ranking en vivo"
@@ -490,7 +491,7 @@ function SectionTop10Ranking() {
         <div className="mb-8 flex flex-col gap-3">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-col gap-2">
-              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
                 Top 10 · ELO
               </span>
               <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
@@ -503,7 +504,7 @@ function SectionTop10Ranking() {
             </div>
             <Link
               to="/ranking"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:bg-accent/20 hover:text-gold"
             >
               Ver ranking completo
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -522,6 +523,7 @@ function SectionTop10Ranking() {
 
 function Top10Card({ rank, slug, nombre, anime, elo }) {
   const { play } = useSound()
+  const highPriorityImage = rank <= 4
   return (
     <li className="flex-none snap-start">
       <Link
@@ -545,6 +547,8 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
             <PersonajeImg
               slug={slug}
               alt={nombre}
+              loading={highPriorityImage ? 'eager' : 'lazy'}
+              fetchPriority={highPriorityImage ? 'high' : 'auto'}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>
@@ -555,7 +559,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
               </p>
               <p className="truncate text-[11px] text-fg-muted">{anime}</p>
             </div>
-            <p className="shrink-0 font-mono text-[12px] font-bold text-accent">
+            <p className="shrink-0 font-mono text-[12px] font-bold text-elo-number tabular-nums">
               {elo}
             </p>
           </div>
@@ -624,7 +628,7 @@ function SectionRetosDiarios() {
         <div className="mb-8 flex flex-col gap-3">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-col gap-2">
-              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
                 御 · Anime Daily Trials
               </span>
               <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
@@ -637,7 +641,7 @@ function SectionRetosDiarios() {
             </div>
             <Link
               to="/games"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:bg-accent/20 hover:text-gold"
             >
               Jugar retos diarios
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -697,7 +701,7 @@ function SectionComoFunciona() {
     >
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 flex flex-col items-start gap-2">
-          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             Cómo funciona
           </span>
           <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
@@ -759,6 +763,7 @@ function PasoCard({ numero, icon: Icon, titulo, descripcion, tone = 'rose', kanj
       {kanji && (
         <span
           aria-hidden="true"
+          lang="ja"
           className={`pointer-events-none absolute -right-4 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-[0.08] sm:text-[9rem] sm:opacity-[0.12] ${t.kanji}`}
           style={{ textShadow: t.kanjiShadow }}
         >

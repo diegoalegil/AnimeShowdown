@@ -50,6 +50,7 @@ export function KanjiBackdrop({ kanji = '戦', visual, className = '' }) {
   return (
     <span
       aria-hidden="true"
+      lang="ja"
       className={`pointer-events-none absolute -right-8 top-5 select-none font-mono text-[9rem] font-black leading-none opacity-[0.07] sm:text-[13rem] ${className}`}
       style={{
         color: `rgb(${visual?.glowRgb ?? '197 161 90'} / 1)`,
@@ -81,6 +82,7 @@ export function LateralKanjiPair({ kanji, visual, intensity = 'normal' }) {
     <>
       <span
         aria-hidden="true"
+        lang="ja"
         className={`pointer-events-none absolute left-[-2vw] top-1/2 hidden -translate-y-1/2 select-none font-mono text-[18vw] font-black leading-none lg:block ${opacity}`}
         style={{
           color: `rgb(${glow} / 1)`,
@@ -93,6 +95,7 @@ export function LateralKanjiPair({ kanji, visual, intensity = 'normal' }) {
       </span>
       <span
         aria-hidden="true"
+        lang="ja"
         className={`pointer-events-none absolute right-[-2vw] top-1/2 hidden -translate-y-1/2 select-none font-mono text-[18vw] font-black leading-none lg:block ${opacity}`}
         style={{
           color: `rgb(${accent} / 1)`,

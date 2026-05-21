@@ -1,0 +1,109 @@
+{
+  "nav": {
+    "inicio": "ホーム",
+    "personajes": "キャラクター",
+    "animes": "アニメ",
+    "torneos": "トーナメント",
+    "eventos": "イベント",
+    "votar": "投票",
+    "games": "ゲーム",
+    "ranking": "ランキング",
+    "login": "ログイン",
+    "perfil": "マイプロフィール",
+    "admin": "管理",
+    "salir": "ログアウト",
+    "faq": "FAQ",
+    "apiDocs": "開発者向け",
+    "glossary": "用語集",
+    "logros": "実績",
+    "apoya": "応援する"
+  },
+  "header": {
+    "silenciar": "サウンドをミュート",
+    "activarSonidos": "サウンドをオン",
+    "idioma": "言語",
+    "elegirIdioma": "言語を選択",
+    "ctaVotar": "今すぐ投票",
+    "ctaVotarCompact": "投票"
+  },
+  "footer": {
+    "descripcion": "アニメキャラクター同士の一対一デュエル、ELOランキング、ビジュアルトーナメントを楽しめるプラットフォーム。頂点を決めるのはあなたです。",
+    "newsletter": "ニュースレター",
+    "producto": "プロダクト",
+    "comunidad": "コミュニティ",
+    "soporte": "サポート",
+    "codigoAbierto": "オープンソース",
+    "codigoAbiertoTitulo": "GitHubでプロジェクトのコードを見る",
+    "apoyaCta": "プロジェクトを応援",
+    "privacidad": "プライバシー",
+    "terminos": "利用規約",
+    "contacto": "お問い合わせ",
+    "animesPopulares": "キャラクター数の多いアニメ",
+    "copyright": "© 2026 AnimeShowdown",
+    "origen": "テネリフェ発"
+  },
+  "newsletter": {
+    "intro": "新しいトーナメント、注目ランキング、デイリーチャレンジをメールで受け取れます。",
+    "emailPlaceholder": "you@example.com",
+    "submit": "購読する",
+    "enviando": "送信中…",
+    "okDefault": "確認メールを送信しました。",
+    "reintentar": "別のメールで購読",
+    "doubleOptIn": "購読確認メールをお送りします。配信メールからいつでも解除できます。",
+    "errorRequired": "メールアドレスを入力してください",
+    "errorInvalido": "メールアドレスが正しくありません",
+    "errorEnvio": "送信できませんでした。少し時間をおいて再度お試しください。"
+  },
+  "hero": {
+    "tituloAntes": "アニメの頂点を",
+    "tituloAnime": "決める",
+    "tituloDespues": "のはあなた。",
+    "subtitulo": "1対1デュエル、リアルタイムELOランキング、毎週のトーナメント。あなたの一票がメタを動かします。",
+    "ctaTorneos": "投票を始める",
+    "ctaRanking": "メタを見る",
+    "features": "デュエルに投票 · トーナメントで競う · ELOランキングを駆け上がる"
+  },
+  "torneos": {
+    "tituloPagina": "トーナメント",
+    "subtitulo": "カタログ内のキャラクターが対戦するブラケット。各トーナメントを開くと、参加者と対戦状況を確認できます。",
+    "crearCta": "トーナメントを作成",
+    "contadorPlural": "{{count}}件のトーナメント",
+    "contadorSingular": "{{count}}件のトーナメント",
+    "loading": "…",
+    "errorLoad": "トーナメントを読み込めませんでした。{{error}}",
+    "errorFallback": "少し時間をおいて再度お試しください。",
+    "seccionEnCurso": "開催中",
+    "seccionProximos": "近日開催",
+    "seccionHistorial": "履歴",
+    "vacioTitulo": "次のブラケットを準備中",
+    "vacioSub": "次のトーナメントは数日ごとに自動生成されます。それまではカジュアルモードのデュエルに投票して、お気に入りのELOを上げましょう。",
+    "vacioContador": "次のブラケットは近日公開",
+    "vacioCtaVotar": "公開中のデュエルに投票",
+    "sugerenciasTitulo": "次回ブラケット案",
+    "sugerenciasNota": "アイデア — まだ実際のトーナメントではありません",
+    "sugerenciaBadge": "作成可能",
+    "sugerenciaCtaCrear": "このプリセットで作成",
+    "sugerenciaCtaVotar": "公開中のデュエルに投票"
+  },
+  "votar": {
+    "tituloPagina": "投票",
+    "subtituloPagina": "各対戦で勝者を選びましょう。"
+  },
+  "ranking": {
+    "tituloPagina": "ランキング",
+    "subtituloPagina": "コミュニティで最も高く評価されているキャラクターです。"
+  },
+  "personajes": {
+    "tituloPagina": "キャラクター",
+    "subtituloPagina": "各アニメのステータス付き完全カタログ。"
+  },
+  "comun": {
+    "cargando": "読み込み中…",
+    "cancelar": "キャンセル",
+    "guardar": "保存",
+    "enviar": "送信",
+    "cerrar": "閉じる",
+    "volverInicio": "ホームへ戻る",
+    "verMas": "もっと見る"
+  }
+}
