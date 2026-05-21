@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
 
 public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
 
@@ -41,4 +42,23 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
                OR LOWER(COALESCE(p.descripcion, '')) LIKE LOWER(CONCAT('%', :q, '%'))
             """)
     List<Personaje> buscarTexto(@Param("q") String q);
+
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.PersonajeScoreItem(
+                p.id,
+                p.slug,
+                p.nombre,
+                p.anime,
+                p.imagenUrl,
+                COUNT(v),
+                COALESCE(SUM(CASE WHEN v.fecha >= :desde THEN 1 ELSE 0 END), 0)
+            )
+            FROM Personaje p
+            LEFT JOIN Voto v ON v.personaje = p
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
+            ORDER BY COUNT(v) DESC, p.id ASC
+            """)
+    List<PersonajeScoreItem> topConPuntuacionYRecencia(
+            @Param("desde") java.time.LocalDateTime desde,
+            org.springframework.data.domain.Pageable pageable);
 }

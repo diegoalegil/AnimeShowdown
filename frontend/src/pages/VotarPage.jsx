@@ -164,6 +164,21 @@ function VotarPage() {
   const modoBackend = Boolean(enfrentamiento && !isError)
   const sinMatchesAbiertos =
     isError && error instanceof ApiError && error.status === 404
+  const {
+    data: dueloSugerido,
+    refetch: refetchDueloSugerido,
+    isFetching: isFetchingDueloSugerido,
+  } = useQuery({
+    queryKey: ['votar', 'duelo-sugerido'],
+    queryFn: endpoints.dueloSugerido,
+    enabled: !isLoading && !modoBackend,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+  })
+  const modoSugerido = Boolean(
+    !modoBackend && dueloSugerido?.personaje1 && dueloSugerido?.personaje2,
+  )
   const requiereCuentaParaVotar = modoBackend && !user
 
   // Datos a renderizar uniformes para ambos modos. Calculados antes del
@@ -174,6 +189,10 @@ function VotarPage() {
     a = enfrentamiento.personaje1
     b = enfrentamiento.personaje2
     matchId = enfrentamiento.id
+  } else if (modoSugerido) {
+    a = dueloSugerido.personaje1
+    b = dueloSugerido.personaje2
+    matchId = null
   } else {
     ;[a, b] = casualPair
     matchId = null
@@ -191,10 +210,12 @@ function VotarPage() {
     setVoteResult(null)
     if (modoBackend) {
       refetch()
+    } else if (modoSugerido) {
+      refetchDueloSugerido()
     } else {
       setCasualPair(getRandomPair())
     }
-  }, [play, modoBackend, refetch])
+  }, [play, modoBackend, modoSugerido, refetch, refetchDueloSugerido])
 
   const handleVote = useCallback(
     (personaje) => {
@@ -353,7 +374,11 @@ function VotarPage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
-            {modoBackend ? 'Match en juego · En vivo' : 'Enfrentamiento aleatorio'}
+            {modoBackend
+              ? 'Match en juego · En vivo'
+              : modoSugerido
+                ? `Duelo ELO equilibrado · Δ ${dueloSugerido.eloDiff}`
+                : 'Enfrentamiento aleatorio'}
           </span>
 
           <div className="flex items-center gap-2">
@@ -374,7 +399,7 @@ function VotarPage() {
             <button
               type="button"
               onClick={handleNext}
-              disabled={isFetching}
+              disabled={isFetching || isFetchingDueloSugerido}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
             >
               <SkipForward className="h-3.5 w-3.5" />
@@ -395,7 +420,7 @@ function VotarPage() {
                 ? 'Inicia sesión para registrar votos en vivo y mover el ELO'
                 : 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
               : sinMatchesAbiertos
-                ? 'No hay torneos en juego — pares aleatorios para que sigas votando'
+                ? 'No hay torneos en juego — te proponemos pares de ELO similar'
                 : 'Elige quién gana este duelo y ayuda a mover el ranking ELO'}
           </p>
         </header>
