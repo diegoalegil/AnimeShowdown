@@ -182,7 +182,8 @@ public class PrediccionService {
                 Usuario u = ultimas.get(0).getUsuario();
                 int racha = calcularRachaConsecutiva(ultimas);
                 long total = repo.countByUsuarioAndAcertadaTrue(u);
-                eventPublisher.publishEvent(new PrediccionResueltaEvent(u, total, racha));
+                eventPublisher.publishEvent(
+                        new PrediccionResueltaEvent(u.getId(), u.getUsername(), total, racha));
             } catch (Exception e) {
                 log.warn("Error publicando PrediccionResueltaEvent usuario={}: {}", usuarioId, e.getMessage());
             }
