@@ -49,6 +49,7 @@ import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
  */
 const CAMPEON_FALLBACK = (() => {
   const top = [...personajes]
+    .filter((p) => tieneImagenPromocionable({ personaje: p }))
     .map((p) => ({ ...p, elo: getStatsPersonaje(p.slug).elo }))
     .sort((a, b) => b.elo - a.elo)[0]
   return top
@@ -63,6 +64,13 @@ const CAMPEON_FALLBACK = (() => {
       }
     : null
 })()
+
+function tieneImagenPromocionable(item) {
+  const p = item?.personaje ?? item
+  const local = p?.slug ? personajes.find((personaje) => personaje.slug === p.slug) : null
+  const imagen = p?.imagenUrl ?? local?.imagen
+  return Boolean(imagen && !imagen.includes('/_missing/') && !imagen.includes('placeholder'))
+}
 
 /**
  * Pulso AnimeShowdown — sección "live" en la home.
@@ -142,7 +150,9 @@ function SectionPulso() {
 
   // Campeón real si el backend tiene votos; si no, fallback al top del
   // catálogo. Distinguimos visualmente con flag esFallback.
-  const campeonReal = ranking?.[0]
+  const campeonReal = Array.isArray(ranking)
+    ? ranking.find(tieneImagenPromocionable)
+    : null
   const campeon = campeonReal ?? CAMPEON_FALLBACK
   const esFallback = !campeonReal
   // Audit producto (2026-05-18): el backend devuelve top por COUNT(votos),
@@ -308,7 +318,7 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
 function CardEyebrow({ icon: Icon, label, tono = 'text-accent' }) {
   return (
     <span
-      className={`inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-alt px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] ${tono}`}
+      className={`inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-alt px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] ${tono}`}
     >
       <Icon className="h-3 w-3" />
       {label}

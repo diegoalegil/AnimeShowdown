@@ -5,6 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import java.util.Map;
@@ -14,10 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,6 +50,12 @@ class EnfrentamientoControllerTest {
 
     @Autowired
     private com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository usuarioLogroRepository;
+
+    @Autowired
+    private com.diegoalegil.animeshowdown.repository.VotoRepository votoRepository;
+
+    @MockitoBean
+    private SimpMessagingTemplate messaging;
 
     private String tokenUserRegistrado(String username, String email) throws Exception {
         Map<String, String> reg = Map.of(
@@ -169,6 +181,29 @@ class EnfrentamientoControllerTest {
                 .andExpect(jsonPath("$.personajePerdedorId").value(ids[1]))
                 .andExpect(jsonPath("$.votosPerdedor").value(0))
                 .andExpect(jsonPath("$.delta").value(1));
+    }
+
+    @Test
+    void votarPublicaDeltaRankingPorWebSocket() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_ws_user", "votows@example.com");
+        long[] ids = dosPersonajes();
+        long antes = votoRepository.countByPersonajeId(ids[0]);
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "ws");
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
+        verify(messaging).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
+        RankingDeltaEvent ev = captor.getValue();
+        org.junit.jupiter.api.Assertions.assertEquals("luffy", ev.getPersonaje().getSlug());
+        org.junit.jupiter.api.Assertions.assertEquals(antes + 1, ev.getVotos());
+        org.junit.jupiter.api.Assertions.assertEquals(1, ev.getDelta());
     }
 
     @Test

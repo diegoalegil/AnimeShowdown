@@ -6,6 +6,8 @@ import java.util.Map;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +25,7 @@ import com.diegoalegil.animeshowdown.dto.DueloRecienteDto;
 import com.diegoalegil.animeshowdown.dto.EloHistoryPoint;
 import com.diegoalegil.animeshowdown.dto.MatchupResumenDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
+import com.diegoalegil.animeshowdown.dto.PersonajeBusquedaDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
 import com.diegoalegil.animeshowdown.dto.VotosPeriodoDto;
@@ -32,6 +35,8 @@ import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.service.EloHistoryService;
 import com.diegoalegil.animeshowdown.service.JikanService;
+import com.diegoalegil.animeshowdown.service.PersonajeBusquedaService;
+import com.diegoalegil.animeshowdown.service.PersonajeCatalogoService;
 import com.diegoalegil.animeshowdown.service.PersonajeMatchupService;
 import com.diegoalegil.animeshowdown.service.RecomendacionService;
 import com.diegoalegil.animeshowdown.service.VotosPeriodoService;
@@ -50,6 +55,8 @@ public class PersonajeController {
     private final PersonajeMatchupService personajeMatchupService;
     private final VotosPeriodoService votosPeriodoService;
     private final JikanService jikanService;
+    private final PersonajeCatalogoService personajeCatalogoService;
+    private final PersonajeBusquedaService personajeBusquedaService;
 
     public PersonajeController(PersonajeRepository personajeRepository,
             RecomendacionService recomendacionService,
@@ -57,7 +64,9 @@ public class PersonajeController {
             EnfrentamientoRepository enfrentamientoRepository,
             PersonajeMatchupService personajeMatchupService,
             VotosPeriodoService votosPeriodoService,
-            JikanService jikanService) {
+            JikanService jikanService,
+            PersonajeCatalogoService personajeCatalogoService,
+            PersonajeBusquedaService personajeBusquedaService) {
         this.personajeRepository = personajeRepository;
         this.recomendacionService = recomendacionService;
         this.eloHistoryService = eloHistoryService;
@@ -65,6 +74,8 @@ public class PersonajeController {
         this.personajeMatchupService = personajeMatchupService;
         this.votosPeriodoService = votosPeriodoService;
         this.jikanService = jikanService;
+        this.personajeCatalogoService = personajeCatalogoService;
+        this.personajeBusquedaService = personajeBusquedaService;
     }
 
     /**
@@ -79,6 +90,46 @@ public class PersonajeController {
             return personajeRepository.findByAnime(anime);
         }
         return personajeRepository.findAll();
+    }
+
+    /**
+     * Catálogo público compacto para frontend/IA.
+     *
+     * <p>fields permite bajar solo columnas necesarias:
+     * {@code slug,nombre,anime,imagenUrl}. El endpoint emite ETag estable,
+     * Cache-Control con s-maxage=3600 para CDN y Vary: Accept-Encoding para
+     * que gzip/brotli del proxy no mezclen variantes.
+     */
+    @GetMapping("/catalogo")
+    public ResponseEntity<?> catalogo(
+            @RequestParam(required = false) String fields,
+            @org.springframework.web.bind.annotation.RequestHeader(
+                    value = HttpHeaders.IF_NONE_MATCH,
+                    required = false) String ifNoneMatch) {
+        String fieldsKey = personajeCatalogoService.normalizarFields(fields);
+        var payload = personajeCatalogoService.catalogo(fieldsKey);
+        CacheControl cacheControl = CacheControl.maxAge(java.time.Duration.ofMinutes(5))
+                .cachePublic()
+                .sMaxAge(java.time.Duration.ofHours(1));
+        if (etagMatches(ifNoneMatch, payload.etag())) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .cacheControl(cacheControl)
+                    .eTag(payload.etag())
+                    .header(HttpHeaders.VARY, HttpHeaders.ACCEPT_ENCODING)
+                    .build();
+        }
+        return ResponseEntity.ok()
+                .cacheControl(cacheControl)
+                .eTag(payload.etag())
+                .header(HttpHeaders.VARY, HttpHeaders.ACCEPT_ENCODING)
+                .body(payload.items());
+    }
+
+    @GetMapping("/buscar")
+    public List<PersonajeBusquedaDto> buscar(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "10") int limit) {
+        return personajeBusquedaService.buscar(q, limit);
     }
 
     /** Cache individual 5min por id — usado por /personajes/{id}. */
@@ -105,6 +156,8 @@ public class PersonajeController {
      */
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-catalogo", allEntries = true),
+            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
@@ -122,6 +175,8 @@ public class PersonajeController {
 
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-catalogo", allEntries = true),
+            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
@@ -141,6 +196,8 @@ public class PersonajeController {
      */
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-catalogo", allEntries = true),
+            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
@@ -160,6 +217,8 @@ public class PersonajeController {
 
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
+            @CacheEvict(value = "personajes-catalogo", allEntries = true),
+            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
@@ -336,5 +395,14 @@ public class PersonajeController {
                                 + "POST /api/enfrentamientos/{enfrentamientoId}/votar. "
                                 + "Para obtener un enfrentamiento aleatorio activo: GET /api/enfrentamientos/aleatorio.",
                         "personajeIdRequested", id));
+    }
+
+    private boolean etagMatches(String ifNoneMatch, String etag) {
+        if (ifNoneMatch == null || ifNoneMatch.isBlank()) {
+            return false;
+        }
+        return java.util.Arrays.stream(ifNoneMatch.split(","))
+                .map(String::trim)
+                .anyMatch(candidate -> candidate.equals(etag) || candidate.equals("W/" + etag));
     }
 }

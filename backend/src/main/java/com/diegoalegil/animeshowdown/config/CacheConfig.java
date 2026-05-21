@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +31,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * no aplican.
  */
 @Configuration
+@ConditionalOnProperty(name = "spring.cache.type", havingValue = "caffeine", matchIfMissing = true)
 public class CacheConfig {
 
     @Bean
@@ -44,6 +46,12 @@ public class CacheConfig {
                 // ahorra ~95% de hits a Postgres en horas pico sin que
                 // el usuario note staleness.
                 buildCache("personajes-listado", Duration.ofMinutes(5), 16),
+                // Catálogo público mínimo para frontend/IA. TTL 1h porque
+                // solo cambia con seed/admin; además el endpoint emite ETag.
+                buildCache("personajes-catalogo", Duration.ofHours(1), 16),
+                // Autocomplete server-side. Key q+limit; TTL corto para no
+                // retener demasiadas combinaciones raras.
+                buildCache("personajes-busqueda", Duration.ofMinutes(10), 512),
                 buildCache("personajes-individual", Duration.ofMinutes(5), 2000),
                 // Plan v2 §4.12: similares cross-anime por slug. Estable
                 // entre votos (la similitud por votos casi no se mueve a

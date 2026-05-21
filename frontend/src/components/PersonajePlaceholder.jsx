@@ -43,12 +43,12 @@ function PersonajePlaceholder({ nombre, anime, className = '' }) {
   return (
     <div
       className={`relative flex flex-col items-center justify-center overflow-hidden bg-surface-alt ${className}`}
-      aria-label={`${nombre} (imagen pendiente)`}
+      aria-label={`${nombre} (silueta en camino)`}
     >
       <div
         className={`absolute inset-0 bg-gradient-to-br to-slate-900/40 ${tono.from} ${tono.via}`}
       />
-      {/* Patrón decorativo: kanji 戦 (sen, "batalla") de fondo, dibujado
+      {/* Patrón decorativo: kanji 影 (kage, "sombra") de fondo, dibujado
           trazo a trazo cada vez que el placeholder monta. Cae al
           carácter unicode si KanjiVG no tiene este kanji (siempre lo
           tiene — es de los 77 que generamos). */}
@@ -57,7 +57,7 @@ function PersonajePlaceholder({ nombre, anime, className = '' }) {
         className={`pointer-events-none absolute opacity-[0.08] ${tono.text}`}
       >
         <KanjiStroke
-          kanji="戦"
+          kanji="影"
           size="10rem"
           strokeMs={600}
           gapMs={150}
@@ -73,11 +73,11 @@ function PersonajePlaceholder({ nombre, anime, className = '' }) {
         <p className="line-clamp-2 text-[11px] font-bold text-fg-strong">
           {nombre}
         </p>
-        <p className="line-clamp-1 text-[9px] uppercase tracking-wider text-fg-muted">
+        <p className="line-clamp-1 text-[11px] uppercase tracking-wider text-fg-muted">
           {anime}
         </p>
-        <p className="mt-1 text-[9px] italic text-fg-muted/70">
-          Imagen pendiente
+        <p className="mt-1 text-[11px] italic text-fg-muted/75">
+          Sombra en camino
         </p>
       </div>
     </div>
