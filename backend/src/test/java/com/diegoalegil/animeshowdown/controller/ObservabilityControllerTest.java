@@ -24,6 +24,7 @@ class ObservabilityControllerTest {
         mvc.perform(get("/actuator/prometheus"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("as_votos_total")))
-                .andExpect(content().string(containsString("as_ranking_recalc_duration")));
+                .andExpect(content().string(containsString("as_ranking_recalc_duration")))
+                .andExpect(content().string(containsString("as_duelo_sugerido_elo_diff")));
     }
 }
