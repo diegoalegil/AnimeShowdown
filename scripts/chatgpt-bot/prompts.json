@@ -576,6 +576,36 @@
       "slug": "usuario-hero",
       "category": "brand-background",
       "prompt": "Cinematic 16:9 brand background for another user's public profile hero of an anime tournament platform. Distant silhouette of a hooded warrior standing on a stone observation deck overlooking a vast tournament city under moonlight, cape catching the wind, anonymous-but-imposing public persona feel, premium dark spectator mood. Safe text area center. Subtle and distant, not a close portrait. No text, no logos."
+    },
+    {
+      "slug": "best-girls-2026",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for a Best Girls 2026 anime tournament. Glamorous evening hall with a softly-lit stage, six diverse silhouettes of iconic anime heroines walking down a red-carpet path with flowing dresses (one tsundere with twin-tails, one yamato-nadeshiko with long hair, one kuudere with cool composure, one bunny-themed, one warrior with a long sword on her back, one schoolgirl with idol vibes), spotlights raining from above, soft floral petals drifting, premium gala aesthetic. Palette: champagne gold + rose pink + dusk crimson + black satin + spotlight white. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "darkness-bracket",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for a Darkness Bracket tournament dedicated to villains, antiheroes and dark-side fighters. Underground dungeon arena lit by purple cursed torches, six dark silhouettes circling at the center (a chainsaw demon, a death-note holder, a blue-flame exorcist demon, a hollow-eyed shinigami, a horned dark mage, a tentacled overlord shadow), heavy fog rolling on stone floor, twisted arches above, ominous and grand. Palette: cursed violet + obsidian black + crimson torch glow + emerald poison accent + bone white. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "isekai-royal-rumble",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for an Isekai Royal Rumble tournament. Floating fantasy battlefield with six different isekai portals opening simultaneously in the sky (one with futuristic VRMMO HUD lines, one with arcane fantasy runes, one with dragon-scale gate, one with explosion magenta sparks, one with shadow-monarch violet smoke, one with truck-kun comedy reference impact), reincarnated heroes silhouettes leaping out of each portal toward a central glowing crown, dramatic clash of realities. Palette: portal multicolor (cyan + magenta + emerald + amber + violet + crimson) + central crown gold + cosmic black sky. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "naruto-hokages-vs-akatsuki",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for a Naruto Hokages vs Akatsuki tournament. Konoha village rooftops at dusk with the Hokage stone faces in the background, on the left side five Hokage silhouettes lined up in formation (first hokage tree-jutsu green aura, second water blue aura, third sandaime older, fourth yellow-flash thunder, sixth scarecrow hatake), facing on the right side five Akatsuki cloud-coat silhouettes (red crow eye-jutsu, six-path rinnegan, pumpkin-mask spiral, shark-skin sword, puppet-master). Palette: hokage chakra green + thunder yellow + akatsuki red-cloud crimson + jet cloak black + sunset orange Konoha sky. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "pokemon-master-tournament",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for a Pokemon Master Tournament. Grand pokemon league stadium under twilight sky with massive holographic scoreboards, six elite trainer silhouettes lined up at the entrance arc each with their signature pokemon shadow behind them (red-cap kid with electric mouse, rival in coat with starter-tier dragon, fairy-type pink-haired trainer, ghost-type purple-clad trainer, dragon-type orange-haired champion, lone wolf trainer with mythical), pokeball trails of light arcing across the sky, stadium crowd silhouettes cheering. Palette: pokeball crimson and white + electric yellow + stadium twilight blue + crowd warm amber + champion gold trim. Safe text area top. No text, no logos."
+    },
+    {
+      "slug": "sweethearts-of-anime",
+      "category": "tournament-banner",
+      "prompt": "Cinematic 16:9 banner for a Sweethearts of Anime tournament dedicated to iconic romantic couples. Soft evening park lit by warm hanging lanterns and falling sakura petals, three couple silhouettes spaced gently across the foreground (one hand-holding pair under a single umbrella, one shy schoolyard pair on a bench, one war-tested pair leaning back to back), giant heart-shaped fireworks softly blooming in the sky, gentle romantic warmth. Palette: sakura pink + paper-lantern gold + dusk violet + warm cream petals + soft rose crimson accents. Safe text area top. No text, no logos."
     }
   ]
 }
