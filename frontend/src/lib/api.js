@@ -549,6 +549,7 @@ export const endpoints = {
       undefined,
       { auth: false },
     ),
+  status: () => api.get('/api/status', { auth: false }),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>

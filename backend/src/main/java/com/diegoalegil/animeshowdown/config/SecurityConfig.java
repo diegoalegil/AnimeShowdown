@@ -161,6 +161,7 @@ public class SecurityConfig {
                         // el script generate-sitemap.mjs en build de Cloudflare
                         // Pages; público porque sitemaps son públicos por definición.
                         .requestMatchers(HttpMethod.GET, "/api/sitemap/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/status").permitAll()
                         .requestMatchers("/api/auth/me", "/api/auth/me/**").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())

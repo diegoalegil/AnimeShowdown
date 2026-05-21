@@ -40,6 +40,7 @@ const UsuarioLogrosPage = lazy(() => import('./pages/UsuarioLogrosPage'))
 const CrearTorneoPage = lazy(() => import('./pages/CrearTorneoPage'))
 const FaqPage = lazy(() => import('./pages/FaqPage'))
 const ApiDocsPage = lazy(() => import('./pages/ApiDocsPage'))
+const StatusPage = lazy(() => import('./pages/StatusPage'))
 const GamesHubPage = lazy(() => import('./pages/GamesHubPage'))
 const GuessCharacterPage = lazy(() => import('./pages/GuessCharacterPage'))
 const GuessAnimePage = lazy(() => import('./pages/GuessAnimePage'))
@@ -196,6 +197,7 @@ function App() {
               <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
               <Route path="/faq" element={<FaqPage />} />
               <Route path="/api-docs" element={<ApiDocsPage />} />
+              <Route path="/status" element={<StatusPage />} />
               <Route path="/games" element={<GamesHubPage />} />
               {/* Nombres rebrandeados (Plan v2 §14). Rutas viejas →
                   Navigate replace para mantener funcionando los links

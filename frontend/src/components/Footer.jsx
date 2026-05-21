@@ -39,6 +39,7 @@ const soporteLinks = [
   { to: '/faq', i18nKey: 'faq' },
   { to: '/glossary', i18nKey: 'glossary' },
   { to: '/api-docs', i18nKey: 'apiDocs' },
+  { to: '/status', i18nKey: 'status' },
 ]
 
 const topAnimes = (() => {
