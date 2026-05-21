@@ -213,20 +213,26 @@ public class BracketAdvanceService {
 
     /**
      * Aplica {@link #cerrarRondaYAvanzar} en cascada hasta que el torneo
-     * quede FINISHED o no haya más progreso (empate/votos faltantes). El
-     * límite duro de iteraciones {@code MAX_RONDAS=6} cubre torneos de
-     * hasta 64 participantes (log2(64) = 6) con margen de seguridad
-     * contra bucles infinitos por bugs.
-     */
-    /**
-     * Sin {@code @Transactional} a propósito: invoca {@link #cerrarRondaYAvanzar}
+     * quede FINISHED o no haya más progreso (empate/votos faltantes).
+     *
+     * <p>Sin {@code @Transactional} a propósito: invoca {@link #cerrarRondaYAvanzar}
      * vía el proxy ({@code self.}) para que CADA cierre de ronda commitee en
      * su propia tx REQUIRES_NEW. Si una ronda intermedia avanza con éxito
      * pero la última no puede cerrarse (empate/votos faltantes), el progreso
      * realizado queda persistido en BBDD en lugar de rolear todo.
+     *
+     * <p>Audit fix #16 (2026-05-21): el límite duro era {@code MAX_RONDAS = 6}
+     * — suficiente para hasta 64 participantes (log2(64)=6). Si en el
+     * futuro hacemos torneos de 128/256, el bucle terminaba a las 6 iter
+     * dejando el bracket avanzado a medias. Subido a {@code MAX_RONDAS = 9}
+     * (cubre hasta 256 participantes = log2(256)+1 de margen). Sigue
+     * siendo un safeguard contra bucles infinitos. No derivamos del
+     * tamaño real del bracket por query para evitar tocar la cache L1
+     * de Hibernate antes de las tx REQUIRES_NEW (causaba race con
+     * listeners async de predicciones).
      */
     public Resultado cerrarTodasLasRondas(Torneo torneo) {
-        final int MAX_RONDAS = 6;
+        final int MAX_RONDAS = 9;
         Resultado ultima = Resultado.SIN_CAMBIOS;
         for (int i = 0; i < MAX_RONDAS; i++) {
             Resultado r = self.cerrarRondaYAvanzar(torneo);

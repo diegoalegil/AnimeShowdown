@@ -123,7 +123,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private boolean esRutaLimitada(HttpServletRequest req) {
         if (!"POST".equalsIgnoreCase(req.getMethod())) return false;
-        String uri = req.getRequestURI();
+        // Audit fix #12 (2026-05-21): antes usabamos req.getRequestURI() que
+        // INCLUYE el context path. Si la app se deploya con context path
+        // (e.g. server.servlet.context-path=/api-v2), los URIs llegan como
+        // '/api-v2/api/auth/login' y NO matchean con RUTAS_LIMITADAS que
+        // tienen '/api/auth/login'. Rate limiting silenciosamente apagado.
+        //
+        // req.getServletPath() devuelve el path RELATIVO al context path —
+        // consistente con como Spring Security define los matchers en
+        // SecurityConfig. Portable a cualquier deploy con context root.
+        String uri = req.getServletPath();
         if (uri == null) return false;
         for (String prefijo : RUTAS_LIMITADAS) {
             if (uri.equals(prefijo) || uri.startsWith(prefijo + "/")) return true;
