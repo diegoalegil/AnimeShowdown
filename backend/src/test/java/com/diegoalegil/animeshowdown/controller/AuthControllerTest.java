@@ -214,6 +214,10 @@ class AuthControllerTest {
 
     @Test
     void registroSinEmailDevuelve400ConDetalle() throws Exception {
+        // Audit fix #14 (2026-05-21): validacion ahora devuelve shape
+        // estandar { status, message, errors: { field: msg }, ... }
+        // en lugar de field-map flat. El detalle del campo se accede
+        // via $.errors.email en lugar de $.email.
         Map<String, String> body = Map.of(
                 "username", "carla",
                 "password", "secreta123");
@@ -222,7 +226,8 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.email").exists());
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors.email").exists());
     }
 
     @Test

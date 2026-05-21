@@ -48,13 +48,29 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /** Validación de @Valid: mantenemos forma original {field: message}. */
+    /**
+     * Validación de @Valid (Plan v2 §2.6 + audit fix #14).
+     *
+     * <p>Audit fix #14 (2026-05-21): antes devolvíamos {@code Map<field, msg>}
+     * plano — forma distinta al resto de errores (que usan
+     * {@code {status, message, timestamp, path}}). El frontend tenía que
+     * detectar la forma según status code. Ahora uniformizamos: shape
+     * estándar + campo {@code errors} con el field map dentro. Consumers
+     * existentes siguen funcionando si leen {@code body.message}, y los
+     * que quieran highlight por campo leen {@code body.errors[field]}.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, Object>> handleValidation(
+            MethodArgumentNotValidException ex, HttpServletRequest req) {
         Map<String, String> errores = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(
                 error -> errores.put(error.getField(), error.getDefaultMessage()));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errores);
+        String summary = errores.isEmpty()
+                ? "Validación fallida"
+                : "Validación fallida: " + String.join(", ", errores.keySet());
+        Map<String, Object> body = baseResponse(HttpStatus.BAD_REQUEST, summary, req);
+        body.put("errors", errores);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     /** Recurso no encontrado: 404. */
@@ -179,12 +195,22 @@ public class GlobalExceptionHandler {
      */
     private ResponseEntity<Map<String, Object>> buildResponse(
             HttpStatus status, String message, HttpServletRequest req) {
+        return ResponseEntity.status(status).body(baseResponse(status, message, req));
+    }
+
+    /**
+     * Audit fix #14 (2026-05-21): extraido baseResponse para que el
+     * handler de @Valid pueda anadir el campo extra 'errors' al body
+     * estandar sin duplicar codigo.
+     */
+    private Map<String, Object> baseResponse(
+            HttpStatus status, String message, HttpServletRequest req) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", OffsetDateTime.now().toString());
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());
         body.put("message", message != null ? message : status.getReasonPhrase());
         body.put("path", req.getRequestURI());
-        return ResponseEntity.status(status).body(body);
+        return body;
     }
 }
