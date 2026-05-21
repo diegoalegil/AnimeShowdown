@@ -218,21 +218,27 @@ function Footer() {
           </Link>
         </div>
 
-        {/* Legal + copyright minimalista */}
+        {/* Legal + copyright minimalista.
+            Audit fix #20 (2026-05-21): los Links del legal eran un solo
+            renglon de texto sin padding vertical en mobile, dejando el
+            tap target en ~24px — por debajo del HIG/Material minimo
+            (44px iOS, 48dp Android). Anadido inline-flex items-center
+            min-h-[40px] px-2 py-2 para que cada link tenga area
+            generosa sin romper el visual desktop. */}
         <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-fg-muted">
-          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-start">
+          <ul className="-mx-2 flex flex-wrap justify-center gap-y-1 sm:justify-start">
             <li>
-              <Link to="/privacidad" className="hover:text-accent hover:underline">
+              <Link to="/privacidad" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-accent hover:underline">
                 {t('footer.privacidad')}
               </Link>
             </li>
             <li>
-              <Link to="/terminos" className="hover:text-accent hover:underline">
+              <Link to="/terminos" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-accent hover:underline">
                 {t('footer.terminos')}
               </Link>
             </li>
             <li>
-              <Link to="/dmca" className="hover:text-accent hover:underline">
+              <Link to="/dmca" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-accent hover:underline">
                 DMCA
               </Link>
             </li>
