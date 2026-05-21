@@ -15,11 +15,21 @@ import com.diegoalegil.animeshowdown.model.Voto;
 
 public interface VotoRepository extends JpaRepository<Voto, Long> {
 
+    /**
+     * Ranking all-time por votos (Plan v2 §4.6).
+     *
+     * <p>Audit fix #15 (2026-05-21): se anade desempate por id ASC. Sin
+     * tiebreak, dos personajes con el mismo COUNT salian en orden
+     * arbitrario del dialecto SQL — el frontend mostraba a veces #4
+     * "Naruto", a veces "Sasuke" para el mismo dataset. Con tiebreak
+     * estable, el orden es determinista en H2, Postgres y queries
+     * paginadas (sin riesgo de duplicar/saltar entries entre paginas).
+     */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
             FROM Voto v
             GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.personaje.id ASC
             """)
     List<RankingItem> obtenerRanking();
 
@@ -31,7 +41,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(v.personaje, COUNT(v))
             FROM Voto v
             GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.personaje.id ASC
             """,
             countQuery = "SELECT COUNT(DISTINCT v.personaje) FROM Voto v")
     org.springframework.data.domain.Page<RankingItem> rankingAllTime(
@@ -47,7 +57,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             FROM Voto v
             WHERE v.fecha >= :desde
             GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.personaje.id ASC
             """)
     List<RankingItem> rankingDesde(@Param("desde") java.time.LocalDateTime desde,
             org.springframework.data.domain.Pageable pageable);
@@ -63,7 +73,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             FROM Voto v
             WHERE v.fecha < :antesDe
             GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.personaje.id ASC
             """)
     List<RankingItem> rankingHasta(@Param("antesDe") java.time.LocalDateTime antesDe,
             org.springframework.data.domain.Pageable pageable);
@@ -115,17 +125,26 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     /**
      * Votos por día del personaje desde la fecha dada (Plan v2 §11.1).
-     * Devuelve {@code [fechaInicio-del-día, count]}. Usamos {@code CAST AS DATE}
-     * para que el GROUP BY funcione tanto en H2 como en Postgres sin
-     * funciones específicas de dialecto.
+     * Devuelve {@code [fechaInicio-del-día, count]}.
+     *
+     * <p>Audit fix #2 (2026-05-21): antes usaba {@code FUNCTION('DATE', v.fecha)}
+     * — esa función delegaba al dialecto SQL. En H2 se traducía a
+     * {@code date(...)}, que H2 no reconoce; el endpoint
+     * {@code /api/personajes/:slug/elo-history} devolvía 500 y el
+     * frontend silenciaba el fallo (chart desaparecía sin mensaje). En
+     * Postgres sí funcionaba, así que solo se veía en tests/dev.
+     *
+     * <p>Ahora usamos {@code CAST(v.fecha AS java.time.LocalDate)} —
+     * sintaxis estándar JPA 3.0+ / Hibernate 6 que ambos dialectos
+     * resuelven correctamente.
      */
     @Query("""
-            SELECT FUNCTION('DATE', v.fecha), COUNT(v)
+            SELECT CAST(v.fecha AS java.time.LocalDate), COUNT(v)
             FROM Voto v
             WHERE v.personaje.id = :personajeId
               AND v.fecha >= :desde
-            GROUP BY FUNCTION('DATE', v.fecha)
-            ORDER BY FUNCTION('DATE', v.fecha) ASC
+            GROUP BY CAST(v.fecha AS java.time.LocalDate)
+            ORDER BY CAST(v.fecha AS java.time.LocalDate) ASC
             """)
     List<Object[]> votosPorDiaDesde(@Param("personajeId") Long personajeId,
             @Param("desde") java.time.LocalDateTime desde);
@@ -140,7 +159,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             FROM Voto v
             WHERE v.personaje.anime = :anime
             GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.personaje.id ASC
             """)
     List<RankingItem> rankingPorAnime(@Param("anime") String anime,
             org.springframework.data.domain.Pageable pageable);
@@ -174,7 +193,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             FROM Voto v
             WHERE v.usuario IS NOT NULL
             GROUP BY v.usuario
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.usuario.id ASC
             """)
     List<Object[]> topVoters(org.springframework.data.domain.Pageable pageable);
 
@@ -187,7 +206,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             FROM Voto v
             WHERE v.usuario IS NOT NULL AND v.fecha > :desde
             GROUP BY v.usuario
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.usuario.id ASC
             """)
     List<Object[]> topVotersDesde(
             @Param("desde") java.time.LocalDateTime desde,
@@ -233,7 +252,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             FROM Voto v
             WHERE v.usuario = :usuario
             GROUP BY v.personaje
-            ORDER BY COUNT(v) DESC
+            ORDER BY COUNT(v) DESC, v.personaje.id ASC
             """)
     List<Object[]> topPorUsuario(
             @Param("usuario") Usuario usuario,

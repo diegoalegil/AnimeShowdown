@@ -6,8 +6,10 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearMioRequest;
@@ -106,12 +108,13 @@ public class TorneoService {
             throw new IllegalArgumentException("Se requiere usuario autenticado");
         }
         if (!creador.estaVerificado()) {
-            // Plan v2 §4.9: "Solo cuentas verificadas". Lanza 403 (Forbidden)
-            // a través de un AccessDeniedException sería más natural, pero
-            // GlobalExceptionHandler ya mapea IllegalStateException → 409
-            // y no queremos un 409 confundible con "ya existe". 400 con
-            // mensaje claro es la opción menos intrusiva sin tocar el handler.
-            throw new IllegalArgumentException(
+            // Plan v2 §4.9: "Solo cuentas verificadas".
+            // Audit fix #11 (2026-05-21): antes lanzabamos IllegalArgumentException
+            // → 400. Semanticamente correcto es 403 — el user esta autenticado
+            // pero le falta permiso (verificacion). ResponseStatusException de
+            // Spring mapea limpio a 403 sin tocar GlobalExceptionHandler ni
+            // crear una excepcion custom.
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Necesitas verificar tu email antes de crear torneos");
         }
         List<Long> ids = request.getParticipantesIds();

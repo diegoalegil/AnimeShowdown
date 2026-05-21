@@ -209,7 +209,14 @@ export async function refreshSession() {
 }
 
 async function ejecutarFetch(path, { method, headers, body, signal, includeAuth }) {
-  const fullHeaders = { 'Content-Type': 'application/json', ...headers }
+  // Audit fix #7 (2026-05-21): Content-Type: application/json solo cuando
+  // hay body. En GET/HEAD sin body el header no aporta nada y dispara
+  // preflight CORS innecesario en cross-origin (es un "non-simple header"
+  // segun fetch spec) — el browser hace OPTIONS extra antes del GET real.
+  const fullHeaders = { ...headers }
+  if (body !== undefined) {
+    fullHeaders['Content-Type'] = 'application/json'
+  }
   if (includeAuth && tokenEnMemoria) {
     fullHeaders.Authorization = `Bearer ${tokenEnMemoria}`
   }
@@ -246,16 +253,33 @@ async function request(
       includeAuth: auth,
     })
 
-    // Auto-refresh on 401: si la petición autenticada falla con 401, intenta
-    // /refresh una vez. Si el refresh funciona, reintenta la petición original
-    // con el nuevo token. Si el refresh falla, propaga el 401 original.
-    // Excluimos los propios endpoints /auth/login y /auth/refresh para no
-    // entrar en bucle.
+    // Auto-refresh on 401/403: si la petición autenticada falla con 401 o
+    // 403 con token en memoria, intenta /refresh una vez. Si el refresh
+    // funciona, reintenta la petición original con el nuevo token. Si el
+    // refresh falla, propaga el error original.
+    //
+    // Audit fix #1 (2026-05-21): SecurityConfig devuelve 403 (no 401)
+    // cuando llega una API call sin auth o con JWT expirado — esto es
+    // intencional para no exponer entry-point que redirige a /login en
+    // /api/**. Antes, frontend solo reaccionaba a 401; tras 15 min con
+    // JWT expirado, todas las llamadas autenticadas devolvian 403 sin
+    // intentar refresh, y el user perdia sesion silenciosamente aunque
+    // tuviera refresh_token cookie valido.
+    //
+    // Ahora reaccionamos a AMBOS, pero solo cuando hay tokenEnMemoria
+    // (indica JWT expirado, no "user nunca logueado") — asi un 403
+    // genuino "no tienes permiso para esto" no entra en bucle de refresh.
+    // Excluimos los propios endpoints auth para no entrar en bucle.
     const esRutaAuth =
       path.includes('/api/auth/refresh') ||
       path.includes('/api/auth/login') ||
       path.includes('/api/auth/registro')
-    if (res.status === 401 && auth && !esRutaAuth) {
+    const necesitaRefresh =
+      auth &&
+      !esRutaAuth &&
+      (res.status === 401 ||
+        (res.status === 403 && tokenEnMemoria !== null))
+    if (necesitaRefresh) {
       const refreshed = await intentarRefresh()
       if (refreshed?.token) {
         res = await ejecutarFetch(path, {

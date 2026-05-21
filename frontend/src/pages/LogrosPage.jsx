@@ -151,7 +151,7 @@ function LogrosPage() {
           {!user && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Link
-                to="/registro"
+                to="/register"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
               >
                 Crear cuenta
