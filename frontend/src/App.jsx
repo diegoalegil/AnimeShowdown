@@ -185,6 +185,10 @@ function RequireCatalog({ catalogoQuery, children }) {
 function App() {
   const location = useLocation()
   const catalogoQuery = useCatalogoPersonajes()
+  // Rutas fullscreen sin chrome global (TV mode, etc.). Si el usuario
+  // navega aquí queremos que el viewport sea solo del contenido — sin
+  // header global, sin bottom nav móvil, sin footer.
+  const isFullscreenRoute = location.pathname.startsWith('/tv')
   // Helper local para no repetir el wrapper en cada Route catalog-gated.
   const gated = (element) => (
     <RequireCatalog catalogoQuery={catalogoQuery}>{element}</RequireCatalog>
@@ -231,8 +235,12 @@ function App() {
       {/* Sprint 5h (2026-05-18): /tv tiene su propio header fullscreen
           fixed z-50; el global Header queda detrás z-30 y solo añade DOM
           noise + paint costoso del logo flotante. Skipeamos cuando la
-          ruta es /tv para que el browser no monte ambos. */}
-      {!location.pathname.startsWith('/tv') && <Header />}
+          ruta es /tv para que el browser no monte ambos.
+          Audit externo AS-017 (2026-05-22): Footer y MobileBottomNav
+          también deben omitirse en /tv — antes seguían montados y rompían
+          la sensación de pantalla completa cuando el usuario hacía
+          scroll por error o cambiaba de pestaña. */}
+      {!isFullscreenRoute && <Header />}
       {/* Listener global de unlock: side-effect-only, sin UI. Se monta
           siempre — internamente skipea cuando no hay user logueado. */}
       <BadgeUnlockListener />
@@ -338,10 +346,12 @@ function App() {
           </Suspense>
         </div>
       </main>
-      <MobileBottomNav />
-      <div className="pb-16 md:pb-0">
-        <Footer />
-      </div>
+      {!isFullscreenRoute && <MobileBottomNav />}
+      {!isFullscreenRoute && (
+        <div className="pb-16 md:pb-0">
+          <Footer />
+        </div>
+      )}
     </div>
   )
 }
