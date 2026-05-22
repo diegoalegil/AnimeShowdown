@@ -66,11 +66,15 @@ test('registro deja sesión activa y perfil accesible', async ({ page }) => {
   const consoleErrors = await preparePage(page)
   const { username } = await registerThroughUi(page, `reg_${Date.now()}`)
   await page.goto('/perfil')
-  // El username aparece varias veces en la página: span del UserBadge en
-  // el header, h1 de la card "Perfil público" y prefijo del email
-  // (<username>@example.com). Cualquiera de ellos confirma que la página
-  // se hidrató con el user creado — con .first() basta.
-  await expect(page.getByText(username).first()).toBeVisible()
+  // Restringir la búsqueda al <main> para evitar capturar el span del
+  // UserBadge del header (que en viewport móvil queda display:none).
+  // El .first() previo elegía ese span hidden y `toBeVisible()` fallaba
+  // en chromium-mobile con "Received: hidden". El main contiene el
+  // título de la card "Perfil público" + email, que siempre están
+  // visibles si la sesión está hidratada.
+  await expect(
+    page.getByRole('main').getByText(username, { exact: true }).first(),
+  ).toBeVisible()
   await attachVisualSmoke(page, 'perfil-registrado')
   expect(consoleErrors).toEqual([])
 })
@@ -96,14 +100,20 @@ test('votar 5 veces actualiza contador local del header', async ({ page }, testI
     }
   }
 
-  // En chromium-desktop validamos también el badge del header. Ya no per
-  // iteración sino al final, cuando los 5 votos están consolidados y el
-  // CustomEvent VOTES_COUNT_EVENT ya re-renderizó el contador.
+  // Esperar a que el último voto incremente el contador local (sucede en
+  // onSuccess del votarMutation, async tras la respuesta del backend).
+  // Sin este poll, el getByLabel('5 votos en esta sesión') de abajo se
+  // ejecutaba antes de que el último mutate completara y fallaba.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => localStorage.getItem('animeshowdown.votos_count')),
+      { timeout: 8000 },
+    )
+    .toBe('5')
   if (testInfo.project.name === 'chromium-desktop') {
     await expect(page.getByLabel('5 votos en esta sesión')).toBeVisible()
   }
-  const count = await page.evaluate(() => localStorage.getItem('animeshowdown.votos_count'))
-  expect(count).toBe('5')
   await attachVisualSmoke(page, 'votar-5-votos')
   expect(consoleErrors).toEqual([])
 })
