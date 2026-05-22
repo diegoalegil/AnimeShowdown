@@ -9,6 +9,7 @@ import { useSeo } from '../hooks/useSeo'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import Avatar from '../components/Avatar'
+import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 
 function toMs(value) {
   if (!value) return null
@@ -179,7 +180,13 @@ function StartArena({ state, joining, onJoin }) {
   return (
     <div className="as-panel overflow-hidden rounded-2xl border border-border bg-surface/80 p-6 shadow-xl shadow-black/25">
       {state?.estado === 'FINISHED' || state?.estado === 'ABANDONED' ? (
-        <div className="mb-6 rounded-xl border border-gold/30 bg-gold/10 p-5">
+        <div className="relative mb-6 overflow-hidden rounded-xl border border-gold/30 bg-gold/10 p-5">
+          <VoteFeedbackBurst
+            active={delta != null}
+            delta={delta}
+            value={state?.yo?.eloPvp}
+            label="ELO PvP"
+          />
           <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">Resultado final</p>
           <div className="mt-2 flex flex-wrap items-end gap-4">
             <h2 className="text-3xl font-black text-fg-strong">
