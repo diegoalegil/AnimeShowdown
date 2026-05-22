@@ -222,35 +222,60 @@ const pwaPlugin = VitePWA({
     globIgnores: ['img/**', 'assets/**.js', 'assets/**.svg', '**/*.html'],
     runtimeCaching: [
       {
-        // Audit P1 (2026-05-20): los chunks JS pasan de StaleWhileRevalidate
-        // a NetworkFirst con timeout 3s. SWR servia el chunk cacheado primero
-        // mientras revalidaba; cuando el HTML era nuevo pero el chunk cached
-        // era de otro deploy, el browser cargaba codigo incompatible y
-        // disparaba runtime errors silenciosos. NetworkFirst pide siempre la
-        // version actual; cache es solo fallback offline.
+        // Audit P1 (2026-05-20) + audit externo F015 (2026-05-22): los chunks
+        // JS pasan de StaleWhileRevalidate a NetworkFirst con timeout 3s. SWR
+        // servia el chunk cacheado primero mientras revalidaba; cuando el HTML
+        // era nuevo pero el chunk cached era de otro deploy, el browser cargaba
+        // codigo incompatible y disparaba runtime errors silenciosos.
+        // NetworkFirst pide siempre la version actual; cache es solo fallback
+        // offline.
         //
-        // Tambien `statuses: [200]` (sin 0): un chunk JS que viene como HTML
-        // de la regla SPA fallback `/* /index.html 200` llega con status 200
-        // pero Content-Type text/html. Workbox no valida content-type, asi
-        // que si lo cacheamos quedamos atrapados en el bug. Con `[200]` aun
-        // se cachea, pero el reactivo de chunkErrorRecovery limpia el SW
-        // cuando detecta el TypeError de MIME.
+        // PROACTIVO contra cache poison de content-type: el plugin
+        // requireContentType inspecciona el Content-Type de cada respuesta
+        // ANTES de pasarla al Cache Storage. Si Cloudflare devolvio el SPA
+        // fallback (index.html) por una URL .js no encontrada, llega 200 OK
+        // pero con Content-Type text/html — caso real visto en prod cuando
+        // el deploy aun no tiene un asset y la regla SPA `/* /index.html 200`
+        // captura el path. Antes Workbox cachaba ese HTML como si fuera JS
+        // y el browser fallaba con "'text/html' is not a valid JavaScript
+        // MIME type". El plugin rechaza esos casos devolviendo null, asi
+        // que la Cache Storage queda intacta y la siguiente request va a red.
         urlPattern: ({ url }) =>
           url.pathname.startsWith('/assets/') &&
           (url.pathname.endsWith('.js') || url.pathname.endsWith('.svg')),
         handler: 'NetworkFirst',
         options: {
-          cacheName: 'chunks-js-v2',
+          cacheName: 'chunks-js-v3',
           networkTimeoutSeconds: 3,
           expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
           cacheableResponse: { statuses: [200] },
+          plugins: [
+            {
+              cacheWillUpdate: async ({ response }) => {
+                if (!response || response.status !== 200) return null
+                const ct = (response.headers.get('content-type') || '').toLowerCase()
+                // Aceptar JS y SVG con cualquier subtype. text/html rechazado.
+                const ok = /^(application|text)\/(javascript|ecmascript)/.test(ct)
+                  || /^image\/svg\+xml/.test(ct)
+                return ok ? response : null
+              },
+            },
+          ],
         },
       },
       {
-        urlPattern: ({ url }) => url.pathname.startsWith('/img/'),
+        // Audit externo F015/F068 (2026-05-22): mismo problema que con JS — el
+        // cache poison de Cloudflare puede servir HTML 200 immutable para una
+        // URL .webp cuyo archivo aun no estaba en el deploy. Workbox cachea
+        // ese HTML, marcandolo como imagen valida, y el <img> falla siempre.
+        // El plugin requireContentType rechaza cualquier respuesta que no sea
+        // image/* — sin esto, una vez poisoned, el SW perpetua el bug aun
+        // despues de purgar la edge de Cloudflare.
+        urlPattern: ({ url }) =>
+          url.pathname.startsWith('/img/') || url.pathname.startsWith('/assets/'),
         handler: 'NetworkFirst',
         options: {
-          cacheName: 'imagenes-personajes-v2',
+          cacheName: 'imagenes-personajes-v3',
           networkTimeoutSeconds: 3,
           fetchOptions: { cache: 'reload' },
           expiration: {
@@ -258,7 +283,17 @@ const pwaPlugin = VitePWA({
             maxAgeSeconds: 60 * 60 * 24 * 7,
             purgeOnQuotaError: true,
           },
-          cacheableResponse: { statuses: [0, 200] },
+          cacheableResponse: { statuses: [200] },
+          plugins: [
+            {
+              cacheWillUpdate: async ({ response }) => {
+                if (!response || response.status !== 200) return null
+                const ct = (response.headers.get('content-type') || '').toLowerCase()
+                // Solo image/* — webp, avif, png, jpeg, svg.
+                return /^image\//.test(ct) ? response : null
+              },
+            },
+          ],
         },
       },
       {
@@ -268,7 +303,16 @@ const pwaPlugin = VitePWA({
           cacheName: 'api-personajes',
           networkTimeoutSeconds: 3,
           expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
-          cacheableResponse: { statuses: [0, 200] },
+          cacheableResponse: { statuses: [200] },
+          plugins: [
+            {
+              cacheWillUpdate: async ({ response }) => {
+                if (!response || response.status !== 200) return null
+                const ct = (response.headers.get('content-type') || '').toLowerCase()
+                return /^application\/json/.test(ct) ? response : null
+              },
+            },
+          ],
         },
       },
       {
@@ -290,7 +334,16 @@ const pwaPlugin = VitePWA({
           cacheName: 'api-torneos',
           networkTimeoutSeconds: 3,
           expiration: { maxEntries: 50, maxAgeSeconds: 60 },
-          cacheableResponse: { statuses: [0, 200] },
+          cacheableResponse: { statuses: [200] },
+          plugins: [
+            {
+              cacheWillUpdate: async ({ response }) => {
+                if (!response || response.status !== 200) return null
+                const ct = (response.headers.get('content-type') || '').toLowerCase()
+                return /^application\/json/.test(ct) ? response : null
+              },
+            },
+          ],
         },
       },
       {
@@ -299,7 +352,16 @@ const pwaPlugin = VitePWA({
         options: {
           cacheName: 'og-images',
           expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
-          cacheableResponse: { statuses: [0, 200] },
+          cacheableResponse: { statuses: [200] },
+          plugins: [
+            {
+              cacheWillUpdate: async ({ response }) => {
+                if (!response || response.status !== 200) return null
+                const ct = (response.headers.get('content-type') || '').toLowerCase()
+                return /^image\//.test(ct) ? response : null
+              },
+            },
+          ],
         },
       },
     ],
