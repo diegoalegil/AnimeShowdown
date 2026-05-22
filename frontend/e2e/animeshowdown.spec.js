@@ -11,6 +11,13 @@ async function preparePage(page) {
     localStorage.setItem('animeshowdown.votar.fast', 'false')
     localStorage.setItem('animeshowdown.votos_count', '0')
     sessionStorage.setItem('animeshowdown.splash.shown', 'true')
+    // Forzar idioma ES en los e2e. Sin esto, Playwright Chromium en CI
+    // arranca con navigator.language=en-US y i18next-browser-languagedetector
+    // (orden ['localStorage', 'navigator']) carga el bundle `en` → el aria-label
+    // del link al perfil pasa a ser "My profile", el del nav a "Home", etc.
+    // y los selectors del test (escritos contra el copy ES original) dejan de
+    // matchear. Setear i18nextLng=es estabiliza el idioma del UI bajo test.
+    localStorage.setItem('i18nextLng', 'es')
   })
   return consoleErrors
 }
