@@ -30,6 +30,7 @@ import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
 import com.diegoalegil.animeshowdown.dto.VotosPeriodoDto;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.PersonajeSlugAliases;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
@@ -163,8 +164,7 @@ public class PersonajeController {
     @Cacheable(value = "personajes-individual", key = "'slug:' + #slug")
     @GetMapping("/{slug:[A-Za-z][A-Za-z0-9_-]*}")
     public Personaje buscarPorSlug(@PathVariable String slug) {
-        return personajeRepository.findBySlug(slug)
-                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: slug=" + slug));
+        return buscarPersonajePorSlugOCualquierAlias(slug);
     }
 
     /**
@@ -259,7 +259,7 @@ public class PersonajeController {
     @GetMapping("/{slug}/similares")
     public List<PersonajeSimilarDto> similares(@PathVariable String slug,
             @RequestParam(defaultValue = "8") int limit) {
-        return recomendacionService.similares(slug, limit);
+        return recomendacionService.similares(PersonajeSlugAliases.canonical(slug), limit);
     }
 
     /**
@@ -269,7 +269,7 @@ public class PersonajeController {
     @GetMapping("/{slug}/elo-history")
     public List<EloHistoryPoint> eloHistory(@PathVariable String slug,
             @RequestParam(defaultValue = "30") int dias) {
-        return eloHistoryService.historial(slug, dias);
+        return eloHistoryService.historial(PersonajeSlugAliases.canonical(slug), dias);
     }
 
     /**
@@ -285,7 +285,7 @@ public class PersonajeController {
     public ResponseEntity<List<DueloRecienteDto>> duelosRecientes(
             @PathVariable String slug,
             @RequestParam(defaultValue = "10") int limit) {
-        var personajeOpt = personajeRepository.findBySlug(slug);
+        var personajeOpt = personajeRepository.findBySlug(PersonajeSlugAliases.canonical(slug));
         if (personajeOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -314,7 +314,7 @@ public class PersonajeController {
             @RequestParam(defaultValue = "7") int dias) {
         int saneDias = Math.max(1, Math.min(90, dias));
         try {
-            return ResponseEntity.ok(votosPeriodoService.calcularSlug(slug, saneDias));
+            return ResponseEntity.ok(votosPeriodoService.calcularSlug(PersonajeSlugAliases.canonical(slug), saneDias));
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
@@ -337,6 +337,7 @@ public class PersonajeController {
         int saneDias = Math.max(1, Math.min(90, dias));
         List<String> lista = java.util.Arrays.stream(slugs.split(","))
                 .map(String::trim)
+                .map(PersonajeSlugAliases::canonical)
                 .filter(s -> !s.isEmpty())
                 .distinct()
                 .limit(50)
@@ -355,7 +356,7 @@ public class PersonajeController {
     @GetMapping("/{slug}/matchups")
     public ResponseEntity<MatchupResumenDto> matchups(@PathVariable String slug) {
         try {
-            return ResponseEntity.ok(personajeMatchupService.calcular(slug));
+            return ResponseEntity.ok(personajeMatchupService.calcular(PersonajeSlugAliases.canonical(slug)));
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
@@ -375,7 +376,7 @@ public class PersonajeController {
      */
     @GetMapping("/{slug}/imagenes")
     public ResponseEntity<List<String>> imagenes(@PathVariable String slug) {
-        var personajeOpt = personajeRepository.findBySlug(slug);
+        var personajeOpt = personajeRepository.findBySlug(PersonajeSlugAliases.canonical(slug));
         if (personajeOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -423,5 +424,11 @@ public class PersonajeController {
         return java.util.Arrays.stream(ifNoneMatch.split(","))
                 .map(String::trim)
                 .anyMatch(candidate -> candidate.equals(etag) || candidate.equals("W/" + etag));
+    }
+
+    private Personaje buscarPersonajePorSlugOCualquierAlias(String slug) {
+        String canonical = PersonajeSlugAliases.canonical(slug);
+        return personajeRepository.findBySlug(canonical)
+                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: slug=" + slug));
     }
 }

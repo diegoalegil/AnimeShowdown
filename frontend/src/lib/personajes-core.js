@@ -8,6 +8,22 @@ export const CATALOGO_PERSONAJES_STORAGE_KEY = 'animeshowdown.catalogo-personaje
 
 export const personajes = []
 
+export const PERSONAJE_SLUG_ALIASES = {
+  all_might: 'allmight',
+  monkey_d_luffy: 'luffy',
+  roronoa_zoro: 'zoro',
+  jiraiya: 'jiraya',
+  hinata_hyuga: 'hinata',
+  katsuki_bakugou: 'bakugo',
+  yuji_itadori: 'itadori',
+  shinobu_kocho: 'shinobu',
+  boa_hancock_alt: 'boa_hancock',
+}
+
+export function canonicalPersonajeSlug(slug) {
+  return PERSONAJE_SLUG_ALIASES[slug] ?? slug
+}
+
 function versionarImagenSiHaceFalta(src) {
   if (!src || !IMAGE_CACHE_BUST_PREFIXES.some((prefix) => src.startsWith(prefix))) {
     return src
@@ -53,16 +69,19 @@ export function readCatalogoPersonajesSnapshot() {
 readCatalogoPersonajesSnapshot()
 
 export function imagenPersonaje(slug) {
-  const fromCache = readCatalogoPersonajesSnapshot().find((p) => p.slug === slug)
-  return versionarImagenSiHaceFalta(fromCache?.imagenUrl ?? `/img/_missing/${slug}.webp`)
+  const canonical = canonicalPersonajeSlug(slug)
+  const fromCache = readCatalogoPersonajesSnapshot().find((p) => p.slug === canonical)
+  return versionarImagenSiHaceFalta(fromCache?.imagenUrl ?? `/img/_missing/${canonical}.webp`)
 }
 
 export function getPersonajeBySlug(slug) {
-  return readCatalogoPersonajesSnapshot().find((p) => p.slug === slug) ?? null
+  const canonical = canonicalPersonajeSlug(slug)
+  return readCatalogoPersonajesSnapshot().find((p) => p.slug === canonical) ?? null
 }
 
 export function getIndicePersonaje(slug) {
-  return readCatalogoPersonajesSnapshot().findIndex((p) => p.slug === slug)
+  const canonical = canonicalPersonajeSlug(slug)
+  return readCatalogoPersonajesSnapshot().findIndex((p) => p.slug === canonical)
 }
 
 const POPULARIDAD = {
@@ -96,7 +115,7 @@ const POPULARIDAD = {
 }
 
 export function getPopularidad(slug) {
-  return POPULARIDAD[slug] ?? 30
+  return POPULARIDAD[canonicalPersonajeSlug(slug)] ?? 30
 }
 
 function hashSlug(slug) {
