@@ -36,7 +36,11 @@ async function registerThroughUi(page, suffix = Date.now()) {
   await page.getByLabel('Confirma la contraseña').fill(password)
   await page.getByRole('button', { name: 'Crear cuenta' }).click()
   await page.waitForURL('**/')
-  await expect(page.getByRole('link', { name: 'Perfil' })).toBeVisible()
+  // El link al perfil en el header tiene aria-label "Mi perfil" (de
+  // t('nav.perfil') en es.json). El test antiguo usaba name: 'Perfil'
+  // exacto y no matcheaba. Regex parcial /perfil/i cubre el copy en es
+  // ("Mi perfil") y se mantiene robusto si pasa a en ("My profile") o ja.
+  await expect(page.getByRole('link', { name: /perfil/i }).first()).toBeVisible()
   return { username, email, password }
 }
 
@@ -91,7 +95,11 @@ test('deeplink de personaje monta 3D solo tras interacción', async ({ page }) =
   await expect(page.locator('canvas')).toHaveCount(0)
   await attachVisualSmoke(page, 'personaje-luffy-static')
 
-  await page.getByRole('button', { name: 'Ver en 3D' }).click()
+  // El botón muestra texto "Ver en 3D" pero su aria-label es
+  // "Abrir vista 3D rotable de <nombre>". Cuando un elemento tiene
+  // aria-label, ESE es el accessible name que ve Playwright; el texto
+  // visible queda ignorado. Match por regex contra el aria-label.
+  await page.getByRole('button', { name: /vista 3D rotable/i }).click()
   await expect(page.locator('canvas')).toHaveCount(1)
   await attachVisualSmoke(page, 'personaje-luffy-3d')
   expect(consoleErrors).toEqual([])
