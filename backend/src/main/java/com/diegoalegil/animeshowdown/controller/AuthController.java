@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import com.diegoalegil.animeshowdown.dto.CambioPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.ForgotPasswordRequest;
@@ -62,6 +64,10 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private static final String REFRESH_COOKIE = "refresh_token";
+    private static final int MAX_AVATAR_URL_LENGTH = 2_000;
+    private static final long MAX_AVATAR_DATA_BYTES = 2L * 1024L * 1024L;
+    private static final Pattern AVATAR_DATA_URI_PATTERN =
+            Pattern.compile("^data:image/(png|jpe?g|webp);base64,", Pattern.CASE_INSENSITIVE);
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -500,14 +506,74 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String avatarUrl = body.get("avatarUrl");
-        if (avatarUrl != null && avatarUrl.length() > 500_000) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("avatarUrl demasiado largo (máx 500 KB)");
+        String avatarNormalizado = normalizarAvatarUrl(avatarUrl);
+        ResponseEntity<?> avatarInvalido = validarAvatar(avatarNormalizado);
+        if (avatarInvalido != null) {
+            return avatarInvalido;
         }
-        usuario.setAvatarUrl(avatarUrl != null && avatarUrl.isBlank() ? null : avatarUrl);
+        usuario.setAvatarUrl(avatarNormalizado);
         usuarioRepository.save(usuario);
         log.info("Avatar actualizado: username={}", usuario.getUsername());
         return ResponseEntity.ok(new UsuarioRespuesta(usuario));
+    }
+
+    private static String normalizarAvatarUrl(String avatarUrl) {
+        if (avatarUrl == null || avatarUrl.isBlank()) {
+            return null;
+        }
+        return avatarUrl.trim();
+    }
+
+    private static ResponseEntity<?> validarAvatar(String avatarUrl) {
+        if (avatarUrl == null) {
+            return null;
+        }
+        if (avatarUrl.regionMatches(true, 0, "data:", 0, "data:".length())) {
+            return validarAvatarDataUri(avatarUrl);
+        }
+        if (avatarUrl.length() > MAX_AVATAR_URL_LENGTH) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("avatarUrl demasiado largo (máx 2000 caracteres)");
+        }
+        if (!avatarUrl.startsWith("http://") && !avatarUrl.startsWith("https://")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("avatarUrl debe ser una URL http(s) o una imagen embebida permitida");
+        }
+        return null;
+    }
+
+    private static ResponseEntity<?> validarAvatarDataUri(String avatarUrl) {
+        if (!AVATAR_DATA_URI_PATTERN.matcher(avatarUrl).find()) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                    .body("Formato de avatar no permitido. Usa PNG, JPEG o WebP.");
+        }
+        int commaIndex = avatarUrl.indexOf(',');
+        if (commaIndex < 0 || commaIndex == avatarUrl.length() - 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("avatarUrl data URI inválida");
+        }
+        String base64 = avatarUrl.substring(commaIndex + 1).replaceAll("\\s", "");
+        if (decodedBase64Bytes(base64) > MAX_AVATAR_DATA_BYTES) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body("Avatar demasiado grande (máx 2 MB)");
+        }
+        try {
+            Base64.getDecoder().decode(base64);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("avatarUrl base64 inválido");
+        }
+        return null;
+    }
+
+    private static long decodedBase64Bytes(String base64) {
+        int padding = 0;
+        if (base64.endsWith("==")) {
+            padding = 2;
+        } else if (base64.endsWith("=")) {
+            padding = 1;
+        }
+        return (base64.length() * 3L / 4L) - padding;
     }
 
     @PutMapping("/me/password")
