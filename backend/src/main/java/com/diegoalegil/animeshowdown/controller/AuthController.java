@@ -382,9 +382,21 @@ public class AuthController {
             @CookieValue(name = REFRESH_COOKIE, required = false) String refreshCookie,
             HttpServletRequest httpRequest) {
         if (refreshCookie == null || refreshCookie.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            // Audit F003 follow-up (2026-05-22): AuthContext ahora intenta
+            // refresh SIEMPRE en bootstrap (antes solo si había user en
+            // localStorage). Resultado: cada visitante anónimo dispara un
+            // POST /api/auth/refresh sin cookie → 401. El navegador loggea
+            // "Failed to load resource: 401" como console.error, lo que
+            // contamina consola y rompe los tests e2e (consoleErrors !== []).
+            //
+            // El 401 era semánticamente correcto pero genera ruido innecesario
+            // en consola y test. Cambio a 204 No Content cuando no hay cookie:
+            // el frontend ya trata !res.ok como "sin sesión" (refreshSession
+            // devuelve null), y 204 no se loggea como error. Cookie inválida
+            // de verdad (rotación failed, expirada) sigue dando 401 abajo.
+            return ResponseEntity.noContent()
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
-                    .body(Map.of("message", "No hay sesión activa"));
+                    .build();
         }
         RefreshTokenService.ResultadoRotacion r = refreshTokenService.rotar(
                 refreshCookie, extraerUserAgent(httpRequest), clientIpExtractor.extract(httpRequest));

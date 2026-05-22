@@ -170,6 +170,15 @@ async function intentarRefresh() {
         if (prev !== null) notifyTokenChange()
         return null
       }
+      // 204 No Content: el backend señala "no había cookie de refresh"
+      // sin disparar el console.error del 401 (audit F003 follow-up).
+      // No hay body que parsear, tratamos como sesión vacía.
+      if (res.status === 204) {
+        const prev = tokenEnMemoria
+        tokenEnMemoria = null
+        if (prev !== null) notifyTokenChange()
+        return null
+      }
       const data = await res.json()
       if (data?.token) {
         const prev = tokenEnMemoria
