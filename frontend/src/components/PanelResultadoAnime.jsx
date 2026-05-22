@@ -56,6 +56,7 @@ function PanelResultadoAnime({
     >
       <span
         aria-hidden="true"
+        lang="ja"
         className={`pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none opacity-[0.07] ${
           acertado ? 'text-emerald-200' : 'text-rose-200'
         }`}
@@ -86,7 +87,8 @@ function PanelResultadoAnime({
               acertado ? 'text-emerald-200' : 'text-rose-200'
             }`}
           >
-            {acertado ? '勝利 · Victoria' : '敗北 · Sin intentos'}
+            <span lang="ja">{acertado ? '勝利' : '敗北'}</span>
+            {acertado ? ' · Victoria' : ' · Sin intentos'}
           </p>
         </div>
         <p className="mb-1 text-2xl font-extrabold leading-tight tracking-tight text-fg-strong">

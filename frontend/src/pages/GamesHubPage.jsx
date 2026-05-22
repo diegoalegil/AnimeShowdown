@@ -385,6 +385,7 @@ function CardDestacado({ game, estado }) {
       {/* Kanji decorativo grande detrás (mood), no panel separado */}
       <span
         aria-hidden="true"
+        lang="ja"
         className={`pointer-events-none absolute -right-6 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-15 sm:text-[10rem] ${theme.text}`}
         style={{ textShadow: '0 0 60px currentColor' }}
       >
@@ -445,6 +446,7 @@ function CardMini({ game, estado }) {
       {/* Kanji decorativo en background sin panel separado */}
       <span
         aria-hidden="true"
+        lang="ja"
         className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] font-extrabold leading-none opacity-20 sm:text-[6rem] ${theme.text}`}
         style={{ textShadow: '0 0 40px currentColor' }}
       >
@@ -499,6 +501,8 @@ function OmikujiCard() {
         style={{ background: 'linear-gradient(135deg, rgb(255 46 99 / 0.22) 0%, rgb(7 10 18 / 0.45) 100%)' }}
       >
         <span
+          aria-hidden="true"
+          lang="ja"
           className="font-mono text-lg font-extrabold text-gold"
           style={{ textShadow: '0 0 16px currentColor, 0 2px 5px rgb(0 0 0 / 0.65)' }}
         >御</span>

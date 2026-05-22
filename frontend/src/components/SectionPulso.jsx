@@ -486,7 +486,11 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
             <DestacadoAvatar personaje={b} />
           </div>
         ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 font-mono text-5xl font-black text-amber-200">
+          <div
+            aria-hidden="true"
+            lang="ja"
+            className="flex h-24 w-24 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 font-mono text-5xl font-black text-amber-200"
+          >
             戦
           </div>
         )}
@@ -603,7 +607,11 @@ function RetoCard() {
       />
       <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-rose-300" />
       <div className="relative flex items-start gap-3">
-        <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-rose-500/35 bg-bg/65 font-mono text-3xl font-black text-rose-200 shadow-[0_0_34px_-16px_rgba(159,29,44,0.9)]">
+        <div
+          aria-hidden="true"
+          lang="ja"
+          className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-rose-500/35 bg-bg/65 font-mono text-3xl font-black text-rose-200 shadow-[0_0_34px_-16px_rgba(159,29,44,0.9)]"
+        >
           影
         </div>
         <div className="flex flex-col gap-1">
