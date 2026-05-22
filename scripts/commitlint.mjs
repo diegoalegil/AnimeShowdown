@@ -21,7 +21,9 @@ function validateMessage(message, label = 'commit') {
   if (!header) {
     errors.push('header vacío')
   } else if (!config.headerPattern.test(header)) {
-    errors.push(`usa "feat|fix|chore|refactor|test|docs(scope): descripción"`)
+    // Mensaje derivado de config.types para que se mantenga en sync cuando
+    // se expandan los tipos permitidos (ver commitlint.config.cjs).
+    errors.push(`usa "${config.types.join('|')}(scope): descripción"`)
   }
 
   if (header.length > config.maxHeaderLength) {
