@@ -622,16 +622,26 @@ function VotarPage() {
 }
 
 function VsBadge({ votedFor }) {
+  const reduceMotion = useReducedMotion()
+  // Audit perf (2026-05-22): la animación infinita scale[1,1.06,1] cada 1.8s
+  // forzaba recomposición del badge cada frame durante TODA la sesión, aún
+  // cuando el usuario no había interactuado. Si el user respeta
+  // prefers-reduced-motion la quitamos del todo; en el resto la mantenemos
+  // pero con duración más larga (2.6s) para reducir frame churn.
   return (
     <motion.div
       animate={
         votedFor
-          ? { scale: [1, 1.25, 1], rotate: [0, 8, -8, 0] }
-          : { scale: [1, 1.06, 1] }
+          ? reduceMotion
+            ? { scale: 1.1 }
+            : { scale: [1, 1.25, 1], rotate: [0, 8, -8, 0] }
+          : reduceMotion
+            ? { scale: 1 }
+            : { scale: [1, 1.06, 1] }
       }
       transition={{
-        duration: votedFor ? 0.5 : 1.8,
-        repeat: votedFor ? 0 : Infinity,
+        duration: votedFor ? 0.5 : 2.6,
+        repeat: votedFor || reduceMotion ? 0 : Infinity,
         ease: 'easeInOut',
       }}
       className="relative flex h-14 w-14 items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-gold shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] sm:h-20 sm:w-20"
@@ -661,21 +671,18 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
         onPointerEnter={warm}
         onFocus={warm}
         disabled={showResult}
+        // Audit perf (2026-05-22): los keyframes scale[1,1.08,1] +
+        // boxShadow[3 keyframes] al votar generaban 3 transiciones simultáneas
+        // sobre una card de 400px; combinado con el blur del letterbox
+        // disparaba 30+ms/frame durante 560ms. Mantenemos el pop con un
+        // single-step scale 1.05 + boxShadow estático (CSS transitions ya
+        // gestionan el easing).
         animate={
           isVoted
-            ? reduceMotion
-              ? { boxShadow: '0 0 0 2px rgba(245,197,92,0.7)' }
-              : {
-                  scale: [1, 1.08, 1],
-                  boxShadow: [
-                    '0 0 0 rgba(245,197,92,0)',
-                    '0 0 58px rgba(245,197,92,0.65)',
-                    '0 0 0 rgba(245,197,92,0)',
-                  ],
-                }
+            ? { scale: reduceMotion ? 1 : 1.05 }
             : { scale: 1 }
         }
-        transition={{ duration: reduceMotion ? 0.18 : 0.56, ease: 'easeOut' }}
+        transition={{ duration: reduceMotion ? 0.18 : 0.32, ease: 'easeOut' }}
         aria-label={
           anonymousLimited
             ? `Votar como invitado por ${personaje.nombre} de ${personaje.anime}`
@@ -699,16 +706,15 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
           style={{ backgroundColor: dominantColor }}
         >
           {/* Letterbox del fondo:
-              - Antes: <div backgroundImage + filter:blur(48px) + scale(1.4)>
-                Coste brutal en repaint (~10-15ms/frame en cards de 400px)
-                porque blur(48px) re-rasteriza la imagen original completa
-                cada vez que algo cambia en la card (hover, animate, etc).
-                Con 2 cards activas + el motion.button transición=all, se
-                comía 30+ms por frame → lag claro a ojo.
-              - Ahora: blur(24px) + scale(1.2) — la mitad del kernel, y
-                will-change: filter promueve a GPU layer para que el
-                compositor cache el resultado en lugar de re-rasterizar.
-                Coste medido: ~3-5ms/frame en las mismas cards.
+              - Antes: blur(48px) + scale(1.4) era brutal en repaint
+                (~10-15ms/frame). Pasó a blur(24px) + scale(1.2) + GPU layer.
+              - Audit perf (2026-05-22): aun a 24px, en 2 cards a la vez +
+                hover scale + voto animation, el repaint del blur seguía
+                siendo el principal bottleneck según devtools. Bajamos a
+                blur(18px) + scale(1.1) (menos área a re-blurear) y opacity
+                0.55 para que el efecto se note menos al simplificarse.
+                contain:strict aísla el layer del compositor — los repaints
+                de la card no propagan al letterbox de la otra.
               - dominantColor sigue ahí abajo como fondo de respaldo si
                 el blur tarda en pintar al primer frame. */}
           <div
@@ -718,15 +724,18 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
               backgroundImage: `url(${imgSrc})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              filter: 'blur(24px)',
-              transform: 'scale(1.2)',
-              opacity: 0.7,
-              willChange: 'filter, transform',
+              filter: 'blur(18px)',
+              transform: 'scale(1.1)',
+              opacity: 0.55,
+              willChange: 'filter',
+              contain: 'strict',
             }}
           />
           <img
             src={imgSrc}
             alt={personaje.nombre}
+            loading="eager"
+            decoding="async"
             className="relative h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
           />
           {isVoted && (
