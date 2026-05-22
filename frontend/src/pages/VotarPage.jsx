@@ -341,8 +341,13 @@ function VotarPage() {
                 delta: data?.delta ?? 1,
                 votosGanador: data?.votosGanador ?? null,
               })
+              // Audit externo AS-050 (2026-05-22): antes "+1 ELO" pero
+              // delta es el incremento del conteo de votos (COUNT, no
+              // K-factor real). "+1 voto" es honesto y compatible con la
+              // descripción ya existente "Ahora suma N votos en este match".
               const delta = data?.delta ?? 1
-              toast.success(`+${delta} ELO · ${personaje.nombre}`, {
+              const sufijo = delta === 1 ? 'voto' : 'votos'
+              toast.success(`+${delta} ${sufijo} · ${personaje.nombre}`, {
                 description: data?.votosGanador != null
                   ? data?.anonimo
                     ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}`
@@ -754,7 +759,12 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             active={Boolean(voteResult)}
             delta={voteResult?.delta}
             value={voteResult?.votosGanador}
-            label="ELO actualizado"
+            // Audit externo AS-050 (2026-05-22): antes "ELO actualizado",
+            // pero el backend cuenta votos (COUNT, no K-factor) y en modo
+            // casual local nada se persiste. "Voto registrado" no miente
+            // sobre la mecánica — el contador de la card sí refleja el
+            // total real de votos en el match.
+            label="Voto registrado"
           />
           {anonymousLimited && !showResult && (
             <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-gold backdrop-blur-sm">
