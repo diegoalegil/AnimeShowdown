@@ -28,6 +28,7 @@ import {
 import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
+import { getGameVisual } from '../data/visual-assets'
 
 const totalPersonajes = personajes.length
 const animeUniversos = new Set(personajes.map((p) => p.anime)).size
@@ -648,39 +649,61 @@ function SectionRetosDiarios() {
             </Link>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {/* Audit user feedback (2026-05-22): el grid 5-col + cards solo
+            con kanji decorativo dejaba banners de ~140px de alto en desktop
+            — "miniaturas inútiles". Nuevo layout 1/2/3 cols con
+            background-image real del juego (cover en /assets/game-covers/),
+            min-h ~13rem mobile / 14rem desktop y overlay gradient
+            inferior para legibilidad. Mantenemos kanji decorativo + accent
+            por color, ahora respiran sobre la imagen. */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {RETOS_DIARIOS.map((r) => {
             const colorClasses = RETO_COLORS[r.color]
             const textColor =
               colorClasses?.split(' ').find((c) => c.startsWith('text-')) || ''
+            const visual = getGameVisual(r.to, r.titulo)
+            const coverImage = visual?.image || visual?.fallbackImage
             return (
               <Link
                 key={r.to}
                 to={r.to}
-                className={`group relative flex flex-col gap-2 overflow-hidden rounded-xl border bg-surface/85 p-4 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-[0_18px_60px_-25px_rgba(159,29,44,0.65)] backdrop-blur-sm ${colorClasses}`}
+                className={`group relative flex min-h-[13rem] flex-col gap-2 overflow-hidden rounded-xl border bg-surface/85 p-5 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-[0_22px_70px_-22px_rgba(159,29,44,0.65)] backdrop-blur-sm sm:min-h-[14rem] ${colorClasses}`}
               >
+                {coverImage && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-cover bg-center opacity-55 transition-transform duration-700 group-hover:scale-[1.04]"
+                    style={{ backgroundImage: `url("${coverImage}")` }}
+                  />
+                )}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"
+                />
                 <span
                   aria-hidden="true"
                   lang="ja"
-                  className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] leading-none opacity-[0.08] transition-all duration-500 group-hover:opacity-[0.22] group-hover:-translate-y-1 ${textColor}`}
-                  style={{ textShadow: '0 0 35px currentColor' }}
+                  className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[6rem] leading-none opacity-[0.18] transition-all duration-500 group-hover:opacity-[0.30] group-hover:-translate-y-1 ${textColor}`}
+                  style={{ textShadow: '0 0 45px currentColor' }}
                 >
                   {r.kanji}
                 </span>
                 <div
-                  className={`relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_28px_-6px_currentColor] ${colorClasses}`}
+                  className={`relative z-10 mt-auto flex h-12 w-12 items-center justify-center rounded-lg border-2 backdrop-blur transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_28px_-6px_currentColor] ${colorClasses}`}
                 >
                   <span lang="ja" className="font-mono text-2xl font-extrabold">
                     {r.kanji}
                   </span>
                 </div>
-                <h3 className="relative text-sm font-bold text-fg-strong transition-colors group-hover:text-gold">
+                <h3 className="relative z-10 text-base font-bold text-fg-strong drop-shadow-[0_2px_5px_rgba(0,0,0,0.85)] transition-colors group-hover:text-gold sm:text-lg">
                   {r.titulo}
                 </h3>
-                <p className="relative text-xs text-fg-muted">{r.desc}</p>
+                <p className="relative z-10 text-xs text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] sm:text-[13px]">
+                  {r.desc}
+                </p>
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-3 bottom-2 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-accent/60 to-transparent transition-transform duration-300 group-hover:scale-x-100"
+                  className="pointer-events-none absolute inset-x-4 bottom-2 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-accent/60 to-transparent transition-transform duration-300 group-hover:scale-x-100"
                 />
               </Link>
             )
