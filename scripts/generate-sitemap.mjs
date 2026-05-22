@@ -18,7 +18,7 @@
 //   - SITEMAP_API_URL: URL base del backend en producción (Railway).
 //     Si no está definida, el script usa solo los torneos del seed.
 
-import { readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -94,6 +94,7 @@ function xmlEscape(s) {
 const personajesCatalogo = loadPersonajesFromSeed(
   join(ROOT, 'backend/src/main/resources/personajes-seed.json'),
 )
+const personajesPorSlug = new Map(personajesCatalogo.map((p) => [p.slug, p]))
 const popularidadCatalogo = extractPopularidadFromCore(
   join(ROOT, 'frontend/src/lib/personajes-core.js'),
 )
@@ -145,6 +146,7 @@ const torneosSeed = JSON.parse(
     'utf8',
   ),
 )
+const torneosSeedPorSlug = new Map(torneosSeed.map((t) => [t.slug, t]))
 
 const apiData = await fetchSitemapData(process.env.SITEMAP_API_URL)
 
@@ -227,6 +229,72 @@ function urlBlock(loc, priority, changefreq, lastmod = today, images = []) {
   </url>`
 }
 
+function publicAsset(path) {
+  if (!path) return null
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  const fsPath = join(ROOT, 'frontend/public', cleanPath)
+  return existsSync(fsPath) ? cleanPath : null
+}
+
+function firstPublicAsset(candidates) {
+  for (const candidate of candidates) {
+    const found = publicAsset(candidate)
+    if (found) return found
+  }
+  return null
+}
+
+function animeImage(anime) {
+  const slug = slugifyAnime(anime)
+  const banner = firstPublicAsset([
+    `/assets/anime-banners/${slug}.webp`,
+    `/assets/anime-banners/${slug}.avif`,
+    `/assets/anime-banners/${slug}.jpg`,
+    `/assets/anime-banners/${slug}.png`,
+    `/assets/anime-banners/${slug}.svg`,
+  ])
+  if (banner) {
+    return {
+      loc: `${BASE_URL}${banner}`,
+      title: `${anime} — banner`,
+      caption: `Banner del universo ${anime} en AnimeShowdown`,
+    }
+  }
+  const personajePortada = personajesCatalogo.find((p) => p.anime === anime && p.imagen)
+  if (!personajePortada) return null
+  return {
+    loc: `${BASE_URL}${personajePortada.imagen}`,
+    title: `${anime} — ${personajePortada.nombre}`,
+    caption: `Imagen representativa de ${anime} en AnimeShowdown`,
+  }
+}
+
+function torneoImages(torneo) {
+  const seed = torneosSeedPorSlug.get(torneo.slug) ?? torneo
+  const banner = firstPublicAsset([
+    `/assets/tournament-banners/${torneo.slug}.webp`,
+    `/assets/tournament-banners/${torneo.slug}.avif`,
+    `/assets/tournament-banners/${torneo.slug}.jpg`,
+    `/assets/tournament-banners/${torneo.slug}.png`,
+    `/assets/tournament-banners/${torneo.slug}.svg`,
+  ])
+  if (banner) {
+    return [{
+      loc: `${BASE_URL}${banner}`,
+      title: `${seed.nombre ?? torneo.slug} — banner`,
+      caption: `Banner del torneo ${seed.nombre ?? torneo.slug} en AnimeShowdown`,
+    }]
+  }
+  const destacadoSlug = seed.ganadorSlug ?? seed.participantes?.[0]
+  const destacado = destacadoSlug ? personajesPorSlug.get(destacadoSlug) : null
+  if (!destacado?.imagen) return []
+  return [{
+    loc: `${BASE_URL}${destacado.imagen}`,
+    title: `${seed.nombre ?? torneo.slug} — ${destacado.nombre}`,
+    caption: `Imagen representativa del torneo ${seed.nombre ?? torneo.slug}`,
+  }]
+}
+
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -245,7 +313,13 @@ ${personajesCatalogo
     .join('\n')}
 ${animesUnicos
     .map((anime) =>
-      urlBlock(`/animes/${slugifyAnime(anime)}`, '0.7', 'weekly', today),
+      urlBlock(
+        `/animes/${slugifyAnime(anime)}`,
+        '0.7',
+        'weekly',
+        today,
+        [animeImage(anime)].filter(Boolean),
+      ),
     )
     .join('\n')}
 ${dueloRoutes
@@ -254,7 +328,13 @@ ${dueloRoutes
 ${torneos
     .map((t) => {
       const priority = t.esDeUsuario ? '0.4' : '0.5'
-      return urlBlock(`/torneos/${t.slug}`, priority, 'weekly', lastmodOf(t.lastmod))
+      return urlBlock(
+        `/torneos/${t.slug}`,
+        priority,
+        'weekly',
+        lastmodOf(t.lastmod),
+        torneoImages(t),
+      )
     })
     .join('\n')}
 ${usuarios
@@ -283,5 +363,5 @@ console.log(
 )
 console.log(`   - ${usuarios.length} usuarios públicos`)
 console.log(
-  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length + dueloRoutes.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length} imágenes`,
+  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length + dueloRoutes.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length + animesUnicos.length + torneos.length} imágenes`,
 )
