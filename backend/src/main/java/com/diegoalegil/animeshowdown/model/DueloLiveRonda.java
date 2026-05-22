@@ -55,12 +55,19 @@ public class DueloLiveRonda {
     @Column(name = "cierra_en", nullable = false)
     private LocalDateTime cierraEn;
 
+    // length=10 (no length=1) porque el enum DueloLiveChoice incluye EMPATE
+    // (6 chars). Aunque /votar rechaza EMPATE con BAD_REQUEST y en esta
+    // columna solo aterrizan 'A' o 'B', Hibernate valida el schema contra
+    // el tipo del campo (no contra el subset que llega en runtime) y para
+    // ese tipo necesita una columna capaz de almacenar el valor más largo.
+    // V25 dejó la columna VARCHAR(1) -> Hibernate ddl-auto=validate fallaba
+    // contra Postgres real. V29 amplía a VARCHAR(10) y aquí alineamos.
     @Enumerated(EnumType.STRING)
-    @Column(name = "voto_jugador1", length = 1)
+    @Column(name = "voto_jugador1", length = 10)
     private DueloLiveChoice votoJugador1;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "voto_jugador2", length = 1)
+    @Column(name = "voto_jugador2", length = 10)
     private DueloLiveChoice votoJugador2;
 
     @Column(name = "voto_jugador1_en")
