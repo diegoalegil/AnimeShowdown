@@ -260,6 +260,66 @@ class EnfrentamientoControllerTest {
                         + " un único voto anónimo por sesión y match");
     }
 
+    /**
+     * Audit externo AS-002 (2026-05-22): el ranking debía ponderar votos
+     * según voto.peso (0.30 anónimo, 1.00 registrado). Antes COUNT(v)
+     * trataba a los anónimos como registrados, alterando el orden.
+     *
+     * Escenario:
+     *   - Personaje A recibe 1 voto registrado (peso 1.0).
+     *   - Personaje B recibe 3 votos anónimos (peso 0.30 × 3 = 0.9).
+     * Con COUNT: B (3) > A (1) → orden incorrecto.
+     * Con SUM(peso): A (1.0) > B (0.9) → orden correcto.
+     */
+    @Test
+    void rankingPonderaVotosAnonimosConPeso030() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        long persoA = ids[0]; // recibe 1 registrado
+        long persoB = ids[1]; // recibe 3 anónimos
+
+        // 1 voto registrado a A
+        String userTok = tokenUserRegistrado("ranking_peso_user", "rankingpeso@example.com");
+        long enfA = crearEnfrentamientoListoParaVotar(adminToken, persoA, persoB, "peso-A");
+        mvc.perform(post("/api/enfrentamientos/" + enfA + "/votar")
+                .header("Authorization", "Bearer " + userTok)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", persoA))))
+                .andExpect(status().isOk());
+
+        // 3 votos anónimos a B desde tres sesiones distintas (para que el
+        // constraint anónimo no los rechace) en tres matches distintos.
+        for (int i = 0; i < 3; i++) {
+            long enfB = crearEnfrentamientoListoParaVotar(adminToken, persoA, persoB, "peso-B" + i);
+            mvc.perform(post("/api/enfrentamientos/" + enfB + "/votar")
+                    .header("X-AS-Anonymous-Id", "anon-peso-" + i)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(Map.of("personajeGanadorId", persoB))))
+                    .andExpect(status().isOk());
+        }
+
+        // Ranking ponderado: A (1.0) DEBE ir antes que B (0.9).
+        // Antes del fix de AS-002, B (3 votos) iba antes que A (1 voto).
+        MvcResult res = mvc.perform(get("/api/votos/ranking"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode arr = json.readTree(res.getResponse().getContentAsString());
+
+        // Buscamos las posiciones de A y B en el ranking devuelto.
+        int posA = -1, posB = -1;
+        for (int i = 0; i < arr.size(); i++) {
+            long pid = arr.get(i).get("personaje").get("id").asLong();
+            if (pid == persoA) posA = i;
+            if (pid == persoB) posB = i;
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(posA >= 0, "Personaje A no aparece en ranking");
+        org.junit.jupiter.api.Assertions.assertTrue(posB >= 0, "Personaje B no aparece en ranking");
+        org.junit.jupiter.api.Assertions.assertTrue(
+                posA < posB,
+                "Ranking debería poner A (1 voto registrado = peso 1.0) ANTES que B "
+                        + "(3 anónimos = peso 0.9). Posiciones obtenidas: A=" + posA + ", B=" + posB);
+    }
+
     @Test
     void migrarVotosAnonimosAsociaHistorialAlLogin() throws Exception {
         String adminToken = tokenAdmin();
