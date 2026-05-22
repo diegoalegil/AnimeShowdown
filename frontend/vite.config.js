@@ -396,7 +396,7 @@ export default defineConfig({
         // absoluto: `.../node_modules/lucide-react/dist/...`.
         manualChunks(id) {
           if (id.endsWith('/src/lib/api.js') || id.endsWith('\\src\\lib\\api.js')) {
-            return 'client-api'
+            return 'data-client'
           }
           if (!id.includes('node_modules')) return undefined
           if (
