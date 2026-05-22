@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -19,6 +19,11 @@ import KanjiSpinner from '../components/KanjiSpinner'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import AccessibleDialog from '../components/AccessibleDialog'
+
+// Audit externo AS-004 (2026-05-23): el captcha modal lazy-load el script
+// de Cloudflare Turnstile la primera vez. La mayoría de usuarios nunca
+// caen en captcha, así que mantenemos el bundle inicial sin ese coste.
+const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
 
 /**
  * VotarPage — arena de duelo rápido (rebrand Plan v2 §14).
@@ -229,6 +234,11 @@ function VotarPage() {
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
   const [showAnonLimitModal, setShowAnonLimitModal] = useState(false)
+  // Audit externo AS-004 (2026-05-23): cuando el backend devuelve 428,
+  // guardamos el voto pendiente (sitekey, ids del enfrentamiento y
+  // personaje) y abrimos el captcha modal. Tras éxito, re-emitimos la
+  // mutation con el header X-AS-Captcha-Token.
+  const [captchaChallenge, setCaptchaChallenge] = useState(null)
 
   // Audit P3 (2026-05-17): ref para cancelar el timeout de auto-next si
   // el usuario pulsa "Siguiente duelo" antes de que dispare (o si el
@@ -237,11 +247,17 @@ function VotarPage() {
   const autoNextTimeoutRef = useRef(null)
 
   const votarMutation = useMutation({
-    mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous }) =>
-      endpoints.votar(enfrentamientoId, personajeGanadorId, {
+    mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous, captchaToken }) => {
+      // Audit externo AS-004 (2026-05-23): si tenemos token Turnstile,
+      // viajará en el header X-AS-Captcha-Token. El backend lo verifica
+      // antes de aplicar el throttle de captcha.
+      const headers = anonymous ? { ...getAnonymousVoteHeaders() } : {}
+      if (captchaToken) headers['X-AS-Captcha-Token'] = captchaToken
+      return endpoints.votar(enfrentamientoId, personajeGanadorId, {
         anonymous,
-        headers: anonymous ? getAnonymousVoteHeaders() : {},
-      }),
+        headers,
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['torneos'] })
     },
@@ -364,6 +380,30 @@ function VotarPage() {
             onError: (err) => {
               setVotedFor(null)
               const status = err instanceof ApiError ? err.status : 0
+              // Audit externo AS-004 (2026-05-23): 428 Precondition Required
+              // = el throttle antifraude pide captcha. Body trae
+              // {captchaRequired, provider, sitekey}. Guardamos el voto
+              // pendiente y abrimos el modal Turnstile. Tras éxito,
+              // re-emitimos la mutation con header X-AS-Captcha-Token.
+              if (status === 428 && err?.body?.captchaRequired) {
+                setCaptchaChallenge({
+                  enfrentamientoId: matchId,
+                  personajeId: personaje.id,
+                  personajeNombre: personaje.nombre,
+                  personajeSlug: personaje.slug,
+                  sitekey: err.body.sitekey || '',
+                  anonymous: !user,
+                })
+                return
+              }
+              // 403 con retryAfterSeconds: throttle bloqueó 24h. Sin retry,
+              // toast informativo y CTA suave a /login.
+              if (status === 403 && err?.body?.retryAfterSeconds) {
+                toast.error('Demasiados votos anónimos esta semana', {
+                  description: 'Vuelve en 24h o crea cuenta gratis para seguir votando.',
+                })
+                return
+              }
               if (status === 409) {
                 toast.error('Ya votaste este enfrentamiento')
               } else if (status === 429) {
@@ -622,6 +662,40 @@ function VotarPage() {
           open={showAnonLimitModal}
           onClose={() => setShowAnonLimitModal(false)}
         />
+        {/* Audit externo AS-004 (2026-05-23): captcha Turnstile bajo abuso.
+            El modal se monta solo cuando el backend devuelve 428 con
+            sitekey. Lazy + Suspense para no cargar el script en bundle
+            inicial — la mayoría de usuarios nunca caen aquí. */}
+        {captchaChallenge && (
+          <Suspense fallback={null}>
+            <CaptchaModal
+              open={Boolean(captchaChallenge)}
+              sitekey={captchaChallenge.sitekey}
+              onSuccess={(token) => {
+                const ch = captchaChallenge
+                setCaptchaChallenge(null)
+                if (!ch) return
+                // Re-emitimos el voto con el token. El backend valida
+                // contra Cloudflare y, si OK, registra el voto.
+                votarMutation.mutate(
+                  {
+                    enfrentamientoId: ch.enfrentamientoId,
+                    personajeGanadorId: ch.personajeId,
+                    anonymous: ch.anonymous,
+                    captchaToken: token,
+                  },
+                  {
+                    onError: () => setVotedFor(null),
+                  },
+                )
+              }}
+              onClose={() => {
+                setCaptchaChallenge(null)
+                setVotedFor(null)
+              }}
+            />
+          </Suspense>
+        )}
     </VisualPageShell>
   )
 }
