@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -21,6 +21,7 @@ import {
   imagenPersonaje,
   getIndicePersonaje,
   getStatsPersonaje,
+  canonicalPersonajeSlug,
 } from '../lib/personajes-core'
 import { useSeo } from '../hooks/useSeo'
 import { buscarPersonajeJikan } from '../lib/jikan'
@@ -77,7 +78,8 @@ const itemVariants = {
 }
 
 function PersonajeDetailPage() {
-  const { slug } = useParams()
+  const { slug: slugParam } = useParams()
+  const slug = canonicalPersonajeSlug(slugParam)
   const idx = getIndicePersonaje(slug)
   const personaje = idx === -1 ? null : personajes[idx]
 
@@ -140,6 +142,10 @@ function PersonajeDetailPage() {
   const personajeBackendId = personaje && listaBackend
     ? listaBackend.find((p) => p.slug === personaje.slug)?.id
     : null
+
+  if (idx !== -1 && slugParam !== slug) {
+    return <Navigate to={`/personajes/${slug}`} replace />
+  }
 
   if (idx === -1) return <NotFoundPage />
 
