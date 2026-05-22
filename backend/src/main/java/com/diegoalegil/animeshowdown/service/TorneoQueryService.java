@@ -82,6 +82,11 @@ public class TorneoQueryService {
         if (torneos.isEmpty()) return List.of();
         List<Long> ids = torneos.stream().map(Torneo::getId).toList();
         List<Enfrentamiento> todos = enfrentamientoRepository.findByTorneoIdInOrdered(ids);
+        Map<Long, Long> votos7d = new HashMap<>();
+        LocalDateTime desde = LocalDateTime.now(clock).minusDays(7);
+        for (Object[] row : votoRepository.contarVotosPorTorneoDesde(desde)) {
+            votos7d.put((Long) row[0], (Long) row[1]);
+        }
         Map<Long, List<Enfrentamiento>> porTorneo = new HashMap<>(torneos.size());
         for (Enfrentamiento e : todos) {
             porTorneo.computeIfAbsent(e.getTorneo().getId(), k -> new ArrayList<>()).add(e);
@@ -89,7 +94,9 @@ public class TorneoQueryService {
         List<TorneoResumenDto> out = new ArrayList<>(torneos.size());
         for (Torneo t : torneos) {
             List<Enfrentamiento> matches = porTorneo.getOrDefault(t.getId(), List.of());
-            out.add(rellenarResumen(new TorneoResumenDto(), t, matches));
+            TorneoResumenDto dto = rellenarResumen(new TorneoResumenDto(), t, matches);
+            dto.setVotosUltimos7Dias(votos7d.getOrDefault(t.getId(), 0L));
+            out.add(dto);
         }
         return out;
     }
@@ -99,7 +106,8 @@ public class TorneoQueryService {
         Torneo torneo = torneoRepository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: slug=" + slug));
         if (torneo.getEstadoRevision() == EstadoRevision.PENDIENTE
-                || torneo.getEstadoRevision() == EstadoRevision.RECHAZADO) {
+                || torneo.getEstadoRevision() == EstadoRevision.RECHAZADO
+                || !torneo.isPublico()) {
             // Slug existe pero el torneo no es visible al público — mismo
             // 404 que si no existiera, para no filtrar metadatos del bracket
             // pendiente a usuarios no autorizados.
@@ -117,7 +125,8 @@ public class TorneoQueryService {
         // podía leer torneos UGC en cola de moderación o rechazados. Mismo
         // 404 que si no existiera para no filtrar metadata del bracket.
         if (torneo.getEstadoRevision() == EstadoRevision.PENDIENTE
-                || torneo.getEstadoRevision() == EstadoRevision.RECHAZADO) {
+                || torneo.getEstadoRevision() == EstadoRevision.RECHAZADO
+                || !torneo.isPublico()) {
             throw new EntityNotFoundException("Torneo no encontrado: id=" + id);
         }
         return toDetalle(torneo);
@@ -186,6 +195,8 @@ public class TorneoQueryService {
         dto.setFechaCreacion(t.getFechaCreacion());
         dto.setFechaInicio(t.getFechaInicio());
         dto.setFechaFinalizacion(t.getFechaFinalizacion());
+        dto.setPublico(t.isPublico());
+        dto.setVotosUltimos7Dias(0L);
 
         int totalRondas = matches.stream().mapToInt(Enfrentamiento::getRonda).max().orElse(0);
         long matchesRonda1 = matches.stream().filter(m -> Integer.valueOf(1).equals(m.getRonda())).count();

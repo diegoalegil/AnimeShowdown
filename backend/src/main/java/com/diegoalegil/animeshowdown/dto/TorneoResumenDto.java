@@ -30,6 +30,8 @@ public class TorneoResumenDto {
     private Integer totalRondas;
     private Integer rondaActual;
     private String ganadorSlug;
+    private Boolean publico;
+    private Long votosUltimos7Dias;
 
     /**
      * Primeros 5 participantes (de ronda 1) para que el TorneoCard del
@@ -136,6 +138,22 @@ public class TorneoResumenDto {
 
     public void setGanadorSlug(String ganadorSlug) {
         this.ganadorSlug = ganadorSlug;
+    }
+
+    public Boolean getPublico() {
+        return publico;
+    }
+
+    public void setPublico(Boolean publico) {
+        this.publico = publico;
+    }
+
+    public Long getVotosUltimos7Dias() {
+        return votosUltimos7Dias;
+    }
+
+    public void setVotosUltimos7Dias(Long votosUltimos7Dias) {
+        this.votosUltimos7Dias = votosUltimos7Dias;
     }
 
     public List<PersonajeMiniDto> getAvataresPrincipales() {

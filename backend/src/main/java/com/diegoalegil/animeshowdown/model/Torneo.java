@@ -89,6 +89,9 @@ public class Torneo {
     @Column(nullable = false, length = 10)
     private VisibilidadTorneo visibilidad;
 
+    @Column(nullable = false)
+    private boolean publico = true;
+
     public Torneo() {
     }
 
@@ -240,6 +243,14 @@ public class Torneo {
 
     public void setVisibilidad(VisibilidadTorneo visibilidad) {
         this.visibilidad = visibilidad;
+    }
+
+    public boolean isPublico() {
+        return publico;
+    }
+
+    public void setPublico(boolean publico) {
+        this.publico = publico;
     }
 
 }
