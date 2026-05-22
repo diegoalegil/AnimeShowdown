@@ -163,10 +163,15 @@ function SectionPulso() {
     ? ranking.reduce((acc, r) => acc + Number(r.votos ?? 0), 0)
     : 0
   const comunidadArrancando = !esFallback && totalVotosComunidad < 30
+  const votosCampeon = Number(campeon?.votos ?? 0)
+  const mostrarCampeon =
+    rankingLoading ||
+    (!esFallback && votosCampeon >= 10 && campeon?.personaje && tieneImagenPromocionable(campeon))
   const topMovers = (movimientos || [])
     .filter((m) => m.delta != null && m.delta !== 0)
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
     .slice(0, 3)
+  const mostrarMovers = topMovers.length > 0
   const torneoActivo =
     torneos.find((t) => t.estado === 'IN_PROGRESS') ??
     torneos.find((t) => t.estado === 'SCHEDULED')
@@ -227,15 +232,21 @@ function SectionPulso() {
           </p>
         </div>
 
-        {/* Fila superior: Campeón (más grande) + Movers de la semana */}
-        <div className="mb-3 grid grid-cols-1 gap-3 md:mb-4 md:grid-cols-2 md:gap-4">
-          <CampeonCard
-            campeon={campeon}
-            esFallback={esFallback}
-            loading={rankingLoading}
-            comunidadArrancando={comunidadArrancando}
-          />
-          <MoversCard movers={topMovers} />
+        {/* Fila superior: solo datos con señal real. Si el ranking tiene
+            muy pocos votos o no hay movers, cambiamos a una accion clara
+            en vez de enseñar "2 votos" / "sin movimientos". */}
+        <div className={`mb-3 grid grid-cols-1 gap-3 md:mb-4 md:gap-4 ${mostrarMovers ? 'md:grid-cols-2' : ''}`}>
+          {mostrarCampeon ? (
+            <CampeonCard
+              campeon={campeon}
+              esFallback={false}
+              loading={rankingLoading}
+              comunidadArrancando={comunidadArrancando}
+            />
+          ) : (
+            <DueloDestacadoCard duelo={duelo} torneoEnCurso={torneoEnCurso} />
+          )}
+          {mostrarMovers && <MoversCard movers={topMovers} />}
         </div>
 
         {/* Banner de evento headline. Solo aparece si hay un evento
@@ -429,6 +440,80 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   )
 }
 
+function DueloDestacadoCard({ duelo, torneoEnCurso }) {
+  const a = duelo?.personajeA
+  const b = duelo?.personajeB
+  const tieneDuelo = Boolean(a && b)
+  const destino = tieneDuelo ? '/votar' : torneoEnCurso ? `/torneos/${torneoEnCurso.slug}` : '/votar'
+  const titulo = tieneDuelo
+    ? 'Vota el duelo que mueve el meta'
+    : torneoEnCurso
+      ? torneoEnCurso.nombre
+      : 'Vota tu primer duelo del día'
+  const subtitulo = tieneDuelo
+    ? 'Dos personajes. Un click. Sin registro para empezar.'
+    : torneoEnCurso
+      ? 'Hay un bracket activo esperando votos de la comunidad.'
+      : 'Elige favorito, mira el feedback y entra en la liga.'
+
+  return (
+    <Link
+      to={destino}
+      className="group relative flex min-h-[220px] flex-col gap-4 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5"
+    >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-90"
+        style={{
+          background:
+            'radial-gradient(circle at 18% 8%, rgb(197 161 90 / 0.20), transparent 16rem), radial-gradient(circle at 86% 0%, rgb(36 198 220 / 0.14), transparent 18rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 45%)',
+        }}
+      />
+      <CardEyebrow icon={Swords} label="Duelo destacado" tono="relative text-amber-300" />
+      <div className="relative grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <div className="min-w-0">
+          <h3 className="max-w-xl text-2xl font-black leading-tight tracking-tight text-fg-strong sm:text-3xl">
+            {titulo}
+          </h3>
+          <p className="mt-2 max-w-lg text-sm leading-relaxed text-fg-muted">
+            {subtitulo}
+          </p>
+        </div>
+        {tieneDuelo ? (
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <DestacadoAvatar personaje={a} />
+            <span className="font-mono text-2xl font-black text-gold">VS</span>
+            <DestacadoAvatar personaje={b} />
+          </div>
+        ) : (
+          <div className="flex h-24 w-24 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 font-mono text-5xl font-black text-amber-200">
+            戦
+          </div>
+        )}
+      </div>
+      <span className="relative mt-auto inline-flex items-center gap-1 text-sm font-bold text-amber-300 transition-transform group-hover:translate-x-0.5">
+        {tieneDuelo ? 'Votar ahora' : 'Entrar'}
+        <ArrowRight className="h-4 w-4" />
+      </span>
+    </Link>
+  )
+}
+
+function DestacadoAvatar({ personaje }) {
+  return (
+    <div className="min-w-0 text-center">
+      <PersonajeImg
+        slug={personaje.slug}
+        alt={personaje.nombre}
+        className="mx-auto h-28 w-20 rounded-xl object-cover object-top shadow-[0_18px_55px_-32px_rgba(0,0,0,0.9)] sm:h-32 sm:w-24"
+      />
+      <p className="mt-2 line-clamp-1 max-w-24 text-[12px] font-bold text-fg-strong">
+        {personaje.nombre}
+      </p>
+    </div>
+  )
+}
+
 function MoversCard({ movers }) {
   // Sprint actividad reciente (2026-05-18): 1 request batch para los
   // 3 movers visibles — añade "+N votos" debajo del delta de posición.
@@ -436,33 +521,20 @@ function MoversCard({ movers }) {
   const slugs = movers.map((m) => m.slug)
   const { bySlug: votosBySlug } = useVotosPeriodoBatch(slugs, { dias: 7 })
 
+  if (movers.length === 0) return null
+
   return (
     <PulseCard tono="emerald">
       <CardEyebrow icon={TrendingUp} label="Movers · 7 días" tono="text-emerald-300" />
-      {movers.length === 0 ? (
-        <div className="flex-1 space-y-2">
-          <p className="text-sm text-fg-muted">
-            Aún sin movimientos esta semana — la comunidad está empezando.
-          </p>
-          <Link
-            to="/votar"
-            className="inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-300 hover:text-emerald-200"
-          >
-            Vota tú y mueve el meta
-            <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-      ) : (
-        <ul className="flex flex-col divide-y divide-border">
-          {movers.map((m) => (
-            <MoverRow
-              key={m.slug}
-              mover={m}
-              actividad={votosBySlug.get(m.slug)}
-            />
-          ))}
-        </ul>
-      )}
+      <ul className="flex flex-col divide-y divide-border">
+        {movers.map((m) => (
+          <MoverRow
+            key={m.slug}
+            mover={m}
+            actividad={votosBySlug.get(m.slug)}
+          />
+        ))}
+      </ul>
       <Link
         to="/ranking"
         className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-300 hover:text-emerald-200"
