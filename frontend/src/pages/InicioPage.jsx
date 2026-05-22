@@ -210,7 +210,7 @@ function SectionBento() {
                     className="h-12 w-12 rounded-md border border-border object-cover object-top"
                   />
                   {i < featuredAvatars.length - 1 && (
-                    <span className="font-mono text-[11px] font-bold text-gold">
+                    <span className="font-mono text-xs font-bold text-gold">
                       vs
                     </span>
                   )}
@@ -341,7 +341,7 @@ function BentoCard({
         </div>
         {eyebrow && (
           <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] ${t.eyebrow}`}
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${t.eyebrow}`}
           >
             {eyebrow}
           </span>
@@ -397,7 +397,7 @@ function Stat({ target, label }) {
       <p className="font-mono text-4xl font-extrabold tracking-tight text-fg-strong tabular-nums sm:text-5xl">
         <CountUp target={target} />
       </p>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
         {label}
       </p>
     </div>
@@ -416,7 +416,7 @@ function StatBadge({ label, hint }) {
           {label}
         </p>
       </div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
         {hint}
       </p>
     </div>
@@ -557,7 +557,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
               <p className="truncate text-[13px] font-bold text-fg-strong group-hover:text-gold">
                 {nombre}
               </p>
-              <p className="truncate text-[11px] text-fg-muted">{anime}</p>
+              <p className="truncate text-xs text-fg-muted">{anime}</p>
             </div>
             <p className="shrink-0 font-mono text-[12px] font-bold text-elo-number tabular-nums">
               {elo}
@@ -677,7 +677,7 @@ function SectionRetosDiarios() {
                 <h3 className="relative text-sm font-bold text-fg-strong transition-colors group-hover:text-gold">
                   {r.titulo}
                 </h3>
-                <p className="relative text-[11px] text-fg-muted">{r.desc}</p>
+                <p className="relative text-xs text-fg-muted">{r.desc}</p>
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-3 bottom-2 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-accent/60 to-transparent transition-transform duration-300 group-hover:scale-x-100"
