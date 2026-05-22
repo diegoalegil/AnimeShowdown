@@ -20,7 +20,6 @@
 # Importante: reescribimos a "/" y no a "/index.html". Cloudflare Pages
 # normaliza las páginas HTML a su ruta sin extensión; con destino
 # "/index.html" estas rutas acababan respondiendo 308 Location: /.
-/                         / 200
 /personajes               / 200
 /personajes/:slug         / 200
 /animes                   / 200
