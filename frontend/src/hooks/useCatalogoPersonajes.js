@@ -7,7 +7,7 @@ import {
   syncCatalogoPersonajes,
 } from '../lib/personajes-core'
 
-const FIELDS = 'slug,nombre,anime,imagenUrl'
+const FIELDS = 'slug,nombre,anime,imagenUrl,imagenColorDominante'
 
 function readPersistedCatalogo() {
   try {

@@ -18,9 +18,10 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 @Service
 public class PersonajeCatalogoService {
 
-    private static final List<String> DEFAULT_FIELDS = List.of("slug", "nombre", "anime", "imagenUrl");
+    private static final List<String> DEFAULT_FIELDS = List.of(
+            "slug", "nombre", "anime", "imagenUrl", "imagenColorDominante");
     private static final Set<String> ALLOWED_FIELDS = Set.of(
-            "id", "slug", "nombre", "anime", "descripcion", "imagenUrl");
+            "id", "slug", "nombre", "anime", "descripcion", "imagenUrl", "imagenColorDominante");
 
     private final PersonajeRepository personajeRepository;
 
