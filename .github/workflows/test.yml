@@ -93,7 +93,16 @@ jobs:
       # commitean al repo y CF las sirve directamente sin regenerarlas.
       # Antes la docu mencionaba que CF corría `npm run build` completo,
       # que disparaba el timeout de 20 min del free tier.
+      #
+      # Audit externo AS-001/AS-006 (2026-05-22): VITE_API_URL es obligatoria
+      # en builds de prod — api.js lanza Error si falta. Antes el CI compilaba
+      # OK sin la env (porque vite no la valida en build, solo en runtime),
+      # así que un PR podía mergearse y luego romper producción en blanco.
+      # Pasamos un valor placeholder de prod (animeshowdown.dev) para que el
+      # check guard de api.js se valide en el módulo durante el build chunk.
       - name: Build (sin regenerar variantes de imagen)
+        env:
+          VITE_API_URL: https://api.animeshowdown.dev
         run: npm run build:no-images
 
       # Plan v2 §3.10: bundle size budget. Falla la CI si el chunk
@@ -102,6 +111,30 @@ jobs:
       # otros chunks lazy no entran en el budget — solo el initial.
       - name: Bundle size budget
         run: npm run test:bundle
+
+      # Audit externo AS-001/AS-006 (2026-05-22): verifica que la API base
+      # quedó bundleada. api.js inicializa API_BASE en módulo global con
+      # `import.meta.env.VITE_API_URL`, y vite la inlinea durante el build.
+      # Si el workflow olvida pasar la env, el valor inlineado es undefined
+      # y el throw del fail-fast se dispara en runtime (pantalla blanca).
+      # API_BASE vive en el chunk app-runtime-*.js (separado del index
+      # para evitar invalidar el bundle principal al cambiar API URL).
+      #
+      # El workflow e2e.yml valida el runtime real con Playwright + backend
+      # local. Este check es una segunda red rápida para el job `tests`.
+      - name: Smoke producción (bundle contiene API_BASE)
+        run: |
+          BUNDLE=$(ls dist/assets/app-runtime-*.js 2>/dev/null | head -1)
+          if [ -z "$BUNDLE" ]; then
+            echo "::error::No se encontró bundle app-runtime-*.js"
+            ls dist/assets/ | head -20
+            exit 1
+          fi
+          if ! grep -q "api.animeshowdown.dev" "$BUNDLE"; then
+            echo "::error::Bundle no contiene la API base esperada — VITE_API_URL no se aplicó al build."
+            exit 1
+          fi
+          echo "OK: bundle contiene API base bundleada en $BUNDLE."
 
   sync-personajes-check:
     name: sync-personajes (--check drift)
