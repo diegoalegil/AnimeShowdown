@@ -28,7 +28,7 @@
 const TAGS_OVERRIDE = {
   // ====== One Piece ======
   luffy: ['hero', 'protagonist', 'husbando'],
-  roronoa_zoro: ['rival', 'hero', 'husbando'],
+  zoro: ['rival', 'hero', 'husbando'],
   sanji: ['hero', 'husbando'],
   nami: ['hero', 'waifu'],
   nico_robin: ['hero', 'waifu'],
@@ -39,14 +39,14 @@ const TAGS_OVERRIDE = {
   sasuke: ['rival', 'antihero', 'husbando'],
   itachi: ['antihero', 'husbando'],
   kakashi: ['mentor', 'husbando'],
-  jiraiya: ['mentor'],
+  jiraya: ['mentor'],
   tsunade: ['mentor'],
   madara: ['villain'],
   obito_uchiha: ['villain', 'antihero'],
   pain: ['villain'],
   nagato: ['villain', 'antihero'],
   orochimaru: ['villain'],
-  hinata_hyuga: ['waifu'],
+  hinata: ['dandere', 'waifu'],
   sakura_haruno: ['waifu'],
   gaara: ['rival', 'antihero'],
 
@@ -60,7 +60,7 @@ const TAGS_OVERRIDE = {
   // ====== My Hero Academia ======
   deku: ['hero', 'protagonist'],
   allmight: ['mentor', 'hero'],
-  katsuki_bakugou: ['rival'],
+  bakugo: ['rival'],
   shoto_todoroki: ['rival', 'husbando'],
   tomura_shigaraki: ['villain'],
   dabi: ['villain'],
@@ -72,9 +72,8 @@ const TAGS_OVERRIDE = {
   sosuke_aizen: ['villain'],
 
   // ====== Demon Slayer ======
-  tanjiro_kamado: ['hero', 'protagonist'],
   nezuko: ['waifu'],
-  shinobu_kocho: ['waifu'],
+  shinobu: ['waifu'],
   rengoku: ['mentor', 'hero', 'husbando'],
   inosuke: ['rival'],
   zenitsu_agatsuma: ['hero'],
@@ -83,7 +82,7 @@ const TAGS_OVERRIDE = {
   kokushibo: ['villain'],
 
   // ====== Jujutsu Kaisen ======
-  yuji_itadori: ['hero', 'protagonist'],
+  itadori: ['hero', 'protagonist'],
   satoru_gojo: ['mentor', 'husbando'],
   kento_nanami: ['mentor', 'husbando'],
   megumi_fushiguro: ['hero', 'husbando'],
@@ -136,7 +135,6 @@ const TAGS_OVERRIDE = {
   taiga_aisaka: ['tsundere', 'waifu'],
   gasai_yuno: ['yandere', 'villain', 'waifu'],
   rei: ['kuudere', 'waifu'],
-  hinata: ['dandere', 'waifu'],
   mai_sakurajima: ['waifu'],
   asuna: ['waifu'],
   zero_two: ['waifu'],
