@@ -388,42 +388,59 @@ export default defineConfig({
     //   - framer-motion: ~50KB gzip, lo usan rutas con animación.
     //   - i18n: ~30KB gzip (i18next + react-i18next + detector).
     //   - react vendor: react/react-dom/react-router-dom siempre cargado.
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        // Rolldown solo acepta manualChunks como función (no objeto, a
-        // diferencia de Rollup clásico). Devolvemos el nombre del chunk
-        // según el path del módulo en node_modules. id viene como path
-        // absoluto: `.../node_modules/lucide-react/dist/...`.
-        manualChunks(id) {
-          if (id.endsWith('/src/lib/api.js') || id.endsWith('\\src\\lib\\api.js')) {
-            return 'data-client'
-          }
-          if (!id.includes('node_modules')) return undefined
-          if (
-            id.includes('@react-three/') ||
-            id.includes('/three/') ||
-            id.includes('\\three\\') ||
-            id.includes('three-stdlib')
-          ) {
-            return 'personaje3d'
-          }
-          if (id.includes('lucide-react')) return 'lucide'
-          if (id.includes('framer-motion')) return 'framer'
-          if (
-            id.includes('i18next') ||
-            id.includes('react-i18next')
-          ) {
-            return 'i18n'
-          }
-          if (
-            id.includes('/react-router-dom/') ||
-            id.includes('/react-router/') ||
-            id.includes('/react-dom/') ||
-            id.match(/[/\\]node_modules[/\\]react[/\\]/)
-          ) {
-            return 'react-vendor'
-          }
-          return undefined
+        // Code splitting explícito con umbral mínimo: conserva los vendors
+        // grandes en chunks cacheables, pero evita que módulos pequeños de
+        // app compartidos entre rutas (por ejemplo src/lib/api.js) salgan
+        // como assets independientes en Cloudflare Pages.
+        codeSplitting: {
+          minSize: 20000,
+          groups: [
+            {
+              name: 'app-runtime',
+              minSize: 0,
+              test: (id) =>
+                id.endsWith('/src/lib/api.js') ||
+                id.endsWith('\\src\\lib\\api.js') ||
+                id.endsWith('/src/lib/stomp.js') ||
+                id.endsWith('\\src\\lib\\stomp.js') ||
+                id.endsWith('/src/contexts/AuthContext.jsx') ||
+                id.endsWith('\\src\\contexts\\AuthContext.jsx') ||
+                id.endsWith('/src/hooks/useCatalogoPersonajes.js') ||
+                id.endsWith('\\src\\hooks\\useCatalogoPersonajes.js'),
+            },
+            {
+              name: 'personaje3d',
+              test: (id) =>
+                id.includes('@react-three/') ||
+                id.includes('/three/') ||
+                id.includes('\\three\\') ||
+                id.includes('three-stdlib'),
+            },
+            {
+              name: 'lucide',
+              test: (id) => id.includes('lucide-react'),
+            },
+            {
+              name: 'framer',
+              test: (id) => id.includes('framer-motion'),
+            },
+            {
+              name: 'i18n',
+              test: (id) =>
+                id.includes('i18next') ||
+                id.includes('react-i18next'),
+            },
+            {
+              name: 'react-vendor',
+              test: (id) =>
+                id.includes('/react-router-dom/') ||
+                id.includes('/react-router/') ||
+                id.includes('/react-dom/') ||
+                Boolean(id.match(/[/\\]node_modules[/\\]react[/\\]/)),
+            },
+          ],
         },
       },
     },
