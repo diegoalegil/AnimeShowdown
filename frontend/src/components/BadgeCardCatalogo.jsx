@@ -122,6 +122,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = fa
           {kanji && (
             <span
               aria-hidden="true"
+              lang="ja"
               className={`font-jp absolute -right-1.5 -top-1.5 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md border border-border ${style.kanjiBg} px-1 text-[12px] leading-none ${style.icono}`}
             >
               {kanji}

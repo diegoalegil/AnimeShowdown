@@ -232,7 +232,7 @@ function OmikujiPage() {
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <Sparkles className="h-3 w-3" />
-            お御籤 · Omikuji
+            <span lang="ja">お御籤</span> · Omikuji
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Tu suerte del día

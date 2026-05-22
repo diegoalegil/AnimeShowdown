@@ -99,7 +99,9 @@ function LanguageToggle() {
                 <span className="inline-flex w-7 font-mono text-[11px] font-bold uppercase">
                   {l.short}
                 </span>
-                <span className="flex-1">{l.label}</span>
+                <span lang={l.code === 'ja' ? 'ja' : undefined} className="flex-1">
+                  {l.label}
+                </span>
                 {elegido && <Check className="h-3.5 w-3.5 text-gold" aria-hidden="true" />}
               </button>
             )

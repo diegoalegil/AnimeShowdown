@@ -377,7 +377,7 @@ function CharacterChoice({ label, personaje, disabled, onClick }) {
         {personaje?.imagenUrl ? (
           <img src={personaje.imagenUrl} alt="" className="h-full w-full object-cover" loading="eager" />
         ) : (
-          <div className="flex h-full items-center justify-center text-5xl font-black text-fg-muted">影</div>
+          <div aria-hidden="true" lang="ja" className="flex h-full items-center justify-center text-5xl font-black text-fg-muted">影</div>
         )}
         <span className="absolute left-3 top-3 rounded-full bg-bg/80 px-3 py-1 text-sm font-black text-gold backdrop-blur">
           {label}

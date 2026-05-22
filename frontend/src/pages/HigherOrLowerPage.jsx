@@ -129,7 +129,7 @@ function HigherOrLowerPage() {
         <header className="flex flex-col items-start gap-2 sm:gap-3">
           <span className="as-kicker border-cyan-500/45 bg-cyan-500/10 text-cyan-200">
             <Sparkles className="h-3 w-3" />
-            戦 · ELO Duel · Endless
+            <span lang="ja">戦</span> · ELO Duel · Endless
           </span>
           <h1 className="text-[clamp(2.4rem,7vw,4.45rem)] font-extrabold leading-tight tracking-tight">
             <span className="as-title-gradient">ELO</span> Duel
