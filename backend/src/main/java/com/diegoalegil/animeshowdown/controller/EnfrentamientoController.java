@@ -179,7 +179,7 @@ public class EnfrentamientoController {
         // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
         // Diseño extensible — futuros listeners podrán reaccionar también.
-        eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf));
+        eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador));
 
         return ResponseEntity.ok(new VotoRegistradoDto(
                 guardado.getId(),
