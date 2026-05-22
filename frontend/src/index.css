@@ -217,8 +217,13 @@
   }
 
   .as-stage-visual::before {
+    /* Audit feedback (2026-05-22): las páginas individuales de los juegos
+       tenían el cover como SVG outline + overlay oscuro al 86% en el top,
+       dejándolo apagado y "inapreciable". Ahora bajamos el oscurecimiento
+       superior (de 86% → 55%) y el inferior queda en 80% para legibilidad,
+       y la imagen ocupa el viewport completo. */
     background:
-      linear-gradient(180deg, rgb(5 6 12 / 0.86), rgb(5 6 12 / 0.20) 34%, rgb(5 6 12 / 0.88) 100%),
+      linear-gradient(180deg, rgb(5 6 12 / 0.55), rgb(5 6 12 / 0.12) 34%, rgb(5 6 12 / 0.80) 100%),
       radial-gradient(circle at 50% 34%, rgb(159 29 44 / 0.18), transparent 40rem),
       var(--as-stage-image),
       radial-gradient(circle at 12% 20%, rgb(197 161 90 / 0.14) 0 1px, transparent 2px);
@@ -251,27 +256,30 @@
   }
 
   .as-stage-shadow {
-    --as-stage-image: url('/assets/game-covers/shadow-guess.svg');
+    /* WEBP cinematográfica (vs SVG outline) — el SVG es solo silueta
+       minimalista; el WEBP es la portada real del juego. Mucha más
+       presencia visual para que cada juego se sienta su propio escenario. */
+    --as-stage-image: url('/assets/game-covers/shadow-guess-v2.webp');
     --as-stage-kanji: "影";
   }
 
   .as-stage-anigrid {
-    --as-stage-image: url('/assets/game-covers/anigrid.svg');
+    --as-stage-image: url('/assets/game-covers/anigrid.webp');
     --as-stage-kanji: "格";
   }
 
   .as-stage-reveal {
-    --as-stage-image: url('/assets/game-covers/anime-reveal.svg');
+    --as-stage-image: url('/assets/game-covers/anime-reveal.webp');
     --as-stage-kanji: "謎";
   }
 
   .as-stage-duel {
-    --as-stage-image: url('/assets/game-covers/elo-duel.svg');
+    --as-stage-image: url('/assets/game-covers/elo-duel.webp');
     --as-stage-kanji: "対";
   }
 
   .as-stage-impostor {
-    --as-stage-image: url('/assets/game-covers/impostor-trial.svg');
+    --as-stage-image: url('/assets/game-covers/impostor-trial.webp');
     --as-stage-kanji: "裏";
   }
 
