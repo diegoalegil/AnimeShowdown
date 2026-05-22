@@ -105,6 +105,21 @@ function DueloLivePage() {
     }
   }, [lastMessage])
 
+  useEffect(() => {
+    const estado = state?.estado
+    const necesitaRecuperacion = estado === 'WAITING' || estado === 'MATCHED' || estado === 'IN_PROGRESS'
+    if (!user || !necesitaRecuperacion) return undefined
+    const id = window.setInterval(() => {
+      const request = state?.id ? endpoints.dueloLiveState(state.id) : endpoints.dueloLiveActive()
+      request
+        .then((data) => {
+          if (data) setState(data)
+        })
+        .catch(() => {})
+    }, 1500)
+    return () => window.clearInterval(id)
+  }, [state?.estado, state?.id, user])
+
   if (!user) return <Navigate to="/login?next=/duel-live" replace />
 
   const join = async () => {
@@ -177,6 +192,13 @@ function DueloLivePage() {
 
 function StartArena({ state, joining, onJoin }) {
   const delta = state?.miEloDelta
+  const resultado = delta == null
+    ? null
+    : delta > 0
+      ? 'Victoria'
+      : delta < 0
+        ? 'Derrota'
+        : 'Empate'
   return (
     <div className="as-panel overflow-hidden rounded-2xl border border-border bg-surface/80 p-6 shadow-xl shadow-black/25">
       {state?.estado === 'FINISHED' || state?.estado === 'ABANDONED' ? (
@@ -188,6 +210,17 @@ function StartArena({ state, joining, onJoin }) {
             label="ELO PvP"
           />
           <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">Resultado final</p>
+          {resultado && (
+            <p className={`mt-2 text-4xl font-black ${
+              resultado === 'Victoria'
+                ? 'text-emerald-300'
+                : resultado === 'Derrota'
+                  ? 'text-rose-300'
+                  : 'text-gold'
+            }`}>
+              {resultado}
+            </p>
+          )}
           <div className="mt-2 flex flex-wrap items-end gap-4">
             <h2 className="text-3xl font-black text-fg-strong">
               {state.miScore} - {state.rivalScore}
