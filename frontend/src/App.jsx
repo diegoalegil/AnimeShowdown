@@ -69,11 +69,16 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 // (cero requests, todo CSS), pero comunica "estoy cargando" en vez
 // de "no pasa nada".
 function PageLoader() {
-  // Audit user feedback (2026-05-20): el spinner anterior tenia un kanji 戦
-  // gigante girando en el centro — se veia raro/desconcertante para usuarios
-  // que no lo entienden. Reemplazo por un orb dorado pulsando con 3 dots
-  // animados — mantiene identidad premium (no spinner-generico-SaaS) sin
-  // depender de iconografia japonesa que asuste.
+  // Audit user feedback (2026-05-22): el orb dorado pulsando con 3 dots
+  // se leia como "circulo amarillo feo" — destacaba demasiado el amarillo,
+  // que no es ni accent (#9f1d2c carmesi) ni gold (#c5a15a) del proyecto.
+  // Rediseño "premium anime":
+  //   - Anillo accent rotando lento (~1.6s) con conic gradient + ring
+  //     accent-soft para sombra suave (no hard border).
+  //   - Kanji 勝 (shou, "victoria") dorado centrado con glow accent.
+  //   - Halo accent pulsando detras (animationDuration 2.4s, suave).
+  //   - Respeta prefers-reduced-motion: el anillo y halo se quedan
+  //     estaticos, solo el aura sigue muy lenta (sin marear).
   return (
     <div
       className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20"
@@ -81,18 +86,49 @@ function PageLoader() {
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="as-panel relative flex min-w-64 flex-col items-center gap-5 rounded-2xl p-8 shadow-[0_0_70px_-34px_var(--color-gold)]">
-        {/* Orb dorado con halo + glow pulsante */}
-        <div className="relative h-14 w-14">
-          <div className="absolute inset-0 animate-ping rounded-full bg-gold/30" style={{ animationDuration: '2s' }} />
-          <div className="absolute inset-2 rounded-full bg-gradient-to-br from-gold via-amber-400 to-gold/60 shadow-[0_0_30px_rgb(197_161_90_/_0.7)]" />
-          <div className="absolute inset-3 rounded-full bg-gradient-to-tr from-amber-200 to-gold opacity-90" />
+      <div className="as-panel relative flex min-w-64 flex-col items-center gap-5 rounded-2xl p-8 shadow-[0_0_80px_-32px_var(--color-accent)]">
+        {/* Anillo accent rotando + kanji 勝 (victoria) dorado.
+            Usamos motion-safe:* para que prefers-reduced-motion deje
+            los layers estaticos sin marear a usuarios sensibles. */}
+        <div className="relative flex h-16 w-16 items-center justify-center">
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full motion-safe:animate-ping"
+            style={{
+              background: 'radial-gradient(circle, rgb(159 29 44 / 0.45) 0%, transparent 70%)',
+              animationDuration: '2.4s',
+            }}
+          />
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full motion-safe:animate-spin"
+            style={{
+              background:
+                'conic-gradient(from 0deg, transparent 0deg, rgb(159 29 44 / 0.85) 90deg, rgb(197 161 90 / 0.95) 200deg, transparent 320deg)',
+              animationDuration: '1.6s',
+              WebkitMask: 'radial-gradient(circle, transparent 56%, black 58%)',
+              mask: 'radial-gradient(circle, transparent 56%, black 58%)',
+            }}
+          />
+          <span
+            aria-hidden="true"
+            className="absolute inset-1.5 rounded-full border border-accent/35 bg-bg/60 backdrop-blur"
+          />
+          <span
+            aria-hidden="true"
+            lang="ja"
+            className="relative font-mono text-2xl font-black text-gold"
+            style={{ textShadow: '0 0 18px rgb(197 161 90 / 0.75), 0 0 30px rgb(159 29 44 / 0.55)' }}
+          >
+            勝
+          </span>
         </div>
-        {/* 3 dots animados estilo thinking */}
+        {/* 3 dots accent — bouncing suave, mantiene la sensación
+            "thinking" para que la espera no parezca congelada. */}
         <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70" style={{ animationDelay: '0ms' }} />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70" style={{ animationDelay: '160ms' }} />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gold/70" style={{ animationDelay: '320ms' }} />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent/80 motion-safe:animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent/80 motion-safe:animate-bounce" style={{ animationDelay: '160ms' }} />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent/80 motion-safe:animate-bounce" style={{ animationDelay: '320ms' }} />
         </div>
         <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
           Preparando arena
