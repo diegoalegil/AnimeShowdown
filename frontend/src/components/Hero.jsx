@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, Swords, TrendingUp, Trophy } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowRight, Radio, Swords, TrendingUp, Trophy } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useTorneos } from '../lib/torneosQueries'
+import { endpoints } from '../lib/api'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -42,6 +44,11 @@ function Hero() {
   const totalPersonajes = personajes.length
   const universos = new Set(personajes.map((p) => p.anime)).size
   const { data: torneos = [] } = useTorneos()
+  const { data: votosRecientes } = useQuery({
+    queryKey: ['hero', 'votos-recientes', 4],
+    queryFn: () => endpoints.votosRecientes({ limit: 4 }),
+    staleTime: 30 * 1000,
+  })
   const eloMax = Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))
   const torneosVisibles = torneos.length > 0 ? torneos.length : '—'
   const torneoDestacado = torneos
@@ -105,6 +112,7 @@ function Hero() {
         >
           {t('hero.subtitulo')}
         </motion.p>
+        <HeroVoteTicker votos={votosRecientes} />
         <motion.div
           className="mt-2 flex flex-wrap justify-center gap-3"
           variants={itemVariants}
@@ -172,6 +180,63 @@ function Hero() {
       </motion.div>
     </section>
   )
+}
+
+function HeroVoteTicker({ votos }) {
+  const items = (votos || []).filter((v) => v.ganador).slice(0, 3)
+  if (items.length === 0) return null
+  return (
+    <motion.div
+      variants={itemVariants}
+      className="flex w-full max-w-2xl flex-col gap-1 rounded-2xl border border-emerald-400/25 bg-bg/55 px-4 py-3 text-left shadow-[0_20px_70px_-45px_rgba(16,185,129,0.55)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-3"
+      aria-label="Votos recientes de la comunidad"
+    >
+      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-emerald-300">
+        <Radio className="h-3.5 w-3.5" />
+        Ahora
+      </span>
+      <div className="min-w-0 flex-1 overflow-hidden">
+        <div className="flex animate-marquee gap-8 whitespace-nowrap motion-reduce:animate-none">
+          {[...items, ...items].map((voto, index) => (
+            <span
+              key={`${voto.fecha}-${voto.ganador.slug}-${index}`}
+              className="text-xs font-medium text-fg-muted"
+            >
+              <strong className="text-fg-strong">{voto.username ?? 'alguien'}</strong>{' '}
+              votó por{' '}
+              <Link
+                to={`/personajes/${voto.ganador.slug}`}
+                className="font-semibold text-gold hover:underline"
+              >
+                {voto.ganador.nombre}
+              </Link>
+              {voto.rival && (
+                <>
+                  {' '}vs {voto.rival.nombre}
+                </>
+              )}
+              {voto.fecha && (
+                <span className="ml-1 text-fg-muted/75">
+                  · {formatRelativo(voto.fecha)}
+                </span>
+              )}
+            </span>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function formatRelativo(fecha) {
+  const diff = Date.now() - new Date(fecha).getTime()
+  if (!Number.isFinite(diff) || diff < 0) return 'ahora'
+  const min = Math.floor(diff / 60_000)
+  if (min < 1) return 'ahora'
+  if (min < 60) return `hace ${min} min`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `hace ${h} h`
+  return 'hoy'
 }
 
 function HeroStat({ icon, value, label }) {
