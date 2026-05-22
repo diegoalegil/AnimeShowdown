@@ -24,7 +24,7 @@ function MobileBottomNav() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-bold transition-colors ${
+                `flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs font-bold transition-colors ${
                   isActive
                     ? 'bg-gold/15 text-gold'
                     : 'text-fg-muted hover:bg-white/5 hover:text-fg-strong'
