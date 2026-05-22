@@ -598,7 +598,13 @@ function RetoCard() {
   return (
     <Link
       to="/games/shadow-guess"
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-rose-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-rose-500/60 sm:p-5"
+      // Audit feedback (2026-05-22): la card tenía altura natural ~180px
+      // y el EditorialCover absolute inset-0 + el overlay degradado oscuro
+      // del 38% al 92% dejaban solo ~70px de imagen visible — el usuario
+      // lo describió como "tan finita que practicamente no se ve". Subimos
+      // min-h a 13rem para que la franja superior tenga aire y el sujeto
+      // del cover quepa antes de empezar el degradado de oscurecimiento.
+      className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-xl border border-rose-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-rose-500/60 sm:p-5"
     >
       <EditorialCover
         visual={visual}
@@ -606,7 +612,7 @@ function RetoCard() {
         imageClassName="saturate-110 contrast-105"
       />
       <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-rose-300" />
-      <div className="relative flex items-start gap-3">
+      <div className="relative mt-auto flex items-start gap-3">
         <div
           aria-hidden="true"
           lang="ja"
