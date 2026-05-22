@@ -2,11 +2,14 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, BookOpen, Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, definedTermSetSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { normalizar } from '../lib/games'
 import { EmptyStateScene } from '../components/VisualSystem'
+import { useAuth } from '../contexts/AuthContext'
+import { endpoints } from '../lib/api'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -251,11 +254,36 @@ const TERMINOS = [
 ]
 
 const CATEGORIAS = [...new Set(TERMINOS.map((t) => t.categoria))]
+const QUIZ_STORAGE_KEY = 'animeshowdown.glossary.quiz.sessions'
+
+const QUIZ_POOL = [
+  { pregunta: '¿Qué personaje es tsundere?', respuesta: 'Asuka Langley', opciones: ['Asuka Langley', 'Goku', 'Saber', 'Luffy'] },
+  { pregunta: '¿Qué personaje es yandere?', respuesta: 'Yuno Gasai', opciones: ['Yuno Gasai', 'Kakashi', 'Frieren', 'Sanji'] },
+  { pregunta: '¿Qué personaje encaja mejor con kuudere?', respuesta: 'Rei Ayanami', opciones: ['Rei Ayanami', 'Naruto', 'Asta', 'Brook'] },
+  { pregunta: '¿Qué anime es un isekai?', respuesta: 'Re:Zero', opciones: ['Re:Zero', 'Death Note', 'Haikyuu', 'Cowboy Bebop'] },
+  { pregunta: '¿Qué término habla de animación especialmente brillante?', respuesta: 'Sakuga', opciones: ['Sakuga', 'Seiyuu', 'Mecha', 'Moe'] },
+  { pregunta: '¿Cómo se llama el actor de voz japonés?', respuesta: 'Seiyuu', opciones: ['Seiyuu', 'Shounen', 'Omake', 'Fanservice'] },
+  { pregunta: '¿Qué demografía suele centrarse en acción, amistad y superación?', respuesta: 'Shounen', opciones: ['Shounen', 'Josei', 'Iyashikei', 'Harem'] },
+  { pregunta: '¿Qué término describe robots gigantes pilotados?', respuesta: 'Mecha', opciones: ['Mecha', 'Slice of life', 'Tsundere', 'Omake'] },
+  { pregunta: '¿Qué significa “best girl / best boy” en fandom?', respuesta: 'Personaje favorito', opciones: ['Personaje favorito', 'Villano final', 'Opening musical', 'Estudio de animación'] },
+  { pregunta: '¿Qué formato clasifica personajes en S-A-B-C-D?', respuesta: 'Tier list', opciones: ['Tier list', 'OVA', 'AMV', 'Seinen'] },
+  { pregunta: '¿Qué término describe episodios cotidianos y tranquilos?', respuesta: 'Slice of life', opciones: ['Slice of life', 'Battle shounen', 'Power scaling', 'Yandere'] },
+  { pregunta: '¿Qué término compara poder entre personajes?', respuesta: 'Power scaling', opciones: ['Power scaling', 'Moe', 'Dandere', 'Omake'] },
+]
 
 function slugTermino(termino) {
   return normalizar(termino)
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+function shuffle(items) {
+  const out = [...items]
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
 }
 
 function GlossaryPage() {
@@ -267,6 +295,10 @@ function GlossaryPage() {
 
   const [filtro, setFiltro] = useState('')
   const [categoria, setCategoria] = useState(null)
+  const { user } = useAuth()
+  const [quiz, setQuiz] = useState([])
+  const [answers, setAnswers] = useState({})
+  const [quizResult, setQuizResult] = useState(null)
 
   const visibles = useMemo(() => {
     const q = normalizar(filtro)
@@ -280,6 +312,42 @@ function GlossaryPage() {
       )
     })
   }, [filtro, categoria])
+
+  const startQuiz = () => {
+    const questions = shuffle(QUIZ_POOL)
+      .slice(0, 10)
+      .map((q) => ({ ...q, opciones: shuffle(q.opciones) }))
+    setQuiz(questions)
+    setAnswers({})
+    setQuizResult(null)
+  }
+
+  const finishQuiz = async () => {
+    if (quizResult) return
+    const score = quiz.reduce(
+      (acc, q, index) => acc + (answers[index] === q.respuesta ? 1 : 0),
+      0,
+    )
+    const sessions = Number(localStorage.getItem(QUIZ_STORAGE_KEY) || '0') + 1
+    localStorage.setItem(QUIZ_STORAGE_KEY, String(sessions))
+    setQuizResult({ score, sessions })
+    if (sessions >= 3) {
+      if (user) {
+        try {
+          await endpoints.desbloquearOtakuCertificado()
+          toast.success('Logro desbloqueado', { description: 'Otaku certificado' })
+        } catch {
+          toast.info('Test completado', {
+            description: 'El logro se guardará cuando tu sesión esté disponible.',
+          })
+        }
+      } else {
+        toast.success('Otaku certificado listo', {
+          description: 'Inicia sesión para guardarlo en tu perfil.',
+        })
+      }
+    }
+  }
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -418,6 +486,79 @@ function GlossaryPage() {
             ))}
           </dl>
         )}
+
+        <section className="mt-10 rounded-xl border border-gold/30 bg-gold/10 p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-black text-fg-strong">
+                Test rápido — 10 preguntas
+              </h2>
+              <p className="mt-1 text-[13px] leading-relaxed text-fg-muted">
+                Repasa tropos, demografías y jerga. Tras tres sesiones
+                completadas desbloqueas el logro Otaku certificado.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={startQuiz}
+              className="rounded-lg bg-accent px-4 py-2.5 text-sm font-black text-white"
+            >
+              {quiz.length > 0 ? 'Reiniciar test' : 'Empezar test'}
+            </button>
+          </div>
+
+          {quiz.length > 0 && (
+            <div className="mt-5 space-y-4">
+              {quiz.map((q, index) => (
+                <fieldset
+                  key={`${q.pregunta}-${index}`}
+                  className="rounded-lg border border-border bg-bg/60 p-4"
+                >
+                  <legend className="px-1 text-sm font-bold text-fg-strong">
+                    {index + 1}. {q.pregunta}
+                  </legend>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {q.opciones.map((option) => (
+                      <label
+                        key={option}
+                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                          answers[index] === option
+                            ? 'border-gold/60 bg-gold/15 text-gold'
+                            : 'border-border bg-surface text-fg-muted'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`quiz-${index}`}
+                          value={option}
+                          checked={answers[index] === option}
+                          onChange={() => setAnswers((prev) => ({ ...prev, [index]: option }))}
+                          className="sr-only"
+                        />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+              <button
+                type="button"
+                onClick={finishQuiz}
+                disabled={Object.keys(answers).length < quiz.length || Boolean(quizResult)}
+                className="rounded-lg bg-gold px-5 py-3 text-sm font-black text-bg disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Ver resultado
+              </button>
+              {quizResult && (
+                <p className="rounded-lg border border-border bg-surface p-4 text-sm font-bold text-fg-strong">
+                  Resultado: {quizResult.score}/10 · sesiones completadas:{' '}
+                  {quizResult.sessions}
+                  {quizResult.sessions >= 3 && ' · Otaku certificado activado'}
+                </p>
+              )}
+            </div>
+          )}
+        </section>
 
         <div className="mt-10 rounded-xl border border-border bg-surface p-6">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
