@@ -108,7 +108,7 @@ function Footer() {
 
           {/* Producto (navegación principal) */}
           <div className="flex flex-col gap-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
               {t('footer.producto')}
             </h3>
             <nav className="flex flex-col gap-2">
@@ -126,7 +126,7 @@ function Footer() {
 
           {/* Comunidad */}
           <div className="flex min-w-0 flex-col gap-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
               {t('footer.comunidad')}
             </h3>
             <NewsletterForm />
@@ -153,7 +153,7 @@ function Footer() {
 
           {/* Soporte */}
           <div className="flex flex-col gap-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
               {t('footer.soporte')}
             </h3>
             <nav className="flex flex-col gap-2">
@@ -178,7 +178,7 @@ function Footer() {
 
         {/* SEO internal linking: top animes por roster */}
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
             {t('footer.animesPopulares')}
           </p>
           <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
@@ -190,7 +190,7 @@ function Footer() {
                   title={`Ranking interno y roster de ${anime} (${count} personajes)`}
                 >
                   {anime}{' '}
-                  <span className="font-mono text-[10px] tabular-nums">
+                  <span className="font-mono text-[11px] tabular-nums">
                     ({count})
                   </span>
                 </Link>
@@ -204,7 +204,7 @@ function Footer() {
             invita a votar antes de salir. */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/12 via-bg/70 to-gold/[0.06] p-5 backdrop-blur-md sm:flex-row sm:p-6">
           <div className="flex flex-col gap-1 text-center sm:text-left">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">
               {t('footer.ctaKicker', 'Antes de irte')}
             </p>
             <p className="text-base font-bold text-fg-strong sm:text-lg">
