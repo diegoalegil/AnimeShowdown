@@ -84,7 +84,10 @@ test('votar 5 veces actualiza contador local del header', async ({ page }, testI
 test('deeplink de personaje monta 3D solo tras interacción', async ({ page }) => {
   const consoleErrors = await preparePage(page)
   await page.goto('/personajes/luffy')
-  await expect(page.getByRole('heading', { name: 'Luffy' })).toBeVisible()
+  // .first() porque "Luffy" aparece en breadcrumb + h1 + section heading;
+  // strict mode lo bloqueaba con "resolved to 3 elements". Solo nos
+  // interesa confirmar que ALGÚN heading "Luffy" pintó, no cuál.
+  await expect(page.getByRole('heading', { name: 'Luffy' }).first()).toBeVisible()
   await expect(page.locator('canvas')).toHaveCount(0)
   await attachVisualSmoke(page, 'personaje-luffy-static')
 
@@ -97,7 +100,10 @@ test('deeplink de personaje monta 3D solo tras interacción', async ({ page }) =
 test('banner de anime renderiza imagen y contenido desde URL directa', async ({ page }) => {
   const consoleErrors = await preparePage(page)
   await page.goto('/animes/one-piece')
-  await expect(page.getByRole('heading', { name: 'One Piece' })).toBeVisible()
+  // .first() — "One Piece" también aparece en varios headings (breadcrumb +
+  // hero + sección "Personajes de One Piece"...). Mismo motivo que en el test
+  // de personaje arriba.
+  await expect(page.getByRole('heading', { name: 'One Piece' }).first()).toBeVisible()
   const visibleImages = await page.locator('img:visible').count()
   expect(visibleImages).toBeGreaterThan(0)
   await attachVisualSmoke(page, 'anime-one-piece')
