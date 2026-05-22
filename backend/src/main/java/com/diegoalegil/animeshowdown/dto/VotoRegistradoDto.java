@@ -20,5 +20,18 @@ public record VotoRegistradoDto(
         long votosGanador,
         Long personajePerdedorId,
         long votosPerdedor,
-        int delta) {
+        double delta,
+        boolean anonimo,
+        Integer votosAnonimosRestantes) {
+
+    public VotoRegistradoDto(
+            Long votoId,
+            Long personajeGanadorId,
+            long votosGanador,
+            Long personajePerdedorId,
+            long votosPerdedor,
+            double delta) {
+        this(votoId, personajeGanadorId, votosGanador, personajePerdedorId, votosPerdedor,
+                delta, false, null);
+    }
 }

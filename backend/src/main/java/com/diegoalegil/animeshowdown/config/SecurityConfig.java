@@ -85,7 +85,7 @@ public class SecurityConfig {
                         // el 410 que comunica explícitamente la deprecación.
                         // Lo hacemos público para que el 410 llegue siempre.
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").permitAll()
                         // Lectura pública para que VotarPage pueda mostrar el match aleatorio
                         // antes de pedir login (el voto sí requiere auth, regla de arriba).
                         .requestMatchers(HttpMethod.GET, "/api/enfrentamientos/**").permitAll()
@@ -205,7 +205,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(parseCsv(allowedOriginsCsv));
         config.setAllowedOriginPatterns(parseCsv(allowedOriginPatternsCsv));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin",
+                "X-AS-Anonymous-Id", "X-AS-Anonymous-Fingerprint"));
         // Audit P2 (2026-05-18): expose Retry-After. El cliente lo lee en
         // intentarRefresh() para respetar el backoff que indica el backend
         // tras un 503 cross-tab. Sin esto, en producción (cross-origin
