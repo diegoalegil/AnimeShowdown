@@ -141,12 +141,25 @@ function CardBadges({ rank, elo, nombre, anime, winRate }) {
   return (
     <>
       {rank && rank <= 10 && (
-        <span className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md border border-yellow-400/50 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-yellow-300 backdrop-blur-sm">
+        <span
+          className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md border border-yellow-400/50 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-yellow-300 backdrop-blur-sm"
+          title="Posición en el ranking del catálogo por ELO base estimado. El ranking competitivo real se mueve con votos en /ranking."
+        >
           #{rank}
         </span>
       )}
-      <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold backdrop-blur-sm">
+      {/* Audit externo AS-010 (2026-05-23): el ELO y WR de esta card son
+          estimaciones derivadas de getStatsPersonaje (determinístico por
+          slug + popularidad hardcoded). No son métricas reales calculadas
+          con votos. Tooltip + sufijo "·b"/"·e" hacen el dato no engañoso
+          sin saturar el visual de las cards. */}
+      <span
+        className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold backdrop-blur-sm"
+        title="ELO base estimado por popularidad. El ranking competitivo real está en /ranking."
+        aria-label={`${elo} ELO base estimado`}
+      >
         {elo}
+        <span className="ml-0.5 text-[8px] font-bold text-gold/55">·b</span>
       </span>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3.5 pt-10">
         <h3 className="line-clamp-1 text-sm font-bold text-fg-strong">
@@ -155,8 +168,12 @@ function CardBadges({ rank, elo, nombre, anime, winRate }) {
         <div className="flex items-center justify-between gap-2">
           <p className="line-clamp-1 text-[12px] text-fg-muted">{anime}</p>
           {winRate != null && (
-            <span className="shrink-0 font-mono text-[10px] font-semibold text-emerald-300/90">
-              {winRate}% WR
+            <span
+              className="shrink-0 font-mono text-[10px] font-semibold text-emerald-300/90"
+              title="Win rate estimado a partir del ELO base. No es un win rate real con votos."
+              aria-label={`${winRate}% win rate estimado`}
+            >
+              {winRate}% WR<span className="ml-0.5 text-emerald-300/55">·e</span>
             </span>
           )}
         </div>
