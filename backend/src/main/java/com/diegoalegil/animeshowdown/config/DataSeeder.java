@@ -61,6 +61,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
     private static final String SEED_FILE = "personajes-seed.json";
+    private static final String SEED_COLORES_FILE = "personajes-dominant-colors.json";
     private static final String SEED_TORNEOS_FILE = "torneos-seed.json";
 
     private final PersonajeRepository personajeRepository;
@@ -116,6 +117,7 @@ public class DataSeeder implements CommandLineRunner {
                     "DataSeeder no puede leer " + SEED_FILE + ": " + e.getMessage(), e);
         }
         validarSinDuplicados(entradas);
+        aplicarColoresDominantes(entradas, cargarColoresDominantes());
 
         // sincronizar via self.proxy → @Transactional realmente aplica.
         // Si falla, dejar burbujear → Spring no arranca y el alerting de
@@ -168,6 +170,24 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
+    private Map<String, String> cargarColoresDominantes() {
+        ClassPathResource resource = new ClassPathResource(SEED_COLORES_FILE);
+        if (!resource.exists()) return Map.of();
+        try (InputStream is = resource.getInputStream()) {
+            return objectMapper.readValue(is, new TypeReference<>() {});
+        } catch (Exception e) {
+            log.warn("DataSeeder no pudo leer {}: {}", SEED_COLORES_FILE, e.getMessage());
+            return Map.of();
+        }
+    }
+
+    private void aplicarColoresDominantes(List<SeedPersonaje> entradas, Map<String, String> colores) {
+        if (colores.isEmpty()) return;
+        for (SeedPersonaje entrada : entradas) {
+            entrada.imagenColorDominante = colores.get(entrada.slug);
+        }
+    }
+
     /**
      * Hace insert/update/delete en una transacción. Si falla algún paso
      * crítico se hace rollback automático por @Transactional.
@@ -211,12 +231,14 @@ public class DataSeeder implements CommandLineRunner {
         List<Personaje> nuevos = new ArrayList<>();
         for (SeedPersonaje s : entradas) {
             if (!slugsExistentes.contains(s.slug)) {
-                nuevos.add(new Personaje(
+                Personaje nuevo = new Personaje(
                         s.slug,
                         s.nombre,
                         s.anime,
                         s.descripcion,
-                        s.imagenUrl != null ? s.imagenUrl : "/img/" + s.slug + ".webp"));
+                        s.imagenUrl != null ? s.imagenUrl : "/img/" + s.slug + ".webp");
+                nuevo.setImagenColorDominante(s.imagenColorDominante);
+                nuevos.add(nuevo);
             }
         }
         if (!nuevos.isEmpty()) {
@@ -278,6 +300,10 @@ public class DataSeeder implements CommandLineRunner {
             p.setImagenUrl(s.imagenUrl);
             cambio = true;
         }
+        if (!Objects.equals(p.getImagenColorDominante(), s.imagenColorDominante)) {
+            p.setImagenColorDominante(s.imagenColorDominante);
+            cambio = true;
+        }
         return cambio;
     }
 
@@ -288,6 +314,7 @@ public class DataSeeder implements CommandLineRunner {
         public String anime;
         public String descripcion;
         public String imagenUrl;
+        public String imagenColorDominante;
     }
 
     // ===================================================================

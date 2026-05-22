@@ -33,6 +33,8 @@ public class Personaje {
     private String descripcion;
     @Column(length =  500)
     private String imagenUrl;
+    @Column(length = 16)
+    private String imagenColorDominante;
 
     public Personaje() {
     }
@@ -98,6 +100,14 @@ public class Personaje {
 
     public void setImagenUrl(String imagen) {
         this.imagenUrl = imagen;
+    }
+
+    public String getImagenColorDominante() {
+        return imagenColorDominante;
+    }
+
+    public void setImagenColorDominante(String imagenColorDominante) {
+        this.imagenColorDominante = imagenColorDominante;
     }
 
 }

@@ -20,15 +20,32 @@ import PersonajePlaceholder from './PersonajePlaceholder'
  * <p>Lazy loading y async decoding por default. El caller puede override
  * (p.ej. {@code loading="eager" fetchpriority="high"} para LCP).
  */
-function PersonajeImg({ slug, alt, sizes, className = '', loading, decoding, ...imgProps }) {
-  const [errored, setErrored] = useState(false)
-  const src = imagenPersonaje(slug)
+function PersonajeImg({
+  slug,
+  alt,
+  sizes,
+  className = '',
+  loading,
+  decoding,
+  src: srcOverride,
+  nombre,
+  colorDominante,
+  imagenColorDominante,
+  style,
+  ...imgProps
+}) {
+  const [status, setStatus] = useState({ src: null, loaded: false, errored: false })
+  const p = getPersonajeBySlug(slug)
+  const src = srcOverride ?? imagenPersonaje(slug)
+  const loaded = status.src === src && status.loaded
+  const errored = status.src === src && status.errored
+  const dominantColor =
+    colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
 
   if (errored) {
-    const p = getPersonajeBySlug(slug)
     return (
       <PersonajePlaceholder
-        nombre={p?.nombre ?? slug}
+        nombre={p?.nombre ?? nombre ?? slug}
         anime={p?.anime ?? 'Anime desconocido'}
         className={className}
       />
@@ -52,25 +69,35 @@ function PersonajeImg({ slug, alt, sizes, className = '', loading, decoding, ...
   // sobre-descargue en mobile. El caller puede pasar sizes específico
   // (e.g. la imagen grande de la ficha de personaje usaría algo mayor).
   const sizesAttr = sizes ?? '(min-width: 1024px) 200px, (min-width: 640px) 160px, 140px'
+  const fitClass = className.includes('object-contain') ? 'object-contain' : 'object-cover'
+  const positionClass = className.includes('object-center') ? 'object-center' : 'object-top'
 
   return (
-    <picture>
-      {srcsetAvif && (
-        <source type="image/avif" srcSet={srcsetAvif} sizes={sizesAttr} />
-      )}
-      {srcsetWebp && (
-        <source type="image/webp" srcSet={srcsetWebp} sizes={sizesAttr} />
-      )}
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        loading={loading ?? 'lazy'}
-        decoding={decoding ?? 'async'}
-        onError={() => setErrored(true)}
-        {...imgProps}
-      />
-    </picture>
+    <span
+      className={`relative block overflow-hidden ${className}`}
+      style={{ backgroundColor: dominantColor, ...style }}
+    >
+      <picture>
+        {srcsetAvif && (
+          <source type="image/avif" srcSet={srcsetAvif} sizes={sizesAttr} />
+        )}
+        {srcsetWebp && (
+          <source type="image/webp" srcSet={srcsetWebp} sizes={sizesAttr} />
+        )}
+        <img
+          src={src}
+          alt={alt}
+          className={`h-full w-full ${fitClass} ${positionClass} transition-opacity duration-300 motion-reduce:transition-none ${
+            loaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading={loading ?? 'lazy'}
+          decoding={decoding ?? 'async'}
+          onLoad={() => setStatus({ src, loaded: true, errored: false })}
+          onError={() => setStatus({ src, loaded: false, errored: true })}
+          {...imgProps}
+        />
+      </picture>
+    </span>
   )
 }
 

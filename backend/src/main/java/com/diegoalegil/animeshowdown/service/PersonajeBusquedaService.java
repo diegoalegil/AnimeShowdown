@@ -61,6 +61,7 @@ public class PersonajeBusquedaService {
                     p.anime,
                     p.descripcion,
                     p.imagen_url,
+                    p.imagen_color_dominante,
                     (
                         CASE WHEN lower(p.nombre) = lower(:q) THEN 100 ELSE 0 END +
                         CASE WHEN lower(p.nombre) LIKE lower(:prefix) THEN 50 ELSE 0 END +
@@ -95,7 +96,8 @@ public class PersonajeBusquedaService {
                         (String) row[3],
                         (String) row[4],
                         (String) row[5],
-                        ((Number) row[6]).doubleValue()))
+                        (String) row[6],
+                        ((Number) row[7]).doubleValue()))
                 .toList();
     }
 
