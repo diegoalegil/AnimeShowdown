@@ -133,6 +133,12 @@ public class Usuario {
     @jakarta.persistence.JoinColumn(name = "referred_by_user_id")
     private Usuario referredBy;
 
+    @Column(name = "elo_pvp", nullable = false, columnDefinition = "INTEGER DEFAULT 1000")
+    private Integer eloPvp = 1000;
+
+    @Column(name = "pvp_partidos", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer pvpPartidos = 0;
+
     public Usuario() {
     }
 
@@ -290,6 +296,30 @@ public class Usuario {
 
     public void setReferredBy(Usuario referredBy) {
         this.referredBy = referredBy;
+    }
+
+    public Integer getEloPvpRaw() {
+        return eloPvp;
+    }
+
+    public int getEloPvp() {
+        return eloPvp == null ? 1000 : eloPvp;
+    }
+
+    public void setEloPvp(Integer eloPvp) {
+        this.eloPvp = eloPvp == null ? 1000 : eloPvp;
+    }
+
+    public Integer getPvpPartidosRaw() {
+        return pvpPartidos;
+    }
+
+    public int getPvpPartidos() {
+        return pvpPartidos == null ? 0 : pvpPartidos;
+    }
+
+    public void setPvpPartidos(Integer pvpPartidos) {
+        this.pvpPartidos = pvpPartidos == null ? 0 : pvpPartidos;
     }
 
 }

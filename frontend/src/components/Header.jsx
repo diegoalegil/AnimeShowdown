@@ -21,6 +21,7 @@ const navLinks = [
   { to: '/torneos', i18nKey: 'torneos' },
   { to: '/eventos', i18nKey: 'eventos' },
   { to: '/games', i18nKey: 'games' },
+  { to: '/duel-live', i18nKey: 'pvp' },
   { to: '/ranking', i18nKey: 'ranking' },
 ]
 

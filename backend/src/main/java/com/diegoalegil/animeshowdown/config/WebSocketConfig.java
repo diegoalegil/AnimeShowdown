@@ -129,7 +129,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         public Message<?> preSend(Message<?> message, MessageChannel channel) {
             StompHeaderAccessor accessor =
                     MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-            if (accessor == null || accessor.getCommand() != StompCommand.CONNECT) {
+            if (accessor == null) {
+                return message;
+            }
+            if (accessor.getCommand() == StompCommand.SEND
+                    && accessor.getDestination() != null
+                    && accessor.getDestination().startsWith("/app/duelo")
+                    && accessor.getUser() == null) {
+                log.warn("WS SEND PvP sin Principal — rechazado destination={}", accessor.getDestination());
+                throw new IllegalArgumentException("Los mensajes PvP requieren JWT válido");
+            }
+            if (accessor.getCommand() != StompCommand.CONNECT) {
                 return message;
             }
             String authHeader = accessor.getFirstNativeHeader("Authorization");

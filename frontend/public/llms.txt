@@ -73,6 +73,10 @@ GET /api/seguidores/usuario/{username}/{seguidos|seguidores|stats}
 GET /api/logros                  — catálogo de 14 badges
 GET /api/predicciones/leaderboard?dias=&limit= — top predictores
 GET /api/votar/sugerir-duelo     — duelo recomendado para modo votar casual
+GET /api/duelo-live/active       — duelo PvP activo del usuario autenticado
+POST /api/duelo-live/queue       — entrar en matchmaking PvP live
+POST /api/duelo-live/{id}/vote   — votar A/B en la ronda PvP activa
+POST /api/duelo-live/{id}/leave  — abandonar cola o duelo PvP
 GET /api/status                  — uptime agregado 24h/7d/30d/90d
 GET /api/og/personaje/{slug}.png — OG image dinámica del personaje
 GET /api/og/torneo/{slug}.png    — OG image dinámica del torneo
@@ -115,6 +119,10 @@ AnimeShowdown agrega datos de:
 - **Torneos públicos de comunidad**: los usuarios verificados pueden crear
   brackets públicos; tras revisión admin aparecen en `/torneos` y pueden
   destacarse en home por votos recibidos durante los últimos 7 días.
+- **Duelos PvP en directo**: `/duel-live` empareja dos usuarios por ELO PvP,
+  juega rondas simultáneas al mejor de 5 y actualiza un ELO PvP separado del
+  ranking global. Eventos privados en `/user/queue/duelo`; estado público de
+  match en `/topic/duelo/{id}/state`.
 
 Los textos descriptivos de personajes son originales del proyecto (o
 generados con LLM y revisados manualmente). El uso para citar y comparar
