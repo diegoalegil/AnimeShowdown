@@ -21,7 +21,7 @@ import {
   imagenPersonaje,
   getIndicePersonaje,
   getStatsPersonaje,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import { useSeo } from '../hooks/useSeo'
 import { buscarPersonajeJikan } from '../lib/jikan'
 import { citaPersonaje } from '../lib/animechan'

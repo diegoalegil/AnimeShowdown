@@ -13,7 +13,7 @@ import {
   getStatsPersonaje,
   imagenPersonaje,
   personajes,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import { useSeo } from '../hooks/useSeo'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'

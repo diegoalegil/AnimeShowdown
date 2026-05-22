@@ -16,7 +16,7 @@ import { useSeo } from '../hooks/useSeo'
 import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
 import { ocultaImgRota } from '../lib/imgFallback'
 import { endpoints, ApiError } from '../lib/api'
-import { personajes as catalogoCliente } from '../data/personajes'
+import { personajes as catalogoCliente } from '../lib/personajes-core'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },

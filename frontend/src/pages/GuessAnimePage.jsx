@@ -22,7 +22,7 @@ import {
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { personajes } from '../data/personajes'
+import { personajes } from '../lib/personajes-core'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-anime.v1'

@@ -25,7 +25,7 @@ import {
   imagenPersonaje,
   personajes,
   getStatsPersonaje,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 const MAX_INTENTOS = 6

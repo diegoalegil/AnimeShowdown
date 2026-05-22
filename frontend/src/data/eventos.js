@@ -1,4 +1,4 @@
-import { personajes } from './personajes'
+import { personajes } from '../lib/personajes-core'
 import { getCategoriasPersonaje } from './personajes-tags'
 
 /**

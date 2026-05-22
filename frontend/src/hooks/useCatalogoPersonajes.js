@@ -1,16 +1,20 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../lib/api'
+import {
+  CATALOGO_PERSONAJES_STORAGE_KEY,
+  normalizarCatalogoPersonajes,
+  syncCatalogoPersonajes,
+} from '../lib/personajes-core'
 
-const STORAGE_KEY = 'animeshowdown.catalogo-personajes.v1'
 const FIELDS = 'slug,nombre,anime,imagenUrl'
 
 function readPersistedCatalogo() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(CATALOGO_PERSONAJES_STORAGE_KEY)
     if (!raw) return undefined
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : undefined
+    return Array.isArray(parsed) ? normalizarCatalogoPersonajes(parsed) : undefined
   } catch {
     return undefined
   }
@@ -19,7 +23,7 @@ function readPersistedCatalogo() {
 function persistCatalogo(data) {
   try {
     if (Array.isArray(data) && data.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      localStorage.setItem(CATALOGO_PERSONAJES_STORAGE_KEY, JSON.stringify(data))
     }
   } catch {
     // localStorage puede fallar en private mode; el cache de React Query basta.
@@ -36,8 +40,11 @@ export function useCatalogoPersonajes() {
     retry: 1,
   })
 
+  syncCatalogoPersonajes(query.data)
+
   useEffect(() => {
     persistCatalogo(query.data)
+    syncCatalogoPersonajes(query.data)
   }, [query.data])
 
   return query

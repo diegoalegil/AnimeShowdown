@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { getPersonajeBySlug, imagenPersonaje } from '../data/personajes'
+import { getPersonajeBySlug, imagenPersonaje } from '../lib/personajes-core'
 import PersonajePlaceholder from './PersonajePlaceholder'
 
 /**

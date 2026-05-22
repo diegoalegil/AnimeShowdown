@@ -1,4 +1,4 @@
-import { personajes, getPopularidad } from '../data/personajes'
+import { personajes, getPopularidad } from '../lib/personajes-core'
 
 // Audit (2026-05-17): antes [...personajes, ...personajes] = 1460
 // spans + 1460 dots (~2920 nodos) en el marquee. Decorativo, no de

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Coffee, Swords } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
-import { personajes } from '../data/personajes'
+import { personajes } from '../lib/personajes-core'
 import { slugifyAnime } from '../lib/animes'
 
 function GithubIcon({ className }) {

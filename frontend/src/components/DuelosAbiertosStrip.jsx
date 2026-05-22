@@ -6,7 +6,7 @@ import { Swords, Trophy } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
-import { imagenPersonaje } from '../data/personajes'
+import { imagenPersonaje } from '../lib/personajes-core'
 import PersonajeCutImg from './PersonajeCutImg'
 
 /**

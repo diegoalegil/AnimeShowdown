@@ -16,7 +16,7 @@ import {
 import { useEffect, useState } from 'react'
 import { endpoints, ApiError } from '../lib/api'
 import { useTorneos } from '../lib/torneosQueries'
-import { imagenPersonaje, personajes, getStatsPersonaje } from '../data/personajes'
+import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { personajeDelDia } from '../lib/games'
 import {
   ESTADO_EVENTO,

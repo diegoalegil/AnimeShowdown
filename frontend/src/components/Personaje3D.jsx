@@ -1,7 +1,7 @@
 import { Suspense, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Sparkles, useTexture } from '@react-three/drei'
-import { imagenPersonaje } from '../data/personajes'
+import { imagenPersonaje } from '../lib/personajes-core'
 
 function CardMesh({ slug }) {
   const texture = useTexture(imagenPersonaje(slug))

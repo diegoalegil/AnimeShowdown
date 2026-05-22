@@ -22,7 +22,7 @@ import {
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { imagenPersonaje, personajes } from '../data/personajes'
+import { imagenPersonaje, personajes } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from '../components/PersonajeImg'
 
