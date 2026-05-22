@@ -28,7 +28,7 @@ import {
   CATEGORIAS,
   MIN_PARA_SECCION,
   getPersonajesPorCategoria,
-} from '../lib/personajes-tags'
+} from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'

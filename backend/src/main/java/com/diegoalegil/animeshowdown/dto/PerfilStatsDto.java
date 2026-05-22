@@ -21,5 +21,7 @@ public record PerfilStatsDto(
         long prediccionesResueltas,
         double porcentajeAciertos,
         long badgesDesbloqueados,
-        long torneosCreados) {
+        long torneosCreados,
+        int eloPvp,
+        int pvpPartidos) {
 }

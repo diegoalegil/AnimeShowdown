@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // scripts/generate-sitemap.mjs
 // Genera frontend/public/sitemap.xml combinando:
-//   1. Catálogo cliente-side de personajes (~1052 con slug+nombre+anime+imagen,
-//      parseado de personajes.js via regex sin deps).
+//   1. Catálogo backend de personajes (~1052 con slug+nombre+anime+imagen),
+//      leído desde personajes-seed.json para evitar duplicados frontend.
 //   2. Rutas estáticas indexables.
 //   3. Datos dinámicos de backend (torneos APROBADO + perfiles públicos),
 //      con fallback a torneos-seed.json si el backend no responde.
@@ -28,44 +28,16 @@ const BASE_URL = 'https://animeshowdown.dev'
 
 const API_TIMEOUT_MS = 5000
 
-/**
- * Parsea el catálogo cliente-side `personajes.js` extrayendo slug, nombre,
- * anime e imagen. Mantiene el regex parsing en lugar de import dinámico
- * para no depender del runtime de Vite/React durante el build de Cloudflare
- * Pages (que ejecuta el script con Node simple, antes de vite build).
- *
- * El catálogo tiene una línea por personaje con el formato:
- *   { slug: '...', nombre: '...', anime: '...', descripcion: '...', imagen: '...' }
- *
- * Capturamos los 4 campos clave en un solo regex con grupos nombrados.
- */
-function extractPersonajesFromJs(filePath) {
-  const content = readFileSync(filePath, 'utf8')
-  // Patrón clásico para strings JS con escapes: cualquier char excepto
-  // ' o \, O bien un \ seguido de cualquier char (cubre \', \\, \n, etc).
-  // Necesario porque las descripciones tienen comas, apóstrofes escapadas
-  // y caracteres acentuados que el regex naive [^']* no permitía.
-  const STR = "'((?:[^'\\\\]|\\\\.)*)'"
-  const re = new RegExp(
-      `\\{\\s*slug:\\s*${STR},\\s*nombre:\\s*${STR},\\s*anime:\\s*${STR},\\s*descripcion:\\s*${STR},\\s*imagen:\\s*${STR}`,
-      'g',
-  )
-  const out = []
-  let m
-  while ((m = re.exec(content))) {
-    out.push({
-      slug: m[1],
-      nombre: m[2].replace(/\\'/g, "'"),
-      anime: m[3].replace(/\\'/g, "'"),
-      // m[4] es descripcion — la ignoramos pero el grupo es necesario para
-      // que el regex consuma hasta `imagen` correctamente.
-      imagen: m[5],
-    })
-  }
-  return out
+function loadPersonajesFromSeed(filePath) {
+  return JSON.parse(readFileSync(filePath, 'utf8')).map((personaje) => ({
+    slug: personaje.slug,
+    nombre: personaje.nombre,
+    anime: personaje.anime,
+    imagen: personaje.imagenUrl ?? personaje.imagen,
+  }))
 }
 
-function extractPopularidadFromJs(filePath) {
+function extractPopularidadFromCore(filePath) {
   const content = readFileSync(filePath, 'utf8')
   const start = content.indexOf('const POPULARIDAD = {')
   if (start === -1) return new Map()
@@ -119,11 +91,11 @@ function xmlEscape(s) {
       .replace(/'/g, '&apos;')
 }
 
-const personajesCatalogo = extractPersonajesFromJs(
-  join(ROOT, 'frontend/src/data/personajes.js'),
+const personajesCatalogo = loadPersonajesFromSeed(
+  join(ROOT, 'backend/src/main/resources/personajes-seed.json'),
 )
-const popularidadCatalogo = extractPopularidadFromJs(
-  join(ROOT, 'frontend/src/data/personajes.js'),
+const popularidadCatalogo = extractPopularidadFromCore(
+  join(ROOT, 'frontend/src/lib/personajes-core.js'),
 )
 
 // Audit P2.7 (2026-05-17): derivamos lista de animes únicos del catálogo

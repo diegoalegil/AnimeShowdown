@@ -29,6 +29,7 @@ const DueloVersusPage = lazy(() => import('./pages/DueloVersusPage'))
 const RankingPage = lazy(() => import('./pages/RankingPage'))
 const HigherOrLowerPage = lazy(() => import('./pages/HigherOrLowerPage'))
 const VotarPage = lazy(() => import('./pages/VotarPage'))
+const DueloLivePage = lazy(() => import('./pages/DueloLivePage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
@@ -217,6 +218,7 @@ function App() {
                   element={<Navigate replace to="/games/elo-duel" />}
                 />
                 <Route path="/votar" element={<VotarPage />} />
+                <Route path="/duel-live" element={<DueloLivePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />

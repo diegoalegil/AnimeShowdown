@@ -12,6 +12,7 @@ import {
   LogOut,
   Mail,
   Shield,
+  Swords,
   Trash2,
   Upload,
   User,
@@ -907,6 +908,12 @@ function PerfilQuickStats() {
       valor: stats.badges ?? 0,
       label: 'Logros',
       cls: 'text-amber-300 border-amber-500/30 bg-amber-500/5',
+    },
+    {
+      icon: Swords,
+      valor: stats.eloPvp ?? 1000,
+      label: 'ELO PvP',
+      cls: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/5',
     },
     {
       icon: Award,
