@@ -342,29 +342,35 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
-        <CardEyebrow icon={Crown} label="Líder por votos" tono="text-amber-300" />
+        {/* Audit externo AS-010 (2026-05-23): label de loading neutro.
+            "Líder por votos" implicaba que la métrica era COUNT puro,
+            pero tras AS-002 el orden REST viene ponderado por peso
+            (anónimo 0.3 / registrado 1.0). "Líder del ranking" no
+            compromete la mecánica antes de que lleguen los datos. */}
+        <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-amber-300" />
         <p className="text-sm text-fg-muted">Cargando al líder…</p>
       </PulseCard>
     )
   }
   const p = campeon.personaje
   const votos = Number(campeon.votos ?? 0)
-  // Audit producto (auditoría externa 2026-05-18): el copy anterior
-  // "Líder del ranking" inducía a equiparar esta card con el ranking
-  // ELO global de /ranking — pero la métrica detrás es COUNT(votos)
-  // del endpoint /api/votos/ranking, que puede divergir del orden por
-  // ELO local. Distinguimos claramente:
+  // Audit producto (auditoría externa 2026-05-18 + AS-002 2026-05-22):
+  // antes "Líder del ranking" inducía a equiparar la card con el ranking
+  // ELO global. La métrica detrás es el TOP del endpoint /api/votos/ranking,
+  // que ahora ordena por SUM(v.peso) ponderado (anónimo 0.3, registrado
+  // 1.0) — no por COUNT puro. El campo `votos` que mostramos sigue siendo
+  // COUNT físico para no engañar con números truncados (AS-002+B2.1).
+  // Distinguimos tres copys según contexto:
   //   - esFallback: backend sin votos → "Top del catálogo (ELO base)".
   //   - comunidadArrancando: muy pocos votos totales → "Más votado ahora".
-  //   - normal: "Más votado · global" (la métrica son votos acumulados;
-  //     no es el #1 del ranking ELO necesariamente).
-  // Y siempre añadimos un CTA visible al ranking ELO completo, para
-  // que el user que quiere el "salón de la fama" tenga adónde ir.
+  //   - normal: "Top de la comunidad" (orden ponderado).
+  // CTA visible al ranking competitivo para el user que quiere el
+  // "salón de la fama" completo.
   const eyebrow = esFallback
     ? 'Top del catálogo'
     : comunidadArrancando
       ? 'Más votado ahora'
-      : 'Más votado · global'
+      : 'Top de la comunidad'
   // Audit fix #9 (2026-05-21): antes el article tenia role="link" + onClick
   // + tabIndex={0}, y dentro habia otro <Link> a /ranking con stopPropagation
   // — accesibilidad ambigua (screen readers leian 2 links en el mismo

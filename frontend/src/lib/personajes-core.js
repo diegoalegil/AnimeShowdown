@@ -154,42 +154,62 @@ function hashSlug(slug) {
 }
 
 /**
- * ⚠️  ESTADÍSTICAS SINTÉTICAS — NO SON DATOS REALES (audit F005, 2026-05-22).
+ * ⚠️  ESTADÍSTICAS SINTÉTICAS — NO SON DATOS REALES (audit F005 + AS-010/AS-043).
  *
  * <p>El ELO, wins y losses devueltos por esta función NO vienen del backend.
  * Se calculan determinísticamente a partir del slug del personaje y la tabla
  * {@link POPULARIDAD} hardcodeada. Misma entrada → mismo output, pero NO
  * reflejan votos reales de los usuarios.
  *
+ * <p><b>Reglas de honestidad en UI</b> (audit externo AS-010/AS-043,
+ * 2026-05-23): cualquier consumer DEBE etiquetar visualmente el valor
+ * como "base", "estimado", "·b" o equivalente, o redirigir al ranking
+ * competitivo real (/ranking) que sí está ponderado por SUM(v.peso) tras
+ * AS-002. Mostrar "ELO 1850" sin contexto es engañoso para el usuario
+ * porque sugiere que el número se mueve con sus votos — no lo hace.
+ *
+ * <p>El flag {@code _sintetico: true} en el retorno permite que un consumer
+ * detecte programáticamente que el dato es estimado y aplique etiqueta sin
+ * tener que recordar la convención de copy.
+ *
  * <p>Por qué seguimos teniéndola: la UI necesitaba mostrar números antes de
  * que el backend tuviera suficientes votos como para calcular un ranking
  * real (cold start del producto). Era preferible mostrar valores razonables
  * que cards vacías a "ELO --". Con el backend ya devolviendo ranking real
- * por votos, esto es deuda técnica visible.
+ * por votos ponderados, esto es deuda técnica visible.
  *
  * <p><b>Migración pendiente (P0 del audit externo):</b>
  * <ol>
- *   <li>Reemplazar TODOS los consumers (~10 sitios) por una query a
- *       {@code /api/votos/ranking/segmentado} que devuelve ELO real por
- *       slug, o exponer el campo {@code elo} desde el catálogo backend.</li>
+ *   <li>Reemplazar TODOS los consumers (15+ sitios) por una query a
+ *       {@code /api/votos/ranking/segmentado} que devuelve votos físicos
+ *       + pesoVotos ponderado por slug, o exponer el campo {@code elo}
+ *       calculado server-side desde el peso.</li>
  *   <li>Cuando el backend no tenga ELO para un slug (personaje nuevo sin
  *       votos), devolver {@code null} en vez de generar valor sintético —
  *       la UI puede mostrar "Sin partidas" en vez de un número engañoso.</li>
  *   <li>Borrar esta función + POPULARIDAD una vez los consumers migren.</li>
  * </ol>
  *
- * <p>Consumers actuales (rg "getStatsPersonaje" frontend/src):
+ * <p>Consumers actuales auditados (rg "getStatsPersonaje" frontend/src,
+ * 2026-05-23, ~60 referencias en 15 archivos):
  * <ul>
- *   <li>{@code SectionPulso.jsx} — top10 home</li>
- *   <li>{@code Hero.jsx} — máximo ELO mostrado</li>
- *   <li>{@code PersonajeCard.jsx} — todas las cards de catálogo</li>
- *   <li>{@code CardMiRoster.jsx} — perfil del usuario</li>
- *   <li>{@code PersonajesPage.jsx} — sort/filter</li>
- *   <li>{@code TvModePage.jsx} — top10 modo TV</li>
- *   <li>{@code animes.js} — top per anime</li>
+ *   <li>{@code Hero.jsx} — "Top ELO base" stat ✅ etiquetado.</li>
+ *   <li>{@code PersonajeCard.jsx} — badges con sufijo "·b"/"·e" ✅.</li>
+ *   <li>{@code PersonajeDetailPage.jsx} — labels "ELO base", "Récord est." ✅.</li>
+ *   <li>{@code SectionPulso.jsx} — usa fallback (CAMPEON_FALLBACK) cuando
+ *       backend no tiene votos, eyebrow honesto ("Top del catálogo") ✅.</li>
+ *   <li>{@code RankingPage.jsx}, {@code TorneosPage.jsx},
+ *       {@code TvModePage.jsx}, {@code DueloVersusPage.jsx},
+ *       {@code EventoDetailPage.jsx}, {@code AnidelPage.jsx},
+ *       {@code HigherOrLowerPage.jsx} — pending de etiquetar o migrar.</li>
+ *   <li>{@code CardMiRoster.jsx}, {@code PersonajesPage.jsx},
+ *       {@code animes.js} — pending de etiquetar o migrar.</li>
  * </ul>
  *
  * @deprecated Migrar a ELO real del backend en {@code /api/votos/ranking/segmentado}.
+ * @returns {{elo:number, wins:number, losses:number, _sintetico:true}}
+ *   El flag _sintetico permite a los consumers detectar que el dato no
+ *   viene de votos reales y aplicar el copy/etiqueta correspondiente.
  */
 export function getStatsPersonaje(slug) {
   const popularidad = getPopularidad(slug)
