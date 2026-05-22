@@ -15,6 +15,67 @@ jobs:
   playwright:
     name: Playwright production build
     runs-on: ubuntu-latest
+
+    # Postgres service real en lugar de H2. H2 está declarado en pom con
+    # <scope>test</scope> y el spring-boot-maven-plugin no propaga deps de
+    # scope test al classpath de `spring-boot:run` (incluso con
+    # useTestClasspath=true), así que el driver H2 nunca cargaba y el
+    # backend caía a localhost:5432 → connection refused. Usar Postgres
+    # real elimina esa fricción y da más fidelidad con producción.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: animeshowdown_e2e
+          POSTGRES_USER: animeshowdown_user
+          POSTGRES_PASSWORD: animeshowdown_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # --- DB apuntando al service ---
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/animeshowdown_e2e
+      SPRING_DATASOURCE_USERNAME: animeshowdown_user
+      SPRING_DATASOURCE_PASSWORD: animeshowdown_pass
+
+      # Profile que activa los overrides de application-test.properties
+      # (aunque por classpath de spring-boot:run a veces no se carga,
+      # los settings críticos los pasamos también por env más abajo).
+      SPRING_PROFILES_ACTIVE: test
+
+      # Flyway gestiona el schema; saltamos hibernate validate para que
+      # un drift puntual entidad↔migración no tumbe el e2e (ya pasó con
+      # V25 voto_jugador1 VARCHAR(1) vs entidad CHAR — bug aparte por
+      # arreglar en una V29).
+      JPA_DDL: none
+
+      # --- Seguridad: claves fake solo para CI, NO usar en prod ---
+      JWT_SECRET: clave_solo_para_e2e_ci_no_usar_en_produccion_minimo_64_chars_aleatorio
+      TOTP_ENCRYPTION_KEY: clave_solo_para_e2e_ci_no_usar_en_produccion
+
+      # Tests crean usuarios/votos en serie — el rate limit 5/min los mata.
+      RATELIMIT_ENABLED: 'false'
+      # Los e2e no pasan por el flujo de verificación de email.
+      EMAIL_VERIFICATION_REQUIRED: 'false'
+      # Sin scheduler pingueando /actuator/health durante los tests.
+      STATUS_MONITOR_ENABLED: 'false'
+      # CI sin HTTPS — la refresh cookie debe poder enviarse sobre http.
+      REFRESH_COOKIE_SECURE: 'false'
+      # Sin Prometheus en CI (no añade valor y a veces enmascara errores).
+      PROMETHEUS_ENABLED: 'false'
+
+      # OAuth dummies (los e2e no prueban el flujo OAuth — necesario para
+      # que el contexto Spring no rompa al cargar OAuth2 client config).
+      GOOGLE_CLIENT_ID: ci-dummy-google-id
+      GOOGLE_CLIENT_SECRET: ci-dummy-google-secret
+      DISCORD_CLIENT_ID: ci-dummy-discord-id
+      DISCORD_CLIENT_SECRET: ci-dummy-discord-secret
+
     steps:
       - uses: actions/checkout@v4
 
@@ -42,26 +103,29 @@ jobs:
           npm install --no-save @playwright/test@1.57.0
           npx playwright install --with-deps chromium
 
-      - name: Start backend H2
+      - name: Start backend (Postgres-backed)
         working-directory: backend
         run: |
           chmod +x mvnw
           ./mvnw -B --no-transfer-progress \
-            -Dspring-boot.run.profiles=test \
-            -Dspring-boot.run.useTestClasspath=true \
             -Dspring-boot.run.arguments="--server.port=8080" \
             spring-boot:run > ../backend-e2e.log 2>&1 &
           echo $! > ../backend-e2e.pid
 
       - name: Wait for backend
         run: |
-          for i in {1..90}; do
+          # Backend con Postgres real tarda ~25-40s en CI (Flyway aplica
+          # V1..V28 + JPA init). Damos hasta 240s con poll cada 2s antes
+          # de rendirnos.
+          for i in {1..120}; do
             if curl -fsS http://127.0.0.1:8080/actuator/health >/dev/null; then
+              echo "✓ Backend up after $((i * 2))s"
               exit 0
             fi
             sleep 2
           done
-          cat backend-e2e.log
+          echo "❌ Backend never came up — last 200 lines of backend-e2e.log:"
+          tail -200 backend-e2e.log
           exit 1
 
       - name: Build frontend
