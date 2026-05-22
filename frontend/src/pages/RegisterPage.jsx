@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { z } from 'zod'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
@@ -20,6 +21,55 @@ const containerVariants = {
   },
 }
 
+const registerSchema = z
+  .object({
+    username: z
+      .string()
+      .trim()
+      .min(3, 'Mínimo 3 caracteres')
+      .max(30, 'Máximo 30 caracteres')
+      .regex(/^[A-Za-z0-9_-]+$/, 'Solo letras, números, guion y guion bajo'),
+    email: z
+      .string()
+      .trim()
+      .regex(/^\S+@\S+\.\S+$/, 'El email no es válido'),
+    password: z
+      .string()
+      .min(8, 'Mínimo 8 caracteres')
+      .max(100, 'Máximo 100 caracteres')
+      .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
+      .regex(/\d/, 'Debe incluir al menos un número'),
+    confirmPassword: z.string().min(1, 'Confirma tu contraseña'),
+    referralCode: z
+      .string()
+      .max(16, 'El código es demasiado largo')
+      .optional()
+      .or(z.literal('')),
+  })
+  .refine((data) => data.confirmPassword === data.password, {
+    path: ['confirmPassword'],
+    message: 'Las contraseñas no coinciden',
+  })
+
+function zodFormResolver(schema) {
+  return async (values) => {
+    const parsed = schema.safeParse(values)
+    if (parsed.success) {
+      return { values: parsed.data, errors: {} }
+    }
+    const errors = {}
+    for (const issue of parsed.error.issues) {
+      const name = issue.path[0]
+      if (!name || errors[name]) continue
+      errors[name] = {
+        type: issue.code,
+        message: issue.message,
+      }
+    }
+    return { values: {}, errors }
+  }
+}
+
 function RegisterPage() {
   useSeo({
     title: 'Crear cuenta',
@@ -36,9 +86,13 @@ function RegisterPage() {
     watch,
     setError,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm({
     defaultValues: { referralCode: refDeQuery },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    resolver: zodFormResolver(registerSchema),
+    shouldFocusError: true,
   })
 
   // Si la query string cambia (rare in this page) re-aplicamos el código
@@ -105,27 +159,16 @@ function RegisterPage() {
               id="username"
               type="text"
               autoComplete="username"
-              {...register('username', {
-                required: 'Elige un username',
-                minLength: { value: 3, message: 'Mínimo 3 caracteres' },
-                maxLength: { value: 30, message: 'Máximo 30 caracteres' },
-                // Audit P3 (2026-05-17): alineado con el @Pattern del
-                // backend (RegistroRequest). Antes el frontend permitía
-                // punto en el username pero el backend lo rechazaba con
-                // 400, dejando un mensaje de error desconcertante en
-                // el wizard.
-                pattern: {
-                  value: /^[A-Za-z0-9_-]+$/,
-                  message: 'Solo letras, números, guion y guion bajo',
-                },
-              })}
+              aria-invalid={Boolean(errors.username)}
+              aria-describedby={errors.username ? 'username-error' : undefined}
+              {...register('username')}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.username ? 'border-red-500' : 'border-border'
               }`}
               placeholder="Elige un nombre de usuario"
             />
             {errors.username && (
-              <p className="text-[12px] text-red-400">
+              <p id="username-error" className="text-[12px] text-red-400">
                 {errors.username.message}
               </p>
             )}
@@ -141,20 +184,16 @@ function RegisterPage() {
               id="email"
               type="email"
               autoComplete="email"
-              {...register('email', {
-                required: 'Introduce tu email',
-                pattern: {
-                  value: /^\S+@\S+\.\S+$/,
-                  message: 'El email no es válido',
-                },
-              })}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              {...register('email')}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.email ? 'border-red-500' : 'border-border'
               }`}
               placeholder="tu@correo.com"
             />
             {errors.email && (
-              <p className="text-[12px] text-red-400">{errors.email.message}</p>
+              <p id="email-error" className="text-[12px] text-red-400">{errors.email.message}</p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
@@ -168,18 +207,13 @@ function RegisterPage() {
               id="password"
               autoComplete="new-password"
               error={Boolean(errors.password)}
-              placeholder="Mínimo 8, con letra y número"
-              {...register('password', {
-                required: 'Introduce una contraseña',
-                minLength: { value: 8, message: 'Mínimo 8 caracteres' },
-                pattern: {
-                  value: /^(?=.*[A-Za-z])(?=.*\d).{8,100}$/,
-                  message: 'Debe incluir al menos una letra y un número',
-                },
-              })}
+              placeholder="Mínimo 8, con mayúscula y número"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              {...register('password')}
             />
             {errors.password && (
-              <p className="text-[12px] text-red-400">
+              <p id="password-error" className="text-[12px] text-red-400">
                 {errors.password.message}
               </p>
             )}
@@ -197,14 +231,12 @@ function RegisterPage() {
               autoComplete="new-password"
               error={Boolean(errors.confirmPassword)}
               placeholder="Repite tu contraseña"
-              {...register('confirmPassword', {
-                required: 'Confirma tu contraseña',
-                validate: (value) =>
-                  value === password || 'Las contraseñas no coinciden',
-              })}
+              aria-invalid={Boolean(errors.confirmPassword)}
+              aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
+              {...register('confirmPassword')}
             />
             {errors.confirmPassword && (
-              <p className="text-[12px] text-red-400">
+              <p id="confirmPassword-error" className="text-[12px] text-red-400">
                 {errors.confirmPassword.message}
               </p>
             )}
@@ -224,17 +256,14 @@ function RegisterPage() {
               type="text"
               autoComplete="off"
               maxLength={16}
-              {...register('referralCode', {
-                maxLength: {
-                  value: 16,
-                  message: 'El código es demasiado largo',
-                },
-              })}
+              aria-invalid={Boolean(errors.referralCode)}
+              aria-describedby={errors.referralCode ? 'referralCode-error' : undefined}
+              {...register('referralCode')}
               className="rounded-lg border border-border bg-bg px-3.5 py-2.5 font-mono text-sm tracking-[0.18em] text-fg-strong uppercase placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
               placeholder="Si un amigo te invitó…"
             />
             {errors.referralCode && (
-              <p className="text-[12px] text-red-400">
+              <p id="referralCode-error" className="text-[12px] text-red-400">
                 {errors.referralCode.message}
               </p>
             )}
@@ -244,7 +273,7 @@ function RegisterPage() {
           )}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isValid}
             aria-busy={isSubmitting}
             className="mt-2 inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
