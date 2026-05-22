@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
+import AccessibleDialog from '../components/AccessibleDialog'
 import PersonajeCard from '../components/PersonajeCard'
 import PersonajeImg from '../components/PersonajeImg'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
@@ -667,20 +668,24 @@ function PersonajesPage() {
           ))}
         </div>
 
-        {filtersOpen && (
-          <div className="fixed inset-0 z-50 sm:hidden" role="presentation">
-            <button
-              type="button"
-              className="absolute inset-0 bg-black/65 backdrop-blur-sm"
-              aria-label="Cerrar filtros"
-              onClick={() => setFiltersOpen(false)}
-            />
-            <section
-              role="dialog"
-              aria-modal="true"
-              aria-label="Filtros de personajes"
-              className="absolute inset-x-0 bottom-0 max-h-[86vh] rounded-t-2xl border border-border bg-surface shadow-[0_-24px_80px_rgb(0_0_0_/_0.5)]"
-            >
+        {/* Audit F017 (2026-05-22): el drawer de filtros móvil antes era
+            un <div role="dialog"> ad-hoc sin focus trap, Escape close ni
+            bloqueo de scroll del body — los lectores y users de teclado
+            podían tabbing salir al fondo. Ahora pasa por AccessibleDialog
+            con align="bottom" que conserva el look bottom-sheet pero añade
+            todas las features de accesibilidad. El backdrop, el lock de
+            scroll y el restore de foco quedan centralizados.
+            sm:hidden se aplica al backdrop wrapper para que el drawer solo
+            aparezca en viewports móviles — en desktop hay filtros inline. */}
+        <AccessibleDialog
+          open={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          label="Filtros de personajes"
+          align="bottom"
+          className="sm:hidden"
+          panelClassName="max-h-[86vh] p-0 shadow-[0_-24px_80px_rgb(0_0_0_/_0.5)]"
+        >
+          <section className="contents">
               <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
                 <div className="min-w-0">
                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
@@ -844,9 +849,8 @@ function PersonajesPage() {
                   Aplicar
                 </button>
               </div>
-            </section>
-          </div>
-        )}
+          </section>
+        </AccessibleDialog>
 
         <p className="mb-4 text-[11px] text-fg-muted">
           Mostrando <strong className="text-fg-strong">{filtered.length}</strong>{' '}
