@@ -19,25 +19,7 @@
 //     CONNECT para habilitar colas privadas /user/**.
 
 import { Client } from '@stomp/stompjs'
-import { getToken, onTokenChange } from './api'
-
-const DEFAULT_API_BASE = 'https://api.animeshowdown.dev'
-
-function normalizarApiBase(value) {
-  const raw = typeof value === 'string' ? value.trim() : ''
-  if (!raw) return DEFAULT_API_BASE
-  try {
-    const url = new URL(raw)
-    if (import.meta.env.PROD && /\.up\.railway\.app$/i.test(url.hostname)) {
-      return DEFAULT_API_BASE
-    }
-    return url.toString().replace(/\/$/, '')
-  } catch {
-    return DEFAULT_API_BASE
-  }
-}
-
-const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
+import { API_BASE, getToken, onTokenChange } from './api'
 
 // Convierte el API base HTTP en URL WS: https → wss, http → ws.
 const BROKER_URL = API_BASE.replace(/^http/, 'ws') + '/ws'
