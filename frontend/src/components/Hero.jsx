@@ -43,7 +43,7 @@ function Hero() {
   const universos = new Set(personajes.map((p) => p.anime)).size
   const { data: torneos = [] } = useTorneos()
   const eloMax = Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))
-  const torneosVisibles = torneos.length || 13
+  const torneosVisibles = torneos.length > 0 ? torneos.length : '—'
   const torneoDestacado = torneos
     .filter((t) => Number(t.votosUltimos7Dias ?? 0) > 20)
     .sort((a, b) => Number(b.votosUltimos7Dias ?? 0) - Number(a.votosUltimos7Dias ?? 0))[0]
@@ -184,7 +184,7 @@ function HeroStat({ icon, value, label }) {
         <p className="font-mono text-2xl font-extrabold text-fg-strong tabular-nums">
           {value}
         </p>
-        <p className="text-[11px] text-fg-muted">{label}</p>
+        <p className="text-xs text-fg-muted">{label}</p>
       </div>
     </div>
   )
