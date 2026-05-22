@@ -41,6 +41,9 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.security.AnonymousAbuseThrottleService;
+import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
+import com.diegoalegil.animeshowdown.security.TurnstileVerifierService;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -60,6 +63,8 @@ public class EnfrentamientoController {
     private static final String ANON_COOKIE = "as_anon_vote_id";
     private static final String ANON_ID_HEADER = "X-AS-Anonymous-Id";
     private static final String ANON_FINGERPRINT_HEADER = "X-AS-Anonymous-Fingerprint";
+    /** Header con el token Turnstile cuando el frontend completó captcha. */
+    private static final String CAPTCHA_TOKEN_HEADER = "X-AS-Captcha-Token";
     private static final Pattern ANON_ID_PATTERN = Pattern.compile("^[A-Za-z0-9._:-]{12,64}$");
     private static final int ANON_VOTE_LIMIT = 5;
     private static final BigDecimal ANON_VOTE_WEIGHT = new BigDecimal("0.30");
@@ -69,6 +74,10 @@ public class EnfrentamientoController {
     private final SimpMessagingTemplate messaging;
     private final ApplicationEventPublisher eventPublisher;
     private final AnimeShowdownMetrics metrics;
+    private final AnonymousIdentityService anonymousIdentityService;
+    private final TurnstileVerifierService turnstileVerifier;
+    private final AnonymousAbuseThrottleService abuseThrottle;
+    private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
     private final boolean cookieSecure;
 
@@ -77,12 +86,20 @@ public class EnfrentamientoController {
             @Autowired(required = false) SimpMessagingTemplate messaging,
             ApplicationEventPublisher eventPublisher,
             AnimeShowdownMetrics metrics,
+            AnonymousIdentityService anonymousIdentityService,
+            TurnstileVerifierService turnstileVerifier,
+            AnonymousAbuseThrottleService abuseThrottle,
+            @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
         this.messaging = messaging;
         this.eventPublisher = eventPublisher;
+        this.anonymousIdentityService = anonymousIdentityService;
+        this.turnstileVerifier = turnstileVerifier;
+        this.abuseThrottle = abuseThrottle;
+        this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
         this.cookieSecure = cookieSecure;
@@ -178,10 +195,43 @@ public class EnfrentamientoController {
                         .body("Ya has votado este enfrentamiento");
             }
         } else {
+            // Audit externo AS-004 (2026-05-23): antifraude antes del check
+            // de 5 votos invitados. El throttle protege contra abusos que
+            // rotan la cookie (medidos por anon_ip_hash); el límite de 5
+            // sigue siendo el gate para empujar al CTA de "crea cuenta".
+            String captchaToken = httpRequest.getHeader(CAPTCHA_TOKEN_HEADER);
+            boolean captchaValido = false;
+            if (captchaToken != null && !captchaToken.isBlank()) {
+                String ip = primerIp(httpRequest.getHeader("X-Forwarded-For"));
+                if (ip == null || ip.isBlank()) ip = httpRequest.getRemoteAddr();
+                captchaValido = turnstileVerifier.verify(captchaToken, ip);
+            }
+            var decision = abuseThrottle.decide(anon.sessionId(), anon.ipHash(), captchaValido);
+            if (decision == AnonymousAbuseThrottleService.Decision.BLOCKED_24H) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .header(HttpHeaders.RETRY_AFTER, "86400")
+                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
+                        .body(java.util.Map.of(
+                                "message", "Demasiados votos anónimos en las últimas 24h desde tu red. Vuelve mañana o crea cuenta gratis.",
+                                "retryAfterSeconds", 86400));
+            }
+            if (decision == AnonymousAbuseThrottleService.Decision.REQUIRE_CAPTCHA) {
+                // 428 Precondition Required: el cliente DEBE resolver el
+                // captcha antes de reintentar. sitekey en el body para que
+                // el frontend monte el widget Turnstile sin saber a priori
+                // el provider.
+                return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED)
+                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
+                        .body(java.util.Map.of(
+                                "message", "Verifica que no eres un bot antes de seguir votando.",
+                                "captchaRequired", true,
+                                "provider", "turnstile",
+                                "sitekey", turnstileSitekey));
+            }
             long votosAnonimosUsados = votoRepository.countByAnonSessionId(anon.sessionId());
             if (votosAnonimosUsados >= ANON_VOTE_LIMIT) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                        .header(HttpHeaders.SET_COOKIE, anonCookie(anon.sessionId()).toString())
+                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
                         .body(java.util.Map.of(
                                 "message", "Has agotado tus 5 votos invitados. Crea cuenta gratis para seguir votando.",
                                 "limite", ANON_VOTE_LIMIT,
@@ -189,7 +239,7 @@ public class EnfrentamientoController {
             }
             if (votoRepository.existsByEnfrentamientoAndAnonSessionId(enf, anon.sessionId())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .header(HttpHeaders.SET_COOKIE, anonCookie(anon.sessionId()).toString())
+                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
                         .body("Ya has votado este enfrentamiento como invitado");
             }
         }
@@ -261,7 +311,7 @@ public class EnfrentamientoController {
                 votosAnonimosRestantes);
         ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
         if (usuario == null) {
-            ok.header(HttpHeaders.SET_COOKIE, anonCookie(anon.sessionId()).toString());
+            ok.header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString());
         }
         return ok.body(dto);
     }
@@ -313,20 +363,63 @@ public class EnfrentamientoController {
         }
     }
 
+    /**
+     * Audit externo AS-004 (2026-05-23): cookie-first con fallback legacy.
+     * Orden de resolución de la identidad anónima:
+     *   1. Cookie firmada {@code as_anon} con HMAC verificable.
+     *   2. Cookie legacy {@code as_anon_vote_id} (no firmada, mantenida 1
+     *      release para no perder el cupo de votos invitados de usuarios
+     *      ya activos).
+     *   3. Header legacy {@code X-AS-Anonymous-Id}.
+     *   4. Emitir nuevo token firmado y devolverlo en la respuesta.
+     *
+     * El campo {@code signedToken} del contexto, si no es null, manda al
+     * controller a settear la cookie firmada en la respuesta (override del
+     * legacy). Eso fuerza la migración progresiva sin invalidar sesiones.
+     */
     private AnonymousVoteContext resolverAnonymousContext(HttpServletRequest request) {
-        String sessionId = normalizarAnonId(request.getHeader(ANON_ID_HEADER));
-        if (sessionId == null && request.getCookies() != null) {
+        // 1. Cookie firmada (nueva): identidad estable server-side.
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (anonymousIdentityService.getCookieName().equals(cookie.getName())) {
+                    var verified = anonymousIdentityService.verify(cookie.getValue());
+                    if (verified.isPresent()) {
+                        String sid = verified.get();
+                        // Cookie firmada válida → no reemitir, browser ya
+                        // la tiene. signedToken=null evita Set-Cookie extra.
+                        return new AnonymousVoteContext(sid, hashAnonimo(request, sid), null);
+                    }
+                    // Si está manipulada o expirada, caemos al fallback
+                    // legacy y eventualmente emitimos una firma nueva.
+                }
+            }
+        }
+        // 2. Cookie legacy (no firmada).
+        String legacySessionId = null;
+        if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (ANON_COOKIE.equals(cookie.getName())) {
-                    sessionId = normalizarAnonId(cookie.getValue());
+                    legacySessionId = normalizarAnonId(cookie.getValue());
                     break;
                 }
             }
         }
-        if (sessionId == null) {
-            sessionId = UUID.randomUUID().toString();
+        // 3. Header legacy (último fallback aceptado).
+        if (legacySessionId == null) {
+            legacySessionId = normalizarAnonId(request.getHeader(ANON_ID_HEADER));
         }
-        return new AnonymousVoteContext(sessionId, hashAnonimo(request, sessionId));
+        if (legacySessionId != null) {
+            // Identidad legacy aceptada: preservamos el cupo histórico,
+            // pero el throttle por IP+UA sigue aplicando. La cookie
+            // firmada se emite cuando el cliente envíe su próximo voto
+            // y haya perdido la legacy, o nunca si mantiene la legacy.
+            return new AnonymousVoteContext(legacySessionId, hashAnonimo(request, legacySessionId), null);
+        }
+        // 4. Sin identidad reconocible: emitimos token firmado nuevo.
+        String token = anonymousIdentityService.emit();
+        var verified = anonymousIdentityService.verify(token);
+        String sid = verified.orElseGet(() -> UUID.randomUUID().toString());
+        return new AnonymousVoteContext(sid, hashAnonimo(request, sid), token);
     }
 
     private String normalizarAnonId(String value) {
@@ -335,7 +428,28 @@ public class EnfrentamientoController {
         return ANON_ID_PATTERN.matcher(trimmed).matches() ? trimmed : null;
     }
 
+    /**
+     * Cookie de respuesta para la identidad anónima. Si el contexto trae
+     * {@code signedToken} (identidad recién emitida), devolvemos la cookie
+     * firmada httpOnly + Secure + SameSite=Lax con TTL 30d via
+     * {@link AnonymousIdentityService#buildCookie(String)}. Si no, fallback
+     * a la cookie legacy no firmada para mantener compatibilidad con
+     * usuarios cuya identidad sigue llegando via header o cookie vieja.
+     */
+    private ResponseCookie anonCookieFor(AnonymousVoteContext context) {
+        if (context.signedToken() != null) {
+            return anonymousIdentityService.buildCookie(context.signedToken());
+        }
+        return anonCookieLegacy(context.sessionId());
+    }
+
     private ResponseCookie anonCookie(String sessionId) {
+        // Wrapper retro-compat con call sites que sólo pasan sessionId.
+        // Para identidades firmadas, usar anonCookieFor(context) directamente.
+        return anonCookieLegacy(sessionId);
+    }
+
+    private ResponseCookie anonCookieLegacy(String sessionId) {
         return ResponseCookie.from(ANON_COOKIE, sessionId)
                 .path("/")
                 .maxAge(Duration.ofDays(180))
@@ -367,5 +481,5 @@ public class EnfrentamientoController {
         return comma >= 0 ? forwardedFor.substring(0, comma).trim() : forwardedFor.trim();
     }
 
-    private record AnonymousVoteContext(String sessionId, String ipHash) {}
+    private record AnonymousVoteContext(String sessionId, String ipHash, String signedToken) {}
 }

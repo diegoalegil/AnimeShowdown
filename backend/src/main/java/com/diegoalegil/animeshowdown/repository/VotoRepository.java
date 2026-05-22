@@ -235,6 +235,23 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     long countByAnonSessionId(String anonSessionId);
 
+    /**
+     * Audit externo AS-004 (2026-05-23): conteo de votos anónimos de una
+     * sesión en una ventana temporal. Usado por
+     * {@code AnonymousAbuseThrottleService} para aplicar umbrales 1h/24h
+     * sin tener que crear una tabla nueva — la propia tabla de votos
+     * tiene anon_session_id + fecha y los índices necesarios.
+     */
+    long countByAnonSessionIdAndFechaAfter(String anonSessionId, java.time.LocalDateTime desde);
+
+    /**
+     * Audit externo AS-004 (2026-05-23): conteo de votos anónimos por
+     * hash IP+UA en una ventana temporal. Pega para abusos que rotan la
+     * cookie firmada — varias sesiones distintas pero misma huella
+     * técnica.
+     */
+    long countByAnonIpHashAndFechaAfter(String anonIpHash, java.time.LocalDateTime desde);
+
     List<Voto> findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(String anonSessionId);
 
     /** Total de votos emitidos por un usuario. Plan v2 §4.2 (badges por umbral). */
