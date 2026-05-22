@@ -86,7 +86,7 @@ function RegisterPage() {
     watch,
     setError,
     setValue,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: { referralCode: refDeQuery },
     mode: 'onBlur',
@@ -271,9 +271,19 @@ function RegisterPage() {
           {errors.root && (
             <p className="text-[12px] text-red-400">{errors.root.message}</p>
           )}
+          {/* Antes: disabled={isSubmitting || !isValid}. El !isValid bloqueaba
+              el submit hasta que react-hook-form considerara el form válido,
+              pero con mode:'onBlur' isValid arranca en false y solo pasa a
+              true tras el primer blur. Los e2e (y usuarios rápidos que pegan
+              datos y clickean) llegaban al botón sin haber disparado blur en
+              el último campo → botón siempre disabled → submit imposible.
+              handleSubmit() ya valida internamente antes de invocar onSubmit
+              y dispara los inline errors si algo falla, así que mantener el
+              botón habilitado siempre (salvo durante envío) no pierde UX y
+              destraba el flujo "fill + click directo". */}
           <button
             type="submit"
-            disabled={isSubmitting || !isValid}
+            disabled={isSubmitting}
             aria-busy={isSubmitting}
             className="mt-2 inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
