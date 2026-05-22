@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ChevronDown, ExternalLink, HelpCircle } from 'lucide-react'
+import { ChevronDown, ExternalLink, HelpCircle, Search } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, faqPageSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import { EmptyStateScene } from '../components/VisualSystem'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -28,56 +29,75 @@ const containerVariants = {
  */
 const FAQ = [
   {
+    categoria: 'Para empezar',
     pregunta: '¿Qué es AnimeShowdown?',
     respuesta:
       'Una plataforma para enfrentar a personajes de anime cara a cara. Tú votas en cada duelo y la comunidad va decidiendo quién manda en el ranking ELO. Gratis y sin anuncios.',
   },
   {
+    categoria: 'Ranking',
     pregunta: '¿Cómo funciona el ranking ELO?',
     respuesta:
       'Cada personaje empieza con 1500 puntos. Ganar un duelo le suma puntos en función del rival: si bates a alguien fuerte sube mucho, si vences a alguien por debajo sube poco. Es el mismo sistema que se usa en ajedrez competitivo. El ranking se actualiza al instante con cada voto.',
   },
   {
+    categoria: 'Torneos',
     pregunta: '¿Qué son los torneos?',
     respuesta:
       'Brackets de 8 o 16 personajes a eliminación directa. Cada ronda dura mientras la comunidad vota; cuando cierra, el ganador pasa a la siguiente. Hay torneos curados por nosotros y torneos creados por usuarios verificados — todos visibles en /torneos.',
   },
   {
+    categoria: 'Torneos',
     pregunta: '¿Puedo crear mi propio torneo?',
     respuesta:
       'Sí. Cualquier cuenta con email verificado puede crearlo desde /torneos/crear: eliges 8 o 16 personajes, le pones nombre y descripción, y lo revisamos antes de hacerlo público (suele ser en menos de 24 horas).',
   },
   {
+    categoria: 'Torneos',
     pregunta: '¿Qué son las predicciones?',
     respuesta:
       'Mientras un torneo está activo puedes predecir quién avanzará en cada match. Cuando el duelo se resuelve, sumas un acierto a tu ratio. Encadenar 3, 10 o 20 aciertos seguidos desbloquea logros.',
   },
   {
+    categoria: 'Cuenta',
     pregunta: '¿Cómo veo el perfil de otros usuarios?',
     respuesta:
       'Cada usuario tiene su perfil público en /u/su-nombre con sus stats, su top de personajes, sus logros y a quién sigue. Desde ahí puedes empezar a seguirle y recibir aviso cuando él te siga.',
   },
   {
+    categoria: 'Para empezar',
     pregunta: '¿AnimeShowdown es gratis?',
     respuesta:
       'Sí, gratis y sin anuncios. Sin trackers de terceros, sin planes de pago, sin funciones bloqueadas. Si quieres echar una mano, hay una página /apoya con donaciones opcionales.',
   },
   {
+    categoria: 'Soporte',
     pregunta: '¿Quién está detrás del proyecto?',
     respuesta:
       'AnimeShowdown lo mantiene una persona en sus horas libres, desde Tenerife. Si tienes una idea, un bug o quieres saludar, escribe a soporte@animeshowdown.dev.',
   },
   {
+    categoria: 'Catálogo',
     pregunta: '¿Cómo añado un personaje que falta?',
     respuesta:
       'Encontrarás un botón "Sugiere un personaje" en /personajes. Sirve para proponer un personaje suelto o un anime entero — la sugerencia se revisa y se añade al catálogo si encaja.',
   },
   {
+    categoria: 'Cuenta',
     pregunta: '¿Mis datos están seguros?',
     respuesta:
       'Sí. La contraseña se guarda cifrada, puedes activar verificación en dos pasos, hay límite de intentos de login y el email tiene que estar verificado para acciones sensibles. No usamos trackers de publicidad ni vendemos tus datos a nadie.',
   },
 ]
+
+const CATEGORIAS = ['Todas', ...new Set(FAQ.map((item) => item.categoria))]
+
+function normalizarFaq(value) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+}
 
 function FaqPage() {
   useSeo({
@@ -86,7 +106,21 @@ function FaqPage() {
       'Cómo funciona el ranking ELO de AnimeShowdown, cómo crear torneos, cómo se hacen las predicciones y todo lo que necesitas saber.',
   })
 
-  const [abiertaIdx, setAbiertaIdx] = useState(0)
+  const [abiertaPregunta, setAbiertaPregunta] = useState(FAQ[0]?.pregunta ?? null)
+  const [categoria, setCategoria] = useState('Todas')
+  const [filtro, setFiltro] = useState('')
+  const visibles = useMemo(() => {
+    const q = normalizarFaq(filtro.trim())
+    return FAQ.filter((item) => {
+      if (categoria !== 'Todas' && item.categoria !== categoria) return false
+      if (!q) return true
+      return normalizarFaq(`${item.pregunta} ${item.respuesta} ${item.categoria}`).includes(q)
+    })
+  }, [categoria, filtro])
+
+  const preguntaAbiertaVisible = visibles.some((item) => item.pregunta === abiertaPregunta)
+    ? abiertaPregunta
+    : visibles[0]?.pregunta ?? null
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -119,16 +153,64 @@ function FaqPage() {
           </p>
         </motion.header>
 
-        <ul className="flex flex-col gap-2">
-          {FAQ.map((item, idx) => (
-            <FaqItem
-              key={item.pregunta}
-              item={item}
-              abierta={idx === abiertaIdx}
-              onToggle={() => setAbiertaIdx(idx === abiertaIdx ? -1 : idx)}
+        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface p-3">
+          <label className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-bg px-3">
+            <Search className="h-4 w-4 text-fg-muted" />
+            <span className="sr-only">Buscar en FAQ</span>
+            <input
+              type="search"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+              placeholder="Busca por ELO, torneos, cuenta..."
+              className="min-w-0 flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
             />
-          ))}
-        </ul>
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {CATEGORIAS.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategoria(cat)}
+                className={`min-h-10 rounded-lg px-3 text-xs font-bold uppercase tracking-[0.08em] transition-colors ${
+                  categoria === cat
+                    ? 'bg-gold text-bg'
+                    : 'border border-border bg-bg text-fg-muted hover:text-fg-strong'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {visibles.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {visibles.map((item) => (
+              <FaqItem
+                key={item.pregunta}
+                item={item}
+                abierta={item.pregunta === preguntaAbiertaVisible}
+                onToggle={() => setAbiertaPregunta(
+                  item.pregunta === preguntaAbiertaVisible ? null : item.pregunta,
+                )}
+              />
+            ))}
+          </ul>
+        ) : (
+          <EmptyStateScene
+            icon={HelpCircle}
+            title={`Sin respuestas para "${filtro}"`}
+          >
+            <p>Prueba con ranking, torneos, cuenta o privacidad.</p>
+            <button
+              type="button"
+              onClick={() => { setFiltro(''); setCategoria('Todas') }}
+              className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-accent/50 bg-accent/90 px-5 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+            >
+              Limpiar búsqueda
+            </button>
+          </EmptyStateScene>
+        )}
 
         <div className="mt-10 rounded-xl border border-border bg-surface p-6">
           <h2 className="text-lg font-bold text-fg-strong">
@@ -190,6 +272,9 @@ function FaqItem({ item, abierta, onToggle }) {
       >
         <span className="text-[15px] font-semibold text-fg-strong">
           {item.pregunta}
+        </span>
+        <span className="ml-auto hidden rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-muted sm:inline-flex">
+          {item.categoria}
         </span>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-fg-muted transition-transform ${
