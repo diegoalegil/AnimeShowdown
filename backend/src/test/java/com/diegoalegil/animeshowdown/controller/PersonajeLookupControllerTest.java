@@ -33,4 +33,16 @@ class PersonajeLookupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(luffyId));
     }
+
+    @Test
+    void detalleAceptaAliasHistoricosYDevuelveSlugCanonico() throws Exception {
+        mvc.perform(get("/api/personajes/all_might"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slug").value("allmight"))
+                .andExpect(jsonPath("$.nombre").value("All Might"));
+
+        mvc.perform(get("/api/personajes/roronoa_zoro"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slug").value("zoro"));
+    }
 }
