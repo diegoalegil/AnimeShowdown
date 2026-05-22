@@ -47,7 +47,7 @@ const rutas = [
   { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles },
   { to: '/games/elo-duel', label: 'ELO Duel (Higher or Lower)', icon: Sparkles },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
-  { to: '/leaderboards', label: 'Top voters', icon: TrendingUp },
+  { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp },
   { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },
   { to: '/api-docs', label: 'API pública', icon: Code2 },
 ]
