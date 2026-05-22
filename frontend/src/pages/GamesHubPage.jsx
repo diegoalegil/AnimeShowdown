@@ -95,12 +95,19 @@ const GAMES = [
   },
 ]
 
+// Audit externo AS-016 (2026-05-22): el campo `glow` se concatenaba con
+// `hover:` en el call site → `hover:${theme.glow}` era un template literal
+// que Tailwind v4 oxide NO ve durante la extracción AOT. En producción la
+// clase desaparecía y el hover quedaba sin sombra.
+// Pre-componemos `hoverGlow` con `hover:shadow-[...]` ya literal, así
+// Tailwind detecta la clase completa en el bundle CSS.
 const COLOR_THEMES = {
   rose: {
     border: 'border-rose-500/40',
     bg: 'bg-rose-500/10',
     text: 'text-rose-200',
     glow: 'shadow-[0_0_60px_-15px_rgba(244,63,94,0.55)]',
+    hoverGlow: 'hover:shadow-[0_0_60px_-15px_rgba(244,63,94,0.55)]',
     gradient: 'from-rose-500/20 via-fuchsia-500/10 to-purple-500/5',
   },
   amber: {
@@ -108,6 +115,7 @@ const COLOR_THEMES = {
     bg: 'bg-amber-500/10',
     text: 'text-amber-200',
     glow: 'shadow-[0_0_60px_-15px_rgba(251,191,36,0.55)]',
+    hoverGlow: 'hover:shadow-[0_0_60px_-15px_rgba(251,191,36,0.55)]',
     gradient: 'from-amber-500/20 via-orange-500/10 to-rose-500/5',
   },
   emerald: {
@@ -115,6 +123,7 @@ const COLOR_THEMES = {
     bg: 'bg-emerald-500/10',
     text: 'text-emerald-200',
     glow: 'shadow-[0_0_60px_-15px_rgba(52,211,153,0.55)]',
+    hoverGlow: 'hover:shadow-[0_0_60px_-15px_rgba(52,211,153,0.55)]',
     gradient: 'from-emerald-500/20 via-cyan-500/10 to-blue-500/5',
   },
   purple: {
@@ -122,6 +131,7 @@ const COLOR_THEMES = {
     bg: 'bg-purple-500/10',
     text: 'text-purple-200',
     glow: 'shadow-[0_0_60px_-15px_rgba(168,85,247,0.55)]',
+    hoverGlow: 'hover:shadow-[0_0_60px_-15px_rgba(168,85,247,0.55)]',
     gradient: 'from-purple-500/20 via-fuchsia-500/10 to-pink-500/5',
   },
   cyan: {
@@ -129,6 +139,7 @@ const COLOR_THEMES = {
     bg: 'bg-cyan-500/10',
     text: 'text-cyan-200',
     glow: 'shadow-[0_0_60px_-15px_rgba(34,211,238,0.55)]',
+    hoverGlow: 'hover:shadow-[0_0_60px_-15px_rgba(34,211,238,0.55)]',
     gradient: 'from-cyan-500/20 via-sky-500/10 to-indigo-500/5',
   },
 }
@@ -374,7 +385,7 @@ function CardDestacado({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} hover:${theme.glow}`}
+      className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} ${theme.hoverGlow}`}
     >
       <EditorialCover
         visual={visual}
@@ -437,7 +448,7 @@ function CardMini({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} hover:${theme.glow}`}
+      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
     >
       <EditorialCover
         visual={visual}
