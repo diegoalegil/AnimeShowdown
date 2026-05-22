@@ -127,7 +127,15 @@ test('votar 5 veces actualiza contador local del header', async ({ page }, testI
     await expect(headerVoteLink).toContainText('5')
   }
   await attachVisualSmoke(page, 'votar-5-votos')
-  expect(consoleErrors).toEqual([])
+  // Durante el retry loop podemos tocar un enfrentamiento ya votado.
+  // El producto lo maneja con toast + skip, pero Chromium registra el
+  // 409 como console error de red. Ese caso es parte esperada del test;
+  // cualquier otro error de consola sigue fallando.
+  expect(
+    consoleErrors.filter(
+      (msg) => !msg.includes('Failed to load resource: the server responded with a status of 409'),
+    ),
+  ).toEqual([])
 })
 
 test('deeplink de personaje monta 3D solo tras interacción', async ({ page }) => {
