@@ -175,11 +175,50 @@ function CatalogoError({ onRetry }) {
 // rutas que SÍ usan el catálogo (home, /personajes, /votar, ranking, games,
 // torneos, perfil...). El resto carga independiente.
 function RequireCatalog({ catalogoQuery, children }) {
-  const catalogoListo = Array.isArray(catalogoQuery.data) && catalogoQuery.data.length > 0
-  const catalogoFallido = !catalogoListo && catalogoQuery.isError
-  if (catalogoListo) return children
-  if (catalogoFallido) return <CatalogoError onRetry={() => catalogoQuery.refetch()} />
+  // Audit externo AS-022 (2026-05-22): antes catalogoListo exigía
+  // data.length > 0, lo que mezclaba dos estados muy distintos:
+  //   - loading: catalogoQuery aún no resolvió.
+  //   - loaded-empty: el backend respondió, pero con [] (DB nueva, seed
+  //     no aplicado, migración en curso, entorno de staging vacío...).
+  // En el segundo caso quedabas atrapado en PageLoader eternamente
+  // porque length === 0 nunca cambiaba. Diferenciamos los dos.
+  const hasData = Array.isArray(catalogoQuery.data) && catalogoQuery.data.length > 0
+  const isLoading = catalogoQuery.isPending || catalogoQuery.isFetching
+  const isError = catalogoQuery.isError
+  const isLoadedEmpty =
+    !hasData && !isLoading && !isError && Array.isArray(catalogoQuery.data)
+
+  if (hasData) return children
+  if (isError) return <CatalogoError onRetry={() => catalogoQuery.refetch()} />
+  if (isLoadedEmpty) return <CatalogoVacio onRetry={() => catalogoQuery.refetch()} />
   return <PageLoader />
+}
+
+function CatalogoVacio({ onRetry }) {
+  return (
+    <div className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20">
+      <div className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
+          Catálogo vacío
+        </p>
+        <h1 className="text-2xl font-black text-fg-strong">
+          Aún no hay personajes para mostrar
+        </h1>
+        <p className="text-sm leading-6 text-fg-muted">
+          El backend respondió correctamente pero el catálogo está vacío. Si
+          eres operador, ejecuta el seed o aplica las migraciones pendientes.
+          Si eres usuario, vuelve en un rato — estamos preparando el roster.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-600"
+        >
+          Volver a comprobar
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function App() {
