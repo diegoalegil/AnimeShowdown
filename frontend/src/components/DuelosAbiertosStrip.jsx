@@ -34,7 +34,7 @@ function DuelosAbiertosStrip({ enfrentamientos, torneoId, torneoSlug }) {
   if (abiertos.length === 0) return null
 
   return (
-    <section className="mb-10">
+    <section id="duelos-abiertos" className="mb-10 scroll-mt-24">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">

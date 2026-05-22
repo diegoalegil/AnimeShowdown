@@ -109,6 +109,9 @@ AnimeShowdown agrega datos de:
   comunidad — fuente primaria, no derivada.
 - **Torneos auto-generados**: GitHub Action que crea un Random Showdown
   cada 3 días con personajes aleatorios.
+- **Torneos en directo**: `/torneos/:slug` expone `currentMatch`,
+  `liveServerNow`, `liveEndsAt` y actualizaciones STOMP públicas en
+  `/topic/tournament/{slug}` para modo spectator con barras de voto.
 
 Los textos descriptivos de personajes son originales del proyecto (o
 generados con LLM y revisados manualmente). El uso para citar y comparar

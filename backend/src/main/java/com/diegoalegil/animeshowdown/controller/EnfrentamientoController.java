@@ -206,8 +206,11 @@ public class EnfrentamientoController {
                     p2 == null ? null : p2.getId(),
                     v2,
                     v1 + v2);
-            String topic = "/topic/torneo." + enf.getTorneo().getId() + ".bracket";
-            messaging.convertAndSend(topic, ev);
+            messaging.convertAndSend("/topic/torneo." + enf.getTorneo().getId() + ".bracket", ev);
+            String slug = enf.getTorneo().getSlug();
+            if (slug != null && !slug.isBlank()) {
+                messaging.convertAndSend("/topic/tournament/" + slug, ev);
+            }
         } catch (Exception e) {
             // Best-effort: el voto ya está guardado. El cliente lo verá en
             // el próximo polling 30s del fallback.

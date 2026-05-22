@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
 import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
+import LiveMatchSpectator from '../components/LiveMatchSpectator'
 import PersonajeImg from '../components/PersonajeImg'
 import ReactionsBar from '../components/ReactionsBar'
 import EditorialCover from '../components/EditorialCover'
@@ -211,6 +212,9 @@ function TorneoDetailPage() {
               <p className="text-[13px] text-fg-muted">{campeon.anime}</p>
             </div>
           </Link>
+        )}
+        {estado === 'IN_PROGRESS' && torneo.currentMatch && (
+          <LiveMatchSpectator torneo={torneo} />
         )}
         {/* Sprint UX (2026-05-18): "Duelos abiertos" arriba del bracket
             para que el usuario que aterriza en un torneo IN_PROGRESS no
