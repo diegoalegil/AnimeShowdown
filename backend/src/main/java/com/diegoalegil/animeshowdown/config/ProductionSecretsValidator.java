@@ -48,27 +48,40 @@ public class ProductionSecretsValidator {
 
     private final Map<String, String> secretosRequeridos;
     private final Map<String, String> secretosOpcionales;
+    private final boolean turnstileEnabled;
+    private final String turnstileSecret;
 
     public ProductionSecretsValidator(
             @Value("${spring.datasource.password:}") String dbPassword,
             @Value("${jwt.secret:}") String jwtSecret,
             @Value("${app.totp.encryption-key:}") String totpKey,
+            @Value("${app.anon-identity.hmac-key:}") String anonIdentityHmacKey,
             @Value("${spring.security.oauth2.client.registration.google.client-id:}") String googleClientId,
             @Value("${spring.security.oauth2.client.registration.google.client-secret:}") String googleClientSecret,
             @Value("${spring.security.oauth2.client.registration.discord.client-id:}") String discordClientId,
-            @Value("${spring.security.oauth2.client.registration.discord.client-secret:}") String discordClientSecret) {
+            @Value("${spring.security.oauth2.client.registration.discord.client-secret:}") String discordClientSecret,
+            @Value("${app.turnstile.enabled:false}") boolean turnstileEnabled,
+            @Value("${app.turnstile.secret:}") String turnstileSecret) {
         // LinkedHashMap para que el mensaje de error sea determinístico
         // (Map.of no garantiza orden en versiones futuras).
         this.secretosRequeridos = new LinkedHashMap<>();
         this.secretosRequeridos.put("DB_PASSWORD (spring.datasource.password)", dbPassword);
         this.secretosRequeridos.put("JWT_SECRET (jwt.secret)", jwtSecret);
         this.secretosRequeridos.put("TOTP_ENCRYPTION_KEY (app.totp.encryption-key)", totpKey);
+        // Audit externo AS-004 (2026-05-23): la cookie anónima firmada HMAC
+        // requiere una clave secreta — sin ella el voto invitado no tiene
+        // identidad estable server-side.
+        this.secretosRequeridos.put(
+                "ANON_IDENTITY_HMAC_KEY (app.anon-identity.hmac-key)", anonIdentityHmacKey);
 
         this.secretosOpcionales = new LinkedHashMap<>();
         this.secretosOpcionales.put("GOOGLE_CLIENT_ID", googleClientId);
         this.secretosOpcionales.put("GOOGLE_CLIENT_SECRET", googleClientSecret);
         this.secretosOpcionales.put("DISCORD_CLIENT_ID", discordClientId);
         this.secretosOpcionales.put("DISCORD_CLIENT_SECRET", discordClientSecret);
+
+        this.turnstileEnabled = turnstileEnabled;
+        this.turnstileSecret = turnstileSecret == null ? "" : turnstileSecret.trim();
     }
 
     @PostConstruct
@@ -78,6 +91,14 @@ public class ProductionSecretsValidator {
             if (esInseguro(e.getValue())) {
                 requeridosInseguros.add(e.getKey());
             }
+        }
+        // Audit externo AS-004 (2026-05-23): si Turnstile está enabled, su
+        // secret pasa de opcional a REQUERIDO. Aborto explícito antes que un
+        // captcha que falla silenciosamente porque el secret vacío hace que
+        // toda verificación rechace, dejando al usuario imposible de votar.
+        if (turnstileEnabled && esInseguro(turnstileSecret)) {
+            requeridosInseguros.add(
+                    "TURNSTILE_SECRET (app.turnstile.secret, requerido cuando app.turnstile.enabled=true)");
         }
         if (!requeridosInseguros.isEmpty()) {
             String mensaje = "Boot abortado: las siguientes variables de entorno "
@@ -102,9 +123,10 @@ public class ProductionSecretsValidator {
         }
 
         log.info(
-                "ProductionSecretsValidator: {} variables requeridas validadas, {} opcionales con placeholder.",
+                "ProductionSecretsValidator: {} variables requeridas validadas, {} opcionales con placeholder. Turnstile enabled={}.",
                 secretosRequeridos.size(),
-                opcionalesInseguros.size());
+                opcionalesInseguros.size(),
+                turnstileEnabled);
     }
 
     private static boolean esInseguro(String valor) {
