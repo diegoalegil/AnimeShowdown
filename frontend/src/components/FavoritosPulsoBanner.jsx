@@ -14,7 +14,7 @@ import { endpoints } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { useMisFavoritos } from '../hooks/useFavoritos'
 import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
-import { imagenPersonaje } from '../data/personajes'
+import { imagenPersonaje } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**

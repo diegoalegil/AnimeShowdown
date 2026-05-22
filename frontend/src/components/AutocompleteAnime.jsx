@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { personajes } from '../data/personajes'
+import { personajes } from '../lib/personajes-core'
 import { normalizar } from '../lib/games'
 
 // Lista de animes únicos del catálogo + count para ranking en autocomplete.

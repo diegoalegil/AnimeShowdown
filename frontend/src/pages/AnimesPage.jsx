@@ -7,10 +7,11 @@ import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
-import { animesCatalogo, buscarAnimes } from '../lib/animes'
+import { buscarAnimes, getAnimesCatalogo } from '../lib/animes'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getAnimeVisual } from '../data/visual-assets'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 const SORT_LABELS = {
   destacados: 'Destacados',
@@ -21,6 +22,12 @@ const SORT_LABELS = {
 }
 
 function AnimesPage() {
+  const { personajes } = usePersonajesCatalogo()
+  const animesCatalogo = useMemo(
+    () => getAnimesCatalogo(personajes),
+    [personajes],
+  )
+
   useSeo({
     title: 'Animes',
     description: `${animesCatalogo.length} universos de anime en AnimeShowdown, con sus personajes votables y rankings internos.`,
@@ -30,7 +37,7 @@ function AnimesPage() {
   const [sort, setSort] = useState('destacados')
 
   const filtrados = useMemo(() => {
-    let list = buscarAnimes(search)
+    let list = buscarAnimes(search, personajes)
     if (sort === 'destacados') {
       // Mezcla de cantidad de personajes + topELO. Pondera ambos para
       // que los animes "ricos" (mucho roster + competidores fuertes) suban
@@ -52,7 +59,7 @@ function AnimesPage() {
       list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
     }
     return list
-  }, [search, sort])
+  }, [search, sort, personajes])
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.animes} lateralKanji={{left: "世", right: "界"}}>

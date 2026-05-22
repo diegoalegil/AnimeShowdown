@@ -24,7 +24,7 @@ import {
   personajes,
   imagenPersonaje,
   getStatsPersonaje,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'

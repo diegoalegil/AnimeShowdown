@@ -9,7 +9,7 @@
 // Estas funciones devuelven los srcset listos para meter en <source> y el
 // fallback final del <img>.
 
-import { imagenPersonaje } from '../data/personajes.js'
+import { imagenPersonaje } from '../lib/personajes-core.js'
 
 const ANCHOS = [300, 600, 1024]
 

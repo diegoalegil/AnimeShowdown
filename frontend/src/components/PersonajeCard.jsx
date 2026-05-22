@@ -9,7 +9,7 @@ import {
 } from 'framer-motion'
 import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
-import { getStatsPersonaje } from '../data/personajes'
+import { getStatsPersonaje } from '../lib/personajes-core'
 
 // Detector singleton de hover capability. Audit (2026-05-17): cada
 // PersonajeCard creaba 2 motionValues + 2 springs + 4 transforms +

@@ -23,7 +23,7 @@ import {
   Grid3X3,
   BookOpen,
 } from 'lucide-react'
-import { personajes, imagenPersonaje } from '../data/personajes'
+import { personajes, imagenPersonaje } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 import { useTorneos } from '../lib/torneosQueries'
 import { useAuth } from '../contexts/AuthContext'

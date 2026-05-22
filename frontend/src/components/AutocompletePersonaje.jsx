@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { personajes, imagenPersonaje } from '../data/personajes'
+import { personajes, imagenPersonaje } from '../lib/personajes-core'
 import { normalizar } from '../lib/games'
 import { ocultaImgRota } from '../lib/imgFallback'
 

@@ -1,4 +1,4 @@
-import { personajes, getPopularidad, getStatsPersonaje } from '../data/personajes'
+import { getPopularidad, getStatsPersonaje, readCatalogoPersonajesSnapshot } from './personajes-core'
 
 // "Slugify" relajado: minúsculas, sin acentos/caracteres raros, espacios y
 // símbolos a guión. Mantiene paridad con el patrón Wordpress/CMS clásicos.
@@ -47,12 +47,9 @@ const ALIASES = {
   'Bunny Girl Senpai': ['bunny girl', 'bunny girl senpai', 'mai sakurajima', 'seishun buta yarou'],
 }
 
-// Lista de animes con datos competitivos pre-calculados. Construida una
-// sola vez al cargar el módulo (catálogo es inmutable en runtime). Las
-// páginas que la consumen no necesitan recalcular nada.
-export const animesCatalogo = (() => {
+export function getAnimesCatalogo(catalogo = readCatalogoPersonajesSnapshot()) {
   const groups = {}
-  for (const p of personajes) {
+  for (const p of catalogo) {
     if (!groups[p.anime]) groups[p.anime] = []
     groups[p.anime].push(p)
   }
@@ -104,16 +101,16 @@ export const animesCatalogo = (() => {
       aliases: ALIASES[anime] ?? [],
     }
   })
-})()
+}
 
-// Lookup por slug. O(n) pero n=70 animes, no merece Map.
-export function getAnimePorSlug(slug) {
-  return animesCatalogo.find((a) => a.slug === slug) ?? null
+export function getAnimePorSlug(slug, catalogo) {
+  return getAnimesCatalogo(catalogo).find((a) => a.slug === slug) ?? null
 }
 
 // Buscador: matchea por nombre real, slug o alias. Case insensitive,
 // sin acentos. Usado por el input del catálogo de animes.
-export function buscarAnimes(query) {
+export function buscarAnimes(query, catalogo) {
+  const animesCatalogo = getAnimesCatalogo(catalogo)
   if (!query) return animesCatalogo
   const q = query
     .toLowerCase()
