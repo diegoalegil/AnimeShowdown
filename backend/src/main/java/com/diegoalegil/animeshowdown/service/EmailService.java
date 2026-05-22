@@ -22,6 +22,7 @@ import org.springframework.web.client.RestClient;
 import com.diegoalegil.animeshowdown.model.EmailFailure;
 import com.diegoalegil.animeshowdown.model.EmailTipo;
 import com.diegoalegil.animeshowdown.repository.EmailFailureRepository;
+import com.diegoalegil.animeshowdown.security.LogSanitizer;
 
 /**
  * Envío de emails transaccionales vía Resend (HTTPS, sin SMTP).
@@ -163,7 +164,7 @@ public class EmailService {
     public void enviarConRetry(EmailTipo tipo, String to, String subject, String text) {
         if (!enabled) {
             log.warn("[EMAIL FALLBACK] {} a {}: subject={} (modo offline, RESEND_API_KEY no configurada)",
-                    tipo, to, subject);
+                    tipo, LogSanitizer.email(to), subject);
             return;
         }
         Map<String, Object> body = Map.of(
@@ -178,7 +179,7 @@ public class EmailService {
                 .body(body)
                 .retrieve()
                 .toBodilessEntity();
-        log.info("Email {} enviado a {} vía Resend", tipo, to);
+        log.info("Email {} enviado a {} vía Resend", tipo, LogSanitizer.email(to));
     }
 
     /**
@@ -193,7 +194,7 @@ public class EmailService {
     @Recover
     public void onEnvioFallido(Exception ex, EmailTipo tipo, String to, String subject, String text) {
         log.error("EmailService: fallo tras 3 reintentos. tipo={} to={} error={}",
-                tipo, to, ex.getMessage());
+                tipo, LogSanitizer.email(to), ex.getMessage());
         try {
             emailFailureRepository.save(new EmailFailure(tipo, to, subject, text, ex.getMessage()));
         } catch (Exception persistError) {

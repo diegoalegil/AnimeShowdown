@@ -36,7 +36,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 - **React 19** + **Vite 8** (HMR + Rolldown bundler)
 - **Tailwind CSS v4** vía `@tailwindcss/vite` con tokens nativos en `@theme` (paleta dark anime: `#0d0d12` bg + `#ff2e63` accent magenta)
 - **Framer Motion 12** para animaciones, parallax mouse-tracked, AnimatePresence en transiciones de ruta
-- **React Router 7** (BrowserRouter + 24 rutas — incluye `/games` hub + 5 modos diarios — + URL search params para filtros + redirects 301 a nivel Cloudflare para rebrand de URLs)
+- **React Router 7** (BrowserRouter + 50+ rutas — incluye `/games` hub + 5 modos diarios — + URL search params para filtros + redirects 301 a nivel Cloudflare para rebrand de URLs)
 - **react-hook-form 7** para validación de formularios (Login + Register)
 - **Lucide React** + SVG inline para iconografía
 - **Sonner** para toast notifications
@@ -48,7 +48,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 
 - **Java 21** + **Spring Boot 3.5.14** (Web + Data JPA + Security + Validation + Actuator)
 - **PostgreSQL 17** (Neon en producción, local en dev)
-- **JWT** con `com.auth0:java-jwt 4.4.0` y BCrypt para hashing
+- **JWT** con `com.auth0:java-jwt 4.5.2` y BCrypt para hashing
 - **springdoc-openapi 2.8.5** (Swagger UI)
 - **DataSeeder con sincronización completa** que en cada arranque ajusta los 1052 personajes desde `personajes-seed.json`: inserta nuevos, actualiza campos cambiados (imagenUrl, descripción, nombre, anime) y borra los retirados con cascada de votos y enfrentamientos (todo en `@Transactional`)
 - **Resilience4j** sobre `JikanService` (retry exponencial + circuit breaker + timeout 5s) y **caché Caffeine** sobre las páginas top con TTL 1h
@@ -366,7 +366,7 @@ erDiagram
    - **Root directory** (advanced): `frontend`
 4. **Environment variables:** `VITE_API_URL=https://api.animeshowdown.dev` en producción. No uses el dominio bruto de Railway aquí: rompe cookies de refresh y OAuth social.
 5. Save and Deploy → ~1-2 min y tienes `https://animeshowdown.pages.dev`
-6. **`frontend/public/_redirects`** ya configurado con `/* /index.html 200` para SPA routing
+6. **`frontend/public/_redirects`** ya configurado con rutas SPA enumeradas que reescriben a `/` y redirects 301 de rebrand, evitando catch-all para que URLs inventadas puedan servir 404.
 
 ### Backend en Railway
 
@@ -512,7 +512,7 @@ erDiagram
 - [x] DevOps: Dependabot scan semanal + groupings (react-vendor, i18n, tanstack…)
 - [x] Backups Neon → Cloudflare R2 (cron diario, rotación daily/weekly/monthly)
 - [x] Páginas legales: Privacy + Terms + DMCA con Footer extendido
-- [x] CI verde con tests backend 114/114
+- [x] Suite backend verde con `./mvnw test` (193 tests, 0 failures, 1 skipped en verificación local)
 - [x] **RUNBOOK.md** con procedimientos de incidente (9 escenarios + smoke test)
 - [x] CatalogoHealthIndicator custom en `/actuator/health` detecta BBDD vacía o catálogo contaminado
 

@@ -1,24 +1,24 @@
-const DEFAULT_API_BASE = 'https://api.animeshowdown.dev'
+const DEV_API_BASE = 'http://localhost:8080'
 
 function normalizarApiBase(value) {
   const raw = typeof value === 'string' ? value.trim() : ''
-  if (!raw) return DEFAULT_API_BASE
+  if (!raw) {
+    if (import.meta.env.DEV) return DEV_API_BASE
+    throw new Error('VITE_API_URL es obligatoria en builds de producción')
+  }
   try {
     const url = new URL(raw)
-    // En producción OAuth y refresh dependen de cookies del subdominio API.
-    // Si Cloudflare Pages inyecta el dominio bruto de Railway, el login social
-    // empieza en railway.app pero Google vuelve a api.animeshowdown.dev: el
-    // state OAuth no viaja y aparece [authorization_request_not_found].
     if (import.meta.env.PROD && /\.up\.railway\.app$/i.test(url.hostname)) {
-      return DEFAULT_API_BASE
+      console.warn('[api] VITE_API_URL apunta a Railway; usa el dominio canónico del API en producción.')
     }
     return url.toString().replace(/\/$/, '')
   } catch {
-    return DEFAULT_API_BASE
+    if (import.meta.env.DEV) return DEV_API_BASE
+    throw new Error('VITE_API_URL debe ser una URL válida')
   }
 }
 
-const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
+export const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 
 // Plan v2 §1.3: el JWT vive en MEMORIA, no en localStorage. La sesión
 // persistente la da el refresh_token cookie httpOnly que pone el backend
