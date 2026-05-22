@@ -261,7 +261,7 @@ function Header() {
             to="/votar"
             onPointerDown={ctaVotarMobile.onPointerDown}
             onClick={ctaVotarMobile.onClick}
-            className="inline-flex items-center gap-1.5 rounded-md border border-accent/50 bg-gradient-to-b from-accent-hover to-accent px-3 py-1.5 text-[13px] font-black text-white shadow-[0_0_24px_-14px_var(--color-accent)]"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-accent/50 bg-gradient-to-b from-accent-hover to-accent px-3 text-[13px] font-black text-white shadow-[0_0_24px_-14px_var(--color-accent)]"
           >
             <Swords className="h-3.5 w-3.5" />
             {t('header.ctaVotarCompact')}
@@ -282,7 +282,7 @@ function Header() {
           aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav-panel"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-strong transition-colors hover:bg-surface-alt"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-fg-strong transition-colors hover:bg-surface-alt"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -313,7 +313,7 @@ function Header() {
                   end={to === '/'}
                   onClick={() => { play('playClick'); closeMobile() }}
                   className={({ isActive }) =>
-                    `rounded-md px-3 py-2.5 text-sm font-medium ${
+                    `flex min-h-11 items-center rounded-md px-3 text-sm font-medium ${
                       isActive
                         ? 'bg-surface-alt text-fg-strong'
                         : 'text-fg hover:bg-surface-alt'
@@ -327,7 +327,7 @@ function Header() {
                 to="/votar"
                 onClick={() => { play('playClick'); closeMobile() }}
                 className={({ isActive }) =>
-                  `rounded-md px-3 py-2.5 text-sm font-medium ${
+                  `flex min-h-11 items-center rounded-md px-3 text-sm font-medium ${
                     isActive
                       ? 'bg-surface-alt text-fg-strong'
                       : 'text-fg hover:bg-surface-alt'
@@ -340,7 +340,7 @@ function Header() {
                 <NavLink
                   to="/login"
                   onClick={() => { play('playClick'); closeMobile() }}
-                  className="mt-1 inline-flex items-center justify-center rounded-md border border-border px-3 py-2.5 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
+                  className="mt-1 inline-flex min-h-11 items-center justify-center rounded-md border border-border px-3 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
                 >
                   {t('nav.login')}
                 </NavLink>
@@ -352,7 +352,7 @@ function Header() {
                 type="button"
                 onClick={() => { toggleMute(); if (muted) play('playClick') }}
                 aria-label={muted ? t('header.activarSonidos') : t('header.silenciar')}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted hover:bg-surface-alt hover:text-fg-strong"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md text-fg-muted hover:bg-surface-alt hover:text-fg-strong"
               >
                 {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </button>
@@ -360,7 +360,7 @@ function Header() {
                 <button
                   type="button"
                   onClick={() => { logout(); closeMobile() }}
-                  className="ml-auto inline-flex items-center gap-1 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-strong"
+                  className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-md border border-border bg-surface px-3 text-[12px] font-semibold text-fg-strong"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   {t('nav.salir')}
