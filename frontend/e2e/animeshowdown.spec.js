@@ -55,7 +55,9 @@ async function registerThroughUi(page, suffix = Date.now()) {
 test('home renderiza sin errores y con CTA principal', async ({ page }) => {
   const consoleErrors = await preparePage(page)
   await page.goto('/')
-  await expect(page.getByRole('link', { name: 'Votar ahora' })).toBeVisible()
+  // "Votar ahora" sale dos veces en la home (CTA del header + CTA del footer).
+  // Solo necesitamos confirmar que al menos uno pintó.
+  await expect(page.getByRole('link', { name: 'Votar ahora' }).first()).toBeVisible()
   await attachVisualSmoke(page, 'home-desktop')
   expect(consoleErrors).toEqual([])
 })
@@ -64,7 +66,11 @@ test('registro deja sesión activa y perfil accesible', async ({ page }) => {
   const consoleErrors = await preparePage(page)
   const { username } = await registerThroughUi(page, `reg_${Date.now()}`)
   await page.goto('/perfil')
-  await expect(page.getByText(username)).toBeVisible()
+  // El username aparece varias veces en la página: span del UserBadge en
+  // el header, h1 de la card "Perfil público" y prefijo del email
+  // (<username>@example.com). Cualquiera de ellos confirma que la página
+  // se hidrató con el user creado — con .first() basta.
+  await expect(page.getByText(username).first()).toBeVisible()
   await attachVisualSmoke(page, 'perfil-registrado')
   expect(consoleErrors).toEqual([])
 })
@@ -78,15 +84,24 @@ test('votar 5 veces actualiza contador local del header', async ({ page }, testI
     const voteButtons = page.locator('button[aria-label^="Votar por"]')
     await expect(voteButtons.first()).toBeVisible()
     await voteButtons.first().click()
-    if (testInfo.project.name === 'chromium-desktop') {
-      await expect(page.getByLabel(`${i} votos en esta sesión`)).toBeVisible()
-    }
+    // Esperar a que el voto se haya commiteado: el botón "Saltar duelo"
+    // cambia a "Siguiente duelo" cuando votedFor se setea tras un onSuccess
+    // del votarMutation. Esto evita el race que tenía la antigua assertion
+    // `getByLabel('${i} votos en esta sesión')` per iteración (flake en i=5
+    // cuando el ms entre click+mutate y assert era demasiado justo).
     const next = page.getByRole('button', { name: 'Siguiente duelo' })
+    await expect(next).toBeVisible()
     if (i < 5) {
       await next.click()
     }
   }
 
+  // En chromium-desktop validamos también el badge del header. Ya no per
+  // iteración sino al final, cuando los 5 votos están consolidados y el
+  // CustomEvent VOTES_COUNT_EVENT ya re-renderizó el contador.
+  if (testInfo.project.name === 'chromium-desktop') {
+    await expect(page.getByLabel('5 votos en esta sesión')).toBeVisible()
+  }
   const count = await page.evaluate(() => localStorage.getItem('animeshowdown.votos_count'))
   expect(count).toBe('5')
   await attachVisualSmoke(page, 'votar-5-votos')
