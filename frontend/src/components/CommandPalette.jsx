@@ -240,7 +240,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 key={to}
                 value={`pagina ${label}`}
                 onSelect={() => go(to)}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
                 <Icon className="h-4 w-4 text-fg-muted" />
                 {label}
@@ -252,7 +252,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={to}
                   value={`acceso ${label}`}
                   onSelect={() => go(to)}
-                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
                 >
                   <Icon className="h-4 w-4 text-fg-muted" />
                   {label}
@@ -270,7 +270,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 toggleMute()
                 setOpen(false)
               }}
-              className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+              className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
             >
               {muted ? (
                 <Volume2 className="h-4 w-4 text-fg-muted" />
@@ -286,7 +286,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   logout()
                   setOpen(false)
                 }}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
                 <LogOut className="h-4 w-4 text-fg-muted" />
                 Cerrar sesión
@@ -303,7 +303,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 key={t.slug}
                 value={`torneo ${t.nombre}`}
                 onSelect={() => go(`/torneos/${t.slug}`)}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
                 <Trophy className="h-4 w-4 text-fg-muted" />
                 {t.nombre}
@@ -323,7 +323,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 key={p.slug}
                 value={`personaje ${p.nombre} ${p.anime}`}
                 onSelect={() => go(`/personajes/${p.slug}`)}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-accent"
+                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
                 <img
                   src={imagenPersonaje(p.slug)}

@@ -296,7 +296,7 @@ function PersonajeDetailPage() {
                 </span>
               )}
               {animePersonajes.length > 1 && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent">
+                <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold">
                   #{rankAnime} de {personaje.anime}
                 </span>
               )}
@@ -308,7 +308,7 @@ function PersonajeDetailPage() {
                   className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted"
                   title="Favoritos contados por MyAnimeList — métrica externa, no del ranking interno de AnimeShowdown"
                 >
-                  <Star className="h-3 w-3 text-accent" />
+                  <Star className="h-3 w-3 text-gold" />
                   {jikan.favorites.toLocaleString('es-ES')} fans MAL
                 </span>
               )}
@@ -348,7 +348,7 @@ function PersonajeDetailPage() {
               </Link>
               <Link
                 to="/ranking"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
               >
                 <TrendingUp className="h-4 w-4" />
                 Ver en ranking
@@ -356,7 +356,7 @@ function PersonajeDetailPage() {
               <button
                 type="button"
                 onClick={compartir}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
               >
                 <Share2 className="h-4 w-4" />
                 Compartir ficha
@@ -416,7 +416,7 @@ function PersonajeDetailPage() {
                 className="relative w-full rounded-lg border border-accent/30 bg-accent-soft p-4 pl-10"
                 variants={itemVariants}
               >
-                <Quote className="absolute left-3 top-3 h-5 w-5 text-accent" />
+                <Quote className="absolute left-3 top-3 h-5 w-5 text-gold" />
                 <p className="text-sm italic leading-relaxed text-fg-strong">
                   {cita.content}
                 </p>
@@ -447,7 +447,7 @@ function PersonajeDetailPage() {
                 to={`/personajes/${prev.slug}`}
                 aria-label={`Ir al personaje anterior: ${prev.nombre} de ${prev.anime}`}
                 title={`${prev.nombre} de ${prev.anime}`}
-                className="inline-flex flex-col items-start gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
+                className="inline-flex flex-col items-start gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-gold"
               >
                 <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-fg-muted">
                   <ArrowLeft className="h-3 w-3" />
@@ -459,7 +459,7 @@ function PersonajeDetailPage() {
                 to={`/personajes/${next.slug}`}
                 aria-label={`Ir al personaje siguiente: ${next.nombre} de ${next.anime}`}
                 title={`${next.nombre} de ${next.anime}`}
-                className="inline-flex flex-col items-end gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-accent"
+                className="inline-flex flex-col items-end gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-gold"
               >
                 <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-fg-muted">
                   Siguiente
@@ -493,7 +493,7 @@ function PersonajeDetailPage() {
           <section className="mt-8 rounded-xl border border-accent/25 bg-[linear-gradient(135deg,rgb(255_46_99_/_0.10),rgb(20_20_30_/_0.92))] p-5">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
                   <Swords className="h-3.5 w-3.5" />
                   Duelos populares
                 </span>
@@ -503,7 +503,7 @@ function PersonajeDetailPage() {
               </div>
               <Link
                 to="/votar"
-                className="text-[13px] font-semibold text-accent hover:underline"
+                className="text-[13px] font-semibold text-gold hover:underline"
               >
                 Votar ahora →
               </Link>
@@ -551,7 +551,7 @@ function PersonajeDetailPage() {
               {totalAnime > relacionados.length + 1 && (
                 <Link
                   to={`/personajes?anime=${encodeURIComponent(personaje.anime)}`}
-                  className="text-[13px] font-semibold text-accent hover:underline"
+                  className="text-[13px] font-semibold text-gold hover:underline"
                 >
                   Ver los {totalAnime} personajes de {personaje.anime} →
                 </Link>
@@ -567,14 +567,14 @@ function PersonajeDetailPage() {
               completa con stats, citas y ranking ELO. También puedes{' '}
               <Link
                 to="/ranking"
-                className="text-accent hover:underline"
+                className="text-gold hover:underline"
               >
                 ver el ranking global de personajes
               </Link>{' '}
               o{' '}
               <Link
                 to="/torneos"
-                className="text-accent hover:underline"
+                className="text-gold hover:underline"
               >
                 explorar torneos activos
               </Link>
@@ -639,7 +639,7 @@ function CarruselSimilares({ slug, nombre }) {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-            <Sparkles className="h-3 w-3 text-accent" />
+            <Sparkles className="h-3 w-3 text-gold" />
             Más allá del universo
           </span>
           <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -651,7 +651,7 @@ function CarruselSimilares({ slug, nombre }) {
             type="button"
             onClick={() => handleScroll(-1)}
             aria-label="Anterior"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-accent"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-gold"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -659,7 +659,7 @@ function CarruselSimilares({ slug, nombre }) {
             type="button"
             onClick={() => handleScroll(1)}
             aria-label="Siguiente"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-accent"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-gold"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -714,7 +714,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
           onFocus={preload3D}
           onPointerEnter={preload3D}
           onClick={() => setShow3D(true)}
-          className="absolute bottom-3 right-3 z-10 rounded-full border border-border bg-surface/85 px-3 py-1.5 text-[11px] font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-accent"
+          className="absolute bottom-3 right-3 z-10 rounded-full border border-border bg-surface/85 px-3 py-1.5 text-[11px] font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
         >
           Ver en 3D
         </button>
@@ -740,7 +740,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
       <button
         type="button"
         onClick={() => setShow3D(false)}
-        className="absolute bottom-3 right-3 z-10 rounded-full border border-accent/60 bg-bg/85 px-3 py-1.5 text-[11px] font-semibold text-accent backdrop-blur transition-colors hover:border-accent hover:bg-accent/15"
+        className="absolute bottom-3 right-3 z-10 rounded-full border border-accent/60 bg-bg/85 px-3 py-1.5 text-[11px] font-semibold text-gold backdrop-blur transition-colors hover:border-accent hover:bg-accent/15"
       >
         Volver a imagen
       </button>
@@ -756,7 +756,7 @@ function Stat({ label, value, accent }) {
       </p>
       <p
         className={`mt-1 font-mono text-xl font-bold ${
-          accent ? 'text-accent' : 'text-fg-strong'
+          accent ? 'text-gold' : 'text-fg-strong'
         }`}
       >
         {value}

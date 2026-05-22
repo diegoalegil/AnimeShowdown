@@ -174,7 +174,7 @@ function EventoDetailPage() {
               </Link>
               <Link
                 to="/ranking"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
               >
                 Ver ranking global
               </Link>
@@ -188,7 +188,7 @@ function EventoDetailPage() {
         {participantes.length > 0 && (
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr] sm:gap-4">
             <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface p-4 sm:p-5">
-              <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
+              <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
                 <Sparkles className="h-3 w-3" />
                 Misión del evento
               </span>
@@ -207,7 +207,7 @@ function EventoDetailPage() {
         <div className="mb-4 flex items-end justify-between gap-3 border-b border-border pb-3">
           <div className="flex flex-col gap-1">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-              <Sparkles className="h-3 w-3 text-accent" />
+              <Sparkles className="h-3 w-3 text-gold" />
               Ranking del evento
             </span>
             <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -278,7 +278,7 @@ function PodioEvento({ participantes, tono }) {
             {primero.nombre}
           </h3>
           <p className="mt-1 text-sm text-fg-muted">{primero.anime}</p>
-          <p className="mt-4 font-mono text-sm font-bold text-accent">
+          <p className="mt-4 font-mono text-sm font-bold text-gold">
             ELO {primero.elo}
           </p>
         </div>
@@ -304,7 +304,7 @@ function PodioEvento({ participantes, tono }) {
                 {p.nombre}
               </p>
               <p className="line-clamp-1 text-[12px] text-fg-muted">{p.anime}</p>
-              <p className="mt-2 font-mono text-[12px] font-bold text-accent">
+              <p className="mt-2 font-mono text-[12px] font-bold text-gold">
                 ELO {p.elo}
               </p>
             </div>
@@ -343,14 +343,14 @@ function ParticipanteCard({ rank, personaje, tono }) {
           </span>
         </div>
         <div className="min-w-0">
-          <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-accent sm:text-[13px]">
+          <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-gold sm:text-[13px]">
             {personaje.nombre}
           </p>
           <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[11px]">
             {personaje.anime}
           </p>
         </div>
-        <p className="font-mono text-[11px] font-bold text-accent">
+        <p className="font-mono text-[11px] font-bold text-gold">
           ELO {personaje.elo}
         </p>
       </Link>

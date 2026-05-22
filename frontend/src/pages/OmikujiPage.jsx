@@ -230,7 +230,7 @@ function OmikujiPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <Sparkles className="h-3 w-3" />
             お御籤 · Omikuji
           </span>
@@ -416,7 +416,7 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
       </div>
       <p className="mt-4 text-center text-[11px] text-fg-muted">
         Vuelve mañana para otra suerte ·{' '}
-        <Link to="/games" className="hover:text-accent hover:underline">
+        <Link to="/games" className="hover:text-gold hover:underline">
           Juegos del día
         </Link>
       </p>

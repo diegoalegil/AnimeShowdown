@@ -98,7 +98,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = fa
           aria-label="Desbloqueado"
           className="absolute -right-2 -top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent bg-bg"
         >
-          <Check className="h-4 w-4 text-accent" />
+          <Check className="h-4 w-4 text-gold" />
         </span>
       )}
 

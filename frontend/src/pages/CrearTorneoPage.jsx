@@ -172,7 +172,7 @@ function CrearTorneoPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <Sparkles className="h-3 w-3" />
             Crea un torneo
           </span>
@@ -226,7 +226,7 @@ function CrearTorneoPage() {
             </button>
             <Link
               to="/torneos"
-              className="text-[13px] text-fg-muted transition-colors hover:text-accent"
+              className="text-[13px] text-fg-muted transition-colors hover:text-gold"
             >
               Cancelar
             </Link>
@@ -241,7 +241,7 @@ function CardTamano({ tamano, onCambio }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Users className="h-4 w-4 text-accent" />
+        <Users className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Tamaño del torneo</h2>
       </div>
       <p className="mb-4 text-[12px] text-fg-muted">
@@ -361,7 +361,7 @@ function CardSeleccion({
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Users className="h-4 w-4 text-accent" />
+        <Users className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Participantes</h2>
         <span
           className={`ml-auto inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums ${
@@ -424,7 +424,7 @@ function CardSeleccion({
                 {p.anime}
               </span>
               {sel && (
-                <CheckCircle2 className="absolute right-1 top-1 h-4 w-4 text-accent" />
+                <CheckCircle2 className="absolute right-1 top-1 h-4 w-4 text-gold" />
               )}
             </button>
           )

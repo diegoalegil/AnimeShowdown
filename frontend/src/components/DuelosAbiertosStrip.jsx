@@ -37,13 +37,13 @@ function DuelosAbiertosStrip({ enfrentamientos, torneoId, torneoSlug }) {
     <section id="duelos-abiertos" className="mb-10 scroll-mt-24">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-gold">
             <Swords className="h-3.5 w-3.5" />
           </span>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-strong">
             Duelos abiertos
           </h2>
-          <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[11px] font-bold text-accent">
+          <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[11px] font-bold text-gold">
             {abiertos.length}
           </span>
         </div>
@@ -130,7 +130,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <FighterTile personaje={match.personaje1} />
-        <span className="font-mono text-base font-extrabold text-accent">VS</span>
+        <span className="font-mono text-base font-extrabold text-gold">VS</span>
         <FighterTile personaje={match.personaje2} alignRight />
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -153,7 +153,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
         </p>
       )}
       {votado && votado !== 'ya' && (
-        <p className="inline-flex items-center justify-center gap-1 text-center text-[11px] font-semibold text-accent">
+        <p className="inline-flex items-center justify-center gap-1 text-center text-[11px] font-semibold text-gold">
           <Trophy className="h-3 w-3" /> Voto registrado
         </p>
       )}
@@ -194,7 +194,7 @@ function VoteBtn({ personaje, active, disabled, onClick }) {
       className={`rounded-lg border px-3 py-2 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
         active
           ? 'border-accent bg-accent text-bg'
-          : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-accent'
+          : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-gold'
       }`}
     >
       <span className="line-clamp-1">{personaje.nombre}</span>

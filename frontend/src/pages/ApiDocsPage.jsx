@@ -254,7 +254,7 @@ function ApiDocsPage() {
               href="https://github.com/diegoalegil/AnimeShowdown"
               target="_blank"
               rel="noreferrer"
-              className="text-accent hover:underline"
+              className="text-gold hover:underline"
             >
               clonar el repo
             </a>{' '}
@@ -263,7 +263,7 @@ function ApiDocsPage() {
             metadata para LLMs, mira{' '}
             <a
               href="/llms.txt"
-              className="text-accent hover:underline"
+              className="text-gold hover:underline"
             >
               /llms.txt
             </a>
@@ -272,11 +272,11 @@ function ApiDocsPage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3 text-[13px] text-fg-muted">
-          <Link to="/faq" className="hover:text-accent hover:underline">
+          <Link to="/faq" className="hover:text-gold hover:underline">
             ¿Cómo funciona el ranking ELO?
           </Link>
           <span aria-hidden="true">·</span>
-          <Link to="/ranking" className="hover:text-accent hover:underline">
+          <Link to="/ranking" className="hover:text-gold hover:underline">
             Ver ranking en vivo
           </Link>
           <span aria-hidden="true">·</span>
@@ -284,7 +284,7 @@ function ApiDocsPage() {
             href="https://github.com/diegoalegil/AnimeShowdown"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-accent hover:underline"
+            className="hover:text-gold hover:underline"
           >
             Código fuente en GitHub
           </a>
@@ -316,7 +316,7 @@ function Endpoint({ ep }) {
           className={`inline-flex rounded-md px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
             ep.metodo === 'GET'
               ? 'bg-emerald-500/15 text-emerald-300'
-              : 'bg-accent/15 text-accent'
+              : 'bg-accent/15 text-gold'
           }`}
         >
           {ep.metodo}

@@ -483,7 +483,7 @@ function PersonajesPage() {
                     Buscando…
                   </p>
                 ) : visibleSuggestionsError ? (
-                  <p className="px-3.5 py-3 text-[12px] font-semibold text-accent">
+                  <p className="px-3.5 py-3 text-[12px] font-semibold text-gold">
                     {visibleSuggestionsError}
                   </p>
                 ) : visibleSuggestions.length > 0 ? (
@@ -606,7 +606,7 @@ function PersonajesPage() {
             <button
               type="button"
               onClick={limpiarFiltros}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent transition-colors hover:underline"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold transition-colors hover:underline"
             >
               <X className="h-3 w-3" />
               Limpiar filtros
@@ -945,7 +945,7 @@ function PersonajesPage() {
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               to="/ranking"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
             >
               <TrendingUp className="h-4 w-4" />
               Ver ranking global
@@ -961,7 +961,7 @@ function PersonajesPage() {
             </Link>
             <Link
               to="/animes"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+              className="group inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
             >
               Explorar animes
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -998,7 +998,7 @@ function PersonajeListRow({ slug, nombre, anime, rank }) {
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
+          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
             {nombre}
           </p>
           <p className="truncate text-[12px] text-fg-muted">{anime}</p>
@@ -1016,12 +1016,12 @@ function PersonajeListRow({ slug, nombre, anime, rank }) {
           )}
         </div>
         <div className="text-right">
-          <p className="font-mono text-sm font-bold text-accent">{elo}</p>
+          <p className="font-mono text-sm font-bold text-gold">{elo}</p>
           <p className="text-[10px] uppercase tracking-wider text-fg-muted">
             ELO
           </p>
         </div>
-        <span className="hidden items-center gap-1 rounded-md border border-border bg-bg px-2.5 py-1 text-[11px] font-semibold text-fg-muted transition-colors group-hover:border-accent/40 group-hover:text-accent md:inline-flex">
+        <span className="hidden items-center gap-1 rounded-md border border-border bg-bg px-2.5 py-1 text-[11px] font-semibold text-fg-muted transition-colors group-hover:border-accent/40 group-hover:text-gold md:inline-flex">
           Ver ficha
           <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
         </span>

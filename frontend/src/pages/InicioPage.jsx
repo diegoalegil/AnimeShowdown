@@ -210,7 +210,7 @@ function SectionBento() {
                     className="h-12 w-12 rounded-md border border-border object-cover object-top"
                   />
                   {i < featuredAvatars.length - 1 && (
-                    <span className="font-mono text-[11px] font-bold text-accent">
+                    <span className="font-mono text-[11px] font-bold text-gold">
                       vs
                     </span>
                   )}
@@ -437,7 +437,7 @@ function SectionHeader({ eyebrow, titulo, link }) {
       {link && (
         <Link
           to={link.to}
-          className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-accent sm:inline-flex"
+          className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-gold sm:inline-flex"
         >
           {link.label}
           <ArrowRight className="h-4 w-4" />
@@ -554,7 +554,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
           </div>
           <div className="flex items-center justify-between gap-2 px-1">
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-bold text-fg-strong group-hover:text-accent">
+              <p className="truncate text-[13px] font-bold text-fg-strong group-hover:text-gold">
                 {nombre}
               </p>
               <p className="truncate text-[11px] text-fg-muted">{anime}</p>
@@ -673,7 +673,7 @@ function SectionRetosDiarios() {
                     {r.kanji}
                   </span>
                 </div>
-                <h3 className="relative text-sm font-bold text-fg-strong transition-colors group-hover:text-accent">
+                <h3 className="relative text-sm font-bold text-fg-strong transition-colors group-hover:text-gold">
                   {r.titulo}
                 </h3>
                 <p className="relative text-[11px] text-fg-muted">{r.desc}</p>

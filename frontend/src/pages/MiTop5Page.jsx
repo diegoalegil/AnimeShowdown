@@ -142,7 +142,7 @@ function MiTop5Page() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <ImageIcon className="h-3 w-3" />
             Mi Top 5
           </span>
@@ -172,7 +172,7 @@ function MiTop5Page() {
         {slotsVacios > 0 && sugerenciasDisponibles.length > 0 && (
           <div className="mb-5 rounded-xl border border-border bg-surface/60 p-4 sm:p-5">
             <div className="mb-3 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-accent" />
+              <Sparkles className="h-4 w-4 text-gold" />
               <p className="text-[13px] font-semibold text-fg-strong">
                 Empieza con tu favorito
               </p>
@@ -186,7 +186,7 @@ function MiTop5Page() {
                   key={p.slug}
                   type="button"
                   onClick={() => addSlugAlPrimerSlotLibre(p.slug)}
-                  className="group inline-flex items-center gap-2 rounded-full border border-border bg-bg px-2 py-1 text-[12px] font-medium text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-border bg-bg px-2 py-1 text-[12px] font-medium text-fg-strong transition-colors hover:border-accent hover:text-gold"
                 >
                   <img
                     src={imagenPersonaje(p.slug)}

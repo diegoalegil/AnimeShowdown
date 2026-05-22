@@ -122,7 +122,7 @@ function RankingPage() {
               </Link>
               <Link
                 to="/faq"
-                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
               >
                 <HelpCircle className="h-4 w-4" />
                 Cómo funciona el ELO
@@ -219,7 +219,7 @@ function EloExplainer() {
         </div>
         <Link
           to="/faq"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
           Leer FAQ
           <ArrowRight className="h-3.5 w-3.5" />
@@ -231,7 +231,7 @@ function EloExplainer() {
             key={titulo}
             className="rounded-xl border border-border bg-bg/45 p-4"
           >
-            <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-accent/35 bg-accent-soft text-accent">
+            <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-accent/35 bg-accent-soft text-gold">
               <Icon className="h-4 w-4" />
             </span>
             <h3 className="text-base">{titulo}</h3>
@@ -371,14 +371,14 @@ function CategoriaCard({ rank, personaje, tono }) {
           </span>
         </div>
         <div className="min-w-0">
-          <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-accent sm:text-[13px]">
+          <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-gold sm:text-[13px]">
             {personaje.nombre}
           </p>
           <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[11px]">
             {personaje.anime}
           </p>
         </div>
-        <p className="font-mono text-[11px] font-bold text-accent">
+        <p className="font-mono text-[11px] font-bold text-gold">
           {personaje.elo}
         </p>
       </Link>
@@ -445,7 +445,7 @@ function MoverChip({ mover }) {
         className="h-12 w-9 shrink-0 rounded object-cover object-top"
       />
       <div className="min-w-0 flex-1">
-        <p className="line-clamp-1 text-[13px] font-bold text-fg-strong group-hover:text-accent">
+        <p className="line-clamp-1 text-[13px] font-bold text-fg-strong group-hover:text-gold">
           {mover.nombre}
         </p>
         <p className="line-clamp-1 text-[11px] text-fg-muted">{mover.anime}</p>
@@ -696,7 +696,7 @@ function PodioCard({ personaje, rank, highlighted, history }) {
       </div>
       <div className="flex flex-col items-center gap-0.5">
         <h3
-          className={`line-clamp-1 font-bold text-fg-strong group-hover:text-accent ${
+          className={`line-clamp-1 font-bold text-fg-strong group-hover:text-gold ${
             highlighted ? 'text-base sm:text-lg' : 'text-sm'
           }`}
         >
@@ -936,7 +936,7 @@ function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses, history }) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
+            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
               {nombre}
             </p>
             {esTop10 && (
@@ -959,7 +959,7 @@ function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses, history }) {
           </p>
         </div>
         <div className="text-right">
-          <p className="font-mono text-base font-bold text-accent">{elo}</p>
+          <p className="font-mono text-base font-bold text-gold">{elo}</p>
           <p className="text-[10px] uppercase tracking-wider text-fg-muted">
             ELO
           </p>
@@ -992,7 +992,7 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
+            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
               {personaje.nombre}
             </p>
             {movimiento && <MovimientoBadge movimiento={movimiento} />}
@@ -1002,7 +1002,7 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
           </p>
         </div>
         <div className="text-right">
-          <p className="font-mono text-base font-bold text-accent">{votos}</p>
+          <p className="font-mono text-base font-bold text-gold">{votos}</p>
           <p className="text-[10px] uppercase tracking-wider text-fg-muted">
             votos
           </p>
@@ -1037,7 +1037,7 @@ function RankBadge({ rank }) {
 function MovimientoBadge({ movimiento }) {
   if (movimiento.esNuevo) {
     return (
-      <span className="inline-flex shrink-0 items-center rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold uppercase tracking-wider text-accent">
+      <span className="inline-flex shrink-0 items-center rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold uppercase tracking-wider text-gold">
         Nuevo
       </span>
     )
@@ -1184,13 +1184,13 @@ function TablaExtraible() {
                   <td className="py-2 pr-3 text-fg-strong">
                     <Link
                       to={`/personajes/${p.slug}`}
-                      className="hover:text-accent hover:underline"
+                      className="hover:text-gold hover:underline"
                     >
                       {p.nombre}
                     </Link>
                   </td>
                   <td className="py-2 pr-3 text-fg-muted">{p.anime}</td>
-                  <td className="py-2 pr-3 text-right font-mono tabular-nums text-accent">
+                  <td className="py-2 pr-3 text-right font-mono tabular-nums text-gold">
                     {p.elo}
                   </td>
                   <td className="hidden py-2 pr-3 text-right font-mono text-fg-muted tabular-nums sm:table-cell">

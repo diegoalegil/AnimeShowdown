@@ -213,7 +213,7 @@ function TorneosHeroBanner() {
         </div>
         <Link
           to="/votar"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/20"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-accent/20"
         >
           Votar duelos
           <Swords className="h-3.5 w-3.5" />
@@ -260,7 +260,7 @@ function EmptyState({ user, t }) {
           className="absolute inset-0 rounded-none border-0 opacity-65"
           imageClassName="saturate-110 contrast-105"
         />
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-gold">
           <Trophy className="h-7 w-7" />
         </div>
         <div className="relative flex max-w-md flex-col gap-3">
@@ -286,7 +286,7 @@ function EmptyState({ user, t }) {
           {user && (
             <Link
               to="/torneos/crear"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-5 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/20"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-5 py-2.5 text-sm font-semibold text-gold transition-colors hover:bg-accent/20"
             >
               <Sparkles className="h-4 w-4" />
               {t('torneos.crearCta')}
@@ -300,10 +300,10 @@ function EmptyState({ user, t }) {
           tipo de bracket que el cron puede generar. */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 border-b border-border pb-3">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-surface text-accent">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-surface text-gold">
             <Sparkles className="h-3.5 w-3.5" />
           </span>
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-accent">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-gold">
             {t('torneos.sugerenciasTitulo')}
           </h2>
           <span className="ml-auto text-[11px] text-fg-muted">
@@ -359,7 +359,7 @@ function SugerenciaCard({ sugerencia, user, t }) {
       </div>
       <Link
         to={destino}
-        className="mt-4 inline-flex w-fit items-center gap-1.5 text-[12px] font-semibold text-accent hover:underline"
+        className="mt-4 inline-flex w-fit items-center gap-1.5 text-[12px] font-semibold text-gold hover:underline"
       >
         {ctaLabel}
         <Sparkles className="h-3 w-3" />

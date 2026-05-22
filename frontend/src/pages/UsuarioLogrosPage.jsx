@@ -201,7 +201,7 @@ function UsuarioLogrosPage() {
           <p className="text-[13px] text-fg-muted">
             ¿Quieres ver el catálogo completo de los logros que puedes
             desbloquear?{' '}
-            <Link to="/logros" className="text-accent hover:underline">
+            <Link to="/logros" className="text-gold hover:underline">
               Ir al catálogo
             </Link>
             .

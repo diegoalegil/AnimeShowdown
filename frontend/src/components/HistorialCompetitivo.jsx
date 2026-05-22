@@ -97,7 +97,7 @@ function ActividadReciente({ slug, nombre }) {
         </div>
         <Link
           to="/votar"
-          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-strong hover:border-accent hover:text-accent"
+          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-strong hover:border-accent hover:text-gold"
         >
           Vota ahora
         </Link>
@@ -166,7 +166,7 @@ function UltimosDuelos({ slug, nombre }) {
       <div className="flex items-end justify-between gap-2 border-b border-border pb-2">
         <div className="flex flex-col gap-1">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-            <History className="h-3 w-3 text-accent" />
+            <History className="h-3 w-3 text-gold" />
             Historial
           </span>
           <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -244,7 +244,7 @@ function DueloRow({ duelo }) {
           {rival ? (
             <Link
               to={`/personajes/${rival.slug}`}
-              className="hover:text-accent"
+              className="hover:text-gold"
             >
               {rival.nombre}
             </Link>
@@ -260,7 +260,7 @@ function DueloRow({ duelo }) {
               {' · '}
               <Link
                 to={`/torneos/${torneoSlug}`}
-                className="hover:text-accent hover:underline"
+                className="hover:text-gold hover:underline"
               >
                 {torneoNombre}
               </Link>
@@ -321,7 +321,7 @@ function ContraQuien({ slug, nombre }) {
       <div className="flex items-end justify-between gap-2 border-b border-border pb-2">
         <div className="flex flex-col gap-1">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-            <Swords className="h-3 w-3 text-accent" />
+            <Swords className="h-3 w-3 text-gold" />
             Matchups
           </span>
           <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -451,7 +451,7 @@ function MatchupRow({ item, tipo }) {
       </Link>
       <Link
         to={`/personajes/${rival.slug}`}
-        className="line-clamp-1 min-w-0 flex-1 text-[12px] font-semibold text-fg-strong hover:text-accent"
+        className="line-clamp-1 min-w-0 flex-1 text-[12px] font-semibold text-fg-strong hover:text-gold"
       >
         {rival.nombre}
       </Link>

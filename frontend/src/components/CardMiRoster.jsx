@@ -95,7 +95,7 @@ function RosterCard({ favorito }) {
           </button>
         </div>
         <div className="min-w-0">
-          <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-accent sm:text-[13px]">
+          <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-gold sm:text-[13px]">
             {nombre}
           </p>
           <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[11px]">
@@ -103,7 +103,7 @@ function RosterCard({ favorito }) {
           </p>
         </div>
         {stats.elo > 0 && (
-          <p className="font-mono text-[11px] font-bold text-accent">
+          <p className="font-mono text-[11px] font-bold text-gold">
             ELO {stats.elo}
           </p>
         )}
@@ -159,7 +159,7 @@ function RosterEmpty() {
         </Link>
         <Link
           to="/ranking"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2 text-[13px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2 text-[13px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
           Ver ranking
         </Link>

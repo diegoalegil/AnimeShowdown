@@ -75,7 +75,7 @@ function PrivacyPage() {
               Contacto:{' '}
               <a
                 href="mailto:diegogildam@gmail.com"
-                className="text-accent hover:underline"
+                className="text-gold hover:underline"
               >
                 diegogildam@gmail.com
               </a>
@@ -211,7 +211,7 @@ function PrivacyPage() {
               Para ejercer cualquiera de estos derechos, escríbeme a{' '}
               <a
                 href="mailto:diegogildam@gmail.com"
-                className="text-accent hover:underline"
+                className="text-gold hover:underline"
               >
                 diegogildam@gmail.com
               </a>
@@ -252,7 +252,7 @@ function PrivacyPage() {
             </h2>
             <p>
               Cualquier modificación material se anunciará en{' '}
-              <Link to="/" className="text-accent hover:underline">
+              <Link to="/" className="text-gold hover:underline">
                 la home
               </Link>{' '}
               con 30 días de antelación. La versión actual queda visible en
@@ -262,17 +262,17 @@ function PrivacyPage() {
         </article>
 
         <div className="mt-10 flex flex-wrap gap-3 text-[13px] text-fg-muted">
-          <Link to="/terminos" className="hover:text-accent hover:underline">
+          <Link to="/terminos" className="hover:text-gold hover:underline">
             Términos de uso
           </Link>
           <span aria-hidden="true">·</span>
-          <Link to="/dmca" className="hover:text-accent hover:underline">
+          <Link to="/dmca" className="hover:text-gold hover:underline">
             Política DMCA
           </Link>
           <span aria-hidden="true">·</span>
           <a
             href="mailto:diegogildam@gmail.com"
-            className="hover:text-accent hover:underline"
+            className="hover:text-gold hover:underline"
           >
             Contacto
           </a>
