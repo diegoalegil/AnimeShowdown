@@ -211,6 +211,11 @@ public class EnfrentamientoController {
         long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p1);
         long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p2);
         long votosTotalesGanador = votoRepository.countByPersonajeId(ganador.getId());
+        // Audit externo B2.1a (2026-05-22): además del conteo físico
+        // publicamos la suma ponderada (peso 0.3 anónimo / 1.0 registrado)
+        // para que el frontend reordene la caché live por la misma métrica
+        // que el ORDER BY del ranking REST.
+        Double pesoTotalesGanador = votoRepository.sumaPesoByPersonajeId(ganador.getId());
         Personaje perdedor = ganador.getId().equals(p1.getId()) ? p2 : p1;
         long votosGanador = ganador.getId().equals(p1.getId()) ? votosP1 : votosP2;
         long votosPerdedor = perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2;
@@ -219,7 +224,7 @@ public class EnfrentamientoController {
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
-        publicarRankingDelta(ganador, votosTotalesGanador);
+        publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador);
 
         // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
@@ -279,10 +284,15 @@ public class EnfrentamientoController {
         }
     }
 
-    private void publicarRankingDelta(Personaje ganador, long votosTotalesGanador) {
+    private void publicarRankingDelta(Personaje ganador, long votosTotalesGanador,
+            Double pesoTotalesGanador) {
         if (messaging == null || ganador == null) return;
         try {
-            var ev = new RankingDeltaEvent(PersonajeMiniDto.from(ganador), votosTotalesGanador, 1);
+            // Audit externo B2.1a (2026-05-22): payload incluye pesoVotos
+            // ponderado. El frontend (useRankingDeltaSubscription) ordena por
+            // pesoVotos para mantenerse alineado con el ORDER BY del REST.
+            var ev = new RankingDeltaEvent(PersonajeMiniDto.from(ganador),
+                    votosTotalesGanador, 1, pesoTotalesGanador);
             messaging.convertAndSend("/topic/ranking-delta", ev);
         } catch (Exception e) {
             log.warn("Push WS ranking delta falló: personaje={} err={}",
