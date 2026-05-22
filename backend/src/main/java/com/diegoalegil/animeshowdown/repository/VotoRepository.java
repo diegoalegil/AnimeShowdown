@@ -308,6 +308,18 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             """)
     List<Object[]> contarVotosPorEnfrentamientoYPersonajeDeTorneo(@Param("torneoId") Long torneoId);
 
+    /**
+     * Conteo de votos por torneo desde una fecha. Lo consume el listado
+     * público para destacar torneos de comunidad con tracción reciente.
+     */
+    @Query("""
+            SELECT v.enfrentamiento.torneo.id, COUNT(v)
+            FROM Voto v
+            WHERE v.fecha >= :desde
+            GROUP BY v.enfrentamiento.torneo.id
+            """)
+    List<Object[]> contarVotosPorTorneoDesde(@Param("desde") java.time.LocalDateTime desde);
+
     /** Borra todos los votos cuyo personaje sea el id dado. */
     @Modifying
     @Query("DELETE FROM Voto v WHERE v.personaje.id = :personajeId")

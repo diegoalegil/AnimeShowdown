@@ -69,7 +69,7 @@ function CrearTorneoPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-  } = useForm()
+  } = useForm({ defaultValues: { publico: true } })
 
   const slugToBackendId = useMemo(() => {
     if (!listaBackend) return new Map()
@@ -146,6 +146,7 @@ function CrearTorneoPage() {
       await crearMutation.mutateAsync({
         nombre: data.nombre,
         descripcion: data.descripcion?.trim() || null,
+        publico: data.publico !== false,
         participantesIds: ids,
       })
       toast.success('Torneo enviado a revisión', {
@@ -328,6 +329,21 @@ function CardDatos({ register, errors }) {
             </p>
           )}
         </div>
+        <label className="flex items-start gap-3 rounded-lg border border-border bg-bg/70 p-3 text-sm text-fg-muted">
+          <input
+            type="checkbox"
+            {...register('publico')}
+            className="mt-1 h-4 w-4 rounded border-border bg-bg accent-[var(--color-accent)]"
+          />
+          <span>
+            <span className="block font-semibold text-fg-strong">
+              Publicar si el admin lo aprueba
+            </span>
+            <span className="text-[12px]">
+              Aparecerá en /torneos y cualquier cuenta podrá votar sus duelos.
+            </span>
+          </span>
+        </label>
       </div>
     </div>
   )

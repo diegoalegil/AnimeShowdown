@@ -60,6 +60,7 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
             WHERE t.estadoRevision IN (
                 com.diegoalegil.animeshowdown.model.EstadoRevision.NO_APLICA,
                 com.diegoalegil.animeshowdown.model.EstadoRevision.APROBADO)
+              AND t.publico = true
             """)
     List<Torneo> findVisiblesPublico();
 

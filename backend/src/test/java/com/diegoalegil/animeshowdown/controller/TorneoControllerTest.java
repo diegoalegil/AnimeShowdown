@@ -395,6 +395,101 @@ class TorneoControllerTest {
     }
 
     @Test
+    void torneoPublicoAprobadoPermiteVotoDeOtroUsuarioYCuentaVotos7d() throws Exception {
+        String tokenCreador = tokenUserVerificado("user_publico_creador", "user_publico_creador@example.com");
+        String tokenVotante = tokenUserVerificado("user_publico_votante", "user_publico_votante@example.com");
+        String tokenAdmin = tokenAdmin();
+
+        MvcResult res = mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + tokenCreador)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Publico comunidad",
+                        "publico", true,
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.publico").value(true))
+                .andReturn();
+        JsonNode creado = json.readTree(res.getResponse().getContentAsString());
+        long id = creado.get("id").asLong();
+        String slug = creado.get("slug").asText();
+
+        mvc.perform(put("/api/admin/torneos/" + id + "/aprobar")
+                .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$.publico").value(true));
+
+        MvcResult detalle = mvc.perform(get("/api/torneos/slug/" + slug))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode currentMatch = json.readTree(detalle.getResponse().getContentAsString()).get("currentMatch");
+        long enfrentamientoId = currentMatch.get("id").asLong();
+        long ganadorId = currentMatch.get("personaje1").get("id").asLong();
+
+        mvc.perform(post("/api/enfrentamientos/" + enfrentamientoId + "/votar")
+                .header("Authorization", "Bearer " + tokenVotante)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ganadorId))))
+                .andExpect(status().isOk());
+
+        MvcResult listado = mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode arr = json.readTree(listado.getResponse().getContentAsString());
+        JsonNode encontrado = null;
+        for (JsonNode t : arr) {
+            if (slug.equals(t.get("slug").asText())) {
+                encontrado = t;
+                break;
+            }
+        }
+        org.junit.jupiter.api.Assertions.assertNotNull(encontrado,
+                "Torneo publico aprobado deberia aparecer en /api/torneos");
+        org.junit.jupiter.api.Assertions.assertEquals(true, encontrado.get("publico").asBoolean());
+        org.junit.jupiter.api.Assertions.assertTrue(encontrado.get("votosUltimos7Dias").asLong() >= 1);
+    }
+
+    @Test
+    void torneoPrivadoAprobadoNoApareceEnListadoPublico() throws Exception {
+        String tokenCreador = tokenUserVerificado("user_privado_creador", "user_privado_creador@example.com");
+        String tokenAdmin = tokenAdmin();
+
+        MvcResult res = mvc.perform(post("/api/torneos/mio")
+                .header("Authorization", "Bearer " + tokenCreador)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Privado comunidad",
+                        "publico", false,
+                        "participantesIds", primerosNPersonajes(8)))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.publico").value(false))
+                .andReturn();
+        JsonNode creado = json.readTree(res.getResponse().getContentAsString());
+        long id = creado.get("id").asLong();
+        String slug = creado.get("slug").asText();
+
+        mvc.perform(put("/api/admin/torneos/" + id + "/aprobar")
+                .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estadoRevision").value("APROBADO"))
+                .andExpect(jsonPath("$.publico").value(false));
+
+        MvcResult listado = mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode arr = json.readTree(listado.getResponse().getContentAsString());
+        boolean encontrado = false;
+        for (JsonNode t : arr) {
+            if (slug.equals(t.get("slug").asText())) encontrado = true;
+        }
+        org.junit.jupiter.api.Assertions.assertFalse(encontrado,
+                "Torneo privado aprobado no deberia aparecer en /api/torneos");
+        mvc.perform(get("/api/torneos/slug/" + slug))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void admin_rechazar_marcaTorneoRechazadoConMotivo() throws Exception {
         String tokenUser = tokenUserVerificado("user_rechazar_target", "user_rechazar_target@example.com");
         String tokenAdmin = tokenAdmin();
