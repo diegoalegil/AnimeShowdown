@@ -47,12 +47,9 @@ jobs:
       # (aunque por classpath de spring-boot:run a veces no se carga,
       # los settings críticos los pasamos también por env más abajo).
       SPRING_PROFILES_ACTIVE: test
-
-      # Flyway gestiona el schema; saltamos hibernate validate para que
-      # un drift puntual entidad↔migración no tumbe el e2e (ya pasó con
-      # V25 voto_jugador1 VARCHAR(1) vs entidad CHAR — bug aparte por
-      # arreglar en una V29).
-      JPA_DDL: none
+      # JPA_DDL default (validate) ya pasa contra Postgres real desde V29
+      # (que amplía duelos_live_rondas.voto_jugador1/2 a VARCHAR(10) para
+      # cubrir el valor 'EMPATE' del enum DueloLiveChoice).
 
       # --- Seguridad: claves fake solo para CI, NO usar en prod ---
       JWT_SECRET: clave_solo_para_e2e_ci_no_usar_en_produccion_minimo_64_chars_aleatorio
