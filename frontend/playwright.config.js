@@ -10,6 +10,10 @@ export default defineConfig({
     timeout: 10_000,
   },
   fullyParallel: false,
+  // En CI permitimos 2 retries para tolerar flakes conocidos del e2e
+  // (`duel-live` depende de pairing WebSocket con timing variable). En
+  // local sin retries para no enmascarar bugs reales durante desarrollo.
+  retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL,
