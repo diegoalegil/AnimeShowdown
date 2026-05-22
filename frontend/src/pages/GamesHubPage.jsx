@@ -427,15 +427,17 @@ function CardMini({ game, estado }) {
   const done = estado?.completadoHoy
   const best = estado?.best
   const visual = getGameVisual(game.to, game.titulo)
-  // Card mini de juego con su portada cinematografica visible. Antes la
-  // imagen iba con opacity-85 + un kanji card con bg theme opaco encima
-  // que tapaba 80% del contenido. Ahora opacity-95 y el kanji card pasa
-  // a bg theme/15 (semi-transparente) para que la imagen sea la
-  // protagonista, no el panel de color.
+  // Card mini de juego con su portada cinematografica visible.
+  // Audit feedback (2026-05-22): min-h-[8.5rem] (136px) dejaba la imagen
+  // como "miniatura mal recortada" — el bottom-gradient del
+  // EditorialCover empezaba al 38% y oscurecía la mayoría del cover. Subimos
+  // min-h a 12rem (mobile) / 13rem (sm), dando ~50% más de zona superior
+  // de la imagen visible antes del degradado, para que cada juego se
+  // identifique por su arte y no por el kanji decorativo.
   return (
     <Link
       to={game.to}
-      className={`as-panel group relative flex min-h-[8.5rem] flex-col justify-end overflow-hidden rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] ${theme.border} hover:${theme.glow}`}
+      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} hover:${theme.glow}`}
     >
       <EditorialCover
         visual={visual}
@@ -487,35 +489,43 @@ function CardMini({ game, estado }) {
 
 function OmikujiCard() {
   const visual = getGameVisual('/omikuji', 'Omikuji diario')
+  // Audit feedback (2026-05-22): la card del ritual diario tenia altura ~80px
+  // (py-4 + contenido inline) — el cover del omikuji quedaba reducido a
+  // banda apagada, "inapreciable". Subimos a min-h ~9rem y damos
+  // protagonismo a la imagen con background-image + overlay gradient
+  // inferior, manteniendo el kanji 御 y el CTA sobre el panel.
   return (
     <Link
       to="/omikuji"
-      className="as-panel-hot group relative flex items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-4 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_20px_55px_-25px_rgba(255,46,99,0.55)]"
+      className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_22px_65px_-25px_rgba(159,29,44,0.55)] sm:min-h-[10rem]"
     >
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-95"
         imageClassName="saturate-110 contrast-105"
       />
-      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 border-accent/40 backdrop-blur-md"
-        style={{ background: 'linear-gradient(135deg, rgb(255 46 99 / 0.22) 0%, rgb(7 10 18 / 0.45) 100%)' }}
+      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-accent/40 backdrop-blur-md sm:h-16 sm:w-16"
+        style={{ background: 'linear-gradient(135deg, rgb(159 29 44 / 0.32) 0%, rgb(7 10 18 / 0.55) 100%)' }}
       >
         <span
           aria-hidden="true"
           lang="ja"
-          className="font-mono text-lg font-extrabold text-gold"
-          style={{ textShadow: '0 0 16px currentColor, 0 2px 5px rgb(0 0 0 / 0.65)' }}
+          className="font-mono text-2xl font-extrabold text-gold sm:text-3xl"
+          style={{ textShadow: '0 0 18px currentColor, 0 2px 5px rgb(0 0 0 / 0.75)' }}
         >御</span>
       </div>
       <div className="relative flex-1">
-        <h3 className="text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-gold">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold/90">
+          Ritual diario
+        </p>
+        <h3 className="mt-1 text-lg font-bold text-fg-strong drop-shadow-[0_2px_5px_rgba(0,0,0,0.85)] group-hover:text-gold sm:text-xl">
           Omikuji diario
         </h3>
-        <p className="text-[12px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
+        <p className="mt-1 text-[13px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.75)]">
           Tira tu suerte del día al estilo de los santuarios japoneses.
         </p>
       </div>
-      <ArrowRight className="relative h-4 w-4 text-gold transition-transform group-hover:translate-x-1" />
+      <ArrowRight className="relative h-5 w-5 text-gold transition-transform group-hover:translate-x-1" />
     </Link>
   )
 }
