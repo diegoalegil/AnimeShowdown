@@ -1209,6 +1209,16 @@ export function getAnimeVisual(slug, anime = slug) {
 
 export function getTournamentVisual(slug, title = slug) {
   if (TOURNAMENT_VISUALS[slug]) return TOURNAMENT_VISUALS[slug]
+  // Audit visual (2026-05-22): torneos generados por el cron automático
+  // (TorneoAutoService) usan slugs con sufijo numérico — "random-showdown-1",
+  // "random-showdown-2"... El banner real vive bajo el slug base
+  // (random-showdown.webp), así que heredamos el visual del torneo base
+  // antes de caer al fallback genérico, manteniendo el título del torneo
+  // específico para que la card siga mostrando "Random Showdown #N".
+  const baseSlug = slug.replace(/-\d+$/, '')
+  if (baseSlug !== slug && TOURNAMENT_VISUALS[baseSlug]) {
+    return { ...TOURNAMENT_VISUALS[baseSlug], slug, title }
+  }
   return makeVisual({
     slug,
     title,
