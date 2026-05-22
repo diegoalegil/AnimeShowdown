@@ -27,7 +27,7 @@ const PERIODOS = [
 ]
 
 /**
- * Leaderboard de top voters (Plan v2 §11.9). Tabs semana/mes/all-time.
+ * Leaderboard de pioneros (Plan v2 §11.9). Tabs semana/mes/all-time.
  * Lista de top 20 usuarios por count de votos en el periodo. Cada item
  * linkea a `/u/{username}` perfil público.
  *
@@ -36,9 +36,9 @@ const PERIODOS = [
  */
 function LeaderboardsPage() {
   useSeo({
-    title: 'Top voters',
+    title: 'Pioneros de AnimeShowdown',
     description:
-      'Los usuarios que más votan en AnimeShowdown. Leaderboard semanal, mensual y all-time. Cada perfil clickable a /u/{username}.',
+      'Los usuarios que más ayudan a mover el ranking ELO de AnimeShowdown. Leaderboard semanal, mensual y all-time.',
   })
 
   const [periodo, setPeriodo] = useState('all')
@@ -54,7 +54,7 @@ function LeaderboardsPage() {
         id="breadcrumbs"
         schema={breadcrumbsSchema([
           { label: 'Inicio', path: '/' },
-          { label: 'Top voters', path: '/leaderboards' },
+          { label: 'Pioneros', path: '/leaderboards' },
         ])}
       />
       <div className="mx-auto max-w-3xl">
@@ -66,14 +66,14 @@ function LeaderboardsPage() {
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
             <Vote className="h-3 w-3" />
-            Leaderboard
+            Comunidad
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
-            Top voters
+            Pioneros de AnimeShowdown
           </h1>
           <p className="max-w-2xl text-fg-muted">
-            Los usuarios que más votan dan forma al ranking ELO global.
-            Cada voto cuenta — aquí los héroes silenciosos.
+            Los primeros votos son los que dan forma al ranking ELO global.
+            Aquí celebramos a quienes están construyendo la liga desde el inicio.
           </p>
         </motion.header>
 
@@ -114,7 +114,7 @@ function LeaderboardsPage() {
             action={{ to: '/votar', label: 'Votar ahora' }}
           >
             Todavía no hay tráfico suficiente para esta ventana de tiempo.
-            El leaderboard se rellena con votos reales — sé tú el primero.
+            Esta tabla solo muestra votos reales. Sé tú quien inaugure la ventana.
           </EmptyStateScene>
         )}
         {!isLoading && !isError && data && data.length > 0 && (
@@ -142,7 +142,8 @@ function LeaderboardsPage() {
             <Link to="/torneos" className="text-gold hover:underline">
               torneos activos
             </Link>{' '}
-            para acumular votos en eventos.
+            para acumular votos en eventos. Mientras la comunidad crece, esta
+            tabla premia a quienes empujan el proyecto desde sus primeras rondas.
           </p>
         </div>
       </div>
@@ -174,7 +175,7 @@ function SenpaiDelMes() {
         <Crown className="h-8 w-8 shrink-0 text-amber-300" />
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
-            先輩 · Senpai del mes
+            <span lang="ja">先輩</span> · Senpai del mes
           </p>
           <p className="mt-0.5 text-xl font-extrabold text-fg-strong">
             <Link
