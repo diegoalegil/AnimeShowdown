@@ -16,11 +16,14 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -74,10 +78,20 @@ class EnfrentamientoControllerTest {
     @Autowired
     private MutableTestClock clock;
 
+    @Autowired
+    @Qualifier("taskExecutor")
+    private Executor taskExecutor;
+
     @BeforeEach
-    void fijarClockUtcPorDefecto() {
+    void fijarClockUtcPorDefecto() throws Exception {
+        esperarAsyncDefaultIdle();
         madrugadorDiaRepository.deleteAll();
         fijarClock("2026-05-22T06:42:00Z");
+    }
+
+    @AfterEach
+    void esperarListenersAsync() throws Exception {
+        esperarAsyncDefaultIdle();
     }
 
     private void fijarClock(String instantIso) {
@@ -549,6 +563,22 @@ class EnfrentamientoControllerTest {
             Thread.sleep(50);
         }
         org.junit.jupiter.api.Assertions.fail("No se registro madrugador para " + slug + " en " + fecha);
+    }
+
+    private void esperarAsyncDefaultIdle() throws Exception {
+        if (!(taskExecutor instanceof ThreadPoolTaskExecutor executor)) {
+            return;
+        }
+        long deadline = System.currentTimeMillis() + 5_000;
+        while (System.currentTimeMillis() < deadline) {
+            boolean noRunningTasks = executor.getActiveCount() == 0;
+            boolean noQueuedTasks = executor.getThreadPoolExecutor().getQueue().isEmpty();
+            if (noRunningTasks && noQueuedTasks) {
+                return;
+            }
+            Thread.sleep(50);
+        }
+        org.junit.jupiter.api.Assertions.fail("El executor async no quedó idle en 5s");
     }
 
     private boolean tieneBadge(com.diegoalegil.animeshowdown.model.Usuario usuario, String codigo) {
