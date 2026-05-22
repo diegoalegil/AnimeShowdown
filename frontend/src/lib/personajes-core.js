@@ -47,10 +47,26 @@ export function normalizarCatalogoPersonajes(catalogo) {
     : []
 }
 
+// Cuando syncCatalogoPersonajes recibe datos reales (catálogo hidratado
+// desde el backend o localStorage), emitimos un evento global para que
+// los <PersonajeImg> ya montados puedan rerendear y volver a evaluar
+// imagenPersonaje(slug) — antes resolvía a `/img/_missing/...` (404) si
+// el catálogo aún no estaba poblado, dejaba la card en estado errored
+// permanente y mostraba PersonajePlaceholder aunque la imagen real
+// existiera. Con el evento, cada PersonajeImg resetea su status local y
+// vuelve a intentar el load del src correcto.
+export const CATALOGO_PERSONAJES_HYDRATED_EVENT = 'animeshowdown:catalogo-personajes-hidratado'
+
 export function syncCatalogoPersonajes(catalogo) {
   const normalizado = normalizarCatalogoPersonajes(catalogo)
   if (normalizado.length === 0) return personajes
+  const cambiado =
+    personajes.length !== normalizado.length ||
+    personajes.some((p, i) => p.slug !== normalizado[i]?.slug || p.imagenUrl !== normalizado[i]?.imagenUrl)
   personajes.splice(0, personajes.length, ...normalizado)
+  if (cambiado && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(CATALOGO_PERSONAJES_HYDRATED_EVENT))
+  }
   return personajes
 }
 
