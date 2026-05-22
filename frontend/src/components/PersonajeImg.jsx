@@ -1,5 +1,9 @@
-import { useState } from 'react'
-import { getPersonajeBySlug, imagenPersonaje } from '../lib/personajes-core'
+import { useEffect, useState } from 'react'
+import {
+  CATALOGO_PERSONAJES_HYDRATED_EVENT,
+  getPersonajeBySlug,
+  imagenPersonaje,
+} from '../lib/personajes-core'
 import PersonajePlaceholder from './PersonajePlaceholder'
 
 /**
@@ -35,8 +39,32 @@ function PersonajeImg({
   ...imgProps
 }) {
   const [status, setStatus] = useState({ src: null, loaded: false, errored: false })
+  // Tick para forzar rerender cuando el catálogo de personajes se hidrata
+  // (evento CATALOGO_PERSONAJES_HYDRATED_EVENT). Antes de hidratarse,
+  // imagenPersonaje(slug) cae a `/img/_missing/${slug}.webp` y dispara
+  // onError → la card queda atrapada en PersonajePlaceholder aunque la
+  // imagen real exista. Al rerendear tras la hidratación, src cambia al
+  // path correcto y reseteamos el status (ver más abajo).
+  const [, setHydrationTick] = useState(0)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onHydrated = () => setHydrationTick((tick) => tick + 1)
+    window.addEventListener(CATALOGO_PERSONAJES_HYDRATED_EVENT, onHydrated)
+    return () =>
+      window.removeEventListener(CATALOGO_PERSONAJES_HYDRATED_EVENT, onHydrated)
+  }, [])
   const p = getPersonajeBySlug(slug)
   const src = srcOverride ?? imagenPersonaje(slug)
+  // Reset del status durante render cuando src cambia. Patrón oficial de
+  // React para "derived state" — más eficiente que un useEffect con
+  // setState porque React batches el setState con el render actual sin
+  // cascada de re-renders. Sin esto, un onError previo se quedaba
+  // pegado y al hidratarse el catálogo el componente seguía en
+  // PersonajePlaceholder a pesar de tener ya el src real.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  if (status.src !== src && status.src !== null) {
+    setStatus({ src: null, loaded: false, errored: false })
+  }
   const loaded = status.src === src && status.loaded
   const errored = status.src === src && status.errored
   const dominantColor =
