@@ -1,9 +1,13 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,17 +47,22 @@ import jakarta.persistence.EntityNotFoundException;
 @Service
 public class TorneoQueryService {
 
+    private static final Duration LIVE_MATCH_SLOT = Duration.ofMinutes(30);
+
     private final TorneoRepository torneoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final VotoRepository votoRepository;
+    private final Clock clock;
 
     public TorneoQueryService(
             TorneoRepository torneoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
-            VotoRepository votoRepository) {
+            VotoRepository votoRepository,
+            Clock clock) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
+        this.clock = clock;
     }
 
     /**
@@ -131,11 +140,36 @@ public class TorneoQueryService {
         for (Object[] row : votoRepository.contarVotosPorEnfrentamientoDeTorneo(t.getId())) {
             votosPorMatch.put((Long) row[0], (Long) row[1]);
         }
+        Map<Long, Map<Long, Long>> votosPorMatchPersonaje = new HashMap<>();
+        for (Object[] row : votoRepository.contarVotosPorEnfrentamientoYPersonajeDeTorneo(t.getId())) {
+            Long enfrentamientoId = (Long) row[0];
+            Long personajeId = (Long) row[1];
+            Long votos = (Long) row[2];
+            votosPorMatchPersonaje
+                    .computeIfAbsent(enfrentamientoId, ignored -> new HashMap<>())
+                    .put(personajeId, votos);
+        }
 
         List<EnfrentamientoDto> enfDtos = matches.stream()
-                .map(e -> EnfrentamientoDto.from(e, votosPorMatch.getOrDefault(e.getId(), 0L)))
+                .map(e -> EnfrentamientoDto.from(
+                        e,
+                        votosPorMatch.getOrDefault(e.getId(), 0L),
+                        votosDe(e, e.getPersonaje1(), votosPorMatchPersonaje),
+                        votosDe(e, e.getPersonaje2(), votosPorMatchPersonaje)))
                 .toList();
         dto.setEnfrentamientos(enfDtos);
+
+        LocalDateTime serverNow = LocalDateTime.now(clock);
+        Enfrentamiento current = calcularCurrentMatch(t.getEstado(), matches);
+        dto.setLiveServerNow(serverNow);
+        if (current != null) {
+            dto.setCurrentMatch(EnfrentamientoDto.from(
+                    current,
+                    votosPorMatch.getOrDefault(current.getId(), 0L),
+                    votosDe(current, current.getPersonaje1(), votosPorMatchPersonaje),
+                    votosDe(current, current.getPersonaje2(), votosPorMatchPersonaje)));
+            dto.setLiveEndsAt(calcularLiveEndsAt(t, serverNow));
+        }
         return dto;
     }
 
@@ -227,5 +261,44 @@ public class TorneoQueryService {
                 .map(m -> m.getGanador().getSlug())
                 .findFirst()
                 .orElse(null);
+    }
+
+    private Enfrentamiento calcularCurrentMatch(EstadoTorneo estado, List<Enfrentamiento> matches) {
+        if (estado != EstadoTorneo.IN_PROGRESS) {
+            return null;
+        }
+        return matches.stream()
+                .filter(m -> m.getPersonaje1() != null && m.getPersonaje2() != null && m.getGanador() == null)
+                .min(Comparator
+                        .comparing((Enfrentamiento m) -> m.getRonda() == null ? 1 : m.getRonda())
+                        .thenComparing(m -> m.getId() == null ? Long.MAX_VALUE : m.getId()))
+                .orElse(null);
+    }
+
+    private Long votosDe(Enfrentamiento e, Personaje p, Map<Long, Map<Long, Long>> votosPorMatchPersonaje) {
+        if (e == null || p == null || e.getId() == null || p.getId() == null) {
+            return null;
+        }
+        return votosPorMatchPersonaje
+                .getOrDefault(e.getId(), Map.of())
+                .getOrDefault(p.getId(), 0L);
+    }
+
+    private LocalDateTime calcularLiveEndsAt(Torneo torneo, LocalDateTime serverNow) {
+        if (torneo.getFechaFinalizacion() != null && torneo.getFechaFinalizacion().isAfter(serverNow)) {
+            return torneo.getFechaFinalizacion();
+        }
+
+        LocalDateTime anchor = torneo.getFechaInicio() != null
+                ? torneo.getFechaInicio()
+                : torneo.getFechaCreacion();
+        if (anchor == null || anchor.isAfter(serverNow)) {
+            return serverNow.plus(LIVE_MATCH_SLOT);
+        }
+
+        long slotSeconds = LIVE_MATCH_SLOT.toSeconds();
+        long elapsedSeconds = Math.max(0, Duration.between(anchor, serverNow).getSeconds());
+        long completedSlots = elapsedSeconds / slotSeconds;
+        return anchor.plusSeconds((completedSlots + 1) * slotSeconds);
     }
 }

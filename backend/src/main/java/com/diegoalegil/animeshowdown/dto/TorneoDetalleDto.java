@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -13,6 +14,9 @@ import java.util.List;
 public class TorneoDetalleDto extends TorneoResumenDto {
 
     private List<EnfrentamientoDto> enfrentamientos;
+    private EnfrentamientoDto currentMatch;
+    private LocalDateTime liveServerNow;
+    private LocalDateTime liveEndsAt;
 
     public TorneoDetalleDto() {
     }
@@ -23,5 +27,29 @@ public class TorneoDetalleDto extends TorneoResumenDto {
 
     public void setEnfrentamientos(List<EnfrentamientoDto> enfrentamientos) {
         this.enfrentamientos = enfrentamientos;
+    }
+
+    public EnfrentamientoDto getCurrentMatch() {
+        return currentMatch;
+    }
+
+    public void setCurrentMatch(EnfrentamientoDto currentMatch) {
+        this.currentMatch = currentMatch;
+    }
+
+    public LocalDateTime getLiveServerNow() {
+        return liveServerNow;
+    }
+
+    public void setLiveServerNow(LocalDateTime liveServerNow) {
+        this.liveServerNow = liveServerNow;
+    }
+
+    public LocalDateTime getLiveEndsAt() {
+        return liveEndsAt;
+    }
+
+    public void setLiveEndsAt(LocalDateTime liveEndsAt) {
+        this.liveEndsAt = liveEndsAt;
     }
 }
