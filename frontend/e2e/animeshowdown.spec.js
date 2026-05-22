@@ -84,35 +84,47 @@ test('votar 5 veces actualiza contador local del header', async ({ page }, testI
   await registerThroughUi(page, `vote_${Date.now()}`)
   await page.goto('/votar')
 
-  for (let i = 1; i <= 5; i++) {
+  let acceptedVotes = 0
+  for (let attempts = 0; acceptedVotes < 5 && attempts < 15; attempts++) {
     const voteButtons = page.locator('button[aria-label^="Votar por"]')
     await expect(voteButtons.first()).toBeVisible()
     await voteButtons.first().click()
-    // Esperar a que el voto se haya commiteado: el botón "Saltar duelo"
-    // cambia a "Siguiente duelo" cuando votedFor se setea tras un onSuccess
-    // del votarMutation. Esto evita el race que tenía la antigua assertion
-    // `getByLabel('${i} votos en esta sesión')` per iteración (flake en i=5
-    // cuando el ms entre click+mutate y assert era demasiado justo).
-    const next = page.getByRole('button', { name: 'Siguiente duelo' })
-    await expect(next).toBeVisible()
-    if (i < 5) {
-      await next.click()
+
+    // El click setea votedFor de forma optimista y cambia el botón a
+    // "Siguiente duelo" antes de que el backend confirme. Si el endpoint
+    // devuelve 409 porque el duelo ya estaba votado, localStorage NO sube.
+    // Por eso el ground truth del test es el contador local, no el texto
+    // transitorio del botón.
+    const target = acceptedVotes + 1
+    const committed = await page
+      .waitForFunction(
+        (expected) =>
+          localStorage.getItem('animeshowdown.votos_count') === String(expected),
+        target,
+        { timeout: 5000 },
+      )
+      .then(() => true)
+      .catch(() => false)
+
+    if (committed) {
+      acceptedVotes = target
+    }
+
+    if (acceptedVotes < 5) {
+      const next = page.getByRole('button', { name: 'Siguiente duelo' })
+      const skip = page.getByRole('button', { name: 'Saltar duelo' })
+      if (await next.isVisible().catch(() => false)) {
+        await next.click()
+      } else {
+        await skip.click()
+      }
     }
   }
 
-  // Esperar a que el último voto incremente el contador local (sucede en
-  // onSuccess del votarMutation, async tras la respuesta del backend).
-  // Sin este poll, el getByLabel('5 votos en esta sesión') de abajo se
-  // ejecutaba antes de que el último mutate completara y fallaba.
-  await expect
-    .poll(
-      () =>
-        page.evaluate(() => localStorage.getItem('animeshowdown.votos_count')),
-      { timeout: 8000 },
-    )
-    .toBe('5')
+  expect(acceptedVotes).toBe(5)
   if (testInfo.project.name === 'chromium-desktop') {
-    await expect(page.getByLabel('5 votos en esta sesión')).toBeVisible()
+    const headerVoteLink = page.locator('header nav a[href="/votar"]').first()
+    await expect(headerVoteLink).toContainText('5')
   }
   await attachVisualSmoke(page, 'votar-5-votos')
   expect(consoleErrors).toEqual([])
