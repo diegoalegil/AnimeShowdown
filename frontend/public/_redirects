@@ -14,6 +14,53 @@
 /higher-or-lower          /games/elo-duel            301
 /higher-or-lower/*        /games/elo-duel/:splat     301
 
-# SPA fallback — toda ruta no servida por un archivo estático carga
-# index.html para que React Router maneje el routing client-side.
-/*    /index.html   200
+# Rutas reales de la SPA. Las enumeramos para que una URL inventada no
+# devuelva 200 con index.html: Cloudflare servirá 404.html al final.
+/                         /index.html 200
+/personajes               /index.html 200
+/personajes/:slug         /index.html 200
+/animes                   /index.html 200
+/animes/:slug             /index.html 200
+/torneos                  /index.html 200
+/torneos/crear            /index.html 200
+/torneos/:slug            /index.html 200
+/eventos                  /index.html 200
+/eventos/:slug            /index.html 200
+/duelos/:par              /index.html 200
+/ranking                  /index.html 200
+/votar                    /index.html 200
+/duel-live                /index.html 200
+/login                    /index.html 200
+/register                 /index.html 200
+/auth/callback            /index.html 200
+/forgot-password          /index.html 200
+/reset-password           /index.html 200
+/admin                    /index.html 200
+/admin/comentarios        /index.html 200
+/perfil                   /index.html 200
+/u/:username/logros       /index.html 200
+/u/:username              /index.html 200
+/verify                   /index.html 200
+/newsletter/confirmar     /index.html 200
+/faq                      /index.html 200
+/api-docs                 /index.html 200
+/status                   /index.html 200
+/games                    /index.html 200
+/games/shadow-guess       /index.html 200
+/games/anime-reveal       /index.html 200
+/games/anigrid            /index.html 200
+/games/impostor-trial     /index.html 200
+/games/elo-duel           /index.html 200
+/omikuji                  /index.html 200
+/glossary                 /index.html 200
+/logros                   /index.html 200
+/apoya                    /index.html 200
+/privacidad               /index.html 200
+/terminos                 /index.html 200
+/dmca                     /index.html 200
+/tv                       /index.html 200
+/mi-top5                  /index.html 200
+/leaderboards             /index.html 200
+
+# Todo lo demás es realmente desconocido para el CDN.
+/*                        /404.html 404

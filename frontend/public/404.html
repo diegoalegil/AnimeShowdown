@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, follow" />
+    <title>404 - AnimeShowdown</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080b12;
+        --surface: #14161f;
+        --fg: #f7f3ea;
+        --muted: #b8aea3;
+        --gold: #c5a15a;
+        --accent: #9f1d2c;
+        --border: rgba(255, 255, 255, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(197, 161, 90, 0.16), transparent 28rem),
+          radial-gradient(circle at 80% 0%, rgba(159, 29, 44, 0.14), transparent 24rem),
+          var(--bg);
+        color: var(--fg);
+        font-family:
+          Geist,
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      main {
+        width: min(720px, 100%);
+        padding: 32px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(20, 22, 31, 0.84);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
+      }
+
+      .kicker {
+        margin: 0 0 12px;
+        color: var(--gold);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.4rem, 8vw, 5.8rem);
+        line-height: 0.95;
+      }
+
+      p {
+        max-width: 56ch;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 10px 16px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--fg);
+        text-decoration: none;
+        font-weight: 800;
+      }
+
+      a.primary {
+        border-color: transparent;
+        background: var(--accent);
+      }
+
+      a:hover {
+        border-color: rgba(197, 161, 90, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Ruta no encontrada</p>
+      <h1>404</h1>
+      <p>
+        Esta pagina no existe o se movio. Puedes volver a la arena, votar un
+        duelo o revisar el ranking actual.
+      </p>
+      <nav aria-label="Rutas principales">
+        <a class="primary" href="/">Inicio</a>
+        <a href="/votar">Votar</a>
+        <a href="/personajes">Personajes</a>
+        <a href="/ranking">Ranking</a>
+      </nav>
+    </main>
+  </body>
+</html>
