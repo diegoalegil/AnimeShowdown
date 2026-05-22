@@ -113,6 +113,8 @@ function listImagesByAnime() {
     const files = readdirSync(full)
     const slugs = new Set()
     for (const f of files) {
+      if (f === '.DS_Store' || f.endsWith('.dominant.json')) continue
+      if (!/\.(webp|avif|png|jpg|jpeg|svg)$/i.test(f)) continue
       // Quitar -300.webp, -600.webp, -1024.avif, etc.
       const base = f.replace(/-(300|600|1024)\.(webp|avif|png|jpg|jpeg)$/i, '')
                     .replace(/\.(webp|avif|png|jpg|jpeg|svg)$/i, '')
