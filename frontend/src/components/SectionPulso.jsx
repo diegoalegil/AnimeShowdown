@@ -316,7 +316,7 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
   )
 }
 
-function CardEyebrow({ icon: Icon, label, tono = 'text-accent' }) {
+function CardEyebrow({ icon: Icon, label, tono = 'text-gold' }) {
   return (
     <span
       className={`inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-alt px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] ${tono}`}
@@ -493,7 +493,7 @@ function MoverRow({ mover, actividad }) {
       <div className="min-w-0 flex-1">
         <Link
           to={`/personajes/${mover.slug}`}
-          className="line-clamp-1 text-[13px] font-semibold text-fg-strong hover:text-accent"
+          className="line-clamp-1 text-[13px] font-semibold text-fg-strong hover:text-gold"
         >
           {mover.nombre}
         </Link>
@@ -632,7 +632,7 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
             </span>
             . Entra al bracket y vota.
           </p>
-          <span className="relative mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+          <span className="relative mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-gold transition-transform group-hover:translate-x-0.5">
             Ir al bracket
             <ArrowRight className="h-3 w-3" />
           </span>
@@ -648,7 +648,7 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
         </p>
         <Link
           to="/votar"
-          className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-accent hover:text-accent-hover"
+          className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-gold hover:text-gold"
         >
           Ir a votar
           <ArrowRight className="h-3 w-3" />
@@ -663,13 +663,13 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
       to="/votar"
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
     >
-      <CardEyebrow icon={Sparkles} label="Duelo abierto" tono="text-accent" />
+      <CardEyebrow icon={Sparkles} label="Duelo abierto" tono="text-gold" />
       <div className="flex items-center justify-center gap-3">
         <DueloAvatar personaje={a} />
-        <span className="font-mono text-xl font-extrabold text-accent">VS</span>
+        <span className="font-mono text-xl font-extrabold text-gold">VS</span>
         <DueloAvatar personaje={b} />
       </div>
-      <span className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+      <span className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-gold transition-transform group-hover:translate-x-0.5">
         Vota tu favorito
         <ArrowRight className="h-3 w-3" />
       </span>
@@ -737,7 +737,7 @@ function VotoRow({ voto }) {
           <span className="text-fg-muted">votó por</span>{' '}
           <Link
             to={`/personajes/${ganador.slug}`}
-            className="font-semibold text-fg-strong hover:text-accent"
+            className="font-semibold text-fg-strong hover:text-gold"
           >
             {ganador.nombre}
           </Link>
@@ -747,7 +747,7 @@ function VotoRow({ voto }) {
               <span className="text-fg-muted">vs</span>{' '}
               <Link
                 to={`/personajes/${rival.slug}`}
-                className="text-fg-muted hover:text-accent"
+                className="text-fg-muted hover:text-gold"
               >
                 {rival.nombre}
               </Link>

@@ -68,7 +68,7 @@ function CardReferral() {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-3 flex items-center gap-2">
-        <Users className="h-4 w-4 text-accent" />
+        <Users className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Tu código de referral</h2>
       </div>
       <p className="mb-4 text-[12px] text-fg-muted">
@@ -81,7 +81,7 @@ function CardReferral() {
           <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
             Código
           </p>
-          <p className="text-base font-extrabold tracking-[0.18em] text-accent">
+          <p className="text-base font-extrabold tracking-[0.18em] text-gold">
             {data.codigo}
           </p>
         </div>

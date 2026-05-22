@@ -44,7 +44,7 @@ function KanjiSpinner({
     ? 'text-gold'
     : tone === 'cyan'
       ? 'text-cyan-300'
-      : 'text-accent'
+      : 'text-gold'
   const toneHalo = tone === 'gold'
     ? 'bg-gold/10'
     : tone === 'cyan'

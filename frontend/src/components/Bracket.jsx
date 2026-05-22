@@ -146,7 +146,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
               {kanjis[i] && (
                 <span
                   aria-hidden="true"
-                  className="inline-flex items-center gap-0.5 text-accent/70"
+                  className="inline-flex items-center gap-0.5 text-gold/70"
                 >
                   <KanjiStroke
                     kanji={kanjis[i]}
@@ -174,12 +174,12 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
         ))}
         <div className="flex min-w-[180px] flex-col items-stretch justify-around">
           <div className="flex flex-col items-center gap-0.5">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
               Campeón
             </h3>
             <span
               aria-hidden="true"
-              className="inline-flex items-center gap-0.5 text-accent/80"
+              className="inline-flex items-center gap-0.5 text-gold/80"
             >
               <KanjiStroke
                 kanji="王者"
@@ -338,7 +338,7 @@ function VotoRow({ match, torneoSlug }) {
         />
       </div>
       {votadoLocal && (
-        <p className="mt-1 text-center text-[10px] font-medium text-accent">
+        <p className="mt-1 text-center text-[10px] font-medium text-gold">
           Voto registrado
         </p>
       )}
@@ -356,7 +356,7 @@ function VotoButton({ personaje, active, disabled, onClick }) {
       className={`min-w-0 flex-1 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
         active
           ? 'border-accent bg-accent text-bg'
-          : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-accent'
+          : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-gold'
       }`}
     >
       <span className="block truncate">{personaje.nombre}</span>
@@ -436,7 +436,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
           <button
             type="button"
             onClick={() => setPicking(true)}
-            className="w-full rounded-md border border-dashed border-border px-2 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-accent"
+            className="w-full rounded-md border border-dashed border-border px-2 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-gold"
           >
             🔮 Predice el ganador
           </button>
@@ -448,14 +448,14 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
   // Predicción ya hecha (sin resolver). Mostrar resumen + opción cambiar.
   return (
     <div className="mt-1.5 flex items-center gap-1.5 rounded-md bg-accent-soft px-2 py-1">
-      <Check className="h-3 w-3 shrink-0 text-accent" />
+      <Check className="h-3 w-3 shrink-0 text-gold" />
       <span className="min-w-0 flex-1 truncate text-[10px] font-medium text-fg-strong">
         Predigo: {prediccion.personajePredichoNombre}
       </span>
       <button
         type="button"
         onClick={() => setPicking(true)}
-        className="text-[10px] text-fg-muted underline-offset-2 hover:text-accent hover:underline"
+        className="text-[10px] text-fg-muted underline-offset-2 hover:text-gold hover:underline"
       >
         cambiar
       </button>
@@ -505,7 +505,7 @@ function BracketSlot({ personaje, winner }) {
         {personaje.nombre}
       </span>
       {winner && (
-        <Trophy className="h-3 w-3 shrink-0 text-accent" aria-hidden="true" />
+        <Trophy className="h-3 w-3 shrink-0 text-gold" aria-hidden="true" />
       )}
     </div>
   )

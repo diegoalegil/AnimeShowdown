@@ -312,13 +312,13 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     >
       <p className="text-[12px] text-fg-muted">
         Próxima partida a medianoche local.{' '}
-        <Link to="/games" className="text-accent hover:underline">
+        <Link to="/games" className="text-gold hover:underline">
           Volver al hub
         </Link>{' '}
         ·{' '}
         <Link
           to={`/personajes/${objetivo.slug}`}
-          className="text-accent hover:underline"
+          className="text-gold hover:underline"
         >
           Ver ficha de {objetivo.nombre}
         </Link>

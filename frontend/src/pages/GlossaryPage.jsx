@@ -456,7 +456,7 @@ function GlossaryPage() {
                     {t.termino}
                   </dt>
                   {t.kanji && (
-                    <span className="font-jp text-[15px] text-accent">
+                    <span className="font-jp text-[15px] text-gold">
                       {t.kanji}
                     </span>
                   )}
@@ -566,11 +566,11 @@ function GlossaryPage() {
           </h2>
           <p className="text-[13px] leading-relaxed text-fg-muted">
             ¿Quieres ver ejemplos de estos tropos? Mira{' '}
-            <Link to="/personajes" className="text-accent hover:underline">
+            <Link to="/personajes" className="text-gold hover:underline">
               el catálogo completo
             </Link>{' '}
             con más de 1.000 personajes anime, o{' '}
-            <Link to="/ranking" className="text-accent hover:underline">
+            <Link to="/ranking" className="text-gold hover:underline">
               el ranking ELO
             </Link>{' '}
             para ver quién manda hoy. Si echas en falta algún término en este
@@ -579,7 +579,7 @@ function GlossaryPage() {
               href="https://github.com/diegoalegil/AnimeShowdown/issues"
               target="_blank"
               rel="noreferrer"
-              className="text-accent hover:underline"
+              className="text-gold hover:underline"
             >
               abre un issue
             </a>

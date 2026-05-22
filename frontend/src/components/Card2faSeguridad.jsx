@@ -50,7 +50,7 @@ function Card2faSeguridad() {
         {habilitado ? (
           <ShieldCheck className="h-4 w-4 text-emerald-300" />
         ) : (
-          <Shield className="h-4 w-4 text-accent" />
+          <Shield className="h-4 w-4 text-gold" />
         )}
         <h2 className="text-lg font-bold text-fg-strong">
           Verificación en dos pasos
@@ -221,7 +221,7 @@ function ModalShell({ onClose, title, icon: Icon, children, wide }) {
           <X className="h-4 w-4" />
         </button>
         <div className="mb-4 flex items-center gap-2 pr-8">
-          {Icon && <Icon className="h-5 w-5 text-accent" />}
+          {Icon && <Icon className="h-5 w-5 text-gold" />}
           <h3 className="text-xl font-bold text-fg-strong">{title}</h3>
         </div>
         {children}
@@ -370,7 +370,7 @@ function SetupForm({ setupData, onBackupCodes }) {
             <button
               type="button"
               onClick={copiarSecret}
-              className="shrink-0 text-fg-muted transition-colors hover:text-accent"
+              className="shrink-0 text-fg-muted transition-colors hover:text-gold"
               aria-label="Copiar secret"
             >
               {secretCopiado ? (

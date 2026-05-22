@@ -284,7 +284,7 @@ function RegisterPage() {
           ¿Ya tienes cuenta?{' '}
           <Link
             to="/login"
-            className="font-semibold text-accent hover:text-accent-hover"
+            className="font-semibold text-gold hover:text-gold"
           >
             Inicia sesión
           </Link>

@@ -213,7 +213,7 @@ function ScoreBar({ score, best }) {
         <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
           Récord
         </span>
-        <span className="font-mono text-2xl font-extrabold tabular-nums text-accent">
+        <span className="font-mono text-2xl font-extrabold tabular-nums text-gold">
           {best}
         </span>
       </div>
@@ -245,7 +245,7 @@ function VsBadge({ revealed }) {
             ? 'border-emerald-400 bg-emerald-500/20 text-emerald-200'
             : revealed === 'wrong'
               ? 'border-rose-400 bg-rose-500/20 text-rose-200'
-              : 'border-accent/60 bg-accent-soft text-accent'
+              : 'border-accent/60 bg-accent-soft text-gold'
         }`}
       >
         <span className="font-mono text-xs font-extrabold tracking-tighter sm:text-base">
@@ -394,7 +394,7 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
       </h2>
       <p className="max-w-md text-fg-muted">
         Conseguiste <span className="font-mono font-bold text-fg-strong">{score}</span> aciertos
-        seguidos. Tu récord es <span className="font-mono font-bold text-accent">{best}</span>.
+        seguidos. Tu récord es <span className="font-mono font-bold text-gold">{best}</span>.
       </p>
       <div className="text-sm text-fg-muted">
         <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO{' '}
@@ -417,7 +417,7 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
         </button>
         <Link
           to="/ranking"
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
           <Trophy className="h-4 w-4" />
           Ver ranking ELO

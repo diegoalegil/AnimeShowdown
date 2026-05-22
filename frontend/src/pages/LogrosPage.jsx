@@ -283,7 +283,7 @@ function LogrosPage() {
         {user && (
           <div className="mt-10 rounded-xl border border-border bg-surface p-5">
             <h2 className="mb-2 flex items-center gap-2 text-base font-bold text-fg-strong">
-              <Users className="h-4 w-4 text-accent" />
+              <Users className="h-4 w-4 text-gold" />
               Tu progreso público
             </h2>
             <p className="mb-4 text-[13px] text-fg-muted">

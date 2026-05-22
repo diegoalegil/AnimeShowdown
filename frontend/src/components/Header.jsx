@@ -58,8 +58,8 @@ function ctaVotarClass({ isActive }) {
 function loginGhostClass({ isActive }) {
   return `${navLinkBase} ml-1 border font-medium ${
     isActive
-      ? 'border-accent bg-accent-soft text-accent'
-      : 'border-border text-fg-muted hover:border-accent hover:text-accent'
+      ? 'border-accent bg-accent-soft text-gold'
+      : 'border-border text-fg-muted hover:border-accent hover:text-gold'
   }`
 }
 
@@ -340,7 +340,7 @@ function Header() {
                 <NavLink
                   to="/login"
                   onClick={() => { play('playClick'); closeMobile() }}
-                  className="mt-1 inline-flex items-center justify-center rounded-md border border-border px-3 py-2.5 text-sm font-medium text-fg-muted hover:border-accent hover:text-accent"
+                  className="mt-1 inline-flex items-center justify-center rounded-md border border-border px-3 py-2.5 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
                 >
                   {t('nav.login')}
                 </NavLink>
@@ -384,7 +384,7 @@ function UserBadge({ user, onLogout, t }) {
         className="flex items-center gap-2.5"
       >
         <Avatar user={user} size={28} />
-        <span className="text-sm font-medium text-fg-strong hover:text-accent">
+        <span className="text-sm font-medium text-fg-strong hover:text-gold">
           {user.username}
         </span>
       </Link>
@@ -392,7 +392,7 @@ function UserBadge({ user, onLogout, t }) {
         <Link
           to="/admin"
           aria-label={t('nav.admin')}
-          className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent transition-colors hover:bg-accent/25"
+          className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold transition-colors hover:bg-accent/25"
         >
           <Shield className="h-3 w-3" />
           {t('nav.admin')}
@@ -402,7 +402,7 @@ function UserBadge({ user, onLogout, t }) {
         type="button"
         onClick={onLogout}
         aria-label={t('nav.salir')}
-        className="ml-1 inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+        className="ml-1 inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
       >
         <LogOut className="h-3.5 w-3.5" />
         {t('nav.salir')}

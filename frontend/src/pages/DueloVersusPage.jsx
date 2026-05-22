@@ -65,7 +65,7 @@ function DueloVersusPage() {
         </Link>
 
         <div className="mb-8 flex flex-col gap-4">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
             <Swords className="h-3.5 w-3.5" />
             Duelo abierto
           </span>
@@ -83,7 +83,7 @@ function DueloVersusPage() {
         <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_auto_1fr]">
           <VersusHeroCard personaje={personajeA} stats={statsA} side="left" />
           <div className="flex items-center justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-lg font-black text-accent shadow-[0_0_40px_rgb(255_46_99_/_0.18)]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-lg font-black text-gold shadow-[0_0_40px_rgb(255_46_99_/_0.18)]">
               VS
             </div>
           </div>
@@ -93,7 +93,7 @@ function DueloVersusPage() {
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
           <section className="rounded-xl border border-border bg-surface p-5">
             <div className="mb-5 flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-accent" />
+              <BarChart3 className="h-4 w-4 text-gold" />
               <h2 className="text-lg font-bold text-fg-strong">Comparativa</h2>
             </div>
             <div className="overflow-hidden rounded-lg border border-border">
@@ -126,7 +126,7 @@ function DueloVersusPage() {
           </section>
 
           <section className="rounded-xl border border-accent/30 bg-[linear-gradient(135deg,rgb(255_46_99_/_0.14),rgb(255_199_44_/_0.08),rgb(20_20_30_/_0.92))] p-5">
-            <div className="flex items-center gap-2 text-accent">
+            <div className="flex items-center gap-2 text-gold">
               <Trophy className="h-4 w-4" />
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em]">
                 Quién ganaría según la comunidad
@@ -194,7 +194,7 @@ function VersusHeroCard({ personaje, stats, side }) {
           </div>
           <Link
             to={`/personajes/${personaje.slug}`}
-            className="mt-5 text-sm font-semibold text-accent hover:underline"
+            className="mt-5 text-sm font-semibold text-gold hover:underline"
           >
             Ver ficha →
           </Link>
@@ -207,13 +207,13 @@ function VersusHeroCard({ personaje, stats, side }) {
 function ComparativaRow({ label, a, b, winner }) {
   return (
     <div className="grid grid-cols-[1fr_110px_1fr] border-b border-border last:border-b-0">
-      <div className={`min-w-0 px-4 py-3 text-sm font-semibold ${winner === 'a' ? 'text-accent' : 'text-fg-strong'}`}>
+      <div className={`min-w-0 px-4 py-3 text-sm font-semibold ${winner === 'a' ? 'text-gold' : 'text-fg-strong'}`}>
         {a}
       </div>
       <div className="border-x border-border bg-bg/40 px-3 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
         {label}
       </div>
-      <div className={`min-w-0 px-4 py-3 text-right text-sm font-semibold ${winner === 'b' ? 'text-accent' : 'text-fg-strong'}`}>
+      <div className={`min-w-0 px-4 py-3 text-right text-sm font-semibold ${winner === 'b' ? 'text-gold' : 'text-fg-strong'}`}>
         {b}
       </div>
     </div>
@@ -226,7 +226,7 @@ function MiniStat({ label, value, accent }) {
       <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
         {label}
       </p>
-      <p className={`mt-1 font-mono text-lg font-black ${accent ? 'text-accent' : 'text-fg-strong'}`}>
+      <p className={`mt-1 font-mono text-lg font-black ${accent ? 'text-gold' : 'text-fg-strong'}`}>
         {value}
       </p>
     </div>
@@ -264,7 +264,7 @@ function DuelosSugeridos({ personaje, sugerencias }) {
                 </span>
               </span>
             </span>
-            <ArrowRight className="h-4 w-4 shrink-0 text-fg-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+            <ArrowRight className="h-4 w-4 shrink-0 text-fg-muted transition-transform group-hover:translate-x-0.5 group-hover:text-gold" />
           </Link>
         ))}
       </div>

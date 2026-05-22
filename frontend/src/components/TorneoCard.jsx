@@ -177,7 +177,7 @@ function TorneoCard({ torneo }) {
             </div>
           </div>
         )}
-        <span className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-accent opacity-80 transition-all group-hover:translate-x-0.5 group-hover:opacity-100">
+        <span className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-gold opacity-80 transition-all group-hover:translate-x-0.5 group-hover:opacity-100">
           {ESTADO_CTA[estado] ?? 'Ver torneo'}
           <ArrowRight className="h-3.5 w-3.5" />
         </span>

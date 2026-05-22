@@ -212,7 +212,7 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
         </button>
         <Link
           to="/forgot-password"
-          className="self-end text-[12px] font-medium text-fg-muted transition-colors hover:text-accent"
+          className="self-end text-[12px] font-medium text-fg-muted transition-colors hover:text-gold"
         >
           ¿Olvidaste tu contraseña?
         </Link>
@@ -221,7 +221,7 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
         ¿No tienes cuenta?{' '}
         <Link
           to="/register"
-          className="font-semibold text-accent hover:text-accent-hover"
+          className="font-semibold text-gold hover:text-gold"
         >
           Crea una
         </Link>
@@ -329,7 +329,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
           <button
             type="button"
             onClick={onCancel}
-            className="font-medium text-fg-muted transition-colors hover:text-accent"
+            className="font-medium text-fg-muted transition-colors hover:text-gold"
           >
             Cancelar
           </button>

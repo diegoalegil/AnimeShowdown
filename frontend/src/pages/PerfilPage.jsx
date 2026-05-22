@@ -109,7 +109,7 @@ function PerfilPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <User className="h-3 w-3" />
             Mi cuenta · Tu espacio personal
           </span>
@@ -200,13 +200,13 @@ function CardDatos({ user }) {
             <User className="h-3.5 w-3.5 text-fg-muted" />
             <span
               className={`font-mono font-bold ${
-                user.rol === 'ADMIN' ? 'text-accent' : 'text-fg-muted'
+                user.rol === 'ADMIN' ? 'text-gold' : 'text-fg-muted'
               }`}
             >
               {user.rol || 'USER'}
             </span>
             {user.rol === 'ADMIN' && (
-              <Shield className="h-3 w-3 text-accent" />
+              <Shield className="h-3 w-3 text-gold" />
             )}
           </p>
         </div>
@@ -217,7 +217,7 @@ function CardDatos({ user }) {
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           to={`/u/${encodeURIComponent(user.username)}`}
-          className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-accent transition-colors hover:bg-accent/20"
+          className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-gold transition-colors hover:bg-accent/20"
         >
           <ExternalLink className="h-3 w-3" />
           Ver mi perfil público
@@ -414,7 +414,7 @@ function UploadForm({ user, updateUser }) {
                 setPreview(null)
                 if (fileRef.current) fileRef.current.value = ''
               }}
-              className="text-[12px] text-fg-muted transition-colors hover:text-accent"
+              className="text-[12px] text-fg-muted transition-colors hover:text-gold"
             >
               Cancelar
             </button>
@@ -435,7 +435,7 @@ function UploadForm({ user, updateUser }) {
           type="button"
           onClick={handleQuitar}
           disabled={busy}
-          className="self-start text-[12px] text-fg-muted transition-colors hover:text-accent disabled:opacity-60"
+          className="self-start text-[12px] text-fg-muted transition-colors hover:text-gold disabled:opacity-60"
         >
           Quitar avatar actual
         </button>
@@ -583,7 +583,7 @@ function CardPassword() {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Key className="h-4 w-4 text-accent" />
+        <Key className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Cambia tu contraseña</h2>
       </div>
       <p className="mb-5 text-[12px] text-fg-muted">

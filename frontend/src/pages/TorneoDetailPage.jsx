@@ -81,7 +81,7 @@ function TorneoDetailPage() {
           </p>
           <Link
             to="/torneos"
-            className="mt-6 inline-flex items-center gap-1.5 text-sm text-accent hover:underline"
+            className="mt-6 inline-flex items-center gap-1.5 text-sm text-gold hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver a torneos
@@ -264,15 +264,15 @@ function TorneoDetailPage() {
             <p className="mt-6 text-[13px] text-fg-muted">
               Vota en cada enfrentamiento del bracket para decidir el campeón.
               También puedes{' '}
-              <Link to="/torneos" className="text-accent hover:underline">
+              <Link to="/torneos" className="text-gold hover:underline">
                 ver otros torneos activos
               </Link>
               ,{' '}
-              <Link to="/ranking" className="text-accent hover:underline">
+              <Link to="/ranking" className="text-gold hover:underline">
                 consultar el ranking ELO global
               </Link>{' '}
               o{' '}
-              <Link to="/votar" className="text-accent hover:underline">
+              <Link to="/votar" className="text-gold hover:underline">
                 votar en matches casuales
               </Link>
               .

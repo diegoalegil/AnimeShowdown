@@ -187,7 +187,7 @@ function EventoCard({ evento, now, etiqueta }) {
           <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl shadow-lg" aria-hidden="true">
             {evento.emoji}
           </span>
-          <h3 className="text-xl font-extrabold text-fg-strong group-hover:text-accent sm:text-2xl">
+          <h3 className="text-xl font-extrabold text-fg-strong group-hover:text-gold sm:text-2xl">
             {evento.titulo}
           </h3>
         </div>
@@ -199,7 +199,7 @@ function EventoCard({ evento, now, etiqueta }) {
             <Clock className="h-3.5 w-3.5" />
             {restanteLabel}
           </span>
-          <span className="inline-flex items-center gap-1 font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+          <span className="inline-flex items-center gap-1 font-semibold text-gold transition-transform group-hover:translate-x-0.5">
             Ver
             <ArrowRight className="h-3.5 w-3.5" />
           </span>

@@ -90,7 +90,7 @@ function LiveMatchSpectator({ torneo }) {
           leading={leader?.id === liveMatch.personaje1.id}
         />
         <div className="flex items-center justify-center">
-          <span className="rounded-full border border-border bg-bg px-4 py-2 font-mono text-sm font-black text-accent">
+          <span className="rounded-full border border-border bg-bg px-4 py-2 font-mono text-sm font-black text-gold">
             VS
           </span>
         </div>

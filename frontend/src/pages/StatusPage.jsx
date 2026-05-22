@@ -45,7 +45,7 @@ function statusTone(status) {
   return {
     label: status === 'DOWN' ? 'Incidencia' : 'Sin datos',
     icon: AlertTriangle,
-    className: 'border-accent/50 bg-accent/10 text-accent',
+    className: 'border-accent/50 bg-accent/10 text-gold',
     dot: 'bg-accent',
   }
 }
@@ -220,7 +220,7 @@ function StatusPage() {
           <KanjiSpinner kanji="健" size="lg" tone="gold" />
         </div>
       ) : isError ? (
-        <section className="rounded-lg border border-accent/40 bg-accent/10 p-5 text-accent">
+        <section className="rounded-lg border border-accent/40 bg-accent/10 p-5 text-gold">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5" />
             <div>
@@ -231,7 +231,7 @@ function StatusPage() {
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="mt-4 rounded-lg border border-accent/50 px-4 py-2 text-sm font-bold text-accent hover:bg-accent/10"
+                className="mt-4 rounded-lg border border-accent/50 px-4 py-2 text-sm font-bold text-gold hover:bg-accent/10"
               >
                 Reintentar
               </button>

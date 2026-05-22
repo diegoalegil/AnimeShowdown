@@ -471,7 +471,7 @@ function CardMini({ game, estado }) {
             </span>
           )}
         </div>
-        <h3 className="truncate text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-accent">
+        <h3 className="truncate text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-gold">
           {game.titulo}
         </h3>
         <p className="line-clamp-2 text-[12px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">{game.desc}</p>
@@ -499,19 +499,19 @@ function OmikujiCard() {
         style={{ background: 'linear-gradient(135deg, rgb(255 46 99 / 0.22) 0%, rgb(7 10 18 / 0.45) 100%)' }}
       >
         <span
-          className="font-mono text-lg font-extrabold text-accent"
+          className="font-mono text-lg font-extrabold text-gold"
           style={{ textShadow: '0 0 16px currentColor, 0 2px 5px rgb(0 0 0 / 0.65)' }}
         >御</span>
       </div>
       <div className="relative flex-1">
-        <h3 className="text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-accent">
+        <h3 className="text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-gold">
           Omikuji diario
         </h3>
         <p className="text-[12px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
           Tira tu suerte del día al estilo de los santuarios japoneses.
         </p>
       </div>
-      <ArrowRight className="relative h-4 w-4 text-accent transition-transform group-hover:translate-x-1" />
+      <ArrowRight className="relative h-4 w-4 text-gold transition-transform group-hover:translate-x-1" />
     </Link>
   )
 }

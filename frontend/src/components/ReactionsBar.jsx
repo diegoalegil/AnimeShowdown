@@ -107,7 +107,7 @@ function ReactionsBar({ targetType, targetId, className = '' }) {
         <button
           type="button"
           onClick={() => navigate('/login')}
-          className="self-start text-[11px] text-fg-muted underline-offset-2 hover:text-accent hover:underline"
+          className="self-start text-[11px] text-fg-muted underline-offset-2 hover:text-gold hover:underline"
         >
           Inicia sesión para reaccionar →
         </button>

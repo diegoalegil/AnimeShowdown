@@ -16,7 +16,7 @@ function CardActividadReciente() {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Activity className="h-4 w-4 text-accent" />
+        <Activity className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Actividad reciente</h2>
       </div>
       {isLoading ? (
@@ -26,11 +26,11 @@ function CardActividadReciente() {
       ) : !data || data.length === 0 ? (
         <p className="text-[13px] text-fg-muted">
           Todavía no tienes actividad registrada. Empieza{' '}
-          <Link to="/votar" className="text-accent hover:underline">
+          <Link to="/votar" className="text-gold hover:underline">
             votando un duelo
           </Link>{' '}
           o{' '}
-          <Link to="/torneos/crear" className="text-accent hover:underline">
+          <Link to="/torneos/crear" className="text-gold hover:underline">
             creando un torneo
           </Link>
           .
@@ -73,7 +73,7 @@ function configPorTipo(item) {
     case 'VOTO':
       return {
         icon: Swords,
-        color: 'bg-accent-soft text-accent',
+        color: 'bg-accent-soft text-gold',
         contenido: (
           <>
             Votaste a{' '}

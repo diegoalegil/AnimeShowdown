@@ -30,7 +30,7 @@ function CarouselRow({ titulo, personajes, eyebrow }) {
               type="button"
               onClick={() => scroll(-1)}
               aria-label="Anterior"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-accent"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-gold"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -38,7 +38,7 @@ function CarouselRow({ titulo, personajes, eyebrow }) {
               type="button"
               onClick={() => scroll(1)}
               aria-label="Siguiente"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-accent"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:border-accent hover:text-gold"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
