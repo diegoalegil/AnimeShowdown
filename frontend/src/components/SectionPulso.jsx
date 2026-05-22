@@ -420,8 +420,12 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
               Comunidad arrancando — tu voto puede cambiar el meta.
             </p>
           ) : (
+            // Audit externo AS-010 + B3.5 (2026-05-23): el ranking REST se
+            // ordena por SUM(v.peso) tras AS-002 — el orden visible aquí ya
+            // refleja peso ponderado, no COUNT puro. "ranking ELO global"
+            // implicaba un cálculo distinto (K-factor real) que no existe.
             <p className="mt-1 text-[11px] leading-snug text-fg-muted">
-              Por votos acumulados · el ranking ELO global puede diferir.
+              Top de la comunidad por votos ponderados.
             </p>
           )}
         </div>
@@ -434,7 +438,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
           to="/ranking"
           className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted hover:text-amber-300"
         >
-          Ver ranking ELO
+          Ver ranking competitivo
           <ArrowRight className="h-3 w-3" />
         </Link>
         <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-amber-300 opacity-0 transition-opacity group-hover:opacity-100">

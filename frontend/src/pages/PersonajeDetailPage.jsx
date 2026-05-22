@@ -91,12 +91,16 @@ function PersonajeDetailPage() {
   useSeo(
     personaje
       ? {
+          // Audit externo AS-043 + B3.5 (2026-05-23): el ELO en el title era
+          // un número sin contexto que Google indexaba como si fuera ELO real.
+          // "ELO base" deja claro que es el cold-start estimado del catálogo
+          // — el ranking competitivo real está en /ranking.
           title: `${personaje.nombre} de ${personaje.anime}${
-            stats?.elo ? ` · ELO ${stats.elo}` : ''
+            stats?.elo ? ` · ELO base ${stats.elo}` : ''
           }`,
           description:
             personaje.descripcion ||
-            `Stats, ranking ELO y ficha de ${personaje.nombre}, personaje de ${personaje.anime}, en AnimeShowdown.`,
+            `Ficha de ${personaje.nombre}, personaje de ${personaje.anime}, en AnimeShowdown. ELO base estimado + posición en el ranking competitivo.`,
           image: imagenPersonaje(personaje.slug),
           type: 'profile',
         }
@@ -592,12 +596,13 @@ function PersonajeDetailPage() {
             </div>
             <p className="mt-6 text-[13px] text-fg-muted">
               ¿No conoces a alguno? Pulsa cualquier card para ver su ficha
-              completa con stats, citas y ranking ELO. También puedes{' '}
+              completa con ELO base, citas y posición en el ranking
+              competitivo. También puedes{' '}
               <Link
                 to="/ranking"
                 className="text-gold hover:underline"
               >
-                ver el ranking global de personajes
+                ver el ranking competitivo de personajes
               </Link>{' '}
               o{' '}
               <Link
