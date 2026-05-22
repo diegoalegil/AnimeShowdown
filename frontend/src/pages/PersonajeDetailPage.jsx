@@ -720,8 +720,13 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
           onFocus={preload3D}
           onPointerEnter={preload3D}
           onClick={() => setShow3D(true)}
-          className="absolute bottom-3 right-3 z-10 rounded-full border border-border bg-surface/85 px-3 py-1.5 text-[11px] font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
+          aria-label={`Abrir vista 3D rotable de ${nombre}`}
+          title="Vista 3D rotable del personaje"
+          className="group absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-border bg-surface/85 px-4 text-xs font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
         >
+          <span className="pointer-events-none absolute bottom-full right-0 mb-2 hidden w-48 rounded-lg border border-border bg-bg/95 px-3 py-2 text-left text-[12px] leading-snug text-fg-muted shadow-2xl group-hover:block group-focus-visible:block">
+            Vista 360° rotable. Se carga solo al abrirla.
+          </span>
           Ver en 3D
         </button>
       </div>
@@ -746,7 +751,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
       <button
         type="button"
         onClick={() => setShow3D(false)}
-        className="absolute bottom-3 right-3 z-10 rounded-full border border-accent/60 bg-bg/85 px-3 py-1.5 text-[11px] font-semibold text-gold backdrop-blur transition-colors hover:border-accent hover:bg-accent/15"
+        className="absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-accent/60 bg-bg/85 px-4 text-xs font-semibold text-gold backdrop-blur transition-colors hover:border-accent hover:bg-accent/15"
       >
         Volver a imagen
       </button>
