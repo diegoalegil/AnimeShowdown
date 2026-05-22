@@ -112,7 +112,17 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         return ResponseCookie.from(REFRESH_COOKIE, tokenPlano)
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Strict")
+                // Lax (no Strict): tras el redirect 302 al frontend en
+                // /auth/callback la cookie tiene que viajar en el siguiente
+                // fetch a /api/auth/refresh. Con SameSite=Strict, Safari ITP
+                // (y Chrome estricto en algunos flows) descartan la cookie
+                // porque la cadena viene de un sitio externo (accounts.google.com,
+                // discord.com). El usuario queda autenticado en backend pero
+                // el frontend no recoge el access token y el AuthCallback
+                // termina redirigiendo a /login?oauth=error.
+                // Lax + httpOnly + Secure es la recomendación estándar para
+                // refresh tokens y no abre CSRF significativo.
+                .sameSite("Lax")
                 .path("/")
                 .maxAge(refreshTokenService.getTtl())
                 .build();

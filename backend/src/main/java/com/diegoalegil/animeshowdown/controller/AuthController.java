@@ -116,7 +116,18 @@ public class AuthController {
         return ResponseCookie.from(REFRESH_COOKIE, tokenPlano)
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Strict")
+                // Lax (no Strict): la refresh cookie tiene que viajar tras
+                // redirects top-level desde dominios externos. Caso real:
+                // tras un login OAuth (Google/Discord), Spring nos manda
+                // SET-COOKIE refresh_token y redirige a /auth/callback. Si
+                // SameSite=Strict, Safari ITP y Chrome estricto descartan
+                // la cookie en el siguiente fetch a /api/auth/refresh porque
+                // la cadena vino de un dominio externo (accounts.google.com).
+                // El usuario aterriza autenticado en backend pero el frontend
+                // no recibe token → queda como "OAuth hace algo pero no
+                // crea sesión". Lax + httpOnly + Secure es la combinación
+                // estándar para refresh tokens y no abre CSRF significativo.
+                .sameSite("Lax")
                 .path("/")
                 .maxAge(refreshTokenService.getTtl())
                 .build();
@@ -126,7 +137,9 @@ public class AuthController {
         return ResponseCookie.from(REFRESH_COOKIE, "")
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Strict")
+                // Lax para que matchee el atributo de la cookie original
+                // (los navegadores requieren mismo SameSite al borrar).
+                .sameSite("Lax")
                 .path("/")
                 .maxAge(0)
                 .build();
