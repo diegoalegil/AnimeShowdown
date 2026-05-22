@@ -27,6 +27,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
+import AccessibleDialog from '../components/AccessibleDialog'
 import Avatar from '../components/Avatar'
 import Card2faSeguridad from '../components/Card2faSeguridad'
 import CardActividadReciente from '../components/CardActividadReciente'
@@ -780,82 +781,87 @@ function CardEliminarCuenta({ onEliminada }) {
         </button>
       </div>
 
-      {modalAbierto && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-eliminar-titulo"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-          onClick={(e) => {
-            // click fuera del modal cierra; click dentro no propaga
-            if (e.target === e.currentTarget && !pendiente) reset()
-          }}
-        >
-          <div className="w-full max-w-md rounded-xl border border-rose-500/40 bg-surface p-6 shadow-2xl">
-            <div className="mb-3 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-rose-300" />
-              <h3
-                id="modal-eliminar-titulo"
-                className="text-base font-bold text-fg-strong"
-              >
-                Eliminar tu cuenta para siempre
-              </h3>
-            </div>
-            <p className="mb-5 text-[13px] leading-relaxed text-fg-muted">
-              Esta acción es irreversible. Tu username y email quedarán
-              libres para registrarse de nuevo, pero los datos asociados
-              se borran o se anonimizan en cuanto pulses Confirmar.
-            </p>
-
-            <label className="mb-4 flex cursor-pointer items-start gap-2 rounded-lg border border-border bg-bg p-3">
-              <input
-                type="checkbox"
-                checked={confirmado}
-                onChange={(e) => setConfirmado(e.target.checked)}
-                disabled={pendiente}
-                className="mt-0.5 accent-rose-400"
-              />
-              <span className="text-[12px] leading-relaxed text-fg-muted">
-                Entiendo que la acción es irreversible y que perderé
-                predicciones, logros y follows. Mis votos quedarán anónimos.
-              </span>
-            </label>
-
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
-              Confirma tu contraseña
-            </label>
-            <div className="mb-5">
-              <PasswordInput
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={pendiente}
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={reset}
-                disabled={pendiente}
-                className="rounded-lg border border-border bg-bg px-4 py-2 text-[13px] font-semibold text-fg-strong transition-colors hover:border-accent/40 disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmar}
-                disabled={!puedeEliminar}
-                className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                {pendiente ? 'Eliminando…' : 'Confirmar eliminación'}
-              </button>
-            </div>
-          </div>
+      {/* Audit F019 (2026-05-22): migrado a AccessibleDialog que añade
+          focus trap, Escape close, restore de foco al trigger y bloqueo
+          de scroll. closeOnEscape se desactiva mientras `pendiente=true`
+          para evitar que el usuario cancele sin querer un proceso de
+          borrado en curso. closeOnBackdrop hace lo mismo. El label del
+          password ahora va con htmlFor + id para que el lector lo asocie
+          al input correcto (antes era <label> hermano sin asociar). */}
+      <AccessibleDialog
+        open={modalAbierto}
+        onClose={() => { if (!pendiente) reset() }}
+        titleId="modal-eliminar-titulo"
+        closeOnBackdrop={!pendiente}
+        closeOnEscape={!pendiente}
+        panelClassName="border-rose-500/40 max-w-md"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-rose-300" />
+          <h3
+            id="modal-eliminar-titulo"
+            className="text-base font-bold text-fg-strong"
+          >
+            Eliminar tu cuenta para siempre
+          </h3>
         </div>
-      )}
+        <p className="mb-5 text-[13px] leading-relaxed text-fg-muted">
+          Esta acción es irreversible. Tu username y email quedarán
+          libres para registrarse de nuevo, pero los datos asociados
+          se borran o se anonimizan en cuanto pulses Confirmar.
+        </p>
+
+        <label className="mb-4 flex cursor-pointer items-start gap-2 rounded-lg border border-border bg-bg p-3">
+          <input
+            type="checkbox"
+            checked={confirmado}
+            onChange={(e) => setConfirmado(e.target.checked)}
+            disabled={pendiente}
+            className="mt-0.5 accent-rose-400"
+          />
+          <span className="text-[12px] leading-relaxed text-fg-muted">
+            Entiendo que la acción es irreversible y que perderé
+            predicciones, logros y follows. Mis votos quedarán anónimos.
+          </span>
+        </label>
+
+        <label
+          htmlFor="modal-eliminar-password"
+          className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+        >
+          Confirma tu contraseña
+        </label>
+        <div className="mb-5">
+          <PasswordInput
+            id="modal-eliminar-password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={pendiente}
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={reset}
+            disabled={pendiente}
+            className="rounded-lg border border-border bg-bg px-4 py-2 text-[13px] font-semibold text-fg-strong transition-colors hover:border-accent/40 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirmar}
+            disabled={!puedeEliminar}
+            className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            {pendiente ? 'Eliminando…' : 'Confirmar eliminación'}
+          </button>
+        </div>
+      </AccessibleDialog>
     </>
   )
 }
