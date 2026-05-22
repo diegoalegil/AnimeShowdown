@@ -417,6 +417,7 @@ class EnfrentamientoControllerTest {
         String userToken = tokenUserRegistrado("voto_ws_user", "votows@example.com");
         long[] ids = dosPersonajes();
         long antes = votoRepository.countByPersonajeId(ids[0]);
+        Double pesoAntes = votoRepository.sumaPesoByPersonajeId(ids[0]);
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "ws");
 
         mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
@@ -430,6 +431,44 @@ class EnfrentamientoControllerTest {
         RankingDeltaEvent ev = captor.getValue();
         org.junit.jupiter.api.Assertions.assertEquals("luffy", ev.getPersonaje().getSlug());
         org.junit.jupiter.api.Assertions.assertEquals(antes + 1, ev.getVotos());
+        org.junit.jupiter.api.Assertions.assertEquals(1, ev.getDelta());
+        // Audit externo B2.1a + B2.2 (2026-05-22/23): el WS publica pesoVotos
+        // ponderado y deltaPeso del voto recién registrado. Para un voto
+        // registrado (no anónimo) deltaPeso = 1.0; pesoVotos = pesoAntes + 1.
+        org.junit.jupiter.api.Assertions.assertEquals(
+                pesoAntes + 1.0, ev.getPesoVotos(), 0.001,
+                "pesoVotos del WS debe ser el total all-time tras el voto");
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1.0, ev.getDeltaPeso(), 0.001,
+                "deltaPeso del WS debe ser 1.0 para voto registrado");
+    }
+
+    /**
+     * Audit externo B2.2 (2026-05-23): verifica que voto anónimo publica
+     * deltaPeso = 0.30 (no 1.0). Antes el frontend infería incrementoPeso
+     * restando pesoVotos absoluto contra el de la caché temporal, lo que
+     * contaminaba ventanas mensuales con totales históricos.
+     */
+    @Test
+    void votarAnonimoPublicaDeltaPesoCon030() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "ws-anon");
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", "anon-ws-peso")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
+        verify(messaging).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
+        RankingDeltaEvent ev = captor.getValue();
+        org.junit.jupiter.api.Assertions.assertEquals(
+                0.30, ev.getDeltaPeso(), 0.001,
+                "deltaPeso para voto anónimo debe ser 0.30 (no 1.0)");
+        // delta físico sigue siendo 1 — el conteo no se pondera.
         org.junit.jupiter.api.Assertions.assertEquals(1, ev.getDelta());
     }
 

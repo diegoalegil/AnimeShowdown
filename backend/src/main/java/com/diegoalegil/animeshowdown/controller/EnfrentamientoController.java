@@ -224,7 +224,18 @@ public class EnfrentamientoController {
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
-        publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador);
+        // Audit externo B2.2 (2026-05-23): además del total ponderado pasamos
+        // el peso del voto RECIÉN registrado (0.30 anónimo / 1.00 registrado).
+        // El frontend lo SUMA al pesoVotos de las cachés temporales (mes,
+        // trimestre, año). Sin esto, el hook restaba pesoVotos absoluto
+        // contra el de la caché temporal y contaminaba la ventana con el
+        // histórico — un personaje con 150 pesoVotos all-time y 2 mensuales
+        // saltaba a 151 en la caché mensual hasta el siguiente refetch.
+        double pesoVotoRegistrado = guardado.getPeso() == null
+                ? 1.0
+                : guardado.getPeso().doubleValue();
+        publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador,
+                pesoVotoRegistrado);
 
         // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
@@ -285,14 +296,16 @@ public class EnfrentamientoController {
     }
 
     private void publicarRankingDelta(Personaje ganador, long votosTotalesGanador,
-            Double pesoTotalesGanador) {
+            Double pesoTotalesGanador, double pesoVotoRegistrado) {
         if (messaging == null || ganador == null) return;
         try {
-            // Audit externo B2.1a (2026-05-22): payload incluye pesoVotos
-            // ponderado. El frontend (useRankingDeltaSubscription) ordena por
-            // pesoVotos para mantenerse alineado con el ORDER BY del REST.
+            // Audit externo B2.1a + B2.2 (2026-05-22/23): payload incluye:
+            //   - pesoVotos: total ponderado all-time (para periodo='all').
+            //   - deltaPeso: peso del voto recién emitido (0.3 / 1.0). El
+            //     frontend lo suma a las cachés temporales, evitando
+            //     contaminarlas con el total absoluto.
             var ev = new RankingDeltaEvent(PersonajeMiniDto.from(ganador),
-                    votosTotalesGanador, 1, pesoTotalesGanador);
+                    votosTotalesGanador, 1, pesoTotalesGanador, pesoVotoRegistrado);
             messaging.convertAndSend("/topic/ranking-delta", ev);
         } catch (Exception e) {
             log.warn("Push WS ranking delta falló: personaje={} err={}",

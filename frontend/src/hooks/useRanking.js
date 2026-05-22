@@ -60,44 +60,47 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
     if (!enabled) return undefined
     return subscribe('/topic/ranking-delta', (delta) => {
       if (!delta?.personaje?.slug) return
-      // Audit externo B2.1a/B2.1b (2026-05-22): el backend devuelve dos
-      // métricas — votos (físico, COUNT) para mostrar al usuario, y
-      // pesoVotos (ponderado, SUM(peso)) para ORDER BY. Aquí actualizamos
-      // ambos en la caché live. El sort se hace por pesoVotos para no
-      // desalinearse del orden REST cuando un voto anónimo (peso 0.3)
-      // aterriza junto a uno registrado (peso 1.0). Si el WS no incluye
-      // pesoVotos (server antiguo), fallback a votos como antes.
+      // Audit externo B2.1a/B2.1b/B2.2 (2026-05-22/23): el backend manda
+      // cuatro métricas para mantener la caché live alineada con el ORDER
+      // BY del REST sin contaminar ventanas temporales:
+      //   - votos: total físico all-time (COUNT). Para mostrar al usuario.
+      //   - delta: votos físicos añadidos (siempre 1 hoy).
+      //   - pesoVotos: total ponderado all-time (SUM(peso)).
+      //   - deltaPeso: peso del voto recién emitido (0.3 anon / 1.0 reg).
+      // Para periodo='all' usamos los TOTALES absolutos del backend.
+      // Para ventanas temporales (mes/trimestre/año) usamos los INCREMENTOS
+      // (delta y deltaPeso) sobre el valor actual de la caché — antes
+      // restábamos pesoVotos absoluto contra el de la caché temporal y
+      // contaminábamos la ventana con el histórico (un personaje con 150
+      // all-time y 2 mensuales saltaba a 151 en mensual hasta el refetch).
+      const hasPeso = typeof delta.pesoVotos === 'number'
+      const hasDeltaPeso = typeof delta.deltaPeso === 'number'
+      const incrementoVotos = delta.delta || 1
+      // Si el server no manda deltaPeso (compat con WS antiguo o modo
+      // casual), asumimos el incremento de votos físicos como fallback.
+      const incrementoPeso = hasDeltaPeso ? delta.deltaPeso : incrementoVotos
       queryClient
         .getQueriesData({ queryKey: ['ranking', 'segmentado'] })
         .forEach(([queryKey, old]) => {
           if (!Array.isArray(old)) return
           const [, , periodo = 'all', anime = '', limit = old.length] = queryKey
           if (anime && anime !== delta.personaje.anime) return
+          const isAllTime = periodo === 'all'
+          // Para ventanas temporales sin deltaPeso confiable preferimos
+          // invalidar para que el siguiente refetch traiga la realidad,
+          // en vez de mutar con datos potencialmente inconsistentes.
+          if (!isAllTime && !hasDeltaPeso) {
+            queryClient.invalidateQueries({ queryKey })
+            return
+          }
           const index = old.findIndex((item) => item?.personaje?.slug === delta.personaje.slug)
           const existing = index === -1 ? null : old[index]
-          const incrementoVotos = delta.delta || 1
-          // Cuando llega el delta, el server puede mandarnos el total
-          // absoluto (periodo='all', voto sobre todo el catálogo) o un
-          // incremento sobre el estado anterior (ventana temporal).
-          const votos =
-            periodo === 'all'
-              ? delta.votos
-              : Math.max(0, (existing?.votos || 0) + incrementoVotos)
-          // Mismo patrón para pesoVotos: si server moderno lo manda,
-          // úsalo; si no, asumimos que el incremento equivale a un voto
-          // registrado (1.0) en ventana temporal, o caemos a votos en
-          // all-time. Esto cubre el modo casual sin backend mientras el
-          // resto del payload llega.
-          const incrementoPeso =
-            typeof delta.pesoVotos === 'number'
-              ? delta.pesoVotos - (existing?.pesoVotos ?? existing?.votos ?? 0)
-              : incrementoVotos
-          const pesoVotos =
-            periodo === 'all'
-              ? typeof delta.pesoVotos === 'number'
-                ? delta.pesoVotos
-                : votos
-              : Math.max(0, (existing?.pesoVotos ?? existing?.votos ?? 0) + incrementoPeso)
+          const votos = isAllTime
+            ? delta.votos
+            : Math.max(0, (existing?.votos || 0) + incrementoVotos)
+          const pesoVotos = isAllTime
+            ? (hasPeso ? delta.pesoVotos : votos)
+            : Math.max(0, (existing?.pesoVotos ?? existing?.votos ?? 0) + incrementoPeso)
           const nextItem = {
             personaje: delta.personaje,
             votos,
