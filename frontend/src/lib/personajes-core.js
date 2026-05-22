@@ -84,10 +84,20 @@ export function readCatalogoPersonajesSnapshot() {
 
 readCatalogoPersonajesSnapshot()
 
+// Prefijo sentinel para señalar "catálogo no hidratado, slug no resuelve".
+// Antes este path era /img/_missing/ pero generaba 404 → onError →
+// errored=true → la card quedaba atrapada en PersonajePlaceholder aunque
+// el catálogo llegara después. Ahora cualquier consumidor que quiera
+// distinguir "esperando catálogo" puede comparar contra MISSING_IMAGE_PREFIX
+// (lo hace PersonajeImg). Los callers legacy que ponen src={imagenPersonaje(...)}
+// a un <img> seguirán viendo 404 — eso es comportamiento aceptable
+// transitorio mientras hidrata.
+export const MISSING_IMAGE_PREFIX = '/img/_missing/'
+
 export function imagenPersonaje(slug) {
   const canonical = canonicalPersonajeSlug(slug)
   const fromCache = readCatalogoPersonajesSnapshot().find((p) => p.slug === canonical)
-  return versionarImagenSiHaceFalta(fromCache?.imagenUrl ?? `/img/_missing/${canonical}.webp`)
+  return versionarImagenSiHaceFalta(fromCache?.imagenUrl ?? `${MISSING_IMAGE_PREFIX}${canonical}.webp`)
 }
 
 export function getPersonajeBySlug(slug) {
