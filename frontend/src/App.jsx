@@ -130,11 +130,29 @@ function CatalogoError({ onRetry }) {
   )
 }
 
+// Audit externo F001 (2026-05-22): wrapper que sólo deja pasar children
+// cuando el catálogo de personajes está hidratado. Antes el gate de catálogo
+// vivía a nivel App.jsx y bloqueaba TODAS las rutas — incluso /login,
+// /status, /faq, /auth/callback, /terms — si el catálogo fallaba. Una caída
+// de /api/personajes/catalogo dejaba la app entera inaccesible aunque las
+// rutas de soporte/auth no dependieran de él. Ahora envolvemos sólo las
+// rutas que SÍ usan el catálogo (home, /personajes, /votar, ranking, games,
+// torneos, perfil...). El resto carga independiente.
+function RequireCatalog({ catalogoQuery, children }) {
+  const catalogoListo = Array.isArray(catalogoQuery.data) && catalogoQuery.data.length > 0
+  const catalogoFallido = !catalogoListo && catalogoQuery.isError
+  if (catalogoListo) return children
+  if (catalogoFallido) return <CatalogoError onRetry={() => catalogoQuery.refetch()} />
+  return <PageLoader />
+}
+
 function App() {
   const location = useLocation()
   const catalogoQuery = useCatalogoPersonajes()
-  const catalogoListo = Array.isArray(catalogoQuery.data) && catalogoQuery.data.length > 0
-  const catalogoFallido = !catalogoListo && catalogoQuery.isError
+  // Helper local para no repetir el wrapper en cada Route catalog-gated.
+  const gated = (element) => (
+    <RequireCatalog catalogoQuery={catalogoQuery}>{element}</RequireCatalog>
+  )
 
   // Scroll to top en cada cambio de ruta — antes la página quedaba con el scroll
   // de la página anterior, así que al click en una card del catálogo el detalle
@@ -191,89 +209,97 @@ function App() {
       <EmailVerifyBanner />
       <main className="flex flex-1 flex-col">
         <div key={location.pathname} className="flex flex-1 flex-col">
-          {!catalogoListo && catalogoQuery.isLoading ? (
-            <PageLoader />
-          ) : catalogoFallido ? (
-            <CatalogoError onRetry={() => catalogoQuery.refetch()} />
-          ) : (
-            <Suspense fallback={<PageLoader />}>
-              <Routes location={location}>
-                <Route path="/" element={<InicioPage />} />
-                <Route path="/personajes" element={<PersonajesPage />} />
-                <Route path="/personajes/:slug" element={<PersonajeDetailPage />} />
-                <Route path="/animes" element={<AnimesPage />} />
-                <Route path="/animes/:slug" element={<AnimeDetailPage />} />
-                <Route path="/torneos" element={<TorneosPage />} />
-                <Route path="/torneos/crear" element={<CrearTorneoPage />} />
-                <Route path="/torneos/:slug" element={<TorneoDetailPage />} />
-                <Route path="/eventos" element={<EventosIndexPage />} />
-                <Route path="/eventos/:slug" element={<EventoDetailPage />} />
-                <Route path="/duelos/:par" element={<DueloVersusPage />} />
-                <Route path="/ranking" element={<RankingPage />} />
-                {/* Higher or Lower → ELO Duel rebrand (Plan v2 §14). La ruta
-                    vieja redirige client-side; el _redirects de Cloudflare
-                    hace 301 a nivel CDN para preservar SEO. */}
-                <Route
-                  path="/higher-or-lower"
-                  element={<Navigate replace to="/games/elo-duel" />}
-                />
-                <Route path="/votar" element={<VotarPage />} />
-                <Route path="/duel-live" element={<DueloLivePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/auth/callback" element={<AuthCallbackPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/admin/comentarios" element={<AdminPage />} />
-                <Route path="/perfil" element={<PerfilPage />} />
-                <Route path="/u/:username" element={<UsuarioPage />} />
-                <Route path="/u/:username/logros" element={<UsuarioLogrosPage />} />
-                <Route path="/verify" element={<VerifyPage />} />
-                <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
-                <Route path="/faq" element={<FaqPage />} />
-                <Route path="/api-docs" element={<ApiDocsPage />} />
-                <Route path="/status" element={<StatusPage />} />
-                <Route path="/games" element={<GamesHubPage />} />
-                {/* Nombres rebrandeados (Plan v2 §14). Rutas viejas →
-                    Navigate replace para mantener funcionando los links
-                    indexados; el _redirects en /public emite 301 a nivel
-                    Cloudflare para que Google traslade el SEO. */}
-                <Route path="/games/shadow-guess" element={<GuessCharacterPage />} />
-                <Route path="/games/anime-reveal" element={<GuessAnimePage />} />
-                <Route path="/games/anigrid" element={<AnidelPage />} />
-                <Route path="/games/impostor-trial" element={<ImpostorPage />} />
-                <Route path="/games/elo-duel" element={<HigherOrLowerPage />} />
-                <Route
-                  path="/games/guess-character"
-                  element={<Navigate replace to="/games/shadow-guess" />}
-                />
-                <Route
-                  path="/games/guess-anime"
-                  element={<Navigate replace to="/games/anime-reveal" />}
-                />
-                <Route
-                  path="/games/anidel"
-                  element={<Navigate replace to="/games/anigrid" />}
-                />
-                <Route
-                  path="/games/impostor"
-                  element={<Navigate replace to="/games/impostor-trial" />}
-                />
-                <Route path="/omikuji" element={<OmikujiPage />} />
-                <Route path="/glossary" element={<GlossaryPage />} />
-                <Route path="/logros" element={<LogrosPage />} />
-                <Route path="/apoya" element={<ApoyaPage />} />
-                <Route path="/privacidad" element={<PrivacyPage />} />
-                <Route path="/terminos" element={<TermsPage />} />
-                <Route path="/dmca" element={<DmcaPage />} />
-                <Route path="/tv" element={<TvModePage />} />
-                <Route path="/mi-top5" element={<MiTop5Page />} />
-                <Route path="/leaderboards" element={<LeaderboardsPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </Suspense>
-          )}
+          <Suspense fallback={<PageLoader />}>
+            <Routes location={location}>
+              {/* ===== Rutas INDEPENDIENTES del catálogo ===== */}
+              {/* Auth, soporte, legal y status. Estas páginas tienen que
+                  funcionar aunque /api/personajes/catalogo esté caído —
+                  son las que el usuario usa para diagnosticar incidentes,
+                  recuperar contraseña, leer términos o cerrar sesión. */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify" element={<VerifyPage />} />
+              <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="/api-docs" element={<ApiDocsPage />} />
+              <Route path="/status" element={<StatusPage />} />
+              <Route path="/apoya" element={<ApoyaPage />} />
+              <Route path="/privacidad" element={<PrivacyPage />} />
+              <Route path="/terminos" element={<TermsPage />} />
+              <Route path="/dmca" element={<DmcaPage />} />
+              <Route path="/glossary" element={<GlossaryPage />} />
+
+              {/* ===== Rutas que DEPENDEN del catálogo ===== */}
+              {/* Cada una pasa por <RequireCatalog>: si el fetch del
+                  catálogo aún está en vuelo muestra PageLoader; si falló
+                  muestra CatalogoError con botón Reintentar. Solo cuando
+                  el catálogo está hidratado renderiza la página. */}
+              <Route path="/" element={gated(<InicioPage />)} />
+              <Route path="/personajes" element={gated(<PersonajesPage />)} />
+              <Route path="/personajes/:slug" element={gated(<PersonajeDetailPage />)} />
+              <Route path="/animes" element={gated(<AnimesPage />)} />
+              <Route path="/animes/:slug" element={gated(<AnimeDetailPage />)} />
+              <Route path="/torneos" element={gated(<TorneosPage />)} />
+              <Route path="/torneos/crear" element={gated(<CrearTorneoPage />)} />
+              <Route path="/torneos/:slug" element={gated(<TorneoDetailPage />)} />
+              <Route path="/eventos" element={gated(<EventosIndexPage />)} />
+              <Route path="/eventos/:slug" element={gated(<EventoDetailPage />)} />
+              <Route path="/duelos/:par" element={gated(<DueloVersusPage />)} />
+              <Route path="/ranking" element={gated(<RankingPage />)} />
+              {/* Higher or Lower → ELO Duel rebrand (Plan v2 §14). La ruta
+                  vieja redirige client-side; el _redirects de Cloudflare
+                  hace 301 a nivel CDN para preservar SEO. */}
+              <Route
+                path="/higher-or-lower"
+                element={<Navigate replace to="/games/elo-duel" />}
+              />
+              <Route path="/votar" element={gated(<VotarPage />)} />
+              <Route path="/duel-live" element={gated(<DueloLivePage />)} />
+              <Route path="/admin" element={gated(<AdminPage />)} />
+              <Route path="/admin/comentarios" element={gated(<AdminPage />)} />
+              <Route path="/perfil" element={gated(<PerfilPage />)} />
+              <Route path="/u/:username" element={gated(<UsuarioPage />)} />
+              <Route path="/u/:username/logros" element={gated(<UsuarioLogrosPage />)} />
+              <Route path="/games" element={gated(<GamesHubPage />)} />
+              {/* Nombres rebrandeados (Plan v2 §14). Rutas viejas →
+                  Navigate replace para mantener funcionando los links
+                  indexados; el _redirects en /public emite 301 a nivel
+                  Cloudflare para que Google traslade el SEO. */}
+              <Route path="/games/shadow-guess" element={gated(<GuessCharacterPage />)} />
+              <Route path="/games/anime-reveal" element={gated(<GuessAnimePage />)} />
+              <Route path="/games/anigrid" element={gated(<AnidelPage />)} />
+              <Route path="/games/impostor-trial" element={gated(<ImpostorPage />)} />
+              <Route path="/games/elo-duel" element={gated(<HigherOrLowerPage />)} />
+              <Route
+                path="/games/guess-character"
+                element={<Navigate replace to="/games/shadow-guess" />}
+              />
+              <Route
+                path="/games/guess-anime"
+                element={<Navigate replace to="/games/anime-reveal" />}
+              />
+              <Route
+                path="/games/anidel"
+                element={<Navigate replace to="/games/anigrid" />}
+              />
+              <Route
+                path="/games/impostor"
+                element={<Navigate replace to="/games/impostor-trial" />}
+              />
+              <Route path="/omikuji" element={gated(<OmikujiPage />)} />
+              <Route path="/logros" element={gated(<LogrosPage />)} />
+              <Route path="/tv" element={gated(<TvModePage />)} />
+              <Route path="/mi-top5" element={gated(<MiTop5Page />)} />
+              <Route path="/leaderboards" element={gated(<LeaderboardsPage />)} />
+              {/* 404 a propósito independiente del catálogo: si el usuario
+                  cae en una ruta inexistente, queremos ver el NotFoundPage
+                  aunque el catálogo esté caído. */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </div>
       </main>
       <MobileBottomNav />
