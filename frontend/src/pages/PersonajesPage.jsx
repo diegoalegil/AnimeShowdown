@@ -52,6 +52,15 @@ const sortLabels = {
   anime: 'Anime A-Z',
 }
 
+const DEFAULT_SORT = 'popularidad'
+const DEFAULT_VIEW = 'grid'
+
+function parseOptionalInt(value) {
+  if (value == null || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? Math.round(parsed) : null
+}
+
 function MiniHeroStat({ label, value }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.045] p-3">
@@ -102,6 +111,15 @@ function PersonajesPage() {
     return Object.entries(counts).sort((a, b) => b[1] - a[1])
   }, [catalogoPersonajes])
 
+  const eloBounds = useMemo(() => {
+    if (catalogoPersonajes.length === 0) return { min: 1000, max: 2300 }
+    const elos = catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo)
+    return {
+      min: Math.floor(Math.min(...elos) / 25) * 25,
+      max: Math.ceil(Math.max(...elos) / 25) * 25,
+    }
+  }, [catalogoPersonajes])
+
   const rankPorSlug = useMemo(() => {
     const map = new Map()
     const ordenado = [...catalogoPersonajes]
@@ -120,9 +138,16 @@ function PersonajesPage() {
   const [tagFilter, setTagFilter] = useState(
     () => searchParams.get('tag') || null,
   )
-  const [sort, setSort] = useState('popularidad')
-  const [view, setView] = useState('grid')
+  const [sort, setSort] = useState(
+    () => (sortLabels[searchParams.get('sort')] ? searchParams.get('sort') : DEFAULT_SORT),
+  )
+  const [view, setView] = useState(
+    () => (searchParams.get('view') === 'list' ? 'list' : DEFAULT_VIEW),
+  )
+  const [eloMin, setEloMin] = useState(() => parseOptionalInt(searchParams.get('eloMin')))
+  const [eloMax, setEloMax] = useState(() => parseOptionalInt(searchParams.get('eloMax')))
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [draftFilters, setDraftFilters] = useState(null)
   const deferredSearch = useDeferredValue(search)
   const autocompleteQuery = deferredSearch.trim()
   const [suggestions, setSuggestions] = useState([])
@@ -142,7 +167,7 @@ function PersonajesPage() {
   // un useEffect (react-hooks/set-state-in-effect) o ref-en-render
   // (react-hooks/refs).
   const PAGE_SIZE = 60
-  const filterKey = `${search}|${animeFilter ?? ''}|${tagFilter ?? ''}|${sort}|${view}`
+  const filterKey = `${search}|${animeFilter ?? ''}|${tagFilter ?? ''}|${sort}|${view}|${eloMin ?? ''}|${eloMax ?? ''}`
   const [pag, setPag] = useState({ key: filterKey, count: PAGE_SIZE })
   const visibleCount = pag.key === filterKey ? pag.count : PAGE_SIZE
   const cargarMas = () => setPag({ key: filterKey, count: visibleCount + PAGE_SIZE })
@@ -153,8 +178,18 @@ function PersonajesPage() {
     else next.delete('anime')
     if (tagFilter) next.set('tag', tagFilter)
     else next.delete('tag')
-    setSearchParams(next, { replace: true })
-  }, [animeFilter, tagFilter, searchParams, setSearchParams])
+    if (sort !== DEFAULT_SORT) next.set('sort', sort)
+    else next.delete('sort')
+    if (view !== DEFAULT_VIEW) next.set('view', view)
+    else next.delete('view')
+    if (eloMin != null) next.set('eloMin', String(eloMin))
+    else next.delete('eloMin')
+    if (eloMax != null) next.set('eloMax', String(eloMax))
+    else next.delete('eloMax')
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true })
+    }
+  }, [animeFilter, tagFilter, sort, view, eloMin, eloMax, searchParams, setSearchParams])
 
   const filtered = useMemo(() => {
     let list = catalogoPersonajes
@@ -163,6 +198,14 @@ function PersonajesPage() {
       list = list.filter((p) =>
         getCategoriasPersonaje(p.slug).includes(tagFilter),
       )
+    }
+    if (eloMin != null || eloMax != null) {
+      list = list.filter((p) => {
+        const elo = getStatsPersonaje(p.slug).elo
+        if (eloMin != null && elo < eloMin) return false
+        if (eloMax != null && elo > eloMax) return false
+        return true
+      })
     }
     if (search) {
       const s = search.toLowerCase()
@@ -200,7 +243,7 @@ function PersonajesPage() {
       list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
     }
     return list
-  }, [catalogoPersonajes, search, animeFilter, tagFilter, sort])
+  }, [catalogoPersonajes, search, animeFilter, tagFilter, sort, eloMin, eloMax])
 
   useEffect(() => {
     if (autocompleteQuery.length < 2) {
@@ -251,17 +294,90 @@ function PersonajesPage() {
       ? `Personajes con rasgo ${selectedTag.label} en AnimeShowdown: ranking ELO, anime de origen y fichas para votar.`
       : `Catálogo de ${catalogoPersonajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
   })
-  const hayFiltros = Boolean(search) || Boolean(animeFilter) || Boolean(tagFilter)
+  const activeFilterBadges = useMemo(() => {
+    const badges = []
+    if (animeFilter) badges.push(animeFilter)
+    if (selectedTag) badges.push(selectedTag.label)
+    if (eloMin != null || eloMax != null) {
+      badges.push(`${eloMin ?? eloBounds.min}-${eloMax ?? eloBounds.max} ELO`)
+    }
+    if (sort !== DEFAULT_SORT) badges.push(sortLabels[sort])
+    if (view === 'list') badges.push('Vista densa')
+    return badges
+  }, [animeFilter, selectedTag, eloMin, eloMax, eloBounds, sort, view])
+  const hayFiltros =
+    Boolean(search) || Boolean(animeFilter) || Boolean(tagFilter) ||
+    Boolean(eloMin != null || eloMax != null) || sort !== DEFAULT_SORT ||
+    view !== DEFAULT_VIEW
   const limpiarFiltros = () => {
     setSearch('')
     setAnimeFilter(null)
     setTagFilter(null)
+    setSort(DEFAULT_SORT)
+    setView(DEFAULT_VIEW)
+    setEloMin(null)
+    setEloMax(null)
     setFiltersOpen(false)
+    setDraftFilters(null)
     play('playClick')
   }
 
   const seleccionarAnime = (anime) => {
     setAnimeFilter(anime)
+    setFiltersOpen(false)
+    play('playClick')
+  }
+
+  const crearSnapshotFiltros = () => ({
+      animeFilter,
+      tagFilter,
+      sort,
+      view,
+      eloMin,
+      eloMax,
+    })
+
+  const actualizarDraftFiltros = (patch) => {
+    setDraftFilters((current) => ({
+      ...(current ?? crearSnapshotFiltros()),
+      ...patch,
+    }))
+  }
+
+  const abrirFiltrosMovil = () => {
+    setDraftFilters(crearSnapshotFiltros())
+    setFiltersOpen(true)
+    play('playClick')
+  }
+
+  const aplicarFiltrosMovil = () => {
+    if (!draftFilters) return
+    setAnimeFilter(draftFilters.animeFilter)
+    setTagFilter(draftFilters.tagFilter)
+    setSort(draftFilters.sort)
+    setView(draftFilters.view)
+    setEloMin(draftFilters.eloMin)
+    setEloMax(draftFilters.eloMax)
+    setFiltersOpen(false)
+    play('playClick')
+  }
+
+  const resetFiltrosMovil = () => {
+    setSearch('')
+    setAnimeFilter(null)
+    setTagFilter(null)
+    setSort(DEFAULT_SORT)
+    setView(DEFAULT_VIEW)
+    setEloMin(null)
+    setEloMax(null)
+    setDraftFilters({
+      animeFilter: null,
+      tagFilter: null,
+      sort: DEFAULT_SORT,
+      view: DEFAULT_VIEW,
+      eloMin: null,
+      eloMax: null,
+    })
     setFiltersOpen(false)
     play('playClick')
   }
@@ -274,6 +390,11 @@ function PersonajesPage() {
       document.body.style.overflow = previous
     }
   }, [filtersOpen])
+
+  const drawerFilters = draftFilters ?? crearSnapshotFiltros()
+  const drawerTag = RASGOS_OTAKU.find((tag) => tag.id === drawerFilters.tagFilter) ?? null
+  const drawerEloMin = drawerFilters.eloMin ?? eloBounds.min
+  const drawerEloMax = drawerFilters.eloMax ?? eloBounds.max
 
   return (
     <VisualPageShell
@@ -408,7 +529,7 @@ function PersonajesPage() {
               play('playClick')
             }}
             aria-label="Filtrar por rasgo otaku"
-            className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
+            className="as-control hidden rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
           >
             <option value="">Rasgo: todos</option>
             {RASGOS_OTAKU.map((tag) => (
@@ -424,7 +545,7 @@ function PersonajesPage() {
               play('playClick')
             }}
             aria-label="Ordenar por"
-            className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
+            className="as-control hidden rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
           >
             {Object.entries(sortLabels).map(([k, v]) => (
               <option key={k} value={k}>
@@ -432,7 +553,7 @@ function PersonajesPage() {
               </option>
             ))}
           </select>
-          <div className="as-control flex items-center gap-1 rounded-lg p-1">
+          <div className="as-control hidden items-center gap-1 rounded-lg p-1 sm:flex">
             <button
               type="button"
               onClick={() => {
@@ -493,29 +614,30 @@ function PersonajesPage() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setFiltersOpen(true)
-            play('playClick')
-          }}
-          className="as-control mb-4 flex w-full items-center justify-between rounded-lg px-3.5 py-3 text-left text-sm font-bold text-fg-strong sm:hidden"
-          aria-haspopup="dialog"
-          aria-expanded={filtersOpen}
-        >
-          <span className="inline-flex min-w-0 items-center gap-2">
-            <Filter className="h-4 w-4 shrink-0 text-gold" />
-            <span className="truncate">
-              {animeFilter ? `Universo: ${animeFilter}` : 'Filtrar por universo'}
-              {selectedTag ? ` · ${selectedTag.label}` : ''}
-            </span>
-          </span>
-          <span className="shrink-0 rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] text-fg-muted">
-            {animeFilter
-              ? animes.find(([anime]) => anime === animeFilter)?.[1] ?? 0
-              : catalogoPersonajes.length}
-          </span>
-        </button>
+        <div className="fixed bottom-20 right-4 z-40 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2 sm:hidden">
+          {activeFilterBadges.length > 0 && (
+            <div className="flex max-w-[78vw] flex-wrap justify-end gap-1.5">
+              {activeFilterBadges.slice(0, 3).map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border border-gold/35 bg-bg/90 px-2 py-1 text-[10px] font-bold text-gold shadow-lg backdrop-blur"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={abrirFiltrosMovil}
+            className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-surface/95 px-4 py-3 text-sm font-black text-fg-strong shadow-[0_16px_48px_-20px_rgb(0_0_0_/_0.95)] backdrop-blur-xl"
+            aria-haspopup="dialog"
+            aria-expanded={filtersOpen}
+          >
+            <Filter className="h-4 w-4 text-gold" />
+            Filtros ({activeFilterBadges.length})
+          </button>
+        </div>
 
         <div className="scrollbar-hide -mx-5 mb-6 hidden gap-2 overflow-x-auto px-5 pb-1 sm:flex sm:-mx-0 sm:px-0">
           <button
@@ -556,16 +678,17 @@ function PersonajesPage() {
             <section
               role="dialog"
               aria-modal="true"
-              aria-label="Filtrar personajes por universo"
-              className="absolute inset-x-0 bottom-0 max-h-[82vh] rounded-t-2xl border border-border bg-surface shadow-[0_-24px_80px_rgb(0_0_0_/_0.5)]"
+              aria-label="Filtros de personajes"
+              className="absolute inset-x-0 bottom-0 max-h-[86vh] rounded-t-2xl border border-border bg-surface shadow-[0_-24px_80px_rgb(0_0_0_/_0.5)]"
             >
               <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
                 <div className="min-w-0">
                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
-                    Universo
+                    Filtros
                   </p>
                   <p className="truncate text-sm font-bold text-fg-strong">
-                    {animeFilter ?? 'Todos los personajes'}
+                    {drawerFilters.animeFilter ?? 'Todos los universos'}
+                    {drawerTag ? ` · ${drawerTag.label}` : ''}
                   </p>
                 </div>
                 <button
@@ -577,38 +700,149 @@ function PersonajesPage() {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="max-h-[calc(82vh-72px)] overflow-y-auto px-3 py-3">
+              <div className="max-h-[calc(86vh-150px)] space-y-5 overflow-y-auto px-5 py-5">
+                <fieldset className="space-y-2">
+                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                    Universo
+                  </legend>
+                  <select
+                    value={drawerFilters.animeFilter ?? ''}
+                    onChange={(e) => actualizarDraftFiltros({ animeFilter: e.target.value || null })}
+                    className="as-control w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
+                  >
+                    <option value="">Todos · {catalogoPersonajes.length}</option>
+                    {animes.map(([anime, count]) => (
+                      <option key={anime} value={anime}>
+                        {anime} · {count}
+                      </option>
+                    ))}
+                  </select>
+                </fieldset>
+
+                <fieldset className="space-y-2">
+                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                    Rasgo otaku
+                  </legend>
+                  <select
+                    value={drawerFilters.tagFilter ?? ''}
+                    onChange={(e) => actualizarDraftFiltros({ tagFilter: e.target.value || null })}
+                    className="as-control w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
+                  >
+                    <option value="">Todos los rasgos</option>
+                    {RASGOS_OTAKU.map((tag) => (
+                      <option key={tag.id} value={tag.id}>
+                        {tag.label}
+                      </option>
+                    ))}
+                  </select>
+                </fieldset>
+
+                <fieldset className="space-y-2">
+                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                    Orden
+                  </legend>
+                  <select
+                    value={drawerFilters.sort}
+                    onChange={(e) => actualizarDraftFiltros({ sort: e.target.value })}
+                    className="as-control w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
+                  >
+                    {Object.entries(sortLabels).map(([k, v]) => (
+                      <option key={k} value={k}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                </fieldset>
+
+                <fieldset className="space-y-3">
+                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                    Rango ELO
+                  </legend>
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-bg px-3 py-2 font-mono text-[12px] font-bold text-gold tabular-nums">
+                    <span>{drawerEloMin}</span>
+                    <span>{drawerEloMax}</span>
+                  </div>
+                  <label className="block text-[11px] font-semibold text-fg-muted">
+                    Mínimo
+                    <input
+                      type="range"
+                      min={eloBounds.min}
+                      max={eloBounds.max}
+                      step="25"
+                      value={drawerEloMin}
+                      onChange={(e) => {
+                        const value = Math.min(Number(e.target.value), drawerEloMax)
+                        actualizarDraftFiltros({
+                          eloMin: value === eloBounds.min ? null : value,
+                        })
+                      }}
+                      className="mt-2 w-full accent-amber-400"
+                    />
+                  </label>
+                  <label className="block text-[11px] font-semibold text-fg-muted">
+                    Máximo
+                    <input
+                      type="range"
+                      min={eloBounds.min}
+                      max={eloBounds.max}
+                      step="25"
+                      value={drawerEloMax}
+                      onChange={(e) => {
+                        const value = Math.max(Number(e.target.value), drawerEloMin)
+                        actualizarDraftFiltros({
+                          eloMax: value === eloBounds.max ? null : value,
+                        })
+                      }}
+                      className="mt-2 w-full accent-amber-400"
+                    />
+                  </label>
+                </fieldset>
+
+                <fieldset className="space-y-2">
+                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                    Vista
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => actualizarDraftFiltros({ view: 'list' })}
+                      className={`rounded-lg border px-3 py-2 text-sm font-bold ${
+                        drawerFilters.view === 'list'
+                          ? 'border-gold/60 bg-gold/15 text-gold'
+                          : 'border-border bg-bg text-fg-muted'
+                      }`}
+                    >
+                      Densa
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => actualizarDraftFiltros({ view: 'grid' })}
+                      className={`rounded-lg border px-3 py-2 text-sm font-bold ${
+                        drawerFilters.view === 'grid'
+                          ? 'border-gold/60 bg-gold/15 text-gold'
+                          : 'border-border bg-bg text-fg-muted'
+                      }`}
+                    >
+                      Cómoda
+                    </button>
+                  </div>
+                </fieldset>
+              </div>
+              <div className="grid grid-cols-2 gap-2 border-t border-border bg-surface px-5 py-4">
                 <button
                   type="button"
-                  onClick={() => seleccionarAnime(null)}
-                  className={`mb-1 flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-bold transition-colors ${
-                    animeFilter === null
-                      ? 'bg-gold/15 text-gold'
-                      : 'text-fg-strong hover:bg-white/5'
-                  }`}
+                  onClick={resetFiltrosMovil}
+                  className="rounded-lg border border-border bg-bg px-4 py-3 text-sm font-bold text-fg-muted"
                 >
-                  <span>Todos</span>
-                  <span className="font-mono text-[12px] text-fg-muted">
-                    {catalogoPersonajes.length}
-                  </span>
+                  Reset
                 </button>
-                {animes.map(([anime, count]) => (
-                  <button
-                    key={anime}
-                    type="button"
-                    onClick={() => seleccionarAnime(anime)}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
-                      animeFilter === anime
-                        ? 'bg-gold/15 text-gold'
-                        : 'text-fg-strong hover:bg-white/5'
-                    }`}
-                  >
-                    <span className="min-w-0 truncate pr-3">{anime}</span>
-                    <span className="font-mono text-[12px] text-fg-muted">
-                      {count}
-                    </span>
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  onClick={aplicarFiltrosMovil}
+                  className="rounded-lg bg-accent px-4 py-3 text-sm font-black text-white"
+                >
+                  Aplicar
+                </button>
               </div>
             </section>
           </div>
