@@ -127,6 +127,8 @@ class DueloLiveServiceTest {
         Usuario b = usuario("pvp_tie_b", 1000);
         Personaje p1 = personajeRepository.save(new Personaje("pvp_tie_a", "Tie A", "Test", "sin votos", "/img/tie-a.webp"));
         Personaje p2 = personajeRepository.save(new Personaje("pvp_tie_b", "Tie B", "Test", "sin votos", "/img/tie-b.webp"));
+        votoRepository.save(new Voto(p1));
+        votoRepository.save(new Voto(p2));
 
         DueloLive duelo = new DueloLive(a, "10.0.3.1", LocalDateTime.now(clock));
         duelo.setJugador2(b);
