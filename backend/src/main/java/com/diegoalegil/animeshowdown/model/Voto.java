@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -46,6 +47,15 @@ public class Voto {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime fecha;
+
+    @Column(nullable = false, precision = 4, scale = 2)
+    private BigDecimal peso = BigDecimal.ONE;
+
+    @Column(name = "anon_session_id", length = 64)
+    private String anonSessionId;
+
+    @Column(name = "anon_ip_hash", length = 64)
+    private String anonIpHash;
 
     @ManyToOne
     @JoinColumn(name = "personaje_id", nullable = false)
@@ -102,6 +112,30 @@ public class Voto {
 
     public void setFecha(LocalDateTime fecha) {
         this.fecha = fecha;
+    }
+
+    public BigDecimal getPeso() {
+        return peso;
+    }
+
+    public void setPeso(BigDecimal peso) {
+        this.peso = peso == null ? BigDecimal.ONE : peso;
+    }
+
+    public String getAnonSessionId() {
+        return anonSessionId;
+    }
+
+    public void setAnonSessionId(String anonSessionId) {
+        this.anonSessionId = anonSessionId;
+    }
+
+    public String getAnonIpHash() {
+        return anonIpHash;
+    }
+
+    public void setAnonIpHash(String anonIpHash) {
+        this.anonIpHash = anonIpHash;
     }
 
     public Personaje getPersonaje() {

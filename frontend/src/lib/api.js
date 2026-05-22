@@ -198,7 +198,7 @@ export async function refreshSession() {
   return intentarRefresh()
 }
 
-async function ejecutarFetch(path, { method, headers, body, signal, includeAuth }) {
+async function ejecutarFetch(path, { method, headers = {}, body, signal, includeAuth }) {
   // Audit fix #7 (2026-05-21): Content-Type: application/json solo cuando
   // hay body. En GET/HEAD sin body el header no aporta nada y dispara
   // preflight CORS innecesario en cross-origin (es un "non-simple header"
@@ -224,7 +224,7 @@ async function ejecutarFetch(path, { method, headers, body, signal, includeAuth 
 
 async function request(
   path,
-  { method = 'GET', body, auth = true, timeoutMs = DEFAULT_TIMEOUT_MS, signal } = {},
+  { method = 'GET', body, auth = true, timeoutMs = DEFAULT_TIMEOUT_MS, signal, headers = {} } = {},
 ) {
   // Si el caller pasa su propio signal lo respetamos; si no, montamos un
   // AbortController interno con el timeout configurado.
@@ -239,6 +239,7 @@ async function request(
     res = await ejecutarFetch(path, {
       method,
       body,
+      headers,
       signal: effectiveSignal,
       includeAuth: auth,
     })
@@ -275,6 +276,7 @@ async function request(
         res = await ejecutarFetch(path, {
           method,
           body,
+          headers,
           signal: effectiveSignal,
           includeAuth: true,
         })
@@ -484,6 +486,8 @@ export const endpoints = {
   perfilStats: () => api.get('/api/perfil/me/stats'),
   perfilHistorialVotos: ({ page = 0, size = 50 } = {}) =>
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
+  migrarVotosAnonimos: (anonSessionId) =>
+    api.post('/api/perfil/me/migrar-votos-anonimos', { anonSessionId }),
   perfilTop: ({ limit = 5 } = {}) =>
     api.get(`/api/perfil/me/top?limit=${limit}`),
   // Feed combinado de actividad: votos, logros, torneos creados,
@@ -614,10 +618,10 @@ export const endpoints = {
   dueloLiveState: (id) => api.get(`/api/duelo-live/${id}`),
   dueloLiveVote: (id, choice) => api.post(`/api/duelo-live/${id}/vote`, { choice }),
   dueloLiveLeave: (id) => api.post(`/api/duelo-live/${id}/leave`, undefined),
-  votar: (enfrentamientoId, personajeId) =>
+  votar: (enfrentamientoId, personajeId, { anonymous = false, headers = {} } = {}) =>
     // El backend espera el campo personajeGanadorId (validado con @NotNull en
     // VotoEnfrentamientoRequest); antes mandábamos personajeId y rebotaba con 400.
     api.post(`/api/enfrentamientos/${enfrentamientoId}/votar`, {
       personajeGanadorId: personajeId,
-    }),
+    }, { auth: !anonymous, headers }),
 }

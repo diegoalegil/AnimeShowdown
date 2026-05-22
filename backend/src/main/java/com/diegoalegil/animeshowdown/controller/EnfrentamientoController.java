@@ -1,13 +1,22 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Duration;
+import java.util.HexFormat;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,15 +46,23 @@ import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Value;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/enfrentamientos")
 public class EnfrentamientoController {
 
     private static final Logger log = LoggerFactory.getLogger(EnfrentamientoController.class);
+    private static final String ANON_COOKIE = "as_anon_vote_id";
+    private static final String ANON_ID_HEADER = "X-AS-Anonymous-Id";
+    private static final String ANON_FINGERPRINT_HEADER = "X-AS-Anonymous-Fingerprint";
+    private static final Pattern ANON_ID_PATTERN = Pattern.compile("^[A-Za-z0-9._:-]{12,64}$");
+    private static final int ANON_VOTE_LIMIT = 5;
+    private static final BigDecimal ANON_VOTE_WEIGHT = new BigDecimal("0.30");
 
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final VotoRepository votoRepository;
@@ -53,19 +70,22 @@ public class EnfrentamientoController {
     private final ApplicationEventPublisher eventPublisher;
     private final AnimeShowdownMetrics metrics;
     private final boolean requiereEmailVerificado;
+    private final boolean cookieSecure;
 
     public EnfrentamientoController(EnfrentamientoRepository enfrentamientoRepository,
             VotoRepository votoRepository,
             @Autowired(required = false) SimpMessagingTemplate messaging,
             ApplicationEventPublisher eventPublisher,
             AnimeShowdownMetrics metrics,
-            @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
+            @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado,
+            @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
         this.messaging = messaging;
         this.eventPublisher = eventPublisher;
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
+        this.cookieSecure = cookieSecure;
     }
 
     /**
@@ -99,7 +119,8 @@ public class EnfrentamientoController {
     })
     public ResponseEntity<?> votar(@PathVariable Long id,
             @Valid @RequestBody VotoEnfrentamientoRequest request,
-            @AuthenticationPrincipal Usuario usuario) {
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
 
         Optional<Enfrentamiento> enfOpt = enfrentamientoRepository.findById(id);
         if (enfOpt.isEmpty()) {
@@ -133,7 +154,9 @@ public class EnfrentamientoController {
         // pueden votar. Toggle vía app.email-verification.required-to-vote
         // (true en prod, false en tests para no obligar al fixture a
         // simular el flujo completo de email). 403 con mensaje claro.
-        if (requiereEmailVerificado && !usuario.estaVerificado()) {
+        AnonymousVoteContext anon = usuario == null ? resolverAnonymousContext(httpRequest) : null;
+
+        if (usuario != null && requiereEmailVerificado && !usuario.estaVerificado()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Necesitas verificar tu email antes de votar. Revisa tu bandeja de entrada.");
         }
@@ -149,12 +172,34 @@ public class EnfrentamientoController {
                     .body("El personaje no pertenece a este enfrentamiento");
         }
 
-        if (votoRepository.existsByEnfrentamientoAndUsuario(enf, usuario)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Ya has votado este enfrentamiento");
+        if (usuario != null) {
+            if (votoRepository.existsByEnfrentamientoAndUsuario(enf, usuario)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Ya has votado este enfrentamiento");
+            }
+        } else {
+            long votosAnonimosUsados = votoRepository.countByAnonSessionId(anon.sessionId());
+            if (votosAnonimosUsados >= ANON_VOTE_LIMIT) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .header(HttpHeaders.SET_COOKIE, anonCookie(anon.sessionId()).toString())
+                        .body(java.util.Map.of(
+                                "message", "Has agotado tus 5 votos invitados. Crea cuenta gratis para seguir votando.",
+                                "limite", ANON_VOTE_LIMIT,
+                                "votosAnonimosRestantes", 0));
+            }
+            if (votoRepository.existsByEnfrentamientoAndAnonSessionId(enf, anon.sessionId())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .header(HttpHeaders.SET_COOKIE, anonCookie(anon.sessionId()).toString())
+                        .body("Ya has votado este enfrentamiento como invitado");
+            }
         }
 
         Voto voto = new Voto(ganador, usuario, enf);
+        if (usuario == null) {
+            voto.setPeso(ANON_VOTE_WEIGHT);
+            voto.setAnonSessionId(anon.sessionId());
+            voto.setAnonIpHash(anon.ipHash());
+        }
         Voto guardado = votoRepository.save(voto);
         metrics.votoRegistrado();
 
@@ -179,15 +224,30 @@ public class EnfrentamientoController {
         // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
         // Diseño extensible — futuros listeners podrán reaccionar también.
-        eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador));
+        if (usuario != null) {
+            eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador));
+        }
 
-        return ResponseEntity.ok(new VotoRegistradoDto(
+        Integer votosAnonimosRestantes = null;
+        if (usuario == null) {
+            votosAnonimosRestantes = Math.max(0,
+                    ANON_VOTE_LIMIT - (int) votoRepository.countByAnonSessionId(anon.sessionId()));
+        }
+
+        VotoRegistradoDto dto = new VotoRegistradoDto(
                 guardado.getId(),
                 ganador.getId(),
                 votosGanador,
                 perdedor.getId(),
                 votosPerdedor,
-                1));
+                usuario == null ? ANON_VOTE_WEIGHT.doubleValue() : 1.0,
+                usuario == null,
+                votosAnonimosRestantes);
+        ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
+        if (usuario == null) {
+            ok.header(HttpHeaders.SET_COOKIE, anonCookie(anon.sessionId()).toString());
+        }
+        return ok.body(dto);
     }
 
     /**
@@ -229,4 +289,60 @@ public class EnfrentamientoController {
                     ganador.getSlug(), e.getMessage());
         }
     }
+
+    private AnonymousVoteContext resolverAnonymousContext(HttpServletRequest request) {
+        String sessionId = normalizarAnonId(request.getHeader(ANON_ID_HEADER));
+        if (sessionId == null && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (ANON_COOKIE.equals(cookie.getName())) {
+                    sessionId = normalizarAnonId(cookie.getValue());
+                    break;
+                }
+            }
+        }
+        if (sessionId == null) {
+            sessionId = UUID.randomUUID().toString();
+        }
+        return new AnonymousVoteContext(sessionId, hashAnonimo(request, sessionId));
+    }
+
+    private String normalizarAnonId(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return ANON_ID_PATTERN.matcher(trimmed).matches() ? trimmed : null;
+    }
+
+    private ResponseCookie anonCookie(String sessionId) {
+        return ResponseCookie.from(ANON_COOKIE, sessionId)
+                .path("/")
+                .maxAge(Duration.ofDays(180))
+                .sameSite("Lax")
+                .secure(cookieSecure)
+                .httpOnly(false)
+                .build();
+    }
+
+    private String hashAnonimo(HttpServletRequest request, String sessionId) {
+        String ip = primerIp(request.getHeader("X-Forwarded-For"));
+        if (ip == null || ip.isBlank()) {
+            ip = request.getRemoteAddr();
+        }
+        String fingerprint = Optional.ofNullable(request.getHeader(ANON_FINGERPRINT_HEADER)).orElse("");
+        String ua = Optional.ofNullable(request.getHeader("User-Agent")).orElse("");
+        String raw = ip + "|" + ua + "|" + fingerprint + "|" + sessionId;
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(raw.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            return Integer.toHexString(raw.hashCode());
+        }
+    }
+
+    private String primerIp(String forwardedFor) {
+        if (forwardedFor == null || forwardedFor.isBlank()) return null;
+        int comma = forwardedFor.indexOf(',');
+        return comma >= 0 ? forwardedFor.substring(0, comma).trim() : forwardedFor.trim();
+    }
+
+    private record AnonymousVoteContext(String sessionId, String ipHash) {}
 }

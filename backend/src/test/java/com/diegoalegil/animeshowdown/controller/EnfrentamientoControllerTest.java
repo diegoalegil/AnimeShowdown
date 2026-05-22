@@ -43,7 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *  1. ADMIN crea torneo + lo inicia.
  *  2. ADMIN crea enfrentamiento entre dos personajes existentes (DataSeeder cargó 125).
  *  3. USER autenticado vota → 200, segundo voto duplicado → 409.
- *  4. Vote sin auth, en torneo no ACTIVO, o con personaje ajeno al enfrentamiento → respectivos errores.
+ *  4. Voto invitado, en torneo no ACTIVO, o con personaje ajeno al enfrentamiento → respectivos errores.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -172,14 +172,64 @@ class EnfrentamientoControllerTest {
     private record MatchFixture(long torneoId, String slug, long enfrentamientoId) {}
 
     @Test
-    void votarSinAuthDevuelveForbidden() throws Exception {
-        // No necesitamos enfrentamiento real — debería rebotar en el filtro JWT antes.
-        Map<String, Long> body = Map.of("personajeGanadorId", 1L);
+    void votarAnonimoPermiteCincoVotosYSextoDevuelve429() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        String anonId = "anon-session-test-123";
+        Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
 
-        mvc.perform(post("/api/enfrentamientos/1/votar")
+        for (int i = 0; i < 5; i++) {
+            long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-" + i);
+            mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                    .header("X-AS-Anonymous-Id", anonId)
+                    .header("X-AS-Anonymous-Fingerprint", "fp-test")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.anonimo").value(true))
+                    .andExpect(jsonPath("$.delta").value(org.hamcrest.Matchers.closeTo(0.3, 0.001)))
+                    .andExpect(jsonPath("$.votosAnonimosRestantes").value(4 - i));
+        }
+
+        long sexto = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-6");
+        mvc.perform(post("/api/enfrentamientos/" + sexto + "/votar")
+                .header("X-AS-Anonymous-Id", anonId)
+                .header("X-AS-Anonymous-Fingerprint", "fp-test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.votosAnonimosRestantes").value(0));
+
+        org.junit.jupiter.api.Assertions.assertEquals(5, votoRepository.countByAnonSessionId(anonId));
+    }
+
+    @Test
+    void migrarVotosAnonimosAsociaHistorialAlLogin() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        String anonId = "anon-migrate-session";
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-migrate");
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", anonId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anonimo").value(true));
+
+        String token = tokenUserRegistrado("anon_migrate_user", "anon-migrate@example.com");
+        mvc.perform(post("/api/perfil/me/migrar-votos-anonimos")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("anonSessionId", anonId))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.migrados").value(1));
+
+        mvc.perform(get("/api/perfil/me/historial-votos")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].personajeId").value(ids[0]));
     }
 
     @Test

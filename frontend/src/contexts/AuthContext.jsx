@@ -11,6 +11,7 @@ import {
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
 import { disconnect as disconnectStomp } from '../lib/stomp'
+import { getAnonymousVoteSessionId } from '../lib/anonymousVoting'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
@@ -158,6 +159,18 @@ export function AuthProvider({ children }) {
     // con el nuevo JWT.
     queryClient.clear()
     setUser(u)
+    const anonSessionId = getAnonymousVoteSessionId({ create: false })
+    if (anonSessionId) {
+      endpoints.migrarVotosAnonimos(anonSessionId)
+        .then((res) => {
+          if (res?.migrados > 0) {
+            toast.success('Votos invitados guardados', {
+              description: `${res.migrados} votos aparecen ya en tu historial.`,
+            })
+          }
+        })
+        .catch(() => {})
+    }
     const muted = localStorage.getItem('animeshowdown.muted') === 'true'
     // playMagic es async (audit perf 2026-05-18); silenciamos posible rejection.
     if (!muted) playMagic().catch(() => {})

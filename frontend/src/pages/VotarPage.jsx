@@ -2,10 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, SkipForward, Swords, Zap } from 'lucide-react'
+import { ArrowRight, LogIn, SkipForward, Swords, X, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { personajes, imagenPersonaje, getPopularidad } from '../lib/personajes-core'
-import { endpoints, ApiError } from '../lib/api'
+import { endpoints, ApiError, api } from '../lib/api'
+import {
+  getAnonymousVoteHeaders,
+  getAnonymousVotesCount,
+  incrementAnonymousVotesCount,
+} from '../lib/anonymousVoting'
 import { useSeo } from '../hooks/useSeo'
 import { useSound } from '../contexts/SoundContext'
 import { useAuth } from '../contexts/AuthContext'
@@ -36,6 +41,7 @@ import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 const STORAGE_FAST = 'animeshowdown.votar.fast'
 const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
 const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
+const ANON_VOTE_LIMIT = 5
 // Pausa entre voto y siguiente duelo. 1.8s da tiempo a ver el "+1 ELO"
 // animado y a confirmar visualmente quién ganó sin que el usuario tenga
 // que pulsar nada. Si se acorta a <1s no da pause para el overlay; si
@@ -147,6 +153,7 @@ function VotarPage() {
   // post-voto. Sirve para pintar el overlay "+1 ELO" sobre la card ganadora.
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
+  const [showAnonLimitModal, setShowAnonLimitModal] = useState(false)
 
   // Audit P3 (2026-05-17): ref para cancelar el timeout de auto-next si
   // el usuario pulsa "Siguiente duelo" antes de que dispare (o si el
@@ -155,8 +162,11 @@ function VotarPage() {
   const autoNextTimeoutRef = useRef(null)
 
   const votarMutation = useMutation({
-    mutationFn: ({ enfrentamientoId, personajeGanadorId }) =>
-      endpoints.votar(enfrentamientoId, personajeGanadorId),
+    mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous }) =>
+      endpoints.votar(enfrentamientoId, personajeGanadorId, {
+        anonymous,
+        headers: anonymous ? getAnonymousVoteHeaders() : {},
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['torneos'] })
     },
@@ -180,7 +190,7 @@ function VotarPage() {
   const modoSugerido = Boolean(
     !modoBackend && dueloSugerido?.personaje1 && dueloSugerido?.personaje2,
   )
-  const requiereCuentaParaVotar = modoBackend && !user
+  const votoInvitadoActivo = modoBackend && !user
 
   // Datos a renderizar uniformes para ambos modos. Calculados antes del
   // early-return de loading para que los handlers (useCallback) puedan
@@ -230,20 +240,22 @@ function VotarPage() {
 
       if (modoBackend) {
         if (!user) {
-          toast.error('Inicia sesión para votar', {
-            description: 'Tu voto moverá el ranking cuando entres.',
-          })
-          navigate({
-            pathname: '/login',
-            search: `?next=${encodeURIComponent('/votar')}`,
-          })
-          return
+          if (getAnonymousVotesCount() >= ANON_VOTE_LIMIT) {
+            setShowAnonLimitModal(true)
+            toast.info('Límite invitado alcanzado', {
+              description: 'Crea cuenta gratis para seguir votando y guardar tu racha.',
+            })
+            return
+          }
         }
         setVotedFor(personaje.slug)
         votarMutation.mutate(
-          { enfrentamientoId: matchId, personajeGanadorId: personaje.id },
+          { enfrentamientoId: matchId, personajeGanadorId: personaje.id, anonymous: !user },
           {
             onSuccess: (data) => {
+              if (data?.anonimo) {
+                incrementAnonymousVotesCount()
+              }
               incrementarContadorLocalVotos()
               // Propuesta §4.x: el backend devuelve VotoRegistradoDto con
               // delta + counts post. Lo guardamos para que VoteCard pinte
@@ -254,9 +266,12 @@ function VotarPage() {
                 delta: data?.delta ?? 1,
                 votosGanador: data?.votosGanador ?? null,
               })
-              toast.success(`+${data?.delta ?? 1} ELO · ${personaje.nombre}`, {
+              const delta = data?.delta ?? 1
+              toast.success(`+${delta} ELO · ${personaje.nombre}`, {
                 description: data?.votosGanador != null
-                  ? `Ahora suma ${data.votosGanador} votos en este match`
+                  ? data?.anonimo
+                    ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}`
+                    : `Ahora suma ${data.votosGanador} votos en este match`
                   : 'Voto registrado · ranking actualizado',
               })
               if (fastMode) {
@@ -271,6 +286,8 @@ function VotarPage() {
               const status = err instanceof ApiError ? err.status : 0
               if (status === 409) {
                 toast.error('Ya votaste este enfrentamiento')
+              } else if (status === 429) {
+                setShowAnonLimitModal(true)
               } else if (status === 401) {
                 navigate({
                   pathname: '/login',
@@ -417,8 +434,8 @@ function VotarPage() {
           </h1>
           <p className="max-w-xl text-[13px] text-fg-muted">
             {modoBackend
-              ? requiereCuentaParaVotar
-                ? 'Inicia sesión para registrar votos en vivo y mover el ELO'
+              ? votoInvitadoActivo
+                ? 'Puedes votar 5 duelos como invitado; crea cuenta para guardar tu historial'
                 : 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
               : sinMatchesAbiertos
                 ? 'No hay torneos en juego — te proponemos pares de ELO similar'
@@ -426,11 +443,11 @@ function VotarPage() {
           </p>
         </header>
 
-        {requiereCuentaParaVotar && (
+        {votoInvitadoActivo && (
           <div className="rounded-lg border border-gold/40 bg-gold-soft px-4 py-3 text-center text-[13px] font-medium text-gold">
-            Este duelo es competitivo: necesitas cuenta para que el voto afecte al ranking.
+            Voto invitado activo: los primeros {ANON_VOTE_LIMIT} votos cuentan con peso 0.3.
             <Link to="/login?next=%2Fvotar" className="ml-1 underline decoration-gold/50 underline-offset-4 hover:text-fg-strong">
-              Entrar tarda unos segundos.
+              Entra para peso completo y guardar historial.
             </Link>
           </div>
         )}
@@ -450,7 +467,7 @@ function VotarPage() {
             isLoser={votedFor && votedFor !== a.slug}
             showResult={Boolean(votedFor)}
             side="left"
-            requiresLogin={requiereCuentaParaVotar}
+            anonymousLimited={votoInvitadoActivo}
             voteResult={voteResult?.ganadorSlug === a.slug ? voteResult : null}
           />
           <VsBadge votedFor={votedFor} />
@@ -461,7 +478,7 @@ function VotarPage() {
             isLoser={votedFor && votedFor !== b.slug}
             showResult={Boolean(votedFor)}
             side="right"
-            requiresLogin={requiereCuentaParaVotar}
+            anonymousLimited={votoInvitadoActivo}
             voteResult={voteResult?.ganadorSlug === b.slug ? voteResult : null}
           />
         </motion.div>
@@ -501,6 +518,10 @@ function VotarPage() {
             </Link>
           )}
         </div>
+        <AnonVoteLimitModal
+          open={showAnonLimitModal}
+          onClose={() => setShowAnonLimitModal(false)}
+        />
     </VisualPageShell>
   )
 }
@@ -528,7 +549,7 @@ function VsBadge({ votedFor }) {
   )
 }
 
-function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, requiresLogin, voteResult }) {
+function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anonymousLimited, voteResult }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   // warm() en hover: anticipa que el user va a hacer click y resume el
   // AudioContext si estaba suspended. Sin esto el primer playVote tras
@@ -560,8 +581,8 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, requ
         }
         transition={{ duration: reduceMotion ? 0.18 : 0.56, ease: 'easeOut' }}
         aria-label={
-          requiresLogin
-            ? `Iniciar sesión para votar por ${personaje.nombre} de ${personaje.anime}`
+          anonymousLimited
+            ? `Votar como invitado por ${personaje.nombre} de ${personaje.anime}`
             : `Votar por ${personaje.nombre} de ${personaje.anime}`
         }
         className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-all ${
@@ -615,9 +636,9 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, requ
             value={voteResult?.votosGanador}
             label="ELO actualizado"
           />
-          {requiresLogin && !showResult && (
+          {anonymousLimited && !showResult && (
             <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-gold backdrop-blur-sm">
-              Inicia sesión para votar
+              Voto invitado
             </div>
           )}
         </div>
@@ -642,6 +663,60 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, requ
             <ArrowRight className="h-3 w-3" />
           </Link>
         )}
+      </div>
+    </div>
+  )
+}
+
+function AnonVoteLimitModal({ open, onClose }) {
+  if (!open) return null
+  const next = encodeURIComponent('/votar')
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="anon-vote-limit-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
+    >
+      <div className="relative w-full max-w-md rounded-2xl border border-gold/40 bg-bg p-6 shadow-[0_30px_90px_rgba(0,0,0,0.5)]">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-3 rounded-full border border-border bg-surface p-2 text-fg-muted transition-colors hover:border-gold/50 hover:text-gold"
+          aria-label="Cerrar aviso de límite invitado"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 bg-gold/15 text-gold">
+          <LogIn className="h-5 w-5" />
+        </div>
+        <h2 id="anon-vote-limit-title" className="text-2xl font-black text-fg-strong">
+          Crea cuenta gratis para seguir votando
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-fg-muted">
+          Ya usaste tus 5 votos invitados. Al entrar, esos votos se migran a tu
+          perfil y aparecen en Mi historial.
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <a
+            href={`${api.base}/oauth2/authorization/google?next=${next}`}
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-4 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-gold/60 hover:text-gold"
+          >
+            Google
+          </a>
+          <a
+            href={`${api.base}/oauth2/authorization/discord?next=${next}`}
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-4 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-violet-400/60 hover:text-violet-200"
+          >
+            Discord
+          </a>
+        </div>
+        <Link
+          to="/login?next=%2Fvotar"
+          className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-gold px-4 py-3 text-sm font-black text-bg transition-transform hover:scale-[1.01]"
+        >
+          Entrar con email
+        </Link>
       </div>
     </div>
   )
