@@ -774,9 +774,16 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
         </div>
       </motion.button>
       {/* Info debajo de la card — comparación rápida sin overlay sobre la
-          imagen. Nombre + anime + (solo tras votar) link discreto a la ficha. */}
+          imagen. Nombre + anime + (solo tras votar) link discreto a la ficha.
+          Audit externo AS-015 (2026-05-22): antes usábamos `items-${side}` y
+          `text-${side}` con template literals dinámicos. Tailwind v4 hace
+          AOT y NO ve esas clases compuestas — en producción salían sin
+          alinear porque el extractor no las genera. Strings completos
+          estáticos garantizan que las clases existan en el bundle. */}
       <div
-        className={`flex min-w-0 flex-col items-${side === 'right' ? 'end' : 'start'} px-1 text-${side === 'right' ? 'right' : 'left'}`}
+        className={`flex min-w-0 flex-col px-1 ${
+          side === 'right' ? 'items-end text-right' : 'items-start text-left'
+        }`}
       >
         <h2 className="line-clamp-1 w-full text-base font-bold text-fg-strong sm:text-lg">
           {personaje.nombre}
