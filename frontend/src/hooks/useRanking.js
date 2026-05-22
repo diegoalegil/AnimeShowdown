@@ -60,6 +60,13 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
     if (!enabled) return undefined
     return subscribe('/topic/ranking-delta', (delta) => {
       if (!delta?.personaje?.slug) return
+      // Audit externo B2.1a/B2.1b (2026-05-22): el backend devuelve dos
+      // métricas — votos (físico, COUNT) para mostrar al usuario, y
+      // pesoVotos (ponderado, SUM(peso)) para ORDER BY. Aquí actualizamos
+      // ambos en la caché live. El sort se hace por pesoVotos para no
+      // desalinearse del orden REST cuando un voto anónimo (peso 0.3)
+      // aterriza junto a uno registrado (peso 1.0). Si el WS no incluye
+      // pesoVotos (server antiguo), fallback a votos como antes.
       queryClient
         .getQueriesData({ queryKey: ['ranking', 'segmentado'] })
         .forEach(([queryKey, old]) => {
@@ -67,21 +74,44 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
           const [, , periodo = 'all', anime = '', limit = old.length] = queryKey
           if (anime && anime !== delta.personaje.anime) return
           const index = old.findIndex((item) => item?.personaje?.slug === delta.personaje.slug)
+          const existing = index === -1 ? null : old[index]
+          const incrementoVotos = delta.delta || 1
+          // Cuando llega el delta, el server puede mandarnos el total
+          // absoluto (periodo='all', voto sobre todo el catálogo) o un
+          // incremento sobre el estado anterior (ventana temporal).
           const votos =
             periodo === 'all'
               ? delta.votos
-              : Math.max(0, (index === -1 ? 0 : old[index].votos || 0) + (delta.delta || 1))
+              : Math.max(0, (existing?.votos || 0) + incrementoVotos)
+          // Mismo patrón para pesoVotos: si server moderno lo manda,
+          // úsalo; si no, asumimos que el incremento equivale a un voto
+          // registrado (1.0) en ventana temporal, o caemos a votos en
+          // all-time. Esto cubre el modo casual sin backend mientras el
+          // resto del payload llega.
+          const incrementoPeso =
+            typeof delta.pesoVotos === 'number'
+              ? delta.pesoVotos - (existing?.pesoVotos ?? existing?.votos ?? 0)
+              : incrementoVotos
+          const pesoVotos =
+            periodo === 'all'
+              ? typeof delta.pesoVotos === 'number'
+                ? delta.pesoVotos
+                : votos
+              : Math.max(0, (existing?.pesoVotos ?? existing?.votos ?? 0) + incrementoPeso)
           const nextItem = {
             personaje: delta.personaje,
             votos,
+            pesoVotos,
           }
           const next =
             index === -1
               ? [...old, nextItem]
-              : old.map((item, i) => (i === index ? { ...item, votos } : item))
+              : old.map((item, i) => (i === index ? { ...item, votos, pesoVotos } : item))
           next.sort((a, b) => {
-            const byVotes = (b.votos || 0) - (a.votos || 0)
-            if (byVotes !== 0) return byVotes
+            const valorA = a.pesoVotos ?? a.votos ?? 0
+            const valorB = b.pesoVotos ?? b.votos ?? 0
+            const byPeso = valorB - valorA
+            if (byPeso !== 0) return byPeso
             return (a.personaje?.id || 0) - (b.personaje?.id || 0)
           })
           queryClient.setQueryData(queryKey, next.slice(0, Number(limit) || next.length))

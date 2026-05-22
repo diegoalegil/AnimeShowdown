@@ -27,18 +27,21 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * estable, el orden es determinista en H2, Postgres y queries
      * paginadas (sin riesgo de duplicar/saltar entries entre paginas).
      *
-     * <p>Audit externo AS-002 (2026-05-22): antes COUNT(v) ignoraba el
-     * peso. EnfrentamientoController guarda voto.peso = 0.30 para
+     * <p>Audit externo AS-002 + B2.1b (2026-05-22): antes COUNT(v) ignoraba
+     * el peso. EnfrentamientoController guarda voto.peso = 0.30 para
      * anónimos y 1.00 para registrados, pero el ranking contaba todos
-     * por igual. Migrado a SUM(v.peso) con CAST a Long para mantener el
-     * contrato del DTO (que sigue exponiendo `votos: Long` al frontend).
-     * Coalesce protege frente a SUM nulo (grupo vacío, no debería pasar
-     * con GROUP BY pero defensivo).
+     * por igual. La fase 1 castteaba SUM(peso) a Long y mezclaba ambas
+     * métricas en el mismo campo, truncando 0.9 a 0. Ahora devolvemos
+     * AMBOS valores en el DTO: votos (COUNT, físico para UI) y pesoVotos
+     * (SUM, ponderado para ORDER BY y para que el frontend reordene la
+     * caché live cuando llega un WS delta). Coalesce protege frente a
+     * SUM nulo (grupo vacío, no debería pasar con GROUP BY pero defensivo).
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
-                cast(coalesce(sum(v.peso), 0) as long))
+                count(v),
+                cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
@@ -49,12 +52,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /**
      * Ranking all-time paginado (Plan v2 §4.6). Page para que la UI pueda
      * pedir top 50 o top 100 sin volcar todo el catálogo.
-     * AS-002: misma ponderación por peso que obtenerRanking().
+     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query(value = """
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
-                cast(coalesce(sum(v.peso), 0) as long))
+                count(v),
+                cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
@@ -68,12 +72,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Ranking dentro de una ventana temporal (Plan v2 §4.6 — top mensual,
      * trimestral, etc). desde es inclusivo. Aplica el mismo GROUP BY que
      * el all-time pero filtra por fecha del voto.
-     * AS-002: ponderado por peso.
+     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
-                cast(coalesce(sum(v.peso), 0) as long))
+                count(v),
+                cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE v.fecha >= :desde
@@ -88,12 +93,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * votos EMITIDOS antes de la fecha dada. Sirve para comparar la
      * posición de hace N días con la posición actual y calcular el
      * movimiento de cada personaje.
-     * AS-002: ponderado por peso.
+     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
-                cast(coalesce(sum(v.peso), 0) as long))
+                count(v),
+                cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE v.fecha < :antesDe
@@ -105,6 +111,21 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     /** Total de votos de un personaje (Plan v2 §11.1 time machine baseline). */
     long countByPersonajeId(Long personajeId);
+
+    /**
+     * Audit externo B2.1a (2026-05-22): suma ponderada de votos del personaje.
+     * Lo necesita el RankingDeltaEvent del WebSocket para publicar un valor
+     * consistente con el ORDER del ranking REST. Antes el WS publicaba
+     * COUNT físico y el frontend ordenaba su caché live por ese campo,
+     * provocando que tras un voto anónimo (peso 0.3) la posición saltara
+     * como si fuera 1.0 — desalineando el orden hasta el siguiente refetch.
+     */
+    @Query("""
+            SELECT coalesce(sum(v.peso), 0)
+            FROM Voto v
+            WHERE v.personaje.id = :personajeId
+            """)
+    Double sumaPesoByPersonajeId(@Param("personajeId") Long personajeId);
 
     /**
      * Cuenta votos del personaje dentro del rango [desde, hasta) — desde
@@ -178,12 +199,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Ranking de personajes de un anime concreto (Plan v2 §4.6). Filtramos
      * por nombre del anime (string del catálogo) — case-sensitive porque
      * los nombres en BBDD vienen consistentes del seeder.
-     * AS-002: ponderado por peso (anónimos 0.30, registrados 1.00).
+     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
-                cast(coalesce(sum(v.peso), 0) as long))
+                count(v),
+                cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE p.anime = :anime
