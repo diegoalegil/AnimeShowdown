@@ -395,6 +395,9 @@ export default defineConfig({
         // según el path del módulo en node_modules. id viene como path
         // absoluto: `.../node_modules/lucide-react/dist/...`.
         manualChunks(id) {
+          if (id.endsWith('/src/lib/api.js') || id.endsWith('\\src\\lib\\api.js')) {
+            return 'client-api'
+          }
           if (!id.includes('node_modules')) return undefined
           if (
             id.includes('@react-three/') ||
