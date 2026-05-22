@@ -9,13 +9,23 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -54,8 +64,24 @@ class EnfrentamientoControllerTest {
     @Autowired
     private com.diegoalegil.animeshowdown.repository.VotoRepository votoRepository;
 
+    @Autowired
+    private com.diegoalegil.animeshowdown.repository.MadrugadorDiaRepository madrugadorDiaRepository;
+
     @MockitoBean
     private SimpMessagingTemplate messaging;
+
+    @Autowired
+    private MutableTestClock clock;
+
+    @BeforeEach
+    void fijarClockUtcPorDefecto() {
+        madrugadorDiaRepository.deleteAll();
+        fijarClock("2026-05-22T06:42:00Z");
+    }
+
+    private void fijarClock(String instantIso) {
+        clock.setInstant(Instant.parse(instantIso));
+    }
 
     private String tokenUserRegistrado(String username, String email) throws Exception {
         Map<String, String> reg = Map.of(
@@ -310,6 +336,74 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
+    void soloPrimerUsuarioDelDiaDesbloqueaMadrugadorDelPersonaje() throws Exception {
+        String adminToken = tokenAdmin();
+        String tokenA = tokenUserRegistrado("madrugador_a", "madrugador-a@example.com");
+        String tokenB = tokenUserRegistrado("madrugador_b", "madrugador-b@example.com");
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "madrugador");
+        LocalDate fecha = LocalDate.of(2026, 5, 22);
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        var userA = usuarioRepository.findByUsername("madrugador_a").orElseThrow();
+        var userB = usuarioRepository.findByUsername("madrugador_b").orElseThrow();
+        esperarMadrugador("luffy", fecha, userA.getId());
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + tokenB)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1,
+                madrugadorDiaRepository.countByPersonajeSlugAndFecha("luffy", fecha));
+        org.junit.jupiter.api.Assertions.assertTrue(tieneBadge(userA, "madrugador_luffy"));
+        esperarSinBadge(userB, "madrugador_luffy");
+    }
+
+    @Test
+    void madrugadorSeRecalculaAlCambiarDiaUtc() throws Exception {
+        String adminToken = tokenAdmin();
+        String tokenA = tokenUserRegistrado("madrugador_day_a", "madrugador-day-a@example.com");
+        String tokenB = tokenUserRegistrado("madrugador_day_b", "madrugador-day-b@example.com");
+        long[] ids = dosPersonajes();
+
+        LocalDate dia1 = LocalDate.of(2026, 5, 22);
+        long enfDia1 = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "madrugador-dia1");
+        mvc.perform(post("/api/enfrentamientos/" + enfDia1 + "/votar")
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+        var userA = usuarioRepository.findByUsername("madrugador_day_a").orElseThrow();
+        esperarMadrugador("luffy", dia1, userA.getId());
+
+        fijarClock("2026-05-23T00:01:00Z");
+        LocalDate dia2 = LocalDate.of(2026, 5, 23);
+        long enfDia2 = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "madrugador-dia2");
+        mvc.perform(post("/api/enfrentamientos/" + enfDia2 + "/votar")
+                .header("Authorization", "Bearer " + tokenB)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+        var userB = usuarioRepository.findByUsername("madrugador_day_b").orElseThrow();
+        esperarMadrugador("luffy", dia2, userB.getId());
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1,
+                madrugadorDiaRepository.countByPrimerUserAndPersonajeSlugAndFecha(userA, "luffy", dia1));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1,
+                madrugadorDiaRepository.countByPrimerUserAndPersonajeSlugAndFecha(userB, "luffy", dia2));
+    }
+
+    @Test
     void votarDosVecesElMismoEnfrentamientoDevuelve409() throws Exception {
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_doble_user", "votodoble@example.com");
@@ -330,6 +424,32 @@ class EnfrentamientoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isConflict());
+    }
+
+    private void esperarMadrugador(String slug, LocalDate fecha, Long userId) throws Exception {
+        long deadline = System.currentTimeMillis() + 5_000;
+        while (System.currentTimeMillis() < deadline) {
+            var row = madrugadorDiaRepository.findByPersonajeSlugAndFecha(slug, fecha);
+            if (row.isPresent() && row.get().getPrimerUser().getId().equals(userId)) {
+                return;
+            }
+            Thread.sleep(50);
+        }
+        org.junit.jupiter.api.Assertions.fail("No se registro madrugador para " + slug + " en " + fecha);
+    }
+
+    private boolean tieneBadge(com.diegoalegil.animeshowdown.model.Usuario usuario, String codigo) {
+        return usuarioLogroRepository.existsByUsuarioAndLogroCodigo(usuario, codigo);
+    }
+
+    private void esperarSinBadge(com.diegoalegil.animeshowdown.model.Usuario usuario, String codigo) throws Exception {
+        long deadline = System.currentTimeMillis() + 1_000;
+        while (System.currentTimeMillis() < deadline) {
+            if (tieneBadge(usuario, codigo)) {
+                org.junit.jupiter.api.Assertions.fail("El segundo usuario no deberia recibir " + codigo);
+            }
+            Thread.sleep(50);
+        }
     }
 
     @Test
@@ -384,5 +504,38 @@ class EnfrentamientoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(voto)))
                 .andExpect(status().isConflict());
+    }
+
+    @TestConfiguration
+    static class ClockTestConfig {
+
+        @Bean
+        @Primary
+        MutableTestClock mutableTestClock() {
+            return new MutableTestClock();
+        }
+    }
+
+    static class MutableTestClock extends Clock {
+        private final AtomicReference<Instant> instant = new AtomicReference<>(Instant.parse("2026-05-22T06:42:00Z"));
+
+        void setInstant(Instant instant) {
+            this.instant.set(instant);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return instant.get();
+        }
     }
 }

@@ -38,12 +38,16 @@ public class BadgeEventListener {
     private static final Logger log = LoggerFactory.getLogger(BadgeEventListener.class);
 
     private final BadgeService badgeService;
+    private final MadrugadorService madrugadorService;
     private final VotoRepository votoRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public BadgeEventListener(BadgeService badgeService, VotoRepository votoRepository,
+    public BadgeEventListener(BadgeService badgeService,
+            MadrugadorService madrugadorService,
+            VotoRepository votoRepository,
             UsuarioRepository usuarioRepository) {
         this.badgeService = badgeService;
+        this.madrugadorService = madrugadorService;
         this.votoRepository = votoRepository;
         this.usuarioRepository = usuarioRepository;
     }
@@ -72,6 +76,7 @@ public class BadgeEventListener {
         if (totalVotos >= 1000) {
             badgeService.desbloquear(usuario, "mil_votos");
         }
+        madrugadorService.registrarPrimerVotoDelDia(usuario, ev.personaje());
     }
 
     /**

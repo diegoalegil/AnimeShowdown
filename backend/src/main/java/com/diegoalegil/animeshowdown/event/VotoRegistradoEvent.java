@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.event;
 
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
+import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 
 /**
@@ -18,5 +19,9 @@ import com.diegoalegil.animeshowdown.model.Usuario;
  * <p>Diseñado como record inmutable. Los listeners reciben los IDs y la
  * entidad ya persistida — no deben modificarlos.
  */
-public record VotoRegistradoEvent(Usuario usuario, Enfrentamiento enfrentamiento) {
+public record VotoRegistradoEvent(Usuario usuario, Enfrentamiento enfrentamiento, Personaje personaje) {
+
+    public VotoRegistradoEvent(Usuario usuario, Enfrentamiento enfrentamiento) {
+        this(usuario, enfrentamiento, null);
+    }
 }
