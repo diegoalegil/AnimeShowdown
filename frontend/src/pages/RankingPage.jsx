@@ -361,6 +361,14 @@ function CategoriaCard({ rank, personaje, tono }) {
         <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-bg">
           <PersonajeImg
             slug={personaje.slug}
+            // Pasamos src/colorDominante explícitos desde la data del ranking
+            // para no depender de que el módulo `personajes` se haya hidratado
+            // antes del primer paint. Sin esto, la card cae a /img/_missing/...
+            // → 404 → PersonajePlaceholder y queda atrapada hasta que llega
+            // el evento de hidratación.
+            src={personaje.imagenUrl}
+            nombre={personaje.nombre}
+            colorDominante={personaje.imagenColorDominante}
             alt={personaje.nombre}
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
@@ -689,6 +697,11 @@ function PodioCard({ personaje, rank, highlighted, history }) {
       >
         <PersonajeImg
           slug={personaje.slug}
+          // Mismo motivo que CategoriaCard: pasamos src directo del personaje
+          // recibido para no depender del catálogo módulo-global.
+          src={personaje.imagenUrl}
+          nombre={personaje.nombre}
+          colorDominante={personaje.imagenColorDominante}
           alt={personaje.nombre}
           loading="eager"
           className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
@@ -906,7 +919,22 @@ function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null
   )
 }
 
-function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses, history }) {
+function RankRowElo({
+  rank,
+  slug,
+  nombre,
+  anime,
+  elo,
+  wins,
+  losses,
+  history,
+  // Destructuramos también imagenUrl + colorDominante del item del ranking
+  // para pasárselos al PersonajeImg. Sin estos campos, el componente caía
+  // al catálogo módulo-global vía imagenPersonaje(slug) y, si rankedElo se
+  // snapshoteó antes de la hidratación, el slug no resolvía a la URL real.
+  imagenUrl,
+  imagenColorDominante,
+}) {
   const total = wins + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
   const esTop10 = rank <= 10
@@ -930,6 +958,9 @@ function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses, history }) {
         <RankBadge rank={rank} />
         <PersonajeImg
           slug={slug}
+          src={imagenUrl}
+          nombre={nombre}
+          colorDominante={imagenColorDominante}
           alt=""
           loading="lazy"
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
@@ -986,6 +1017,9 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
         <RankBadge rank={rank} />
         <PersonajeImg
           slug={personaje.slug}
+          src={personaje.imagenUrl}
+          nombre={personaje.nombre}
+          colorDominante={personaje.imagenColorDominante}
           alt=""
           loading="lazy"
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
