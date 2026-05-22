@@ -19,9 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import com.diegoalegil.animeshowdown.TestAsyncConfig;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +47,14 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestAsyncConfig.class)
+// Audit externo + CI flake (2026-05-23): sin TestAsyncConfig el executor
+// real corre los listeners async (BadgeEventListener, NotificacionService)
+// en hilo aparte. En CI con H2 los UPDATE concurrentes a `usuarios`
+// (elo_pvp del test + flush implícito del listener async) cruzan locks y
+// disparan deadlock — el test pasa local intermitente pero falla en
+// CI con timing más apretado. Con SyncTaskExecutor todo va en el mismo
+// hilo y la transacción serializa, sin afectar la cobertura del flujo.
 class DueloLiveServiceTest {
 
     @Autowired private DueloLiveService dueloLiveService;
