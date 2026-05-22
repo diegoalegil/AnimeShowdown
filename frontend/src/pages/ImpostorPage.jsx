@@ -149,7 +149,7 @@ function ImpostorPage() {
         >
           <span className="as-kicker border-purple-500/45 bg-purple-500/10 text-purple-200">
             <Sparkles className="h-3 w-3" />
-            裏 · Impostor Trial · Daily
+            <span lang="ja">裏</span> · Impostor Trial · Daily
           </span>
           <h1 className="text-[clamp(2.4rem,6vw,4.6rem)] font-extrabold leading-tight tracking-tight">
             4 cartas. 1 traidor.
@@ -243,6 +243,7 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
       {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
       <span
         aria-hidden="true"
+        lang="ja"
         className="pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none text-purple-200 opacity-[0.06]"
       >
         裏

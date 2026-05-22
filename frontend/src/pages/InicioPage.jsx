@@ -629,7 +629,7 @@ function SectionRetosDiarios() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-col gap-2">
               <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
-                御 · Anime Daily Trials
+                <span lang="ja">御</span> · Anime Daily Trials
               </span>
               <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
                 Retos diarios de anime
@@ -661,6 +661,7 @@ function SectionRetosDiarios() {
               >
                 <span
                   aria-hidden="true"
+                  lang="ja"
                   className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] leading-none opacity-[0.08] transition-all duration-500 group-hover:opacity-[0.22] group-hover:-translate-y-1 ${textColor}`}
                   style={{ textShadow: '0 0 35px currentColor' }}
                 >
@@ -669,7 +670,7 @@ function SectionRetosDiarios() {
                 <div
                   className={`relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_28px_-6px_currentColor] ${colorClasses}`}
                 >
-                  <span className="font-mono text-2xl font-extrabold">
+                  <span lang="ja" className="font-mono text-2xl font-extrabold">
                     {r.kanji}
                   </span>
                 </div>

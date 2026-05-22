@@ -60,6 +60,8 @@ function KanjiSpinner({
       <div className={`absolute inset-0 rounded-full ${toneHalo}`} />
       <div className={`absolute inset-0 animate-spin rounded-full border-2 ${toneRing}`} />
       <span
+        aria-hidden="true"
+        lang="ja"
         className={`absolute inset-0 flex items-center justify-center font-mono font-black ${sz.kanji} ${toneKanji}`}
       >
         {kanji}

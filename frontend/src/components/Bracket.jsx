@@ -146,6 +146,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
               {kanjis[i] && (
                 <span
                   aria-hidden="true"
+                  lang="ja"
                   className="inline-flex items-center gap-0.5 text-gold/70"
                 >
                   <KanjiStroke
@@ -179,6 +180,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
             </h3>
             <span
               aria-hidden="true"
+              lang="ja"
               className="inline-flex items-center gap-0.5 text-gold/80"
             >
               <KanjiStroke

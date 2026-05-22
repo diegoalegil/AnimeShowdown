@@ -377,7 +377,7 @@ function GlossaryPage() {
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
             <BookOpen className="h-3 w-3" />
-            用語集 · Glosario
+            <span lang="ja">用語集</span> · Glosario
           </span>
           <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Términos otaku
@@ -456,7 +456,7 @@ function GlossaryPage() {
                     {t.termino}
                   </dt>
                   {t.kanji && (
-                    <span className="font-jp text-[15px] text-gold">
+                    <span lang="ja" className="font-jp text-[15px] text-gold">
                       {t.kanji}
                     </span>
                   )}
