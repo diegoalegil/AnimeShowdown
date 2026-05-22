@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && vite build",
-    "build:no-images": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && vite build",
+    "build:no-images": "node ../scripts/generate-sitemap.mjs && vite build",
     "build:no-sitemap": "vite build",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
     "build:images": "node scripts/generate-image-variants.mjs",
