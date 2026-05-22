@@ -28,6 +28,10 @@ import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/V
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { endpoints } from '../lib/api'
 import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
+import {
+  RASGOS_OTAKU,
+  getCategoriasPersonaje,
+} from '../data/personajes-tags'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -107,15 +111,14 @@ function PersonajesPage() {
     return map
   }, [catalogoPersonajes])
 
-  useSeo({
-    title: 'Personajes',
-    description: `Catálogo de ${catalogoPersonajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
-  })
   const { play } = useSound()
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [animeFilter, setAnimeFilter] = useState(
     () => searchParams.get('anime') || null,
+  )
+  const [tagFilter, setTagFilter] = useState(
+    () => searchParams.get('tag') || null,
   )
   const [sort, setSort] = useState('popularidad')
   const [view, setView] = useState('grid')
@@ -139,7 +142,7 @@ function PersonajesPage() {
   // un useEffect (react-hooks/set-state-in-effect) o ref-en-render
   // (react-hooks/refs).
   const PAGE_SIZE = 60
-  const filterKey = `${search}|${animeFilter ?? ''}|${sort}|${view}`
+  const filterKey = `${search}|${animeFilter ?? ''}|${tagFilter ?? ''}|${sort}|${view}`
   const [pag, setPag] = useState({ key: filterKey, count: PAGE_SIZE })
   const visibleCount = pag.key === filterKey ? pag.count : PAGE_SIZE
   const cargarMas = () => setPag({ key: filterKey, count: visibleCount + PAGE_SIZE })
@@ -148,12 +151,19 @@ function PersonajesPage() {
     const next = new URLSearchParams(searchParams)
     if (animeFilter) next.set('anime', animeFilter)
     else next.delete('anime')
+    if (tagFilter) next.set('tag', tagFilter)
+    else next.delete('tag')
     setSearchParams(next, { replace: true })
-  }, [animeFilter, searchParams, setSearchParams])
+  }, [animeFilter, tagFilter, searchParams, setSearchParams])
 
   const filtered = useMemo(() => {
     let list = catalogoPersonajes
     if (animeFilter) list = list.filter((p) => p.anime === animeFilter)
+    if (tagFilter) {
+      list = list.filter((p) =>
+        getCategoriasPersonaje(p.slug).includes(tagFilter),
+      )
+    }
     if (search) {
       const s = search.toLowerCase()
       list = list.filter(
@@ -190,7 +200,7 @@ function PersonajesPage() {
       list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
     }
     return list
-  }, [catalogoPersonajes, search, animeFilter, sort])
+  }, [catalogoPersonajes, search, animeFilter, tagFilter, sort])
 
   useEffect(() => {
     if (autocompleteQuery.length < 2) {
@@ -231,10 +241,21 @@ function PersonajesPage() {
     }
   }, [autocompleteQuery])
 
-  const hayFiltros = Boolean(search) || Boolean(animeFilter)
+  const selectedTag = useMemo(
+    () => RASGOS_OTAKU.find((tag) => tag.id === tagFilter) ?? null,
+    [tagFilter],
+  )
+  useSeo({
+    title: selectedTag ? `Personajes ${selectedTag.label}` : 'Personajes',
+    description: selectedTag
+      ? `Personajes con rasgo ${selectedTag.label} en AnimeShowdown: ranking ELO, anime de origen y fichas para votar.`
+      : `Catálogo de ${catalogoPersonajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
+  })
+  const hayFiltros = Boolean(search) || Boolean(animeFilter) || Boolean(tagFilter)
   const limpiarFiltros = () => {
     setSearch('')
     setAnimeFilter(null)
+    setTagFilter(null)
     setFiltersOpen(false)
     play('playClick')
   }
@@ -308,7 +329,7 @@ function PersonajesPage() {
           />
         </motion.div>
 
-        <div className="as-panel mb-4 grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+        <div className="as-panel mb-4 grid gap-3 rounded-2xl p-3 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
             <input
@@ -381,6 +402,22 @@ function PersonajesPage() {
             )}
           </div>
           <select
+            value={tagFilter ?? ''}
+            onChange={(e) => {
+              setTagFilter(e.target.value || null)
+              play('playClick')
+            }}
+            aria-label="Filtrar por rasgo otaku"
+            className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
+          >
+            <option value="">Rasgo: todos</option>
+            {RASGOS_OTAKU.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                Rasgo: {tag.label}
+              </option>
+            ))}
+          </select>
+          <select
             value={sort}
             onChange={(e) => {
               setSort(e.target.value)
@@ -431,7 +468,18 @@ function PersonajesPage() {
 
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-[11px] text-fg-muted">
-            Filtra por universo para encontrar personajes de un anime concreto.
+          Filtra por universo o rasgo otaku para descubrir arquetipos concretos.
+          {selectedTag && (
+            <>
+              {' '}
+              <Link
+                to={`/glossary#term-${selectedTag.id}`}
+                className="font-semibold text-gold hover:underline"
+              >
+                ¿Qué significa {selectedTag.label}?
+              </Link>
+            </>
+          )}
           </p>
           {hayFiltros && (
             <button
@@ -459,6 +507,7 @@ function PersonajesPage() {
             <Filter className="h-4 w-4 shrink-0 text-gold" />
             <span className="truncate">
               {animeFilter ? `Universo: ${animeFilter}` : 'Filtrar por universo'}
+              {selectedTag ? ` · ${selectedTag.label}` : ''}
             </span>
           </span>
           <span className="shrink-0 rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] text-fg-muted">
@@ -572,6 +621,12 @@ function PersonajesPage() {
             <>
               {' '}· Universo:{' '}
               <strong className="text-fg-strong">{animeFilter}</strong>
+            </>
+          )}
+          {selectedTag && (
+            <>
+              {' '}· Rasgo:{' '}
+              <strong className="text-fg-strong">{selectedTag.label}</strong>
             </>
           )}
         </p>

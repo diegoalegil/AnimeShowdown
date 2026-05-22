@@ -94,7 +94,7 @@ const TAGS_OVERRIDE = {
 
   // ====== Attack on Titan ======
   eren_yeager: ['antihero', 'protagonist'],
-  mikasa_ackerman: ['hero', 'waifu'],
+  mikasa_ackerman: ['kuudere', 'hero', 'waifu'],
   levi_ackerman: ['hero', 'husbando'],
 
   // ====== Death Note ======
@@ -132,6 +132,11 @@ const TAGS_OVERRIDE = {
   fushi: ['protagonist'],
 
   // ====== Otros icónicos por nombre ======
+  asuka: ['tsundere', 'waifu'],
+  taiga_aisaka: ['tsundere', 'waifu'],
+  gasai_yuno: ['yandere', 'villain', 'waifu'],
+  rei: ['kuudere', 'waifu'],
+  hinata: ['dandere', 'waifu'],
   mai_sakurajima: ['waifu'],
   asuna: ['waifu'],
   zero_two: ['waifu'],
@@ -153,7 +158,13 @@ export const CATEGORIAS = [
   { id: 'rival', label: 'Rivales', emoji: '⚔️', tono: 'orange' },
   { id: 'mentor', label: 'Mentores', emoji: '🧙', tono: 'emerald' },
   { id: 'antihero', label: 'Antihéroes', emoji: '🌑', tono: 'purple' },
+  { id: 'tsundere', label: 'Tsundere', emoji: '🌶️', tono: 'rose' },
+  { id: 'yandere', label: 'Yandere', emoji: '🩸', tono: 'purple' },
+  { id: 'kuudere', label: 'Kuudere', emoji: '❄️', tono: 'sky' },
+  { id: 'dandere', label: 'Dandere', emoji: '🌙', tono: 'violet' },
 ]
+
+export const RASGOS_OTAKU = CATEGORIAS
 
 /**
  * Devuelve las categorías de un personaje. Vacío si no está tagueado

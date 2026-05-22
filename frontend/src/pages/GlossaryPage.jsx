@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, Search } from 'lucide-react'
+import { ArrowRight, BookOpen, Search } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, definedTermSetSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -252,6 +252,12 @@ const TERMINOS = [
 
 const CATEGORIAS = [...new Set(TERMINOS.map((t) => t.categoria))]
 
+function slugTermino(termino) {
+  return normalizar(termino)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 function GlossaryPage() {
   useSeo({
     title: 'Glosario otaku',
@@ -372,6 +378,7 @@ function GlossaryPage() {
             {visibles.map((t) => (
               <article
                 key={t.termino}
+                id={`term-${slugTermino(t.termino)}`}
                 itemScope
                 itemType="https://schema.org/DefinedTerm"
                 className="rounded-xl border border-border bg-surface p-5"
@@ -400,6 +407,13 @@ function GlossaryPage() {
                 <span className="mt-3 inline-flex rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
                   {t.categoria}
                 </span>
+                <Link
+                  to={`/personajes?tag=${slugTermino(t.termino)}`}
+                  className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold transition-colors hover:text-fg-strong"
+                >
+                  Ver personajes con este rasgo
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </article>
             ))}
           </dl>
