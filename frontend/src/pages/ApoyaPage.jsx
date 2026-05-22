@@ -85,11 +85,14 @@ function ApoyaPage() {
           </p>
         </motion.header>
 
-        {/* Meta mensual transparente */}
-        <MetaMensual
-          recibido={META_RECIBIDO_EUR}
-          objetivo={META_OBJETIVO_EUR}
-        />
+        {/* Meta mensual transparente. Si todavía va a 0€, la ocultamos:
+            como señal social comunica "nadie apoya" más que transparencia. */}
+        {META_RECIBIDO_EUR > 0 && (
+          <MetaMensual
+            recibido={META_RECIBIDO_EUR}
+            objetivo={META_OBJETIVO_EUR}
+          />
+        )}
 
         {/* Cards principales de aporte */}
         <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
