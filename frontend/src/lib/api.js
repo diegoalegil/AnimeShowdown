@@ -29,16 +29,6 @@ const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 // intentar conseguir un JWT fresco usando la cookie persistente. Si éxito
 // el usuario sigue logueado; si fallo aparece como invitado.
 let tokenEnMemoria = null
-// One-shot: si la versión anterior dejó tokens en localStorage, los borramos
-// la primera vez que se importa este módulo. Es migración invisible para el
-// user — la próxima vez que abra la web ya no hay rastros del modelo viejo.
-try {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem('animeshowdown.token')
-  }
-} catch {
-  // ignore (SSR / privacy mode)
-}
 
 export function getToken() {
   return tokenEnMemoria
