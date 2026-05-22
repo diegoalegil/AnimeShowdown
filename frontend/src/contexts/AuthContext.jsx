@@ -94,29 +94,46 @@ export function AuthProvider({ children }) {
     }
   })
 
-  // Bootstrap del refresh al montar. Si la cookie está viva, conseguimos
-  // un JWT fresco y mantenemos la sesión. Si no, el user optimista se
-  // limpia y aparece como invitado.
+  // Bootstrap del refresh al montar.
+  //
+  // Audit externo F003 (2026-05-22): antes este efecto saltaba el refresh
+  // si `!user` (sin entry en localStorage). Eso rompía la sesión persistente
+  // en cualquier caso de usuario que TENÍA refresh cookie httpOnly válida
+  // pero NO tenía el user cacheado en localStorage:
+  //   - Cambio de dispositivo (cookie viajó pero localStorage es por device)
+  //   - Limpieza manual de "Site data" en el navegador
+  //   - Modo privado/incógnito tras login previo (no debería persistir pero
+  //     algunas integraciones sí)
+  //   - Storage quota corrupta o cleanup automático del SO
+  // El síntoma: usuario aparecía como invitado aunque la cookie httpOnly
+  // siguiera viva en el browser, y el backend habría devuelto un JWT fresh
+  // si lo hubiéramos pedido.
+  //
+  // Ahora intentamos refresh SIEMPRE en el bootstrap. Cuesta 1 POST extra
+  // por sesión anónima (el backend responde 401 sin tocar DB si no hay
+  // cookie), a cambio de respetar la cookie como fuente de verdad.
   useEffect(() => {
     let cancelled = false
-    if (!user) {
-      return () => {
-        cancelled = true
-      }
-    }
-    refreshSession().then((data) => {
-      if (cancelled) return
-      if (data?.token && data.usuario) {
-        // refreshSession ya pone el token vía setToken → onTokenChange
-        // dispara stomp.reconnect que internamente hace tryAttachPending
-        // tras await deactivate. Solo actualizamos el user aquí.
-        setUser(buildLocalUser(data.usuario))
-      } else if (user) {
-        // Había user optimista pero el refresh falló → la cookie ya no es
-        // válida. Forzamos logout local.
-        setUser(null)
-      }
-    })
+    refreshSession()
+      .then((data) => {
+        if (cancelled) return
+        if (data?.token && data.usuario) {
+          // refreshSession ya pone el token vía setToken → onTokenChange
+          // dispara stomp.reconnect que internamente hace tryAttachPending
+          // tras await deactivate. Solo actualizamos el user aquí.
+          setUser(buildLocalUser(data.usuario))
+        } else if (user) {
+          // Había user optimista pero el refresh falló → la cookie ya no es
+          // válida. Forzamos logout local.
+          setUser(null)
+        }
+        // Si !user y refresh falla, estado correcto (invitado): no-op.
+      })
+      .catch(() => {
+        // Error de red o 5xx — mantenemos el user optimista si lo había.
+        // Un 401 limpio ya se resuelve dentro de refreshSession devolviendo
+        // null, así que esta rama es solo para fallos inesperados.
+      })
     return () => {
       cancelled = true
     }
