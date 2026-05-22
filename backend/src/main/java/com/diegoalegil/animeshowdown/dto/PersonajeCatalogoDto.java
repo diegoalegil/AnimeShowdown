@@ -18,18 +18,20 @@ public class PersonajeCatalogoDto {
     private String anime;
     private String descripcion;
     private String imagenUrl;
+    private String imagenColorDominante;
 
     public PersonajeCatalogoDto() {
     }
 
     public PersonajeCatalogoDto(Long id, String slug, String nombre, String anime,
-            String descripcion, String imagenUrl) {
+            String descripcion, String imagenUrl, String imagenColorDominante) {
         this.id = id;
         this.slug = slug;
         this.nombre = nombre;
         this.anime = anime;
         this.descripcion = descripcion;
         this.imagenUrl = imagenUrl;
+        this.imagenColorDominante = imagenColorDominante;
     }
 
     public static PersonajeCatalogoDto from(Personaje p) {
@@ -39,7 +41,8 @@ public class PersonajeCatalogoDto {
                 p.getNombre(),
                 p.getAnime(),
                 p.getDescripcion(),
-                p.getImagenUrl());
+                p.getImagenUrl(),
+                p.getImagenColorDominante());
     }
 
     public Map<String, Object> toFieldMap(Set<String> fields) {
@@ -50,6 +53,7 @@ public class PersonajeCatalogoDto {
         if (fields.contains("anime")) out.put("anime", anime);
         if (fields.contains("descripcion")) out.put("descripcion", descripcion);
         if (fields.contains("imagenUrl")) out.put("imagenUrl", imagenUrl);
+        if (fields.contains("imagenColorDominante")) out.put("imagenColorDominante", imagenColorDominante);
         return out;
     }
 
@@ -75,5 +79,9 @@ public class PersonajeCatalogoDto {
 
     public String getImagenUrl() {
         return imagenUrl;
+    }
+
+    public String getImagenColorDominante() {
+        return imagenColorDominante;
     }
 }

@@ -30,7 +30,7 @@ class PersonajeCatalogoBusquedaControllerTest {
     @Test
     void catalogoDevuelveCamposCompactosCacheYEtag() throws Exception {
         MvcResult first = mvc.perform(get("/api/personajes/catalogo")
-                        .param("fields", "slug,nombre,anime,imagenUrl"))
+                        .param("fields", "slug,nombre,anime,imagenUrl,imagenColorDominante"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("s-maxage=3600")))
                 .andExpect(header().exists(HttpHeaders.ETAG))
@@ -38,12 +38,13 @@ class PersonajeCatalogoBusquedaControllerTest {
                 .andExpect(jsonPath("$[0].nombre").exists())
                 .andExpect(jsonPath("$[0].anime").exists())
                 .andExpect(jsonPath("$[0].imagenUrl").exists())
+                .andExpect(jsonPath("$[0].imagenColorDominante").exists())
                 .andExpect(jsonPath("$[0].descripcion").doesNotExist())
                 .andReturn();
 
         String etag = first.getResponse().getHeader(HttpHeaders.ETAG);
         mvc.perform(get("/api/personajes/catalogo")
-                        .param("fields", "slug,nombre,anime,imagenUrl")
+                        .param("fields", "slug,nombre,anime,imagenUrl,imagenColorDominante")
                         .header(HttpHeaders.IF_NONE_MATCH, etag))
                 .andExpect(status().isNotModified())
                 .andExpect(header().string(HttpHeaders.ETAG, etag));

@@ -14,8 +14,8 @@ public class PersonajeBusquedaDto extends PersonajeCatalogoDto {
     }
 
     public PersonajeBusquedaDto(Long id, String slug, String nombre, String anime,
-            String descripcion, String imagenUrl, double score) {
-        super(id, slug, nombre, anime, descripcion, imagenUrl);
+            String descripcion, String imagenUrl, String imagenColorDominante, double score) {
+        super(id, slug, nombre, anime, descripcion, imagenUrl, imagenColorDominante);
         this.score = score;
     }
 
@@ -27,6 +27,7 @@ public class PersonajeBusquedaDto extends PersonajeCatalogoDto {
                 p.getAnime(),
                 p.getDescripcion(),
                 p.getImagenUrl(),
+                p.getImagenColorDominante(),
                 score);
     }
 
