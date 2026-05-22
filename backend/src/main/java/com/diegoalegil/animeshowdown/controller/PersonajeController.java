@@ -132,6 +132,25 @@ public class PersonajeController {
         return personajeBusquedaService.buscar(q, limit);
     }
 
+    /**
+     * Batch público para sparklines de ranking. Evita disparar 10 requests
+     * independientes desde /ranking cuando solo necesitamos la mini serie de
+     * los Top 10 visibles.
+     */
+    @GetMapping("/elo-history")
+    public Map<String, List<EloHistoryPoint>> eloHistoryBatch(
+            @RequestParam String slugs,
+            @RequestParam(defaultValue = "7") int dias) {
+        int saneDias = Math.max(1, Math.min(90, dias));
+        List<String> lista = java.util.Arrays.stream(slugs.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .limit(25)
+                .toList();
+        return eloHistoryService.historialBatch(lista, saneDias);
+    }
+
     /** Cache individual 5min por id — usado por /personajes/{id}. */
     @Cacheable(value = "personajes-individual", key = "#id")
     @GetMapping("/{id:\\d+}")

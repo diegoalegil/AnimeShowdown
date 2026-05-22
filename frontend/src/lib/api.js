@@ -450,6 +450,13 @@ export const endpoints = {
       `/api/personajes/${encodeURIComponent(slug)}/elo-history?dias=${dias}`,
       { auth: false },
     ),
+  personajesEloHistoryBatch: (slugs, { dias = 7 } = {}) => {
+    const csv = (slugs ?? []).map(encodeURIComponent).join(',')
+    return api.get(
+      `/api/personajes/elo-history?slugs=${csv}&dias=${dias}`,
+      { auth: false },
+    )
+  },
   // Reactions (Plan v2 §4.3).
   //   getReacciones: público, devuelve {counts, miReaccion, total}.
   //   aplicarReaccion: autenticado. Backend gestiona toggle/swap automático.

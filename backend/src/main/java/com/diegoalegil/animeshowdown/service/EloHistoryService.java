@@ -85,6 +85,19 @@ public class EloHistoryService {
         return puntos;
     }
 
+    @Transactional(readOnly = true)
+    public Map<String, List<EloHistoryPoint>> historialBatch(List<String> slugs, int dias) {
+        Map<String, List<EloHistoryPoint>> out = new java.util.LinkedHashMap<>();
+        if (slugs == null || slugs.isEmpty()) return out;
+        slugs.stream()
+                .filter(slug -> slug != null && !slug.isBlank())
+                .map(String::trim)
+                .distinct()
+                .limit(25)
+                .forEach(slug -> out.put(slug, historial(slug, dias)));
+        return out;
+    }
+
     private static LocalDate toLocalDate(Object value) {
         if (value == null) return null;
         if (value instanceof LocalDate ld) return ld;
