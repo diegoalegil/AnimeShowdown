@@ -611,6 +611,11 @@ export const endpoints = {
   // 404 (modo casual del frontend toma el control). No requiere auth.
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/aleatorio', { auth: false }),
   dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),
+  dueloLiveActive: () => api.get('/api/duelo-live/active'),
+  dueloLiveJoin: () => api.post('/api/duelo-live/queue', undefined),
+  dueloLiveState: (id) => api.get(`/api/duelo-live/${id}`),
+  dueloLiveVote: (id, choice) => api.post(`/api/duelo-live/${id}/vote`, { choice }),
+  dueloLiveLeave: (id) => api.post(`/api/duelo-live/${id}/leave`, undefined),
   votar: (enfrentamientoId, personajeId) =>
     // El backend espera el campo personajeGanadorId (validado con @NotNull en
     // VotoEnfrentamientoRequest); antes mandábamos personajeId y rebotaba con 400.

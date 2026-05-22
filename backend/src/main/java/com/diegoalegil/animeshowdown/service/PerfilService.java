@@ -134,7 +134,8 @@ public class PerfilService {
         long torneosCreados = torneoRepository.countByCreadoPor(usuario);
         return new PerfilStatsDto(votosTotales, prediccionesTotales,
                 prediccionesAcertadas, prediccionesResueltas,
-                redondear(porcentaje, 1), badges, torneosCreados);
+                redondear(porcentaje, 1), badges, torneosCreados,
+                usuario.getEloPvp(), usuario.getPvpPartidos());
     }
 
     @Transactional(readOnly = true)

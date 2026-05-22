@@ -76,12 +76,13 @@ class LogroControllerTest {
     }
 
     @Test
-    void catalogoPublicoDevuelve14Logros() throws Exception {
+    void catalogoPublicoDevuelve15Logros() throws Exception {
         mvc.perform(get("/api/logros"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(14))
+                .andExpect(jsonPath("$.length()").value(15))
                 // Spot-check: primer_voto siempre debe existir.
-                .andExpect(jsonPath("$[?(@.codigo=='primer_voto')]").exists());
+                .andExpect(jsonPath("$[?(@.codigo=='primer_voto')]").exists())
+                .andExpect(jsonPath("$[?(@.codigo=='primera_victoria_pvp')]").exists());
     }
 
     @Test
@@ -98,7 +99,7 @@ class LogroControllerTest {
         mvc.perform(get("/api/logros/mios")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(14))
+                .andExpect(jsonPath("$.length()").value(15))
                 // Todos los desbloqueadoEn deben ser null para user nuevo.
                 .andExpect(jsonPath("$[?(@.desbloqueadoEn != null)]").doesNotExist());
     }

@@ -162,6 +162,7 @@ public class SecurityConfig {
                         // Pages; público porque sitemaps son públicos por definición.
                         .requestMatchers(HttpMethod.GET, "/api/sitemap/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/status").permitAll()
+                        .requestMatchers("/api/duelo-live/**").authenticated()
                         .requestMatchers("/api/auth/me", "/api/auth/me/**").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())

@@ -22,6 +22,8 @@ public class UsuarioRespuesta {
      * mostrar "Activar 2FA" vs "Desactivar 2FA" sin pedir info al usuario.
      */
     private boolean totpHabilitado;
+    private int eloPvp;
+    private int pvpPartidos;
 
     public UsuarioRespuesta(Usuario usuario) {
         this.id = usuario.getId();
@@ -31,6 +33,8 @@ public class UsuarioRespuesta {
         this.rol = usuario.getRol();
         this.estadoVerificacion = usuario.getEstadoVerificacion();
         this.totpHabilitado = usuario.isTotpHabilitado();
+        this.eloPvp = usuario.getEloPvp();
+        this.pvpPartidos = usuario.getPvpPartidos();
     }
 
     public Long getId() { return id; }
@@ -40,4 +44,6 @@ public class UsuarioRespuesta {
     public Rol getRol() { return rol; }
     public EstadoVerificacion getEstadoVerificacion() { return estadoVerificacion; }
     public boolean isTotpHabilitado() { return totpHabilitado; }
+    public int getEloPvp() { return eloPvp; }
+    public int getPvpPartidos() { return pvpPartidos; }
 }
