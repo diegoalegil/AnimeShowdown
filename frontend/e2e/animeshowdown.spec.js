@@ -43,11 +43,12 @@ async function registerThroughUi(page, suffix = Date.now()) {
   await page.getByLabel('Confirma la contraseña').fill(password)
   await page.getByRole('button', { name: 'Crear cuenta' }).click()
   await page.waitForURL('**/')
-  // El link al perfil en el header tiene aria-label "Mi perfil" (de
-  // t('nav.perfil') en es.json). El test antiguo usaba name: 'Perfil'
-  // exacto y no matcheaba. Regex parcial /perfil/i cubre el copy en es
-  // ("Mi perfil") y se mantiene robusto si pasa a en ("My profile") o ja.
-  await expect(page.getByRole('link', { name: /perfil/i }).first()).toBeVisible()
+  // El shell puede arrancar en ES/EN/JA según el detector de idioma del
+  // navegador en CI. La aserción valida que hay sesión activa sin casarse
+  // con una única traducción del aria-label.
+  await expect(
+    page.getByRole('link', { name: /perfil|profile|プロフィール/i }).first(),
+  ).toBeVisible()
   return { username, email, password }
 }
 
