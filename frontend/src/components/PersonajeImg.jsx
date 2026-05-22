@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   CATALOGO_PERSONAJES_HYDRATED_EVENT,
+  MISSING_IMAGE_PREFIX,
   getPersonajeBySlug,
   imagenPersonaje,
 } from '../lib/personajes-core'
@@ -55,12 +56,13 @@ function PersonajeImg({
   }, [])
   const p = getPersonajeBySlug(slug)
   const src = srcOverride ?? imagenPersonaje(slug)
-  // Reset del status durante render cuando src cambia. Patrón oficial de
-  // React para "derived state" — más eficiente que un useEffect con
-  // setState porque React batches el setState con el render actual sin
-  // cascada de re-renders. Sin esto, un onError previo se quedaba
-  // pegado y al hidratarse el catálogo el componente seguía en
-  // PersonajePlaceholder a pesar de tener ya el src real.
+  // Reset del status durante render cuando src cambia (patrón oficial de
+  // React para "derived state"). Cubre dos casos:
+  //   - imagenPersonaje(slug) cambia de null → path real al hidratarse
+  //     el catálogo. Sin reset, un errored=true previo dejaría el
+  //     componente atrapado en PersonajePlaceholder.
+  //   - El slug cambia (caso poco común pero el componente debería
+  //     soportarlo: e.g. carousel que reusa la misma instancia).
   // https://react.dev/reference/react/useState#storing-information-from-previous-renders
   if (status.src !== src && status.src !== null) {
     setStatus({ src: null, loaded: false, errored: false })
@@ -69,6 +71,26 @@ function PersonajeImg({
   const errored = status.src === src && status.errored
   const dominantColor =
     colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
+
+  // Catálogo no hidratado todavía: imagenPersonaje(slug) devolvió el path
+  // sentinel /img/_missing/${slug}.webp y no se pasó un srcOverride real.
+  // En vez de pintar <img> contra ese path (404 → onError → errored=true
+  // → PersonajePlaceholder permanente), mostramos solo el background con
+  // el dominantColor como skeleton. Cuando llegue el catálogo, el evento
+  // CATALOGO_PERSONAJES_HYDRATED_EVENT dispara rerender, src deja de tener
+  // el prefijo sentinel y el <picture>/<img> entra a jugar. Cero 404s,
+  // cero placeholders fantasma.
+  const isPlaceholderSrc = !src || src.startsWith(MISSING_IMAGE_PREFIX)
+  if (isPlaceholderSrc) {
+    return (
+      <span
+        className={`relative block overflow-hidden ${className}`}
+        style={{ backgroundColor: dominantColor, ...style }}
+        aria-busy="true"
+        aria-label={alt || nombre || slug}
+      />
+    )
+  }
 
   if (errored) {
     return (
