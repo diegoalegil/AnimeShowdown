@@ -294,6 +294,13 @@ function VotarPage() {
                   pathname: '/login',
                   search: `?next=${encodeURIComponent('/votar')}`,
                 })
+              } else if (status >= 500) {
+                if (import.meta.env.DEV) {
+                  console.error('[votar] error 5xx al registrar voto', err)
+                }
+                toast.error('El servidor no pudo registrar el voto', {
+                  description: 'No se guardó tu elección. Inténtalo de nuevo en unos segundos.',
+                })
               } else {
                 toast.error('No se pudo registrar el voto', {
                   description: err?.message || 'Inténtalo de nuevo.',
