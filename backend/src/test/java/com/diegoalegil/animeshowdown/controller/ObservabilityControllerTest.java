@@ -3,6 +3,7 @@ package com.diegoalegil.animeshowdown.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -21,10 +22,29 @@ class ObservabilityControllerTest {
 
     @Test
     void prometheusExponeMetricasCustomDeAnimeShowdown() throws Exception {
-        mvc.perform(get("/actuator/prometheus"))
+        // El test pasa el secret de scrape (configurado en
+        // application-test.properties) en el header X-Prometheus-Token.
+        // Audit F007 (2026-05-22): el endpoint ya no es público y exige
+        // este header para responder 200 con el body de métricas.
+        mvc.perform(get("/actuator/prometheus")
+                        .header("X-Prometheus-Token", "test-prometheus-token-no-secret"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("as_votos_total")))
                 .andExpect(content().string(containsString("as_ranking_recalc_duration")))
                 .andExpect(content().string(containsString("as_duelo_sugerido_elo_diff")));
+    }
+
+    @Test
+    void prometheusSinTokenDevuelve401() throws Exception {
+        mvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("WWW-Authenticate", "X-Prometheus-Token"));
+    }
+
+    @Test
+    void prometheusConTokenIncorrectoDevuelve401() throws Exception {
+        mvc.perform(get("/actuator/prometheus")
+                        .header("X-Prometheus-Token", "token-erroneo"))
+                .andExpect(status().isUnauthorized());
     }
 }
