@@ -33,6 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -137,6 +138,10 @@ class EnfrentamientoControllerTest {
 
     /** Crea torneo + lo inicia + crea enfrentamiento entre p1 y p2. Devuelve el id del enfrentamiento. */
     private long crearEnfrentamientoListoParaVotar(String adminToken, long p1, long p2, String suffix) throws Exception {
+        return crearFixtureListoParaVotar(adminToken, p1, p2, suffix).enfrentamientoId();
+    }
+
+    private MatchFixture crearFixtureListoParaVotar(String adminToken, long p1, long p2, String suffix) throws Exception {
         Map<String, String> body = Map.of(
                 "nombre", "Torneo Voto " + suffix,
                 "descripcion", "test voto");
@@ -147,6 +152,7 @@ class EnfrentamientoControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         long torneoId = json.readTree(resTorneo.getResponse().getContentAsString()).get("id").asLong();
+        String slug = json.readTree(resTorneo.getResponse().getContentAsString()).get("slug").asText();
 
         mvc.perform(put("/api/torneos/" + torneoId + "/iniciar")
                 .header("Authorization", "Bearer " + adminToken))
@@ -159,8 +165,11 @@ class EnfrentamientoControllerTest {
                 .content(json.writeValueAsString(enfBody)))
                 .andExpect(status().isCreated())
                 .andReturn();
-        return json.readTree(resEnf.getResponse().getContentAsString()).get(0).get("id").asLong();
+        long enfrentamientoId = json.readTree(resEnf.getResponse().getContentAsString()).get(0).get("id").asLong();
+        return new MatchFixture(torneoId, slug, enfrentamientoId);
     }
+
+    private record MatchFixture(long torneoId, String slug, long enfrentamientoId) {}
 
     @Test
     void votarSinAuthDevuelveForbidden() throws Exception {
@@ -230,6 +239,60 @@ class EnfrentamientoControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals("luffy", ev.getPersonaje().getSlug());
         org.junit.jupiter.api.Assertions.assertEquals(antes + 1, ev.getVotos());
         org.junit.jupiter.api.Assertions.assertEquals(1, ev.getDelta());
+    }
+
+    @Test
+    void votarPublicaUpdateSpectatorPorSlug() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_spectator_user", "votospectator@example.com");
+        long[] ids = dosPersonajes();
+        MatchFixture fixture = crearFixtureListoParaVotar(adminToken, ids[0], ids[1], "spectator-ws");
+
+        mvc.perform(post("/api/enfrentamientos/" + fixture.enfrentamientoId() + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        var captor = org.mockito.ArgumentCaptor.forClass(BracketUpdateEvent.class);
+        verify(messaging).convertAndSend(eq("/topic/tournament/" + fixture.slug()), captor.capture());
+        BracketUpdateEvent ev = captor.getValue();
+        org.junit.jupiter.api.Assertions.assertEquals(fixture.torneoId(), ev.torneoId());
+        org.junit.jupiter.api.Assertions.assertEquals(fixture.enfrentamientoId(), ev.enfrentamientoId());
+        org.junit.jupiter.api.Assertions.assertEquals(ids[0], ev.personaje1Id());
+        org.junit.jupiter.api.Assertions.assertEquals(1, ev.personaje1Votos());
+        org.junit.jupiter.api.Assertions.assertEquals(0, ev.personaje2Votos());
+        org.junit.jupiter.api.Assertions.assertEquals(1, ev.totalVotos());
+    }
+
+    @Test
+    void detalleTorneoExponeCurrentMatchConRelojServidorYVotosPorLado() throws Exception {
+        fijarClock("2026-05-22T06:42:00Z");
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_live_detail_user", "votolivedetail@example.com");
+        long[] ids = dosPersonajes();
+        MatchFixture fixture = crearFixtureListoParaVotar(adminToken, ids[0], ids[1], "spectator-detail");
+
+        mvc.perform(get("/api/torneos/slug/" + fixture.slug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentMatch.id").value(fixture.enfrentamientoId()))
+                .andExpect(jsonPath("$.currentMatch.personaje1Votos").value(0))
+                .andExpect(jsonPath("$.currentMatch.personaje2Votos").value(0))
+                .andExpect(jsonPath("$.liveServerNow").value("2026-05-22T06:42:00"))
+                .andExpect(jsonPath("$.liveEndsAt").exists());
+
+        mvc.perform(post("/api/enfrentamientos/" + fixture.enfrentamientoId() + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/torneos/slug/" + fixture.slug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentMatch.totalVotos").value(1))
+                .andExpect(jsonPath("$.currentMatch.personaje1Votos").value(1))
+                .andExpect(jsonPath("$.currentMatch.personaje2Votos").value(0));
     }
 
     @Test
