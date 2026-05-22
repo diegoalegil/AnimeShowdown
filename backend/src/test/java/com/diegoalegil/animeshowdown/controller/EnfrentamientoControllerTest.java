@@ -217,6 +217,49 @@ class EnfrentamientoControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals(5, votoRepository.countByAnonSessionId(anonId));
     }
 
+    /**
+     * Audit externo AS-003 (2026-05-22): el constraint DB
+     * uk_voto_enfrentamiento_anon_session debe rechazar el segundo voto
+     * con la misma combinación (enfrentamiento_id, anon_session_id)
+     * incluso si el check de aplicación se saltara (carrera concurrente,
+     * por ejemplo). El controller mapea ese caso al 409 desde el check
+     * existsByEnfrentamientoAndAnonSessionId, así que verificamos que
+     * efectivamente devuelve 409 (no 500 por DataIntegrityViolation que
+     * indicaría que el constraint se disparó sin ser mapeado, o no 200
+     * que indicaría duplicado registrado).
+     */
+    @Test
+    void votarAnonimoDosVecesElMismoMatchDevuelve409YNoDuplica() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        String anonId = "anon-dup-session";
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-dup");
+        Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
+
+        // Primer voto OK
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", anonId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anonimo").value(true));
+
+        // Segundo voto MISMA sesión + MISMO match: 409 Conflict.
+        // El check de aplicación lo intercepta antes de llegar al constraint.
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", anonId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(body)))
+                .andExpect(status().isConflict());
+
+        // Solo un voto debe quedar en la BBDD, no dos.
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1,
+                votoRepository.countByAnonSessionId(anonId),
+                "El constraint uk_voto_enfrentamiento_anon_session debería garantizar"
+                        + " un único voto anónimo por sesión y match");
+    }
+
     @Test
     void migrarVotosAnonimosAsociaHistorialAlLogin() throws Exception {
         String adminToken = tokenAdmin();

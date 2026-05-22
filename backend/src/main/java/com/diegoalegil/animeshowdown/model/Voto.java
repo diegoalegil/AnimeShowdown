@@ -25,7 +25,14 @@ import java.time.LocalDateTime;
         // 500. La V16 lo dropea de la BBDD; aquí lo eliminamos del modelo.
         // El uniqueness real (un voto por usuario y enfrentamiento) lo cubre
         // uk_voto_enfrentamiento_usuario, que sí es semánticamente correcto.
-        @UniqueConstraint(name = "uk_voto_enfrentamiento_usuario", columnNames = { "enfrentamiento_id", "usuario_id" })
+        @UniqueConstraint(name = "uk_voto_enfrentamiento_usuario", columnNames = { "enfrentamiento_id", "usuario_id" }),
+        // Audit externo AS-003 (2026-05-22): unicidad de votos anónimos por
+        // sesión, declarada también en JPA para que ddl-auto=validate la
+        // reconozca contra el schema real (V30). NULL != NULL en SQL hace
+        // que la combinación solo se constrainee cuando ambos campos están
+        // presentes — es decir, solo para votos anónimos con sesión, sin
+        // afectar a votos registrados (anon_session_id NULL).
+        @UniqueConstraint(name = "uk_voto_enfrentamiento_anon_session", columnNames = { "enfrentamiento_id", "anon_session_id" })
 }, indexes = {
         // Queries hot path: GROUP BY personaje en el ranking,
         // countByEnfrentamientoAndPersonaje al cerrar torneos, y los DELETE
