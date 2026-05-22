@@ -27,6 +27,16 @@ function abs(path) {
   return `${SITIO}${path.startsWith('/') ? '' : '/'}${path}`
 }
 
+function slugifySchemaName(value) {
+  if (typeof value !== 'string') return ''
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 /**
  * Schema {@code WebSite} — para la home. Habilita el sitelinks search box
  * si Google decide mostrarlo (no garantizado, depende de autoridad de dominio).
@@ -57,7 +67,8 @@ export function webSiteSchema() {
 export function personajeSchema(personaje, stats) {
   if (!personaje) return null
   const url = abs(`/personajes/${personaje.slug}`)
-  const imagen = abs(personaje.imagen)
+  const imagen = abs(personaje.imagen ?? personaje.imagenUrl)
+  const animeSlug = slugifySchemaName(personaje.anime)
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -66,22 +77,83 @@ export function personajeSchema(personaje, stats) {
     image: imagen,
     description: personaje.descripcion,
     additionalType: 'https://schema.org/FictionalCharacter',
-    // affiliation conecta al personaje con su anime. Sin URL específica
-    // porque /animes/{slug} no existe todavía como ruta (queda para
-    // futuro Bloque 5.x cuando hagamos páginas por anime).
     affiliation: {
-      '@type': 'TVSeries',
+      '@type': 'CreativeWorkSeries',
       name: personaje.anime,
+      url: animeSlug ? abs(`/animes/${animeSlug}`) : undefined,
     },
   }
+  if (personaje.sameAs || personaje.wikidataUrl || personaje.malUrl) {
+    schema.sameAs = [personaje.sameAs, personaje.wikidataUrl, personaje.malUrl]
+      .flat()
+      .filter(Boolean)
+  }
   if (stats && Number.isFinite(stats.elo)) {
-    schema.characterAttribute = [
+    schema.additionalProperty = [
       {
         '@type': 'PropertyValue',
         name: 'ELO',
         value: stats.elo,
       },
+      {
+        '@type': 'PropertyValue',
+        name: 'Votos registrados',
+        value: Number(stats.wins ?? 0) + Number(stats.losses ?? 0),
+      },
     ]
+  }
+  return schema
+}
+
+/**
+ * Schema {@code CreativeWorkSeries} para una ficha de anime (/animes/:slug).
+ *
+ * @param animeData objeto agregado de getAnimePorSlug con {anime, slug, personajes, total, topElo}
+ */
+export function animeSeriesSchema(animeData) {
+  if (!animeData) return null
+  const slug = animeData.slug || slugifySchemaName(animeData.anime)
+  const personajes = Array.isArray(animeData.personajes)
+    ? animeData.personajes
+    : []
+  const character = personajes.slice(0, 80).map((p) => ({
+    '@type': 'Person',
+    '@id': abs(`/personajes/${p.slug}`),
+    name: p.nombre,
+    url: abs(`/personajes/${p.slug}`),
+    image: abs(p.imagen ?? p.imagenUrl),
+  }))
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWorkSeries',
+    additionalType: 'https://schema.org/TVSeries',
+    name: animeData.anime,
+    url: abs(`/animes/${slug}`),
+    image: abs(`/assets/anime-banners/${slug}.webp`),
+    inLanguage: 'ja',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'AnimeShowdown',
+      url: SITIO,
+    },
+    character,
+    additionalProperty: [
+      {
+        '@type': 'PropertyValue',
+        name: 'Personajes en AnimeShowdown',
+        value: Number(animeData.total ?? personajes.length),
+      },
+    ],
+  }
+  if (Number.isFinite(animeData.numberOfEpisodes)) {
+    schema.numberOfEpisodes = animeData.numberOfEpisodes
+  }
+  if (animeData.topElo) {
+    schema.additionalProperty.push({
+      '@type': 'PropertyValue',
+      name: 'Top ELO',
+      value: animeData.topElo.elo,
+    })
   }
   return schema
 }
