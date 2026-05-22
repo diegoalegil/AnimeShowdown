@@ -18,7 +18,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
-import { personajes, getStatsPersonaje } from '../data/personajes'
+import { personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS, getTournamentVisual } from '../data/visual-assets'
 
 /**

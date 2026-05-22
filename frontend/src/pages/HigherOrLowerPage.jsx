@@ -13,7 +13,7 @@ import {
 import {
   personajes,
   getStatsPersonaje,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'

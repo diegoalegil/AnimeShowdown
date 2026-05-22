@@ -9,6 +9,7 @@ import {
   Users,
 } from 'lucide-react'
 import { getAnimePorSlug } from '../lib/animes'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -24,7 +25,8 @@ import NotFoundPage from './NotFoundPage'
  */
 function AnimeDetailPage() {
   const { slug } = useParams()
-  const data = getAnimePorSlug(slug)
+  const { personajes: catalogoPersonajes, isLoading } = usePersonajesCatalogo()
+  const data = getAnimePorSlug(slug, catalogoPersonajes)
 
   useSeo(
     data
@@ -34,6 +36,16 @@ function AnimeDetailPage() {
         }
       : { title: '404 — Anime no encontrado', noindex: true },
   )
+
+  if (!data && isLoading) {
+    return (
+      <VisualPageShell visual={getAnimeVisual(slug, slug)} lateralKanji={{ left: '界', right: '界' }}>
+        <div className="mx-auto max-w-6xl py-16 text-center text-sm text-fg-muted">
+          Cargando universo…
+        </div>
+      </VisualPageShell>
+    )
+  }
 
   if (!data) return <NotFoundPage />
 

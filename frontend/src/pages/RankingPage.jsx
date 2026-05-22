@@ -23,12 +23,12 @@ import {
   personajes,
   getStatsPersonaje,
   imagenPersonaje,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import {
   CATEGORIAS,
   MIN_PARA_SECCION,
   getPersonajesPorCategoria,
-} from '../data/personajes-tags'
+} from '../lib/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'

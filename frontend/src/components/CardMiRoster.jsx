@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Heart, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMisFavoritos, useToggleFavorito } from '../hooks/useFavoritos'
-import { getStatsPersonaje } from '../data/personajes'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**

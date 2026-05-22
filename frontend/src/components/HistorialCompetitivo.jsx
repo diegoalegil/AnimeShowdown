@@ -11,7 +11,7 @@ import {
   Trophy,
 } from 'lucide-react'
 import { endpoints, ApiError } from '../lib/api'
-import { imagenPersonaje } from '../data/personajes'
+import { imagenPersonaje } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
 

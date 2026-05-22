@@ -7,7 +7,7 @@ import {
   personajes,
   imagenPersonaje,
   getStatsPersonaje,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**

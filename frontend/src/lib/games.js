@@ -1,10 +1,10 @@
-import { personajes } from '../data/personajes'
+import { readCatalogoPersonajesSnapshot } from './personajes-core'
 
 /**
  * Utilities compartidas por los modos de juego del Bloque 14.
  *
- * <p>Todos client-side: el catálogo {@code personajes} es estático en
- * `frontend/src/data/personajes.js` y los daily picks se calculan
+ * <p>Todos client-side: el catálogo se hidrata desde el endpoint compacto
+ * del backend y los daily picks se calculan
  * determinísticamente por fecha. No necesitamos backend para Daily —
  * todos los usuarios ven el mismo personaje el mismo día sin sync.
  *
@@ -43,6 +43,8 @@ export function fechaDelDia(date = new Date()) {
  * en el mismo personaje cada día).
  */
 export function personajeDelDia(prefix = '', date = new Date()) {
+  const personajes = readCatalogoPersonajesSnapshot()
+  if (personajes.length === 0) return null
   const seed = `${prefix}:${fechaDelDia(date)}`
   const idx = djb2(seed) % personajes.length
   return personajes[idx]
@@ -62,6 +64,8 @@ export function personajeDelDia(prefix = '', date = new Date()) {
  *          o null si el catálogo no permite la ronda (debería pasar nunca con 730 personajes).
  */
 export function impostorDelDia(date = new Date(), salt = '') {
+  const personajes = readCatalogoPersonajesSnapshot()
+  if (personajes.length === 0) return null
   const seed = `impostor:${fechaDelDia(date)}:${salt}`
   const rand = mulberry32(djb2(seed))
 

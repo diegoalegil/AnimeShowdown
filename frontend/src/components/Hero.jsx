@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowRight, Swords, TrendingUp } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
-import { personajes, getStatsPersonaje } from '../data/personajes'
+import { personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useTorneos } from '../lib/torneosQueries'
 

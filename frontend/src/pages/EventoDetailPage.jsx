@@ -20,7 +20,7 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
-import { getStatsPersonaje } from '../data/personajes'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeImg from '../components/PersonajeImg'
 import EditorialCover from '../components/EditorialCover'

@@ -19,7 +19,7 @@ import {
   personajes,
   getStatsPersonaje,
   getPopularidad,
-} from '../data/personajes'
+} from '../lib/personajes-core'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
