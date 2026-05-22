@@ -64,7 +64,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
+                        // Audit externo F007 (2026-05-22): /actuator/prometheus
+                        // expone métricas internas (endpoints, latencias,
+                        // tasas de error, nombres de queries) — útiles para
+                        // un atacante que quiera mapear superficie.
+                        // health e info siguen públicos: el primero lo usa
+                        // Railway/Cloudflare healthcheck, el segundo no
+                        // expone datos sensibles.
+                        // /actuator/prometheus pasa por PrometheusAuthFilter
+                        // que valida X-Prometheus-Token contra
+                        // app.prometheus.scrape-token (igual patrón que el
+                        // cron secret de /api/cron/**). Sin token configurado
+                        // el filtro denega siempre — modo seguro por defecto.
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
                                 "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
                         .permitAll()
