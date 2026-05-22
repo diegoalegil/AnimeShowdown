@@ -192,6 +192,12 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     boolean existsByEnfrentamientoAndUsuario(Enfrentamiento enfrentamiento, Usuario usuario);
 
+    boolean existsByEnfrentamientoAndAnonSessionId(Enfrentamiento enfrentamiento, String anonSessionId);
+
+    long countByAnonSessionId(String anonSessionId);
+
+    List<Voto> findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(String anonSessionId);
+
     /** Total de votos emitidos por un usuario. Plan v2 §4.2 (badges por umbral). */
     long countByUsuario(Usuario usuario);
 

@@ -147,6 +147,23 @@ public class PerfilService {
                 .map(VotoHistorialDto::from);
     }
 
+    @Transactional
+    public int migrarVotosAnonimos(Usuario usuario, String anonSessionId) {
+        if (usuario == null || anonSessionId == null || anonSessionId.isBlank()) {
+            return 0;
+        }
+        int migrados = 0;
+        for (Voto voto : votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(anonSessionId.trim())) {
+            Enfrentamiento enfrentamiento = voto.getEnfrentamiento();
+            if (enfrentamiento != null && votoRepository.existsByEnfrentamientoAndUsuario(enfrentamiento, usuario)) {
+                continue;
+            }
+            voto.setUsuario(usuario);
+            migrados++;
+        }
+        return migrados;
+    }
+
     /** Top N personajes más votados por el usuario. */
     @Transactional(readOnly = true)
     public List<TopPersonajeItem> top(Usuario usuario, int limit) {

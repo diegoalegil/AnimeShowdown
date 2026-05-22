@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -94,6 +95,16 @@ public class PerfilController {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Page<VotoHistorialDto> result = perfilService.historialVotos(usuario, page, size);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/me/migrar-votos-anonimos")
+    public ResponseEntity<?> migrarVotosAnonimos(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestBody MigrarVotosAnonimosRequest body) {
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        int migrados = perfilService.migrarVotosAnonimos(usuario,
+                body == null ? null : body.anonSessionId());
+        return ResponseEntity.ok(Map.of("migrados", migrados));
     }
 
     @GetMapping("/me/top")
@@ -189,4 +200,6 @@ public class PerfilController {
                 .header(HttpHeaders.SET_COOKIE, clear.toString())
                 .build();
     }
+
+    public record MigrarVotosAnonimosRequest(String anonSessionId) {}
 }
