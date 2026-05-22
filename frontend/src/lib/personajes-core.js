@@ -153,6 +153,44 @@ function hashSlug(slug) {
   return Math.abs(h)
 }
 
+/**
+ * ⚠️  ESTADÍSTICAS SINTÉTICAS — NO SON DATOS REALES (audit F005, 2026-05-22).
+ *
+ * <p>El ELO, wins y losses devueltos por esta función NO vienen del backend.
+ * Se calculan determinísticamente a partir del slug del personaje y la tabla
+ * {@link POPULARIDAD} hardcodeada. Misma entrada → mismo output, pero NO
+ * reflejan votos reales de los usuarios.
+ *
+ * <p>Por qué seguimos teniéndola: la UI necesitaba mostrar números antes de
+ * que el backend tuviera suficientes votos como para calcular un ranking
+ * real (cold start del producto). Era preferible mostrar valores razonables
+ * que cards vacías a "ELO --". Con el backend ya devolviendo ranking real
+ * por votos, esto es deuda técnica visible.
+ *
+ * <p><b>Migración pendiente (P0 del audit externo):</b>
+ * <ol>
+ *   <li>Reemplazar TODOS los consumers (~10 sitios) por una query a
+ *       {@code /api/votos/ranking/segmentado} que devuelve ELO real por
+ *       slug, o exponer el campo {@code elo} desde el catálogo backend.</li>
+ *   <li>Cuando el backend no tenga ELO para un slug (personaje nuevo sin
+ *       votos), devolver {@code null} en vez de generar valor sintético —
+ *       la UI puede mostrar "Sin partidas" en vez de un número engañoso.</li>
+ *   <li>Borrar esta función + POPULARIDAD una vez los consumers migren.</li>
+ * </ol>
+ *
+ * <p>Consumers actuales (rg "getStatsPersonaje" frontend/src):
+ * <ul>
+ *   <li>{@code SectionPulso.jsx} — top10 home</li>
+ *   <li>{@code Hero.jsx} — máximo ELO mostrado</li>
+ *   <li>{@code PersonajeCard.jsx} — todas las cards de catálogo</li>
+ *   <li>{@code CardMiRoster.jsx} — perfil del usuario</li>
+ *   <li>{@code PersonajesPage.jsx} — sort/filter</li>
+ *   <li>{@code TvModePage.jsx} — top10 modo TV</li>
+ *   <li>{@code animes.js} — top per anime</li>
+ * </ul>
+ *
+ * @deprecated Migrar a ELO real del backend en {@code /api/votos/ranking/segmentado}.
+ */
 export function getStatsPersonaje(slug) {
   const popularidad = getPopularidad(slug)
   const h = hashSlug(slug)
@@ -160,5 +198,17 @@ export function getStatsPersonaje(slug) {
   const elo = 1500 + popularidad * 7 + variacion
   const wins = Math.round(5 + popularidad / 2 + (h % 8))
   const losses = Math.round(3 + (100 - popularidad) / 4 + (h % 5))
-  return { elo, wins, losses }
+  return { elo, wins, losses, _sintetico: true }
+}
+
+/**
+ * Variante explícita del nombre cuando el call site quiere SEÑALAR que sabe
+ * que el dato es estimado. Funcionalmente equivalente a getStatsPersonaje;
+ * útil durante la migración para grep distinguir qué consumers aún usan la
+ * estimación vs cuáles pasaron a backend real.
+ *
+ * @deprecated Mismo TODO que getStatsPersonaje. Migrar a backend real.
+ */
+export function getStatsPersonajeEstimado(slug) {
+  return getStatsPersonaje(slug)
 }
