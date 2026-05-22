@@ -16,9 +16,6 @@ function PersonajeCutImg({
   const canUseCut = hasCut(slug) && !failed
   const cutSrc = canUseCut ? cutUrl(slug) : null
   const cutBase = cutSrc?.replace(/\.webp$/i, '')
-  const cutSrcSetAvif = cutBase
-    ? `${cutBase}-300.avif 300w, ${cutBase}-600.avif 600w, ${cutBase}-1024.avif 1024w`
-    : undefined
   const cutSrcSetWebp = cutBase
     ? `${cutBase}-300.webp 300w, ${cutBase}-600.webp 600w, ${cutBase}-1024.webp 1024w`
     : undefined
@@ -62,7 +59,6 @@ function PersonajeCutImg({
         aria-hidden="true"
       />
       <picture className="contents">
-        <source type="image/avif" srcSet={cutSrcSetAvif} sizes={sizesAttr} />
         <source type="image/webp" srcSet={cutSrcSetWebp} sizes={sizesAttr} />
         <img
           src={cutSrc}

@@ -14,13 +14,11 @@ import PersonajePlaceholder from './PersonajePlaceholder'
  * un {@link PersonajePlaceholder} en su lugar — iniciales, anime y kanji
  * decorativo. Nunca se muestra el icono de imagen rota del navegador.
  *
- * <p>Performance: usa {@code <picture>} con srcset AVIF + WebP por anchos
+ * <p>Performance: usa {@code <picture>} con srcset WebP por anchos
  * (300/600/1024) generados por {@code generate-image-variants.mjs}. El
- * navegador elige el formato más eficiente que soporte y el ancho que
- * encaje con su viewport. Las variantes se commitean al repo (decisión
- * 2026-05-17 tras bug de performance en producción) — antes Cloudflare
- * Pages skipeaba el script con {@code build:no-images} y servía la
- * original 1024px a cards de 200px, costando ~30MB por página.
+ * navegador elige el ancho que encaje con su viewport. Las variantes WebP
+ * se commitean al repo; AVIF se genera localmente pero no se sube, así que
+ * no se referencia desde producción.
  *
  * <p>Lazy loading y async decoding por default. El caller puede override
  * (p.ej. {@code loading="eager" fetchpriority="high"} para LCP).
@@ -102,16 +100,13 @@ function PersonajeImg({
     )
   }
 
-  // Variantes responsive desde el src original. El browser prioriza AVIF
-  // cuando lo soporta, cae a WebP si no, y finalmente usa el src original.
+  // Variantes responsive desde el src original. Cloudflare Pages solo recibe
+  // las variantes WebP trackeadas; AVIF está ignorado en git.
   const queryIndex = src.indexOf('?')
   const srcPath = queryIndex === -1 ? src : src.slice(0, queryIndex)
   const srcQuery = queryIndex === -1 ? '' : src.slice(queryIndex)
   const base = srcPath.replace(/\.webp$/i, '')
   const isWebp = /\.webp$/i.test(srcPath)
-  const srcsetAvif = isWebp
-    ? `${base}-300.avif${srcQuery} 300w, ${base}-600.avif${srcQuery} 600w, ${base}-1024.avif${srcQuery} 1024w`
-    : undefined
   const srcsetWebp = isWebp
     ? `${base}-300.webp${srcQuery} 300w, ${base}-600.webp${srcQuery} 600w, ${base}-1024.webp${srcQuery} 1024w`
     : undefined
@@ -128,9 +123,6 @@ function PersonajeImg({
       style={{ backgroundColor: dominantColor, ...style }}
     >
       <picture>
-        {srcsetAvif && (
-          <source type="image/avif" srcSet={srcsetAvif} sizes={sizesAttr} />
-        )}
         {srcsetWebp && (
           <source type="image/webp" srcSet={srcsetWebp} sizes={sizesAttr} />
         )}
