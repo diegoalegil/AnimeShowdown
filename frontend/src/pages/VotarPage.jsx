@@ -50,11 +50,13 @@ const ANON_VOTE_LIMIT = 5
 const NEXT_DELAY_MS = 1800
 
 /**
- * Emparejamientos balanceados (propuesta Plan v2 §4.x).
+ * Emparejamientos balanceados + anti-repetición (Plan v2 §4.x).
  *
  * Antes era 100% random sobre los 730 personajes — salían combinaciones
  * sin sentido (un nicho contra Luffy). Ahora:
- *   1. A es completamente aleatorio.
+ *   1. A es completamente aleatorio (penalizando personajes vistos
+ *      recientemente para que no repita el mismo en 3 enfrentamientos
+ *      seguidos).
  *   2. B se busca con popularidad cercana a A (delta ≤ 12 puntos).
  *   3. Si tras 25 intentos no encuentra match cercano (zona muy peculiar),
  *      ampliamos a delta 25 con un intento más. Si tampoco, fallback a
@@ -62,32 +64,104 @@ const NEXT_DELAY_MS = 1800
  *
  * El delta 12 sobre popularidad [0,100] se traduce a ELO ~±84 (popularidad·7),
  * range razonable para que el duelo se sienta competido sin clonar pares.
+ *
+ * Audit feedback (2026-05-22): los duelos "parecen repetirse demasiado".
+ * Añadimos buffer de últimos pares en sessionStorage para evitar el
+ * mismo enfrentamiento (A vs B y B vs A son equivalentes) y penalizar
+ * a personajes vistos en los últimos 6 duelos. sessionStorage (no
+ * localStorage) porque queremos que la memoria se limpie al cerrar la
+ * pestaña — sesión a sesión empezamos en blanco.
  */
+const RECENT_PAIRS_KEY = 'animeshowdown.votar.recent-pairs'
+const RECENT_CHARS_KEY = 'animeshowdown.votar.recent-chars'
+const RECENT_PAIRS_MAX = 20
+const RECENT_CHARS_MAX = 6
+
+function pairKey(slugA, slugB) {
+  // A↔B equivalentes: ordenamos alfabéticamente el slug menor primero.
+  return slugA < slugB ? `${slugA}|${slugB}` : `${slugB}|${slugA}`
+}
+
+function readSessionList(key) {
+  try {
+    const raw = sessionStorage.getItem(key)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeSessionList(key, list, max) {
+  try {
+    const trimmed = list.slice(-max)
+    sessionStorage.setItem(key, JSON.stringify(trimmed))
+  } catch {
+    // sessionStorage puede fallar en private mode; sin él, la anti-
+    // repetición simplemente no funciona en esa sesión (acceptable).
+  }
+}
+
+function recordRecentPair(slugA, slugB) {
+  const pairs = readSessionList(RECENT_PAIRS_KEY)
+  pairs.push(pairKey(slugA, slugB))
+  writeSessionList(RECENT_PAIRS_KEY, pairs, RECENT_PAIRS_MAX)
+  const chars = readSessionList(RECENT_CHARS_KEY)
+  chars.push(slugA, slugB)
+  writeSessionList(RECENT_CHARS_KEY, chars, RECENT_CHARS_MAX * 2)
+}
+
 function getRandomPair() {
   if (personajes.length < 2) return [personajes[0], personajes[0]]
-  const idxA = Math.floor(Math.random() * personajes.length)
-  const a = personajes[idxA]
-  const popA = getPopularidad(a.slug)
+  const recentPairs = new Set(readSessionList(RECENT_PAIRS_KEY))
+  const recentChars = new Set(readSessionList(RECENT_CHARS_KEY))
 
-  const buscarCercano = (deltaMax, intentos) => {
+  // Helper: índice random preferentemente fuera de recentChars. Si tras N
+  // intentos no encuentra uno fresco, devuelve cualquiera (no bloqueamos).
+  const pickIdxA = () => {
+    for (let i = 0; i < 30; i++) {
+      const idx = Math.floor(Math.random() * personajes.length)
+      if (!recentChars.has(personajes[idx].slug)) return idx
+    }
+    return Math.floor(Math.random() * personajes.length)
+  }
+
+  const tryPair = (deltaMax, intentos, blockRecent) => {
+    const idxA = pickIdxA()
+    const a = personajes[idxA]
+    const popA = getPopularidad(a.slug)
     for (let i = 0; i < intentos; i++) {
       const idxB = Math.floor(Math.random() * personajes.length)
       if (idxB === idxA) continue
       const b = personajes[idxB]
-      if (Math.abs(getPopularidad(b.slug) - popA) <= deltaMax) {
-        return b
-      }
+      if (Math.abs(getPopularidad(b.slug) - popA) > deltaMax) continue
+      if (blockRecent && recentPairs.has(pairKey(a.slug, b.slug))) continue
+      if (blockRecent && recentChars.has(b.slug)) continue
+      return [a, b]
     }
     return null
   }
 
-  const b = buscarCercano(12, 25) ?? buscarCercano(25, 10)
-  if (b) return [a, b]
+  // Paso 1: ELO cercano + sin repeticiones recientes (delta 12, 25 tries).
+  // Paso 2: relajamos el anti-repetición pero mantenemos ELO cercano.
+  // Paso 3: relajamos ELO pero no recientes.
+  // Paso 4: random clásico (último recurso).
+  const pair =
+    tryPair(12, 25, true) ?? tryPair(12, 12, false) ?? tryPair(25, 10, true)
+  if (pair) {
+    recordRecentPair(pair[0].slug, pair[1].slug)
+    return pair
+  }
 
-  // Fallback random (debería pasar muy raro).
-  let idxFallback = Math.floor(Math.random() * personajes.length)
-  while (idxFallback === idxA) idxFallback = Math.floor(Math.random() * personajes.length)
-  return [a, personajes[idxFallback]]
+  // Fallback final: random sin restricciones (catálogo demasiado pequeño
+  // o restricciones imposibles de satisfacer).
+  const idxA = Math.floor(Math.random() * personajes.length)
+  let idxB = Math.floor(Math.random() * personajes.length)
+  while (idxB === idxA) idxB = Math.floor(Math.random() * personajes.length)
+  const fallback = [personajes[idxA], personajes[idxB]]
+  recordRecentPair(fallback[0].slug, fallback[1].slug)
+  return fallback
 }
 
 function incrementarContadorLocalVotos() {
