@@ -43,6 +43,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
+import com.diegoalegil.animeshowdown.security.LogSanitizer;
 import com.diegoalegil.animeshowdown.service.ReferralService;
 import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.EmailVerificationService;
@@ -172,7 +173,7 @@ public class AuthController {
         }
 
         if (usuarioRepository.findByEmail(emailNormalizado).isPresent()) {
-            log.warn("Intento de registro con email ya existente: {}", emailNormalizado);
+            log.warn("Intento de registro con email ya existente: {}", LogSanitizer.email(emailNormalizado));
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("El email ya está registrado");
         }
@@ -274,7 +275,7 @@ public class AuthController {
                 .or(() -> usuarioRepository.findByEmail(identificadorLower));
 
         if (usuarioOpt.isEmpty()) {
-            log.warn("Login fallido (usuario/email no existe): {}", identificador);
+            log.warn("Login fallido (usuario/email no existe): {}", LogSanitizer.identifier(identificador));
             auditLogService.registrar(AuditEvento.LOGIN_FAIL, null,
                     Map.of("identificador", identificador, "razon", "usuario_no_existe"),
                     httpRequest);
