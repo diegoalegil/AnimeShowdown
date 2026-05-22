@@ -15,52 +15,52 @@
 /higher-or-lower/*        /games/elo-duel/:splat     301
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
-# devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
-#
-# Importante: reescribimos a "/" y no a "/index.html". Cloudflare Pages
-# normaliza las páginas HTML a su ruta sin extensión; con destino
-# "/index.html" estas rutas acababan respondiendo 308 Location: /.
-/personajes               / 200
-/personajes/:slug         / 200
-/animes                   / 200
-/animes/:slug             / 200
-/torneos                  / 200
-/torneos/crear            / 200
-/torneos/:slug            / 200
-/eventos                  / 200
-/eventos/:slug            / 200
-/duelos/:par              / 200
-/ranking                  / 200
-/votar                    / 200
-/duel-live                / 200
-/login                    / 200
-/register                 / 200
-/auth/callback            / 200
-/forgot-password          / 200
-/reset-password           / 200
-/admin                    / 200
-/admin/comentarios        / 200
-/perfil                   / 200
-/u/:username/logros       / 200
-/u/:username              / 200
-/verify                   / 200
-/newsletter/confirmar     / 200
-/faq                      / 200
-/api-docs                 / 200
-/status                   / 200
-/games                    / 200
-/games/shadow-guess       / 200
-/games/anime-reveal       / 200
-/games/anigrid            / 200
-/games/impostor-trial     / 200
-/games/elo-duel           / 200
-/omikuji                  / 200
-/glossary                 / 200
-/logros                   / 200
-/apoya                    / 200
-/privacidad               / 200
-/terminos                 / 200
-/dmca                     / 200
-/tv                       / 200
-/mi-top5                  / 200
-/leaderboards             / 200
+# devuelva 200 con index.html: Cloudflare servirá 404.html al final.
+/                         /index.html 200
+/personajes               /index.html 200
+/personajes/:slug         /index.html 200
+/animes                   /index.html 200
+/animes/:slug             /index.html 200
+/torneos                  /index.html 200
+/torneos/crear            /index.html 200
+/torneos/:slug            /index.html 200
+/eventos                  /index.html 200
+/eventos/:slug            /index.html 200
+/duelos/:par              /index.html 200
+/ranking                  /index.html 200
+/votar                    /index.html 200
+/duel-live                /index.html 200
+/login                    /index.html 200
+/register                 /index.html 200
+/auth/callback            /index.html 200
+/forgot-password          /index.html 200
+/reset-password           /index.html 200
+/admin                    /index.html 200
+/admin/comentarios        /index.html 200
+/perfil                   /index.html 200
+/u/:username/logros       /index.html 200
+/u/:username              /index.html 200
+/verify                   /index.html 200
+/newsletter/confirmar     /index.html 200
+/faq                      /index.html 200
+/api-docs                 /index.html 200
+/status                   /index.html 200
+/games                    /index.html 200
+/games/shadow-guess       /index.html 200
+/games/anime-reveal       /index.html 200
+/games/anigrid            /index.html 200
+/games/impostor-trial     /index.html 200
+/games/elo-duel           /index.html 200
+/omikuji                  /index.html 200
+/glossary                 /index.html 200
+/logros                   /index.html 200
+/apoya                    /index.html 200
+/privacidad               /index.html 200
+/terminos                 /index.html 200
+/dmca                     /index.html 200
+/tv                       /index.html 200
+/mi-top5                  /index.html 200
+/leaderboards             /index.html 200
+
+# Todo lo demás es realmente desconocido para el CDN.
+/*                        /404.html 404

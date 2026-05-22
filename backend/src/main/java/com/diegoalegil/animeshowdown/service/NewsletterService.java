@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.NewsletterSub;
 import com.diegoalegil.animeshowdown.repository.NewsletterSubRepository;
-import com.diegoalegil.animeshowdown.security.LogSanitizer;
 
 /**
  * Newsletter con double opt-in (Plan v2 §4.8).
@@ -66,21 +65,21 @@ public class NewsletterService {
         if (existente.isPresent()) {
             NewsletterSub s = existente.get();
             if (s.isConfirmado()) {
-                log.info("Newsletter: email ya confirmado, no-op: {}", LogSanitizer.email(email));
+                log.info("Newsletter: email ya confirmado, no-op: {}", email);
                 return ResultadoSuscripcion.YA_CONFIRMADA;
             }
             // No confirmado: refrescamos token y reenviamos el email.
             s.refrescarTokenConfirm();
             repo.save(s);
             disparEmail(s);
-            log.info("Newsletter: token refrescado y email reenviado: {}", LogSanitizer.email(email));
+            log.info("Newsletter: token refrescado y email reenviado: {}", email);
             return ResultadoSuscripcion.REENVIADA;
         }
 
         NewsletterSub nueva = new NewsletterSub(email);
         repo.save(nueva);
         disparEmail(nueva);
-        log.info("Newsletter: nueva suscripción pendiente: {}", LogSanitizer.email(email));
+        log.info("Newsletter: nueva suscripción pendiente: {}", email);
         return ResultadoSuscripcion.CREADA;
     }
 
@@ -100,12 +99,12 @@ public class NewsletterService {
         NewsletterSub s = opt.get();
         if (s.getConfirmExpiraEn() != null
                 && s.getConfirmExpiraEn().isBefore(LocalDateTime.now())) {
-            log.warn("Newsletter confirmar: token expirado para {}", LogSanitizer.email(s.getEmail()));
+            log.warn("Newsletter confirmar: token expirado para {}", s.getEmail());
             return false;
         }
         s.marcarConfirmado();
         repo.save(s);
-        log.info("Newsletter confirmada: {}", LogSanitizer.email(s.getEmail()));
+        log.info("Newsletter confirmada: {}", s.getEmail());
         return true;
     }
 
@@ -115,7 +114,7 @@ public class NewsletterService {
         Optional<NewsletterSub> opt = repo.findByTokenUnsubscribe(tokenUnsubscribe);
         if (opt.isEmpty()) return false;
         repo.delete(opt.get());
-        log.info("Newsletter desuscrita: {}", LogSanitizer.email(opt.get().getEmail()));
+        log.info("Newsletter desuscrita: {}", opt.get().getEmail());
         return true;
     }
 }

@@ -15,7 +15,6 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PasswordResetTokenRepository;
 import com.diegoalegil.animeshowdown.repository.RefreshTokenRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
-import com.diegoalegil.animeshowdown.security.LogSanitizer;
 
 @Service
 public class PasswordResetService {
@@ -56,7 +55,7 @@ public class PasswordResetService {
         String emailNorm = normalizarEmail(email);
         Optional<Usuario> userOpt = usuarioRepo.findByEmail(emailNorm);
         if (userOpt.isEmpty()) {
-            log.warn("Forgot-password: email no registrado: {}", LogSanitizer.email(emailNorm));
+            log.warn("Forgot-password: email no registrado: {}", emailNorm);
             return;
         }
         Usuario u = userOpt.get();

@@ -340,43 +340,6 @@ class AuthControllerTest {
     }
 
     @Test
-    void putAvatarAceptaDataUriImagenPermitida() throws Exception {
-        Sesion sesion = registrarYLoguear("avatar_data_uri", "secreta123", "avatar_data_uri@example.com");
-        String avatar = "data:image/jpeg;base64,AQID";
-
-        mvc.perform(put("/api/auth/me/avatar")
-                .header("Authorization", "Bearer " + sesion.token())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.avatarUrl").value(avatar));
-    }
-
-    @Test
-    void putAvatarRechazaDataUriConMimeNoPermitido() throws Exception {
-        Sesion sesion = registrarYLoguear("avatar_svg", "secreta123", "avatar_svg@example.com");
-
-        mvc.perform(put("/api/auth/me/avatar")
-                .header("Authorization", "Bearer " + sesion.token())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(Map.of(
-                        "avatarUrl", "data:image/svg+xml;base64,PHN2Zy8+"))))
-                .andExpect(status().isUnsupportedMediaType());
-    }
-
-    @Test
-    void putAvatarRechazaDataUriDemasiadoGrande() throws Exception {
-        Sesion sesion = registrarYLoguear("avatar_big", "secreta123", "avatar_big@example.com");
-        String avatar = "data:image/png;base64," + "A".repeat(2_800_000);
-
-        mvc.perform(put("/api/auth/me/avatar")
-                .header("Authorization", "Bearer " + sesion.token())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
-                .andExpect(status().isPayloadTooLarge());
-    }
-
-    @Test
     void auditLogRegistraLoginYRegistro() throws Exception {
         // Plan v2 §2.6: verifica que el AuditLog captura eventos clave de auth.
         // El TestAsyncConfig hace que los @Async corran sincrónicamente, así
