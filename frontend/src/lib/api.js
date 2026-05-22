@@ -386,6 +386,7 @@ export const endpoints = {
   logros: () => api.get('/api/logros', { auth: false }),
   misLogros: () => api.get('/api/logros/mios'),
   logrosStats: () => api.get('/api/logros/stats', { auth: false }),
+  desbloquearOtakuCertificado: () => api.post('/api/logros/otaku-certificado', undefined),
   personajesSimilares: (slug, { limit = 8 } = {}) =>
     api.get(
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,
