@@ -278,7 +278,17 @@ class EnfrentamientoControllerTest {
         long persoA = ids[0]; // recibe 1 registrado
         long persoB = ids[1]; // recibe 3 anónimos
 
-        // 1 voto registrado a A
+        // El catálogo persiste entre tests del mismo @SpringBootTest; otros
+        // tests pueden haber dejado votos en luffy/zoro. En vez de borrar
+        // (lo cual requiere @Transactional explícita y arrastra problemas),
+        // tomamos snapshot del peso pre-test y verificamos solo el DELTA
+        // exacto. Así el test es robusto al orden de ejecución.
+        Double pesoAntesA = votoRepository.sumaPesoByPersonajeId(persoA);
+        Double pesoAntesB = votoRepository.sumaPesoByPersonajeId(persoB);
+        long votosAntesA = votoRepository.countByPersonajeId(persoA);
+        long votosAntesB = votoRepository.countByPersonajeId(persoB);
+
+        // 1 voto registrado a A (incrementa peso en 1.0, votos en 1)
         String userTok = tokenUserRegistrado("ranking_peso_user", "rankingpeso@example.com");
         long enfA = crearEnfrentamientoListoParaVotar(adminToken, persoA, persoB, "peso-A");
         mvc.perform(post("/api/enfrentamientos/" + enfA + "/votar")
@@ -287,8 +297,10 @@ class EnfrentamientoControllerTest {
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", persoA))))
                 .andExpect(status().isOk());
 
-        // 3 votos anónimos a B desde tres sesiones distintas (para que el
-        // constraint anónimo no los rechace) en tres matches distintos.
+        // 3 votos anónimos a B desde tres sesiones distintas (constraint
+        // uk_voto_enfrentamiento_anon_session los rechazaría si fueran
+        // el mismo match + sesión). Cada uno incrementa peso en 0.30
+        // y votos en 1 → total +0.90 y +3.
         for (int i = 0; i < 3; i++) {
             long enfB = crearEnfrentamientoListoParaVotar(adminToken, persoA, persoB, "peso-B" + i);
             mvc.perform(post("/api/enfrentamientos/" + enfB + "/votar")
@@ -298,26 +310,39 @@ class EnfrentamientoControllerTest {
                     .andExpect(status().isOk());
         }
 
-        // Ranking ponderado: A (1.0) DEBE ir antes que B (0.9).
-        // Antes del fix de AS-002, B (3 votos) iba antes que A (1 voto).
         MvcResult res = mvc.perform(get("/api/votos/ranking"))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode arr = json.readTree(res.getResponse().getContentAsString());
 
-        // Buscamos las posiciones de A y B en el ranking devuelto.
-        int posA = -1, posB = -1;
+        // Buscamos entries de A y B en el ranking devuelto.
+        JsonNode entryA = null, entryB = null;
         for (int i = 0; i < arr.size(); i++) {
             long pid = arr.get(i).get("personaje").get("id").asLong();
-            if (pid == persoA) posA = i;
-            if (pid == persoB) posB = i;
+            if (pid == persoA) entryA = arr.get(i);
+            if (pid == persoB) entryB = arr.get(i);
         }
-        org.junit.jupiter.api.Assertions.assertTrue(posA >= 0, "Personaje A no aparece en ranking");
-        org.junit.jupiter.api.Assertions.assertTrue(posB >= 0, "Personaje B no aparece en ranking");
-        org.junit.jupiter.api.Assertions.assertTrue(
-                posA < posB,
-                "Ranking debería poner A (1 voto registrado = peso 1.0) ANTES que B "
-                        + "(3 anónimos = peso 0.9). Posiciones obtenidas: A=" + posA + ", B=" + posB);
+        org.junit.jupiter.api.Assertions.assertNotNull(entryA, "Personaje A no aparece en ranking");
+        org.junit.jupiter.api.Assertions.assertNotNull(entryB, "Personaje B no aparece en ranking");
+
+        // Audit externo B2.1b: deltas exactos.
+        // - votos físicos: A +1, B +3 (no truncado por el peso).
+        // - pesoVotos: A +1.0, B +0.9 (3 anónimos × 0.30).
+        // Antes del fix AS-002 ambos contaban igual (+1 cada uno), así
+        // que B siempre vencía a A — bug de ranking falseado.
+        long deltaVotosA = entryA.get("votos").asLong() - votosAntesA;
+        long deltaVotosB = entryB.get("votos").asLong() - votosAntesB;
+        double deltaPesoA = entryA.get("pesoVotos").asDouble() - pesoAntesA;
+        double deltaPesoB = entryB.get("pesoVotos").asDouble() - pesoAntesB;
+
+        org.junit.jupiter.api.Assertions.assertEquals(1, deltaVotosA,
+                "Delta votos físicos de A debe ser exactamente +1");
+        org.junit.jupiter.api.Assertions.assertEquals(3, deltaVotosB,
+                "Delta votos físicos de B debe ser exactamente +3");
+        org.junit.jupiter.api.Assertions.assertEquals(1.0, deltaPesoA, 0.001,
+                "Delta peso de A debe ser +1.0 (voto registrado)");
+        org.junit.jupiter.api.Assertions.assertEquals(0.9, deltaPesoB, 0.001,
+                "Delta peso de B debe ser +0.9 (3 anónimos × 0.30)");
     }
 
     @Test
