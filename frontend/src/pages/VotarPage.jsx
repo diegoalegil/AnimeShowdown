@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { personajes, imagenPersonaje, getPopularidad } from '../lib/personajes-core'
@@ -12,6 +12,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { VisualPageShell } from '../components/VisualSystem'
 import KanjiSpinner from '../components/KanjiSpinner'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 
 /**
  * VotarPage — arena de duelo rápido (rebrand Plan v2 §14).
@@ -534,14 +535,30 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, requ
   // inactividad de pestaña tenía 50-200ms de lag mientras resolvía
   // ctx.resume() ANTES de programar los oscillators.
   const { warm } = useSound()
+  const reduceMotion = useReducedMotion()
   return (
     <div className="flex flex-col gap-3">
-      <button
+      <motion.button
         type="button"
         onClick={onClick}
         onPointerEnter={warm}
         onFocus={warm}
         disabled={showResult}
+        animate={
+          isVoted
+            ? reduceMotion
+              ? { boxShadow: '0 0 0 2px rgba(245,197,92,0.7)' }
+              : {
+                  scale: [1, 1.08, 1],
+                  boxShadow: [
+                    '0 0 0 rgba(245,197,92,0)',
+                    '0 0 58px rgba(245,197,92,0.65)',
+                    '0 0 0 rgba(245,197,92,0)',
+                  ],
+                }
+            : { scale: 1 }
+        }
+        transition={{ duration: reduceMotion ? 0.18 : 0.56, ease: 'easeOut' }}
         aria-label={
           requiresLogin
             ? `Iniciar sesión para votar por ${personaje.nombre} de ${personaje.anime}`
@@ -592,26 +609,19 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, requ
               </span>
             </motion.div>
           )}
-          {voteResult && (
-            <motion.div
-              key={voteResult.delta + ':' + (voteResult.votosGanador ?? 'x')}
-              initial={{ opacity: 0, y: 16, scale: 0.6 }}
-              animate={{ opacity: [0, 1, 1, 0], y: [-4, -32, -56, -88], scale: [0.7, 1.1, 1, 0.95] }}
-              transition={{ duration: 1.6, times: [0, 0.18, 0.7, 1], ease: 'easeOut' }}
-              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            >
-              <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-400/70 bg-black/75 px-3 py-1.5 font-mono text-sm font-extrabold text-emerald-300 backdrop-blur-sm shadow-[0_0_30px_-5px_rgba(52,211,153,0.6)]">
-                +{voteResult.delta} ELO
-              </span>
-            </motion.div>
-          )}
+          <VoteFeedbackBurst
+            active={Boolean(voteResult)}
+            delta={voteResult?.delta}
+            value={voteResult?.votosGanador}
+            label="ELO actualizado"
+          />
           {requiresLogin && !showResult && (
             <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-gold backdrop-blur-sm">
               Inicia sesión para votar
             </div>
           )}
         </div>
-      </button>
+      </motion.button>
       {/* Info debajo de la card — comparación rápida sin overlay sobre la
           imagen. Nombre + anime + (solo tras votar) link discreto a la ficha. */}
       <div
