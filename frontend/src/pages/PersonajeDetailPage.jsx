@@ -296,9 +296,12 @@ function PersonajeDetailPage() {
               variants={itemVariants}
             >
               {rankGlobal <= 100 && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-200">
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-200"
+                  title="Ranking del catálogo según ELO base estimado (popularidad). El ranking competitivo real vive en /ranking."
+                >
                   <Trophy className="h-3 w-3" />
-                  #{rankGlobal} ranking ELO
+                  #{rankGlobal} ELO base
                 </span>
               )}
               {animePersonajes.length > 1 && (
@@ -381,19 +384,25 @@ function PersonajeDetailPage() {
               className="grid w-full grid-cols-3 gap-3"
               variants={itemVariants}
             >
-              <Stat label="ELO" value={stats.elo} accent />
+              {/* Audit externo AS-010/AS-043 (2026-05-23): el "ELO" mostrado
+                  aquí viene de getStatsPersonaje(slug), determinístico por
+                  slug + popularidad hardcoded. NO es ELO real con K-factor
+                  ni se mueve con los votos. Lo etiquetamos como base/estimado
+                  y el copy de abajo apunta al ranking real para no mentir. */}
+              <Stat label="ELO base" value={stats.elo} accent />
               <Stat
-                label="Récord"
+                label="Récord est."
                 value={`${stats.wins}-${stats.losses}`}
               />
-              <Stat label="Win rate" value={`${winRate}%`} />
+              <Stat label="Win rate est." value={`${winRate}%`} />
             </motion.div>
             {total === 0 && (
               <motion.p
                 className="text-[12px] italic text-fg-muted"
                 variants={itemVariants}
               >
-                Stats disponibles cuando participe en más enfrentamientos.
+                ELO base estimado por popularidad · sin partidas registradas
+                con tus votos todavía.
               </motion.p>
             )}
             {personaje.descripcion && (
@@ -443,7 +452,20 @@ function PersonajeDetailPage() {
               className="text-[12px] leading-relaxed text-fg-muted"
               variants={itemVariants}
             >
-              Stats derivadas del historial de enfrentamientos. Cita y nicknames vía AnimeChan/MyAnimeList cuando están disponibles.
+              {/* Audit externo AS-043 (2026-05-23): antes "Stats derivadas
+                  del historial de enfrentamientos" — falso porque estas
+                  stats se calculan determinísticamente desde el slug y
+                  una tabla de popularidad estimada, NO desde votos reales.
+                  El ELO real ponderado vive en /ranking. */}
+              ELO base estimado por popularidad para el cold-start del
+              catálogo. El{' '}
+              <Link
+                to="/ranking"
+                className="text-gold underline decoration-gold/40 underline-offset-2 hover:decoration-gold"
+              >
+                ranking competitivo
+              </Link>
+              {' '}lo mueven los votos reales de la comunidad. Cita y nicknames vía AnimeChan/MyAnimeList cuando están disponibles.
             </motion.p>
             <motion.div
               className="mt-2 flex w-full items-center justify-between gap-3 border-t border-border pt-4"
