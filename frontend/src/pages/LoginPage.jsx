@@ -292,13 +292,24 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
             htmlFor="codigo"
             className="text-[13px] font-medium text-fg-strong"
           >
-            Código de 6 dígitos
+            Código TOTP o código de recuperación
           </label>
+          {/* Audit F012 (2026-05-22): antes este input tenía
+              inputMode="numeric" + pattern="[0-9]*" + label "6 dígitos",
+              pero el backend ACEPTA también códigos backup alfanuméricos
+              de 10 chars (mira Totp2faVerifyLoginRequest + AuthController).
+              Un usuario que perdió su authenticator y quiere usar un
+              backup code quedaba bloqueado: el teclado móvil salía numérico,
+              el form validation impedía letras, y el placeholder/label
+              hablaban solo del TOTP de 6 dígitos.
+              Ahora inputMode="text" + sin pattern restrictivo (la validación
+              de formato la hace el backend), label más honesto, placeholder
+              que muestra ambos formatos. minLength 6 sigue cubriendo el caso
+              de TOTP; backup codes tienen 10 así que también pasan. */}
           <input
             id="codigo"
             type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
+            inputMode="text"
             autoFocus
             autoComplete="one-time-code"
             maxLength={11}
@@ -309,14 +320,14 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
             className={`rounded-lg border bg-bg px-3.5 py-3 text-center font-mono text-2xl tracking-[0.4em] text-fg-strong placeholder:text-fg-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
               errors.codigo ? 'border-red-500' : 'border-border'
             }`}
-            placeholder="123 456"
+            placeholder="123456 / abcd-ef-12"
           />
           {errors.codigo && (
             <p className="text-[12px] text-red-400">{errors.codigo.message}</p>
           )}
           <p className="text-[11px] text-fg-muted">
-            ¿No tienes la app a mano? Usa uno de tus códigos de recuperación de 10
-            caracteres.
+            Usa el código de 6 dígitos de tu app TOTP, o uno de tus códigos de
+            recuperación de 10 caracteres si perdiste el teléfono.
           </p>
         </div>
         <div className="flex items-center justify-between text-[12px] text-fg-muted">

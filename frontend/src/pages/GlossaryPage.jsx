@@ -436,7 +436,7 @@ function GlossaryPage() {
           <EmptyStateScene
             icon={BookOpen}
             title={`Sin términos para "${filtro}"`}
-            action={{ to: '/glosario', label: 'Limpiar búsqueda' }}
+            action={{ to: '/glossary', label: 'Limpiar búsqueda' }}
           >
             Prueba con otra palabra o limpia el filtro para ver el glosario
             completo.
