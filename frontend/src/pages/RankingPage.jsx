@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -37,6 +38,7 @@ import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import { endpoints } from '../lib/api'
 import {
   useAnimesConVotos,
   useRankingDeltaSubscription,
@@ -521,6 +523,16 @@ function ListaEloLocal() {
 
   const podio = filtered.slice(0, 3)
   const resto = filtered.slice(3, 100)
+  const top10Slugs = useMemo(
+    () => filtered.slice(0, 10).map((p) => p.slug),
+    [filtered],
+  )
+  const { data: eloHistoryTop10 } = useQuery({
+    queryKey: ['ranking', 'elo-history', 'top10', top10Slugs.join(',')],
+    queryFn: () => endpoints.personajesEloHistoryBatch(top10Slugs, { dias: 7 }),
+    enabled: top10Slugs.length > 0,
+    staleTime: 60 * 60 * 1000,
+  })
   const hayFiltros = Boolean(search) || Boolean(animeFilter)
 
   return (
@@ -587,7 +599,9 @@ function ListaEloLocal() {
           {/* Podio Top 3 — solo cuando no hay filtros activos. Si el
               usuario filtra perdería sentido ver "Top 3 global" mezclado
               con un subconjunto. */}
-          {!hayFiltros && podio.length === 3 && <Podio top3={podio} />}
+          {!hayFiltros && podio.length === 3 && (
+            <Podio top3={podio} historyBySlug={eloHistoryTop10 ?? {}} />
+          )}
 
           {hayFiltros && (
             <p className="text-[12px] text-fg-muted">
@@ -603,6 +617,7 @@ function ListaEloLocal() {
               <RankRowElo
                 key={p.slug}
                 rank={hayFiltros ? i + 1 : i + 4}
+                history={eloHistoryTop10?.[p.slug]}
                 {...p}
               />
             ))}
@@ -617,18 +632,18 @@ function ListaEloLocal() {
  * Podio Top 3 — campeón al centro, plata izquierda, bronce derecha.
  * Imagen grande y badges diferenciados por posición.
  */
-function Podio({ top3 }) {
+function Podio({ top3, historyBySlug = {} }) {
   const [primero, segundo, tercero] = top3
   return (
     <div className="grid grid-cols-3 gap-3 sm:gap-6">
-      <PodioCard personaje={segundo} rank={2} />
-      <PodioCard personaje={primero} rank={1} highlighted />
-      <PodioCard personaje={tercero} rank={3} />
+      <PodioCard personaje={segundo} rank={2} history={historyBySlug[segundo.slug]} />
+      <PodioCard personaje={primero} rank={1} highlighted history={historyBySlug[primero.slug]} />
+      <PodioCard personaje={tercero} rank={3} history={historyBySlug[tercero.slug]} />
     </div>
   )
 }
 
-function PodioCard({ personaje, rank, highlighted }) {
+function PodioCard({ personaje, rank, highlighted, history }) {
   const tone =
     rank === 1
       ? {
@@ -700,8 +715,64 @@ function PodioCard({ personaje, rank, highlighted }) {
             ELO
           </span>
         </p>
+        <EloSparkline points={history} className="mt-1" />
       </div>
     </Link>
+  )
+}
+
+function EloSparkline({ points, className = '' }) {
+  const values = Array.isArray(points)
+    ? points.map((p) => Number(p.votosAcumulados ?? p.elo ?? 0))
+    : []
+  if (values.length < 2) {
+    return (
+      <svg
+        viewBox="0 0 60 20"
+        role="img"
+        aria-label="Sin tendencia suficiente"
+        className={`h-5 w-[60px] text-fg-muted/50 ${className}`}
+      >
+        <line x1="2" y1="10" x2="58" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    )
+  }
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = Math.max(1, max - min)
+  const step = 56 / (values.length - 1)
+  const polyline = values
+    .map((value, index) => {
+      const x = 2 + index * step
+      const y = 18 - ((value - min) / range) * 16
+      return `${x.toFixed(2)},${y.toFixed(2)}`
+    })
+    .join(' ')
+  const trend = values[values.length - 1] - values[0]
+  const color =
+    trend > 0 ? 'text-emerald-300' : trend < 0 ? 'text-rose-300' : 'text-fg-muted'
+  const label =
+    trend > 0
+      ? `Tendencia positiva de ${trend} votos`
+      : trend < 0
+        ? `Tendencia negativa de ${Math.abs(trend)} votos`
+        : 'Tendencia plana'
+  return (
+    <svg
+      viewBox="0 0 60 20"
+      role="img"
+      aria-label={label}
+      className={`h-5 w-[60px] ${color} ${className}`}
+    >
+      <polyline
+        points={polyline}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }
 
@@ -835,7 +906,7 @@ function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null
   )
 }
 
-function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses }) {
+function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses, history }) {
   const total = wins + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
   const esTop10 = rank <= 10
@@ -875,6 +946,7 @@ function RankRowElo({ rank, slug, nombre, anime, elo, wins, losses }) {
             )}
           </div>
           <p className="truncate text-[12px] text-fg-muted">{anime}</p>
+          {esTop10 && <EloSparkline points={history} className="mt-1" />}
         </div>
         <div className="hidden text-right sm:block">
           <p className="text-[12px] text-fg-muted">

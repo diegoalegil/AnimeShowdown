@@ -73,4 +73,14 @@ class PersonajeHistorialTest {
         mvc.perform(get("/api/personajes/no-existe/matchups"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void eloHistoryBatchDevuelveMapaPorSlugParaSparklines() throws Exception {
+        mvc.perform(get("/api/personajes/elo-history?slugs=luffy,naruto,zoro&dias=7"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.luffy").isArray())
+                .andExpect(jsonPath("$.naruto").isArray())
+                .andExpect(jsonPath("$.zoro").isArray())
+                .andExpect(jsonPath("$.luffy.length()").value(7));
+    }
 }
