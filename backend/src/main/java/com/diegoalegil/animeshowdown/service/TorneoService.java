@@ -78,6 +78,7 @@ public class TorneoService {
     public Torneo crear(TorneoCrearRequest request) {
         String slug = generarSlugUnico(request.getNombre());
         Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
+        torneo.setPublico(true);
         return torneoRepository.save(torneo);
     }
 
@@ -141,6 +142,7 @@ public class TorneoService {
         Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
         torneo.setCreadoPor(creador);
         torneo.setEstadoRevision(EstadoRevision.PENDIENTE);
+        torneo.setPublico(request.esPublico());
         Torneo guardado = torneoRepository.save(torneo);
 
         // Precomputa el bracket pero NO lo arranca — la aprobación admin

@@ -580,13 +580,13 @@ export const endpoints = {
   torneoBySlug: (slug) => api.get(`/api/torneos/slug/${slug}`),
   createTorneo: (data) => api.post('/api/torneos', data),
   // Plan v2 §4.9: torneos creados por usuario verificado.
-  //   crearTorneoMio: body { nombre, descripcion?, participantesIds[8|16] }
+  //   crearTorneoMio: body { nombre, descripcion?, publico?, participantesIds[8|16] }
   //     -> 201 con Torneo en estado SCHEDULED/PENDIENTE. Necesita email
   //     verificado o el backend devuelve 400.
   //   misTorneos: lista del propio creador, todos los estados de revisión.
   //   torneosPendientes / aprobar / rechazar: admin only.
-  crearTorneoMio: ({ nombre, descripcion, participantesIds }) =>
-    api.post('/api/torneos/mio', { nombre, descripcion, participantesIds }),
+  crearTorneoMio: ({ nombre, descripcion, publico = true, participantesIds }) =>
+    api.post('/api/torneos/mio', { nombre, descripcion, publico, participantesIds }),
   misTorneos: () => api.get('/api/torneos/mios'),
   torneosPendientes: () => api.get('/api/admin/torneos/pendientes'),
   aprobarTorneo: (id) => api.put(`/api/admin/torneos/${id}/aprobar`),

@@ -31,6 +31,8 @@ public class TorneoCrearMioRequest {
     @NotEmpty(message = "Debes elegir los personajes participantes")
     private List<Long> participantesIds;
 
+    private Boolean publico = true;
+
     public TorneoCrearMioRequest() {
     }
 
@@ -56,5 +58,17 @@ public class TorneoCrearMioRequest {
 
     public void setParticipantesIds(List<Long> participantesIds) {
         this.participantesIds = participantesIds;
+    }
+
+    public Boolean getPublico() {
+        return publico;
+    }
+
+    public void setPublico(Boolean publico) {
+        this.publico = publico;
+    }
+
+    public boolean esPublico() {
+        return publico == null || publico;
     }
 }

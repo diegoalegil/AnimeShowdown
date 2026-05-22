@@ -112,6 +112,9 @@ AnimeShowdown agrega datos de:
 - **Torneos en directo**: `/torneos/:slug` expone `currentMatch`,
   `liveServerNow`, `liveEndsAt` y actualizaciones STOMP públicas en
   `/topic/tournament/{slug}` para modo spectator con barras de voto.
+- **Torneos públicos de comunidad**: los usuarios verificados pueden crear
+  brackets públicos; tras revisión admin aparecen en `/torneos` y pueden
+  destacarse en home por votos recibidos durante los últimos 7 días.
 
 Los textos descriptivos de personajes son originales del proyecto (o
 generados con LLM y revisados manualmente). El uso para citar y comparar

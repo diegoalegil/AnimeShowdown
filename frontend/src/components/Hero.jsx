@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, Swords, TrendingUp } from 'lucide-react'
+import { ArrowRight, Swords, TrendingUp, Trophy } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { personajes, getStatsPersonaje } from '../lib/personajes-core'
@@ -44,6 +44,9 @@ function Hero() {
   const { data: torneos = [] } = useTorneos()
   const eloMax = Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))
   const torneosVisibles = torneos.length || 13
+  const torneoDestacado = torneos
+    .filter((t) => Number(t.votosUltimos7Dias ?? 0) > 20)
+    .sort((a, b) => Number(b.votosUltimos7Dias ?? 0) - Number(a.votosUltimos7Dias ?? 0))[0]
   // Audit perf 2026-05-18: CTAs principales del hero usan pointerdown
   // para feedback inmediato. La nav del Link sigue ocurriendo en click
   // (default del browser); el sonido va por delante.
@@ -141,6 +144,31 @@ function Hero() {
           <HeroStat icon="👥" value={`${universos}`} label="Universos" />
           <HeroStat icon="↗" value={`${eloMax}`} label="ELO máximo" />
         </motion.div>
+        {torneoDestacado && (
+          <motion.div
+            className="as-panel flex w-full max-w-2xl flex-col items-center gap-3 rounded-xl border-gold/35 bg-gold/10 p-4 text-center sm:flex-row sm:justify-between sm:text-left"
+            variants={itemVariants}
+          >
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+              <Trophy className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+                Torneo destacado
+              </p>
+              <p className="truncate text-sm font-bold text-fg-strong">
+                {torneoDestacado.nombre}
+              </p>
+            </div>
+            <Link
+              to={`/torneos/${torneoDestacado.slug}`}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-2 text-[12px] font-black text-bg transition-colors hover:brightness-110"
+            >
+              Ver comunidad
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </motion.div>
+        )}
       </motion.div>
     </section>
   )
