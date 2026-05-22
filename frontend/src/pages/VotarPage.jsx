@@ -288,7 +288,20 @@ function VotarPage() {
               if (status === 409) {
                 toast.error('Ya votaste este enfrentamiento')
               } else if (status === 429) {
-                setShowAnonLimitModal(true)
+                // 429 puede venir por dos razones:
+                //  - usuario anónimo agotó sus 5 votos invitados → modal CTA
+                //  - usuario autenticado cayó en el rate limit del backend
+                //    (votos demasiado rápidos) → toast neutral, NUNCA el
+                //    modal de "crea cuenta" porque ya la tiene.
+                // Antes mostraba el modal sin distinguir, lo que confundía
+                // a usuarios logueados con un CTA que no aplicaba.
+                if (!user) {
+                  setShowAnonLimitModal(true)
+                } else {
+                  toast.error('Votas demasiado rápido', {
+                    description: 'Espera unos segundos antes de votar de nuevo.',
+                  })
+                }
               } else if (status === 401) {
                 navigate({
                   pathname: '/login',
