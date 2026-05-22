@@ -29,9 +29,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * <p>Cubre catalogo + endpoint personal + flow desbloqueo:
  * <ul>
- *   <li>GET /api/logros sin auth devuelve 14 del catálogo.</li>
+ *   <li>GET /api/logros sin auth devuelve 16 del catálogo.</li>
  *   <li>GET /api/logros/mios sin auth: 403.</li>
- *   <li>Usuario nuevo: 14 entries, todos con desbloqueadoEn null.</li>
+ *   <li>Usuario nuevo: 16 entries, todos con desbloqueadoEn null.</li>
  *   <li>Tras desbloquear "primer_voto" via BadgeService directamente:
  *       endpoint refleja el desbloqueo + se crea notif BADGE_DESBLOQUEADO.</li>
  *   <li>Desbloquear el mismo dos veces: idempotente, solo 1 fila.</li>
@@ -76,13 +76,14 @@ class LogroControllerTest {
     }
 
     @Test
-    void catalogoPublicoDevuelve15Logros() throws Exception {
+    void catalogoPublicoDevuelve16Logros() throws Exception {
         mvc.perform(get("/api/logros"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(15))
+                .andExpect(jsonPath("$.length()").value(16))
                 // Spot-check: primer_voto siempre debe existir.
                 .andExpect(jsonPath("$[?(@.codigo=='primer_voto')]").exists())
-                .andExpect(jsonPath("$[?(@.codigo=='primera_victoria_pvp')]").exists());
+                .andExpect(jsonPath("$[?(@.codigo=='primera_victoria_pvp')]").exists())
+                .andExpect(jsonPath("$[?(@.codigo=='otaku_certificado')]").exists());
     }
 
     @Test
@@ -99,7 +100,7 @@ class LogroControllerTest {
         mvc.perform(get("/api/logros/mios")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(15))
+                .andExpect(jsonPath("$.length()").value(16))
                 // Todos los desbloqueadoEn deben ser null para user nuevo.
                 .andExpect(jsonPath("$[?(@.desbloqueadoEn != null)]").doesNotExist());
     }
@@ -164,13 +165,14 @@ class LogroControllerTest {
     }
 
     @Test
-    void statsPublicoDevuelve14CodigosConCount() throws Exception {
-        // Sin desbloqueos previos, el endpoint debe devolver los 14 codigos
+    void statsPublicoDevuelve16CodigosConCount() throws Exception {
+        // Sin desbloqueos previos, el endpoint debe devolver los codigos
         // del catálogo con count=0 (no se omiten los que tienen 0).
         mvc.perform(get("/api/logros/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primer_voto").exists())
                 .andExpect(jsonPath("$.mil_votos").exists())
+                .andExpect(jsonPath("$.otaku_certificado").exists())
                 .andExpect(jsonPath("$.primer_voto").value(org.hamcrest.Matchers.greaterThanOrEqualTo(0)));
     }
 
@@ -187,6 +189,22 @@ class LogroControllerTest {
         assert primerVotoDespues == primerVotoAntes + 2
                 : "Debe sumar 2 desbloqueos; antes=" + primerVotoAntes
                   + " despues=" + primerVotoDespues;
+    }
+
+    @Test
+    void otakuCertificadoSeDesbloqueaDesdeEndpointAutenticado() throws Exception {
+        crearUsuario("quiz_alice", "quiz_alice@example.com");
+        String token = tokenDe("quiz_alice");
+
+        mvc.perform(post("/api/logros/otaku-certificado")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.desbloqueado").value(true));
+
+        mvc.perform(get("/api/logros/mios")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.codigo=='otaku_certificado' && @.desbloqueadoEn != null)]").exists());
     }
 
     private long primerVotoCount() throws Exception {

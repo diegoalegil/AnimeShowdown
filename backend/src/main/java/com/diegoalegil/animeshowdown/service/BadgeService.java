@@ -85,6 +85,11 @@ public class BadgeService {
         return desbloquearLogro(usuario, logro, hora);
     }
 
+    @Transactional
+    public Optional<UsuarioLogro> desbloquearOtakuCertificado(Usuario usuario) {
+        return desbloquear(usuario, "otaku_certificado");
+    }
+
     private Optional<UsuarioLogro> desbloquearLogro(Usuario usuario, Logro logro, LocalDateTime desbloqueadoEn) {
         // Pre-check rápido para evitar el round-trip al UNIQUE constraint
         // en el caso común (badge ya desbloqueado).

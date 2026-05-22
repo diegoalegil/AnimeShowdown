@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -59,5 +60,14 @@ public class LogroController {
     @GetMapping("/stats")
     public ResponseEntity<java.util.Map<String, Long>> stats() {
         return ResponseEntity.ok(badgeService.contarDesbloqueosPorBadge());
+    }
+
+    @PostMapping("/otaku-certificado")
+    public ResponseEntity<?> otakuCertificado(@AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var desbloqueo = badgeService.desbloquearOtakuCertificado(usuario);
+        return ResponseEntity.ok(java.util.Map.of("desbloqueado", desbloqueo.isPresent()));
     }
 }
