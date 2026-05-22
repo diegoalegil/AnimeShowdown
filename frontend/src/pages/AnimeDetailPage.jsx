@@ -11,7 +11,7 @@ import {
 import { getAnimePorSlug } from '../lib/animes'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { animeSeriesSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PersonajeCard from '../components/PersonajeCard'
 import PersonajeImg from '../components/PersonajeImg'
@@ -63,6 +63,10 @@ function AnimeDetailPage() {
 
   return (
     <VisualPageShell visual={visual} lateralKanji={{left: visual?.kanji ?? "界", right: "界"}}>
+      <JsonLd
+        id="anime-series"
+        schema={animeSeriesSchema({ ...data, slug })}
+      />
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
