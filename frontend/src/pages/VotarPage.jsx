@@ -418,7 +418,7 @@ function VotarPage() {
               type="button"
               onClick={handleNext}
               disabled={isFetching || isFetchingDueloSugerido}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
             >
               <SkipForward className="h-3.5 w-3.5" />
               {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
@@ -512,7 +512,7 @@ function VotarPage() {
           {sinMatchesAbiertos && (
             <Link
               to="/torneos"
-              className="text-[12px] text-accent hover:underline"
+              className="text-[12px] text-gold hover:underline"
             >
               Ver torneos disponibles →
             </Link>
@@ -539,10 +539,10 @@ function VsBadge({ votedFor }) {
         repeat: votedFor ? 0 : Infinity,
         ease: 'easeInOut',
       }}
-      className="relative flex h-14 w-14 items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-accent shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] sm:h-20 sm:w-20"
+      className="relative flex h-14 w-14 items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-gold shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] sm:h-20 sm:w-20"
     >
       <Swords className="h-5 w-5 sm:h-7 sm:w-7" />
-      <span className="absolute -bottom-6 font-mono text-[10px] font-extrabold uppercase tracking-[0.25em] text-accent">
+      <span className="absolute -bottom-6 font-mono text-[10px] font-extrabold uppercase tracking-[0.25em] text-gold">
         VS
       </span>
     </motion.div>
@@ -625,7 +625,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
               transition={{ type: 'spring', stiffness: 220, damping: 14 }}
               className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4"
             >
-              <span className="rounded-full border-2 border-accent bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.18em] text-accent backdrop-blur-sm">
+              <span className="rounded-full border-2 border-accent bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.18em] text-gold backdrop-blur-sm">
                 ✓ Tu voto
               </span>
             </motion.div>
@@ -657,7 +657,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
         {showResult && (
           <Link
             to={`/personajes/${personaje.slug}`}
-            className="mt-1 inline-flex items-center gap-1 text-[11px] text-accent hover:underline"
+            className="mt-1 inline-flex items-center gap-1 text-[11px] text-gold hover:underline"
           >
             Ver ficha
             <ArrowRight className="h-3 w-3" />

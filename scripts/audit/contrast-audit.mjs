@@ -19,12 +19,13 @@
  * fuera de docs/audit/.
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const CSS_PATH = join(ROOT, 'frontend/src/index.css')
+const FRONTEND_SRC = join(ROOT, 'frontend/src')
 const OUTPUT = join(ROOT, 'docs/audit/contrast-report.md')
 
 // ---------- Parseo de colores ----------
@@ -138,11 +139,50 @@ function extractThemeTokens(css) {
   return tokens
 }
 
+function walkFiles(dir, acc = []) {
+  if (!existsSync(dir)) return acc
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry)
+    let stat
+    try {
+      stat = statSync(full)
+    } catch {
+      continue
+    }
+    if (stat.isDirectory()) {
+      if (entry === 'node_modules' || entry === 'dist') continue
+      walkFiles(full, acc)
+    } else if (/\.(jsx?|tsx?)$/i.test(entry)) {
+      acc.push(full)
+    }
+  }
+  return acc
+}
+
+function findTextAccentUsages() {
+  const matches = []
+  for (const file of walkFiles(FRONTEND_SRC)) {
+    const src = readFileSync(file, 'utf8')
+    const lines = src.split('\n')
+    lines.forEach((line, index) => {
+      if (line.includes('text-accent')) {
+        matches.push({
+          file: file.replace(ROOT + '/', ''),
+          line: index + 1,
+          value: line.trim(),
+        })
+      }
+    })
+  }
+  return matches
+}
+
 // ---------- Plan de auditoría ----------
 
 function main() {
   const css = readFileSync(CSS_PATH, 'utf8')
   const tokens = extractThemeTokens(css)
+  const textAccentUsages = findTextAccentUsages()
 
   // Resolver tokens a colores reales (opacos cuando hace falta)
   // Algunos tokens son rgb con alpha (--color-accent-soft). Para ésos
@@ -224,7 +264,7 @@ function main() {
   })
 
   // Generar reporte
-  const report = generateReport(tokens, resolved, results)
+  const report = generateReport(tokens, resolved, results, textAccentUsages)
   mkdirSync(dirname(OUTPUT), { recursive: true })
   writeFileSync(OUTPUT, report)
 
@@ -233,10 +273,11 @@ function main() {
   const fails = results.filter((r) => r.grade === 'FAIL' || r.grade === 'AA-large-only').length
   const aa = results.filter((r) => r.grade === 'AA' || r.grade === 'AAA').length
   console.log(`  ${aa} pasan AA, ${fails} fallan o solo AA-large`)
+  console.log(`  text-accent en JSX/TSX: ${textAccentUsages.length}`)
   console.log(`Reporte: ${OUTPUT}`)
 }
 
-function generateReport(tokens, resolved, results) {
+function generateReport(tokens, resolved, results, textAccentUsages) {
   const lines = []
   lines.push('# Auditoría de contraste WCAG — AnimeShowdown')
   lines.push('')
@@ -262,6 +303,23 @@ function generateReport(tokens, resolved, results) {
   lines.push(`| AA-large solo (3-4.5:1) | ${aaLarge} | ${Math.round(aaLarge / total * 100)}% ${aaLarge > 0 ? '⚠' : ''} |`)
   lines.push(`| FAIL (< 3:1) | ${fails} | ${Math.round(fails / total * 100)}% ${fails > 0 ? '⚠' : ''} |`)
   lines.push('')
+
+  lines.push('## Uso de rojo de marca como texto')
+  lines.push('')
+  lines.push('El token `--color-accent` no alcanza AA como texto sobre fondos oscuros. Por eso el criterio operativo es: rojo para fondos, bordes, glows y CTAs; dorado/cyan/blanco para texto legible.')
+  lines.push('')
+  lines.push('| Patrón escaneado | Ocurrencias en `frontend/src` | Estado |')
+  lines.push('|---|---:|---|')
+  lines.push(`| \`text-accent\` / \`hover:text-accent\` / variantes | ${textAccentUsages.length} | ${textAccentUsages.length === 0 ? '✅ reservado fuera de texto' : '⚠ revisar usos'} |`)
+  lines.push('')
+  if (textAccentUsages.length > 0) {
+    lines.push('Primeros usos detectados:')
+    lines.push('')
+    for (const usage of textAccentUsages.slice(0, 20)) {
+      lines.push(`- \`${usage.file}:${usage.line}\` — \`${usage.value}\``)
+    }
+    lines.push('')
+  }
 
   // Tokens detectados
   lines.push('## Tokens detectados en @theme')
@@ -321,6 +379,7 @@ function generateReport(tokens, resolved, results) {
   lines.push('## Notas')
   lines.push('')
   lines.push('- Esta auditoría es **estática** sobre tokens declarados, no escanea todos los `bg-X text-Y` usados en JSX. Para una cobertura exhaustiva habría que parsear todas las utility classes de Tailwind generadas — caro y con muchos falsos positivos.')
+  lines.push('- Además del análisis de tokens, el script sí escanea usos literales de `text-accent` en `frontend/src` para evitar que el rojo de marca vuelva a colarse como texto normal.')
   lines.push('- Los tokens con alpha (ej. `--color-accent-soft` rgba) NO se evalúan directamente porque dependen del fondo sobre el que se componen. Si se usan como background con texto encima, hay que componerlos sobre `--color-bg` y luego medir.')
   lines.push('- **Texto large (>=18pt o >=14pt bold):** umbral más permisivo (3:1) — aplicado a headings (h1/h2/h3) y elementos marcados con `large: true` en el script.')
   lines.push('- **Elementos no-texto** (bordes, iconos decorativos): WCAG 2.1 SC 1.4.11 pide 3:1 si son significativos para el UX. Los bordes meramente decorativos están exentos.')
@@ -339,6 +398,9 @@ function generateReport(tokens, resolved, results) {
 }
 
 function recommendFix(r) {
+  if (r.fgName === '--color-accent') {
+    return `Reservar \`--color-accent\` para fondos, bordes, glows y CTAs con texto blanco. Para texto pequeño o datos usar \`--color-gold\`, \`--color-electric\` o \`--color-fg-strong\`.`
+  }
   if (r.large || r.nonText) {
     return `Ya pasa para texto large / elemento no-texto. Si se usa para texto normal, subir luminancia del foreground o oscurecer el background.`
   }

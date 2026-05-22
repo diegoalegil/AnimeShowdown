@@ -1,6 +1,6 @@
 # Auditoría de contraste WCAG — AnimeShowdown
 
-> Generado: 2026-05-22T02:23:38.097Z
+> Generado: 2026-05-22T08:31:34.182Z
 > Script: `scripts/audit/contrast-audit.mjs`
 > Fuente de tokens: `frontend/src/index.css` (@theme + utilities)
 > Criterio: WCAG 2.1 — AA = 4.5:1 (texto normal) / 3:1 (texto large ≥18pt o ≥14pt bold)
@@ -13,6 +13,14 @@
 | AA (>= 4.5:1) | 1 | 5% |
 | AA-large solo (3-4.5:1) | 0 | 0%  |
 | FAIL (< 3:1) | 3 | 14% ⚠ |
+
+## Uso de rojo de marca como texto
+
+El token `--color-accent` no alcanza AA como texto sobre fondos oscuros. Por eso el criterio operativo es: rojo para fondos, bordes, glows y CTAs; dorado/cyan/blanco para texto legible.
+
+| Patrón escaneado | Ocurrencias en `frontend/src` | Estado |
+|---|---:|---|
+| `text-accent` / `hover:text-accent` / variantes | 0 | ✅ reservado fuera de texto |
 
 ## Tokens detectados en @theme
 
@@ -68,7 +76,7 @@
 - **Necesario para AA:** 4.5:1
 - **Foreground:** `--color-accent` → #9f1d2c
 - **Background:** `--color-bg` → #080b12
-- **Recomendación:** Subir la luminancia del foreground (o reservar este par a contextos large-text). Si es un acento de marca y no debe cambiar, restringir su uso a iconos / texto large bold, no a body copy.
+- **Recomendación:** Reservar `--color-accent` para fondos, bordes, glows y CTAs con texto blanco. Para texto pequeño o datos usar `--color-gold`, `--color-electric` o `--color-fg-strong`.
 
 ### Acento rojo sobre panel
 
@@ -76,7 +84,7 @@
 - **Necesario para AA:** 4.5:1
 - **Foreground:** `--color-accent` → #9f1d2c
 - **Background:** `--color-surface` → #101620
-- **Recomendación:** Subir la luminancia del foreground (o reservar este par a contextos large-text). Si es un acento de marca y no debe cambiar, restringir su uso a iconos / texto large bold, no a body copy.
+- **Recomendación:** Reservar `--color-accent` para fondos, bordes, glows y CTAs con texto blanco. Para texto pequeño o datos usar `--color-gold`, `--color-electric` o `--color-fg-strong`.
 
 ### Borde sobre fondo (no-texto, UI element)
 
@@ -91,6 +99,7 @@
 ## Notas
 
 - Esta auditoría es **estática** sobre tokens declarados, no escanea todos los `bg-X text-Y` usados en JSX. Para una cobertura exhaustiva habría que parsear todas las utility classes de Tailwind generadas — caro y con muchos falsos positivos.
+- Además del análisis de tokens, el script sí escanea usos literales de `text-accent` en `frontend/src` para evitar que el rojo de marca vuelva a colarse como texto normal.
 - Los tokens con alpha (ej. `--color-accent-soft` rgba) NO se evalúan directamente porque dependen del fondo sobre el que se componen. Si se usan como background con texto encima, hay que componerlos sobre `--color-bg` y luego medir.
 - **Texto large (>=18pt o >=14pt bold):** umbral más permisivo (3:1) — aplicado a headings (h1/h2/h3) y elementos marcados con `large: true` en el script.
 - **Elementos no-texto** (bordes, iconos decorativos): WCAG 2.1 SC 1.4.11 pide 3:1 si son significativos para el UX. Los bordes meramente decorativos están exentos.

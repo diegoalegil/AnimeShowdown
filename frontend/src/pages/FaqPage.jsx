@@ -150,7 +150,7 @@ function FaqPage() {
               href="https://github.com/diegoalegil/AnimeShowdown/issues"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Reportar bug en GitHub
@@ -161,16 +161,16 @@ function FaqPage() {
         <div className="mt-6 flex flex-wrap gap-3 text-[13px] text-fg-muted">
           <Link
             to="/personajes"
-            className="hover:text-accent hover:underline"
+            className="hover:text-gold hover:underline"
           >
             Catálogo de personajes
           </Link>
           <span aria-hidden="true">·</span>
-          <Link to="/torneos" className="hover:text-accent hover:underline">
+          <Link to="/torneos" className="hover:text-gold hover:underline">
             Torneos activos
           </Link>
           <span aria-hidden="true">·</span>
-          <Link to="/ranking" className="hover:text-accent hover:underline">
+          <Link to="/ranking" className="hover:text-gold hover:underline">
             Ranking ELO
           </Link>
         </div>

@@ -115,7 +115,7 @@ function Footer() {
                 <Link
                   key={to}
                   to={to}
-                  className="w-fit text-[13px] text-fg transition-colors hover:text-accent"
+                  className="w-fit text-[13px] text-fg transition-colors hover:text-gold"
                 >
                   {t(`nav.${i18nKey}`)}
                 </Link>
@@ -132,7 +132,7 @@ function Footer() {
             <div className="flex flex-col gap-2">
               <Link
                 to="/apoya"
-                className="inline-flex w-fit items-center gap-1.5 text-[13px] text-fg transition-colors hover:text-accent"
+                className="inline-flex w-fit items-center gap-1.5 text-[13px] text-fg transition-colors hover:text-gold"
               >
                 <Coffee className="h-3.5 w-3.5 text-amber-300" />
                 {t('footer.apoyaCta')}
@@ -141,7 +141,7 @@ function Footer() {
                 href="https://github.com/diegoalegil/AnimeShowdown"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex w-fit items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-accent"
+                className="inline-flex w-fit items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-gold"
                 title={t('footer.codigoAbiertoTitulo')}
               >
                 <GithubIcon className="h-3.5 w-3.5" />
@@ -160,14 +160,14 @@ function Footer() {
                 <Link
                   key={to}
                   to={to}
-                  className="w-fit text-[13px] text-fg transition-colors hover:text-accent"
+                  className="w-fit text-[13px] text-fg transition-colors hover:text-gold"
                 >
                   {t(`nav.${i18nKey}`)}
                 </Link>
               ))}
               <a
                 href="mailto:soporte@animeshowdown.dev"
-                className="w-fit text-[13px] text-fg transition-colors hover:text-accent"
+                className="w-fit text-[13px] text-fg transition-colors hover:text-gold"
               >
                 {t('footer.contacto')}
               </a>
@@ -185,7 +185,7 @@ function Footer() {
               <li key={anime}>
                 <Link
                   to={`/animes/${slugifyAnime(anime)}`}
-                  className="text-fg-muted transition-colors hover:text-accent hover:underline"
+                  className="text-fg-muted transition-colors hover:text-gold hover:underline"
                   title={`Ranking interno y roster de ${anime} (${count} personajes)`}
                 >
                   {anime}{' '}
@@ -229,17 +229,17 @@ function Footer() {
         <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-fg-muted">
           <ul className="-mx-2 flex flex-wrap justify-center gap-y-1 sm:justify-start">
             <li>
-              <Link to="/privacidad" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-accent hover:underline">
+              <Link to="/privacidad" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-gold hover:underline">
                 {t('footer.privacidad')}
               </Link>
             </li>
             <li>
-              <Link to="/terminos" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-accent hover:underline">
+              <Link to="/terminos" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-gold hover:underline">
                 {t('footer.terminos')}
               </Link>
             </li>
             <li>
-              <Link to="/dmca" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-accent hover:underline">
+              <Link to="/dmca" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-gold hover:underline">
                 DMCA
               </Link>
             </li>

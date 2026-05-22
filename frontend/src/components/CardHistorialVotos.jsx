@@ -104,7 +104,7 @@ function VotoItem({ voto }) {
         <p className="truncate text-[12px] font-semibold text-fg-strong">
           <Link
             to={`/personajes/${voto.personajeSlug}`}
-            className="hover:text-accent"
+            className="hover:text-gold"
           >
             {voto.personajeNombre}
           </Link>
@@ -114,7 +114,7 @@ function VotoItem({ voto }) {
               vs{' '}
               <Link
                 to={`/personajes/${voto.oponenteSlug}`}
-                className="hover:text-accent"
+                className="hover:text-gold"
               >
                 {voto.oponenteNombre}
               </Link>
@@ -129,7 +129,7 @@ function VotoItem({ voto }) {
           ) : voto.torneoSlug ? (
             <Link
               to={`/torneos/${voto.torneoSlug}`}
-              className="hover:text-accent"
+              className="hover:text-gold"
             >
               {voto.torneoNombre}
             </Link>

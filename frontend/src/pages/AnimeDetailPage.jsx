@@ -176,7 +176,7 @@ function AnimeDetailPage() {
         {/* Ranking interno del anime */}
         <section className="mb-12">
           <div className="mb-4 flex flex-col gap-1">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-accent">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
               Top 10 · ELO
             </span>
             <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -228,7 +228,7 @@ function AnimeDetailPage() {
 
         <p className="mt-12 text-center text-[13px] text-fg-muted">
           Tu personaje favorito no sube solo.{' '}
-          <Link to="/votar" className="text-accent hover:underline">
+          <Link to="/votar" className="text-gold hover:underline">
             Entra a votar
           </Link>{' '}
           y cambia el ranking de {anime}.
@@ -250,7 +250,7 @@ function StatTile({ icon: Icon, label, value, hint, accent }) {
         </span>
       </div>
       <p
-        className={`font-mono text-2xl font-extrabold tabular-nums ${accent ? 'text-accent' : 'text-fg-strong'}`}
+        className={`font-mono text-2xl font-extrabold tabular-nums ${accent ? 'text-gold' : 'text-fg-strong'}`}
       >
         {value}
       </p>
@@ -294,7 +294,7 @@ function RankingRow({ rank, slug, nombre, elo, wins, losses }) {
           className="h-12 w-9 shrink-0 rounded-md object-cover object-top"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
+          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
             {nombre}
           </p>
           {winRate != null && (
@@ -305,7 +305,7 @@ function RankingRow({ rank, slug, nombre, elo, wins, losses }) {
           )}
         </div>
         <div className="text-right">
-          <p className="font-mono text-sm font-bold text-accent">{elo}</p>
+          <p className="font-mono text-sm font-bold text-gold">{elo}</p>
           <p className="text-[10px] uppercase tracking-wider text-fg-muted">
             ELO
           </p>

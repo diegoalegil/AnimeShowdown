@@ -136,7 +136,7 @@ function TermsPage() {
                 <strong className="text-fg-strong">Las descripciones de
                 personajes</strong> son obra original o derivada de Jikan
                 (myanimelist), bajo fair use educativo. Atribución en{' '}
-                <Link to="/api-docs" className="text-accent hover:underline">
+                <Link to="/api-docs" className="text-gold hover:underline">
                   /api-docs
                 </Link>
                 .
@@ -147,7 +147,7 @@ function TermsPage() {
                 de anime. AnimeShowdown las usa bajo fair use educativo +
                 comentario (Berne Convention art. 10). Si eres titular de
                 derechos, ver{' '}
-                <Link to="/dmca" className="text-accent hover:underline">
+                <Link to="/dmca" className="text-gold hover:underline">
                   política DMCA
                 </Link>
                 .
@@ -208,11 +208,11 @@ function TermsPage() {
         </article>
 
         <div className="mt-10 flex flex-wrap gap-3 text-[13px] text-fg-muted">
-          <Link to="/privacidad" className="hover:text-accent hover:underline">
+          <Link to="/privacidad" className="hover:text-gold hover:underline">
             Política de privacidad
           </Link>
           <span aria-hidden="true">·</span>
-          <Link to="/dmca" className="hover:text-accent hover:underline">
+          <Link to="/dmca" className="hover:text-gold hover:underline">
             Política DMCA
           </Link>
         </div>

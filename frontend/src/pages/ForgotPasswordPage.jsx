@@ -113,7 +113,7 @@ function ForgotPasswordPage() {
                   `/reset-password?email=${encodeURIComponent(getValues('email') || '')}`,
                 )
               }
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-accent"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
             >
               Ya tengo el código
               <ArrowRight className="h-4 w-4" />
@@ -124,7 +124,7 @@ function ForgotPasswordPage() {
           ¿Lo recordaste?{' '}
           <Link
             to="/login"
-            className="font-semibold text-accent hover:text-accent-hover"
+            className="font-semibold text-gold hover:text-gold"
           >
             Volver a inicio de sesión
           </Link>

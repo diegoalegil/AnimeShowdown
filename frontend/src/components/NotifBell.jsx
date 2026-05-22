@@ -110,7 +110,7 @@ function NotifDropdown({ onClose }) {
             type="button"
             onClick={() => marcarTodasLeidas.mutate()}
             disabled={marcarTodasLeidas.isPending}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted transition-colors hover:text-accent disabled:opacity-50"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted transition-colors hover:text-gold disabled:opacity-50"
           >
             <CheckCheck className="h-3 w-3" />
             Marcar todas
@@ -224,12 +224,12 @@ const tipoStyle = {
   },
   TORNEO_INICIADO: {
     item: 'border-accent/25 bg-gradient-to-r from-accent/10 via-surface to-surface hover:border-accent/50',
-    icon: 'border-accent/30 bg-accent/15 text-accent',
+    icon: 'border-accent/30 bg-accent/15 text-gold',
     unread: 'bg-accent',
   },
   TORNEO_FINALIZADO: {
     item: 'border-accent/25 bg-gradient-to-r from-accent/10 via-surface to-surface hover:border-accent/50',
-    icon: 'border-accent/30 bg-accent/15 text-accent',
+    icon: 'border-accent/30 bg-accent/15 text-gold',
     unread: 'bg-accent',
   },
   SEGUIDOR_NUEVO: {

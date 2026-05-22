@@ -131,15 +131,15 @@ function LeaderboardsPage() {
           </h2>
           <p className="text-[13px] leading-relaxed text-fg-muted">
             Cada voto en{' '}
-            <Link to="/votar" className="text-accent hover:underline">
+            <Link to="/votar" className="text-gold hover:underline">
               /votar
             </Link>{' '}
             o en cualquier torneo activo cuenta. Mira el{' '}
-            <Link to="/ranking" className="text-accent hover:underline">
+            <Link to="/ranking" className="text-gold hover:underline">
               ranking ELO global
             </Link>{' '}
             para ver qué personajes están más reñidos y entra en{' '}
-            <Link to="/torneos" className="text-accent hover:underline">
+            <Link to="/torneos" className="text-gold hover:underline">
               torneos activos
             </Link>{' '}
             para acumular votos en eventos.
@@ -208,12 +208,12 @@ function FilaVoter({ rank, voter }) {
         </span>
         <Avatar user={voter} size={36} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-accent">
+          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
             {voter.username}
           </p>
         </div>
         <div className="text-right">
-          <p className="font-mono text-base font-bold text-accent">
+          <p className="font-mono text-base font-bold text-gold">
             {voter.votos}
           </p>
           <p className="text-[10px] uppercase tracking-wider text-fg-muted">

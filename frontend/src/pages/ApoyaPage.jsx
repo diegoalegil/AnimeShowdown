@@ -67,7 +67,7 @@ function ApoyaPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <Heart className="h-3 w-3" />
             Apoya · Proyecto gratuito
           </span>
@@ -237,7 +237,7 @@ function MetaMensual({ recibido, objetivo }) {
     <div className="mb-10 rounded-2xl border border-border bg-surface p-5">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-accent" />
+          <Target className="h-4 w-4 text-gold" />
           <h2 className="text-base font-bold text-fg-strong">
             Meta {mesCapitalizado}
           </h2>
@@ -271,7 +271,7 @@ function MetaMensual({ recibido, objetivo }) {
 function CosteTile({ icon: Icon, label }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-2.5">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-soft text-gold">
         <Icon className="h-3.5 w-3.5" />
       </span>
       <span className="text-[12px] font-semibold text-fg-strong">{label}</span>

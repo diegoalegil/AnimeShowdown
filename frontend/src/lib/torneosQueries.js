@@ -13,7 +13,7 @@ export const ESTADO_BADGE = {
   SCHEDULED: {
     label: 'Próximamente',
     dot: 'bg-accent',
-    color: 'text-accent',
+    color: 'text-gold',
   },
   IN_PROGRESS: {
     label: 'En curso',

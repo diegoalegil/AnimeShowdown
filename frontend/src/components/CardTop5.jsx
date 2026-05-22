@@ -51,7 +51,7 @@ function CardTop5({
           ) : (
             <p className="text-[12px]">
               Aún no has votado a ningún personaje. Empieza desde{' '}
-              <Link to="/votar" className="text-accent hover:underline">
+              <Link to="/votar" className="text-gold hover:underline">
                 /votar
               </Link>
               .

@@ -56,7 +56,7 @@ function AdminPage() {
           </h1>
           <p className="text-fg-muted">
             Esta página es solo para usuarios con rol{' '}
-            <span className="font-mono text-accent">ADMIN</span>.
+            <span className="font-mono text-gold">ADMIN</span>.
           </p>
           <Link
             to="/"
@@ -77,7 +77,7 @@ function AdminPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-accent">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <Shield className="h-3 w-3" />
             Panel ADMIN
           </span>
@@ -471,7 +471,7 @@ function FormPersonaje() {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-gold">
           <Users className="h-5 w-5" />
         </div>
         <div>
@@ -567,7 +567,7 @@ function FormTorneo() {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-gold">
           <Trophy className="h-5 w-5" />
         </div>
         <div>

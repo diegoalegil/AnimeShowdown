@@ -37,7 +37,7 @@ function CardStats({ data: dataProp = null }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Activity className="h-4 w-4 text-accent" />
+        <Activity className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Estadísticas</h2>
       </div>
       {isLoading ? (
@@ -87,7 +87,7 @@ function Kpi({ icon: Icon, label, value, accent = false }) {
       </span>
       <span
         className={`text-xl font-bold tabular-nums ${
-          accent ? 'text-accent' : 'text-fg-strong'
+          accent ? 'text-gold' : 'text-fg-strong'
         }`}
       >
         {value}

@@ -205,7 +205,7 @@ function ImpostorPage() {
               <button
                 type="button"
                 onClick={volverAlDaily}
-                className="inline-flex items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-accent"
+                className="inline-flex items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-gold"
               >
                 Volver al Daily
               </button>
@@ -382,7 +382,7 @@ function PanelResultado({ resultados, esExtra }) {
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">
-        <Link to="/games" className="text-accent hover:underline">
+        <Link to="/games" className="text-gold hover:underline">
           Volver al hub
         </Link>
       </p>

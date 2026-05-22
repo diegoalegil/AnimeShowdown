@@ -209,7 +209,7 @@ function ResetPasswordPage() {
           ¿No te llegó el código?{' '}
           <Link
             to="/forgot-password"
-            className="font-semibold text-accent hover:text-accent-hover"
+            className="font-semibold text-gold hover:text-gold"
           >
             Solicitar otro
           </Link>

@@ -179,11 +179,11 @@ function DmcaPage() {
         </article>
 
         <div className="mt-10 flex flex-wrap gap-3 text-[13px] text-fg-muted">
-          <Link to="/privacidad" className="hover:text-accent hover:underline">
+          <Link to="/privacidad" className="hover:text-gold hover:underline">
             Política de privacidad
           </Link>
           <span aria-hidden="true">·</span>
-          <Link to="/terminos" className="hover:text-accent hover:underline">
+          <Link to="/terminos" className="hover:text-gold hover:underline">
             Términos de uso
           </Link>
         </div>
