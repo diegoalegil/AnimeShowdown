@@ -47,6 +47,14 @@ public class Logro {
 
     public Logro() {}
 
+    public Logro(String codigo, String nombre, String descripcion, String icono, Short rareza) {
+        this.codigo = codigo;
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.icono = icono;
+        this.rareza = rareza;
+    }
+
     public Long getId() { return id; }
     public String getCodigo() { return codigo; }
     public String getNombre() { return nombre; }

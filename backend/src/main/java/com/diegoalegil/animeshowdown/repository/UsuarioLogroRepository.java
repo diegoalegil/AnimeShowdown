@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.model.Logro;
 import com.diegoalegil.animeshowdown.model.Usuario;
@@ -16,6 +17,14 @@ public interface UsuarioLogroRepository extends JpaRepository<UsuarioLogro, Long
 
     /** Check rápido sin cargar la fila — usado por BadgeService antes de intentar insertar. */
     boolean existsByUsuarioAndLogro(Usuario usuario, Logro logro);
+
+    @Query("""
+            select count(ul) > 0
+            from UsuarioLogro ul
+            where ul.usuario = :usuario
+              and ul.logro.codigo = :codigo
+            """)
+    boolean existsByUsuarioAndLogroCodigo(@Param("usuario") Usuario usuario, @Param("codigo") String codigo);
 
     long countByUsuario(Usuario usuario);
 

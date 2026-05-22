@@ -53,9 +53,13 @@ public class UsuarioLogro {
     public UsuarioLogro() {}
 
     public UsuarioLogro(Usuario usuario, Logro logro) {
+        this(usuario, logro, LocalDateTime.now());
+    }
+
+    public UsuarioLogro(Usuario usuario, Logro logro, LocalDateTime desbloqueadoEn) {
         this.usuario = usuario;
         this.logro = logro;
-        this.desbloqueadoEn = LocalDateTime.now();
+        this.desbloqueadoEn = desbloqueadoEn;
     }
 
     public Long getId() { return id; }
