@@ -1188,9 +1188,9 @@ function HubLinks() {
 }
 
 /**
- * Tabla HTML semántica con el top 10 ELO local (Plan v2 §6.2). Sirve a
- * crawlers de IA + usuarios que quieren copy/paste. Ahora dentro de un
- * <details> plegable para no competir con el ranking visual.
+ * Tabla HTML semántica con el top 10 ELO local. Sirve a buscadores y
+ * usuarios que quieren copy/paste. Ahora vive dentro de un <details>
+ * plegable para no competir con el ranking visual.
  */
 function TablaExtraible() {
   const top10 = rankedElo.slice(0, 10)

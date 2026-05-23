@@ -13,7 +13,7 @@ function encodeImageUrl(url) {
 }
 
 /**
- * <img> de personaje con fallback premium + responsive (Plan v2 §3.3-3.4, §3.6).
+ * <img> de personaje con fallback premium + responsive.
  *
  * <p>Si la imagen real falla (404, slug sin imagen, error de red…) renderiza
  * un {@link PersonajePlaceholder} en su lugar — iniciales, anime y kanji
