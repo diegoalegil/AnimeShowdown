@@ -29,9 +29,10 @@ import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
  */
 function EventosIndexPage() {
   useSeo({
-    title: 'Eventos · AnimeShowdown',
+    title: 'Eventos',
     description:
       'Semanas y copas temporales de AnimeShowdown: arcos de villanos, top waifus, semanas de animes. Vota durante cada temporada y mira quién gana.',
+    image: BRAND_VISUALS.eventos.image,
   })
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
