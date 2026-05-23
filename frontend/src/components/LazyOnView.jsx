@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from 'react'
 // react-hooks/set-state-in-effect).
 const supportsIO = typeof window !== 'undefined' && typeof IntersectionObserver !== 'undefined'
 
-export default function LazyOnView({ minHeight = 600, rootMargin = '400px', children }) {
+export default function LazyOnView({ minHeight = 600, rootMargin = '900px 0px', children }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(!supportsIO)
   // rootMargin en deps causaba disconnect/recreate
@@ -45,5 +45,19 @@ export default function LazyOnView({ minHeight = 600, rootMargin = '400px', chil
   }, [visible])
 
   if (visible) return <>{children}</>
-  return <div ref={ref} aria-hidden="true" style={{ minHeight }} />
+  return (
+    <div
+      ref={ref}
+      aria-hidden="true"
+      data-lazy-on-view-placeholder="true"
+      className="as-lazy-placeholder"
+      style={{ minHeight }}
+    >
+      <div className="as-lazy-placeholder__surface">
+        <span className="as-lazy-placeholder__media" />
+        <span className="as-lazy-placeholder__line as-lazy-placeholder__line--wide" />
+        <span className="as-lazy-placeholder__line" />
+      </div>
+    </div>
+  )
 }

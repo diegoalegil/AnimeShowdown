@@ -165,7 +165,7 @@ function AnimesPage() {
               i < 6 ? (
                 <AnimeTile key={a.slug} animeData={a} />
               ) : (
-                <LazyOnView key={a.slug} minHeight={280} rootMargin="500px">
+                <LazyOnView key={a.slug} minHeight={280} rootMargin="1200px 0px">
                   <AnimeTile animeData={a} />
                 </LazyOnView>
               ),
