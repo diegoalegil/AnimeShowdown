@@ -559,6 +559,7 @@ function ListaEloLocal() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar personaje en el ranking"
             placeholder="Buscar personaje…"
             className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
           />

@@ -397,6 +397,7 @@ function GlossaryPage() {
               type="search"
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
+              aria-label="Filtrar glosario"
               placeholder="Filtra por palabra o definición…"
               className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
             />
