@@ -51,7 +51,7 @@ Activos NO en alcance:
   - Resto del CRUD lectura → `permitAll()`
 
 ### Protecciones HTTP
-- **CORS** restringido a orígenes conocidos: `localhost:5173`, `localhost:3000`, `animeshowdown.pages.dev`, `animeshowdown.vercel.app`. Sin wildcard.
+- **CORS** restringido a orígenes conocidos: `localhost:5173`, `localhost:3000`, `animeshowdown.dev` y previews controladas de Cloudflare Pages. Sin wildcard global.
 - **CSRF** desactivado a propósito porque la auth es JWT stateless (no cookies de sesión).
 - **Headers en frontend** (configurados vía `frontend/public/_headers` para Cloudflare Pages):
   - `Content-Security-Policy` con whitelist explícita (Railway API + Jikan + AnimeChan).

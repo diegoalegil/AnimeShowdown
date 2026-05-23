@@ -47,7 +47,7 @@ Cloudflare Pages redeploya automáticamente.
 
 ### 5. Verificar
 
-Visitar `https://animeshowdown.pages.dev/dev/crash-test` (página oculta que lanza `throw new Error("Sentry test")`). En Sentry dashboard, en <2min:
+Visitar `https://animeshowdown.dev/dev/crash-test` (página oculta que lanza `throw new Error("Sentry test")`). En Sentry dashboard, en <2min:
 
 - Evento `Sentry test` aparece
 - Stack trace muestra **líneas de tu código fuente original**, no minificado

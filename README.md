@@ -365,7 +365,7 @@ erDiagram
    - **Build output directory:** `dist`
    - **Root directory** (advanced): `frontend`
 4. **Environment variables:** `VITE_API_URL=https://api.animeshowdown.dev` en producción. No uses el dominio bruto de Railway aquí: rompe cookies de refresh y OAuth social.
-5. Save and Deploy → ~1-2 min y tienes `https://animeshowdown.pages.dev`
+5. Save and Deploy → ~1-2 min y publica en el dominio configurado (`https://animeshowdown.dev` en producción).
 6. **`frontend/public/_redirects`** ya configurado con rutas SPA enumeradas que reescriben a `/` y redirects 301 de rebrand, evitando catch-all para que URLs inventadas puedan servir 404.
 
 ### Backend en Railway
