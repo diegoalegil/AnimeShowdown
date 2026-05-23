@@ -33,20 +33,40 @@ function lazyRoute(importer) {
 // Todas las rutas, incluida home, van detrás de React.lazy. InicioPage
 // importa el catálogo estático y varias secciones visuales pesadas; si se
 // queda en el bundle raíz, cualquier ruta paga ese coste antes de pintar.
-const InicioPage = lazyRoute(() => import('./pages/InicioPage'))
-const PersonajesPage = lazyRoute(() => import('./pages/PersonajesPage'))
-const PersonajeDetailPage = lazyRoute(() => import('./pages/PersonajeDetailPage'))
-const AnimesPage = lazyRoute(() => import('./pages/AnimesPage'))
-const AnimeDetailPage = lazyRoute(() => import('./pages/AnimeDetailPage'))
-const TorneosPage = lazyRoute(() => import('./pages/TorneosPage'))
-const TorneoDetailPage = lazyRoute(() => import('./pages/TorneoDetailPage'))
+const routePreloaders = {
+  inicio: () => import('./pages/InicioPage'),
+  personajes: () => import('./pages/PersonajesPage'),
+  personajeDetail: () => import('./pages/PersonajeDetailPage'),
+  animes: () => import('./pages/AnimesPage'),
+  animeDetail: () => import('./pages/AnimeDetailPage'),
+  torneos: () => import('./pages/TorneosPage'),
+  torneoDetail: () => import('./pages/TorneoDetailPage'),
+  ranking: () => import('./pages/RankingPage'),
+  votar: () => import('./pages/VotarPage'),
+  games: () => import('./pages/GamesHubPage'),
+  shadowGuess: () => import('./pages/GuessCharacterPage'),
+  animeReveal: () => import('./pages/GuessAnimePage'),
+  anigrid: () => import('./pages/AnidelPage'),
+  impostor: () => import('./pages/ImpostorPage'),
+  eloDuel: () => import('./pages/HigherOrLowerPage'),
+  perfil: () => import('./pages/PerfilPage'),
+  logros: () => import('./pages/LogrosPage'),
+}
+
+const InicioPage = lazyRoute(routePreloaders.inicio)
+const PersonajesPage = lazyRoute(routePreloaders.personajes)
+const PersonajeDetailPage = lazyRoute(routePreloaders.personajeDetail)
+const AnimesPage = lazyRoute(routePreloaders.animes)
+const AnimeDetailPage = lazyRoute(routePreloaders.animeDetail)
+const TorneosPage = lazyRoute(routePreloaders.torneos)
+const TorneoDetailPage = lazyRoute(routePreloaders.torneoDetail)
 const EventosIndexPage = lazyRoute(() => import('./pages/EventosIndexPage'))
 const EventoDetailPage = lazyRoute(() => import('./pages/EventoDetailPage'))
 const DueloVersusPage = lazyRoute(() => import('./pages/DueloVersusPage'))
 const CompararPage = lazyRoute(() => import('./pages/CompararPage'))
-const RankingPage = lazyRoute(() => import('./pages/RankingPage'))
-const HigherOrLowerPage = lazyRoute(() => import('./pages/HigherOrLowerPage'))
-const VotarPage = lazyRoute(() => import('./pages/VotarPage'))
+const RankingPage = lazyRoute(routePreloaders.ranking)
+const HigherOrLowerPage = lazyRoute(routePreloaders.eloDuel)
+const VotarPage = lazyRoute(routePreloaders.votar)
 const DueloLivePage = lazyRoute(() => import('./pages/DueloLivePage'))
 const LoginPage = lazyRoute(() => import('./pages/LoginPage'))
 const RegisterPage = lazyRoute(() => import('./pages/RegisterPage'))
@@ -54,7 +74,7 @@ const AuthCallbackPage = lazyRoute(() => import('./pages/AuthCallbackPage'))
 const ForgotPasswordPage = lazyRoute(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazyRoute(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
-const PerfilPage = lazyRoute(() => import('./pages/PerfilPage'))
+const PerfilPage = lazyRoute(routePreloaders.perfil)
 const UsuarioPage = lazyRoute(() => import('./pages/UsuarioPage'))
 const UsuarioLogrosPage = lazyRoute(() => import('./pages/UsuarioLogrosPage'))
 const CrearTorneoPage = lazyRoute(() => import('./pages/CrearTorneoPage'))
@@ -67,14 +87,14 @@ const JuegosAnimePage = lazyRoute(() => import('./pages/JuegosAnimePage'))
 const MisionesPage = lazyRoute(() => import('./pages/MisionesPage'))
 const DescubrePersonajePage = lazyRoute(() => import('./pages/DescubrePersonajePage'))
 const MiRankingPage = lazyRoute(() => import('./pages/MiRankingPage'))
-const GamesHubPage = lazyRoute(() => import('./pages/GamesHubPage'))
-const GuessCharacterPage = lazyRoute(() => import('./pages/GuessCharacterPage'))
-const GuessAnimePage = lazyRoute(() => import('./pages/GuessAnimePage'))
-const AnidelPage = lazyRoute(() => import('./pages/AnidelPage'))
-const ImpostorPage = lazyRoute(() => import('./pages/ImpostorPage'))
+const GamesHubPage = lazyRoute(routePreloaders.games)
+const GuessCharacterPage = lazyRoute(routePreloaders.shadowGuess)
+const GuessAnimePage = lazyRoute(routePreloaders.animeReveal)
+const AnidelPage = lazyRoute(routePreloaders.anigrid)
+const ImpostorPage = lazyRoute(routePreloaders.impostor)
 const OmikujiPage = lazyRoute(() => import('./pages/OmikujiPage'))
 const GlossaryPage = lazyRoute(() => import('./pages/GlossaryPage'))
-const LogrosPage = lazyRoute(() => import('./pages/LogrosPage'))
+const LogrosPage = lazyRoute(routePreloaders.logros)
 const ApoyaPage = lazyRoute(() => import('./pages/ApoyaPage'))
 const PrivacyPage = lazyRoute(() => import('./pages/PrivacyPage'))
 const TermsPage = lazyRoute(() => import('./pages/TermsPage'))
@@ -85,6 +105,54 @@ const LeaderboardsPage = lazyRoute(() => import('./pages/LeaderboardsPage'))
 const VerifyPage = lazyRoute(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazyRoute(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage'))
+
+const preloadedImporters = new Set()
+const idleRoutePreloads = [
+  '/',
+  '/personajes',
+  '/animes',
+  '/ranking',
+  '/votar',
+  '/torneos',
+  '/games',
+  '/games/shadow-guess',
+  '/games/anime-reveal',
+  '/games/anigrid',
+  '/games/impostor-trial',
+  '/games/elo-duel',
+]
+
+function routePreloaderFor(pathname) {
+  if (pathname === '/') return routePreloaders.inicio
+  if (pathname === '/personajes') return routePreloaders.personajes
+  if (pathname.startsWith('/personajes/')) return routePreloaders.personajeDetail
+  if (pathname === '/animes') return routePreloaders.animes
+  if (pathname.startsWith('/animes/')) return routePreloaders.animeDetail
+  if (pathname === '/torneos') return routePreloaders.torneos
+  if (pathname.startsWith('/torneos/')) return routePreloaders.torneoDetail
+  if (pathname === '/ranking') return routePreloaders.ranking
+  if (pathname === '/votar') return routePreloaders.votar
+  if (pathname === '/games') return routePreloaders.games
+  if (pathname === '/games/shadow-guess') return routePreloaders.shadowGuess
+  if (pathname === '/games/anime-reveal') return routePreloaders.animeReveal
+  if (pathname === '/games/anigrid') return routePreloaders.anigrid
+  if (pathname === '/games/impostor-trial') return routePreloaders.impostor
+  if (pathname === '/games/elo-duel') return routePreloaders.eloDuel
+  if (pathname === '/higher-or-lower') return routePreloaders.eloDuel
+  if (pathname === '/perfil') return routePreloaders.perfil
+  if (pathname === '/logros') return routePreloaders.logros
+  return null
+}
+
+function preloadRoute(pathname) {
+  const importer = routePreloaderFor(pathname)
+  if (!importer || preloadedImporters.has(importer)) return
+  preloadedImporters.add(importer)
+  importer().catch((error) => {
+    preloadedImporters.delete(importer)
+    recoverFromStaleAssetError(error)
+  })
+}
 
 // Fallback de Suspense compartido con shell mínimo de marca y label legible.
 function PageLoader() {
@@ -281,6 +349,42 @@ function App() {
       document.removeEventListener('visibilitychange', syncVisibilityClass)
       root.classList.remove('as-tab-hidden')
     }
+  }, [])
+
+  useEffect(() => {
+    const preloadFromLink = (event) => {
+      const link = event.target?.closest?.('a[href]')
+      if (!link) return
+      let url
+      try {
+        url = new URL(link.href)
+      } catch {
+        return
+      }
+      if (url.origin !== window.location.origin) return
+      preloadRoute(url.pathname)
+    }
+
+    document.addEventListener('pointerover', preloadFromLink, { capture: true, passive: true })
+    document.addEventListener('focusin', preloadFromLink, true)
+    return () => {
+      document.removeEventListener('pointerover', preloadFromLink, true)
+      document.removeEventListener('focusin', preloadFromLink, true)
+    }
+  }, [])
+
+  useEffect(() => {
+    const preloadCriticalRoutes = () => {
+      idleRoutePreloads.forEach(preloadRoute)
+    }
+
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(preloadCriticalRoutes, { timeout: 2500 })
+      return () => window.cancelIdleCallback?.(id)
+    }
+
+    const id = window.setTimeout(preloadCriticalRoutes, 1200)
+    return () => window.clearTimeout(id)
   }, [])
 
   return (
