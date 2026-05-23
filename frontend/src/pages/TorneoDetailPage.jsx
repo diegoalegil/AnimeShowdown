@@ -9,11 +9,12 @@ import PersonajeImg from '../components/PersonajeImg'
 import ReactionsBar from '../components/ReactionsBar'
 import EditorialCover from '../components/EditorialCover'
 import ShareButtons from '../components/ShareButtons'
+import KanjiSpinner from '../components/KanjiSpinner'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { getTournamentVisual } from '../data/visual-assets'
+import { BRAND_VISUALS, getTournamentVisual } from '../data/visual-assets'
 import { VisualPageShell } from '../components/VisualSystem'
 import NotFoundPage from './NotFoundPage'
 
@@ -60,9 +61,17 @@ function TorneoDetailPage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 items-center justify-center px-5 py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </section>
+      <VisualPageShell
+        visual={BRAND_VISUALS.torneos}
+        className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
+        contentClassName="flex flex-col items-center gap-3"
+        lateralKanji={null}
+      >
+        <KanjiSpinner kanji="戦" size="lg" tone="accent" />
+        <p className="text-[12px] uppercase tracking-[0.18em] text-fg-muted">
+          Preparando bracket…
+        </p>
+      </VisualPageShell>
     )
   }
 
@@ -104,6 +113,9 @@ function TorneoDetailPage() {
     ganadorSlug,
     enfrentamientos,
   } = torneo
+  const enfrentamientosList = Array.isArray(enfrentamientos)
+    ? enfrentamientos
+    : []
 
   const badge = getEstadoBadge(estado)
   const fechaInicioFmt = fechaInicio ? formatearFecha(fechaInicio) : null
@@ -112,7 +124,7 @@ function TorneoDetailPage() {
 
   // Roster: extraemos los participantes únicos de la ronda 1 (siempre los
   // tiene completos, incluso cuando rondas 2+ aún están vacías).
-  const rosterRonda1 = (enfrentamientos ?? [])
+  const rosterRonda1 = enfrentamientosList
     .filter((e) => e.ronda === 1)
     .flatMap((e) => [e.personaje1, e.personaje2])
     .filter(Boolean)
@@ -121,8 +133,8 @@ function TorneoDetailPage() {
   // backend nos da ganadorSlug, lo resolvemos en los matches para tener
   // nombre+anime+imagen sin viaje extra al endpoint de personajes.
   const campeon =
-    ganadorSlug && enfrentamientos
-      ? findPersonajePorSlug(enfrentamientos, ganadorSlug)
+    ganadorSlug
+      ? findPersonajePorSlug(enfrentamientosList, ganadorSlug)
       : null
 
   return (
@@ -223,7 +235,7 @@ function TorneoDetailPage() {
             siendo el mapa global del torneo. */}
         {estado === 'IN_PROGRESS' && (
           <DuelosAbiertosStrip
-            enfrentamientos={enfrentamientos}
+            enfrentamientos={enfrentamientosList}
             torneoId={torneo.id}
             torneoSlug={torneo.slug}
           />
@@ -233,7 +245,7 @@ function TorneoDetailPage() {
         </h2>
         <div className="mb-12">
           <Bracket
-            enfrentamientos={enfrentamientos}
+            enfrentamientos={enfrentamientosList}
             ganadorSlug={ganadorSlug}
             totalRondas={totalRondas}
             estado={estado}
