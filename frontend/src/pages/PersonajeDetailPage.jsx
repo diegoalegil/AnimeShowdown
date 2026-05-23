@@ -44,6 +44,8 @@ import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/visual-assets'
 import { slugifyAnime } from '../lib/animes'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyShare } from '../lib/dailyProgress'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -101,7 +103,7 @@ function PersonajeDetailPage() {
           description:
             personaje.descripcion ||
             `Ficha de ${personaje.nombre}, personaje de ${personaje.anime}, en AnimeShowdown. ELO base estimado + posición en el ranking competitivo.`,
-          image: imagenPersonaje(personaje.slug),
+          image: `/api/og/personaje/${personaje.slug}.png`,
           type: 'profile',
         }
       : { title: '404 — Personaje no encontrado', noindex: true },
@@ -171,19 +173,20 @@ function PersonajeDetailPage() {
       .findIndex((p) => p.slug === slug) + 1
 
   const compartir = async () => {
-    const url = `https://animeshowdown.dev/personajes/${slug}`
     const titulo = `${personaje.nombre} · ${personaje.anime} · AnimeShowdown`
     try {
-      if (navigator.share) {
-        await navigator.share({ title: titulo, url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast.success('Enlace copiado al portapapeles')
-      }
+      const result = await shareOrCopy({
+        title: titulo,
+        text: `${personaje.nombre} de ${personaje.anime} está en AnimeShowdown con ELO base ${stats.elo}. ¿Lo subirías en el ranking?`,
+        url: `/personajes/${slug}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Ficha compartida' : 'Ficha copiada')
     } catch (e) {
-      if (e?.name !== 'AbortError') {
-        toast.error('No se pudo compartir')
-      }
+      toast.error('No se pudo compartir', {
+        description: e?.message || 'Copia el enlace manualmente.',
+      })
     }
   }
   // Hasta 10 personajes del mismo anime como internal linking estructurado.
@@ -352,7 +355,7 @@ function PersonajeDetailPage() {
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                to="/ranking"
+                to={`/ranking?q=${encodeURIComponent(personaje.nombre)}`}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
               >
                 <TrendingUp className="h-4 w-4" />
