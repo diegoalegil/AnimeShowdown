@@ -13,7 +13,7 @@ import {
   Tv,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
@@ -64,6 +64,7 @@ function AnidelPage() {
     title: 'AniGrid · Anidel — Wordle de personajes anime',
     description:
       'Adivina el personaje secreto del día en 6 intentos. Pistas por anime, primera letra y ELO. Comparte tu resultado.',
+    canonical: 'https://animeshowdown.dev/games/anigrid',
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
@@ -190,6 +191,28 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
           { label: 'Anime Games', path: '/games' },
           { label: 'AniGrid', path: '/games/anigrid' },
         ])}
+      />
+      <JsonLd
+        id="game-anigrid"
+        schema={gameWebApplicationSchema({
+          name: 'AniGrid',
+          alternateName: 'Anidel',
+          path: '/games/anigrid',
+          description:
+            'Wordle diario de personajes anime con pistas por anime, primera letra y ELO base.',
+          featureList: [
+            'Personaje secreto diario',
+            'Seis intentos',
+            'Pistas por anime, inicial y ELO base',
+            'Resultado compartible con cuadricula',
+          ],
+          keywords: [
+            'wordle anime',
+            'anigrid',
+            'anidel',
+            'adivina personaje anime',
+          ],
+        })}
       />
       <div className="mx-auto max-w-4xl">
         <Link

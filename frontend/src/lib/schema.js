@@ -304,6 +304,56 @@ export function faqPageSchema(items) {
 }
 
 /**
+ * Schema {@code WebApplication} para juegos web individuales.
+ *
+ * @param {Object} opts
+ * @param {string} opts.name nombre público del juego
+ * @param {string} opts.path ruta canónica
+ * @param {string} opts.description descripción clara de la mecánica
+ * @param {string} [opts.alternateName] nombre alternativo o subtítulo
+ * @param {string[]} [opts.featureList] mecánicas principales
+ * @param {string[]} [opts.keywords] intenciones/búsquedas relacionadas
+ */
+export function gameWebApplicationSchema({
+  name,
+  path,
+  description,
+  alternateName,
+  featureList = [],
+  keywords = [],
+}) {
+  if (!name || !path) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name,
+    alternateName,
+    url: abs(path),
+    applicationCategory: 'GameApplication',
+    operatingSystem: 'Web',
+    inLanguage: 'es-ES',
+    description,
+    isAccessibleForFree: true,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'AnimeShowdown',
+      url: SITIO,
+    },
+    ...(featureList.length ? { featureList } : {}),
+    ...(keywords.length ? { keywords: keywords.join(', ') } : {}),
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+    potentialAction: {
+      '@type': 'PlayAction',
+      target: abs(path),
+    },
+  }
+}
+
+/**
  * Schema {@code BreadcrumbList} para mostrar la jerarquía en el rich snippet.
  * Acepta un array de pares {label, path}.
  */
