@@ -11,53 +11,60 @@
 
 **El ranking definitivo del anime lo decides tú.**
 
-AnimeShowdown es una app full-stack de duelos 1v1, ranking ELO, torneos visuales y minijuegos diarios sobre personajes de anime. El frontend busca una experiencia competitiva y cinemática: cards visuales, podio, bracket, buscadores rápidos, command palette, sonidos sintetizados y una PWA preparada para producción.
+AnimeShowdown es una plataforma full-stack de duelos 1v1, ranking ELO, torneos visuales y minijuegos diarios sobre personajes de anime. La experiencia está diseñada como un producto competitivo y cinemático: cards coleccionables, arena de votación, podios, brackets en vivo, perfiles sociales, command palette, sonido sintetizado y una PWA lista para producción.
 
-El catálogo actual contiene **1052 personajes únicos** en **105 animes**, sincronizados desde imágenes locales hacia frontend y backend.
+El catálogo actual contiene **1052 personajes únicos** distribuidos en **105 universos anime**, sincronizados desde imágenes locales hacia frontend, backend y datos seed.
 
-## Live
+<p align="center">
+  <a href="https://animeshowdown.dev/">
+    <img src="docs/screenshots/hero.webp" alt="Home de AnimeShowdown con claim principal" width="100%">
+  </a>
+</p>
 
-| Pieza | URL |
+## Demo
+
+| Servicio | URL |
 |---|---|
 | Frontend | https://animeshowdown.dev |
 | API | https://api.animeshowdown.dev |
 | Swagger UI | https://api.animeshowdown.dev/swagger-ui/index.html |
 | Healthcheck | https://api.animeshowdown.dev/actuator/health |
 
-## Capturas
+## Experiencia
 
-| Home | Votar |
+Haz clic en cualquier captura para abrir esa sección en producción.
+
+| Votación 1v1 | Ranking ELO |
 |---|---|
-| ![Home de AnimeShowdown](docs/screenshots/hero.webp) | ![Arena de votación 1v1](docs/screenshots/votar.webp) |
+| [![Arena de votación 1v1](docs/screenshots/votar.webp)](https://animeshowdown.dev/votar) | [![Ranking ELO de AnimeShowdown](docs/screenshots/top10.webp)](https://animeshowdown.dev/ranking) |
 
-| Ranking | Personajes |
+| Catálogo de personajes | Universos anime |
 |---|---|
-| ![Podio y ranking ELO](docs/screenshots/top10.webp) | ![Catálogo de personajes](docs/screenshots/personajes.webp) |
+| [![Catálogo de personajes](docs/screenshots/personajes.webp)](https://animeshowdown.dev/personajes) | [![Catálogo de universos anime](docs/screenshots/animes.webp)](https://animeshowdown.dev/animes) |
 
-| Universo anime | Juegos diarios |
+| Naruto | One Piece |
 |---|---|
-| ![Detalle de universo anime](docs/screenshots/animes.webp) | ![Hub de Anime Daily Trials](docs/screenshots/games.webp) |
+| [![Detalle del universo Naruto](docs/screenshots/animes_naruto.webp)](https://animeshowdown.dev/animes/naruto) | [![Detalle del universo One Piece](docs/screenshots/animes_one_piece.webp)](https://animeshowdown.dev/animes/one-piece) |
 
-| Torneo | Ficha de personaje |
+| Anime Daily Trials | Torneos en vivo |
 |---|---|
-| ![Detalle de torneo con bracket](docs/screenshots/bracket.webp) | ![Detalle de personaje](docs/screenshots/personaje-detail.webp) |
+| [![Hub de Anime Daily Trials](docs/screenshots/games.webp)](https://animeshowdown.dev/games) | [![Detalle de torneo con duelos abiertos](docs/screenshots/bracket.webp)](https://animeshowdown.dev/torneos/mha-heroes-vs-villains) |
 
-| API |
-|---|
-| ![Swagger UI de AnimeShowdown](docs/screenshots/swagger-overview.webp) |
+| Ficha de personaje | API pública |
+|---|---|
+| [![Ficha de personaje](docs/screenshots/personaje-detail.webp)](https://animeshowdown.dev/personajes/frieren) | [![Swagger UI de AnimeShowdown](docs/screenshots/swagger-overview.webp)](https://api.animeshowdown.dev/swagger-ui/index.html) |
 
-## Qué incluye
+## Features
 
-- Duelos 1v1 con ranking ELO, feedback visual y modo rápido.
-- Ranking global con podio, filtros, búsqueda, histórico y vistas por anime.
-- Catálogo de 1052 personajes con búsqueda, filtros, grid/list y fichas individuales.
-- Páginas de anime con collage, estadísticas agregadas, ranking interno y CTA de voto.
-- Torneos con detalle visual, bracket SVG, estados, participantes y votación desde enfrentamientos abiertos.
-- Anime Daily Trials: Shadow Guess, Anime Reveal, AniGrid, Impostor Trial y ELO Duel.
-- Auth con JWT, refresh cookie, 2FA TOTP, OAuth Google/Discord, reset por email y perfil público.
-- Logros, reacciones, follow, actividad reciente, newsletter y página de apoyo.
-- Command palette `Cmd+K`, notificaciones, sonidos Web Audio API y PWA con Workbox.
-- SEO técnico: sitemap, image sitemap, robots, canonical, Open Graph, JSON-LD y páginas públicas indexables.
+- **Duelos 1v1** con ranking ELO, modo rápido, atajos de teclado, feedback visual y votos anónimos o autenticados.
+- **Ranking competitivo** con podio, histórico, filtros, búsqueda, vistas por anime e indicadores de movimiento.
+- **Catálogo visual** de 1052 personajes con filtros, buscador, modo grid/list y fichas individuales.
+- **Universos anime** con collages, stats agregadas, top interno y CTA para votar dentro de cada roster.
+- **Torneos** con estados, participantes, duelos abiertos, avance de bracket y predicciones.
+- **Anime Daily Trials** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial y ELO Duel.
+- **Auth y perfil** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares, follow, reacciones y actividad.
+- **UX avanzada** con command palette `Cmd+K`, notificaciones, Sonner, Web Audio API y PWA con Workbox.
+- **SEO técnico** con sitemap, image sitemap, canonical, Open Graph, JSON-LD, robots, `llms.txt` y páginas públicas indexables.
 
 ## Stack
 
@@ -66,10 +73,10 @@ El catálogo actual contiene **1052 personajes únicos** en **105 animes**, sinc
 | Área | Tecnología |
 |---|---|
 | UI | React 19, React Router 7, Tailwind CSS v4, Framer Motion 12 |
-| Forms | react-hook-form 7 |
+| Build | Vite 8, `@tailwindcss/vite`, Workbox, critical CSS inline |
 | Datos | TanStack Query, helpers locales de catálogo, cache de browser |
 | Interacción | cmdk, Sonner, Lucide React, Web Audio API |
-| Build | Vite 8 con `@tailwindcss/vite`, PWA Workbox, critical CSS inline |
+| Forms | react-hook-form 7 |
 | Observabilidad | Sentry + Web Vitals |
 
 ### Backend
@@ -91,38 +98,38 @@ AnimeShowdown/
 ├── frontend/              # React + Vite + Tailwind + PWA
 │   ├── img/               # Fuente visual del catálogo
 │   ├── public/            # PWA, redirects, robots, sitemap, llms.txt
-│   └── src/               # App, rutas, componentes, hooks y helpers
+│   └── src/               # Rutas, páginas, componentes, hooks y helpers
 ├── backend/               # Spring Boot API
 │   └── src/main/resources # Flyway, config y personajes-seed.json
 ├── scripts/               # Sync de catálogo, sitemap, smoke tests
 └── docs/                  # Runbooks, Postman y capturas públicas
 ```
 
-### Flujo de catálogo
+### Catálogo visual
 
-`frontend/img/` es la fuente visual del catálogo. Cada personaje vive en:
+`frontend/img/` es la fuente de verdad del catálogo. Cada personaje vive en:
 
 ```text
 frontend/img/<Nombre_del_Anime>/<slug>.webp
 ```
 
-El script de sincronización valida slugs, colisiones, nombres visibles y genera el seed backend:
+El script de sincronización valida slugs, colisiones, nombres visibles y paridad con el seed backend:
 
 ```bash
 node scripts/sync-personajes.mjs --check
 node scripts/sync-personajes.mjs --dry-run
 ```
 
-Las variantes responsive (`300`, `600`, `1024`, AVIF/WebP) ya están versionadas. En deploy se usa `build:no-images` para no regenerarlas en Cloudflare.
+Las variantes responsive (`300`, `600`, `1024`, AVIF/WebP) ya están versionadas. En Cloudflare se usa `build:no-images` para no regenerarlas durante el deploy.
 
 ## Setup local
 
 ### Requisitos
 
-- Node 22 LTS
-- Java 21
-- PostgreSQL 17
-- Maven Wrapper incluido en `backend/`
+- Node 22 LTS.
+- Java 21.
+- PostgreSQL 17.
+- Maven Wrapper incluido en `backend/`.
 
 ### Backend
 
@@ -132,7 +139,7 @@ cp .env.example .env
 ./mvnw spring-boot:run
 ```
 
-Por defecto Spring levanta en `http://localhost:8080`. Ajusta `DATABASE_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET` y `TOTP_ENCRYPTION_KEY` en tu `.env`.
+Spring levanta por defecto en `http://localhost:8080`. Configura `DATABASE_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET` y `TOTP_ENCRYPTION_KEY` en tu `.env`.
 
 ### Frontend
 
@@ -149,31 +156,25 @@ Vite levanta en `http://localhost:5173`. Para usar backend local:
 VITE_API_URL=http://localhost:8080
 ```
 
-## Scripts útiles
+## Calidad
 
-### Frontend
+Validaciones recomendadas antes de publicar cambios:
 
 ```bash
 cd frontend
 npm run lint
 npm run build:no-images
 npm run test:bundle
-```
 
-### Backend
-
-```bash
-cd backend
+cd ../backend
 ./mvnw test
-```
 
-### Smoke de producción
-
-```bash
+cd ..
 bash scripts/smoke-test.sh
+node scripts/sync-personajes.mjs --check
 ```
 
-El smoke valida healthcheck, catálogo, filtro por anime, ranking público, Swagger, frontend, SPA routing y login inválido con `401`.
+El smoke test comprueba healthcheck, catálogo, filtro por anime, ranking público, Swagger, frontend, rutas SPA y login inválido con respuesta `401`.
 
 ## Deploy
 
@@ -186,16 +187,17 @@ El smoke valida healthcheck, catálogo, filtro por anime, ranking público, Swag
 
 Notas clave:
 
-- Frontend build command: `npm run build:no-images`.
-- Output frontend: `frontend/dist`.
+- Frontend root: `frontend`.
+- Build command: `npm run build:no-images`.
+- Output: `frontend/dist`.
 - API pública: `https://api.animeshowdown.dev`.
-- SPA fallback y redirects viven en `frontend/public/_redirects`.
-- Workbox cachea recursos estaticos y rutas API seleccionadas con estrategias diferenciadas.
+- SPA fallback y redirects: `frontend/public/_redirects`.
 - `ProductionSecretsValidator` bloquea placeholders peligrosos fuera de test.
+- Workbox cachea recursos estáticos y rutas API seleccionadas con estrategias diferenciadas.
 
 ## API
 
-La documentación interactiva está en:
+La documentación interactiva está disponible en:
 
 ```text
 https://api.animeshowdown.dev/swagger-ui/index.html
@@ -204,6 +206,7 @@ https://api.animeshowdown.dev/swagger-ui/index.html
 Endpoints públicos destacados:
 
 - `GET /api/personajes`
+- `GET /api/personajes/{slug}`
 - `GET /api/votos/ranking`
 - `GET /api/torneos`
 - `GET /api/torneos/{slug}`
@@ -211,24 +214,16 @@ Endpoints públicos destacados:
 
 La API completa incluye auth, perfil, logros, reacciones, follow, torneos, votos, predicciones, newsletter, observabilidad y WebSocket.
 
-## Calidad y estado
+## Estado
 
-Validaciones recomendadas antes de publicar cambios:
-
-```bash
-cd frontend && npm run lint && npm run build:no-images && npm run test:bundle
-cd backend && ./mvnw test
-bash scripts/smoke-test.sh
-```
-
-Estado actual del catálogo:
-
-- 1052 personajes sincronizados.
-- 105 universos anime.
+- Catálogo sincronizado: **1052 personajes**.
+- Universos anime: **105**.
+- Torneos seed: **13**.
 - Sitemap con rutas estáticas, personajes, animes, torneos y duelos SEO.
 - Fallback visual para imágenes de personaje y placeholders de carga/error.
+- PWA con manifest, service worker y cache controlado por Workbox.
 
-## Documentacion adicional
+## Documentación
 
 - [Runbook general](RUNBOOK.md)
 - [Deploy Railway](docs/runbooks/railway-deploy.md)
@@ -238,4 +233,4 @@ Estado actual del catálogo:
 
 ## Licencia y disclaimer
 
-Este proyecto usa licencia MIT. AnimeShowdown es un proyecto fan-made y no esta afiliado a estudios, editoriales ni propietarios de las franquicias mencionadas. Los nombres, personajes y referencias pertenecen a sus respectivos titulares.
+Este proyecto usa licencia MIT. AnimeShowdown es un proyecto fan-made y no está afiliado a estudios, editoriales ni propietarios de las franquicias mencionadas. Los nombres, personajes y referencias pertenecen a sus respectivos titulares.
