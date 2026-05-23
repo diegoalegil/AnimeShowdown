@@ -6,6 +6,10 @@ const STALE_ASSET_PATTERNS = [
   'failed to fetch dynamically imported module',
   'importing a module script failed',
   'error loading dynamically imported module',
+  // React.lazy puede envolver un chunk corrupto/stale como un acceso a
+  // module.default en vez de emitir el preload error original.
+  "cannot read properties of undefined (reading 'default')",
+  "cannot read property 'default' of undefined",
   'chunkloaderror',
   'loading chunk',
 ]
