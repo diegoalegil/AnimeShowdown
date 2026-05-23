@@ -612,6 +612,37 @@ function VotarPage() {
     }
   }, [fixedAnime, fixedSlug, personalVoteImpact, sessionStats.lastShareText, votedPersonaje])
 
+  const handleShareSessionRecap = useCallback(async () => {
+    if (sessionStats.total <= 0) return
+    const top = Object.values(sessionStats.bySlug || {})
+      .sort((x, y) => y.count - x.count)
+      .slice(0, 5)
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · x${p.count}`)
+      .join('\n')
+    const text = [
+      `Llevo ${sessionStats.total} votos en AnimeShowdown hoy.`,
+      top ? `Mi top de la sesión:\n${top}` : null,
+      sessionStats.closeDuels > 0
+        ? `${sessionStats.closeDuels} duelos estuvieron a 1 voto o menos.`
+        : 'Todavía estoy buscando el duelo más polémico.',
+      '¿A quién defenderías tú?',
+    ].filter(Boolean).join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: 'Mi recap de votos anime',
+        text,
+        url: '/mi-ranking',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Recap compartido' : 'Recap copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el recap', {
+        description: error?.message || 'Copia tu resumen manualmente.',
+      })
+    }
+  }, [sessionStats])
+
   const handleVote = useCallback(
     (personaje) => {
       if (
@@ -1001,7 +1032,7 @@ function VotarPage() {
         )}
 
         {sessionStats.total > 0 && sessionStats.total % 10 === 0 && (
-          <SessionRecap stats={sessionStats} onShare={handleShareVote} />
+          <SessionRecap stats={sessionStats} onShare={handleShareSessionRecap} />
         )}
 
         {/* Atajos + (en sin matches) link a torneos */}
@@ -1227,6 +1258,12 @@ function SessionRecap({ stats, onShare }) {
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-bg/60 px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
           >
             Ver mi ranking
+          </Link>
+          <Link
+            to="/mi-top5"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/45 bg-accent-soft px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold"
+          >
+            Crear mi Top 5
           </Link>
           <button
             type="button"
