@@ -161,7 +161,7 @@ Monitor público de salud del backend.
 1. Crear cuenta gratuita en https://uptimerobot.com (50 monitors, ping 5min).
 2. Añadir monitor HTTP(s):
    - **Type**: HTTP(s)
-   - **URL**: `https://animeshowdown-backend.up.railway.app/actuator/health`
+   - **URL**: `https://api.animeshowdown.dev/actuator/health`
    - **Friendly name**: `AnimeShowdown · Backend health`
    - **Monitoring Interval**: 5 minutos
 3. Añadir contacto:
