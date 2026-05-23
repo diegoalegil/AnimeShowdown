@@ -95,7 +95,7 @@ function AnimesPage() {
         />
 
         <div className="as-panel mb-6 grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-          <div className="relative flex-1">
+          <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
             <input
               type="search"
@@ -119,7 +119,7 @@ function AnimesPage() {
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             aria-label="Ordenar por"
-            className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
+            className="as-control w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
           >
             {Object.entries(SORT_LABELS).map(([k, v]) => (
               <option key={k} value={k}>
@@ -190,7 +190,7 @@ function AnimeTile({ animeData }) {
     <Link
       to={`/animes/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="as-panel group relative block overflow-hidden rounded-xl p-0 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/45"
+      className="as-panel group relative block overflow-hidden rounded-xl p-0 transition-all duration-300 motion-safe:hover:-translate-y-1.5 hover:border-gold/45"
       style={{
         '--anime-accent': accentRgb,
       }}
