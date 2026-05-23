@@ -11,7 +11,7 @@
 
 **El ranking definitivo del anime lo decides tú.**
 
-AnimeShowdown es una plataforma full-stack de duelos 1v1, ranking ELO, torneos visuales y minijuegos diarios sobre personajes de anime. La experiencia está diseñada como un producto competitivo y cinemático: cards coleccionables, arena de votación, podios, brackets en vivo, perfiles sociales, command palette, sonido sintetizado y una PWA lista para producción.
+AnimeShowdown es una plataforma full-stack de duelos 1v1, ranking ELO, torneos visuales, ranking personal local y minijuegos diarios sobre personajes de anime. La experiencia está diseñada como un producto competitivo y cinemático: cards coleccionables, arena de votación, podios, brackets en vivo, comparativas, perfiles sociales, command palette, sonido sintetizado y una PWA lista para producción.
 
 El catálogo actual contiene **1052 personajes únicos** distribuidos en **105 universos anime**, sincronizados desde imágenes locales hacia frontend, backend y datos seed.
 
@@ -56,12 +56,14 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 
 ## Features
 
-- **Duelos 1v1** con ranking ELO, modo rápido, atajos de teclado, feedback visual y votos anónimos o autenticados.
+- **Duelos 1v1** con ranking ELO, modo rápido, atajos de teclado, feedback visual, anti-repetición y votos anónimos o autenticados.
+- **Ranking personal local** privado por navegador, alimentado por tus votos, con top compartible y señales en fichas de personaje.
 - **Ranking competitivo** con podio, histórico, filtros, búsqueda, vistas por anime e indicadores de movimiento.
+- **Comparador y descubrimiento** para enfrentar dos personajes concretos, descubrir personajes al azar y generar duelos recomendados.
 - **Catálogo visual** de 1052 personajes con filtros, buscador, modo grid/list y fichas individuales.
 - **Universos anime** con collages, stats agregadas, top interno y CTA para votar dentro de cada roster.
 - **Torneos** con estados, participantes, duelos abiertos, avance de bracket y predicciones.
-- **Anime Daily Trials** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial y ELO Duel.
+- **Anime Daily Trials y misiones** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial, ELO Duel y progreso diario local.
 - **Auth y perfil** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares, follow, reacciones y actividad.
 - **UX avanzada** con command palette `Cmd+K`, notificaciones, Sonner, Web Audio API y PWA con Workbox.
 - **SEO técnico** con sitemap, image sitemap, canonical, Open Graph, JSON-LD, robots, `llms.txt` y páginas públicas indexables.
@@ -172,6 +174,8 @@ cd ../backend
 cd ..
 bash scripts/smoke-test.sh
 node scripts/sync-personajes.mjs --check
+node scripts/qa/catalog-quality.mjs
+node scripts/qa/contrast-check.mjs
 ```
 
 El smoke test comprueba healthcheck, catálogo, filtro por anime, ranking público, Swagger, frontend, rutas SPA y login inválido con respuesta `401`.
@@ -221,6 +225,7 @@ La API completa incluye auth, perfil, logros, reacciones, follow, torneos, votos
 - Torneos seed: **13**.
 - Sitemap con rutas estáticas, personajes, animes, torneos y duelos SEO.
 - Fallback visual para imágenes de personaje y placeholders de carga/error.
+- Ranking personal local, comparador, misiones y descubrimiento enlazados en navegación, sitemap y command palette.
 - PWA con manifest, service worker y cache controlado por Workbox.
 
 ## Documentación
