@@ -256,13 +256,8 @@ function PersonajeDetailPage() {
             className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
             variants={itemVariants}
           >
-            {/* Nota P1 (revisión externa 2026-05-18): el motion.div parent
-                era w-auto + tenía PersonajeGaleria dentro (strip con 13
-                thumbs × 72px ≈ 936px). En mobile (~380px) el w-auto se
-                estiraba al ancho del hijo más ancho → overflow horizontal
-                real. Fix: w-full min-w-0 max-w-sm en parent (mobile) y
-                max-w-md en md+. Galería respeta su contenedor y hace
-                scroll horizontal interno como debe. */}
+            {/* El contenedor limita la galería en mobile para evitar overflow
+                horizontal cuando hay muchas miniaturas. */}
             <div
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
@@ -759,9 +754,8 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
       </div>
     )
   }
-  // Modo 3D activo: incluimos el chunk lazy del modelo + toggle reverso
-  // para volver a la imagen estática. Antes no había forma de salir del
-  // modo 3D sin recargar la página — bug reportado en revisión externa.
+  // Modo 3D activo: incluimos el chunk lazy del modelo + toggle para volver
+  // a la imagen estática sin recargar la página.
   return (
     <div className="relative h-full w-full">
       <Suspense

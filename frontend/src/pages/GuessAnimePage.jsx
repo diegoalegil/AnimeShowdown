@@ -158,13 +158,8 @@ function GuessAnimePage() {
           }`}
         >
           <div className="relative aspect-[2/3] h-[44vh] max-h-[440px] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
-            {/* Nota P1 (revisión externa 2026-05-18): el <img> plano
-                no tenía fallback, así que personajes con imagen problemática
-                (ej. roy_mustang con naturalWidth=0 reportado) salían como
-                icono roto. PersonajeImg renderiza PersonajePlaceholder
-                (kanji 戦 + iniciales + anime) si la carga falla — la
-                ronda diaria queda jugable visualmente aunque el asset
-                tenga issues puntuales. */}
+            {/* PersonajeImg evita el icono nativo de imagen rota y mantiene
+                jugable la ronda diaria aunque un asset concreto falle. */}
             <PersonajeImg
               slug={objetivo.slug}
               alt="Personaje a identificar"
