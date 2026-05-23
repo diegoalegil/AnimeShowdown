@@ -35,7 +35,7 @@ class NewsletterControllerTest {
 
     @Test
     void suscribirSinAuthDevuelve200() throws Exception {
-        // Nota P2 (2026-05-17): la response unifica mensaje (no expone
+        // la response unifica mensaje (no expone
         // CREADA/REENVIADA/YA_CONFIRMADA) para no enumerar suscriptores.
         // Verificamos el estado real en BBDD en su lugar.
         mvc.perform(post("/api/newsletter")

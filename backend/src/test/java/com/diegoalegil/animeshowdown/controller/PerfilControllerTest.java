@@ -57,7 +57,7 @@ class PerfilControllerTest {
 
     private String tokenAdmin() throws Exception {
         String token = tokenDe("admin_torneo_test", "diegogildam@gmail.com");
-        // Tras revisión P1.1: la promoción a ADMIN ya no ocurre en
+        // Tras revisión: la promoción a ADMIN ya no ocurre en
         // registro. Forzamos verificación + ADMIN en BBDD para tests.
         usuarioRepository.findByUsername("admin_torneo_test").ifPresent(u -> {
             u.setEstadoVerificacion(com.diegoalegil.animeshowdown.model.EstadoVerificacion.ACTIVO);

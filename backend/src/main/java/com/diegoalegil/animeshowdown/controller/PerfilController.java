@@ -170,7 +170,7 @@ public class PerfilController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // Nota P2 (2026-05-17): el audit se hace AHORA dentro del service
+        // el audit se hace AHORA dentro del service
         // en la misma tx — después de verificar password y antes del delete.
         // Antes se hacía aquí en el controller ANTES del verifyPassword:
         // un password incorrecto generaba un registro CUENTA_ELIMINADA
@@ -184,7 +184,7 @@ public class PerfilController {
         }
         // Limpia la cookie de refresh para que el frontend no quede con
         // sesión zombie. JS de cliente debe además limpiar el access token.
-        // Nota P3 (2026-05-17): antes hardcodeaba secure=true + SameSite=Lax,
+        // antes hardcodeaba secure=true + SameSite=Lax,
         // pero AuthController emite la cookie con secure=cookieSecure +
         // SameSite=Strict. El mismatch de attributes hace que algunos
         // navegadores no consideren la cookie "la misma" y no la borren —

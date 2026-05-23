@@ -389,7 +389,7 @@ public class TorneoService {
      * por count de votos y propagando a la ronda siguiente vía
      * {@link BracketAdvanceService}) hasta que llega a la final.
      *
-     * <p>Nota P1 (2026-05-17): antes este método iteraba todos los
+     * <p>antes este método iteraba todos los
      * enfrentamientos, saltaba los slots vacíos de rondas 2+ (que nunca se
      * rellenaban porque el BracketAvanceScheduler prometido no existía) y
      * marcaba el torneo como FINISHED igual. Resultado: torneos de 8/16

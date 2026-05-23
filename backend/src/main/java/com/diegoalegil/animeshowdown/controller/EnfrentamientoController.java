@@ -119,7 +119,7 @@ public class EnfrentamientoController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Nota P2 (2026-05-17): @Transactional es OBLIGATORIO aquí, no estético.
+    // @Transactional es OBLIGATORIO aquí, no estético.
     // Sin él, votoRepository.save() corre en auto-commit (su propia tx), y
     // cuando llega `eventPublisher.publishEvent(new VotoRegistradoEvent(...))`
     // ya no hay tx activa. BadgeEventListener escucha en AFTER_COMMIT, que sin
@@ -151,7 +151,7 @@ public class EnfrentamientoController {
                     .body("Solo se puede votar en enfrentamientos de torneos IN_PROGRESS");
         }
 
-        // Nota P1 (2026-05-17): antes solo se validaba el estado del torneo.
+        // antes solo se validaba el estado del torneo.
         // Por id directo el cliente podía votar:
         //  - Matches ya resueltos (ganador != null): votos inflados sobre un
         //    resultado cerrado, afectando counts post-bracket y stats.
@@ -195,7 +195,7 @@ public class EnfrentamientoController {
                         .body("Ya has votado este enfrentamiento");
             }
         } else {
-            // Nota técnica AS-004 (2026-05-23): antifraude antes del check
+            // antifraude antes del check
             // de 5 votos invitados. El throttle protege contra abusos que
             // rotan la cookie (medidos por anon_ip_hash); el límite de 5
             // sigue siendo el gate para empujar al CTA de "crea cuenta".
@@ -261,7 +261,7 @@ public class EnfrentamientoController {
         long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p1);
         long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p2);
         long votosTotalesGanador = votoRepository.countByPersonajeId(ganador.getId());
-        // Nota técnica B2.1a (2026-05-22): además del conteo físico
+        // además del conteo físico
         // publicamos la suma ponderada (peso 0.3 anónimo / 1.0 registrado)
         // para que el frontend reordene la caché live por la misma métrica
         // que el ORDER BY del ranking REST.
@@ -274,7 +274,7 @@ public class EnfrentamientoController {
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
-        // Nota técnica B2.2 (2026-05-23): además del total ponderado pasamos
+        // además del total ponderado pasamos
         // el peso del voto RECIÉN registrado (0.30 anónimo / 1.00 registrado).
         // El frontend lo SUMA al pesoVotos de las cachés temporales (mes,
         // trimestre, año). Sin esto, el hook restaba pesoVotos absoluto
@@ -349,7 +349,7 @@ public class EnfrentamientoController {
             Double pesoTotalesGanador, double pesoVotoRegistrado) {
         if (messaging == null || ganador == null) return;
         try {
-            // Nota técnica B2.1a + B2.2 (2026-05-22/23): payload incluye:
+            // payload incluye:
             //   - pesoVotos: total ponderado all-time (para periodo='all').
             //   - deltaPeso: peso del voto recién emitido (0.3 / 1.0). El
             //     frontend lo suma a las cachés temporales, evitando
@@ -364,7 +364,7 @@ public class EnfrentamientoController {
     }
 
     /**
-     * Nota técnica AS-004 (2026-05-23): cookie-first con fallback legacy.
+     * cookie-first con fallback legacy.
      * Orden de resolución de la identidad anónima:
      *   1. Cookie firmada {@code as_anon} con HMAC verificable.
      *   2. Cookie legacy {@code as_anon_vote_id} (no firmada, mantenida 1
