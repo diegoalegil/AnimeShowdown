@@ -23,6 +23,8 @@
 /random/*                 /descubre-personaje        301
 /mision-diaria            /misiones                  301
 /mision-diaria/*          /misiones                  301
+/versus                   /comparar                  301
+/compare                  /comparar                  301
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
@@ -40,6 +42,7 @@
 /eventos                  / 200
 /eventos/:slug            / 200
 /duelos/:par              / 200
+/comparar                 / 200
 /ranking                  / 200
 /descubre-personaje       / 200
 /votar                    / 200
