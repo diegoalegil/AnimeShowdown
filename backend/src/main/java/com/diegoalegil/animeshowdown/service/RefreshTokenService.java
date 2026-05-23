@@ -20,7 +20,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.RefreshTokenRepository;
 
 /**
- * Gestión de refresh tokens (Plan v2 §1.3).
+ * Gestión de refresh tokens.
  *
  * Flujo:
  *

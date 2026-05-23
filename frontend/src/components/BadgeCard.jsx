@@ -5,7 +5,7 @@ import { iconoDeBadge } from '../lib/badgeIcons'
 import { kanjiDeBadge } from '../lib/badgeKanji'
 
 /**
- * Card individual de un badge/logro (Plan v2 §4.2).
+ * Card individual de un badge/logro.
  *
  * Estados:
  *   - desbloqueado: marco coloreado por rareza + icono color, fecha tooltip.
@@ -100,7 +100,7 @@ function BadgeCard({ logro }) {
             <Lock className="h-4 w-4 text-fg-muted" />
           </span>
         )}
-        {/* Plan v2 §13.1: kanji asociado al badge en esquina sup-derecha
+        {/* 1: kanji asociado al badge en esquina sup-derecha
             del circulo del icono. Solo si esta desbloqueado y tiene
             mapping en lib/badgeKanji. */}
         {desbloqueado && kanjiDeBadge(logro.codigo) && (

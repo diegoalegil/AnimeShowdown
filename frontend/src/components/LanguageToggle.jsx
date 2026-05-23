@@ -9,7 +9,7 @@ const IDIOMAS = [
 ]
 
 /**
- * Toggle de idioma en Header (Plan v2 §4.11).
+ * Toggle de idioma en Header.
  *
  * <p>Pequeño botón con el código del idioma actual (ES / EN). Click abre
  * dropdown con la lista; al elegir, {@code i18n.changeLanguage} dispara

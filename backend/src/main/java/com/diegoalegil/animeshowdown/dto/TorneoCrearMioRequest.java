@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
 /**
- * Request body para que un usuario verificado cree un torneo (Plan v2 §4.9).
+ * Request body para que un usuario verificado cree un torneo.
  *
  * <p>Diferencias respecto a {@link TorneoCrearRequest} (admin):
  * <ul>
@@ -15,7 +15,7 @@ import jakarta.validation.constraints.Size;
  *       admin podía crear el torneo vacío y poblarlo después con dos
  *       llamadas, pero el creador de a pie solo dispara una.</li>
  *   <li>El service valida que el tamaño sea exactamente 8 o 16 — el
- *       Plan v2 §4.9 no permite tamaños arbitrarios para que el bracket
+ *       9 no permite tamaños arbitrarios para que el bracket
  *       siempre sea binario completo (sin BYEs).</li>
  * </ul>
  */

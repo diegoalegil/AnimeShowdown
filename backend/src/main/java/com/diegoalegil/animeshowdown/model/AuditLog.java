@@ -15,7 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Una entrada del audit log (Plan v2 §2.6). Se inserta vía AuditLogService
+ * Una entrada del audit log. Se inserta vía AuditLogService
  * de forma asíncrona desde controllers/services cuando ocurre un evento
  * relevante de auth o seguridad.
  *

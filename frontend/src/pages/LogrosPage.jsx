@@ -35,7 +35,7 @@ const FILTROS_RAREZA = [
 ]
 
 /**
- * Catálogo público de logros (Plan v2 §4.10).
+ * Catálogo público de logros.
  *
  * <p>Página pública que lista los 14 badges con descripción, rareza y
  * count comunidad ("X usuarios lo tienen"). Si el visitante está logueado,

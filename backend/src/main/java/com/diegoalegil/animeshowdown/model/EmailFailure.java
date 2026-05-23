@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 
 /**
  * Entrada en la dead letter queue cuando un email falló tras los 3
- * reintentos de @Retryable (Plan v2 §2.12).
+ * reintentos de @Retryable.
  *
  * El admin lista los fallos vía GET /api/admin/email-failures y puede
  * marcarlos como reintentados (POST /api/admin/email-failures/{id}/retry)

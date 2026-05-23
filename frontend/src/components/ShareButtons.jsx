@@ -3,7 +3,7 @@ import { Copy, Link as LinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 /**
- * Botones de share multi-plataforma (Plan v2 §7.6).
+ * Botones de share multi-plataforma.
  *
  * <p>Construye URLs de intent para Twitter/X, Reddit, WhatsApp,
  * Telegram y Bluesky. Cada plataforma tiene su propio formato:

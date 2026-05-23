@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Respuesta de {@code POST /api/enfrentamientos/{id}/votar} (Plan v2 §4.x —
+ * Respuesta de {@code POST /api/enfrentamientos/{id}/votar} (x —
  * propuesta de feedback inmediato tras votar).
  *
  * <p>Antes el endpoint devolvía la entidad Voto cruda. Ahora devolvemos un

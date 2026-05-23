@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { endpoints } from '../lib/api.js'
 
 /**
- * Hooks para reactions emoji sobre un target (Plan v2 §4.3).
+ * Hooks para reactions emoji sobre un target.
  *
  * - useReacciones(targetType, targetId): query con counts + miReaccion.
  * - useAplicarReaccion: mutation que llama POST y actualiza la query

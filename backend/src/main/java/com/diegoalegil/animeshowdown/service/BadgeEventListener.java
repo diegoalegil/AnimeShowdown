@@ -15,7 +15,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
- * Listener que desbloquea badges en respuesta a eventos del dominio (Plan v2 §4.2).
+ * Listener que desbloquea badges en respuesta a eventos del dominio.
  *
  * <p>Por qué {@code @TransactionalEventListener(AFTER_COMMIT)} en lugar de
  * {@code @EventListener}: el evento {@link VotoRegistradoEvent} se publica
@@ -80,7 +80,7 @@ public class BadgeEventListener {
     }
 
     /**
-     * Tras resolver predicciones al finalizar un torneo (Plan v2 §4.4):
+     * Tras resolver predicciones al finalizar un torneo:
      * comprueba racha consecutiva (3 / 10 seguidas) y total absoluto
      * (profeta = 20+). Los desbloqueos son idempotentes, así que si en
      * un mismo torneo el usuario gana varios badges, ninguno se

@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
 /**
- * Tipo de email enviado por EmailService (Plan v2 §2.12). Se persiste en
+ * Tipo de email enviado por EmailService. Se persiste en
  * la dead letter queue cuando un envío falla tras los retries, para que
  * el admin pueda priorizar manualmente cuáles reintentar.
  *
@@ -12,7 +12,7 @@ package com.diegoalegil.animeshowdown.model;
 public enum EmailTipo {
     RESET_PASSWORD,
     VERIFICACION,
-    /** Confirmación double opt-in de newsletter (Plan v2 §4.8). */
+    /** Confirmación double opt-in de newsletter. */
     NEWSLETTER_CONFIRMACION,
     /** Catch-all para envíos futuros (digest semanal, notificaciones, etc.). */
     OTROS

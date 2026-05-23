@@ -21,7 +21,7 @@ import com.diegoalegil.animeshowdown.repository.ReaccionRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
 /**
- * Lógica de reactions emoji sobre personajes / torneos / matches (Plan v2 §4.3).
+ * Lógica de reactions emoji sobre personajes / torneos / matches.
  *
  * <p>Comportamiento del {@link #aplicar(Usuario, ReaccionTargetType, Long, ReaccionTipo)}
  * según el estado previo del par (usuario, target):

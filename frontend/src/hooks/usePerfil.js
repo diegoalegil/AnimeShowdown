@@ -3,7 +3,7 @@ import { endpoints } from '../lib/api.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 
 /**
- * Hooks de perfil del usuario autenticado (Plan v2 §4.1).
+ * Hooks de perfil del usuario autenticado.
  *
  * Todos requieren user logueado — gate por user del AuthContext para no
  * disparar requests 403 cuando no hay sesión.
@@ -40,7 +40,7 @@ export function usePerfilTop({ limit = 5, enabled = true } = {}) {
 }
 
 /**
- * Feed combinado de actividad reciente (Plan v2 §4.1). Devuelve un array
+ * Feed combinado de actividad reciente. Devuelve un array
  * de items {tipo, fecha, payload}. staleTime corto (15s) porque puede
  * cambiar a cada voto/desbloqueo y queremos refresco rápido al volver
  * al tab Resumen.
@@ -56,7 +56,7 @@ export function usePerfilActividad({ limit = 20, enabled = true } = {}) {
 }
 
 /**
- * Stats de referral del usuario (Plan v2 §11.8). Código + count
+ * Stats de referral del usuario. Código + count
  * verificados. staleTime largo (5min) porque cambia despacio.
  */
 export function usePerfilReferral({ enabled = true } = {}) {
@@ -70,7 +70,7 @@ export function usePerfilReferral({ enabled = true } = {}) {
 }
 
 /**
- * Perfil PÚBLICO de cualquier usuario por username (Plan v2 §4.5).
+ * Perfil PÚBLICO de cualquier usuario por username.
  *
  * <p>No requiere auth — el endpoint backend es permitAll. Si el caller
  * está logueado, el token viaja igualmente y la respuesta incluye los
@@ -90,7 +90,7 @@ export function usePerfilPublico(username) {
 }
 
 /**
- * Toggle de seguir / dejar de seguir (Plan v2 §4.5).
+ * Toggle de seguir / dejar de seguir.
  *
  * <p>Devuelve un mutate que recibe {@code { usuarioId, siguiendo }} —
  * llama a {@code dejarDeSeguir} si {@code siguiendo} es true, a {@code seguir}

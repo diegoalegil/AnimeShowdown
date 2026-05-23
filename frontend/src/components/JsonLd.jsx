@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 /**
  * Inyecta {@code <script type="application/ld+json">} en {@code document.head}
- * con el schema.org pasado como prop (Plan v2 §5.1).
+ * con el schema.org pasado como prop.
  *
  * <p>Render-less: no devuelve nada visible, solo gestiona el ciclo de vida
  * del tag script. Al unmount se elimina automáticamente para no acumular

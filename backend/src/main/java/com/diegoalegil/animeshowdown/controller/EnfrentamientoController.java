@@ -110,7 +110,7 @@ public class EnfrentamientoController {
      * IN_PROGRESS, con ambos personajes y sin ganador) para que VotarPage
      * pueda mostrarlo en modo backend. 404 si ahora mismo no hay matches
      * abiertos — el frontend hace fallback a modo casual con pares random
-     * locales (Plan v2 §1.1).
+     * locales.
      */
     @GetMapping("/aleatorio")
     public ResponseEntity<EnfrentamientoDto> aleatorio() {
@@ -156,7 +156,7 @@ public class EnfrentamientoController {
         //  - Matches ya resueltos (ganador != null): votos inflados sobre un
         //    resultado cerrado, afectando counts post-bracket y stats.
         //  - Matches de R2+ todavía sin participantes propagados (personaje1
-        //    o 2 null): NullPointerException al hacer .getId() abajo → 500.
+        //    o 2 null): NullPointerException al hacer.getId() abajo → 500.
         // Ambos rechazados explícitamente con 409 + mensaje claro.
         if (enf.getGanador() != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -167,7 +167,7 @@ public class EnfrentamientoController {
                     .body("Este enfrentamiento aún no tiene participantes asignados (ronda futura del bracket)");
         }
 
-        // Plan v2 §2.4: usuarios PENDIENTE de verificación de email no
+        // 4: usuarios PENDIENTE de verificación de email no
         // pueden votar. Toggle vía app.email-verification.required-to-vote
         // (true en prod, false en tests para no obligar al fixture a
         // simular el flujo completo de email). 403 con mensaje claro.
@@ -270,7 +270,7 @@ public class EnfrentamientoController {
         long votosGanador = ganador.getId().equals(p1.getId()) ? votosP1 : votosP2;
         long votosPerdedor = perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2;
 
-        // Plan v2 §2.13: push del estado actualizado del match al topic del
+        // 13: push del estado actualizado del match al topic del
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
@@ -287,7 +287,7 @@ public class EnfrentamientoController {
         publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador,
                 pesoVotoRegistrado);
 
-        // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
+        // 2: evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
         // Diseño extensible — futuros listeners podrán reaccionar también.
         if (usuario != null) {

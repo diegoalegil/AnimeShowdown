@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
 /**
- * Tipos de entidad sobre los que se puede reaccionar (Plan v2 §4.3).
+ * Tipos de entidad sobre los que se puede reaccionar.
  *
  * <ul>
  *   <li>{@link #PERSONAJE} — sobre un personaje del catálogo.</li>

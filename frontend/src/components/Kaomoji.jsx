@@ -1,5 +1,5 @@
 /**
- * Kaomoji rotativos para loading states y micro-feedback (Plan v2 §13.15).
+ * Kaomoji rotativos para loading states y micro-feedback.
  *
  * <p>5 emoticonos japoneses puramente Unicode (sin emoji platform-specific).
  * Una "elección estable" por sesión — el mismo loading kaomoji cada vez

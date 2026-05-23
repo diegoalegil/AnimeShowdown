@@ -15,7 +15,7 @@ import KanjiStroke from './KanjiStroke'
 /**
  * Renderiza un bracket de eliminación directa con datos vivos del backend.
  *
- * Plan v2 §1.1 + §17.1 — antes el componente recibía `slugs` (array plano
+ * 1 + §17.1 — antes el componente recibía `slugs` (array plano
  * de participantes) y computaba el ganador local por ELO, lo que producía
  * dos bugs:
  *   1. Los torneos 'proximo' mostraban estructura completa hasta la final
@@ -42,7 +42,7 @@ const TITULOS = {
   1: ['Final'],
 }
 
-// Plan v2 §17.2: kanji decorativo por ronda. 一回戦 (primera ronda),
+// 2: kanji decorativo por ronda. 一回戦 (primera ronda),
 // 二回戦, 準決勝 (semifinal), 決勝 (final). El sufijo encaja según el
 // número de rondas — la última siempre es 決勝.
 const KANJI_RONDA = {
@@ -53,7 +53,7 @@ const KANJI_RONDA = {
 }
 
 function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSlug, estado }) {
-  // Plan v2 §4.4: cargamos las predicciones del usuario para este torneo
+  // 4: cargamos las predicciones del usuario para este torneo
   // (skip si no hay user o no hay torneoId). El hook ya respeta esos
   // gates internamente. Se indexa por enfrentamientoId para que cada
   // BracketMatch reciba solo su predicción.
@@ -82,7 +82,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
   const titulos = TITULOS[totalRondas] || []
   const kanjis = KANJI_RONDA[totalRondas] || []
 
-  // Plan v2 §17.2: barra de progreso del torneo. Cuenta matches resueltos
+  // 2: barra de progreso del torneo. Cuenta matches resueltos
   // (con ganador) sobre el total. Útil de un vistazo para "X de Y matches".
   const totalMatches = enfrentamientos.length
   const matchesResueltos = enfrentamientos.filter((e) => e.ganador).length
@@ -103,7 +103,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
 
   return (
     <div>
-      {/* Plan v2 §17.2: barra de progreso superior con "X de Y matches"
+      {/* 2: barra de progreso superior con "X de Y matches"
           y ronda actual. Solo se muestra si hay matches resueltos o el
           torneo no es FINISHED (en ese caso, mostraría 100% redundante
           con la card de campeón). */}
@@ -261,7 +261,7 @@ function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion }) {
       {abiertoParaVotar && (
         <VotoRow match={match} torneoSlug={torneoSlug} />
       )}
-      {/* Plan v2 §4.4: picker de predicciones. Solo aparece si el match
+      {/* 4: picker de predicciones. Solo aparece si el match
           está abierto Y tenemos torneoId (i.e. user logueado, el hook
           padre cargó misPredicciones). Si resuelto, mostramos badge con
           el resultado de la predicción. */}
@@ -374,7 +374,7 @@ function VotoButton({ personaje, active, disabled, onClick }) {
 }
 
 /**
- * Footer del BracketMatch con la predicción (Plan v2 §4.4).
+ * Footer del BracketMatch con la predicción.
  *
  * - Match abierto + sin predicción → botón "🔮 Predice".
  *   Click expande dos botones (los 2 personajes); click en uno → registra.

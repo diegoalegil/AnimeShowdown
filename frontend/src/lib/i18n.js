@@ -7,7 +7,7 @@ import en from '../locales/en.json'
 import ja from '../locales/ja.json'
 
 /**
- * Configuración i18n de AnimeShowdown (Plan v2 §4.11).
+ * Configuración i18n de AnimeShowdown.
  *
  * <p>Idiomas activos en esta iteración:
  * <ul>

@@ -21,7 +21,7 @@ const containerVariants = {
 }
 
 /**
- * Glosario otaku (Plan v2 §13.8) — términos comunes del fandom anime
+ * Glosario otaku — términos comunes del fandom anime
  * con definición curada en español. Cada entrada produce un
  * {@code DefinedTerm} en JSON-LD para captura long-tail SEO.
  *

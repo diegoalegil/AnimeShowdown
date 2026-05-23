@@ -3,7 +3,7 @@ import { usePerfilStats } from '../hooks/usePerfil'
 import KanjiSpinner from './KanjiSpinner'
 
 /**
- * Card "Estadísticas" del perfil (Plan v2 §4.1, §4.5).
+ * Card "Estadísticas" del perfil.
  *
  * 4 KPIs en grid: votos totales, predicciones acertadas, % aciertos,
  * badges desbloqueados. Si no hay datos aún (user nuevo), se muestran

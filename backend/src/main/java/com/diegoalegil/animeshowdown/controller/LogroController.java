@@ -15,7 +15,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.BadgeService;
 
 /**
- * Endpoints de badges/logros (Plan v2 §4.2, §4.10).
+ * Endpoints de badges/logros.
  *
  * <ul>
  *   <li>{@code GET /api/logros} — público. Catálogo de los 14 badges con

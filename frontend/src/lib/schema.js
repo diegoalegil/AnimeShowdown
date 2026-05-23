@@ -1,5 +1,5 @@
 /**
- * Factory functions de schema.org JSON-LD por tipo de página (Plan v2 §5.1).
+ * Factory functions de schema.org JSON-LD por tipo de página.
  *
  * <p>Cada función devuelve un objeto plano que se pasa como prop al
  * componente {@code <JsonLd>}. Validar con Google Rich Results Test
@@ -224,7 +224,7 @@ export function animesListSchema(animesList = []) {
 }
 
 /**
- * Schema {@code CollectionPage} con {@code ItemList} de logros (Plan v2 §4.10).
+ * Schema {@code CollectionPage} con {@code ItemList} de logros.
  * Cada badge entra como {@code Achievement} (subtype de CreativeWork con
  * mejor cobertura semántica que Thing) — el frontend lo pinta además con
  * Microdata inline en cada card.
@@ -257,7 +257,7 @@ export function logrosCollectionSchema(logros = []) {
 }
 
 /**
- * Schema {@code DefinedTermSet} (Plan v2 §13.8). Glosario de términos
+ * Schema {@code DefinedTermSet}. Glosario de términos
  * otaku. Cada término individual va como {@code DefinedTerm} dentro del
  * mainEntity para captura long-tail SEO ("qué es tsundere", "qué es isekai").
  *
@@ -280,7 +280,7 @@ export function definedTermSetSchema(items, nombreGlosario = 'Glosario otaku') {
 }
 
 /**
- * Schema {@code FAQPage} (Plan v2 §5.10). Cada item produce un acordeón
+ * Schema {@code FAQPage}. Cada item produce un acordeón
  * en el rich snippet de Google si la página alcanza autoridad suficiente.
  * Las respuestas se serializan como texto plano (HTML básico se permite
  * pero Google solo renderiza un subset; preferimos plain text).

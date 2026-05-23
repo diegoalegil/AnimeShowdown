@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.model.Voto;
 public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     /**
-     * Ranking all-time por votos ponderados (Plan v2 §4.6).
+     * Ranking all-time por votos ponderados.
      *
      * <p>Ajuste #15 (2026-05-21): se anade desempate por id ASC. Sin
      * tiebreak, dos personajes con el mismo COUNT salian en orden
@@ -50,7 +50,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     List<RankingItem> obtenerRanking();
 
     /**
-     * Ranking all-time paginado (Plan v2 §4.6). Page para que la UI pueda
+     * Ranking all-time paginado. Page para que la UI pueda
      * pedir top 50 o top 100 sin volcar todo el catálogo.
      *  + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
@@ -69,7 +69,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             org.springframework.data.domain.Pageable pageable);
 
     /**
-     * Ranking dentro de una ventana temporal (Plan v2 §4.6 — top mensual,
+     * Ranking dentro de una ventana temporal (6 — top mensual,
      * trimestral, etc). desde es inclusivo. Aplica el mismo GROUP BY que
      * el all-time pero filtra por fecha del voto.
      *  + B2.1b: ponderado por peso para ORDER, físico para UI.
@@ -89,7 +89,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             org.springframework.data.domain.Pageable pageable);
 
     /**
-     * Ranking "histórico" (Plan v2 §4.x — indicadores ↑↓): cuenta solo
+     * Ranking "histórico": cuenta solo
      * votos EMITIDOS antes de la fecha dada. Sirve para comparar la
      * posición de hace N días con la posición actual y calcular el
      * movimiento de cada personaje.
@@ -109,7 +109,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     List<RankingItem> rankingHasta(@Param("antesDe") java.time.LocalDateTime antesDe,
             org.springframework.data.domain.Pageable pageable);
 
-    /** Total de votos de un personaje (Plan v2 §11.1 time machine baseline). */
+    /** Total de votos de un personaje. */
     long countByPersonajeId(Long personajeId);
 
     /**
@@ -170,7 +170,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             @Param("hasta") java.time.LocalDateTime hasta);
 
     /**
-     * Votos por día del personaje desde la fecha dada (Plan v2 §11.1).
+     * Votos por día del personaje desde la fecha dada.
      * Devuelve {@code [fechaInicio-del-día, count]}.
      *
      * <p>Ajuste #2 (2026-05-21): antes usaba {@code FUNCTION('DATE', v.fecha)}
@@ -196,7 +196,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             @Param("desde") java.time.LocalDateTime desde);
 
     /**
-     * Ranking de personajes de un anime concreto (Plan v2 §4.6). Filtramos
+     * Ranking de personajes de un anime concreto. Filtramos
      * por nombre del anime (string del catálogo) — case-sensitive porque
      * los nombres en BBDD vienen consistentes del seeder.
      *  + B2.1b: ponderado por peso para ORDER, físico para UI.
@@ -254,11 +254,11 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     List<Voto> findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(String anonSessionId);
 
-    /** Total de votos emitidos por un usuario. Plan v2 §4.2 (badges por umbral). */
+    /** Total de votos emitidos por un usuario. 2 (badges por umbral). */
     long countByUsuario(Usuario usuario);
 
     /**
-     * Top voters all-time (Plan v2 §11.9). Devuelve {Usuario, Long total}
+     * Top voters all-time. Devuelve {Usuario, Long total}
      * ordenado descendente. Usado por GET /api/votos/top-voters?limit=10
      * para la página /leaderboards/voters.
      */
@@ -319,14 +319,14 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /**
      * Historial de votos del usuario, ordenados por fecha desc (más recientes
      * primero). Page para paginación; el frontend pide page=0,size=50 típicamente.
-     * Plan v2 §4.1.
+     * 1.
      */
     org.springframework.data.domain.Page<Voto> findByUsuarioOrderByFechaDesc(
             Usuario usuario, org.springframework.data.domain.Pageable pageable);
 
     /**
      * Top N personajes más votados por un usuario. Devuelve {Personaje, Long}.
-     * Plan v2 §4.1 — sección "Tu Top 5" del perfil.
+     * 1 — sección "Tu Top 5" del perfil.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.TopPersonajeItem(

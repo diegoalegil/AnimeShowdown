@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Stats globales del usuario para el perfil (Plan v2 §4.1).
+ * Stats globales del usuario para el perfil.
  *
  * <ul>
  *   <li>{@code votosTotales} — todos los votos del usuario (incluye casual).</li>

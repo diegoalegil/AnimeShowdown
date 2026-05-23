@@ -21,7 +21,7 @@ import com.diegoalegil.animeshowdown.repository.NewsletterSubRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración del flow de newsletter con double opt-in (Plan v2 §4.8).
+ * Tests integración del flow de newsletter con double opt-in.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

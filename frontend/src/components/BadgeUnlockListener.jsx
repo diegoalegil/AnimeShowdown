@@ -18,7 +18,7 @@ function loadConfetti() {
 
 /**
  * Side-effect global: escucha el user-queue WS y dispara toast + sound +
- * confetti cuando llega una notificación BADGE_DESBLOQUEADO (Plan v2 §4.2).
+ * confetti cuando llega una notificación BADGE_DESBLOQUEADO.
  *
  * No renderiza nada visible — solo se monta cuando hay user logueado y
  * registra el listener. La campanita ({@code NotifBell}) sigue mostrando

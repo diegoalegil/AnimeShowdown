@@ -28,7 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
- * Endpoints REST del perfil del usuario autenticado (Plan v2 §4.1).
+ * Endpoints REST del perfil del usuario autenticado.
  *
  * <p>Todos requieren auth — son sobre el usuario actual ({@code /me}).
  * <ul>
@@ -63,7 +63,7 @@ public class PerfilController {
     }
 
     /**
-     * Vista PÚBLICA del perfil de un usuario (Plan v2 §4.5). Stats + top
+     * Vista PÚBLICA del perfil de un usuario. Stats + top
      * personajes + logros desbloqueados + counts de seguidores en una
      * sola llamada. Si el caller está autenticado, incluye flags
      * {@code siguiendo} y {@code esMismoUsuario} para que el frontend
@@ -116,7 +116,7 @@ public class PerfilController {
     }
 
     /**
-     * Feed combinado de actividad reciente (Plan v2 §4.1). Mezcla votos
+     * Feed combinado de actividad reciente. Mezcla votos
      * en enfrentamientos, logros desbloqueados, torneos creados y
      * predicciones acertadas en orden temporal descendente.
      */
@@ -129,7 +129,7 @@ public class PerfilController {
     }
 
     /**
-     * Stats de referral del usuario (Plan v2 §11.8). Devuelve código
+     * Stats de referral del usuario. Devuelve código
      * único compartible + count de referidos verificados + tier badge.
      */
     @GetMapping("/me/referral")
@@ -147,7 +147,7 @@ public class PerfilController {
     }
 
     /**
-     * Eliminación irreversible de la cuenta (Plan v2 §4.1, GDPR right to
+     * Eliminación irreversible de la cuenta (1, GDPR right to
      * erasure). Requiere reconfirmar la contraseña actual aunque el
      * usuario tenga sesión.
      *

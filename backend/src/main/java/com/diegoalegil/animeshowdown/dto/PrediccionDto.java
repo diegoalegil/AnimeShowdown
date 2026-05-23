@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import com.diegoalegil.animeshowdown.model.Prediccion;
 
 /**
- * Vista pública de una predicción para el cliente (Plan v2 §4.4).
+ * Vista pública de una predicción para el cliente.
  *
  * <p>{@code acertada} null = pendiente, true/false = resuelta. El frontend
  * lo usa para pintar tres estados: gris pendiente / verde acierto / rojo

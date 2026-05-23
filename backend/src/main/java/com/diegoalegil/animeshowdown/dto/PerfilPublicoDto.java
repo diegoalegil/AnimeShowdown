@@ -3,7 +3,7 @@ package com.diegoalegil.animeshowdown.dto;
 import java.util.List;
 
 /**
- * Vista pública agregada del perfil de un usuario (Plan v2 §4.5).
+ * Vista pública agregada del perfil de un usuario.
  *
  * <p>Una sola llamada {@code GET /api/perfil/{username}} devuelve todo
  * lo que la página /u/{username} necesita pintar — evita 3-4 round-trips

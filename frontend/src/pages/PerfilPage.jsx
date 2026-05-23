@@ -713,7 +713,7 @@ function CardSesion({ onLogout }) {
 }
 
 /**
- * Zona peligrosa del perfil (Plan v2 §4.1, GDPR right to erasure).
+ * Zona peligrosa del perfil.
  *
  * <p>Doble confirmación: abrir modal → marcar checkbox de "entiendo
  * que es irreversible" + escribir contraseña → confirmar. El backend

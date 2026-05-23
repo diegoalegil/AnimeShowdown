@@ -8,7 +8,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
  * slug, nombre, anime e imagen para pintar la carta del bracket.
  *
  * Pasa por TorneoQueryService para mapping; entidades JPA nunca llegan
- * crudas al cliente en endpoints públicos (Plan v2 §1.1).
+ * crudas al cliente en endpoints públicos.
  */
 public class PersonajeMiniDto {
 

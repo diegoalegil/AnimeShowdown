@@ -7,7 +7,7 @@ import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
  * (/characters/{mal_id}/pictures). Click en una thumbnail la sube como
  * imagen activa de la ficha vía onSelect.
  *
- * <p>Plan v2 §4.12 step 1 — primer eslabón del stack de visualización
+ * <p>12 step 1 — primer eslabón del stack de visualización
  * enriquecida del personaje (multi-imagen → recorte+parallax → aura
  * shader → Live Portrait top tier).
  *

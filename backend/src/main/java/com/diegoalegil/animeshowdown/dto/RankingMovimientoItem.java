@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Fila de "ranking con movimientos" (Plan v2 §4.x — indicadores ↑↓).
+ * Fila de "ranking con movimientos".
  *
  * <p>{@code posicionActual} = puesto en el ranking de hoy (1-based).
  * {@code posicionAnterior} = puesto en el ranking con el corte de hace
