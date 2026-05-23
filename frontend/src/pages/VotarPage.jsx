@@ -35,15 +35,14 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
  *
  * Pantalla diseñada para que todo el duelo quepa sin scroll:
  *   - Cards con max-h 55vh + object-contain (no recorta) + letterbox
- *     blur de la propia imagen como fondo (rellena las barras sin
- *     mostrar negro puro). Versión robusta tras intento fallido con
- *     object-cover que recortaba info importante de cartas SSR.
+ *     ligero con color dominante. Evitamos blur en tiempo real porque
+ *     castigaba el frame rate de la arena.
  *   - VS central grande con glow magenta.
  *   - "Saltar" arriba a la derecha, siempre visible.
  *   - Nombre + anime debajo de cada card (no overlay) → comparación rápida.
  *   - Atajos de teclado: ← vota izquierda, → derecha, S saltar, Espacio
  *     siguiente cuando ya hay voto.
- *   - Modo rápido (toggle): tras votar carga el siguiente duelo en 1.2s.
+ *   - Modo rápido (toggle): tras votar carga el siguiente duelo automáticamente.
  *
  * Mantiene el modo híbrido del backend (match real si hay torneo, casual
  * con pares random local si no).
@@ -60,7 +59,7 @@ const NEXT_DELAY_MS = 900
 /**
  * Emparejamientos balanceados + anti-repetición.
  *
- * Antes era 100% random sobre los 730 personajes — salían combinaciones
+ * Antes era 100% random sobre el catálogo — salían combinaciones
  * sin sentido (un nicho contra Luffy). Ahora:
  *   1. A es completamente aleatorio (penalizando personajes vistos
  *      recientemente para que no repita el mismo en 3 enfrentamientos
@@ -75,7 +74,7 @@ const NEXT_DELAY_MS = 900
  *
  * Añadimos buffer de últimos pares en sessionStorage para evitar el mismo
  * enfrentamiento (A vs B y B vs A son equivalentes) y penalizar a personajes
- * vistos en los últimos 6 duelos. sessionStorage (no localStorage) porque
+ * vistos recientemente. sessionStorage (no localStorage) porque
  * queremos que la memoria se limpie al cerrar la pestaña.
  */
 const RECENT_PAIRS_KEY = 'animeshowdown.votar.recent-pairs'
@@ -297,6 +296,12 @@ function VotarPage() {
   const isAdvancingRef = useRef(false)
   const currentPairKeyRef = useRef('')
   const recordedPairKeyRef = useRef('')
+
+  useEffect(() => {
+    if (fastMode || autoNextTimeoutRef.current == null) return
+    clearTimeout(autoNextTimeoutRef.current)
+    autoNextTimeoutRef.current = null
+  }, [fastMode])
 
   const votarMutation = useMutation({
     mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous, captchaToken }) => {
