@@ -47,6 +47,7 @@ const rutas = [
   { to: '/torneos', label: 'Torneos', icon: Trophy, searchTerms: 'brackets campeonatos' },
   { to: '/eventos', label: 'Eventos', icon: CalendarDays, searchTerms: 'temporadas especiales pulso' },
   { to: '/votar', label: 'Votar', icon: Swords, searchTerms: 'duelo arena versus' },
+  { to: '/comparar', label: 'Comparar personajes', icon: Swords, searchTerms: 'comparar versus vs duelo personajes anime' },
   { to: '/duel-live', label: 'Duelos live PvP', icon: Swords, searchTerms: 'pvp directo versus' },
   { to: '/games', label: 'Anime Games Hub', icon: Gamepad2, searchTerms: 'juegos daily trials' },
   { to: '/juegos/anime', label: 'Juegos anime online', icon: Gamepad2, searchTerms: 'seo juegos anime online daily trials' },

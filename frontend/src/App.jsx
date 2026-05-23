@@ -43,6 +43,7 @@ const TorneoDetailPage = lazyRoute(() => import('./pages/TorneoDetailPage'))
 const EventosIndexPage = lazyRoute(() => import('./pages/EventosIndexPage'))
 const EventoDetailPage = lazyRoute(() => import('./pages/EventoDetailPage'))
 const DueloVersusPage = lazyRoute(() => import('./pages/DueloVersusPage'))
+const CompararPage = lazyRoute(() => import('./pages/CompararPage'))
 const RankingPage = lazyRoute(() => import('./pages/RankingPage'))
 const HigherOrLowerPage = lazyRoute(() => import('./pages/HigherOrLowerPage'))
 const VotarPage = lazyRoute(() => import('./pages/VotarPage'))
@@ -358,6 +359,9 @@ function App() {
               <Route path="/eventos" element={gated(<EventosIndexPage />)} />
               <Route path="/eventos/:slug" element={gated(<EventoDetailPage />)} />
               <Route path="/duelos/:par" element={gated(<DueloVersusPage />)} />
+              <Route path="/versus" element={<Navigate replace to="/comparar" />} />
+              <Route path="/compare" element={<Navigate replace to="/comparar" />} />
+              <Route path="/comparar" element={gated(<CompararPage />)} />
               <Route path="/ranking" element={gated(<RankingPage />)} />
               <Route path="/descubre-personaje" element={gated(<DescubrePersonajePage />)} />
               <Route path="/random" element={<Navigate replace to="/descubre-personaje" />} />

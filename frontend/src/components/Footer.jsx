@@ -32,6 +32,7 @@ const productoLinks = [
   { to: '/torneos', i18nKey: 'torneos' },
   { to: '/eventos', i18nKey: 'eventos' },
   { to: '/votar', i18nKey: 'votar' },
+  { to: '/comparar', i18nKey: 'comparar' },
   { to: '/ranking', i18nKey: 'ranking' },
   { to: '/games', i18nKey: 'games' },
   { to: '/misiones', i18nKey: 'misiones' },
