@@ -7,7 +7,7 @@
 //   3. Datos dinámicos de backend (torneos APROBADO + perfiles públicos),
 //      con fallback a torneos-seed.json si el backend no responde.
 //
-// Image extension (Plan v2 §5.5): cada URL de personaje lleva un
+// Image extension: cada URL de personaje lleva un
 // <image:image> con loc absoluta, title (nombre) y caption (nombre de anime)
 // para que Google Image Search indexe las webp del catálogo. ~642 imágenes
 // indexables — buen volumen para tráfico orgánico de búsquedas tipo "akame

@@ -2,8 +2,8 @@ name: Auto-generate tournament
 
 # Cron job que crea un torneo aleatorio cada 3 días llamando al endpoint
 # /api/cron/torneos/auto-generar del backend. Se autentica con
-# X-Cron-Secret header (no login JWT) — revisión P2.10 (2026-05-17):
-# el flow anterior con login se rompía si el admin activaba 2FA TOTP.
+# X-Cron-Secret header (no login JWT). Evita depender de una sesión de
+# administrador y sigue funcionando aunque el admin active 2FA TOTP.
 #
 # Para activar:
 # 1. Settings → Secrets and variables → Actions → New repository secret:

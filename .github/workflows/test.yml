@@ -94,26 +94,21 @@ jobs:
       # Antes la docu mencionaba que CF corría `npm run build` completo,
       # que disparaba el timeout de 20 min del free tier.
       #
-      # Nota técnica AS-001/AS-006 (2026-05-22): VITE_API_URL es obligatoria
-      # en builds de prod — api.js lanza Error si falta. Antes el CI compilaba
-      # OK sin la env (porque vite no la valida en build, solo en runtime),
-      # así que un PR podía mergearse y luego romper producción en blanco.
-      # Pasamos un valor placeholder de prod (animeshowdown.dev) para que el
-      # check guard de api.js se valide en el módulo durante el build chunk.
+      # VITE_API_URL es obligatoria en builds de producción: api.js falla
+      # rápido si falta. El valor público de prod valida el guard durante el
+      # build y evita publicar un bundle que arrancaría en blanco.
       - name: Build (sin regenerar variantes de imagen)
         env:
           VITE_API_URL: https://api.animeshowdown.dev
         run: npm run build:no-images
 
-      # Plan v2 §3.10: bundle size budget. Falla la CI si el chunk
-      # principal (index-*.js) supera 250KB tras gzip. Catch temprano
-      # de regresiones por imports gordos olvidados. Personaje3D y
-      # otros chunks lazy no entran en el budget — solo el initial.
+      # Presupuesto de bundle: falla si el chunk principal index-*.js supera
+      # 250KB gzip. Personaje3D y otros chunks lazy no entran en este budget.
       - name: Bundle size budget
         run: npm run test:bundle
 
-      # Nota técnica AS-001/AS-006 (2026-05-22): verifica que la API base
-      # quedó bundleada. api.js inicializa API_BASE en módulo global con
+      # Verifica que la API base quedó bundleada. api.js inicializa API_BASE
+      # en módulo global con
       # `import.meta.env.VITE_API_URL`, y vite la inlinea durante el build.
       # Si el workflow olvida pasar la env, el valor inlineado es undefined
       # y el throw del fail-fast se dispara en runtime (pantalla blanca).
