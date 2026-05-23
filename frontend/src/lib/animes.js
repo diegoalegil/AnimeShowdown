@@ -75,6 +75,10 @@ const ALIASES = {
   ],
 }
 
+export function getAnimeAliases(nombre) {
+  return ALIASES[nombre] ?? []
+}
+
 export function getAnimesCatalogo(catalogo = readCatalogoPersonajesSnapshot()) {
   const groups = {}
   for (const p of catalogo) {
@@ -126,7 +130,7 @@ export function getAnimesCatalogo(catalogo = readCatalogoPersonajesSnapshot()) {
       porElo,
       porPopularidad,
       portada,
-      aliases: ALIASES[anime] ?? [],
+      aliases: getAnimeAliases(anime),
     }
   })
 }
