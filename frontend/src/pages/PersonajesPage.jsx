@@ -1001,7 +1001,7 @@ function PersonajeListRow({ slug, nombre, anime, rank }) {
         )}
         <PersonajeImg
           slug={slug}
-          alt=""
+          alt={nombre}
           loading="lazy"
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />

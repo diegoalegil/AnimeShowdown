@@ -173,7 +173,7 @@ function AutocompletePersonaje({
               >
                 <img
                   src={imagenPersonaje(p.slug)}
-                  alt=""
+                  alt={p.nombre}
                   loading="lazy"
                   onError={ocultaImgRota}
                   className="h-9 w-7 shrink-0 rounded object-cover object-top"

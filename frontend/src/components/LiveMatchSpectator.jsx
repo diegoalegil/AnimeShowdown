@@ -122,7 +122,7 @@ function FighterPanel({ personaje, votes, percent, leading, alignRight = false }
       <PersonajeCutImg
         slug={personaje.slug}
         fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
-        alt=""
+        alt={personaje.nombre}
         loading="lazy"
         className="h-24 w-20 shrink-0 rounded-xl border border-accent/15"
         imgClassName="p-1"

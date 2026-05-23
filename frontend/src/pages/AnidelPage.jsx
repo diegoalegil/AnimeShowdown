@@ -324,7 +324,7 @@ function FilaIntento({ intento }) {
       <div className="flex min-w-0 items-center gap-2">
         <img
           src={imagenPersonaje(intento.slug)}
-          alt=""
+          alt={intento.nombre}
           loading="lazy"
           onError={ocultaImgRota}
           className="h-9 w-7 shrink-0 rounded object-cover object-top"

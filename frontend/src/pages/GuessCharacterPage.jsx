@@ -360,7 +360,7 @@ function ListaIntentos({ intentos, objetivo }) {
           >
             <img
               src={imagenPersonaje(i.slug)}
-              alt=""
+              alt={i.nombre}
               loading="lazy"
               onError={ocultaImgRota}
               className="h-10 w-8 shrink-0 rounded object-cover object-top"

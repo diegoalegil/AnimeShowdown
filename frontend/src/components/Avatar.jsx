@@ -32,7 +32,7 @@ function Avatar({ user, size = 32, className = '' }) {
     return (
       <img
         src={src}
-        alt=""
+        alt={label ? `Avatar de ${label}` : 'Avatar'}
         width={size}
         height={size}
         className={`shrink-0 rounded-full object-cover ${className}`}

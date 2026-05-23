@@ -157,7 +157,7 @@ function VistaTop10() {
             </span>
             <img
               src={imagenPersonaje(p.slug)}
-              alt=""
+              alt={p.nombre}
               onError={ocultaImgRota}
               className="h-24 w-20 rounded-lg object-cover object-top sm:h-32 sm:w-24"
             />
@@ -269,7 +269,7 @@ function Versus({ personaje, elo, esFavorito }) {
     >
       <img
         src={imagenPersonaje(personaje.slug)}
-        alt=""
+        alt={personaje.nombre}
         onError={ocultaImgRota}
         className="h-28 w-20 rounded-lg object-cover object-top sm:h-64 sm:w-48"
       />

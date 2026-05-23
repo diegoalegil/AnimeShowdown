@@ -421,7 +421,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
             slug={p.slug}
             src={p.imagenUrl}
             nombre={p.nombre}
-            alt=""
+            alt={p.nombre}
             loading="lazy"
             sizes="32px"
             className="h-7 w-5 shrink-0 rounded object-cover object-top"

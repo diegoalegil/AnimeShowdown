@@ -163,7 +163,7 @@ function TorneoCard({ torneo }) {
             </div>
             <img
               src={ganadorAvatar.imagenUrl}
-              alt=""
+              alt={ganadorAvatar.nombre}
               onError={ocultaImgRota}
               className="h-9 w-9 rounded-md object-cover object-top"
             />
