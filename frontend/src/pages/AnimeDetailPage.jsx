@@ -88,6 +88,9 @@ function AnimeDetailPage() {
   const top10 = porElo.slice(0, 10)
   const dueloDestacado = top10.length >= 2 ? [top10[0], top10[1]] : null
   const visual = getAnimeVisual(slug, anime)
+  const top5AnimeHref = top10.length > 0
+    ? `/mi-top5?add=${encodeURIComponent(top10.slice(0, 5).map((p) => p.slug).join(','))}`
+    : '/mi-top5'
   const compartirRankingAnime = async () => {
     const resumen = top10
       .slice(0, 5)
@@ -198,6 +201,13 @@ function AnimeDetailPage() {
             >
               <TrendingUp className="h-4 w-4" />
               Ranking de {anime}
+            </Link>
+            <Link
+              to={top5AnimeHref}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/55 hover:text-gold"
+            >
+              <Sparkles className="h-4 w-4" />
+              Crear Top 5
             </Link>
             <button
               type="button"
@@ -425,6 +435,9 @@ function FeaturedAnimeDuel({ anime, a, b, onShare }) {
 
 function PersonalAnimeRanking({ anime, stats, personajes, onShare }) {
   const top = stats.top.slice(0, 3)
+  const top5Href = stats.top.length > 0
+    ? `/mi-top5?add=${encodeURIComponent(stats.top.slice(0, 5).map((item) => item.slug).join(','))}`
+    : '/mi-top5'
   const personajeBySlug = useMemo(
     () => new Map(personajes.map((personaje) => [personaje.slug, personaje])),
     [personajes],
@@ -463,6 +476,15 @@ function PersonalAnimeRanking({ anime, stats, personajes, onShare }) {
           >
             Ver mi ranking
           </Link>
+          {top.length > 0 && (
+            <Link
+              to={top5Href}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-sm font-bold text-fg-strong transition-colors hover:border-gold/55 hover:text-gold"
+            >
+              <Sparkles className="h-4 w-4" />
+              Crear Top 5
+            </Link>
+          )}
           <button
             type="button"
             onClick={onShare}
