@@ -42,7 +42,7 @@ const soporteLinks = [
   { to: '/status', i18nKey: 'status' },
 ]
 
-const topAnimes = (() => {
+function getTopAnimes() {
   const counts = {}
   personajes.forEach((p) => {
     counts[p.anime] = (counts[p.anime] || 0) + 1
@@ -50,10 +50,11 @@ const topAnimes = (() => {
   return Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 7)
-})()
+}
 
 function Footer() {
   const { t } = useTranslation()
+  const topAnimes = getTopAnimes()
   return (
     <footer className="relative isolate overflow-hidden border-t border-white/10 bg-bg/95">
       {/* Capas atmosféricas del footer: kanji 終 (fin), gradiente accent y particle dust.
