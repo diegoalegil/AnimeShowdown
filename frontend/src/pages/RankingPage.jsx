@@ -337,11 +337,8 @@ function SeccionCategoria({ seccion }) {
 }
 
 function CategoriaCard({ rank, personaje, tono }) {
-  // Nota F011 (2026-05-22): el ranking devolvía a veces items con slug
-  // undefined (datos del backend en cold-start, items con campo opcional
-  // vacío). El <Link> generaba /personajes/undefined que crashea el
-  // PersonajeDetailPage. Guardamos contra ese caso devolviendo null —
-  // mejor card faltante que link roto que destruye SEO interno.
+  // El ranking puede devolver items sin slug durante cold-start o con datos
+  // incompletos. Evitamos /personajes/undefined y preferimos omitir la card.
   if (!personaje?.slug) return null
   const RANK_TONO = {
     sky: 'bg-sky-500/20 text-sky-200',
@@ -676,7 +673,7 @@ function Podio({ top3, historyBySlug = {} }) {
 }
 
 function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
-  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Guard contra slug undefined; ver CategoriaCard.
   if (!personaje?.slug) return null
   const tone =
     rank === 1
@@ -967,7 +964,7 @@ function RankRowElo({
   wins,
   losses,
   history,
-  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Guard contra slug undefined; ver CategoriaCard.
   // En este componente el slug viene directo como prop (no anidado en
   // personaje), así que el check va aquí abajo (no en la firma).
   // Destructuramos también imagenUrl + colorDominante del item del ranking
@@ -1039,7 +1036,7 @@ function RankRowElo({
 }
 
 function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
-  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Guard contra slug undefined; ver CategoriaCard.
   if (!personaje?.slug) return null
   return (
     <li>

@@ -294,18 +294,9 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
           >
             Código TOTP o código de recuperación
           </label>
-          {/* Nota F012 (2026-05-22): antes este input tenía
-              inputMode="numeric" + pattern="[0-9]*" + label "6 dígitos",
-              pero el backend ACEPTA también códigos backup alfanuméricos
-              de 10 chars (mira Totp2faVerifyLoginRequest + AuthController).
-              Un usuario que perdió su authenticator y quiere usar un
-              backup code quedaba bloqueado: el teclado móvil salía numérico,
-              el form validation impedía letras, y el placeholder/label
-              hablaban solo del TOTP de 6 dígitos.
-              Ahora inputMode="text" + sin pattern restrictivo (la validación
-              de formato la hace el backend), label más honesto, placeholder
-              que muestra ambos formatos. minLength 6 sigue cubriendo el caso
-              de TOTP; backup codes tienen 10 así que también pasan. */}
+          {/* El campo acepta TOTP y backup codes alfanuméricos. Por eso no
+              usamos inputMode numeric ni pattern de solo dígitos; la
+              validación final de formato la hace el backend. */}
           <input
             id="codigo"
             type="text"

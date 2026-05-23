@@ -342,11 +342,9 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
-        {/* Nota técnica AS-010 (2026-05-23): label de loading neutro.
-            "Líder por votos" implicaba que la métrica era COUNT puro,
-            pero tras AS-002 el orden REST viene ponderado por peso
-            (anónimo 0.3 / registrado 1.0). "Líder del ranking" no
-            compromete la mecánica antes de que lleguen los datos. */}
+        {/* Label de loading neutro: el ranking se ordena por voto ponderado,
+            así que "Líder del ranking" no promete una métrica incorrecta
+            antes de que lleguen los datos. */}
         <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-amber-300" />
         <p className="text-sm text-fg-muted">Cargando al líder…</p>
       </PulseCard>
@@ -417,10 +415,8 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
               Comunidad arrancando — tu voto puede cambiar el meta.
             </p>
           ) : (
-            // Nota técnica AS-010 + B3.5 (2026-05-23): el ranking REST se
-            // ordena por SUM(v.peso) tras AS-002 — el orden visible aquí ya
-            // refleja peso ponderado, no COUNT puro. "ranking ELO global"
-            // implicaba un cálculo distinto (K-factor real) que no existe.
+            // El ranking REST se ordena por votos ponderados. Evitamos
+            // llamarlo "ELO global" porque sugeriría un K-factor real.
             <p className="mt-1 text-[11px] leading-snug text-fg-muted">
               Top de la comunidad por votos ponderados.
             </p>

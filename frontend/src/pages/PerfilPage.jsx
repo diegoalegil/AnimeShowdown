@@ -781,13 +781,9 @@ function CardEliminarCuenta({ onEliminada }) {
         </button>
       </div>
 
-      {/* Nota F019 (2026-05-22): migrado a AccessibleDialog que añade
-          focus trap, Escape close, restore de foco al trigger y bloqueo
-          de scroll. closeOnEscape se desactiva mientras `pendiente=true`
-          para evitar que el usuario cancele sin querer un proceso de
-          borrado en curso. closeOnBackdrop hace lo mismo. El label del
-          password ahora va con htmlFor + id para que el lector lo asocie
-          al input correcto (antes era <label> hermano sin asociar). */}
+      {/* AccessibleDialog aporta focus trap, Escape, restore de foco y lock
+          de scroll. Escape/backdrop se bloquean durante el borrado para no
+          cancelar un proceso en curso por accidente. */}
       <AccessibleDialog
         open={modalAbierto}
         onClose={() => { if (!pendiente) reset() }}

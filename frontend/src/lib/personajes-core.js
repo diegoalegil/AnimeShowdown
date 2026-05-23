@@ -163,8 +163,8 @@ function hashSlug(slug) {
  *
  * <p><b>Reglas de honestidad en UI</b>: cualquier consumer DEBE etiquetar visualmente el valor
  * como "base", "estimado", "·b" o equivalente, o redirigir al ranking
- * competitivo real (/ranking) que sí está ponderado por SUM(v.peso) tras
- * AS-002. Mostrar "ELO 1850" sin contexto es engañoso para el usuario
+ * competitivo real (/ranking) que sí está ponderado por SUM(v.peso). Mostrar
+ * "ELO 1850" sin contexto es engañoso para el usuario
  * porque sugiere que el número se mueve con sus votos — no lo hace.
  *
  * <p>El flag {@code _sintetico: true} en el retorno permite que un consumer
