@@ -334,7 +334,7 @@ function UploadForm({ user, updateUser }) {
       toast.error('Error subiendo avatar', {
         description:
           err instanceof ApiError && err.status === 500
-            ? 'Suele ser que la columna avatar_url aún es VARCHAR(500). Corre el ALTER TABLE en Neon.'
+            ? 'No pudimos guardar el avatar ahora mismo. Inténtalo de nuevo en unos minutos.'
             : msg,
       })
     } finally {

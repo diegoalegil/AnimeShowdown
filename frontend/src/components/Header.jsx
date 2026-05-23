@@ -174,8 +174,8 @@ function Header() {
         </span>
       </Link>
 
-      {/* Nav desktop (sm+). En móvil esta sección se oculta y vive en el panel del hamburger. */}
-      <nav className="hidden flex-wrap items-center justify-center gap-1 sm:flex">
+      {/* Nav desktop (lg+). En móvil/tablet vive en el panel del hamburger. */}
+      <nav className="hidden flex-wrap items-center justify-center gap-1 lg:flex">
         {navLinks.map(({ to, i18nKey }) => (
           <NavLink
             key={to}
@@ -213,7 +213,7 @@ function Header() {
             if (muted) play('playClick')
           }}
           aria-label={muted ? t('header.activarSonidos') : t('header.silenciar')}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
         >
           {muted ? (
             <VolumeX className="h-4 w-4" />
@@ -241,7 +241,7 @@ function Header() {
           hamburger. El Login en mobile pasa al panel del hamburger
           (audit producto 2026-05-18: primero participar, después
           registrarse — login secundario hasta que haya valor acumulado). */}
-      <div className="flex items-center gap-1.5 sm:hidden">
+      <div className="flex items-center gap-1.5 lg:hidden">
         {user ? (
           <>
             <NotifBell />
@@ -295,7 +295,7 @@ function Header() {
             type="button"
             aria-label="Cerrar menú"
             onClick={closeMobile}
-            className="fixed inset-0 top-0 z-20 bg-black/40 sm:hidden"
+            className="fixed inset-0 top-0 z-20 bg-black/40 lg:hidden"
           />
           <div
             ref={mobilePanelRef}
@@ -303,7 +303,7 @@ function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="Menú de navegación"
-            className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl sm:hidden"
+            className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl lg:hidden"
           >
             <div className="flex flex-col gap-1">
               {navLinks.map(({ to, i18nKey }) => (

@@ -14,11 +14,14 @@ import {
   personajes,
   getStatsPersonaje,
 } from '../lib/personajes-core'
+import {
+  ELO_DUEL_BEST_KEY,
+  ELO_DUEL_LEGACY_BEST_KEY,
+  safeStorage,
+} from '../lib/games'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
-
-const BEST_KEY = 'animeshowdown.higherOrLower.best'
 
 function pickRandom(exclude = null) {
   let p
@@ -35,6 +38,19 @@ function pickDistinctElo(reference) {
   // muy similares en popularidad, pero por si acaso).
   while (p.elo === reference.elo) p = pickRandom(reference)
   return p
+}
+
+function parseBestStreak(value) {
+  const n = parseInt(value || '0', 10)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
+function readBestStreak() {
+  const current = parseBestStreak(safeStorage.get(ELO_DUEL_BEST_KEY))
+  const legacy = parseBestStreak(safeStorage.get(ELO_DUEL_LEGACY_BEST_KEY))
+  const best = Math.max(current, legacy)
+  if (best > current) safeStorage.set(ELO_DUEL_BEST_KEY, String(best))
+  return best
 }
 
 function HigherOrLowerPage() {
@@ -57,14 +73,7 @@ function HigherOrLowerPage() {
   )
   const [revealed, setRevealed] = useState(null) // null | 'correct' | 'wrong'
   const [score, setScore] = useState(0)
-  const [best, setBest] = useState(() => {
-    try {
-      const v = parseInt(localStorage.getItem(BEST_KEY) || '0', 10)
-      return Number.isFinite(v) ? v : 0
-    } catch {
-      return 0
-    }
-  })
+  const [best, setBest] = useState(readBestStreak)
   const [gameOver, setGameOver] = useState(false)
   // Audit (2026-05-17): los setTimeout de reveal (1100ms) no se
   // cancelan en unmount — si el user navega tras el guess pero antes
@@ -86,11 +95,7 @@ function HigherOrLowerPage() {
       setScore(newScore)
       if (newScore > best) {
         setBest(newScore)
-        try {
-          localStorage.setItem(BEST_KEY, String(newScore))
-        } catch {
-          // ignore storage errors
-        }
+        safeStorage.set(ELO_DUEL_BEST_KEY, String(newScore))
       }
       // Después de 1100ms (suficiente para ver el reveal):
       // challenger se convierte en el nuevo reference (rota a la izquierda)
