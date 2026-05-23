@@ -45,6 +45,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://animeshowdown.dev/descubre-personaje</loc>
+    <lastmod>2026-05-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://animeshowdown.dev/como-funciona</loc>
     <lastmod>2026-05-23</lastmod>
     <changefreq>monthly</changefreq>

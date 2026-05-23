@@ -19,6 +19,8 @@
 /higher-or-lower/*        /games/elo-duel/:splat     301
 /glosario                 /glossary                  301
 /glosario/*               /glossary                  301
+/random                   /descubre-personaje        301
+/random/*                 /descubre-personaje        301
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
@@ -37,6 +39,7 @@
 /eventos/:slug            / 200
 /duelos/:par              / 200
 /ranking                  / 200
+/descubre-personaje       / 200
 /votar                    / 200
 /duel-live                / 200
 /login                    / 200

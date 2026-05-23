@@ -145,6 +145,7 @@ const staticRoutes = [
   { path: '/ranking', priority: '0.9', changefreq: 'daily' },
   { path: '/leaderboards', priority: '0.7', changefreq: 'daily' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
+  { path: '/descubre-personaje', priority: '0.7', changefreq: 'daily' },
   { path: '/como-funciona', priority: '0.7', changefreq: 'monthly' },
   { path: '/metodologia-elo', priority: '0.7', changefreq: 'monthly' },
   // Las URLs viejas (/higher-or-lower, /games/guess-character,

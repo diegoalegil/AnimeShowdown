@@ -14,6 +14,7 @@ Robots: https://animeshowdown.dev/robots.txt
 - https://animeshowdown.dev/votar — head-to-head anime character voting.
 - https://animeshowdown.dev/ranking — community competitive ranking and movement indicators.
 - https://animeshowdown.dev/leaderboards — user and competitive leaderboards.
+- https://animeshowdown.dev/descubre-personaje — daily/random character discovery with links to profile, voting and sharing.
 - https://animeshowdown.dev/games — Anime Daily Trials hub.
 - https://animeshowdown.dev/juegos/anime — indexable overview of anime games online.
 - https://animeshowdown.dev/personajes — character catalogue.
