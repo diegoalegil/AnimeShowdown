@@ -82,5 +82,3 @@ local-notes/
 review-notes/
 *.private.md
 *.local.md
-AUDIT*.md
-*AUDIT*.md

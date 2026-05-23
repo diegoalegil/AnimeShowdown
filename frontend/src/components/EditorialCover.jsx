@@ -71,7 +71,7 @@ function EditorialCover({
           maskImage: 'linear-gradient(to bottom, black, transparent 50%)',
         }}
       />
-      {/* Audit user feedback (2026-05-20): el kanji enorme decorativo de la
+      {/* Feedback visual (2026-05-20): el kanji enorme decorativo de la
           esquina top-right se veia como "fantasma raro" sobre las cards.
           Eliminado — el shell de la pagina ya tiene el lateralKanji
           LARGE a izq/dch (estilo ELO Duel), no necesitamos kanji extra

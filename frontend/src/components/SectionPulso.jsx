@@ -318,7 +318,7 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
           background: `radial-gradient(circle at 88% 0%, ${tone.glow}, transparent 13rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 42%)`,
         }}
       />
-      {/* Audit user feedback (2026-05-20): re-eliminado kanji 戦 fantasma que
+      {/* Feedback visual (2026-05-20): re-eliminado kanji 戦 fantasma que
           El bloque duplicado volvió a entrar en una iteración anterior. Las pulse-cards ya
           tienen identidad con su tone + glow + backdrop-blur, no necesitan
           glyph japones decorativo encima. */}
@@ -608,7 +608,7 @@ function RetoCard() {
   return (
     <Link
       to="/games/shadow-guess"
-      // Audit feedback (2026-05-22): la card tenía altura natural ~180px
+      // Feedback visual (2026-05-22): la card tenía altura natural ~180px
       // y el EditorialCover absolute inset-0 + el overlay degradado oscuro
       // del 38% al 92% dejaban solo ~70px de imagen visible — el usuario
       // lo describió como "tan finita que practicamente no se ve". Subimos

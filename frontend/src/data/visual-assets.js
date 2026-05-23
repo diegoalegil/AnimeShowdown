@@ -39,7 +39,7 @@ const EXTENSIONS = ['webp', 'avif', 'png', 'jpg', 'jpeg', 'svg']
 
 function resolveAsset(path) {
   if (!path) return null
-  // Audit user feedback (2026-05-21): antes esta funcion devolvia null cuando
+  // Feedback visual (2026-05-21): antes esta funcion devolvia null cuando
   // VISUAL_ASSET_PATHS no incluia el path. Eso forzaba el fallback STAGE.*
   // generico (TCG-fan repetido) para users con manifest cacheado de un deploy
   // anterior al batch 2 — visualmente devastador porque TODOS los animes

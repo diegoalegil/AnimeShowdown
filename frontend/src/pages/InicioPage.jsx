@@ -649,7 +649,7 @@ function SectionRetosDiarios() {
             </Link>
           </div>
         </div>
-        {/* Audit user feedback (2026-05-22): el grid 5-col + cards solo
+        {/* Feedback visual (2026-05-22): el grid 5-col + cards solo
             con kanji decorativo dejaba banners de ~140px de alto en desktop
             — "miniaturas inútiles". Nuevo layout 1/2/3 cols con
             background-image real del juego (cover en /assets/game-covers/),
