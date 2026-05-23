@@ -9,7 +9,6 @@ import {
 } from '../hooks/usePredicciones'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
-import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from './PersonajeImg'
 import KanjiStroke from './KanjiStroke'
 
@@ -132,73 +131,81 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
           </div>
         </div>
       )}
-      <div className="scrollbar-hide -mx-5 overflow-x-auto px-5 sm:-mx-8 sm:px-8">
-      <div className="flex min-w-max items-stretch gap-3">
-        {rondas.map((ronda, i) => (
-          <div
-            key={ronda}
-            className="flex min-w-[180px] flex-col justify-around gap-3"
-          >
-            <div className="flex flex-col items-center gap-0.5">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
-                {titulos[i] || `Ronda ${ronda}`}
-              </h3>
-              {kanjis[i] && (
-                <span
-                  aria-hidden="true"
-                  lang="ja"
-                  className="inline-flex items-center gap-0.5 text-gold/70"
-                >
-                  <KanjiStroke
-                    kanji={kanjis[i]}
-                    size="0.95em"
-                    strokeMs={380}
-                    gapMs={70}
-                    strokeWidth={6}
-                  />
-                </span>
-              )}
-            </div>
-            <div className="flex flex-1 flex-col justify-around gap-3">
-              {porRonda.get(ronda).map((match) => (
-                <BracketMatch
-                  key={match.id}
-                  match={match}
-                  torneoId={torneoId}
-                  torneoSlug={torneoSlug}
-                  estado={estado}
-                  prediccion={prediccionesPorEnf.get(match.id)}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-        <div className="flex min-w-[180px] flex-col items-stretch justify-around">
-          <div className="flex flex-col items-center gap-0.5">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
-              Campeón
-            </h3>
-            <span
-              aria-hidden="true"
-              lang="ja"
-              className="inline-flex items-center gap-0.5 text-gold/80"
-            >
-              <KanjiStroke
-                kanji="王者"
-                size="0.95em"
-                strokeMs={420}
-                gapMs={80}
-                strokeWidth={6}
-              />
-            </span>
-          </div>
-          {campeon ? (
-            <ChampionSlot personaje={campeon} />
-          ) : (
-            <ChampionPlaceholder />
-          )}
-        </div>
+      <div className="mb-2 flex justify-end sm:hidden">
+        <span className="rounded-full border border-border bg-surface/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          Desliza el bracket
+        </span>
       </div>
+      <div
+        className="scrollbar-hide -mx-5 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8"
+        aria-label="Bracket desplazable horizontalmente"
+      >
+        <div className="flex min-w-max snap-x snap-mandatory items-stretch gap-3 scroll-smooth">
+          {rondas.map((ronda, i) => (
+            <div
+              key={ronda}
+              className="flex min-w-[16rem] snap-start flex-col justify-around gap-3 sm:min-w-[180px]"
+            >
+              <div className="flex flex-col items-center gap-0.5">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                  {titulos[i] || `Ronda ${ronda}`}
+                </h3>
+                {kanjis[i] && (
+                  <span
+                    aria-hidden="true"
+                    lang="ja"
+                    className="inline-flex items-center gap-0.5 text-gold/70"
+                  >
+                    <KanjiStroke
+                      kanji={kanjis[i]}
+                      size="0.95em"
+                      strokeMs={380}
+                      gapMs={70}
+                      strokeWidth={6}
+                    />
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-1 flex-col justify-around gap-3">
+                {porRonda.get(ronda).map((match) => (
+                  <BracketMatch
+                    key={match.id}
+                    match={match}
+                    torneoId={torneoId}
+                    torneoSlug={torneoSlug}
+                    estado={estado}
+                    prediccion={prediccionesPorEnf.get(match.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className="flex min-w-[16rem] snap-start flex-col items-stretch justify-around sm:min-w-[180px]">
+            <div className="flex flex-col items-center gap-0.5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
+                Campeón
+              </h3>
+              <span
+                aria-hidden="true"
+                lang="ja"
+                className="inline-flex items-center gap-0.5 text-gold/80"
+              >
+                <KanjiStroke
+                  kanji="王者"
+                  size="0.95em"
+                  strokeMs={420}
+                  gapMs={80}
+                  strokeWidth={6}
+                />
+              </span>
+            </div>
+            {campeon ? (
+              <ChampionSlot personaje={campeon} />
+            ) : (
+              <ChampionPlaceholder />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -227,7 +234,7 @@ function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion }) {
   // Lock + texto) para coherencia visual.
   if (!ambosPersonajes) {
     return (
-      <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/30 px-2 py-3 opacity-60">
+      <div className="flex min-h-16 items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/30 px-3 py-3 opacity-60">
         <Lock className="h-3 w-3 text-fg-muted" aria-hidden="true" />
         <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           Por decidir
@@ -241,7 +248,7 @@ function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion }) {
   const abiertoParaVotar = estado === 'IN_PROGRESS' && !resuelto
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-1.5">
+    <div className="rounded-xl border border-border bg-surface p-2">
       <BracketSlot
         personaje={match.personaje1}
         winner={ganadorId === match.personaje1.id}
@@ -320,7 +327,7 @@ function VotoRow({ match, torneoSlug }) {
   }
 
   return (
-    <div className="mt-1.5 rounded-md border border-accent/25 bg-accent/5 p-1.5">
+    <div className="mt-2 rounded-lg border border-accent/25 bg-accent/5 p-2">
       <div className="mb-1 flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-muted">
         <span>Vota este duelo</span>
         <span className="font-mono tabular-nums">{totalVotos} votos</span>
@@ -355,7 +362,7 @@ function VotoButton({ personaje, active, disabled, onClick }) {
       onClick={onClick}
       disabled={disabled}
       title={`Votar a ${personaje.nombre}`}
-      className={`min-w-0 flex-1 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+      className={`min-h-9 min-w-0 flex-1 rounded-md border px-2 py-1.5 text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
         active
           ? 'border-accent bg-accent text-bg'
           : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-gold'
@@ -438,7 +445,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
           <button
             type="button"
             onClick={() => setPicking(true)}
-            className="w-full rounded-md border border-dashed border-border px-2 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-gold"
+            className="min-h-9 w-full rounded-md border border-dashed border-border px-2 py-1.5 text-[11px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-gold"
           >
             🔮 Predice el ganador
           </button>
@@ -457,7 +464,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
       <button
         type="button"
         onClick={() => setPicking(true)}
-        className="text-[10px] text-fg-muted underline-offset-2 hover:text-gold hover:underline"
+        className="text-[11px] text-fg-muted underline-offset-2 hover:text-gold hover:underline"
       >
         cambiar
       </button>
@@ -472,12 +479,13 @@ function PickButton({ personaje, onClick, disabled }) {
       onClick={onClick}
       disabled={disabled}
       title={`Predecir a ${personaje.nombre}`}
-      className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-bg px-1.5 py-1 text-[10px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-bg px-2 py-1.5 text-[11px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
     >
-      <img
+      <PersonajeImg
+        slug={personaje.slug}
         src={personaje.imagenUrl}
+        nombre={personaje.nombre}
         alt=""
-        onError={ocultaImgRota}
         className="h-4 w-4 shrink-0 rounded object-cover object-top"
       />
       <span className="truncate">{personaje.nombre}</span>
@@ -488,19 +496,20 @@ function PickButton({ personaje, onClick, disabled }) {
 function BracketSlot({ personaje, winner }) {
   return (
     <div
-      className={`flex items-center gap-2 rounded px-1.5 py-1 ${
+      className={`flex items-center gap-2.5 rounded px-2 py-1.5 ${
         winner ? 'bg-accent-soft' : ''
       }`}
     >
-      <img
+      <PersonajeImg
+        slug={personaje.slug}
         src={personaje.imagenUrl}
+        nombre={personaje.nombre}
         alt=""
         loading="lazy"
-        onError={ocultaImgRota}
-        className="h-6 w-6 shrink-0 rounded object-cover object-top"
+        className="h-8 w-8 shrink-0 rounded object-cover object-top"
       />
       <span
-        className={`min-w-0 flex-1 truncate text-[12px] font-medium ${
+        className={`min-w-0 flex-1 truncate text-[13px] font-medium ${
           winner ? 'text-fg-strong' : 'text-fg-muted'
         }`}
       >
@@ -522,7 +531,7 @@ function ChampionSlot({ personaje }) {
       <PersonajeImg
         slug={personaje.slug}
         alt={personaje.nombre}
-        className="aspect-[2/3] w-full max-w-[110px] rounded-lg object-cover object-top"
+        className="aspect-[2/3] w-full max-w-[130px] rounded-lg object-cover object-top"
       />
       <div className="text-center">
         <p className="text-sm font-bold text-fg-strong">{personaje.nombre}</p>
@@ -534,7 +543,7 @@ function ChampionSlot({ personaje }) {
 
 function ChampionPlaceholder() {
   return (
-    <div className="mt-3 flex aspect-[2/3] max-w-[110px] flex-col items-center justify-center gap-2 self-center rounded-xl border-2 border-dashed border-border bg-surface-alt/40 p-3 text-center">
+    <div className="mt-3 flex aspect-[2/3] max-w-[130px] flex-col items-center justify-center gap-2 self-center rounded-xl border-2 border-dashed border-border bg-surface-alt/40 p-3 text-center">
       <Lock className="h-5 w-5 text-fg-muted" />
       <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
         Por decidir
