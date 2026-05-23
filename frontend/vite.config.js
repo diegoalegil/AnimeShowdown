@@ -25,7 +25,7 @@ const IMG_URL_PREFIX = '/img/'
 // frontend/img/, basta con extender este mapa.
 const MIME = {
   '.webp': 'image/webp',
-  // AVIF añadido tras el script generate-image-variants.mjs (Plan v2 §3.3).
+  // AVIF añadido tras el script generate-image-variants.mjs.
   '.avif': 'image/avif',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -55,7 +55,7 @@ function imgFolderPlugin() {
         const decoded = decodeURIComponent(req.url.split('?')[0])
         const filePath = join(IMG_SRC, decoded)
 
-        // Bloqueo path traversal: el resultado debe seguir dentro de IMG_SRC.
+        // Bloqueo de path traversal: el resultado debe seguir dentro de IMG_SRC.
         if (!filePath.startsWith(IMG_SRC)) {
           res.statusCode = 403
           return res.end('Forbidden')
@@ -103,7 +103,7 @@ function imgFolderPlugin() {
 }
 
 /**
- * Critical CSS inline (Plan v2 §3.5). Tras el build de Vite, procesamos
+ * Critical CSS inline. Tras el build de Vite, procesamos
  * dist/index.html con beasties (fork mantenido del abandonado critters).
  * Beasties analiza qué selectores usa el HTML inicial y los inlina en un
  * <style> dentro del <head>; el resto del CSS sigue siendo async via
@@ -148,7 +148,7 @@ function criticalCssPlugin() {
 }
 
 /**
- * Configuración PWA (Plan v2 §3.2). vite-plugin-pwa con autoUpdate:
+ * Configuración PWA con vite-plugin-pwa y autoUpdate:
  *
  *   - registerType:'autoUpdate' → el SW comprueba updates en cada nav y
  *     refresca silenciosamente. Sin prompt al usuario.
@@ -382,7 +382,7 @@ export default defineConfig({
     // Vendor chunks explícitos: sin esto Rolldown junta todo en index y
     // pasa de 150KB a 300KB+ gzip. Cada vendor se aísla en su propio
     // chunk para que se cachee long-term separado (cambios en código de
-    // app no invalidan los vendor chunks). Plan v2 §3.10: budget 250KB.
+    // app no invalidan los vendor chunks). Budget objetivo: 250KB gzip.
     //   - lucide-react: ~150KB gzip si va en index, peso muerto en muchas
     //     páginas.
     //   - framer-motion: ~50KB gzip, lo usan rutas con animación.
