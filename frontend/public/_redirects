@@ -21,6 +21,8 @@
 /glosario/*               /glossary                  301
 /random                   /descubre-personaje        301
 /random/*                 /descubre-personaje        301
+/mision-diaria            /misiones                  301
+/mision-diaria/*          /misiones                  301
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
@@ -57,6 +59,7 @@
 /faq                      / 200
 /como-funciona            / 200
 /metodologia-elo          / 200
+/misiones                 / 200
 /api-docs                 / 200
 /status                   / 200
 /games                    / 200
