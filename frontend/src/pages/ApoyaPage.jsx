@@ -27,7 +27,7 @@ const containerVariants = {
   },
 }
 
-// Meta mensual transparente (Plan v2 §12.1). Actualizar a mano cada
+// Meta mensual transparente. Actualizar a mano cada
 // vez que cambie el mes o lleguen donaciones — sin endpoint ni infra,
 // el valor más simple es vivir aquí. Si en algún momento entra Ko-fi
 // webhook o se quiere parametrizar, mover a variable de entorno.
@@ -35,7 +35,7 @@ const META_OBJETIVO_EUR = 25
 const META_RECIBIDO_EUR = 0
 
 /**
- * Página /apoya (Plan v2 §12.1) — donaciones opcionales para que el
+ * Página /apoya — donaciones opcionales para que el
  * proyecto siga vivo. Ko-fi como plataforma principal + GitHub Sponsors
  * + ayuda gratis (compartir, star, sugerir). Sin pressure: AnimeShowdown
  * sigue siendo gratis aunque no doneis nada.

@@ -4,7 +4,7 @@ import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 
 /**
  * Match del bracket en formato cliente. `personaje1` y `personaje2` pueden
- * ser null si pertenecen a una ronda futura sin resolver (Plan v2 §1.1).
+ * ser null si pertenecen a una ronda futura sin resolver.
  * `ganador` es null mientras el match no se haya cerrado.
  *
  * `totalVotos` es opcional — se rellena solo en endpoint de detalle, no

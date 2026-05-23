@@ -16,7 +16,7 @@ import java.time.Duration;
 
 /**
  * Endpoints que sirven PNGs 1200x630 pre-renderizados para previews
- * sociales (Twitter Cards, OpenGraph, Discord, Slack). Plan v2 §1.2.
+ * sociales (Twitter Cards, OpenGraph, Discord, Slack). 2.
  *
  * URLs canonical:
  *   - GET /api/og/personaje/{slug}.png

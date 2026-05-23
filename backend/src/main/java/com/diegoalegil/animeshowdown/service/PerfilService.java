@@ -37,7 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Stats agregadas del usuario para el perfil (Plan v2 §4.1).
+ * Stats agregadas del usuario para el perfil.
  *
  * <p>Todos los métodos {@code @Transactional(readOnly = true)} para que el
  * mapeo a DTO con accesos lazy (Voto.enfrentamiento → personaje1/2, torneo)
@@ -78,7 +78,7 @@ public class PerfilService {
     }
 
     /**
-     * Vista pública agregada (Plan v2 §4.5). Junta stats + top + logros
+     * Vista pública agregada. Junta stats + top + logros
      * desbloqueados + counts de follow en una sola transacción para que
      * el mapeo lazy de UsuarioLogro.logro suceda con session viva.
      */
@@ -172,7 +172,7 @@ public class PerfilService {
     }
 
     /**
-     * Feed combinado de actividad reciente (Plan v2 §4.1).
+     * Feed combinado de actividad reciente.
      *
      * <p>Combina 4 fuentes en un único stream temporal descendente:
      * votos en enfrentamientos, logros desbloqueados, torneos creados y
@@ -278,7 +278,7 @@ public class PerfilService {
     }
 
     /**
-     * Borra la cuenta del usuario (Plan v2 §4.1, GDPR right to erasure).
+     * Borra la cuenta del usuario.
      *
      * <p>Verifica password antes de proceder. La cascada del schema
      * (V13) elimina datos derivados: refresh tokens, email verifications,

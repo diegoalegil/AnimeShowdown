@@ -19,7 +19,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.NotificacionService;
 
 /**
- * Endpoints REST de notificaciones in-app (Plan v2 §2.13).
+ * Endpoints REST de notificaciones in-app.
  *
  * <ul>
  *   <li>{@code GET /api/notificaciones?soloNoLeidas=false&page=0&size=20}

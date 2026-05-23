@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Token de refresco persistido en BBDD. Plan v2 §1.3.
+ * Token de refresco persistido en BBDD. 3.
  *
  * Pareja con el access token JWT corto (15 min): cuando el JWT expira el
  * cliente llama POST /auth/refresh con la cookie httpOnly que contiene el

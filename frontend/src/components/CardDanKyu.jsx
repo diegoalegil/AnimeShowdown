@@ -5,7 +5,7 @@ import KanjiSpinner from './KanjiSpinner'
 import KanjiStroke from './KanjiStroke'
 
 /**
- * Card del rango dan/kyū del usuario (Plan v2 §13.2). Muestra el rango
+ * Card del rango dan/kyū del usuario. Muestra el rango
  * actual + progreso hasta el siguiente en barra horizontal. Calculado
  * client-side desde las stats del perfil (votos + predicciones + badges).
  *

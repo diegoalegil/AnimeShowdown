@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 /**
- * Hook para set de meta tags por ruta (Plan v2 §5.2 + §5.3).
+ * Hook para set de meta tags por ruta.
  *
  * <p>Extiende {@code useDocumentTitle} setando además:
  * <ul>
@@ -31,7 +31,7 @@ import { useEffect } from 'react'
  */
 const BASE = 'AnimeShowdown'
 const SITIO = 'https://animeshowdown.dev'
-// Plan v2 §5.9: idiomas que tenemos al menos parcialmente traducidos.
+// 9: idiomas que tenemos al menos parcialmente traducidos.
 // Cada uno produce un <link rel="alternate" hreflang="X" href="URL?lang=X">
 // más un x-default que apunta al ES (idioma original y catálogo completo).
 const LANGS = ['es', 'en']
@@ -72,7 +72,7 @@ export function useSeo({
       noindex
         ? setMetaName('robots', 'noindex,nofollow')
         : setMetaName('robots', null),
-      // Hreflang (Plan v2 §5.9): un link por idioma soportado más
+      // Hreflang: un link por idioma soportado más
       // x-default → ES. Si la página tiene noindex no los emitimos
       // porque hreflang en páginas no indexables es contradicción.
       ...(noindex

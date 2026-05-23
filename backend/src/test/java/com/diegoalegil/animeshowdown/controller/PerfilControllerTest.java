@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración del perfil del usuario (Plan v2 §4.1).
+ * Tests integración del perfil del usuario.
  *
  * <p>Cubre los 3 endpoints {@code /api/perfil/me/*} con auth, sin auth y
  * con datos básicos generados in-test.

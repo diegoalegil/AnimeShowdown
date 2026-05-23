@@ -21,7 +21,7 @@ import com.diegoalegil.animeshowdown.service.ReaccionService;
 import jakarta.validation.Valid;
 
 /**
- * Endpoints REST de reactions (Plan v2 §4.3).
+ * Endpoints REST de reactions.
  *
  * <ul>
  *   <li>{@code GET /api/reacciones?targetType=&targetId=} — público.

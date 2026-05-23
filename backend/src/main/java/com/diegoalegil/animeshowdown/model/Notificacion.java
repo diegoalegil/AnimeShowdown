@@ -16,7 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Notificación in-app persistente (Plan v2 §2.13). El usuario la ve en la
+ * Notificación in-app persistente. El usuario la ve en la
  * campanita del header. Si está conectado al WS cuando se crea, recibe push
  * en tiempo real al topic /user/queue/notificaciones; si no, la verá al
  * cargar la lista REST.

@@ -29,7 +29,7 @@ const headerVariants = {
 /**
  * Detalle de un torneo (/torneos/[slug]) consumiendo el backend vía
  * useTorneoBySlug. Antes leía frontend/src/data/torneos.js estático con
- * `getTorneoBySlug(slug)` — Plan v2 §1.1 elimina ese archivo.
+ * `getTorneoBySlug(slug)` — 1 elimina ese archivo.
  *
  * El hook hace polling de 30s automáticamente cuando estado === IN_PROGRESS
  * (configurado en lib/torneosQueries.js), así el bracket se actualiza solo
@@ -146,7 +146,7 @@ function TorneoDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver a torneos
         </Link>
-        {/* Plan v2 §6.3: <header> con Microdata schema.org/SportsEvent.
+        {/* 3: <header> con Microdata schema.org/SportsEvent.
             JSON-LD del torneo va en JsonLd arriba; el Microdata aquí
             sirve a crawlers que prefieren parsearlo inline. */}
         <motion.header
@@ -185,7 +185,7 @@ function TorneoDetailPage() {
             {fechaInicioFmt && ` · ${fechaInicioFmt}`}
             {fechaFinFmt && ` → ${fechaFinFmt}`}
           </p>
-          {/* Plan v2 §4.3: reactions sobre el torneo. */}
+          {/* 3: reactions sobre el torneo. */}
           {torneo?.id && (
             <div className="relative">
               <ReactionsBar targetType="TORNEO" targetId={torneo.id} />

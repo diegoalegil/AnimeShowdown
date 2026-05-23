@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { Sparkles } from 'lucide-react'
 
 /**
- * Easter egg Konami Code (Plan v2 §13.12).
+ * Easter egg Konami Code.
  *
  * <p>Secuencia clásica: ↑↑↓↓←→←→BA. Al completarla activa un overlay
  * temporal "modo arcade" con un mensaje + scanline retro CSS, durante

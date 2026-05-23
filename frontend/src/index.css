@@ -577,7 +577,7 @@
     }
   }
 
-  /* Tipografía japonesa secundaria (Plan v2 §13.3). Aplicada en kanjis
+  /* Tipografía japonesa secundaria. Aplicada en kanjis
      decorativos (badges, omikuji, glossary). El body sigue con Geist
      para latinos — esto es solo para elementos JP. */
   .font-jp {
@@ -585,7 +585,7 @@
     font-weight: 700;
   }
 
-  /* Patrones tradicionales japoneses (Plan v2 §13.4). SVG inline en
+  /* Patrones tradicionales japoneses. SVG inline en
      data-url para que no añadan request HTTP. Opacidad ~5% — son acento
      decorativo, no foreground. Usados en perfil (asanoha) y logros
      (seigaiha) para identidad visual otaku sin caer en weeb cringe. */
@@ -729,7 +729,7 @@
   }
 }
 
-/* Pétalos de sakura (Plan v2 §13.7). Caen verticales con sway lateral
+/* Pétalos de sakura. Caen verticales con sway lateral
    vía --drift custom prop. opacity entra y sale para que aparezcan y se
    vayan suaves. transform-origin centro para rotate natural. */
 @keyframes sakura-fall {

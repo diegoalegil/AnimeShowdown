@@ -6,7 +6,7 @@ import com.diegoalegil.animeshowdown.model.Logro;
 import com.diegoalegil.animeshowdown.model.UsuarioLogro;
 
 /**
- * Vista de un badge para el cliente (Plan v2 §4.2).
+ * Vista de un badge para el cliente.
  *
  * <p>{@code desbloqueadoEn} es null cuando se devuelve un badge del
  * catálogo que el usuario aún NO ha desbloqueado (el frontend lo pinta

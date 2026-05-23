@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Evento broadcast cuando alguien vota en un enfrentamiento (Plan v2 §2.13).
+ * Evento broadcast cuando alguien vota en un enfrentamiento.
  *
  * <p>Se emite al topic <code>/topic/torneo.{torneoId}.bracket</code>. Los
  * clientes suscritos al ver el bracket de ese torneo actualizan el conteo

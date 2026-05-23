@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Rate limiting in-memory por IP. Plan v2 §2.1.
+ * Rate limiting in-memory por IP. 1.
  *
  * Aplica a rutas críticas (auth + voto) con un bandwidth compuesto:
  *   - 5 requests / minuto: ráfaga corta
@@ -57,7 +57,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             "/api/auth/registro",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
-            // Plan v2 §2.3: el endpoint que valida el segundo factor también
+            // 3: el endpoint que valida el segundo factor también
             // necesita rate limit — sin él, alguien con el challengeToken
             // (60s) podría intentar 10⁶ códigos en paralelo desde varias IPs.
             // Bucket4j por IP no detiene el caso ideal pero sí frena el básico.

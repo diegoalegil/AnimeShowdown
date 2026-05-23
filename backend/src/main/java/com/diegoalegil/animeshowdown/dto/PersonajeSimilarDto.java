@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Personaje recomendado por similitud (Plan v2 §4.12).
+ * Personaje recomendado por similitud.
  *
  * <p>Incluye {@code votos} y {@code score} para que el frontend pueda
  * mostrarlos como label si quiere ("similitud 78%", "120 votos"). El

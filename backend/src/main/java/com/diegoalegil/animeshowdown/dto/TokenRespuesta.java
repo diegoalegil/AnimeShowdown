@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * <p>En el caso normal (sin 2FA o tras /2fa/verify-login):
  * <pre>{ "token": "eyJ...", "usuario": {...} }</pre>
  *
- * <p>En el caso de login con 2FA pendiente (Plan v2 §2.3):
+ * <p>En el caso de login con 2FA pendiente:
  * <pre>{ "requires2fa": true, "challengeToken": "abc...", "expiraEnSegundos": 60 }</pre>
  *
  * <p>Los campos null se omiten con JsonInclude.NON_NULL para no enviar

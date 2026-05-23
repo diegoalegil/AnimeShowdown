@@ -25,7 +25,7 @@ import com.diegoalegil.animeshowdown.service.BadgeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración del sistema de badges/logros (Plan v2 §4.2).
+ * Tests integración del sistema de badges/logros.
  *
  * <p>Cubre catalogo + endpoint personal + flow desbloqueo:
  * <ul>

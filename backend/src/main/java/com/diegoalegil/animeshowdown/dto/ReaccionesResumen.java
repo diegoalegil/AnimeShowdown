@@ -6,7 +6,7 @@ import java.util.Map;
 import com.diegoalegil.animeshowdown.model.ReaccionTipo;
 
 /**
- * Resumen de reactions para un target (Plan v2 §4.3).
+ * Resumen de reactions para un target.
  *
  * <ul>
  *   <li>{@code counts} — siempre incluye las 4 keys del enum, con valor 0

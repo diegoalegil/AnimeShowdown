@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests del endpoint público de recomendaciones cross-anime
- * (Plan v2 §4.12) — GET /api/personajes/{slug}/similares.
+ * — GET /api/personajes/{slug}/similares.
  *
  * <p>Comprueba: contrato del payload, exclusión de mismo anime, default
  * de limit, clamp y respuesta vacía en slug inexistente.

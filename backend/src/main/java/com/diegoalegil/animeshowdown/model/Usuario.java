@@ -51,7 +51,7 @@ public class Usuario {
     private LocalDateTime fechaRegistro;
 
     /**
-     * Cuenta de logins fallidos consecutivos (Plan v2 §2.2). Se resetea a 0
+     * Cuenta de logins fallidos consecutivos. Se resetea a 0
      * en cada login exitoso. Si llega a 5, el AuthController setea
      * bloqueadoHasta = now + 15min y reincia el contador.
      */
@@ -67,7 +67,7 @@ public class Usuario {
     private LocalDateTime bloqueadoHasta;
 
     /**
-     * Verificación de email (Plan v2 §2.4). PENDIENTE tras /registro hasta
+     * Verificación de email. PENDIENTE tras /registro hasta
      * que el usuario clica el link recibido por email; ACTIVO tras
      * verificar. Los usuarios pre-existentes (creados antes de §2.4)
      * arrancan con ACTIVO por el default en V2.
@@ -77,9 +77,9 @@ public class Usuario {
     private EstadoVerificacion estadoVerificacion = EstadoVerificacion.ACTIVO;
 
     /**
-     * Secret TOTP activo cifrado (Plan v2 §2.3). null = el usuario NO tiene
+     * Secret TOTP activo cifrado. null = el usuario NO tiene
      * 2FA activado. Se almacena cifrado con AES (clave en env var
-     * TOTP_ENCRYPTION_KEY) — si la BBDD se filtra sin el .env, los secrets
+     * TOTP_ENCRYPTION_KEY) — si la BBDD se filtra sin el.env, los secrets
      * son inútiles. TotpService cifra/descifra al leer/escribir.
      */
     @JsonIgnore
@@ -113,7 +113,7 @@ public class Usuario {
     private LocalDateTime totpHabilitadoEn;
 
     /**
-     * Código único de referral (Plan v2 §11.8). Se genera en el
+     * Código único de referral. Se genera en el
      * registro y nunca cambia. 8 chars alfanuméricos. Sirve para que
      * otros usuarios se registren con {@code ?ref={code}} y queden
      * vinculados como referidos del dueño del código.
@@ -125,7 +125,7 @@ public class Usuario {
     private String referralCode;
 
     /**
-     * Usuario referrer que invitó a éste con su código (Plan v2 §11.8).
+     * Usuario referrer que invitó a éste con su código.
      * Null para registros directos. FK con ON DELETE SET NULL para
      * preservar el referido si el referrer borra su cuenta.
      */

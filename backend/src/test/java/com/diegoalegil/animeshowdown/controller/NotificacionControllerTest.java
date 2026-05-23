@@ -26,7 +26,7 @@ import com.diegoalegil.animeshowdown.service.NotificacionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración de notificaciones in-app (Plan v2 §2.13).
+ * Tests integración de notificaciones in-app.
  *
  * <p>Cubre el flujo REST completo + el trigger BIENVENIDA tras verificar
  * email. Los tests no cubren el push WebSocket en vivo — eso requiere

@@ -17,7 +17,7 @@ const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
 
 /**
- * Plan v2 §1.3 — sesión persistente vía refresh cookie httpOnly:
+ * 3 — sesión persistente vía refresh cookie httpOnly:
  *
  *   1. Al montar, llamamos refreshSession() — el backend intenta rotar el
  *      refresh_token cookie (si existe) y devuelve un JWT corto + datos

@@ -10,7 +10,7 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 
 /**
  * Página /verify?token=XXX que cierra el flujo de email verification
- * del Plan v2 §2.4.
+ * del 4.
  *
  * Al montar, llama GET /api/auth/verify?token=... una sola vez. Posibles
  * resultados:

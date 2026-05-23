@@ -15,7 +15,7 @@ const containerVariants = {
 }
 
 /**
- * Política de privacidad (Plan v2 §16.13).
+ * Política de privacidad.
  *
  * <p>Cumple GDPR mínimo: qué datos guardamos, por cuánto tiempo, quién
  * los procesa, cómo ejercer derechos del usuario. No usa Termly ni

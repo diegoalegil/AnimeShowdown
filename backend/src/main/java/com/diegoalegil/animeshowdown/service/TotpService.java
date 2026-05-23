@@ -21,7 +21,7 @@ import dev.samstevens.totp.time.TimeProvider;
 import dev.samstevens.totp.util.Utils;
 
 /**
- * Wrapper sobre la lib dev.samstevens.totp para 2FA TOTP (Plan v2 §2.3).
+ * Wrapper sobre la lib dev.samstevens.totp para 2FA TOTP.
  *
  * <p>Encapsula:
  * <ul>

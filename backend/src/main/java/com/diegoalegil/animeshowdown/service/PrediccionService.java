@@ -29,7 +29,7 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 
 /**
- * Predicciones de bracket (Plan v2 §4.4).
+ * Predicciones de bracket.
  *
  * <p>API:
  * <ul>

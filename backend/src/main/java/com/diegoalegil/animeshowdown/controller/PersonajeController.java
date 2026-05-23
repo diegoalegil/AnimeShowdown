@@ -80,7 +80,7 @@ public class PersonajeController {
     }
 
     /**
-     * Plan v2 §2.10: cache 5min del listado. Key por filtro (anime), o 'all'
+     * 10: cache 5min del listado. Key por filtro (anime), o 'all'
      * cuando no hay filtro. El catálogo es casi inmutable — las invalidaciones
      * vienen de crear/actualizar/eliminar/batch que hacen evict global.
      */
@@ -251,7 +251,7 @@ public class PersonajeController {
     }
 
     /**
-     * Personajes similares al de un slug (Plan v2 §4.12). Discovery
+     * Personajes similares al de un slug. Discovery
      * cross-anime basado en proximidad de votos.
      *
      * <p>Endpoint público. limit clampa entre 1 y 24; default 8.
@@ -263,7 +263,7 @@ public class PersonajeController {
     }
 
     /**
-     * Time machine del ELO (Plan v2 §11.1) — serie temporal de votos
+     * Time machine del ELO — serie temporal de votos
      * acumulados día a día. dias clampa entre 1 y 90; default 30.
      */
     @GetMapping("/{slug}/elo-history")
@@ -363,8 +363,7 @@ public class PersonajeController {
     }
 
     /**
-     * Galería de imágenes adicionales del personaje desde Jikan (Plan v2
-     * §4.12 step 1 — multi-image oficial). Devuelve hasta 12 URLs de
+     * Galería de imágenes adicionales del personaje desde Jikan. Devuelve hasta 12 URLs de
      * /characters/{mal_id}/pictures. Lista vacía si:
      *   - Jikan no encuentra mal_id para el nombre+anime,
      *   - el personaje no tiene pictures registradas,

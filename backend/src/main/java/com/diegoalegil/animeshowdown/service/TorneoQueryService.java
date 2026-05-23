@@ -41,7 +41,7 @@ import jakarta.persistence.EntityNotFoundException;
  *   - ganadorSlug: slug del ganador del match de la última ronda, solo
  *     si está FINISHED.
  *
- * El render progresivo del bracket (Plan v2 §1.1 + §17.1) usa estos
+ * El render progresivo del bracket usa estos
  * tres campos para decidir qué rondas pintar con datos y cuáles difuminadas.
  */
 @Service
@@ -66,7 +66,7 @@ public class TorneoQueryService {
     }
 
     /**
-     * Listado público filtrado por visibilidad (Plan v2 §4.9): solo torneos
+     * Listado público filtrado por visibilidad: solo torneos
      * NO_APLICA (admin legacy) o APROBADO (revisado). Los PENDIENTES y
      * RECHAZADOS no aparecen aquí — el creador los ve en /api/torneos/mios
      * y el admin en /api/admin/torneos/pendientes.

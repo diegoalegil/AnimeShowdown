@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Resumen de referrals del usuario actual (Plan v2 §11.8).
+ * Resumen de referrals del usuario actual.
  *
  * <p>{@code codigo} es el código único compartible, p.ej. {@code A7K2X9PD}.
  * {@code invitadosVerificados} es el count actual de referidos con email

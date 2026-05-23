@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 /**
- * Reaction emoji de un usuario sobre un target (Plan v2 §4.3).
+ * Reaction emoji de un usuario sobre un target.
  *
  * <p>UNIQUE(usuario_id, target_type, target_id) garantiza 1 reaction por par.
  * Para "cambiar" reaction el {@code ReaccionService} hace UPDATE; para

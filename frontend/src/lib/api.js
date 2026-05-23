@@ -20,7 +20,7 @@ function normalizarApiBase(value) {
 
 export const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 
-// Plan v2 §1.3: el JWT vive en MEMORIA, no en localStorage. La sesión
+// 3: el JWT vive en MEMORIA, no en localStorage. La sesión
 // persistente la da el refresh_token cookie httpOnly que pone el backend
 // — esa cookie no la pueden tocar scripts (defensa XSS) y solo viaja a
 // nuestro propio dominio en peticiones credentialed (defensa CSRF).
@@ -350,7 +350,7 @@ export const endpoints = {
   refresh: () => api.post('/api/auth/refresh', undefined, { auth: false }),
   logout: () => api.post('/api/auth/logout', undefined, { auth: false }),
   revokeAll: () => api.post('/api/auth/revoke-all', undefined),
-  // Verificación de email (Plan v2 §2.4). /verify es público (el link
+  // Verificación de email. /verify es público (el link
   // viene del correo); /resend-verification requiere estar logueado.
   verifyEmail: (token) =>
     api.get(`/api/auth/verify?token=${encodeURIComponent(token)}`, { auth: false }),
@@ -359,7 +359,7 @@ export const endpoints = {
     api.post('/api/auth/forgot-password', { email }, { auth: false }),
   resetPassword: (data) =>
     api.post('/api/auth/reset-password', data, { auth: false }),
-  // 2FA TOTP (Plan v2 §2.3).
+  // 2FA TOTP.
   //   setup2fa: autenticado. Genera secret y devuelve { secret, otpauthUri, qrCodeDataUri }.
   //   enable2fa: autenticado. Body { codigo }. Devuelve { backupCodes: [...] }.
   //   disable2fa: autenticado. Body { password, codigo }.
@@ -377,7 +377,7 @@ export const endpoints = {
     ),
   regenerateBackupCodes: (codigo) =>
     api.post('/api/auth/2fa/backup-codes/regenerar', { codigo }),
-  // Notificaciones in-app (Plan v2 §2.13).
+  // Notificaciones in-app.
   notificaciones: ({ soloNoLeidas = false, page = 0, size = 20 } = {}) =>
     api.get(
       `/api/notificaciones?soloNoLeidas=${soloNoLeidas}&page=${page}&size=${size}`,
@@ -388,11 +388,11 @@ export const endpoints = {
     api.post(`/api/notificaciones/${id}/leida`, undefined),
   notificacionesMarcarTodasLeidas: () =>
     api.post('/api/notificaciones/marcar-todas-leidas', undefined),
-  // Logros / badges (Plan v2 §4.2).
+  // Logros / badges.
   //   logros: público, devuelve catálogo completo de 14 badges.
   //   misLogros: autenticado, catálogo enriquecido con desbloqueadoEn null/timestamp.
-  //   logrosStats: público (Plan v2 §4.10), counts por badge { codigo: count }.
-  //   personajesSimilares: público (Plan v2 §4.12), recomendaciones cross-anime
+  //   logrosStats: público, counts por badge { codigo: count }.
+  //   personajesSimilares: público, recomendaciones cross-anime
   //     por slug. Devuelve PersonajeSimilarDto[] con score y votos.
   logros: () => api.get('/api/logros', { auth: false }),
   misLogros: () => api.get('/api/logros/mios'),
@@ -403,12 +403,12 @@ export const endpoints = {
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,
       { auth: false },
     ),
-  // Galería multi-imagen oficial (Plan v2 §4.12 step 1). Devuelve hasta
+  // Galería multi-imagen oficial. Devuelve hasta
   // 12 URLs de Jikan /characters/{mal_id}/pictures. 404 solo si el slug
   // no existe; lista vacía si Jikan no resuelve mal_id o cae circuit.
   imagenesPersonaje: (slug) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/imagenes`, { auth: false }),
-  // Time machine del ELO (Plan v2 §11.1): serie {fecha, votosAcumulados}
+  // Time machine del ELO: serie {fecha, votosAcumulados}
   // por día. dias 1..90, default 30.
   // Historial competitivo de un personaje (Plan producto 2026-05-18).
   // Ambos endpoints son públicos y devuelven 404 si el slug no existe.
@@ -469,7 +469,7 @@ export const endpoints = {
       { auth: false },
     )
   },
-  // Reactions (Plan v2 §4.3).
+  // Reactions.
   //   getReacciones: público, devuelve {counts, miReaccion, total}.
   //   aplicarReaccion: autenticado. Backend gestiona toggle/swap automático.
   getReacciones: (targetType, targetId) =>
@@ -478,7 +478,7 @@ export const endpoints = {
     ),
   aplicarReaccion: ({ targetType, targetId, tipo }) =>
     api.post('/api/reacciones', { targetType, targetId, tipo }),
-  // Predicciones de bracket (Plan v2 §4.4).
+  // Predicciones de bracket.
   //   aplicarPrediccion: autenticado. Backend INSERT/UPDATE según UNIQUE.
   //   misPredicciones(torneoId): autenticado. Lista del torneo concreto.
   //   leaderboardPredicciones: público. Top predictores últimos N días.
@@ -491,7 +491,7 @@ export const endpoints = {
       `/api/predicciones/leaderboard?dias=${dias}&limit=${limit}`,
       { auth: false },
     ),
-  // Perfil del usuario autenticado (Plan v2 §4.1).
+  // Perfil del usuario autenticado.
   perfilStats: () => api.get('/api/perfil/me/stats'),
   perfilHistorialVotos: ({ page = 0, size = 50 } = {}) =>
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
@@ -503,33 +503,33 @@ export const endpoints = {
   // predicciones acertadas. Cada item con {tipo, fecha, payload}.
   perfilActividad: ({ limit = 20 } = {}) =>
     api.get(`/api/perfil/me/actividad?limit=${limit}`),
-  // Referral del usuario (Plan v2 §11.8): código único + count
+  // Referral del usuario: código único + count
   // verificados + tier badge.
   perfilReferral: () => api.get('/api/perfil/me/referral'),
-  // GDPR right to erasure (Plan v2 §4.1). Requiere password de nuevo
+  // GDPR right to erasure. Requiere password de nuevo
   // en el body como reconfirmación; 400 si la password no coincide.
   // Tras éxito el backend limpia la cookie de refresh; el cliente debe
   // además limpiar tokens locales y redirigir a home.
   eliminarMiCuenta: ({ password }) =>
     api.del('/api/perfil/me', { body: { password } }),
-  // Perfil PÚBLICO de cualquier usuario (Plan v2 §4.5). Endpoint
+  // Perfil PÚBLICO de cualquier usuario. Endpoint
   // permitAll en el backend, pero si el caller está logueado el token
   // viaja y el backend rellena `siguiendo` y `esMismoUsuario`. Si no
   // hay token, esos campos vienen como null/false.
   perfilPublico: (username) =>
     api.get(`/api/perfil/${encodeURIComponent(username)}`),
-  // Friends / follow asimétrico (Plan v2 §4.5). seguir/dejarDeSeguir son
+  // Friends / follow asimétrico. seguir/dejarDeSeguir son
   // idempotentes en el backend — la UI no necesita comprobar estado previo.
   seguir: (usuarioId) =>
     api.post(`/api/seguidores/${usuarioId}`),
   dejarDeSeguir: (usuarioId) =>
     api.del(`/api/seguidores/${usuarioId}`),
-  // Ranking segmentado (Plan v2 §4.6).
+  // Ranking segmentado.
   //   rankingSegmentado: periodo all|mes|trimestre|anio, anime opcional toma
   //     precedencia, limit max 200.
   //   animesConVotos: lista de animes con al menos 1 voto, para popular
   //     el dropdown del tab 'Por anime'.
-  // Ranking actual con indicadores de movimiento (Plan v2 §4.x):
+  // Ranking actual con indicadores de movimiento:
   // delta vs hace N días + flag esNuevo para personajes que no aparecían.
   rankingMovimientos: ({ limit = 50, dias = 7 } = {}) =>
     api.get(`/api/votos/ranking/movimientos?limit=${limit}&dias=${dias}`, {
@@ -544,10 +544,10 @@ export const endpoints = {
   },
   animesConVotos: () =>
     api.get('/api/votos/ranking/animes-disponibles', { auth: false }),
-  // Top voters leaderboard (Plan v2 §11.9). periodo: all|semana|mes.
+  // Top voters leaderboard. periodo: all|semana|mes.
   topVoters: ({ periodo = 'all', limit = 10 } = {}) =>
     api.get(`/api/votos/top-voters?periodo=${periodo}&limit=${limit}`, { auth: false }),
-  // Newsletter con double opt-in (Plan v2 §4.8).
+  // Newsletter con double opt-in.
   suscribirNewsletter: (email) =>
     api.post('/api/newsletter', { email }, { auth: false }),
   confirmarNewsletter: (token) =>
@@ -579,7 +579,7 @@ export const endpoints = {
   personaje: (id) => api.get(`/api/personajes/${id}`),
   createPersonaje: (data) => api.post('/api/personajes', data),
   deletePersonaje: (id) => api.del(`/api/personajes/${id}`),
-  // Listado de torneos en formato TorneoResumenDto (Plan v2 §1.1):
+  // Listado de torneos en formato TorneoResumenDto:
   // id, slug, nombre, estado, fechas, numParticipantes, totalRondas,
   // rondaActual, ganadorSlug. Sin enfrentamientos — para eso usar
   // torneoBySlug.
@@ -590,7 +590,7 @@ export const endpoints = {
   // con la URL del frontend para que el polling y el cache sean limpios.
   torneoBySlug: (slug) => api.get(`/api/torneos/slug/${slug}`),
   createTorneo: (data) => api.post('/api/torneos', data),
-  // Plan v2 §4.9: torneos creados por usuario verificado.
+  // 9: torneos creados por usuario verificado.
   //   crearTorneoMio: body { nombre, descripcion?, publico?, participantesIds[8|16] }
   //     -> 201 con Torneo en estado SCHEDULED/PENDIENTE. Necesita email
   //     verificado o el backend devuelve 400.
@@ -618,7 +618,7 @@ export const endpoints = {
   // hace 2 min"). Limit acotado server-side a [1, 20].
   votosRecientes: ({ limit = 10 } = {}) =>
     api.get(`/api/votos/recientes?limit=${limit}`, { auth: false }),
-  // Match aleatorio abierto (Plan v2 §1.1). Devuelve EnfrentamientoDto o
+  // Match aleatorio abierto. Devuelve EnfrentamientoDto o
   // 404 (modo casual del frontend toma el control). No requiere auth.
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/aleatorio', { auth: false }),
   dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),

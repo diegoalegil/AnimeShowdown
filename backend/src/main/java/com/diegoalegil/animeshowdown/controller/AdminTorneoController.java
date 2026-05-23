@@ -19,7 +19,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Cola admin de torneos creados por usuarios (Plan v2 §4.9).
+ * Cola admin de torneos creados por usuarios.
  *
  * <p>Todos los endpoints exigen rol ADMIN — `/api/admin/**` está protegido
  * en {@code SecurityConfig}. El admin ve los pendientes FIFO, aprueba (que

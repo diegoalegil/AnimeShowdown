@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 import com.diegoalegil.animeshowdown.model.Voto;
 
 /**
- * Entrada del historial de votos del usuario (Plan v2 §4.1).
+ * Entrada del historial de votos del usuario.
  *
  * <p>Para votos de enfrentamientos reales, {@code enfrentamientoId} no es
  * null y se incluye el oponente (el otro personaje del match). Para votos
- * del modo casual (Plan v2 §1.1), {@code enfrentamientoId} es null y solo
+ * del modo casual, {@code enfrentamientoId} es null y solo
  * se rellena el personaje al que votaste.
  */
 public record VotoHistorialDto(

@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 /**
- * Body de POST /api/auth/2fa/enable (Plan v2 §2.3).
+ * Body de POST /api/auth/2fa/enable.
  *
  * <p>El cliente envía el código de 6 dígitos de su app authenticator
- * (Google Authenticator / Authy / 1Password / ...) para que el backend
+ * (Google Authenticator / Authy / 1Password /...) para que el backend
  * valide contra el secret pendiente. Si OK, el secret pendiente se
  * promueve a activo y el 2FA queda habilitado.
  */

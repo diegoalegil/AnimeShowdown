@@ -37,7 +37,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  *       descartado.</li>
  * </ul>
  *
- * <p>Pool dedicado email (Plan v2 §2.12):
+ * <p>Pool dedicado email:
  * <ul>
  *   <li>core 2, max 5: cubre el tráfico típico sin sobrecargar Railway free.</li>
  *   <li>queue 100: ráfagas (newsletter futura, mass invite) se encolan.</li>

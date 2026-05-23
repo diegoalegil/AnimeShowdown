@@ -1,4 +1,4 @@
-// Cliente STOMP singleton sobre @stomp/stompjs (Plan v2 §2.13).
+// Cliente STOMP singleton sobre @stomp/stompjs.
 //
 // Una sola conexión WS por pestaña de navegador, compartida entre todos los
 // hooks que necesitan subscribirse a topics distintos. Cuando el usuario

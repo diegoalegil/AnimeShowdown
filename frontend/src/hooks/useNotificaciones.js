@@ -4,7 +4,7 @@ import { endpoints } from '../lib/api.js'
 import { useStompSubscription } from './useStompSubscription.js'
 
 /**
- * Hooks de notificaciones in-app (Plan v2 §2.13).
+ * Hooks de notificaciones in-app.
  *
  * - Listado paginado + suscripción WS a /user/queue/notificaciones que
  *   invalida la query al llegar un push.

@@ -17,7 +17,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.TotpBackupCodeRepository;
 
 /**
- * Gestión de backup codes del 2FA TOTP (Plan v2 §2.3).
+ * Gestión de backup codes del 2FA TOTP.
  *
  * <p>Cada backup code es una cadena de 10 caracteres alfanuméricos en
  * mayúsculas (sin caracteres ambiguos como 0/O, 1/I/L) — fácil de copiar

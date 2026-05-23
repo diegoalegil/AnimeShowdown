@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Entrada del Top N de personajes votados por el usuario (Plan v2 §4.1).
+ * Entrada del Top N de personajes votados por el usuario.
  */
 public record TopPersonajeItem(
         Long personajeId,
