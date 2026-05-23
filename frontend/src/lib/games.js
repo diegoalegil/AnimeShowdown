@@ -4,16 +4,15 @@ export const ELO_DUEL_BEST_KEY = 'animeshowdown.higherOrLower.best'
 export const ELO_DUEL_LEGACY_BEST_KEY = 'animeshowdown.higher-or-lower.best'
 
 /**
- * Utilities compartidas por los modos de juego del Bloque 14.
+ * Utilities compartidas por los modos de juego.
  *
  * <p>Todos client-side: el catálogo se hidrata desde el endpoint compacto
  * del backend y los daily picks se calculan
  * determinísticamente por fecha. No necesitamos backend para Daily —
  * todos los usuarios ven el mismo personaje el mismo día sin sync.
  *
- * <p>Leaderboards globales (Plan v2 §14.1 Endless) los dejamos para
- * cuando haya volumen real. Por ahora cada juego usa localStorage para
- * persistir el progreso del día.
+ * <p>Por ahora cada juego usa localStorage para persistir el progreso del
+ * día; los leaderboards globales quedan separados de esta capa local.
  */
 
 /** Hash estable djb2 — mejor distribuido que sumar charCodes. */
