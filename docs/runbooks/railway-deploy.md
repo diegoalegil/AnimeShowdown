@@ -4,9 +4,9 @@ Procedimientos operativos para deployar y operar el backend de AnimeShowdown en 
 
 ## Contexto
 
-- **Servicio**: `animeshowdown-production-*.up.railway.app`
+- **Servicio backend**: Railway
 - **Dominio público**: `api.animeshowdown.dev`
-- **Stack**: Spring Boot 3.5 + Java 21 + Postgres 16
+- **Stack**: Spring Boot 3.5 + Java 21 + PostgreSQL 17
 - **Build**: Railway detecta `backend/pom.xml`, ejecuta `./mvnw -DskipTests package`, arranca con `java -jar target/*.jar`
 - **Push a `main` → deploy automático** vía webhook GitHub
 
@@ -29,8 +29,9 @@ curl -s https://api.animeshowdown.dev/actuator/health | jq '.status'
 # Versión actual (commit hash si lo expones, o build-info)
 curl -s https://api.animeshowdown.dev/actuator/info | jq
 
-# Métrica básica: nº de votos totales (Prometheus)
-curl -s https://api.animeshowdown.dev/actuator/prometheus | grep as_votos_total
+# Métrica básica: nº de votos totales (requiere token de scrape)
+curl -s -H "X-Prometheus-Token: $APP_PROMETHEUS_SCRAPE_TOKEN" \
+  https://api.animeshowdown.dev/actuator/prometheus | grep as_votos_total
 ```
 
 ## Rollback de emergencia
@@ -86,7 +87,7 @@ Configuradas en Railway → Variables (NO en código):
 
 | Var | Para qué | Si falta |
 |---|---|---|
-| `DATABASE_URL` | Postgres connection string | Crash inmediato |
+| `DATABASE_URL` | PostgreSQL connection string | Crash inmediato |
 | `JWT_SECRET` | Firma de tokens | Crash inmediato |
 | `CORS_ALLOWED_ORIGINS` | Frontends permitidos | OAuth/login rompen |
 | `RESEND_API_KEY` | Emails verificación | Modo offline (log fallback) |
