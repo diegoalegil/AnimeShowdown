@@ -1,18 +1,7 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { personajes } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { normalizar } from '../lib/games'
-
-// Lista de animes únicos del catálogo + count para ranking en autocomplete.
-const ANIMES = (() => {
-  const counts = {}
-  for (const p of personajes) {
-    counts[p.anime] = (counts[p.anime] || 0) + 1
-  }
-  return Object.entries(counts)
-      .map(([anime, n]) => ({ anime, n }))
-      .sort((a, b) => b.n - a.n)
-})()
 
 /**
  * Combobox de selección de anime para juegos y formularios.
@@ -28,6 +17,7 @@ function AutocompleteAnime({
   autoFocus = false,
   filtroExtra,
 }) {
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const inputId = useId()
   const [query, setQuery] = useState('')
   const [activo, setActivo] = useState(0)
@@ -47,10 +37,20 @@ function AutocompleteAnime({
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
   }, [])
 
+  const animes = useMemo(() => {
+    const counts = {}
+    for (const p of catalogoPersonajes) {
+      counts[p.anime] = (counts[p.anime] || 0) + 1
+    }
+    return Object.entries(counts)
+        .map(([anime, n]) => ({ anime, n }))
+        .sort((a, b) => b.n - a.n)
+  }, [catalogoPersonajes])
+
   const opciones = useMemo(() => {
     const q = normalizar(deferredQuery)
     if (!q) return []
-    const base = filtroExtra ? ANIMES.filter((a) => filtroExtra(a.anime)) : ANIMES
+    const base = filtroExtra ? animes.filter((a) => filtroExtra(a.anime)) : animes
     const matches = []
     for (const a of base) {
       const animeN = normalizar(a.anime)
@@ -61,7 +61,7 @@ function AutocompleteAnime({
     }
     matches.sort((x, y) => x.score - y.score)
     return matches.slice(0, 8)
-  }, [deferredQuery, filtroExtra])
+  }, [animes, deferredQuery, filtroExtra])
 
   const elegir = (anime) => {
     if (!anime) return

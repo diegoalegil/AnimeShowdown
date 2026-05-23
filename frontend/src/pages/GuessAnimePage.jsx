@@ -16,13 +16,14 @@ import JsonLd from '../components/JsonLd'
 import AutocompleteAnime from '../components/AutocompleteAnime'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import PersonajeImg from '../components/PersonajeImg'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   buildShareSquares,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { personajes } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-anime.v1'
@@ -51,7 +52,31 @@ function GuessAnimePage() {
       'Ves al personaje, ¿de qué anime es? 5 intentos para acertar. Pista opcional revelando el nombre.',
   })
 
-  const dailyObjetivo = useMemo(() => personajeDelDia('guess-anime'), [])
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const dailyObjetivo = useMemo(
+    () => personajeDelDia('guess-anime', new Date(), catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (!dailyObjetivo) {
+    return (
+      <GameCatalogLoading
+        kanji="開"
+        title="Preparando Anime Reveal"
+        description="Cargando catálogo para elegir el personaje diario."
+      />
+    )
+  }
+
+  return (
+    <GuessAnimeGame
+      dailyObjetivo={dailyObjetivo}
+      catalogoPersonajes={catalogoPersonajes}
+    />
+  )
+}
+
+function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
@@ -100,7 +125,8 @@ function GuessAnimePage() {
   }
 
   const jugarOtra = () => {
-    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
+    if (!random) return
     setExtraObjetivo(random)
     setEstado(loadEstado(random.slug, true))
   }

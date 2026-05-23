@@ -16,6 +16,7 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   fechaDelDia,
   personajeDelDia,
@@ -23,10 +24,10 @@ import {
 } from '../lib/games'
 import {
   imagenPersonaje,
-  personajes,
   getStatsPersonaje,
 } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 const MAX_INTENTOS = 6
 const STORAGE_KEY = 'animeshowdown.anidel.v1'
@@ -65,7 +66,31 @@ function AnidelPage() {
       'Adivina el personaje secreto del día en 6 intentos. Pistas por anime, primera letra y ELO. Comparte tu resultado.',
   })
 
-  const dailyObjetivo = useMemo(() => personajeDelDia('anidel'), [])
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const dailyObjetivo = useMemo(
+    () => personajeDelDia('anidel', new Date(), catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (!dailyObjetivo) {
+    return (
+      <GameCatalogLoading
+        kanji="格"
+        title="Preparando AniGrid"
+        description="Cargando catálogo para montar el personaje secreto."
+      />
+    )
+  }
+
+  return (
+    <AnidelGame
+      dailyObjetivo={dailyObjetivo}
+      catalogoPersonajes={catalogoPersonajes}
+    />
+  )
+}
+
+function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
@@ -98,7 +123,7 @@ function AnidelPage() {
       toast.info('Ya probaste ese personaje')
       return
     }
-    const personaje = personajes.find((p) => p.slug === slug)
+    const personaje = catalogoPersonajes.find((p) => p.slug === slug)
     if (!personaje) return
     const elo = getStatsPersonaje(personaje.slug)?.elo ?? 1500
     const acierto = slug === objetivo.slug
@@ -145,7 +170,8 @@ function AnidelPage() {
   }
 
   const jugarOtra = () => {
-    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
+    if (!random) return
     setExtraObjetivo(random)
     setEstado(loadEstado(random.slug, true))
   }
