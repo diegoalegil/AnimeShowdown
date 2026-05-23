@@ -1,15 +1,11 @@
-import { useEffect } from 'react'
-import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion'
 
 /**
  * Tarjetas decorativas flotando alrededor del hero de la home.
  *
- * Audit producto (2026-05-20, peticion explicita user): antes mostraban
- * UN KANJI gigante en cada card como decoracion abstracta. Eso "vendia"
- * la idea de torneo japones pero no contaba nada de lo que hay dentro.
- * Ahora cada card es un mini-poster real de un anime iconico de la
- * plataforma — luce los banners cinematicos generados por el bot
- * ChatGPT en batches 1 y 2, da preview de lo que el visitante va a
+ * Sustituyen kanjis abstractos por mini-posters reales de animes icónicos
+ * de la plataforma, dando una preview visual de lo que el visitante va a
  * encontrar.
  *
  * Las 6 cards son aria-hidden y pointer-events-none — decorativas,
@@ -101,22 +97,37 @@ const tones = {
 }
 
 function FloatingCards() {
+  const reduceMotion = useReducedMotion()
+  const [canFloat, setCanFloat] = useState(false)
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
 
   useEffect(() => {
+    const media = window.matchMedia(
+      '(min-width: 1280px) and (hover: hover) and (pointer: fine)',
+    )
+    const update = () => setCanFloat(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    if (reduceMotion || !canFloat) return undefined
     const handle = (e) => {
       mouseX.set((e.clientX / window.innerWidth) * 2 - 1)
       mouseY.set((e.clientY / window.innerHeight) * 2 - 1)
     }
     window.addEventListener('mousemove', handle)
     return () => window.removeEventListener('mousemove', handle)
-  }, [mouseX, mouseY])
+  }, [canFloat, mouseX, mouseY, reduceMotion])
+
+  if (reduceMotion || !canFloat) return null
 
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0 hidden md:block"
+      className="pointer-events-none absolute inset-0 z-0"
     >
       {cards.map((card, i) => (
         <FloatingCard
