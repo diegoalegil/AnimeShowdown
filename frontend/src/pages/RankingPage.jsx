@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -520,20 +520,24 @@ function Tabs({ activo, onChange }) {
 function ListaEloLocal() {
   const [search, setSearch] = useState('')
   const [animeFilter, setAnimeFilter] = useState('')
+  const deferredSearch = useDeferredValue(search)
+  const normalizedSearch = useMemo(
+    () => deferredSearch.trim().toLowerCase(),
+    [deferredSearch],
+  )
 
   const filtered = useMemo(() => {
     let list = rankedElo
     if (animeFilter) list = list.filter((p) => p.anime === animeFilter)
-    if (search) {
-      const s = search.toLowerCase()
+    if (normalizedSearch) {
       list = list.filter(
         (p) =>
-          p.nombre.toLowerCase().includes(s) ||
-          p.anime.toLowerCase().includes(s),
+          p.nombre.toLowerCase().includes(normalizedSearch) ||
+          p.anime.toLowerCase().includes(normalizedSearch),
       )
     }
     return list
-  }, [search, animeFilter])
+  }, [normalizedSearch, animeFilter])
 
   const podio = filtered.slice(0, 3)
   const resto = filtered.slice(3, 100)
@@ -838,9 +842,10 @@ function ListaBackend({ periodo }) {
     dias: 7,
     enabled: periodo === 'all',
   })
-  const movimientosPorSlug = movimientos
-    ? new Map(movimientos.map((m) => [m.slug, m]))
-    : null
+  const movimientosPorSlug = useMemo(
+    () => movimientos ? new Map(movimientos.map((m) => [m.slug, m])) : null,
+    [movimientos],
+  )
   return (
     <ListaVotosCommon
       items={data}
