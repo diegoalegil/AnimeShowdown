@@ -487,18 +487,14 @@ function UrlForm({ user, updateUser }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex items-center gap-4 rounded-lg border border-border bg-bg p-3">
-        {previewUrl?.trim() ? (
-          <img
-            src={previewUrl.trim()}
-            alt="Vista previa del avatar"
-            className="h-12 w-12 rounded-full object-cover"
-            onError={(e) => {
-              e.currentTarget.style.opacity = 0.3
-            }}
-          />
-        ) : (
-          <Avatar user={user} size={48} />
-        )}
+        <Avatar
+          user={
+            previewUrl?.trim()
+              ? { ...user, avatarUrl: previewUrl.trim() }
+              : user
+          }
+          size={48}
+        />
         <p className="text-[12px] text-fg-muted">Vista previa</p>
       </div>
       <div className="flex flex-col gap-1.5">
