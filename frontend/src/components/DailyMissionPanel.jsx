@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, Flame, Gamepad2, Share2, Swords, Trophy } from 'lucide-react'
+import {
+  ArrowRight,
+  Check,
+  Flame,
+  Gamepad2,
+  Hourglass,
+  Share2,
+  Swords,
+  Trophy,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DAILY_GAME_TARGET,
@@ -10,6 +19,7 @@ import {
   readDailyStreak,
   recordDailyShare,
 } from '../lib/dailyProgress'
+import { getDailyResetCountdown } from '../lib/games'
 import { shareOrCopy } from '../lib/share'
 
 function clamp(value, max) {
@@ -47,6 +57,7 @@ function MissionItem({ icon: Icon, label, detail, done, to }) {
 function DailyMissionPanel({ compact = false, className = '' }) {
   const [progress, setProgress] = useState(() => readDailyProgress())
   const [streak, setStreak] = useState(() => readDailyStreak())
+  const [resetCountdown, setResetCountdown] = useState(getDailyResetCountdown)
 
   useEffect(
     () =>
@@ -56,6 +67,14 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       }),
     [],
   )
+
+  useEffect(() => {
+    const id = window.setInterval(
+      () => setResetCountdown(getDailyResetCountdown()),
+      60_000,
+    )
+    return () => window.clearInterval(id)
+  }, [])
 
   const votes = clamp(progress.votes, DAILY_VOTE_TARGET)
   const games = clamp(progress.gamesCompleted, DAILY_GAME_TARGET)
@@ -108,6 +127,10 @@ function DailyMissionPanel({ compact = false, className = '' }) {
           <h2 id="daily-mission-title" className="mt-1 text-2xl font-black tracking-tight text-fg-strong">
             {completed ? 'Ritual completado. Mañana toca defender la racha.' : 'Vota, juega y deja tu marca en el ranking.'}
           </h2>
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-gold">
+            <Hourglass className="h-3.5 w-3.5" />
+            Reset en {resetCountdown.label}
+          </p>
           {!compact && (
             <p className="mt-2 text-sm leading-6 text-fg-muted">
               Completa el loop diario de AnimeShowdown sin registrarte: 10 duelos,

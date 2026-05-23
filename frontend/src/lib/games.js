@@ -37,6 +37,21 @@ export function fechaDelDia(date = new Date()) {
   return `${y}-${m}-${d}`
 }
 
+export function getDailyResetCountdown(date = new Date()) {
+  const nextReset = new Date(date)
+  nextReset.setDate(date.getDate() + 1)
+  nextReset.setHours(0, 0, 0, 0)
+  const ms = Math.max(0, nextReset - date)
+  const h = Math.floor(ms / 3_600_000)
+  const m = Math.floor((ms % 3_600_000) / 60_000)
+  return {
+    h,
+    m,
+    ms,
+    label: `${h}h ${m}m`,
+  }
+}
+
 /**
  * Personaje "del día" determinístico — todos los usuarios ven el mismo
  * en la misma fecha local. Sirve para los Daily de Guess Character /
