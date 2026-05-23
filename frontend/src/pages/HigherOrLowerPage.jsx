@@ -16,6 +16,7 @@ import {
   getStatsPersonaje,
 } from '../lib/personajes-core'
 import {
+  buildGameShareText,
   ELO_DUEL_BEST_KEY,
   ELO_DUEL_LEGACY_BEST_KEY,
   safeStorage,
@@ -463,7 +464,12 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
     try {
       const result = await shareOrCopy({
         title: 'ELO Duel',
-        text: `Mi racha en ELO Duel fue ${score}. Récord: ${best}.\nFallé con ${challenger.nombre} vs ${reference.nombre}.`,
+        text: buildGameShareText({
+          game: 'ELO Duel',
+          date: null,
+          result: `racha ${score}`,
+          detail: `Récord: ${best}. Fallé con ${challenger.nombre} vs ${reference.nombre}.`,
+        }),
         url: '/games/elo-duel',
       })
       if (result === 'cancelled') return

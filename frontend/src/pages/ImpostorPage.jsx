@@ -16,6 +16,7 @@ import JsonLd from '../components/JsonLd'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   fechaDelDia,
   impostorDelDia,
   safeStorage,
@@ -437,7 +438,13 @@ function PanelResultado({ resultados, esExtra }) {
   const perfecto = aciertos === total && total >= 3
   const squaresShare = resultados.map((r) => (r ? '🟩' : '🟥')).join('')
 
-  const texto = `🕵️ Impostor Trial — ${fechaDelDia()}${esExtra ? ' (Extra)' : ''}\n${aciertos}/${total} aciertos  ${squaresShare}\nanimeshowdown.dev/games/impostor-trial`
+  const texto = buildGameShareText({
+    game: 'Impostor Trial',
+    date: fechaDelDia(),
+    result: `${aciertos}/${total}`,
+    detail: esExtra ? 'Ronda extra completada.' : 'Daily completado.',
+    grid: squaresShare,
+  })
 
   const titulo = perfecto
     ? `PERFECT CLEAR · ${aciertos}/${total} traidores detectados`
@@ -449,6 +456,8 @@ function PanelResultado({ resultados, esExtra }) {
       titulo={titulo}
       tier={tierImpostorPara(aciertos, total)}
       squares={resultados.map((r) => ({ ok: r }))}
+      shareTitle="Impostor Trial — AnimeShowdown"
+      shareUrl="/games/impostor-trial"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">
