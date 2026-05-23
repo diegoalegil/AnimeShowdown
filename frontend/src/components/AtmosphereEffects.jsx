@@ -55,6 +55,22 @@ function useVisible(ref) {
   return visible
 }
 
+function usePageVisible() {
+  const [pageVisible, setPageVisible] = useState(() => {
+    if (typeof document === 'undefined') return true
+    return document.visibilityState !== 'hidden'
+  })
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const update = () => setPageVisible(document.visibilityState !== 'hidden')
+    document.addEventListener('visibilitychange', update)
+    return () => document.removeEventListener('visibilitychange', update)
+  }, [])
+
+  return pageVisible
+}
+
 function useCanvasResize(canvasRef) {
   useEffect(() => {
     const canvas = canvasRef.current
@@ -90,6 +106,7 @@ export function SakuraPetals({ density = 'normal', tone = 'rose' }) {
   const rafRef = useRef(0)
   const reduced = useReducedMotion()
   const visible = useVisible(containerRef)
+  const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
 
   const count = density === 'low' ? 12 : density === 'high' ? 40 : 24
@@ -107,7 +124,7 @@ export function SakuraPetals({ density = 'normal', tone = 'rose' }) {
   )
 
   useEffect(() => {
-    if (reduced || !visible) {
+    if (reduced || !visible || !pageVisible) {
       cancelAnimationFrame(rafRef.current)
       return
     }
@@ -161,7 +178,7 @@ export function SakuraPetals({ density = 'normal', tone = 'rose' }) {
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [reduced, visible, count, colors])
+  }, [reduced, visible, pageVisible, count, colors])
 
   return (
     <div
@@ -187,12 +204,13 @@ export function Embers({ density = 'normal', tone = 'amber' }) {
   const rafRef = useRef(0)
   const reduced = useReducedMotion()
   const visible = useVisible(containerRef)
+  const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
 
   const count = density === 'low' ? 20 : density === 'high' ? 60 : 38
 
   useEffect(() => {
-    if (reduced || !visible) {
+    if (reduced || !visible || !pageVisible) {
       cancelAnimationFrame(rafRef.current)
       return
     }
@@ -276,7 +294,7 @@ export function Embers({ density = 'normal', tone = 'amber' }) {
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [reduced, visible, count, tone])
+  }, [reduced, visible, pageVisible, count, tone])
 
   return (
     <div
@@ -395,12 +413,13 @@ export function KanjiRain({ density = 'low', glyphs = '戦闘決勝影神鬼龍�
   const rafRef = useRef(0)
   const reduced = useReducedMotion()
   const visible = useVisible(containerRef)
+  const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
 
   const columns = density === 'low' ? 8 : density === 'high' ? 18 : 12
 
   useEffect(() => {
-    if (reduced || !visible) {
+    if (reduced || !visible || !pageVisible) {
       cancelAnimationFrame(rafRef.current)
       return
     }
@@ -446,7 +465,7 @@ export function KanjiRain({ density = 'low', glyphs = '戦闘決勝影神鬼龍�
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [reduced, visible, columns, glyphs])
+  }, [reduced, visible, pageVisible, columns, glyphs])
 
   return (
     <div
@@ -470,13 +489,14 @@ export function ConstellationNetwork({ density = 'normal', tone = 'gold' }) {
   const rafRef = useRef(0)
   const reduced = useReducedMotion()
   const visible = useVisible(containerRef)
+  const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
 
   const count = density === 'low' ? 30 : density === 'high' ? 80 : 50
   const linkDist = 140
 
   useEffect(() => {
-    if (reduced || !visible) {
+    if (reduced || !visible || !pageVisible) {
       cancelAnimationFrame(rafRef.current)
       return
     }
@@ -538,7 +558,7 @@ export function ConstellationNetwork({ density = 'normal', tone = 'gold' }) {
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [reduced, visible, count, tone])
+  }, [reduced, visible, pageVisible, count, tone])
 
   return (
     <div
@@ -559,8 +579,9 @@ export function ConstellationNetwork({ density = 'normal', tone = 'gold' }) {
 export function LightningStrike({ minInterval = 8000, maxInterval = 15000 }) {
   const [flash, setFlash] = useState(0)
   const reduced = useReducedMotion()
+  const pageVisible = usePageVisible()
   useEffect(() => {
-    if (reduced) return
+    if (reduced || !pageVisible) return
     let active = true
     let timer
     const schedule = () => {
@@ -578,7 +599,7 @@ export function LightningStrike({ minInterval = 8000, maxInterval = 15000 }) {
       active = false
       clearTimeout(timer)
     }
-  }, [reduced, minInterval, maxInterval])
+  }, [reduced, pageVisible, minInterval, maxInterval])
   return (
     <div
       aria-hidden="true"
