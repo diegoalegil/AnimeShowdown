@@ -94,7 +94,7 @@ jobs:
       # Antes la docu mencionaba que CF corría `npm run build` completo,
       # que disparaba el timeout de 20 min del free tier.
       #
-      # Audit externo AS-001/AS-006 (2026-05-22): VITE_API_URL es obligatoria
+      # Nota técnica AS-001/AS-006 (2026-05-22): VITE_API_URL es obligatoria
       # en builds de prod — api.js lanza Error si falta. Antes el CI compilaba
       # OK sin la env (porque vite no la valida en build, solo en runtime),
       # así que un PR podía mergearse y luego romper producción en blanco.
@@ -112,7 +112,7 @@ jobs:
       - name: Bundle size budget
         run: npm run test:bundle
 
-      # Audit externo AS-001/AS-006 (2026-05-22): verifica que la API base
+      # Nota técnica AS-001/AS-006 (2026-05-22): verifica que la API base
       # quedó bundleada. api.js inicializa API_BASE en módulo global con
       # `import.meta.env.VITE_API_URL`, y vite la inlinea durante el build.
       # Si el workflow olvida pasar la env, el valor inlineado es undefined
@@ -147,7 +147,7 @@ jobs:
         with:
           node-version: '22'
 
-      # Audit P2 (2026-05-17): antes corríamos --dry-run, que no fallaba
+      # Nota P2 (2026-05-17): antes corríamos --dry-run, que no fallaba
       # aunque hubiera carpetas enteras de personajes en img/ sin entrar al
       # seed/personajes.js. Resultado: pushes que añadían imágenes pero
       # NO llegaban al frontend ni a la BBDD hasta que alguien recordara

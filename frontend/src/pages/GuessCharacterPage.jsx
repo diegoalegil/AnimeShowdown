@@ -166,7 +166,7 @@ function GuessCharacterPage() {
           </p>
         </motion.header>
 
-        {/* Audit visual (2026-05-18): cap mobile a 42vh para que el input
+        {/* Nota visual (2026-05-18): cap mobile a 42vh para que el input
             quede dentro del primer viewport. La imagen aspect 2/3 toma su
             anchura desde la altura (≈28vh wide) y queda centrada — sin
             barras vacías. En sm+ vuelve al max-w-sm original. */}

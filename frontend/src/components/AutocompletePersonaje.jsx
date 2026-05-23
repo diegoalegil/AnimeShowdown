@@ -43,7 +43,7 @@ function AutocompletePersonaje({
     setActivo(0)
   }
   const inputRef = useRef(null)
-  // Audit (2026-05-17): el onBlur setTimeout queda colgando si el
+  // Ajuste (2026-05-17): el onBlur setTimeout queda colgando si el
   // componente se desmonta antes de 120ms (típico al cerrar modal).
   // Trackeamos en ref y limpiamos en cleanup del unmount.
   const blurTimeoutRef = useRef(null)
@@ -104,7 +104,7 @@ function AutocompletePersonaje({
   return (
     <div className="relative">
       {/*
-        Patrón combobox WAI-ARIA 1.2 (audit a11y 2026-05-17):
+        Patrón combobox WAI-ARIA 1.2 (revisión a11y 2026-05-17):
         - role="combobox" en el input + aria-haspopup="listbox".
         - aria-activedescendant referencia el <li> activo por id, para
           que SR anuncie la opción navegada con flechas sin mover el

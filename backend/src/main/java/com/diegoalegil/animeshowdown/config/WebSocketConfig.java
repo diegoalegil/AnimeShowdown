@@ -75,7 +75,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         this.allowedOrigins = allowedOriginsCsv == null || allowedOriginsCsv.isBlank()
                 ? List.of()
                 : List.of(allowedOriginsCsv.split("\\s*,\\s*"));
-        // Audit P3 (2026-05-17): SecurityConfig acepta patrones con wildcard
+        // Nota P3 (2026-05-17): SecurityConfig acepta patrones con wildcard
         // (cors.allowed-origin-patterns, ej. https://*.pages.dev) pero
         // WebSocketConfig solo leía allowed-origins literales. Previews y
         // dominios dinámicos tenían REST OK pero handshake STOMP rechazado

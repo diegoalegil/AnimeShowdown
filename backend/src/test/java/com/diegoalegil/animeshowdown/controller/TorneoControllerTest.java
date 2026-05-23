@@ -76,7 +76,7 @@ class TorneoControllerTest {
     }
 
     /**
-     * Tras auditoría P1.1, la auto-promoción a ADMIN ocurre en
+     * Tras revisión P1.1, la auto-promoción a ADMIN ocurre en
      * EmailVerificationService (no en registro) — el helper registra,
      * marca el user como ACTIVO + ADMIN directamente en BBDD para
      * simular el flow completo de verificación+promoción.
@@ -232,7 +232,7 @@ class TorneoControllerTest {
 
     @Test
     void crearMioConUserNoVerificadoDevuelve403() throws Exception {
-        // Audit fix #11 (2026-05-21): antes este endpoint devolvia 400
+        // Ajuste #11 (2026-05-21): antes este endpoint devolvia 400
         // (IllegalArgumentException) cuando el user no estaba verificado.
         // Semanticamente correcto es 403 — el user esta autenticado pero
         // le falta permiso (verificacion). Ahora el service lanza
@@ -598,7 +598,7 @@ class TorneoControllerTest {
     }
 
     /**
-     * Regresión audit P1 (2026-05-17): el bracket bloqueado dejaba que
+     * Regresión de revisión P1 (2026-05-17): el bracket bloqueado dejaba que
      * /finalizar marcase FINISHED sin haber jugado R2/R3. Este test valida
      * el flow correcto con BracketAdvanceService:
      *   - Torneo de 4 personajes ⇒ R1: 2 matches, R2 (final): 1 match.

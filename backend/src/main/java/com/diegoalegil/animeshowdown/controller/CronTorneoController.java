@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.service.TorneoAutoService;
 
 /**
- * Endpoint cron-only para auto-generar torneos (auditoría P2.10 2026-05-17).
+ * Endpoint cron-only para auto-generar torneos (revisión P2.10 2026-05-17).
  *
  * <p>El workflow {@code .github/workflows/auto-tournament.yml} antes hacía
  * login con username/password de admin y usaba el JWT. Si el admin activa
@@ -106,7 +106,7 @@ public class CronTorneoController {
      * mismo tiempo de ejecución independientemente de dónde difieran
      * los bytes — el early return por null ya no es vector).
      *
-     * <p>Audit (2026-05-17): la implementación manual previa hacía un
+     * <p>Ajuste (2026-05-17): la implementación manual previa hacía un
      * {@code if (a == null || b == null) return false;} antes del loop
      * que permitía distinguir por timing "secret null" vs "secret
      * wrong". MessageDigest.isEqual cubre ambos casos uniformemente

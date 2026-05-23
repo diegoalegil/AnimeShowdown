@@ -16,10 +16,10 @@
  *   - Imágenes en disco sin personaje asociado
  *   - Caracteres especiales en slugs (no [a-z0-9_-])
  *
- * Output: docs/audit/catalog-quality.md
+ * Output: private/qa/catalog-quality.md
  *
  * Uso:
- *   node scripts/audit/catalog-quality.mjs
+ *   node scripts/qa/catalog-quality.mjs
  *
  * No requiere red, no requiere DB. Lee solo archivos locales.
  */
@@ -33,7 +33,7 @@ const PERSONAJES_SEED = join(ROOT, 'backend/src/main/resources/personajes-seed.j
 const TAGS_FILE = join(ROOT, 'frontend/src/data/personajes-tags.js')
 const FRONTEND_IMG = join(ROOT, 'frontend/img')
 const FRONTEND_PUBLIC_ASSETS = join(ROOT, 'frontend/public/assets')
-const OUTPUT = join(ROOT, 'docs/audit/catalog-quality.md')
+const OUTPUT = join(ROOT, 'private/qa/catalog-quality.md')
 
 // ---------- Loaders ----------
 
@@ -209,10 +209,10 @@ function generateReport(data) {
   const { personajes, duplicates, invalidSlugs, missingImages, orphanTags, glossaryStatus, orphanImages, tags, imagesByAnime } = data
 
   const lines = []
-  lines.push('# Auditoría de calidad del catálogo')
+  lines.push('# Revisión de calidad del catálogo')
   lines.push('')
   lines.push(`> Generado: ${new Date().toISOString()}`)
-  lines.push(`> Script: \`scripts/audit/catalog-quality.mjs\``)
+  lines.push(`> Script: \`scripts/qa/catalog-quality.mjs\``)
   lines.push('')
 
   // Resumen
@@ -360,7 +360,7 @@ function generateReport(data) {
 
 // ---------- Main ----------
 
-console.log('Auditoría de catálogo...')
+console.log('Revisión de catálogo...')
 const personajes = loadPersonajes()
 console.log(`  ${personajes.length} personajes cargados`)
 

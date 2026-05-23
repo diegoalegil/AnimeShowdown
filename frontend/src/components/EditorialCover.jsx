@@ -36,7 +36,7 @@ function EditorialCover({
         }}
         aria-hidden="true"
       />
-      {/* Audit visual (2026-05-20): el overlay anterior aplicaba un gradient
+      {/* Nota visual (2026-05-20): el overlay anterior aplicaba un gradient
           horizontal 94%->22% sobre la imagen completa Y encima un tinte
           accent radial al 30%. Resultado: Naruto se veia amarillo opaco,
           One Piece quedaba apagado, y la silueta de los personajes

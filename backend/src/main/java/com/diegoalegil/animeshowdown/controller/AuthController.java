@@ -187,7 +187,7 @@ public class AuthController {
         // Plan v2 §2.4: registros nuevos nacen PENDIENTE hasta verificar email.
         // No pueden votar ni crear torneos en este estado.
         nuevoUsuario.setEstadoVerificacion(EstadoVerificacion.PENDIENTE);
-        // Audit P1.1: la auto-promoción a ADMIN NO ocurre aquí — se hace
+        // Nota P1.1: la auto-promoción a ADMIN NO ocurre aquí — se hace
         // en EmailVerificationService.verificar() tras pasar a ACTIVO.
         // Antes un atacante podía registrarse con el email del owner en
         // una BBDD nueva y obtener ADMIN sin tocar el inbox.
@@ -375,7 +375,7 @@ public class AuthController {
      * <p>Tres caminos según {@link RefreshTokenService.ResultadoRotacion}:
      * <ul>
      *   <li>{@code Ok}: 200 + nuevo JWT + nueva cookie refresh.</li>
-     *   <li>{@code GraceCrossTab}: 401 SIN tocar la cookie. Audit P1
+     *   <li>{@code GraceCrossTab}: 401 SIN tocar la cookie. Nota P1
      *     (2026-05-17): antes este caso limpiaba la cookie del cliente,
      *     pisando la cookie nueva que la otra pestaña ya había puesto
      *     en el mismo dominio. Resultado: la segunda tab "ganaba"
@@ -389,7 +389,7 @@ public class AuthController {
             @CookieValue(name = REFRESH_COOKIE, required = false) String refreshCookie,
             HttpServletRequest httpRequest) {
         if (refreshCookie == null || refreshCookie.isBlank()) {
-            // Audit F003 follow-up (2026-05-22): AuthContext ahora intenta
+            // Nota F003 follow-up (2026-05-22): AuthContext ahora intenta
             // refresh SIEMPRE en bootstrap (antes solo si había user en
             // localStorage). Resultado: cada visitante anónimo dispara un
             // POST /api/auth/refresh sin cookie → 401. El navegador loggea
@@ -416,7 +416,7 @@ public class AuthController {
                         .body(new TokenRespuesta(nuevoJwt, new UsuarioRespuesta(ok.usuario())));
             }
             case RefreshTokenService.ResultadoRotacion.GraceCrossTab __ -> ResponseEntity
-                    // Audit P1 (2026-05-17, 2ª iter): 401 → 503 con Retry-After.
+                    // Nota P1 (2026-05-17, 2ª iter): 401 → 503 con Retry-After.
                     // El cliente trataba CUALQUIER no-2xx como sesión muerta y
                     // limpiaba tokenEnMemoria + notificaba STOMP, aunque la
                     // cookie nueva de la otra tab estuviera viva. 503 es
@@ -437,7 +437,7 @@ public class AuthController {
      * JWT en memoria del cliente sigue siendo válido hasta que expire (15
      * min máx), pero sin refresh ya no se puede renovar.
      *
-     * <p>Audit P1 (2026-05-18, 5ª iter): si el cliente envía JWT válido
+     * <p>Nota P1 (2026-05-18, 5ª iter): si el cliente envía JWT válido
      * (usuario != null), revocamos TODAS las sesiones activas del usuario
      * — no solo el token de la cookie presentada. Cubre el caso "tab A
      * pulsa logout mientras tab B tenía un refresh en vuelo": antes el

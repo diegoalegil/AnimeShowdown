@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 /**
- * Auditoría WCAG de contraste de colores.
+ * Revisión WCAG de contraste de colores.
  *
  * Toma los tokens declarados en frontend/src/index.css (@theme) más
  * los pares foreground/background usados explícitamente en utility
  * classes (.as-button-primary, .as-chip-active, etc.) y calcula el
  * ratio de contraste WCAG 2.1 para cada combinación canónica.
  *
- * Genera docs/audit/contrast-report.md con:
+ * Genera private/qa/contrast-report.md con:
  *   - tokens detectados
  *   - tabla pass/fail por pareja
  *   - recomendaciones para los que fallan WCAG AA
  *
  * Uso:
- *   node scripts/audit/contrast-audit.mjs
+ *   node scripts/qa/contrast-audit.mjs
  *
  * Sin args. Lee frontend/src/index.css en read-only. No modifica nada
- * fuera de docs/audit/.
+ * fuera de private/qa/.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs'
@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const CSS_PATH = join(ROOT, 'frontend/src/index.css')
 const FRONTEND_SRC = join(ROOT, 'frontend/src')
-const OUTPUT = join(ROOT, 'docs/audit/contrast-report.md')
+const OUTPUT = join(ROOT, 'private/qa/contrast-report.md')
 
 // ---------- Parseo de colores ----------
 
@@ -177,7 +177,7 @@ function findTextAccentUsages() {
   return matches
 }
 
-// ---------- Plan de auditoría ----------
+// ---------- Plan de revisión ----------
 
 function main() {
   const css = readFileSync(CSS_PATH, 'utf8')
@@ -279,10 +279,10 @@ function main() {
 
 function generateReport(tokens, resolved, results, textAccentUsages) {
   const lines = []
-  lines.push('# Auditoría de contraste WCAG — AnimeShowdown')
+  lines.push('# Revisión de contraste WCAG — AnimeShowdown')
   lines.push('')
   lines.push(`> Generado: ${new Date().toISOString()}`)
-  lines.push(`> Script: \`scripts/audit/contrast-audit.mjs\``)
+  lines.push(`> Script: \`scripts/qa/contrast-audit.mjs\``)
   lines.push(`> Fuente de tokens: \`frontend/src/index.css\` (@theme + utilities)`)
   lines.push(`> Criterio: WCAG 2.1 — AA = 4.5:1 (texto normal) / 3:1 (texto large ≥18pt o ≥14pt bold)`)
   lines.push('')
@@ -378,17 +378,17 @@ function generateReport(tokens, resolved, results, textAccentUsages) {
   lines.push('')
   lines.push('## Notas')
   lines.push('')
-  lines.push('- Esta auditoría es **estática** sobre tokens declarados, no escanea todos los `bg-X text-Y` usados en JSX. Para una cobertura exhaustiva habría que parsear todas las utility classes de Tailwind generadas — caro y con muchos falsos positivos.')
+  lines.push('- Esta revisión es **estática** sobre tokens declarados, no escanea todos los `bg-X text-Y` usados en JSX. Para una cobertura exhaustiva habría que parsear todas las utility classes de Tailwind generadas — caro y con muchos falsos positivos.')
   lines.push('- Además del análisis de tokens, el script sí escanea usos literales de `text-accent` en `frontend/src` para evitar que el rojo de marca vuelva a colarse como texto normal.')
   lines.push('- Los tokens con alpha (ej. `--color-accent-soft` rgba) NO se evalúan directamente porque dependen del fondo sobre el que se componen. Si se usan como background con texto encima, hay que componerlos sobre `--color-bg` y luego medir.')
   lines.push('- **Texto large (>=18pt o >=14pt bold):** umbral más permisivo (3:1) — aplicado a headings (h1/h2/h3) y elementos marcados con `large: true` en el script.')
   lines.push('- **Elementos no-texto** (bordes, iconos decorativos): WCAG 2.1 SC 1.4.11 pide 3:1 si son significativos para el UX. Los bordes meramente decorativos están exentos.')
-  lines.push('- Para una auditoría runtime exhaustiva (que sí ve cada combinación realmente pintada en la página), usar `axe-core` o Lighthouse contra producción. El script `npm run audit:a11y` del frontend ya hace algo así con `@axe-core/cli`.')
+  lines.push('- Para una revisión runtime exhaustiva (que sí ve cada combinación realmente pintada en la página), usar `axe-core` o Lighthouse contra producción. El script `npm run qa:a11y` del frontend ya hace algo así con `@axe-core/cli`.')
   lines.push('')
   lines.push('## Cómo ejecutar')
   lines.push('')
   lines.push('```bash')
-  lines.push('node scripts/audit/contrast-audit.mjs')
+  lines.push('node scripts/qa/contrast-audit.mjs')
   lines.push('```')
   lines.push('')
   lines.push('Sin args, sin instalación. Usa solo Node stdlib + lee `frontend/src/index.css`.')

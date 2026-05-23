@@ -9,7 +9,7 @@ import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 
-// Audit producto (2026-05-18): /votar sale de navLinks regular y pasa a
+// Nota de producto (2026-05-18): /votar sale de navLinks regular y pasa a
 // CTA principal del header. El login deja de ser el botón accent (estaba
 // pidiendo a un usuario nuevo registrarse antes de aportar valor) y
 // queda como link ghost discreto: ahora la primera acción visible es
@@ -63,7 +63,7 @@ function loginGhostClass({ isActive }) {
   }`
 }
 
-// Audit (2026-05-17): en móvil 390px el header ocupaba ~25% del primer
+// Ajuste (2026-05-17): en móvil 390px el header ocupaba ~25% del primer
 // viewport apilando logo + 7 navlinks + 5 iconos utility + login en
 // flex-col. Refactor: en móvil solo logo + acción primaria (login o
 // avatar+notif) + hamburger; nav y utility se abren en panel.
@@ -71,7 +71,7 @@ function Header() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { muted, toggleMute, play } = useSound()
-  // Audit perf 2026-05-18: CTAs principales del header con pointerdown
+  // Nota de rendimiento 2026-05-18: CTAs principales del header con pointerdown
   // para que el sonido vaya por delante del click (más perceptible como
   // "instantáneo"). Aplica al "Votar ahora" desktop + "Votar" mobile.
   const ctaVotarDesktop = useInstantSoundPress('playClick')
@@ -117,7 +117,7 @@ function Header() {
     }
   }, [])
 
-  // Audit fix #8 (2026-05-21): cuando el menu movil esta abierto, el
+  // Ajuste #8 (2026-05-21): cuando el menu movil esta abierto, el
   // fondo se podia seguir scrolleando (perdia el contexto del panel
   // sobre la pagina) y el foco no quedaba atrapado dentro — Tab salia
   // a links del DOM detras del overlay. Tres cosas:
@@ -257,7 +257,7 @@ function Header() {
 
       {/* Cluster móvil: avatar/notif si logueado, CTA Votar si no, +
           hamburger. El Login en mobile pasa al panel del hamburger
-          (audit producto 2026-05-18: primero participar, después
+          (nota de producto 2026-05-18: primero participar, después
           registrarse — login secundario hasta que haya valor acumulado). */}
       <div className="flex items-center gap-1.5 lg:hidden">
         {user ? (
@@ -272,7 +272,7 @@ function Header() {
             </Link>
           </>
         ) : (
-          /* Audit producto (2026-05-18): "Votar ahora" en 2 líneas comía
+          /* Nota de producto (2026-05-18): "Votar ahora" en 2 líneas comía
              demasiado del header móvil. Cambio a "Votar" + icono Swords:
              una palabra cabe en una línea y deja respirar al hamburger. */
           <NavLink

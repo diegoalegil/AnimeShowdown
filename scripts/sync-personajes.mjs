@@ -19,7 +19,7 @@
  *   node scripts/sync-personajes.mjs           # regenera ambos outputs
  *   node scripts/sync-personajes.mjs --dry-run # solo imprime el resumen
  *   node scripts/sync-personajes.mjs --check   # falla si seed.json no coincide
- *                                              # con lo detectado (audit P2 CI)
+ *                                              # con lo detectado (nota P2 CI)
  */
 
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
@@ -45,7 +45,7 @@ const overrides = JSON.parse(readFileSync(OVERRIDES_FILE, 'utf8'))
 // _meta es solo documentación dentro del JSON, no es un slug
 delete overrides._meta
 
-// Audit P2 (2026-05-17): carpetas WIP que NO entran al seed. Permite tener
+// Nota P2 (2026-05-17): carpetas WIP que NO entran al seed. Permite tener
 // webp en construcción en frontend/img/ sin que el CI falle ni se filtren a
 // producción. Tanto el sync como el --check respetan esta lista.
 const wipAllowlist = JSON.parse(readFileSync(WIP_ALLOWLIST_FILE, 'utf8'))
@@ -102,7 +102,7 @@ function scanFolder() {
       .sort()
     for (const file of allFiles) {
       const lower = file.toLowerCase()
-      // Audit P2.6 (2026-05-17): detecta PNG/JPG sueltos en folders de
+      // Nota P2.6 (2026-05-17): detecta PNG/JPG sueltos en folders de
       // anime. El catálogo asume .webp como fuente; estos archivos no
       // se incorporan al seed y por tanto no aparecen en producción.
       // Suelen ser drops sin renombrar (nombres tipo hash). Warning

@@ -91,7 +91,7 @@ function PersonajeDetailPage() {
   useSeo(
     personaje
       ? {
-          // Audit externo AS-043 + B3.5 (2026-05-23): el ELO en el title era
+          // Nota técnica AS-043 + B3.5 (2026-05-23): el ELO en el title era
           // un número sin contexto que Google indexaba como si fuera ELO real.
           // "ELO base" deja claro que es el cold-start estimado del catálogo
           // — el ranking competitivo real está en /ranking.
@@ -247,7 +247,7 @@ function PersonajeDetailPage() {
             content={`https://animeshowdown.dev${imagenPersonaje(slug)}`}
           />
           <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
-          {/* Audit visual (2026-05-18): en móvil reordenamos para que la
+          {/* Nota visual (2026-05-18): en móvil reordenamos para que la
               identidad (badges + H1 + CTAs) aparezca antes que la imagen,
               y capamos la imagen a 55vh — antes empujaba todo el contenido
               fuera del primer viewport. En desktop el orden y el aspect-ratio
@@ -256,7 +256,7 @@ function PersonajeDetailPage() {
             className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
             variants={itemVariants}
           >
-            {/* Audit P1 (auditoría externa 2026-05-18): el motion.div parent
+            {/* Nota P1 (revisión externa 2026-05-18): el motion.div parent
                 era w-auto + tenía PersonajeGaleria dentro (strip con 13
                 thumbs × 72px ≈ 936px). En mobile (~380px) el w-auto se
                 estiraba al ancho del hijo más ancho → overflow horizontal
@@ -267,7 +267,7 @@ function PersonajeDetailPage() {
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
             >
-              {/* Audit (2026-05-17): Personaje3D era opt-in al mount con
+              {/* Ajuste (2026-05-17): Personaje3D era opt-in al mount con
                   imagen como fallback, pero el chunk se descargaba siempre
                   al entrar a la ficha y disparaba 'THREE.Clock deprecated'
                   en consola. Cambio a static-first: imagen como default y
@@ -388,7 +388,7 @@ function PersonajeDetailPage() {
               className="grid w-full grid-cols-3 gap-3"
               variants={itemVariants}
             >
-              {/* Audit externo AS-010/AS-043 (2026-05-23): el "ELO" mostrado
+              {/* Nota técnica AS-010/AS-043 (2026-05-23): el "ELO" mostrado
                   aquí viene de getStatsPersonaje(slug), determinístico por
                   slug + popularidad hardcoded. NO es ELO real con K-factor
                   ni se mueve con los votos. Lo etiquetamos como base/estimado
@@ -456,7 +456,7 @@ function PersonajeDetailPage() {
               className="text-[12px] leading-relaxed text-fg-muted"
               variants={itemVariants}
             >
-              {/* Audit externo AS-043 (2026-05-23): antes "Stats derivadas
+              {/* Nota técnica AS-043 (2026-05-23): antes "Stats derivadas
                   del historial de enfrentamientos" — falso porque estas
                   stats se calculan determinísticamente desde el slug y
                   una tabla de popularidad estimada, NO desde votos reales.

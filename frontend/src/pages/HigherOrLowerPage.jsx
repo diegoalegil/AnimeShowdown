@@ -75,7 +75,7 @@ function HigherOrLowerPage() {
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(readBestStreak)
   const [gameOver, setGameOver] = useState(false)
-  // Audit (2026-05-17): los setTimeout de reveal (1100ms) no se
+  // Ajuste (2026-05-17): los setTimeout de reveal (1100ms) no se
   // cancelan en unmount — si el user navega tras el guess pero antes
   // del reveal, el callback dispara setState en componente desmontado.
   const revealTimerRef = useRef(null)
@@ -163,7 +163,7 @@ function HigherOrLowerPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              /* Audit visual (2026-05-18): 3 columnas desde mobile —
+              /* Nota visual (2026-05-18): 3 columnas desde mobile —
                  antes stack vertical empujaba los botones Más/Menos
                  fuera del primer viewport. Side-by-side compacta todo
                  el duelo en un solo fold. */

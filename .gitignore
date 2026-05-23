@@ -74,9 +74,13 @@ logs/
 Icon?
 
 # ===========================
-# Notas locales — fuera del repo
+# Artefactos privados/locales
 # ===========================
-# memory/ contiene notas operativas del proyecto que mantengo en local
-# (briefs, estado actual, planes futuros). NO van al repo.
 memory/
-
+private/
+local-notes/
+review-notes/
+*.private.md
+*.local.md
+AUDIT*.md
+*AUDIT*.md

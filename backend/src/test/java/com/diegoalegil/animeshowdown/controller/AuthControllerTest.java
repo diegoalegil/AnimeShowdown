@@ -214,7 +214,7 @@ class AuthControllerTest {
 
     @Test
     void registroSinEmailDevuelve400ConDetalle() throws Exception {
-        // Audit fix #14 (2026-05-21): validacion ahora devuelve shape
+        // Ajuste #14 (2026-05-21): validacion ahora devuelve shape
         // estandar { status, message, errors: { field: msg }, ... }
         // en lugar de field-map flat. El detalle del campo se accede
         // via $.errors.email en lugar de $.email.
@@ -588,7 +588,7 @@ class AuthControllerTest {
     }
 
     /**
-     * Regresión audit P1/P2 (2026-05-18): grace cross-tab cubre el caso
+     * Regresión de revisión P1/P2 (2026-05-18): grace cross-tab cubre el caso
      * dos pestañas refrescando con el mismo token viejo. La primera lo
      * rota OK, la segunda recibe 503 + Retry-After SIN Set-Cookie limpia
      * (no debe pisar la cookie nueva que la primera puso).
@@ -625,7 +625,7 @@ class AuthControllerTest {
     }
 
     /**
-     * Regresión audit P1 (2026-05-18, 5ª iter): logout con JWT válido
+     * Regresión de revisión P1 (2026-05-18, 5ª iter): logout con JWT válido
      * revoca TODAS las sesiones del usuario, no solo la cookie presentada.
      * Cubre la race "tab A logout mientras tab B tenía un refresh en
      * vuelo del lado server" — tras el logout, en BD todos los refresh

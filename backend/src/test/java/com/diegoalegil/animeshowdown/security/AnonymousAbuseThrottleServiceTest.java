@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
- * Audit externo AS-004 (2026-05-23): cubre los umbrales del throttle.
+ * Nota técnica AS-004 (2026-05-23): cubre los umbrales del throttle.
  * Test unitario con mock del repositorio — sin Spring Context.
  *
  * <p>Política verificada:

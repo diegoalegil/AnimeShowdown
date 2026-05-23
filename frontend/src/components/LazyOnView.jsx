@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
  * está a punto de entrar) en el viewport. Reserva `minHeight` para no
  * causar layout shift cuando el contenido aparece.
  *
- * Audit (2026-05-17): la home montaba 9 secciones de golpe al primer
+ * Ajuste (2026-05-17): la home montaba 9 secciones de golpe al primer
  * paint (~7.836 nodos DOM, 221 imágenes). Wrappeando las secciones
  * below-the-fold reducimos el initial DOM a ~30% sin tocar la
  * estructura de cada sección. Una vez visible, se mantiene montado
@@ -20,7 +20,7 @@ const supportsIO = typeof window !== 'undefined' && typeof IntersectionObserver 
 export default function LazyOnView({ minHeight = 600, rootMargin = '400px', children }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(!supportsIO)
-  // Audit (2026-05-17): rootMargin en deps causaba disconnect/recreate
+  // Ajuste (2026-05-17): rootMargin en deps causaba disconnect/recreate
   // del IntersectionObserver en cada render del padre si pasaban un
   // string literal (identidad nueva por render). Lo cacheamos en ref
   // y solo lo leemos al montar; cambios posteriores se ignoran (no

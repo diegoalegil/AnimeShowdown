@@ -25,7 +25,7 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
     List<Enfrentamiento> findByTorneoOrderByRondaAscIdAsc(Torneo torneo);
 
     /**
-     * Audit (2026-05-17): query batch para evitar N+1 en TorneoQueryService
+     * Ajuste (2026-05-17): query batch para evitar N+1 en TorneoQueryService
      * .listarResumenes — antes hacía findByTorneoOrderBy... por CADA torneo
      * visible (1 + N queries con N≈50 torneos). Esta query trae todos los
      * enfrentamientos de los torneos pedidos en UNA sola, con JOIN FETCH

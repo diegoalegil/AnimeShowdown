@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * Cualquier otro origen (atacante pegando directo al backend de Railway) hace
  * que la cabecera se IGNORE y se use el RemoteAddr real para rate limit/audit.
  *
- * <p>Audit P1.4 (2026-05-17): antes {@link ClientIpExtractor} confiaba en
+ * <p>Nota P1.4 (2026-05-17): antes {@link ClientIpExtractor} confiaba en
  * {@code CF-Connecting-IP} siempre — un atacante podía pegar directo a Railway
  * con esa cabecera spoofeada y rotar IP por request para bypassear el bucket
  * de 5/min + 50/h y envenenar audit_log.

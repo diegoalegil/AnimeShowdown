@@ -60,7 +60,7 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
     if (!enabled) return undefined
     return subscribe('/topic/ranking-delta', (delta) => {
       if (!delta?.personaje?.slug) return
-      // Audit externo B2.1a/B2.1b/B2.2 (2026-05-22/23): el backend manda
+      // Nota técnica B2.1a/B2.1b/B2.2 (2026-05-22/23): el backend manda
       // cuatro métricas para mantener la caché live alineada con el ORDER
       // BY del REST sin contaminar ventanas temporales:
       //   - votos: total físico all-time (COUNT). Para mostrar al usuario.

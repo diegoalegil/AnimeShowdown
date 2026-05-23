@@ -1,12 +1,20 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import confetti from 'canvas-confetti'
 import { Trophy } from 'lucide-react'
 import { iconoDeBadge } from '../lib/badgeIcons'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useStompSubscription } from '../hooks/useStompSubscription'
+
+let confettiPromise
+
+function loadConfetti() {
+  if (!confettiPromise) {
+    confettiPromise = import('canvas-confetti').then((mod) => mod.default || mod)
+  }
+  return confettiPromise
+}
 
 /**
  * Side-effect global: escucha el user-queue WS y dispara toast + sound +
@@ -48,21 +56,23 @@ function BadgeUnlockListener() {
     // 2) Confetti sobrio con la paleta fija de marca. Skip en
     //    reduced-motion para usuarios sensibles.
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      try {
-        confetti({
-          particleCount: payload.rareza >= 4 ? 90 : 50,
-          spread: 70,
-          origin: { y: 0.7 },
-          colors:
-            payload.rareza === 5
-              ? ['#c5a15a', '#e4c36f', '#f7e6a2'] // dorado para legendarios
-              : payload.rareza === 4
-                ? ['#24c6dc', '#8ddfed', '#c4f4fb'] // eléctrico para épicos
-                : ['#9f1d2c', '#be2b38', '#c5a15a'], // carmesí + oro general
+      void loadConfetti()
+        .then((confetti) => {
+          confetti({
+            particleCount: payload.rareza >= 4 ? 90 : 50,
+            spread: 70,
+            origin: { y: 0.7 },
+            colors:
+              payload.rareza === 5
+                ? ['#c5a15a', '#e4c36f', '#f7e6a2'] // dorado para legendarios
+                : payload.rareza === 4
+                  ? ['#24c6dc', '#8ddfed', '#c4f4fb'] // eléctrico para épicos
+                  : ['#9f1d2c', '#be2b38', '#c5a15a'], // carmesí + oro general
+          })
         })
-      } catch {
-        /* canvas-confetti puede fallar en jsdom o navegadores sin canvas */
-      }
+        .catch(() => {
+          /* canvas-confetti puede fallar en jsdom o navegadores sin canvas */
+        })
     }
 
     // 3) Toast 6s con el icono del badge. Click → logro concreto.
@@ -72,7 +82,7 @@ function BadgeUnlockListener() {
       duration: 6000,
       action: {
         label: 'Ver',
-        // Audit (2026-05-17): antes window.location.href forzaba un
+        // Ajuste (2026-05-17): antes window.location.href forzaba un
         // hard reload — pierde el estado SPA, queryClient cache,
         // sesión WS abierta, etc. SPA navigate respeta el contexto.
         onClick: () => {

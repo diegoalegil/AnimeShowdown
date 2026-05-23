@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 
 // Wrapper que aplaza el mount real del CommandPalette hasta el primer
-// intento de abrirlo (Cmd/Ctrl+K o Cmd/Ctrl+J). Audit (2026-05-17):
+// intento de abrirlo (Cmd/Ctrl+K o Cmd/Ctrl+J). Ajuste (2026-05-17):
 // CommandPalette se montaba globalmente desde App.jsx aunque estuviera
 // cerrado, arrastrando cmdk, todo el catalogo personajes (730 entries)
 // y un fetch de torneos al primer paint — coste innecesario para la

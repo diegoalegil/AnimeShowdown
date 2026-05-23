@@ -393,13 +393,13 @@ public class PersonajeController {
 
     /**
      * Endpoint legacy de voto directo a personaje (sin enfrentamiento).
-     * Deshabilitado (audit P2 2026-05-17): tras dropear el unique
+     * Deshabilitado (nota P2 2026-05-17): tras dropear el unique
      * uk_voto_personaje_usuario en V16, el check app-level
      * existsByPersonajeAndUsuario era vulnerable a doble voto bajo
      * concurrencia. El endpoint canónico vive en otro recurso (enfrentamiento,
      * no personaje), así que no hay redirect 1:1.
      *
-     * <p>Audit P3 (2026-05-17, 4ª iter): quitado el header Link al
+     * <p>Nota P3 (2026-05-17, 4ª iter): quitado el header Link al
      * canónico — apuntaba a /api/enfrentamientos/&#123;id&#125;/votar con el
      * mismo id legacy (personajeId), pero el sucesor espera un
      * enfrentamientoId. Eran recursos distintos y el Link confundía a
