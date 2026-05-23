@@ -1,11 +1,11 @@
 import { useState } from 'react'
 
 /**
- * Pétalos de sakura cayendo en la home (Plan v2 §13.7).
+ * Pétalos de sakura cayendo en la app durante la temporada hanami.
  *
  * <p>Se activa automáticamente entre el <strong>15 de marzo y el 15 de
  * abril</strong> (hanami japonés). Fuera de esa ventana queda apagado
- * para no convertir el sitio en un weeb perpetuo.
+ * para que el efecto estacional no compita con la interfaz normal.
  *
  * <p>Overrides vía localStorage:
  * <ul>
@@ -70,12 +70,10 @@ function SakuraPetals() {
   // que useMemo sea puro (sin Math.random). useState lazy init solo se
   // ejecuta una vez por instancia y es la API idiomática para datos
   // aleatorios que persisten durante la vida del componente.
-  const [petalos] = useState(() => generarPetalos())
+  const enabled = deberiaPintar()
+  const [petalos] = useState(() => (enabled ? generarPetalos() : []))
 
-  // AnimeShowdown es SPA pura sin SSR (Bloque 3.1 aplazado), así que
-  // window y localStorage están disponibles en el primer render. No
-  // hace falta state de "mounted" + useEffect.
-  if (!deberiaPintar()) return null
+  if (!enabled) return null
 
   return (
     <div
