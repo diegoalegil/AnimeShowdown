@@ -83,6 +83,7 @@ function DueloVersusPage() {
   const diferenciaElo = Math.abs(statsA.elo - statsB.elo)
   const sugerenciasA = getSugerenciasDuelo(personajeA, personajeB.slug)
   const sugerenciasB = getSugerenciasDuelo(personajeB, personajeA.slug)
+  const votarDueloUrl = `/votar?personaje=${encodeURIComponent(personajeA.slug)}&rival=${encodeURIComponent(personajeB.slug)}`
   const compartirDuelo = async () => {
     try {
       const personalLine =
@@ -208,8 +209,15 @@ function DueloVersusPage() {
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link
-                to={`/votar?personaje=${encodeURIComponent(personajeA.slug)}`}
+                to={votarDueloUrl}
                 className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              >
+                <Swords className="h-4 w-4 shrink-0" />
+                <span className="truncate">Votar este duelo</span>
+              </Link>
+              <Link
+                to={`/votar?personaje=${encodeURIComponent(personajeA.slug)}`}
+                className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-bold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
               >
                 <Swords className="h-4 w-4 shrink-0" />
                 <span className="truncate">Retar a {personajeA.nombre}</span>

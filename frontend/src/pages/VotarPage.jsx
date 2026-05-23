@@ -231,11 +231,18 @@ function VotarPage() {
   const queryClient = useQueryClient()
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const fixedSlug = searchParams.get('personaje')
+  const fixedRivalSlug = searchParams.get('rival')
   const fixedAnime = searchParams.get('anime')
   const fixedPersonaje = useMemo(
     () => catalogoPersonajes.find((p) => p.slug === fixedSlug) ?? null,
     [catalogoPersonajes, fixedSlug],
   )
+  const fixedRival = useMemo(
+    () =>
+      catalogoPersonajes.find((p) => p.slug === fixedRivalSlug && p.slug !== fixedSlug) ?? null,
+    [catalogoPersonajes, fixedRivalSlug, fixedSlug],
+  )
+  const hasFixedDuel = Boolean(fixedPersonaje && fixedRival)
   const hasFixedAnime = useMemo(
     () =>
       !fixedPersonaje &&
@@ -243,7 +250,7 @@ function VotarPage() {
       catalogoPersonajes.filter((p) => p.anime === fixedAnime).length >= 2,
     [catalogoPersonajes, fixedAnime, fixedPersonaje],
   )
-  const casualContextKey = `${fixedSlug || ''}::${fixedAnime || ''}`
+  const casualContextKey = `${fixedSlug || ''}::${fixedRivalSlug || ''}::${fixedAnime || ''}`
 
   const {
     data: enfrentamiento,
@@ -371,10 +378,11 @@ function VotarPage() {
       return casualPairOverride.pair
     }
     if (catalogoPersonajes.length < 2) return [null, null]
+    if (hasFixedDuel) return [fixedPersonaje, fixedRival]
     if (fixedPersonaje) return getPairWithFixed(catalogoPersonajes, fixedPersonaje)
     if (hasFixedAnime) return getPairFromAnime(catalogoPersonajes, fixedAnime)
     return selectRandomPair(catalogoPersonajes)
-  }, [catalogoPersonajes, casualContextKey, casualPairOverride, fixedAnime, fixedPersonaje, hasFixedAnime, shouldUseCasualPair])
+  }, [catalogoPersonajes, casualContextKey, casualPairOverride, fixedAnime, fixedPersonaje, fixedRival, hasFixedAnime, hasFixedDuel, shouldUseCasualPair])
   const votoInvitadoActivo = modoBackend && !user
 
   // Datos a renderizar uniformes para ambos modos. Calculados antes del
@@ -395,6 +403,11 @@ function VotarPage() {
   }
 
   const currentPairKey = a?.slug && b?.slug ? pairKey(a.slug, b.slug) : ''
+  const exactDuelActive =
+    hasFixedDuel &&
+    a?.slug &&
+    b?.slug &&
+    pairKey(a.slug, b.slug) === pairKey(fixedPersonaje.slug, fixedRival.slug)
 
   useEffect(() => {
     currentPairKeyRef.current = currentPairKey
@@ -455,7 +468,9 @@ function VotarPage() {
       } else {
         setCasualPairOverride({
           key: casualContextKey,
-          pair: fixedPersonaje
+          pair: hasFixedDuel
+            ? selectRandomPair(catalogoPersonajes)
+            : fixedPersonaje
             ? getPairWithFixed(catalogoPersonajes, fixedPersonaje)
             : hasFixedAnime
               ? getPairFromAnime(catalogoPersonajes, fixedAnime)
@@ -476,6 +491,7 @@ function VotarPage() {
     catalogoPersonajes,
     fixedAnime,
     fixedPersonaje,
+    hasFixedDuel,
     hasFixedAnime,
   ])
 
@@ -594,13 +610,15 @@ function VotarPage() {
       const result = await shareOrCopy({
         title: `${votedPersonaje.nombre} ganó mi duelo`,
         text,
-        url: `/votar${
-          fixedSlug
-            ? `?personaje=${encodeURIComponent(fixedSlug)}`
-            : fixedAnime
-              ? `?anime=${encodeURIComponent(fixedAnime)}`
-              : ''
-        }`,
+        url: losingPersonaje?.slug
+          ? `/votar?personaje=${encodeURIComponent(votedPersonaje.slug)}&rival=${encodeURIComponent(losingPersonaje.slug)}`
+          : `/votar${
+              fixedSlug
+                ? `?personaje=${encodeURIComponent(fixedSlug)}`
+                : fixedAnime
+                  ? `?anime=${encodeURIComponent(fixedAnime)}`
+                  : ''
+            }`,
       })
       if (result === 'cancelled') return
       recordDailyShare()
@@ -610,7 +628,7 @@ function VotarPage() {
         description: error?.message || 'Copia el resultado manualmente.',
       })
     }
-  }, [fixedAnime, fixedSlug, personalVoteImpact, sessionStats.lastShareText, votedPersonaje])
+  }, [fixedAnime, fixedSlug, losingPersonaje, personalVoteImpact, sessionStats.lastShareText, votedPersonaje])
 
   const handleShareSessionRecap = useCallback(async () => {
     if (sessionStats.total <= 0) return
@@ -879,7 +897,9 @@ function VotarPage() {
             </span>
             {modoBackend
               ? 'Match en juego · En vivo'
-              : fixedPersonaje
+              : exactDuelActive
+                ? `${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
+                : fixedPersonaje
                 ? `Retando a ${fixedPersonaje.nombre}`
                 : hasFixedAnime
                   ? `Duelo interno · ${fixedAnime}`
@@ -923,6 +943,7 @@ function VotarPage() {
           b={b}
           fixedAnime={fixedAnime}
           fixedPersonaje={fixedPersonaje}
+          hasFixedDuel={exactDuelActive}
           hasFixedAnime={hasFixedAnime}
         />
 
@@ -938,6 +959,8 @@ function VotarPage() {
                 : 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
               : sinMatchesAbiertos
                 ? 'No hay torneos en juego — te proponemos pares de ELO similar'
+                : exactDuelActive
+                  ? `Duelo fijado desde una comparación: ${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
                 : fixedPersonaje
                   ? `Duelo fijado desde la ficha de ${fixedPersonaje.nombre}`
                   : hasFixedAnime
@@ -1123,7 +1146,7 @@ function VotarPage() {
   )
 }
 
-function VotarQuickModes({ a, b, fixedAnime, fixedPersonaje, hasFixedAnime }) {
+function VotarQuickModes({ a, b, fixedAnime, fixedPersonaje, hasFixedAnime, hasFixedDuel }) {
   const animeContext = hasFixedAnime ? fixedAnime : a?.anime || b?.anime || ''
   const animeHref = animeContext
     ? `/votar?anime=${encodeURIComponent(animeContext)}`
@@ -1142,7 +1165,7 @@ function VotarQuickModes({ a, b, fixedAnime, fixedPersonaje, hasFixedAnime }) {
         icon={Swords}
         label="Equilibrado"
         detail="Rivales cercanos"
-        active={!fixedPersonaje && !hasFixedAnime}
+        active={!fixedPersonaje && !hasFixedAnime && !hasFixedDuel}
       />
       <QuickModeLink
         to={animeHref}
