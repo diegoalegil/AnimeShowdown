@@ -20,8 +20,8 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /**
      * Ranking all-time por votos ponderados.
      *
-     * <p>Ajuste #15 (2026-05-21): se anade desempate por id ASC. Sin
-     * tiebreak, dos personajes con el mismo COUNT salian en orden
+     * <p>Se anade desempate por id ASC. Sin tiebreak,
+     * dos personajes con el mismo COUNT salian en orden
      * arbitrario del dialecto SQL — el frontend mostraba a veces #4
      * "Naruto", a veces "Sasuke" para el mismo dataset. Con tiebreak
      * estable, el orden es determinista en H2, Postgres y queries
@@ -173,8 +173,8 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Votos por día del personaje desde la fecha dada.
      * Devuelve {@code [fechaInicio-del-día, count]}.
      *
-     * <p>Ajuste #2 (2026-05-21): antes usaba {@code FUNCTION('DATE', v.fecha)}
-     * — esa función delegaba al dialecto SQL. En H2 se traducía a
+     * <p>Usamos CAST en vez de {@code FUNCTION('DATE', v.fecha)} porque esa
+     * función delegaba al dialecto SQL. En H2 se traducía a
      * {@code date(...)}, que H2 no reconoce; el endpoint
      * {@code /api/personajes/:slug/elo-history} devolvía 500 y el
      * frontend silenciaba el fallo (chart desaparecía sin mensaje). En

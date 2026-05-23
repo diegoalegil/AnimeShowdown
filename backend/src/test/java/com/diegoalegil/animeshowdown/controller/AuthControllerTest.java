@@ -101,7 +101,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.username").value("alice"))
                 .andExpect(jsonPath("$.email").value("alice@example.com"))
                 .andExpect(jsonPath("$.rol").value("USER"))
-                // 4: usuarios nuevos nacen PENDIENTE de verificar email.
+                // Usuarios nuevos nacen PENDIENTE de verificar email.
                 .andExpect(jsonPath("$.estadoVerificacion").value("PENDIENTE"))
                 .andExpect(jsonPath("$.password").doesNotExist());
 
@@ -214,8 +214,8 @@ class AuthControllerTest {
 
     @Test
     void registroSinEmailDevuelve400ConDetalle() throws Exception {
-        // Ajuste #14 (2026-05-21): validacion ahora devuelve shape
-        // estandar { status, message, errors: { field: msg },... }
+        // La validación devuelve shape estándar
+        // { status, message, errors: { field: msg },... }
         // en lugar de field-map flat. El detalle del campo se accede
         // via $.errors.email en lugar de $.email.
         Map<String, String> body = Map.of(
@@ -378,7 +378,7 @@ class AuthControllerTest {
 
     @Test
     void securityLogRegistraLoginYRegistro() throws Exception {
-        // 6: verifica que el AuditLog captura eventos clave de auth.
+        // Verifica que el AuditLog captura eventos clave de auth.
         // El TestAsyncConfig hace que los @Async corran sincrónicamente, así
         // que cuando vuelve el POST la fila ya está persistida.
         long before = auditLogRepository.count();

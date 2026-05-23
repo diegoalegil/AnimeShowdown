@@ -184,7 +184,7 @@ public class AuthController {
                 request.getUsername(),
                 passwordHasheado,
                 emailNormalizado);
-        // 4: registros nuevos nacen PENDIENTE hasta verificar email.
+        // Registros nuevos nacen PENDIENTE hasta verificar email.
         // No pueden votar ni crear torneos en este estado.
         nuevoUsuario.setEstadoVerificacion(EstadoVerificacion.PENDIENTE);
         // la auto-promoción a ADMIN NO ocurre aquí — se hace
@@ -192,7 +192,7 @@ public class AuthController {
         // Antes un atacante podía registrarse con el email del owner en
         // una BBDD nueva y obtener ADMIN sin tocar el inbox.
 
-        // 8: si el caller envía referralCode, intenta vincular.
+        // Si el caller envía referralCode, intenta vincular.
         // Sin código o código inválido, el registro sigue normal sin referrer.
         if (request.getReferralCode() != null && !request.getReferralCode().isBlank()) {
             referralService.resolverReferrer(request.getReferralCode())
@@ -285,7 +285,7 @@ public class AuthController {
 
         Usuario usuario = usuarioOpt.get();
 
-        // 2: account lockout. Si la cuenta está bloqueada por
+        // Account lockout. Si la cuenta está bloqueada por
         // intentos fallidos consecutivos, ni siquiera comprobamos la
         // password (defensa contra ataques que aprovechan timing).
         if (usuario.estaBloqueado()) {
@@ -334,7 +334,7 @@ public class AuthController {
             usuarioRepository.save(usuario);
         }
 
-        // 3: si el usuario tiene 2FA activo, NO emitimos JWT ni
+        // Si el usuario tiene 2FA activo, NO emitimos JWT ni
         // refresh todavía. Emitimos un challenge token temporal (60s) que el
         // cliente usará en /2fa/verify-login junto con el código TOTP. El
         // LOGIN_OK del audit se registra solo cuando se complete el paso 2.
@@ -600,7 +600,7 @@ public class AuthController {
         }
         usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
         usuarioRepository.save(usuario);
-        // 3: invalidar todas las sesiones previas tras cambio de
+        // Invalidar todas las sesiones previas tras cambio de
         // password. Si alguien tenía robada la sesión, el cambio de pass la
         // cierra. El usuario actual también pierde su refresh pero el JWT
         // del access sigue activo hasta los 15min, así que la pantalla no

@@ -134,7 +134,7 @@ public class DataSeeder implements CommandLineRunner {
                     SEED_TORNEOS_FILE, e.getMessage(), e);
         }
 
-        // 8: backfill de códigos de referral. Users pre-V14
+        // Backfill de códigos de referral. Users pre-V14
         // arrancan sin código; el primer boot tras la migración les asigna
         // uno único. Idempotente: re-ejecutar sobre BBDD ya backfilleada
         // no toca nada.

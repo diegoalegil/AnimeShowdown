@@ -147,7 +147,7 @@ public class PerfilController {
     }
 
     /**
-     * Eliminación irreversible de la cuenta (1, GDPR right to
+     * Eliminación irreversible de la cuenta (GDPR right to
      * erasure). Requiere reconfirmar la contraseña actual aunque el
      * usuario tenga sesión.
      *
@@ -170,7 +170,7 @@ public class PerfilController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // el audit se hace AHORA dentro del service
+        // El audit se hace dentro del service
         // en la misma tx — después de verificar password y antes del delete.
         // Antes se hacía aquí en el controller ANTES del verifyPassword:
         // un password incorrecto generaba un registro CUENTA_ELIMINADA
