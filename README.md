@@ -59,7 +59,7 @@ App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. F
 
 - **Git** monorepo (`backend/` + `frontend/`)
 - **GitHub** con auto-deploy a Cloudflare Pages (main → producción)
-- **Postman** colección con 16 endpoints (`docs/postman/`) y entornos `local` + `railway`
+- **Postman** colección con 16 endpoints (`docs/postman/`) y entornos `local` + `production`
 
 ---
 
