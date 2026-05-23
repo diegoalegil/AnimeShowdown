@@ -162,7 +162,7 @@ const staticRoutes = [
   { path: '/games/anigrid', priority: '0.7', changefreq: 'daily' },
   { path: '/games/impostor-trial', priority: '0.7', changefreq: 'daily' },
   { path: '/games/elo-duel', priority: '0.7', changefreq: 'monthly' },
-  { path: '/mi-top5', priority: '0.5', changefreq: 'monthly' },
+  { path: '/mi-top5', priority: '0.6', changefreq: 'weekly' },
   { path: '/omikuji', priority: '0.6', changefreq: 'daily' },
   { path: '/glossary', priority: '0.7', changefreq: 'monthly' },
   { path: '/logros', priority: '0.7', changefreq: 'weekly' },

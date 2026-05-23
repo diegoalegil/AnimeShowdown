@@ -73,9 +73,10 @@ const SUGERENCIAS_RAPIDAS_SLUGS = [
  */
 function MiTop5Page() {
   useSeo({
-    title: 'Mi Top 5 — Generador',
+    title: 'Mi Top 5 anime — Generador compartible',
     description:
-      'Elige tus 5 personajes anime favoritos y exporta una imagen 1200×630 lista para compartir en Twitter, Discord o Instagram.',
+      'Elige tus 5 personajes anime favoritos o rellénalos desde tu ranking personal y exporta una imagen 1200×630 para compartir.',
+    canonical: 'https://animeshowdown.dev/mi-top5',
   })
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
@@ -192,6 +193,7 @@ function MiTop5Page() {
           { label: 'Mi Top 5', path: '/mi-top5' },
         ])}
       />
+      <JsonLd id="mi-top5-page" schema={miTop5Schema()} />
       <div className="mx-auto max-w-3xl">
         <Link
           to="/"
@@ -646,6 +648,36 @@ function buildTop5ShareText(slots, personajesBySlug) {
     })
     .join('\n')
   return `Mi Top 5 anime en AnimeShowdown:\n${ranking}\n\nHaz el tuyo y dime a quién quitarías.`
+}
+
+function miTop5Schema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Mi Top 5 anime — AnimeShowdown',
+    url: 'https://animeshowdown.dev/mi-top5',
+    applicationCategory: 'EntertainmentApplication',
+    operatingSystem: 'Web',
+    inLanguage: 'es-ES',
+    description:
+      'Generador gratuito para crear una imagen compartible con los cinco personajes anime favoritos del usuario.',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'AnimeShowdown',
+      url: 'https://animeshowdown.dev/',
+    },
+    featureList: [
+      'Seleccionar cinco personajes anime',
+      'Rellenar el Top 5 desde el ranking personal local',
+      'Exportar una imagen PNG 1200x630',
+      'Compartir el resultado en redes o copiar el texto',
+    ],
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+  }
 }
 
 function cargarImg(src) {
