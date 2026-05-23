@@ -1,10 +1,11 @@
 const DEV_API_BASE = 'http://localhost:8080'
+const PROD_API_BASE = 'https://api.animeshowdown.dev'
 
 function normalizarApiBase(value) {
   const raw = typeof value === 'string' ? value.trim() : ''
   if (!raw) {
     if (import.meta.env.DEV) return DEV_API_BASE
-    throw new Error('VITE_API_URL es obligatoria en builds de producción')
+    return PROD_API_BASE
   }
   try {
     const url = new URL(raw)
