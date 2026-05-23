@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Radio, Swords, TrendingUp, Trophy } from 'lucide-react'
+import { ArrowRight, Globe2, Radio, Swords, TrendingUp, Trophy } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { personajes, getStatsPersonaje } from '../lib/personajes-core'
@@ -147,13 +147,13 @@ function Hero() {
           className="as-panel mt-5 grid w-full max-w-4xl grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:grid-cols-4"
           variants={itemVariants}
         >
-          <HeroStat icon="⚔" value={`${totalPersonajes}`} label="Personajes" />
-          <HeroStat icon="🏆" value={`${torneosVisibles}`} label="Torneos" />
-          <HeroStat icon="👥" value={`${universos}`} label="Universos" />
+          <HeroStat icon={Swords} value={`${totalPersonajes}`} label="Personajes" />
+          <HeroStat icon={Trophy} value={`${torneosVisibles}`} label="Torneos" />
+          <HeroStat icon={Globe2} value={`${universos}`} label="Universos" />
           {/* eloMax viene de getStatsPersonaje, que es una estimación
               determinística. La etiqueta evita presentarlo como #1 real del
               ranking competitivo. */}
-          <HeroStat icon="↗" value={`${eloMax}`} label="ELO máximo" />
+          <HeroStat icon={TrendingUp} value={`${eloMax}`} label="ELO máximo" />
         </motion.div>
         {torneoDestacado && (
           <motion.div
@@ -242,11 +242,14 @@ function formatRelativo(fecha) {
   return 'hoy'
 }
 
-function HeroStat({ icon, value, label }) {
+function HeroStat({ icon: Icon, value, label }) {
   return (
     <div className="flex items-center justify-center gap-3 border-white/10 px-4 py-4 even:border-l sm:border-l first:sm:border-l-0">
-      <span className="text-2xl" aria-hidden="true">
-        {icon}
+      <span
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-gold"
+        aria-hidden="true"
+      >
+        <Icon className="h-5 w-5" />
       </span>
       <div className="text-left">
         <p className="font-mono text-2xl font-extrabold text-fg-strong tabular-nums">
