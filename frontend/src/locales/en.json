@@ -60,10 +60,10 @@
     "tituloAntes": "The ultimate",
     "tituloAnime": "anime ranking",
     "tituloDespues": "is decided by you.",
-    "subtitulo": "1v1 duels, live ELO ranking and new tournaments every week. Your vote moves the meta.",
+    "subtitulo": "1v1 duels, live ELO ranking and new tournaments every week. Your vote moves the ranking.",
     "ctaTorneos": "Start voting",
-    "ctaRanking": "See the meta",
-    "features": "Vote duels · Compete in tournaments · Climb the ELO ranking"
+    "ctaRanking": "View ranking",
+    "features": "Vote duels · Decide rankings · Compete in tournaments"
   },
   "torneos": {
     "tituloPagina": "Tournaments",
