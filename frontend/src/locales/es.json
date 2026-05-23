@@ -60,10 +60,10 @@
     "tituloAntes": "El ranking definitivo del",
     "tituloAnime": "anime",
     "tituloDespues": "lo decides tú.",
-    "subtitulo": "Duelos 1v1, ranking ELO en vivo y torneos cada semana. Tu voto mueve el meta.",
+    "subtitulo": "Duelos 1v1, ranking ELO en vivo y torneos cada semana. Tu voto mueve el ranking.",
     "ctaTorneos": "Empieza a votar",
-    "ctaRanking": "Ver el meta",
-    "features": "Vota duelos · Compite en torneos · Sube en el ranking ELO"
+    "ctaRanking": "Ver ranking",
+    "features": "Vota duelos · Decide rankings · Compite en torneos"
   },
   "torneos": {
     "tituloPagina": "Torneos",
