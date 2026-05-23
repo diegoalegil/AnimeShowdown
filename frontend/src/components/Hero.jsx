@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, Globe2, Radio, Swords, TrendingUp, Trophy } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
-import { personajes, getStatsPersonaje } from '../lib/personajes-core'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useTorneos } from '../lib/torneosQueries'
 import { endpoints } from '../lib/api'
@@ -39,17 +39,22 @@ const logoVariants = {
   },
 }
 
-function Hero() {
+function Hero({ catalogoPersonajes = [] }) {
   const { t } = useTranslation()
-  const totalPersonajes = personajes.length
-  const universos = new Set(personajes.map((p) => p.anime)).size
+  const hasCatalog = catalogoPersonajes.length > 0
+  const totalPersonajes = hasCatalog ? catalogoPersonajes.length : '—'
+  const universos = hasCatalog
+    ? new Set(catalogoPersonajes.map((p) => p.anime)).size
+    : '—'
   const { data: torneos = [] } = useTorneos()
   const { data: votosRecientes } = useQuery({
     queryKey: ['hero', 'votos-recientes', 4],
     queryFn: () => endpoints.votosRecientes({ limit: 4 }),
     staleTime: 30 * 1000,
   })
-  const eloMax = Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))
+  const eloMax = hasCatalog
+    ? Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))
+    : '—'
   const torneosVisibles = torneos.length > 0 ? torneos.length : '—'
   const torneoDestacado = torneos
     .filter((t) => Number(t.votosUltimos7Dias ?? 0) > 20)
