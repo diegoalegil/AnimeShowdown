@@ -12,7 +12,7 @@
 
 App full-stack de duelos, rankings ELO y torneos visuales de personajes anime. Frontend React premium con aurora hero, podio Top 3, Anime Daily Trials (5 mini-juegos diarios con kanji + sparkles), carruseles tipo Crunchyroll, búsqueda + filtros, command palette tipo Linear, sonidos anime sintetizados con Web Audio API, bracket visual y auth real con JWT + 2FA TOTP. Backend Spring Boot + PostgreSQL en Railway/Neon, frontend en Cloudflare Pages.
 
-> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con **1052 personajes únicos en 105 animes** (DataSeeder con insert/update/delete cascade) · ✅ Rebrand competitivo "El ranking definitivo del anime lo decides tú" · ✅ Audio performance audit (latencia <30ms por click)
+> **Estado:** ✅ Backend desplegado · ✅ Frontend desplegado · ✅ BBDD sincronizada con **1052 personajes únicos en 105 animes** (DataSeeder con insert/update/delete cascade) · ✅ Rebrand competitivo "El ranking definitivo del anime lo decides tú" · ✅ Audio optimizado (latencia <30ms por click)
 
 ---
 

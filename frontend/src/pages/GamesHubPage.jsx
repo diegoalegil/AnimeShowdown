@@ -446,7 +446,7 @@ function CardMini({ game, estado }) {
   const best = estado?.best
   const visual = getGameVisual(game.to, game.titulo)
   // Card mini de juego con su portada cinematografica visible.
-  // Audit feedback (2026-05-22): min-h-[8.5rem] (136px) dejaba la imagen
+  // Feedback visual (2026-05-22): min-h-[8.5rem] (136px) dejaba la imagen
   // como "miniatura mal recortada" — el bottom-gradient del
   // EditorialCover empezaba al 38% y oscurecía la mayoría del cover. Subimos
   // min-h a 12rem (mobile) / 13rem (sm), dando ~50% más de zona superior
@@ -507,7 +507,7 @@ function CardMini({ game, estado }) {
 
 function OmikujiCard() {
   const visual = getGameVisual('/omikuji', 'Omikuji diario')
-  // Audit feedback (2026-05-22): la card del ritual diario tenia altura ~80px
+  // Feedback visual (2026-05-22): la card del ritual diario tenia altura ~80px
   // (py-4 + contenido inline) — el cover del omikuji quedaba reducido a
   // banda apagada, "inapreciable". Subimos a min-h ~9rem y damos
   // protagonismo a la imagen con background-image + overlay gradient
