@@ -30,7 +30,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
  *       y un evento de audit.</li>
  *   <li>{@link #listarUsuario(Usuario)} — los desbloqueados del usuario,
  *       ordenados por fecha desc.</li>
- *   <li>{@link #listarCatalogo()} — los 14 badges del catálogo, para que
+ *   <li>{@link #listarCatalogo()} — los badges del catálogo, para que
  *       el frontend pinte los "que te faltan" con icono atenuado.</li>
  * </ul>
  *
