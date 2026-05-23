@@ -833,7 +833,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             : `Votar por ${personaje.nombre} de ${personaje.anime}`
         }
         // transition: solo las props que realmente cambian, no `all`.
-        // `all` reanimaba TODO (filtros, fondos, padding...) en cada
+        // `all` reanimaba todo (filtros, fondos, padding...) en cada
         // hover/repaint, agitando el compositor en una página con dos
         // cards + dos letterboxes a la vez. Coste: del 30%-50% de un
         // frame en cards medianas según DevTools Performance.

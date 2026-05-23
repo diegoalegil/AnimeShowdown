@@ -195,7 +195,7 @@ public class BadgeService {
     }
 
     /**
-     * Devuelve TODOS los badges del catálogo enriquecidos con la fecha de
+     * Devuelve todos los badges del catálogo enriquecidos con la fecha de
      * desbloqueo del usuario (null para los que aún no tiene). El merge se
      * hace dentro de la transacción para evitar LazyInitializationException
      * al acceder a {@code UsuarioLogro.logro} desde el controller.

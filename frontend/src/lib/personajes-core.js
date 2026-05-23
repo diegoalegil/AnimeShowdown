@@ -179,7 +179,7 @@ function hashSlug(slug) {
  *
  * <p><b>Migración pendiente:</b>
  * <ol>
- *   <li>Reemplazar TODOS los consumers (15+ sitios) por una query a
+ *   <li>Reemplazar todos los consumers (15+ sitios) por una query a
  *       {@code /api/votos/ranking/segmentado} que devuelve votos físicos
  *       + pesoVotos ponderado por slug, o exponer el campo {@code elo}
  *       calculado server-side desde el peso.</li>

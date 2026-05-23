@@ -85,7 +85,7 @@ public class TotpBackupCodeService {
     }
 
     /**
-     * Borra TODOS los backup codes del usuario. Se llama al desactivar 2FA
+     * Borra todos los backup codes del usuario. Se llama al desactivar 2FA
      * completamente (junto con el clear del secret TOTP).
      */
     @Transactional
