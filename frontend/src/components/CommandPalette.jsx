@@ -22,6 +22,13 @@ import {
   Type,
   Grid3X3,
   BookOpen,
+  Activity,
+  CalendarDays,
+  FileText,
+  Heart,
+  PlusCircle,
+  ShieldCheck,
+  UserCircle,
 } from 'lucide-react'
 import {
   CATALOGO_PERSONAJES_HYDRATED_EVENT,
@@ -34,30 +41,48 @@ import { playWhoosh } from '../lib/sounds'
 import PersonajeImg from './PersonajeImg'
 
 const rutas = [
-  { to: '/', label: 'Inicio', icon: Home },
-  { to: '/personajes', label: 'Personajes', icon: Users },
-  { to: '/animes', label: 'Animes', icon: Tv },
-  { to: '/torneos', label: 'Torneos', icon: Trophy },
-  { to: '/votar', label: 'Votar', icon: Swords },
-  { to: '/games', label: 'Anime Games Hub', icon: Gamepad2 },
-  { to: '/games/shadow-guess', label: 'Shadow Guess (Guess the Character)', icon: Eye },
-  { to: '/games/anime-reveal', label: 'Anime Reveal (Guess the Anime)', icon: Type },
-  { to: '/games/anigrid', label: 'AniGrid (Anidel · Wordle)', icon: Grid3X3 },
-  { to: '/games/impostor-trial', label: 'Impostor Trial (Detector de Impostor)', icon: Sparkles },
-  { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles },
-  { to: '/glossary', label: 'Glosario otaku', icon: BookOpen },
-  { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy },
-  { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles },
-  { to: '/games/elo-duel', label: 'ELO Duel (Higher or Lower)', icon: Sparkles },
-  { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
-  { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp },
-  { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },
-  { to: '/api-docs', label: 'API pública', icon: Code2 },
+  { to: '/', label: 'Inicio', icon: Home, searchTerms: 'home portada' },
+  { to: '/personajes', label: 'Personajes', icon: Users, searchTerms: 'catalogo roster' },
+  { to: '/animes', label: 'Animes', icon: Tv, searchTerms: 'series universos' },
+  { to: '/torneos', label: 'Torneos', icon: Trophy, searchTerms: 'brackets campeonatos' },
+  { to: '/eventos', label: 'Eventos', icon: CalendarDays, searchTerms: 'temporadas especiales pulso' },
+  { to: '/votar', label: 'Votar', icon: Swords, searchTerms: 'duelo arena versus' },
+  { to: '/duel-live', label: 'Duelos live PvP', icon: Swords, searchTerms: 'pvp directo versus' },
+  { to: '/games', label: 'Anime Games Hub', icon: Gamepad2, searchTerms: 'juegos daily trials' },
+  { to: '/games/shadow-guess', label: 'Shadow Guess (Guess the Character)', icon: Eye, searchTerms: 'guess character silueta personaje' },
+  { to: '/games/anime-reveal', label: 'Anime Reveal (Guess the Anime)', icon: Type, searchTerms: 'guess anime adivinar serie' },
+  { to: '/games/anigrid', label: 'AniGrid (Anidel · Wordle)', icon: Grid3X3, searchTerms: 'wordle personajes anidel' },
+  { to: '/games/impostor-trial', label: 'Impostor Trial (Detector de Impostor)', icon: Sparkles, searchTerms: 'traidor impostor trial' },
+  { to: '/games/elo-duel', label: 'ELO Duel (Higher or Lower)', icon: Sparkles, searchTerms: 'higher lower elo racha' },
+  { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles, searchTerms: 'suerte diario fortuna' },
+  { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp, searchTerms: 'clasificacion leaderboard top' },
+  { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp, searchTerms: 'comunidad usuarios ranking' },
+  { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy, searchTerms: 'badges achievements rareza' },
+  { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles, searchTerms: 'share top favoritos' },
+  { to: '/tv', label: 'Modo TV', icon: Tv, searchTerms: 'pantalla fullscreen directo' },
+  { to: '/apoya', label: 'Apoya AnimeShowdown', icon: Heart, searchTerms: 'donar soporte apoyo' },
+  { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle, searchTerms: 'ayuda dudas' },
+  { to: '/glossary', label: 'Glosario otaku', icon: BookOpen, searchTerms: 'terminos anime diccionario' },
+  { to: '/api-docs', label: 'API pública', icon: Code2, searchTerms: 'swagger docs desarrolladores' },
+  { to: '/status', label: 'Estado del servicio', icon: Activity, searchTerms: 'status uptime salud api' },
+  { to: '/privacidad', label: 'Privacidad', icon: FileText, searchTerms: 'privacy datos legal' },
+  { to: '/terminos', label: 'Términos', icon: FileText, searchTerms: 'terms condiciones legal' },
+  { to: '/dmca', label: 'DMCA', icon: FileText, searchTerms: 'copyright legal takedown' },
 ]
 
 const rutasInvitado = [
-  { to: '/login', label: 'Iniciar sesión', icon: LogIn },
-  { to: '/register', label: 'Crear cuenta', icon: UserPlus },
+  { to: '/login', label: 'Iniciar sesión', icon: LogIn, searchTerms: 'login entrar cuenta' },
+  { to: '/register', label: 'Crear cuenta', icon: UserPlus, searchTerms: 'registro signup' },
+  { to: '/forgot-password', label: 'Recuperar contraseña', icon: HelpCircle, searchTerms: 'reset password contraseña' },
+]
+
+const rutasUsuario = [
+  { to: '/perfil', label: 'Mi perfil', icon: UserCircle, searchTerms: 'cuenta ajustes usuario' },
+  { to: '/torneos/crear', label: 'Crear torneo', icon: PlusCircle, searchTerms: 'nuevo bracket campeonato' },
+]
+
+const rutasAdmin = [
+  { to: '/admin', label: 'Panel admin', icon: ShieldCheck, searchTerms: 'moderacion administrador' },
 ]
 
 function normalizaBusqueda(value) {
@@ -284,10 +309,10 @@ function CommandPalette({ initialOpen = false } = {}) {
             heading="Páginas"
             className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
           >
-            {rutas.map(({ to, label, icon: Icon }) => (
+            {rutas.map(({ to, label, icon: Icon, searchTerms = '' }) => (
               <Command.Item
                 key={to}
-                value={`pagina ${label}`}
+                value={`pagina ${label} ${to} ${searchTerms}`}
                 onSelect={() => go(to)}
                 className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
@@ -296,10 +321,34 @@ function CommandPalette({ initialOpen = false } = {}) {
               </Command.Item>
             ))}
             {!user &&
-              rutasInvitado.map(({ to, label, icon: Icon }) => (
+              rutasInvitado.map(({ to, label, icon: Icon, searchTerms = '' }) => (
                 <Command.Item
                   key={to}
-                  value={`acceso ${label}`}
+                  value={`acceso ${label} ${to} ${searchTerms}`}
+                  onSelect={() => go(to)}
+                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                >
+                  <Icon className="h-4 w-4 text-fg-muted" />
+                  {label}
+                </Command.Item>
+              ))}
+            {user &&
+              rutasUsuario.map(({ to, label, icon: Icon, searchTerms = '' }) => (
+                <Command.Item
+                  key={to}
+                  value={`usuario ${label} ${to} ${searchTerms}`}
+                  onSelect={() => go(to)}
+                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                >
+                  <Icon className="h-4 w-4 text-fg-muted" />
+                  {label}
+                </Command.Item>
+              ))}
+            {user?.rol === 'ADMIN' &&
+              rutasAdmin.map(({ to, label, icon: Icon, searchTerms = '' }) => (
+                <Command.Item
+                  key={to}
+                  value={`admin ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
                   className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
                 >
