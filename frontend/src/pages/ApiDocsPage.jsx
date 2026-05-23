@@ -17,9 +17,10 @@ const containerVariants = {
 /**
  * Página pública /api-docs con shape de los endpoints.
  *
- * <p>Sirve a tres públicos:
+ * <p>Sirve a dos públicos:
  * <ul>
- *   <li>Devs que quieren consumir la API sin auth (catálogo, ranking).</li> *   <li>Quien quiera ver el OpenAPI completo de Swagger UI del backend.</li>
+ *   <li>Devs que quieren consumir la API sin auth (catálogo, ranking).</li>
+ *   <li>Quien quiera ver el OpenAPI completo de Swagger UI del backend.</li>
  * </ul>
  *
  * <p>Mantengo la lista a mano (en lugar de auto-generarla del OpenAPI)
@@ -127,7 +128,8 @@ const SECCIONES = [
   },
   {
     titulo: 'Logros',
-    descripcion: 'Catálogo de 14 badges con rareza 1-5.',
+    descripcion:
+      'Catálogo público de 16 logros base con rareza 1-5; los perfiles pueden sumar logros derivados.',
     endpoints: [
       {
         metodo: 'GET',
@@ -155,6 +157,11 @@ const SECCIONES = [
         metodo: 'GET',
         path: '/api/status',
         desc: 'Uptime y latencia agregados para 24h, 7d, 30d y 90d. Cache-Control: no-store.',
+      },
+      {
+        metodo: 'GET',
+        path: '/actuator/health',
+        desc: 'Healthcheck público de infraestructura. No forma parte del OpenAPI, pero es la comprobación directa de disponibilidad.',
       },
     ],
   },
@@ -230,11 +237,16 @@ function ApiDocsPage() {
           <p className="max-w-2xl text-fg-muted">
             AnimeShowdown expone una API REST pública para lectura del catálogo
             de personajes, ranking competitivo, torneos y perfiles. Sin auth para los
-            endpoints de abajo. Spec completo en OpenAPI/Swagger.
+            endpoints de abajo. La raíz{' '}
+            <code className="rounded bg-surface px-1 py-0.5 font-mono text-[0.9em] text-fg-strong">
+              https://api.animeshowdown.dev/
+            </code>{' '}
+            es la base técnica y puede responder 403; las entradas navegables son
+            Swagger, OpenAPI JSON y healthcheck.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <a
-              href="https://api.animeshowdown.dev/swagger-ui.html"
+              href="https://api.animeshowdown.dev/swagger-ui/index.html"
               target="_blank"
               rel="noreferrer"
               className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
@@ -250,6 +262,14 @@ function ApiDocsPage() {
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
             >
               OpenAPI JSON
+            </a>
+            <a
+              href="https://api.animeshowdown.dev/actuator/health"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
+            >
+              Healthcheck
             </a>
           </div>
         </motion.header>
@@ -278,7 +298,6 @@ function ApiDocsPage() {
             </a>{' '}
             (licencia MIT) en lugar de pegarle al endpoint público — vive en
             Railway con free tier limitado.
-            .
           </p>
         </div>
 

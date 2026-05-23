@@ -1,11 +1,11 @@
 /**
- * Mapa estático de iconos lucide usados por los 14 badges del catálogo.
+ * Mapa estático de iconos lucide usados por los badges del catálogo.
  *
  * <p>Antes BadgeCard hacía {@code import * as Icons from 'lucide-react'} y
  * luego {@code Icons[nombre]} para resolver por string. Eso rompía el
  * tree-shaking y traía los ~700 iconos de lucide al bundle inicial
- * (+150KB gzip). Ahora importamos solo los 14 que el seed referencia
- * (V7 + futuros) y resolvemos por mapa estático.
+ * (+150KB gzip). Ahora importamos solo los iconos que el seed referencia
+ * y resolvemos por mapa estático.
  *
  * <p>Si llega un badge con icono no contemplado (p.ej. después de añadir
  * uno nuevo al seed sin actualizar este mapa), {@link iconoDeBadge}
