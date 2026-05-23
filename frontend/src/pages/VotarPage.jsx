@@ -21,13 +21,13 @@ import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import AccessibleDialog from '../components/AccessibleDialog'
 import PersonajeImg from '../components/PersonajeImg'
 
-// Revisión AS-004 (2026-05-23): el captcha modal lazy-load el script
-// de Cloudflare Turnstile la primera vez. La mayoría de usuarios nunca
-// caen en captcha, así que mantenemos el bundle inicial sin ese coste.
+// El captcha modal lazy-load el script de Cloudflare Turnstile la primera
+// vez. La mayoría de usuarios nunca caen en captcha, así que mantenemos
+// el bundle inicial sin ese coste.
 const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
 
 /**
- * VotarPage — arena de duelo rápido (rebrand Plan v2 §14).
+ * VotarPage — arena de duelo rápido.
  *
  * Pantalla diseñada para que todo el duelo quepa sin scroll:
  *   - Cards con max-h 55vh + object-contain (no recorta) + letterbox
@@ -56,7 +56,7 @@ const ANON_VOTE_LIMIT = 5
 const NEXT_DELAY_MS = 1800
 
 /**
- * Emparejamientos balanceados + anti-repetición (Plan v2 §4.x).
+ * Emparejamientos balanceados + anti-repetición.
  *
  * Antes era 100% random sobre los 730 personajes — salían combinaciones
  * sin sentido (un nicho contra Luffy). Ahora:
@@ -71,12 +71,10 @@ const NEXT_DELAY_MS = 1800
  * El delta 12 sobre popularidad [0,100] se traduce a ELO ~±84 (popularidad·7),
  * range razonable para que el duelo se sienta competido sin clonar pares.
  *
- * Feedback (2026-05-22): los duelos "parecen repetirse demasiado".
- * Añadimos buffer de últimos pares en sessionStorage para evitar el
- * mismo enfrentamiento (A vs B y B vs A son equivalentes) y penalizar
- * a personajes vistos en los últimos 6 duelos. sessionStorage (no
- * localStorage) porque queremos que la memoria se limpie al cerrar la
- * pestaña — sesión a sesión empezamos en blanco.
+ * Añadimos buffer de últimos pares en sessionStorage para evitar el mismo
+ * enfrentamiento (A vs B y B vs A son equivalentes) y penalizar a personajes
+ * vistos en los últimos 6 duelos. sessionStorage (no localStorage) porque
+ * queremos que la memoria se limpie al cerrar la pestaña.
  */
 const RECENT_PAIRS_KEY = 'animeshowdown.votar.recent-pairs'
 const RECENT_CHARS_KEY = 'animeshowdown.votar.recent-chars'
@@ -251,23 +249,20 @@ function VotarPage() {
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
   const [showAnonLimitModal, setShowAnonLimitModal] = useState(false)
-  // Revisión AS-004 (2026-05-23): cuando el backend devuelve 428,
-  // guardamos el voto pendiente (sitekey, ids del enfrentamiento y
-  // personaje) y abrimos el captcha modal. Tras éxito, re-emitimos la
-  // mutation con el header X-AS-Captcha-Token.
+  // Cuando el backend devuelve 428, guardamos el voto pendiente (sitekey,
+  // ids del enfrentamiento y personaje) y abrimos el captcha modal. Tras
+  // éxito, re-emitimos la mutation con el header X-AS-Captcha-Token.
   const [captchaChallenge, setCaptchaChallenge] = useState(null)
 
-  // Revisión (2026-05-17): ref para cancelar el timeout de auto-next si
-  // el usuario pulsa "Siguiente duelo" antes de que dispare (o si el
-  // componente se desmonta). Antes el timeout quedaba huérfano y podía
-  // disparar handleNext dos veces (manual + auto) saltando dos matches.
+  // Ref para cancelar el timeout de auto-next si el usuario pulsa
+  // "Siguiente duelo" antes de que dispare o si el componente se desmonta.
   const autoNextTimeoutRef = useRef(null)
 
   const votarMutation = useMutation({
     mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous, captchaToken }) => {
-      // Revisión AS-004 (2026-05-23): si tenemos token Turnstile,
-      // viajará en el header X-AS-Captcha-Token. El backend lo verifica
-      // antes de aplicar el throttle de captcha.
+      // Si tenemos token Turnstile, viajará en el header
+      // X-AS-Captcha-Token. El backend lo verifica antes de aplicar el
+      // throttle de captcha.
       const headers = anonymous ? { ...getAnonymousVoteHeaders() } : {}
       if (captchaToken) headers['X-AS-Captcha-Token'] = captchaToken
       return endpoints.votar(enfrentamientoId, personajeGanadorId, {
@@ -336,6 +331,38 @@ function VotarPage() {
     }
   }, [play, modoBackend, modoSugerido, refetch, refetchDueloSugerido])
 
+  const handleVoteSuccess = useCallback(
+    (personaje, data) => {
+      if (data?.anonimo) {
+        incrementAnonymousVotesCount()
+      }
+      incrementarContadorLocalVotos()
+      setVoteResult({
+        ganadorSlug: personaje.slug,
+        delta: data?.delta ?? 1,
+        votosGanador: data?.votosGanador ?? null,
+      })
+
+      const delta = data?.delta ?? 1
+      const sufijo = delta === 1 ? 'voto' : 'votos'
+      toast.success(`+${delta} ${sufijo} · ${personaje.nombre}`, {
+        description: data?.votosGanador != null
+          ? data?.anonimo
+            ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}`
+            : `Ahora suma ${data.votosGanador} votos en este match`
+          : 'Voto registrado · ranking actualizado',
+      })
+
+      if (fastMode) {
+        autoNextTimeoutRef.current = setTimeout(() => {
+          autoNextTimeoutRef.current = null
+          handleNext()
+        }, NEXT_DELAY_MS)
+      }
+    },
+    [fastMode, handleNext],
+  )
+
   const handleVote = useCallback(
     (personaje) => {
       if (votedFor) return
@@ -361,47 +388,14 @@ function VotarPage() {
           { enfrentamientoId: matchId, personajeGanadorId: personaje.id, anonymous: !user },
           {
             onSuccess: (data) => {
-              if (data?.anonimo) {
-                incrementAnonymousVotesCount()
-              }
-              incrementarContadorLocalVotos()
-              // Propuesta §4.x: el backend devuelve VotoRegistradoDto con
-              // delta + counts post. Lo guardamos para que VoteCard pinte
-              // el overlay "+1 ELO". Fallback defensivo si el payload
-              // viene incompleto (compat con versiones anteriores).
-              setVoteResult({
-                ganadorSlug: personaje.slug,
-                delta: data?.delta ?? 1,
-                votosGanador: data?.votosGanador ?? null,
-              })
-              // Revisión AS-050 (2026-05-22): antes "+1 ELO" pero
-              // delta es el incremento del conteo de votos (COUNT, no
-              // K-factor real). "+1 voto" es honesto y compatible con la
-              // descripción ya existente "Ahora suma N votos en este match".
-              const delta = data?.delta ?? 1
-              const sufijo = delta === 1 ? 'voto' : 'votos'
-              toast.success(`+${delta} ${sufijo} · ${personaje.nombre}`, {
-                description: data?.votosGanador != null
-                  ? data?.anonimo
-                    ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}`
-                    : `Ahora suma ${data.votosGanador} votos en este match`
-                  : 'Voto registrado · ranking actualizado',
-              })
-              if (fastMode) {
-                autoNextTimeoutRef.current = setTimeout(() => {
-                  autoNextTimeoutRef.current = null
-                  handleNext()
-                }, NEXT_DELAY_MS)
-              }
+              handleVoteSuccess(personaje, data)
             },
             onError: (err) => {
               setVotedFor(null)
               const status = err instanceof ApiError ? err.status : 0
-              // Revisión AS-004 (2026-05-23): 428 Precondition Required
-              // = el throttle antifraude pide captcha. Body trae
-              // {captchaRequired, provider, sitekey}. Guardamos el voto
-              // pendiente y abrimos el modal Turnstile. Tras éxito,
-              // re-emitimos la mutation con header X-AS-Captcha-Token.
+              // 428 Precondition Required = el throttle antifraude pide
+              // captcha. Body trae {captchaRequired, provider, sitekey}.
+              // Guardamos el voto pendiente y abrimos el modal Turnstile.
               if (status === 428 && err?.body?.captchaRequired) {
                 setCaptchaChallenge({
                   enfrentamientoId: matchId,
@@ -476,7 +470,18 @@ function VotarPage() {
         }
       }
     },
-    [play, modoBackend, user, navigate, votarMutation, matchId, fastMode, handleNext, votedFor],
+    [
+      play,
+      modoBackend,
+      user,
+      navigate,
+      votarMutation,
+      matchId,
+      fastMode,
+      handleNext,
+      handleVoteSuccess,
+      votedFor,
+    ],
   )
 
   // Cleanup: si el componente se desmonta mientras hay un auto-next
@@ -685,10 +690,9 @@ function VotarPage() {
           open={showAnonLimitModal}
           onClose={() => setShowAnonLimitModal(false)}
         />
-        {/* Revisión AS-004 (2026-05-23): captcha Turnstile bajo abuso.
-            El modal se monta solo cuando el backend devuelve 428 con
-            sitekey. Lazy + Suspense para no cargar el script en bundle
-            inicial — la mayoría de usuarios nunca caen aquí. */}
+        {/* Captcha Turnstile bajo abuso. El modal se monta solo cuando el
+            backend devuelve 428 con sitekey. Lazy + Suspense para no cargar
+            el script en bundle inicial. */}
         {captchaChallenge && (
           <Suspense fallback={null}>
             <CaptchaModal
@@ -698,6 +702,7 @@ function VotarPage() {
                 const ch = captchaChallenge
                 setCaptchaChallenge(null)
                 if (!ch) return
+                setVotedFor(ch.personajeSlug)
                 // Re-emitimos el voto con el token. El backend valida
                 // contra Cloudflare y, si OK, registra el voto.
                 votarMutation.mutate(
@@ -708,7 +713,18 @@ function VotarPage() {
                     captchaToken: token,
                   },
                   {
-                    onError: () => setVotedFor(null),
+                    onSuccess: (data) => {
+                      handleVoteSuccess(
+                        { slug: ch.personajeSlug, nombre: ch.personajeNombre },
+                        data,
+                      )
+                    },
+                    onError: (err) => {
+                      setVotedFor(null)
+                      toast.error('No se pudo validar el captcha', {
+                        description: err?.message || 'Inténtalo de nuevo.',
+                      })
+                    },
                   },
                 )
               }}
@@ -866,11 +882,8 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             active={Boolean(voteResult)}
             delta={voteResult?.delta}
             value={voteResult?.votosGanador}
-            // Revisión AS-050 (2026-05-22): antes "ELO actualizado",
-            // pero el backend cuenta votos (COUNT, no K-factor) y en modo
-            // casual local nada se persiste. "Voto registrado" no miente
-            // sobre la mecánica — el contador de la card sí refleja el
-            // total real de votos en el match.
+            // El backend cuenta votos del match, no un K-factor ELO real.
+            // "Voto registrado" evita prometer una métrica distinta.
             label="Voto registrado"
           />
           {anonymousLimited && !showResult && (
@@ -882,11 +895,8 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
       </motion.button>
       {/* Info debajo de la card — comparación rápida sin overlay sobre la
           imagen. Nombre + anime + (solo tras votar) link discreto a la ficha.
-          Revisión AS-015 (2026-05-22): antes usábamos `items-${side}` y
-          `text-${side}` con template literals dinámicos. Tailwind v4 hace
-          AOT y NO ve esas clases compuestas — en producción salían sin
-          alinear porque el extractor no las genera. Strings completos
-          estáticos garantizan que las clases existan en el bundle. */}
+          Evitamos template literals dinámicos tipo `items-${side}` porque
+          Tailwind no genera clases que no puede detectar estáticamente. */}
       <div
         className={`flex min-w-0 flex-col px-1 ${
           side === 'right' ? 'items-end text-right' : 'items-start text-left'
