@@ -101,7 +101,7 @@ Las métricas de campo llegan a Sentry como measurements. Filtros útiles:
 - Performance → Web Vitals tab → seleccionar transacciones de `/`,
   `/personajes/[slug]`, `/torneos/[slug]`.
 - Histograma de LCP por país: si un país tiene p75 > 4s revisar
-  Bloque 5.11 (velocidad por país).
+  la cobertura y latencia de CDN por país.
 
 ---
 

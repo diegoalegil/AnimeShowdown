@@ -537,10 +537,10 @@ erDiagram
 - [ ] Tests E2E con Playwright
 - [ ] OG images dinámicas para perfil y logros
 - [ ] i18n: completar migración de strings al `t()` en páginas restantes
-- [ ] Bloque 15: **atributos extendidos** del catálogo (género personaje, era, popularidad MAL/AniList) — el escalado a 1000+ ya está cumplido con los 1052 actuales
-- [ ] Bloque 11.4 API pública versionada con API keys
-- [ ] Bloque 17.3-17.5 normalización aspect ratio (bloqueado por atributos del Bloque 15)
-- [ ] Bloque 4.12 Hero card 3D — stack apilado (galería multi-imagen → recorte + parallax + fondo contextual → aura shader → Live Portrait top 30-50); aplazado a fase de polish
+- [ ] **Atributos extendidos** del catálogo: género, era y popularidad MAL/AniList
+- [ ] API pública versionada con API keys
+- [ ] Normalización de aspect ratio apoyada en atributos extendidos
+- [ ] Hero card 3D con galería multi-imagen, recorte contextual y aura visual; aplazado a fase de polish
 
 ---
 
