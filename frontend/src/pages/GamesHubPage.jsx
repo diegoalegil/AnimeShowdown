@@ -87,7 +87,7 @@ const GAMES = [
     kanji: '戦',
     titulo: 'ELO Duel',
     sub: 'Higher or Lower',
-    desc: '¿Quién tiene más ELO entre estos dos personajes? Adivina seguido y construye tu racha.',
+    desc: '¿Quién tiene más ELO base entre estos dos personajes? Adivina seguido y construye tu racha.',
     cadencia: 'Endless · sin límite',
     bestKey: ELO_DUEL_BEST_KEY,
     rarity: 'R',
