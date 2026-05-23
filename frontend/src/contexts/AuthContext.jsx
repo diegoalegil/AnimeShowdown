@@ -306,7 +306,7 @@ export function AuthProvider({ children }) {
       // limpiar el user. Sin esto, queries privadas (perfil, notificaciones,
       // mis torneos, logros) quedan en cache; si el siguiente usuario hace
       // login en el mismo navegador, las verá un instante hasta que
-      // stale-time refresque. Equivalente a invalidar TODO.
+      // stale-time refresque. Equivalente a invalidar toda la caché privada.
       queryClient.clear()
       // Cierra el WS singleton.
       disconnectStomp()

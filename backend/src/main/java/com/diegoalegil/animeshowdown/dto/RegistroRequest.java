@@ -21,7 +21,7 @@ public class RegistroRequest {
             message = "El username solo puede contener letras, números, guión y guión bajo")
     private String username;
 
-    // 5: mínimo 8 chars, al menos una letra y un dígito. Antes
+    // Mínimo 8 chars, al menos una letra y un dígito. Antes
     // permitía "123456" — passwords triviales que rompen al primer ataque
     // automatizado. La regex es deliberadamente permisiva con caracteres
     // especiales (Unicode, símbolos) para no frustrar a usuarios que ya

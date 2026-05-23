@@ -14,7 +14,7 @@ public class CambioPasswordRequest {
     @NotBlank(message = "Introduce tu contraseña actual")
     private String currentPassword;
 
-    // 5: misma regla que en registro/reset.
+    // Misma regla que en registro/reset.
     @NotBlank(message = "Introduce la contraseña nueva")
     @Size(min = 8, max = 100, message = "La contraseña nueva debe tener entre 8 y 100 caracteres")
     @Pattern(

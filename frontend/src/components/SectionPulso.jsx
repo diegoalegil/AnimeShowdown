@@ -366,10 +366,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
     : comunidadArrancando
       ? 'Más votado ahora'
       : 'Top de la comunidad'
-  // Ajuste #9 (2026-05-21): antes el article tenia role="link" + onClick
-  // + tabIndex={0}, y dentro habia otro <Link> a /ranking con stopPropagation
-  // — accesibilidad ambigua (screen readers leian 2 links en el mismo
-  // componente). Patron nuevo "stretched link": el article es semantico
+  // Patrón "stretched link": el article es semántico
   // (article), y un Link absoluto invisible cubre toda la card. El CTA
   // interno a /ranking queda por encima con z-10, sigue siendo independiente.
   return (

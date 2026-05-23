@@ -221,13 +221,7 @@ function Footer() {
           </Link>
         </div>
 
-        {/* Legal + copyright minimalista.
-            Ajuste #20 (2026-05-21): los Links del legal eran un solo
-            renglon de texto sin padding vertical en mobile, dejando el
-            tap target en ~24px — por debajo del HIG/Material minimo
-            (44px iOS, 48dp Android). Anadido inline-flex items-center
-            min-h-[40px] px-2 py-2 para que cada link tenga area
-            generosa sin romper el visual desktop. */}
+        {/* Legal + copyright minimalista con tap targets cómodos en mobile. */}
         <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-fg-muted">
           <ul className="-mx-2 flex flex-wrap justify-center gap-y-1 sm:justify-start">
             <li>

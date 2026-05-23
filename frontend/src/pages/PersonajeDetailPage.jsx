@@ -186,8 +186,8 @@ function PersonajeDetailPage() {
       }
     }
   }
-  // 6: hasta 10 personajes del mismo anime como internal linking
-  // estructurado. Google sigue estos links para entender la red semántica
+  // Hasta 10 personajes del mismo anime como internal linking estructurado.
+  // Google sigue estos links para entender la red semántica
   // ("Akame ga Kill!" → 10 personajes del anime); más de 10 saturaría la
   // página y reduciría link equity por dilución.
   const relacionados = personajes

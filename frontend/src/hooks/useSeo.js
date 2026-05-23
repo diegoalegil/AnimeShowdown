@@ -31,7 +31,7 @@ import { useEffect } from 'react'
  */
 const BASE = 'AnimeShowdown'
 const SITIO = 'https://animeshowdown.dev'
-// 9: idiomas que tenemos al menos parcialmente traducidos.
+// Idiomas que tenemos al menos parcialmente traducidos.
 // Cada uno produce un <link rel="alternate" hreflang="X" href="URL?lang=X">
 // más un x-default que apunta al ES (idioma original y catálogo completo).
 const LANGS = ['es', 'en']
