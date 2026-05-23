@@ -20,7 +20,6 @@ import {
   X,
 } from 'lucide-react'
 import {
-  personajes,
   getStatsPersonaje,
   imagenPersonaje,
 } from '../lib/personajes-core'
@@ -44,6 +43,7 @@ import {
   useRankingMovimientos,
   useRankingSegmentado,
 } from '../hooks/useRanking'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 /**
  * RankingPage rebranded.
@@ -64,14 +64,16 @@ import {
  *   - Tabla extraíble plegable (datos técnicos)
  */
 
-const rankedElo = [...personajes]
-  .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
-  .sort((a, b) => b.elo - a.elo)
+function crearRankingElo(catalogoPersonajes) {
+  return [...catalogoPersonajes]
+    .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
+    .sort((a, b) => b.elo - a.elo)
+}
 
-const animeFilterOptions = (() => {
-  const set = new Set(personajes.map((p) => p.anime))
+function crearAnimeFilterOptions(catalogoPersonajes) {
+  const set = new Set(catalogoPersonajes.map((p) => p.anime).filter(Boolean))
   return ['', ...Array.from(set).sort()]
-})()
+}
 
 const TABS = [
   { id: 'elo', label: 'ELO actual', icon: Trophy },
@@ -83,9 +85,21 @@ const TABS = [
 
 function RankingPage() {
   useRankingDeltaSubscription()
+  const {
+    personajes: catalogoPersonajes,
+    isLoading: isCatalogLoading,
+  } = usePersonajesCatalogo()
+  const rankedElo = useMemo(
+    () => crearRankingElo(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const animeFilterOptions = useMemo(
+    () => crearAnimeFilterOptions(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
   useSeo({
     title: 'Ranking ELO',
-    description: `Top ${personajes.length} personajes de anime ordenados por ELO. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
+    description: `Top ${catalogoPersonajes.length} personajes de anime ordenados por ELO. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
   })
   const [tab, setTab] = useState('elo')
 
@@ -162,8 +176,19 @@ function RankingPage() {
         <Tabs activo={tab} onChange={setTab} />
 
         <div className="mt-6">
-          {tab === 'elo' && <ListaEloLocal />}
-          {tab === 'categorias' && <ListaCategoriasOtaku />}
+          {tab === 'elo' && (
+            <ListaEloLocal
+              rankedElo={rankedElo}
+              animeFilterOptions={animeFilterOptions}
+              isCatalogLoading={isCatalogLoading}
+            />
+          )}
+          {tab === 'categorias' && (
+            <ListaCategoriasOtaku
+              catalogoPersonajes={catalogoPersonajes}
+              isCatalogLoading={isCatalogLoading}
+            />
+          )}
           {tab === 'all' && <ListaBackend periodo="all" />}
           {tab === 'mes' && <ListaBackend periodo="mes" />}
           {tab === 'anime' && <PorAnime />}
@@ -171,7 +196,7 @@ function RankingPage() {
 
         <HubLinks />
 
-        <TablaExtraible />
+        <TablaExtraible rankedElo={rankedElo} />
       </div>
     </VisualPageShell>
   )
@@ -254,18 +279,26 @@ function EloExplainer() {
  * "competiciones temáticas" (Top heroínas, copa villanos, etc).
  * Tags vienen del archivo data/personajes-tags.js, sin backend.
  */
-function ListaCategoriasOtaku() {
+function ListaCategoriasOtaku({ catalogoPersonajes, isCatalogLoading }) {
   const secciones = useMemo(() => {
     return CATEGORIAS
       .map((cat) => {
-        const personajesCat = getPersonajesPorCategoria(cat.id, personajes)
+        const personajesCat = getPersonajesPorCategoria(cat.id, catalogoPersonajes)
           .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
           .sort((a, b) => b.elo - a.elo)
           .slice(0, 10)
         return { ...cat, personajes: personajesCat }
       })
       .filter((s) => s.personajes.length >= MIN_PARA_SECCION)
-  }, [])
+  }, [catalogoPersonajes])
+
+  if (isCatalogLoading && catalogoPersonajes.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </div>
+    )
+  }
 
   if (secciones.length === 0) {
     return (
@@ -511,7 +544,7 @@ function Tabs({ activo, onChange }) {
   )
 }
 
-function ListaEloLocal() {
+function ListaEloLocal({ rankedElo, animeFilterOptions, isCatalogLoading }) {
   const [search, setSearch] = useState('')
   const [animeFilter, setAnimeFilter] = useState('')
   const deferredSearch = useDeferredValue(search)
@@ -531,7 +564,7 @@ function ListaEloLocal() {
       )
     }
     return list
-  }, [normalizedSearch, animeFilter])
+  }, [rankedElo, normalizedSearch, animeFilter])
 
   const podio = filtered.slice(0, 3)
   const resto = filtered.slice(3, 100)
@@ -586,7 +619,11 @@ function ListaEloLocal() {
         </select>
       </div>
 
-      {filtered.length === 0 ? (
+      {isCatalogLoading && rankedElo.length === 0 ? (
+        <div className="flex items-center justify-center py-10">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        </div>
+      ) : filtered.length === 0 ? (
         <EmptyStateScene
           visual={BRAND_VISUALS.empty}
           icon={Search}
@@ -1192,7 +1229,7 @@ function HubLinks() {
  * usuarios que quieren copy/paste. Ahora vive dentro de un <details>
  * plegable para no competir con el ranking visual.
  */
-function TablaExtraible() {
+function TablaExtraible({ rankedElo }) {
   const top10 = rankedElo.slice(0, 10)
   return (
     <details className="mt-6 rounded-xl border border-border bg-surface">
