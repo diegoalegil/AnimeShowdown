@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -23,12 +23,15 @@ import {
   Grid3X3,
   BookOpen,
 } from 'lucide-react'
-import { personajes, imagenPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import {
+  CATALOGO_PERSONAJES_HYDRATED_EVENT,
+  personajes,
+} from '../lib/personajes-core'
 import { useTorneos } from '../lib/torneosQueries'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { playWhoosh } from '../lib/sounds'
+import PersonajeImg from './PersonajeImg'
 
 const rutas = [
   { to: '/', label: 'Inicio', icon: Home },
@@ -64,6 +67,13 @@ function normalizaBusqueda(value) {
     .toLowerCase()
 }
 
+function buildPersonajesIndex() {
+  return personajes.map((p) => ({
+    personaje: p,
+    searchable: normalizaBusqueda(`${p.nombre} ${p.anime} ${p.slug}`),
+  }))
+}
+
 function CommandPalette({ initialOpen = false } = {}) {
   // Revisión (2026-05-17): initialOpen permite al wrapper LazyMount abrir
   // el dialog directamente al primer atajo, sin depender de re-dispatch
@@ -75,19 +85,28 @@ function CommandPalette({ initialOpen = false } = {}) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { muted, toggleMute } = useSound()
+  const [personajesIndex, setPersonajesIndex] = useState(buildPersonajesIndex)
   // Lista del backend. Si aún no llegó (loading) o falló, mostramos el
   // resto del palette sin la sección "Torneos" — la búsqueda de personajes
   // sigue funcionando.
   const { data: torneos = [] } = useTorneos()
-  const queryPersonajes = normalizaBusqueda(search.trim())
+  const deferredSearch = useDeferredValue(search)
+  const queryPersonajes = normalizaBusqueda(deferredSearch.trim())
+  useEffect(() => {
+    const onHydrated = () => setPersonajesIndex(buildPersonajesIndex())
+    window.addEventListener(CATALOGO_PERSONAJES_HYDRATED_EVENT, onHydrated)
+    return () => window.removeEventListener(CATALOGO_PERSONAJES_HYDRATED_EVENT, onHydrated)
+  }, [])
   const personajesPalette = useMemo(() => {
     if (queryPersonajes.length < 2) return []
-    return personajes
-      .filter((p) =>
-        normalizaBusqueda(`${p.nombre} ${p.anime} ${p.slug}`).includes(queryPersonajes),
-      )
-      .slice(0, 60)
-  }, [queryPersonajes])
+    const results = []
+    for (const item of personajesIndex) {
+      if (!item.searchable.includes(queryPersonajes)) continue
+      results.push(item.personaje)
+      if (results.length >= 40) break
+    }
+    return results
+  }, [personajesIndex, queryPersonajes])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -210,7 +229,7 @@ function CommandPalette({ initialOpen = false } = {}) {
       aria-modal="true"
       aria-labelledby={`${inputId}-title`}
       aria-describedby={`${inputId}-desc`}
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center px-3 pt-[15vh] sm:px-4"
     >
       <h2 id={`${inputId}-title`} className="sr-only">
         Buscador rápido
@@ -398,11 +417,13 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
           onSelect={() => go(`/personajes/${p.slug}`)}
           className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
         >
-          <img
-            src={imagenPersonaje(p.slug)}
+          <PersonajeImg
+            slug={p.slug}
+            src={p.imagenUrl}
+            nombre={p.nombre}
             alt=""
             loading="lazy"
-            onError={ocultaImgRota}
+            sizes="32px"
             className="h-7 w-5 shrink-0 rounded object-cover object-top"
           />
           <span className="min-w-0 truncate">{p.nombre}</span>
