@@ -63,6 +63,7 @@ const StatusPage = lazyRoute(() => import('./pages/StatusPage'))
 const ComoFuncionaPage = lazyRoute(() => import('./pages/ComoFuncionaPage'))
 const MetodologiaEloPage = lazyRoute(() => import('./pages/MetodologiaEloPage'))
 const JuegosAnimePage = lazyRoute(() => import('./pages/JuegosAnimePage'))
+const DescubrePersonajePage = lazyRoute(() => import('./pages/DescubrePersonajePage'))
 const GamesHubPage = lazyRoute(() => import('./pages/GamesHubPage'))
 const GuessCharacterPage = lazyRoute(() => import('./pages/GuessCharacterPage'))
 const GuessAnimePage = lazyRoute(() => import('./pages/GuessAnimePage'))
@@ -355,6 +356,8 @@ function App() {
               <Route path="/eventos/:slug" element={gated(<EventoDetailPage />)} />
               <Route path="/duelos/:par" element={gated(<DueloVersusPage />)} />
               <Route path="/ranking" element={gated(<RankingPage />)} />
+              <Route path="/descubre-personaje" element={gated(<DescubrePersonajePage />)} />
+              <Route path="/random" element={<Navigate replace to="/descubre-personaje" />} />
               {/* Higher or Lower → ELO Duel. La ruta vieja redirige
                   client-side; _redirects emite 301 a nivel CDN. */}
               <Route
