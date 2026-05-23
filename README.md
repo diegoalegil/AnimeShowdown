@@ -9,9 +9,9 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-**El ranking definitivo del anime lo decides tú.**
+**Plataforma full-stack de duelos, rankings y torneos de personajes de anime.**
 
-AnimeShowdown es una plataforma full-stack de duelos 1v1, ranking ELO, torneos visuales, ranking personal local y minijuegos diarios sobre personajes de anime. La experiencia está diseñada como un producto competitivo y cinemático: cards coleccionables, arena de votación, podios, brackets en vivo, comparativas, perfiles sociales, command palette, sonido sintetizado y una PWA lista para producción.
+AnimeShowdown es una aplicación desplegada en producción para votar duelos 1v1, explorar rankings comunitarios, jugar pruebas diarias, seguir perfiles públicos y consultar una API REST abierta. La experiencia combina producto visual y base técnica seria: catálogo versionado, brackets en vivo, leaderboards, misiones, command palette, Open Graph dinámicas, PWA y observabilidad.
 
 El catálogo actual contiene **1052 personajes únicos** distribuidos en **105 universos anime**, sincronizados desde imágenes locales hacia frontend, backend y datos seed.
 
@@ -26,9 +26,12 @@ El catálogo actual contiene **1052 personajes únicos** distribuidos en **105 u
 | Servicio | URL |
 |---|---|
 | Frontend | https://animeshowdown.dev |
-| API | https://api.animeshowdown.dev |
+| API base | https://api.animeshowdown.dev |
+| API docs | https://animeshowdown.dev/api-docs |
 | Swagger UI | https://api.animeshowdown.dev/swagger-ui/index.html |
+| OpenAPI JSON | https://api.animeshowdown.dev/v3/api-docs |
 | Healthcheck | https://api.animeshowdown.dev/actuator/health |
+| Status monitor | https://animeshowdown.dev/status |
 
 ## Experiencia
 
@@ -56,17 +59,18 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 
 ## Features
 
-- **Duelos 1v1** con ranking ELO, modo rápido, atajos de teclado, feedback visual, anti-repetición y votos anónimos o autenticados.
-- **Ranking personal local** privado por navegador, alimentado por tus votos, con top compartible y señales en fichas de personaje.
-- **Ranking competitivo** con podio, histórico, filtros, búsqueda, vistas por anime e indicadores de movimiento.
-- **Comparador y descubrimiento** para enfrentar dos personajes concretos, descubrir personajes al azar y generar duelos recomendados.
+- **Duelos 1v1** con ranking ELO, modo rápido, atajos de teclado, links exactos de votación, feedback visual, anti-repetición y votos anónimos o autenticados.
+- **Ranking personal local** privado por navegador, alimentado por tus votos, con `/mi-top5` compartible y señales en fichas de personaje.
+- **Ranking competitivo y leaderboards** con podio, histórico, filtros, búsqueda, vistas por anime, usuarios destacados e indicadores de movimiento.
+- **Comparador y descubrimiento** para enfrentar dos personajes concretos, descubrir personajes al azar, abrir `/omikuji` y generar duelos recomendados.
 - **Catálogo visual** de 1052 personajes con filtros, buscador, modo grid/list y fichas individuales.
 - **Universos anime** con collages, stats agregadas, top interno y CTA para votar dentro de cada roster.
-- **Torneos** con estados, participantes, duelos abiertos, avance de bracket y predicciones.
-- **Anime Daily Trials y misiones** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial, ELO Duel y progreso diario local.
-- **Auth y perfil** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares, follow, reacciones y actividad.
+- **Torneos y eventos** con estados, participantes, duelos abiertos, avance de bracket, predicciones y temporadas temáticas.
+- **Anime Daily Trials y misiones** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial, ELO Duel, progreso diario local y rachas.
+- **Auth, perfiles y logros** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares, follow, reacciones, actividad pública y 16 logros base.
+- **Apoya, newsletter y páginas legales** integradas como parte del producto público.
 - **UX avanzada** con command palette `Cmd+K`, notificaciones, Sonner, Web Audio API y PWA con Workbox.
-- **SEO técnico** con sitemap, image sitemap, canonical, Open Graph, JSON-LD, robots, `llms.txt` y páginas públicas indexables.
+- **SEO técnico** con sitemap, image sitemap, canonical, JSON-LD, robots, `llms.txt` y OG dinámicas para personajes, animes, torneos, ranking y duelos.
 
 ## Stack
 
@@ -195,6 +199,7 @@ Notas clave:
 - Build command: `npm run build:no-images`.
 - Output: `frontend/dist`.
 - API pública: `https://api.animeshowdown.dev`.
+- La raíz del subdominio API es solo base técnica y puede responder `403`; las entradas navegables son Swagger, OpenAPI JSON, `/api-docs` y healthcheck.
 - SPA fallback y redirects: `frontend/public/_redirects`.
 - `ProductionSecretsValidator` bloquea placeholders peligrosos fuera de test.
 - Workbox cachea recursos estáticos y rutas API seleccionadas con estrategias diferenciadas.
@@ -213,19 +218,23 @@ Endpoints públicos destacados:
 - `GET /api/personajes/{slug}`
 - `GET /api/votos/ranking`
 - `GET /api/torneos`
-- `GET /api/torneos/{slug}`
+- `GET /api/torneos/slug/{slug}`
+- `GET /api/logros`
+- `GET /api/status`
+- `GET /api/og/personaje/{slug}.png`
 - `GET /actuator/health`
 
-La API completa incluye auth, perfil, logros, reacciones, follow, torneos, votos, predicciones, newsletter, observabilidad y WebSocket.
+La API completa incluye auth, perfiles públicos, logros, reacciones, follow, torneos, votos, predicciones, newsletter, observabilidad, Open Graph dinámicas y WebSocket.
 
 ## Estado
 
 - Catálogo sincronizado: **1052 personajes**.
 - Universos anime: **105**.
-- Torneos seed: **13**.
-- Sitemap con rutas estáticas, personajes, animes, torneos y duelos SEO.
+- Torneos visibles en producción: **15**; seed base versionado: **13**.
+- Logros base publicados por API: **16**.
+- Sitemap con rutas estáticas, personajes, animes, torneos públicos y perfiles públicos cuando el backend aporta datos; las landings masivas de duelos no se indexan.
 - Fallback visual para imágenes de personaje y placeholders de carga/error.
-- Ranking personal local, comparador, misiones y descubrimiento enlazados en navegación, sitemap y command palette.
+- Ranking personal local, comparador, eventos, misiones, status, glosario, juegos diarios y descubrimiento enlazados en navegación, sitemap y command palette.
 - PWA con manifest, service worker y cache controlado por Workbox.
 
 ## Documentación
