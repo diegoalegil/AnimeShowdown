@@ -37,10 +37,10 @@ export const queryKeys = {
   torneos: () => ['torneos'],
   torneoBySlug: (slug) => ['torneos', 'slug', slug],
   torneoById: (id) => ['torneos', 'id', id],
-  // Mi roster / favoritos (Plan producto 2026-05-18)
+  // Mi roster / favoritos
   misFavoritos: () => ['favoritos', 'me'],
   favoritoSlug: (slug) => ['favoritos', 'slug', slug],
-  // Actividad reciente de votos (sprint 2026-05-18)
+  // Actividad reciente de votos
   votosPeriodoSlug: (slug, dias = 7) => ['votos-periodo', 'slug', slug, dias],
   votosPeriodoBatch: (slugs, dias = 7) => ['votos-periodo', 'batch', [...slugs].sort().join(','), dias],
 }

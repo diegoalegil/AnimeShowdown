@@ -273,7 +273,7 @@ public class PersonajeController {
     }
 
     /**
-     * Historial de duelos recientes del personaje (Plan producto 2026-05-18).
+     * Historial de duelos recientes del personaje.
      *
      * <p>Devuelve los últimos N enfrentamientos donde participó (como
      * personaje1 o 2), incluyendo los aún sin ganador (resultado PENDING).
@@ -301,8 +301,7 @@ public class PersonajeController {
     }
 
     /**
-     * Actividad reciente de votos del personaje (Plan producto sprint
-     * 2026-05-18 — actividad real por votos recientes).
+     * Actividad reciente de votos del personaje.
      *
      * <p>Devuelve votos absolutos en la ventana actual + ventana
      * anterior + delta. Sin auth — son agregados públicos.
@@ -347,7 +346,7 @@ public class PersonajeController {
 
     /**
      * Resumen agregado "Contra quién" — mejores/peores/frecuentes
-     * matchups (Plan producto 2026-05-18). Sin auth.
+     * matchups. Sin auth.
      *
      * <p>404 si el slug no existe; 200 con listas vacías y total=0 si
      * el personaje no tiene aún enfrentamientos decididos (el frontend

@@ -29,7 +29,7 @@ import { VisualPageShell } from '../components/VisualSystem'
 import NotFoundPage from './NotFoundPage'
 
 /**
- * Página detalle de un evento temporal (Plan producto 2026-05-18).
+ * Página detalle de un evento temporal.
  *
  * <p>Estructura:
  * <ul>

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import com.diegoalegil.animeshowdown.model.PersonajeFavorito;
 
 /**
- * Item del roster del usuario (Plan producto 2026-05-18). Devuelve los
+ * Item del roster del usuario. Devuelve los
  * datos de Personaje suficientes para pintar la card en /perfil sin
  * que el frontend necesite cruzar con el catálogo local — slug,
  * nombre, anime e imagenUrl ya vienen aquí.

@@ -90,12 +90,8 @@ function TorneoCard({ torneo }) {
     ? avatares.find((p) => p.slug === ganadorSlug)
     : null
 
-  // Nota visual (2026-05-20): muchas portadas de torneo generadas con
-  // GPT Image vienen como composicion grupal de 5 personajes alineados
-  // horizontalmente. Para amortiguar el efecto "fila de caras" sin
-  // regenerar el asset: subimos el cover a h-52 (mas verticalidad para
-  // que la composicion respire), aplicamos object-position que enfoca el
-  // tercio superior (donde suele estar el drama, no las caras pegadas) y
+  // Muchas portadas de torneo son composiciones grupales horizontales.
+  // Subimos el cover a h-52, aplicamos object-position al tercio superior y
   // un microblur que da sensacion cinematografica.
   const visualParaCard = { ...visual, objectPosition: visual.objectPosition || '50% 32%' }
   const fechaLabel = getFechaLabel(estado, fechaInicio, fechaFinalizacion, fechaCreacion)

@@ -649,13 +649,9 @@ function SectionRetosDiarios() {
             </Link>
           </div>
         </div>
-        {/* Feedback visual (2026-05-22): el grid 5-col + cards solo
-            con kanji decorativo dejaba banners de ~140px de alto en desktop
-            — "miniaturas inútiles". Nuevo layout 1/2/3 cols con
-            background-image real del juego (cover en /assets/game-covers/),
-            min-h ~13rem mobile / 14rem desktop y overlay gradient
-            inferior para legibilidad. Mantenemos kanji decorativo + accent
-            por color, ahora respiran sobre la imagen. */}
+        {/* Layout 1/2/3 cols con cover real de cada juego, altura estable y
+            overlay inferior para legibilidad. El kanji decorativo respira
+            sobre la imagen. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {RETOS_DIARIOS.map((r) => {
             const colorClasses = RETO_COLORS[r.color]

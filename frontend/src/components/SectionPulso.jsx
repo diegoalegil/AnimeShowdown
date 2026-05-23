@@ -318,10 +318,8 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
           background: `radial-gradient(circle at 88% 0%, ${tone.glow}, transparent 13rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 42%)`,
         }}
       />
-      {/* Feedback visual (2026-05-20): re-eliminado kanji 戦 fantasma que
-          El bloque duplicado volvió a entrar en una iteración anterior. Las pulse-cards ya
-          tienen identidad con su tone + glow + backdrop-blur, no necesitan
-          glyph japones decorativo encima. */}
+      {/* Las pulse-cards ya tienen identidad con tone + glow + backdrop-blur;
+          no necesitan glyph japonés decorativo encima. */}
       {children}
     </div>
   )
@@ -598,12 +596,8 @@ function RetoCard() {
   return (
     <Link
       to="/games/shadow-guess"
-      // Feedback visual (2026-05-22): la card tenía altura natural ~180px
-      // y el EditorialCover absolute inset-0 + el overlay degradado oscuro
-      // del 38% al 92% dejaban solo ~70px de imagen visible — el usuario
-      // lo describió como "tan finita que practicamente no se ve". Subimos
-      // min-h a 13rem para que la franja superior tenga aire y el sujeto
-      // del cover quepa antes de empezar el degradado de oscurecimiento.
+      // Altura estable para que la franja superior tenga aire y el sujeto
+      // del cover quepa antes del degradado de oscurecimiento.
       className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-xl border border-rose-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-rose-500/60 sm:p-5"
     >
       <EditorialCover
@@ -891,7 +885,7 @@ function DueloAvatar({ personaje }) {
 }
 
 /**
- * Banner del evento "headline" (Plan producto 2026-05-18). Muestra el
+ * Banner del evento "headline". Muestra el
  * primer evento activo, o el próximo más cercano si no hay activos.
  * Auto-refresh del contador cada 60s para que "termina en 3h" baje a
  * "termina en 2h" sin recargar la página.
