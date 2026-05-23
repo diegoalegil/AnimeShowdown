@@ -50,6 +50,7 @@ const rutas = [
   { to: '/duel-live', label: 'Duelos live PvP', icon: Swords, searchTerms: 'pvp directo versus' },
   { to: '/games', label: 'Anime Games Hub', icon: Gamepad2, searchTerms: 'juegos daily trials' },
   { to: '/juegos/anime', label: 'Juegos anime online', icon: Gamepad2, searchTerms: 'seo juegos anime online daily trials' },
+  { to: '/misiones', label: 'Misiones diarias', icon: CalendarDays, searchTerms: 'mision diaria ritual racha progreso daily loop' },
   { to: '/games/shadow-guess', label: 'Shadow Guess (Guess the Character)', icon: Eye, searchTerms: 'guess character silueta personaje' },
   { to: '/games/anime-reveal', label: 'Anime Reveal (Guess the Anime)', icon: Type, searchTerms: 'guess anime adivinar serie' },
   { to: '/games/anigrid', label: 'AniGrid (Anidel · Wordle)', icon: Grid3X3, searchTerms: 'wordle personajes anidel' },

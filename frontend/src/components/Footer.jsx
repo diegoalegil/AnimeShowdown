@@ -34,6 +34,7 @@ const productoLinks = [
   { to: '/votar', i18nKey: 'votar' },
   { to: '/ranking', i18nKey: 'ranking' },
   { to: '/games', i18nKey: 'games' },
+  { to: '/misiones', i18nKey: 'misiones' },
   { to: '/juegos/anime', i18nKey: 'juegosAnime' },
   { to: '/logros', i18nKey: 'logros' },
 ]
