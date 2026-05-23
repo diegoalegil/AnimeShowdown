@@ -2,8 +2,8 @@ import { Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { usePerfilTop } from '../hooks/usePerfil'
 import { pickVacio } from './Kaomoji'
-import { ocultaImgRota } from '../lib/imgFallback'
 import KanjiSpinner from './KanjiSpinner'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Card "Top personajes" del perfil.
@@ -69,11 +69,12 @@ function CardTop5({
                 <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-alt text-[10px] font-bold tabular-nums text-fg-muted">
                   {idx + 1}
                 </span>
-                <img
+                <PersonajeImg
+                  slug={p.slug}
                   src={p.imagenUrl}
                   alt={p.nombre}
                   loading="lazy"
-                  onError={ocultaImgRota}
+                  sizes="40px"
                   className="h-10 w-8 shrink-0 rounded object-cover object-top"
                 />
                 <div className="min-w-0 flex-1">

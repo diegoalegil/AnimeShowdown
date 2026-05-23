@@ -23,8 +23,6 @@ import {
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { imagenPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from '../components/PersonajeImg'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
@@ -385,11 +383,11 @@ function ListaIntentos({ intentos, objetivo }) {
                 : 'border-border bg-bg'
             }`}
           >
-            <img
-              src={imagenPersonaje(i.slug)}
+            <PersonajeImg
+              slug={i.slug}
               alt={i.nombre}
               loading="lazy"
-              onError={ocultaImgRota}
+              sizes="40px"
               className="h-10 w-8 shrink-0 rounded object-cover object-top"
             />
             <div className="min-w-0 flex-1">
