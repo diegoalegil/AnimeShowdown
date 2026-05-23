@@ -69,7 +69,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 // (cero requests, todo CSS), pero comunica "estoy cargando" en vez
 // de "no pasa nada".
 function PageLoader() {
-  // Audit user feedback (2026-05-22): el orb dorado pulsando con 3 dots
+  // Feedback visual (2026-05-22): el orb dorado pulsando con 3 dots
   // se leia como "circulo amarillo feo" — destacaba demasiado el amarillo,
   // que no es ni accent (#9f1d2c carmesi) ni gold (#c5a15a) del proyecto.
   // Rediseño "premium anime":

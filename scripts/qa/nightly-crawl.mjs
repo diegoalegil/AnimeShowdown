@@ -35,9 +35,9 @@ const OUTPUT = join(ROOT, 'private/qa/nightly-crawl-report.md')
 
 const args = process.argv.slice(2)
 const BASE = args.find((a) => a.startsWith('--base='))?.split('=')[1]
-  ?? (args.includes('--local') ? 'http://localhost:5173' : 'https://animeshowdown.pages.dev')
+  ?? (args.includes('--local') ? 'http://localhost:5173' : 'https://animeshowdown.dev')
 
-const USER_AGENT = 'AnimeShowdownAuditBot/1.0 (nightly QA crawler; +https://animeshowdown.pages.dev)'
+const USER_AGENT = 'AnimeShowdownQABot/1.0 (nightly QA crawler; +https://animeshowdown.dev)'
 
 const ROUTES = [
   { path: '/', label: 'Home' },

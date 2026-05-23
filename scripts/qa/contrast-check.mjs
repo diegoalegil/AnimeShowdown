@@ -13,7 +13,7 @@
  *   - recomendaciones para los que fallan WCAG AA
  *
  * Uso:
- *   node scripts/qa/contrast-audit.mjs
+ *   node scripts/qa/contrast-check.mjs
  *
  * Sin args. Lee frontend/src/index.css en read-only. No modifica nada
  * fuera de private/qa/.
@@ -269,7 +269,7 @@ function main() {
   writeFileSync(OUTPUT, report)
 
   // Resumen consola
-  console.log(`\nAudit de contraste — ${pairs.length} pares evaluados`)
+  console.log(`\nRevisión de contraste — ${pairs.length} pares evaluados`)
   const fails = results.filter((r) => r.grade === 'FAIL' || r.grade === 'AA-large-only').length
   const aa = results.filter((r) => r.grade === 'AA' || r.grade === 'AAA').length
   console.log(`  ${aa} pasan AA, ${fails} fallan o solo AA-large`)
@@ -282,7 +282,7 @@ function generateReport(tokens, resolved, results, textAccentUsages) {
   lines.push('# Revisión de contraste WCAG — AnimeShowdown')
   lines.push('')
   lines.push(`> Generado: ${new Date().toISOString()}`)
-  lines.push(`> Script: \`scripts/qa/contrast-audit.mjs\``)
+  lines.push(`> Script: \`scripts/qa/contrast-check.mjs\``)
   lines.push(`> Fuente de tokens: \`frontend/src/index.css\` (@theme + utilities)`)
   lines.push(`> Criterio: WCAG 2.1 — AA = 4.5:1 (texto normal) / 3:1 (texto large ≥18pt o ≥14pt bold)`)
   lines.push('')
@@ -388,7 +388,7 @@ function generateReport(tokens, resolved, results, textAccentUsages) {
   lines.push('## Cómo ejecutar')
   lines.push('')
   lines.push('```bash')
-  lines.push('node scripts/qa/contrast-audit.mjs')
+  lines.push('node scripts/qa/contrast-check.mjs')
   lines.push('```')
   lines.push('')
   lines.push('Sin args, sin instalación. Usa solo Node stdlib + lee `frontend/src/index.css`.')
