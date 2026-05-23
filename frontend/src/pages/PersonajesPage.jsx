@@ -158,6 +158,10 @@ function PersonajesPage() {
   const visibleSuggestions = suggestionsQuery === autocompleteQuery ? suggestions : []
   const visibleSuggestionsError =
     suggestionsQuery === autocompleteQuery ? suggestionsError : null
+  const normalizedSearch = useMemo(
+    () => deferredSearch.trim().toLowerCase(),
+    [deferredSearch],
+  )
 
   // Ajuste (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
   // DOM, ~790 imgs, scroll de >100k px en móvil. Paginación incremental:
@@ -168,7 +172,7 @@ function PersonajesPage() {
   // un useEffect (react-hooks/set-state-in-effect) o ref-en-render
   // (react-hooks/refs).
   const PAGE_SIZE = 60
-  const filterKey = `${search}|${animeFilter ?? ''}|${tagFilter ?? ''}|${sort}|${view}|${eloMin ?? ''}|${eloMax ?? ''}`
+  const filterKey = `${normalizedSearch}|${animeFilter ?? ''}|${tagFilter ?? ''}|${sort}|${view}|${eloMin ?? ''}|${eloMax ?? ''}`
   const [pag, setPag] = useState({ key: filterKey, count: PAGE_SIZE })
   const visibleCount = pag.key === filterKey ? pag.count : PAGE_SIZE
   const cargarMas = () => setPag({ key: filterKey, count: visibleCount + PAGE_SIZE })
@@ -208,12 +212,11 @@ function PersonajesPage() {
         return true
       })
     }
-    if (search) {
-      const s = search.toLowerCase()
+    if (normalizedSearch) {
       list = list.filter(
         (p) =>
-          p.nombre.toLowerCase().includes(s) ||
-          p.anime.toLowerCase().includes(s),
+          p.nombre.toLowerCase().includes(normalizedSearch) ||
+          p.anime.toLowerCase().includes(normalizedSearch),
       )
     }
     if (sort === 'popularidad') {
@@ -244,7 +247,7 @@ function PersonajesPage() {
       list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
     }
     return list
-  }, [catalogoPersonajes, search, animeFilter, tagFilter, sort, eloMin, eloMax])
+  }, [catalogoPersonajes, normalizedSearch, animeFilter, tagFilter, sort, eloMin, eloMax])
 
   useEffect(() => {
     if (autocompleteQuery.length < 2) {
