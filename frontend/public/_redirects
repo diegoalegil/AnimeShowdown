@@ -27,6 +27,8 @@
 /compare                  /comparar                  301
 /ranking-personal         /mi-ranking                301
 /mi-ranking-personal      /mi-ranking                301
+/rankings                 /ranking                   301
+/rankings/                /ranking                   301
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
@@ -47,6 +49,7 @@
 /duelos/:par              / 200
 /comparar                 / 200
 /ranking                  / 200
+/rankings/:slug           / 200
 /mi-ranking               / 200
 /descubre-personaje       / 200
 /votar                    / 200

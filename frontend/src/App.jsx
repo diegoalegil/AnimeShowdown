@@ -40,6 +40,7 @@ const routePreloaders = {
   animes: () => import('./pages/AnimesPage'),
   animeDetail: () => import('./pages/AnimeDetailPage'),
   animeRanking: () => import('./pages/AnimeRankingPage'),
+  editorialRanking: () => import('./pages/EditorialRankingPage'),
   torneos: () => import('./pages/TorneosPage'),
   torneoDetail: () => import('./pages/TorneoDetailPage'),
   ranking: () => import('./pages/RankingPage'),
@@ -60,6 +61,7 @@ const PersonajeDetailPage = lazyRoute(routePreloaders.personajeDetail)
 const AnimesPage = lazyRoute(routePreloaders.animes)
 const AnimeDetailPage = lazyRoute(routePreloaders.animeDetail)
 const AnimeRankingPage = lazyRoute(routePreloaders.animeRanking)
+const EditorialRankingPage = lazyRoute(routePreloaders.editorialRanking)
 const TorneosPage = lazyRoute(routePreloaders.torneos)
 const TorneoDetailPage = lazyRoute(routePreloaders.torneoDetail)
 const EventosIndexPage = lazyRoute(() => import('./pages/EventosIndexPage'))
@@ -134,6 +136,7 @@ function routePreloaderFor(pathname) {
   if (pathname === '/torneos') return routePreloaders.torneos
   if (pathname.startsWith('/torneos/')) return routePreloaders.torneoDetail
   if (pathname === '/ranking') return routePreloaders.ranking
+  if (pathname.startsWith('/rankings/')) return routePreloaders.editorialRanking
   if (pathname === '/votar') return routePreloaders.votar
   if (pathname === '/games') return routePreloaders.games
   if (pathname === '/games/shadow-guess') return routePreloaders.shadowGuess
@@ -473,6 +476,7 @@ function App() {
               <Route path="/compare" element={<Navigate replace to="/comparar" />} />
               <Route path="/comparar" element={gated(<CompararPage />)} />
               <Route path="/ranking" element={gated(<RankingPage />)} />
+              <Route path="/rankings/:slug" element={gated(<EditorialRankingPage />)} />
               <Route path="/descubre-personaje" element={gated(<DescubrePersonajePage />)} />
               <Route path="/random" element={<Navigate replace to="/descubre-personaje" />} />
               {/* Higher or Lower → ELO Duel. La ruta vieja redirige
