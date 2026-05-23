@@ -1,4 +1,4 @@
-# Dependabot config — Plan v2 §16.2
+# Dependabot config
 #
 # Scan semanal con auto-merge candidate solo para patches/minors que pasen CI.
 # Major updates quedan abiertos como PR sin auto-merge para review manual
@@ -59,9 +59,9 @@ updates:
     labels:
       - "dependencies"
       - "backend"
-    # Spring Boot major updates suelen requerir review profundo (compat
+    # Spring Boot major updates suelen requerir revisión profunda (compat
     # con Spring Security, Flyway, etc.). Para minor/patch dejamos que
-    # Dependabot abra PR — el CI con los 92 tests valida automáticamente.
+    # Dependabot abra PR y la suite de CI valida automáticamente.
     ignore:
       - dependency-name: "org.springframework.boot:spring-boot-starter-parent"
         update-types: ["version-update:semver-major"]

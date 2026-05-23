@@ -1,8 +1,7 @@
 # SEO Testing & Setup — AnimeShowdown
 
-Guía operacional para los sub-bloques del Plan v2 §5 que dependen de
-configuración externa (DNS, Search Console, IndexNow) y de mediciones
-manuales (Core Web Vitals, velocidad por país).
+Guía operacional para SEO técnico, configuración externa (DNS, Search
+Console, IndexNow) y mediciones manuales de Core Web Vitals.
 
 ---
 
@@ -76,13 +75,12 @@ Sin la env var el service queda en modo no-op (útil en dev y CI).
 
 ## 5.8 · Core Web Vitals (LCP / INP / CLS)
 
-La medición está enchufada (web-vitals → Sentry, Plan v2 §3.8). El
-objetivo es mantener:
+La medición está enchufada con web-vitals → Sentry. El objetivo es mantener:
 
 - **LCP** < 2.5s · candidate ya optimizado con `<link rel="preload">`
   del logo del Hero en `index.html`.
-- **INP** < 200ms · cubierto por code-splitting de rutas (lazy) y
-  bundle index 54KB gzip (Plan v2 §3.10).
+- **INP** < 200ms · cubierto por code-splitting de rutas lazy y presupuesto
+  de bundle para el chunk principal.
 - **CLS** < 0.1 · verificar tras deploy con Lighthouse.
 
 ### Lighthouse local
@@ -150,13 +148,13 @@ Tras cada cambio importante de SEO:
    hreflang deben estar.
 5. **Preview redes**: pegar URL en
    https://www.opengraph.xyz/ · la card debería renderizar con la
-   imagen OG dinámica (Plan v2 §1.2 cuando aplica).
+   imagen OG dinámica cuando aplique.
 
 ---
 
 ## 16.10 · UptimeRobot — monitor de salud
 
-Plan v2 §16.10 (también §16.18 status page).
+Monitor público de salud del backend.
 
 ### Setup
 
@@ -203,8 +201,8 @@ es la opción mínima viable.
 
 ## Referencias
 
-- Plan v2 §5 — SEO técnico completo
-- Plan v2 §1.2 — OG image dinámica server-side
-- Plan v2 §3.8 — Web Vitals → Sentry
+- SEO técnico completo
+- OG image dinámica server-side
+- Web Vitals → Sentry
 - IndexNow protocol — https://www.indexnow.org/
 - Google Rich Results Test — https://search.google.com/test/rich-results

@@ -1,7 +1,7 @@
 name: DB backup → R2
 
 # Cron diario que hace pg_dump de Neon production y lo sube a Cloudflare R2
-# con rotación daily 7d / weekly 4w / monthly 12m (Plan v2 §2.8).
+# con rotación daily 7d / weekly 4w / monthly 12m.
 #
 # Para activar — secrets necesarios en Settings → Secrets → Actions:
 #   NEON_DATABASE_URL      postgresql://user:pass@host/db?sslmode=require
@@ -16,8 +16,7 @@ name: DB backup → R2
 # Restaurar desde un backup: descargar el .dump con aws s3 cp y luego:
 #   pg_restore --clean --if-exists --no-owner --no-acl \
 #              --dbname=$TARGET_DB animeshowdown-YYYY-MM-DD.dump
-# Probarlo mensual contra una BBDD local — política de "test de restore"
-# del Plan v2 §2.8.
+# Probarlo mensual contra una BBDD local como test de restore.
 
 on:
   schedule:
