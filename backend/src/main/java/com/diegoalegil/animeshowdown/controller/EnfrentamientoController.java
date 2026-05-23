@@ -167,7 +167,7 @@ public class EnfrentamientoController {
                     .body("Este enfrentamiento aún no tiene participantes asignados (ronda futura del bracket)");
         }
 
-        // 4: usuarios PENDIENTE de verificación de email no
+        // Usuarios PENDIENTE de verificación de email no
         // pueden votar. Toggle vía app.email-verification.required-to-vote
         // (true en prod, false en tests para no obligar al fixture a
         // simular el flujo completo de email). 403 con mensaje claro.
@@ -270,7 +270,7 @@ public class EnfrentamientoController {
         long votosGanador = ganador.getId().equals(p1.getId()) ? votosP1 : votosP2;
         long votosPerdedor = perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2;
 
-        // 13: push del estado actualizado del match al topic del
+        // Push del estado actualizado del match al topic del
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
@@ -287,7 +287,7 @@ public class EnfrentamientoController {
         publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador,
                 pesoVotoRegistrado);
 
-        // 2: evento de dominio. BadgeEventListener escucha tras
+        // Evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
         // Diseño extensible — futuros listeners podrán reaccionar también.
         if (usuario != null) {
@@ -378,7 +378,7 @@ public class EnfrentamientoController {
      * legacy). Eso fuerza la migración progresiva sin invalidar sesiones.
      */
     private AnonymousVoteContext resolverAnonymousContext(HttpServletRequest request) {
-        // 1. Cookie firmada (nueva): identidad estable server-side.
+        // Cookie firmada (nueva): identidad estable server-side.
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (anonymousIdentityService.getCookieName().equals(cookie.getName())) {
@@ -394,7 +394,7 @@ public class EnfrentamientoController {
                 }
             }
         }
-        // 2. Cookie legacy (no firmada).
+        // Cookie legacy (no firmada).
         String legacySessionId = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -404,7 +404,7 @@ public class EnfrentamientoController {
                 }
             }
         }
-        // 3. Header legacy (último fallback aceptado).
+        // Header legacy (último fallback aceptado).
         if (legacySessionId == null) {
             legacySessionId = normalizarAnonId(request.getHeader(ANON_ID_HEADER));
         }
@@ -415,7 +415,7 @@ public class EnfrentamientoController {
             // y haya perdido la legacy, o nunca si mantiene la legacy.
             return new AnonymousVoteContext(legacySessionId, hashAnonimo(request, legacySessionId), null);
         }
-        // 4. Sin identidad reconocible: emitimos token firmado nuevo.
+        // Sin identidad reconocible: emitimos token firmado nuevo.
         String token = anonymousIdentityService.emit();
         var verified = anonymousIdentityService.verify(token);
         String sid = verified.orElseGet(() -> UUID.randomUUID().toString());

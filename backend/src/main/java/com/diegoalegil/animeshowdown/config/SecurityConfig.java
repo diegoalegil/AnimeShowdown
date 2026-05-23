@@ -81,7 +81,7 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
                                 "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
                         .permitAll()
-                        // 13: endpoint STOMP/WebSocket. El handshake
+                        // Endpoint STOMP/WebSocket. El handshake
                         // HTTP es público; la autenticación se hace en el frame
                         // CONNECT con JWT (ver WebSocketConfig.JwtAuthChannelInterceptor).
                         .requestMatchers("/ws", "/ws/**").permitAll()
@@ -102,8 +102,7 @@ public class SecurityConfig {
                         // Lectura pública para que VotarPage pueda mostrar el match aleatorio
                         // antes de pedir login (el voto sí requiere auth, regla de arriba).
                         .requestMatchers(HttpMethod.GET, "/api/enfrentamientos/**").permitAll()
-                        // Plan producto (2026-05-18): Mi roster / favoritos.
-                        // Estas rutas tienen que aparecer ANTES de las reglas
+                        // Mi roster / favoritos. Estas rutas tienen que aparecer ANTES de las reglas
                         // generales de /api/personajes/** porque Spring
                         // Security matchea por orden. Sin esto, POST/DELETE
                         // /favorito caía en hasRole("ADMIN") y se rechazaba
@@ -121,7 +120,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/torneos/mios").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").permitAll()
-                        // 9: torneos creados por usuario verificado.
+                        // Torneos creados por usuario verificado.
                         // POST /mio es autenticado normal; el service valida
                         // la verificación de email. El resto de POST/PUT/DELETE
                         // sobre /api/torneos sigue siendo admin-only.
@@ -131,7 +130,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/votar/**").permitAll()
                         .requestMatchers("/api/votos/**").permitAll()
-                        // 2: catálogo de badges público (cacheable
+                        // Catálogo de badges público (cacheable
                         // long-term en frontend); /mios requiere auth para
                         // saber a qué usuario pertenecen los desbloqueos.
                         // §4.10: /stats agregado por badge es público — alimenta
@@ -139,30 +138,30 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/logros/stats").permitAll()
                         .requestMatchers("/api/logros/mios").authenticated()
-                        // 3: reactions emoji. GET público (todos
+                        // Reactions emoji. GET público (todos
                         // ven los counts); POST autenticado (1 reaction por
                         // user-target con lógica toggle/swap en el service).
                         .requestMatchers(HttpMethod.GET, "/api/reacciones").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reacciones").authenticated()
-                        // 4: predicciones de bracket. Leaderboard
+                        // Predicciones de bracket. Leaderboard
                         // público (top predictores); /mias y POST autenticados.
                         .requestMatchers(HttpMethod.GET, "/api/predicciones/leaderboard").permitAll()
                         .requestMatchers("/api/predicciones/**").authenticated()
-                        // 8: newsletter con double opt-in. Todo
+                        // Newsletter con double opt-in. Todo
                         // público — form en footer y links de confirmación
                         // /unsubscribe llegan al email del user sin auth.
                         .requestMatchers("/api/newsletter/**").permitAll()
-                        // 5: friends / follow. GET de listas y
+                        // Friends / follow. GET de listas y
                         // stats es público (perfiles ajenos). POST/DELETE
                         // requiere ser el seguidor (auth).
                         .requestMatchers(HttpMethod.GET, "/api/seguidores/usuario/**").permitAll()
                         .requestMatchers("/api/seguidores/**").authenticated()
-                        // 5: perfil público por username. /me/** son
+                        // Perfil público por username. /me/** son
                         // del usuario autenticado (historial privado, etc).
                         // /api/perfil/{username} muestra stats + top + logros
                         // públicos sin necesidad de login.
                         .requestMatchers(HttpMethod.GET, "/api/perfil/me/**").authenticated()
-                        // 1: DELETE /api/perfil/me (GDPR right to
+                        // DELETE /api/perfil/me (GDPR right to
                         // erasure). Requiere sesión + reconfirmación de password
                         // en el body.
                         .requestMatchers(HttpMethod.DELETE, "/api/perfil/me").authenticated()

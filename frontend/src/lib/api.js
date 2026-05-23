@@ -20,7 +20,7 @@ function normalizarApiBase(value) {
 
 export const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 
-// 3: el JWT vive en MEMORIA, no en localStorage. La sesión
+// El JWT vive en memoria, no en localStorage. La sesión
 // persistente la da el refresh_token cookie httpOnly que pone el backend
 // — esa cookie no la pueden tocar scripts (defensa XSS) y solo viaja a
 // nuestro propio dominio en peticiones credentialed (defensa CSRF).
@@ -208,8 +208,8 @@ export async function refreshSession() {
 }
 
 async function ejecutarFetch(path, { method, headers = {}, body, signal, includeAuth }) {
-  // Ajuste #7 (2026-05-21): Content-Type: application/json solo cuando
-  // hay body. En GET/HEAD sin body el header no aporta nada y dispara
+  // Content-Type: application/json solo cuando hay body.
+  // En GET/HEAD sin body el header no aporta nada y dispara
   // preflight CORS innecesario en cross-origin (es un "non-simple header"
   // segun fetch spec) — el browser hace OPTIONS extra antes del GET real.
   const fullHeaders = { ...headers }
@@ -258,8 +258,8 @@ async function request(
     // funciona, reintenta la petición original con el nuevo token. Si el
     // refresh falla, propaga el error original.
     //
-    // Ajuste #1 (2026-05-21): SecurityConfig devuelve 403 (no 401)
-    // cuando llega una API call sin auth o con JWT expirado — esto es
+    // SecurityConfig devuelve 403 (no 401) cuando llega una API call
+    // sin auth o con JWT expirado — esto es
     // intencional para no exponer entry-point que redirige a /login en
     // /api/**. Antes, frontend solo reaccionaba a 401; tras 15 min con
     // JWT expirado, todas las llamadas autenticadas devolvian 403 sin
@@ -590,7 +590,7 @@ export const endpoints = {
   // con la URL del frontend para que el polling y el cache sean limpios.
   torneoBySlug: (slug) => api.get(`/api/torneos/slug/${slug}`),
   createTorneo: (data) => api.post('/api/torneos', data),
-  // 9: torneos creados por usuario verificado.
+  // Torneos creados por usuario verificado.
   //   crearTorneoMio: body { nombre, descripcion?, publico?, participantesIds[8|16] }
   //     -> 201 con Torneo en estado SCHEDULED/PENDIENTE. Necesita email
   //     verificado o el backend devuelve 400.

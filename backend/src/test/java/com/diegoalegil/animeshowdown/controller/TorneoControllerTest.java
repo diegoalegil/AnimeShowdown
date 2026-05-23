@@ -205,7 +205,7 @@ class TorneoControllerTest {
 
     private String tokenUserVerificado(String username, String email) throws Exception {
         String token = tokenUserRegistrado(username, email);
-        // 4: registros nacen PENDIENTE. Para el flow §4.9 el user
+        // Registros nacen PENDIENTE. Para este flow el user
         // necesita estar verificado — lo flippeamos directo en DB en el test.
         var u = usuarioRepository.findByUsername(username).orElseThrow();
         u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
@@ -232,11 +232,8 @@ class TorneoControllerTest {
 
     @Test
     void crearMioConUserNoVerificadoDevuelve403() throws Exception {
-        // Ajuste #11 (2026-05-21): antes este endpoint devolvia 400
-        // (IllegalArgumentException) cuando el user no estaba verificado.
-        // Semanticamente correcto es 403 — el user esta autenticado pero
-        // le falta permiso (verificacion). Ahora el service lanza
-        // ResponseStatusException(FORBIDDEN,...).
+        // Un user autenticado pero no verificado recibe 403 porque le falta
+        // permiso para crear torneos.
         String token = tokenUserRegistrado("user_no_verif_torneo", "user_no_verif_torneo@example.com");
 
         mvc.perform(post("/api/torneos/mio")

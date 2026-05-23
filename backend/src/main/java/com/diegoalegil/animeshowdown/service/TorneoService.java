@@ -109,9 +109,8 @@ public class TorneoService {
             throw new IllegalArgumentException("Se requiere usuario autenticado");
         }
         if (!creador.estaVerificado()) {
-            // 9: "Solo cuentas verificadas".
-            // Ajuste #11 (2026-05-21): antes lanzabamos IllegalArgumentException
-            // → 400. Semanticamente correcto es 403 — el user esta autenticado
+            // Solo cuentas verificadas: semánticamente correcto es 403 porque
+            // el user está autenticado
             // pero le falta permiso (verificacion). ResponseStatusException de
             // Spring mapea limpio a 403 sin tocar GlobalExceptionHandler ni
             // crear una excepcion custom.
@@ -202,7 +201,7 @@ public class TorneoService {
                 "\"" + guardado.getNombre() + "\" ya está en juego.",
                 payloadDeTorneo(guardado));
 
-        // 7: IndexNow ping a Bing/Yandex/etc. para que el
+        // IndexNow ping a Bing/Yandex/etc. para que el
         // nuevo URL del torneo se indexe en minutos en lugar de horas.
         // Best-effort async; no afecta al flujo de aprobación si falla.
         indexNowService.notificarUna("/torneos/" + guardado.getSlug());
@@ -313,12 +312,8 @@ public class TorneoService {
         Torneo guardado = torneoRepository.save(torneo);
 
         if (request != null && request.getParticipantesIds() != null && !request.getParticipantesIds().isEmpty()) {
-            // Ajuste #10 (2026-05-21): antes la ruta admin (iniciarTorneo)
-            // creaba el bracket sin validar tamaño ni duplicados, mientras
-            // que crearPorUsuario validaba ambos. Resultado: admin podía
-            // crear torneos con 7 o 12 personajes (estructura rota) o con
-            // duplicados (el mismo personaje en 2 enfrentamientos de la
-            // misma ronda).
+            // La ruta admin valida tamaño y duplicados igual que crearPorUsuario,
+            // evitando brackets con estructura rota o personajes repetidos.
             //
             // Admin es más permisivo que crearPorUsuario (que exige 8 o
             // 16): aceptamos cualquier potencia de 2 entre 2 y 64. BracketService
@@ -421,7 +416,7 @@ public class TorneoService {
         // Recargar tras los updates del advance service para tener el estado fresco
         Torneo guardado = torneoRepository.findById(id).orElseThrow();
 
-        // 4: resuelve todas las predicciones del torneo
+        // Resuelve todas las predicciones del torneo
         // comparando contra los ganadores recién calculados.
         int resueltas = prediccionService.resolverParaTorneo(guardado);
         log.info("Torneo {} finalizado en cascada: {} predicciones resueltas", id, resueltas);

@@ -51,8 +51,8 @@ public class GlobalExceptionHandler {
     /**
      * Validación de @Valid.
      *
-     * <p>Ajuste #14 (2026-05-21): antes devolvíamos {@code Map<field, msg>}
-     * plano — forma distinta al resto de errores (que usan
+     * <p>Devolvemos un shape uniforme para validación en vez de un
+     * {@code Map<field, msg>} plano — forma distinta al resto de errores (que usan
      * {@code {status, message, timestamp, path}}). El frontend tenía que
      * detectar la forma según status code. Ahora uniformizamos: shape
      * estándar + campo {@code errors} con el field map dentro. Consumers
@@ -155,8 +155,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Ajuste #11 follow-up (2026-05-21): handler explicito para
-     * ResponseStatusException. Sin este handler, el catch-all
+     * Handler explicito para ResponseStatusException. Sin este handler, el catch-all
      * Exception.class de abajo capturaba las ResponseStatusException
      * antes que Spring's ResponseStatusExceptionResolver pudiera
      * procesarlas, devolviendo 500 en lugar del status especificado.
@@ -199,8 +198,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Ajuste #14 (2026-05-21): extraido baseResponse para que el
-     * handler de @Valid pueda anadir el campo extra 'errors' al body
+     * Base compartida para que el handler de @Valid pueda anadir el campo
+     * extra 'errors' al body
      * estandar sin duplicar codigo.
      */
     private Map<String, Object> baseResponse(

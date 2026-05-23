@@ -20,11 +20,10 @@ import App from './App.jsx'
 installStaleAssetRecovery()
 
 // Bootstrap Sentry antes de montar React. No-op si VITE_SENTRY_DSN no está
-// definida (dev local sin.env). 7.
+// definida (dev local sin env).
 initSentry()
 
 // Web Vitals → Sentry measurements. En dev sin DSN solo log a consola.
-// 8.
 initWebVitals()
 
 // QueryClientProvider envuelve el árbol entero para que cualquier

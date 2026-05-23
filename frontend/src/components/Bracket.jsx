@@ -42,7 +42,7 @@ const TITULOS = {
   1: ['Final'],
 }
 
-// 2: kanji decorativo por ronda. 一回戦 (primera ronda),
+// Kanji decorativo por ronda. 一回戦 (primera ronda),
 // 二回戦, 準決勝 (semifinal), 決勝 (final). El sufijo encaja según el
 // número de rondas — la última siempre es 決勝.
 const KANJI_RONDA = {
@@ -53,7 +53,7 @@ const KANJI_RONDA = {
 }
 
 function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSlug, estado }) {
-  // 4: cargamos las predicciones del usuario para este torneo
+  // Cargamos las predicciones del usuario para este torneo
   // (skip si no hay user o no hay torneoId). El hook ya respeta esos
   // gates internamente. Se indexa por enfrentamientoId para que cada
   // BracketMatch reciba solo su predicción.
@@ -82,7 +82,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
   const titulos = TITULOS[totalRondas] || []
   const kanjis = KANJI_RONDA[totalRondas] || []
 
-  // 2: barra de progreso del torneo. Cuenta matches resueltos
+  // Barra de progreso del torneo. Cuenta matches resueltos
   // (con ganador) sobre el total. Útil de un vistazo para "X de Y matches".
   const totalMatches = enfrentamientos.length
   const matchesResueltos = enfrentamientos.filter((e) => e.ganador).length
@@ -93,8 +93,8 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
   const rondaActualIdx = rondas.indexOf(rondaActual)
 
   // Campeón resuelto con dos fuentes (alineado con TorneoQueryService):
-  //   1. ganadorSlug del DTO (campo Torneo.ganadorPersonaje).
-  //   2. ganador del match de la última ronda en el array.
+  //   - ganadorSlug del DTO (campo Torneo.ganadorPersonaje).
+  //   - ganador del match de la última ronda en el array.
   const ultimoMatch = porRonda.get(rondas[rondas.length - 1])?.[0]
   const campeon =
     findPersonajePorSlug(enfrentamientos, ganadorSlug) ??
@@ -103,7 +103,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
 
   return (
     <div>
-      {/* 2: barra de progreso superior con "X de Y matches"
+      {/* Barra de progreso superior con "X de Y matches"
           y ronda actual. Solo se muestra si hay matches resueltos o el
           torneo no es FINISHED (en ese caso, mostraría 100% redundante
           con la card de campeón). */}

@@ -15,7 +15,7 @@ public class ResetPasswordRequest {
     @Pattern(regexp = "\\d{6}", message = "El código tiene que ser 6 dígitos")
     private String codigo;
 
-    // 5: mismo nivel de exigencia que en registro.
+    // Mismo nivel de exigencia que en registro.
     @NotBlank(message = "La nueva contraseña es obligatoria")
     @Size(min = 8, max = 100, message = "La contraseña debe tener entre 8 y 100 caracteres")
     @Pattern(

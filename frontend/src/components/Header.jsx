@@ -117,15 +117,13 @@ function Header() {
     }
   }, [])
 
-  // Ajuste #8 (2026-05-21): cuando el menu movil esta abierto, el
-  // fondo se podia seguir scrolleando (perdia el contexto del panel
-  // sobre la pagina) y el foco no quedaba atrapado dentro — Tab salia
-  // a links del DOM detras del overlay. Tres cosas:
-  //   1. Bloquear scroll del body con overflow: hidden mientras open.
-  //   2. Trap de Tab dentro del panel (Tab al ultimo → primero,
+  // Cuando el menu movil esta abierto, el fondo no debe scrollear y
+  // el foco debe quedar atrapado dentro del panel:
+  //   - Bloquear scroll del body con overflow: hidden mientras open.
+  //   - Trap de Tab dentro del panel (Tab al ultimo → primero,
   //      Shift+Tab al primero → ultimo).
-  //   3. Escape cierra el menu y devuelve foco al toggle button.
-  //   4. Al abrir, mover foco al primer NavLink del panel.
+  //   - Escape cierra el menu y devuelve foco al toggle button.
+  //   - Al abrir, mover foco al primer NavLink del panel.
   useEffect(() => {
     if (!mobileOpen) return undefined
     // Scroll-lock del body

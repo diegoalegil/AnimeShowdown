@@ -221,11 +221,7 @@ public class BracketAdvanceService {
      * pero la última no puede cerrarse (empate/votos faltantes), el progreso
      * realizado queda persistido en BBDD en lugar de rolear todo.
      *
-     * <p>Ajuste #16 (2026-05-21): el límite duro era {@code MAX_RONDAS = 6}
-     * — suficiente para hasta 64 participantes (log2(64)=6). Si en el
-     * futuro hacemos torneos de 128/256, el bucle terminaba a las 6 iter
-     * dejando el bracket avanzado a medias. Subido a {@code MAX_RONDAS = 9}
-     * (cubre hasta 256 participantes = log2(256)+1 de margen). Sigue
+     * <p>El límite cubre hasta 256 participantes (log2(256)+1 de margen). Sigue
      * siendo un safeguard contra bucles infinitos. No derivamos del
      * tamaño real del bracket por query para evitar tocar la cache L1
      * de Hibernate antes de las tx REQUIRES_NEW (causaba race con
