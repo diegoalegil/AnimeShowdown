@@ -216,7 +216,7 @@ function TorneoDetailPage() {
         {estado === 'IN_PROGRESS' && torneo.currentMatch && (
           <LiveMatchSpectator torneo={torneo} />
         )}
-        {/* Sprint UX (2026-05-18): "Duelos abiertos" arriba del bracket
+        {/* "Duelos abiertos" arriba del bracket
             para que el usuario que aterriza en un torneo IN_PROGRESS no
             tenga que cazar a mano qué match está abierto en el bracket.
             Solo se renderiza si hay matches votables; el bracket sigue

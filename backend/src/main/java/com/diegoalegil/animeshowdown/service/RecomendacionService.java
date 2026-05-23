@@ -22,7 +22,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
  *
  * <p>Fuente única de verdad para el ELO: el conteo de votos del personaje.
  * No usamos atributos extendidos (género, era, tropos…) porque están
- * bloqueados por el Bloque 15.
+ * bloqueados por el capa correspondiente.
  *
  * <p>Estrategia:
  * <ol>

@@ -217,7 +217,7 @@
   }
 
   .as-stage-visual::before {
-    /* Feedback (2026-05-22): las páginas individuales de los juegos
+    /* Feedback: las páginas individuales de los juegos
        tenían el cover como SVG outline + overlay oscuro al 86% en el top,
        dejándolo apagado y "inapreciable". Ahora bajamos el oscurecimiento
        superior (de 86% → 55%) y el inferior queda en 80% para legibilidad,

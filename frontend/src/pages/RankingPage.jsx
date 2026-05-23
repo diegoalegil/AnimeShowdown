@@ -167,7 +167,7 @@ function RankingPage() {
         {/* Meta report narrativo arriba del MoversStrip: lee los endpoints
             que ya carga la página y React Query deduplica las requests. */}
         <RankingMetaReport />
-        {/* Nota de producto (2026-05-18): el ranking se sentía estático.
+        {/* Nota de producto: el ranking se sentía estático.
             MoversStrip arriba pinta los 3 personajes con más movimiento
             de la semana — da sensación de vida temporal incluso antes
             de que el user elija un tab. Solo aparece si hay movimientos. */}
@@ -274,7 +274,7 @@ function EloExplainer() {
  * categoría si tiene menos de MIN_PARA_SECCION personajes (3) —
  * mejor no enseñar "Top mentores: 1 personaje" que se ve raro.
  *
- * Nota de producto (2026-05-18 — visión "estadio otaku"): el ranking
+ * Nota de producto: el ranking
  * por ELO global es la "tabla de la liga"; estas categorías son las
  * "competiciones temáticas" (Top heroínas, copa villanos, etc).
  * Tags vienen del archivo data/personajes-tags.js, sin backend.
@@ -431,7 +431,7 @@ function CategoriaCard({ rank, personaje, tono }) {
  * de posición en los últimos 7 días. Hide si el endpoint no devuelve
  * datos significativos (sin votos suficientes para que haya movimientos).
  *
- * Nota de producto (2026-05-18): da sensación de vida temporal al ranking.
+ * Nota de producto: da sensación de vida temporal al ranking.
  * El user llega y ve quién está subiendo/bajando ahora mismo antes de
  * elegir un tab — el ranking deja de sentirse "tabla congelada".
  */
@@ -502,7 +502,7 @@ function MoverChip({ mover }) {
 }
 
 function Tabs({ activo, onChange }) {
-  // Ajuste (2026-05-17): el flex-wrap hacía que 'Por anime' bajara a la
+  // El flex-wrap hacía que 'Por anime' bajara a la
   // segunda fila en 390px, dejando el control con apariencia rota.
   // Solución: scroll horizontal en móvil (-mx para que sangre full-bleed)
   // con whitespace-nowrap; en sm+ vuelve al grid sin scroll.

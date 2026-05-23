@@ -9,7 +9,7 @@ import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 
-// Nota de producto (2026-05-18): /votar sale de navLinks regular y pasa a
+// Nota de producto: /votar sale de navLinks regular y pasa a
 // CTA principal del header. El login deja de ser el botón accent (estaba
 // pidiendo a un usuario nuevo registrarse antes de aportar valor) y
 // queda como link ghost discreto: ahora la primera acción visible es
@@ -63,7 +63,7 @@ function loginGhostClass({ isActive }) {
   }`
 }
 
-// Ajuste (2026-05-17): en móvil 390px el header ocupaba ~25% del primer
+// En móvil 390px el header ocupaba ~25% del primer
 // viewport apilando logo + 7 navlinks + 5 iconos utility + login en
 // flex-col. Refactor: en móvil solo logo + acción primaria (login o
 // avatar+notif) + hamburger; nav y utility se abren en panel.
@@ -270,7 +270,7 @@ function Header() {
             </Link>
           </>
         ) : (
-          /* Nota de producto (2026-05-18): "Votar ahora" en 2 líneas comía
+          /* Nota de producto: "Votar ahora" en 2 líneas comía
              demasiado del header móvil. Cambio a "Votar" + icono Swords:
              una palabra cabe en una línea y deja respirar al hamburger. */
           <NavLink

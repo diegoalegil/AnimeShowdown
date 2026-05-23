@@ -25,7 +25,7 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
     List<Enfrentamiento> findByTorneoOrderByRondaAscIdAsc(Torneo torneo);
 
     /**
-     * Ajuste (2026-05-17): query batch para evitar N+1 en TorneoQueryService
+     * query batch para evitar N+1 en TorneoQueryService
      * .listarResumenes — antes hacía findByTorneoOrderBy... por CADA torneo
      * visible (1 + N queries con N≈50 torneos). Esta query trae todos los
      * enfrentamientos de los torneos pedidos en UNA sola, con JOIN FETCH
@@ -50,7 +50,7 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
      * ORDER BY RANDOM() es O(n log n) sobre n filas. Para los tamaños
      * realistas del proyecto (cientos de matches abiertos como máximo)
      * es perfectamente aceptable — Postgres lo resuelve <5ms. Cuando
-     * llegue Bloque 9 (Battle Royale) con miles de matches/min, se
+     * llegue capa correspondiente (Battle Royale) con miles de matches/min, se
      * puede cambiar a una estrategia con OFFSET aleatorio.
      */
     @Query(value = """

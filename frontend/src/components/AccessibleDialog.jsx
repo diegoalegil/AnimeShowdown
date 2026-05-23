@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 /**
- * Diálogo modal accesible reutilizable (nota técnica F017/F018/F019,
- * 2026-05-22).
+ * Diálogo modal accesible reutilizable.
  *
  * <p>Antes la app tenía 3+ modales custom (filtros móvil de Personajes,
  * límite anónimo de Votar, borrar cuenta de Perfil) cada uno implementando

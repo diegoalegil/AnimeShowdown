@@ -106,7 +106,7 @@ function InicioPage() {
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
       <Hero />
-      {/* Nota de producto (2026-05-18): Pulso sustituye al antiguo
+      {/* Nota de producto: Pulso sustituye al antiguo
           SectionLiveBattle (duelo random cliente-side, no era "live").
           Cinco señales reales desde backend arriba del fold para que
           la home muestre producto en marcha, no solo feature list. */}
@@ -114,7 +114,7 @@ function InicioPage() {
       <NombresMarquee />
       <SectionStats />
       <SectionTop10Ranking />
-      {/* Ajuste (2026-05-17): el resto de secciones eran below-the-fold
+      {/* el resto de secciones eran below-the-fold
           típico — montarlas solo cuando se acercan al viewport recorta
           el initial DOM/JS a ~30%. LazyOnView mantiene el espacio
           reservado para no causar layout shift. */}

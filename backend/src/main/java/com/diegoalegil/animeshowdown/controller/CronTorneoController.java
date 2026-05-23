@@ -106,7 +106,7 @@ public class CronTorneoController {
      * mismo tiempo de ejecución independientemente de dónde difieran
      * los bytes — el early return por null ya no es vector).
      *
-     * <p>Ajuste (2026-05-17): la implementación manual previa hacía un
+     * <p>la implementación manual previa hacía un
      * {@code if (a == null || b == null) return false;} antes del loop
      * que permitía distinguir por timing "secret null" vs "secret
      * wrong". MessageDigest.isEqual cubre ambos casos uniformemente
