@@ -419,7 +419,7 @@ function App() {
       </main>
       {!isFullscreenRoute && <MobileBottomNav />}
       {!isFullscreenRoute && (
-        <div className="pb-16 md:pb-0">
+        <div className="pb-28 md:pb-0">
           <Footer />
         </div>
       )}
