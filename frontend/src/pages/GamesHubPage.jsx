@@ -16,7 +16,12 @@ import {
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { ELO_DUEL_BEST_KEY, fechaDelDia, safeStorage } from '../lib/games'
+import {
+  ELO_DUEL_BEST_KEY,
+  fechaDelDia,
+  getDailyResetCountdown,
+  safeStorage,
+} from '../lib/games'
 import {
   listenDailyProgress,
   readDailyStreak,
@@ -219,17 +224,6 @@ function leerMejorRacha(bestKey) {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
-function calcularReinicio() {
-  const now = new Date()
-  const mañana = new Date(now)
-  mañana.setDate(now.getDate() + 1)
-  mañana.setHours(0, 0, 0, 0)
-  const diffMs = mañana - now
-  const h = Math.floor(diffMs / 3_600_000)
-  const m = Math.floor((diffMs % 3_600_000) / 60_000)
-  return { h, m }
-}
-
 function GamesHubPage() {
   useSeo({
     title: 'Anime Daily Trials',
@@ -238,9 +232,9 @@ function GamesHubPage() {
     canonical: 'https://animeshowdown.dev/games',
   })
 
-  const [reinicio, setReinicio] = useState(calcularReinicio)
+  const [reinicio, setReinicio] = useState(getDailyResetCountdown)
   useEffect(() => {
-    const id = setInterval(() => setReinicio(calcularReinicio()), 60_000)
+    const id = setInterval(() => setReinicio(getDailyResetCountdown()), 60_000)
     return () => clearInterval(id)
   }, [])
 
@@ -336,7 +330,7 @@ function GamesHubPage() {
                 Reset diario
               </p>
               <p className="mt-3 font-mono text-4xl font-black text-fg-strong">
-                {reinicio.h}h {reinicio.m}m
+                {reinicio.label}
               </p>
               <p className="text-sm text-fg-muted">hasta que cambie la suerte.</p>
             </div>
@@ -396,7 +390,7 @@ function GamesHubPage() {
             icon={Hourglass}
             iconColor="text-cyan-400"
             label="Próximo reset"
-            value={`${reinicio.h}h ${reinicio.m}m`}
+            value={reinicio.label}
             className="col-span-2 sm:col-span-1"
           />
         </div>
