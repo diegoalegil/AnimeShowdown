@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import {
@@ -11,7 +11,6 @@ import {
   Flame,
 } from 'lucide-react'
 import {
-  personajes,
   getStatsPersonaje,
 } from '../lib/personajes-core'
 import {
@@ -20,23 +19,28 @@ import {
   safeStorage,
 } from '../lib/games'
 import PersonajeImg from '../components/PersonajeImg'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
-function pickRandom(exclude = null) {
-  let p
-  do {
-    p = personajes[Math.floor(Math.random() * personajes.length)]
-  } while (exclude && p.slug === exclude.slug)
+function pickRandom(catalogoPersonajes, exclude = null) {
+  const pool = exclude
+    ? catalogoPersonajes.filter((p) => p.slug !== exclude.slug)
+    : catalogoPersonajes
+  const p = pool[Math.floor(Math.random() * pool.length)]
+  if (!p) return null
   return { ...p, ...getStatsPersonaje(p.slug) }
 }
 
-function pickDistinctElo(reference) {
-  let p = pickRandom(reference)
+function pickDistinctElo(catalogoPersonajes, reference) {
+  let p = pickRandom(catalogoPersonajes, reference)
   // Si por azar tienen exactamente el mismo ELO, tira otro (evita ambigüedad
   // en la pregunta "más o menos" — en el catálogo solo pasa con personajes
   // muy similares en popularidad, pero por si acaso).
-  while (p.elo === reference.elo) p = pickRandom(reference)
+  for (let i = 0; p && p.elo === reference.elo && i < 12; i++) {
+    p = pickRandom(catalogoPersonajes, reference)
+  }
   return p
 }
 
@@ -59,6 +63,40 @@ function HigherOrLowerPage() {
     description:
       'Mini-juego de adivinar quién tiene más ELO entre dos personajes anime. Sube tu mejor racha personal.',
   })
+
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const parejaInicial = useMemo(() => {
+    const reference = pickRandom(catalogoPersonajes)
+    if (!reference) return null
+    const challenger = pickDistinctElo(catalogoPersonajes, reference)
+    if (!challenger) return null
+    return { reference, challenger }
+  }, [catalogoPersonajes])
+
+  if (!parejaInicial) {
+    return (
+      <GameCatalogLoading
+        kanji="戦"
+        title="Preparando ELO Duel"
+        description="Cargando ranking de personajes para iniciar el duelo."
+      />
+    )
+  }
+
+  return (
+    <HigherOrLowerGame
+      catalogoPersonajes={catalogoPersonajes}
+      initialChallenger={parejaInicial.challenger}
+      initialReference={parejaInicial.reference}
+    />
+  )
+}
+
+function HigherOrLowerGame({
+  catalogoPersonajes,
+  initialChallenger,
+  initialReference,
+}) {
   const { play } = useSound()
 
   // Mecánica clásica de Higher or Lower:
@@ -67,10 +105,8 @@ function HigherOrLowerPage() {
   //   - User predice: ¿el challenger tiene MÁS o MENOS ELO que reference?
   //   - Si acierta: challenger se convierte en el nuevo reference, aparece nuevo challenger
   //   - Esto rota la cadena así no hay racha infinita con un top-tier en izquierda
-  const [reference, setReference] = useState(() => pickRandom())
-  const [challenger, setChallenger] = useState(() =>
-    pickDistinctElo(reference || pickRandom()),
-  )
+  const [reference, setReference] = useState(initialReference)
+  const [challenger, setChallenger] = useState(initialChallenger)
   const [revealed, setRevealed] = useState(null) // null | 'correct' | 'wrong'
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(readBestStreak)
@@ -103,7 +139,8 @@ function HigherOrLowerPage() {
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
       revealTimerRef.current = setTimeout(() => {
         revealTimerRef.current = null
-        const nuevoChallenger = pickDistinctElo(challenger)
+        const nuevoChallenger = pickDistinctElo(catalogoPersonajes, challenger)
+        if (!nuevoChallenger) return
         setReference(challenger)
         setChallenger(nuevoChallenger)
         setRevealed(null)
@@ -120,9 +157,12 @@ function HigherOrLowerPage() {
 
   const restart = () => {
     play('playClick')
-    const nuevoRef = pickRandom()
+    const nuevoRef = pickRandom(catalogoPersonajes)
+    if (!nuevoRef) return
+    const nuevoChallenger = pickDistinctElo(catalogoPersonajes, nuevoRef)
+    if (!nuevoChallenger) return
     setReference(nuevoRef)
-    setChallenger(pickDistinctElo(nuevoRef))
+    setChallenger(nuevoChallenger)
     setScore(0)
     setRevealed(null)
     setGameOver(false)
