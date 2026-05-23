@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && vite build",
-    "build:no-images": "node ../scripts/generate-sitemap.mjs && vite build",
-    "build:no-sitemap": "vite build",
+    "dev": "NODE_OPTIONS=--disable-warning=DEP0205 vite",
+    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build:no-images": "node ../scripts/generate-sitemap.mjs && NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build:no-sitemap": "NODE_OPTIONS=--disable-warning=DEP0205 vite build",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
     "build:images": "node scripts/generate-image-variants.mjs",
     "build:colors": "node scripts/generate-dominant-colors.mjs",
@@ -15,7 +15,7 @@
     "test:bundle": "node scripts/check-bundle-budget.mjs",
     "test:e2e": "playwright test",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "NODE_OPTIONS=--disable-warning=DEP0205 vite preview",
     "qa:a11y": "npx --yes @axe-core/cli@4.11.0 http://localhost:4173/ http://localhost:4173/personajes http://localhost:4173/animes http://localhost:4173/torneos http://localhost:4173/ranking http://localhost:4173/login http://localhost:4173/register --tags wcag2a,wcag2aa,wcag21a,wcag21aa --exit"
   },
   "dependencies": {
@@ -52,7 +52,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "sharp": "^0.34.5",
-    "vite": "^8.0.13",
+    "vite": "^8.0.14",
     "vite-plugin-pwa": "^1.3.0"
   }
 }

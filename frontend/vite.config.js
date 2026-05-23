@@ -381,6 +381,8 @@ export default defineConfig({
     criticalCssPlugin(),
   ],
   build: {
+    // Personaje3D queda aislado como chunk lazy y lo vigila npm run test:bundle.
+    chunkSizeWarningLimit: 1000,
     // Vendor chunks explícitos: sin esto Rolldown junta todo en index y
     // pasa de 150KB a 300KB+ gzip. Cada vendor se aísla en su propio
     // chunk para que se cachee long-term separado (cambios en código de
