@@ -176,32 +176,57 @@ function findGlossaryTermsWithoutCrosslink(glossary, tags) {
   const allTags = new Set()
   for (const slugTags of Object.values(tags)) {
     if (Array.isArray(slugTags)) {
-      for (const t of slugTags) allTags.add(t.toLowerCase())
+      for (const t of slugTags) allTags.add(normalizarTerm(t))
     }
   }
   // Términos del glossary
   const terms = Array.isArray(glossary.data) ? glossary.data : glossary.data.terms ?? []
   const result = []
   for (const term of terms) {
-    const id = (term.id ?? term.slug ?? term.termino ?? term.term ?? '').toLowerCase()
+    const id = normalizarTerm(term.id ?? term.slug ?? term.termino ?? term.term ?? '')
     const linked = allTags.has(id)
     result.push({ termino: id, linked })
   }
   return { unsupported: false, terms: result }
 }
 
+function normalizarTerm(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 function findOrphanImages(personajes, imagesByAnime) {
-  // Para cada anime en disco, qué slugs hay que NO están en seed
+  // Para cada anime en disco, qué slugs hay que NO están en seed ni
+  // referenciados explícitamente por imagenUrl. Esto evita falsos positivos
+  // en colisiones resueltas con slug prefijado, por ejemplo:
+  // slug=angel_beats_yui pero imagenUrl=/img/Angel_Beats/yui.webp.
   const validSlugs = new Set(personajes.map((p) => p.slug))
+  const referencedImages = new Set(
+    personajes
+      .map((p) => imageKeyFromUrl(p.imagenUrl))
+      .filter(Boolean),
+  )
   const orphans = []
   for (const [anime, slugs] of Object.entries(imagesByAnime)) {
     for (const slug of slugs) {
-      if (!validSlugs.has(slug)) {
+      if (!validSlugs.has(slug) && !referencedImages.has(`${anime}/${slug}`)) {
         orphans.push({ anime, slug })
       }
     }
   }
   return orphans
+}
+
+function imageKeyFromUrl(url) {
+  const match = String(url ?? '').match(
+    /^\/?img\/([^/]+)\/([^/.]+)\.(webp|avif|png|jpg|jpeg|svg)$/i,
+  )
+  if (!match) return null
+  return `${match[1]}/${match[2].toLowerCase()}`
 }
 
 // ---------- Reporte ----------
@@ -226,7 +251,7 @@ function generateReport(data) {
   lines.push(`| Slugs con caracteres inválidos | ${invalidSlugs.length} ${invalidSlugs.length === 0 ? '✓' : '⚠'} |`)
   lines.push(`| Personajes sin imagen accesible | ${missingImages.length} ${missingImages.length === 0 ? '✓' : '⚠'} |`)
   lines.push(`| Tags huérfanos (slug no existe) | ${orphanTags.length} ${orphanTags.length === 0 ? '✓' : '⚠'} |`)
-  lines.push(`| Imágenes huérfanas (slug sin seed) | ${orphanImages.length} ${orphanImages.length === 0 ? '✓' : '⚠'} |`)
+  lines.push(`| Imágenes huérfanas (sin seed/imagenUrl) | ${orphanImages.length} ${orphanImages.length === 0 ? '✓' : '⚠'} |`)
   if (!glossaryStatus.unsupported) {
     const linked = glossaryStatus.terms.filter((t) => t.linked).length
     const unlinked = glossaryStatus.terms.length - linked
@@ -301,7 +326,7 @@ function generateReport(data) {
       lines.push('## ⚠ Términos glossary sin cross-link a personajes')
       lines.push('')
       lines.push('Estos términos del glossary no aparecen como tag en `personajes-tags.js`.')
-      lines.push('Si añadiéramos `/personajes?tag=<term>`, estos no devolverían resultados.')
+      lines.push('No deben enlazar a `/personajes?tag=<term>` hasta que exista una selección curada de personajes.')
       lines.push('')
       lines.push('| Término |')
       lines.push('|---|')
@@ -313,7 +338,7 @@ function generateReport(data) {
   }
 
   if (orphanImages.length > 0) {
-    lines.push('## ⚠ Imágenes huérfanas (slug en disco sin entry en seed)')
+    lines.push('## ⚠ Imágenes huérfanas (archivo sin entry en seed ni imagenUrl)')
     lines.push('')
     lines.push(`Total: ${orphanImages.length}. Mostrando los primeros 30.`)
     lines.push('')

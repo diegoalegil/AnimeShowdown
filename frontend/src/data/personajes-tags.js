@@ -15,6 +15,11 @@
  *   - rival       Rival del protagonista / segundo en discordia.
  *   - mentor      Maestros, sensei, figuras paternas.
  *   - antihero    Héroe ambiguo, métodos discutibles (Lelouch, Light, Eren tardío…).
+ *   - shounen     Personajes de obras shounen claramente reconocibles.
+ *   - isekai      Personajes de obras isekai.
+ *   - mecha       Personajes asociados a obras de mechas.
+ *   - sports-anime Personajes de anime deportivo.
+ *   - power-scaling Personajes frecuentes en debates de poder.
  *
  * Un personaje puede llevar varios tags. Ejemplo: Luffy → [hero,
  * protagonist, husbando]; Makima → [villain, waifu].
@@ -27,21 +32,21 @@
 
 const TAGS_OVERRIDE = {
   // ====== One Piece ======
-  luffy: ['hero', 'protagonist', 'husbando'],
-  zoro: ['rival', 'hero', 'husbando'],
-  sanji: ['hero', 'husbando'],
+  luffy: ['hero', 'protagonist', 'husbando', 'shounen', 'power-scaling'],
+  zoro: ['rival', 'hero', 'husbando', 'shounen'],
+  sanji: ['hero', 'husbando', 'shounen'],
   nami: ['hero', 'waifu'],
   nico_robin: ['hero', 'waifu'],
   edward_newgate: ['mentor'],
 
   // ====== Naruto ======
-  naruto: ['hero', 'protagonist'],
-  sasuke: ['rival', 'antihero', 'husbando'],
-  itachi: ['antihero', 'husbando'],
+  naruto: ['hero', 'protagonist', 'shounen', 'power-scaling'],
+  sasuke: ['rival', 'antihero', 'husbando', 'shounen'],
+  itachi: ['antihero', 'husbando', 'shounen'],
   kakashi: ['mentor', 'husbando'],
   jiraya: ['mentor'],
   tsunade: ['mentor'],
-  madara: ['villain'],
+  madara: ['villain', 'power-scaling'],
   obito_uchiha: ['villain', 'antihero'],
   pain: ['villain'],
   nagato: ['villain', 'antihero'],
@@ -51,16 +56,16 @@ const TAGS_OVERRIDE = {
   gaara: ['rival', 'antihero'],
 
   // ====== Dragon Ball ======
-  goku: ['hero', 'protagonist'],
-  vegeta: ['rival', 'antihero', 'husbando'],
+  goku: ['hero', 'protagonist', 'shounen', 'power-scaling'],
+  vegeta: ['rival', 'antihero', 'husbando', 'shounen', 'power-scaling'],
   piccolo: ['mentor'],
-  frieza: ['villain'],
-  cell: ['villain'],
+  frieza: ['villain', 'shounen', 'power-scaling'],
+  cell: ['villain', 'shounen'],
 
   // ====== My Hero Academia ======
-  deku: ['hero', 'protagonist'],
-  allmight: ['mentor', 'hero'],
-  bakugo: ['rival'],
+  deku: ['hero', 'protagonist', 'shounen'],
+  allmight: ['mentor', 'hero', 'shounen'],
+  bakugo: ['rival', 'shounen'],
   shoto_todoroki: ['rival', 'husbando'],
   tomura_shigaraki: ['villain'],
   dabi: ['villain'],
@@ -68,26 +73,26 @@ const TAGS_OVERRIDE = {
   hawks: ['hero', 'husbando'],
 
   // ====== Bleach ======
-  ichigo_kurosaki: ['hero', 'protagonist'],
+  ichigo_kurosaki: ['hero', 'protagonist', 'shounen'],
   sosuke_aizen: ['villain'],
 
   // ====== Demon Slayer ======
-  nezuko: ['waifu'],
+  nezuko: ['waifu', 'shounen'],
   shinobu: ['waifu'],
-  rengoku: ['mentor', 'hero', 'husbando'],
-  inosuke: ['rival'],
-  zenitsu_agatsuma: ['hero'],
+  rengoku: ['mentor', 'hero', 'husbando', 'shounen'],
+  inosuke: ['rival', 'shounen'],
+  zenitsu_agatsuma: ['hero', 'shounen'],
   muzan: ['villain'],
   akaza: ['villain'],
   kokushibo: ['villain'],
 
   // ====== Jujutsu Kaisen ======
-  itadori: ['hero', 'protagonist'],
-  satoru_gojo: ['mentor', 'husbando'],
+  itadori: ['hero', 'protagonist', 'shounen'],
+  satoru_gojo: ['mentor', 'husbando', 'shounen', 'power-scaling'],
   kento_nanami: ['mentor', 'husbando'],
-  megumi_fushiguro: ['hero', 'husbando'],
-  nobara_kugisaki: ['hero', 'waifu'],
-  sukuna: ['villain'],
+  megumi_fushiguro: ['hero', 'husbando', 'shounen'],
+  nobara_kugisaki: ['hero', 'waifu', 'shounen'],
+  sukuna: ['villain', 'shounen', 'power-scaling'],
   toji_fushiguro: ['villain', 'antihero', 'husbando'],
   mahito: ['villain'],
 
@@ -100,13 +105,13 @@ const TAGS_OVERRIDE = {
   light_yagami: ['villain', 'antihero', 'protagonist', 'husbando'],
 
   // ====== Code Geass ======
-  lelouch_lamperouge: ['antihero', 'protagonist', 'husbando'],
+  lelouch_lamperouge: ['antihero', 'protagonist', 'husbando', 'mecha'],
 
   // ====== Re:Zero ======
-  rem: ['waifu'],
-  rem_and_ram: ['waifu'],
-  emilia: ['waifu'],
-  natsuki_subaru: ['protagonist'],
+  rem: ['waifu', 'isekai'],
+  rem_and_ram: ['waifu', 'isekai'],
+  emilia: ['waifu', 'isekai'],
+  natsuki_subaru: ['protagonist', 'isekai'],
 
   // ====== Fate ======
   saber: ['waifu', 'hero'],
@@ -131,15 +136,31 @@ const TAGS_OVERRIDE = {
   fushi: ['protagonist'],
 
   // ====== Otros icónicos por nombre ======
-  asuka: ['tsundere', 'waifu'],
+  asuka: ['tsundere', 'waifu', 'mecha'],
   taiga_aisaka: ['tsundere', 'waifu'],
   gasai_yuno: ['yandere', 'villain', 'waifu'],
-  rei: ['kuudere', 'waifu'],
+  rei: ['kuudere', 'waifu', 'mecha'],
   mai_sakurajima: ['waifu'],
   asuna: ['waifu'],
   zero_two: ['waifu'],
   makima: ['villain', 'waifu'],
-  megumin: ['waifu'],
+  megumin: ['waifu', 'isekai'],
+  aqua: ['waifu', 'isekai'],
+  kazuma_satou: ['protagonist', 'isekai'],
+  rudeus_greyrat: ['protagonist', 'isekai'],
+  ainz_ooal_gown: ['villain', 'isekai'],
+  shinji_ikari: ['protagonist', 'mecha'],
+  koji_kabuto: ['hero', 'mecha'],
+  mazinger_z: ['mecha', 'power-scaling'],
+  simon: ['protagonist', 'mecha'],
+  kamina: ['mentor', 'mecha'],
+  shoyo_hinata: ['protagonist', 'sports-anime'],
+  tobio_kageyama: ['rival', 'sports-anime'],
+  yoichi_isagi: ['protagonist', 'sports-anime'],
+  rin_itoshi: ['rival', 'sports-anime'],
+  mamoru_endou: ['protagonist', 'sports-anime'],
+  shuuya_gouenji: ['rival', 'sports-anime'],
+  saitama: ['hero', 'protagonist', 'power-scaling'],
 }
 
 /**
@@ -156,6 +177,11 @@ export const CATEGORIAS = [
   { id: 'rival', label: 'Rivales', emoji: '⚔️', tono: 'orange' },
   { id: 'mentor', label: 'Mentores', emoji: '🧙', tono: 'emerald' },
   { id: 'antihero', label: 'Antihéroes', emoji: '🌑', tono: 'purple' },
+  { id: 'shounen', label: 'Shounen', emoji: '🔥', tono: 'orange' },
+  { id: 'isekai', label: 'Isekai', emoji: '🌀', tono: 'violet' },
+  { id: 'mecha', label: 'Mecha', emoji: '🤖', tono: 'sky' },
+  { id: 'sports-anime', label: 'Sports anime', emoji: '🏐', tono: 'emerald' },
+  { id: 'power-scaling', label: 'Power scaling', emoji: '📈', tono: 'amber' },
   { id: 'tsundere', label: 'Tsundere', emoji: '🌶️', tono: 'rose' },
   { id: 'yandere', label: 'Yandere', emoji: '🩸', tono: 'purple' },
   { id: 'kuudere', label: 'Kuudere', emoji: '❄️', tono: 'sky' },
@@ -170,6 +196,10 @@ export const RASGOS_OTAKU = CATEGORIAS
  */
 export function getCategoriasPersonaje(slug) {
   return TAGS_OVERRIDE[slug] ?? []
+}
+
+export function hasCategoriaPersonaje(categoriaId) {
+  return Object.values(TAGS_OVERRIDE).some((tags) => tags.includes(categoriaId))
 }
 
 /**

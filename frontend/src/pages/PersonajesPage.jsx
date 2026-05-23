@@ -295,7 +295,7 @@ function PersonajesPage() {
   useSeo({
     title: selectedTag ? `Personajes ${selectedTag.label}` : 'Personajes',
     description: selectedTag
-      ? `Personajes con rasgo ${selectedTag.label} en AnimeShowdown: ranking ELO, anime de origen y fichas para votar.`
+      ? `Personajes con categoría ${selectedTag.label} en AnimeShowdown: ranking ELO, anime de origen y fichas para votar.`
       : `Catálogo de ${catalogoPersonajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
   })
   const activeFilterBadges = useMemo(() => {
