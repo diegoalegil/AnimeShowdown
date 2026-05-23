@@ -23,7 +23,7 @@ function NombresMarquee() {
           'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
       }}
     >
-      <div className="flex min-w-max items-center gap-10 whitespace-nowrap animate-marquee">
+      <div className="flex min-w-max items-center gap-10 whitespace-nowrap animate-marquee motion-reduce:animate-none">
         {dobles.map((p, i) => (
           <div key={`${p.slug}-${i}`} className="flex items-center gap-4">
             <span className="text-2xl font-extrabold tracking-tight text-fg-muted/30 transition-colors hover:text-fg-strong sm:text-3xl">
