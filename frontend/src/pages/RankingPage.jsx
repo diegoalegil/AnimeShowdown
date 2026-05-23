@@ -1,5 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowRight,
@@ -10,6 +10,7 @@ import {
   HelpCircle,
   Medal,
   Search,
+  Share2,
   Sparkles,
   Swords,
   TrendingDown,
@@ -19,6 +20,7 @@ import {
   Vote,
   X,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import {
   CATEGORIAS,
@@ -40,6 +42,8 @@ import {
   useRankingSegmentado,
 } from '../hooks/useRanking'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
 
 /**
  * RankingPage rebranded.
@@ -81,6 +85,7 @@ const TABS = [
 
 function RankingPage() {
   useRankingDeltaSubscription()
+  const [searchParams] = useSearchParams()
   const {
     personajes: catalogoPersonajes,
     isLoading: isCatalogLoading,
@@ -96,8 +101,19 @@ function RankingPage() {
   useSeo({
     title: 'Ranking competitivo',
     description: `Top ${catalogoPersonajes.length} personajes de anime ordenados por señales competitivas de la comunidad. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
+    image: '/api/og/ranking.png',
   })
-  const [tab, setTab] = useState('elo')
+
+  useEffect(() => {
+    recordDailyRankingView()
+  }, [])
+
+  const initialSearch = searchParams.get('q') ?? ''
+  const initialAnimeFilter = searchParams.get('anime') ?? ''
+  const initialTab = searchParams.get('tab')
+  const [tab, setTab] = useState(
+    TABS.some((item) => item.id === initialTab) ? initialTab : 'elo',
+  )
   const consultadoA = useMemo(
     () =>
       new Date().toLocaleTimeString('es-ES', {
@@ -106,6 +122,30 @@ function RankingPage() {
       }),
     [],
   )
+  const compartirRanking = async () => {
+    const top5 = rankedElo.slice(0, 5)
+    if (top5.length === 0) {
+      toast.error('El ranking todavía está cargando')
+      return
+    }
+    const resumen = top5
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO base`)
+      .join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: 'Top anime en AnimeShowdown',
+        text: `Mi top 5 ELO base en AnimeShowdown ahora mismo:\n${resumen}\n\nVota y cambia la tabla.`,
+        url: '/ranking',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el ranking', {
+        description: error?.message || 'Copia el top manualmente.',
+      })
+    }
+  }
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.ranking} className="py-10 sm:py-12" lateralKanji={{left: "頂", right: "点"}}>
@@ -144,6 +184,15 @@ function RankingPage() {
                 <HelpCircle className="h-4 w-4" />
                 Cómo funciona
               </Link>
+              <button
+                type="button"
+                onClick={compartirRanking}
+                disabled={isCatalogLoading && rankedElo.length === 0}
+                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartir top
+              </button>
             </>
           }
           aside={
@@ -186,9 +235,12 @@ function RankingPage() {
         <div className="mt-6">
           {tab === 'elo' && (
             <ListaEloLocal
+              key={`elo:${initialSearch}:${initialAnimeFilter}`}
               rankedElo={rankedElo}
               animeFilterOptions={animeFilterOptions}
               isCatalogLoading={isCatalogLoading}
+              initialSearch={initialSearch}
+              initialAnimeFilter={initialAnimeFilter}
             />
           )}
           {tab === 'categorias' && (
@@ -199,7 +251,9 @@ function RankingPage() {
           )}
           {tab === 'all' && <ListaBackend periodo="all" />}
           {tab === 'mes' && <ListaBackend periodo="mes" />}
-          {tab === 'anime' && <PorAnime />}
+          {tab === 'anime' && (
+            <PorAnime key={`anime:${initialAnimeFilter}`} initialAnime={initialAnimeFilter} />
+          )}
         </div>
 
         <HubLinks />
@@ -557,9 +611,15 @@ function Tabs({ activo, onChange }) {
   )
 }
 
-function ListaEloLocal({ rankedElo, animeFilterOptions, isCatalogLoading }) {
-  const [search, setSearch] = useState('')
-  const [animeFilter, setAnimeFilter] = useState('')
+function ListaEloLocal({
+  rankedElo,
+  animeFilterOptions,
+  isCatalogLoading,
+  initialSearch = '',
+  initialAnimeFilter = '',
+}) {
+  const [search, setSearch] = useState(initialSearch)
+  const [animeFilter, setAnimeFilter] = useState(initialAnimeFilter)
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = useMemo(
     () => deferredSearch.trim().toLowerCase(),
@@ -901,9 +961,9 @@ function ListaBackend({ periodo }) {
   )
 }
 
-function PorAnime() {
+function PorAnime({ initialAnime = '' }) {
   const { data: animes, isLoading: cargandoAnimes } = useAnimesConVotos()
-  const [anime, setAnime] = useState('')
+  const [anime, setAnime] = useState(initialAnime)
   const { data, isLoading, isError } = useRankingSegmentado({
     anime,
     limit: 50,
@@ -949,7 +1009,7 @@ function PorAnime() {
           {data?.length > 0 && (
             <div className="flex flex-wrap gap-2">
               <Link
-                to="/votar"
+                to={`/votar?anime=${encodeURIComponent(anime)}`}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Swords className="h-4 w-4" />
@@ -1028,59 +1088,63 @@ function RankRowElo({
   const total = wins + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
   const esTop10 = rank <= 10
+  const rowTone = esTop10
+    ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
+    : 'border-border bg-surface'
   return (
     <li>
-      <Link
-        to={`/personajes/${slug}`}
-        aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
-        title={`${nombre} de ${anime} · ELO ${elo}`}
-        className={`group flex items-center gap-3 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5 ${
-          esTop10
-            ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
-            : 'border-border bg-surface'
-        }`}
+      <div
+        className={`group flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
       >
-        <RankBadge rank={rank} />
-        <PersonajeImg
-          slug={slug}
-          src={imagenUrl}
-          nombre={nombre}
-          colorDominante={imagenColorDominante}
-          alt={nombre}
-          loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-              {nombre}
-            </p>
-            {esTop10 && (
-              <span className="hidden shrink-0 rounded border border-yellow-400/40 bg-yellow-500/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 sm:inline">
-                Top 10
-              </span>
-            )}
+        <Link
+          to={`/personajes/${slug}`}
+          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
+          title={`${nombre} de ${anime} · ELO ${elo}`}
+          className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
+        >
+          <RankBadge rank={rank} />
+          <PersonajeImg
+            slug={slug}
+            src={imagenUrl}
+            nombre={nombre}
+            colorDominante={imagenColorDominante}
+            alt={nombre}
+            loading="lazy"
+            className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
+                {nombre}
+              </p>
+              {esTop10 && (
+                <span className="hidden shrink-0 rounded border border-yellow-400/40 bg-yellow-500/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 sm:inline">
+                  Top 10
+                </span>
+              )}
+            </div>
+            <p className="truncate text-[12px] text-fg-muted">{anime}</p>
+            {esTop10 && <EloSparkline points={history} className="mt-1" />}
           </div>
-          <p className="truncate text-[12px] text-fg-muted">{anime}</p>
-          {esTop10 && <EloSparkline points={history} className="mt-1" />}
-        </div>
-        <div className="hidden text-right sm:block">
-          <p className="text-[12px] text-fg-muted">
-            <span className="font-semibold text-emerald-300">{wins}V</span>
-            {' · '}
-            <span className="font-semibold text-rose-300">{losses}D</span>
-          </p>
-          <p className="text-[11px] font-semibold text-emerald-300/80">
-            {winRate}% WR
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-base font-bold text-gold">{elo}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-            ELO
-          </p>
-        </div>
-      </Link>
+          <div className="hidden text-right sm:block">
+            <p className="text-[12px] text-fg-muted">
+              <span className="font-semibold text-emerald-300">{wins}V</span>
+              {' · '}
+              <span className="font-semibold text-rose-300">{losses}D</span>
+            </p>
+            <p className="text-[11px] font-semibold text-emerald-300/80">
+              {winRate}% WR
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="font-mono text-base font-bold text-gold">{elo}</p>
+            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+              ELO
+            </p>
+          </div>
+        </Link>
+        <ChallengeLink slug={slug} nombre={nombre} />
+      </div>
     </li>
   )
 }
@@ -1090,41 +1154,58 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
   if (!personaje?.slug) return null
   return (
     <li>
-      <Link
-        to={`/personajes/${personaje.slug}`}
-        aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
-        title={`${personaje.nombre} de ${personaje.anime}`}
-        className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
-      >
-        <RankBadge rank={rank} />
-        <PersonajeImg
-          slug={personaje.slug}
-          src={personaje.imagenUrl}
-          nombre={personaje.nombre}
-          colorDominante={personaje.imagenColorDominante}
-          alt={personaje.nombre}
-          loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-              {personaje.nombre}
+      <div className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5">
+        <Link
+          to={`/personajes/${personaje.slug}`}
+          aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
+          title={`${personaje.nombre} de ${personaje.anime}`}
+          className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
+        >
+          <RankBadge rank={rank} />
+          <PersonajeImg
+            slug={personaje.slug}
+            src={personaje.imagenUrl}
+            nombre={personaje.nombre}
+            colorDominante={personaje.imagenColorDominante}
+            alt={personaje.nombre}
+            loading="lazy"
+            className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
+                {personaje.nombre}
+              </p>
+              {movimiento && <MovimientoBadge movimiento={movimiento} />}
+            </div>
+            <p className="truncate text-[12px] text-fg-muted">
+              {personaje.anime}
             </p>
-            {movimiento && <MovimientoBadge movimiento={movimiento} />}
           </div>
-          <p className="truncate text-[12px] text-fg-muted">
-            {personaje.anime}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-base font-bold text-gold">{votos}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-            votos
-          </p>
-        </div>
-      </Link>
+          <div className="text-right">
+            <p className="font-mono text-base font-bold text-gold">{votos}</p>
+            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+              votos
+            </p>
+          </div>
+        </Link>
+        <ChallengeLink slug={personaje.slug} nombre={personaje.nombre} />
+      </div>
     </li>
+  )
+}
+
+function ChallengeLink({ slug, nombre }) {
+  return (
+    <Link
+      to={`/votar?personaje=${encodeURIComponent(slug)}`}
+      aria-label={`Retar a ${nombre} en un duelo`}
+      title={`Retar a ${nombre}`}
+      className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
+    >
+      <Swords className="h-3.5 w-3.5" />
+      <span className="hidden sm:inline">Retar</span>
+    </Link>
   )
 }
 

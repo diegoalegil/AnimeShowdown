@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -17,7 +17,13 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { ELO_DUEL_BEST_KEY, fechaDelDia, safeStorage } from '../lib/games'
-import { recordDailyShare, setDailyGamesCompleted } from '../lib/dailyProgress'
+import {
+  listenDailyProgress,
+  readDailyStreak,
+  readRecentDailyProgress,
+  recordDailyShare,
+  setDailyGamesCompleted,
+} from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
@@ -250,6 +256,13 @@ function GamesHubPage() {
       window.removeEventListener('storage', refresh)
     }
   }, [])
+
+  const [, setDailyProgressTick] = useState(0)
+  useEffect(
+    () => listenDailyProgress(() => setDailyProgressTick((tick) => tick + 1)),
+    [],
+  )
+
   const estadosJuegos = Object.fromEntries(
     GAMES.map((g) => [
       g.to,
@@ -268,6 +281,11 @@ function GamesHubPage() {
   useEffect(() => {
     setDailyGamesCompleted(completadosHoy)
   }, [completadosHoy])
+
+  // Se recalcula en cada render; el listener solo fuerza el render
+  // cuando otra acción del ritual cambia localStorage en esta misma sesión.
+  const dailyHistory = readRecentDailyProgress(7)
+  const dailyStreak = readDailyStreak()
 
   const destacado = GAMES.find((g) => g.destacado) ?? GAMES[0]
   const otros = GAMES.filter((g) => g.to !== destacado.to)
@@ -381,6 +399,8 @@ function GamesHubPage() {
           />
         </div>
 
+        <DailyHistoryStrip days={dailyHistory} streak={dailyStreak} />
+
         {/* Nota de producto: el Omikuji va PRIMERO ahora.
             Sentido: el ritual diario abre el día — el palito que sacas
             puede regalarte la pista gratis de los retos de abajo. Antes
@@ -460,6 +480,89 @@ function StatTile({ icon: Icon, iconColor, label, value, className = '' }) {
         </p>
       </div>
     </div>
+  )
+}
+
+function DailyHistoryStrip({ days, streak }) {
+  const dayFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat('es-ES', {
+        weekday: 'short',
+      }),
+    [],
+  )
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat('es-ES', {
+        day: 'numeric',
+        month: 'short',
+      }),
+    [],
+  )
+
+  return (
+    <section className="as-panel mb-6 rounded-2xl p-4 sm:p-5">
+      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gold">
+            Calendario daily
+          </p>
+          <h2 className="mt-1 text-lg font-black text-fg-strong">
+            Últimos 7 días de ritual
+          </h2>
+        </div>
+        <p className="text-[12px] text-fg-muted">
+          Racha actual <span className="font-mono font-black text-gold">{streak.current}</span>
+          {' '}· récord <span className="font-mono font-black text-fg-strong">{streak.longest}</span>
+        </p>
+      </div>
+      <div className="grid grid-cols-7 gap-2">
+        {days.map((day) => {
+          const parsed = new Date(`${day.date}T12:00:00`)
+          const completed = day.completed
+          const started = day.votes > 0 || day.gamesCompleted > 0 || day.rankingViewed
+          return (
+            <div
+              key={day.date}
+              className={`min-h-[5.75rem] rounded-xl border px-2 py-2 text-center ${
+                completed
+                  ? 'border-emerald-400/35 bg-emerald-500/10'
+                  : started
+                    ? 'border-gold/35 bg-gold-soft'
+                    : 'border-border bg-bg/45'
+              }`}
+              title={`${dateFormatter.format(parsed)} · ${
+                completed
+                  ? 'ritual completado'
+                  : started
+                    ? 'ritual empezado'
+                    : 'sin progreso'
+              }`}
+            >
+              <p className="text-[9px] font-black uppercase tracking-[0.08em] text-fg-muted">
+                {dayFormatter.format(parsed)}
+              </p>
+              <p
+                className={`mt-2 font-mono text-xl font-black ${
+                  completed
+                    ? 'text-emerald-200'
+                    : started
+                      ? 'text-gold'
+                      : 'text-fg-muted'
+                }`}
+              >
+                {completed ? '✓' : started ? '•' : '—'}
+              </p>
+              <p className="mt-2 text-[10px] leading-4 text-fg-muted">
+                {Math.min(day.votes, 10)}/10 votos
+                <br />
+                {Math.min(day.gamesCompleted, 1)}/1 daily
+              </p>
+            </div>
+          )
+        })}
+      </div>
+    </section>
   )
 }
 
