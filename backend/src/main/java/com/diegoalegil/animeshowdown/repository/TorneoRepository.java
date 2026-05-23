@@ -74,7 +74,7 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     long countByCreadoPor(Usuario creador);
 
     /**
-     * Nota P2 (2026-05-17): pone a NULL la FK ganador_personaje_id de los
+     * pone a NULL la FK ganador_personaje_id de los
      * torneos que apuntan al personaje dado. Usado por DataSeeder antes de
      * borrar un personaje retirado del seed — preserva el torneo y sus
      * enfrentamientos/votos históricos, solo pierde la asignación de ganador

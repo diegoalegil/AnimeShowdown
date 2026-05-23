@@ -61,7 +61,7 @@ public class BracketService {
     @Transactional
     public List<Enfrentamiento> crearBracket(Torneo torneo, List<Personaje> participantes) {
         validarTamano(participantes.size());
-        // Nota P3 (2026-05-17): antes solo se rechazaba el caso adyacente
+        // antes solo se rechazaba el caso adyacente
         // (p[i].id == p[i+1].id en un mismo match). Pero el mismo personaje
         // en slots NO adyacentes seguía colando — admin podía iniciar un
         // bracket con luffy x2 en posiciones 0 y 5 y el sistema lo aceptaba,

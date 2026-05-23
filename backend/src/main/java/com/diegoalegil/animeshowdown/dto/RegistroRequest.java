@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public class RegistroRequest {
 
-    // Nota P2 (2026-05-17): el username ahora se restringe a alfanumérico +
+    // el username ahora se restringe a alfanumérico +
     // _ y -. Antes solo se validaba tamaño, así que un cliente directo
     // podía registrar usernames con comillas, slashes, espacios, emoji o
     // Unicode raro. Eso reventaba downstream — p. ej. SeguidorService

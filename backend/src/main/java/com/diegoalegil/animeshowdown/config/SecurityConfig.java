@@ -64,7 +64,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        // Nota técnica F007 (2026-05-22): /actuator/prometheus
+                        // /actuator/prometheus
                         // expone métricas internas (endpoints, latencias,
                         // tasas de error, nombres de queries) — útiles para
                         // un atacante que quiera mapear superficie.
@@ -86,13 +86,13 @@ public class SecurityConfig {
                         // CONNECT con JWT (ver WebSocketConfig.JwtAuthChannelInterceptor).
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Nota P2.10: /api/cron/** se autentica con
+                        // /api/cron/** se autentica con
                         // X-Cron-Secret header (no JWT), así el GitHub
                         // Action no necesita login que falla si el admin
                         // tiene 2FA. La validación del secret se hace en
                         // CronTorneoController.
                         .requestMatchers("/api/cron/**").permitAll()
-                        // Nota P3 (2026-05-18): POST /api/personajes/*/votar
+                        // POST /api/personajes/*/votar
                         // está deshabilitado (devuelve 410 GONE en el controller).
                         // Antes requería auth → clientes anónimos veían 401, no
                         // el 410 que comunica explícitamente la deprecación.
@@ -220,7 +220,7 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin",
                 "X-AS-Anonymous-Id", "X-AS-Anonymous-Fingerprint"));
-        // Nota P2 (2026-05-18): expose Retry-After. El cliente lo lee en
+        // expose Retry-After. El cliente lo lee en
         // intentarRefresh() para respetar el backoff que indica el backend
         // tras un 503 cross-tab. Sin esto, en producción (cross-origin
         // animeshowdown.dev → api.animeshowdown.dev), headers.get('Retry-After')

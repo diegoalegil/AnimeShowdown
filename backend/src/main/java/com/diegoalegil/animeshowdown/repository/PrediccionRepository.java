@@ -66,7 +66,7 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
             org.springframework.data.domain.Pageable pageable);
 
     /**
-     * Nota P2 (2026-05-17): borra todas las predicciones cuyo personaje
+     * borra todas las predicciones cuyo personaje
      * predicho es el dado. Usado por DataSeeder al retirar un personaje
      * del seed — sin esto, V9__predicciones.sql:30 tiene FK restrictiva
      * (fk_pred_personaje sin ON DELETE) y el arranque revienta con

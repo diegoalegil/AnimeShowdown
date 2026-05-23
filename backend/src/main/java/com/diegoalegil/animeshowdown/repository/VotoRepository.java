@@ -27,7 +27,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * estable, el orden es determinista en H2, Postgres y queries
      * paginadas (sin riesgo de duplicar/saltar entries entre paginas).
      *
-     * <p>Nota técnica AS-002 + B2.1b (2026-05-22): antes COUNT(v) ignoraba
+     * <p>Antes COUNT(v) ignoraba
      * el peso. EnfrentamientoController guarda voto.peso = 0.30 para
      * anónimos y 1.00 para registrados, pero el ranking contaba todos
      * por igual. La fase 1 castteaba SUM(peso) a Long y mezclaba ambas
@@ -52,7 +52,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /**
      * Ranking all-time paginado (Plan v2 §4.6). Page para que la UI pueda
      * pedir top 50 o top 100 sin volcar todo el catálogo.
-     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query(value = """
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
@@ -72,7 +72,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Ranking dentro de una ventana temporal (Plan v2 §4.6 — top mensual,
      * trimestral, etc). desde es inclusivo. Aplica el mismo GROUP BY que
      * el all-time pero filtra por fecha del voto.
-     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
@@ -93,7 +93,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * votos EMITIDOS antes de la fecha dada. Sirve para comparar la
      * posición de hace N días con la posición actual y calcular el
      * movimiento de cada personaje.
-     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
@@ -113,7 +113,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByPersonajeId(Long personajeId);
 
     /**
-     * Nota técnica B2.1a (2026-05-22): suma ponderada de votos del personaje.
+     * suma ponderada de votos del personaje.
      * Lo necesita el RankingDeltaEvent del WebSocket para publicar un valor
      * consistente con el ORDER del ranking REST. Antes el WS publicaba
      * COUNT físico y el frontend ordenaba su caché live por ese campo,
@@ -199,7 +199,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Ranking de personajes de un anime concreto (Plan v2 §4.6). Filtramos
      * por nombre del anime (string del catálogo) — case-sensitive porque
      * los nombres en BBDD vienen consistentes del seeder.
-     * AS-002 + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
@@ -236,7 +236,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByAnonSessionId(String anonSessionId);
 
     /**
-     * Nota técnica AS-004 (2026-05-23): conteo de votos anónimos de una
+     * conteo de votos anónimos de una
      * sesión en una ventana temporal. Usado por
      * {@code AnonymousAbuseThrottleService} para aplicar umbrales 1h/24h
      * sin tener que crear una tabla nueva — la propia tabla de votos
@@ -245,7 +245,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByAnonSessionIdAndFechaAfter(String anonSessionId, java.time.LocalDateTime desde);
 
     /**
-     * Nota técnica AS-004 (2026-05-23): conteo de votos anónimos por
+     * conteo de votos anónimos por
      * hash IP+UA en una ventana temporal. Pega para abusos que rotan la
      * cookie firmada — varias sesiones distintas pero misma huella
      * técnica.

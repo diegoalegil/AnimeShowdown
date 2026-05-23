@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.service.TorneoAutoService;
 
 /**
- * Endpoint cron-only para auto-generar torneos (revisión P2.10 2026-05-17).
+ * Endpoint cron-only para auto-generar torneos (revisión).
  *
  * <p>El workflow {@code .github/workflows/auto-tournament.yml} antes hacía
  * login con username/password de admin y usaba el JWT. Si el admin activa

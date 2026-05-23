@@ -20,7 +20,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     Optional<RefreshToken> findByTokenHash(String tokenHash);
 
     /**
-     * Nota P2 (2026-05-17): variante con PESSIMISTIC_WRITE para rotar.
+     * variante con PESSIMISTIC_WRITE para rotar.
      * Sin lock, dos requests concurrentes leían el token ACTIVO al mismo
      * tiempo, ambas hacían revocar() + save() + emitir(), y emitían DOS
      * refresh tokens nuevos para el mismo predecesor — el reuse-detection
