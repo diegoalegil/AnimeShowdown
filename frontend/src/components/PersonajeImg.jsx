@@ -7,6 +7,11 @@ import {
 } from '../lib/personajes-core'
 import PersonajePlaceholder from './PersonajePlaceholder'
 
+function encodeImageUrl(url) {
+  if (!url || /^(data|blob):/i.test(url)) return url
+  return encodeURI(url).replace(/,/g, '%2C')
+}
+
 /**
  * <img> de personaje con fallback premium + responsive (Plan v2 §3.3-3.4, §3.6).
  *
@@ -108,8 +113,13 @@ function PersonajeImg({
   const base = srcPath.replace(/\.webp$/i, '')
   const isWebp = /\.webp$/i.test(srcPath)
   const srcsetWebp = isWebp
-    ? `${base}-300.webp${srcQuery} 300w, ${base}-600.webp${srcQuery} 600w, ${base}-1024.webp${srcQuery} 1024w`
+    ? [
+        `${encodeImageUrl(`${base}-300.webp${srcQuery}`)} 300w`,
+        `${encodeImageUrl(`${base}-600.webp${srcQuery}`)} 600w`,
+        `${encodeImageUrl(`${base}-1024.webp${srcQuery}`)} 1024w`,
+      ].join(', ')
     : undefined
+  const imgSrc = encodeImageUrl(src)
   // sizes default: estimación conservadora para que el browser no
   // sobre-descargue en mobile. El caller puede pasar sizes específico
   // (e.g. la imagen grande de la ficha de personaje usaría algo mayor).
@@ -127,7 +137,7 @@ function PersonajeImg({
           <source type="image/webp" srcSet={srcsetWebp} sizes={sizesAttr} />
         )}
         <img
-          src={src}
+          src={imgSrc}
           alt={alt}
           className={`h-full w-full ${fitClass} ${positionClass} transition-opacity duration-300 motion-reduce:transition-none ${
             loaded ? 'opacity-100' : 'opacity-0'
