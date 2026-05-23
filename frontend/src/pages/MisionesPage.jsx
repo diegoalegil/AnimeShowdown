@@ -14,6 +14,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import DailyMissionPanel from '../components/DailyMissionPanel'
+import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import {
@@ -137,6 +138,8 @@ function MisionesPage() {
         />
 
         <DailyMissionPanel className="mb-6" />
+
+        <PersonalRankingTeaser className="mb-6" compact />
 
         <section className="mb-6 grid gap-3 sm:grid-cols-3">
           <SummaryTile icon={Flame} label="Racha actual" value={streak.current} detail={`récord ${streak.longest}`} />
