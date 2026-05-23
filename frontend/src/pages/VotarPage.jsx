@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, LogIn, SkipForward, Swords, X, Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { personajes, imagenPersonaje, getPopularidad } from '../lib/personajes-core'
+import { imagenPersonaje, getPopularidad } from '../lib/personajes-core'
 import { endpoints, ApiError, api } from '../lib/api'
 import {
   getAnonymousVoteHeaders,
@@ -12,6 +12,7 @@ import {
   incrementAnonymousVotesCount,
 } from '../lib/anonymousVoting'
 import { useSeo } from '../hooks/useSeo'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useSound } from '../contexts/SoundContext'
 import { useAuth } from '../contexts/AuthContext'
 import { VisualPageShell } from '../components/VisualSystem'
@@ -116,8 +117,9 @@ function recordRecentPair(slugA, slugB) {
   writeSessionList(RECENT_CHARS_KEY, chars, RECENT_CHARS_MAX * 2)
 }
 
-function getRandomPair() {
-  if (personajes.length < 2) return [personajes[0], personajes[0]]
+function getRandomPair(catalogoPersonajes) {
+  const personajes = Array.isArray(catalogoPersonajes) ? catalogoPersonajes : []
+  if (personajes.length < 2) return [null, null]
   const recentPairs = new Set(readSessionList(RECENT_PAIRS_KEY))
   const recentChars = new Set(readSessionList(RECENT_CHARS_KEY))
 
@@ -205,6 +207,7 @@ function VotarPage() {
   const reduceMotion = useReducedMotion()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
 
   const {
     data: enfrentamiento,
@@ -221,7 +224,10 @@ function VotarPage() {
     retry: false,
   })
 
-  const [casualPair, setCasualPair] = useState(getRandomPair)
+  const [casualPair, setCasualPair] = useState([null, null])
+  if (catalogoPersonajes.length >= 2 && (!casualPair[0] || !casualPair[1])) {
+    setCasualPair(getRandomPair(catalogoPersonajes))
+  }
   const [votedFor, setVotedFor] = useState(null)
   // Auto-next por default (opt-out vía toggle). Antes era opt-in y la
   // gente tenía que pulsar "Siguiente duelo" tras cada voto — un click
@@ -330,9 +336,17 @@ function VotarPage() {
     } else if (modoSugerido) {
       refetchDueloSugerido()
     } else {
-      setCasualPair(getRandomPair())
+      setCasualPair(getRandomPair(catalogoPersonajes))
     }
-  }, [isVotePending, play, modoBackend, modoSugerido, refetch, refetchDueloSugerido])
+  }, [
+    isVotePending,
+    play,
+    modoBackend,
+    modoSugerido,
+    refetch,
+    refetchDueloSugerido,
+    catalogoPersonajes,
+  ])
 
   const handleVoteSuccess = useCallback(
     (personaje, data) => {
@@ -548,7 +562,9 @@ function VotarPage() {
     votedFor,
   ])
 
-  if (isLoading) {
+  const needsCasualPair = !modoBackend && !modoSugerido && (!a || !b)
+
+  if (isLoading || needsCasualPair) {
     return (
       <VisualPageShell
         visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
