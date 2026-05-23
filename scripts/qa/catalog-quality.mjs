@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Audit de calidad del catálogo de AnimeShowdown.
+ * Revisión de calidad del catálogo de AnimeShowdown.
  *
  * Cruza 4 fuentes de verdad:
  *   - backend/src/main/resources/personajes-seed.json (canónico)

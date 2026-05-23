@@ -448,7 +448,7 @@ erDiagram
 - [x] Password complexity + medidor visual
 - [x] Rate limiting Bucket4j (5/min + 50/h por IP en rutas críticas)
 - [x] Account lockout 5 intentos / 15min
-- [x] Audit log con 14 eventos cubriendo auth + sessions
+- [x] Registro de seguridad con 14 eventos cubriendo auth + sessions
 - [x] Headers de seguridad CSP + HSTS + X-Frame-Options + Permissions-Policy
 
 ### Engagement (✅ completo)

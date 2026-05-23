@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  * con esa cabecera spoofeada y rotar IP por request para bypassear el bucket
  * de 5/min + 50/h y envenenar audit_log.
  *
- * <p>Audit hardening P1 (2026-05-17): las CIDRs privadas RFC1918 NO están en
+ * <p>Revisión de hardening P1 (2026-05-17): las CIDRs privadas RFC1918 NO están en
  * el default. Razonamiento: si el atacante consigue posicionarse en la red
  * privada del proveedor (10.x/172.16/192.168), pegar directo al contenedor
  * con {@code CF-Connecting-IP} spoofeada vuelve a saltarse el rate limit.
