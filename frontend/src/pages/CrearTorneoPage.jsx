@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
@@ -30,15 +30,14 @@ const containerVariants = {
 const TAMANOS = [8, 16]
 
 /**
- * Creación de torneos por usuarios verificados (Plan v2 §4.9).
+ * Creación de torneos por usuarios verificados.
  *
  * Flow:
  *   1. Radio explícito 8 o 16 personajes (decisión inicial; bloquea el
  *      contador para que la UI sepa cuántos esperar).
  *   2. Nombre + descripción opcional (react-hook-form).
- *   3. Grid de avatares con search en local — el catálogo cliente-side
- *      tiene 730+ personajes, queremos filtrar sin pedir al backend en
- *      cada keystroke.
+ *   3. Grid de avatares con búsqueda local diferida para no pedir al
+ *      backend en cada tecla.
  *   4. Submit con conversión slug → id del backend (lista cacheada via
  *      useQuery) antes de POST.
  *
@@ -63,6 +62,7 @@ function CrearTorneoPage() {
   const [tamano, setTamano] = useState(8)
   const [seleccionados, setSeleccionados] = useState(() => new Set())
   const [query, setQuery] = useState('')
+  const deferredQuery = useDeferredValue(query)
 
   const {
     register,
@@ -82,14 +82,14 @@ function CrearTorneoPage() {
   // descripciones + imágenes y queremos render rápido. El backend solo
   // sirve para mapear a IDs en el submit.
   const filtrados = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = deferredQuery.trim().toLowerCase()
     if (!q) return catalogoCliente
     return catalogoCliente.filter(
       (p) =>
         p.nombre.toLowerCase().includes(q) ||
         p.anime.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [deferredQuery])
 
   if (!user) return <Navigate to="/login?next=/torneos/crear" replace />
 

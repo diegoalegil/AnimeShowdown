@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Search, Sparkles, Trophy, X } from 'lucide-react'
 import LazyOnView from '../components/LazyOnView'
@@ -35,9 +35,10 @@ function AnimesPage() {
 
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('destacados')
+  const deferredSearch = useDeferredValue(search)
 
   const filtrados = useMemo(() => {
-    let list = buscarAnimes(search, personajes)
+    let list = buscarAnimes(deferredSearch, personajes)
     if (sort === 'destacados') {
       // Mezcla de cantidad de personajes + topELO. Pondera ambos para
       // que los animes "ricos" (mucho roster + competidores fuertes) suban
@@ -59,7 +60,7 @@ function AnimesPage() {
       list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
     }
     return list
-  }, [search, sort, personajes])
+  }, [deferredSearch, sort, personajes])
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.animes} lateralKanji={{left: "世", right: "界"}}>

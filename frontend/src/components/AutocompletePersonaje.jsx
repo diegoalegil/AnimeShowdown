@@ -1,16 +1,14 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../lib/personajes-core'
 import { normalizar } from '../lib/games'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
- * Combobox de selección de personaje (Bloque 14).
+ * Combobox de selección de personaje para juegos y formularios.
  *
- * <p>Catálogo cliente-side de 730+ personajes. Filtro local sin debounce
- * — el cómputo es O(n) sobre un array memoizado y corre en <5ms en
- * mid-range. La dropdown muestra hasta 8 resultados ordenados por
- * coincidencia (startsWith antes que includes).
+ * <p>Catálogo cliente-side completo. La dropdown muestra hasta 8 resultados
+ * ordenados por coincidencia (startsWith antes que includes).
  *
  * <p>Devuelve el slug en {@code onSelect}; el caller hace el lookup en
  * el catálogo si necesita más datos.
@@ -34,6 +32,7 @@ function AutocompletePersonaje({
   const [query, setQuery] = useState('')
   const [activo, setActivo] = useState(0)
   const [abierto, setAbierto] = useState(false)
+  const deferredQuery = useDeferredValue(query)
   // Reset del cursor cuando cambia la query — patrón "store snapshot"
   // durante el render (no useEffect+setState que React 19 marca como
   // anti-pattern por cascading renders).
@@ -52,7 +51,7 @@ function AutocompletePersonaje({
   }, [])
 
   const opciones = useMemo(() => {
-    const q = normalizar(query)
+    const q = normalizar(deferredQuery)
     if (!q) return []
     const base = filtroExtra ? personajes.filter(filtroExtra) : personajes
     const matches = []
@@ -71,7 +70,7 @@ function AutocompletePersonaje({
     }
     matches.sort((a, b) => a.score - b.score)
     return matches.slice(0, 8).map((m) => m.p)
-  }, [query, filtroExtra])
+  }, [deferredQuery, filtroExtra])
 
   const elegir = (slug) => {
     if (!slug) return
