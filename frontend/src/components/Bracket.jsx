@@ -288,6 +288,7 @@ function VotoRow({ match, torneoSlug }) {
   const disabled = mutation.isPending || Boolean(votadoLocal)
 
   const onVote = (personaje) => {
+    if (disabled) return
     if (!user) {
       toast.error('Entra para votar este duelo', {
         description: 'Te devolvemos al torneo después.',
@@ -297,6 +298,7 @@ function VotoRow({ match, torneoSlug }) {
       return
     }
 
+    setVotadoLocal('pending')
     mutation.mutate(
       { enfrentamientoId: match.id, personajeGanadorId: personaje.id },
       {
@@ -314,9 +316,11 @@ function VotoRow({ match, torneoSlug }) {
             setVotadoLocal('ya-votado')
             toast.error('Ya votaste este enfrentamiento')
           } else if (status === 401 || status === 403) {
+            setVotadoLocal(null)
             const next = `${location.pathname}${location.search}${location.hash}`
             navigate(`/login?next=${encodeURIComponent(next)}`)
           } else {
+            setVotadoLocal(null)
             toast.error('No se pudo registrar el voto', {
               description: err?.message || 'Inténtalo de nuevo.',
             })
@@ -346,7 +350,12 @@ function VotoRow({ match, torneoSlug }) {
           onClick={() => onVote(match.personaje2)}
         />
       </div>
-      {votadoLocal && (
+      {votadoLocal === 'pending' && (
+        <p className="mt-1 text-center text-[10px] font-medium text-fg-muted">
+          Registrando voto…
+        </p>
+      )}
+      {votadoLocal && votadoLocal !== 'pending' && (
         <p className="mt-1 text-center text-[10px] font-medium text-gold">
           Voto registrado
         </p>

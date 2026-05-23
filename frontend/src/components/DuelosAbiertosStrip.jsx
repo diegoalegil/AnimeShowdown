@@ -76,6 +76,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
   const disabled = mutation.isPending || Boolean(votado)
 
   const onVote = (personaje) => {
+    if (disabled) return
     if (!user) {
       toast.error('Entra para votar este duelo', {
         description: 'Te devolvemos al torneo después.',
@@ -84,6 +85,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
       navigate(`/login?next=${encodeURIComponent(next)}`)
       return
     }
+    setVotado('pending')
     mutation.mutate(
       { enfrentamientoId: match.id, personajeGanadorId: personaje.id },
       {
@@ -101,9 +103,11 @@ function DueloAbiertoCard({ match, torneoSlug }) {
             setVotado('ya')
             toast.error('Ya votaste este enfrentamiento')
           } else if (status === 401 || status === 403) {
+            setVotado(null)
             const next = `${location.pathname}${location.search}${location.hash}`
             navigate(`/login?next=${encodeURIComponent(next)}`)
           } else {
+            setVotado(null)
             toast.error('No se pudo registrar el voto', {
               description: err?.message || 'Inténtalo de nuevo.',
             })
@@ -152,7 +156,12 @@ function DueloAbiertoCard({ match, torneoSlug }) {
           Ya habías votado este duelo.
         </p>
       )}
-      {votado && votado !== 'ya' && (
+      {votado === 'pending' && (
+        <p className="inline-flex items-center justify-center gap-1 text-center text-[11px] font-semibold text-fg-muted">
+          Registrando voto…
+        </p>
+      )}
+      {votado && votado !== 'ya' && votado !== 'pending' && (
         <p className="inline-flex items-center justify-center gap-1 text-center text-[11px] font-semibold text-gold">
           <Trophy className="h-3 w-3" /> Voto registrado
         </p>
