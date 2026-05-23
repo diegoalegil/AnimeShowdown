@@ -10,6 +10,7 @@ import {
   Lightbulb,
   Minus,
   RotateCcw,
+  Tv,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -246,8 +247,8 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
             <span>Letra inicial</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-[10px]">
-              📺
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-fg-strong">
+              <Tv className="h-3 w-3" />
             </span>
             <span>Anime</span>
           </div>
@@ -255,7 +256,7 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
             <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-fg-strong">
               <ArrowUp className="h-3 w-3" />
             </span>
-            <span>ELO objetivo</span>
+            <span>ELO base objetivo</span>
           </div>
         </div>
 
@@ -372,7 +373,7 @@ function FilaIntento({ intento }) {
       />
       <Squarito
         ok={intento.matchAnime}
-        label="📺"
+        label={<Tv className="h-3 w-3" />}
         title={intento.matchAnime ? 'Mismo anime' : 'Anime distinto'}
       />
       <SquaritoFlecha dir={intento.direccionElo} elo={intento.elo} />
