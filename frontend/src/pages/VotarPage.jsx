@@ -23,7 +23,7 @@ import AccessibleDialog from '../components/AccessibleDialog'
 import PersonajeImg from '../components/PersonajeImg'
 import DailyMissionPanel from '../components/DailyMissionPanel'
 import { recordDailyShare, recordDailyVote } from '../lib/dailyProgress'
-import { recordLocalVote } from '../lib/localVoteRanking'
+import { getLocalVoteStats, recordLocalVote } from '../lib/localVoteRanking'
 import { shareOrCopy } from '../lib/share'
 
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
@@ -409,6 +409,7 @@ function VotarPage() {
     closeDuels: 0,
     lastShareText: '',
   })
+  const [personalVoteImpact, setPersonalVoteImpact] = useState(null)
 
   const handleNext = useCallback(async (options = {}) => {
     const force = options?.force === true
@@ -424,6 +425,7 @@ function VotarPage() {
     setIsAdvancing(true)
     setVotedFor(null)
     setVoteResult(null)
+    setPersonalVoteImpact(null)
     try {
       const previousKey = currentPairKeyRef.current
       if (modoBackend) {
@@ -488,7 +490,20 @@ function VotarPage() {
 
   const trackLocalVote = useCallback((ganador, perdedor, data) => {
     recordDailyVote()
-    recordLocalVote(ganador, perdedor)
+    const localVotes = recordLocalVote(ganador, perdedor)
+    const localStats = getLocalVoteStats(localVotes)
+    const rankIndex = localStats.top.findIndex((item) => item.slug === ganador.slug)
+    const localRank = rankIndex >= 0 ? localStats.top[rankIndex] : null
+    const impact = localRank
+      ? {
+          slug: ganador.slug,
+          nombre: ganador.nombre,
+          rank: rankIndex + 1,
+          count: localRank.count,
+          total: localStats.total,
+        }
+      : null
+    setPersonalVoteImpact(impact)
     const votosGanador = Number(data?.votosGanador)
     const votosPerdedor = Number(data?.votosPerdedor)
     const isClose =
@@ -526,6 +541,7 @@ function VotarPage() {
         lastShareText,
       }
     })
+    return impact
   }, [])
 
   const handleVoteSuccess = useCallback(
@@ -534,7 +550,7 @@ function VotarPage() {
         incrementAnonymousVotesCount()
       }
       incrementarContadorLocalVotos()
-      trackLocalVote(personaje, perdedor, data)
+      const impact = trackLocalVote(personaje, perdedor, data)
       setVoteResult({
         ganadorSlug: personaje.slug,
         delta: data?.delta ?? 1,
@@ -547,9 +563,11 @@ function VotarPage() {
       toast.success(`+${delta} ${sufijo} · ${personaje.nombre}`, {
         description: data?.votosGanador != null
           ? data?.anonimo
-            ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}`
-            : `Ahora suma ${data.votosGanador} votos en este match`
-          : 'Voto registrado · ranking actualizado',
+            ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+            : `Ahora suma ${data.votosGanador} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+          : impact
+            ? `#${impact.rank} en tu ranking personal · ${impact.count} votos tuyos`
+            : 'Voto registrado · ranking actualizado',
       })
 
       scheduleAutoNext()
@@ -559,9 +577,13 @@ function VotarPage() {
 
   const handleShareVote = useCallback(async () => {
     if (!votedPersonaje) return
-    const text =
+    const personalLine = personalVoteImpact?.slug === votedPersonaje.slug
+      ? `En mi ranking personal va #${personalVoteImpact.rank} con ${personalVoteImpact.count} votos míos.`
+      : ''
+    const baseShareText =
       sessionStats.lastShareText ||
       `Voté por ${votedPersonaje.nombre} en AnimeShowdown. ¿Tú a quién elegirías?`
+    const text = [baseShareText, personalLine].filter(Boolean).join('\n')
     try {
       const result = await shareOrCopy({
         title: `${votedPersonaje.nombre} ganó mi duelo`,
@@ -582,7 +604,7 @@ function VotarPage() {
         description: error?.message || 'Copia el resultado manualmente.',
       })
     }
-  }, [fixedAnime, fixedSlug, sessionStats.lastShareText, votedPersonaje])
+  }, [fixedAnime, fixedSlug, personalVoteImpact, sessionStats.lastShareText, votedPersonaje])
 
   const handleVote = useCallback(
     (personaje) => {
@@ -688,9 +710,11 @@ function VotarPage() {
           votosGanador: null,
         })
         incrementarContadorLocalVotos()
-        trackLocalVote(personaje, personaje.slug === a?.slug ? b : a, null)
+        const impact = trackLocalVote(personaje, personaje.slug === a?.slug ? b : a, null)
         toast.success(`+${personaje.nombre}`, {
-          description: 'Modo casual · sin torneo activo',
+          description: impact
+            ? `#${impact.rank} en tu ranking personal · ${impact.count} votos tuyos`
+            : 'Modo casual · sin torneo activo',
         })
         scheduleAutoNext()
       }
@@ -944,6 +968,11 @@ function VotarPage() {
                   ? `${voteResult.votosGanador} votos para ${votedPersonaje.nombre}${losingPersonaje ? ` · rival: ${losingPersonaje.nombre}` : ''}`
                   : 'Voto registrado en modo casual. Sigue para completar tu misión diaria.'}
               </p>
+              {personalVoteImpact?.slug === votedPersonaje.slug && (
+                <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-2.5 py-1 text-[11px] font-black text-gold">
+                  #{personalVoteImpact.rank} en tu ranking personal · {personalVoteImpact.count} voto{personalVoteImpact.count === 1 ? '' : 's'} tuyo{personalVoteImpact.count === 1 ? '' : 's'}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               <button
