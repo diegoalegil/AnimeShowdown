@@ -39,7 +39,7 @@ export function SoundProvider({ children }) {
     }
   }, [])
 
-  // Ajuste (2026-05-17): play/toggleMute/warm y el objeto value se
+  // play/toggleMute/warm y el objeto value se
   // creaban nuevos en cada render del provider → toda la app re-renderizaba
   // y los useEffect con `play` en deps re-corrían (case BadgeUnlockListener,
   // VotarPage, etc.). useCallback + useMemo estabiliza identidades.
@@ -48,7 +48,7 @@ export function SoundProvider({ children }) {
       if (muted) return
       const fn = sfx[name]
       if (typeof fn !== 'function') return
-      // Nota de rendimiento (2026-05-18): los playXxx son async ahora
+      // Nota de rendimiento: los playXxx son async ahora
       // (esperan resume() del AudioContext). El caller no necesita
       // await; agarramos la Promise para silenciar rechazos y evitar
       // unhandled-rejection en consola.

@@ -143,7 +143,7 @@ function Card2faSeguridad() {
 // ----------------------------------------------------------------------
 
 function ModalShell({ onClose, title, icon: Icon, children, wide }) {
-  // Ajuste (2026-05-17): focus trap completo + ESC para cerrar.
+  // focus trap completo + ESC para cerrar.
   // Antes el tab podía escapar del modal hacia elementos del header/footer
   // del fondo (WCAG 2.1 G109 modal management). Capturamos Tab/Shift+Tab
   // entre los elementos focusables del dialog y rebotamos al primer/último.
@@ -319,7 +319,7 @@ function SetupForm({ setupData, onBackupCodes }) {
   }
 
   const [secretCopiado, setSecretCopiado] = useState(false)
-  // Ajuste (2026-05-17): el setTimeout queda colgando si el modal se cierra
+  // el setTimeout queda colgando si el modal se cierra
   // antes de 2s — setState en componente desmontado. Ref + cleanup.
   const copiadoTimerRef = useRef(null)
   useEffect(() => () => {
@@ -435,7 +435,7 @@ function SetupForm({ setupData, onBackupCodes }) {
 function ModalBackupCodes({ codes, onClose, descripcion }) {
   const [copiado, setCopiado] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
-  // Ajuste (2026-05-17): ref + cleanup para evitar setState en unmount.
+  // ref + cleanup para evitar setState en unmount.
   const copiadoTimerRef = useRef(null)
   useEffect(() => () => {
     if (copiadoTimerRef.current) clearTimeout(copiadoTimerRef.current)

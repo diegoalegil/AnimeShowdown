@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-// Ajuste (2026-05-17): el splash añadía 1.1s fijos + 0.5s fade en CADA
+// el splash añadía 1.1s fijos + 0.5s fade en CADA
 // navegación directa, dando sensación de lentitud incluso cuando la app
 // ya estaba lista. Cambios:
 //  - Solo se muestra en la primera entrada de la pestaña (sessionStorage):
@@ -29,7 +29,7 @@ function Splash() {
     }
   })
 
-  // Ajuste (2026-05-17): antes el effect tenía [visible] en deps. Cuando
+  // antes el effect tenía [visible] en deps. Cuando
   // setVisible(false) disparaba, el effect re-ejecutaba con el guard
   // `if (!visible) return` — innecesario y propenso a confusión. El
   // effect solo necesita correr UNA vez al mount, sin deps.

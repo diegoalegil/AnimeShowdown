@@ -82,7 +82,7 @@ function BadgeUnlockListener() {
       duration: 6000,
       action: {
         label: 'Ver',
-        // Ajuste (2026-05-17): antes window.location.href forzaba un
+        // antes window.location.href forzaba un
         // hard reload — pierde el estado SPA, queryClient cache,
         // sesión WS abierta, etc. SPA navigate respeta el contexto.
         onClick: () => {

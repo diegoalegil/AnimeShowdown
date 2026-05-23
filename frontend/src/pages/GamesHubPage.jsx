@@ -286,7 +286,7 @@ function GamesHubPage() {
           />
         </div>
 
-        {/* Nota de producto (2026-05-19): el Omikuji va PRIMERO ahora.
+        {/* Nota de producto: el Omikuji va PRIMERO ahora.
             Sentido: el ritual diario abre el día — el palito que sacas
             puede regalarte la pista gratis de los retos de abajo. Antes
             estaba al final, justo después de los retos, lo cual era

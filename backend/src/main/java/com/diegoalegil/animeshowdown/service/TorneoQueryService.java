@@ -73,7 +73,7 @@ public class TorneoQueryService {
      */
     @Transactional(readOnly = true)
     public List<TorneoResumenDto> listarResumenes() {
-        // Ajuste (2026-05-17): antes esto era N+1 — toResumen() llamaba
+        // antes esto era N+1 — toResumen() llamaba
         // findByTorneoOrderBy... por CADA torneo visible (1 + N queries
         // con N≈50 torneos). Ahora: 1 query de torneos + 1 query batch
         // de enfrentamientos (con JOIN FETCH de personajes) agrupada en

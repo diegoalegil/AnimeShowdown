@@ -7,7 +7,7 @@ package com.diegoalegil.animeshowdown.model;
  * estándar SCHEDULED/IN_PROGRESS/FINISHED para
  * que el frontend pueda render progresivo del bracket por estado, y para
  * alinear con la convención usada en GitHub Actions, Kubernetes y schema.org
- * SportsEvent (que el Bloque 5.1 expondrá como JSON-LD).
+ * SportsEvent (que el capa correspondiente expondrá como JSON-LD).
  *
  * La migración de datos viejos la hace {@link com.diegoalegil.animeshowdown.config.EnumMigrations}
  * en arranque, idempotente.

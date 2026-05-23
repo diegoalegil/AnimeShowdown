@@ -20,7 +20,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
  * <p>Por qué {@code @TransactionalEventListener(AFTER_COMMIT)} en lugar de
  * {@code @EventListener}: el evento {@link VotoRegistradoEvent} se publica
  * desde dentro de la transacción del voto ({@code EnfrentamientoController.votar}
- * está anotado {@code @Transactional} desde el nota P2 2026-05-17 — antes
+ * está anotado {@code @Transactional} desde el nota técnica — antes
  * NO lo estaba y el listener descartaba los eventos al no haber tx activa,
  * resultado: badges no se desbloqueaban). Si no esperáramos al commit y la
  * transacción del voto rolleara, el listener desbloquearía el badge sin

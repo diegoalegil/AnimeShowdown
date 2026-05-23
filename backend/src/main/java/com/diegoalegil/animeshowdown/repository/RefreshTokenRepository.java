@@ -49,7 +49,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     /**
      * Borra refresh tokens expirados o revocados hace más de 30 días.
      * Limpieza periódica para que la tabla no crezca indefinidamente. Se
-     * llamará desde un cron o tarea programada futura (Bloque 2.6 con
+     * llamará desde un cron o tarea programada futura (capa correspondiente con
      * scheduling). Por ahora queda accesible por si lo invocamos a mano.
      */
     @Modifying

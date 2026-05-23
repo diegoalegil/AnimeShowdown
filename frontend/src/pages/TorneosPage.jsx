@@ -55,7 +55,7 @@ const SUGERENCIAS_TORNEO = (() => {
 })()
 
 /**
- * Nota de producto (2026-05-18): la página antes era título + spinner +
+ * Nota de producto: la página antes era título + spinner +
  * footer y un grid plano sin separar estados. Ahora:
  *
  * <ul>

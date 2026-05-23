@@ -305,7 +305,7 @@ public class PerfilService {
         // dentro de la misma tx para que ambas escrituras commiteen juntas
         // o se rollee todo. La versión @Async anterior podía persistir
         // tarde con FK violation.
-        // Ajuste (2026-05-17): no incluir email en los detalles del audit.
+        // no incluir email en los detalles del audit.
         // Los logs tienen retención larga (forensic/compliance) y exponer
         // PII allí viola data minimization — el username es suficiente
         // para forense del evento. Si necesitamos contactar al usuario

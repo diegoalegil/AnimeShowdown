@@ -30,7 +30,7 @@ const containerVariants = {
  * mecha) y tropos (harem, slice of life).
  *
  * <p>Cada término linkea a un ejemplo del catálogo cuando hay match
- * obvio. Sin atributos extendidos (Bloque 15) no podemos auto-vincular
+ * obvio. Sin atributos extendidos (nota técnica) no podemos auto-vincular
  * personajes que ejemplifican un tropo; queda como nota informativa.
  */
 
