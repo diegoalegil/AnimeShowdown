@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
@@ -173,6 +173,26 @@ function CatalogoError({ onRetry }) {
   )
 }
 
+function useCatalogoLoadingTimeout(isLoading) {
+  const [attempt, setAttempt] = useState(0)
+  const [timedOut, setTimedOut] = useState(false)
+
+  useEffect(() => {
+    if (!isLoading || timedOut) return undefined
+
+    const id = window.setTimeout(() => setTimedOut(true), 12000)
+    return () => window.clearTimeout(id)
+  }, [attempt, isLoading, timedOut])
+
+  return [
+    isLoading && timedOut,
+    () => {
+      setTimedOut(false)
+      setAttempt((value) => value + 1)
+    },
+  ]
+}
+
 // Wrapper que sólo deja pasar children cuando el catálogo de personajes está
 // hidratado. Las rutas de soporte/auth/legal/status cargan independiente para
 // que sigan disponibles aunque falle /api/personajes/catalogo.
@@ -186,10 +206,15 @@ function RequireCatalog({ catalogoQuery, children }) {
   const isError = catalogoQuery.isError
   const isLoadedEmpty =
     !hasData && !isLoading && !isError && Array.isArray(catalogoQuery.data)
+  const [hasTimedOut, resetTimeout] = useCatalogoLoadingTimeout(isLoading)
+  const handleRetry = () => {
+    resetTimeout()
+    catalogoQuery.refetch()
+  }
 
   if (hasData) return children
-  if (isError) return <CatalogoError onRetry={() => catalogoQuery.refetch()} />
-  if (isLoadedEmpty) return <CatalogoVacio onRetry={() => catalogoQuery.refetch()} />
+  if (isError || hasTimedOut) return <CatalogoError onRetry={handleRetry} />
+  if (isLoadedEmpty) return <CatalogoVacio onRetry={handleRetry} />
   return <PageLoader />
 }
 
@@ -310,6 +335,7 @@ function App() {
               <Route path="/privacidad" element={<PrivacyPage />} />
               <Route path="/terminos" element={<TermsPage />} />
               <Route path="/dmca" element={<DmcaPage />} />
+              <Route path="/glosario" element={<Navigate replace to="/glossary" />} />
               <Route path="/glossary" element={<GlossaryPage />} />
 
               {/* ===== Rutas que DEPENDEN del catálogo ===== */}
