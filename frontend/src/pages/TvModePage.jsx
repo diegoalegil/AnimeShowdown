@@ -14,7 +14,7 @@ import PersonajeImg from '../components/PersonajeImg'
  * SPA. Pensada para streamers que quieren mostrar AnimeShowdown en su
  * stream, museos digitales, pantallas de eventos, etc.
  *
- * <p>Auto-rotación cada 10s entre 3 vistas: Top ELO, personaje aleatorio
+ * <p>Auto-rotación cada 10s entre 3 vistas: Top ELO base, personaje aleatorio
  * (con stats grandes), y un "trending" mock (top 3 por win-rate). Sin
  * navegación, sin scroll, sin clicks (pero con Esc para volver).
  *
@@ -146,7 +146,7 @@ function VistaTop10({ top10 }) {
     >
       <div className="mb-4 flex flex-col items-center text-center sm:mb-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold sm:text-[12px]">
-          Top 10 ELO global
+          Top 10 ELO base
         </p>
         <h1 className="mt-2 text-[clamp(1.5rem,6vw,5rem)] font-extrabold leading-none">
           ¿Quién manda hoy?

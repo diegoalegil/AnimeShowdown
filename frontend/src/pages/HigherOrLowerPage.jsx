@@ -61,7 +61,7 @@ function HigherOrLowerPage() {
   useSeo({
     title: 'ELO Duel · Higher or Lower',
     description:
-      'Mini-juego de adivinar quién tiene más ELO entre dos personajes anime. Sube tu mejor racha personal.',
+      'Mini-juego de adivinar quién tiene más ELO base entre dos personajes anime. Sube tu mejor racha personal.',
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
@@ -180,7 +180,7 @@ function HigherOrLowerGame({
             <span className="as-title-gradient">ELO</span> Duel
           </h1>
           <p className="max-w-2xl text-[13px] text-fg-muted sm:text-base">
-            ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO que el de la izquierda?
+            ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO base que el de la izquierda?
             Cada acierto el misterio se desvela y se convierte en el nuevo punto de comparación.
           </p>
         </header>
@@ -317,7 +317,7 @@ function ReferenceCard({ personaje }) {
         />
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
           <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-            ELO conocido
+            ELO base
           </span>
           <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
             {personaje.elo}
@@ -366,7 +366,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4"
             >
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-                ELO misterio
+                ELO base oculto
               </span>
               <HelpCircle className="h-6 w-6 text-white/90 sm:h-9 sm:w-9" />
             </motion.div>
@@ -381,7 +381,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               }`}
             >
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-                ELO real
+                ELO base
               </span>
               <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
                 {personaje.elo}
@@ -440,7 +440,7 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
         seguidos. Tu récord es <span className="font-mono font-bold text-gold">{best}</span>.
       </p>
       <div className="text-sm text-fg-muted">
-        <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO{' '}
+        <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO base{' '}
         <span className="font-mono text-fg-strong">{challenger.elo}</span> →{' '}
         {challengerEsMayor ? (
           <span className="text-emerald-300">era MAYOR</span>
