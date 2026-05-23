@@ -169,6 +169,7 @@ public class SecurityConfig {
                         // OG images server-side: los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/api/og/**").permitAll()
                         // Datos para sitemap dinámico. Consumido por
                         // el script generate-sitemap.mjs en build de Cloudflare
                         // Pages; público porque sitemaps son públicos por definición.
