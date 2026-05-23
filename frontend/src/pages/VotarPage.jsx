@@ -19,6 +19,7 @@ import KanjiSpinner from '../components/KanjiSpinner'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import AccessibleDialog from '../components/AccessibleDialog'
+import PersonajeImg from '../components/PersonajeImg'
 
 // Audit externo AS-004 (2026-05-23): el captcha modal lazy-load el script
 // de Cloudflare Turnstile la primera vez. La mayoría de usuarios nunca
@@ -178,6 +179,21 @@ function incrementarContadorLocalVotos() {
   } catch {
     // localStorage puede fallar en privacy mode; votar no debe depender de esto.
   }
+}
+
+function responsiveImageVariant(src, width) {
+  if (!src) return src
+  const queryIndex = src.indexOf('?')
+  const srcPath = queryIndex === -1 ? src : src.slice(0, queryIndex)
+  const srcQuery = queryIndex === -1 ? '' : src.slice(queryIndex)
+  if (!srcPath.startsWith('/img/') || /-\d+\.webp$/i.test(srcPath)) return src
+  if (!/\.webp$/i.test(srcPath)) return src
+  return `${srcPath.replace(/\.webp$/i, '')}-${width}.webp${srcQuery}`
+}
+
+function cssImageUrl(src) {
+  if (!src) return 'none'
+  return `url("${String(src).replace(/["\\]/g, '\\$&')}")`
 }
 
 function VotarPage() {
@@ -735,6 +751,7 @@ function VsBadge({ votedFor }) {
 
 function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anonymousLimited, voteResult }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
+  const blurSrc = responsiveImageVariant(imgSrc, 300)
   const dominantColor = personaje.imagenColorDominante ?? '#151923'
   // warm() en hover: anticipa que el user va a hacer click y resume el
   // AudioContext si estaba suspended. Sin esto el primer playVote tras
@@ -800,7 +817,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 motion-reduce:hidden"
             style={{
-              backgroundImage: `url(${imgSrc})`,
+              backgroundImage: cssImageUrl(blurSrc),
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               filter: 'blur(18px)',
@@ -810,11 +827,16 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
               contain: 'strict',
             }}
           />
-          <img
+          <PersonajeImg
+            slug={personaje.slug}
             src={imgSrc}
             alt={personaje.nombre}
+            nombre={personaje.nombre}
+            colorDominante={dominantColor}
             loading="eager"
             decoding="async"
+            fetchPriority={side === 'left' ? 'high' : 'auto'}
+            sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
             className="relative h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
           />
           {isVoted && (

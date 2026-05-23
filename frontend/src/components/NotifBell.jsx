@@ -63,7 +63,7 @@ function NotifBell() {
         onClick={() => setOpen((v) => !v)}
         aria-label="Notificaciones"
         aria-expanded={open}
-        className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (

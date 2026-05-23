@@ -15,7 +15,7 @@ import {
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { fechaDelDia, safeStorage } from '../lib/games'
+import { ELO_DUEL_BEST_KEY, fechaDelDia, safeStorage } from '../lib/games'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
@@ -89,7 +89,7 @@ const GAMES = [
     sub: 'Higher or Lower',
     desc: '¿Quién tiene más ELO entre estos dos personajes? Adivina seguido y construye tu racha.',
     cadencia: 'Endless · sin límite',
-    bestKey: 'animeshowdown.higher-or-lower.best',
+    bestKey: ELO_DUEL_BEST_KEY,
     rarity: 'R',
     endless: true,
   },

@@ -3,6 +3,10 @@
 # memorables y dan identidad ("ELO Duel" en vez de "Higher or Lower").
 # Estos 301 se procesan ANTES de servir el index.html, así Google los
 # sigue sin pasar por React Router.
+/privacy                  /privacidad                 301
+/privacy/*                /privacidad                 301
+/terms                    /terminos                   301
+/terms/*                  /terminos                   301
 /games/guess-character    /games/shadow-guess        301
 /games/guess-character/*  /games/shadow-guess/:splat 301
 /games/guess-anime        /games/anime-reveal        301
