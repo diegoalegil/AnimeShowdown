@@ -567,7 +567,7 @@ function MoverRow({ mover, actividad }) {
       <Link to={`/personajes/${mover.slug}`} className="shrink-0 transition-transform hover:scale-105">
         <img
           src={mover.imagenUrl || imagenPersonaje(mover.slug)}
-          alt=""
+          alt={mover.nombre}
           loading="lazy"
           onError={ocultaImgRota}
           className="h-10 w-8 rounded object-cover object-top"
@@ -816,7 +816,7 @@ function VotoRow({ voto }) {
       <Link to={`/personajes/${ganador.slug}`} className="shrink-0">
         <img
           src={ganador.imagenUrl || imagenPersonaje(ganador.slug)}
-          alt=""
+          alt={ganador.nombre}
           loading="lazy"
           onError={ocultaImgRota}
           className="h-7 w-7 rounded object-cover object-top"
@@ -885,7 +885,7 @@ function DueloAvatar({ personaje }) {
       <PersonajeCutImg
         slug={personaje.slug}
         fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
-        alt=""
+        alt={personaje.nombre}
         loading="lazy"
         className="h-28 w-24 rounded-xl border border-accent/20"
         imgClassName="p-1"

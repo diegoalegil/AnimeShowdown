@@ -490,7 +490,7 @@ function UrlForm({ user, updateUser }) {
         {previewUrl?.trim() ? (
           <img
             src={previewUrl.trim()}
-            alt=""
+            alt="Vista previa del avatar"
             className="h-12 w-12 rounded-full object-cover"
             onError={(e) => {
               e.currentTarget.style.opacity = 0.3

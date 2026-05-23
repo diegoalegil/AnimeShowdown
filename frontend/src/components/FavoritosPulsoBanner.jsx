@@ -260,7 +260,7 @@ function FavoritoMovido({ favorito, movimiento, actividad }) {
       >
         <img
           src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
-          alt=""
+          alt={favorito.nombre}
           loading="lazy"
           onError={ocultaImgRota}
           className="h-6 w-6 rounded-full object-cover object-top"
@@ -293,7 +293,7 @@ function FavoritoActivo({ favorito, actividad }) {
       >
         <img
           src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
-          alt=""
+          alt={favorito.nombre}
           loading="lazy"
           onError={ocultaImgRota}
           className="h-6 w-6 rounded-full object-cover object-top"

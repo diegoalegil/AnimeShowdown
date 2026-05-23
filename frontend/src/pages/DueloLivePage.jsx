@@ -375,7 +375,7 @@ function CharacterChoice({ label, personaje, disabled, onClick }) {
     >
       <div className="relative aspect-[16/10] bg-surface">
         {personaje?.imagenUrl ? (
-          <img src={personaje.imagenUrl} alt="" className="h-full w-full object-cover" loading="eager" />
+          <img src={personaje.imagenUrl} alt={personaje.nombre} className="h-full w-full object-cover" loading="eager" />
         ) : (
           <div aria-hidden="true" lang="ja" className="flex h-full items-center justify-center text-5xl font-black text-fg-muted">影</div>
         )}

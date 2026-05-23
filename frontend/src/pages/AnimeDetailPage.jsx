@@ -289,7 +289,7 @@ function RankingRow({ rank, slug, nombre, elo, wins, losses }) {
         </span>
         <PersonajeImg
           slug={slug}
-          alt=""
+          alt={nombre}
           loading="lazy"
           className="h-12 w-9 shrink-0 rounded-md object-cover object-top"
         />
