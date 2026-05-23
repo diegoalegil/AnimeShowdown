@@ -26,10 +26,8 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
     boolean existsByNombre(String nombre);
 
     /**
-     * Proyección column-only para healthcheck (P2 audit 2026-05-17): cargar
-     * la entidad completa solo para comparar slugs era desperdicio. Esta
-     * query devuelve solo {@code slug}, suficiente para detectar drift
-     * BBDD↔seed por composición (no solo por count).
+     * Proyección column-only para healthcheck: devuelve solo {@code slug},
+     * suficiente para detectar drift BBDD↔seed por composición.
      */
     @Query("SELECT p.slug FROM Personaje p")
     List<String> findAllSlugs();

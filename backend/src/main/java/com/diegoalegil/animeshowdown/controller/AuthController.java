@@ -620,9 +620,9 @@ public class AuthController {
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request,
             HttpServletRequest httpRequest) {
         passwordResetService.solicitarReset(request.getEmail());
-        // Loguea siempre con email plano (no usuario) — el endpoint es público
-        // y no revela si el email existe en el cuerpo, pero el audit interno
-        // sí captura el intento para análisis forense.
+        // Loguea siempre con email plano (no usuario): el endpoint es público
+        // y no revela si el email existe en el cuerpo, pero el registro de
+        // seguridad sí captura el intento para análisis forense.
         auditLogService.registrar(AuditEvento.PASSWORD_RESET_SOLICITADO, null,
                 Map.of("email", request.getEmail()), httpRequest);
         return ResponseEntity.ok(Map.of(

@@ -1,9 +1,9 @@
 /**
  * Helpers de fallback para <img> que muestran assets de personajes.
  *
- * <p>Nota P1 (revisión externa 2026-05-18): cuando una imagen falla
- * (asset 0 bytes, URL borrada, lazy con timeout) el browser pintaba el
- * icono nativo de "imagen rota" — feo y rompe la sensación premium.
+ * <p>Cuando una imagen falla (asset 0 bytes, URL borrada, lazy con timeout),
+ * el browser pintaría el icono nativo de "imagen rota", que rompe la
+ * sensación premium.
  *
  * <p>Estrategia: usar {@link PersonajeImg} cuando podamos (cae a
  * PersonajePlaceholder con kanji + iniciales). Cuando no es viable
