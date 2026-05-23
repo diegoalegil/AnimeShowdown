@@ -54,15 +54,27 @@ function readStoredSlots() {
   }
 }
 
-function buildInitialSlots(addSlug) {
+function getTop5AddSlugs(searchParams) {
+  return [
+    ...new Set(
+      searchParams
+        .getAll('add')
+        .flatMap((value) => String(value).split(','))
+        .map((slug) => slug.trim())
+        .filter(Boolean),
+    ),
+  ].slice(0, SLOTS)
+}
+
+function buildInitialSlots(addSlugs = []) {
   const slots = readStoredSlots()
-  if (!addSlug) return slots
-  const personaje = getPersonajeBySlug(addSlug)
-  if (!personaje || slots.includes(addSlug)) return slots
-  const idx = slots.findIndex((slot) => !slot)
-  if (idx === -1) return slots
   const next = [...slots]
-  next[idx] = addSlug
+  for (const slug of addSlugs) {
+    if (!getPersonajeBySlug(slug) || next.includes(slug)) continue
+    const idx = next.findIndex((slot) => !slot)
+    if (idx === -1) break
+    next[idx] = slug
+  }
   return next
 }
 
@@ -107,7 +119,10 @@ function MiTop5Page() {
   })
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const [searchParams, setSearchParams] = useSearchParams()
-  const addFromQuery = searchParams.get('add')
+  const addFromQuery = useMemo(
+    () => getTop5AddSlugs(searchParams),
+    [searchParams],
+  )
   const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
   const personajesBySlug = useMemo(
     () => new Map(catalogoPersonajes.map((p) => [p.slug, p])),
@@ -132,14 +147,17 @@ function MiTop5Page() {
   )
 
   useEffect(() => {
-    if (!addFromQuery) return
-    const personaje = getPersonajeBySlug(addFromQuery)
-    if (!personaje) {
-      toast.error('No encontré ese personaje para añadirlo al Top 5')
-    } else if (slots.includes(addFromQuery)) {
-      toast.success(`${personaje.nombre} listo en tu Top 5`)
+    if (addFromQuery.length === 0) return
+    const validos = addFromQuery
+      .filter((slug) => getPersonajeBySlug(slug) && slots.includes(slug))
+      .map((slug) => getPersonajeBySlug(slug)?.nombre)
+      .filter(Boolean)
+    if (validos.length > 1) {
+      toast.success(`${validos.length} personajes listos en tu Top 5`)
+    } else if (validos.length === 1) {
+      toast.success(`${validos[0]} listo en tu Top 5`)
     } else {
-      toast.info('Top 5 completo. Quita uno para añadir otro.')
+      toast.error('No pude añadir esos personajes al Top 5')
     }
     setSearchParams({}, { replace: true })
   }, [addFromQuery, setSearchParams, slots])
