@@ -312,14 +312,15 @@ function VotarPage() {
     matchId = null
   }
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback((options = {}) => {
+    const silent = options?.silent === true
     // Cancela cualquier auto-next pendiente — el user pulsó manual
     // antes del timeout, no queremos saltar dos matches.
     if (autoNextTimeoutRef.current != null) {
       clearTimeout(autoNextTimeoutRef.current)
       autoNextTimeoutRef.current = null
     }
-    play('playClick')
+    if (!silent) play('playClick')
     setVotedFor(null)
     setVoteResult(null)
     if (modoBackend) {
@@ -356,7 +357,7 @@ function VotarPage() {
       if (fastMode) {
         autoNextTimeoutRef.current = setTimeout(() => {
           autoNextTimeoutRef.current = null
-          handleNext()
+          handleNext({ silent: true })
         }, NEXT_DELAY_MS)
       }
     },
@@ -366,6 +367,13 @@ function VotarPage() {
   const handleVote = useCallback(
     (personaje) => {
       if (votedFor) return
+      if (modoBackend && !user && getAnonymousVotesCount() >= ANON_VOTE_LIMIT) {
+        setShowAnonLimitModal(true)
+        toast.info('Límite invitado alcanzado', {
+          description: 'Crea cuenta gratis para seguir votando y guardar tu racha.',
+        })
+        return
+      }
       // Solo playVote: antes había también playImpact (sub-bass thump)
       // pero los dos juntos disparaban 9 nodos Web Audio en el mismo
       // tick del click handler y se percibía un lag perceptible entre
@@ -374,15 +382,6 @@ function VotarPage() {
       play('playVote')
 
       if (modoBackend) {
-        if (!user) {
-          if (getAnonymousVotesCount() >= ANON_VOTE_LIMIT) {
-            setShowAnonLimitModal(true)
-            toast.info('Límite invitado alcanzado', {
-              description: 'Crea cuenta gratis para seguir votando y guardar tu racha.',
-            })
-            return
-          }
-        }
         setVotedFor(personaje.slug)
         votarMutation.mutate(
           { enfrentamientoId: matchId, personajeGanadorId: personaje.id, anonymous: !user },
@@ -465,7 +464,7 @@ function VotarPage() {
           // página dispara doble salto / setState en componente desmontado.
           autoNextTimeoutRef.current = setTimeout(() => {
             autoNextTimeoutRef.current = null
-            handleNext()
+            handleNext({ silent: true })
           }, NEXT_DELAY_MS)
         }
       }
@@ -501,8 +500,19 @@ function VotarPage() {
   // input — el check `tagName` evita atrapar tecla cuando se escribe en
   // otro sitio de la UI (no debería haberlos en /votar pero defensivo).
   useEffect(() => {
-    if (isLoading || !a || !b) return
+    if (
+      isLoading ||
+      !a ||
+      !b ||
+      isFetching ||
+      isFetchingDueloSugerido ||
+      showAnonLimitModal ||
+      captchaChallenge
+    ) {
+      return
+    }
     const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       const tag = e.target?.tagName?.toLowerCase()
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return
       if (e.key === 'ArrowLeft') {
@@ -521,7 +531,18 @@ function VotarPage() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isLoading, a, b, handleVote, handleNext, votedFor])
+  }, [
+    isLoading,
+    isFetching,
+    isFetchingDueloSugerido,
+    showAnonLimitModal,
+    captchaChallenge,
+    a,
+    b,
+    handleVote,
+    handleNext,
+    votedFor,
+  ])
 
   if (isLoading) {
     return (
