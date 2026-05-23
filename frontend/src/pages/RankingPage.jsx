@@ -29,6 +29,7 @@ import {
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
+import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useSeo } from '../hooks/useSeo'
@@ -229,6 +230,8 @@ function RankingPage() {
             de la semana — da sensación de vida temporal incluso antes
             de que el user elija un tab. Solo aparece si hay movimientos. */}
         <MoversStrip />
+
+        <PersonalRankingTeaser className="mt-6" />
 
         <Tabs activo={tab} onChange={setTab} />
 

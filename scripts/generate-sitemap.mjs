@@ -146,6 +146,7 @@ const staticRoutes = [
   { path: '/leaderboards', priority: '0.7', changefreq: 'daily' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
   { path: '/comparar', priority: '0.7', changefreq: 'weekly' },
+  { path: '/mi-ranking', priority: '0.5', changefreq: 'weekly' },
   { path: '/descubre-personaje', priority: '0.7', changefreq: 'daily' },
   { path: '/misiones', priority: '0.7', changefreq: 'daily' },
   { path: '/como-funciona', priority: '0.7', changefreq: 'monthly' },
