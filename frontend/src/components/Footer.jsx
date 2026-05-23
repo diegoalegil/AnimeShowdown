@@ -22,7 +22,7 @@ function GithubIcon({ className }) {
 // Nota de producto: el footer antes mostraba el stack
 // técnico (React 19, Vite, Spring Boot, Java 21…) y un copyright
 // "Diego Alegil — DAM 1.º". Quitamos ambos: el footer público
-// representa la plataforma, no un portfolio. GitHub queda solo
+// representa la plataforma, no una presentación personal. GitHub queda solo
 // como link discreto en Comunidad bajo la etiqueta "código abierto".
 const productoLinks = [
   { to: '/', i18nKey: 'inicio' },

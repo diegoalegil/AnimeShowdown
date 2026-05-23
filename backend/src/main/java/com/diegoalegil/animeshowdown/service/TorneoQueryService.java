@@ -4,10 +4,12 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,9 @@ import jakarta.persistence.EntityNotFoundException;
 public class TorneoQueryService {
 
     private static final Duration LIVE_MATCH_SLOT = Duration.ofMinutes(30);
+    private static final String LEGACY_AUTO_DESC_PREFIX = "[AUTO]";
+    private static final Pattern LEGACY_AUTO_SIZE =
+            Pattern.compile(".*·\\s*(\\d+)\\s+personajes.*");
 
     private final TorneoRepository torneoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
@@ -190,7 +195,7 @@ public class TorneoQueryService {
         dto.setId(t.getId());
         dto.setSlug(t.getSlug());
         dto.setNombre(t.getNombre());
-        dto.setDescripcion(t.getDescripcion());
+        dto.setDescripcion(descripcionPublica(t.getDescripcion()));
         dto.setEstado(t.getEstado());
         dto.setFechaCreacion(t.getFechaCreacion());
         dto.setFechaInicio(t.getFechaInicio());
@@ -206,6 +211,16 @@ public class TorneoQueryService {
         dto.setGanadorSlug(calcularGanadorSlug(t, totalRondas, matches));
         dto.setAvataresPrincipales(calcularAvataresPrincipales(matches));
         return dto;
+    }
+
+    private String descripcionPublica(String descripcion) {
+        if (descripcion == null || !descripcion.startsWith(LEGACY_AUTO_DESC_PREFIX)) {
+            return descripcion;
+        }
+        Matcher matcher = LEGACY_AUTO_SIZE.matcher(descripcion);
+        String tamano = matcher.matches() ? matcher.group(1) : "8";
+        return "Torneo automático de la comunidad con " + tamano
+                + " personajes seleccionados al azar para mantener la arena activa.";
     }
 
     /**

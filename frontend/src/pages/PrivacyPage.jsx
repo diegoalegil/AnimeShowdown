@@ -190,7 +190,7 @@ function PrivacyPage() {
               </li>
               <li>
                 <strong className="text-fg-strong">Métricas Sentry:</strong> 30
-                días por defecto del free tier.
+                días por la configuración actual del servicio.
               </li>
             </ul>
           </section>
