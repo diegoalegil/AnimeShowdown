@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   CATALOGO_PERSONAJES_HYDRATED_EVENT,
   MISSING_IMAGE_PREFIX,
@@ -74,6 +74,21 @@ function PersonajeImg({
   const dominantColor =
     colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
   const altText = alt ?? nombre ?? p?.nombre ?? slug
+  const handleImageLoad = useCallback(() => {
+    setStatus({ src, loaded: true, errored: false })
+  }, [src])
+  const handleImageError = useCallback(() => {
+    setStatus({ src, loaded: false, errored: true })
+  }, [src])
+  const handleImageRef = useCallback(
+    (node) => {
+      if (!node || loaded || errored) return
+      if (node.complete && node.naturalWidth > 0) {
+        setStatus({ src, loaded: true, errored: false })
+      }
+    },
+    [errored, loaded, src],
+  )
 
   // Catálogo no hidratado todavía: imagenPersonaje(slug) devolvió el path
   // sentinel /img/_missing/${slug}.webp y no se pasó un srcOverride real.
@@ -137,6 +152,7 @@ function PersonajeImg({
           <source type="image/webp" srcSet={srcsetWebp} sizes={sizesAttr} />
         )}
         <img
+          ref={handleImageRef}
           src={imgSrc}
           alt={altText}
           className={`h-full w-full ${fitClass} ${positionClass} transition-opacity duration-300 motion-reduce:transition-none ${
@@ -144,8 +160,8 @@ function PersonajeImg({
           }`}
           loading={loading ?? 'lazy'}
           decoding={decoding ?? 'async'}
-          onLoad={() => setStatus({ src, loaded: true, errored: false })}
-          onError={() => setStatus({ src, loaded: false, errored: true })}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
           {...imgProps}
         />
       </picture>
