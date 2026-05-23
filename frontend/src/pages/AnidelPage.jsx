@@ -41,7 +41,7 @@ const containerVariants = {
 }
 
 /**
- * Anidel — Wordle de personajes anime (Plan v2 §14.4).
+ * Anidel — Wordle de personajes anime.
  *
  * <p>Cada día un personaje secreto. 6 intentos. Tras cada intento se
  * compara con el objetivo por:
@@ -54,10 +54,9 @@ const containerVariants = {
  * <p>Pista opcional: revela una letra random del nombre del objetivo
  * que aún no se sepa. Gasta 1 intento.
  *
- * <p>Sin atributos extendidos (género, época, color de pelo) que sería
- * la versión completa del Plan v2 §14.4 — esa queda para cuando llegue
- * Bloque 15 (`personaje_atributos`). Por ahora 3 dimensiones de
- * comparación funcionan bien.
+ * <p>Sin atributos extendidos (género, época, color de pelo) hasta que
+ * el catálogo incorpore esos datos. Por ahora 3 dimensiones de
+ * comparación mantienen el juego ligero.
  */
 function AnidelPage() {
   useSeo({

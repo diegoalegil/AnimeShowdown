@@ -45,16 +45,16 @@ function generarRondas(salt = '') {
 }
 
 /**
- * Detector de Impostor — Daily (Plan v2 §14.5).
+ * Detector de Impostor — Daily.
  *
  * <p>Cada ronda muestra 5 cartas de personajes: 4 del mismo anime + 1
  * impostor de otro anime. Hay que pulsar el impostor antes de que se
  * agote el tiempo (15s en modo normal). 3 rondas por día.
  *
- * <p>Versión MVP sin "Hard" (impostor del mismo género/estética) ni
- * "Speed" (3s/ronda con combo) — requieren atributos extendidos del
- * Bloque 15 (`personaje_atributos`). Por ahora todos los impostores
- * son de un anime random distinto (Easy).
+ * <p>Modo actual sin "Hard" (impostor del mismo género/estética) ni
+ * "Speed" (3s/ronda con combo), que requieren atributos extendidos en
+ * el catálogo. Por ahora todos los impostores son de un anime random
+ * distinto.
  *
  * <p>Determinístico por día con offset por ronda: la misma ronda en la
  * misma fecha siempre tiene el mismo set, pero las 3 rondas del día son
@@ -218,9 +218,8 @@ function ImpostorPage() {
 }
 
 function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
-  // Timer por ronda (Plan v2 §14.5). El `key` del componente cambia al
-  // avanzar de ronda, así que useState reinicializa automáticamente —
-  // no necesitamos resetear manualmente al cambiar de ronda.
+  // El `key` del componente cambia al avanzar de ronda, así que useState
+  // reinicializa automáticamente el timer sin reset manual.
   const [segundos, setSegundos] = useState(SEGUNDOS_POR_RONDA)
 
   useEffect(() => {

@@ -39,7 +39,7 @@ const containerVariants = {
 }
 
 /**
- * Guess the Character — Daily (Plan v2 §14.2 sub-variante visual).
+ * Guess the Character — Daily.
  *
  * <p>Imagen del personaje del día con blur. Cada intento fallido reduce
  * el blur (32px → 24px → 16px → 8px → 0px). 5 intentos máximos.

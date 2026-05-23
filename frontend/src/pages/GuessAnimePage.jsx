@@ -37,7 +37,7 @@ const containerVariants = {
 }
 
 /**
- * Guess the Anime — Daily (Plan v2 §14.3).
+ * Guess the Anime — Daily.
  *
  * <p>A diferencia de Guess the Character, aquí se intuye la carta del
  * personaje desde el principio con blur visual progresivo. Lo que hay

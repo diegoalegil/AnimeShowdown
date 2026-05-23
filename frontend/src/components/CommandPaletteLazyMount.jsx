@@ -1,11 +1,9 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 
 // Wrapper que aplaza el mount real del CommandPalette hasta el primer
-// intento de abrirlo (Cmd/Ctrl+K o Cmd/Ctrl+J). Ajuste (2026-05-17):
-// CommandPalette se montaba globalmente desde App.jsx aunque estuviera
-// cerrado, arrastrando cmdk, todo el catalogo personajes (730 entries)
-// y un fetch de torneos al primer paint — coste innecesario para la
-// mayoría de visitas que nunca lo abren.
+// intento de abrirlo (Cmd/Ctrl+K o Cmd/Ctrl+J). Montarlo globalmente
+// desde App.jsx arrastra cmdk, el catálogo de personajes y un fetch de
+// torneos al primer paint, coste innecesario para la mayoría de visitas.
 //
 // Tras primer key event: monta lazy con prop initialOpen={true} para
 // abrir el dialog inmediatamente sin depender de re-dispatch del
