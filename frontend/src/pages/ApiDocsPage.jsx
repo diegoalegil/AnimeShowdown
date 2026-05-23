@@ -185,6 +185,11 @@ const SECCIONES = [
       },
       {
         metodo: 'GET',
+        path: '/api/og/duelo/{slugA}/vs/{slugB}.png',
+        desc: 'OG image 1200x630 para compartir un duelo personaje contra personaje.',
+      },
+      {
+        metodo: 'GET',
         path: '/api/og/pvp.png',
         desc: 'OG image 1200x630 para el modo duelo PvP live.',
       },
