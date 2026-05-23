@@ -1,9 +1,8 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { imagenPersonaje } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { normalizar } from '../lib/games'
-import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Combobox de selección de personaje para juegos y formularios.
@@ -175,11 +174,12 @@ function AutocompletePersonaje({
                   idx === activo ? 'bg-bg' : 'hover:bg-bg'
                 }`}
               >
-                <img
-                  src={p.imagenUrl ?? p.imagen ?? imagenPersonaje(p.slug)}
+                <PersonajeImg
+                  slug={p.slug}
+                  src={p.imagenUrl ?? p.imagen}
                   alt={p.nombre}
                   loading="lazy"
-                  onError={ocultaImgRota}
+                  sizes="36px"
                   className="h-9 w-7 shrink-0 rounded object-cover object-top"
                 />
                 <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">

@@ -23,11 +23,10 @@ import {
   safeStorage,
 } from '../lib/games'
 import {
-  imagenPersonaje,
   getStatsPersonaje,
 } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import PersonajeImg from '../components/PersonajeImg'
 
 const MAX_INTENTOS = 6
 const STORAGE_KEY = 'animeshowdown.anidel.v1'
@@ -348,11 +347,11 @@ function FilaIntento({ intento }) {
       }`}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <img
-          src={imagenPersonaje(intento.slug)}
+        <PersonajeImg
+          slug={intento.slug}
           alt={intento.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="36px"
           className="h-9 w-7 shrink-0 rounded object-cover object-top"
         />
         <div className="min-w-0">

@@ -19,10 +19,7 @@ import {
   Vote,
   X,
 } from 'lucide-react'
-import {
-  getStatsPersonaje,
-  imagenPersonaje,
-} from '../lib/personajes-core'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import {
   CATEGORIAS,
   MIN_PARA_SECCION,
@@ -32,7 +29,6 @@ import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
-import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -477,11 +473,12 @@ function MoverChip({ mover }) {
       to={`/personajes/${mover.slug}`}
       className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-2.5 transition-colors hover:border-accent/40"
     >
-      <img
-        src={mover.imagenUrl || imagenPersonaje(mover.slug)}
+      <PersonajeImg
+        slug={mover.slug}
+        src={mover.imagenUrl}
         alt={mover.nombre}
         loading="lazy"
-        onError={ocultaImgRota}
+        sizes="48px"
         className="h-12 w-9 shrink-0 rounded object-cover object-top"
       />
       <div className="min-w-0 flex-1">
