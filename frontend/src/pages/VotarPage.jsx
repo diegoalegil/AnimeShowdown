@@ -274,6 +274,7 @@ function VotarPage() {
       queryClient.invalidateQueries({ queryKey: ['torneos'] })
     },
   })
+  const isVotePending = votarMutation.isPending
 
   const modoBackend = Boolean(enfrentamiento && !isError)
   const sinMatchesAbiertos =
@@ -313,6 +314,7 @@ function VotarPage() {
   }
 
   const handleNext = useCallback((options = {}) => {
+    if (isVotePending) return
     const silent = options?.silent === true
     // Cancela cualquier auto-next pendiente — el user pulsó manual
     // antes del timeout, no queremos saltar dos matches.
@@ -330,7 +332,7 @@ function VotarPage() {
     } else {
       setCasualPair(getRandomPair())
     }
-  }, [play, modoBackend, modoSugerido, refetch, refetchDueloSugerido])
+  }, [isVotePending, play, modoBackend, modoSugerido, refetch, refetchDueloSugerido])
 
   const handleVoteSuccess = useCallback(
     (personaje, data) => {
@@ -506,6 +508,7 @@ function VotarPage() {
       !b ||
       isFetching ||
       isFetchingDueloSugerido ||
+      isVotePending ||
       showAnonLimitModal ||
       captchaChallenge
     ) {
@@ -535,6 +538,7 @@ function VotarPage() {
     isLoading,
     isFetching,
     isFetchingDueloSugerido,
+    isVotePending,
     showAnonLimitModal,
     captchaChallenge,
     a,
@@ -600,7 +604,7 @@ function VotarPage() {
             <button
               type="button"
               onClick={handleNext}
-              disabled={isFetching || isFetchingDueloSugerido}
+              disabled={isFetching || isFetchingDueloSugerido || isVotePending}
               className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
             >
               <SkipForward className="h-3.5 w-3.5" />
