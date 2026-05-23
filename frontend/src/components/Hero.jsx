@@ -54,7 +54,7 @@ function Hero() {
   const torneoDestacado = torneos
     .filter((t) => Number(t.votosUltimos7Dias ?? 0) > 20)
     .sort((a, b) => Number(b.votosUltimos7Dias ?? 0) - Number(a.votosUltimos7Dias ?? 0))[0]
-  // Revisión perf 2026-05-18: CTAs principales del hero usan pointerdown
+  // perf: CTAs principales del hero usan pointerdown
   // para feedback inmediato. La nav del Link sigue ocurriendo en click
   // (default del browser); el sonido va por delante.
   const ctaVotar = useInstantSoundPress('playClick')

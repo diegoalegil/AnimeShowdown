@@ -34,7 +34,7 @@ export function getToken() {
   return tokenEnMemoria
 }
 
-// Nota P1 (2026-05-17): listeners para "token cambió". Permite a stomp.js
+// Listeners para "token cambió". Permite a stomp.js
 // reconectar con JWT nuevo tras refresh silencioso (auto-refresh tras 401).
 // Sin esto, el WS singleton seguía con el JWT viejo hasta logout/reload.
 const tokenChangeListeners = new Set()
@@ -73,7 +73,7 @@ const DEFAULT_TIMEOUT_MS = 10000
 // la sesión por reuse-detection del backend.
 let refreshPromise = null
 
-// Nota P2 (2026-05-17, 4ª iter): flag que bloquea intentarRefresh durante
+// Flag que bloquea intentarRefresh durante
 // el logout. Si una request paralela recibe 401 y dispara refresh DESPUÉS
 // de que el user haya pulsado logout pero ANTES de que el backend revoque
 // el refresh, el refresh "exitoso" emite una cookie nueva y resucita la
@@ -84,7 +84,7 @@ export function setLoggingOut(value) {
   isLoggingOut = Boolean(value)
 }
 
-// Nota P1 (2026-05-18, 5ª iter): epoch de sesión. setLoggingOut(true)
+// Epoch de sesión. setLoggingOut(true)
 // cortaba refreshes NUEVOS, pero un refreshPromise YA en vuelo que
 // resolviera después seguía aplicando setToken → resucitaba la sesión.
 // Cada cambio de sesión (logout, login, refresh exitoso) incrementa el
@@ -97,7 +97,7 @@ export function bumpSessionEpoch() {
 }
 
 /**
- * Nota P2 (2026-05-17, 4ª iter): grace cross-tab robusto.
+ * Grace cross-tab robusto.
  * El backend devuelve 503 + Retry-After cuando otra pestaña acaba de
  * rotar el refresh. El cliente respeta Retry-After (segundos) y hace
  * hasta GRACE_MAX_RETRIES intentos antes de considerar muerta la
@@ -130,7 +130,7 @@ async function intentarRefresh() {
   // vuelo (logout, login en otra tab, etc.), no aplicamos el resultado.
   const myEpoch = sessionEpoch
   refreshPromise = (async () => {
-    // Nota P2 (2026-05-18, 5ª iter): AbortController por intento para
+    // AbortController por intento para
     // que /refresh tenga timeout propio. Antes el cliente global tenía
     // timeout pero intentarRefresh hacía fetch directo sin abort, así
     // que bootstrap y 401-retries quedaban colgados.

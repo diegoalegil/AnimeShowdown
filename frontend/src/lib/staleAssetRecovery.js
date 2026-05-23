@@ -70,7 +70,7 @@ async function clearRuntimeCaches() {
     try {
       const names = await cacheApi.keys()
       // Borramos TODAS las caches del SW, no solo chunks-js/precache/workbox.
-      // El bug recurrente (Nota P1 2026-05-20) lo causaba un index.html
+      // El bug recurrente lo causaba un index.html
       // stale precacheado por workbox; si filtramos por nombre dejamos otras
       // caches que pueden estar igual de corruptas. Es agresivo pero garantiza
       // que tras el reload el SW empiece limpio.

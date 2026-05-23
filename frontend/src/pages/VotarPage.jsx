@@ -741,7 +741,7 @@ function VotarPage() {
 
 function VsBadge({ votedFor, compact = false }) {
   const reduceMotion = useReducedMotion()
-  // Revisión perf (2026-05-22): la animación infinita scale[1,1.06,1] cada 1.8s
+  // perf: la animación infinita scale[1,1.06,1] cada 1.8s
   // forzaba recomposición del badge cada frame durante TODA la sesión, aún
   // cuando el usuario no había interactuado. Si el user respeta
   // prefers-reduced-motion la quitamos del todo; en el resto la mantenemos
@@ -794,7 +794,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
         onPointerEnter={warm}
         onFocus={warm}
         disabled={showResult}
-        // Revisión perf (2026-05-22): los keyframes scale[1,1.08,1] +
+        // perf: los keyframes scale[1,1.08,1] +
         // boxShadow[3 keyframes] al votar generaban 3 transiciones simultáneas
         // sobre una card de 400px; combinado con el blur del letterbox
         // disparaba 30+ms/frame durante 560ms. Mantenemos el pop con un
@@ -831,7 +831,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
           {/* Letterbox del fondo:
               - Antes: blur(48px) + scale(1.4) era brutal en repaint
                 (~10-15ms/frame). Pasó a blur(24px) + scale(1.2) + GPU layer.
-              - Revisión perf (2026-05-22): aun a 24px, en 2 cards a la vez +
+              - perf: aun a 24px, en 2 cards a la vez +
                 hover scale + voto animation, el repaint del blur seguía
                 siendo el principal bottleneck según devtools. Bajamos a
                 blur(18px) + scale(1.1) (menos área a re-blurear) y opacity
@@ -924,7 +924,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
 
 function AnonVoteLimitModal({ open, onClose }) {
   const next = encodeURIComponent('/votar')
-  // Revisión F018 (2026-05-22): este modal antes era un <div role="dialog">
+  // Este modal antes era un <div role="dialog">
   // sin focus trap, Escape, bloqueo de scroll ni restore de foco. Migrado
   // al componente AccessibleDialog que centraliza todos esos detalles.
   return (

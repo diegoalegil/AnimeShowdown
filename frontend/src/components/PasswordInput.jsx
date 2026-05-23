@@ -32,7 +32,7 @@ const PasswordInput = forwardRef(function PasswordInput(
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
         aria-pressed={visible}
-        // Nota P3 (2026-05-17): antes tabIndex=-1 — keyboard-only users
+        // antes tabIndex=-1 — keyboard-only users
         // no podian activarlo. La conveniencia de "no romper Tab" no
         // justifica bloquear el toggle. Ahora focusable; el orden es
         // input → toggle → siguiente field, que es razonable.
