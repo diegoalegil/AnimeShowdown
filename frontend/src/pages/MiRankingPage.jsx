@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BarChart3,
   CalendarDays,
+  Image as ImageIcon,
   RefreshCw,
   Share2,
   Swords,
@@ -147,6 +148,13 @@ function MiRankingPage() {
                 <Share2 className="h-4 w-4" />
                 Compartir top
               </button>
+              <Link
+                to="/mi-top5"
+                className="as-button-ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
+              >
+                <ImageIcon className="h-4 w-4" />
+                Crear imagen
+              </Link>
             </>
           }
           aside={
@@ -190,6 +198,15 @@ function MiRankingPage() {
               >
                 <BarChart3 className="h-3.5 w-3.5" />
                 Comparar mi top 2
+              </Link>
+            )}
+            {top.length > 0 && (
+              <Link
+                to="/mi-top5"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[12px] font-bold text-gold transition-colors hover:bg-gold/10"
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                Pasar a imagen
               </Link>
             )}
             <button
