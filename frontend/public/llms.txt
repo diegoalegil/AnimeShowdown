@@ -14,6 +14,7 @@ Robots: https://animeshowdown.dev/robots.txt
 
 - https://animeshowdown.dev/votar — head-to-head anime character voting.
 - https://animeshowdown.dev/ranking — community competitive ranking and movement indicators.
+- https://animeshowdown.dev/rankings/{slug} — curated SEO ranking landing pages for high-intent anime searches such as best anime characters, strongest anime characters, villains, waifus and protagonists.
 - https://animeshowdown.dev/leaderboards — user and competitive leaderboards.
 - https://animeshowdown.dev/comparar — interactive selector for creating shareable character-vs-character comparison pages.
 - https://animeshowdown.dev/mi-ranking — local personal ranking based on the user's own voting history in that browser.
@@ -37,6 +38,7 @@ Robots: https://animeshowdown.dev/robots.txt
 - Character entities use https://animeshowdown.dev/personajes/{slug}.
 - Anime universe entities use https://animeshowdown.dev/animes/{slug}.
 - Anime-specific ranking pages use https://animeshowdown.dev/animes/{slug}/ranking.
+- Curated ranking landing pages use https://animeshowdown.dev/rankings/{slug}.
 - Tournament entities use https://animeshowdown.dev/torneos/{slug}.
 - Shareable comparison pages may use https://animeshowdown.dev/duelos/{slug-a}-vs-{slug-b}, but these are best treated as lightweight comparison views unless they contain curated editorial copy.
 - Exact voting links may use https://animeshowdown.dev/votar?personaje={slug-a}&rival={slug-b} to open the voting arena with that initial pair. Treat these as interactive vote entry points, not canonical citation pages.
