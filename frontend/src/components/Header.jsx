@@ -192,8 +192,8 @@ function Header() {
         </span>
       </Link>
 
-      {/* Nav desktop (lg+). En móvil/tablet vive en el panel del hamburger. */}
-      <nav className="hidden flex-wrap items-center justify-center gap-1 lg:flex">
+      {/* Nav desktop (xl+). En móvil/tablet vive en el panel del hamburger. */}
+      <nav className="hidden flex-wrap items-center justify-center gap-1 xl:flex">
         {navLinks.map(({ to, i18nKey }) => (
           <NavLink
             key={to}
@@ -259,7 +259,7 @@ function Header() {
           hamburger. El Login en mobile pasa al panel del hamburger
           (nota de producto 2026-05-18: primero participar, después
           registrarse — login secundario hasta que haya valor acumulado). */}
-      <div className="flex items-center gap-1.5 lg:hidden">
+      <div className="flex items-center gap-1.5 xl:hidden">
         {user ? (
           <>
             <NotifBell />
@@ -313,7 +313,7 @@ function Header() {
             type="button"
             aria-label="Cerrar menú"
             onClick={closeMobile}
-            className="fixed inset-0 top-0 z-20 bg-black/40 lg:hidden"
+            className="fixed inset-0 top-0 z-20 bg-black/40 xl:hidden"
           />
           <div
             ref={mobilePanelRef}
@@ -321,7 +321,7 @@ function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="Menú de navegación"
-            className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl lg:hidden"
+            className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl xl:hidden"
           >
             <div className="flex flex-col gap-1">
               {navLinks.map(({ to, i18nKey }) => (
