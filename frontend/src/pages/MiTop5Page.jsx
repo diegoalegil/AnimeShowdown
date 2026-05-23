@@ -554,6 +554,11 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
     setFallbackText('')
 
     const text = buildTop5ShareText(slots, personajesBySlug)
+    const shareUrl = buildTop5ShareUrl(slots)
+    const absoluteShareUrl =
+      typeof window !== 'undefined'
+        ? new URL(shareUrl, window.location.origin).toString()
+        : shareUrl
     try {
       const file =
         previewActual.blob && typeof File !== 'undefined'
@@ -565,7 +570,7 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
         ? {
             title: 'Mi Top 5 anime',
             text,
-            url: `${window.location.origin}/mi-top5`,
+            url: absoluteShareUrl,
             files: [file],
           }
         : null
@@ -589,7 +594,7 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
       const result = await shareOrCopy({
         title: 'Mi Top 5 anime',
         text,
-        url: '/mi-top5',
+        url: shareUrl,
       })
       if (result === 'cancelled') return
       recordDailyShare()
@@ -697,6 +702,12 @@ function buildTop5ShareText(slots, personajesBySlug) {
     })
     .join('\n')
   return `Mi Top 5 anime en AnimeShowdown:\n${ranking}\n\nHaz el tuyo y dime a quién quitarías.`
+}
+
+function buildTop5ShareUrl(slots) {
+  const selected = slots.filter(Boolean)
+  if (selected.length === 0) return '/mi-top5'
+  return `/mi-top5?add=${encodeURIComponent(selected.join(','))}`
 }
 
 function miTop5Schema() {
