@@ -104,7 +104,7 @@ Activos NO en alcance:
 
 Backend:
 - Spring Boot 3.5.14 (Web, Data JPA, Security, Validation, Actuator)
-- com.auth0:java-jwt 4.4.0
+- com.auth0:java-jwt 4.5.2
 - springdoc-openapi 2.8.5
 - PostgreSQL 17 driver
 
@@ -112,8 +112,8 @@ Frontend:
 - React 19, Vite 8, react-router-dom 7
 - Tailwind CSS v4
 - Framer Motion 12
-- Sonner 2.0.7, cmdk 1.1.1, lucide-react 1.14
-- @react-three/fiber 9, drei 10, three 0.184
+- Sonner 2.0.7, cmdk 1.1.1, lucide-react 1.16
+- @react-three/fiber 9, three 0.184
 
 **Recomendación:** correr `./mvnw dependency-check:check` (OWASP) y `npm audit --omit=dev` antes de cada release. Documentar CVEs aceptados.
 
