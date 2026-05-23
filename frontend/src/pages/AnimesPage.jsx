@@ -102,6 +102,7 @@ function AnimesPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="Buscar animes"
               placeholder="Busca anime, saga o universo… (ej: kimetsu, snk, mha)"
               className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
             />
