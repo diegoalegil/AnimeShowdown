@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, BookOpen, Search } from 'lucide-react'
@@ -295,23 +295,24 @@ function GlossaryPage() {
 
   const [filtro, setFiltro] = useState('')
   const [categoria, setCategoria] = useState(null)
+  const deferredFiltro = useDeferredValue(filtro)
   const { user } = useAuth()
   const [quiz, setQuiz] = useState([])
   const [answers, setAnswers] = useState({})
   const [quizResult, setQuizResult] = useState(null)
 
   const visibles = useMemo(() => {
-    const q = normalizar(filtro)
+    const q = normalizar(deferredFiltro)
     return TERMINOS.filter((t) => {
       if (categoria && t.categoria !== categoria) return false
       if (!q) return true
       return (
         normalizar(t.termino).includes(q) ||
         normalizar(t.definicion).includes(q) ||
-        (t.kanji && t.kanji.includes(filtro))
+        (t.kanji && t.kanji.includes(deferredFiltro))
       )
     })
-  }, [filtro, categoria])
+  }, [deferredFiltro, categoria])
 
   const startQuiz = () => {
     const questions = shuffle(QUIZ_POOL)

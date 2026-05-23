@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronDown, ExternalLink, HelpCircle, Search } from 'lucide-react'
@@ -109,14 +109,15 @@ function FaqPage() {
   const [abiertaPregunta, setAbiertaPregunta] = useState(FAQ[0]?.pregunta ?? null)
   const [categoria, setCategoria] = useState('Todas')
   const [filtro, setFiltro] = useState('')
+  const deferredFiltro = useDeferredValue(filtro)
   const visibles = useMemo(() => {
-    const q = normalizarFaq(filtro.trim())
+    const q = normalizarFaq(deferredFiltro.trim())
     return FAQ.filter((item) => {
       if (categoria !== 'Todas' && item.categoria !== categoria) return false
       if (!q) return true
       return normalizarFaq(`${item.pregunta} ${item.respuesta} ${item.categoria}`).includes(q)
     })
-  }, [categoria, filtro])
+  }, [categoria, deferredFiltro])
 
   const preguntaAbiertaVisible = visibles.some((item) => item.pregunta === abiertaPregunta)
     ? abiertaPregunta
