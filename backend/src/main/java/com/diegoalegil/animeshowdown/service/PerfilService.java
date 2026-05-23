@@ -298,7 +298,7 @@ public class PerfilService {
         if (!passwordEncoder.matches(passwordPlano, usuario.getPassword())) {
             throw new IllegalArgumentException("Password incorrecta");
         }
-        // Nota P2 (2026-05-17): registrar DESPUÉS de verificar password (sin
+        // registrar DESPUÉS de verificar password (sin
         // password válido no hay borrado y no debe haber audit), pero ANTES
         // del delete (el FK audit_log.usuario_id necesita una fila viva; la
         // cascada ON DELETE SET NULL lo limpia tras el commit). Síncrono

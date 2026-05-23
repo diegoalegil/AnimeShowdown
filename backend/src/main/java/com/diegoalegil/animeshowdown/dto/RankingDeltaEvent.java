@@ -3,7 +3,7 @@ package com.diegoalegil.animeshowdown.dto;
 /**
  * Delta público del ranking tras un voto.
  *
- * <p>Nota técnica B2.1a + B2.2 (2026-05-22/23): publica cuatro métricas
+ * <p>publica cuatro métricas
  * para que el frontend mantenga su caché live alineada con el ORDER BY
  * REST sin contaminar ventanas temporales con totales históricos:
  *

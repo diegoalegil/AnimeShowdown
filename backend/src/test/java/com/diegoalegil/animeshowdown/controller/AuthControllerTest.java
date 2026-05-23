@@ -588,7 +588,7 @@ class AuthControllerTest {
     }
 
     /**
-     * Regresión de revisión P1/P2 (2026-05-18): grace cross-tab cubre el caso
+     * Regresión: grace cross-tab cubre el caso
      * dos pestañas refrescando con el mismo token viejo. La primera lo
      * rota OK, la segunda recibe 503 + Retry-After SIN Set-Cookie limpia
      * (no debe pisar la cookie nueva que la primera puso).
@@ -625,7 +625,7 @@ class AuthControllerTest {
     }
 
     /**
-     * Regresión de revisión P1 (2026-05-18, 5ª iter): logout con JWT válido
+     * Regresión: logout con JWT válido
      * revoca TODAS las sesiones del usuario, no solo la cookie presentada.
      * Cubre la race "tab A logout mientras tab B tenía un refresh en
      * vuelo del lado server" — tras el logout, en BD todos los refresh

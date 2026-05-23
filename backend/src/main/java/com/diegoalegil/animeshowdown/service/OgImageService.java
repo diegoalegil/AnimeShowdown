@@ -118,7 +118,7 @@ public class OgImageService {
             return Optional.empty();
         }
         Torneo t = opt.get();
-        // Nota P1 (2026-05-17): torneos PENDIENTE/RECHAZADO no son públicos —
+        // torneos PENDIENTE/RECHAZADO no son públicos —
         // generar y servir su OG image filtraría nombre + descripción a
         // cualquier scraper de Open Graph (Twitter, Discord, Slack). Same
         // 404-equivalent que findBySlug/findById ya hacen.
@@ -202,7 +202,7 @@ public class OgImageService {
     }
 
     private BufferedImage leerImagen(String url) {
-        // Nota P2 (2026-05-17): ImageIO.read(URL) abre HttpURLConnection
+        // ImageIO.read(URL) abre HttpURLConnection
         // por debajo SIN timeouts (conn ni read), así que una imagen
         // remota lenta o muerta dejaba el hilo del request OG bloqueado
         // indefinidamente. Esto es accesible por públicos sin auth (OG

@@ -66,7 +66,7 @@ public class JikanService {
     // Self-injection vía proxy. Sin esto la llamada this.fetchTopCharactersPage
     // desde importarTopPersonajes es invocación directa al método del bean
     // concreto → Spring AOP no aplica → @Cacheable/@Retry/@CircuitBreaker se
-    // ignoran. Nota P2 (2026-05-17): la cabecera de fetchTopCharactersPage
+    // ignoran. la cabecera de fetchTopCharactersPage
     // afirmaba que "no funcionan si se llaman desde dentro de la misma clase"
     // pero el código de importarTopPersonajes hacía exactamente eso.
     @Autowired
@@ -122,7 +122,7 @@ public class JikanService {
                 String descripcion = truncar(character.path("about").asText(""), 497);
                 String imagenUrl = character.path("images").path("jpg").path("image_url").asText("");
 
-                // Nota P2 (2026-05-17): el constructor 4-arg dejaba slug=null,
+                // el constructor 4-arg dejaba slug=null,
                 // y la columna slug es NOT NULL desde V1__initial_schema.sql.
                 // Cualquier import explotaba con NOT NULL violation. Derivamos
                 // un slug del nombre con slugify simple; si colisiona con un

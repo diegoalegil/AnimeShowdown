@@ -25,7 +25,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
  * Cierra la ronda activa del bracket y propaga los ganadores a la ronda
  * siguiente, cumpliendo el contrato que prometía el comentario de
  * {@link BracketService} sobre el "BracketAvanceScheduler" que nunca se
- * implementó (nota P1 2026-05-17).
+ * implementó (nota).
  *
  * <p>Antes del fix, las rondas 2+ del bracket se creaban con slots vacíos
  * y no se rellenaban nunca. {@code TorneoService.finalizar} saltaba esos
@@ -138,7 +138,7 @@ public class BracketAdvanceService {
             }
         }
 
-        // Nota P2 (2026-05-17): two-phase commit lógico. Antes este loop
+        // two-phase commit lógico. Antes este loop
         // hacía setGanador + save match a match; si un match POSTERIOR
         // empataba y retornaba SIN_CAMBIOS, los matches previos ya quedaban
         // mutados en BBDD (la tx REQUIRES_NEW commitea cada paso). Resultado:
