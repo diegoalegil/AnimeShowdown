@@ -38,7 +38,8 @@ Activos NO en alcance:
 ### Autenticación
 - Passwords hasheadas con **BCrypt** (`SecurityConfig.passwordEncoder()`).
 - JWT firmado con HS256 + clave de **256 bits** (env `JWT_SECRET`).
-- Tokens con expiración **1h** (env `JWT_EXPIRATION` = `3600000`ms).
+- Access token con expiración corta y refresh token persistente con cookie `httpOnly`.
+- OAuth Google/Discord y 2FA TOTP con códigos de respaldo.
 - Reset de password por código numérico de 6 dígitos vía email (Resend), expira 15 min.
 
 ### Autorización
@@ -52,7 +53,8 @@ Activos NO en alcance:
 
 ### Protecciones HTTP
 - **CORS** restringido a orígenes conocidos: `localhost:5173`, `localhost:3000`, `animeshowdown.dev` y previews controladas de Cloudflare Pages. Sin wildcard global.
-- **CSRF** desactivado a propósito porque la auth es JWT stateless (no cookies de sesión).
+- **CSRF** desactivado a propósito porque las operaciones mutantes usan access token Bearer; si se amplía la autenticación basada en cookies, revisar esta decisión.
+- **Rate limiting** activo en rutas críticas y throttling específico para abuso de voto anónimo.
 - **Headers en frontend** (configurados vía `frontend/public/_headers` para Cloudflare Pages):
   - `Content-Security-Policy` con whitelist explícita (Railway API + Jikan + AnimeChan).
   - `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`.
@@ -77,10 +79,11 @@ Activos NO en alcance:
 - `management.endpoints.web.exposure.include=health,info` — solo `/actuator/health` e `/actuator/info` expuestos. **Verificado:** `/actuator/env`, `/actuator/beans`, `/actuator/mappings`, `/actuator/heapdump`, `/actuator/threaddump` devuelven 404/vacío.
 
 ### Tests automáticos
-- 21 tests con MockMvc + H2 que cubren:
+- 234 tests backend con JUnit 5, MockMvc, H2 y Testcontainers que cubren:
   - Auth: registro válido, registro duplicado→409, login con creds inválidas→401, registro sin email→400, etc.
   - Torneos: control de acceso por rol, transiciones de estado válidas e inválidas.
   - Enfrentamientos: votar sin auth→403, voto duplicado→409, voto en torneo no activo→409.
+  - Catálogo, PVP live, reacciones, comentarios, perfil, newsletter, predicciones, follow, observabilidad y servicios de seguridad.
 
 ### Smoke test post-deploy
 - `scripts/smoke-test.sh` verifica los caminos críticos en <30s. Detecta 401 esperado en login con creds inválidas, BBDD seedeada, SPA routing.
@@ -92,11 +95,10 @@ Activos NO en alcance:
 | Riesgo | Severidad | Estado | Mitigación |
 |---|---|---|---|
 | **JWT en localStorage vulnerable a XSS** | Alta | ⚠️ Aceptado para portfolio | Si se renderiza HTML user-generated en el futuro, sanitizar. Mejor opción: cookie httpOnly + CSRF. |
-| **Sin rate limiting en /login y /registro** | Alta | ❌ Pendiente | Añadir bucket4j o filtro custom. Brute-force factible. |
+| **Rate limiting requiere ajuste por tráfico real** | Media | ⚠️ Monitorizar | Los límites actuales protegen rutas críticas; revisar métricas tras lanzamientos virales para evitar falsos positivos. |
 | **JWT_SECRET default predecible en application.properties** | Baja | ⚠️ Solo dev | En prod siempre se sobrescribe vía env. Cambiar default a `CHANGE_ME_IN_PROD`. |
 | **Logs incluyen email completo en arranque** | Baja | ⚠️ Aceptado | Es propio email del owner; no es PII de usuarios. |
 | **Personaje.descripcion limitada a 500 chars** | Baja | ⚠️ Por diseño | Las descripciones públicas se sirven desde `personajes-seed.json` vía API compacta; el backend limita longitud para proteger respuestas y formularios. |
-| **Sin Refresh tokens, expira a 1h** | Media | ⚠️ Aceptado | El usuario re-loguea cada hora. Para portfolio educativo, aceptable. |
 
 ---
 
@@ -131,4 +133,4 @@ Frontend:
 
 ---
 
-**Última revisión:** 2026-05-10. Próxima revisión obligatoria: cuando se añada cualquier feature que toque auth, BBDD o input de usuario.
+**Última revisión:** 2026-05-23. Próxima revisión obligatoria: cuando se añada cualquier feature que toque auth, BBDD o input de usuario.

@@ -64,7 +64,7 @@
 2. Crea branch nuevo en Neon (no escribas sobre `main`).
 3. Restaura: `pg_restore --format=custom --dbname=$NEW_DB_URL backup.dump`.
 4. Apunta `NEON_DATABASE_URL` al branch nuevo en Railway.
-5. Validar con smoke test (`/actuator/health` + `/api/personajes` cuenta=730).
+5. Validar con smoke test (`/actuator/health` + `/api/personajes` cuenta=1052).
 
 ---
 
@@ -103,13 +103,12 @@
 
 **Respuesta**:
 ```bash
-find frontend/img -type f \( -name "*-300.webp" -o -name "*-600.webp" -o -name "*-1024.webp" -o -name "*.avif" \) -delete
-node scripts/sync-personajes.mjs
-grep -c "slug:" frontend/src/data/personajes.js  # debe ser ~730
-git diff frontend/src/data/personajes.js backend/src/main/resources/personajes-seed.json
-git add -p && git commit -m "fix(catalog): limpia variantes responsive y resync"
-git push
+find frontend/img -type f \( -name "*-300.webp" -o -name "*-600.webp" -o -name "*-1024.webp" -o -name "*.avif" \) -print
+node scripts/sync-personajes.mjs --check
+node scripts/qa/catalog-quality.mjs
 ```
+
+Si aparecen variantes responsive dentro de `frontend/img/`, moverlas fuera del catálogo o eliminarlas solo tras revisar `git status`, `git diff --stat` y confirmar que no son assets fuente. El catálogo esperado es 1052 personajes.
 
 ---
 
@@ -176,7 +175,7 @@ Tras cada deploy a `main` (frontend + backend), ejecutar mentalmente:
 
 1. `https://animeshowdown.dev` carga el Hero.
 2. `https://api.animeshowdown.dev/actuator/health` → `{"status":"UP"}`.
-3. `https://api.animeshowdown.dev/api/personajes` devuelve 730 entries.
+3. `https://api.animeshowdown.dev/api/personajes` devuelve 1052 entries.
 4. `https://api.animeshowdown.dev/api/votos/ranking` no vacío.
 5. Login con cuenta admin → ver `/perfil` cargado.
 6. Hard refresh (Cmd+Shift+R) para invalidar SW.
@@ -199,7 +198,8 @@ Si alguno falla: rollback inmediato desde dashboard provider (CF Pages / Railway
 
 ## Cambios recientes
 
-- **2026-05-17**: piloto automático añadió referral system, light mode, time machine ELO, eliminación de cuenta GDPR, ranking ↑↓.
+- **2026-05-23**: hardening de producción: ranking personal local, misiones, comparador, sitemap/SEO y QA de catálogo/contraste.
+- **2026-05-17**: referral system, light mode, time machine ELO, eliminación de cuenta GDPR y ranking ↑↓.
 - **2026-05-17**: rebrand competitivo + fix imágenes producción.
 - **2026-05-16**: cron automático de torneos cada 3 días.
 - **2026-05-15**: backups R2 con rotación daily/weekly/monthly.
