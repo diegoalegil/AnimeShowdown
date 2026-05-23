@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -21,7 +21,7 @@ import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
 
 /**
- * Hub de modos de juego (Plan v2 §14.1).
+ * Hub de modos de juego.
  *
  * Anime Daily Trials — daily challenges con identidad anime/SSR card.
  * Hero con stats (racha, completados hoy, reset), reto destacado del día
@@ -95,12 +95,8 @@ const GAMES = [
   },
 ]
 
-// Nota técnica AS-016 (2026-05-22): el campo `glow` se concatenaba con
-// `hover:` en el call site → `hover:${theme.glow}` era un template literal
-// que Tailwind v4 oxide NO ve durante la extracción AOT. En producción la
-// clase desaparecía y el hover quedaba sin sombra.
-// Pre-componemos `hoverGlow` con `hover:shadow-[...]` ya literal, así
-// Tailwind detecta la clase completa en el bundle CSS.
+// `hoverGlow` queda precompuesto para que Tailwind detecte la clase completa
+// en extracción estática.
 const COLOR_THEMES = {
   rose: {
     border: 'border-rose-500/40',
@@ -203,32 +199,27 @@ function GamesHubPage() {
     return () => clearInterval(id)
   }, [])
 
-  // Ajuste (2026-05-17): antes useMemo([]) leía localStorage UNA VEZ al
-  // mount. Si el user jugaba en otra pestaña/ruta y volvía al hub sin
-  // navegación SPA real (back button entre tabs, focus de window), los
-  // estados quedaban viejos hasta reload. Forzamos re-lectura cuando
-  // la window recupera el foco — sin coste si no cambió nada.
-  const [estadosTick, setEstadosTick] = useState(0)
+  // Releemos progreso local al volver al foco, cuando otra pestaña modifica
+  // localStorage y cuando avanza el countdown. Así el reset de medianoche no
+  // deja el hub mostrando completados del día anterior.
+  const [, setEstadosTick] = useState(0)
   useEffect(() => {
-    const onFocus = () => setEstadosTick((t) => t + 1)
-    window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)
+    const refresh = () => setEstadosTick((t) => t + 1)
+    window.addEventListener('focus', refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      window.removeEventListener('storage', refresh)
+    }
   }, [])
-  const estadosJuegos = useMemo(
-    () =>
-      Object.fromEntries(
-        GAMES.map((g) => [
-          g.to,
-          {
-            ...leerEstadoJuego(g.storageKey),
-            best: leerMejorRacha(g.bestKey),
-          },
-        ]),
-      ),
-    // estadosTick es señal intencional: cambia con focus para refrescar
-    // los reads de localStorage aunque GAMES sea estático.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [estadosTick],
+  const estadosJuegos = Object.fromEntries(
+    GAMES.map((g) => [
+      g.to,
+      {
+        ...leerEstadoJuego(g.storageKey),
+        best: leerMejorRacha(g.bestKey),
+      },
+    ]),
   )
 
   const completadosHoy = Object.values(estadosJuegos).filter(
