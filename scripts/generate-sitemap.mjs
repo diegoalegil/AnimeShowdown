@@ -37,22 +37,6 @@ function loadPersonajesFromSeed(filePath) {
   }))
 }
 
-function extractPopularidadFromCore(filePath) {
-  const content = readFileSync(filePath, 'utf8')
-  const start = content.indexOf('const POPULARIDAD = {')
-  if (start === -1) return new Map()
-  const end = content.indexOf('\n}', start)
-  if (end === -1) return new Map()
-  const body = content.slice(start, end)
-  const re = /\b([A-Za-z0-9_]+):\s*(\d+)\b/g
-  const out = new Map()
-  let m
-  while ((m = re.exec(body))) {
-    out.set(m[1], Number(m[2]))
-  }
-  return out
-}
-
 async function fetchSitemapData(apiUrl) {
   if (!apiUrl) {
     console.log('   ⚠ SITEMAP_API_URL no definida — fallback a torneos-seed.json')
@@ -95,9 +79,6 @@ const personajesCatalogo = loadPersonajesFromSeed(
   join(ROOT, 'backend/src/main/resources/personajes-seed.json'),
 )
 const personajesPorSlug = new Map(personajesCatalogo.map((p) => [p.slug, p]))
-const popularidadCatalogo = extractPopularidadFromCore(
-  join(ROOT, 'frontend/src/lib/personajes-core.js'),
-)
 
 // Derivamos la lista de animes únicos del catálogo para emitir una URL
 // /animes/{slug} por cada uno. Antes faltaban — el
@@ -106,27 +87,11 @@ const popularidadCatalogo = extractPopularidadFromCore(
 // schema TVSeries, etc).
 const animesUnicos = [...new Set(personajesCatalogo.map((p) => p.anime))].sort()
 
-// SEO long-tail: indexamos duelos entre los 50 personajes más populares
-// del catálogo. Sin duplicados ni espejo A-vs-B/B-vs-A:
-// C(50, 2) = 1225 URLs. Mantiene volumen razonable sin convertir el
-// sitemap en una granja de combinaciones.
-const topDuelosPersonajes = [...personajesCatalogo]
-  .sort((a, b) => {
-    const diff =
-      (popularidadCatalogo.get(b.slug) ?? 30) -
-      (popularidadCatalogo.get(a.slug) ?? 30)
-    return diff || a.slug.localeCompare(b.slug)
-  })
-  .slice(0, 50)
-
-const dueloRoutes = []
-for (let i = 0; i < topDuelosPersonajes.length; i += 1) {
-  for (let j = i + 1; j < topDuelosPersonajes.length; j += 1) {
-    dueloRoutes.push(
-      `/duelos/${topDuelosPersonajes[i].slug}-vs-${topDuelosPersonajes[j].slug}`,
-    )
-  }
-}
+// No emitimos /duelos/{a}-vs-{b} masivamente en el sitemap.
+// La ruta existe para share/internal linking, pero indexar combinaciones
+// templáticas antes de tener análisis editorial único se acerca demasiado a
+// una granja de contenido. Cuando haya duelos curados con copy propio, se
+// pueden añadir aquí como lista editorial corta.
 
 // Réplica de frontend/src/lib/animes.js:slugifyAnime para no depender
 // del runtime de Vite/React. Si cambia ese helper, actualizar aquí
@@ -322,9 +287,6 @@ ${animesUnicos
       ),
     )
     .join('\n')}
-${dueloRoutes
-    .map((path) => urlBlock(path, '0.5', 'weekly', today))
-    .join('\n')}
 ${torneos
     .map((t) => {
       const priority = t.esDeUsuario ? '0.4' : '0.5'
@@ -357,11 +319,10 @@ console.log(`✅ sitemap.xml generado en ${outPath}`)
 console.log(`   - ${staticRoutes.length} rutas estáticas`)
 console.log(`   - ${personajesCatalogo.length} personajes (con image extension)`)
 console.log(`   - ${animesUnicos.length} fichas de anime`)
-console.log(`   - ${dueloRoutes.length} duelos SEO top 50`)
 console.log(
   `   - ${torneos.length} torneos (${apiData ? 'backend live' : 'seed fallback'})`,
 )
 console.log(`   - ${usuarios.length} usuarios públicos`)
 console.log(
-  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length + dueloRoutes.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length + animesUnicos.length + torneos.length} imágenes`,
+  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length + animesUnicos.length + torneos.length} imágenes`,
 )
