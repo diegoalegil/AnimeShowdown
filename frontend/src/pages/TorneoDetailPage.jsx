@@ -54,6 +54,8 @@ function TorneoDetailPage() {
             `Sigue el bracket de ${torneo.nombre} con ${
               torneo.numParticipantes ?? '?'
             } personajes y vota en cada enfrentamiento.`,
+          canonical: `https://animeshowdown.dev/torneos/${torneo.slug}`,
+          image: `/api/og/torneo/${torneo.slug}.png`,
           type: 'website',
         }
       : { title: 'Torneo' },
