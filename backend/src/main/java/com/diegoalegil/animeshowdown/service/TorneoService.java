@@ -110,7 +110,7 @@ public class TorneoService {
         }
         if (!creador.estaVerificado()) {
             // Plan v2 §4.9: "Solo cuentas verificadas".
-            // Audit fix #11 (2026-05-21): antes lanzabamos IllegalArgumentException
+            // Ajuste #11 (2026-05-21): antes lanzabamos IllegalArgumentException
             // → 400. Semanticamente correcto es 403 — el user esta autenticado
             // pero le falta permiso (verificacion). ResponseStatusException de
             // Spring mapea limpio a 403 sin tocar GlobalExceptionHandler ni
@@ -313,7 +313,7 @@ public class TorneoService {
         Torneo guardado = torneoRepository.save(torneo);
 
         if (request != null && request.getParticipantesIds() != null && !request.getParticipantesIds().isEmpty()) {
-            // Audit fix #10 (2026-05-21): antes la ruta admin (iniciarTorneo)
+            // Ajuste #10 (2026-05-21): antes la ruta admin (iniciarTorneo)
             // creaba el bracket sin validar tamaño ni duplicados, mientras
             // que crearPorUsuario validaba ambos. Resultado: admin podía
             // crear torneos con 7 o 12 personajes (estructura rota) o con
@@ -389,7 +389,7 @@ public class TorneoService {
      * por count de votos y propagando a la ronda siguiente vía
      * {@link BracketAdvanceService}) hasta que llega a la final.
      *
-     * <p>Audit P1 (2026-05-17): antes este método iteraba todos los
+     * <p>Nota P1 (2026-05-17): antes este método iteraba todos los
      * enfrentamientos, saltaba los slots vacíos de rondas 2+ (que nunca se
      * rellenaban porque el BracketAvanceScheduler prometido no existía) y
      * marcaba el torneo como FINISHED igual. Resultado: torneos de 8/16

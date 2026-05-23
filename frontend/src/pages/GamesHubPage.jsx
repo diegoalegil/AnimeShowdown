@@ -95,7 +95,7 @@ const GAMES = [
   },
 ]
 
-// Audit externo AS-016 (2026-05-22): el campo `glow` se concatenaba con
+// Nota técnica AS-016 (2026-05-22): el campo `glow` se concatenaba con
 // `hover:` en el call site → `hover:${theme.glow}` era un template literal
 // que Tailwind v4 oxide NO ve durante la extracción AOT. En producción la
 // clase desaparecía y el hover quedaba sin sombra.
@@ -203,7 +203,7 @@ function GamesHubPage() {
     return () => clearInterval(id)
   }, [])
 
-  // Audit (2026-05-17): antes useMemo([]) leía localStorage UNA VEZ al
+  // Ajuste (2026-05-17): antes useMemo([]) leía localStorage UNA VEZ al
   // mount. Si el user jugaba en otra pestaña/ruta y volvía al hub sin
   // navegación SPA real (back button entre tabs, focus de window), los
   // estados quedaban viejos hasta reload. Forzamos re-lectura cuando
@@ -295,7 +295,7 @@ function GamesHubPage() {
           />
         </div>
 
-        {/* Audit producto (2026-05-19): el Omikuji va PRIMERO ahora.
+        {/* Nota de producto (2026-05-19): el Omikuji va PRIMERO ahora.
             Sentido: el ritual diario abre el día — el palito que sacas
             puede regalarte la pista gratis de los retos de abajo. Antes
             estaba al final, justo después de los retos, lo cual era
@@ -382,7 +382,7 @@ function CardDestacado({ game, estado }) {
   const theme = COLOR_THEMES[game.color]
   const done = estado?.completadoHoy
   const visual = getGameVisual(game.to, game.titulo)
-  // Audit visual (2026-05-20): antes habia un kanji-panel h-32 w-32 con
+  // Nota visual (2026-05-20): antes habia un kanji-panel h-32 w-32 con
   // text-6xl ocupando media card a la izquierda + el kanji decorativo
   // sutil de EditorialCover en esquina. Resultado: dos kanjis del mismo
   // caracter compitiendo + la imagen del juego (shadow-guess.webp)

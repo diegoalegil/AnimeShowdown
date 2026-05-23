@@ -121,7 +121,7 @@ public class EmailVerificationService {
         repository.save(ev);
         Usuario u = ev.getUsuario();
         u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
-        // Audit P1.1: la auto-promoción a ADMIN se hace AQUÍ (no en
+        // Nota P1.1: la auto-promoción a ADMIN se hace AQUÍ (no en
         // registro). Requiere que el dueño del email haya verificado
         // realmente — sin acceso al inbox no hay promoción. Si la lista
         // de admins está vacía (ADMIN_EMAILS no configurado), nadie sube.

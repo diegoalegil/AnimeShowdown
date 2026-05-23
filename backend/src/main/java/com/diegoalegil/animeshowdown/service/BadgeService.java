@@ -97,7 +97,7 @@ public class BadgeService {
             return Optional.empty();
         }
         try {
-            // Audit P3 (2026-05-17): saveAndFlush en lugar de save. Con save,
+            // Nota P3 (2026-05-17): saveAndFlush en lugar de save. Con save,
             // Hibernate puede aplazar el INSERT hasta el commit; si dos
             // listeners paralelos hacen el pre-check y avanzan, ambos save
             // pasan en el primer-level cache y la violación UNIQUE salta en

@@ -52,7 +52,7 @@ if (personaje3dChunks.length === 0) {
   console.log(`personaje3d chunks: ${personaje3dChunks.join(', ')}`)
 }
 
-// Audit fix (Claude, 2026-05-22): el check original fallaba si EXISTIA
+// Ajuste de robustez (2026-05-22): el check original fallaba si EXISTIA
 // cualquier Personaje3D-*.js. Pero React.lazy genera un boundary chunk
 // chiquito (~1KB) con solo el import() dinamico — eso NO contiene
 // react-three/fiber, solo es el lazy wrapper. El peso real va al chunk

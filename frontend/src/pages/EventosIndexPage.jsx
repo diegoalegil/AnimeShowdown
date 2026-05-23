@@ -154,7 +154,7 @@ function EventoCard({ evento, now, etiqueta }) {
         ? `Empieza en ${restante}`
         : 'Finalizado'
 
-  // Audit visual (2026-05-20): cover h-48 era muy bajo para las
+  // Nota visual (2026-05-20): cover h-48 era muy bajo para las
   // composiciones generadas con GPT Image (que son ricas en personajes,
   // siluetas y fondo). Subimos a h-56 para que respire y la imagen sea
   // protagonista. Glow hover con accent del propio evento (rose/violet/

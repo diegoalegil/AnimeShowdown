@@ -73,7 +73,7 @@ public class TorneoQueryService {
      */
     @Transactional(readOnly = true)
     public List<TorneoResumenDto> listarResumenes() {
-        // Audit (2026-05-17): antes esto era N+1 — toResumen() llamaba
+        // Ajuste (2026-05-17): antes esto era N+1 — toResumen() llamaba
         // findByTorneoOrderBy... por CADA torneo visible (1 + N queries
         // con N≈50 torneos). Ahora: 1 query de torneos + 1 query batch
         // de enfrentamientos (con JOIN FETCH de personajes) agrupada en
@@ -120,7 +120,7 @@ public class TorneoQueryService {
     public TorneoDetalleDto findById(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
-        // Audit P2 (2026-05-17): findBySlug filtra PENDIENTE/RECHAZADO pero
+        // Nota P2 (2026-05-17): findBySlug filtra PENDIENTE/RECHAZADO pero
         // findById no lo hacía — un atacante que enumere ids consecutivos
         // podía leer torneos UGC en cola de moderación o rechazados. Mismo
         // 404 que si no existiera para no filtrar metadata del bracket.

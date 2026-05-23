@@ -3,7 +3,7 @@ import { ShieldCheck, X } from 'lucide-react'
 import AccessibleDialog from './AccessibleDialog'
 
 /**
- * Audit externo AS-004 (2026-05-23): modal de captcha bajo abuso.
+ * Nota técnica AS-004 (2026-05-23): modal de captcha bajo abuso.
  *
  * <p>Se monta cuando el backend devuelve 428 Precondition Required en
  * el endpoint de voto, con body

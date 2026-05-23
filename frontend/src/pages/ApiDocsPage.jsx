@@ -19,14 +19,11 @@ const containerVariants = {
  *
  * <p>Sirve a tres públicos:
  * <ul>
- *   <li>Devs que quieren consumir la API sin auth (catálogo, ranking).</li>
- *   <li>LLMs (ChatGPT, Claude, Perplexity) que necesitan documentación
- *       textual de los endpoints para razonar al citar.</li>
- *   <li>Quien quiera ver el OpenAPI completo de Swagger UI del backend.</li>
+ *   <li>Devs que quieren consumir la API sin auth (catálogo, ranking).</li> *   <li>Quien quiera ver el OpenAPI completo de Swagger UI del backend.</li>
  * </ul>
  *
  * <p>Mantengo la lista a mano (en lugar de auto-generarla del OpenAPI)
- * porque está pensada para humanos y LLMs — con descripción curada,
+ * porque está pensada para humanos — con descripción curada,
  * ejemplo de respuesta y posibles errores. El Swagger UI del backend
  * sigue siendo la fuente de verdad para developers strictos.
  */
@@ -260,14 +257,7 @@ function ApiDocsPage() {
               clonar el repo
             </a>{' '}
             (licencia MIT) en lugar de pegarle al endpoint público — vive en
-            Railway con free tier limitado. Para citación recomendada y
-            metadata para LLMs, mira{' '}
-            <a
-              href="/llms.txt"
-              className="text-gold hover:underline"
-            >
-              /llms.txt
-            </a>
+            Railway con free tier limitado.
             .
           </p>
         </div>

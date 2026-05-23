@@ -255,7 +255,7 @@ export const ANIME_VISUALS = {
   }),
   'steins-gate': makeVisual({
     slug: 'steins-gate',
-    atmosphere: 'codex',
+    atmosphere: 'arcane',
     title: 'Steins;Gate',
     type: 'anime',
     kanji: '時',
@@ -358,7 +358,7 @@ export const ANIME_VISUALS = {
   }),
   'made-in-abyss': makeVisual({
     slug: 'made-in-abyss',
-    atmosphere: 'codex',
+    atmosphere: 'arcane',
     title: 'Made in Abyss',
     type: 'anime',
     kanji: '深',
@@ -551,7 +551,7 @@ export const ANIME_VISUALS = {
     glow: '#1f6b83',
     glowRgb: '31 107 131',
   }),
-  // Audit visual (2026-05-22): el catálogo del backend usa nombres de
+  // Nota visual (2026-05-22): el catálogo del backend usa nombres de
   // anime largos ("Frieren: Beyond Journey's End", "Spy × Family",
   // "Kaguya-sama: Love is War", etc.). slugifyAnime() produce slugs que
   // NO coinciden con el nombre del archivo en /assets/anime-banners/
@@ -757,7 +757,7 @@ export const TOURNAMENT_VISUALS = {
   }),
   'random-showdown': makeVisual({
     slug: 'random-showdown',
-    atmosphere: 'codex',
+    atmosphere: 'arcane',
     title: 'Random Showdown',
     type: 'tournament',
     kanji: '運',
@@ -1096,7 +1096,7 @@ export const BRAND_VISUALS = {
   }),
   games: makeVisual({
     slug: 'games-hub',
-    atmosphere: 'codex',
+    atmosphere: 'arcane',
     title: 'Retos diarios',
     type: 'brand',
     kanji: '遊',
@@ -1123,7 +1123,7 @@ export const BRAND_VISUALS = {
   }),
   authRegister: makeVisual({
     slug: 'auth-register',
-    atmosphere: 'codex',
+    atmosphere: 'arcane',
     title: 'Registro de combatiente',
     type: 'brand',
     kanji: '名',
@@ -1214,7 +1214,7 @@ export function getAnimeVisual(slug, anime = slug) {
 
 export function getTournamentVisual(slug, title = slug) {
   if (TOURNAMENT_VISUALS[slug]) return TOURNAMENT_VISUALS[slug]
-  // Audit visual (2026-05-22): torneos generados por el cron automático
+  // Nota visual (2026-05-22): torneos generados por el cron automático
   // (TorneoAutoService) usan slugs con sufijo numérico — "random-showdown-1",
   // "random-showdown-2"... El banner real vive bajo el slug base
   // (random-showdown.webp), así que heredamos el visual del torneo base

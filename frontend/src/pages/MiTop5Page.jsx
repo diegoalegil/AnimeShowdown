@@ -26,7 +26,7 @@ const STORAGE_KEY = 'animeshowdown.mitop5.v1'
 /**
  * Sugerencias rápidas para arrancar — 8 personajes muy reconocidos del
  * catálogo. Si alguno no existe (catálogo evoluciona), filtramos.
- * Audit producto (2026-05-18): los slots vacíos enormes en móvil
+ * Nota de producto (2026-05-18): los slots vacíos enormes en móvil
  * parecían herramienta rota. Añadir "Empieza con tu favorito" + chips
  * de personajes top reduce la fricción de la primera selección.
  */
@@ -156,7 +156,7 @@ function MiTop5Page() {
           </p>
         </motion.header>
 
-        {/* Audit producto (2026-05-18): antes los slots usaban grid 1-col
+        {/* Nota de producto (2026-05-18): antes los slots usaban grid 1-col
             en mobile → cada uno aspect-2/3 full-width = ~580px de alto
             vacío. Cambio a grid-cols-5 en TODAS las viewports con tamaño
             compacto que se escala con sm:; los slots vacíos quedan

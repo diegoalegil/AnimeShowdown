@@ -192,7 +192,7 @@ const pwaPlugin = VitePWA({
   workbox: {
     skipWaiting: true,
     clientsClaim: true,
-    // Audit P1 (2026-05-20): el SW estaba precacheando index.html con
+    // Nota P1 (2026-05-20): el SW estaba precacheando index.html con
     // `globPatterns: '**/*.{...,html,...}'` y luego sirviendo esa version
     // cacheada via `navigateFallback`. Cada deploy de Cloudflare Pages cambia
     // los hashes de los chunks lazy (PersonajesPage-XXXX.js, etc.); cuando
@@ -222,7 +222,7 @@ const pwaPlugin = VitePWA({
     globIgnores: ['img/**', 'assets/**.js', 'assets/**.svg', '**/*.html'],
     runtimeCaching: [
       {
-        // Audit P1 (2026-05-20) + audit externo F015 (2026-05-22): los chunks
+        // Nota P1 (2026-05-20) + nota técnica F015 (2026-05-22): los chunks
         // JS pasan de StaleWhileRevalidate a NetworkFirst con timeout 3s. SWR
         // servia el chunk cacheado primero mientras revalidaba; cuando el HTML
         // era nuevo pero el chunk cached era de otro deploy, el browser cargaba
@@ -264,7 +264,7 @@ const pwaPlugin = VitePWA({
         },
       },
       {
-        // Audit externo F015/F068 (2026-05-22): mismo problema que con JS — el
+        // Nota técnica F015/F068 (2026-05-22): mismo problema que con JS — el
         // cache poison de Cloudflare puede servir HTML 200 immutable para una
         // URL .webp cuyo archivo aun no estaba en el deploy. Workbox cachea
         // ese HTML, marcandolo como imagen valida, y el <img> falla siempre.
@@ -316,7 +316,7 @@ const pwaPlugin = VitePWA({
         },
       },
       {
-        // Audit P1 (2026-05-17): excluye /api/torneos/mios del cache del SW.
+        // Nota P1 (2026-05-17): excluye /api/torneos/mios del cache del SW.
         // Antes el catch-all '/api/torneos' (regla siguiente) guardaba
         // "mis torneos" de cualquier usuario en la PWA; otro usuario en la
         // misma instalación podía verlos offline o tras network timeout

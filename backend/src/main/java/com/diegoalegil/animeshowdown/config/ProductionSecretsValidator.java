@@ -14,14 +14,14 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
 /**
- * Audit P3 (2026-05-17): impide arrancar en modo no-test si alguna de las
+ * Nota P3 (2026-05-17): impide arrancar en modo no-test si alguna de las
  * claves sensibles sigue con el placeholder {@code CHANGE_ME_IN_PROD...}.
  * Antes la app boot OK con defaults inseguros — el operador podía olvidar
  * configurar JWT_SECRET / TOTP_ENCRYPTION_KEY / DB_PASSWORD y descubrir
  * el agujero solo al primer ataque (JWT firmado con secret conocido,
  * TOTP codes generables sin tener acceso a backups, etc.).
  *
- * <p>Audit externo AS-057 (2026-05-22): el chequeo de prefijo era
+ * <p>Nota técnica AS-057 (2026-05-22): el chequeo de prefijo era
  * {@code "CHANGE_ME_IN_PROD"} estricto y se saltaba secretos OAuth con
  * prefijos {@code CHANGE_ME_GOOGLE_*} / {@code CHANGE_ME_DISCORD_*}.
  * Ahora detecta cualquier valor que empieza por {@code "CHANGE_ME"} y
@@ -68,7 +68,7 @@ public class ProductionSecretsValidator {
         this.secretosRequeridos.put("DB_PASSWORD (spring.datasource.password)", dbPassword);
         this.secretosRequeridos.put("JWT_SECRET (jwt.secret)", jwtSecret);
         this.secretosRequeridos.put("TOTP_ENCRYPTION_KEY (app.totp.encryption-key)", totpKey);
-        // Audit externo AS-004 (2026-05-23): la cookie anónima firmada HMAC
+        // Nota técnica AS-004 (2026-05-23): la cookie anónima firmada HMAC
         // requiere una clave secreta — sin ella el voto invitado no tiene
         // identidad estable server-side.
         this.secretosRequeridos.put(
@@ -92,7 +92,7 @@ public class ProductionSecretsValidator {
                 requeridosInseguros.add(e.getKey());
             }
         }
-        // Audit externo AS-004 (2026-05-23): si Turnstile está enabled, su
+        // Nota técnica AS-004 (2026-05-23): si Turnstile está enabled, su
         // secret pasa de opcional a REQUERIDO. Aborto explícito antes que un
         // captcha que falla silenciosamente porque el secret vacío hace que
         // toda verificación rechace, dejando al usuario imposible de votar.

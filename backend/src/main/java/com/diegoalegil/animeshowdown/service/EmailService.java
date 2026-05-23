@@ -48,7 +48,7 @@ import com.diegoalegil.animeshowdown.security.LogSanitizer;
  * `enviarConfirmacionNewsletter` delegan al método compartido
  * `enviarConRetry` que es el que lleva @Retryable/@Recover. Spring Retry
  * (y @Async) funcionan vía proxy: una llamada `this.enviarConRetry` NO
- * pasa por el proxy y los retries no se activan. Audit P2 (2026-05-17):
+ * pasa por el proxy y los retries no se activan. Nota P2 (2026-05-17):
  * los wrappers llamaban `this.enviarConRetry`, así que un fallo de Resend
  * propagaba la excepción al hilo de emailExecutor y perdíamos el email
  * sin pasar por @Recover ni email_failed_queue. Fix: self-injection con
@@ -86,7 +86,7 @@ public class EmailService {
         this.apiKey = apiKey;
         this.from = from;
         this.enabled = apiKey != null && !apiKey.isBlank();
-        // Audit P2 (2026-05-17): el RestClient se construía sin timeout —
+        // Nota P2 (2026-05-17): el RestClient se construía sin timeout —
         // un Resend lento o colgado dejaba el hilo del emailExecutor
         // bloqueado indefinidamente, llenando el pool (core 2 / max 5) y
         // bloqueando emails reales detrás. Timeouts conservadores:

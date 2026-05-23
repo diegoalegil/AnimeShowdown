@@ -203,7 +203,7 @@ cd backend && ./mvnw test
 
 ### Backend (`backend/.env`)
 
-> **Aviso (audit P3 2026-05-17):** desde `ProductionSecretsValidator` el boot
+> **Aviso de producción:** desde `ProductionSecretsValidator` el boot
 > aborta si `DB_PASSWORD`, `JWT_SECRET` o `TOTP_ENCRYPTION_KEY` arrancan con
 > el placeholder `CHANGE_ME_IN_PROD…` fuera del profile `test`. Hay que
 > definirlos antes de arrancar la app en local sin profile test o en Railway.
@@ -483,12 +483,12 @@ erDiagram
 - [x] Kanji decorativo de fondo en cards de juegos + paneles de resultado + universo anime
 - [x] Easter egg Konami code (↑↑↓↓←→←→BA) con overlay CRT verde
 
-### SEO + GEO LLMs (✅ completo)
-- [x] Sitemap dinámico (1170+ URLs tras crecer el catálogo) + image sitemap + robots.txt con reglas explícitas para GPTBot/ClaudeBot/PerplexityBot
+### SEO + GEO (✅ completo)
+- [x] Sitemap dinámico (1170+ URLs tras crecer el catálogo) + image sitemap + robots.txt de producción
 - [x] `useSeo` hook custom con title + description + canonical + OG + Twitter + hreflang
 - [x] JSON-LD: WebSite + Person + SportsEvent + CollectionPage + BreadcrumbList + FAQPage + DefinedTermSet
 - [x] Microdata schema.org en ficha de personaje y torneo (Person + TVSeries + SportsEvent)
-- [x] `llms.txt` + API docs públicos en `/api-docs` + tabla extraíble en ranking
+- [x] API docs públicos en `/api-docs` + tabla extraíble en ranking
 - [x] FAQ con schema rich snippet + Internal linking estructurado en todas las páginas
 - [x] IndexNow para Bing/Yandex/Seznam tras torneos UGC aprobados o autogenerados
 - [x] Core Web Vitals: preload del logo Hero con fetchpriority=high
@@ -531,14 +531,13 @@ erDiagram
 - [x] **Kanji + barra progreso** en bracket de torneos
 - [x] **Pulso de votos por periodo** con `MoversCard` + `FavoritosBanner` + sección "Actividad reciente" en ficha de personaje (endpoints individual + batch en backend)
 - [x] **Votar duelos abiertos desde el bracket** sin tener que ir a la página de votar
-- [x] **Audio performance audit**: `ensureRunning` async + `resumePromise` compartido + `noiseBuffer` cacheado + hook `useInstantSoundPress` (sonido en `onPointerDown` con dedup teclado) — latencia perceptible <30ms vs los ~200ms previos en primer click
+- [x] **Optimización de audio**: `ensureRunning` async + `resumePromise` compartido + `noiseBuffer` cacheado + hook `useInstantSoundPress` (sonido en `onPointerDown` con dedup teclado) — latencia perceptible <30ms vs los ~200ms previos en primer click
 
 ### Pendiente
 - [ ] Tests E2E con Playwright
 - [ ] OG images dinámicas para perfil y logros
 - [ ] i18n: completar migración de strings al `t()` en páginas restantes
 - [ ] Bloque 15: **atributos extendidos** del catálogo (género personaje, era, popularidad MAL/AniList) — el escalado a 1000+ ya está cumplido con los 1052 actuales
-- [ ] Bloque 11.2 AI character bio extendida (Claude API)
 - [ ] Bloque 11.4 API pública versionada con API keys
 - [ ] Bloque 17.3-17.5 normalización aspect ratio (bloqueado por atributos del Bloque 15)
 - [ ] Bloque 4.12 Hero card 3D — stack apilado (galería multi-imagen → recorte + parallax + fondo contextual → aura shader → Live Portrait top 30-50); aplazado a fase de polish

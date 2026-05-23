@@ -150,13 +150,13 @@ function RankingPage() {
 
         <EloExplainer />
 
-        {/* Sprint Meta Report (auditoría externa 2026-05-18): párrafo
+        {/* Sprint Meta Report (revisión externa 2026-05-18): párrafo
             narrativo arriba del MoversStrip — convierte "ranking
             congelado" en "reportaje del meta". Lee los mismos endpoints
             que ya carga la página (react-query deduplica), genera 2-3
             frases con top 3 + subidas/caídas notables + CTA votar. */}
         <RankingMetaReport />
-        {/* Audit producto (2026-05-18): el ranking se sentía estático.
+        {/* Nota de producto (2026-05-18): el ranking se sentía estático.
             MoversStrip arriba pinta los 3 personajes con más movimiento
             de la semana — da sensación de vida temporal incluso antes
             de que el user elija un tab. Solo aparece si hay movimientos. */}
@@ -252,7 +252,7 @@ function EloExplainer() {
  * categoría si tiene menos de MIN_PARA_SECCION personajes (3) —
  * mejor no enseñar "Top mentores: 1 personaje" que se ve raro.
  *
- * Audit producto (2026-05-18 — visión "estadio otaku"): el ranking
+ * Nota de producto (2026-05-18 — visión "estadio otaku"): el ranking
  * por ELO global es la "tabla de la liga"; estas categorías son las
  * "competiciones temáticas" (Top heroínas, copa villanos, etc).
  * Tags vienen del archivo data/personajes-tags.js, sin backend.
@@ -340,7 +340,7 @@ function SeccionCategoria({ seccion }) {
 }
 
 function CategoriaCard({ rank, personaje, tono }) {
-  // Audit F011 (2026-05-22): el ranking devolvía a veces items con slug
+  // Nota F011 (2026-05-22): el ranking devolvía a veces items con slug
   // undefined (datos del backend en cold-start, items con campo opcional
   // vacío). El <Link> generaba /personajes/undefined que crashea el
   // PersonajeDetailPage. Guardamos contra ese caso devolviendo null —
@@ -404,7 +404,7 @@ function CategoriaCard({ rank, personaje, tono }) {
  * de posición en los últimos 7 días. Hide si el endpoint no devuelve
  * datos significativos (sin votos suficientes para que haya movimientos).
  *
- * Audit producto (2026-05-18): da sensación de vida temporal al ranking.
+ * Nota de producto (2026-05-18): da sensación de vida temporal al ranking.
  * El user llega y ve quién está subiendo/bajando ahora mismo antes de
  * elegir un tab — el ranking deja de sentirse "tabla congelada".
  */
@@ -475,7 +475,7 @@ function MoverChip({ mover }) {
 }
 
 function Tabs({ activo, onChange }) {
-  // Audit (2026-05-17): el flex-wrap hacía que 'Por anime' bajara a la
+  // Ajuste (2026-05-17): el flex-wrap hacía que 'Por anime' bajara a la
   // segunda fila en 390px, dejando el control con apariencia rota.
   // Solución: scroll horizontal en móvil (-mx para que sangre full-bleed)
   // con whitespace-nowrap; en sm+ vuelve al grid sin scroll.
@@ -674,7 +674,7 @@ function Podio({ top3, historyBySlug = {} }) {
 }
 
 function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
-  // Audit F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
   if (!personaje?.slug) return null
   const tone =
     rank === 1
@@ -964,7 +964,7 @@ function RankRowElo({
   wins,
   losses,
   history,
-  // Audit F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
   // En este componente el slug viene directo como prop (no anidado en
   // personaje), así que el check va aquí abajo (no en la firma).
   // Destructuramos también imagenUrl + colorDominante del item del ranking
@@ -1036,7 +1036,7 @@ function RankRowElo({
 }
 
 function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
-  // Audit F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
   if (!personaje?.slug) return null
   return (
     <li>

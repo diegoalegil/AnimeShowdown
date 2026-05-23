@@ -89,7 +89,7 @@ public class PasswordResetService {
         usuarioRepo.save(u);
         token.setUsado(true);
         tokenRepo.save(token);
-        // Audit P2 (2026-05-17): tras reset, revoca TODAS las sesiones activas
+        // Nota P2 (2026-05-17): tras reset, revoca TODAS las sesiones activas
         // del usuario. Sin esto, una refresh cookie robada antes del reset
         // seguía siendo válida hasta su expiración (30 días) — el flujo
         // canónico "olvidé mi password" tenía que cerrar la puerta a sesiones

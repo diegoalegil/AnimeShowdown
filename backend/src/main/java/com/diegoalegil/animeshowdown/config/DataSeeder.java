@@ -265,7 +265,7 @@ public class DataSeeder implements CommandLineRunner {
      * 6. El personaje en sí.
      *
      * El orden es crítico: si intentamos borrar el personaje antes que sus
-     * referenciadores, falla con constraint violation. Audit P2 (2026-05-17):
+     * referenciadores, falla con constraint violation. Nota P2 (2026-05-17):
      * antes del fix, los pasos 1 y 2 faltaban — retirar del seed un personaje
      * que ganó un torneo o fue predicho rompía el boot del backend en
      * producción con FK constraint violation. Si algún paso falla, la

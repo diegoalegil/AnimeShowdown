@@ -148,7 +148,7 @@ function GuessAnimePage() {
           </p>
         </motion.header>
 
-        {/* Audit visual (2026-05-18): cap mobile a 42vh para que el input
+        {/* Nota visual (2026-05-18): cap mobile a 42vh para que el input
             quede dentro del primer viewport. Width sigue al aspect-ratio. */}
         <div
           className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
@@ -158,7 +158,7 @@ function GuessAnimePage() {
           }`}
         >
           <div className="relative aspect-[2/3] h-[44vh] max-h-[440px] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
-            {/* Audit P1 (auditoría externa 2026-05-18): el <img> plano
+            {/* Nota P1 (revisión externa 2026-05-18): el <img> plano
                 no tenía fallback, así que personajes con imagen problemática
                 (ej. roy_mustang con naturalWidth=0 reportado) salían como
                 icono roto. PersonajeImg renderiza PersonajePlaceholder

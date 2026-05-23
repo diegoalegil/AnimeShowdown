@@ -159,7 +159,7 @@ function PersonajesPage() {
   const visibleSuggestionsError =
     suggestionsQuery === autocompleteQuery ? suggestionsError : null
 
-  // Audit (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
+  // Ajuste (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
   // DOM, ~790 imgs, scroll de >100k px en móvil. Paginación incremental:
   // 60 cards iniciales + botón "Cargar más" para ampliar de 60 en 60.
   // Reset automático al cambiar filtros: guardamos {key, count} juntos
@@ -668,7 +668,7 @@ function PersonajesPage() {
           ))}
         </div>
 
-        {/* Audit F017 (2026-05-22): el drawer de filtros móvil antes era
+        {/* Nota F017 (2026-05-22): el drawer de filtros móvil antes era
             un <div role="dialog"> ad-hoc sin focus trap, Escape close ni
             bloqueo de scroll del body — los lectores y users de teclado
             podían tabbing salir al fondo. Ahora pasa por AccessibleDialog

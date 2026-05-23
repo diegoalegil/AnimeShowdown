@@ -114,7 +114,7 @@ public class OAuthAccountService {
             case "discord" -> attributes.get("verified");
             default -> null;
         };
-        // Audit fix #13 (2026-05-21): antes retornabamos `value == null || ...`
+        // Ajuste #13 (2026-05-21): antes retornabamos `value == null || ...`
         // — si el provider no enviaba el flag, tratabamos el email como
         // verificado. Riesgo de account-takeover: un attacker podria registrar
         // un email ajeno via provider que no envie verified flag (o provider

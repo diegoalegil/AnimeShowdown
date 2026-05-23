@@ -55,7 +55,7 @@ function KonamiCode() {
             icon: '👾',
             duration: 4000,
           })
-          // Auto-off tras 8s. Audit (2026-05-17): antes timeout suelto
+          // Auto-off tras 8s. Ajuste (2026-05-17): antes timeout suelto
           // sin tracking — si el componente se desmontaba antes (nav o
           // route change), disparaba setState en componente desmontado.
           // Trackeamos en autoOffTimer para cancelar en el cleanup del

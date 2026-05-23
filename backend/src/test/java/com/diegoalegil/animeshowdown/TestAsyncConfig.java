@@ -19,7 +19,7 @@ import org.springframework.core.task.TaskExecutor;
  * bloquea hasta terminar — comportamiento determinista para tests.
  * Producción sigue usando el executor real (AsyncConfig).
  *
- * <p>Audit fix #3 follow-up (2026-05-21): el siguiente paso natural
+ * <p>Ajuste #3 follow-up (2026-05-21): el siguiente paso natural
  * (capturar AsyncUncaughtException via AsyncConfigurer) entra en
  * conflicto con AsyncConfig prod que también implementa AsyncConfigurer.
  * Si en el futuro queremos fail-on-async-error, hay que migrar el

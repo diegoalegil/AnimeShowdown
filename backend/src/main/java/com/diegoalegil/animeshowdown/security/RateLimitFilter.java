@@ -62,7 +62,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             // (60s) podría intentar 10⁶ códigos en paralelo desde varias IPs.
             // Bucket4j por IP no detiene el caso ideal pero sí frena el básico.
             "/api/auth/2fa/verify-login",
-            // Audit P2 (2026-05-17): newsletter envía email de confirmación
+            // Nota P2 (2026-05-17): newsletter envía email de confirmación
             // double opt-in. Sin rate limit, un script podía pinchar
             // POST /api/newsletter miles de veces con emails ajenos →
             // spam de confirmación a víctimas + Resend quota agotada +
@@ -72,7 +72,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
-    // Audit P2.5 (2026-05-17): endpoint legacy /api/personajes/{id}/votar
+    // Nota P2.5 (2026-05-17): endpoint legacy /api/personajes/{id}/votar
     // también entra al rate limit. Antes solo el moderno (enfrentamientos)
     // estaba limitado y el legacy era un bypass trivial.
     private static final String RUTA_VOTAR_PERSONAJE_PREFIJO = "/api/personajes/";
@@ -123,7 +123,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private boolean esRutaLimitada(HttpServletRequest req) {
         if (!"POST".equalsIgnoreCase(req.getMethod())) return false;
-        // Audit fix #12 (2026-05-21): antes usabamos req.getRequestURI() que
+        // Ajuste #12 (2026-05-21): antes usabamos req.getRequestURI() que
         // INCLUYE el context path. Si la app se deploya con context path
         // (e.g. server.servlet.context-path=/api-v2), los URIs llegan como
         // '/api-v2/api/auth/login' y NO matchean con RUTAS_LIMITADAS que

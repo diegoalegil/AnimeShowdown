@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseCookie;
 
 /**
- * Audit externo AS-004 (2026-05-23): cubre emit/verify del servicio de
+ * Nota técnica AS-004 (2026-05-23): cubre emit/verify del servicio de
  * identidad anónima. Unitario puro — sin Spring, sin BBDD.
  */
 class AnonymousIdentityServiceTest {

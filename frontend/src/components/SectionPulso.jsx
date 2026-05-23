@@ -75,7 +75,7 @@ function tieneImagenPromocionable(item) {
 /**
  * Pulso AnimeShowdown — sección "live" en la home.
  *
- * <p>Audit producto (2026-05-18): la home antes mostraba un duelo random
+ * <p>Nota de producto (2026-05-18): la home antes mostraba un duelo random
  * cliente-side y stats estáticas. No transmitía sensación de plataforma
  * en marcha. Esta sección consolida cinco señales reales arriba de la
  * página:
@@ -155,7 +155,7 @@ function SectionPulso() {
     : null
   const campeon = campeonReal ?? CAMPEON_FALLBACK
   const esFallback = !campeonReal
-  // Audit producto (2026-05-18): el backend devuelve top por COUNT(votos),
+  // Nota de producto (2026-05-18): el backend devuelve top por COUNT(votos),
   // así que en una DB joven con 1-5 votos totales presentar al top como
   // "campeón actual" es engañoso. Sumamos los votos del ranking servido
   // y aplicamos disclaimer si el total comunidad es pequeño.
@@ -319,7 +319,7 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
         }}
       />
       {/* Audit user feedback (2026-05-20): re-eliminado kanji 戦 fantasma que
-          ChatGPT volvio a anadir en commit 2c58a29. Las pulse-cards ya
+          El bloque duplicado volvió a entrar en una iteración anterior. Las pulse-cards ya
           tienen identidad con su tone + glow + backdrop-blur, no necesitan
           glyph japones decorativo encima. */}
       {children}
@@ -342,7 +342,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
-        {/* Audit externo AS-010 (2026-05-23): label de loading neutro.
+        {/* Nota técnica AS-010 (2026-05-23): label de loading neutro.
             "Líder por votos" implicaba que la métrica era COUNT puro,
             pero tras AS-002 el orden REST viene ponderado por peso
             (anónimo 0.3 / registrado 1.0). "Líder del ranking" no
@@ -354,7 +354,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   }
   const p = campeon.personaje
   const votos = Number(campeon.votos ?? 0)
-  // Audit producto (auditoría externa 2026-05-18 + AS-002 2026-05-22):
+  // Nota de producto (revisión externa 2026-05-18 + AS-002 2026-05-22):
   // antes "Líder del ranking" inducía a equiparar la card con el ranking
   // ELO global. La métrica detrás es el TOP del endpoint /api/votos/ranking,
   // que ahora ordena por SUM(v.peso) ponderado (anónimo 0.3, registrado
@@ -371,7 +371,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
     : comunidadArrancando
       ? 'Más votado ahora'
       : 'Top de la comunidad'
-  // Audit fix #9 (2026-05-21): antes el article tenia role="link" + onClick
+  // Ajuste #9 (2026-05-21): antes el article tenia role="link" + onClick
   // + tabIndex={0}, y dentro habia otro <Link> a /ranking con stopPropagation
   // — accesibilidad ambigua (screen readers leian 2 links en el mismo
   // componente). Patron nuevo "stretched link": el article es semantico
@@ -420,7 +420,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
               Comunidad arrancando — tu voto puede cambiar el meta.
             </p>
           ) : (
-            // Audit externo AS-010 + B3.5 (2026-05-23): el ranking REST se
+            // Nota técnica AS-010 + B3.5 (2026-05-23): el ranking REST se
             // ordena por SUM(v.peso) tras AS-002 — el orden visible aquí ya
             // refleja peso ponderado, no COUNT puro. "ranking ELO global"
             // implicaba un cálculo distinto (K-factor real) que no existe.

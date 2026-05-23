@@ -18,7 +18,7 @@ function GithubIcon({ className }) {
   )
 }
 
-// Audit producto (2026-05-18): el footer antes mostraba el stack
+// Nota de producto (2026-05-18): el footer antes mostraba el stack
 // técnico (React 19, Vite, Spring Boot, Java 21…) y un copyright
 // "Diego Alegil — DAM 1.º". Quitamos ambos: el footer público
 // representa la plataforma, no un portfolio. GitHub queda solo
@@ -221,7 +221,7 @@ function Footer() {
         </div>
 
         {/* Legal + copyright minimalista.
-            Audit fix #20 (2026-05-21): los Links del legal eran un solo
+            Ajuste #20 (2026-05-21): los Links del legal eran un solo
             renglon de texto sin padding vertical en mobile, dejando el
             tap target en ~24px — por debajo del HIG/Material minimo
             (44px iOS, 48dp Android). Anadido inline-flex items-center

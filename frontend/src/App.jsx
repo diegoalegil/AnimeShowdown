@@ -62,7 +62,7 @@ const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
-// Fallback de Suspense compartido. Audit producto (2026-05-18): el
+// Fallback de Suspense compartido. Nota de producto (2026-05-18): el
 // spinner solo sobre fondo negro hacía que una carga lenta (1ª visita,
 // red mala, chunk grande) pareciera la página rota. Ahora damos un
 // shell mínimo con identidad y label legible — sigue siendo barato
@@ -166,7 +166,7 @@ function CatalogoError({ onRetry }) {
   )
 }
 
-// Audit externo F001 (2026-05-22): wrapper que sólo deja pasar children
+// Nota técnica F001 (2026-05-22): wrapper que sólo deja pasar children
 // cuando el catálogo de personajes está hidratado. Antes el gate de catálogo
 // vivía a nivel App.jsx y bloqueaba TODAS las rutas — incluso /login,
 // /status, /faq, /auth/callback, /terms — si el catálogo fallaba. Una caída
@@ -175,7 +175,7 @@ function CatalogoError({ onRetry }) {
 // rutas que SÍ usan el catálogo (home, /personajes, /votar, ranking, games,
 // torneos, perfil...). El resto carga independiente.
 function RequireCatalog({ catalogoQuery, children }) {
-  // Audit externo AS-022 (2026-05-22): antes catalogoListo exigía
+  // Nota técnica AS-022 (2026-05-22): antes catalogoListo exigía
   // data.length > 0, lo que mezclaba dos estados muy distintos:
   //   - loading: catalogoQuery aún no resolvió.
   //   - loaded-empty: el backend respondió, pero con [] (DB nueva, seed
@@ -275,7 +275,7 @@ function App() {
           fixed z-50; el global Header queda detrás z-30 y solo añade DOM
           noise + paint costoso del logo flotante. Skipeamos cuando la
           ruta es /tv para que el browser no monte ambos.
-          Audit externo AS-017 (2026-05-22): Footer y MobileBottomNav
+          Nota técnica AS-017 (2026-05-22): Footer y MobileBottomNav
           también deben omitirse en /tv — antes seguían montados y rompían
           la sensación de pantalla completa cuando el usuario hacía
           scroll por error o cambiaba de pestaña. */}

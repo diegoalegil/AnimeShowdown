@@ -216,7 +216,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<!-- Audit P1.3 (2026-05-17): Mockito inline mock-maker hace
+			<!-- Nota P1.3 (2026-05-17): Mockito inline mock-maker hace
 			     self-attach del ByteBuddy agent en runtime para poder
 			     mockear final classes/methods. En JDK 21+ esto genera
 			     warning ("Mockito is currently self-attaching") y en

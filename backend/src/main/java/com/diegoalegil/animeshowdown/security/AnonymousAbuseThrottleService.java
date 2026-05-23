@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
- * Audit externo AS-004 (2026-05-23): aplica umbrales antifraude sobre el
+ * Nota técnica AS-004 (2026-05-23): aplica umbrales antifraude sobre el
  * flujo de voto anónimo. Política aprobada por el revisor externo:
  *
  * <ul>

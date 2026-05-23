@@ -66,7 +66,7 @@ class PrediccionControllerTest {
         return json.readTree(res.getResponse().getContentAsString()).get("token").asText();
     }
 
-    // Auditoría P1.1 (2026-05-17): la auto-promoción a ADMIN ocurre tras verificar
+    // Revisión P1.1 (2026-05-17): la auto-promoción a ADMIN ocurre tras verificar
     // email (EmailVerificationService), no en /registro. El helper registra y
     // luego fuerza ACTIVO + ADMIN directamente en BBDD para simular el flow.
     private String tokenAdmin() throws Exception {

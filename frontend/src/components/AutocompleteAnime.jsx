@@ -38,7 +38,7 @@ function AutocompleteAnime({
     setActivo(0)
   }
   const inputRef = useRef(null)
-  // Audit (2026-05-17): cleanup del onBlur setTimeout para evitar
+  // Ajuste (2026-05-17): cleanup del onBlur setTimeout para evitar
   // setState en componente desmontado tras navegación rápida (mismo
   // patrón que AutocompletePersonaje).
   const blurTimeoutRef = useRef(null)
@@ -93,7 +93,7 @@ function AutocompleteAnime({
   return (
     <div className="relative">
       {/*
-        Audit P2 (2026-05-17): mismo patrón combobox WAI-ARIA 1.2 que
+        Nota P2 (2026-05-17): mismo patrón combobox WAI-ARIA 1.2 que
         AutocompletePersonaje. role='combobox' + aria-haspopup='listbox'
         + aria-activedescendant para que SR anuncie la opción navegada
         sin mover el foco del input.
