@@ -28,6 +28,7 @@ function CompararPage() {
     description:
       'Compara dos personajes anime en AnimeShowdown, revisa ELO base, récord estimado y abre un duelo compartible.',
     canonical: 'https://animeshowdown.dev/comparar',
+    image: BRAND_VISUALS.ranking.image,
   })
 
   const [searchParams, setSearchParams] = useSearchParams()

@@ -25,8 +25,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  *   - jikan-top-characters: 1h, 128 entradas. Imports Jikan.
  *   - og-personaje: 7 días, 500 entradas. PNG 1200x630 generados.
  *   - og-torneo: 7 días, 50 entradas. PNG de torneos.
- *   - og-ranking / og-anime / og-pvp: 7 días. PNG compartibles para
- *     ranking, fichas de anime y PvP live.
+ *   - og-ranking / og-anime / og-pvp / og-duelo: 7 días. PNG compartibles
+ *     para ranking, fichas de anime, PvP live y comparativas.
  *
  * Definir el bean CacheManager explícitamente sobrescribe la
  * autoconfiguración Spring Boot — las properties `spring.cache.*` ya
@@ -46,6 +46,7 @@ public class CacheConfig {
                 buildCache("og-ranking", Duration.ofDays(7), 16),
                 buildCache("og-anime", Duration.ofDays(7), 256),
                 buildCache("og-pvp", Duration.ofDays(7), 8),
+                buildCache("og-duelo", Duration.ofDays(7), 1000),
                 // El catálogo de personajes apenas cambia (solo cuando admin
                 // importa o el seed corre). TTL 5min ahorra ~95% de hits a
                 // Postgres en horas pico sin que el usuario note staleness.
