@@ -287,6 +287,10 @@ function StartArena({ state, joining, onJoin }) {
 
 function WaitingArena({ state, onLeave }) {
   const seconds = useElapsedSeconds(state.serverNow, state.creadoEn)
+  const fallbackRaw = Number(state.fallbackAfterSeconds ?? 10)
+  const fallbackAfter = Number.isFinite(fallbackRaw) ? Math.max(3, fallbackRaw) : 10
+  const quickStartIn = Math.max(0, fallbackAfter - seconds)
+  const fallbackProgress = Math.min(100, (seconds / fallbackAfter) * 100)
   return (
     <div className="as-panel rounded-2xl border border-border bg-surface/80 p-8 text-center shadow-xl shadow-black/25">
       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
@@ -297,8 +301,33 @@ function WaitingArena({ state, onLeave }) {
         Eres el #{state.queuePosition || 1} en cola · {seconds}s esperando
       </p>
       <p className="mx-auto mt-2 max-w-md text-[12px] leading-relaxed text-fg-muted">
-        Si no aparece nadie rápido, abrimos una partida automáticamente para que puedas jugar ya.
+        {quickStartIn > 0
+          ? `Si no aparece nadie, partida rápida en ${quickStartIn}s.`
+          : 'Preparando partida rápida para que puedas jugar ya.'}
       </p>
+      <div className="mx-auto mt-5 max-w-md rounded-xl border border-gold/25 bg-bg/45 p-3 text-left">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+            Partida rápida
+          </span>
+          <span className="font-mono text-sm font-black tabular-nums text-fg-strong">
+            {quickStartIn > 0 ? `${quickStartIn}s` : 'listo'}
+          </span>
+        </div>
+        <div
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={fallbackAfter}
+          aria-valuenow={Math.min(seconds, fallbackAfter)}
+          aria-label="Cuenta atrás para partida rápida"
+          className="h-2 overflow-hidden rounded-full bg-surface-alt"
+        >
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-emerald-300 transition-[width] duration-500"
+            style={{ width: `${fallbackProgress}%` }}
+          />
+        </div>
+      </div>
       <button
         type="button"
         onClick={onLeave}

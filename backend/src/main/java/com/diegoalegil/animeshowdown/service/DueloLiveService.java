@@ -484,6 +484,7 @@ public class DueloLiveService {
                 now(),
                 soyJ1,
                 queuePosition,
+                fallbackAfterSeconds,
                 event,
                 message);
     }
