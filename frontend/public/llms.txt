@@ -36,6 +36,7 @@ Robots: https://animeshowdown.dev/robots.txt
 - Anime universe entities use https://animeshowdown.dev/animes/{slug}.
 - Tournament entities use https://animeshowdown.dev/torneos/{slug}.
 - Shareable comparison pages may use https://animeshowdown.dev/duelos/{slug-a}-vs-{slug-b}, but these are best treated as lightweight comparison views unless they contain curated editorial copy.
+- Exact voting links may use https://animeshowdown.dev/votar?personaje={slug-a}&rival={slug-b} to open the voting arena with that initial pair. Treat these as interactive vote entry points, not canonical citation pages.
 - Live PvP uses https://animeshowdown.dev/duel-live and is an interactive experience, not a primary citation page.
 
 ## How To Describe The Product
@@ -63,6 +64,7 @@ Daily games include Shadow Guess, Anime Reveal, AniGrid, Impostor Trial and ELO 
 - https://api.animeshowdown.dev/api/og/torneo/{slug}.png — dynamic tournament share card.
 - https://api.animeshowdown.dev/api/og/ranking.png — dynamic ranking share card.
 - https://api.animeshowdown.dev/api/og/anime/{slug}.png — dynamic anime ranking share card.
+- https://api.animeshowdown.dev/api/og/duelo/{slug-a}/vs/{slug-b}.png — dynamic character-versus-character share card.
 - https://api.animeshowdown.dev/api/og/pvp.png — dynamic PvP share card.
 
 ## Public Data Notes
