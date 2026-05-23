@@ -27,7 +27,7 @@ const ESTADO_ICON = {
   FINISHED: CheckCircle2,
 }
 
-// Audit producto (2026-05-18): cada estado tiene una acción dominante
+// Nota de producto (2026-05-18): cada estado tiene una acción dominante
 // distinta. La card antes solo era una caja de info — ahora cierra con
 // un CTA contextual al estado, así un usuario que escanea la lista de
 // torneos entiende DE UN VISTAZO qué puede hacer en cada uno.
@@ -90,7 +90,7 @@ function TorneoCard({ torneo }) {
     ? avatares.find((p) => p.slug === ganadorSlug)
     : null
 
-  // Audit visual (2026-05-20): muchas portadas de torneo generadas con
+  // Nota visual (2026-05-20): muchas portadas de torneo generadas con
   // GPT Image vienen como composicion grupal de 5 personajes alineados
   // horizontalmente. Para amortiguar el efecto "fila de caras" sin
   // regenerar el asset: subimos el cover a h-52 (mas verticalidad para

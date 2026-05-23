@@ -58,7 +58,7 @@ function ReactionsBar({ targetType, targetId, className = '' }) {
     })
   }
 
-  // Audit producto (2026-05-18): invitado clicando un emoji recibe un
+  // Nota de producto (2026-05-18): invitado clicando un emoji recibe un
   // toast con CTA "Entrar", pero antes del click no había pista visual
   // de que estaba pendiente de auth. El tooltip nativo (title) + un
   // pequeño hint debajo de la barra anclan el contexto al primer

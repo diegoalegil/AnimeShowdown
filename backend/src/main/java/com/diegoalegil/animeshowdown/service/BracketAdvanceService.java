@@ -25,7 +25,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
  * Cierra la ronda activa del bracket y propaga los ganadores a la ronda
  * siguiente, cumpliendo el contrato que prometía el comentario de
  * {@link BracketService} sobre el "BracketAvanceScheduler" que nunca se
- * implementó (audit P1 2026-05-17).
+ * implementó (nota P1 2026-05-17).
  *
  * <p>Antes del fix, las rondas 2+ del bracket se creaban con slots vacíos
  * y no se rellenaban nunca. {@code TorneoService.finalizar} saltaba esos
@@ -138,7 +138,7 @@ public class BracketAdvanceService {
             }
         }
 
-        // Audit P2 (2026-05-17): two-phase commit lógico. Antes este loop
+        // Nota P2 (2026-05-17): two-phase commit lógico. Antes este loop
         // hacía setGanador + save match a match; si un match POSTERIOR
         // empataba y retornaba SIN_CAMBIOS, los matches previos ya quedaban
         // mutados en BBDD (la tx REQUIRES_NEW commitea cada paso). Resultado:
@@ -159,7 +159,7 @@ public class BracketAdvanceService {
             ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
         }
 
-        // Audit (2026-05-17): sanity check del bracket malformado ANTES de
+        // Ajuste (2026-05-17): sanity check del bracket malformado ANTES de
         // persistir cualquier ganador. Si no es la última ronda y la
         // siguiente no existe o tiene tamaño incorrecto, abortar sin
         // tocar BBDD. Antes el check estaba después de los setGanador +
@@ -221,7 +221,7 @@ public class BracketAdvanceService {
      * pero la última no puede cerrarse (empate/votos faltantes), el progreso
      * realizado queda persistido en BBDD en lugar de rolear todo.
      *
-     * <p>Audit fix #16 (2026-05-21): el límite duro era {@code MAX_RONDAS = 6}
+     * <p>Ajuste #16 (2026-05-21): el límite duro era {@code MAX_RONDAS = 6}
      * — suficiente para hasta 64 participantes (log2(64)=6). Si en el
      * futuro hacemos torneos de 128/256, el bucle terminaba a las 6 iter
      * dejando el bracket avanzado a medias. Subido a {@code MAX_RONDAS = 9}

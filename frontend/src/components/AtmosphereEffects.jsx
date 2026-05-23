@@ -605,6 +605,7 @@ export function LightningStrike({ minInterval = 8000, maxInterval = 15000 }) {
  *  - 'arena'          → aurora carmine + constellation gold (hero general)
  *  - 'arena-storm'    → mist + lightning (votar/duelos)
  *  - 'ritual'         → sakura gold + aurora violet (omikuji)
+ *  - 'arcane'         → constellation cyan + kanji-rain (juegos)
  *  - 'archive'        → constellation gold (animes catalog)
  *  - 'tribute'        → aurora gold + constellation (ranking)
  */
@@ -675,6 +676,7 @@ export function AtmospherePreset({ preset }) {
           <AuroraGlow tone="violet" intensity="soft" />
         </>
       )
+    case 'arcane':
       return (
         <>
           <ConstellationNetwork tone="cyan" density="normal" />

@@ -122,7 +122,7 @@ class EnfrentamientoControllerTest {
         // Mismo username que TorneoControllerTest para que el contexto Spring cacheado
         // sirva tanto si arranca primero un test como otro (el email diegogildam@gmail.com
         // ya está registrado por el primero, no se puede registrar dos veces).
-        // Tras auditoría P1.1, la promoción a ADMIN ya no ocurre en registro;
+        // Tras revisión P1.1, la promoción a ADMIN ya no ocurre en registro;
         // forzamos verificación + ADMIN en BBDD para simular el flow completo.
         String token = tokenUserRegistrado("admin_torneo_test", "diegogildam@gmail.com");
         usuarioRepository.findByUsername("admin_torneo_test").ifPresent(u -> {
@@ -218,7 +218,7 @@ class EnfrentamientoControllerTest {
     }
 
     /**
-     * Audit externo AS-003 (2026-05-22): el constraint DB
+     * Nota técnica AS-003 (2026-05-22): el constraint DB
      * uk_voto_enfrentamiento_anon_session debe rechazar el segundo voto
      * con la misma combinación (enfrentamiento_id, anon_session_id)
      * incluso si el check de aplicación se saltara (carrera concurrente,
@@ -261,7 +261,7 @@ class EnfrentamientoControllerTest {
     }
 
     /**
-     * Audit externo AS-002 (2026-05-22): el ranking debía ponderar votos
+     * Nota técnica AS-002 (2026-05-22): el ranking debía ponderar votos
      * según voto.peso (0.30 anónimo, 1.00 registrado). Antes COUNT(v)
      * trataba a los anónimos como registrados, alterando el orden.
      *
@@ -325,7 +325,7 @@ class EnfrentamientoControllerTest {
         org.junit.jupiter.api.Assertions.assertNotNull(entryA, "Personaje A no aparece en ranking");
         org.junit.jupiter.api.Assertions.assertNotNull(entryB, "Personaje B no aparece en ranking");
 
-        // Audit externo B2.1b: deltas exactos.
+        // Nota técnica B2.1b: deltas exactos.
         // - votos físicos: A +1, B +3 (no truncado por el peso).
         // - pesoVotos: A +1.0, B +0.9 (3 anónimos × 0.30).
         // Antes del fix AS-002 ambos contaban igual (+1 cada uno), así
@@ -432,7 +432,7 @@ class EnfrentamientoControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals("luffy", ev.getPersonaje().getSlug());
         org.junit.jupiter.api.Assertions.assertEquals(antes + 1, ev.getVotos());
         org.junit.jupiter.api.Assertions.assertEquals(1, ev.getDelta());
-        // Audit externo B2.1a + B2.2 (2026-05-22/23): el WS publica pesoVotos
+        // Nota técnica B2.1a + B2.2 (2026-05-22/23): el WS publica pesoVotos
         // ponderado y deltaPeso del voto recién registrado. Para un voto
         // registrado (no anónimo) deltaPeso = 1.0; pesoVotos = pesoAntes + 1.
         org.junit.jupiter.api.Assertions.assertEquals(
@@ -444,7 +444,7 @@ class EnfrentamientoControllerTest {
     }
 
     /**
-     * Audit externo B2.2 (2026-05-23): verifica que voto anónimo publica
+     * Nota técnica B2.2 (2026-05-23): verifica que voto anónimo publica
      * deltaPeso = 0.30 (no 1.0). Antes el frontend infería incrementoPeso
      * restando pesoVotos absoluto contra el de la caché temporal, lo que
      * contaminaba ventanas mensuales con totales históricos.
@@ -543,7 +543,7 @@ class EnfrentamientoControllerTest {
     }
 
     /**
-     * Regresión audit P2 (2026-05-17): BadgeEventListener escucha
+     * Regresión de revisión P2 (2026-05-17): BadgeEventListener escucha
      * VotoRegistradoEvent en AFTER_COMMIT con @Async. Si el endpoint /votar
      * no abriera tx, el evento se publicaría fuera de tx y AFTER_COMMIT lo
      * descartaría silenciosamente → primer_voto nunca se desbloquearía. Este
@@ -600,7 +600,7 @@ class EnfrentamientoControllerTest {
     }
 
     /**
-     * Regresión audit P1 (2026-05-17): antes existía un uniqueConstraint global
+     * Regresión de revisión P1 (2026-05-17): antes existía un uniqueConstraint global
      * (personaje_id, usuario_id) que rompía el caso legítimo "votar al mismo
      * personaje en dos rondas distintas del bracket" — situación normal cuando
      * un personaje avanza. La V16 lo elimina; este test confirma que dos votos

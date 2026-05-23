@@ -123,7 +123,7 @@ public class AuditLogService {
      * para que el FK audit_log.usuario_id apunte a una fila aún viva (la
      * cascada ON DELETE SET NULL lo limpia después). Con @Async, el
      * registro podía llegar tras el delete y fallar con FK violation
-     * (audit P2 2026-05-17). Si la persistencia lanza, propaga — el caller
+     * (nota P2 2026-05-17). Si la persistencia lanza, propaga — el caller
      * decide si esa pérdida de audit invalida o no la operación de negocio.
      */
     @Transactional

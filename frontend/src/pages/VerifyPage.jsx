@@ -45,7 +45,7 @@ function VerifyPage() {
         if (cancelado) return
         if (data?.verificado) {
           setResultado('ok')
-          // Audit P2 (2026-05-17): refreshSession solo refresca el token y
+          // Nota P2 (2026-05-17): refreshSession solo refresca el token y
           // el state interno de api.js. Sin esto, AuthContext sigue con
           // estadoVerificacion=PENDIENTE en memoria (el user de
           // localStorage es viejo) y EmailVerifyBanner se mantiene aunque

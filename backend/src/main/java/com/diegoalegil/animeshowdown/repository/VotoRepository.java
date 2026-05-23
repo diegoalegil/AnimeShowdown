@@ -20,14 +20,14 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /**
      * Ranking all-time por votos ponderados (Plan v2 §4.6).
      *
-     * <p>Audit fix #15 (2026-05-21): se anade desempate por id ASC. Sin
+     * <p>Ajuste #15 (2026-05-21): se anade desempate por id ASC. Sin
      * tiebreak, dos personajes con el mismo COUNT salian en orden
      * arbitrario del dialecto SQL — el frontend mostraba a veces #4
      * "Naruto", a veces "Sasuke" para el mismo dataset. Con tiebreak
      * estable, el orden es determinista en H2, Postgres y queries
      * paginadas (sin riesgo de duplicar/saltar entries entre paginas).
      *
-     * <p>Audit externo AS-002 + B2.1b (2026-05-22): antes COUNT(v) ignoraba
+     * <p>Nota técnica AS-002 + B2.1b (2026-05-22): antes COUNT(v) ignoraba
      * el peso. EnfrentamientoController guarda voto.peso = 0.30 para
      * anónimos y 1.00 para registrados, pero el ranking contaba todos
      * por igual. La fase 1 castteaba SUM(peso) a Long y mezclaba ambas
@@ -113,7 +113,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByPersonajeId(Long personajeId);
 
     /**
-     * Audit externo B2.1a (2026-05-22): suma ponderada de votos del personaje.
+     * Nota técnica B2.1a (2026-05-22): suma ponderada de votos del personaje.
      * Lo necesita el RankingDeltaEvent del WebSocket para publicar un valor
      * consistente con el ORDER del ranking REST. Antes el WS publicaba
      * COUNT físico y el frontend ordenaba su caché live por ese campo,
@@ -173,7 +173,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Votos por día del personaje desde la fecha dada (Plan v2 §11.1).
      * Devuelve {@code [fechaInicio-del-día, count]}.
      *
-     * <p>Audit fix #2 (2026-05-21): antes usaba {@code FUNCTION('DATE', v.fecha)}
+     * <p>Ajuste #2 (2026-05-21): antes usaba {@code FUNCTION('DATE', v.fecha)}
      * — esa función delegaba al dialecto SQL. En H2 se traducía a
      * {@code date(...)}, que H2 no reconoce; el endpoint
      * {@code /api/personajes/:slug/elo-history} devolvía 500 y el
@@ -236,7 +236,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByAnonSessionId(String anonSessionId);
 
     /**
-     * Audit externo AS-004 (2026-05-23): conteo de votos anónimos de una
+     * Nota técnica AS-004 (2026-05-23): conteo de votos anónimos de una
      * sesión en una ventana temporal. Usado por
      * {@code AnonymousAbuseThrottleService} para aplicar umbrales 1h/24h
      * sin tener que crear una tabla nueva — la propia tabla de votos
@@ -245,7 +245,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByAnonSessionIdAndFechaAfter(String anonSessionId, java.time.LocalDateTime desde);
 
     /**
-     * Audit externo AS-004 (2026-05-23): conteo de votos anónimos por
+     * Nota técnica AS-004 (2026-05-23): conteo de votos anónimos por
      * hash IP+UA en una ventana temporal. Pega para abusos que rotan la
      * cookie firmada — varias sesiones distintas pero misma huella
      * técnica.

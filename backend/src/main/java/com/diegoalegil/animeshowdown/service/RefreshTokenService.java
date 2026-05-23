@@ -48,7 +48,7 @@ public class RefreshTokenService {
     private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
     private static final int TOKEN_BYTES = 32; // 256 bits de entropía
     private static final SecureRandom RANDOM = new SecureRandom();
-    // Audit P2 (2026-05-17): ventana de gracia para race entre pestañas.
+    // Nota P2 (2026-05-17): ventana de gracia para race entre pestañas.
     // Si el token revocado vuelve a presentarse en menos de N segundos,
     // probablemente es una segunda pestaña con el token viejo en flight
     // (cuya cookie aún no se ha actualizado tras la rotación de la primera).
@@ -97,7 +97,7 @@ public class RefreshTokenService {
      * replay attack. El usuario tendrá que volver a hacer login.
      */
     /**
-     * Resultado tipado de {@link #rotar}. Audit P1 (2026-05-17): antes
+     * Resultado tipado de {@link #rotar}. Nota P1 (2026-05-17): antes
      * devolvía {@code Optional<RotarResultado>}, lo que forzaba al
      * controller a tratar igual "token inválido/expired" y "race
      * cross-tab dentro de grace". La diferencia importa: en el segundo
@@ -119,7 +119,7 @@ public class RefreshTokenService {
             return new ResultadoRotacion.Invalido();
         }
         String hash = hashear(plano);
-        // Audit P2 (2026-05-17): lock pesimista para serializar rotaciones
+        // Nota P2 (2026-05-17): lock pesimista para serializar rotaciones
         // concurrentes del mismo token. Sin esto, dos requests podían leer
         // el token ACTIVO al mismo tiempo, ambas revocarlo y emitir un
         // refresh nuevo cada una — el predecesor único se duplicaba en

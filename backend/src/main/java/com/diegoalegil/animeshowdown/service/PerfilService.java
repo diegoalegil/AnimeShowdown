@@ -298,14 +298,14 @@ public class PerfilService {
         if (!passwordEncoder.matches(passwordPlano, usuario.getPassword())) {
             throw new IllegalArgumentException("Password incorrecta");
         }
-        // Audit P2 (2026-05-17): registrar DESPUÉS de verificar password (sin
+        // Nota P2 (2026-05-17): registrar DESPUÉS de verificar password (sin
         // password válido no hay borrado y no debe haber audit), pero ANTES
         // del delete (el FK audit_log.usuario_id necesita una fila viva; la
         // cascada ON DELETE SET NULL lo limpia tras el commit). Síncrono
         // dentro de la misma tx para que ambas escrituras commiteen juntas
         // o se rollee todo. La versión @Async anterior podía persistir
         // tarde con FK violation.
-        // Audit (2026-05-17): no incluir email en los detalles del audit.
+        // Ajuste (2026-05-17): no incluir email en los detalles del audit.
         // Los logs tienen retención larga (forensic/compliance) y exponer
         // PII allí viola data minimization — el username es suficiente
         // para forense del evento. Si necesitamos contactar al usuario

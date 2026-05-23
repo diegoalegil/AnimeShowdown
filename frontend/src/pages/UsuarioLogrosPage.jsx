@@ -61,7 +61,7 @@ function UsuarioLogrosPage() {
         return a.desbloqueadoEn ? -1 : 1
       }
       if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      // Audit (2026-05-17): locale dinámico, antes 'es' hardcoded.
+      // Ajuste (2026-05-17): locale dinámico, antes 'es' hardcoded.
       return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
     })
   }, [logros, filtroRareza, i18n.language])

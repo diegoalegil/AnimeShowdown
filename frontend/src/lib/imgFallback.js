@@ -1,7 +1,7 @@
 /**
  * Helpers de fallback para <img> que muestran assets de personajes.
  *
- * <p>Audit P1 (auditoría externa 2026-05-18): cuando una imagen falla
+ * <p>Nota P1 (revisión externa 2026-05-18): cuando una imagen falla
  * (asset 0 bytes, URL borrada, lazy con timeout) el browser pintaba el
  * icono nativo de "imagen rota" — feo y rompe la sensación premium.
  *

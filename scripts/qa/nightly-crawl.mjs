@@ -10,12 +10,12 @@
  *   - links internos descubiertos
  *   - tiempo de respuesta
  *
- * Output: docs/audit/nightly-crawl-report.md
+ * Output: private/qa/nightly-crawl-report.md
  *
  * Uso:
- *   node scripts/audit/nightly-crawl.mjs
- *   node scripts/audit/nightly-crawl.mjs --local                          # http://localhost:5173
- *   node scripts/audit/nightly-crawl.mjs --base=https://animeshowdown.pages.dev
+ *   node scripts/qa/nightly-crawl.mjs
+ *   node scripts/qa/nightly-crawl.mjs --local                          # http://localhost:5173
+ *   node scripts/qa/nightly-crawl.mjs --base=https://animeshowdown.pages.dev
  *
  * Implementación:
  *   Usa fetch nativo de Node 18+ — no requiere Playwright ni instalar nada.
@@ -31,7 +31,7 @@ import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const OUTPUT = join(ROOT, 'docs/audit/nightly-crawl-report.md')
+const OUTPUT = join(ROOT, 'private/qa/nightly-crawl-report.md')
 
 const args = process.argv.slice(2)
 const BASE = args.find((a) => a.startsWith('--base='))?.split('=')[1]
@@ -236,7 +236,7 @@ function generateReport(results, base) {
   lines.push('')
   lines.push(`> Generado: ${new Date().toISOString()}`)
   lines.push(`> Base URL: ${base}`)
-  lines.push(`> Script: \`scripts/audit/nightly-crawl.mjs\``)
+  lines.push(`> Script: \`scripts/qa/nightly-crawl.mjs\``)
   lines.push(`> Modo: HTTP fetch (no headless browser) — captura HTML inicial + probe HEAD a imágenes`)
   lines.push('')
 
@@ -354,7 +354,7 @@ function generateReport(results, base) {
   lines.push('## Limitaciones')
   lines.push('')
   lines.push('- **No ejecuta JS** — solo ve el HTML inicial servido por Cloudflare. Si la app es SPA y el title/meta los inyecta React tras hidratar, este crawler verá los valores fallback (`index.html` template).')
-  lines.push('- **Probe de imágenes limitado a 3 por ruta** — para no sobrecargar el CDN. Una auditoría exhaustiva de imágenes rotas requeriría rastrear `frontend/img/` contra `personajes-seed.json` (eso ya lo hace `scripts/audit/catalog-quality.mjs`).')
+  lines.push('- **Probe de imágenes limitado a 3 por ruta** — para no sobrecargar el CDN. Una revisión exhaustiva de imágenes rotas requeriría rastrear `frontend/img/` contra `personajes-seed.json` (eso ya lo hace `scripts/qa/catalog-quality.mjs`).')
   lines.push('- **No detecta errores de consola** — para eso haría falta un headless browser (Playwright). Se podría añadir como follow-up si compensa instalar la dep en CI.')
   lines.push('- **404 control esperado**: la ruta `/ruta-que-no-existe` debe responder 404 en Cloudflare Pages (sirve `404.html` si existe, o el index para SPA). Si responde 200 con el shell de la app, la SPA se encarga de mostrar el "Not Found" pero los crawlers SEO lo verán como 200 — eso es deuda conocida de SPAs sin SSR.')
   lines.push('')

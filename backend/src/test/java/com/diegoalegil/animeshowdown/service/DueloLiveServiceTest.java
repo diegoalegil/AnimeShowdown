@@ -48,7 +48,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestAsyncConfig.class)
-// Audit externo + CI flake (2026-05-23): sin TestAsyncConfig el executor
+// Nota técnica + CI flake (2026-05-23): sin TestAsyncConfig el executor
 // real corre los listeners async (BadgeEventListener, NotificacionService)
 // en hilo aparte. En CI con H2 los UPDATE concurrentes a `usuarios`
 // (elo_pvp del test + flush implícito del listener async) cruzan locks y

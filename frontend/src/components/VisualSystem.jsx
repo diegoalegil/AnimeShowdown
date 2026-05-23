@@ -10,7 +10,7 @@ function visualImage(visual, fallback = BRAND_VISUALS.empty) {
 }
 
 export function ParticleLayer({ className = '', density = 'normal' }) {
-  // Audit visual (2026-05-20): "no pusiste particulas de fondo" — habia
+  // Nota visual (2026-05-20): "no pusiste particulas de fondo" — habia
   // ParticleLayer pero estaba en density=low (opacity 0.10) por defecto y
   // muchas paginas no la pasaban con density=normal. Ahora dos capas
   // superpuestas: partículas pequeñas tipo polvo + partículas medianas con
@@ -156,7 +156,7 @@ export function VisualPageShell({
           backgroundPosition: visual?.objectPosition ?? 'center',
         }}
       />
-      {/* Audit visual (2026-05-20): vignette progresiva hacia abajo en lugar
+      {/* Nota visual (2026-05-20): vignette progresiva hacia abajo en lugar
           del overlay plano oscuro que apagaba la imagen entera. La imagen
           respira arriba y el texto queda legible abajo. */}
       <div
@@ -203,7 +203,7 @@ export function CinematicHero({
           backgroundPosition: visual?.objectPosition ?? 'center',
         }}
       />
-      {/* Audit visual (2026-05-20): gradient horizontal 94%→30% izq→der
+      {/* Nota visual (2026-05-20): gradient horizontal 94%→30% izq→der
           apagaba el lado izquierdo donde va el titulo. Cambio a vertical
           + sutil oscuro lateral izquierdo para que la imagen respire en
           el centro y la derecha quede mas clara. */}

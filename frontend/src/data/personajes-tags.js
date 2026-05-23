@@ -1,5 +1,5 @@
 /**
- * Categorías otaku (Audit producto 2026-05-18 — visión "estadio otaku").
+ * Categorías otaku (Nota de producto 2026-05-18 — visión "estadio otaku").
  *
  * Enfoque mixto:
  *   1. Overrides manuales curados (este archivo). Si un personaje aparece

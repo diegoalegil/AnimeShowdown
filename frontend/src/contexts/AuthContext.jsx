@@ -33,7 +33,7 @@ const STORAGE_KEY = 'animeshowdown.user'
 
 function buildLocalUser(payload) {
   if (!payload) return null
-  // Audit P2 (2026-05-17): antes solo persistíamos id/username/email/
+  // Nota P2 (2026-05-17): antes solo persistíamos id/username/email/
   // avatarUrl/rol. Faltaban estadoVerificacion (rompía el banner de
   // EmailVerifyBanner que tenía que asumir PENDIENTE por defecto) y
   // totpHabilitado (Card2faSeguridad pintaba 2FA como desactivado
@@ -96,7 +96,7 @@ export function AuthProvider({ children }) {
 
   // Bootstrap del refresh al montar.
   //
-  // Audit externo F003 (2026-05-22): antes este efecto saltaba el refresh
+  // Nota técnica F003 (2026-05-22): antes este efecto saltaba el refresh
   // si `!user` (sin entry en localStorage). Eso rompía la sesión persistente
   // en cualquier caso de usuario que TENÍA refresh cookie httpOnly válida
   // pero NO tenía el user cacheado en localStorage:
@@ -154,7 +154,7 @@ export function AuthProvider({ children }) {
   // completeLogin2fa() tras superar el segundo paso.
   const aplicarSesion = (res, identificadorFallback) => {
     if (res?.token) {
-      // Audit P1 (2026-05-18, 5ª iter): bump epoch ANTES de setToken para
+      // Nota P1 (2026-05-18, 5ª iter): bump epoch ANTES de setToken para
       // invalidar cualquier refreshPromise que pudiera estar en vuelo.
       // Si un refresh viejo resuelve tras este punto, su epoch capturado
       // no coincide y descarta el resultado sin tocar tokenEnMemoria.
@@ -167,7 +167,7 @@ export function AuthProvider({ children }) {
         email: identificadorFallback?.includes('@') ? identificadorFallback : null,
         rol: 'USER',
       }
-    // Audit P1 (2026-05-17): limpia el cache de queries ANTES de cambiar
+    // Nota P1 (2026-05-17): limpia el cache de queries ANTES de cambiar
     // user. Si el navegador venía con sesión de otro usuario (kiosko,
     // logout incompleto, dispositivo compartido), las queries privadas
     // cacheadas — perfil, notificaciones, "mis torneos", logros — se
@@ -189,7 +189,7 @@ export function AuthProvider({ children }) {
         .catch(() => {})
     }
     const muted = localStorage.getItem('animeshowdown.muted') === 'true'
-    // playMagic es async (audit perf 2026-05-18); silenciamos posible rejection.
+    // playMagic es async (nota de rendimiento 2026-05-18); silenciamos posible rejection.
     if (!muted) playMagic().catch(() => {})
     toast.success(`Bienvenido, ${u.username}`, {
       description:
@@ -277,7 +277,7 @@ export function AuthProvider({ children }) {
   }
 
   const logout = async () => {
-    // Audit P2 (2026-05-17, 4ª iter): marca isLoggingOut ANTES de pegar
+    // Nota P2 (2026-05-17, 4ª iter): marca isLoggingOut ANTES de pegar
     // al backend. Si una request paralela recibe 401 mientras logout
     // está en vuelo, intentarRefresh devolvía un refresh exitoso que
     // resucitaba la sesión que el user acababa de cerrar. Con el flag,
@@ -298,15 +298,17 @@ export function AuthProvider({ children }) {
         await endpoints.logout()
       } catch (err) {
         // ignore: revocación best-effort; el JWT en memoria se va a la papelera.
-        console.debug('logout backend falló (ignored):', err?.message)
+        if (import.meta.env.DEV) {
+          console.debug('logout backend falló (ignored):', err?.message)
+        }
       }
-      // Audit P1 (2026-05-17): vacía el cache de React Query antes de
+      // Nota P1 (2026-05-17): vacía el cache de React Query antes de
       // limpiar el user. Sin esto, queries privadas (perfil, notificaciones,
       // mis torneos, logros) quedan en cache; si el siguiente usuario hace
       // login en el mismo navegador, las verá un instante hasta que
       // stale-time refresque. Equivalente a invalidar TODO.
       queryClient.clear()
-      // Audit P1 (2026-05-17): cierra el WS singleton.
+      // Nota P1 (2026-05-17): cierra el WS singleton.
       disconnectStomp()
       setUser(null)
       setToken(null)

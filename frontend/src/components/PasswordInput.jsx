@@ -7,7 +7,7 @@ import { Eye, EyeOff } from 'lucide-react'
  * lo trata como un `<input>` normal porque expone los props y la ref hacia
  * el input interno.
  *
- * Aplicado en Login/Register/Reset (audit 2026-05-17). Antes los users no
+ * Aplicado en Login/Register/Reset (revisión 2026-05-17). Antes los users no
  * tenían forma de verificar lo que escribían — anti-UX en passwords largas
  * o pegadas desde gestor.
  */
@@ -32,7 +32,7 @@ const PasswordInput = forwardRef(function PasswordInput(
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
         aria-pressed={visible}
-        // Audit P3 (2026-05-17): antes tabIndex=-1 — keyboard-only users
+        // Nota P3 (2026-05-17): antes tabIndex=-1 — keyboard-only users
         // no podian activarlo. La conveniencia de "no romper Tab" no
         // justifica bloquear el toggle. Ahora focusable; el orden es
         // input → toggle → siguiente field, que es razonable.

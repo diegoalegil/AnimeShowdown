@@ -64,7 +64,7 @@ public class ReaccionController {
             reaccionService.aplicar(usuario, request.getTargetType(),
                     request.getTargetId(), request.getTipo());
         } catch (IllegalArgumentException e) {
-            // Audit P2 (2026-05-17): el service valida que el target exista
+            // Nota P2 (2026-05-17): el service valida que el target exista
             // y lanza IllegalArgumentException si no. Traducimos a 400 con
             // el mensaje original — útil para clientes mal hechos sin
             // delatar internals de la BBDD.

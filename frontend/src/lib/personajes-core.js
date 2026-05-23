@@ -154,14 +154,14 @@ function hashSlug(slug) {
 }
 
 /**
- * ⚠️  ESTADÍSTICAS SINTÉTICAS — NO SON DATOS REALES (audit F005 + AS-010/AS-043).
+ * ⚠️  ESTADÍSTICAS SINTÉTICAS — NO SON DATOS REALES (nota F005 + AS-010/AS-043).
  *
  * <p>El ELO, wins y losses devueltos por esta función NO vienen del backend.
  * Se calculan determinísticamente a partir del slug del personaje y la tabla
  * {@link POPULARIDAD} hardcodeada. Misma entrada → mismo output, pero NO
  * reflejan votos reales de los usuarios.
  *
- * <p><b>Reglas de honestidad en UI</b> (audit externo AS-010/AS-043,
+ * <p><b>Reglas de honestidad en UI</b> (nota técnica AS-010/AS-043,
  * 2026-05-23): cualquier consumer DEBE etiquetar visualmente el valor
  * como "base", "estimado", "·b" o equivalente, o redirigir al ranking
  * competitivo real (/ranking) que sí está ponderado por SUM(v.peso) tras
@@ -178,7 +178,7 @@ function hashSlug(slug) {
  * que cards vacías a "ELO --". Con el backend ya devolviendo ranking real
  * por votos ponderados, esto es deuda técnica visible.
  *
- * <p><b>Migración pendiente (P0 del audit externo):</b>
+ * <p><b>Migración pendiente (P0 del nota técnica):</b>
  * <ol>
  *   <li>Reemplazar TODOS los consumers (15+ sitios) por una query a
  *       {@code /api/votos/ranking/segmentado} que devuelve votos físicos

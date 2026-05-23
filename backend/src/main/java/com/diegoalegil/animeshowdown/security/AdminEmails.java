@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Lista de emails autorizados para auto-promoción a ADMIN tras verificar
- * email (Plan v2 §2.4 + auditoría 2026-05-17 P1.1).
+ * email (Plan v2 §2.4 + revisión 2026-05-17 P1.1).
  *
  * <p>Configurado vía env var {@code ADMIN_EMAILS} (CSV). <b>Sin default
  * público</b>: si la env var no está definida, el set queda vacío y NO

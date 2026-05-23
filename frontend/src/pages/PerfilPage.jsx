@@ -781,7 +781,7 @@ function CardEliminarCuenta({ onEliminada }) {
         </button>
       </div>
 
-      {/* Audit F019 (2026-05-22): migrado a AccessibleDialog que añade
+      {/* Nota F019 (2026-05-22): migrado a AccessibleDialog que añade
           focus trap, Escape close, restore de foco al trigger y bloqueo
           de scroll. closeOnEscape se desactiva mientras `pendiente=true`
           para evitar que el usuario cancele sin querer un proceso de

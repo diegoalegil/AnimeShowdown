@@ -20,7 +20,7 @@ function getCtx() {
  * porque el resume era asíncrono y el osc.start(now) caía en el pasado,
  * arrancando con lag perceptible.
  *
- * <p>Audit performance (2026-05-18): cachea la promesa del resume en
+ * <p>Nota de rendimiento (2026-05-18): cachea la promesa del resume en
  * curso. Antes, cada playXxx llamaba `ctx.resume()` sin await — si dos
  * sonidos disparaban en paralelo durante el primer gesture, ambos
  * arrancaban con el ctx aún suspendido. Ahora todas las llamadas
@@ -49,14 +49,14 @@ async function ensureRunning() {
 // AudioContext esté en estado "running" antes del primer play() y no haya lag
 // ni primer-sonido-mudo por la política de autoplay del navegador.
 //
-// Audit (2026-05-18): async. Antes era sync sin await; el primer click
+// Ajuste (2026-05-18): async. Antes era sync sin await; el primer click
 // caía sobre un ctx aún suspendido aunque __warm() acabara de ser
 // invocado en el mismo tick.
 export async function __warm() {
   await ensureRunning()
 }
 
-// Audit performance (2026-05-18): cachéa buffers de ruido. Antes
+// Nota de rendimiento (2026-05-18): cachéa buffers de ruido. Antes
 // playWhoosh y playImpact generaban un Float32Array entero con
 // Math.random() en cada click — en móviles bajos era un coste medible
 // (~2-4ms para 0.25s @ 48kHz = 12k samples). Ahora 1 buffer por

@@ -35,7 +35,7 @@ function LoginPage() {
   })
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()
-  // Audit P2 (2026-05-17): rutas protegidas (CrearTorneoPage, etc.)
+  // Nota P2 (2026-05-17): rutas protegidas (CrearTorneoPage, etc.)
   // redirigían a /login?next=... pero LoginPage navegaba siempre a /
   // tras éxito. Honramos el next si está presente Y es relativo —
   // negar absolutas/protocol-relative evita open-redirect.
@@ -294,7 +294,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
           >
             Código TOTP o código de recuperación
           </label>
-          {/* Audit F012 (2026-05-22): antes este input tenía
+          {/* Nota F012 (2026-05-22): antes este input tenía
               inputMode="numeric" + pattern="[0-9]*" + label "6 dígitos",
               pero el backend ACEPTA también códigos backup alfanuméricos
               de 10 chars (mira Totp2faVerifyLoginRequest + AuthController).

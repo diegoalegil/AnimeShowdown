@@ -21,7 +21,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 /**
- * Audit externo AS-004 (2026-05-23): cubre el comportamiento del verifier
+ * Nota técnica AS-004 (2026-05-23): cubre el comportamiento del verifier
  * contra el endpoint de Cloudflare en sus escenarios principales:
  *
  * <ol>

@@ -42,7 +42,7 @@ i18n
             escapeValue: false,
         },
         detection: {
-            // Audit F079 (2026-05-22): antes el order incluía 'navigator' como
+            // Nota F079 (2026-05-22): antes el order incluía 'navigator' como
             // fallback. Resultado: usuarios con navigator.language=en-US (Safari
             // por config del SO) veían el header traducido a EN ("Tournaments",
             // "Home") mientras el resto del sitio seguía hardcoded en ES (la

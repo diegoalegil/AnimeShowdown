@@ -34,7 +34,7 @@ export function getToken() {
   return tokenEnMemoria
 }
 
-// Audit P1 (2026-05-17): listeners para "token cambió". Permite a stomp.js
+// Nota P1 (2026-05-17): listeners para "token cambió". Permite a stomp.js
 // reconectar con JWT nuevo tras refresh silencioso (auto-refresh tras 401).
 // Sin esto, el WS singleton seguía con el JWT viejo hasta logout/reload.
 const tokenChangeListeners = new Set()
@@ -73,7 +73,7 @@ const DEFAULT_TIMEOUT_MS = 10000
 // la sesión por reuse-detection del backend.
 let refreshPromise = null
 
-// Audit P2 (2026-05-17, 4ª iter): flag que bloquea intentarRefresh durante
+// Nota P2 (2026-05-17, 4ª iter): flag que bloquea intentarRefresh durante
 // el logout. Si una request paralela recibe 401 y dispara refresh DESPUÉS
 // de que el user haya pulsado logout pero ANTES de que el backend revoque
 // el refresh, el refresh "exitoso" emite una cookie nueva y resucita la
@@ -84,7 +84,7 @@ export function setLoggingOut(value) {
   isLoggingOut = Boolean(value)
 }
 
-// Audit P1 (2026-05-18, 5ª iter): epoch de sesión. setLoggingOut(true)
+// Nota P1 (2026-05-18, 5ª iter): epoch de sesión. setLoggingOut(true)
 // cortaba refreshes NUEVOS, pero un refreshPromise YA en vuelo que
 // resolviera después seguía aplicando setToken → resucitaba la sesión.
 // Cada cambio de sesión (logout, login, refresh exitoso) incrementa el
@@ -97,7 +97,7 @@ export function bumpSessionEpoch() {
 }
 
 /**
- * Audit P2 (2026-05-17, 4ª iter): grace cross-tab robusto.
+ * Nota P2 (2026-05-17, 4ª iter): grace cross-tab robusto.
  * El backend devuelve 503 + Retry-After cuando otra pestaña acaba de
  * rotar el refresh. El cliente respeta Retry-After (segundos) y hace
  * hasta GRACE_MAX_RETRIES intentos antes de considerar muerta la
@@ -130,7 +130,7 @@ async function intentarRefresh() {
   // vuelo (logout, login en otra tab, etc.), no aplicamos el resultado.
   const myEpoch = sessionEpoch
   refreshPromise = (async () => {
-    // Audit P2 (2026-05-18, 5ª iter): AbortController por intento para
+    // Nota P2 (2026-05-18, 5ª iter): AbortController por intento para
     // que /refresh tenga timeout propio. Antes el cliente global tenía
     // timeout pero intentarRefresh hacía fetch directo sin abort, así
     // que bootstrap y 401-retries quedaban colgados.
@@ -171,7 +171,7 @@ async function intentarRefresh() {
         return null
       }
       // 204 No Content: el backend señala "no había cookie de refresh"
-      // sin disparar el console.error del 401 (audit F003 follow-up).
+      // sin disparar el console.error del 401 (nota F003 follow-up).
       // No hay body que parsear, tratamos como sesión vacía.
       if (res.status === 204) {
         const prev = tokenEnMemoria
@@ -208,7 +208,7 @@ export async function refreshSession() {
 }
 
 async function ejecutarFetch(path, { method, headers = {}, body, signal, includeAuth }) {
-  // Audit fix #7 (2026-05-21): Content-Type: application/json solo cuando
+  // Ajuste #7 (2026-05-21): Content-Type: application/json solo cuando
   // hay body. En GET/HEAD sin body el header no aporta nada y dispara
   // preflight CORS innecesario en cross-origin (es un "non-simple header"
   // segun fetch spec) — el browser hace OPTIONS extra antes del GET real.
@@ -258,7 +258,7 @@ async function request(
     // funciona, reintenta la petición original con el nuevo token. Si el
     // refresh falla, propaga el error original.
     //
-    // Audit fix #1 (2026-05-21): SecurityConfig devuelve 403 (no 401)
+    // Ajuste #1 (2026-05-21): SecurityConfig devuelve 403 (no 401)
     // cuando llega una API call sin auth o con JWT expirado — esto es
     // intencional para no exponer entry-point que redirige a /login en
     // /api/**. Antes, frontend solo reaccionaba a 401; tras 15 min con

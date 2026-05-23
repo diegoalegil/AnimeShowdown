@@ -71,7 +71,7 @@ function LogrosPage() {
     // Ordena por rareza desc (legendarios primero) y luego alfabético.
     return [...filtrados].sort((a, b) => {
       if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      // Audit (2026-05-17): locale dinámico segun el idioma activo en
+      // Ajuste (2026-05-17): locale dinámico segun el idioma activo en
       // i18n, no hardcoded 'es'. Si el user cambia a EN, ordena con
       // collation inglés (los acentos y ñ rankean distinto).
       return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
@@ -122,7 +122,7 @@ function LogrosPage() {
           animate="visible"
           variants={containerVariants}
         >
-          {/* Acento oro místico (audit producto 2026-05-18): logros tira
+          {/* Acento oro místico (nota de producto 2026-05-18): logros tira
               al mismo dorado del ranking pero con tono más ámbar oscuro
               para evocar "salón de trofeos" / coleccionismo. Mantenemos
               el kanji 勲章 (medalla) — tiene intención semántica directa

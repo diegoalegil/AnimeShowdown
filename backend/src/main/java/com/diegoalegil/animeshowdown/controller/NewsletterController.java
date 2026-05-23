@@ -49,7 +49,7 @@ public class NewsletterController {
     @PostMapping
     public ResponseEntity<?> suscribir(@Valid @RequestBody NewsletterSubRequest req) {
         try {
-            // Audit P2 (2026-05-17): el servicio sigue distinguiendo CREADA /
+            // Nota P2 (2026-05-17): el servicio sigue distinguiendo CREADA /
             // REENVIADA / YA_CONFIRMADA para sus métricas internas, pero la
             // response al cliente unifica el mensaje. Antes "Ya estás
             // suscrito" delataba qué emails están dados de alta — info

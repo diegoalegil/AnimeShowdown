@@ -16,7 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * Configuración de ejecutores asíncronos.
  *
- * <p>Audit fix #4 (2026-05-21): antes este config solo declaraba
+ * <p>Ajuste #4 (2026-05-21): antes este config solo declaraba
  * {@code emailExecutor}. Los {@code @Async} sin nombre explícito
  * (AuditLogService, IndexNowService, BadgeEventListener) caían al
  * fallback de Spring Boot ({@code SimpleAsyncTaskExecutor}) que crea
