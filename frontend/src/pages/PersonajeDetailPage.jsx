@@ -414,6 +414,13 @@ function PersonajeDetailPage() {
                 <TrendingUp className="h-4 w-4" />
                 Ver en ranking
               </Link>
+              <Link
+                to={`/mi-top5?add=${encodeURIComponent(personaje.slug)}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/55 hover:text-gold"
+              >
+                <Sparkles className="h-4 w-4" />
+                Llevar a mi Top 5
+              </Link>
               <button
                 type="button"
                 onClick={compartir}
@@ -888,6 +895,13 @@ function PersonalCharacterSignal({ personaje, signal, totalVotes }) {
           >
             Ver mi ranking
             <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+          <Link
+            to={`/mi-top5?add=${encodeURIComponent(personaje.slug)}`}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/45 bg-accent-soft px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Llevar a mi Top 5
           </Link>
         </div>
       </div>
