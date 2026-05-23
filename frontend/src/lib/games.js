@@ -154,6 +154,20 @@ export function buildShareSquares(intentos, totalMax) {
   return line
 }
 
+export function buildGameShareText({
+  game,
+  date = fechaDelDia(),
+  result,
+  detail,
+  grid,
+  extra,
+}) {
+  const heading = date
+    ? `${game} #${date}: ${result}`
+    : `${game}: ${result}`
+  return [heading, detail, grid, extra].filter(Boolean).join('\n')
+}
+
 /**
  * Wrapper de localStorage que no truena si el navegador deniega acceso
  * (modo privado iOS, cookies bloqueadas). Devuelve null en lectura

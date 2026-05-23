@@ -18,6 +18,7 @@ import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   buildShareSquares,
   fechaDelDia,
   personajeDelDia,
@@ -352,9 +353,15 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     intentos.map((i) => i.acierto),
     MAX_INTENTOS,
   )
-  const texto = `🎴 Guess the Character — ${fechaDelDia()}\n${
-    acertado ? `✅ Acerté en ${totalIntentos}/${MAX_INTENTOS}` : `❌ Era ${objetivo.nombre} (${objetivo.anime})`
-  }\n${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/shadow-guess`
+  const texto = buildGameShareText({
+    game: 'Shadow Guess',
+    date: fechaDelDia(),
+    result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
+    detail: acertado
+      ? 'Acerté el personaje oculto.'
+      : `Era ${objetivo.nombre} (${objetivo.anime}).`,
+    grid: `${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}`,
+  })
 
   const titulo = perfecto
     ? 'PERFECT CLEAR · Acertaste en 1 intento'
@@ -371,6 +378,8 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       tier={tier}
       squares={intentos.map((i) => ({ ok: i.acierto }))}
       bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareTitle="Shadow Guess — AnimeShowdown"
+      shareUrl="/games/shadow-guess"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">
