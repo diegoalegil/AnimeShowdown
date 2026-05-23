@@ -248,22 +248,35 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
   // El `key` del componente cambia al avanzar de ronda, así que useState
   // reinicializa automáticamente el timer sin reset manual.
   const [segundos, setSegundos] = useState(SEGUNDOS_POR_RONDA)
+  const [locked, setLocked] = useState(false)
 
   useEffect(() => {
-    if (segundos <= 0) {
-      onTimeout?.()
-      return
-    }
-    const id = setTimeout(() => setSegundos((s) => s - 1), 1000)
+    if (locked) return
+    if (segundos <= 0) return
+    const id = setTimeout(() => {
+      if (segundos <= 1) {
+        setLocked(true)
+        setSegundos(0)
+        onTimeout?.()
+        return
+      }
+      setSegundos((s) => s - 1)
+    }, 1000)
     return () => clearTimeout(id)
     // onTimeout no se incluye en deps a propósito: viene del padre y es
     // estable durante la vida del componente (key cambia al avanzar de
     // ronda). Incluirla causaría re-disparos espurios del timer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segundos])
+  }, [segundos, locked])
 
   const porcentajeRestante = (segundos / SEGUNDOS_POR_RONDA) * 100
   const critico = segundos <= 5
+  const handleEleccion = (item) => {
+    if (locked) return
+    setLocked(true)
+    onEleccion(item)
+  }
+
   return (
     <div className="as-panel relative mb-6 overflow-hidden rounded-xl border-purple-500/30 p-6">
       {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
@@ -319,20 +332,26 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
 
       <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ronda.items.map((item) => (
-          <Carta key={item.slug} item={item} onClick={() => onEleccion(item)} />
+          <Carta
+            key={item.slug}
+            item={item}
+            disabled={locked}
+            onClick={() => handleEleccion(item)}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function Carta({ item, onClick }) {
+function Carta({ item, disabled, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={`${item.nombre} de ${item.anime} — ¿impostor?`}
-      className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/60"
+      className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/60 disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:translate-y-0"
     >
       <div className="aspect-[3/4] w-full overflow-hidden bg-surface-alt">
         <PersonajeImg
