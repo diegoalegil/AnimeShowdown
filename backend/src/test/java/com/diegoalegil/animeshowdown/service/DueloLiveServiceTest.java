@@ -182,17 +182,18 @@ class DueloLiveServiceTest {
     }
 
     @Test
-    void activaBotFallbackSiNoHayRivalTrasTreintaSegundos() {
+    void activaFallbackRapidoSiNoHayRival() {
         Usuario a = usuario("pvp_bot_a", 1000);
         DueloLiveStateDto waiting = dueloLiveService.entrarCola(a, "10.0.5.1");
 
-        clock.setInstant(Instant.parse("2026-05-22T10:00:31Z"));
+        clock.setInstant(Instant.parse("2026-05-22T10:00:11Z"));
         dueloLiveService.mantenimientoLive();
 
         DueloLiveStateDto state = dueloLiveService.estado(waiting.id(), a);
         assertThat(state.estado()).isEqualTo(DueloLiveEstado.IN_PROGRESS);
         assertThat(state.botMatch()).isTrue();
         assertThat(state.rival().bot()).isTrue();
+        assertThat(state.rival().username()).isEqualTo("Rival PvP");
     }
 
     private void asegurarDecisionA(DueloLiveStateDto state) {

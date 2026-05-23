@@ -7,6 +7,8 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 @Service
 public class PvpEloService {
 
+    private static final int FALLBACK_MATCH_MAX_DELTA = 4;
+
     public PvpEloResult aplicarResultado(Usuario jugador1, Usuario jugador2, double scoreJugador1, boolean walkover) {
         int elo1 = jugador1.getEloPvp();
         int elo2 = jugador2 == null ? 1000 : jugador2.getEloPvp();
@@ -19,6 +21,9 @@ public class PvpEloService {
 
         int delta1 = (int) Math.round(k1 * (scoreJugador1 - expected1));
         int delta2 = jugador2 == null ? 0 : (int) Math.round(k2 * (scoreJugador2 - expected2));
+        if (jugador2 == null) {
+            delta1 = Math.max(-FALLBACK_MATCH_MAX_DELTA, Math.min(FALLBACK_MATCH_MAX_DELTA, delta1));
+        }
 
         if (walkover) {
             if (scoreJugador1 == 1.0) {

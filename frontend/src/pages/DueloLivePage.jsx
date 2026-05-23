@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Activity, Loader2, LogOut, Radio, ShieldCheck, Swords, Zap } from 'lucide-react'
+import { Activity, Loader2, LogOut, Radio, Share2, ShieldCheck, Swords, Zap } from 'lucide-react'
 import { endpoints, ApiError } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { useStompSubscription } from '../hooks/useStompSubscription'
 import { useSeo } from '../hooks/useSeo'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyShare } from '../lib/dailyProgress'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import Avatar from '../components/Avatar'
@@ -60,10 +62,18 @@ function formatSeconds(ms) {
   return Math.ceil(ms / 1000)
 }
 
+function buildPvpShareText(state, resultado, delta) {
+  const marcador = `${state?.miScore ?? 0}-${state?.rivalScore ?? 0}`
+  const deltaText = delta == null ? '' : ` (${delta >= 0 ? '+' : ''}${delta} ELO PvP)`
+  const rival = state?.rival?.username ? ` contra ${state.rival.username}` : ''
+  return `${resultado || 'Duelo'} PvP en AnimeShowdown${rival}: ${marcador}${deltaText}.\n¿Te atreves a superar mi duelo?`
+}
+
 function DueloLivePage() {
   useSeo({
     title: 'Duelo PvP en directo · AnimeShowdown',
     description: 'Entra en cola, juega un duelo 1v1 al mejor de 5 rondas y sube tu ELO PvP.',
+    image: '/api/og/pvp.png',
     noindex: true,
   })
   const { user } = useAuth()
@@ -99,7 +109,7 @@ function DueloLivePage() {
     if (!lastMessage) return
     queueMicrotask(() => setState(lastMessage))
     if (lastMessage.event === 'MATCH_FOUND') {
-      toast.success('Rival encontrado', { description: lastMessage.rival?.username ?? 'Duelo listo' })
+      toast.success('Rival encontrado', { description: 'Duelo listo' })
     }
     if (lastMessage.event === 'MATCH_END' || lastMessage.event === 'OPPONENT_ABANDONED') {
       toast.success('Duelo terminado', { description: lastMessage.message ?? 'Resultado calculado' })
@@ -200,6 +210,23 @@ function StartArena({ state, joining, onJoin }) {
       : delta < 0
         ? 'Derrota'
         : 'Empate'
+  const compartirResultado = async () => {
+    if (!state) return
+    try {
+      const result = await shareOrCopy({
+        title: 'Mi duelo PvP en AnimeShowdown',
+        text: buildPvpShareText(state, resultado, delta),
+        url: '/duel-live',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Resultado compartido' : 'Resultado copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el resultado', {
+        description: error?.message || 'Copia el marcador manualmente.',
+      })
+    }
+  }
   return (
     <div className="as-panel overflow-hidden rounded-2xl border border-border bg-surface/80 p-6 shadow-xl shadow-black/25">
       {state?.estado === 'FINISHED' || state?.estado === 'ABANDONED' ? (
@@ -235,6 +262,14 @@ function StartArena({ state, joining, onJoin }) {
           <p className="mt-2 text-sm text-fg-muted">
             Tu nuevo ELO PvP aparecerá también en tu perfil.
           </p>
+          <button
+            type="button"
+            onClick={compartirResultado}
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-gold/30 bg-bg/60 px-4 py-2 text-sm font-black text-gold transition hover:border-gold/60 hover:bg-gold/10"
+          >
+            <Share2 className="h-4 w-4" />
+            Compartir resultado
+          </button>
         </div>
       ) : null}
       <button
@@ -260,6 +295,9 @@ function WaitingArena({ state, onLeave }) {
       <h2 className="mt-5 text-3xl font-black text-fg-strong">Buscando rival</h2>
       <p className="mt-2 text-sm text-fg-muted">
         Eres el #{state.queuePosition || 1} en cola · {seconds}s esperando
+      </p>
+      <p className="mx-auto mt-2 max-w-md text-[12px] leading-relaxed text-fg-muted">
+        Si no aparece nadie rápido, abrimos una partida automáticamente para que puedas jugar ya.
       </p>
       <button
         type="button"
@@ -356,7 +394,7 @@ function PlayerBlock({ player, score, align }) {
       <div className="min-w-0">
         <p className="truncate text-lg font-black text-fg-strong">{player?.username}</p>
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-fg-muted">
-          {player?.bot ? 'Bot fallback' : `${player?.eloPvp ?? 1000} ELO PvP`}
+          {player?.bot ? 'Rival PvP' : `${player?.eloPvp ?? 1000} ELO PvP`}
         </p>
       </div>
       <div className="ml-auto rounded-xl border border-gold/30 bg-gold/10 px-4 py-2 text-3xl font-black tabular-nums text-gold md:ml-0">
