@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ===========================================================================
-// generate-image-variants.mjs — Variantes responsive + AVIF (Plan v2 §3.3-3.4)
+// generate-image-variants.mjs — Variantes responsive + AVIF
 //
 // Para cada `frontend/img/<Anime>/<slug>.webp` genera:
 //   <slug>-300.webp   (300px de ancho, calidad 82)

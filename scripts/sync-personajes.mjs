@@ -44,9 +44,9 @@ const overrides = JSON.parse(readFileSync(OVERRIDES_FILE, 'utf8'))
 // _meta es solo documentación dentro del JSON, no es un slug
 delete overrides._meta
 
-// Nota P2 (2026-05-17): carpetas WIP que NO entran al seed. Permite tener
-// webp en construcción en frontend/img/ sin que el CI falle ni se filtren a
-// producción. Tanto el sync como el --check respetan esta lista.
+// Carpetas WIP que NO entran al seed. Permite tener webp en construcción en
+// frontend/img/ sin que el CI falle ni se filtren a producción. Tanto el sync
+// como el --check respetan esta lista.
 const wipAllowlist = JSON.parse(readFileSync(WIP_ALLOWLIST_FILE, 'utf8'))
 const wipFolders = new Set(wipAllowlist.folders ?? [])
 const wipSlugs = new Set(wipAllowlist.slugs ?? [])
