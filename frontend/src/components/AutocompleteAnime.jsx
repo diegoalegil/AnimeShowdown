@@ -29,7 +29,6 @@ function AutocompleteAnime({
     setQueryPrevia(query)
     setActivo(0)
   }
-  const inputRef = useRef(null)
   // cleanup del onBlur setTimeout para evitar
   // setState en componente desmontado tras navegación rápida (mismo
   // patrón que AutocompletePersonaje).
@@ -74,7 +73,6 @@ function AutocompleteAnime({
     onSelect(anime)
     setQuery('')
     setAbierto(false)
-    if (inputRef.current) inputRef.current.focus()
   }
 
   const handleKey = (e) => {
@@ -96,6 +94,7 @@ function AutocompleteAnime({
 
   const listboxId = `${inputId}-list`
   const optionId = (idx) => `${inputId}-option-${idx}`
+  const mostrarLista = abierto && (opciones.length > 0 || normalizar(deferredQuery).length > 0)
 
   return (
     <div className="relative">
@@ -109,7 +108,6 @@ function AutocompleteAnime({
         <Search className="h-4 w-4 text-fg-muted" />
         <input
           id={inputId}
-          ref={inputRef}
           type="text"
           role="combobox"
           value={query}
@@ -140,40 +138,50 @@ function AutocompleteAnime({
           className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
-      {abierto && opciones.length > 0 && (
+      {mostrarLista && (
         <ul
           id={listboxId}
           role="listbox"
           className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface shadow-2xl"
         >
-          {opciones.map((o, idx) => (
+          {opciones.length === 0 ? (
             <li
-              key={o.anime}
-              id={optionId(idx)}
               role="option"
-              aria-selected={idx === activo}
+              aria-disabled="true"
+              className="px-3 py-3 text-[13px] text-fg-muted"
             >
-              <button
-                type="button"
-                tabIndex={-1}
-                onMouseEnter={() => setActivo(idx)}
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  elegir(o.anime)
-                }}
-                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[13px] ${
-                  idx === activo ? 'bg-bg' : 'hover:bg-bg'
-                }`}
-              >
-                <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">
-                  {o.anime}
-                </span>
-                <span className="shrink-0 font-mono text-[11px] tabular-nums text-fg-muted">
-                  {o.n}
-                </span>
-              </button>
+              Sin animes para esa búsqueda.
             </li>
-          ))}
+          ) : (
+            opciones.map((o, idx) => (
+              <li
+                key={o.anime}
+                id={optionId(idx)}
+                role="option"
+                aria-selected={idx === activo}
+              >
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onMouseEnter={() => setActivo(idx)}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    elegir(o.anime)
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[13px] ${
+                    idx === activo ? 'bg-bg' : 'hover:bg-bg'
+                  }`}
+                >
+                  <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">
+                    {o.anime}
+                  </span>
+                  <span className="shrink-0 font-mono text-[11px] tabular-nums text-fg-muted">
+                    {o.n}
+                  </span>
+                </button>
+              </li>
+            ))
+          )}
         </ul>
       )}
     </div>
