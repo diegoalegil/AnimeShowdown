@@ -7,7 +7,7 @@ name: Auto-generate tournament
 #
 # Para activar:
 # 1. Settings → Secrets and variables → Actions → New repository secret:
-#    - API_URL = https://api.animeshowdown.dev (o el upstream Railway)
+#    - API_URL = https://api.animeshowdown.dev
 #    - CRON_SECRET = (string random largo, debe coincidir con
 #      APP_CRON_SECRET en Railway env vars)
 # 2. (opcional) Settings → Actions → workflow_dispatch para botón manual.
