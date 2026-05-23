@@ -60,10 +60,10 @@
     "tituloAntes": "究極の",
     "tituloAnime": "アニメランキング",
     "tituloDespues": "を決めるのはあなた。",
-    "subtitulo": "1対1デュエル、リアルタイムELOランキング、毎週のトーナメント。あなたの一票がメタを動かします。",
+    "subtitulo": "1対1デュエル、リアルタイムELOランキング、毎週のトーナメント。あなたの一票がランキングを動かします。",
     "ctaTorneos": "投票を始める",
-    "ctaRanking": "メタを見る",
-    "features": "デュエルに投票 · トーナメントで競う · ELOランキングを駆け上がる"
+    "ctaRanking": "ランキングを見る",
+    "features": "デュエルに投票 · ランキングを決める · トーナメントで競う"
   },
   "torneos": {
     "tituloPagina": "トーナメント",

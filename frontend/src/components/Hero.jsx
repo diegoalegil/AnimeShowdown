@@ -148,12 +148,12 @@ function Hero() {
           variants={itemVariants}
         >
           <HeroStat icon="⚔" value={`${totalPersonajes}`} label="Personajes" />
-          <HeroStat icon="🏆" value={`${torneosVisibles}`} label="Torneos visibles" />
+          <HeroStat icon="🏆" value={`${torneosVisibles}`} label="Torneos" />
           <HeroStat icon="👥" value={`${universos}`} label="Universos" />
           {/* eloMax viene de getStatsPersonaje, que es una estimación
               determinística. La etiqueta evita presentarlo como #1 real del
               ranking competitivo. */}
-          <HeroStat icon="↗" value={`${eloMax}`} label="Top ELO base" />
+          <HeroStat icon="↗" value={`${eloMax}`} label="ELO máximo" />
         </motion.div>
         {torneoDestacado && (
           <motion.div

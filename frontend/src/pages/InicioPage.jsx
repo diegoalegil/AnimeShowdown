@@ -95,7 +95,7 @@ function InicioPage() {
   // explícito y aseguramos OG con la imagen del logo.
   useSeo({
     description:
-      '1052 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el meta cada semana.',
+      '1052 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el ranking cada semana.',
     canonical: 'https://animeshowdown.dev/',
   })
   return (
