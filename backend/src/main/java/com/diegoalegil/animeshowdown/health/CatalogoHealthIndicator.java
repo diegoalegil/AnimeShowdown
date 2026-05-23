@@ -17,8 +17,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Healthcheck custom del catálogo de personajes (Plan v2 §16.6/§16.10 +
- * revisiones P2.9 y P2 hardening 2026-05-17).
+ * Healthcheck custom del catálogo de personajes.
  *
  * <p>Detecta tres clases de incidente:
  * <ol>

@@ -7,9 +7,8 @@ import { Eye, EyeOff } from 'lucide-react'
  * lo trata como un `<input>` normal porque expone los props y la ref hacia
  * el input interno.
  *
- * Aplicado en Login/Register/Reset (revisión 2026-05-17). Antes los users no
- * tenían forma de verificar lo que escribían — anti-UX en passwords largas
- * o pegadas desde gestor.
+ * Aplicado en Login/Register/Reset. Permite verificar lo escrito antes de
+ * enviar formularios con passwords largas o pegadas desde gestor.
  */
 const PasswordInput = forwardRef(function PasswordInput(
   { className = '', error = false, ...rest },

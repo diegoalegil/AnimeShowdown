@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Variantes responsive de imágenes (Plan v2 §3.3-3.4 + §3.6 perf 2026-05-17):
+# Variantes responsive de imágenes:
 #   - -300.webp y -600.webp SÍ se commitean — Cloudflare Pages las sirve
 #     directamente sin regenerar en cada build (esquiva timeout de 20 min).
 #   - -1024.webp se omite (el original ya cubre ese ancho).

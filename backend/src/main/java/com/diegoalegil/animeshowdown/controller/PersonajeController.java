@@ -94,7 +94,7 @@ public class PersonajeController {
     }
 
     /**
-     * Catálogo público compacto para frontend/IA.
+     * Catálogo público compacto para frontend y sitemap.
      *
      * <p>fields permite bajar solo columnas necesarias:
      * {@code slug,nombre,anime,imagenUrl}. El endpoint emite ETag estable,
