@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 function hashStr(s) {
   let h = 0
   for (let i = 0; i < s.length; i++) {
@@ -24,17 +26,19 @@ function initials(label) {
 
 function Avatar({ user, size = 32, className = '' }) {
   const src = user?.avatarUrl
+  const [failedSrc, setFailedSrc] = useState(null)
   const label = user?.username || user?.nombre || user?.email
   const ini = initials(label)
   const bg = colorFromEmail(user?.email || user?.username || 'anon')
 
-  if (src) {
+  if (src && failedSrc !== src) {
     return (
       <img
         src={src}
         alt={label ? `Avatar de ${label}` : 'Avatar'}
         width={size}
         height={size}
+        onError={() => setFailedSrc(src)}
         className={`shrink-0 rounded-full object-cover ${className}`}
         style={{ width: size, height: size }}
       />
@@ -43,7 +47,8 @@ function Avatar({ user, size = 32, className = '' }) {
 
   return (
     <span
-      aria-hidden="true"
+      role="img"
+      aria-label={label ? `Avatar de ${label}` : 'Avatar'}
       className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold text-white ${className}`}
       style={{
         width: size,
