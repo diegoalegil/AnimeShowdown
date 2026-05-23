@@ -28,9 +28,12 @@ function RankingMetaReport() {
 
   const insight = useMemo(() => {
     if (!Array.isArray(rankingTop) || rankingTop.length === 0) return null
-    const top1 = rankingTop[0]
-    const top2 = rankingTop[1]
-    const top3 = rankingTop[2]
+    const topPersonajes = rankingTop
+      .map((item) => item?.personaje ?? item)
+      .filter((personaje) => personaje?.slug && personaje?.nombre)
+      .slice(0, 3)
+    if (topPersonajes.length === 0) return null
+    const [top1, top2, top3] = topPersonajes
     const conMov = Array.isArray(movs)
       ? movs.filter((m) => m.delta != null && m.delta !== 0)
       : []
