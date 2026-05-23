@@ -217,7 +217,7 @@
   }
 
   .as-stage-visual::before {
-    /* Audit feedback (2026-05-22): las páginas individuales de los juegos
+    /* Feedback (2026-05-22): las páginas individuales de los juegos
        tenían el cover como SVG outline + overlay oscuro al 86% en el top,
        dejándolo apagado y "inapreciable". Ahora bajamos el oscurecimiento
        superior (de 86% → 55%) y el inferior queda en 80% para legibilidad,
@@ -669,6 +669,19 @@
   a {
     color: inherit;
     text-decoration: none;
+  }
+
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [role="button"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+    outline: 2px solid rgb(197 161 90 / 0.9);
+    outline-offset: 3px;
   }
 
   h1,
