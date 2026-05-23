@@ -119,6 +119,7 @@ export function VisualPageShell({
   atmosphere,
 }) {
   const image = visualImage(visual)
+  const shellBackgroundPosition = visual?.shellObjectPosition ?? 'center center'
   // atmosphere puede venir como:
   // - string ('demon-slayer', 'arena', etc.) → render AtmospherePreset
   // - React node directo → render tal cual
@@ -148,10 +149,11 @@ export function VisualPageShell({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center opacity-75"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-75"
         style={{
           backgroundImage: `url("${image}")`,
-          backgroundPosition: visual?.objectPosition ?? 'center',
+          backgroundPosition: shellBackgroundPosition,
+          backgroundSize: 'cover',
         }}
       />
       {/* Vignette progresiva hacia abajo: la imagen respira arriba y el texto
