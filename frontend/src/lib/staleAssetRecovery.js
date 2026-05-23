@@ -91,7 +91,9 @@ async function clearRuntimeCaches() {
 }
 
 export function recoverFromStaleAssetError(error) {
-  if (typeof window === 'undefined' || !isStaleAssetError(error)) return false
+  if (typeof window === 'undefined') return false
+  const runtimeAssetUrl = typeof error === 'string' && isRuntimeAssetUrl(error)
+  if (!runtimeAssetUrl && !isStaleAssetError(error)) return false
   if (!canReloadNow()) return false
 
   markReloadAttempted()
@@ -116,8 +118,10 @@ export function installStaleAssetRecovery() {
           ? target.src || target.href
           : ''
 
-      if (isRuntimeAssetUrl(assetUrl) || isStaleAssetError(event.error || event.message)) {
-        recoverFromStaleAssetError(event.error || event.message || assetUrl)
+      if (isRuntimeAssetUrl(assetUrl)) {
+        recoverFromStaleAssetError(assetUrl)
+      } else if (isStaleAssetError(event.error || event.message)) {
+        recoverFromStaleAssetError(event.error || event.message)
       }
     },
     true,
@@ -125,5 +129,15 @@ export function installStaleAssetRecovery() {
 
   window.addEventListener('unhandledrejection', (event) => {
     recoverFromStaleAssetError(event.reason)
+  })
+
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault?.()
+    recoverFromStaleAssetError(
+      event.payload ||
+        event.reason ||
+        event.error ||
+        'failed to fetch dynamically imported module',
+    )
   })
 }

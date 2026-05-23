@@ -1,5 +1,8 @@
 import { readCatalogoPersonajesSnapshot } from './personajes-core'
 
+export const ELO_DUEL_BEST_KEY = 'animeshowdown.higherOrLower.best'
+export const ELO_DUEL_LEGACY_BEST_KEY = 'animeshowdown.higher-or-lower.best'
+
 /**
  * Utilities compartidas por los modos de juego del Bloque 14.
  *

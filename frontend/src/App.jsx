@@ -310,6 +310,8 @@ function App() {
               <Route path="/api-docs" element={<ApiDocsPage />} />
               <Route path="/status" element={<StatusPage />} />
               <Route path="/apoya" element={<ApoyaPage />} />
+              <Route path="/privacy" element={<Navigate replace to="/privacidad" />} />
+              <Route path="/terms" element={<Navigate replace to="/terminos" />} />
               <Route path="/privacidad" element={<PrivacyPage />} />
               <Route path="/terminos" element={<TermsPage />} />
               <Route path="/dmca" element={<DmcaPage />} />
