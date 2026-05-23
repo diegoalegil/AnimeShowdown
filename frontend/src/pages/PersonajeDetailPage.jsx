@@ -259,13 +259,13 @@ function PersonajeDetailPage() {
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
             >
-              {/* Ajuste (2026-05-17): Personaje3D era opt-in al mount con
+              {/* Personaje3D era opt-in al mount con
                   imagen como fallback, pero el chunk se descargaba siempre
                   al entrar a la ficha y disparaba 'THREE.Clock deprecated'
                   en consola. Cambio a static-first: imagen como default y
                   un botón 'Ver en 3D' monta el lazy chunk on-demand.
 
-                  Sprint galería (2026-05-18): la imagen del hero ahora
+                  Galería: la imagen del hero ahora
                   es la del state `imagenActiva` que PersonajeGaleria
                   cambia al hacer click en una thumbnail. PersonajeStaticOr3D
                   recibe la URL como prop en vez de calcularla. */}
@@ -711,7 +711,7 @@ function CarruselSimilares({ slug, nombre }) {
  * Al hacer click, monta el chunk lazy de Personaje3D. Evita pagar el
  * coste de three.js/Three Fiber en cada visita a la ficha.
  *
- * <p>Sprint galería (2026-05-18): imagenUrl viene del state externo
+ * <p>Galería: imagenUrl viene del state externo
  * `imagenActiva` para que PersonajeGaleria pueda cambiarla; el slug se
  * mantiene como prop separada porque Personaje3D lo necesita para cargar
  * el modelo lazy con sus propios assets.
@@ -725,7 +725,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   if (!show3D) {
     return (
       <div className="relative h-full w-full">
-        {/* Sprint holo (2026-05-18): la imagen del personaje (cards SSR
+        {/* Holo: la imagen del personaje (cards SSR
             del catálogo) se renderiza con efecto Pokémon-TCG-style
             (tilt 3D + specular shine + rainbow holo). PersonajeCardHolo
             es zero-lib y respeta prefers-reduced-motion. */}

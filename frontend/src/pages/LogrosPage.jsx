@@ -71,7 +71,7 @@ function LogrosPage() {
     // Ordena por rareza desc (legendarios primero) y luego alfabético.
     return [...filtrados].sort((a, b) => {
       if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      // Ajuste (2026-05-17): locale dinámico segun el idioma activo en
+      // locale dinámico segun el idioma activo en
       // i18n, no hardcoded 'es'. Si el user cambia a EN, ordena con
       // collation inglés (los acentos y ñ rankean distinto).
       return a.nombre.localeCompare(b.nombre, i18n.language || undefined)

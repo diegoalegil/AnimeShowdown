@@ -75,7 +75,7 @@ function HigherOrLowerPage() {
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(readBestStreak)
   const [gameOver, setGameOver] = useState(false)
-  // Ajuste (2026-05-17): los setTimeout de reveal (1100ms) no se
+  // los setTimeout de reveal (1100ms) no se
   // cancelan en unmount — si el user navega tras el guess pero antes
   // del reveal, el callback dispara setState en componente desmontado.
   const revealTimerRef = useRef(null)

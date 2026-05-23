@@ -12,7 +12,7 @@ import PersonajeCutImg from './PersonajeCutImg'
 /**
  * Strip "Duelos abiertos" arriba del bracket en /torneos/:slug.
  *
- * <p>Nota de producto (2026-05-18): el bracket es un mapa global del torneo
+ * <p>Nota de producto: el bracket es un mapa global del torneo
  * — útil para entender la estructura pero pésimo como CTA. Un usuario
  * que aterriza en un torneo IN_PROGRESS quiere saber YA dónde puede
  * votar. Este strip muestra hasta 6 duelos abiertos (ambos personajes

@@ -75,7 +75,7 @@ function tieneImagenPromocionable(item) {
 /**
  * Pulso AnimeShowdown — sección "live" en la home.
  *
- * <p>Nota de producto (2026-05-18): la home antes mostraba un duelo random
+ * <p>Nota de producto: la home antes mostraba un duelo random
  * cliente-side y stats estáticas. No transmitía sensación de plataforma
  * en marcha. Esta sección consolida cinco señales reales arriba de la
  * página:
@@ -155,7 +155,7 @@ function SectionPulso() {
     : null
   const campeon = campeonReal ?? CAMPEON_FALLBACK
   const esFallback = !campeonReal
-  // Nota de producto (2026-05-18): el backend devuelve top por COUNT(votos),
+  // Nota de producto: el backend devuelve top por COUNT(votos),
   // así que en una DB joven con 1-5 votos totales presentar al top como
   // "campeón actual" es engañoso. Sumamos los votos del ranking servido
   // y aplicamos disclaimer si el total comunidad es pequeño.
@@ -517,7 +517,7 @@ function DestacadoAvatar({ personaje }) {
 }
 
 function MoversCard({ movers }) {
-  // Sprint actividad reciente (2026-05-18): 1 request batch para los
+  // Actividad reciente: 1 request batch para los
   // 3 movers visibles — añade "+N votos" debajo del delta de posición.
   // Misma queryKey que otros consumidores del mismo set → cache hit.
   const slugs = movers.map((m) => m.slug)

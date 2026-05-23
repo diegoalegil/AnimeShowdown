@@ -163,7 +163,7 @@ function PersonajesPage() {
     [deferredSearch],
   )
 
-  // Ajuste (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
+  // /personajes con 730 cards renderizaba ~9.8k nodos
   // DOM, ~790 imgs, scroll de >100k px en móvil. Paginación incremental:
   // 60 cards iniciales + botón "Cargar más" para ampliar de 60 en 60.
   // Reset automático al cambiar filtros: guardamos {key, count} juntos

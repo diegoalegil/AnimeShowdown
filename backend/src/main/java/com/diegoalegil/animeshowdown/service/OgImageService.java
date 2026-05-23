@@ -38,7 +38,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
  *
  * Cache 7 días vía Caffeine (CacheConfig). Como las imágenes pesan
  * ~150-300KB, 500 entradas son ~100MB max — dentro del presupuesto de
- * Railway. Para mover a CDN en futuro cuando Bloque 15.7 pida pre-cache.
+ * Railway. Para mover a CDN en futuro cuando una tarea programada.7 pida pre-cache.
  *
  * I/O:
  *   - Lee imagen del personaje de `app.images.base-url` + `personaje.imagenUrl`

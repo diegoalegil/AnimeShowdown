@@ -36,7 +36,7 @@ import com.diegoalegil.animeshowdown.security.AdminEmails;
  *   reenviar(usuario)
  *     ↓ equivalente a emitir(): invalida lo viejo + emite nuevo + email.
  *
- * Cuando llegue el cron del Bloque 16, también limpiará tokens vencidos
+ * Cuando llegue el cron de la capa correspondiente, también limpiará tokens vencidos
  * vía EmailVerificationRepository.borrarVencidos.
  */
 @Service

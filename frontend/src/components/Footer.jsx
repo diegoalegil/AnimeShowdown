@@ -18,7 +18,7 @@ function GithubIcon({ className }) {
   )
 }
 
-// Nota de producto (2026-05-18): el footer antes mostraba el stack
+// Nota de producto: el footer antes mostraba el stack
 // técnico (React 19, Vite, Spring Boot, Java 21…) y un copyright
 // "Diego Alegil — DAM 1.º". Quitamos ambos: el footer público
 // representa la plataforma, no un portfolio. GitHub queda solo

@@ -27,7 +27,7 @@ import jakarta.persistence.Table;
  *
  * Campos `userAgent` / `ipAddr` permiten enseñarle al usuario la lista
  * de sesiones activas en /perfil → "Cerrar sesión en otros dispositivos"
- * (Bloque 4.1 expone esta info).
+ * (capa correspondiente expone esta info).
  */
 @Entity
 @Table(name = "refresh_tokens", indexes = {

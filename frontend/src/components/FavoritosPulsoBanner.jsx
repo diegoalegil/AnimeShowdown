@@ -55,7 +55,7 @@ function FavoritosPulsoBanner() {
     () => (favoritos ?? []).map((f) => f.slug),
     [favoritos],
   )
-  // Sprint actividad reciente (2026-05-18): 1 batch request por la
+  // Actividad reciente: 1 batch request por la
   // lista de favoritos para enriquecer cada slug con su delta de
   // votos. Si un favorito no movió ELO pero recibió votos, igual
   // aparece como "actividad" en vez de quedarse fuera.

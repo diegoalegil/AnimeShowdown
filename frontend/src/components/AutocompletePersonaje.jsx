@@ -42,7 +42,7 @@ function AutocompletePersonaje({
     setActivo(0)
   }
   const inputRef = useRef(null)
-  // Ajuste (2026-05-17): el onBlur setTimeout queda colgando si el
+  // el onBlur setTimeout queda colgando si el
   // componente se desmonta antes de 120ms (típico al cerrar modal).
   // Trackeamos en ref y limpiamos en cleanup del unmount.
   const blurTimeoutRef = useRef(null)

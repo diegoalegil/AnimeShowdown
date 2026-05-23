@@ -159,7 +159,7 @@ public class BracketAdvanceService {
             ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
         }
 
-        // Ajuste (2026-05-17): sanity check del bracket malformado ANTES de
+        // sanity check del bracket malformado ANTES de
         // persistir cualquier ganador. Si no es la última ronda y la
         // siguiente no existe o tiene tamaño incorrecto, abortar sin
         // tocar BBDD. Antes el check estaba después de los setGanador +

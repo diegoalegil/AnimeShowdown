@@ -27,7 +27,7 @@ const ESTADO_ICON = {
   FINISHED: CheckCircle2,
 }
 
-// Nota de producto (2026-05-18): cada estado tiene una acción dominante
+// Nota de producto: cada estado tiene una acción dominante
 // distinta. La card antes solo era una caja de info — ahora cierra con
 // un CTA contextual al estado, así un usuario que escanea la lista de
 // torneos entiende DE UN VISTAZO qué puede hacer en cada uno.

@@ -17,7 +17,7 @@ import { useEffect } from 'react'
  * originales del HTML inicial. Sin context, sin deps externas, sin
  * SSR (la SPA renderiza tras JS, los crawlers de Google ejecutan JS
  * desde 2018 — para previews social usamos OG image dinámica server-side
- * del Bloque 1.2).
+ * de la capa correspondiente).
  *
  * <p>Para JSON-LD usa {@code <JsonLd>} component (también gestiona limpieza).
  *
@@ -104,7 +104,7 @@ function absolutizar(src) {
  * que entran via hreflang aterricen en el idioma correcto.
  *
  * <p>El soporte de {@code ?lang} en el cliente queda pendiente del
- * Bloque 5.9.b — por ahora los crawlers entran ignorando el param, que
+ * capa correspondiente.b — por ahora los crawlers entran ignorando el param, que
  * no rompe nada (i18next cae a su detector normal).
  */
 function withLangParam(url, lang) {
