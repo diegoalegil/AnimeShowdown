@@ -469,6 +469,11 @@ function VotarPage() {
         )
       } else {
         setVotedFor(personaje.slug)
+        setVoteResult({
+          ganadorSlug: personaje.slug,
+          delta: 1,
+          votosGanador: null,
+        })
         incrementarContadorLocalVotos()
         toast.success(`+${personaje.nombre}`, {
           description: 'Modo casual · sin torneo activo',
