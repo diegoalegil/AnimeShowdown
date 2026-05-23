@@ -398,6 +398,8 @@ function SetupForm({ setupData, onBackupCodes }) {
           autoFocus
           autoComplete="one-time-code"
           maxLength={6}
+          aria-invalid={Boolean(errors.codigo)}
+          aria-describedby={errors.codigo ? 'codigo-setup-error' : undefined}
           {...register('codigo', {
             required: 'Introduce el código',
             pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
@@ -408,7 +410,9 @@ function SetupForm({ setupData, onBackupCodes }) {
           placeholder="123456"
         />
         {errors.codigo && (
-          <p className="text-[12px] text-red-400">{errors.codigo.message}</p>
+          <p id="codigo-setup-error" className="text-[12px] text-red-400">
+            {errors.codigo.message}
+          </p>
         )}
       </div>
 
@@ -602,10 +606,16 @@ function Modal2faDisable({ onClose, onSuccess }) {
             id="disable-password"
             autoComplete="current-password"
             error={Boolean(errors.password)}
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={
+              errors.password ? 'disable-password-error' : undefined
+            }
             {...register('password', { required: 'Introduce tu contraseña' })}
           />
           {errors.password && (
-            <p className="text-[11px] text-red-400">{errors.password.message}</p>
+            <p id="disable-password-error" className="text-[11px] text-red-400">
+              {errors.password.message}
+            </p>
           )}
         </div>
         <div className="flex flex-col gap-1.5">
@@ -622,6 +632,10 @@ function Modal2faDisable({ onClose, onSuccess }) {
             pattern="[0-9]*"
             autoComplete="one-time-code"
             maxLength={6}
+            aria-invalid={Boolean(errors.codigo)}
+            aria-describedby={
+              errors.codigo ? 'disable-codigo-error' : undefined
+            }
             {...register('codigo', {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
@@ -632,11 +646,15 @@ function Modal2faDisable({ onClose, onSuccess }) {
             placeholder="123456"
           />
           {errors.codigo && (
-            <p className="text-[11px] text-red-400">{errors.codigo.message}</p>
+            <p id="disable-codigo-error" className="text-[11px] text-red-400">
+              {errors.codigo.message}
+            </p>
           )}
         </div>
         {errors.root && (
-          <p className="text-[11px] text-red-400">{errors.root.message}</p>
+          <p role="alert" className="text-[11px] text-red-400">
+            {errors.root.message}
+          </p>
         )}
         <button
           type="submit"
@@ -717,6 +735,8 @@ function Modal2faRegenerate({ onClose }) {
             autoFocus
             autoComplete="one-time-code"
             maxLength={6}
+            aria-invalid={Boolean(errors.codigo)}
+            aria-describedby={errors.codigo ? 'regen-codigo-error' : undefined}
             {...register('codigo', {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
@@ -727,7 +747,9 @@ function Modal2faRegenerate({ onClose }) {
             placeholder="123456"
           />
           {errors.codigo && (
-            <p className="text-[11px] text-red-400">{errors.codigo.message}</p>
+            <p id="regen-codigo-error" className="text-[11px] text-red-400">
+              {errors.codigo.message}
+            </p>
           )}
         </div>
         <button
