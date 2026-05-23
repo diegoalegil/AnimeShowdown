@@ -7,6 +7,7 @@ import {
   Gamepad2,
   Hourglass,
   Share2,
+  Sparkles,
   Swords,
   Trophy,
 } from 'lucide-react'
@@ -24,6 +25,50 @@ import { shareOrCopy } from '../lib/share'
 
 function clamp(value, max) {
   return Math.min(Math.max(0, value), max)
+}
+
+const COMPLETION_CELEBRATION_PREFIX = 'animeshowdown.daily-complete-celebrated.v1'
+
+function readCelebrated(date) {
+  try {
+    return localStorage.getItem(`${COMPLETION_CELEBRATION_PREFIX}:${date}`) === '1'
+  } catch {
+    return true
+  }
+}
+
+function markCelebrated(date) {
+  try {
+    localStorage.setItem(`${COMPLETION_CELEBRATION_PREFIX}:${date}`, '1')
+  } catch {
+    // Local celebration state is optional.
+  }
+}
+
+function shouldReduceMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  )
+}
+
+async function celebrateDailyCompletion(date) {
+  if (!date || readCelebrated(date)) return
+  markCelebrated(date)
+  if (shouldReduceMotion()) return
+  try {
+    const mod = await import('canvas-confetti')
+    const confetti = mod.default || mod
+    confetti({
+      particleCount: 72,
+      spread: 64,
+      origin: { y: 0.72 },
+      colors: ['#ff2e63', '#facc15', '#34d399', '#f4f4f5'],
+      disableForReducedMotion: true,
+    })
+  } catch {
+    // Confetti is decorative; never block the mission panel.
+  }
 }
 
 function MissionItem({ icon: Icon, label, detail, done, to }) {
@@ -87,6 +132,11 @@ function DailyMissionPanel({ compact = false, className = '' }) {
     return Math.round(((votePart + gamePart + rankingPart) / 3) * 100)
   }, [votes, games, rankingViewed])
 
+  useEffect(() => {
+    if (!completed) return
+    void celebrateDailyCompletion(progress.date)
+  }, [completed, progress.date])
+
   const compartirMision = async () => {
     const text = [
       `Completé mi misión diaria en AnimeShowdown — ${progress.date}.`,
@@ -97,7 +147,7 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       const result = await shareOrCopy({
         title: 'Misión diaria completada',
         text,
-        url: '/games',
+        url: '/misiones',
       })
       if (result === 'cancelled') return
       recordDailyShare()
@@ -192,14 +242,25 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       </div>
 
       {completed && (
-        <button
-          type="button"
-          onClick={compartirMision}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-[12px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
-        >
-          <Share2 className="h-3.5 w-3.5" />
-          Misión completa: compartir ritual de hoy.
-        </button>
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              Ritual sellado
+            </p>
+            <p className="mt-1 text-[12px] leading-5 text-fg-muted">
+              Racha protegida por hoy. El siguiente reset llega en {resetCountdown.label}.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={compartirMision}
+            className="inline-flex w-fit items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-[12px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Compartir ritual
+          </button>
+        </div>
       )}
     </section>
   )
