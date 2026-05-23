@@ -327,12 +327,19 @@ function GamesHubPage() {
           </div>
         </section>
 
-        {/* Cómo funciona — compacto */}
-        <div className="rounded-xl border border-border bg-surface p-5">
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
-            Cómo funciona
-          </h3>
-          <ul className="flex flex-col gap-1.5 text-[13px] text-fg-muted">
+        <details className="group rounded-xl border border-border bg-surface">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+                Detalles del reto diario
+              </h3>
+              <p className="mt-1 text-[12px] text-fg-muted">
+                Reglas de reset, progreso local y resultado compartible.
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-gold transition-transform group-open:rotate-90" />
+          </summary>
+          <ul className="flex flex-col gap-1.5 border-t border-border px-4 pb-4 pt-3 text-[13px] text-fg-muted">
             <li>
               · El personaje del día se elige <strong>determinísticamente</strong> por
               fecha local. Todos jugamos contra el mismo.
@@ -346,7 +353,7 @@ function GamesHubPage() {
               donde quieras.
             </li>
           </ul>
-        </div>
+        </details>
       </div>
     </VisualPageShell>
   )
@@ -385,7 +392,7 @@ function CardDestacado({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} ${theme.hoverGlow}`}
+      className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 motion-safe:hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} ${theme.hoverGlow}`}
     >
       <EditorialCover
         visual={visual}
@@ -448,7 +455,7 @@ function CardMini({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
+      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
     >
       <EditorialCover
         visual={visual}
@@ -508,7 +515,7 @@ function OmikujiCard() {
   return (
     <Link
       to="/omikuji"
-      className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_22px_65px_-25px_rgba(159,29,44,0.55)] sm:min-h-[10rem]"
+      className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:border-accent/60 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_22px_65px_-25px_rgba(159,29,44,0.55)] sm:min-h-[10rem]"
     >
       <EditorialCover
         visual={visual}

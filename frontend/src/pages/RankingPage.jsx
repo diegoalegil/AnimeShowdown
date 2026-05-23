@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import {
   ArrowRight,
   Calendar,
@@ -481,9 +480,10 @@ function Tabs({ activo, onChange }) {
   // Solución: scroll horizontal en móvil (-mx para que sangre full-bleed)
   // con whitespace-nowrap; en sm+ vuelve al grid sin scroll.
   return (
-    <div className="-mx-5 overflow-x-auto sm:mx-0">
+    <div className="scrollbar-hide -mx-5 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0">
       <div
         role="tablist"
+        aria-label="Secciones del ranking"
         className="inline-flex w-max gap-1 whitespace-nowrap rounded-lg border border-border bg-surface p-1 sm:flex sm:w-full sm:flex-wrap"
       >
         {TABS.map(({ id, label, icon: Icon }) => (
@@ -502,7 +502,7 @@ function Tabs({ activo, onChange }) {
                     ? 'Top de votos en los últimos 30 días.'
                     : 'Selecciona un anime para ver su ranking interno.'
             }
-            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-colors ${
               activo === id
                 ? 'bg-accent text-bg'
                 : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
@@ -552,7 +552,7 @@ function ListaEloLocal() {
   return (
     <div className="flex flex-col gap-6">
       <div className="as-panel grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
           <input
             type="search"
@@ -576,7 +576,7 @@ function ListaEloLocal() {
           value={animeFilter}
           onChange={(e) => setAnimeFilter(e.target.value)}
           aria-label="Filtrar por anime"
-          className="as-control rounded-lg py-2.5 px-3 text-sm text-fg-strong"
+          className="as-control w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
         >
           <option value="">Anime: Todos</option>
           {animeFilterOptions.slice(1).map((a) => (
@@ -649,15 +649,31 @@ function ListaEloLocal() {
 function Podio({ top3, historyBySlug = {} }) {
   const [primero, segundo, tercero] = top3
   return (
-    <div className="grid grid-cols-3 gap-3 sm:gap-6">
-      <PodioCard personaje={segundo} rank={2} history={historyBySlug[segundo.slug]} />
-      <PodioCard personaje={primero} rank={1} highlighted history={historyBySlug[primero.slug]} />
-      <PodioCard personaje={tercero} rank={3} history={historyBySlug[tercero.slug]} />
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-6">
+      <PodioCard
+        personaje={primero}
+        rank={1}
+        highlighted
+        history={historyBySlug[primero.slug]}
+        className="col-span-2 sm:order-2 sm:col-span-1"
+      />
+      <PodioCard
+        personaje={segundo}
+        rank={2}
+        history={historyBySlug[segundo.slug]}
+        className="sm:order-1"
+      />
+      <PodioCard
+        personaje={tercero}
+        rank={3}
+        history={historyBySlug[tercero.slug]}
+        className="sm:order-3"
+      />
     </div>
   )
 }
 
-function PodioCard({ personaje, rank, highlighted, history }) {
+function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
   // Audit F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
   if (!personaje?.slug) return null
   const tone =
@@ -688,20 +704,28 @@ function PodioCard({ personaje, rank, highlighted, history }) {
             label: '3er puesto',
           }
   const Icon = tone.icon
+  const linkLayout = highlighted
+    ? 'grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-3 p-4 text-left sm:flex sm:flex-col sm:items-center sm:gap-2 sm:p-3 sm:pt-6 sm:text-center'
+    : 'flex flex-col items-center gap-2 p-3 pt-4 text-center'
+
   return (
     <Link
       to={`/personajes/${personaje.slug}`}
-      className={`group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border-2 p-3 text-center transition-all hover:-translate-y-1 ${tone.border} ${tone.bg} ${highlighted ? `pt-6 ${tone.glow}` : 'pt-4'}`}
+      className={`group relative overflow-hidden rounded-2xl border-2 transition-all motion-safe:hover:-translate-y-1 ${linkLayout} ${tone.border} ${tone.bg} ${highlighted ? tone.glow : ''} ${className}`}
     >
       <span
-        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.15em] ${tone.border} ${tone.text}`}
+        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.15em] ${tone.border} ${tone.text} ${highlighted ? 'col-span-2 justify-self-start sm:justify-self-auto' : ''}`}
       >
         <Icon className="h-3 w-3" />
         #{rank}
         {highlighted && ` · ${tone.label}`}
       </span>
       <div
-        className={`relative aspect-[2/3] w-full overflow-hidden rounded-xl border ${tone.border} bg-surface ${highlighted ? '' : 'opacity-95'}`}
+        className={`relative aspect-[2/3] w-full overflow-hidden rounded-xl border ${tone.border} bg-surface ${
+          highlighted
+            ? 'max-w-[8.5rem] sm:mx-auto sm:max-w-none'
+            : 'mx-auto max-w-[8rem] opacity-95 sm:max-w-none'
+        }`}
       >
         <PersonajeImg
           slug={personaje.slug}
@@ -715,7 +739,11 @@ function PodioCard({ personaje, rank, highlighted, history }) {
           className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
         />
       </div>
-      <div className="flex flex-col items-center gap-0.5">
+      <div
+        className={`flex min-w-0 flex-col gap-0.5 ${
+          highlighted ? 'items-start sm:items-center' : 'items-center'
+        }`}
+      >
         <h3
           className={`line-clamp-1 font-bold text-fg-strong group-hover:text-gold ${
             highlighted ? 'text-base sm:text-lg' : 'text-sm'
@@ -951,12 +979,7 @@ function RankRowElo({
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
   const esTop10 = rank <= 10
   return (
-    <motion.li
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.5 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-    >
+    <li>
       <Link
         to={`/personajes/${slug}`}
         aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
@@ -1008,7 +1031,7 @@ function RankRowElo({
           </p>
         </div>
       </Link>
-    </motion.li>
+    </li>
   )
 }
 
@@ -1016,12 +1039,7 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
   // Audit F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
   if (!personaje?.slug) return null
   return (
-    <motion.li
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.5 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-    >
+    <li>
       <Link
         to={`/personajes/${personaje.slug}`}
         aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
@@ -1056,7 +1074,7 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
           </p>
         </div>
       </Link>
-    </motion.li>
+    </li>
   )
 }
 
@@ -1128,8 +1146,8 @@ function MovimientoBadge({ movimiento }) {
 function HubLinks() {
   return (
     <div className="as-panel-hot relative mt-12 overflow-hidden rounded-2xl p-6 sm:p-7">
-      {/* Audit user feedback (2026-05-20): re-eliminado kanji 競 fantasma que
-          su glow/gradient propio, no necesita glyph encima. */}
+      {/* Revision de feedback (2026-05-20): se elimino el kanji decorativo
+          duplicado. as-panel-hot ya tiene glow/gradient propio. */}
       <div className="relative max-w-2xl">
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
           Meta en movimiento
