@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { ArrowLeft, Download, Image as ImageIcon, Plus, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, Download, Image as ImageIcon, Plus, Share2, Sparkles, X } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -10,6 +10,8 @@ import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import { imagenPersonaje } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
+import { recordDailyShare } from '../lib/dailyProgress'
+import { shareOrCopy } from '../lib/share'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -282,12 +284,18 @@ function Slot({ slug, personaje, index, onQuitar }) {
 
 function CanvasPreview({ slots, completo, personajesBySlug }) {
   const canvasRef = useRef(null)
+  const slotsSignature = slots.join('|')
   const [generando, setGenerando] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [compartiendo, setCompartiendo] = useState(false)
+  const [fallbackText, setFallbackText] = useState('')
+  const previewActual = preview?.signature === slotsSignature ? preview : null
+  const fallbackTextActual = previewActual ? fallbackText : ''
 
   const generar = async () => {
     if (!completo || !canvasRef.current) return
     setGenerando(true)
+    setFallbackText('')
     try {
       const canvas = canvasRef.current
       canvas.width = 1200
@@ -360,8 +368,9 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
       ctx.font = '18px Geist, system-ui, sans-serif'
       ctx.fillText('🔥 animeshowdown.dev', 60, 600)
 
+      const blob = await canvasToPngBlob(canvas)
       const url = canvas.toDataURL('image/png')
-      setPreviewUrl(url)
+      setPreview({ url, blob, signature: slotsSignature })
       toast.success('Imagen generada')
     } catch (err) {
       toast.error(`No se pudo generar: ${err.message}`)
@@ -371,13 +380,73 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
   }
 
   const descargar = () => {
-    if (!previewUrl) return
+    if (!previewActual) return
     const a = document.createElement('a')
-    a.href = previewUrl
+    a.href = previewActual.url
     a.download = 'animeshowdown-mi-top5.png'
     document.body.appendChild(a)
     a.click()
     a.remove()
+  }
+
+  const compartir = async () => {
+    if (!previewActual) return
+    setCompartiendo(true)
+    setFallbackText('')
+
+    const text = buildTop5ShareText(slots, personajesBySlug)
+    try {
+      const file =
+        previewActual.blob && typeof File !== 'undefined'
+          ? new File([previewActual.blob], 'animeshowdown-mi-top5.png', {
+              type: 'image/png',
+            })
+          : null
+      const filePayload = file
+        ? {
+            title: 'Mi Top 5 anime',
+            text,
+            url: `${window.location.origin}/mi-top5`,
+            files: [file],
+          }
+        : null
+
+      if (
+        filePayload &&
+        typeof navigator !== 'undefined' &&
+        navigator.share &&
+        (!navigator.canShare || navigator.canShare({ files: [file] }))
+      ) {
+        try {
+          await navigator.share(filePayload)
+          recordDailyShare()
+          toast.success('Top 5 compartido')
+          return
+        } catch (error) {
+          if (error?.name === 'AbortError') return
+        }
+      }
+
+      const result = await shareOrCopy({
+        title: 'Mi Top 5 anime',
+        text,
+        url: '/mi-top5',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(
+        result === 'native'
+          ? 'Top 5 compartido'
+          : 'Texto copiado. Adjunta la imagen descargada si quieres.',
+      )
+    } catch (error) {
+      setFallbackText(error?.message || text)
+      toast.error('No se pudo compartir', {
+        description: 'Te dejo el texto visible para copiarlo a mano.',
+      })
+    } finally {
+      setCompartiendo(false)
+    }
   }
 
   return (
@@ -400,7 +469,7 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
           <ImageIcon className="h-3.5 w-3.5" />
           {generando ? 'Generando…' : 'Generar imagen'}
         </button>
-        {previewUrl && (
+        {previewActual && (
           <button
             type="button"
             onClick={descargar}
@@ -410,18 +479,37 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
             Descargar PNG
           </button>
         )}
+        {previewActual && (
+          <button
+            type="button"
+            onClick={compartir}
+            disabled={compartiendo}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-semibold text-gold transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            {compartiendo ? 'Compartiendo…' : 'Compartir mi Top 5'}
+          </button>
+        )}
       </div>
-      {previewUrl && (
+      {previewActual && (
         <div className="mt-5">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
             Vista previa
           </p>
           <img
-            src={previewUrl}
+            src={previewActual.url}
             alt="Vista previa de tu top 5"
             className="w-full rounded-lg border border-border"
           />
         </div>
+      )}
+      {fallbackTextActual && (
+        <textarea
+          readOnly
+          value={fallbackTextActual}
+          className="mt-4 min-h-28 w-full rounded-lg border border-border bg-bg/70 p-3 text-[12px] leading-5 text-fg-muted outline-none"
+          aria-label="Texto de tu Top 5 para copiar manualmente"
+        />
       )}
       <canvas
         ref={canvasRef}
@@ -431,6 +519,25 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
       />
     </div>
   )
+}
+
+function canvasToPngBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob)
+      else reject(new Error('El navegador no pudo exportar la imagen.'))
+    }, 'image/png')
+  })
+}
+
+function buildTop5ShareText(slots, personajesBySlug) {
+  const ranking = slots
+    .map((slug, index) => {
+      const personaje = personajesBySlug.get(slug)
+      return `${index + 1}. ${personaje?.nombre ?? slug}`
+    })
+    .join('\n')
+  return `Mi Top 5 anime en AnimeShowdown:\n${ranking}\n\nHaz el tuyo y dime a quién quitarías.`
 }
 
 function cargarImg(src) {
