@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Check, Share2, Sparkles, X } from 'lucide-react'
+import { ArrowRight, Check, Share2, Sparkles, Swords, Trophy, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { recordDailyShare, setDailyGamesCompleted } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
@@ -21,6 +22,7 @@ import { shareOrCopy } from '../lib/share'
  * - shareText: texto que se copia al portapapeles
  * - bonusBadge: { emoji, label } opcional (ej "💡 pista usada")
  * - kanji: opcional override (default 結 win, 残 lose)
+ * - showDailyActions: muestra CTAs hacia misión diaria y votos
  * - children: contenido extra al final (links de navegación)
  */
 function PanelResultadoAnime({
@@ -33,6 +35,7 @@ function PanelResultadoAnime({
   shareUrl = '/games',
   bonusBadge,
   kanji,
+  showDailyActions = true,
   children,
 }) {
   const [fallbackText, setFallbackText] = useState('')
@@ -154,14 +157,35 @@ function PanelResultadoAnime({
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={compartir}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
-        >
-          <Share2 className="h-3.5 w-3.5" />
-          Compartir resultado
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={compartir}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Compartir resultado
+          </button>
+          {showDailyActions && (
+            <>
+              <Link
+                to="/misiones"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/35 bg-emerald-500/10 px-4 py-2 text-[13px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
+              >
+                <Trophy className="h-3.5 w-3.5" />
+                Ver misión
+                <ArrowRight className="h-3 w-3" />
+              </Link>
+              <Link
+                to="/votar"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/55 px-4 py-2 text-[13px] font-semibold text-fg-strong transition-colors hover:border-accent/45 hover:text-gold"
+              >
+                <Swords className="h-3.5 w-3.5" />
+                Votar duelos
+              </Link>
+            </>
+          )}
+        </div>
 
         {fallbackText && (
           <textarea
