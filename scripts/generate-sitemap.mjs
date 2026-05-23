@@ -92,6 +92,10 @@ const animesUnicos = [...new Set(personajesCatalogo.map((p) => p.anime))].sort()
 // templáticas antes de tener análisis editorial único se acerca demasiado a
 // una granja de contenido. Cuando haya duelos curados con copy propio, se
 // pueden añadir aquí como lista editorial corta.
+//
+// Sí emitimos /animes/{slug}/ranking: hay una sola página por universo,
+// reutiliza el roster real del catálogo y responde a búsquedas claras tipo
+// "ranking de Naruto" sin generar combinaciones infinitas.
 
 // Réplica de frontend/src/lib/animes.js:slugifyAnime para no depender
 // del runtime de Vite/React. Si cambia ese helper, actualizar aquí
@@ -293,6 +297,17 @@ ${animesUnicos
       ),
     )
     .join('\n')}
+${animesUnicos
+    .map((anime) =>
+      urlBlock(
+        `/animes/${slugifyAnime(anime)}/ranking`,
+        '0.65',
+        'weekly',
+        today,
+        [animeImage(anime)].filter(Boolean),
+      ),
+    )
+    .join('\n')}
 ${torneos
     .map((t) => {
       const priority = t.esDeUsuario ? '0.4' : '0.5'
@@ -325,10 +340,11 @@ console.log(`✅ sitemap.xml generado en ${outPath}`)
 console.log(`   - ${staticRoutes.length} rutas estáticas`)
 console.log(`   - ${personajesCatalogo.length} personajes (con image extension)`)
 console.log(`   - ${animesUnicos.length} fichas de anime`)
+console.log(`   - ${animesUnicos.length} rankings por anime`)
 console.log(
   `   - ${torneos.length} torneos (${apiData ? 'backend live' : 'seed fallback'})`,
 )
 console.log(`   - ${usuarios.length} usuarios públicos`)
 console.log(
-  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length + animesUnicos.length + torneos.length} imágenes`,
+  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length * 2 + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length + animesUnicos.length * 2 + torneos.length} imágenes`,
 )
