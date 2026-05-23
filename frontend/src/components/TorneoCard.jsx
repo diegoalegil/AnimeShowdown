@@ -10,9 +10,9 @@ import {
 } from 'lucide-react'
 import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
-import { ocultaImgRota } from '../lib/imgFallback'
 import { getTournamentVisual } from '../data/visual-assets'
 import EditorialCover from './EditorialCover'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Card individual de torneo en /torneos. Antes recibía el torneo legacy
@@ -157,10 +157,11 @@ function TorneoCard({ torneo }) {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">
               <Trophy className="h-4 w-4" />
             </div>
-            <img
+            <PersonajeImg
+              slug={ganadorAvatar.slug}
               src={ganadorAvatar.imagenUrl}
               alt={ganadorAvatar.nombre}
-              onError={ocultaImgRota}
+              sizes="36px"
               className="h-9 w-9 rounded-md object-cover object-top"
             />
             <div className="min-w-0">

@@ -31,7 +31,6 @@ import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 import PersonajeCutImg from './PersonajeCutImg'
 import PersonajeImg from './PersonajeImg'
 import EditorialCover from './EditorialCover'
-import { ocultaImgRota } from '../lib/imgFallback'
 import {
   BRAND_VISUALS,
   getEventVisual,
@@ -569,11 +568,12 @@ function MoverRow({ mover, actividad }) {
   return (
     <li className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/[0.04]">
       <Link to={`/personajes/${mover.slug}`} className="shrink-0 transition-transform hover:scale-105">
-        <img
-          src={mover.imagenUrl || imagenPersonaje(mover.slug)}
+        <PersonajeImg
+          slug={mover.slug}
+          src={mover.imagenUrl}
           alt={mover.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="40px"
           className="h-10 w-8 rounded object-cover object-top"
         />
       </Link>
@@ -814,11 +814,12 @@ function VotoRow({ voto }) {
   return (
     <li className="flex items-center gap-2 py-2 text-[12px]">
       <Link to={`/personajes/${ganador.slug}`} className="shrink-0">
-        <img
-          src={ganador.imagenUrl || imagenPersonaje(ganador.slug)}
+        <PersonajeImg
+          slug={ganador.slug}
+          src={ganador.imagenUrl}
           alt={ganador.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="28px"
           className="h-7 w-7 rounded object-cover object-top"
         />
       </Link>

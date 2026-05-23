@@ -11,9 +11,8 @@ import {
   Trophy,
 } from 'lucide-react'
 import { endpoints, ApiError } from '../lib/api'
-import { imagenPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
 import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Historial competitivo de un personaje. Dos secciones que viven al final
@@ -227,11 +226,12 @@ function DueloRow({ duelo }) {
       </span>
       {rival ? (
         <Link to={`/personajes/${rival.slug}`} className="shrink-0">
-          <img
-            src={rival.imagenUrl || imagenPersonaje(rival.slug)}
+          <PersonajeImg
+            slug={rival.slug}
+            src={rival.imagenUrl}
             alt={rival.nombre}
             loading="lazy"
-            onError={ocultaImgRota}
+            sizes="48px"
             className="h-12 w-9 rounded object-cover object-top"
           />
         </Link>
@@ -441,11 +441,12 @@ function MatchupRow({ item, tipo }) {
   return (
     <li className="flex items-center gap-2">
       <Link to={`/personajes/${rival.slug}`} className="shrink-0">
-        <img
-          src={rival.imagenUrl || imagenPersonaje(rival.slug)}
+        <PersonajeImg
+          slug={rival.slug}
+          src={rival.imagenUrl}
           alt={rival.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="28px"
           className="h-7 w-5 rounded object-cover object-top"
         />
       </Link>
