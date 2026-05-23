@@ -54,7 +54,7 @@ jobs:
       # inspeccionar surefire-reports desde la UI de GitHub Actions.
       - name: Upload surefire reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: surefire-reports
           path: backend/target/surefire-reports
