@@ -37,6 +37,7 @@
 /personajes               / 200
 /personajes/:slug         / 200
 /animes                   / 200
+/animes/:slug/ranking     / 200
 /animes/:slug             / 200
 /torneos                  / 200
 /torneos/crear            / 200

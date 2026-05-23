@@ -304,6 +304,58 @@ export function faqPageSchema(items) {
 }
 
 /**
+ * Schema {@code CollectionPage} + {@code ItemList} para rankings públicos.
+ * Útil para páginas como /animes/{slug}/ranking donde el contenido central
+ * es una lista ordenada y estable de entidades con posición.
+ *
+ * @param {Object} opts
+ * @param {string} opts.name nombre de la lista
+ * @param {string} opts.path URL canónica relativa
+ * @param {string} opts.description descripción indexable
+ * @param {Array} opts.items items con {name, path, image?, score?, scoreLabel?}
+ */
+export function rankingItemListSchema({
+  name,
+  path,
+  description,
+  items = [],
+} = {}) {
+  if (!name || !path || !items.length) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    url: abs(path),
+    description,
+    isPartOf: { '@type': 'WebSite', name: 'AnimeShowdown', url: SITIO },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: items.length,
+      itemListElement: items.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Person',
+          name: item.name,
+          url: abs(item.path),
+          image: abs(item.image),
+          additionalType: 'https://schema.org/FictionalCharacter',
+          ...(item.score != null
+            ? {
+                additionalProperty: {
+                  '@type': 'PropertyValue',
+                  name: item.scoreLabel || 'Ranking score',
+                  value: item.score,
+                },
+              }
+            : {}),
+        },
+      })),
+    },
+  }
+}
+
+/**
  * Schema {@code WebApplication} para juegos web individuales.
  *
  * @param {Object} opts

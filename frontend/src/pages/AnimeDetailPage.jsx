@@ -196,7 +196,7 @@ function AnimeDetailPage() {
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
-              to={`/ranking?anime=${encodeURIComponent(anime)}`}
+              to={`/animes/${slug}/ranking`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-white/12 bg-white/5 px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/45 hover:text-gold"
             >
               <TrendingUp className="h-4 w-4" />
