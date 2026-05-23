@@ -247,11 +247,8 @@ function PersonajeDetailPage() {
             content={`https://animeshowdown.dev${imagenPersonaje(slug)}`}
           />
           <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
-          {/* Nota visual (2026-05-18): en móvil reordenamos para que la
-              identidad (badges + H1 + CTAs) aparezca antes que la imagen,
-              y capamos la imagen a 55vh — antes empujaba todo el contenido
-              fuera del primer viewport. En desktop el orden y el aspect-ratio
-              originales se preservan vía md:* classes. */}
+          {/* En móvil la identidad aparece antes que la imagen y la imagen se
+              capa a 55vh; en desktop se preservan el orden y aspect-ratio. */}
           <motion.div
             className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
             variants={itemVariants}
@@ -607,8 +604,8 @@ function PersonajeDetailPage() {
           </div>
         )}
 
-        {/* Historial competitivo (Plan producto 2026-05-18): "Últimos
-            duelos" + "Contra quién". Lo metemos aquí, entre "Mismo
+        {/* Historial competitivo: "Últimos duelos" + "Contra quién".
+            Lo metemos aquí, entre "Mismo
             universo" y "Más allá del universo", para que el bloque
             historial-competitivo aparezca tras los datos básicos pero
             antes del discovery cross-anime. */}

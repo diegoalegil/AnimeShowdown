@@ -3,8 +3,7 @@ package com.diegoalegil.animeshowdown.dto;
 import java.util.List;
 
 /**
- * Resumen agregado "Contra quién" de un personaje (Plan producto,
- * 2026-05-18 — visión estadio otaku).
+ * Resumen agregado "Contra quién" de un personaje.
  *
  * <p>Tres listas paralelas con los top 3 rivales según tres dimensiones:
  *

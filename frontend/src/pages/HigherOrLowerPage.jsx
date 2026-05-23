@@ -163,10 +163,8 @@ function HigherOrLowerPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              /* Nota visual (2026-05-18): 3 columnas desde mobile —
-                 antes stack vertical empujaba los botones Más/Menos
-                 fuera del primer viewport. Side-by-side compacta todo
-                 el duelo en un solo fold. */
+              /* Tres columnas desde mobile para mantener el duelo completo
+                 dentro del primer viewport. */
               className="mx-auto grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 md:items-center md:gap-6"
             >
               <ReferenceCard personaje={reference} />

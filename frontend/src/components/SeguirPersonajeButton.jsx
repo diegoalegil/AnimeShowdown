@@ -7,7 +7,7 @@ import { useToggleFavorito } from '../hooks/useFavoritos'
 /**
  * Botón "Seguir" / "Siguiendo" para la ficha de personaje.
  *
- * <p>Plan producto (2026-05-18 — Mi roster):
+ * <p>Mi roster:
  * <ul>
  *   <li>Usuario logueado: estado real desde el backend, toggle con
  *       optimistic update (ver useToggleFavorito).</li>

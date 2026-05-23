@@ -86,8 +86,7 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
      * ordenados por fecha descendente. JOIN FETCH para evitar N+1 cuando
      * el caller mapea a DueloRecienteDto.
      *
-     * <p>Plan producto (2026-05-18): consumido por
-     * /api/personajes/{slug}/duelos-recientes — "Últimos duelos" en la
+     * <p>Consumido por /api/personajes/{slug}/duelos-recientes — "Últimos duelos" en la
      * ficha. Pageable acota a un puñado de items.
      */
     @Query("""

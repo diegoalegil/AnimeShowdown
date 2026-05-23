@@ -200,8 +200,7 @@ function Footer() {
           </ul>
         </div>
 
-        {/* CTA de cierre: el footer ahora termina con una nota visual de
-            marca, no con un copyright seco. Pequeña tarjeta carmesí que
+        {/* CTA de cierre: el footer termina con una tarjeta de marca que
             invita a votar antes de salir. */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/12 via-bg/70 to-gold/[0.06] p-5 backdrop-blur-md sm:flex-row sm:p-6">
           <div className="flex flex-col gap-1 text-center sm:text-left">

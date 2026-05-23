@@ -156,8 +156,8 @@ function AnimesPage() {
             </button>
           </EmptyStateScene>
         ) : (
-          // Nota visual (2026-05-19): cada anime usa una portada editorial,
-          // no collage de cards. Mantenemos LazyOnView porque el grid puede
+          // Cada anime usa una portada editorial, no collage de cards.
+          // Mantenemos LazyOnView porque el grid puede
           // superar 100 universos y no hace falta montar todo en el primer
           // paint.
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

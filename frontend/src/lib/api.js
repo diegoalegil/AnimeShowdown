@@ -410,7 +410,7 @@ export const endpoints = {
     api.get(`/api/personajes/${encodeURIComponent(slug)}/imagenes`, { auth: false }),
   // Time machine del ELO: serie {fecha, votosAcumulados}
   // por día. dias 1..90, default 30.
-  // Historial competitivo de un personaje (Plan producto 2026-05-18).
+  // Historial competitivo de un personaje.
   // Ambos endpoints son públicos y devuelven 404 si el slug no existe.
   duelosRecientesPersonaje: (slug, { limit = 10 } = {}) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/duelos-recientes?limit=${limit}`, { auth: false }),
@@ -447,7 +447,7 @@ export const endpoints = {
     return api.get(`/api/personajes/votos-periodo?slugs=${encodeURIComponent(lista)}&dias=${dias}`, { auth: false })
   },
 
-  // Mi roster / favoritos (Plan producto 2026-05-18). Todos requieren auth.
+  // Mi roster / favoritos. Todos requieren auth.
   // POST/DELETE son idempotentes server-side, así el hook puede hacer
   // optimistic update sin chequear estado previo.
   misFavoritos: () => api.get('/api/me/favoritos'),
@@ -613,7 +613,7 @@ export const endpoints = {
   // deleteTorneo eliminado: TorneoController no expone @DeleteMapping todavía,
   // si el frontend lo llamaba caía con 405. Se restaurará cuando se implemente backend-side.
   ranking: () => api.get('/api/votos/ranking'),
-  // Feed público "últimos votos" — Plan producto (2026-05-18). Lo
+  // Feed público "últimos votos". Lo
   // consume SectionPulso para pintar actividad real ("X votó por Y vs Z
   // hace 2 min"). Limit acotado server-side a [1, 20].
   votosRecientes: ({ limit = 10 } = {}) =>

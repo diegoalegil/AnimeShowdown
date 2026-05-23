@@ -130,8 +130,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /**
      * Cuenta votos del personaje dentro del rango [desde, hasta) — desde
      * inclusivo, hasta exclusivo para que el caller pueda concatenar
-     * periodos sin solape. Plan producto 2026-05-18 (sprint actividad
-     * reciente): usado por VotosPeriodoService para calcular delta entre
+     * periodos sin solape. Usado por VotosPeriodoService para calcular delta entre
      * periodo actual y anterior.
      */
     @Query("""
@@ -299,7 +298,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Feed público de los últimos N votos, con personaje + enfrentamiento +
      * usuario fetcheados eagerly para evitar N+1 al mapear a VotoFeedItem.
      *
-     * <p>Plan producto (2026-05-18): consumido por SectionPulso en la home
+     * <p>Consumido por SectionPulso en la home
      * para mostrar actividad real ("X votó por Y vs Z hace 2 min"). Sin
      * filtro de usuario — el feed incluye votos anónimos (frontend los
      * etiqueta como "alguien"). Pageable acota a un puñado de items para

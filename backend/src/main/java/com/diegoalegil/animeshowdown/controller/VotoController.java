@@ -45,7 +45,7 @@ public class VotoController {
     }
 
     /**
-     * Feed público de los últimos N votos (Plan producto, 2026-05-18).
+     * Feed público de los últimos N votos.
      *
      * <p>Pensado para la home (SectionPulso): pintar "hace 3 min @user
      * votó por Luffy frente a Zoro" y dar señal real de comunidad activa.

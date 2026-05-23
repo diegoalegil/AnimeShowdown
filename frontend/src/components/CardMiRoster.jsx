@@ -6,7 +6,7 @@ import { getStatsPersonaje } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
- * Card "Mi roster" en /perfil (Plan producto 2026-05-18).
+ * Card "Mi roster" en /perfil.
  *
  * <p>Lista los personajes que el usuario sigue, ordenados por la fecha
  * en que los siguió (más recientes primero — el orden del backend).

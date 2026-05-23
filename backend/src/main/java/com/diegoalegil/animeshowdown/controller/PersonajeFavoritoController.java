@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.service.PersonajeFavoritoService;
 import jakarta.persistence.EntityNotFoundException;
 
 /**
- * Endpoints "Mi roster / favoritos" (Plan producto 2026-05-18).
+ * Endpoints "Mi roster / favoritos".
  *
  * <p>Todos requieren auth (la regla en {@link com.diegoalegil.animeshowdown.config.SecurityConfig}
  * cubre los paths). El controller usa {@link AuthenticationPrincipal}
