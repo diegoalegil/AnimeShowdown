@@ -16,7 +16,6 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { ELO_DUEL_BEST_KEY, fechaDelDia, safeStorage } from '../lib/games'
-import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
 
@@ -138,6 +137,41 @@ const COLOR_THEMES = {
     hoverGlow: 'hover:shadow-[0_0_60px_-15px_rgba(34,211,238,0.55)]',
     gradient: 'from-cyan-500/20 via-sky-500/10 to-indigo-500/5',
   },
+}
+
+function GameCardBackground({ visual, opacity = 0.48 }) {
+  const image = visual?.image || visual?.fallbackImage || BRAND_VISUALS.games.image
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-[1.03]"
+        style={{
+          backgroundImage: `url("${image}")`,
+          backgroundPosition: visual?.objectPosition ?? 'center center',
+          opacity,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, rgb(5 8 14 / 0.82) 0%, rgb(5 8 14 / 0.66) 46%, rgb(5 8 14 / 0.50) 100%), linear-gradient(180deg, rgb(5 8 14 / 0.20) 0%, rgb(5 8 14 / 0.72) 100%)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-[0.10]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.18) 1px, transparent 0)',
+          backgroundSize: '42px 42px',
+          maskImage: 'linear-gradient(to bottom, black, transparent 72%)',
+        }}
+      />
+    </>
+  )
 }
 
 // Lee el estado de un juego daily desde localStorage para saber si está
@@ -380,11 +414,7 @@ function CardDestacado({ game, estado }) {
       to={game.to}
       className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 motion-safe:hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} ${theme.hoverGlow}`}
     >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
+      <GameCardBackground visual={visual} opacity={0.56} />
 
       {/* Kanji decorativo grande detrás (mood), no panel separado */}
       <span
@@ -438,11 +468,7 @@ function CardMini({ game, estado }) {
       to={game.to}
       className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
     >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
+      <GameCardBackground visual={visual} opacity={0.50} />
 
       {/* Kanji decorativo en background sin panel separado */}
       <span
@@ -495,11 +521,7 @@ function OmikujiCard() {
       to="/omikuji"
       className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:border-accent/60 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_22px_65px_-25px_rgba(159,29,44,0.55)] sm:min-h-[10rem]"
     >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
+      <GameCardBackground visual={visual} opacity={0.48} />
       <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-accent/40 backdrop-blur-md sm:h-16 sm:w-16"
         style={{ background: 'linear-gradient(135deg, rgb(159 29 44 / 0.32) 0%, rgb(7 10 18 / 0.55) 100%)' }}
       >
