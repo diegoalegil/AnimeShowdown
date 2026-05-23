@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Overrides curados de nombre y descripción por slug. El script sync-personajes.mjs usa esto como fuente para enriquecer los personajes detectados en frontend/img/. Slugs sin entrada aquí caen al default: nombre derivado del slug + descripción 'Personaje del anime {anime}.'",
-    "actualizacion": "Editar a mano cuando quieras mejorar una descripción concreta. La próxima ejecución del script la propagará a personajes.js y personajes-seed.json."
+    "actualizacion": "Editar a mano cuando quieras mejorar una descripción concreta. La próxima ejecución del script la propagará a personajes-seed.json."
   },
 
   "L": { "nombre": "L", "descripcion": "El detective más brillante del mundo. Resuelve casos imposibles bajo seudónimo y enfrenta a Kira con un café siempre en mano." },

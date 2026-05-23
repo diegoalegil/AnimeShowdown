@@ -3,9 +3,9 @@
  * sync-personajes.mjs
  *
  * Escanea frontend/img/<Anime>/<slug>.webp como fuente de verdad del catálogo
- * y genera:
- *   - frontend/src/data/personajes.js       (array consumido por el frontend)
- *   - backend/src/main/resources/personajes-seed.json (seed que DataSeeder carga al arrancar)
+ * y genera backend/src/main/resources/personajes-seed.json, seed que
+ * DataSeeder carga al arrancar. El frontend consume el catálogo desde la API
+ * compacta y lo cachea localmente.
  *
  * Fuentes adicionales:
  *   - scripts/data/anime-display-names.json   (folder → display name del anime)
@@ -16,20 +16,19 @@
  * del slug y descripción placeholder (a refinar editando el JSON de overrides).
  *
  * Uso:
- *   node scripts/sync-personajes.mjs           # regenera ambos outputs
+ *   node scripts/sync-personajes.mjs           # regenera personajes-seed.json
  *   node scripts/sync-personajes.mjs --dry-run # solo imprime el resumen
  *   node scripts/sync-personajes.mjs --check   # falla si seed.json no coincide
- *                                              # con lo detectado (nota P2 CI)
+ *                                              # con lo detectado
  */
 
-import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join, basename, extname } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
 const IMG_DIR = join(ROOT, 'frontend', 'img')
-const OUT_FRONTEND = join(ROOT, 'frontend', 'src', 'data', 'personajes.js')
 const OUT_BACKEND = join(ROOT, 'backend', 'src', 'main', 'resources', 'personajes-seed.json')
 const ANIME_NAMES_FILE = join(__dirname, 'data', 'anime-display-names.json')
 const OVERRIDES_FILE = join(__dirname, 'data', 'personajes-overrides.json')
@@ -225,85 +224,6 @@ function scanFolder() {
 
 // ─── generadores de output ──────────────────────────────────────────────────
 
-/**
- * Genera el contenido de frontend/src/data/personajes.js preservando los
- * helpers (imagenPersonaje, getPersonajeBySlug, getIndicePersonaje,
- * getPopularidad, getStatsPersonaje). El bloque de POPULARIDAD se mantiene
- * porque es data curada y no depende de la carpeta img/.
- */
-function generatePersonajesJs(entries) {
-  // Lee el archivo actual y extrae el bloque desde "export function imagenPersonaje"
-  // hasta el final. Eso preserva todos los helpers tal cual.
-  const current = readFileSync(OUT_FRONTEND, 'utf8')
-  const helpersStart = current.indexOf('export function imagenPersonaje')
-  if (helpersStart === -1) {
-    throw new Error('No se encontró el bloque de helpers en personajes.js — abortando para no perder lógica')
-  }
-  const helpers = current.slice(helpersStart)
-
-  // Construye el array nuevo
-  const arrayLines = entries.map(e => {
-    const slug = e.slug
-    const nombre = e.nombre.replace(/'/g, "\\'")
-    const anime = e.anime.replace(/'/g, "\\'")
-    const descripcion = e.descripcion.replace(/'/g, "\\'")
-    const imagen = e.imagenUrl
-    return `  { slug: '${slug}', nombre: '${nombre}', anime: '${anime}', descripcion: '${descripcion}', imagen: '${imagen}' },`
-  })
-
-  const arrayBlock = ['export const personajes = [', ...arrayLines, ']', '', ''].join('\n')
-
-  // Helper imagenPersonaje vía Map slug→imagen construido una vez al cargar
-  // el módulo. Antes este script generaba personajes.find() lineal — con
-  // 723 personajes y la home pintando varias decenas de cards por render,
-  // eso era O(n) por imagen. El Map es O(1) y se queda en memoria.
-  //
-  // Ojo: regresión histórica. En 2026-05-16 la regen del catálogo borró
-  // el Map (porque el helpers slice empieza en 'export function
-  // imagenPersonaje' y descarta lo de arriba) y el frontend rompió en
-  // producción con ReferenceError: slugToImagen is not defined → todas
-  // las cards salían con icono roto. Añadirlo aquí garantiza que cada
-  // regeneración lo emite junto al helper.
-  const slugToImagenBlock = [
-    '// Map slug → ruta de imagen para lookup O(1) en cada render.',
-    '// Generado por scripts/sync-personajes.mjs — no editar a mano.',
-    'const slugToImagen = new Map(personajes.map((p) => [p.slug, p.imagen]))',
-    "const IMAGE_CACHE_BUST_VERSION = 'cf-case-20260520'",
-    'const IMAGE_CACHE_BUST_PREFIXES = [',
-    "  '/img/Erased/',",
-    "  '/img/Fullmetal_Alchemist/',",
-    ']',
-    '',
-    'function versionarImagenSiHaceFalta(src) {',
-    "  if (!src || !IMAGE_CACHE_BUST_PREFIXES.some((prefix) => src.startsWith(prefix))) {",
-    '    return src',
-    '  }',
-    "  return `${src}${src.includes('?') ? '&' : '?'}v=${IMAGE_CACHE_BUST_VERSION}`",
-    '}',
-    '',
-  ].join('\n')
-
-  const newImagenPersonaje = [
-    'export function imagenPersonaje(slug) {',
-    '  // Fallback determinístico para slugs ausentes del catálogo: devolvemos',
-    '  // una ruta que dará 404 visible (PersonajePlaceholder vía onError) en',
-    '  // vez de undefined que dejaría el <img> en estado raro.',
-    '  return versionarImagenSiHaceFalta(slugToImagen.get(slug) ?? `/img/_missing/${slug}.webp`)',
-    '}',
-    '',
-  ].join('\n')
-
-  // Reemplaza el bloque antiguo de imagenPersonaje (sea cual sea su
-  // implementación — find() lineal antiguo o Map nuevo). El [\s\S] no
-  // greedy + cierre exacto de la fn evita comerse helpers posteriores.
-  const helpersWithoutOldImg = helpers.replace(
-    /export function imagenPersonaje\(slug\) \{[\s\S]*?\n\}\n/,
-    slugToImagenBlock + newImagenPersonaje + '\n',
-  )
-
-  return arrayBlock + helpersWithoutOldImg
-}
-
 /** Genera el JSON del seed backend. */
 function generateSeedJson(entries) {
   const seed = entries.map(e => ({
@@ -345,11 +265,7 @@ function main() {
     return
   }
 
-  const personajesJs = generatePersonajesJs(entries)
   const seedJson = generateSeedJson(entries)
-
-  writeFileSync(OUT_FRONTEND, personajesJs)
-  console.log(`✓ Generado ${OUT_FRONTEND}`)
 
   writeFileSync(OUT_BACKEND, seedJson)
   console.log(`✓ Generado ${OUT_BACKEND}`)
@@ -358,9 +274,7 @@ function main() {
 /**
  * Modo CI: verifica que el seed.json commiteado coincide con lo que el
  * escaneo de img/ produce (ya filtrado por la WIP allowlist). Falla con
- * exit 1 si hay drift, listando qué slugs sobran o faltan. Hasta este
- * P2 (2026-05-17), CI solo hacía --dry-run y permitía pushear carpetas
- * enteras de personajes sin que entraran nunca al frontend/backend.
+ * exit 1 si hay drift, listando qué slugs sobran o faltan.
  */
 function runCheck(entries) {
   const seed = JSON.parse(readFileSync(OUT_BACKEND, 'utf8'))
@@ -387,7 +301,7 @@ function runCheck(entries) {
     if (extraInSeed.length > 30) console.error(`    ... (+${extraInSeed.length - 30} más)`)
   }
   console.error('\n  Fix: corre `node scripts/sync-personajes.mjs` y commitea')
-  console.error('       personajes.js + personajes-seed.json. O añade el folder/slug')
+  console.error('       personajes-seed.json. O añade el folder/slug')
   console.error('       a scripts/data/personajes-wip-allowlist.json si es WIP.')
   process.exit(1)
 }

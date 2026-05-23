@@ -174,7 +174,7 @@ export function getCategoriasPersonaje(slug) {
 
 /**
  * Devuelve los personajes que pertenecen a una categoría. El caller
- * pasa el cat álogo (para no acoplar este archivo a personajes.js).
+ * pasa el catálogo para no acoplar este archivo a una fuente concreta.
  */
 export function getPersonajesPorCategoria(categoriaId, personajes) {
   return personajes.filter((p) =>

@@ -95,7 +95,7 @@ Activos NO en alcance:
 | **Sin rate limiting en /login y /registro** | Alta | ❌ Pendiente | Añadir bucket4j o filtro custom. Brute-force factible. |
 | **JWT_SECRET default predecible en application.properties** | Baja | ⚠️ Solo dev | En prod siempre se sobrescribe vía env. Cambiar default a `CHANGE_ME_IN_PROD`. |
 | **Logs incluyen email completo en arranque** | Baja | ⚠️ Aceptado | Es propio email del owner; no es PII de usuarios. |
-| **Personaje.descripcion limitada a 500 chars** | Baja | ⚠️ Por diseño | Las descripciones reales viven en frontend (`data/personajes.js`). Backend solo guarda nombre+slug+anime. |
+| **Personaje.descripcion limitada a 500 chars** | Baja | ⚠️ Por diseño | Las descripciones públicas se sirven desde `personajes-seed.json` vía API compacta; el backend limita longitud para proteger respuestas y formularios. |
 | **Sin Refresh tokens, expira a 1h** | Media | ⚠️ Aceptado | El usuario re-loguea cada hora. Para portfolio educativo, aceptable. |
 
 ---
