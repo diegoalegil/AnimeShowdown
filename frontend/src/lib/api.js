@@ -390,7 +390,7 @@ export const endpoints = {
   notificacionesMarcarTodasLeidas: () =>
     api.post('/api/notificaciones/marcar-todas-leidas', undefined),
   // Logros / badges.
-  //   logros: público, devuelve catálogo completo de 14 badges.
+  //   logros: público, devuelve el catálogo completo de badges.
   //   misLogros: autenticado, catálogo enriquecido con desbloqueadoEn null/timestamp.
   //   logrosStats: público, counts por badge { codigo: count }.
   //   personajesSimilares: público, recomendaciones cross-anime

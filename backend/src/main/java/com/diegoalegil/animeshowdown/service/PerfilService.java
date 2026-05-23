@@ -87,7 +87,7 @@ public class PerfilService {
         PerfilStatsDto statsDto = stats(duenyo);
         List<TopPersonajeItem> topItems = top(duenyo, topLimit);
         // Frontend pinta catálogo completo con locked, así que devolvemos
-        // los 14 con desbloqueadoEn poblado en los que el user tiene.
+        // el catálogo con desbloqueadoEn poblado cuando el usuario ya lo tiene.
         List<LogroDto> logrosDesbloqueados = badgeService
                 .listarCatalogoConDesbloqueos(duenyo);
         long countSeguidores = seguidorRepository.countByIdSeguidoId(duenyo.getId());
