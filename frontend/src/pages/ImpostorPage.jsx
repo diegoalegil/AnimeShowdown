@@ -20,8 +20,8 @@ import {
   impostorDelDia,
   safeStorage,
 } from '../lib/games'
-import { ocultaImgRota } from '../lib/imgFallback'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import PersonajeImg from '../components/PersonajeImg'
 
 const RONDAS_POR_DIA = 3
 const STORAGE_KEY = 'animeshowdown.impostor.v1'
@@ -335,11 +335,12 @@ function Carta({ item, onClick }) {
       className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/60"
     >
       <div className="aspect-[3/4] w-full overflow-hidden bg-surface-alt">
-        <img
+        <PersonajeImg
+          slug={item.slug}
           src={item.imagen}
           alt={item.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="(min-width: 1024px) 180px, (min-width: 640px) 28vw, 45vw"
           className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
         />
       </div>
