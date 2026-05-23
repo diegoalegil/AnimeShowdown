@@ -2,7 +2,6 @@ package com.diegoalegil.animeshowdown.controller;
 
 import java.util.Map;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.EliminarCuentaRequest;
+import com.diegoalegil.animeshowdown.dto.PageResponse;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -93,8 +93,8 @@ public class PerfilController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        Page<VotoHistorialDto> result = perfilService.historialVotos(usuario, page, size);
-        return ResponseEntity.ok(result);
+        var result = perfilService.historialVotos(usuario, page, size);
+        return ResponseEntity.ok(PageResponse.from(result));
     }
 
     @PostMapping("/me/migrar-votos-anonimos")
