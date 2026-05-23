@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -57,12 +57,20 @@ const rutasInvitado = [
   { to: '/register', label: 'Crear cuenta', icon: UserPlus },
 ]
 
+function normalizaBusqueda(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
 function CommandPalette({ initialOpen = false } = {}) {
-  // Audit P2 (2026-05-17): initialOpen permite al wrapper LazyMount abrir
+  // Revisión (2026-05-17): initialOpen permite al wrapper LazyMount abrir
   // el dialog directamente al primer atajo, sin depender de re-dispatch
   // del KeyboardEvent (que podía tragarse en redes lentas porque el
   // listener interno aún no estaba registrado cuando se re-emitía).
   const [open, setOpen] = useState(initialOpen)
+  const [search, setSearch] = useState('')
   const inputId = useId()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
@@ -71,19 +79,29 @@ function CommandPalette({ initialOpen = false } = {}) {
   // resto del palette sin la sección "Torneos" — la búsqueda de personajes
   // sigue funcionando.
   const { data: torneos = [] } = useTorneos()
+  const queryPersonajes = normalizaBusqueda(search.trim())
+  const personajesPalette = useMemo(() => {
+    if (queryPersonajes.length < 2) return []
+    return personajes
+      .filter((p) =>
+        normalizaBusqueda(`${p.nombre} ${p.anime} ${p.slug}`).includes(queryPersonajes),
+      )
+      .slice(0, 60)
+  }, [queryPersonajes])
 
   useEffect(() => {
     const onKey = (e) => {
-      // Audit (2026-05-17): ESC cierra el dialog cuando ya no usamos
+      // Revisión (2026-05-17): ESC cierra el dialog cuando ya no usamos
       // Command.Dialog (Radix lo manejaba antes). Tab no necesita trap
       // explicito porque el palette tiene solo un input focusable +
       // los items son keyboard-navigable via cmdk internamente.
       if (open && e.key === 'Escape') {
         e.preventDefault()
+        setSearch('')
         setOpen(false)
         return
       }
-      // Audit P3 (2026-05-18, 5ª iter): escucha K y J. Antes solo K;
+      // Revisión (2026-05-18, 5ª iter): escucha K y J. Antes solo K;
       // J solo funcionaba la primera vez (lo capturaba el wrapper
       // LazyMount para armar el mount, pero tras cerrar y volver a
       // pulsar J, el listener interno no respondía).
@@ -113,7 +131,7 @@ function CommandPalette({ initialOpen = false } = {}) {
     return () => { document.body.style.overflow = prev }
   }, [open])
 
-  // Audit P3 (2026-05-17, 4ª iter): focus trap + restore al cerrar.
+  // Revisión (2026-05-17, 4ª iter): focus trap + restore al cerrar.
   // Sin esto, Tab escapa al header/footer del fondo y al cerrar el
   // palette el foco se pierde a <body> en lugar de volver al trigger.
   //  - Al abrir: guarda el elemento con foco previo.
@@ -169,6 +187,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
   const go = (path) => {
     setOpen(false)
+    setSearch('')
     const muted = localStorage.getItem('animeshowdown.muted') === 'true'
     if (!muted) playWhoosh()
     navigate(path)
@@ -178,7 +197,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
   return (
     /*
-      Audit a11y (2026-05-17, 3ª iter): reemplazado Command.Dialog (que
+      Revisión a11y (2026-05-17, 3ª iter): reemplazado Command.Dialog (que
       delega en Radix Dialog y emitía DialogContent requires a DialogTitle
       + aria-describedby a id inexistente porque cmdk@1.1.1 no expone los
       slots de Radix). Dialog manual: overlay + content con role/aria
@@ -203,7 +222,10 @@ function CommandPalette({ initialOpen = false } = {}) {
         type="button"
         aria-label="Cerrar buscador"
         className="fixed inset-0 cursor-default bg-black/70 backdrop-blur-sm"
-        onClick={() => setOpen(false)}
+        onClick={() => {
+          setSearch('')
+          setOpen(false)
+        }}
       />
       <Command
         label="Buscador rápido"
@@ -212,7 +234,7 @@ function CommandPalette({ initialOpen = false } = {}) {
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <Search className="h-4 w-4 text-fg-muted" />
           {/*
-            Audit P3 (2026-05-18, 5ª iter): sin autoFocus. Antes el input
+            Revisión (2026-05-18, 5ª iter): sin autoFocus. Antes el input
             se autofocuseaba en el commit y mi useEffect del focus trap
             capturaba activeElement DESPUÉS — terminaba guardando el
             propio input como "trigger previo" y al cerrar intentaba
@@ -220,6 +242,8 @@ function CommandPalette({ initialOpen = false } = {}) {
             previo PRIMERO y luego enfoca el input manualmente.
           */}
           <Command.Input
+            value={search}
+            onValueChange={setSearch}
             placeholder="Busca personajes, torneos o navega..."
             className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
           />
@@ -231,6 +255,12 @@ function CommandPalette({ initialOpen = false } = {}) {
           <Command.Empty className="py-10 text-center text-sm text-fg-muted">
             Sin resultados.
           </Command.Empty>
+          {queryPersonajes.length >= 2 && (
+            <PersonajesCommandGroup
+              personajesPalette={personajesPalette}
+              go={go}
+            />
+          )}
           <Command.Group
             heading="Páginas"
             className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
@@ -268,6 +298,7 @@ function CommandPalette({ initialOpen = false } = {}) {
               value="sonido toggle"
               onSelect={() => {
                 toggleMute()
+                setSearch('')
                 setOpen(false)
               }}
               className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
@@ -284,6 +315,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 value="cerrar sesion"
                 onSelect={() => {
                   logout()
+                  setSearch('')
                   setOpen(false)
                 }}
                 className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
@@ -314,31 +346,20 @@ function CommandPalette({ initialOpen = false } = {}) {
             ))}
           </Command.Group>
 
-          <Command.Group
-            heading="Personajes"
-            className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
-          >
-            {personajes.map((p) => (
+          {queryPersonajes.length < 2 && (
+            <Command.Group
+              heading="Personajes"
+              className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+            >
               <Command.Item
-                key={p.slug}
-                value={`personaje ${p.nombre} ${p.anime}`}
-                onSelect={() => go(`/personajes/${p.slug}`)}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                disabled
+                value="personajes escribe dos letras"
+                className="rounded-md px-3 py-2 text-sm normal-case tracking-normal text-fg-muted"
               >
-                <img
-                  src={imagenPersonaje(p.slug)}
-                  alt=""
-                  loading="lazy"
-                  onError={ocultaImgRota}
-                  className="h-7 w-5 shrink-0 rounded object-cover object-top"
-                />
-                <span>{p.nombre}</span>
-                <span className="ml-auto text-[11px] text-fg-muted">
-                  {p.anime}
-                </span>
+                Escribe al menos 2 letras para buscar entre todos los personajes.
               </Command.Item>
-            ))}
-          </Command.Group>
+            </Command.Group>
+          )}
         </Command.List>
         <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 text-[11px] text-fg-muted">
           <span>
@@ -352,6 +373,45 @@ function CommandPalette({ initialOpen = false } = {}) {
         </div>
       </Command>
     </div>
+  )
+}
+
+function PersonajesCommandGroup({ personajesPalette, go }) {
+  return (
+    <Command.Group
+      heading="Personajes"
+      className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+    >
+      {personajesPalette.length === 0 && (
+        <Command.Item
+          disabled
+          value="personajes sin resultados"
+          className="rounded-md px-3 py-2 text-sm normal-case tracking-normal text-fg-muted"
+        >
+          No hay personajes con esa búsqueda.
+        </Command.Item>
+      )}
+      {personajesPalette.map((p) => (
+        <Command.Item
+          key={p.slug}
+          value={`personaje ${p.nombre} ${p.anime}`}
+          onSelect={() => go(`/personajes/${p.slug}`)}
+          className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+        >
+          <img
+            src={imagenPersonaje(p.slug)}
+            alt=""
+            loading="lazy"
+            onError={ocultaImgRota}
+            className="h-7 w-5 shrink-0 rounded object-cover object-top"
+          />
+          <span className="min-w-0 truncate">{p.nombre}</span>
+          <span className="ml-auto max-w-[45%] truncate text-[11px] text-fg-muted">
+            {p.anime}
+          </span>
+        </Command.Item>
+      ))}
+    </Command.Group>
   )
 }
 

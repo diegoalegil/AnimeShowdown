@@ -4,6 +4,7 @@ import {
   motion,
   useMotionTemplate,
   useMotionValue,
+  useReducedMotion,
   useSpring,
   useTransform,
 } from 'framer-motion'
@@ -11,7 +12,7 @@ import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
 import { getStatsPersonaje } from '../lib/personajes-core'
 
-// Detector singleton de hover capability. Audit (2026-05-17): cada
+// Detector singleton de hover capability. Revisión (2026-05-17): cada
 // PersonajeCard creaba 2 motionValues + 2 springs + 4 transforms +
 // motionTemplate + handlers de mouse, INCLUSO en móvil donde no hay
 // hover y todo ese trabajo se desperdicia. Con 60 cards visibles eso
@@ -29,6 +30,7 @@ function detectHover() {
 
 function PersonajeCard({ slug, nombre, anime, rank }) {
   const { play } = useSound()
+  const reduceMotion = useReducedMotion()
   // Lazy initializer: detecta una sola vez al mount (sin useEffect, que
   // dispara linter react-hooks/set-state-in-effect). detectHover() ya
   // guarda contra SSR retornando false.
@@ -38,7 +40,7 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
   const totalCombates = wins + losses
   const winRate = totalCombates > 0 ? Math.round((wins / totalCombates) * 100) : null
 
-  if (hoverEnabled) {
+  if (hoverEnabled && !reduceMotion) {
     return (
       <CardWithTilt
         slug={slug}
@@ -59,7 +61,7 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
       onClick={() => play('playWhoosh')}
       className="group block"
     >
-      <article className="as-ssr-card relative overflow-hidden rounded-xl transition-all group-hover:-translate-y-1 group-hover:border-gold/45 group-hover:shadow-[0_24px_70px_-38px_rgba(197,161,90,0.55)]">
+      <article className="as-ssr-card relative overflow-hidden rounded-xl transition-all motion-safe:group-hover:-translate-y-1 group-hover:border-gold/45 group-hover:shadow-[0_24px_70px_-38px_rgba(197,161,90,0.55)]">
         <PersonajeImg
           slug={slug}
           alt={nombre}
@@ -148,7 +150,7 @@ function CardBadges({ rank, elo, nombre, anime, winRate }) {
           #{rank}
         </span>
       )}
-      {/* Audit externo AS-010 (2026-05-23): el ELO y WR de esta card son
+      {/* Revisión AS-010 (2026-05-23): el ELO y WR de esta card son
           estimaciones derivadas de getStatsPersonaje (determinístico por
           slug + popularidad hardcoded). No son métricas reales calculadas
           con votos. Tooltip + sufijo "·b"/"·e" hacen el dato no engañoso

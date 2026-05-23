@@ -54,7 +54,7 @@ function Hero() {
   const torneoDestacado = torneos
     .filter((t) => Number(t.votosUltimos7Dias ?? 0) > 20)
     .sort((a, b) => Number(b.votosUltimos7Dias ?? 0) - Number(a.votosUltimos7Dias ?? 0))[0]
-  // Audit perf 2026-05-18: CTAs principales del hero usan pointerdown
+  // Revisión perf 2026-05-18: CTAs principales del hero usan pointerdown
   // para feedback inmediato. La nav del Link sigue ocurriendo en click
   // (default del browser); el sonido va por delante.
   const ctaVotar = useInstantSoundPress('playClick')
@@ -63,7 +63,7 @@ function Hero() {
   const heroImage = heroVisual.image || heroVisual.fallbackImage
   return (
     <section
-      className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20"
+      className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100svh-5rem)] items-center justify-center overflow-hidden px-5 py-14 sm:px-8 sm:py-20"
       style={{
         '--as-stage-image': `url("${heroImage}")`,
         '--as-stage-kanji': `"${heroVisual.kanji}"`,
@@ -73,9 +73,9 @@ function Hero() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
-        <div className="absolute -top-24 left-1/4 h-[28rem] w-[28rem] rounded-full bg-accent opacity-24 blur-3xl animate-aurora-1" />
-        <div className="absolute top-1/4 right-1/4 h-[24rem] w-[24rem] rounded-full bg-gold opacity-16 blur-3xl animate-aurora-2" />
-        <div className="absolute -bottom-16 left-1/2 h-[26rem] w-[26rem] rounded-full bg-electric opacity-12 blur-3xl animate-aurora-3" />
+        <div className="absolute -top-24 left-1/4 hidden h-[28rem] w-[28rem] rounded-full bg-accent opacity-24 blur-3xl motion-safe:animate-aurora-1 md:block" />
+        <div className="absolute top-1/4 right-1/4 hidden h-[24rem] w-[24rem] rounded-full bg-gold opacity-16 blur-3xl motion-safe:animate-aurora-2 md:block" />
+        <div className="absolute -bottom-16 left-1/2 hidden h-[26rem] w-[26rem] rounded-full bg-electric opacity-12 blur-3xl motion-safe:animate-aurora-3 md:block" />
       </div>
       <FloatingCards />
       <motion.div
@@ -94,12 +94,12 @@ function Hero() {
           variants={logoVariants}
         />
         <motion.h1
-          className="max-w-4xl text-[clamp(2.65rem,7vw,5.2rem)] font-extrabold leading-[0.98] tracking-tight"
+          className="w-full max-w-[22rem] text-balance text-[clamp(2.05rem,9vw,5.2rem)] font-extrabold leading-[1.02] tracking-normal sm:max-w-4xl"
           variants={itemVariants}
         >
           {t('hero.tituloAntes')}{' '}
           <span
-            className="bg-gradient-to-r from-fg-strong via-gold to-accent bg-clip-text text-transparent animate-shimmer"
+            className="bg-gradient-to-r from-fg-strong via-gold to-accent bg-clip-text text-transparent motion-safe:animate-shimmer"
             style={{ backgroundSize: '200% auto' }}
           >
             {t('hero.tituloAnime')}
@@ -107,7 +107,7 @@ function Hero() {
           {' '}{t('hero.tituloDespues')}
         </motion.h1>
         <motion.p
-          className="max-w-2xl text-[clamp(0.98rem,1.7vw,1.2rem)] leading-relaxed text-fg-muted"
+          className="w-full max-w-[22rem] text-balance text-[clamp(0.98rem,1.7vw,1.2rem)] leading-relaxed text-fg-muted sm:max-w-2xl"
           variants={itemVariants}
         >
           {t('hero.subtitulo')}
@@ -138,7 +138,7 @@ function Hero() {
           </Link>
         </motion.div>
         <motion.p
-          className="mt-2 text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted"
+          className="mt-2 max-w-[22rem] text-center text-[11px] font-medium uppercase leading-5 tracking-[0.14em] text-fg-muted sm:max-w-none sm:tracking-[0.18em]"
           variants={itemVariants}
         >
           {t('hero.features')}
@@ -150,7 +150,7 @@ function Hero() {
           <HeroStat icon="⚔" value={`${totalPersonajes}`} label="Personajes" />
           <HeroStat icon="🏆" value={`${torneosVisibles}`} label="Torneos visibles" />
           <HeroStat icon="👥" value={`${universos}`} label="Universos" />
-          {/* Audit externo AS-010 (2026-05-23): eloMax viene de
+          {/* Revisión AS-010 (2026-05-23): eloMax viene de
               getStatsPersonaje (sintético determinístico). Etiquetamos
               como "Top ELO base" para no afirmar que es el #1 real del
               ranking competitivo. */}

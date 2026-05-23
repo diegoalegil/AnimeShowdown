@@ -21,7 +21,7 @@ import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import AccessibleDialog from '../components/AccessibleDialog'
 import PersonajeImg from '../components/PersonajeImg'
 
-// Audit externo AS-004 (2026-05-23): el captcha modal lazy-load el script
+// Revisión AS-004 (2026-05-23): el captcha modal lazy-load el script
 // de Cloudflare Turnstile la primera vez. La mayoría de usuarios nunca
 // caen en captcha, así que mantenemos el bundle inicial sin ese coste.
 const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
@@ -71,7 +71,7 @@ const NEXT_DELAY_MS = 1800
  * El delta 12 sobre popularidad [0,100] se traduce a ELO ~±84 (popularidad·7),
  * range razonable para que el duelo se sienta competido sin clonar pares.
  *
- * Audit feedback (2026-05-22): los duelos "parecen repetirse demasiado".
+ * Feedback (2026-05-22): los duelos "parecen repetirse demasiado".
  * Añadimos buffer de últimos pares en sessionStorage para evitar el
  * mismo enfrentamiento (A vs B y B vs A son equivalentes) y penalizar
  * a personajes vistos en los últimos 6 duelos. sessionStorage (no
@@ -204,6 +204,7 @@ function VotarPage() {
   })
   const { play } = useSound()
   const { user } = useAuth()
+  const reduceMotion = useReducedMotion()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -250,13 +251,13 @@ function VotarPage() {
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
   const [showAnonLimitModal, setShowAnonLimitModal] = useState(false)
-  // Audit externo AS-004 (2026-05-23): cuando el backend devuelve 428,
+  // Revisión AS-004 (2026-05-23): cuando el backend devuelve 428,
   // guardamos el voto pendiente (sitekey, ids del enfrentamiento y
   // personaje) y abrimos el captcha modal. Tras éxito, re-emitimos la
   // mutation con el header X-AS-Captcha-Token.
   const [captchaChallenge, setCaptchaChallenge] = useState(null)
 
-  // Audit P3 (2026-05-17): ref para cancelar el timeout de auto-next si
+  // Revisión (2026-05-17): ref para cancelar el timeout de auto-next si
   // el usuario pulsa "Siguiente duelo" antes de que dispare (o si el
   // componente se desmonta). Antes el timeout quedaba huérfano y podía
   // disparar handleNext dos veces (manual + auto) saltando dos matches.
@@ -264,7 +265,7 @@ function VotarPage() {
 
   const votarMutation = useMutation({
     mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous, captchaToken }) => {
-      // Audit externo AS-004 (2026-05-23): si tenemos token Turnstile,
+      // Revisión AS-004 (2026-05-23): si tenemos token Turnstile,
       // viajará en el header X-AS-Captcha-Token. El backend lo verifica
       // antes de aplicar el throttle de captcha.
       const headers = anonymous ? { ...getAnonymousVoteHeaders() } : {}
@@ -373,7 +374,7 @@ function VotarPage() {
                 delta: data?.delta ?? 1,
                 votosGanador: data?.votosGanador ?? null,
               })
-              // Audit externo AS-050 (2026-05-22): antes "+1 ELO" pero
+              // Revisión AS-050 (2026-05-22): antes "+1 ELO" pero
               // delta es el incremento del conteo de votos (COUNT, no
               // K-factor real). "+1 voto" es honesto y compatible con la
               // descripción ya existente "Ahora suma N votos en este match".
@@ -396,7 +397,7 @@ function VotarPage() {
             onError: (err) => {
               setVotedFor(null)
               const status = err instanceof ApiError ? err.status : 0
-              // Audit externo AS-004 (2026-05-23): 428 Precondition Required
+              // Revisión AS-004 (2026-05-23): 428 Precondition Required
               // = el throttle antifraude pide captcha. Body trae
               // {captchaRequired, provider, sitekey}. Guardamos el voto
               // pendiente y abrimos el modal Turnstile. Tras éxito,
@@ -538,14 +539,14 @@ function VotarPage() {
       visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
       contentClassName="mx-auto flex max-w-5xl flex-col gap-4"
       lateralKanji={{ left: '挑', right: '闘' }}
-      className="py-6 sm:py-10"
+      className="min-h-[calc(100svh-5rem)] py-4 sm:py-8 lg:py-10"
       atmosphere="arena-storm"
     >
         {/* Top bar: badge + modo rápido + skip */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
             <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
             {modoBackend
@@ -561,7 +562,7 @@ function VotarPage() {
               onClick={() => setFastMode((f) => !f)}
               aria-pressed={fastMode}
               title={fastMode ? 'Auto-siguiente activo · clic para desactivar' : 'Auto-siguiente desactivado · clic para activar'}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition-all ${
+              className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[12px] font-semibold transition-all ${
                 fastMode
                   ? 'border-yellow-400/60 bg-yellow-500/10 text-yellow-200'
                   : 'border-border bg-surface text-fg-muted hover:border-yellow-400/40 hover:text-yellow-200'
@@ -574,7 +575,7 @@ function VotarPage() {
               type="button"
               onClick={handleNext}
               disabled={isFetching || isFetchingDueloSugerido}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
             >
               <SkipForward className="h-3.5 w-3.5" />
               {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
@@ -611,9 +612,9 @@ function VotarPage() {
         {/* Arena */}
         <motion.div
           key={`${a.slug}-${b.slug}`}
-          initial={{ opacity: 0, y: 8 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: reduceMotion ? 0 : 0.3 }}
           className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 sm:gap-6"
         >
           <VoteCard
@@ -678,7 +679,7 @@ function VotarPage() {
           open={showAnonLimitModal}
           onClose={() => setShowAnonLimitModal(false)}
         />
-        {/* Audit externo AS-004 (2026-05-23): captcha Turnstile bajo abuso.
+        {/* Revisión AS-004 (2026-05-23): captcha Turnstile bajo abuso.
             El modal se monta solo cuando el backend devuelve 428 con
             sitekey. Lazy + Suspense para no cargar el script en bundle
             inicial — la mayoría de usuarios nunca caen aquí. */}
@@ -718,7 +719,7 @@ function VotarPage() {
 
 function VsBadge({ votedFor }) {
   const reduceMotion = useReducedMotion()
-  // Audit perf (2026-05-22): la animación infinita scale[1,1.06,1] cada 1.8s
+  // Revisión perf (2026-05-22): la animación infinita scale[1,1.06,1] cada 1.8s
   // forzaba recomposición del badge cada frame durante TODA la sesión, aún
   // cuando el usuario no había interactuado. Si el user respeta
   // prefers-reduced-motion la quitamos del todo; en el resto la mantenemos
@@ -767,7 +768,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
         onPointerEnter={warm}
         onFocus={warm}
         disabled={showResult}
-        // Audit perf (2026-05-22): los keyframes scale[1,1.08,1] +
+        // Revisión perf (2026-05-22): los keyframes scale[1,1.08,1] +
         // boxShadow[3 keyframes] al votar generaban 3 transiciones simultáneas
         // sobre una card de 400px; combinado con el blur del letterbox
         // disparaba 30+ms/frame durante 560ms. Mantenemos el pop con un
@@ -794,17 +795,17 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             ? 'border-accent shadow-[0_0_60px_-10px_rgba(255,46,99,0.7)] ring-2 ring-accent/40'
             : isLoser
               ? 'border-border opacity-40 grayscale'
-              : 'border-border hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-15px_rgba(255,46,99,0.55)]'
+              : 'border-border motion-safe:hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-15px_rgba(255,46,99,0.55)]'
         } disabled:cursor-default`}
       >
         <div
-          className="relative aspect-[2/3] max-h-[55vh] w-full overflow-hidden"
+          className="relative aspect-[2/3] max-h-[min(44svh,28rem)] w-full overflow-hidden sm:max-h-[min(55svh,34rem)]"
           style={{ backgroundColor: dominantColor }}
         >
           {/* Letterbox del fondo:
               - Antes: blur(48px) + scale(1.4) era brutal en repaint
                 (~10-15ms/frame). Pasó a blur(24px) + scale(1.2) + GPU layer.
-              - Audit perf (2026-05-22): aun a 24px, en 2 cards a la vez +
+              - Revisión perf (2026-05-22): aun a 24px, en 2 cards a la vez +
                 hover scale + voto animation, el repaint del blur seguía
                 siendo el principal bottleneck según devtools. Bajamos a
                 blur(18px) + scale(1.1) (menos área a re-blurear) y opacity
@@ -815,7 +816,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
                 el blur tarda en pintar al primer frame. */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 motion-reduce:hidden"
+            className="pointer-events-none absolute inset-0 hidden motion-reduce:hidden sm:block"
             style={{
               backgroundImage: cssImageUrl(blurSrc),
               backgroundSize: 'cover',
@@ -837,7 +838,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             decoding="async"
             fetchPriority={side === 'left' ? 'high' : 'auto'}
             sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
-            className="relative h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+            className="relative h-full w-full object-contain transition-transform duration-300 motion-safe:group-hover:scale-[1.03]"
           />
           {isVoted && (
             <motion.div
@@ -855,7 +856,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             active={Boolean(voteResult)}
             delta={voteResult?.delta}
             value={voteResult?.votosGanador}
-            // Audit externo AS-050 (2026-05-22): antes "ELO actualizado",
+            // Revisión AS-050 (2026-05-22): antes "ELO actualizado",
             // pero el backend cuenta votos (COUNT, no K-factor) y en modo
             // casual local nada se persiste. "Voto registrado" no miente
             // sobre la mecánica — el contador de la card sí refleja el
@@ -871,7 +872,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
       </motion.button>
       {/* Info debajo de la card — comparación rápida sin overlay sobre la
           imagen. Nombre + anime + (solo tras votar) link discreto a la ficha.
-          Audit externo AS-015 (2026-05-22): antes usábamos `items-${side}` y
+          Revisión AS-015 (2026-05-22): antes usábamos `items-${side}` y
           `text-${side}` con template literals dinámicos. Tailwind v4 hace
           AOT y NO ve esas clases compuestas — en producción salían sin
           alinear porque el extractor no las genera. Strings completos
@@ -903,7 +904,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
 
 function AnonVoteLimitModal({ open, onClose }) {
   const next = encodeURIComponent('/votar')
-  // Audit F018 (2026-05-22): este modal antes era un <div role="dialog">
+  // Revisión F018 (2026-05-22): este modal antes era un <div role="dialog">
   // sin focus trap, Escape, bloqueo de scroll ni restore de foco. Migrado
   // al componente AccessibleDialog que centraliza todos esos detalles.
   return (
