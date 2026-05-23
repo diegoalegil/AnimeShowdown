@@ -296,8 +296,9 @@ function ApiDocsPage() {
             >
               clonar el repo
             </a>{' '}
-            (licencia MIT) en lugar de pegarle al endpoint público — vive en
-            Railway con free tier limitado.
+            (licencia MIT) en lugar de consumir el endpoint público de forma
+            intensiva. La infraestructura está dimensionada para uso interactivo
+            y lectura moderada.
           </p>
         </div>
 
