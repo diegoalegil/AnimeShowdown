@@ -11,7 +11,7 @@
  * <ul>
  *   <li>Personaje: usamos {@code Person} (no {@code FictionalCharacter}
  *       todavía soportado de forma irregular por Google). {@code characterAttribute}
- *       lleva ELO y popularidad para que el rich snippet muestre datos.</li>
+ *       lleva ELO base y votos registrados para que el rich snippet muestre datos.</li>
  *   <li>Torneo: {@code SportsEvent} con {@code competitor[]} = personajes
  *       del bracket. El status mapea a {@code eventStatus} de schema.org.</li>
  *   <li>Anime: {@code TVSeries} con {@code character[]} referenciando
@@ -49,7 +49,7 @@ export function webSiteSchema() {
     url: SITIO,
     inLanguage: 'es-ES',
     description:
-      'Torneos cara a cara y rankings ELO de los personajes de anime más icónicos.',
+      'Duelos cara a cara, juegos diarios y rankings competitivos de personajes de anime.',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${SITIO}/personajes?q={search_term_string}`,
@@ -92,7 +92,7 @@ export function personajeSchema(personaje, stats) {
     schema.additionalProperty = [
       {
         '@type': 'PropertyValue',
-        name: 'ELO',
+        name: 'ELO base',
         value: stats.elo,
       },
       {
@@ -151,7 +151,7 @@ export function animeSeriesSchema(animeData) {
   if (animeData.topElo) {
     schema.additionalProperty.push({
       '@type': 'PropertyValue',
-      name: 'Top ELO',
+      name: 'Top ELO base',
       value: animeData.topElo.elo,
     })
   }

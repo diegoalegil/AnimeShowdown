@@ -72,12 +72,12 @@ const SECCIONES = [
   {
     titulo: 'Ranking',
     descripcion:
-      'ELO global de los personajes. Se actualiza al instante con cada voto.',
+      'Ranking competitivo público de personajes. Se alimenta de votos y actividad agregada.',
     endpoints: [
       {
         metodo: 'GET',
         path: '/api/votos/ranking',
-        desc: 'Ranking ELO flat — array ordenado descendente por puntuación.',
+        desc: 'Ranking competitivo flat — array ordenado descendente por puntuación.',
       },
       {
         metodo: 'GET',
@@ -181,7 +181,7 @@ function ApiDocsPage() {
   useSeo({
     title: 'API pública',
     description:
-      'Endpoints REST públicos de AnimeShowdown: catálogo de personajes, ranking ELO, torneos, perfiles, predicciones, OG images. Sin auth para lectura.',
+      'Endpoints REST públicos de AnimeShowdown: catálogo de personajes, ranking competitivo, torneos, perfiles, predicciones, OG images. Sin auth para lectura.',
   })
 
   return (
@@ -209,7 +209,7 @@ function ApiDocsPage() {
           </h1>
           <p className="max-w-2xl text-fg-muted">
             AnimeShowdown expone una API REST pública para lectura del catálogo
-            de personajes, ranking ELO, torneos y perfiles. Sin auth para los
+            de personajes, ranking competitivo, torneos y perfiles. Sin auth para los
             endpoints de abajo. Spec completo en OpenAPI/Swagger.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -264,7 +264,7 @@ function ApiDocsPage() {
 
         <div className="mt-6 flex flex-wrap gap-3 text-[13px] text-fg-muted">
           <Link to="/faq" className="hover:text-gold hover:underline">
-            ¿Cómo funciona el ranking ELO?
+            ¿Cómo funciona el ranking?
           </Link>
           <span aria-hidden="true">·</span>
           <Link to="/ranking" className="hover:text-gold hover:underline">

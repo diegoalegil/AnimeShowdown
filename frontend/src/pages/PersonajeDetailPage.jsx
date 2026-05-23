@@ -344,11 +344,11 @@ function PersonajeDetailPage() {
               variants={itemVariants}
             >
               <Link
-                to="/votar"
+                to={`/votar?personaje=${encodeURIComponent(personaje.slug)}`}
                 className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Swords className="h-4 w-4" />
-                Votar ahora
+                Retar a este personaje
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link

@@ -60,6 +60,9 @@ const CrearTorneoPage = lazyRoute(() => import('./pages/CrearTorneoPage'))
 const FaqPage = lazyRoute(() => import('./pages/FaqPage'))
 const ApiDocsPage = lazyRoute(() => import('./pages/ApiDocsPage'))
 const StatusPage = lazyRoute(() => import('./pages/StatusPage'))
+const ComoFuncionaPage = lazyRoute(() => import('./pages/ComoFuncionaPage'))
+const MetodologiaEloPage = lazyRoute(() => import('./pages/MetodologiaEloPage'))
+const JuegosAnimePage = lazyRoute(() => import('./pages/JuegosAnimePage'))
 const GamesHubPage = lazyRoute(() => import('./pages/GamesHubPage'))
 const GuessCharacterPage = lazyRoute(() => import('./pages/GuessCharacterPage'))
 const GuessAnimePage = lazyRoute(() => import('./pages/GuessAnimePage'))
@@ -296,6 +299,9 @@ function App() {
               <Route path="/verify" element={<VerifyPage />} />
               <Route path="/newsletter/confirmar" element={<NewsletterConfirmarPage />} />
               <Route path="/faq" element={<FaqPage />} />
+              <Route path="/como-funciona" element={<ComoFuncionaPage />} />
+              <Route path="/metodologia-elo" element={<MetodologiaEloPage />} />
+              <Route path="/juegos/anime" element={<JuegosAnimePage />} />
               <Route path="/api-docs" element={<ApiDocsPage />} />
               <Route path="/status" element={<StatusPage />} />
               <Route path="/apoya" element={<ApoyaPage />} />

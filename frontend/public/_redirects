@@ -50,9 +50,12 @@
 /verify                   / 200
 /newsletter/confirmar     / 200
 /faq                      / 200
+/como-funciona            / 200
+/metodologia-elo          / 200
 /api-docs                 / 200
 /status                   / 200
 /games                    / 200
+/juegos/anime             / 200
 /games/shadow-guess       / 200
 /games/anime-reveal       / 200
 /games/anigrid            / 200
