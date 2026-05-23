@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -47,6 +47,11 @@ import { getAnimeVisual } from '../data/visual-assets'
 import { slugifyAnime } from '../lib/animes'
 import { shareOrCopy } from '../lib/share'
 import { recordDailyShare } from '../lib/dailyProgress'
+import {
+  getLocalVoteStats,
+  listenLocalVotes,
+  readLocalVotes,
+} from '../lib/localVoteRanking'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -150,6 +155,16 @@ function PersonajeDetailPage() {
     ? listaBackend.find((p) => p.slug === personaje.slug)?.id
     : null
 
+  const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
+  useEffect(
+    () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
+    [],
+  )
+  const personalLocalStats = useMemo(
+    () => getLocalVoteStats(localVotes),
+    [localVotes],
+  )
+
   if (idx !== -1 && slugParam !== slug) {
     return <Navigate to={`/personajes/${slug}`} replace />
   }
@@ -172,13 +187,27 @@ function PersonajeDetailPage() {
     [...animePersonajes]
       .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
       .findIndex((p) => p.slug === slug) + 1
+  const personalRankIndex = personalLocalStats.top.findIndex((item) => item.slug === slug)
+  const personalSignal = personalRankIndex >= 0
+    ? {
+        rank: personalRankIndex + 1,
+        count: personalLocalStats.top[personalRankIndex].count,
+        total: personalLocalStats.total,
+      }
+    : null
 
   const compartir = async () => {
     const titulo = `${personaje.nombre} · ${personaje.anime} · AnimeShowdown`
+    const personalLine = personalSignal
+      ? `En mi ranking personal va #${personalSignal.rank} con ${personalSignal.count} voto${personalSignal.count === 1 ? '' : 's'} mío${personalSignal.count === 1 ? '' : 's'}.`
+      : ''
     try {
       const result = await shareOrCopy({
         title: titulo,
-        text: `${personaje.nombre} de ${personaje.anime} está en AnimeShowdown con ELO base ${stats.elo}. ¿Lo subirías en el ranking?`,
+        text: [
+          `${personaje.nombre} de ${personaje.anime} está en AnimeShowdown con ELO base ${stats.elo}. ¿Lo subirías en el ranking?`,
+          personalLine,
+        ].filter(Boolean).join('\n'),
         url: `/personajes/${slug}`,
       })
       if (result === 'cancelled') return
@@ -395,6 +424,11 @@ function PersonajeDetailPage() {
               </button>
               <SeguirPersonajeButton slug={slug} nombre={personaje.nombre} />
             </motion.div>
+            <PersonalCharacterSignal
+              personaje={personaje}
+              signal={personalSignal}
+              totalVotes={personalLocalStats.total}
+            />
             {personajeBackendId && (
               <motion.div variants={itemVariants}>
                 <ReactionsBar
@@ -797,6 +831,67 @@ function MiniRetoStat({ label, value, accent }) {
         {value}
       </p>
     </div>
+  )
+}
+
+function PersonalCharacterSignal({ personaje, signal, totalVotes }) {
+  if (!personaje || (!signal && totalVotes <= 0)) return null
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      className={`w-full rounded-xl border p-4 ${
+        signal
+          ? 'border-gold/35 bg-gold-soft'
+          : 'border-border bg-surface'
+      }`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+            <Flame className="h-3.5 w-3.5" />
+            Tu ranking personal
+          </p>
+          {signal ? (
+            <>
+              <p className="mt-1 text-lg font-black text-fg-strong">
+                #{signal.rank} para ti · {signal.count} voto{signal.count === 1 ? '' : 's'} tuyo{signal.count === 1 ? '' : 's'}
+              </p>
+              <p className="mt-1 text-[12px] leading-5 text-fg-muted">
+                Este personaje ya forma parte de tu meta local. Sigue retándolo
+                para defenderlo o compara tu sesgo con el ranking global.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-lg font-black text-fg-strong">
+                Aún no lo has empujado
+              </p>
+              <p className="mt-1 text-[12px] leading-5 text-fg-muted">
+                Tienes {totalVotes} voto{totalVotes === 1 ? '' : 's'} en tu ranking local,
+                pero ninguno para {personaje.nombre}.
+              </p>
+            </>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link
+            to={`/votar?personaje=${encodeURIComponent(personaje.slug)}`}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-3.5 py-2 text-[12px] font-black text-white transition-colors hover:bg-accent-hover"
+          >
+            <Swords className="h-3.5 w-3.5" />
+            Retarlo
+          </Link>
+          <Link
+            to="/mi-ranking"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+          >
+            Ver mi ranking
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
