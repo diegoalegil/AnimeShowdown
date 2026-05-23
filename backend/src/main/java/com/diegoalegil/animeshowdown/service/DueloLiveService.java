@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -54,6 +55,7 @@ public class DueloLiveService {
     private final SimpMessagingTemplate messaging;
     private final BadgeService badgeService;
     private final Clock clock;
+    private final boolean scheduledMaintenanceEnabled;
 
     public DueloLiveService(DueloLiveRepository dueloRepository,
             DueloLiveRondaRepository rondaRepository,
@@ -65,7 +67,9 @@ public class DueloLiveService {
             AnimeShowdownMetrics metrics,
             SimpMessagingTemplate messaging,
             BadgeService badgeService,
-            Clock clock) {
+            Clock clock,
+            @Value("${app.duelo-live.scheduled-maintenance.enabled:true}")
+            boolean scheduledMaintenanceEnabled) {
         this.dueloRepository = dueloRepository;
         this.rondaRepository = rondaRepository;
         this.usuarioRepository = usuarioRepository;
@@ -77,6 +81,7 @@ public class DueloLiveService {
         this.messaging = messaging;
         this.badgeService = badgeService;
         this.clock = clock;
+        this.scheduledMaintenanceEnabled = scheduledMaintenanceEnabled;
     }
 
     @Transactional
@@ -218,7 +223,17 @@ public class DueloLiveService {
 
     @Scheduled(fixedRate = 5_000)
     @Transactional
+    public void mantenimientoLiveProgramado() {
+        if (!scheduledMaintenanceEnabled) return;
+        mantenimientoLiveInternal();
+    }
+
+    @Transactional
     public void mantenimientoLive() {
+        mantenimientoLiveInternal();
+    }
+
+    private void mantenimientoLiveInternal() {
         LocalDateTime now = now();
         for (DueloLive duelo : dueloRepository.findByEstadoIn(List.of(DueloLiveEstado.WAITING))) {
             if (Duration.between(duelo.getCreadoEn(), now).getSeconds() >= BOT_AFTER_SECONDS) {
