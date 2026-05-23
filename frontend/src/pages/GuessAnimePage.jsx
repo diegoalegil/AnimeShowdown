@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompleteAnime from '../components/AutocompleteAnime'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
@@ -50,6 +50,7 @@ function GuessAnimePage() {
     title: 'Anime Reveal · Guess the Anime — Daily',
     description:
       'Ves al personaje, ¿de qué anime es? 5 intentos para acertar. Pista opcional revelando el nombre.',
+    canonical: 'https://animeshowdown.dev/games/anime-reveal',
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
@@ -145,6 +146,28 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
           { label: 'Anime Games', path: '/games' },
           { label: 'Anime Reveal', path: '/games/anime-reveal' },
         ])}
+      />
+      <JsonLd
+        id="game-anime-reveal"
+        schema={gameWebApplicationSchema({
+          name: 'Anime Reveal',
+          alternateName: 'Guess the Anime',
+          path: '/games/anime-reveal',
+          description:
+            'Juego diario para adivinar de qué anime viene el personaje mostrado antes de agotar cinco intentos.',
+          featureList: [
+            'Personaje diario determinístico',
+            'Adivinanza por anime',
+            'Pista opcional con nombre del personaje',
+            'Resultado compartible',
+          ],
+          keywords: [
+            'adivina anime',
+            'guess the anime',
+            'anime reveal',
+            'anime daily quiz',
+          ],
+        })}
       />
       <div className="mx-auto max-w-5xl">
         <Link

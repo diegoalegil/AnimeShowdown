@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
@@ -55,6 +55,7 @@ function GuessCharacterPage() {
     title: 'Shadow Guess · Guess the Character — Daily',
     description:
       'Adivina el personaje de anime del día por su imagen difuminada. 5 intentos. Comparte tu resultado estilo Wordle.',
+    canonical: 'https://animeshowdown.dev/games/shadow-guess',
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
@@ -162,6 +163,28 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
           { label: 'Anime Games', path: '/games' },
           { label: 'Shadow Guess', path: '/games/shadow-guess' },
         ])}
+      />
+      <JsonLd
+        id="game-shadow-guess"
+        schema={gameWebApplicationSchema({
+          name: 'Shadow Guess',
+          alternateName: 'Guess the Character',
+          path: '/games/shadow-guess',
+          description:
+            'Juego diario para adivinar un personaje de anime por una imagen difuminada con cinco intentos.',
+          featureList: [
+            'Personaje diario determinístico',
+            'Imagen difuminada que se aclara tras cada fallo',
+            'Pista opcional del anime',
+            'Resultado compartible estilo Wordle',
+          ],
+          keywords: [
+            'adivina personaje anime',
+            'guess the character anime',
+            'anime daily game',
+            'shadow guess',
+          ],
+        })}
       />
       <div className="mx-auto max-w-4xl">
         <Link
