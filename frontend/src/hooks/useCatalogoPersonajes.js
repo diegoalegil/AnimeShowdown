@@ -38,6 +38,7 @@ export function useCatalogoPersonajes() {
     staleTime: Infinity,
     gcTime: 24 * 60 * 60 * 1000,
     retry: 1,
+    networkMode: 'always',
   })
 
   syncCatalogoPersonajes(query.data)
