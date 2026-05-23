@@ -91,8 +91,8 @@ function PersonajeDetailPage() {
   useSeo(
     personaje
       ? {
-          // Nota técnica AS-043 + B3.5 (2026-05-23): el ELO en el title era
-          // un número sin contexto que Google indexaba como si fuera ELO real.
+          // El ELO en el title necesita contexto para no indexarse como si
+          // fuera ELO competitivo real.
           // "ELO base" deja claro que es el cold-start estimado del catálogo
           // — el ranking competitivo real está en /ranking.
           title: `${personaje.nombre} de ${personaje.anime}${
@@ -383,11 +383,9 @@ function PersonajeDetailPage() {
               className="grid w-full grid-cols-3 gap-3"
               variants={itemVariants}
             >
-              {/* Nota técnica AS-010/AS-043 (2026-05-23): el "ELO" mostrado
-                  aquí viene de getStatsPersonaje(slug), determinístico por
-                  slug + popularidad hardcoded. NO es ELO real con K-factor
-                  ni se mueve con los votos. Lo etiquetamos como base/estimado
-                  y el copy de abajo apunta al ranking real para no mentir. */}
+              {/* El "ELO" mostrado aquí viene de getStatsPersonaje(slug);
+                  es determinístico y no se mueve con los votos. Lo
+                  etiquetamos como base/estimado y apuntamos al ranking real. */}
               <Stat label="ELO base" value={stats.elo} accent />
               <Stat
                 label="Récord est."
@@ -451,11 +449,9 @@ function PersonajeDetailPage() {
               className="text-[12px] leading-relaxed text-fg-muted"
               variants={itemVariants}
             >
-              {/* Nota técnica AS-043 (2026-05-23): antes "Stats derivadas
-                  del historial de enfrentamientos" — falso porque estas
-                  stats se calculan determinísticamente desde el slug y
-                  una tabla de popularidad estimada, NO desde votos reales.
-                  El ELO real ponderado vive en /ranking. */}
+              {/* Estas stats se calculan desde el slug y una tabla de
+                  popularidad estimada, no desde votos reales. El ranking
+                  ponderado vive en /ranking. */}
               ELO base estimado por popularidad para el cold-start del
               catálogo. El{' '}
               <Link
