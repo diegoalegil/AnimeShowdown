@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { personajes, imagenPersonaje } from '../lib/personajes-core'
 import { normalizar } from '../lib/games'
@@ -34,6 +34,7 @@ function AutocompletePersonaje({
   const [query, setQuery] = useState('')
   const [activo, setActivo] = useState(0)
   const [abierto, setAbierto] = useState(false)
+  const deferredQuery = useDeferredValue(query)
   // Reset del cursor cuando cambia la query — patrón "store snapshot"
   // durante el render (no useEffect+setState que React 19 marca como
   // anti-pattern por cascading renders).
@@ -52,7 +53,7 @@ function AutocompletePersonaje({
   }, [])
 
   const opciones = useMemo(() => {
-    const q = normalizar(query)
+    const q = normalizar(deferredQuery)
     if (!q) return []
     const base = filtroExtra ? personajes.filter(filtroExtra) : personajes
     const matches = []
@@ -71,7 +72,7 @@ function AutocompletePersonaje({
     }
     matches.sort((a, b) => a.score - b.score)
     return matches.slice(0, 8).map((m) => m.p)
-  }, [query, filtroExtra])
+  }, [deferredQuery, filtroExtra])
 
   const elegir = (slug) => {
     if (!slug) return

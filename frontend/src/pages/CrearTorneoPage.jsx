@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
@@ -63,6 +63,7 @@ function CrearTorneoPage() {
   const [tamano, setTamano] = useState(8)
   const [seleccionados, setSeleccionados] = useState(() => new Set())
   const [query, setQuery] = useState('')
+  const deferredQuery = useDeferredValue(query)
 
   const {
     register,
@@ -82,14 +83,14 @@ function CrearTorneoPage() {
   // descripciones + imágenes y queremos render rápido. El backend solo
   // sirve para mapear a IDs en el submit.
   const filtrados = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = deferredQuery.trim().toLowerCase()
     if (!q) return catalogoCliente
     return catalogoCliente.filter(
       (p) =>
         p.nombre.toLowerCase().includes(q) ||
         p.anime.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [deferredQuery])
 
   if (!user) return <Navigate to="/login?next=/torneos/crear" replace />
 
