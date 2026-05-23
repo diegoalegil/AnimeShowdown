@@ -52,12 +52,10 @@ if (personaje3dChunks.length === 0) {
   console.log(`personaje3d chunks: ${personaje3dChunks.join(', ')}`)
 }
 
-// Ajuste de robustez (2026-05-22): el check original fallaba si EXISTIA
-// cualquier Personaje3D-*.js. Pero React.lazy genera un boundary chunk
-// chiquito (~1KB) con solo el import() dinamico — eso NO contiene
-// react-three/fiber, solo es el lazy wrapper. El peso real va al chunk
-// manual 'personaje3d' (verificado arriba). Solo fallamos si el wrapper
-// pesa > 50KB (señal de que NO se aislo bien).
+// React.lazy genera un boundary chunk pequeño (~1KB) con solo el import()
+// dinámico: eso no contiene react-three/fiber, solo el lazy wrapper. El peso
+// real va al chunk manual 'personaje3d' (verificado arriba). Solo fallamos si
+// el wrapper pesa > 50KB, señal de que no se aisló bien.
 const legacy3dChunks = files.filter((file) => /^Personaje3D-.*\.js$/.test(file))
 for (const chunk of legacy3dChunks) {
   const rawBytes = statSync(join(assetsDir, chunk)).size

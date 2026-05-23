@@ -151,7 +151,7 @@ function criticalCssPlugin() {
  * Configuración PWA con vite-plugin-pwa y autoUpdate:
  *
  *   - registerType:'autoUpdate' → el SW comprueba updates en cada nav y
- *     refresca silenciosamente. Sin prompt al usuario.
+ *     refresca silenciosamente, sin pedir acción al usuario.
  *   - manifest con iconos 192/512 (estándar Android/Chrome) +
  *     apple-touch-icon (iOS). theme_color magenta para la status bar.
  *   - workbox runtime caching:

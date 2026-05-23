@@ -1,7 +1,7 @@
 # Runbook operativo — AnimeShowdown
 
-> Plan v2 §16.6. Procedimientos para responder a incidentes y operar el
-> proyecto de forma predecible. Mantener este documento actualizado tras
+> Procedimientos para responder a incidentes y operar el proyecto de forma
+> predecible. Mantener este documento actualizado tras
 > cada incidente real o cambio significativo de infraestructura.
 
 ---

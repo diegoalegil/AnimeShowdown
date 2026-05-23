@@ -103,7 +103,7 @@ function AutocompletePersonaje({
   return (
     <div className="relative">
       {/*
-        Patrón combobox WAI-ARIA 1.2 (revisión a11y 2026-05-17):
+        Patrón combobox WAI-ARIA 1.2:
         - role="combobox" en el input + aria-haspopup="listbox".
         - aria-activedescendant referencia el <li> activo por id, para
           que SR anuncie la opción navegada con flechas sin mover el
