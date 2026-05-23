@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { getAnimeAliases, slugifyAnime } from '../lib/animes'
 import { normalizar } from '../lib/games'
 
 /**
@@ -43,7 +44,12 @@ function AutocompleteAnime({
       counts[p.anime] = (counts[p.anime] || 0) + 1
     }
     return Object.entries(counts)
-        .map(([anime, n]) => ({ anime, n }))
+        .map(([anime, n]) => ({
+          anime,
+          n,
+          aliases: getAnimeAliases(anime),
+          slug: slugifyAnime(anime),
+        }))
         .sort((a, b) => b.n - a.n)
   }, [catalogoPersonajes])
 
@@ -53,7 +59,7 @@ function AutocompleteAnime({
     const base = filtroExtra ? animes.filter((a) => filtroExtra(a.anime)) : animes
     const matches = []
     for (const a of base) {
-      const animeN = normalizar(a.anime)
+      const animeN = normalizar(`${a.anime} ${a.slug} ${a.aliases.join(' ')}`)
       const idx = animeN.indexOf(q)
       if (idx === -1) continue
       const score = (idx === 0 ? 0 : idx + 1) - a.n * 0.001
