@@ -118,6 +118,7 @@ function listImagesByAnime() {
       // Quitar -300.webp, -600.webp, -1024.avif, etc.
       const base = f.replace(/-(300|600|1024)\.(webp|avif|png|jpg|jpeg)$/i, '')
                     .replace(/\.(webp|avif|png|jpg|jpeg|svg)$/i, '')
+                    .toLowerCase()
       slugs.add(base)
     }
     byAnime[dir] = slugs

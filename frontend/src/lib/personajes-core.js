@@ -9,6 +9,7 @@ export const CATALOGO_PERSONAJES_STORAGE_KEY = 'animeshowdown.catalogo-personaje
 export const personajes = []
 
 export const PERSONAJE_SLUG_ALIASES = {
+  L: 'l',
   all_might: 'allmight',
   monkey_d_luffy: 'luffy',
   roronoa_zoro: 'zoro',
@@ -36,6 +37,7 @@ export function normalizarPersonajeCatalogo(personaje) {
   const imagen = personaje.imagenUrl ?? personaje.imagen ?? null
   return {
     ...personaje,
+    slug: canonicalPersonajeSlug(personaje.slug),
     imagen,
     imagenUrl: imagen,
   }
@@ -111,7 +113,7 @@ export function getIndicePersonaje(slug) {
 }
 
 const POPULARIDAD = {
-  luffy: 100, levi: 99, L: 98, zoro: 95, light_yagami: 93, naruto: 91,
+  luffy: 100, levi: 99, l: 98, zoro: 95, light_yagami: 93, naruto: 91,
   itachi: 88, gojo: 86, mikasa: 84, kaneki: 82, kakashi: 79, rem_and_ram: 76,
   megumin: 73,
   saber: 70, itadori: 68, sasuke: 67, sukuna: 65, frieren: 65, anya_forger: 65,
