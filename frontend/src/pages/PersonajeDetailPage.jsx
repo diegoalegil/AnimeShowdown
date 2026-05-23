@@ -753,9 +753,12 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
     <div className="relative h-full w-full">
       <Suspense
         fallback={
-          <img
+          <PersonajeImg
+            slug={slug}
             src={fallbackUrl || imagenUrl}
             alt={nombre}
+            loading="eager"
+            sizes="(min-width: 1024px) 520px, 90vw"
             className="h-full w-full object-cover"
           />
         }

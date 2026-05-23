@@ -10,6 +10,7 @@ import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import Avatar from '../components/Avatar'
 import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
+import PersonajeImg from '../components/PersonajeImg'
 
 function toMs(value) {
   if (!value) return null
@@ -375,7 +376,15 @@ function CharacterChoice({ label, personaje, disabled, onClick }) {
     >
       <div className="relative aspect-[16/10] bg-surface">
         {personaje?.imagenUrl ? (
-          <img src={personaje.imagenUrl} alt={personaje.nombre} className="h-full w-full object-cover" loading="eager" />
+          <PersonajeImg
+            slug={personaje.slug}
+            src={personaje.imagenUrl}
+            alt={personaje.nombre}
+            loading="eager"
+            fetchPriority="high"
+            sizes="(min-width: 1024px) 420px, 90vw"
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div aria-hidden="true" lang="ja" className="flex h-full items-center justify-center text-5xl font-black text-fg-muted">影</div>
         )}
