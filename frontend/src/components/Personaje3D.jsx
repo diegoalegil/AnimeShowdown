@@ -1,10 +1,12 @@
-import { Suspense, useRef } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Sparkles, useTexture } from '@react-three/drei'
+import { Suspense, useMemo, useRef } from 'react'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { TextureLoader } from 'three'
 import { imagenPersonaje } from '../lib/personajes-core'
 
+const SPARKLE_COUNT = 70
+
 function CardMesh({ slug }) {
-  const texture = useTexture(imagenPersonaje(slug))
+  const texture = useLoader(TextureLoader, imagenPersonaje(slug))
   const meshRef = useRef()
   const { mouse } = useThree()
 
@@ -25,6 +27,48 @@ function CardMesh({ slug }) {
       <planeGeometry args={[2.4, 3.6]} />
       <meshBasicMaterial map={texture} transparent />
     </mesh>
+  )
+}
+
+function SparkleField({ color }) {
+  const pointsRef = useRef()
+  const positions = useMemo(() => {
+    const values = new Float32Array(SPARKLE_COUNT * 3)
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5))
+
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const radius = 1.2 + (((i * 37) % 100) / 100) * 1.8
+      const angle = i * goldenAngle
+      const z = -0.35 + (((i * 19) % 100) / 100) * 0.7
+
+      values[i * 3] = Math.cos(angle) * radius
+      values[i * 3 + 1] = Math.sin(angle) * radius * 1.35
+      values[i * 3 + 2] = z
+    }
+
+    return values
+  }, [])
+
+  useFrame((state) => {
+    if (!pointsRef.current) return
+    pointsRef.current.rotation.z = state.clock.elapsedTime * 0.04
+    pointsRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.08
+  })
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        color={color}
+        depthWrite={false}
+        opacity={0.72}
+        size={0.055}
+        sizeAttenuation
+        transparent
+      />
+    </points>
   )
 }
 
@@ -49,7 +93,7 @@ function Personaje3D({ slug }) {
       <Suspense fallback={null}>
         <CardMesh slug={slug} />
       </Suspense>
-      <Sparkles count={70} scale={6} size={2.5} speed={0.5} color={accent} />
+      <SparkleField color={accent} />
     </Canvas>
   )
 }
