@@ -1,3 +1,4 @@
+import { isVisualDebugActive } from '../lib/visualDebug'
 import VisualDebugBadge from './VisualDebugBadge'
 
 function EditorialCover({
@@ -76,7 +77,7 @@ function EditorialCover({
           Eliminado — el shell de la pagina ya tiene el lateralKanji
           LARGE a izq/dch (estilo ELO Duel), no necesitamos kanji extra
           en cada card individual. */}
-      <VisualDebugBadge visual={cover} where="EditorialCover" />
+      {isVisualDebugActive() && <VisualDebugBadge visual={cover} where="EditorialCover" />}
       <div
         className={`relative flex h-full flex-col justify-end ${
           compact ? 'p-4' : 'p-5 sm:p-6'

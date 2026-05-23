@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { isVisualDebugActive } from '../lib/visualDebug'
 
 /**
  * Badge de debug visual — se activa con `?debug=visual` en cualquier URL.
@@ -17,18 +18,11 @@ import { toast } from 'sonner'
  * En produccion sin `?debug=visual` no renderiza nada — coste cero.
  */
 export default function VisualDebugBadge({ visual, where, className = '' }) {
-  const [active, setActive] = useState(false)
+  const [active, setActive] = useState(isVisualDebugActive)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const checkActive = () => {
-      const qs = new URLSearchParams(window.location.search)
-      const onByQuery = qs.get('debug') === 'visual'
-      const onByStorage =
-        typeof window.localStorage !== 'undefined' &&
-        window.localStorage.getItem('debug') === 'visual'
-      setActive(onByQuery || onByStorage)
-    }
+    const checkActive = () => setActive(isVisualDebugActive())
     checkActive()
     window.addEventListener('popstate', checkActive)
     return () => window.removeEventListener('popstate', checkActive)
