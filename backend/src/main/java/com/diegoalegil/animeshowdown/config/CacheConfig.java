@@ -88,6 +88,7 @@ public class CacheConfig {
                 Caffeine.newBuilder()
                         .maximumSize(maxSize)
                         .expireAfterWrite(ttl)
+                        .recordStats()
                         .build());
     }
 }
