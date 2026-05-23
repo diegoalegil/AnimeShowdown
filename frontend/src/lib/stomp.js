@@ -54,10 +54,12 @@ function createClient() {
     onConnect: () => notifyConnected(true),
     onWebSocketClose: () => notifyConnected(false),
     onStompError: (frame) => {
-      // Frame ERROR del broker — típicamente JWT inválido. Lo logueamos
-      // y dejamos que reconectemos solos; si el JWT no es válido, el
+      // Frame ERROR del broker — típicamente JWT inválido. Lo registramos
+      // solo en dev y dejamos que reconectemos solos; si el JWT no es válido, el
       // siguiente intento también fallará hasta que el usuario re-login.
-      console.warn('[stomp] error frame:', frame.headers?.message)
+      if (import.meta.env.DEV) {
+        console.warn('[stomp] error frame:', frame.headers?.message)
+      }
       notifyConnected(false)
     },
     debug: () => {
