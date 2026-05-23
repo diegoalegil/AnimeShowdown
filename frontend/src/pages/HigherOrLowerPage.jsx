@@ -30,6 +30,9 @@ import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import JsonLd from '../components/JsonLd'
 import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
+import { getGameVisual } from '../data/visual-assets'
+
+const SEO_IMAGE = getGameVisual('/games/elo-duel').image
 
 function pickRandom(catalogoPersonajes, exclude = null) {
   const pool = exclude
@@ -70,6 +73,7 @@ function HigherOrLowerPage() {
     description:
       'Mini-juego de adivinar quién tiene más ELO base entre dos personajes anime. Sube tu mejor racha personal.',
     canonical: 'https://animeshowdown.dev/games/elo-duel',
+    image: SEO_IMAGE,
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
