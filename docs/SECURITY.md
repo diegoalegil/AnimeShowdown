@@ -100,7 +100,7 @@ Activos NO en alcance:
 
 ---
 
-## Stack de dependencias auditado
+## Stack de dependencias revisado
 
 Backend:
 - Spring Boot 3.5.14 (Web, Data JPA, Security, Validation, Actuator)

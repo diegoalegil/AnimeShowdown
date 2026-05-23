@@ -377,29 +377,29 @@ class AuthControllerTest {
     }
 
     @Test
-    void auditLogRegistraLoginYRegistro() throws Exception {
+    void securityLogRegistraLoginYRegistro() throws Exception {
         // Plan v2 §2.6: verifica que el AuditLog captura eventos clave de auth.
         // El TestAsyncConfig hace que los @Async corran sincrónicamente, así
         // que cuando vuelve el POST la fila ya está persistida.
         long before = auditLogRepository.count();
 
         Map<String, String> registro = Map.of(
-                "username", "audit_user",
+                "username", "security_log_user",
                 "password", "secreta123",
-                "email", "audit@example.com");
+                "email", "security-log@example.com");
         mvc.perform(post("/api/auth/registro")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(registro)))
                 .andExpect(status().isCreated());
 
-        Map<String, String> login = Map.of("username", "audit_user", "password", "secreta123");
+        Map<String, String> login = Map.of("username", "security_log_user", "password", "secreta123");
         mvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(login)))
                 .andExpect(status().isOk());
 
         // Login fallido también — para verificar LOGIN_FAIL.
-        Map<String, String> loginMal = Map.of("username", "audit_user", "password", "wrongpass");
+        Map<String, String> loginMal = Map.of("username", "security_log_user", "password", "wrongpass");
         mvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(loginMal)))
@@ -407,15 +407,15 @@ class AuthControllerTest {
 
         var logs = auditLogRepository.findAll();
         long delta = logs.size() - before;
-        assert delta >= 3 : "Deberían haberse registrado al menos REGISTRO + LOGIN_OK + LOGIN_FAIL (3 audit logs); delta=" + delta;
+        assert delta >= 3 : "Deberían haberse registrado al menos REGISTRO + LOGIN_OK + LOGIN_FAIL (3 security logs); delta=" + delta;
 
         // Cada evento debe haber dejado al menos una fila.
         long registros = logs.stream().filter(l -> l.getEvento() == AuditEvento.REGISTRO).count();
         long loginsOk = logs.stream().filter(l -> l.getEvento() == AuditEvento.LOGIN_OK).count();
         long loginsFail = logs.stream().filter(l -> l.getEvento() == AuditEvento.LOGIN_FAIL).count();
-        assert registros >= 1 : "Debe haber al menos 1 REGISTRO audit";
-        assert loginsOk >= 1 : "Debe haber al menos 1 LOGIN_OK audit";
-        assert loginsFail >= 1 : "Debe haber al menos 1 LOGIN_FAIL audit";
+        assert registros >= 1 : "Debe haber al menos 1 REGISTRO security log";
+        assert loginsOk >= 1 : "Debe haber al menos 1 LOGIN_OK security log";
+        assert loginsFail >= 1 : "Debe haber al menos 1 LOGIN_FAIL security log";
 
         // Los detalles del LOGIN_FAIL deben tener JSON con razón.
         AuditLog ultimoFail = logs.stream()

@@ -40,15 +40,15 @@ class VotoControllerTest {
         Personaje a = personajeRepository.save(new Personaje(
                 "ranking_a_" + suffix,
                 "Ranking A " + suffix,
-                "Audit Anime",
+                "QA Anime",
                 "Fixture ranking A",
-                "/img/audit/ranking-a.webp"));
+                "/img/qa/ranking-a.webp"));
         Personaje b = personajeRepository.save(new Personaje(
                 "ranking_b_" + suffix,
                 "Ranking B " + suffix,
-                "Audit Anime",
+                "QA Anime",
                 "Fixture ranking B",
-                "/img/audit/ranking-b.webp"));
+                "/img/qa/ranking-b.webp"));
         Usuario u = usuarioRepository.save(new Usuario(
                 "rankuser_" + suffix,
                 "hash",
@@ -71,7 +71,7 @@ class VotoControllerTest {
                 .andExpect(jsonPath("$[?(@.personaje.slug == 'ranking_a_" + suffix + "')]").exists());
 
         mvc.perform(get("/api/votos/ranking/segmentado")
-                        .param("anime", "Audit Anime")
+                        .param("anime", "QA Anime")
                         .param("limit", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())

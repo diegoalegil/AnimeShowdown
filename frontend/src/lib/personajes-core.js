@@ -190,7 +190,7 @@ function hashSlug(slug) {
  *   <li>Borrar esta función + POPULARIDAD una vez los consumers migren.</li>
  * </ol>
  *
- * <p>Consumers actuales auditados (rg "getStatsPersonaje" frontend/src,
+ * <p>Consumers actuales revisados (rg "getStatsPersonaje" frontend/src,
  * 2026-05-23, ~60 referencias en 15 archivos):
  * <ul>
  *   <li>{@code Hero.jsx} — "Top ELO base" stat ✅ etiquetado.</li>

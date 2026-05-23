@@ -101,7 +101,7 @@ function PrivacyPage() {
               <li>
                 <strong className="text-fg-strong">Logs de auth</strong> (login,
                 logout, cambios de contraseña, 2FA) con timestamp e IP en el
-                audit log durante 90 días — para detectar accesos sospechosos.
+                registro de seguridad durante 90 días — para detectar accesos sospechosos.
               </li>
               <li>
                 <strong className="text-fg-strong">Métricas de rendimiento</strong>{' '}
@@ -181,7 +181,7 @@ function PrivacyPage() {
                 mientras la mantengas. Puedes eliminarla en cualquier momento.
               </li>
               <li>
-                <strong className="text-fg-strong">Audit log auth:</strong> 90
+                <strong className="text-fg-strong">Registro de seguridad auth:</strong> 90
                 días, luego se purga automáticamente.
               </li>
               <li>
