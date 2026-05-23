@@ -211,6 +211,12 @@ function incrementarContadorLocalVotos() {
   }
 }
 
+function formatPersonalVoteImpact(impact) {
+  if (!impact) return ''
+  const plural = impact.count === 1 ? '' : 's'
+  return `#${impact.rank} en tu ranking personal · ${impact.count} voto${plural} tuyo${plural}`
+}
+
 function VotarPage() {
   useSeo({
     title: 'Votar',
@@ -566,7 +572,7 @@ function VotarPage() {
             ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}${impact ? ` · #${impact.rank} en tu ranking` : ''}`
             : `Ahora suma ${data.votosGanador} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
           : impact
-            ? `#${impact.rank} en tu ranking personal · ${impact.count} votos tuyos`
+            ? formatPersonalVoteImpact(impact)
             : 'Voto registrado · ranking actualizado',
       })
 
@@ -713,7 +719,7 @@ function VotarPage() {
         const impact = trackLocalVote(personaje, personaje.slug === a?.slug ? b : a, null)
         toast.success(`+${personaje.nombre}`, {
           description: impact
-            ? `#${impact.rank} en tu ranking personal · ${impact.count} votos tuyos`
+            ? formatPersonalVoteImpact(impact)
             : 'Modo casual · sin torneo activo',
         })
         scheduleAutoNext()
@@ -970,7 +976,7 @@ function VotarPage() {
               </p>
               {personalVoteImpact?.slug === votedPersonaje.slug && (
                 <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-2.5 py-1 text-[11px] font-black text-gold">
-                  #{personalVoteImpact.rank} en tu ranking personal · {personalVoteImpact.count} voto{personalVoteImpact.count === 1 ? '' : 's'} tuyo{personalVoteImpact.count === 1 ? '' : 's'}
+                  {formatPersonalVoteImpact(personalVoteImpact)}
                 </p>
               )}
             </div>
