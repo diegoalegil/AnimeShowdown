@@ -235,6 +235,7 @@ function GamesHubPage() {
     title: 'Anime Daily Trials',
     description:
       'Retos diarios de anime: silueta borrosa, adivina el anime, AniGrid (Wordle), Impostor Trial y ELO Duel. Una ronda al día, una racha que proteger.',
+    canonical: 'https://animeshowdown.dev/games',
   })
 
   const [reinicio, setReinicio] = useState(calcularReinicio)
@@ -321,6 +322,7 @@ function GamesHubPage() {
           { label: 'Anime Daily Trials', path: '/games' },
         ])}
       />
+      <JsonLd id="games-hub" schema={gamesHubSchema(GAMES)} />
       <div className="mx-auto max-w-6xl">
         <CinematicHero
           visual={BRAND_VISUALS.games}
@@ -463,6 +465,52 @@ function GamesHubPage() {
       </div>
     </VisualPageShell>
   )
+}
+
+function gamesHubSchema(games) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Anime Daily Trials — AnimeShowdown',
+    url: 'https://animeshowdown.dev/games',
+    inLanguage: 'es-ES',
+    description:
+      'Hub de retos diarios de anime con juegos de adivinar personajes, detectar impostores y competir por rachas.',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'AnimeShowdown',
+      url: 'https://animeshowdown.dev/',
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: games.length,
+      itemListElement: games.map((game, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'WebApplication',
+          name: game.titulo,
+          alternateName: game.sub,
+          url: `https://animeshowdown.dev${game.to}`,
+          applicationCategory: 'GameApplication',
+          operatingSystem: 'Web',
+          description: game.desc,
+          isAccessibleForFree: true,
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'EUR',
+          },
+        },
+      })),
+    },
+    about: [
+      'anime games online',
+      'daily anime quiz',
+      'anime higher or lower',
+      'anime character guessing game',
+    ],
+  }
 }
 
 function StatTile({ icon: Icon, iconColor, label, value, className = '' }) {
