@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import GameCatalogLoading from '../components/GameCatalogLoading'
@@ -67,6 +67,7 @@ function ImpostorPage() {
     title: 'Impostor Trial · Detector de Impostor — Daily',
     description:
       '5 cartas de anime, 4 del mismo, 1 intrusa. Pulsa el impostor antes de que pase el tiempo. 3 rondas al día.',
+    canonical: 'https://animeshowdown.dev/games/impostor-trial',
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
@@ -159,6 +160,28 @@ function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
           { label: 'Anime Games', path: '/games' },
           { label: 'Impostor Trial', path: '/games/impostor-trial' },
         ])}
+      />
+      <JsonLd
+        id="game-impostor-trial"
+        schema={gameWebApplicationSchema({
+          name: 'Impostor Trial',
+          alternateName: 'Detector de Impostor',
+          path: '/games/impostor-trial',
+          description:
+            'Juego diario para detectar qué personaje no pertenece al anime de la ronda antes de que se acabe el tiempo.',
+          featureList: [
+            'Tres rondas diarias',
+            'Cinco cartas por ronda',
+            'Un personaje intruso de otro anime',
+            'Resultado compartible',
+          ],
+          keywords: [
+            'juego impostor anime',
+            'anime impostor',
+            'detector de impostor',
+            'anime daily game',
+          ],
+        })}
       />
       <div className="mx-auto max-w-6xl">
         <Link

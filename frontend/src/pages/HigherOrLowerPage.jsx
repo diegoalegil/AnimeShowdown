@@ -27,6 +27,8 @@ import { useSeo } from '../hooks/useSeo'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
+import JsonLd from '../components/JsonLd'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 
 function pickRandom(catalogoPersonajes, exclude = null) {
   const pool = exclude
@@ -66,6 +68,7 @@ function HigherOrLowerPage() {
     title: 'ELO Duel · Higher or Lower',
     description:
       'Mini-juego de adivinar quién tiene más ELO base entre dos personajes anime. Sube tu mejor racha personal.',
+    canonical: 'https://animeshowdown.dev/games/elo-duel',
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
@@ -174,6 +177,36 @@ function HigherOrLowerGame({
 
   return (
     <section className="as-stage as-stage-visual as-stage-duel relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-10">
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: 'Anime Games', path: '/games' },
+          { label: 'ELO Duel', path: '/games/elo-duel' },
+        ])}
+      />
+      <JsonLd
+        id="game-elo-duel"
+        schema={gameWebApplicationSchema({
+          name: 'ELO Duel',
+          alternateName: 'Anime Higher or Lower',
+          path: '/games/elo-duel',
+          description:
+            'Juego endless de anime higher or lower para adivinar qué personaje tiene más ELO base y construir una racha personal.',
+          featureList: [
+            'Duelos de personajes anime',
+            'Pregunta higher or lower por ELO base',
+            'Racha personal guardada en el navegador',
+            'Resultado compartible',
+          ],
+          keywords: [
+            'anime higher or lower',
+            'elo duel',
+            'ranking ELO anime',
+            'juego anime online',
+          ],
+        })}
+      />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
         <header className="flex flex-col items-start gap-2 sm:gap-3">
           <span className="as-kicker border-cyan-500/45 bg-cyan-500/10 text-cyan-200">
