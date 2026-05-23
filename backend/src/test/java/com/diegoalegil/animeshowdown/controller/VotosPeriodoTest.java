@@ -12,8 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Cobertura del endpoint de actividad reciente de votos (Plan producto
- * sprint 2026-05-18). Verifica el contrato sin depender de seed data
+ * Cobertura del endpoint de actividad reciente de votos. Verifica el contrato sin depender de seed data
  * concreta de votos (el DataSeeder de test no garantiza votos por
  * personaje).
  */

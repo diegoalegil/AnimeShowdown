@@ -37,14 +37,8 @@ function EditorialCover({
         }}
         aria-hidden="true"
       />
-      {/* Nota visual (2026-05-20): el overlay anterior aplicaba un gradient
-          horizontal 94%->22% sobre la imagen completa Y encima un tinte
-          accent radial al 30%. Resultado: Naruto se veia amarillo opaco,
-          One Piece quedaba apagado, y la silueta de los personajes
-          desaparecia detras de capas oscuras. Nuevo enfoque: vignette
-          SOLO en el bottom (donde va el texto) + glow accent muy sutil
-          en esquinas para identidad sin tintar la imagen. La imagen real
-          ahora ocupa el 60% superior visible. */}
+      {/* Vignette solo en el bottom, donde va el texto, más glow accent sutil
+          en esquinas para identidad sin tintar la imagen. */}
       <div
         className="absolute inset-0"
         aria-hidden="true"
@@ -72,10 +66,7 @@ function EditorialCover({
           maskImage: 'linear-gradient(to bottom, black, transparent 50%)',
         }}
       />
-      {/* Feedback visual (2026-05-20): el kanji enorme decorativo de la
-          esquina top-right se veia como "fantasma raro" sobre las cards.
-          Eliminado — el shell de la pagina ya tiene el lateralKanji
-          LARGE a izq/dch (estilo ELO Duel), no necesitamos kanji extra
+      {/* El shell de la página ya tiene lateralKanji; no añadimos kanji extra
           en cada card individual. */}
       {isVisualDebugActive() && <VisualDebugBadge visual={cover} where="EditorialCover" />}
       <div

@@ -6,8 +6,7 @@ import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Personaje;
 
 /**
- * Fila del "Historial de duelos" en la ficha de personaje (Plan producto,
- * 2026-05-18 — visión estadio otaku).
+ * Fila del "Historial de duelos" en la ficha de personaje.
  *
  * <p>Resume un enfrentamiento desde la perspectiva de UN personaje
  * concreto (el "yo" en la ficha): muestra el rival, el resultado para

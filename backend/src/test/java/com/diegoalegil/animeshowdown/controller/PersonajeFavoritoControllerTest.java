@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Cobertura del flujo Mi roster / favoritos (Plan producto 2026-05-18):
+ * Cobertura del flujo Mi roster / favoritos:
  *
  * <ul>
  *   <li>GET /api/me/favoritos sin auth → 401.</li>

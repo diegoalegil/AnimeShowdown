@@ -18,8 +18,8 @@ import { imagenPersonaje } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
- * Banner de Pulso personalizado por usuario logueado (Plan producto
- * 2026-05-18). Cruza el roster del user (useMisFavoritos) con los
+ * Banner de Pulso personalizado por usuario logueado. Cruza el roster
+ * del user (useMisFavoritos) con los
  * movimientos de la última semana (rankingMovimientos) — sin pegar al
  * backend para esto, ambas queries ya viven en cache global desde Pulso.
  *

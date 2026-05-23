@@ -16,8 +16,8 @@ import { ocultaImgRota } from '../lib/imgFallback'
 import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
 
 /**
- * Historial competitivo de un personaje (Plan producto 2026-05-18 —
- * visión estadio otaku). Dos secciones que viven al final de la ficha:
+ * Historial competitivo de un personaje. Dos secciones que viven al final
+ * de la ficha:
  *
  *   1. Últimos duelos: timeline compacto de enfrentamientos recientes
  *      con rival, resultado y fecha relativa.

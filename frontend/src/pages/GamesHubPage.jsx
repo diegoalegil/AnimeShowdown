@@ -373,13 +373,8 @@ function CardDestacado({ game, estado }) {
   const theme = COLOR_THEMES[game.color]
   const done = estado?.completadoHoy
   const visual = getGameVisual(game.to, game.titulo)
-  // Nota visual (2026-05-20): antes habia un kanji-panel h-32 w-32 con
-  // text-6xl ocupando media card a la izquierda + el kanji decorativo
-  // sutil de EditorialCover en esquina. Resultado: dos kanjis del mismo
-  // caracter compitiendo + la imagen del juego (shadow-guess.webp)
-  // queda reducida a fondo apagado. Nuevo enfoque: la IMAGEN es el
-  // protagonista (min-h-44), kanji solo como badge corner inferior con
-  // glow + texto encima de un panel translucido para legibilidad.
+  // La imagen es protagonista (min-h-44); el kanji queda como badge inferior
+  // con glow y el texto descansa sobre un panel translúcido para legibilidad.
   return (
     <Link
       to={game.to}
@@ -436,13 +431,8 @@ function CardMini({ game, estado }) {
   const done = estado?.completadoHoy
   const best = estado?.best
   const visual = getGameVisual(game.to, game.titulo)
-  // Card mini de juego con su portada cinematografica visible.
-  // Feedback visual (2026-05-22): min-h-[8.5rem] (136px) dejaba la imagen
-  // como "miniatura mal recortada" — el bottom-gradient del
-  // EditorialCover empezaba al 38% y oscurecía la mayoría del cover. Subimos
-  // min-h a 12rem (mobile) / 13rem (sm), dando ~50% más de zona superior
-  // de la imagen visible antes del degradado, para que cada juego se
-  // identifique por su arte y no por el kanji decorativo.
+  // Card mini de juego con portada cinematográfica visible antes del degradado,
+  // para que cada juego se identifique por su arte y no solo por el kanji.
   return (
     <Link
       to={game.to}
@@ -498,11 +488,8 @@ function CardMini({ game, estado }) {
 
 function OmikujiCard() {
   const visual = getGameVisual('/omikuji', 'Omikuji diario')
-  // Feedback visual (2026-05-22): la card del ritual diario tenia altura ~80px
-  // (py-4 + contenido inline) — el cover del omikuji quedaba reducido a
-  // banda apagada, "inapreciable". Subimos a min-h ~9rem y damos
-  // protagonismo a la imagen con background-image + overlay gradient
-  // inferior, manteniendo el kanji 御 y el CTA sobre el panel.
+  // Card del ritual diario con suficiente altura para que el cover tenga
+  // presencia, manteniendo el kanji 御 y el CTA sobre el panel.
   return (
     <Link
       to="/omikuji"
