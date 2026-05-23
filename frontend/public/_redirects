@@ -17,6 +17,8 @@
 /games/impostor/*         /games/impostor-trial/:splat 301
 /higher-or-lower          /games/elo-duel            301
 /higher-or-lower/*        /games/elo-duel/:splat     301
+/glosario                 /glossary                  301
+/glosario/*               /glossary                  301
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
