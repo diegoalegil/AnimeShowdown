@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 import { mkdir } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
-import { personajes } from '../src/data/personajes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const FRONTEND = resolve(__dirname, '..')
 const ROOT = resolve(FRONTEND, '..')
 const OUT_DIR = join(FRONTEND, 'public', 'img', 'stage')
+const SEED_PATH = join(ROOT, 'backend', 'src', 'main', 'resources', 'personajes-seed.json')
 
+const personajes = JSON.parse(readFileSync(SEED_PATH, 'utf8'))
 const bySlug = new Map(personajes.map((p) => [p.slug, p]))
 
 const THEMES = {
@@ -233,8 +234,8 @@ function svgBase({ width, height, theme, kanji, moon, versus, shrine, crownGlow,
 
 function assetPath(slug) {
   const p = bySlug.get(slug)
-  if (!p?.imagen) return null
-  const relative = decodeURIComponent(p.imagen.replace(/^\/img\//, ''))
+  if (!p?.imagenUrl) return null
+  const relative = decodeURIComponent(p.imagenUrl.replace(/^\/img\//, ''))
   return join(FRONTEND, 'img', relative)
 }
 
