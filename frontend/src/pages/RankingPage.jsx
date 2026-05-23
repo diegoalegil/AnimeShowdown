@@ -655,10 +655,45 @@ function ListaEloLocal({
     staleTime: 60 * 60 * 1000,
   })
   const hayFiltros = Boolean(search) || Boolean(animeFilter)
+  const compartirVista = async () => {
+    if (filtered.length === 0) {
+      toast.error('No hay personajes para compartir con estos filtros')
+      return
+    }
+    const params = new URLSearchParams()
+    const searchTrimmed = search.trim()
+    if (searchTrimmed) params.set('q', searchTrimmed)
+    if (animeFilter) params.set('anime', animeFilter)
+    const url = `/ranking${params.toString() ? `?${params.toString()}` : ''}`
+    const top5 = filtered
+      .slice(0, 5)
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO base`)
+      .join('\n')
+    const scope = animeFilter
+      ? ` de ${animeFilter}`
+      : searchTrimmed
+        ? ` para "${searchTrimmed}"`
+        : ''
+
+    try {
+      const result = await shareOrCopy({
+        title: `Ranking anime${scope}`,
+        text: `Mi top${scope} en AnimeShowdown:\n${top5}\n\nÁbrelo y dime a quién subirías votando.`,
+        url,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Vista compartida' : 'Vista copiada')
+    } catch (error) {
+      toast.error('No se pudo compartir la vista', {
+        description: error?.message || 'Copia el ranking manualmente.',
+      })
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="as-panel grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+      <div className="as-panel flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
           <input
@@ -693,6 +728,15 @@ function ListaEloLocal({
             </option>
           ))}
         </select>
+        <button
+          type="button"
+          onClick={compartirVista}
+          disabled={filtered.length === 0}
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+          Compartir vista
+        </button>
       </div>
 
       {isCatalogLoading && rankedElo.length === 0 ? (
@@ -972,6 +1016,30 @@ function PorAnime({ initialAnime = '' }) {
     limit: 50,
     enabled: Boolean(anime),
   })
+  const compartirRankingAnime = async () => {
+    if (!anime || !Array.isArray(data) || data.length === 0) {
+      toast.error('Elige un anime con ranking para compartir')
+      return
+    }
+    const top5 = data
+      .slice(0, 5)
+      .map((item, index) => `${index + 1}. ${item.personaje.nombre} · ${item.votos} votos`)
+      .join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: `Ranking de ${anime}`,
+        text: `Ranking interno de ${anime} en AnimeShowdown:\n${top5}\n\nVota personajes de ${anime} y mueve este top.`,
+        url: `/ranking?tab=anime&anime=${encodeURIComponent(anime)}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el ranking', {
+        description: error?.message || 'Copia el top manualmente.',
+      })
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -1018,6 +1086,14 @@ function PorAnime({ initialAnime = '' }) {
                 <Swords className="h-4 w-4" />
                 Votar personajes de {anime}
               </Link>
+              <button
+                type="button"
+                onClick={compartirRankingAnime}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-bold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartir ranking
+              </button>
             </div>
           )}
         </>
