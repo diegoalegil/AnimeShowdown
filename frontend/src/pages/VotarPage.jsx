@@ -611,12 +611,16 @@ function VotarPage() {
 
         {/* Arena */}
         <motion.div
+          data-votar-arena
           key={`${a.slug}-${b.slug}`}
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.3 }}
-          className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 sm:gap-6"
+          className="relative grid grid-cols-2 items-start gap-x-2 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-stretch sm:gap-6"
         >
+          <div className="pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 sm:hidden">
+            <VsBadge votedFor={votedFor} compact />
+          </div>
           <VoteCard
             personaje={a}
             onClick={() => handleVote(a)}
@@ -627,7 +631,9 @@ function VotarPage() {
             anonymousLimited={votoInvitadoActivo}
             voteResult={voteResult?.ganadorSlug === a.slug ? voteResult : null}
           />
-          <VsBadge votedFor={votedFor} />
+          <div className="hidden self-center justify-self-center sm:flex">
+            <VsBadge votedFor={votedFor} />
+          </div>
           <VoteCard
             personaje={b}
             onClick={() => handleVote(b)}
@@ -717,7 +723,7 @@ function VotarPage() {
   )
 }
 
-function VsBadge({ votedFor }) {
+function VsBadge({ votedFor, compact = false }) {
   const reduceMotion = useReducedMotion()
   // Revisión perf (2026-05-22): la animación infinita scale[1,1.06,1] cada 1.8s
   // forzaba recomposición del badge cada frame durante TODA la sesión, aún
@@ -740,10 +746,14 @@ function VsBadge({ votedFor }) {
         repeat: votedFor || reduceMotion ? 0 : Infinity,
         ease: 'easeInOut',
       }}
-      className="relative flex h-14 w-14 items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-gold shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] sm:h-20 sm:w-20"
+      className={`relative flex items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-gold shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] ${
+        compact ? 'h-11 w-11' : 'h-14 w-14 sm:h-20 sm:w-20'
+      }`}
     >
-      <Swords className="h-5 w-5 sm:h-7 sm:w-7" />
-      <span className="absolute -bottom-6 font-mono text-[10px] font-extrabold uppercase tracking-[0.25em] text-gold">
+      <Swords className={compact ? 'h-[18px] w-[18px]' : 'h-5 w-5 sm:h-7 sm:w-7'} />
+      <span className={`absolute font-mono font-extrabold uppercase tracking-[0.25em] text-gold ${
+        compact ? '-bottom-5 text-[9px]' : '-bottom-6 text-[10px]'
+      }`}>
         VS
       </span>
     </motion.div>
