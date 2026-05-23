@@ -9,7 +9,7 @@
 //
 // Image extension: cada URL de personaje lleva un
 // <image:image> con loc absoluta, title (nombre) y caption (nombre de anime)
-// para que Google Image Search indexe las webp del catálogo. ~642 imágenes
+// para que Google Image Search indexe las webp del catálogo. 1052 imágenes
 // indexables — buen volumen para tráfico orgánico de búsquedas tipo "akame
 // ga kill akame imagen".
 //
@@ -106,8 +106,8 @@ const popularidadCatalogo = extractPopularidadFromCore(
 // schema TVSeries, etc).
 const animesUnicos = [...new Set(personajesCatalogo.map((p) => p.anime))].sort()
 
-// SEO long-tail (2026-05-19): indexamos duelos entre los 50 personajes
-// más populares del catálogo. Sin duplicados ni espejo A-vs-B/B-vs-A:
+// SEO long-tail: indexamos duelos entre los 50 personajes más populares
+// del catálogo. Sin duplicados ni espejo A-vs-B/B-vs-A:
 // C(50, 2) = 1225 URLs. Mantiene volumen razonable sin convertir el
 // sitemap en una granja de combinaciones.
 const topDuelosPersonajes = [...personajesCatalogo]
@@ -180,11 +180,10 @@ const staticRoutes = [
   { path: '/ranking', priority: '0.9', changefreq: 'daily' },
   { path: '/leaderboards', priority: '0.7', changefreq: 'daily' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
-  // Anime Daily Trials rebrand 2026-05-17: las URLs viejas
-  // (/higher-or-lower, /games/guess-character, /games/guess-anime,
-  // /games/anidel, /games/impostor) redirigen 301 vía _redirects de CF
-  // a las nuevas. Incluirlas aquí diluía el SEO/canonical — sólo
-  // entran las URLs finales rebrandeadas.
+  // Las URLs viejas (/higher-or-lower, /games/guess-character,
+  // /games/guess-anime, /games/anidel, /games/impostor) redirigen 301
+  // vía _redirects de CF a las nuevas. Incluirlas aquí diluye el
+  // SEO/canonical; sólo entran las URLs finales rebrandeadas.
   { path: '/games', priority: '0.8', changefreq: 'weekly' },
   { path: '/games/shadow-guess', priority: '0.7', changefreq: 'daily' },
   { path: '/games/anime-reveal', priority: '0.7', changefreq: 'daily' },
