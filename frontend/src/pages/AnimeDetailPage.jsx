@@ -32,7 +32,7 @@ function AnimeDetailPage() {
     data
       ? {
           title: `${data.anime} · ${data.total} personajes`,
-          description: `Roster, ranking ELO interno y stats de ${data.anime} en AnimeShowdown. Top ELO: ${data.topElo.nombre} (${data.topElo.elo}).`,
+          description: `Roster, ranking ELO base interno y stats de ${data.anime} en AnimeShowdown. Top ELO base: ${data.topElo.nombre} (${data.topElo.elo}).`,
         }
       : { title: '404 — Anime no encontrado', noindex: true },
   )
@@ -130,19 +130,19 @@ function AnimeDetailPage() {
             <StatTile icon={Users} label="Personajes" value={total} />
             <StatTile
               icon={Trophy}
-              label="Top ELO"
+              label="Top ELO base"
               value={topElo.elo}
               hint={topElo.nombre}
               accent
             />
             <StatTile
               icon={TrendingUp}
-              label="ELO promedio"
+              label="ELO base promedio"
               value={eloPromedio}
             />
             <StatTile
               icon={Swords}
-              label="Combates totales"
+              label="Combates base"
               value={totalVotos.toLocaleString('es-ES')}
             />
           </div>
@@ -177,14 +177,14 @@ function AnimeDetailPage() {
         <section className="mb-12">
           <div className="mb-4 flex flex-col gap-1">
             <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
-              Top 10 · ELO
+              Top 10 · ELO base
             </span>
             <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
               Ranking interno de {anime}
             </h2>
             <p className="text-[13px] text-fg-muted">
-              Quién domina dentro del universo {anime}. Cada voto en /votar
-              puede cambiar este orden.
+              Orden estimado dentro del universo {anime}. El ranking competitivo
+              con votos reales vive en /ranking.
             </p>
           </div>
           <ol className="flex flex-col gap-2">
@@ -307,7 +307,7 @@ function RankingRow({ rank, slug, nombre, elo, wins, losses }) {
         <div className="text-right">
           <p className="font-mono text-sm font-bold text-gold">{elo}</p>
           <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-            ELO
+            ELO base
           </p>
         </div>
       </Link>

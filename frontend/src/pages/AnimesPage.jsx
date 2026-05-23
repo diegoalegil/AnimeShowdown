@@ -16,8 +16,8 @@ import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 const SORT_LABELS = {
   destacados: 'Destacados',
   personajes: 'Más personajes',
-  elo: 'Mayor ELO máximo',
-  promedio: 'Mayor ELO promedio',
+  elo: 'Mayor ELO base máximo',
+  promedio: 'Mayor ELO base promedio',
   az: 'A-Z',
 }
 
@@ -217,7 +217,7 @@ function AnimeTile({ animeData }) {
           </span>
           {topElo && (
             <span className="rounded-md border border-gold/35 bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-bold text-gold">
-              ELO {topElo.elo}
+              ELO base {topElo.elo}
             </span>
           )}
         </div>
@@ -232,7 +232,7 @@ function AnimeTile({ animeData }) {
         {topElo && (
           <p className="line-clamp-1 text-[12px] text-fg-muted">
             <Trophy className="mr-1 inline h-3 w-3 text-yellow-400" />
-            Top ELO:{' '}
+            Top ELO base:{' '}
             <strong className="text-fg-strong">{topElo.nombre}</strong>
             <span className="font-mono text-gold"> · {topElo.elo}</span>
           </p>
