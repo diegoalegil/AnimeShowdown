@@ -35,6 +35,7 @@ function MetodologiaEloPage() {
     description:
       'Cómo funciona el ranking competitivo de AnimeShowdown: ELO base, votos comunitarios, votos invitados, cortes temporales y transparencia del sistema.',
     canonical: 'https://animeshowdown.dev/metodologia-elo',
+    image: BRAND_VISUALS.ranking.image,
   })
 
   return (

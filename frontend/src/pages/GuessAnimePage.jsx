@@ -25,9 +25,11 @@ import {
   safeStorage,
 } from '../lib/games'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { getGameVisual } from '../data/visual-assets'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-anime.v1'
+const SEO_IMAGE = getGameVisual('/games/anime-reveal').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -52,6 +54,7 @@ function GuessAnimePage() {
     description:
       'Ves al personaje, ¿de qué anime es? 5 intentos para acertar. Pista opcional revelando el nombre.',
     canonical: 'https://animeshowdown.dev/games/anime-reveal',
+    image: SEO_IMAGE,
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()

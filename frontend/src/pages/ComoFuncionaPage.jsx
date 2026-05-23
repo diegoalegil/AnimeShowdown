@@ -30,6 +30,7 @@ function ComoFuncionaPage() {
     description:
       'Guía rápida de AnimeShowdown: votar duelos anime, completar juegos diarios, leer rankings, seguir personajes y compartir resultados.',
     canonical: 'https://animeshowdown.dev/como-funciona',
+    image: BRAND_VISUALS.home.image,
   })
 
   return (

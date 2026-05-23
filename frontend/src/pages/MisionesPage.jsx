@@ -34,6 +34,7 @@ function MisionesPage() {
     description:
       'Completa la misión diaria de AnimeShowdown: vota 10 duelos, juega un daily trial, revisa el ranking y protege tu racha.',
     canonical: 'https://animeshowdown.dev/misiones',
+    image: BRAND_VISUALS.games.image,
   })
 
   const [, setTick] = useState(0)

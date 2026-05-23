@@ -23,10 +23,12 @@ import {
 } from '../lib/games'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
+import { getGameVisual } from '../data/visual-assets'
 
 const RONDAS_POR_DIA = 3
 const STORAGE_KEY = 'animeshowdown.impostor.v1'
 const SEGUNDOS_POR_RONDA = 15
+const SEO_IMAGE = getGameVisual('/games/impostor-trial').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -69,6 +71,7 @@ function ImpostorPage() {
     description:
       '5 cartas de anime, 4 del mismo, 1 intrusa. Pulsa el impostor antes de que pase el tiempo. 3 rondas al día.',
     canonical: 'https://animeshowdown.dev/games/impostor-trial',
+    image: SEO_IMAGE,
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()

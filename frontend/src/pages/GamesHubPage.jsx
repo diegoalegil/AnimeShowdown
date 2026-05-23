@@ -230,6 +230,7 @@ function GamesHubPage() {
     description:
       'Retos diarios de anime: silueta borrosa, adivina el anime, AniGrid (Wordle), Impostor Trial y ELO Duel. Una ronda al día, una racha que proteger.',
     canonical: 'https://animeshowdown.dev/games',
+    image: BRAND_VISUALS.games.image,
   })
 
   const [reinicio, setReinicio] = useState(getDailyResetCountdown)
