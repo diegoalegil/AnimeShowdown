@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { personajes } from '../lib/personajes-core'
 import { normalizar } from '../lib/games'
@@ -32,6 +32,7 @@ function AutocompleteAnime({
   const [query, setQuery] = useState('')
   const [activo, setActivo] = useState(0)
   const [abierto, setAbierto] = useState(false)
+  const deferredQuery = useDeferredValue(query)
   const [queryPrevia, setQueryPrevia] = useState('')
   if (query !== queryPrevia) {
     setQueryPrevia(query)
@@ -47,7 +48,7 @@ function AutocompleteAnime({
   }, [])
 
   const opciones = useMemo(() => {
-    const q = normalizar(query)
+    const q = normalizar(deferredQuery)
     if (!q) return []
     const base = filtroExtra ? ANIMES.filter((a) => filtroExtra(a.anime)) : ANIMES
     const matches = []
@@ -60,7 +61,7 @@ function AutocompleteAnime({
     }
     matches.sort((x, y) => x.score - y.score)
     return matches.slice(0, 8)
-  }, [query, filtroExtra])
+  }, [deferredQuery, filtroExtra])
 
   const elegir = (anime) => {
     if (!anime) return
