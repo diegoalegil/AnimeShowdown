@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-# backup-and-rotate.sh — Backup diario Neon → Cloudflare R2 (Plan v2 §2.8)
+# backup-and-rotate.sh — Backup diario Neon → Cloudflare R2
 #
 # Flow:
 #   1. pg_dump --format=custom de Neon production.
@@ -100,7 +100,7 @@ if [ "$DOM" = "01" ]; then
 fi
 
 # --- 5) Retención: borra lo viejo -----------------------------------------
-# La política de Plan v2 §2.8:
+# Política de retención:
 #   daily/   retiene 7 días
 #   weekly/  retiene 28 días (4 semanas)
 #   monthly/ retiene 365 días (12 meses)

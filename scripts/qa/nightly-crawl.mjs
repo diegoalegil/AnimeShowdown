@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Nightly QA crawler.
+ * QA crawler.
  *
  * Recorre rutas clave de producción (o localhost si se pasa --local) y
  * captura para cada una:
@@ -15,7 +15,7 @@
  * Uso:
  *   node scripts/qa/nightly-crawl.mjs
  *   node scripts/qa/nightly-crawl.mjs --local                          # http://localhost:5173
- *   node scripts/qa/nightly-crawl.mjs --base=https://animeshowdown.pages.dev
+ *   node scripts/qa/nightly-crawl.mjs --base=https://animeshowdown.dev
  *
  * Implementación:
  *   Usa fetch nativo de Node 18+ — no requiere Playwright ni instalar nada.
@@ -37,7 +37,7 @@ const args = process.argv.slice(2)
 const BASE = args.find((a) => a.startsWith('--base='))?.split('=')[1]
   ?? (args.includes('--local') ? 'http://localhost:5173' : 'https://animeshowdown.dev')
 
-const USER_AGENT = 'AnimeShowdownQABot/1.0 (nightly QA crawler; +https://animeshowdown.dev)'
+const USER_AGENT = 'AnimeShowdownCrawler/1.0 (+https://animeshowdown.dev)'
 
 const ROUTES = [
   { path: '/', label: 'Home' },
@@ -198,7 +198,7 @@ async function crawlRoute(base, route) {
 }
 
 async function main() {
-  console.log(`\nNightly crawl contra ${BASE}`)
+  console.log(`\nQA crawl contra ${BASE}`)
   console.log(`Rutas: ${ROUTES.length}\n`)
 
   const results = []
@@ -232,7 +232,7 @@ async function main() {
 
 function generateReport(results, base) {
   const lines = []
-  lines.push(`# Nightly crawl — ${base}`)
+  lines.push(`# QA crawl — ${base}`)
   lines.push('')
   lines.push(`> Generado: ${new Date().toISOString()}`)
   lines.push(`> Base URL: ${base}`)
