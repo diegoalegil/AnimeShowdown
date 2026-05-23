@@ -385,6 +385,12 @@ export default defineConfig({
   build: {
     // Personaje3D queda aislado como chunk lazy y lo vigila npm run test:bundle.
     chunkSizeWarningLimit: 1000,
+    modulePreload: {
+      resolveDependencies(_filename, deps, { hostType }) {
+        if (hostType !== 'html') return deps
+        return deps.filter((dep) => !/assets\/personaje3d-[^/]+\.js$/.test(dep))
+      },
+    },
     // Vendor chunks explícitos: sin esto Rolldown junta todo en index y
     // pasa de 150KB a 300KB+ gzip. Cada vendor se aísla en su propio
     // chunk para que se cachee long-term separado (cambios en código de
@@ -417,6 +423,18 @@ export default defineConfig({
                 id.endsWith('\\src\\hooks\\useCatalogoPersonajes.js'),
             },
             {
+              name: 'react-vendor',
+              test: (id) =>
+                id.includes('/react-router-dom/') ||
+                id.includes('/react-router/') ||
+                id.includes('/react-dom/') ||
+                id.includes('/scheduler/') ||
+                id.includes('\\scheduler\\') ||
+                id.includes('/use-sync-external-store/') ||
+                id.includes('\\use-sync-external-store\\') ||
+                Boolean(id.match(/[/\\]node_modules[/\\]react[/\\]/)),
+            },
+            {
               name: 'personaje3d',
               test: (id) =>
                 id.includes('@react-three/') ||
@@ -437,14 +455,6 @@ export default defineConfig({
               test: (id) =>
                 id.includes('i18next') ||
                 id.includes('react-i18next'),
-            },
-            {
-              name: 'react-vendor',
-              test: (id) =>
-                id.includes('/react-router-dom/') ||
-                id.includes('/react-router/') ||
-                id.includes('/react-dom/') ||
-                Boolean(id.match(/[/\\]node_modules[/\\]react[/\\]/)),
             },
           ],
         },
