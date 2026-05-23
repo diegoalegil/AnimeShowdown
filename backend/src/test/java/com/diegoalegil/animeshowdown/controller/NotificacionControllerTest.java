@@ -197,8 +197,8 @@ class NotificacionControllerTest {
         // Spring Security con anyRequest().authenticated() + sin
         // authenticationEntryPoint custom devuelve 403 Forbidden cuando
         // falta auth en un endpoint protegido. No es 401 — esa diferencia
-        // se controla con un AuthenticationEntryPoint explícito (TODO si
-        // queremos pulir el contrato HTTP en el bloque 16).
+        // se controla con un AuthenticationEntryPoint explícito si más adelante
+        // queremos pulir el contrato HTTP.
         mvc.perform(get("/api/notificaciones"))
                 .andExpect(status().isForbidden());
         mvc.perform(get("/api/notificaciones/unread-count"))
