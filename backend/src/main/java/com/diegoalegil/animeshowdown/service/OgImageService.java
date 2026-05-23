@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -223,6 +225,33 @@ public class OgImageService {
                 "1v1 al mejor de 5 rondas · sube tu ELO PvP");
     }
 
+    @Cacheable(value = "og-duelo", key = "#slugA + '-vs-' + #slugB", unless = "#result == null")
+    public byte[] renderDuelo(String slugA, String slugB) {
+        Personaje a = personajeRepository.findBySlug(slugA).orElse(null);
+        Personaje b = personajeRepository.findBySlug(slugB).orElse(null);
+        if (a == null || b == null || a.getSlug().equals(b.getSlug())) {
+            return renderFallback("Duelo anime", "Compara personajes en AnimeShowdown");
+        }
+        try {
+            BufferedImage canvas = nuevoLienzo();
+            Graphics2D g = canvas.createGraphics();
+            try {
+                aplicarHints(g);
+                dibujarFondo(g);
+                dibujarFotoDuelo(g, a, PADDING, "壱");
+                dibujarFotoDuelo(g, b, ANCHO - PADDING - 360, "弐");
+                dibujarCentroDuelo(g, a, b);
+                dibujarLogoCentrado(g);
+            } finally {
+                g.dispose();
+            }
+            return toPng(canvas);
+        } catch (Exception e) {
+            log.error("OgImageService.renderDuelo fallo slugA={} slugB={}: {}", slugA, slugB, e.getMessage(), e);
+            return renderFallback(a.getNombre() + " vs " + b.getNombre(), "Duelo abierto en AnimeShowdown");
+        }
+    }
+
     // === helpers de render ===
 
     private record RankingOgEntry(String nombre, String anime, String imagenUrl, long votos) {
@@ -292,6 +321,94 @@ public class OgImageService {
         } catch (Exception e) {
             log.warn("OgImageService.dibujarFoto fallo url={}: {}", imagenUrl, e.getMessage());
         }
+    }
+
+    private void dibujarFotoDuelo(Graphics2D g, Personaje personaje, int x, String kanji) {
+        int y = 86;
+        int ancho = 360;
+        int alto = 430;
+
+        g.setColor(new Color(255, 46, 99, 34));
+        g.fillRoundRect(x, y, ancho, alto, 32, 32);
+        g.setColor(new Color(255, 255, 255, 34));
+        g.drawRoundRect(x, y, ancho, alto, 32, 32);
+
+        boolean imagenDibujada = false;
+        String imagenUrl = personaje.getImagenUrl();
+        if (imagenUrl != null && !imagenUrl.isBlank()) {
+            try {
+                String url = imagenUrl.startsWith("http") ? imagenUrl : imagesBaseUrl + imagenUrl;
+                BufferedImage foto = leerImagen(url);
+                if (foto != null) {
+                    Shape oldClip = g.getClip();
+                    g.setClip(new RoundRectangle2D.Float(x, y, ancho, alto, 32, 32));
+                    g.drawImage(foto, x, y, ancho, alto, null);
+                    g.setClip(oldClip);
+                    imagenDibujada = true;
+                }
+            } catch (Exception e) {
+                log.warn("OgImageService.dibujarFotoDuelo fallo slug={}: {}", personaje.getSlug(), e.getMessage());
+            }
+        }
+
+        if (!imagenDibujada) {
+            Font kanjiFont = new Font(Font.SANS_SERIF, Font.BOLD, 118);
+            g.setFont(kanjiFont);
+            g.setColor(new Color(245, 245, 250, 44));
+            g.drawString(kanji, x + 125, y + 245);
+        }
+
+        GradientPaint overlay = new GradientPaint(
+                x, y + alto - 150, new Color(0, 0, 0, 0),
+                x, y + alto, new Color(0, 0, 0, 215));
+        g.setPaint(overlay);
+        g.fillRoundRect(x, y + alto - 170, ancho, 170, 30, 30);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 34));
+        g.setColor(TEXTO_PRINCIPAL);
+        g.drawString(truncar(g, personaje.getNombre(), ancho - 44), x + 22, y + alto - 70);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 22));
+        g.setColor(TEXTO_SECUNDARIO);
+        g.drawString(truncar(g, personaje.getAnime(), ancho - 44), x + 22, y + alto - 34);
+    }
+
+    private void dibujarCentroDuelo(Graphics2D g, Personaje a, Personaje b) {
+        int centerX = ANCHO / 2;
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        g.setColor(ACENTO);
+        dibujarTextoCentrado(g, "DUELO ABIERTO", centerX, 116);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 92));
+        g.setColor(TEXTO_PRINCIPAL);
+        dibujarTextoCentrado(g, "VS", centerX, 282);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 30));
+        g.setColor(TEXTO_PRINCIPAL);
+        dibujarTextoCentrado(g, "¿A quién subirías?", centerX, 350);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 22));
+        g.setColor(TEXTO_SECUNDARIO);
+        dibujarTextoCentrado(g, "Vota y cambia el ranking competitivo", centerX, 386);
+
+        g.setColor(new Color(255, 46, 99, 80));
+        g.drawLine(463, 315, 737, 315);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        g.setColor(new Color(245, 245, 250, 190));
+        dibujarTextoCentrado(g, truncar(g, a.getNombre() + " vs " + b.getNombre(), 420), centerX, 464);
+    }
+
+    private void dibujarLogoCentrado(Graphics2D g) {
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
+        g.setColor(ACENTO);
+        dibujarTextoCentrado(g, "AnimeShowdown", ANCHO / 2, ALTO - 52);
+    }
+
+    private void dibujarTextoCentrado(Graphics2D g, String texto, int centerX, int y) {
+        int width = g.getFontMetrics().stringWidth(texto);
+        g.drawString(texto, centerX - width / 2, y);
     }
 
     private BufferedImage leerImagen(String url) {

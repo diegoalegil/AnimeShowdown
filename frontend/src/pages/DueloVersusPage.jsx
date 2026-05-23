@@ -39,6 +39,9 @@ function DueloVersusPage() {
   const personajeB = slugB ? getPersonajeBySlug(slugB) : null
   const valido = Boolean(personajeA && personajeB && personajeA.slug !== personajeB.slug)
   const canonical = valido ? `${SITE}/duelos/${personajeA.slug}-vs-${personajeB.slug}` : undefined
+  const ogImage = valido
+    ? `/api/og/duelo/${encodeURIComponent(personajeA.slug)}/vs/${encodeURIComponent(personajeB.slug)}.png`
+    : undefined
   const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
 
   useEffect(
@@ -66,7 +69,7 @@ function DueloVersusPage() {
           title: `${personajeA.nombre} vs ${personajeB.nombre} — ¿quién ganaría?`,
           description: `Comparativa ELO, votos comunitarios y duelo abierto entre ${personajeA.nombre} (${personajeA.anime}) y ${personajeB.nombre} (${personajeB.anime}) en AnimeShowdown.`,
           canonical,
-          image: imagenPersonaje(personajeA.slug),
+          image: ogImage,
           type: 'article',
         }
       : { title: '404 — Duelo no encontrado', noindex: true },
