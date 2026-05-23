@@ -8,7 +8,7 @@ import {
 } from '../lib/staleAssetRecovery'
 
 /**
- * Error boundary global (Plan v2 §3.7).
+ * Error boundary global.
  *
  * React no atrapa errores async ni los disparados durante el render del
  * propio boundary; cubrimos solo errores síncronos del árbol descendiente,

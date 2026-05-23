@@ -22,7 +22,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración del sistema friends / follow (Plan v2 §4.5).
+ * Tests integración del sistema friends / follow.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

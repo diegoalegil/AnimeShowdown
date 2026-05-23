@@ -20,7 +20,7 @@ import com.diegoalegil.animeshowdown.TestAsyncConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración de reactions emoji (Plan v2 §4.3).
+ * Tests integración de reactions emoji.
  *
  * <p>Cubre:
  * <ul>

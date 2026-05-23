@@ -15,7 +15,7 @@ const containerVariants = {
 }
 
 /**
- * Página pública /api-docs con shape de los endpoints (Plan v2 §6.5).
+ * Página pública /api-docs con shape de los endpoints.
  *
  * <p>Sirve a tres públicos:
  * <ul>

@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración de predicciones de bracket (Plan v2 §4.4).
+ * Tests integración de predicciones de bracket.
  *
  * <p>Cubre el flow completo end-to-end:
  * <ul>

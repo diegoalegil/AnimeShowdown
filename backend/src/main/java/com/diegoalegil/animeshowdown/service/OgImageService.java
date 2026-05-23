@@ -28,7 +28,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
 /**
  * Render server-side de OG images (1200×630 PNG) para previews ricos en
- * Twitter/Discord/WhatsApp/Slack. Plan v2 §1.2.
+ * Twitter/Discord/WhatsApp/Slack. 2.
  *
  * Diseño minimalista decidido en planning:
  *   - Fondo dark (#0d0a16) con gradiente magenta sutil arriba-izquierda.

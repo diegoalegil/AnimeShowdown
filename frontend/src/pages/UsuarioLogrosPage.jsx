@@ -31,7 +31,7 @@ const FILTROS_RAREZA = [
 ]
 
 /**
- * Perfil público de logros (Plan v2 §4.10).
+ * Perfil público de logros.
  *
  * Ruta: /u/:username/logros. Reutiliza el endpoint /api/perfil/{username}
  * que ya devuelve el campo `logros` (catálogo enriquecido con desbloqueadoEn

@@ -3,7 +3,7 @@ import { endpoints } from '../lib/api.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 
 /**
- * Hooks para predicciones de bracket (Plan v2 §4.4).
+ * Hooks para predicciones de bracket.
  *
  * - useMisPredicciones(torneoId): lista de mis predicciones del torneo,
  *   solo se activa si hay user logueado. Para anónimos devuelve [].

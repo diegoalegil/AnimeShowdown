@@ -5,7 +5,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 
 /**
- * Evento publicado tras persistir un voto (Plan v2 §4.2).
+ * Evento publicado tras persistir un voto.
  *
  * <p>Lo dispara {@link com.diegoalegil.animeshowdown.controller.EnfrentamientoController}
  * tras {@code votoRepository.save()}. Listeners interesados:

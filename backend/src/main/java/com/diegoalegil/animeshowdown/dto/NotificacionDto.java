@@ -6,7 +6,7 @@ import com.diegoalegil.animeshowdown.model.Notificacion;
 import com.diegoalegil.animeshowdown.model.NotificacionTipo;
 
 /**
- * Vista pública de una {@link Notificacion} para el cliente (Plan v2 §2.13).
+ * Vista pública de una {@link Notificacion} para el cliente.
  *
  * <p>No expone el {@code Usuario} relacionado — siempre es el del request.
  * El campo {@code payload} es JSON crudo (string); el cliente lo parsea

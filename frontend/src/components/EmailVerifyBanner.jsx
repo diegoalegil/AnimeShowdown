@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { endpoints, ApiError } from '../lib/api'
 
 /**
- * Banner persistente que recuerda al usuario verificar su email (Plan v2 §2.4).
+ * Banner persistente que recuerda al usuario verificar su email.
  *
  * Se renderiza solo cuando `user.estadoVerificacion === 'PENDIENTE'`. Una
  * vez verificado (ya sea por click en el link del email o por refresh de

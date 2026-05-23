@@ -27,7 +27,7 @@ import com.diegoalegil.animeshowdown.service.PrediccionService;
 import jakarta.validation.Valid;
 
 /**
- * Endpoints REST de predicciones (Plan v2 §4.4).
+ * Endpoints REST de predicciones.
  *
  * <ul>
  *   <li>{@code POST /api/predicciones} — autenticado. Crea o actualiza.</li>

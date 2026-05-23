@@ -53,7 +53,7 @@ public class Torneo {
     /**
      * Ganador del torneo. Para torneos completos coincide con el ganador
      * del match de la última ronda — lo setea TorneoService.finalizar.
-     * Para torneos legacy seedados sin bracket detallado (Plan v2 §1.1
+     * Para torneos legacy seedados sin bracket detallado (1
      * commit 6), este campo es la única fuente de verdad del ganador.
      */
     @ManyToOne
@@ -62,14 +62,14 @@ public class Torneo {
 
     /**
      * User que creó el torneo. NULL en torneos legacy creados por admin
-     * antes del Plan v2 §4.9, o si el creador se borra (ON DELETE SET NULL).
+     * antes del 9, o si el creador se borra (ON DELETE SET NULL).
      */
     @ManyToOne
     @JoinColumn(name = "created_by_user_id")
     private Usuario creadoPor;
 
     /**
-     * Estado de revisión administrativa (Plan v2 §4.9). Los torneos creados
+     * Estado de revisión administrativa. Los torneos creados
      * por admin nacen como {@link EstadoRevision#NO_APLICA} y son visibles
      * inmediatamente. Los creados por user nacen como PENDIENTE y solo se
      * exponen al público una vez APROBADO.

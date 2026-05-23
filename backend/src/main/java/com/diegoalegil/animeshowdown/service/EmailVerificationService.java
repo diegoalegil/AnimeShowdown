@@ -21,7 +21,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.AdminEmails;
 
 /**
- * Orquesta el ciclo de verificación de email (Plan v2 §2.4):
+ * Orquesta el ciclo de verificación de email:
  *
  *   emitir(usuario)
  *     ↓ invalida cualquier token activo previo del usuario
@@ -132,7 +132,7 @@ public class EmailVerificationService {
         usuarioRepository.save(u);
         log.info("Email verificado: usuario={}", u.getUsername());
 
-        // Plan v2 §2.13: notificación de bienvenida tras verificación. Es
+        // 13: notificación de bienvenida tras verificación. Es
         // el primer item que verá el usuario en su campanita y demuestra
         // que el sistema funciona. Trigger único por usuario — solo se
         // dispara la primera vez (verificar() es idempotente y los siguientes
@@ -144,7 +144,7 @@ public class EmailVerificationService {
                 "Tu email está verificado y tu cuenta lista para votar, crear torneos y desbloquear logros.",
                 null);
 
-        // Plan v2 §11.8: si este usuario vino con referrer, su verificación
+        // 8: si este usuario vino con referrer, su verificación
         // hace que cuente como referido "activo". Comprobamos si el referrer
         // alcanza ya el umbral para desbloquear el badge reclutador.
         try {

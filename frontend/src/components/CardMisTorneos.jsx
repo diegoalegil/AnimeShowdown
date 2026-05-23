@@ -5,7 +5,7 @@ import KanjiSpinner from './KanjiSpinner'
 import { pickVacio } from './Kaomoji'
 
 /**
- * Card "Mis torneos" del perfil (Plan v2 §4.9).
+ * Card "Mis torneos" del perfil.
  *
  * Lista los torneos que el usuario ha creado, con pill de estado de
  * revisión (PENDIENTE / APROBADO / RECHAZADO) y motivo en caso de

@@ -70,7 +70,7 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     /** Listado del propio creador, todos los estados, más recientes primero. */
     List<Torneo> findByCreadoPorOrderByFechaCreacionDesc(Usuario creador);
 
-    /** Count de torneos UGC creados por un usuario. Plan v2 §4.1 stats perfil. */
+    /** Count de torneos UGC creados por un usuario. 1 stats perfil. */
     long countByCreadoPor(Usuario creador);
 
     /**

@@ -137,7 +137,7 @@ function PersonajeDetailPage() {
 
   // Lista cacheada (10 min stale) para mapear slug → id del backend. La
   // necesitamos porque las reactions usan targetId=long del backend, no
-  // el slug del catálogo client-side. Plan v2 §4.3.
+  // el slug del catálogo client-side. 3.
   const { data: listaBackend } = useQuery({
     queryKey: ['personajes', 'lista'],
     queryFn: endpoints.personajes,
@@ -186,7 +186,7 @@ function PersonajeDetailPage() {
       }
     }
   }
-  // Plan v2 §5.6: hasta 10 personajes del mismo anime como internal linking
+  // 6: hasta 10 personajes del mismo anime como internal linking
   // estructurado. Google sigue estos links para entender la red semántica
   // ("Akame ga Kill!" → 10 personajes del anime); más de 10 saturaría la
   // página y reduciría link equity por dilución.
@@ -228,7 +228,7 @@ function PersonajeDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver al catálogo
         </Link>
-        {/* Plan v2 §6.3: <article> con Microdata schema.org/Person para
+        {/* 3: <article> con Microdata schema.org/Person para
             crawlers que prefieren Microdata sobre JSON-LD. Coexiste con
             el JsonLd de arriba sin contradecirse — Google da prioridad a
             JSON-LD pero algunos LLMs y scrapers parsean ambos. itemprop
@@ -639,7 +639,7 @@ function getDuelosPopulares(personaje) {
 }
 
 /**
- * Carrusel de personajes recomendados cross-anime (Plan v2 §4.12).
+ * Carrusel de personajes recomendados cross-anime.
  *
  * <p>Se monta debajo de "Mismo universo" en la ficha de personaje.
  * Backend devuelve top N por similitud de votos. Scroll horizontal con

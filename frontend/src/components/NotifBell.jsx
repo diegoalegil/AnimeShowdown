@@ -20,7 +20,7 @@ import {
 } from '../hooks/useNotificaciones'
 
 /**
- * Campanita de notificaciones en el header (Plan v2 §2.13).
+ * Campanita de notificaciones en el header.
  *
  * Botón con badge del count de no leídas. Click → dropdown con últimas 10.
  * Cada item se puede marcar como leída individualmente; también hay un

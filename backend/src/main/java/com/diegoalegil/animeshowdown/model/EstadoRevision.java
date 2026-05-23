@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
 /**
- * Estado de revisión administrativa de un torneo (Plan v2 §4.9).
+ * Estado de revisión administrativa de un torneo.
  *
  * <p>Aplica solo a torneos creados por usuarios — los creados por admin
  * directamente (legacy o /api/torneos POST) llevan {@link #NO_APLICA} y
@@ -13,8 +13,7 @@ package com.diegoalegil.animeshowdown.model;
  *   PENDIENTE → RECHAZADO  (admin rechaza con motivo)
  * </pre>
  * No hay vuelta atrás — un torneo aprobado no se "des-aprueba". Para
- * retirar un torneo aprobado existirá un soft-delete futuro (Plan v2
- * §4.9.f). Los rechazados quedan persistidos para que el creador vea
+ * retirar un torneo aprobado existirá un soft-delete futuro. Los rechazados quedan persistidos para que el creador vea
  * el motivo en "Mis torneos".
  */
 public enum EstadoRevision {

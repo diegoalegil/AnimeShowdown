@@ -46,7 +46,7 @@ import {
 } from '../hooks/useRanking'
 
 /**
- * RankingPage rebranded (Plan v2 §14 — "salón de la fama" competitivo).
+ * RankingPage rebranded.
  *
  * Tabs:
  *   - ELO actual — calculado desde catálogo, siempre disponible.
@@ -1098,7 +1098,7 @@ function RankBadge({ rank }) {
 
 /**
  * Badge ↑N / ↓N / = / Nuevo según el movimiento del personaje vs el
- * ranking de hace 7 días (Plan v2 §4.x).
+ * ranking de hace 7 días.
  */
 function MovimientoBadge({ movimiento }) {
   if (movimiento.esNuevo) {

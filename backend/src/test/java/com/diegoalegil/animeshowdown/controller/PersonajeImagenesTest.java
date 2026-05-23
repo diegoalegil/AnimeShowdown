@@ -22,8 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.diegoalegil.animeshowdown.service.JikanService;
 
 /**
- * Tests del endpoint GET /api/personajes/{slug}/imagenes (Plan v2
- * §4.12 step 1 — galería multi-imagen oficial vía Jikan).
+ * Tests del endpoint GET /api/personajes/{slug}/imagenes.
  *
  * <p>JikanService está mockeado: los tests no pueden depender de red ni
  * de la disponibilidad real de jikan.moe. Validamos el contrato del

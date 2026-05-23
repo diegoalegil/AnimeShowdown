@@ -1,12 +1,12 @@
 package com.diegoalegil.animeshowdown.model;
 
 /**
- * Visibilidad de un torneo (Plan v2 §4.9).
+ * Visibilidad de un torneo.
  *
  * <p>Por ahora solo {@link #PUBLICO} se expone en la API — los creados
  * por user nacen públicos. {@link #PRIVADO} está preparado para una
  * iteración futura donde el creador podrá generar torneos con link
- * compartible y bracket visible solo para invitados (Plan v2 §4.9.f).
+ * compartible y bracket visible solo para invitados.
  */
 public enum VisibilidadTorneo {
 

@@ -27,7 +27,7 @@ import com.diegoalegil.animeshowdown.security.LogSanitizer;
 /**
  * Envío de emails transaccionales vía Resend (HTTPS, sin SMTP).
  *
- * Plan v2 §2.12 — async queue robusta:
+ * 12 — async queue robusta:
  *
  *   - Pool dedicado emailExecutor (AsyncConfig): 2-5 hilos, queue 100,
  *     CallerRunsPolicy en saturación. Antes SimpleAsyncTaskExecutor
@@ -107,7 +107,7 @@ public class EmailService {
         }
     }
 
-    /** Reset de password (Plan v2 §1.3). */
+    /** Reset de password. */
     @Async("emailExecutor")
     public void enviarCodigoReset(String to, String username, String codigo) {
         String subject = "AnimeShowdown — Código para restablecer tu contraseña";
@@ -119,7 +119,7 @@ public class EmailService {
         self.enviarConRetry(EmailTipo.RESET_PASSWORD, to, subject, text);
     }
 
-    /** Verificación de email post-registro (Plan v2 §2.4). */
+    /** Verificación de email post-registro. */
     @Async("emailExecutor")
     public void enviarVerificacion(String to, String username, String linkVerificacion) {
         String subject = "AnimeShowdown — Verifica tu email";
@@ -131,7 +131,7 @@ public class EmailService {
         self.enviarConRetry(EmailTipo.VERIFICACION, to, subject, text);
     }
 
-    /** Confirmación double opt-in de suscripción a newsletter (Plan v2 §4.8). */
+    /** Confirmación double opt-in de suscripción a newsletter. */
     @Async("emailExecutor")
     public void enviarConfirmacionNewsletter(String to, String linkConfirmacion) {
         String subject = "AnimeShowdown — Confirma tu suscripción a la newsletter";

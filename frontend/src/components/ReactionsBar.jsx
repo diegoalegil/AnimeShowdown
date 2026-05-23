@@ -10,7 +10,7 @@ import {
 } from '../hooks/useReacciones'
 
 /**
- * Barra horizontal de reactions emoji (Plan v2 §4.3).
+ * Barra horizontal de reactions emoji.
  *
  * 4 botones FIRE/HEART/LAUGH/CRY con count debajo. La reaction del usuario
  * actual queda resaltada (bg accent suave + borde). Click:

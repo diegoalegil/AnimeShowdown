@@ -13,7 +13,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 
 /**
- * Metadatos públicos de la API expuesta por springdoc-openapi (Plan v2 §2.15).
+ * Metadatos públicos de la API expuesta por springdoc-openapi.
  *
  * Lo accesible en /v3/api-docs y /swagger-ui.html:
  *   - Lista todos los endpoints bajo /api/** con shape de request/response.
@@ -39,7 +39,7 @@ public class OpenApiConfig {
                                 + refresh token httpOnly cookie automático.
 
                                 **Rate limits:** 5 req/min + 50 req/h por IP en rutas
-                                críticas de auth y voto (Plan v2 §2.1).
+                                críticas de auth y voto.
                                 """)
                         .version("v1")
                         .contact(new Contact()

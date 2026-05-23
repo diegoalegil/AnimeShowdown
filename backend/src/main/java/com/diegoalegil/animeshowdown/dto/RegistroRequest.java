@@ -21,7 +21,7 @@ public class RegistroRequest {
             message = "El username solo puede contener letras, números, guión y guión bajo")
     private String username;
 
-    // Plan v2 §2.5: mínimo 8 chars, al menos una letra y un dígito. Antes
+    // 5: mínimo 8 chars, al menos una letra y un dígito. Antes
     // permitía "123456" — passwords triviales que rompen al primer ataque
     // automatizado. La regex es deliberadamente permisiva con caracteres
     // especiales (Unicode, símbolos) para no frustrar a usuarios que ya
@@ -39,7 +39,7 @@ public class RegistroRequest {
     private String email;
 
     /**
-     * Plan v2 §11.8: si se envía un código válido (8 chars), el usuario
+     * 8: si se envía un código válido (8 chars), el usuario
      * registrado queda vinculado como referido del dueño del código.
      * Opcional — registros sin código siguen funcionando.
      */

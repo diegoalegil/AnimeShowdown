@@ -129,7 +129,7 @@ public class TorneoAutoService {
                 enfs.size(),
                 seleccionados.stream().map(Personaje::getSlug).toList());
 
-        // Plan v2 §5.7 + SEO duelos (2026-05-19): IndexNow ping para que
+        // 7 + SEO duelos (2026-05-19): IndexNow ping para que
         // el nuevo torneo y sus landings /duelos/A-vs-B se descubran en
         // Bing/Yandex en minutos. Async + best-effort; no afecta al cron
         // si falla.

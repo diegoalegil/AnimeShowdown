@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
- * Recomendaciones de personajes "más como X" (Plan v2 §4.12).
+ * Recomendaciones de personajes "más como X".
  *
  * <p>Fuente única de verdad para el ELO: el conteo de votos del personaje.
  * No usamos atributos extendidos (género, era, tropos…) porque están

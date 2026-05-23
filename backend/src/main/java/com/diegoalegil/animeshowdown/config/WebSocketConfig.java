@@ -25,7 +25,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
 
 /**
- * Configuración WebSocket + STOMP (Plan v2 §2.13).
+ * Configuración WebSocket + STOMP.
  *
  * <h3>Endpoints y topics</h3>
  * <ul>
@@ -43,7 +43,7 @@ import com.diegoalegil.animeshowdown.security.JwtUtil;
  * <pre>Authorization: Bearer &lt;JWT&gt;</pre>
  * Si el cliente envía JWT, un {@link ChannelInterceptor} valida el token,
  * busca el usuario y setea el {@link java.security.Principal} en la sesión
- * STOMP — eso permite usar <code>convertAndSendToUser(usuario.getUsername(), ...)</code>.
+ * STOMP — eso permite usar <code>convertAndSendToUser(usuario.getUsername(),...)</code>.
  * Si no envía token, el CONNECT queda anónimo y solo sirve para topics
  * públicos como ranking/brackets.
  *
@@ -90,7 +90,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // conectados a instance-B.
         registry.enableSimpleBroker("/topic", "/queue");
         registry.setApplicationDestinationPrefixes("/app");
-        // Cuando el server llama convertAndSendToUser("foo", "/queue/x", ...),
+        // Cuando el server llama convertAndSendToUser("foo", "/queue/x",...),
         // Spring resuelve a "/user/foo/queue/x". El cliente se subscribe a
         // "/user/queue/x" y Spring hace el routing por Principal.
         registry.setUserDestinationPrefix("/user");
@@ -105,9 +105,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         if (!allowedOriginPatterns.isEmpty()) {
             endpoint.setAllowedOriginPatterns(allowedOriginPatterns.toArray(String[]::new));
         }
-        // Sin .withSockJS() — confiamos en WebSocket nativo. Si surge algún
+        // Sin.withSockJS() — confiamos en WebSocket nativo. Si surge algún
         // entorno bloqueado, el frontend usa el fallback al polling REST
-        // existente (Plan v2 §2.13).
+        // existente.
     }
 
     @Override

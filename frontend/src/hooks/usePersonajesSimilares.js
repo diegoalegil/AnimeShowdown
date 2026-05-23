@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../lib/api.js'
 
 /**
- * Recomendaciones cross-anime "Más como X" (Plan v2 §4.12).
+ * Recomendaciones cross-anime "Más como X".
  *
  * <p>Llama a {@code GET /api/personajes/{slug}/similares}. Cache 5min en
  * el backend, staleTime 5min en cliente para no spamear con cada cambio

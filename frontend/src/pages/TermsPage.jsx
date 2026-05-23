@@ -15,7 +15,7 @@ const containerVariants = {
 }
 
 /**
- * Términos de uso (Plan v2 §16.13). Marco legal mínimo para uso del
+ * Términos de uso. Marco legal mínimo para uso del
  * servicio: aceptación, conducta esperada, contenido generado por
  * usuarios, propiedad intelectual.
  */

@@ -4,7 +4,7 @@ import { endpoints } from '../lib/api.js'
 import { subscribe } from '../lib/stomp.js'
 
 /**
- * Hooks de ranking segmentado (Plan v2 §4.6).
+ * Hooks de ranking segmentado.
  *
  * - useRankingSegmentado({periodo, anime, limit}): top N personajes por
  *   votos en una ventana temporal o filtrados por anime.
@@ -36,7 +36,7 @@ export function useAnimesConVotos({ enabled = true } = {}) {
 }
 
 /**
- * Ranking actual con indicadores de movimiento ↑↓/Nuevo (Plan v2 §4.x).
+ * Ranking actual con indicadores de movimiento ↑↓/Nuevo.
  * Comparativa frente al ranking de hace {@code dias} días.
  */
 export function useRankingMovimientos({

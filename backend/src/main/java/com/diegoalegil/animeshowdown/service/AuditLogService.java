@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Audit log de eventos de auth/seguridad (Plan v2 §2.6).
+ * Audit log de eventos de auth/seguridad.
  *
  * Diseño:
  *

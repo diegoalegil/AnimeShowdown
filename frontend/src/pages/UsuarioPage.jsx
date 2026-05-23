@@ -26,7 +26,7 @@ const containerVariants = {
 }
 
 /**
- * Perfil público de cualquier usuario (Plan v2 §4.5).
+ * Perfil público de cualquier usuario.
  *
  * Ruta: /u/:username. Endpoint backend permitAll así que se ve sin login,
  * pero si hay sesión los flags `siguiendo` y `esMismoUsuario` permiten

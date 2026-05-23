@@ -4,7 +4,7 @@ import { endpoints } from '../lib/api.js'
 import { useStompSubscription } from './useStompSubscription.js'
 
 /**
- * Hooks de badges/logros (Plan v2 §4.2).
+ * Hooks de badges/logros.
  *
  * - useCatalogoLogros: catálogo público inmutable. Cacheable long-term
  *   (staleTime infinito de facto — solo se invalida tras deploy).
@@ -22,7 +22,7 @@ export function useCatalogoLogros() {
 }
 
 /**
- * Stats agregadas por badge para la página /logros (Plan v2 §4.10):
+ * Stats agregadas por badge para la página /logros:
  * { [codigo]: count } con cuántos usuarios han desbloqueado cada uno.
  * staleTime corto (5 min) para que la "rareza real comunidad" no se
  * quede demasiado rancia entre visitas.

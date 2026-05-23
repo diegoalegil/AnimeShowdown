@@ -20,7 +20,7 @@ import com.diegoalegil.animeshowdown.repository.LogroRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
 
 /**
- * Desbloqueo de badges/logros (Plan v2 §4.2).
+ * Desbloqueo de badges/logros.
  *
  * <p>API principal:
  * <ul>

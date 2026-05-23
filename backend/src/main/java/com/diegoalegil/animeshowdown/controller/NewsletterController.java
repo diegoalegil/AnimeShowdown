@@ -19,7 +19,7 @@ import com.diegoalegil.animeshowdown.service.NewsletterService;
 import jakarta.validation.Valid;
 
 /**
- * Endpoints REST de newsletter con double opt-in (Plan v2 §4.8).
+ * Endpoints REST de newsletter con double opt-in.
  *
  * <ul>
  *   <li>{@code POST /api/newsletter} — público. Body {email}. Crea o

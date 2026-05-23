@@ -11,7 +11,7 @@ import {
 import { ocultaImgRota } from '../lib/imgFallback'
 
 /**
- * TV Mode (Plan v2 §11.3) — vista pantalla completa sin chrome de la
+ * TV Mode — vista pantalla completa sin chrome de la
  * SPA. Pensada para streamers que quieren mostrar AnimeShowdown en su
  * stream, museos digitales, pantallas de eventos, etc.
  *

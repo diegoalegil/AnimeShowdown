@@ -35,7 +35,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     /**
      * Revoca todas las sesiones activas de un usuario. Usado en
-     * POST /auth/revoke-all (Plan v2 §1.3) y en cambio de contraseña
+     * POST /auth/revoke-all y en cambio de contraseña
      * (invalidar sesiones previas tras password change).
      */
     @Modifying

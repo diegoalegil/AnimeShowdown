@@ -3,7 +3,7 @@ import { endpoints } from '../lib/api.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 
 /**
- * Hooks del flujo de torneos creados por usuario (Plan v2 §4.9).
+ * Hooks del flujo de torneos creados por usuario.
  *
  * - useMisTorneos: lista del propio creador (todos los estados).
  * - useCrearTorneoMio: mutation con invalidación de /mios.

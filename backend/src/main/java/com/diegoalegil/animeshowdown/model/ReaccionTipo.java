@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
 /**
- * Los 4 emojis fijos de reactions (Plan v2 §4.3).
+ * Los 4 emojis fijos de reactions.
  *
  * <p>El cliente envía estos códigos en el body de POST /api/reacciones;
  * el frontend mapea cada uno al emoji visual al pintar.

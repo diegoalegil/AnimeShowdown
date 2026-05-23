@@ -14,10 +14,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByEmail(String email);
 
-    /** Plan v2 §11.8: lookup por código de referral en el registro. */
+    /** 8: lookup por código de referral en el registro. */
     Optional<Usuario> findByReferralCode(String referralCode);
 
-    /** Count de referidos verificados (Plan v2 §11.8, tier del badge reclutador). */
+    /** Count de referidos verificados. */
     @Query("SELECT COUNT(u) FROM Usuario u WHERE u.referredBy.id = :referrerId AND u.estadoVerificacion = com.diegoalegil.animeshowdown.model.EstadoVerificacion.ACTIVO")
     long countReferidosVerificadosByReferrerId(Long referrerId);
 

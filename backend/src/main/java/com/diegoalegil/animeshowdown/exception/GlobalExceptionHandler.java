@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
-     * Validación de @Valid (Plan v2 §2.6 + ajuste #14).
+     * Validación de @Valid.
      *
      * <p>Ajuste #14 (2026-05-21): antes devolvíamos {@code Map<field, msg>}
      * plano — forma distinta al resto de errores (que usan

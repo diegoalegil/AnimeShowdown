@@ -17,7 +17,7 @@ import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
  * Construye y mantiene la estructura de un bracket de eliminación directa.
  *
  * El frontend (Bracket.jsx) hoy computa las rondas localmente a partir
- * de un array de participantes ordenado por ELO. El Plan v2 §1.1 mueve
+ * de un array de participantes ordenado por ELO. El 1 mueve
  * esa verdad al backend: cuando se inicia un torneo de N personajes
  * (N potencia de 2), se persisten en BBDD log2(N) rondas en cascada:
  *
@@ -78,7 +78,7 @@ public class BracketService {
 
         List<Enfrentamiento> creados = new ArrayList<>();
 
-        // Ronda 1: empareja 0vs1, 2vs3, 4vs5, ... preservando el orden de
+        // Ronda 1: empareja 0vs1, 2vs3, 4vs5,... preservando el orden de
         // entrada. Si el caller quiere seeding por ELO debe pasar la lista
         // ya ordenada — BracketService no impone política de emparejamiento.
         for (int i = 0; i < tamano; i += 2) {

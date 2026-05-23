@@ -4,7 +4,7 @@ package com.diegoalegil.animeshowdown.model;
  * Ciclo de vida de un torneo.
  *
  * Antes los valores eran BORRADOR/ACTIVO/FINALIZADO. Se renombraron al
- * estándar SCHEDULED/IN_PROGRESS/FINISHED (Plan v2 §1.1, Bloque 17.1) para
+ * estándar SCHEDULED/IN_PROGRESS/FINISHED para
  * que el frontend pueda render progresivo del bracket por estado, y para
  * alinear con la convención usada en GitHub Actions, Kubernetes y schema.org
  * SportsEvent (que el Bloque 5.1 expondrá como JSON-LD).

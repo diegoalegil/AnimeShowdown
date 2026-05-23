@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
 /**
- * Tipos de notificación in-app persistentes (Plan v2 §2.13).
+ * Tipos de notificación in-app persistentes.
  *
  * <p>Cada tipo conlleva un template de título/mensaje que vive en el sitio
  * que dispara la notificación (no aquí — para que cada feature controle su
@@ -19,13 +19,13 @@ public enum NotificacionTipo {
     TORNEO_INICIADO,
     /** Torneo finalizado — al admin creador, con link al ganador. */
     TORNEO_FINALIZADO,
-    /** Badge/logro desbloqueado (Plan v2 §4.2). Payload con codigo+icono+rareza. */
+    /** Badge/logro desbloqueado. Payload con codigo+icono+rareza. */
     BADGE_DESBLOQUEADO,
-    /** Alguien ha empezado a seguir al usuario (Plan v2 §4.5). */
+    /** Alguien ha empezado a seguir al usuario. */
     SEGUIDOR_NUEVO,
-    /** Admin aprobó el torneo creado por el usuario (Plan v2 §4.9). */
+    /** Admin aprobó el torneo creado por el usuario. */
     TORNEO_APROBADO,
-    /** Admin rechazó el torneo creado por el usuario (Plan v2 §4.9). */
+    /** Admin rechazó el torneo creado por el usuario. */
     TORNEO_RECHAZADO,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA

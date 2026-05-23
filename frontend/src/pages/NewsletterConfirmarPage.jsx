@@ -8,7 +8,7 @@ import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 
 /**
- * Página de confirmación de suscripción a newsletter (Plan v2 §4.8).
+ * Página de confirmación de suscripción a newsletter.
  *
  * Se llega aquí desde el link enviado por email:
  * https://animeshowdown.dev/newsletter/confirmar?token=XXX

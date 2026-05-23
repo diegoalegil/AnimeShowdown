@@ -4,7 +4,7 @@ import { TrendingUp } from 'lucide-react'
 import { endpoints } from '../lib/api'
 
 /**
- * Time machine del ELO (Plan v2 §11.1).
+ * Time machine del ELO.
  *
  * <p>Pinta una línea SVG simple con la evolución de votos acumulados
  * del personaje en los últimos 30 días. Sin librerías de gráficos —

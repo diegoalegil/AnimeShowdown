@@ -18,7 +18,7 @@ import { endpoints, ApiError } from '../lib/api'
 import PasswordInput from './PasswordInput'
 
 /**
- * Card de "Verificación en dos pasos" para /perfil (Plan v2 §2.3).
+ * Card de "Verificación en dos pasos" para /perfil.
  *
  * Estado desactivado:
  *   - Card neutra con explicación + botón "Activar 2FA".

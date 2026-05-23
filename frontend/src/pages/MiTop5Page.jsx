@@ -36,7 +36,7 @@ const SUGERENCIAS_RAPIDAS_SLUGS = [
 ]
 
 /**
- * Generador "Mi Top 5" (Plan v2 §11.10) — el usuario elige 5 personajes
+ * Generador "Mi Top 5" — el usuario elige 5 personajes
  * favoritos del catálogo y exporta una imagen 1200×630 lista para
  * Twitter/Discord/Instagram con su selección.
  *

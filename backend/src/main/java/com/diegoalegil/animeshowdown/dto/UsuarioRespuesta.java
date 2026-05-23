@@ -12,13 +12,13 @@ public class UsuarioRespuesta {
     private String avatarUrl;
     private Rol rol;
     /**
-     * Estado de verificación de email (Plan v2 §2.4). El frontend lo usa
+     * Estado de verificación de email. El frontend lo usa
      * para decidir si pintar el banner "Verifica tu email" y bloquear
      * acciones que requieren ACTIVO (votar, crear torneos).
      */
     private EstadoVerificacion estadoVerificacion;
     /**
-     * 2FA TOTP activo (Plan v2 §2.3). El frontend lo usa en /perfil para
+     * 2FA TOTP activo. El frontend lo usa en /perfil para
      * mostrar "Activar 2FA" vs "Desactivar 2FA" sin pedir info al usuario.
      */
     private boolean totpHabilitado;

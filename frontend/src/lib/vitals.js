@@ -1,4 +1,4 @@
-// Reporting de Core Web Vitals (Plan v2 §3.8).
+// Reporting de Core Web Vitals.
 //
 // Captura CLS / INP / LCP / FCP / TTFB con la lib oficial 'web-vitals' y
 // los envía a Sentry como measurements. En dev local sin DSN simplemente

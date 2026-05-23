@@ -6,7 +6,7 @@ import { ocultaImgRota } from '../lib/imgFallback'
 import KanjiSpinner from './KanjiSpinner'
 
 /**
- * Card "Top personajes" del perfil (Plan v2 §4.1, §4.5).
+ * Card "Top personajes" del perfil.
  *
  * Lista los personajes más votados por un usuario, con avatar + nombre
  * + anime + count. Click → /personajes/{slug}.

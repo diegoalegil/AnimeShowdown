@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 /**
- * Join entre {@link Usuario} y {@link Logro} (Plan v2 §4.2).
+ * Join entre {@link Usuario} y {@link Logro}.
  *
  * <p>UNIQUE(usuario_id, logro_id) garantiza idempotencia: desbloquear dos
  * veces el mismo badge solo persiste una vez. La excepción de constraint

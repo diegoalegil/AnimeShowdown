@@ -21,7 +21,7 @@ import NotFoundPage from './NotFoundPage'
 
 /**
  * Ficha de un universo anime — mini-home del anime con stats agregados,
- * personajes destacados, ranking interno y grid completo. Plan v2 §14.
+ * personajes destacados, ranking interno y grid completo.
  */
 function AnimeDetailPage() {
   const { slug } = useParams()
