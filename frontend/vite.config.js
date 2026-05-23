@@ -106,8 +106,10 @@ function imgFolderPlugin() {
  * Critical CSS inline. Tras el build de Vite, procesamos
  * dist/index.html con beasties (fork mantenido del abandonado critters).
  * Beasties analiza qué selectores usa el HTML inicial y los inlina en un
- * <style> dentro del <head>; el resto del CSS sigue siendo async via
- * <link rel="preload" as="style" onload=...>.
+ * <style> dentro del <head>; el CSS completo sigue cargando como stylesheet
+ * normal. Evitamos estrategias async con `media=print/onload`: si Safari o
+ * una pestaña con SW stale falla durante el bootstrap JS, la app no debe
+ * quedar con el HTML montado pero sin estilos globales.
  *
  * Resultado típico: -200ms LCP, FOUC eliminado en la primera pintura.
  *
@@ -128,7 +130,7 @@ function criticalCssPlugin() {
       const beasties = new Beasties({
         path: resolve(__dirname, 'dist'),
         publicPath: '/',
-        preload: 'media',
+        preload: false,
         pruneSource: false,
         inlineThreshold: 4096,
         logLevel: 'warn',
