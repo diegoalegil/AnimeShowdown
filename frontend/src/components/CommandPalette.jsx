@@ -265,6 +265,7 @@ function CommandPalette({ initialOpen = false } = {}) {
       <button
         type="button"
         aria-label="Cerrar buscador"
+        tabIndex={-1}
         className="fixed inset-0 cursor-default bg-black/70 backdrop-blur-sm"
         onClick={() => {
           setSearch('')
