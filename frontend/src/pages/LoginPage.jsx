@@ -35,7 +35,7 @@ function LoginPage() {
   })
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()
-  // Nota P2 (2026-05-17): rutas protegidas (CrearTorneoPage, etc.)
+  // Rutas protegidas (CrearTorneoPage, etc.)
   // redirigían a /login?next=... pero LoginPage navegaba siempre a /
   // tras éxito. Honramos el next si está presente Y es relativo —
   // negar absolutas/protocol-relative evita open-redirect.
