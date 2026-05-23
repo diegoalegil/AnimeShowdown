@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import {
@@ -16,7 +16,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
-import { imagenPersonaje } from '../lib/personajes-core'
+import { getPersonajeBySlug, imagenPersonaje } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
 import { recordDailyShare } from '../lib/dailyProgress'
@@ -38,6 +38,33 @@ const containerVariants = {
 
 const SLOTS = 5
 const STORAGE_KEY = 'animeshowdown.mitop5.v1'
+
+function readStoredSlots() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return Array(SLOTS).fill(null)
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return Array(SLOTS).fill(null)
+    return parsed
+      .slice(0, SLOTS)
+      .concat(Array(SLOTS).fill(null))
+      .slice(0, SLOTS)
+  } catch {
+    return Array(SLOTS).fill(null)
+  }
+}
+
+function buildInitialSlots(addSlug) {
+  const slots = readStoredSlots()
+  if (!addSlug) return slots
+  const personaje = getPersonajeBySlug(addSlug)
+  if (!personaje || slots.includes(addSlug)) return slots
+  const idx = slots.findIndex((slot) => !slot)
+  if (idx === -1) return slots
+  const next = [...slots]
+  next[idx] = addSlug
+  return next
+}
 
 /**
  * Sugerencias rápidas para arrancar — 8 personajes muy reconocidos del
@@ -79,26 +106,17 @@ function MiTop5Page() {
     canonical: 'https://animeshowdown.dev/mi-top5',
   })
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const addFromQuery = searchParams.get('add')
   const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
   const personajesBySlug = useMemo(
     () => new Map(catalogoPersonajes.map((p) => [p.slug, p])),
     [catalogoPersonajes],
   )
 
-  const [slots, setSlots] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return Array(SLOTS).fill(null)
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return Array(SLOTS).fill(null)
-      return parsed
-          .slice(0, SLOTS)
-          .concat(Array(SLOTS).fill(null))
-          .slice(0, SLOTS)
-    } catch {
-      return Array(SLOTS).fill(null)
-    }
-  })
+  const [slots, setSlots] = useState(() =>
+    buildInitialSlots(addFromQuery),
+  )
 
   useEffect(() => {
     try {
@@ -112,6 +130,19 @@ function MiTop5Page() {
     () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
     [],
   )
+
+  useEffect(() => {
+    if (!addFromQuery) return
+    const personaje = getPersonajeBySlug(addFromQuery)
+    if (!personaje) {
+      toast.error('No encontré ese personaje para añadirlo al Top 5')
+    } else if (slots.includes(addFromQuery)) {
+      toast.success(`${personaje.nombre} listo en tu Top 5`)
+    } else {
+      toast.info('Top 5 completo. Quita uno para añadir otro.')
+    }
+    setSearchParams({}, { replace: true })
+  }, [addFromQuery, setSearchParams, slots])
 
   const personalStats = useMemo(
     () => getLocalVoteStats(localVotes),
