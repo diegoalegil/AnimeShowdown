@@ -408,7 +408,7 @@ function CategoriaCard({ rank, personaje, tono }) {
 function MoversStrip() {
   const { data: movs } = useRankingMovimientos({ dias: 7, limit: 30 })
   const top3 = useMemo(() => {
-    if (!movs) return []
+    if (!Array.isArray(movs)) return []
     return movs
       .filter((m) => m.delta != null && m.delta !== 0)
       .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
@@ -841,7 +841,7 @@ function ListaBackend({ periodo }) {
     enabled: periodo === 'all',
   })
   const movimientosPorSlug = useMemo(
-    () => movimientos ? new Map(movimientos.map((m) => [m.slug, m])) : null,
+    () => Array.isArray(movimientos) ? new Map(movimientos.map((m) => [m.slug, m])) : null,
     [movimientos],
   )
   return (
