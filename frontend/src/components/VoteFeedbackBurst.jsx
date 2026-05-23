@@ -3,13 +3,13 @@ import { motion, useReducedMotion } from 'framer-motion'
 
 const PARTICLES = Array.from({ length: 10 }, (_, index) => index)
 
-function AnimatedNumber({ value, delta }) {
+function AnimatedNumber({ value, delta, animate = true }) {
   const reduceMotion = useReducedMotion()
   const [display, setDisplay] = useState(value)
 
   useEffect(() => {
     if (!Number.isFinite(value)) return undefined
-    if (reduceMotion || !Number.isFinite(delta)) return undefined
+    if (!animate || reduceMotion || !Number.isFinite(delta)) return undefined
     const from = value - delta
     const start = performance.now()
     const duration = 520
@@ -22,14 +22,21 @@ function AnimatedNumber({ value, delta }) {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [value, delta, reduceMotion])
+  }, [value, delta, reduceMotion, animate])
 
   if (!Number.isFinite(value)) return null
-  const shown = reduceMotion || !Number.isFinite(delta) ? value : display
+  const shown = !animate || reduceMotion || !Number.isFinite(delta) ? value : display
   return <span className="tabular-nums">{shown}</span>
 }
 
-function VoteFeedbackBurst({ active, delta, value, label = 'Voto registrado' }) {
+function VoteFeedbackBurst({
+  active,
+  delta,
+  value,
+  label = 'Voto registrado',
+  animateValue = true,
+  particles = true,
+}) {
   const reduceMotion = useReducedMotion()
   if (!active) return null
   return (
@@ -49,12 +56,12 @@ function VoteFeedbackBurst({ active, delta, value, label = 'Voto registrado' }) 
           {Number.isFinite(value) && (
             <>
               {' · '}
-              <AnimatedNumber value={value} delta={delta} />
+              <AnimatedNumber value={value} delta={delta} animate={animateValue} />
             </>
           )}
         </span>
       </motion.div>
-      {!reduceMotion && PARTICLES.map((particle) => {
+      {particles && !reduceMotion && PARTICLES.map((particle) => {
         const angle = (Math.PI * 2 * particle) / PARTICLES.length
         const distance = particle % 2 === 0 ? 54 : 38
         return (
