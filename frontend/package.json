@@ -19,7 +19,6 @@
     "qa:a11y": "npx --yes @axe-core/cli@4.11.0 http://localhost:4173/ http://localhost:4173/personajes http://localhost:4173/animes http://localhost:4173/torneos http://localhost:4173/ranking http://localhost:4173/login http://localhost:4173/register --tags wcag2a,wcag2aa,wcag21a,wcag21aa --exit"
   },
   "dependencies": {
-    "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@sentry/react": "^10.53.1",
     "@stomp/stompjs": "^7.3.0",
