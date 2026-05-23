@@ -66,6 +66,7 @@ const MetodologiaEloPage = lazyRoute(() => import('./pages/MetodologiaEloPage'))
 const JuegosAnimePage = lazyRoute(() => import('./pages/JuegosAnimePage'))
 const MisionesPage = lazyRoute(() => import('./pages/MisionesPage'))
 const DescubrePersonajePage = lazyRoute(() => import('./pages/DescubrePersonajePage'))
+const MiRankingPage = lazyRoute(() => import('./pages/MiRankingPage'))
 const GamesHubPage = lazyRoute(() => import('./pages/GamesHubPage'))
 const GuessCharacterPage = lazyRoute(() => import('./pages/GuessCharacterPage'))
 const GuessAnimePage = lazyRoute(() => import('./pages/GuessAnimePage'))
@@ -332,6 +333,7 @@ function App() {
               <Route path="/juegos/anime" element={<JuegosAnimePage />} />
               <Route path="/mision-diaria" element={<Navigate replace to="/misiones" />} />
               <Route path="/misiones" element={<MisionesPage />} />
+              <Route path="/mi-ranking" element={<MiRankingPage />} />
               <Route path="/api-docs" element={<ApiDocsPage />} />
               <Route path="/status" element={<StatusPage />} />
               <Route path="/apoya" element={<ApoyaPage />} />

@@ -60,6 +60,7 @@ const rutas = [
   { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles, searchTerms: 'suerte diario fortuna' },
   { to: '/descubre-personaje', label: 'Descubre personaje', icon: Sparkles, searchTerms: 'random aleatorio descubrir personaje anime' },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp, searchTerms: 'clasificacion leaderboard top' },
+  { to: '/mi-ranking', label: 'Mi ranking personal', icon: Trophy, searchTerms: 'ranking personal votos locales top personajes' },
   { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp, searchTerms: 'comunidad usuarios ranking' },
   { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy, searchTerms: 'badges achievements rareza' },
   { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles, searchTerms: 'share top favoritos' },

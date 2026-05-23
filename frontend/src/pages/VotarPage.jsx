@@ -23,6 +23,7 @@ import AccessibleDialog from '../components/AccessibleDialog'
 import PersonajeImg from '../components/PersonajeImg'
 import DailyMissionPanel from '../components/DailyMissionPanel'
 import { recordDailyShare, recordDailyVote } from '../lib/dailyProgress'
+import { recordLocalVote } from '../lib/localVoteRanking'
 import { shareOrCopy } from '../lib/share'
 
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
@@ -487,6 +488,7 @@ function VotarPage() {
 
   const trackLocalVote = useCallback((ganador, perdedor, data) => {
     recordDailyVote()
+    recordLocalVote(ganador, perdedor)
     const votosGanador = Number(data?.votosGanador)
     const votosPerdedor = Number(data?.votosPerdedor)
     const isClose =
@@ -943,14 +945,23 @@ function VotarPage() {
                   : 'Voto registrado en modo casual. Sigue para completar tu misión diaria.'}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleShareVote}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-4 py-2 text-[13px] font-black text-white transition-colors hover:bg-accent-hover"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-              Compartir duelo
-            </button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                onClick={handleShareVote}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-4 py-2 text-[13px] font-black text-white transition-colors hover:bg-accent-hover"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Compartir duelo
+              </button>
+              <Link
+                to="/mi-ranking"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+              >
+                Mi ranking
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         )}
 
@@ -1175,14 +1186,22 @@ function SessionRecap({ stats, onShare }) {
               : 'Sigue votando para encontrar duelos más polémicos.'}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onShare}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gold/45 bg-gold px-4 py-2 text-[13px] font-black text-bg transition-transform hover:scale-[1.01]"
-        >
-          <Share2 className="h-3.5 w-3.5" />
-          Compartir recap
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/mi-ranking"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-bg/60 px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+          >
+            Ver mi ranking
+          </Link>
+          <button
+            type="button"
+            onClick={onShare}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gold/45 bg-gold px-4 py-2 text-[13px] font-black text-bg transition-transform hover:scale-[1.01]"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Compartir recap
+          </button>
+        </div>
       </div>
       {top.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
