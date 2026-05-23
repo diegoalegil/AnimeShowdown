@@ -19,6 +19,9 @@ import java.time.Duration;
  * URLs canonical:
  *   - GET /api/og/personaje/{slug}.png
  *   - GET /api/og/torneo/{slug}.png
+ *   - GET /api/og/ranking.png
+ *   - GET /api/og/anime/{slug}.png
+ *   - GET /api/og/pvp.png
  *
  * Headers:
  *   - Content-Type: image/png
@@ -59,5 +62,29 @@ public class OgImageController {
                 .contentType(MediaType.IMAGE_PNG)
                 .cacheControl(CACHE_7_DIAS)
                 .body(ogImageService.renderTorneo(slug));
+    }
+
+    @GetMapping(value = "/ranking.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> ranking() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderRanking());
+    }
+
+    @GetMapping(value = "/anime/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> anime(@PathVariable String slug) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderAnime(slug));
+    }
+
+    @GetMapping(value = "/pvp.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> pvp() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderPvp());
     }
 }
