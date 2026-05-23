@@ -94,7 +94,7 @@ function AutocompleteAnime({
   return (
     <div className="relative">
       {/*
-        Nota P2 (2026-05-17): mismo patrón combobox WAI-ARIA 1.2 que
+        mismo patrón combobox WAI-ARIA 1.2 que
         AutocompletePersonaje. role='combobox' + aria-haspopup='listbox'
         + aria-activedescendant para que SR anuncie la opción navegada
         sin mover el foco del input.

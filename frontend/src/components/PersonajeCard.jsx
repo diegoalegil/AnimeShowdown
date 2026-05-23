@@ -12,7 +12,7 @@ import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
 import { getStatsPersonaje } from '../lib/personajes-core'
 
-// Detector singleton de hover capability. Revisión (2026-05-17): cada
+// Detector singleton de hover capability. Cada
 // PersonajeCard creaba 2 motionValues + 2 springs + 4 transforms +
 // motionTemplate + handlers de mouse, INCLUSO en móvil donde no hay
 // hover y todo ese trabajo se desperdicia. Con 60 cards visibles eso

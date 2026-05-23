@@ -75,7 +75,7 @@ function buildPersonajesIndex() {
 }
 
 function CommandPalette({ initialOpen = false } = {}) {
-  // Revisión (2026-05-17): initialOpen permite al wrapper LazyMount abrir
+  // initialOpen permite al wrapper LazyMount abrir
   // el dialog directamente al primer atajo, sin depender de re-dispatch
   // del KeyboardEvent (que podía tragarse en redes lentas porque el
   // listener interno aún no estaba registrado cuando se re-emitía).
@@ -110,7 +110,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
   useEffect(() => {
     const onKey = (e) => {
-      // Revisión (2026-05-17): ESC cierra el dialog cuando ya no usamos
+      // ESC cierra el dialog cuando ya no usamos
       // Command.Dialog (Radix lo manejaba antes). Tab no necesita trap
       // explicito porque el palette tiene solo un input focusable +
       // los items son keyboard-navigable via cmdk internamente.
@@ -120,7 +120,7 @@ function CommandPalette({ initialOpen = false } = {}) {
         setOpen(false)
         return
       }
-      // Revisión (2026-05-18, 5ª iter): escucha K y J. Antes solo K;
+      // escucha K y J. Antes solo K;
       // J solo funcionaba la primera vez (lo capturaba el wrapper
       // LazyMount para armar el mount, pero tras cerrar y volver a
       // pulsar J, el listener interno no respondía).
@@ -150,7 +150,7 @@ function CommandPalette({ initialOpen = false } = {}) {
     return () => { document.body.style.overflow = prev }
   }, [open])
 
-  // Revisión (2026-05-17, 4ª iter): focus trap + restore al cerrar.
+  // focus trap + restore al cerrar.
   // Sin esto, Tab escapa al header/footer del fondo y al cerrar el
   // palette el foco se pierde a <body> en lugar de volver al trigger.
   //  - Al abrir: guarda el elemento con foco previo.
@@ -216,7 +216,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
   return (
     /*
-      Revisión a11y (2026-05-17, 3ª iter): reemplazado Command.Dialog (que
+      a11y: reemplazado Command.Dialog (que
       delega en Radix Dialog y emitía DialogContent requires a DialogTitle
       + aria-describedby a id inexistente porque cmdk@1.1.1 no expone los
       slots de Radix). Dialog manual: overlay + content con role/aria
@@ -253,7 +253,7 @@ function CommandPalette({ initialOpen = false } = {}) {
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <Search className="h-4 w-4 text-fg-muted" />
           {/*
-            Revisión (2026-05-18, 5ª iter): sin autoFocus. Antes el input
+            sin autoFocus. Antes el input
             se autofocuseaba en el commit y mi useEffect del focus trap
             capturaba activeElement DESPUÉS — terminaba guardando el
             propio input como "trigger previo" y al cerrar intentaba
