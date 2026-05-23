@@ -19,14 +19,13 @@ function encodeImageUrl(url) {
  * un {@link PersonajePlaceholder} en su lugar — iniciales, anime y kanji
  * decorativo. Nunca se muestra el icono de imagen rota del navegador.
  *
- * <p>Performance: usa {@code <picture>} con srcset WebP por anchos
- * (300/600/1024) generados por {@code generate-image-variants.mjs}. El
- * navegador elige el ancho que encaje con su viewport. Las variantes WebP
- * se commitean al repo; AVIF se genera localmente pero no se sube, así que
- * no se referencia desde producción.
+ * <p>Performance: usa {@code <picture>} con srcset WebP. Las variantes
+ * 300/600 se sirven desde assets generados y el WebP original actúa como
+ * candidato grande. AVIF se genera localmente pero no se sube, así que no
+ * se referencia desde producción.
  *
  * <p>Lazy loading y async decoding por default. El caller puede override
- * (p.ej. {@code loading="eager" fetchpriority="high"} para LCP).
+ * (p.ej. {@code loading="eager" fetchPriority="high"} para LCP).
  */
 function PersonajeImg({
   slug,
@@ -113,14 +112,14 @@ function PersonajeImg({
   const srcQuery = queryIndex === -1 ? '' : src.slice(queryIndex)
   const base = srcPath.replace(/\.webp$/i, '')
   const isWebp = /\.webp$/i.test(srcPath)
+  const imgSrc = encodeImageUrl(src)
   const srcsetWebp = isWebp
     ? [
         `${encodeImageUrl(`${base}-300.webp${srcQuery}`)} 300w`,
         `${encodeImageUrl(`${base}-600.webp${srcQuery}`)} 600w`,
-        `${encodeImageUrl(`${base}-1024.webp${srcQuery}`)} 1024w`,
+        `${imgSrc} 1024w`,
       ].join(', ')
     : undefined
-  const imgSrc = encodeImageUrl(src)
   // sizes default: estimación conservadora para que el browser no
   // sobre-descargue en mobile. El caller puede pasar sizes específico
   // (e.g. la imagen grande de la ficha de personaje usaría algo mayor).
