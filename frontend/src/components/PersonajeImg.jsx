@@ -74,6 +74,7 @@ function PersonajeImg({
   const errored = status.src === src && status.errored
   const dominantColor =
     colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
+  const altText = alt ?? nombre ?? p?.nombre ?? slug
 
   // Catálogo no hidratado todavía: imagenPersonaje(slug) devolvió el path
   // sentinel /img/_missing/${slug}.webp y no se pasó un srcOverride real.
@@ -90,7 +91,7 @@ function PersonajeImg({
         className={`relative block overflow-hidden ${className}`}
         style={{ backgroundColor: dominantColor, ...style }}
         aria-busy="true"
-        aria-label={alt || nombre || slug}
+        aria-label={altText}
       />
     )
   }
@@ -138,7 +139,7 @@ function PersonajeImg({
         )}
         <img
           src={imgSrc}
-          alt={alt}
+          alt={altText}
           className={`h-full w-full ${fitClass} ${positionClass} transition-opacity duration-300 motion-reduce:transition-none ${
             loaded ? 'opacity-100' : 'opacity-0'
           }`}
