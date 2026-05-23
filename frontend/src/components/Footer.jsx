@@ -1,8 +1,9 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Coffee, Swords } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
-import { personajes } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { slugifyAnime } from '../lib/animes'
 
 function GithubIcon({ className }) {
@@ -42,7 +43,7 @@ const soporteLinks = [
   { to: '/status', i18nKey: 'status' },
 ]
 
-function getTopAnimes() {
+function getTopAnimes(personajes) {
   const counts = {}
   personajes.forEach((p) => {
     counts[p.anime] = (counts[p.anime] || 0) + 1
@@ -54,7 +55,8 @@ function getTopAnimes() {
 
 function Footer() {
   const { t } = useTranslation()
-  const topAnimes = getTopAnimes()
+  const { personajes } = usePersonajesCatalogo()
+  const topAnimes = useMemo(() => getTopAnimes(personajes), [personajes])
   return (
     <footer className="relative isolate overflow-hidden border-t border-white/10 bg-bg/95">
       {/* Capas atmosféricas del footer: kanji 終 (fin), gradiente accent y particle dust.
@@ -177,28 +179,29 @@ function Footer() {
           </div>
         </div>
 
-        {/* SEO internal linking: top animes por roster */}
-        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
-            {t('footer.animesPopulares')}
-          </p>
-          <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
-            {topAnimes.map(([anime, count]) => (
-              <li key={anime}>
-                <Link
-                  to={`/animes/${slugifyAnime(anime)}`}
-                  className="text-fg-muted transition-colors hover:text-gold hover:underline"
-                  title={`Ranking interno y roster de ${anime} (${count} personajes)`}
-                >
-                  {anime}{' '}
-                  <span className="font-mono text-[11px] tabular-nums">
-                    ({count})
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {topAnimes.length > 0 && (
+          <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              {t('footer.animesPopulares')}
+            </p>
+            <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+              {topAnimes.map(([anime, count]) => (
+                <li key={anime}>
+                  <Link
+                    to={`/animes/${slugifyAnime(anime)}`}
+                    className="text-fg-muted transition-colors hover:text-gold hover:underline"
+                    title={`Ranking interno y roster de ${anime} (${count} personajes)`}
+                  >
+                    {anime}{' '}
+                    <span className="font-mono text-[11px] tabular-nums">
+                      ({count})
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* CTA de cierre: el footer termina con una tarjeta de marca que
             invita a votar antes de salir. */}
