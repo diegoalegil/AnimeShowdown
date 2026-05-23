@@ -1,5 +1,5 @@
 /**
- * Indicador visual de fortaleza de password (Plan v2 §2.5).
+ * Indicador visual de fortaleza de password.
  *
  * Lógica heurística simple en lugar de zxcvbn (que pesa ~100KB minified)
  * — para el nivel de exigencia del proyecto basta con:

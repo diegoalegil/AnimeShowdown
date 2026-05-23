@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react'
 
 /**
- * Inicializa Sentry si hay DSN configurado (Plan v2 §3.7).
+ * Inicializa Sentry si hay DSN configurado.
  *
  * - VITE_SENTRY_DSN se inyecta en build time desde Cloudflare Pages Env Vars.
  * - Si no hay DSN (dev local sin .env, o despliegues antes de configurar),

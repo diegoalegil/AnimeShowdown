@@ -5,7 +5,7 @@ import { Check, Mail } from 'lucide-react'
 import { ApiError, endpoints } from '../lib/api'
 
 /**
- * Form de suscripción a newsletter en el footer (Plan v2 §4.8).
+ * Form de suscripción a newsletter en el footer.
  *
  * Tras submit muestra estado de éxito inline (en lugar de toast) porque
  * vive en el footer y el toast podría perderse fuera del viewport.
