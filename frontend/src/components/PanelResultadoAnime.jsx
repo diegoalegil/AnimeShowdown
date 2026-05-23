@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check, Copy, Sparkles, X } from 'lucide-react'
+import { Check, Share2, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { recordDailyShare, setDailyGamesCompleted } from '../lib/dailyProgress'
+import { shareOrCopy } from '../lib/share'
 
 /**
  * Panel de resultado compartido entre los juegos del Daily Hub.
@@ -26,17 +29,37 @@ function PanelResultadoAnime({
   tier,
   squares,
   shareText,
+  shareTitle = 'AnimeShowdown Daily Trial',
+  shareUrl = '/games',
   bonusBadge,
   kanji,
   children,
 }) {
+  const [fallbackText, setFallbackText] = useState('')
+
+  useEffect(() => {
+    setDailyGamesCompleted(1)
+  }, [])
+
   const compartir = async () => {
     try {
-      await navigator.clipboard.writeText(shareText)
-      toast.success('Resultado copiado al portapapeles')
-    } catch {
+      const result = await shareOrCopy({
+        title: shareTitle,
+        text: shareText,
+        url: shareUrl,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(
+        result === 'native'
+          ? 'Resultado compartido'
+          : 'Resultado copiado al portapapeles',
+      )
+      setFallbackText('')
+    } catch (error) {
+      setFallbackText(error?.message || shareText)
       toast.error('No se pudo copiar', {
-        description: 'Selecciona el texto a mano.',
+        description: 'Te dejo el texto visible para copiarlo a mano.',
       })
     }
   }
@@ -136,9 +159,18 @@ function PanelResultadoAnime({
           onClick={compartir}
           className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
         >
-          <Copy className="h-3.5 w-3.5" />
-          Copiar resultado
+          <Share2 className="h-3.5 w-3.5" />
+          Compartir resultado
         </button>
+
+        {fallbackText && (
+          <textarea
+            readOnly
+            value={fallbackText}
+            className="mt-3 min-h-28 w-full rounded-lg border border-border bg-bg/70 p-3 text-[12px] leading-5 text-fg-muted outline-none"
+            aria-label="Texto del resultado para copiar manualmente"
+          />
+        )}
 
         {children && <div className="mt-4">{children}</div>}
       </div>

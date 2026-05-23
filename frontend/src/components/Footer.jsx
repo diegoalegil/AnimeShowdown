@@ -33,10 +33,13 @@ const productoLinks = [
   { to: '/votar', i18nKey: 'votar' },
   { to: '/ranking', i18nKey: 'ranking' },
   { to: '/games', i18nKey: 'games' },
+  { to: '/juegos/anime', i18nKey: 'juegosAnime' },
   { to: '/logros', i18nKey: 'logros' },
 ]
 
 const soporteLinks = [
+  { to: '/como-funciona', i18nKey: 'comoFunciona' },
+  { to: '/metodologia-elo', i18nKey: 'metodologia' },
   { to: '/faq', i18nKey: 'faq' },
   { to: '/glossary', i18nKey: 'glossary' },
   { to: '/api-docs', i18nKey: 'apiDocs' },

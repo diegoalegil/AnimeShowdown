@@ -94,10 +94,18 @@ function RankingPage() {
     [catalogoPersonajes],
   )
   useSeo({
-    title: 'Ranking ELO',
-    description: `Top ${catalogoPersonajes.length} personajes de anime ordenados por ELO. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
+    title: 'Ranking competitivo',
+    description: `Top ${catalogoPersonajes.length} personajes de anime ordenados por señales competitivas de la comunidad. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
   })
   const [tab, setTab] = useState('elo')
+  const consultadoA = useMemo(
+    () =>
+      new Date().toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    [],
+  )
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.ranking} className="py-10 sm:py-12" lateralKanji={{left: "頂", right: "点"}}>
@@ -112,13 +120,13 @@ function RankingPage() {
         <CinematicHero
           visual={BRAND_VISUALS.ranking}
           icon={Trophy}
-          eyebrow="Ranking ELO · Salón de la fama"
+          eyebrow="Ranking competitivo · Salón de la fama"
           title={
             <>
               ¿Quién domina <span className="as-title-gradient">AnimeShowdown?</span>
             </>
           }
-          subtitle="Estos son los personajes que la comunidad ha llevado a la cima. Cada voto afecta el ELO, cada duelo puede cambiar posiciones y ningún puesto está garantizado."
+          subtitle="Estos son los personajes que la comunidad ha llevado a la cima. Cada voto suma señal competitiva, cada duelo puede cambiar posiciones y ningún puesto está garantizado."
           actions={
             <>
               <Link
@@ -130,11 +138,11 @@ function RankingPage() {
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                to="/faq"
+                to="/metodologia-elo"
                 className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
               >
                 <HelpCircle className="h-4 w-4" />
-                Cómo funciona el ELO
+                Cómo funciona
               </Link>
             </>
           }
@@ -146,6 +154,10 @@ function RankingPage() {
             <p className="text-sm leading-relaxed text-fg-muted">
               La tabla cambia con cada duelo. Entra a votar si quieres mover el
               podio antes del próximo corte semanal.
+            </p>
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+              <Clock className="h-3.5 w-3.5 text-gold" />
+              Consultado hoy a las {consultadoA}
             </p>
             <Link
               to="/votar"
@@ -192,6 +204,8 @@ function RankingPage() {
 
         <HubLinks />
 
+        <RankingFaq />
+
         <TablaExtraible rankedElo={rankedElo} />
       </div>
     </VisualPageShell>
@@ -202,15 +216,15 @@ function EloExplainer() {
   const pasos = [
     {
       icon: Swords,
-      titulo: 'Cada duelo compara expectativas',
+      titulo: 'Cada duelo registra una preferencia',
       texto:
-        'Si gana el favorito, el cambio es pequeño. Si gana quien venía por debajo, el salto pesa más.',
+        'La comunidad elige entre dos personajes. Es una señal competitiva agregada, no una verdad absoluta sobre poder o canon.',
     },
     {
       icon: TrendingUp,
-      titulo: 'El ELO sube y baja al instante',
+      titulo: 'La tabla se mueve con votos reales',
       texto:
-        'El ganador suma y el perdedor resta según la diferencia previa entre ambos personajes.',
+        'Los tabs históricos y mensuales salen de actividad pública. El ELO base del catálogo sirve como estimación inicial y contexto.',
     },
     {
       icon: Medal,
@@ -231,14 +245,14 @@ function EloExplainer() {
             Cómo se mueve la tabla
           </p>
           <h2 id="elo-explicacion" className="mt-1 text-2xl">
-            El ELO no es popularidad plana: premia sorpresas y constancia
+            El ranking mezcla actividad comunitaria y contexto competitivo
           </h2>
         </div>
         <Link
-          to="/faq"
+          to="/metodologia-elo"
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
-          Leer FAQ
+          Ver metodología
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
@@ -1193,7 +1207,7 @@ function HubLinks() {
         </h2>
         <p className="mt-2 text-sm leading-7 text-fg-muted">
           Vota en nuevos duelos, explora personajes o revisa cómo funciona el
-          sistema ELO. Cada voto deja una marca visible en la tabla.
+          ranking competitivo. Cada voto deja una marca visible en la tabla.
         </p>
       </div>
       <div className="relative mt-5 flex flex-wrap gap-2">
@@ -1212,14 +1226,54 @@ function HubLinks() {
           Explorar personajes
         </Link>
         <Link
-          to="/faq"
+          to="/metodologia-elo"
           className="as-button-ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
         >
           <HelpCircle className="h-4 w-4" />
-          Cómo funciona el ELO
+          Cómo funciona
         </Link>
       </div>
     </div>
+  )
+}
+
+function RankingFaq() {
+  const faqs = [
+    {
+      q: '¿Qué mide este ranking?',
+      a: 'Mide señales competitivas de la comunidad: votos, actividad reciente y posición estimada. No pretende decidir canon ni poder absoluto.',
+    },
+    {
+      q: '¿Cada cuánto cambia?',
+      a: 'Los datos públicos se consultan en vivo y los indicadores de movimiento comparan la posición actual con cortes recientes, como los últimos 7 días.',
+    },
+    {
+      q: '¿Los votos invitados cuentan igual?',
+      a: 'Los invitados pueden probar la arena con límite y peso reducido. Crear cuenta permite seguir votando con historial y mejor protección antiabuso.',
+    },
+    {
+      q: '¿Qué diferencia hay entre ELO base y ranking comunitario?',
+      a: 'El ELO base es una estimación estática del catálogo. El ranking comunitario se alimenta de votos reales y actividad dentro de AnimeShowdown.',
+    },
+  ]
+
+  return (
+    <section className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+        FAQ del ranking
+      </p>
+      <h2 className="mt-1 text-2xl font-black text-fg-strong">
+        Cómo leer la tabla sin confundirse
+      </h2>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {faqs.map((item) => (
+          <div key={item.q} className="rounded-xl border border-border bg-bg/45 p-4">
+            <h3 className="text-base font-bold text-fg-strong">{item.q}</h3>
+            <p className="mt-2 text-[13px] leading-6 text-fg-muted">{item.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 

@@ -11,7 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
@@ -78,15 +77,14 @@ public class OgImageService {
 
     /**
      * OG image para `/personajes/{slug}`. Cache key = slug; TTL 7 días.
-     * Devuelve Optional vacío si el personaje no existe (404 en controller).
+     * Devuelve una imagen fallback si el personaje no existe o falla el render.
      */
-    @Cacheable(value = "og-personaje", key = "#slug", unless = "#result == null || !#result.isPresent()")
-    public Optional<byte[]> renderPersonaje(String slug) {
-        Optional<Personaje> opt = personajeRepository.findBySlug(slug);
-        if (opt.isEmpty()) {
-            return Optional.empty();
+    @Cacheable(value = "og-personaje", key = "#slug", unless = "#result == null")
+    public byte[] renderPersonaje(String slug) {
+        Personaje p = personajeRepository.findBySlug(slug).orElse(null);
+        if (p == null) {
+            return renderFallback("Personaje anime", "Duelo y ranking en AnimeShowdown");
         }
-        Personaje p = opt.get();
         try {
             BufferedImage canvas = nuevoLienzo();
             Graphics2D g = canvas.createGraphics();
@@ -99,10 +97,10 @@ public class OgImageService {
             } finally {
                 g.dispose();
             }
-            return Optional.of(toPng(canvas));
+            return toPng(canvas);
         } catch (Exception e) {
             log.error("OgImageService.renderPersonaje fallo slug={}: {}", slug, e.getMessage(), e);
-            return Optional.empty();
+            return renderFallback(p.getNombre(), p.getAnime());
         }
     }
 
@@ -111,13 +109,12 @@ public class OgImageService {
      * los textos vienen del torneo: nombre arriba, descripción abajo, foto
      * del ganador (si está FINISHED) o del primer participante (resto).
      */
-    @Cacheable(value = "og-torneo", key = "#slug", unless = "#result == null || !#result.isPresent()")
-    public Optional<byte[]> renderTorneo(String slug) {
-        Optional<Torneo> opt = torneoRepository.findBySlug(slug);
-        if (opt.isEmpty()) {
-            return Optional.empty();
+    @Cacheable(value = "og-torneo", key = "#slug", unless = "#result == null")
+    public byte[] renderTorneo(String slug) {
+        Torneo t = torneoRepository.findBySlug(slug).orElse(null);
+        if (t == null) {
+            return renderFallback("Torneo anime", "Bracket visual en AnimeShowdown");
         }
-        Torneo t = opt.get();
         // torneos PENDIENTE/RECHAZADO no son públicos —
         // generar y servir su OG image filtraría nombre + descripción a
         // cualquier scraper de Open Graph (Twitter, Discord, Slack). Same
@@ -125,7 +122,7 @@ public class OgImageService {
         var rev = t.getEstadoRevision();
         if (rev == com.diegoalegil.animeshowdown.model.EstadoRevision.PENDIENTE
                 || rev == com.diegoalegil.animeshowdown.model.EstadoRevision.RECHAZADO) {
-            return Optional.empty();
+            return renderFallback("Torneo anime", "Bracket visual en AnimeShowdown");
         }
         Personaje imagenFuente = t.getGanadorPersonaje();
         try {
@@ -142,10 +139,10 @@ public class OgImageService {
             } finally {
                 g.dispose();
             }
-            return Optional.of(toPng(canvas));
+            return toPng(canvas);
         } catch (Exception e) {
             log.error("OgImageService.renderTorneo fallo slug={}: {}", slug, e.getMessage(), e);
-            return Optional.empty();
+            return renderFallback(t.getNombre(), "Torneo en AnimeShowdown");
         }
     }
 
@@ -252,6 +249,33 @@ public class OgImageService {
         g.setFont(logoFont);
         g.setColor(ACENTO);
         g.drawString("AnimeShowdown", PADDING * 2 + FOTO_ANCHO, ALTO - PADDING);
+    }
+
+    private byte[] renderFallback(String titulo, String subtitulo) {
+        try {
+            BufferedImage canvas = nuevoLienzo();
+            Graphics2D g = canvas.createGraphics();
+            try {
+                aplicarHints(g);
+                dibujarFondo(g);
+                g.setColor(new Color(255, 46, 99, 35));
+                g.fillRoundRect(PADDING, PADDING, FOTO_ANCHO, ALTO - PADDING * 2, 36, 36);
+                g.setColor(new Color(255, 255, 255, 28));
+                g.drawRoundRect(PADDING, PADDING, FOTO_ANCHO, ALTO - PADDING * 2, 36, 36);
+                Font kanjiFont = new Font(Font.SANS_SERIF, Font.BOLD, 132);
+                g.setFont(kanjiFont);
+                g.setColor(new Color(245, 245, 250, 42));
+                g.drawString("勝", PADDING + 170, PADDING + 280);
+                dibujarTexto(g, titulo, subtitulo);
+                dibujarLogo(g);
+            } finally {
+                g.dispose();
+            }
+            return toPng(canvas);
+        } catch (Exception e) {
+            log.error("OgImageService.renderFallback fallo: {}", e.getMessage(), e);
+            return new byte[0];
+        }
     }
 
     /**

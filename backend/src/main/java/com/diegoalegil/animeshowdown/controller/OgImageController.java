@@ -1,7 +1,5 @@
 package com.diegoalegil.animeshowdown.controller;
 
-import java.util.Optional;
-
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,23 +47,17 @@ public class OgImageController {
 
     @GetMapping(value = "/personaje/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> personaje(@PathVariable String slug) {
-        Optional<byte[]> png = ogImageService.renderPersonaje(slug);
-        return png
-                .map(bytes -> ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_PNG)
-                        .cacheControl(CACHE_7_DIAS)
-                        .body(bytes))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderPersonaje(slug));
     }
 
     @GetMapping(value = "/torneo/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> torneo(@PathVariable String slug) {
-        Optional<byte[]> png = ogImageService.renderTorneo(slug);
-        return png
-                .map(bytes -> ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_PNG)
-                        .cacheControl(CACHE_7_DIAS)
-                        .body(bytes))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderTorneo(slug));
     }
 }

@@ -151,10 +151,10 @@ function RankingMetaReport() {
           <ArrowRight className="h-3 w-3" />
         </Link>
         <Link
-          to="/faq"
+          to="/metodologia-elo"
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/30 px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/50 hover:text-amber-200"
         >
-          Cómo se calcula el ELO
+          Cómo se calcula el ranking
         </Link>
       </div>
     </section>

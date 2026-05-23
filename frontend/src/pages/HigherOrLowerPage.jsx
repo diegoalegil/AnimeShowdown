@@ -9,7 +9,9 @@ import {
   ArrowDown,
   HelpCircle,
   Flame,
+  Share2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   getStatsPersonaje,
 } from '../lib/personajes-core'
@@ -23,6 +25,8 @@ import GameCatalogLoading from '../components/GameCatalogLoading'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { recordDailyShare } from '../lib/dailyProgress'
+import { shareOrCopy } from '../lib/share'
 
 function pickRandom(catalogoPersonajes, exclude = null) {
   const pool = exclude
@@ -422,6 +426,20 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
 
 function GameOver({ score, best, reference, challenger, onRestart }) {
   const challengerEsMayor = challenger.elo > reference.elo
+  const compartir = async () => {
+    try {
+      const result = await shareOrCopy({
+        title: 'ELO Duel',
+        text: `Mi racha en ELO Duel fue ${score}. Récord: ${best}.\nFallé con ${challenger.nombre} vs ${reference.nombre}.`,
+        url: '/games/elo-duel',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Resultado compartido' : 'Resultado copiado')
+    } catch {
+      toast.error('No se pudo compartir el resultado')
+    }
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -463,8 +481,16 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
           className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
           <Trophy className="h-4 w-4" />
-          Ver ranking ELO
+          Ver ranking
         </Link>
+        <button
+          type="button"
+          onClick={compartir}
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+        >
+          <Share2 className="h-4 w-4" />
+          Compartir racha
+        </button>
       </div>
     </motion.div>
   )
