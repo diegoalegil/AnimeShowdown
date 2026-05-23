@@ -494,7 +494,7 @@ erDiagram
 - [x] Core Web Vitals: preload del logo Hero con fetchpriority=high
 
 ### PWA + Performance (✅ completo)
-- [x] PWA con Workbox: CacheFirst /img/* y /api/og/*, NetworkFirst /api/personajes y /api/torneos
+- [x] PWA con Workbox: NetworkFirst para `/img/*`, chunks JS y APIs críticas; CacheFirst solo para `/api/og/*`
 - [x] AVIF + WebP responsive `<picture>` srcset 300/600/1024 (generador en build con sharp; build full opcional)
 - [x] Critical CSS inline con beasties (~5KB above-the-fold + bundle async)
 - [x] Bundle size budget 250KB gzip en CI
