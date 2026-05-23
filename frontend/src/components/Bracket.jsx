@@ -485,7 +485,7 @@ function PickButton({ personaje, onClick, disabled }) {
         slug={personaje.slug}
         src={personaje.imagenUrl}
         nombre={personaje.nombre}
-        alt=""
+        alt={personaje.nombre}
         className="h-4 w-4 shrink-0 rounded object-cover object-top"
       />
       <span className="truncate">{personaje.nombre}</span>
@@ -504,7 +504,7 @@ function BracketSlot({ personaje, winner }) {
         slug={personaje.slug}
         src={personaje.imagenUrl}
         nombre={personaje.nombre}
-        alt=""
+        alt={personaje.nombre}
         loading="lazy"
         className="h-8 w-8 shrink-0 rounded object-cover object-top"
       />

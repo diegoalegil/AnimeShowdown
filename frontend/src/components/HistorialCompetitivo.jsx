@@ -229,7 +229,7 @@ function DueloRow({ duelo }) {
         <Link to={`/personajes/${rival.slug}`} className="shrink-0">
           <img
             src={rival.imagenUrl || imagenPersonaje(rival.slug)}
-            alt=""
+            alt={rival.nombre}
             loading="lazy"
             onError={ocultaImgRota}
             className="h-12 w-9 rounded object-cover object-top"
@@ -443,7 +443,7 @@ function MatchupRow({ item, tipo }) {
       <Link to={`/personajes/${rival.slug}`} className="shrink-0">
         <img
           src={rival.imagenUrl || imagenPersonaje(rival.slug)}
-          alt=""
+          alt={rival.nombre}
           loading="lazy"
           onError={ocultaImgRota}
           className="h-7 w-5 rounded object-cover object-top"

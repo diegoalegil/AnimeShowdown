@@ -413,7 +413,7 @@ function CardSeleccion({
             >
               <img
                 src={p.imagen}
-                alt=""
+                alt={p.nombre}
                 loading="lazy"
                 onError={ocultaImgRota}
                 className="h-16 w-12 rounded object-cover object-top"

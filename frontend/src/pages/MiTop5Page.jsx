@@ -190,7 +190,7 @@ function MiTop5Page() {
                 >
                   <img
                     src={imagenPersonaje(p.slug)}
-                    alt=""
+                    alt={p.nombre}
                     loading="lazy"
                     onError={ocultaImgRota}
                     className="h-5 w-5 rounded-full object-cover object-top"

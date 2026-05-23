@@ -71,7 +71,7 @@ function CardTop5({
                 </span>
                 <img
                   src={p.imagenUrl}
-                  alt=""
+                  alt={p.nombre}
                   loading="lazy"
                   onError={ocultaImgRota}
                   className="h-10 w-8 shrink-0 rounded object-cover object-top"

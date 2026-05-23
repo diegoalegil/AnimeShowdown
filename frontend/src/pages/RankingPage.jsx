@@ -449,7 +449,7 @@ function MoverChip({ mover }) {
     >
       <img
         src={mover.imagenUrl || imagenPersonaje(mover.slug)}
-        alt=""
+        alt={mover.nombre}
         loading="lazy"
         onError={ocultaImgRota}
         className="h-12 w-9 shrink-0 rounded object-cover object-top"
@@ -999,7 +999,7 @@ function RankRowElo({
           src={imagenUrl}
           nombre={nombre}
           colorDominante={imagenColorDominante}
-          alt=""
+          alt={nombre}
           loading="lazy"
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />
@@ -1055,7 +1055,7 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
           src={personaje.imagenUrl}
           nombre={personaje.nombre}
           colorDominante={personaje.imagenColorDominante}
-          alt=""
+          alt={personaje.nombre}
           loading="lazy"
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />

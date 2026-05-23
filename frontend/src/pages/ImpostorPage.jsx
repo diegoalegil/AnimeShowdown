@@ -310,7 +310,7 @@ function Carta({ item, onClick }) {
       <div className="aspect-[3/4] w-full overflow-hidden bg-surface-alt">
         <img
           src={item.imagen}
-          alt=""
+          alt={item.nombre}
           loading="lazy"
           onError={ocultaImgRota}
           className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"

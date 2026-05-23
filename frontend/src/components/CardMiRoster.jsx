@@ -76,7 +76,7 @@ function RosterCard({ favorito }) {
           {imagenUrl ? (
             <img
               src={imagenUrl}
-              alt=""
+              alt={nombre}
               loading="lazy"
               onError={ocultaImgRota}
               className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
