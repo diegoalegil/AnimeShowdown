@@ -40,7 +40,6 @@ public class DueloLiveService {
     private static final Logger log = LoggerFactory.getLogger(DueloLiveService.class);
     private static final int MAX_ELO_DIFF = 100;
     private static final int ROUND_SECONDS = 12;
-    private static final int BOT_AFTER_SECONDS = 30;
     private static final int WALKOVER_GRACE_SECONDS = 15;
     private static final int COMPLETED_PER_HOUR_LIMIT = 10;
 
@@ -56,6 +55,7 @@ public class DueloLiveService {
     private final BadgeService badgeService;
     private final Clock clock;
     private final boolean scheduledMaintenanceEnabled;
+    private final int fallbackAfterSeconds;
 
     public DueloLiveService(DueloLiveRepository dueloRepository,
             DueloLiveRondaRepository rondaRepository,
@@ -68,6 +68,8 @@ public class DueloLiveService {
             SimpMessagingTemplate messaging,
             BadgeService badgeService,
             Clock clock,
+            @Value("${app.duelo-live.fallback-after-seconds:10}")
+            int fallbackAfterSeconds,
             @Value("${app.duelo-live.scheduled-maintenance.enabled:true}")
             boolean scheduledMaintenanceEnabled) {
         this.dueloRepository = dueloRepository;
@@ -81,6 +83,7 @@ public class DueloLiveService {
         this.messaging = messaging;
         this.badgeService = badgeService;
         this.clock = clock;
+        this.fallbackAfterSeconds = Math.max(3, fallbackAfterSeconds);
         this.scheduledMaintenanceEnabled = scheduledMaintenanceEnabled;
     }
 
@@ -236,10 +239,10 @@ public class DueloLiveService {
     private void mantenimientoLiveInternal() {
         LocalDateTime now = now();
         for (DueloLive duelo : dueloRepository.findByEstadoIn(List.of(DueloLiveEstado.WAITING))) {
-            if (Duration.between(duelo.getCreadoEn(), now).getSeconds() >= BOT_AFTER_SECONDS) {
+            if (Duration.between(duelo.getCreadoEn(), now).getSeconds() >= fallbackAfterSeconds) {
                 prepararMatch(duelo, true);
                 dueloRepository.save(duelo);
-                emitirEstado(duelo, "MATCH_FOUND", "No había rival humano: entra el bot");
+                emitirEstado(duelo, "MATCH_FOUND", "Rival encontrado");
             }
         }
         for (DueloLiveRonda ronda : rondaRepository.findExpiradas(now.minusSeconds(WALKOVER_GRACE_SECONDS))) {
@@ -424,7 +427,24 @@ public class DueloLiveService {
                     ? DueloLiveChoice.A
                     : DueloLiveChoice.B;
         }
+        if (botFallaRonda(ronda)) {
+            return correcta == DueloLiveChoice.A ? DueloLiveChoice.B : DueloLiveChoice.A;
+        }
         return correcta;
+    }
+
+    private boolean botFallaRonda(DueloLiveRonda ronda) {
+        long seed = 17L;
+        seed = seed * 31 + nullSafeId(ronda.getId());
+        seed = seed * 31 + nullSafeId(ronda.getDuelo() == null ? null : ronda.getDuelo().getId());
+        seed = seed * 31 + ronda.getNumero();
+        seed = seed * 31 + nullSafeId(ronda.getPersonajeA() == null ? null : ronda.getPersonajeA().getId());
+        seed = seed * 31 + nullSafeId(ronda.getPersonajeB() == null ? null : ronda.getPersonajeB().getId());
+        return Math.floorMod(seed, 4) == 0;
+    }
+
+    private static long nullSafeId(Long id) {
+        return id == null ? 0L : id;
     }
 
     private void marcarSeen(DueloLive duelo, Usuario usuario) {
