@@ -80,5 +80,10 @@ memory/
 private/
 local-notes/
 review-notes/
+audit/
+audits/
+AUDIT*.md
+*AUDIT*.md
+*audit*.md
 *.private.md
 *.local.md
