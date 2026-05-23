@@ -386,6 +386,7 @@ function CardSeleccion({
           type="search"
           value={query}
           onChange={(e) => onQuery(e.target.value)}
+          aria-label="Filtrar personajes para el torneo"
           placeholder="Filtra por nombre o anime…"
           className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
         />

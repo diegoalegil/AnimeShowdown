@@ -461,6 +461,7 @@ function PersonajesPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="Buscar personajes"
               placeholder="Busca personaje, anime o alias…"
               aria-expanded={autocompleteQuery.length >= 2}
               aria-controls="personajes-search-results"
