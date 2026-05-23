@@ -138,15 +138,15 @@
 
 		<!-- TwelveMonkeys ImageIO plugin para leer webp en BufferedImage.
 		     Java SE no soporta webp por defecto y las imágenes del catálogo
-		     están en webp. Plan v2 §1.2: OG image dinámica server-side. -->
+		     están en webp; también se usa para componer OG images dinámicas. -->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-webp</artifactId>
 			<version>3.13.1</version>
 		</dependency>
 
-		<!-- Bucket4j para rate limiting in-memory (Plan v2 §2.1).
-		     Protege /auth/login, /auth/registro, /auth/forgot, /auth/reset
+		<!-- Bucket4j para rate limiting in-memory. Protege /auth/login,
+		     /auth/registro, /auth/forgot, /auth/reset
 		     y /enfrentamientos/*/votar contra ataques de fuerza bruta y
 		     spam de votos. Bandwidth compuesto: 5/min + 50/hora por IP. -->
 		<dependency>
@@ -155,8 +155,8 @@
 			<version>8.10.1</version>
 		</dependency>
 
-		<!-- Flyway para migraciones de schema versionadas (Plan v2 §2.7).
-		     Reemplaza al hibernate ddl-auto=update + SchemaMigrations.java
+		<!-- Flyway para migraciones de schema versionadas. Reemplaza al
+		     hibernate ddl-auto=update + SchemaMigrations.java
 		     manual. Cada cambio futuro = un V{n}__{descripcion}.sql en
 		     resources/db/migration. -->
 		<dependency>
@@ -168,16 +168,13 @@
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
-		<!-- springdoc-openapi 2.8.5 declarada arriba (Plan v2 §2.15) —
-		     disponible en /v3/api-docs y /swagger-ui.html. Sienta base
-		     para publicar la API en SwaggerHub cuando llegue el bloque
-		     público de developers (Plan v2 §11.4). El duplicado previo
-		     con versión 2.7.0 se eliminó: Maven respeta el primer
-		     declarado pero el warning de "duplicate" amenazaba estabilidad
-		     futura. -->
+		<!-- springdoc-openapi 2.8.5 declarada arriba — disponible en
+		     /v3/api-docs y /swagger-ui.html. El duplicado previo con
+		     versión 2.7.0 se eliminó: Maven respeta el primer declarado
+		     pero el warning de "duplicate" amenazaba estabilidad futura. -->
 
 		<!-- spring-retry para @Retryable + @Recover en EmailService
-		     (Plan v2 §2.12). aspectjweaver lo arrastra spring-boot ya. -->
+		     aspectjweaver lo arrastra spring-boot ya. -->
 		<dependency>
 			<groupId>org.springframework.retry</groupId>
 			<artifactId>spring-retry</artifactId>
@@ -187,8 +184,8 @@
 			<artifactId>spring-aspects</artifactId>
 		</dependency>
 
-		<!-- TOTP (Plan v2 §2.3): generación de secrets base32, validación
-		     de códigos de 6 dígitos con drift de ±1 step (30s cada uno),
+		<!-- TOTP: generación de secrets base32, validación de códigos
+		     de 6 dígitos con drift de ±1 step (30s cada uno),
 		     y construcción de la URI otpauth:// que codificamos a QR
 		     para que el user la escanee con Google Authenticator, Authy,
 		     1Password, etc. Lib pura Java sin dependencias externas. -->
@@ -198,8 +195,8 @@
 			<version>1.7.1</version>
 		</dependency>
 
-		<!-- WebSocket + STOMP (Plan v2 §2.13). Spring Boot starter trae
-		     spring-websocket + spring-messaging + jackson-jsr310. Endpoint
+		<!-- WebSocket + STOMP. Spring Boot starter trae spring-websocket
+		     + spring-messaging + jackson-jsr310. Endpoint
 		     STOMP en /ws con handshake JWT-autenticado; broker simple
 		     in-memory para /topic (broadcast público de brackets) y
 		     /user/queue (notificaciones personales). Cliente frontend:
@@ -216,8 +213,8 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<!-- Nota P1.3 (2026-05-17): Mockito inline mock-maker hace
-			     self-attach del ByteBuddy agent en runtime para poder
+			<!-- Mockito inline mock-maker hace self-attach del ByteBuddy
+			     agent en runtime para poder
 			     mockear final classes/methods. En JDK 21+ esto genera
 			     warning ("Mockito is currently self-attaching") y en
 			     JDK 24+ está bloqueado por default a menos que pases

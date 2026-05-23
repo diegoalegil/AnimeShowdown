@@ -99,8 +99,8 @@ const popularidadCatalogo = extractPopularidadFromCore(
   join(ROOT, 'frontend/src/lib/personajes-core.js'),
 )
 
-// Nota P2.7 (2026-05-17): derivamos lista de animes únicos del catálogo
-// para emitir una URL /animes/{slug} por cada uno. Antes faltaban — el
+// Derivamos la lista de animes únicos del catálogo para emitir una URL
+// /animes/{slug} por cada uno. Antes faltaban — el
 // sitemap solo tenía /animes (listado) pero no las fichas individuales,
 // perdiendo ~70 páginas indexables con contenido único (top ELO, roster,
 // schema TVSeries, etc).

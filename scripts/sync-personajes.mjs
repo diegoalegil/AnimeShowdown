@@ -102,8 +102,8 @@ function scanFolder() {
       .sort()
     for (const file of allFiles) {
       const lower = file.toLowerCase()
-      // Nota P2.6 (2026-05-17): detecta PNG/JPG sueltos en folders de
-      // anime. El catálogo asume .webp como fuente; estos archivos no
+      // Detecta PNG/JPG sueltos en folders de anime. El catálogo asume
+      // .webp como fuente; estos archivos no
       // se incorporan al seed y por tanto no aparecen en producción.
       // Suelen ser drops sin renombrar (nombres tipo hash). Warning
       // accionable para que el usuario los convierta o renombre.
