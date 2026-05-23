@@ -18,6 +18,7 @@ import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import PersonajeImg from '../components/PersonajeImg'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   buildShareSquares,
   fechaDelDia,
   personajeDelDia,
@@ -329,11 +330,15 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     intentos.map((i) => i.acierto),
     MAX_INTENTOS,
   )
-  const texto = `📺 Guess the Anime — ${fechaDelDia()}\n${
-    acertado
-      ? `✅ Acerté en ${totalIntentos}/${MAX_INTENTOS}`
-      : `❌ Era ${objetivo.anime} (${objetivo.nombre})`
-  }\n${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/anime-reveal`
+  const texto = buildGameShareText({
+    game: 'Anime Reveal',
+    date: fechaDelDia(),
+    result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
+    detail: acertado
+      ? `Acerté que era ${objetivo.anime}.`
+      : `Era ${objetivo.anime} (${objetivo.nombre}).`,
+    grid: `${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}`,
+  })
 
   const titulo = perfecto
     ? `PERFECT CLEAR · ${objetivo.anime}`
@@ -352,6 +357,8 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       tier={tier}
       squares={intentos.map((i) => ({ ok: i.acierto }))}
       bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareTitle="Anime Reveal — AnimeShowdown"
+      shareUrl="/games/anime-reveal"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">

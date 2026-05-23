@@ -19,6 +19,7 @@ import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
@@ -484,11 +485,15 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     return { ok: matches >= 2, emoji: matches >= 2 ? '🌟' : '🍂' }
   })
 
-  const texto = `🎴 Anidel — ${fechaDelDia()}\n${
-    acertado
-      ? `✅ ${totalIntentos}/${MAX_INTENTOS}`
-      : `❌ X/${MAX_INTENTOS} — era ${objetivo.nombre}`
-  }${pistaUsada ? '  💡' : ''}\n${squaresShare}\nanimeshowdown.dev/games/anigrid`
+  const texto = buildGameShareText({
+    game: 'AniGrid',
+    date: fechaDelDia(),
+    result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
+    detail: acertado
+      ? `Adiviné a ${objetivo.nombre}.`
+      : `Era ${objetivo.nombre} (${objetivo.anime}).`,
+    grid: `${squaresShare}${pistaUsada ? '\n💡 pista usada' : ''}`,
+  })
 
   const titulo = perfecto
     ? `PERFECT CLEAR · ${objetivo.nombre}`
@@ -507,6 +512,8 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       tier={tier}
       squares={squaresUI}
       bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareTitle="AniGrid — AnimeShowdown"
+      shareUrl="/games/anigrid"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">
