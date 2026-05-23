@@ -39,6 +39,7 @@ const routePreloaders = {
   personajeDetail: () => import('./pages/PersonajeDetailPage'),
   animes: () => import('./pages/AnimesPage'),
   animeDetail: () => import('./pages/AnimeDetailPage'),
+  animeRanking: () => import('./pages/AnimeRankingPage'),
   torneos: () => import('./pages/TorneosPage'),
   torneoDetail: () => import('./pages/TorneoDetailPage'),
   ranking: () => import('./pages/RankingPage'),
@@ -58,6 +59,7 @@ const PersonajesPage = lazyRoute(routePreloaders.personajes)
 const PersonajeDetailPage = lazyRoute(routePreloaders.personajeDetail)
 const AnimesPage = lazyRoute(routePreloaders.animes)
 const AnimeDetailPage = lazyRoute(routePreloaders.animeDetail)
+const AnimeRankingPage = lazyRoute(routePreloaders.animeRanking)
 const TorneosPage = lazyRoute(routePreloaders.torneos)
 const TorneoDetailPage = lazyRoute(routePreloaders.torneoDetail)
 const EventosIndexPage = lazyRoute(() => import('./pages/EventosIndexPage'))
@@ -127,6 +129,7 @@ function routePreloaderFor(pathname) {
   if (pathname === '/personajes') return routePreloaders.personajes
   if (pathname.startsWith('/personajes/')) return routePreloaders.personajeDetail
   if (pathname === '/animes') return routePreloaders.animes
+  if (pathname.startsWith('/animes/') && pathname.endsWith('/ranking')) return routePreloaders.animeRanking
   if (pathname.startsWith('/animes/')) return routePreloaders.animeDetail
   if (pathname === '/torneos') return routePreloaders.torneos
   if (pathname.startsWith('/torneos/')) return routePreloaders.torneoDetail
@@ -458,6 +461,7 @@ function App() {
               <Route path="/personajes" element={gated(<PersonajesPage />)} />
               <Route path="/personajes/:slug" element={gated(<PersonajeDetailPage />)} />
               <Route path="/animes" element={gated(<AnimesPage />)} />
+              <Route path="/animes/:slug/ranking" element={gated(<AnimeRankingPage />)} />
               <Route path="/animes/:slug" element={gated(<AnimeDetailPage />)} />
               <Route path="/torneos" element={gated(<TorneosPage />)} />
               <Route path="/torneos/crear" element={gated(<CrearTorneoPage />)} />

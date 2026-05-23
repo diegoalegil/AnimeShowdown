@@ -24,6 +24,7 @@ Robots: https://animeshowdown.dev/robots.txt
 - https://animeshowdown.dev/juegos/anime — indexable overview of anime games online.
 - https://animeshowdown.dev/personajes — character catalogue.
 - https://animeshowdown.dev/animes — anime universe catalogue.
+- https://animeshowdown.dev/animes/{slug}/ranking — anime-specific character ranking pages with community votes when available and ELO base fallback when activity is low.
 - https://animeshowdown.dev/torneos — tournament brackets.
 - https://animeshowdown.dev/como-funciona — product explanation.
 - https://animeshowdown.dev/metodologia-elo — ranking methodology and terminology.
@@ -35,6 +36,7 @@ Robots: https://animeshowdown.dev/robots.txt
 
 - Character entities use https://animeshowdown.dev/personajes/{slug}.
 - Anime universe entities use https://animeshowdown.dev/animes/{slug}.
+- Anime-specific ranking pages use https://animeshowdown.dev/animes/{slug}/ranking.
 - Tournament entities use https://animeshowdown.dev/torneos/{slug}.
 - Shareable comparison pages may use https://animeshowdown.dev/duelos/{slug-a}-vs-{slug-b}, but these are best treated as lightweight comparison views unless they contain curated editorial copy.
 - Exact voting links may use https://animeshowdown.dev/votar?personaje={slug-a}&rival={slug-b} to open the voting arena with that initial pair. Treat these as interactive vote entry points, not canonical citation pages.
