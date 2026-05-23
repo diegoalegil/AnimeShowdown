@@ -142,6 +142,7 @@ const staticRoutes = [
   { path: '/personajes', priority: '0.9', changefreq: 'weekly' },
   { path: '/animes', priority: '0.8', changefreq: 'weekly' },
   { path: '/torneos', priority: '0.9', changefreq: 'weekly' },
+  { path: '/eventos', priority: '0.7', changefreq: 'weekly' },
   { path: '/ranking', priority: '0.9', changefreq: 'daily' },
   { path: '/leaderboards', priority: '0.7', changefreq: 'daily' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
@@ -172,6 +173,7 @@ const staticRoutes = [
   { path: '/dmca', priority: '0.3', changefreq: 'yearly' },
   { path: '/faq', priority: '0.6', changefreq: 'monthly' },
   { path: '/api-docs', priority: '0.5', changefreq: 'monthly' },
+  { path: '/status', priority: '0.5', changefreq: 'daily' },
 ]
 
 const today = new Date().toISOString().split('T')[0]

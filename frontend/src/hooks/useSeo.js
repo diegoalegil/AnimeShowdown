@@ -92,7 +92,14 @@ export function useSeo({
 
 function absolutizar(src) {
   if (!src) return src
-  if (src.startsWith('http://') || src.startsWith('https://')) return src
+  if (
+    src.startsWith('http://') ||
+    src.startsWith('https://') ||
+    src.startsWith('data:') ||
+    src.startsWith('blob:')
+  ) {
+    return src
+  }
   return `${SITIO}${src.startsWith('/') ? '' : '/'}${src}`
 }
 
@@ -103,9 +110,9 @@ function absolutizar(src) {
  * {@code ?lang} sobre la preferencia de localStorage para que crawlers
  * que entran via hreflang aterricen en el idioma correcto.
  *
- * <p>El soporte de {@code ?lang} en el cliente queda pendiente del
- * capa correspondiente.b — por ahora los crawlers entran ignorando el param, que
- * no rompe nada (i18next cae a su detector normal).
+ * <p>El soporte de {@code ?lang} en el cliente todavía es parcial: si
+ * un crawler ignora el parámetro, i18next cae a su detector normal y la
+ * página sigue siendo accesible.
  */
 function withLangParam(url, lang) {
   try {
