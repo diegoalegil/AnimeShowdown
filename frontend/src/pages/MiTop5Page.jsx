@@ -7,8 +7,8 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
-import { personajes, imagenPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { imagenPersonaje } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
 
 const containerVariants = {
@@ -61,6 +61,11 @@ function MiTop5Page() {
     description:
       'Elige tus 5 personajes anime favoritos y exporta una imagen 1200×630 lista para compartir en Twitter, Discord o Instagram.',
   })
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const personajesBySlug = useMemo(
+    () => new Map(catalogoPersonajes.map((p) => [p.slug, p])),
+    [catalogoPersonajes],
+  )
 
   const [slots, setSlots] = useState(() => {
     try {
@@ -101,10 +106,10 @@ function MiTop5Page() {
   // Sugerencias = top slugs que aún no están en el top del user
   const sugerenciasDisponibles = useMemo(() => {
     return SUGERENCIAS_RAPIDAS_SLUGS
-      .map((slug) => personajes.find((p) => p.slug === slug))
+      .map((slug) => personajesBySlug.get(slug))
       .filter((p) => p && !slots.includes(p.slug))
       .slice(0, 6)
-  }, [slots])
+  }, [personajesBySlug, slots])
 
   const addSlugAlPrimerSlotLibre = (slug) => {
     const idx = slots.findIndex((s) => !s)
@@ -164,7 +169,13 @@ function MiTop5Page() {
             entra dentro del primer viewport. */}
         <div className="mb-5 grid grid-cols-5 gap-2 sm:mb-8 sm:gap-4">
           {slots.map((slug, i) => (
-            <Slot key={i} slug={slug} index={i} onQuitar={() => quitarSlot(i)} />
+            <Slot
+              key={i}
+              slug={slug}
+              personaje={slug ? personajesBySlug.get(slug) : null}
+              index={i}
+              onQuitar={() => quitarSlot(i)}
+            />
           ))}
         </div>
 
@@ -188,11 +199,11 @@ function MiTop5Page() {
                   onClick={() => addSlugAlPrimerSlotLibre(p.slug)}
                   className="group inline-flex items-center gap-2 rounded-full border border-border bg-bg px-2 py-1 text-[12px] font-medium text-fg-strong transition-colors hover:border-accent hover:text-gold"
                 >
-                  <img
-                    src={imagenPersonaje(p.slug)}
+                  <PersonajeImg
+                    slug={p.slug}
+                    src={p.imagenUrl ?? p.imagen}
                     alt={p.nombre}
                     loading="lazy"
-                    onError={ocultaImgRota}
                     className="h-5 w-5 rounded-full object-cover object-top"
                   />
                   {p.nombre}
@@ -213,13 +224,17 @@ function MiTop5Page() {
           />
         </div>
 
-        <CanvasPreview slots={slots} completo={completo} />
+        <CanvasPreview
+          slots={slots}
+          completo={completo}
+          personajesBySlug={personajesBySlug}
+        />
       </div>
     </section>
   )
 }
 
-function Slot({ slug, index, onQuitar }) {
+function Slot({ slug, personaje, index, onQuitar }) {
   if (!slug) {
     return (
       <div className="flex aspect-[2/3] flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border bg-bg/30 text-fg-muted sm:gap-2 sm:rounded-xl">
@@ -230,12 +245,12 @@ function Slot({ slug, index, onQuitar }) {
       </div>
     )
   }
-  const p = personajes.find((x) => x.slug === slug)
   return (
     <div className="group relative aspect-[2/3] overflow-hidden rounded-lg border border-border sm:rounded-xl">
       <PersonajeImg
         slug={slug}
-        alt={p?.nombre ?? slug}
+        src={personaje?.imagenUrl ?? personaje?.imagen}
+        alt={personaje?.nombre ?? slug}
         className="h-full w-full object-cover object-top"
       />
       {/* Rank chip arriba — siempre visible para que la posición se lea
@@ -247,14 +262,16 @@ function Slot({ slug, index, onQuitar }) {
           estrecha para texto legible — la prioridad es ver el rostro). */}
       <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 sm:block">
         <p className="line-clamp-1 text-[12px] font-bold text-fg-strong">
-          {p?.nombre ?? slug}
+          {personaje?.nombre ?? slug}
         </p>
-        <p className="line-clamp-1 text-[10px] text-fg-muted">{p?.anime}</p>
+        <p className="line-clamp-1 text-[10px] text-fg-muted">
+          {personaje?.anime}
+        </p>
       </div>
       <button
         type="button"
         onClick={onQuitar}
-        aria-label={`Quitar ${p?.nombre ?? 'personaje'} del top`}
+        aria-label={`Quitar ${personaje?.nombre ?? 'personaje'} del top`}
         className="absolute right-0.5 top-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-opacity hover:text-rose-300 sm:right-1 sm:top-1 sm:h-6 sm:w-6 sm:opacity-0 sm:group-hover:opacity-100"
       >
         <X className="h-3 w-3" />
@@ -263,7 +280,7 @@ function Slot({ slug, index, onQuitar }) {
   )
 }
 
-function CanvasPreview({ slots, completo }) {
+function CanvasPreview({ slots, completo, personajesBySlug }) {
   const canvasRef = useRef(null)
   const [generando, setGenerando] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -304,7 +321,7 @@ function CanvasPreview({ slots, completo }) {
       for (let i = 0; i < slots.length; i++) {
         const slug = slots[i]
         if (!slug) continue
-        const personaje = personajes.find((p) => p.slug === slug)
+        const personaje = personajesBySlug.get(slug)
         const x = startX + i * (cardW + gap)
 
         // Marco de card
@@ -315,7 +332,9 @@ function CanvasPreview({ slots, completo }) {
         ctx.strokeRect(x, startY, cardW, cardH)
 
         // Avatar
-        const img = await cargarImg(imagenPersonaje(slug))
+        const img = await cargarImg(
+          personaje?.imagenUrl ?? personaje?.imagen ?? imagenPersonaje(slug),
+        )
         if (img) {
           ctx.drawImage(img, x + 12, startY + 12, cardW - 24, 240)
         }
