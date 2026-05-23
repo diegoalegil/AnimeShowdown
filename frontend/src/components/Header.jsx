@@ -79,14 +79,32 @@ function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [voteCount, setVoteCount] = useState(readLocalVoteCount)
+  const scrolledRef = useRef(false)
   const mobileToggleRef = useRef(null)
   const mobilePanelRef = useRef(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
+    let frame = 0
+
+    const updateScrolled = () => {
+      frame = 0
+      const nextScrolled = window.scrollY > 16
+      if (scrolledRef.current === nextScrolled) return
+      scrolledRef.current = nextScrolled
+      setScrolled(nextScrolled)
+    }
+
+    const scheduleUpdate = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(updateScrolled)
+    }
+
+    updateScrolled()
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', scheduleUpdate)
+    }
   }, [])
 
   useEffect(() => {
