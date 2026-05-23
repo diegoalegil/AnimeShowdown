@@ -1,10 +1,10 @@
-import { Suspense, useRef } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Sparkles, useTexture } from '@react-three/drei'
+import { Suspense, useMemo, useRef } from 'react'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { TextureLoader } from 'three'
 import { imagenPersonaje } from '../lib/personajes-core'
 
 function CardMesh({ slug }) {
-  const texture = useTexture(imagenPersonaje(slug))
+  const texture = useLoader(TextureLoader, imagenPersonaje(slug))
   const meshRef = useRef()
   const { mouse } = useThree()
 
@@ -25,6 +25,44 @@ function CardMesh({ slug }) {
       <planeGeometry args={[2.4, 3.6]} />
       <meshBasicMaterial map={texture} transparent />
     </mesh>
+  )
+}
+
+function SparkleField({ color }) {
+  const pointsRef = useRef()
+  const positions = useMemo(() => {
+    const count = 70
+    const values = new Float32Array(count * 3)
+    for (let i = 0; i < count; i += 1) {
+      const radius = 1.25 + (i % 9) * 0.08
+      const angle = i * 2.399963229728653
+      values[i * 3] = Math.cos(angle) * radius
+      values[i * 3 + 1] = ((i * 37) % 100) / 100 * 4.8 - 2.4
+      values[i * 3 + 2] = Math.sin(angle) * 0.9 - 0.45
+    }
+    return values
+  }, [])
+
+  useFrame((state) => {
+    if (!pointsRef.current) return
+    pointsRef.current.rotation.z = state.clock.elapsedTime * 0.05
+    pointsRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.18) * 0.08
+  })
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        color={color}
+        size={0.055}
+        sizeAttenuation
+        transparent
+        opacity={0.75}
+        depthWrite={false}
+      />
+    </points>
   )
 }
 
@@ -49,7 +87,7 @@ function Personaje3D({ slug }) {
       <Suspense fallback={null}>
         <CardMesh slug={slug} />
       </Suspense>
-      <Sparkles count={70} scale={6} size={2.5} speed={0.5} color={accent} />
+      <SparkleField color={accent} />
     </Canvas>
   )
 }
