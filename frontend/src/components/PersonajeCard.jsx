@@ -150,11 +150,9 @@ function CardBadges({ rank, elo, nombre, anime, winRate }) {
           #{rank}
         </span>
       )}
-      {/* Revisión AS-010 (2026-05-23): el ELO y WR de esta card son
-          estimaciones derivadas de getStatsPersonaje (determinístico por
-          slug + popularidad hardcoded). No son métricas reales calculadas
-          con votos. Tooltip + sufijo "·b"/"·e" hacen el dato no engañoso
-          sin saturar el visual de las cards. */}
+      {/* El ELO y WR de esta card son estimaciones derivadas de
+          getStatsPersonaje, no métricas reales calculadas con votos.
+          Tooltip + sufijo "·b"/"·e" aclaran el dato sin saturar la card. */}
       <span
         className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold backdrop-blur-sm"
         title="ELO base estimado por popularidad. El ranking competitivo real está en /ranking."

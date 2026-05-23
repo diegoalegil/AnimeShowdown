@@ -672,15 +672,9 @@ function PersonajesPage() {
           ))}
         </div>
 
-        {/* Nota F017 (2026-05-22): el drawer de filtros móvil antes era
-            un <div role="dialog"> ad-hoc sin focus trap, Escape close ni
-            bloqueo de scroll del body — los lectores y users de teclado
-            podían tabbing salir al fondo. Ahora pasa por AccessibleDialog
-            con align="bottom" que conserva el look bottom-sheet pero añade
-            todas las features de accesibilidad. El backdrop, el lock de
-            scroll y el restore de foco quedan centralizados.
-            sm:hidden se aplica al backdrop wrapper para que el drawer solo
-            aparezca en viewports móviles — en desktop hay filtros inline. */}
+        {/* AccessibleDialog conserva el look bottom-sheet en mobile y
+            centraliza focus trap, Escape, backdrop, lock de scroll y restore
+            de foco. En desktop ya existen filtros inline. */}
         <AccessibleDialog
           open={filtersOpen}
           onClose={() => setFiltersOpen(false)}
