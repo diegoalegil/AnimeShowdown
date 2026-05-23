@@ -22,6 +22,7 @@ import java.time.Duration;
  *   - GET /api/og/ranking.png
  *   - GET /api/og/anime/{slug}.png
  *   - GET /api/og/pvp.png
+ *   - GET /api/og/duelo/{slugA}/vs/{slugB}.png
  *
  * Headers:
  *   - Content-Type: image/png
@@ -86,5 +87,13 @@ public class OgImageController {
                 .contentType(MediaType.IMAGE_PNG)
                 .cacheControl(CACHE_7_DIAS)
                 .body(ogImageService.renderPvp());
+    }
+
+    @GetMapping(value = "/duelo/{slugA}/vs/{slugB}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> duelo(@PathVariable String slugA, @PathVariable String slugB) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderDuelo(slugA, slugB));
     }
 }

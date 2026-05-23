@@ -30,6 +30,7 @@ class OgImageControllerTest {
         when(service.renderAnime(anyString())).thenReturn(png);
         when(service.renderRanking()).thenReturn(png);
         when(service.renderPvp()).thenReturn(png);
+        when(service.renderDuelo(anyString(), anyString())).thenReturn(png);
         mvc = MockMvcBuilders.standaloneSetup(new OgImageController(service)).build();
     }
 
@@ -40,6 +41,7 @@ class OgImageControllerTest {
         assertOg("/api/og/ranking.png");
         assertOg("/api/og/anime/naruto.png");
         assertOg("/api/og/pvp.png");
+        assertOg("/api/og/duelo/naruto_uzumaki/vs/monkey_d_luffy.png");
     }
 
     private void assertOg(String path) throws Exception {
