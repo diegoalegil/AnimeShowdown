@@ -150,11 +150,8 @@ function RankingPage() {
 
         <EloExplainer />
 
-        {/* Sprint Meta Report (revisión externa 2026-05-18): párrafo
-            narrativo arriba del MoversStrip — convierte "ranking
-            congelado" en "reportaje del meta". Lee los mismos endpoints
-            que ya carga la página (react-query deduplica), genera 2-3
-            frases con top 3 + subidas/caídas notables + CTA votar. */}
+        {/* Meta report narrativo arriba del MoversStrip: lee los endpoints
+            que ya carga la página y React Query deduplica las requests. */}
         <RankingMetaReport />
         {/* Nota de producto (2026-05-18): el ranking se sentía estático.
             MoversStrip arriba pinta los 3 personajes con más movimiento

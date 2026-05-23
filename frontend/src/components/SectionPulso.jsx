@@ -354,12 +354,9 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   }
   const p = campeon.personaje
   const votos = Number(campeon.votos ?? 0)
-  // Nota de producto (revisión externa 2026-05-18 + AS-002 2026-05-22):
-  // antes "Líder del ranking" inducía a equiparar la card con el ranking
-  // ELO global. La métrica detrás es el TOP del endpoint /api/votos/ranking,
-  // que ahora ordena por SUM(v.peso) ponderado (anónimo 0.3, registrado
-  // 1.0) — no por COUNT puro. El campo `votos` que mostramos sigue siendo
-  // COUNT físico para no engañar con números truncados (AS-002+B2.1).
+  // La métrica detrás es el TOP del endpoint /api/votos/ranking, ordenado
+  // por SUM(v.peso) ponderado (anónimo 0.3, registrado 1.0). El campo
+  // `votos` mostrado sigue siendo COUNT físico para no truncar números.
   // Distinguimos tres copys según contexto:
   //   - esFallback: backend sin votos → "Top del catálogo (ELO base)".
   //   - comunidadArrancando: muy pocos votos totales → "Más votado ahora".

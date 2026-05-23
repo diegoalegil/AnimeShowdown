@@ -11,10 +11,8 @@ import {
  * QUÉ está pasando en el ranking esta semana usando texto generado
  * desde los mismos endpoints que ya carga la página.
  *
- * <p>Nota de producto (revisión externa 2026-05-18): el ranking se
- * sentía como tabla congelada incluso con MoversStrip arriba. Esta
- * sección añade narrativa breve: "Top 1 domina · X subieron, Y cayeron
- * · vota tú para mover el meta". Convierte una tabla en un reportaje.
+ * <p>Añade narrativa breve: "Top 1 domina · X subieron, Y cayeron · vota
+ * tú para mover el meta". Convierte una tabla en un reportaje.
  *
  * <p>Sin backend nuevo: usa useRankingSegmentado all-time (mismo
  * endpoint que ListaBackend "all") y useRankingMovimientos 7d (mismo
