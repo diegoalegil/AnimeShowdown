@@ -8,6 +8,8 @@ Allow: /
 Disallow: /admin
 Disallow: /perfil
 Disallow: /torneos/crear
+Disallow: /login
+Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify

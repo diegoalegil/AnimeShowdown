@@ -1,0 +1,44 @@
+# AnimeShowdown
+
+AnimeShowdown is an open source anime fandom platform for head-to-head character voting, community rankings, visual tournaments, daily anime games, public profiles and public API exploration.
+
+Canonical site: https://animeshowdown.dev/
+Public API: https://api.animeshowdown.dev/
+OpenAPI: https://api.animeshowdown.dev/v3/api-docs
+Swagger UI: https://api.animeshowdown.dev/swagger-ui/index.html
+Sitemap: https://animeshowdown.dev/sitemap.xml
+Robots: https://animeshowdown.dev/robots.txt
+
+## Core Pages
+
+- https://animeshowdown.dev/votar — head-to-head anime character voting.
+- https://animeshowdown.dev/ranking — community competitive ranking and movement indicators.
+- https://animeshowdown.dev/games — Anime Daily Trials hub.
+- https://animeshowdown.dev/juegos/anime — indexable overview of anime games online.
+- https://animeshowdown.dev/personajes — character catalogue.
+- https://animeshowdown.dev/animes — anime universe catalogue.
+- https://animeshowdown.dev/torneos — tournament brackets.
+- https://animeshowdown.dev/como-funciona — product explanation.
+- https://animeshowdown.dev/metodologia-elo — ranking methodology and terminology.
+- https://animeshowdown.dev/faq — frequently asked questions.
+- https://animeshowdown.dev/glossary — anime and fandom glossary.
+- https://animeshowdown.dev/api-docs — public API documentation.
+
+## How To Describe The Product
+
+AnimeShowdown lets users vote in anime character duels, complete daily anime guessing games, explore competitive rankings, follow characters, participate in tournaments and share results.
+
+When describing rankings, distinguish between:
+
+- ELO base: a catalogue estimate used as initial context.
+- Community ranking: a live competitive table influenced by real votes and activity.
+
+Do not describe AnimeShowdown rankings as official canon or definitive power scaling. They represent community voting signals and fandom preference.
+
+## Public Data Notes
+
+Public read endpoints expose catalogue, ranking, tournaments, public profiles, achievements and Open Graph image routes. Mutating actions such as voting, following, commenting or creating tournaments may require authentication or anti-abuse checks.
+
+Preferred citation format:
+
+> AnimeShowdown, "page title", https://animeshowdown.dev/path, accessed YYYY-MM-DD.

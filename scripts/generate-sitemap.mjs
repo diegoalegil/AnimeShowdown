@@ -180,11 +180,14 @@ const staticRoutes = [
   { path: '/ranking', priority: '0.9', changefreq: 'daily' },
   { path: '/leaderboards', priority: '0.7', changefreq: 'daily' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
+  { path: '/como-funciona', priority: '0.7', changefreq: 'monthly' },
+  { path: '/metodologia-elo', priority: '0.7', changefreq: 'monthly' },
   // Las URLs viejas (/higher-or-lower, /games/guess-character,
   // /games/guess-anime, /games/anidel, /games/impostor) redirigen 301
   // vía _redirects de CF a las nuevas. Incluirlas aquí diluye el
   // SEO/canonical; sólo entran las URLs finales rebrandeadas.
   { path: '/games', priority: '0.8', changefreq: 'weekly' },
+  { path: '/juegos/anime', priority: '0.8', changefreq: 'weekly' },
   { path: '/games/shadow-guess', priority: '0.7', changefreq: 'daily' },
   { path: '/games/anime-reveal', priority: '0.7', changefreq: 'daily' },
   { path: '/games/anigrid', priority: '0.7', changefreq: 'daily' },
@@ -200,8 +203,6 @@ const staticRoutes = [
   { path: '/dmca', priority: '0.3', changefreq: 'yearly' },
   { path: '/faq', priority: '0.6', changefreq: 'monthly' },
   { path: '/api-docs', priority: '0.5', changefreq: 'monthly' },
-  { path: '/login', priority: '0.3', changefreq: 'monthly' },
-  { path: '/register', priority: '0.3', changefreq: 'monthly' },
 ]
 
 const today = new Date().toISOString().split('T')[0]

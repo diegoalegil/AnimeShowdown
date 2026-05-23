@@ -75,6 +75,7 @@ function RegisterPage() {
     title: 'Crear cuenta',
     description:
       'Crea tu cuenta gratuita en AnimeShowdown. Vota, predice torneos, crea tu propio bracket y construye tu perfil público.',
+    noindex: true,
   })
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()

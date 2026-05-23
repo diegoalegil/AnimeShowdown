@@ -32,6 +32,7 @@ function LoginPage() {
     title: 'Iniciar sesión',
     description:
       'Entra en tu cuenta AnimeShowdown para votar, predecir torneos y mantener tu perfil público con ranking ELO personalizado.',
+    noindex: true,
   })
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()

@@ -20,6 +20,7 @@ import TorneoCard from '../components/TorneoCard'
 import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
+import DailyMissionPanel from '../components/DailyMissionPanel'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -127,6 +128,9 @@ function InicioPage() {
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
       <Hero catalogoPersonajes={catalogoPersonajes} />
+      <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+        <DailyMissionPanel />
+      </section>
       {/* Nota de producto: Pulso sustituye al antiguo
           SectionLiveBattle (duelo random cliente-side, no era "live").
           Cinco señales reales desde backend arriba del fold para que

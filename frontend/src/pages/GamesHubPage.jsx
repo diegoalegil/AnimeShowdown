@@ -7,6 +7,7 @@ import {
   Gamepad2,
   Grid3X3,
   Hourglass,
+  Share2,
   Sparkles,
   Trophy,
   TrendingUp,
@@ -16,8 +17,11 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { ELO_DUEL_BEST_KEY, fechaDelDia, safeStorage } from '../lib/games'
+import { recordDailyShare, setDailyGamesCompleted } from '../lib/dailyProgress'
+import { shareOrCopy } from '../lib/share'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
+import DailyMissionPanel from '../components/DailyMissionPanel'
 
 /**
  * Hub de modos de juego.
@@ -261,8 +265,34 @@ function GamesHubPage() {
   ).length
   const totalDaily = GAMES.filter((g) => !g.endless).length
 
+  useEffect(() => {
+    setDailyGamesCompleted(completadosHoy)
+  }, [completadosHoy])
+
   const destacado = GAMES.find((g) => g.destacado) ?? GAMES[0]
   const otros = GAMES.filter((g) => g.to !== destacado.to)
+
+  const compartirResumen = async () => {
+    const completados = Object.entries(estadosJuegos)
+      .filter(([, estado]) => estado.completadoHoy)
+      .map(([to]) => GAMES.find((g) => g.to === to)?.titulo)
+      .filter(Boolean)
+    const texto = `Completé ${completadosHoy}/${totalDaily} Anime Daily Trials en AnimeShowdown — ${fechaDelDia()}${
+      completados.length ? `\n${completados.join(', ')}` : ''
+    }`
+    try {
+      const result = await shareOrCopy({
+        title: 'Anime Daily Trials',
+        text: texto,
+        url: '/games',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+    } catch {
+      // El panel de resultado individual tiene fallback visible; aquí el
+      // resumen es accesorio y no debe bloquear el hub.
+    }
+  }
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.games} className="py-8 sm:py-10" lateralKanji={{left: "遊", right: "戯"}}>
@@ -292,6 +322,37 @@ function GamesHubPage() {
             </div>
           }
         />
+
+        <DailyMissionPanel compact className="mb-6" />
+
+        {completadosHoy > 0 && (
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-black text-fg-strong">
+                Hoy completaste {completadosHoy}/{totalDaily} daily trials.
+              </p>
+              <p className="text-[12px] text-fg-muted">
+                Guarda el ritual: comparte el resumen o salta a votar para cerrar la misión.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={compartirResumen}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-[13px] font-black text-emerald-100 transition-colors hover:bg-emerald-500/25"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Compartir resumen
+              </button>
+              <Link
+                to="/votar"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-bold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+              >
+                Votar duelos
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Stats bar — racha hoy, mejor récord, countdown reinicio */}
         <div className="as-panel mb-6 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:p-5">

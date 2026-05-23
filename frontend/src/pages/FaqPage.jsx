@@ -36,9 +36,9 @@ const FAQ = [
   },
   {
     categoria: 'Ranking',
-    pregunta: '¿Cómo funciona el ranking ELO?',
+    pregunta: '¿Cómo funciona el ranking competitivo?',
     respuesta:
-      'Cada personaje empieza con 1500 puntos. Ganar un duelo le suma puntos en función del rival: si bates a alguien fuerte sube mucho, si vences a alguien por debajo sube poco. Es el mismo sistema que se usa en ajedrez competitivo. El ranking se actualiza al instante con cada voto.',
+      'AnimeShowdown separa ELO base estimado y ranking comunitario. El ELO base ordena el catálogo como punto de partida; el ranking competitivo se alimenta de votos reales, periodos y actividad de la comunidad.',
   },
   {
     categoria: 'Torneos',

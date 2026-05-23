@@ -18,7 +18,10 @@
     "status": "Status",
     "glossary": "Glossary",
     "logros": "Achievements",
-    "apoya": "Support"
+    "apoya": "Support",
+    "comoFunciona": "How it works",
+    "metodologia": "Methodology",
+    "juegosAnime": "Anime games"
   },
   "header": {
     "silenciar": "Mute sounds",
