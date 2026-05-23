@@ -8,8 +8,11 @@ Allow: /
 Disallow: /admin
 Disallow: /perfil
 Disallow: /torneos/crear
+Disallow: /duel-live
+Disallow: /tv
 Disallow: /login
 Disallow: /register
+Disallow: /auth/callback
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify
