@@ -237,6 +237,7 @@ function VotarPage() {
       catalogoPersonajes.filter((p) => p.anime === fixedAnime).length >= 2,
     [catalogoPersonajes, fixedAnime, fixedPersonaje],
   )
+  const casualContextKey = `${fixedSlug || ''}::${fixedAnime || ''}`
 
   const {
     data: enfrentamiento,
@@ -350,12 +351,18 @@ function VotarPage() {
     Boolean(fixedPersonaje) || hasFixedAnime || (!modoBackend && canUseLocalCatalog)
   const casualPair = useMemo(() => {
     if (!shouldUseCasualPair) return [null, null]
-    if (casualPairOverride?.[0] && casualPairOverride?.[1]) return casualPairOverride
+    if (
+      casualPairOverride?.key === casualContextKey &&
+      casualPairOverride?.pair?.[0] &&
+      casualPairOverride?.pair?.[1]
+    ) {
+      return casualPairOverride.pair
+    }
     if (catalogoPersonajes.length < 2) return [null, null]
     if (fixedPersonaje) return getPairWithFixed(catalogoPersonajes, fixedPersonaje)
     if (hasFixedAnime) return getPairFromAnime(catalogoPersonajes, fixedAnime)
     return selectRandomPair(catalogoPersonajes)
-  }, [catalogoPersonajes, casualPairOverride, fixedAnime, fixedPersonaje, hasFixedAnime, shouldUseCasualPair])
+  }, [catalogoPersonajes, casualContextKey, casualPairOverride, fixedAnime, fixedPersonaje, hasFixedAnime, shouldUseCasualPair])
   const votoInvitadoActivo = modoBackend && !user
 
   // Datos a renderizar uniformes para ambos modos. Calculados antes del
@@ -397,10 +404,6 @@ function VotarPage() {
     lastShareText: '',
   })
 
-  useEffect(() => {
-    setCasualPairOverride(null)
-  }, [fixedAnime, fixedSlug])
-
   const handleNext = useCallback(async (options = {}) => {
     const force = options?.force === true
     if (isAdvancingRef.current || (!force && isVotePendingRef.current)) return
@@ -436,13 +439,14 @@ function VotarPage() {
           if (nextKey && nextKey !== previousKey) break
         }
       } else {
-        setCasualPairOverride(
-          fixedPersonaje
+        setCasualPairOverride({
+          key: casualContextKey,
+          pair: fixedPersonaje
             ? getPairWithFixed(catalogoPersonajes, fixedPersonaje)
             : hasFixedAnime
               ? getPairFromAnime(catalogoPersonajes, fixedAnime)
               : selectRandomPair(catalogoPersonajes),
-        )
+        })
       }
     } finally {
       voteLockedRef.current = false
@@ -454,6 +458,7 @@ function VotarPage() {
     modoSugerido,
     refetch,
     refetchDueloSugerido,
+    casualContextKey,
     catalogoPersonajes,
     fixedAnime,
     fixedPersonaje,
