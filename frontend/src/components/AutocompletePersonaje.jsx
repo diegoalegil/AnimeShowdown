@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { personajes, imagenPersonaje } from '../lib/personajes-core'
+import { imagenPersonaje } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { normalizar } from '../lib/games'
 import { ocultaImgRota } from '../lib/imgFallback'
 
@@ -28,6 +29,7 @@ function AutocompletePersonaje({
   autoFocus = false,
   filtroExtra,
 }) {
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const inputId = useId()
   const [query, setQuery] = useState('')
   const [activo, setActivo] = useState(0)
@@ -53,7 +55,9 @@ function AutocompletePersonaje({
   const opciones = useMemo(() => {
     const q = normalizar(deferredQuery)
     if (!q) return []
-    const base = filtroExtra ? personajes.filter(filtroExtra) : personajes
+    const base = filtroExtra
+      ? catalogoPersonajes.filter(filtroExtra)
+      : catalogoPersonajes
     const matches = []
     for (const p of base) {
       const nombreN = normalizar(p.nombre)
@@ -70,7 +74,7 @@ function AutocompletePersonaje({
     }
     matches.sort((a, b) => a.score - b.score)
     return matches.slice(0, 8).map((m) => m.p)
-  }, [deferredQuery, filtroExtra])
+  }, [catalogoPersonajes, deferredQuery, filtroExtra])
 
   const elegir = (slug) => {
     if (!slug) return
@@ -172,7 +176,7 @@ function AutocompletePersonaje({
                 }`}
               >
                 <img
-                  src={imagenPersonaje(p.slug)}
+                  src={p.imagenUrl ?? p.imagen ?? imagenPersonaje(p.slug)}
                   alt={p.nombre}
                   loading="lazy"
                   onError={ocultaImgRota}

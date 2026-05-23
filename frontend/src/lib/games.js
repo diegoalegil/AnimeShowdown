@@ -44,8 +44,8 @@ export function fechaDelDia(date = new Date()) {
  * tenga su propio rotativo (sin que Guess Character y Anidel coincidan
  * en el mismo personaje cada día).
  */
-export function personajeDelDia(prefix = '', date = new Date()) {
-  const personajes = readCatalogoPersonajesSnapshot()
+export function personajeDelDia(prefix = '', date = new Date(), catalogo = readCatalogoPersonajesSnapshot()) {
+  const personajes = Array.isArray(catalogo) ? catalogo : []
   if (personajes.length === 0) return null
   const seed = `${prefix}:${fechaDelDia(date)}`
   const idx = djb2(seed) % personajes.length
@@ -65,8 +65,8 @@ export function personajeDelDia(prefix = '', date = new Date()) {
  * @returns {{anime: string, items: Array<{slug, nombre, anime, imagen, esImpostor: boolean}>}}
  *          o null si el catálogo no permite la ronda (debería pasar nunca con 730 personajes).
  */
-export function impostorDelDia(date = new Date(), salt = '') {
-  const personajes = readCatalogoPersonajesSnapshot()
+export function impostorDelDia(date = new Date(), salt = '', catalogo = readCatalogoPersonajesSnapshot()) {
+  const personajes = Array.isArray(catalogo) ? catalogo : []
   if (personajes.length === 0) return null
   const seed = `impostor:${fechaDelDia(date)}:${salt}`
   const rand = mulberry32(djb2(seed))

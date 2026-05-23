@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -14,12 +14,14 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   fechaDelDia,
   impostorDelDia,
   safeStorage,
 } from '../lib/games'
 import { ocultaImgRota } from '../lib/imgFallback'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 const RONDAS_POR_DIA = 3
 const STORAGE_KEY = 'animeshowdown.impostor.v1'
@@ -34,11 +36,11 @@ const containerVariants = {
   },
 }
 
-function generarRondas(salt = '') {
+function generarRondas(catalogoPersonajes, salt = '') {
   const out = []
   const hoy = new Date()
   for (let r = 0; r < RONDAS_POR_DIA; r++) {
-    const ronda = impostorDelDia(hoy, `${salt}${r}`)
+    const ronda = impostorDelDia(hoy, `${salt}${r}`, catalogoPersonajes)
     if (ronda) out.push(ronda)
   }
   return out
@@ -67,10 +69,35 @@ function ImpostorPage() {
       '5 cartas de anime, 4 del mismo, 1 intrusa. Pulsa el impostor antes de que pase el tiempo. 3 rondas al día.',
   })
 
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const rondasDaily = useMemo(
+    () => generarRondas(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (rondasDaily.length === 0) {
+    return (
+      <GameCatalogLoading
+        kanji="裏"
+        title="Preparando Impostor Trial"
+        description="Cargando personajes para construir las rondas del día."
+      />
+    )
+  }
+
+  return (
+    <ImpostorGame
+      catalogoPersonajes={catalogoPersonajes}
+      rondasDaily={rondasDaily}
+    />
+  )
+}
+
+function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
   // Rondas en useState (no useMemo) para que jugarOtra pueda regenerarlas
   // con salt distinto sin cambiar el daily. El daily usa salt=String(r),
   // los extras usan salt único por tirada.
-  const [rondas, setRondas] = useState(() => generarRondas())
+  const [rondas, setRondas] = useState(rondasDaily)
   const [esExtra, setEsExtra] = useState(false)
   const [estado, setEstado] = useState(() => loadEstado())
   const rondaActual = rondas[estado.rondaIdx]
@@ -112,13 +139,13 @@ function ImpostorPage() {
   }
 
   const jugarOtra = () => {
-    setRondas(generarRondas(`extra-${Date.now()}-`))
+    setRondas(generarRondas(catalogoPersonajes, `extra-${Date.now()}-`))
     setEsExtra(true)
     setEstado({ rondaIdx: 0, resultados: [] })
   }
 
   const volverAlDaily = () => {
-    setRondas(generarRondas())
+    setRondas(rondasDaily)
     setEsExtra(false)
     setEstado(loadEstado())
   }

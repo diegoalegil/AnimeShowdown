@@ -16,15 +16,17 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   buildShareSquares,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { imagenPersonaje, personajes } from '../lib/personajes-core'
+import { imagenPersonaje } from '../lib/personajes-core'
 import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from '../components/PersonajeImg'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-character.v1'
@@ -57,10 +59,34 @@ function GuessCharacterPage() {
       'Adivina el personaje de anime del día por su imagen difuminada. 5 intentos. Comparte tu resultado estilo Wordle.',
   })
 
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const dailyObjetivo = useMemo(
+    () => personajeDelDia('guess-character', new Date(), catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (!dailyObjetivo) {
+    return (
+      <GameCatalogLoading
+        kanji="影"
+        title="Preparando Shadow Guess"
+        description="Cargando personajes para elegir la silueta diaria."
+      />
+    )
+  }
+
+  return (
+    <GuessCharacterGame
+      dailyObjetivo={dailyObjetivo}
+      catalogoPersonajes={catalogoPersonajes}
+    />
+  )
+}
+
+function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
   // El "daily" usa personajeDelDia (determinístico, compartible). Cuando
   // el user pulsa "Jugar otra" tras terminar, generamos un personaje
   // random sin determinismo y sin compartir — modo endless improvisado.
-  const dailyObjetivo = useMemo(() => personajeDelDia('guess-character'), [])
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
@@ -93,7 +119,7 @@ function GuessCharacterPage() {
       toast.info('Ya probaste ese personaje')
       return
     }
-    const personaje = personajes.find((p) => p.slug === slug)
+    const personaje = catalogoPersonajes.find((p) => p.slug === slug)
     if (!personaje) return
     const acierto = slug === objetivo.slug
     const intentos = [
@@ -117,7 +143,8 @@ function GuessCharacterPage() {
 
   /** Genera nueva partida con personaje random (no comparable con otros) */
   const jugarOtra = () => {
-    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
+    if (!random) return
     setExtraObjetivo(random)
     setEstado(loadEstado(random.slug, true))
   }
