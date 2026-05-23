@@ -761,7 +761,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   }
   // Modo 3D activo: incluimos el chunk lazy del modelo + toggle reverso
   // para volver a la imagen estática. Antes no había forma de salir del
-  // modo 3D sin recargar la página — bug reportado audit externa.
+  // modo 3D sin recargar la página — bug reportado en revisión externa.
   return (
     <div className="relative h-full w-full">
       <Suspense
