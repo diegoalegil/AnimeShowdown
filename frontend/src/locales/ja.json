@@ -57,9 +57,9 @@
     "errorEnvio": "送信できませんでした。少し時間をおいて再度お試しください。"
   },
   "hero": {
-    "tituloAntes": "アニメの頂点を",
-    "tituloAnime": "決める",
-    "tituloDespues": "のはあなた。",
+    "tituloAntes": "究極の",
+    "tituloAnime": "アニメランキング",
+    "tituloDespues": "を決めるのはあなた。",
     "subtitulo": "1対1デュエル、リアルタイムELOランキング、毎週のトーナメント。あなたの一票がメタを動かします。",
     "ctaTorneos": "投票を始める",
     "ctaRanking": "メタを見る",
