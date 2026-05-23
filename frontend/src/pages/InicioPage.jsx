@@ -21,8 +21,7 @@ import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
 import { useTorneos } from '../lib/torneosQueries'
-import { imagenPersonaje, getStatsPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { getGameVisual } from '../data/visual-assets'
@@ -228,10 +227,10 @@ function SectionBento() {
             <div className="flex items-center gap-2">
               {featuredAvatars.map((s, i) => (
                 <div key={s} className="flex items-center gap-2">
-                  <img
-                    src={imagenPersonaje(s)}
+                  <PersonajeImg
+                    slug={s}
                     alt=""
-                    onError={ocultaImgRota}
+                    sizes="48px"
                     className="h-12 w-12 rounded-md border border-border object-cover object-top"
                   />
                   {i < featuredAvatars.length - 1 && (
@@ -270,11 +269,11 @@ function SectionBento() {
           >
             <div className="flex -space-x-3">
               {communityAvatars.map((s) => (
-                <img
+                <PersonajeImg
                   key={s}
-                  src={imagenPersonaje(s)}
+                  slug={s}
                   alt=""
-                  onError={ocultaImgRota}
+                  sizes="40px"
                   className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
                 />
               ))}
