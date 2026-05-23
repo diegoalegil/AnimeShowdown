@@ -47,9 +47,9 @@ Cloudflare Pages redeploya automáticamente.
 
 ### 5. Verificar
 
-Visitar `https://animeshowdown.dev/dev/crash-test` (página oculta que lanza `throw new Error("Sentry test")`). En Sentry dashboard, en <2min:
+Tras desplegar, comprobar en Sentry que el release aparece asociado al SHA del deploy y, si hace falta forzar un evento de prueba, hacerlo en un entorno local o staging con una acción temporal no versionada. En Sentry dashboard, en <2min:
 
-- Evento `Sentry test` aparece
+- El evento de prueba aparece asociado al release correcto
 - Stack trace muestra **líneas de tu código fuente original**, no minificado
 - Source maps están aplicados (cuadro verde "Source map applied")
 
@@ -149,7 +149,7 @@ DSN copiado mal o expirado. Re-generar en Sentry settings → Client Keys.
 - [ ] `VITE_SENTRY_DSN` configurado en Cloudflare Pages production env
 - [ ] `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` configurados en GitHub secrets
 - [ ] CI workflow `sentry-release.yml` corre tras cada deploy
-- [ ] Visitar `/dev/crash-test` → evento aparece en Sentry en <2min con stack trace decoded
+- [ ] Enviar un evento de prueba desde local/staging → evento aparece en Sentry en <2min con stack trace decoded
 - [ ] Alerta "Error rate spike" creada y testeada
 - [ ] Source maps **NO accesibles** en prod (curl `dist/assets/index-*.js.map` → 404)
 - [ ] Sample rate y filtros configurados según uso real
