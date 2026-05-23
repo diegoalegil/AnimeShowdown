@@ -125,9 +125,15 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
       } else {
         onSuccess()
       }
-    } catch {
+    } catch (err) {
+      const status = err?.status
       setError('root', {
-        message: 'No se pudo iniciar sesión. Intenta de nuevo.',
+        message:
+          status === 401
+            ? 'Credenciales inválidas. Revisa tu username/email y contraseña.'
+            : status === 429
+              ? 'Demasiados intentos. Espera unos segundos antes de probar otra vez.'
+              : err?.message || 'No se pudo iniciar sesión. Intenta de nuevo.',
       })
     }
   }
