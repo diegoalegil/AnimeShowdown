@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { endpoints, ApiError } from '../lib/api'
 import { useTorneos } from '../lib/torneosQueries'
 import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personajes-core'
@@ -39,6 +39,7 @@ import {
   getTournamentVisual,
 } from '../data/visual-assets'
 import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 /**
  * Campeón fallback derivado del catálogo local. Útil cuando el ranking
@@ -47,9 +48,11 @@ import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
  * con mayor ELO base del catálogo, marcado como "Top del catálogo"
  * para no mentir presentándolo como votado por la comunidad.
  */
-const CAMPEON_FALLBACK = (() => {
-  const top = [...personajes]
-    .filter((p) => tieneImagenPromocionable({ personaje: p }))
+function crearCampeonFallback(catalogoPersonajes) {
+  const top = [...catalogoPersonajes]
+    .filter((p) =>
+      tieneImagenPromocionable({ personaje: p }, catalogoPersonajes),
+    )
     .map((p) => ({ ...p, elo: getStatsPersonaje(p.slug).elo }))
     .sort((a, b) => b.elo - a.elo)[0]
   return top
@@ -58,17 +61,19 @@ const CAMPEON_FALLBACK = (() => {
           slug: top.slug,
           nombre: top.nombre,
           anime: top.anime,
-          imagenUrl: imagenPersonaje(top.slug),
+          imagenUrl: top.imagenUrl ?? top.imagen ?? imagenPersonaje(top.slug),
         },
         eloLocal: top.elo,
       }
     : null
-})()
+}
 
-function tieneImagenPromocionable(item) {
+function tieneImagenPromocionable(item, catalogoPersonajes = personajes) {
   const p = item?.personaje ?? item
-  const local = p?.slug ? personajes.find((personaje) => personaje.slug === p.slug) : null
-  const imagen = p?.imagenUrl ?? local?.imagen
+  const local = p?.slug
+    ? catalogoPersonajes.find((personaje) => personaje.slug === p.slug)
+    : null
+  const imagen = p?.imagenUrl ?? local?.imagenUrl ?? local?.imagen
   return Boolean(imagen && !imagen.includes('/_missing/') && !imagen.includes('placeholder'))
 }
 
@@ -142,6 +147,7 @@ function useUltimosVotos() {
 }
 
 function SectionPulso() {
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const { data: ranking, isLoading: rankingLoading } = useRanking()
   const { data: movimientos } = useMovimientos()
   const { data: torneos = [] } = useTorneos()
@@ -151,9 +157,13 @@ function SectionPulso() {
   // Campeón real si el backend tiene votos; si no, fallback al top del
   // catálogo. Distinguimos visualmente con flag esFallback.
   const campeonReal = Array.isArray(ranking)
-    ? ranking.find(tieneImagenPromocionable)
+    ? ranking.find((item) => tieneImagenPromocionable(item, catalogoPersonajes))
     : null
-  const campeon = campeonReal ?? CAMPEON_FALLBACK
+  const campeonFallback = useMemo(
+    () => crearCampeonFallback(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const campeon = campeonReal ?? campeonFallback
   const esFallback = !campeonReal
   // Nota de producto: el backend devuelve top por COUNT(votos),
   // así que en una DB joven con 1-5 votos totales presentar al top como
@@ -166,7 +176,10 @@ function SectionPulso() {
   const votosCampeon = Number(campeon?.votos ?? 0)
   const mostrarCampeon =
     rankingLoading ||
-    (!esFallback && votosCampeon >= 10 && campeon?.personaje && tieneImagenPromocionable(campeon))
+    (!esFallback &&
+      votosCampeon >= 10 &&
+      campeon?.personaje &&
+      tieneImagenPromocionable(campeon, catalogoPersonajes))
   const topMovers = (movimientos || [])
     .filter((m) => m.delta != null && m.delta !== 0)
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
