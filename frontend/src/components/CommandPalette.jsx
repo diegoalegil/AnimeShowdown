@@ -56,6 +56,7 @@ const rutas = [
   { to: '/games/impostor-trial', label: 'Impostor Trial (Detector de Impostor)', icon: Sparkles, searchTerms: 'traidor impostor trial' },
   { to: '/games/elo-duel', label: 'ELO Duel (Higher or Lower)', icon: Sparkles, searchTerms: 'higher lower elo racha' },
   { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles, searchTerms: 'suerte diario fortuna' },
+  { to: '/descubre-personaje', label: 'Descubre personaje', icon: Sparkles, searchTerms: 'random aleatorio descubrir personaje anime' },
   { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp, searchTerms: 'clasificacion leaderboard top' },
   { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp, searchTerms: 'comunidad usuarios ranking' },
   { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy, searchTerms: 'badges achievements rareza' },
