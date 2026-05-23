@@ -2,12 +2,14 @@ import { useParams, Link } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
+  Share2,
   Sparkles,
   Swords,
   TrendingUp,
   Trophy,
   Users,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { getAnimePorSlug } from '../lib/animes'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useSeo } from '../hooks/useSeo'
@@ -18,6 +20,8 @@ import PersonajeImg from '../components/PersonajeImg'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/visual-assets'
 import NotFoundPage from './NotFoundPage'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyShare } from '../lib/dailyProgress'
 
 /**
  * Ficha de un universo anime — mini-home del anime con stats agregados,
@@ -33,6 +37,7 @@ function AnimeDetailPage() {
       ? {
           title: `${data.anime} · ${data.total} personajes`,
           description: `Roster, ranking ELO base interno y stats de ${data.anime} en AnimeShowdown. Top ELO base: ${data.topElo.nombre} (${data.topElo.elo}).`,
+          image: `/api/og/anime/${slug}.png`,
         }
       : { title: '404 — Anime no encontrado', noindex: true },
   )
@@ -60,6 +65,26 @@ function AnimeDetailPage() {
   const destacados = porPopularidad.slice(0, 6)
   const top10 = porElo.slice(0, 10)
   const visual = getAnimeVisual(slug, anime)
+  const compartirRankingAnime = async () => {
+    const resumen = top10
+      .slice(0, 5)
+      .map((p, index) => `${index + 1}. ${p.nombre} · ${p.elo} ELO base`)
+      .join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: `Top personajes de ${anime}`,
+        text: `Mi top 5 de ${anime} en AnimeShowdown:\n${resumen}\n\n¿A quién subirías votando?`,
+        url: `/animes/${slug}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el ranking', {
+        description: error?.message || 'Copia el enlace manualmente.',
+      })
+    }
+  }
 
   return (
     <VisualPageShell visual={visual} lateralKanji={{left: visual?.kanji ?? "界", right: "界"}}>
@@ -101,12 +126,20 @@ function AnimeDetailPage() {
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
-              to="/ranking"
+              to={`/ranking?anime=${encodeURIComponent(anime)}`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-white/12 bg-white/5 px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/45 hover:text-gold"
             >
               <TrendingUp className="h-4 w-4" />
-              Ranking global
+              Ranking de {anime}
             </Link>
+            <button
+              type="button"
+              onClick={compartirRankingAnime}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/12 bg-white/5 px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/45 hover:text-gold"
+            >
+              <Share2 className="h-4 w-4" />
+              Compartir top
+            </button>
             </>
           }
           aside={
@@ -184,7 +217,7 @@ function AnimeDetailPage() {
             </h2>
             <p className="text-[13px] text-fg-muted">
               Orden estimado dentro del universo {anime}. El ranking competitivo
-              con votos reales vive en /ranking.
+              con votos reales vive en el ranking filtrado de este anime.
             </p>
           </div>
           <ol className="flex flex-col gap-2">

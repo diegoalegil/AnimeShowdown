@@ -42,6 +42,7 @@ function defaultProgress(date = fechaDelDia()) {
     date,
     votes: 0,
     gamesCompleted: 0,
+    rankingViewed: false,
     shared: false,
     completed: false,
   }
@@ -52,10 +53,12 @@ function normalizeProgress(value, date = fechaDelDia()) {
   progress.date = date
   progress.votes = Math.max(0, Number(progress.votes) || 0)
   progress.gamesCompleted = Math.max(0, Number(progress.gamesCompleted) || 0)
+  progress.rankingViewed = Boolean(progress.rankingViewed)
   progress.shared = Boolean(progress.shared)
   progress.completed =
     progress.votes >= DAILY_VOTE_TARGET &&
-    progress.gamesCompleted >= DAILY_GAME_TARGET
+    progress.gamesCompleted >= DAILY_GAME_TARGET &&
+    progress.rankingViewed
   return progress
 }
 
@@ -64,6 +67,14 @@ function previousLocalDate(dateString) {
   if (!year || !month || !day) return null
   const d = new Date(year, month - 1, day)
   d.setDate(d.getDate() - 1)
+  return fechaDelDia(d)
+}
+
+function offsetLocalDate(dateString, offsetDays) {
+  const [year, month, day] = String(dateString).split('-').map(Number)
+  if (!year || !month || !day) return null
+  const d = new Date(year, month - 1, day)
+  d.setDate(d.getDate() + offsetDays)
   return fechaDelDia(d)
 }
 
@@ -90,6 +101,14 @@ export function readDailyProgress(date = fechaDelDia()) {
 
 export function readDailyStreak() {
   return normalizeStreak(readJson(STREAK_KEY, null))
+}
+
+export function readRecentDailyProgress(days = 7, date = fechaDelDia()) {
+  const totalDays = Math.max(1, Math.min(31, Number(days) || 7))
+  return Array.from({ length: totalDays }, (_, index) => {
+    const day = offsetLocalDate(date, index - (totalDays - 1))
+    return readDailyProgress(day)
+  }).filter(Boolean)
 }
 
 export function updateDailyProgress(mutator, date = fechaDelDia()) {
@@ -125,6 +144,13 @@ export function setDailyGamesCompleted(count) {
   return updateDailyProgress((progress) => ({
     ...progress,
     gamesCompleted: Math.max(progress.gamesCompleted, Number(count) || 0),
+  }))
+}
+
+export function recordDailyRankingView() {
+  return updateDailyProgress((progress) => ({
+    ...progress,
+    rankingViewed: true,
   }))
 }
 

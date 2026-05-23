@@ -4,9 +4,11 @@ import {
   ArrowRight,
   BarChart3,
   Flame,
+  Share2,
   Swords,
   Trophy,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   getPersonajeBySlug,
   getPopularidad,
@@ -18,6 +20,8 @@ import { useSeo } from '../hooks/useSeo'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
 import NotFoundPage from './NotFoundPage'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyShare } from '../lib/dailyProgress'
 
 const SITE = 'https://animeshowdown.dev'
 
@@ -51,6 +55,26 @@ function DueloVersusPage() {
   const diferenciaElo = Math.abs(statsA.elo - statsB.elo)
   const sugerenciasA = getSugerenciasDuelo(personajeA, personajeB.slug)
   const sugerenciasB = getSugerenciasDuelo(personajeB, personajeA.slug)
+  const compartirDuelo = async () => {
+    try {
+      const result = await shareOrCopy({
+        title: `${personajeA.nombre} vs ${personajeB.nombre}`,
+        text: [
+          `${personajeA.nombre} vs ${personajeB.nombre} en AnimeShowdown.`,
+          `${ganadorTeorico.nombre} llega con ventaja ELO de ${diferenciaElo} puntos.`,
+          '¿A quién subirías votando?',
+        ].join('\n'),
+        url: `/duelos/${personajeA.slug}-vs-${personajeB.slug}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Duelo compartido' : 'Duelo copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el duelo', {
+        description: error?.message || 'Copia el enlace manualmente.',
+      })
+    }
+  }
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -139,14 +163,30 @@ function DueloVersusPage() {
               Diferencia actual: <strong className="text-fg-strong">{diferenciaElo} puntos</strong>.
               El voto real de la comunidad puede cambiar el guion en cualquier momento.
             </p>
-            <Link
-              to="/votar"
-              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-            >
-              <Swords className="h-4 w-4" />
-              Votar este duelo
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                to={`/votar?personaje=${encodeURIComponent(personajeA.slug)}`}
+                className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              >
+                <Swords className="h-4 w-4 shrink-0" />
+                <span className="truncate">Retar a {personajeA.nombre}</span>
+              </Link>
+              <Link
+                to={`/votar?personaje=${encodeURIComponent(personajeB.slug)}`}
+                className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-bold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+              >
+                <Swords className="h-4 w-4 shrink-0" />
+                <span className="truncate">Retar a {personajeB.nombre}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={compartirDuelo}
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-bold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-accent hover:text-gold"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartir duelo
+              </button>
+            </div>
           </section>
         </div>
 
