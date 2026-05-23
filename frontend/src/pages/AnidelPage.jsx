@@ -29,9 +29,11 @@ import {
 } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
+import { getGameVisual } from '../data/visual-assets'
 
 const MAX_INTENTOS = 6
 const STORAGE_KEY = 'animeshowdown.anidel.v1'
+const SEO_IMAGE = getGameVisual('/games/anigrid').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -66,6 +68,7 @@ function AnidelPage() {
     description:
       'Adivina el personaje secreto del día en 6 intentos. Pistas por anime, primera letra y ELO. Comparte tu resultado.',
     canonical: 'https://animeshowdown.dev/games/anigrid',
+    image: SEO_IMAGE,
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()

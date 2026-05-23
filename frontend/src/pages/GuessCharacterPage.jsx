@@ -26,9 +26,11 @@ import {
 } from '../lib/games'
 import PersonajeImg from '../components/PersonajeImg'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { getGameVisual } from '../data/visual-assets'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-character.v1'
+const SEO_IMAGE = getGameVisual('/games/shadow-guess').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -57,6 +59,7 @@ function GuessCharacterPage() {
     description:
       'Adivina el personaje de anime del día por su imagen difuminada. 5 intentos. Comparte tu resultado estilo Wordle.',
     canonical: 'https://animeshowdown.dev/games/shadow-guess',
+    image: SEO_IMAGE,
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()

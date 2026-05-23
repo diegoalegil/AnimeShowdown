@@ -111,6 +111,7 @@ function JuegosAnimePage() {
     description:
       'Juegos anime online diarios en AnimeShowdown: Shadow Guess, Anime Reveal, AniGrid, Impostor Trial y ELO Duel. Juega gratis, protege tu racha y comparte resultado.',
     canonical: 'https://animeshowdown.dev/juegos/anime',
+    image: BRAND_VISUALS.games.image,
   })
 
   return (
