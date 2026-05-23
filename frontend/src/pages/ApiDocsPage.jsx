@@ -173,6 +173,21 @@ const SECCIONES = [
         path: '/api/og/torneo/{slug}.png',
         desc: 'OG image 1200x630 con bracket + nombre del torneo.',
       },
+      {
+        metodo: 'GET',
+        path: '/api/og/ranking.png',
+        desc: 'OG image 1200x630 con top global del ranking.',
+      },
+      {
+        metodo: 'GET',
+        path: '/api/og/anime/{slug}.png',
+        desc: 'OG image 1200x630 con top de personajes de un anime.',
+      },
+      {
+        metodo: 'GET',
+        path: '/api/og/pvp.png',
+        desc: 'OG image 1200x630 para el modo duelo PvP live.',
+      },
     ],
   },
 ]
