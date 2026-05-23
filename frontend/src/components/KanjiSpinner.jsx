@@ -40,16 +40,13 @@ function KanjiSpinner({
     : tone === 'cyan'
       ? 'border-cyan-500/25 border-t-cyan-400'
       : 'border-accent/25 border-t-accent'
-  // Antes el kanji siempre era gold incluso cuando tone=accent. Eso pintaba
-  // un anillo rojo y un kanji amarillo dentro — visualmente disonante,
-  // sobre todo en VotarPage (tone=accent) donde el spinner gigante salía
-  // como "círculo amarillo desencajado" según feedback del usuario.
-  // Ahora el kanji hereda el tono del anillo: identidad cromática única.
+  // El kanji usa un tono legible del mismo rango cromático que el anillo.
+  // El rojo de marca como texto queda por debajo de contraste AA sobre bg.
   const toneKanji = tone === 'gold'
     ? 'text-gold'
     : tone === 'cyan'
       ? 'text-cyan-300'
-      : 'text-accent'
+      : 'text-rose-300'
   const toneHalo = tone === 'gold'
     ? 'bg-gold/10'
     : tone === 'cyan'

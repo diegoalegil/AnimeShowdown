@@ -140,12 +140,12 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-3 top-3 rounded-full border border-border bg-surface p-2 text-fg-muted transition-colors hover:border-accent/50 hover:text-accent"
+        className="absolute right-3 top-3 rounded-full border border-border bg-surface p-2 text-fg-muted transition-colors hover:border-accent/50 hover:text-gold"
         aria-label="Cerrar captcha"
       >
         <X className="h-4 w-4" />
       </button>
-      <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/50 bg-accent/15 text-accent">
+      <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/50 bg-accent/15 text-gold">
         <ShieldCheck className="h-5 w-5" />
       </div>
       <h2 id="captcha-modal-title" className="text-xl font-black text-fg-strong">
