@@ -19,7 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +48,9 @@ class TorneoControllerTest {
 
     @Autowired
     private PersonajeRepository personajeRepository;
+
+    @Autowired
+    private TorneoRepository torneoRepository;
 
     /**
      * Asegura un user con esas credenciales (idempotente entre tests). Si ya existe
@@ -96,6 +101,33 @@ class TorneoControllerTest {
         mvc.perform(get("/api/torneos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void listadoPublicoSanitizaDescripcionLegacyDeTorneoAuto() throws Exception {
+        String slug = "random-showdown-copy-test-" + System.nanoTime();
+        Torneo torneo = new Torneo(
+                slug,
+                "Random Showdown #99999",
+                "[AUTO] Generado el 2026-05-23 · 16 personajes aleatorios");
+        torneoRepository.saveAndFlush(torneo);
+
+        MvcResult res = mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode arr = json.readTree(res.getResponse().getContentAsString());
+        JsonNode encontrado = null;
+        for (JsonNode t : arr) {
+            if (slug.equals(t.get("slug").asText())) {
+                encontrado = t;
+                break;
+            }
+        }
+        org.junit.jupiter.api.Assertions.assertNotNull(encontrado,
+                "Torneo automático legacy debería aparecer en /api/torneos");
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "Torneo automático de la comunidad con 16 personajes seleccionados al azar para mantener la arena activa.",
+                encontrado.get("descripcion").asText());
     }
 
     @Test

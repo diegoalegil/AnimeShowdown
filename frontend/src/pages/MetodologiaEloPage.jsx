@@ -51,7 +51,7 @@ function MetodologiaEloPage() {
           icon={BarChart3}
           eyebrow="Metodología"
           title="Cómo funciona el ranking de AnimeShowdown"
-          subtitle="Una guía clara para leer ELO base, votos comunitarios y rankings temporales sin vender humo competitivo."
+          subtitle="Una guía clara para leer ELO base, votos comunitarios y rankings temporales sin prometer precisión absoluta."
           actions={
             <>
               <Link to="/votar" className="as-button-primary inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-black">

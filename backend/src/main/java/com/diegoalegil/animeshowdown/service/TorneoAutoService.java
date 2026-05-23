@@ -31,7 +31,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 public class TorneoAutoService {
 
     private static final Logger log = LoggerFactory.getLogger(TorneoAutoService.class);
-    private static final String AUTO_PREFIX = "[AUTO]";
+    private static final String AUTO_NAME_PREFIX = "Random Showdown #";
     private static final int VENTANA_HORAS = 24;
 
     private final TorneoRepository torneoRepository;
@@ -60,10 +60,7 @@ public class TorneoAutoService {
 
     public Optional<Torneo> torneoAutoReciente() {
         LocalDateTime ventana = LocalDateTime.now().minusHours(VENTANA_HORAS);
-        // Antes hacía findAll().stream().filter() leyendo toda la tabla y
-        // filtrando en memoria — escalable como nada. Ahora se resuelve con
-        // query JPQL que va a Postgres con WHERE LIKE + WHERE > fecha.
-        return torneoRepository.findAutoTorneoMasRecienteDesde(AUTO_PREFIX, ventana);
+        return torneoRepository.findTorneoMasRecientePorNombrePrefixDesde(AUTO_NAME_PREFIX, ventana);
     }
 
     /**
@@ -99,19 +96,16 @@ public class TorneoAutoService {
         Collections.shuffle(todos);
         List<Personaje> seleccionados = new ArrayList<>(todos.subList(0, tamano));
 
-        String fecha = LocalDateTime.now().toLocalDate().toString();
-        // Antes contaba con findAll().stream().filter().count() cargando toda
-        // la tabla. Ahora se delega a una query COUNT que Postgres resuelve
-        // sin materializar las filas.
-        long autoCount = torneoRepository.countByDescripcionPrefix(AUTO_PREFIX) + 1;
-        String nombre = "Random Showdown #" + autoCount;
-        // Slug determinista por contador (siempre incrementa con countByDescripcionPrefix),
+        long autoCount = torneoRepository.countByNombrePrefix(AUTO_NAME_PREFIX) + 1;
+        String nombre = AUTO_NAME_PREFIX + autoCount;
+        // Slug determinista por contador (siempre incrementa con countByNombrePrefix),
         // así no necesitamos iterar para garantizar unicidad como TorneoService.crear.
         String slug = "random-showdown-" + autoCount;
         Torneo torneo = new Torneo(
                 slug,
                 nombre,
-                AUTO_PREFIX + " Generado el " + fecha + " · " + tamano + " personajes aleatorios");
+                "Torneo automático de la comunidad con " + tamano
+                        + " personajes seleccionados al azar para mantener la arena activa.");
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setFechaInicio(LocalDateTime.now());
         Torneo guardado = torneoRepository.save(torneo);
