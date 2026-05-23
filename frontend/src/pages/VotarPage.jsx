@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -224,10 +224,7 @@ function VotarPage() {
     retry: false,
   })
 
-  const [casualPair, setCasualPair] = useState([null, null])
-  if (catalogoPersonajes.length >= 2 && (!casualPair[0] || !casualPair[1])) {
-    setCasualPair(getRandomPair(catalogoPersonajes))
-  }
+  const [casualPairOverride, setCasualPairOverride] = useState(null)
   const [votedFor, setVotedFor] = useState(null)
   // Auto-next por default (opt-out vía toggle). Antes era opt-in y la
   // gente tenía que pulsar "Siguiente duelo" tras cada voto — un click
@@ -300,6 +297,13 @@ function VotarPage() {
   const modoSugerido = Boolean(
     !modoBackend && dueloSugerido?.personaje1 && dueloSugerido?.personaje2,
   )
+  const shouldUseCasualPair = !modoBackend && !modoSugerido
+  const casualPair = useMemo(() => {
+    if (!shouldUseCasualPair) return [null, null]
+    if (casualPairOverride?.[0] && casualPairOverride?.[1]) return casualPairOverride
+    if (catalogoPersonajes.length < 2) return [null, null]
+    return getRandomPair(catalogoPersonajes)
+  }, [catalogoPersonajes, casualPairOverride, shouldUseCasualPair])
   const votoInvitadoActivo = modoBackend && !user
 
   // Datos a renderizar uniformes para ambos modos. Calculados antes del
@@ -336,7 +340,7 @@ function VotarPage() {
     } else if (modoSugerido) {
       refetchDueloSugerido()
     } else {
-      setCasualPair(getRandomPair(catalogoPersonajes))
+      setCasualPairOverride(getRandomPair(catalogoPersonajes))
     }
   }, [
     isVotePending,
