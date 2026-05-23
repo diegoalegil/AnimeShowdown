@@ -62,23 +62,10 @@ const VerifyPage = lazy(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazy(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
-// Fallback de Suspense compartido. Nota de producto (2026-05-18): el
-// spinner solo sobre fondo negro hacía que una carga lenta (1ª visita,
-// red mala, chunk grande) pareciera la página rota. Ahora damos un
-// shell mínimo con identidad y label legible — sigue siendo barato
-// (cero requests, todo CSS), pero comunica "estoy cargando" en vez
-// de "no pasa nada".
+// Fallback de Suspense compartido con shell mínimo de marca y label legible.
 function PageLoader() {
-  // Feedback visual (2026-05-22): el orb dorado pulsando con 3 dots
-  // se leia como "circulo amarillo feo" — destacaba demasiado el amarillo,
-  // que no es ni accent (#9f1d2c carmesi) ni gold (#c5a15a) del proyecto.
-  // Rediseño "premium anime":
-  //   - Anillo accent rotando lento (~1.6s) con conic gradient + ring
-  //     accent-soft para sombra suave (no hard border).
-  //   - Kanji 勝 (shou, "victoria") dorado centrado con glow accent.
-  //   - Halo accent pulsando detras (animationDuration 2.4s, suave).
-  //   - Respeta prefers-reduced-motion: el anillo y halo se quedan
-  //     estaticos, solo el aura sigue muy lenta (sin marear).
+  // Anillo accent, kanji 勝 y tres dots suaves. Las clases motion-safe
+  // respetan prefers-reduced-motion.
   return (
     <div
       className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20"
@@ -146,13 +133,13 @@ function CatalogoError({ onRetry }) {
     <div className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20">
       <div className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
-          Catalogo no disponible
+          Catálogo no disponible
         </p>
         <h1 className="text-2xl font-black text-fg-strong">
           No pudimos cargar los personajes
         </h1>
         <p className="text-sm leading-6 text-fg-muted">
-          AnimeShowdown necesita el catalogo para montar rankings, juegos y fichas sin datos incompletos.
+          AnimeShowdown necesita el catálogo para montar rankings, juegos y fichas sin datos incompletos.
         </p>
         <button
           type="button"
@@ -166,22 +153,14 @@ function CatalogoError({ onRetry }) {
   )
 }
 
-// Nota técnica F001 (2026-05-22): wrapper que sólo deja pasar children
-// cuando el catálogo de personajes está hidratado. Antes el gate de catálogo
-// vivía a nivel App.jsx y bloqueaba TODAS las rutas — incluso /login,
-// /status, /faq, /auth/callback, /terms — si el catálogo fallaba. Una caída
-// de /api/personajes/catalogo dejaba la app entera inaccesible aunque las
-// rutas de soporte/auth no dependieran de él. Ahora envolvemos sólo las
-// rutas que SÍ usan el catálogo (home, /personajes, /votar, ranking, games,
-// torneos, perfil...). El resto carga independiente.
+// Wrapper que sólo deja pasar children cuando el catálogo de personajes está
+// hidratado. Las rutas de soporte/auth/legal/status cargan independiente para
+// que sigan disponibles aunque falle /api/personajes/catalogo.
 function RequireCatalog({ catalogoQuery, children }) {
-  // Nota técnica AS-022 (2026-05-22): antes catalogoListo exigía
-  // data.length > 0, lo que mezclaba dos estados muy distintos:
+  // Diferenciamos dos estados distintos:
   //   - loading: catalogoQuery aún no resolvió.
   //   - loaded-empty: el backend respondió, pero con [] (DB nueva, seed
   //     no aplicado, migración en curso, entorno de staging vacío...).
-  // En el segundo caso quedabas atrapado en PageLoader eternamente
-  // porque length === 0 nunca cambiaba. Diferenciamos los dos.
   const hasData = Array.isArray(catalogoQuery.data) && catalogoQuery.data.length > 0
   const isLoading = catalogoQuery.isPending || catalogoQuery.isFetching
   const isError = catalogoQuery.isError
@@ -271,23 +250,16 @@ function App() {
           },
         }}
       />
-      {/* Sprint 5h (2026-05-18): /tv tiene su propio header fullscreen
-          fixed z-50; el global Header queda detrás z-30 y solo añade DOM
-          noise + paint costoso del logo flotante. Skipeamos cuando la
-          ruta es /tv para que el browser no monte ambos.
-          Nota técnica AS-017 (2026-05-22): Footer y MobileBottomNav
-          también deben omitirse en /tv — antes seguían montados y rompían
-          la sensación de pantalla completa cuando el usuario hacía
-          scroll por error o cambiaba de pestaña. */}
+      {/* /tv tiene chrome propio fullscreen. Omitimos header, footer y
+          bottom nav global para no montar DOM visual duplicado. */}
       {!isFullscreenRoute && <Header />}
       {/* Listener global de unlock: side-effect-only, sin UI. Se monta
           siempre — internamente skipea cuando no hay user logueado. */}
       <BadgeUnlockListener />
-      {/* Plan v2 §13.7: pétalos de sakura del 15 marzo al 15 abril
-          (hanami). Auto-off el resto del año. Toggle vía localStorage
-          animeshowdown.sakura = 'on' | 'off' para override manual. */}
+      {/* Pétalos de sakura del 15 marzo al 15 abril (hanami). Auto-off el
+          resto del año. Toggle vía localStorage animeshowdown.sakura. */}
       <SakuraPetals />
-      {/* Plan v2 §13.12: easter egg ↑↑↓↓←→←→BA. */}
+      {/* Easter egg ↑↑↓↓←→←→BA. */}
       <KonamiCode />
       <EmailVerifyBanner />
       <main className="flex flex-1 flex-col">
@@ -334,9 +306,8 @@ function App() {
               <Route path="/eventos/:slug" element={gated(<EventoDetailPage />)} />
               <Route path="/duelos/:par" element={gated(<DueloVersusPage />)} />
               <Route path="/ranking" element={gated(<RankingPage />)} />
-              {/* Higher or Lower → ELO Duel rebrand (Plan v2 §14). La ruta
-                  vieja redirige client-side; el _redirects de Cloudflare
-                  hace 301 a nivel CDN para preservar SEO. */}
+              {/* Higher or Lower → ELO Duel. La ruta vieja redirige
+                  client-side; _redirects emite 301 a nivel CDN. */}
               <Route
                 path="/higher-or-lower"
                 element={<Navigate replace to="/games/elo-duel" />}
@@ -349,10 +320,8 @@ function App() {
               <Route path="/u/:username" element={gated(<UsuarioPage />)} />
               <Route path="/u/:username/logros" element={gated(<UsuarioLogrosPage />)} />
               <Route path="/games" element={gated(<GamesHubPage />)} />
-              {/* Nombres rebrandeados (Plan v2 §14). Rutas viejas →
-                  Navigate replace para mantener funcionando los links
-                  indexados; el _redirects en /public emite 301 a nivel
-                  Cloudflare para que Google traslade el SEO. */}
+              {/* Rutas legacy de juegos → Navigate replace para links
+                  existentes; _redirects emite 301 a nivel Cloudflare. */}
               <Route path="/games/shadow-guess" element={gated(<GuessCharacterPage />)} />
               <Route path="/games/anime-reveal" element={gated(<GuessAnimePage />)} />
               <Route path="/games/anigrid" element={gated(<AnidelPage />)} />
