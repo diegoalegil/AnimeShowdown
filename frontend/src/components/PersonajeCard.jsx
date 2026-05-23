@@ -39,6 +39,9 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
   const { elo, wins, losses } = getStatsPersonaje(slug)
   const totalCombates = wins + losses
   const winRate = totalCombates > 0 ? Math.round((wins / totalCombates) * 100) : null
+  const priorityImage = Boolean(rank && rank <= 12)
+  const imageLoading = priorityImage ? 'eager' : 'lazy'
+  const imageFetchPriority = priorityImage ? 'high' : 'auto'
 
   if (hoverEnabled && !reduceMotion) {
     return (
@@ -49,6 +52,8 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
         rank={rank}
         elo={elo}
         winRate={winRate}
+        imageLoading={imageLoading}
+        imageFetchPriority={imageFetchPriority}
         onClick={() => play('playWhoosh')}
       />
     )
@@ -65,7 +70,8 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
         <PersonajeImg
           slug={slug}
           alt={nombre}
-          loading="lazy"
+          loading={imageLoading}
+          fetchPriority={imageFetchPriority}
           className="aspect-[2/3] w-full object-cover"
         />
         <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} winRate={winRate} />
@@ -76,7 +82,17 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
 
 // Versión hover-only con tilt y spotlight. Mismo coste que antes pero
 // solo se monta cuando hay puntero fino (mouse) — móvil queda fuera.
-function CardWithTilt({ slug, nombre, anime, rank, elo, winRate, onClick }) {
+function CardWithTilt({
+  slug,
+  nombre,
+  anime,
+  rank,
+  elo,
+  winRate,
+  imageLoading,
+  imageFetchPriority,
+  onClick,
+}) {
   const cardRef = useRef(null)
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
@@ -126,7 +142,8 @@ function CardWithTilt({ slug, nombre, anime, rank, elo, winRate, onClick }) {
         <PersonajeImg
           slug={slug}
           alt={nombre}
-          loading="lazy"
+          loading={imageLoading}
+          fetchPriority={imageFetchPriority}
           className="aspect-[2/3] w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <motion.div
