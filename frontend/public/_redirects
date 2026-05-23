@@ -1,4 +1,4 @@
-# Rebrand de Anime Daily Trials (Plan v2 §14) — 301 a nivel CDN para
+# Rebrand de Anime Daily Trials — 301 a nivel CDN para
 # preservar el SEO acumulado de las rutas viejas. Las nuevas son más
 # memorables y dan identidad ("ELO Duel" en vez de "Higher or Lower").
 # Estos 301 se procesan ANTES de servir el index.html, así Google los
