@@ -520,6 +520,8 @@ function Tabs({ activo, onChange }) {
             title={
               id === 'elo'
                 ? 'Calculado desde los datos del catálogo. Siempre disponible.'
+                : id === 'categorias'
+                  ? 'Rankings por arquetipo: héroes, villanos, estrategas y más.'
                 : id === 'all'
                   ? 'Top de votos desde que abrió AnimeShowdown.'
                   : id === 'mes'
@@ -1229,7 +1231,7 @@ function HubLinks() {
 function TablaExtraible({ rankedElo }) {
   const top10 = rankedElo.slice(0, 10)
   return (
-    <details className="mt-6 rounded-xl border border-border bg-surface">
+    <details className="group mt-6 rounded-xl border border-border bg-surface">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
