@@ -133,8 +133,7 @@ prune_prefix() {
     while IFS= read -r key; do
         [ -z "$key" ] && continue
         aws s3 rm "s3://$R2_BUCKET/$key" \
-            --endpoint-url "$R2_ENDPOINT" \
-            --no-progress >/dev/null
+            --endpoint-url "$R2_ENDPOINT" >/dev/null
         echo "  · borrado $key"
         count=$((count + 1))
     done <<< "$victims"
