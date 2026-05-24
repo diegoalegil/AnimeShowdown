@@ -21,6 +21,7 @@ import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
 import DailyMissionPanel from '../components/DailyMissionPanel'
+import Button from '../components/Button'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -534,13 +535,15 @@ function SectionTop10Ranking({ top10 }) {
                 Cada victoria suma puntos, cada derrota puede cambiarlo todo.
               </p>
             </div>
-            <Link
+            <Button
+              as={Link}
               to="/ranking"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:bg-accent/20 hover:text-gold"
+              variant="secondary"
+              className="group"
             >
               Ver ranking completo
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </Button>
           </div>
         </div>
         <ol className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
@@ -671,13 +674,15 @@ function SectionRetosDiarios() {
                 personajes, detecta impostores y protege tu racha diaria.
               </p>
             </div>
-            <Link
+            <Button
+              as={Link}
               to="/games"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:bg-accent/20 hover:text-gold"
+              variant="secondary"
+              className="group"
             >
               Jugar retos diarios
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </Button>
           </div>
         </div>
         {/* Layout 1/2/3 cols con cover real de cada juego, altura estable y
