@@ -87,3 +87,4 @@ AUDIT*.md
 *audit*.md
 *.private.md
 *.local.md
+.codex/
