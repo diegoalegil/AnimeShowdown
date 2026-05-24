@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Trophy, ArrowLeft } from 'lucide-react'
+import { AlertTriangle, Trophy, ArrowLeft } from 'lucide-react'
 import Avatar from '../components/Avatar'
 import BadgeCardCatalogo from '../components/BadgeCardCatalogo'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { EmptyStateScene } from '../components/VisualSystem'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -77,8 +79,22 @@ function UsuarioLogrosPage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 items-center justify-center px-5 py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <section className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 px-5 py-12 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} variant="card" />
+        ))}
+      </section>
+    )
+  }
+
+  if (error && error.status !== 404) {
+    return (
+      <section className="px-5 py-12 sm:px-8 sm:py-16">
+        <EmptyState
+          icon={AlertTriangle}
+          title="No pudimos cargar estos logros"
+          description={error?.message || 'Reintenta en unos segundos para volver a consultar el perfil.'}
+        />
       </section>
     )
   }
