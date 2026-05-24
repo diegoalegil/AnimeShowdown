@@ -126,7 +126,7 @@ node scripts/sync-personajes.mjs --check
 node scripts/sync-personajes.mjs --dry-run
 ```
 
-Las variantes responsive (`300`, `600`, `1024`, AVIF/WebP) ya están versionadas. En Cloudflare se usa `build:no-images` para no regenerarlas durante el deploy.
+Las variantes responsive (`300`, `600`, `1024`, AVIF/WebP) ya están versionadas. En Cloudflare se usa `build:no-images` para no copiar `/img/` al artefacto: el build exige `ANIMESHOWDOWN_IMG_CDN_BASE_URL` y genera un redirect `/img/*` hacia ese origen externo. Ese origen debe contener el catálogo de `frontend/img/` y los stage assets de `frontend/public/img/`.
 
 ## Setup local
 
@@ -159,7 +159,7 @@ npm run dev
 Vite levanta en `http://localhost:5173`. Para usar backend local:
 
 ```env
-VITE_API_URL=http://localhost:8080
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
 ## Calidad
@@ -169,8 +169,9 @@ Validaciones recomendadas antes de publicar cambios:
 ```bash
 cd frontend
 npm run lint
-npm run build:no-images
-npm run test:bundle
+ANIMESHOWDOWN_IMG_CDN_BASE_URL=https://assets.animeshowdown.dev/img npm run build:no-images
+REQUIRE_EXTERNAL_IMAGE_CDN=true ANIMESHOWDOWN_IMG_CDN_BASE_URL=https://assets.animeshowdown.dev/img npm run test:bundle
+npm run assets:cdn:plan
 
 cd ../backend
 ./mvnw test
@@ -183,6 +184,20 @@ node scripts/qa/contrast-check.mjs
 ```
 
 El smoke test comprueba healthcheck, catálogo, filtro por anime, ranking público, Swagger, frontend, rutas SPA y login inválido con respuesta `401`.
+
+Para Playwright local con backend real usa el perfil aislado `e2e`:
+
+```bash
+cd backend
+SPRING_PROFILES_ACTIVE=e2e ./mvnw spring-boot:run -Dspring-boot.run.useTestClasspath=true
+
+cd ../frontend
+npm run build:e2e
+npm run preview -- --host 127.0.0.1
+npm run test:e2e:local
+```
+
+El perfil `e2e` usa H2 en memoria, cookies no-secure para HTTP local y no toca la base PostgreSQL local. El flag `useTestClasspath` es necesario porque H2 vive en scope `test`, fuera del artefacto de producción.
 
 ## Deploy
 
@@ -198,11 +213,35 @@ Notas clave:
 - Frontend root: `frontend`.
 - Build command: `npm run build:no-images`.
 - Output: `frontend/dist`.
+- Required frontend env: `ANIMESHOWDOWN_IMG_CDN_BASE_URL=https://assets.animeshowdown.dev/img` o el origen equivalente que sirva el árbol público `/img/`.
 - API pública: `https://api.animeshowdown.dev`.
 - La raíz del subdominio API es solo base técnica y puede responder `403`; las entradas navegables son Swagger, OpenAPI JSON, `/api-docs` y healthcheck.
 - SPA fallback y redirects: `frontend/public/_redirects`.
 - `ProductionSecretsValidator` bloquea placeholders peligrosos fuera de test.
 - Workbox cachea recursos estáticos y rutas API seleccionadas con estrategias diferenciadas.
+
+### Sincronización del CDN de imágenes
+
+El sync de `/img/` está separado del deploy de Cloudflare Pages para que el artefacto del frontend no cargue cientos de MB. Por seguridad, el comando local por defecto solo calcula el plan:
+
+```bash
+cd frontend
+npm run assets:cdn:plan
+```
+
+Para una subida real a un origen R2/S3 compatible:
+
+```bash
+ANIMESHOWDOWN_IMG_CDN_BASE_URL=https://assets.animeshowdown.dev/img \
+R2_IMG_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com \
+R2_IMG_ACCESS_KEY_ID=... \
+R2_IMG_SECRET_ACCESS_KEY=... \
+R2_IMG_BUCKET=animeshowdown-assets \
+R2_IMG_PREFIX=img \
+npm run assets:cdn:sync
+```
+
+El script no borra objetos remotos; solo sube/actualiza imágenes con `Cache-Control: public, max-age=3600, stale-while-revalidate=86400`. También existe el workflow manual `IMG CDN sync` para ejecutarlo desde GitHub Actions con secretos dedicados.
 
 ## API
 

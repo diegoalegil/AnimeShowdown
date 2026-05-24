@@ -84,32 +84,35 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # build:no-images salta el procesamiento de 700+ imágenes con sharp
-      # (que tardaba 5-7min en CI cold). El CI solo VERIFICA que el bundle
+      # build:no-images no copia /img/ al artefacto: exige CDN externo y
+      # mantiene Cloudflare Pages ligero. El CI solo VERIFICA que el bundle
       # compila — no despliega nada.
       #
       # MISMO comando que usa Cloudflare Pages en producción desde
-      # 2026-05-17: las variantes responsive -300.webp/-600.webp se
-      # commitean al repo y CF las sirve directamente sin regenerarlas.
+      # 2026-05-24: /img/* se sirve desde assets.animeshowdown.dev mediante
+      # redirect generado en dist/_redirects.
       # Antes la docu mencionaba que CF corría `npm run build` completo,
       # que disparaba el timeout de 20 min del free tier.
       #
-      # VITE_API_URL es obligatoria en builds de producción: api.js falla
+      # VITE_API_BASE_URL es obligatoria en builds de producción: api.js falla
       # rápido si falta. El valor público de prod valida el guard durante el
       # build y evita publicar un bundle que arrancaría en blanco.
       - name: Build (sin regenerar variantes de imagen)
         env:
-          VITE_API_URL: https://api.animeshowdown.dev
+          VITE_API_BASE_URL: https://api.animeshowdown.dev
+          ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
         run: npm run build:no-images
 
       # Presupuesto de bundle: falla si el chunk principal index-*.js supera
       # 250KB gzip. Personaje3D y otros chunks lazy no entran en este budget.
       - name: Bundle size budget
+        env:
+          REQUIRE_EXTERNAL_IMAGE_CDN: "true"
+          ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
         run: npm run test:bundle
 
       # Verifica que la API base quedó bundleada. api.js inicializa API_BASE
-      # en módulo global con
-      # `import.meta.env.VITE_API_URL`, y vite la inlinea durante el build.
+      # en módulo global con `import.meta.env.VITE_API_BASE_URL`, y vite la inlinea durante el build.
       # Si el workflow olvida pasar la env, el valor inlineado es undefined
       # y el throw del fail-fast se dispara en runtime (pantalla blanca).
       # API_BASE vive en el chunk app-runtime-*.js (separado del index
