@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, Clock, Crown, Trophy, Vote } from 'lucide-react'
+import { AlertTriangle, Calendar, Clock, Crown, Trophy, Vote } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import Avatar from '../components/Avatar'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { endpoints } from '../lib/api'
 import { EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
@@ -42,7 +44,7 @@ function LeaderboardsPage() {
   })
 
   const [periodo, setPeriodo] = useState('all')
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['top-voters', periodo],
     queryFn: () => endpoints.topVoters({ periodo, limit: 20 }),
     staleTime: 60_000,
@@ -98,14 +100,23 @@ function LeaderboardsPage() {
         </div>
 
         {isLoading && (
-          <div className="flex items-center justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-          </div>
+          <LeaderboardSkeleton />
         )}
         {isError && (
-          <p className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 text-[13px] text-rose-300">
-            No se pudo cargar el leaderboard. Reintenta en unos segundos.
-          </p>
+          <EmptyState
+            icon={AlertTriangle}
+            title="No pudimos cargar el leaderboard"
+            description="Reintenta en unos segundos para volver a consultar esta ventana de votos."
+            action={
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="as-button-primary rounded-lg px-5 py-3 text-sm font-black"
+              >
+                Reintentar
+              </button>
+            }
+          />
         )}
         {!isLoading && !isError && (!data || data.length === 0) && (
           <EmptyStateScene
@@ -148,6 +159,16 @@ function LeaderboardsPage() {
         </div>
       </div>
     </VisualPageShell>
+  )
+}
+
+function LeaderboardSkeleton() {
+  return (
+    <div className="flex flex-col gap-2">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Skeleton key={i} variant="line" className="h-16 w-full rounded-lg" />
+      ))}
+    </div>
   )
 }
 
