@@ -21,7 +21,7 @@ import com.diegoalegil.animeshowdown.service.ReaccionService;
 import jakarta.validation.Valid;
 
 /**
- * Endpoints REST de reactions (Plan v2 §4.3).
+ * Endpoints REST de reactions.
  *
  * <ul>
  *   <li>{@code GET /api/reacciones?targetType=&targetId=} — público.
@@ -64,7 +64,7 @@ public class ReaccionController {
             reaccionService.aplicar(usuario, request.getTargetType(),
                     request.getTargetId(), request.getTipo());
         } catch (IllegalArgumentException e) {
-            // Nota P2 (2026-05-17): el service valida que el target exista
+            // el service valida que el target exista
             // y lanza IllegalArgumentException si no. Traducimos a 400 con
             // el mensaje original — útil para clientes mal hechos sin
             // delatar internals de la BBDD.

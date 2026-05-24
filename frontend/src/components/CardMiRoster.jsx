@@ -3,10 +3,10 @@ import { ArrowRight, Heart, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMisFavoritos, useToggleFavorito } from '../hooks/useFavoritos'
 import { getStatsPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from './PersonajeImg'
 
 /**
- * Card "Mi roster" en /perfil (Plan producto 2026-05-18).
+ * Card "Mi roster" en /perfil.
  *
  * <p>Lista los personajes que el usuario sigue, ordenados por la fecha
  * en que los siguió (más recientes primero — el orden del backend).
@@ -73,17 +73,14 @@ function RosterCard({ favorito }) {
         className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-2 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-2.5"
       >
         <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-surface-alt">
-          {imagenUrl ? (
-            <img
-              src={imagenUrl}
-              alt=""
-              loading="lazy"
-              onError={ocultaImgRota}
-              className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="h-full w-full animate-pulse bg-surface-alt" />
-          )}
+          <PersonajeImg
+            slug={slug}
+            src={imagenUrl}
+            alt={nombre}
+            loading="lazy"
+            sizes="(min-width: 1024px) 120px, (min-width: 640px) 160px, 45vw"
+            className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+          />
           <button
             type="button"
             onClick={onQuitar}

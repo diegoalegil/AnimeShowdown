@@ -19,7 +19,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.service.SeguidorService;
 
 /**
- * Endpoints REST de friends / follow (Plan v2 §4.5).
+ * Endpoints REST de friends / follow.
  *
  * <ul>
  *   <li>{@code POST /api/seguidores/{usuarioId}} — autenticado. Sigue al

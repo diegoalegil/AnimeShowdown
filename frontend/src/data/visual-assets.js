@@ -39,18 +39,6 @@ const EXTENSIONS = ['webp', 'avif', 'png', 'jpg', 'jpeg', 'svg']
 
 function resolveAsset(path) {
   if (!path) return null
-  // Feedback visual (2026-05-21): antes esta funcion devolvia null cuando
-  // VISUAL_ASSET_PATHS no incluia el path. Eso forzaba el fallback STAGE.*
-  // generico (TCG-fan repetido) para users con manifest cacheado de un deploy
-  // anterior al batch 2 — visualmente devastador porque TODOS los animes
-  // nuevos mostraban la misma escena fallback.
-  //
-  // Ahora: si el path matchea exactamente el manifest, lo usamos directo. Si
-  // no, devolvemos el path tal cual igual — el browser hara el fetch y si
-  // existe (que es lo normal porque el archivo SI esta en el CDN), se ve. Si
-  // 404, el navegador mostrara el image roto en lugar del fallback. Asumimos
-  // que el deploy de assets va siempre por delante o a la vez que el deploy
-  // de JS — invariante del pipeline. Manifest queda solo como pista de extension.
   if (VISUAL_ASSET_PATHS.has(path)) return path
 
   const base = path.replace(/\.(webp|avif|png|jpe?g|svg)$/i, '')
@@ -58,10 +46,7 @@ function resolveAsset(path) {
     const candidate = `${base}.${ext}`
     if (VISUAL_ASSET_PATHS.has(candidate)) return candidate
   }
-  // Confianza optimista: devuelve el path original. Si falla el fetch, el
-  // browser muestra el icono de imagen rota — que es mas evidente como bug
-  // que ver el TCG fan generico que se ve "intencional".
-  return path
+  return null
 }
 
 function palette(seed = '') {
@@ -89,7 +74,7 @@ function makeVisual({
   atmosphere,
 }) {
   const p = palette(paletteSeed)
-  const resolvedImage = image ?? resolveAsset(expectedPath)
+  const resolvedImage = image ?? resolveAsset(expectedPath) ?? fallbackImage
   return {
     slug,
     title,
@@ -551,8 +536,8 @@ export const ANIME_VISUALS = {
     glow: '#1f6b83',
     glowRgb: '31 107 131',
   }),
-  // Nota visual (2026-05-22): el catálogo del backend usa nombres de
-  // anime largos ("Frieren: Beyond Journey's End", "Spy × Family",
+  // El catálogo del backend usa nombres de anime largos
+  // ("Frieren: Beyond Journey's End", "Spy × Family",
   // "Kaguya-sama: Love is War", etc.). slugifyAnime() produce slugs que
   // NO coinciden con el nombre del archivo en /assets/anime-banners/
   // (que sigue la convención corta/popular). Sin estas entradas
@@ -1214,8 +1199,8 @@ export function getAnimeVisual(slug, anime = slug) {
 
 export function getTournamentVisual(slug, title = slug) {
   if (TOURNAMENT_VISUALS[slug]) return TOURNAMENT_VISUALS[slug]
-  // Nota visual (2026-05-22): torneos generados por el cron automático
-  // (TorneoAutoService) usan slugs con sufijo numérico — "random-showdown-1",
+  // Torneos generados por el cron automático (TorneoAutoService) usan slugs
+  // con sufijo numérico — "random-showdown-1",
   // "random-showdown-2"... El banner real vive bajo el slug base
   // (random-showdown.webp), así que heredamos el visual del torneo base
   // antes de caer al fallback genérico, manteniendo el título del torneo

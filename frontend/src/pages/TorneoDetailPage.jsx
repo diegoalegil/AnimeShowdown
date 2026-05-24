@@ -9,11 +9,12 @@ import PersonajeImg from '../components/PersonajeImg'
 import ReactionsBar from '../components/ReactionsBar'
 import EditorialCover from '../components/EditorialCover'
 import ShareButtons from '../components/ShareButtons'
+import KanjiSpinner from '../components/KanjiSpinner'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { getTournamentVisual } from '../data/visual-assets'
+import { BRAND_VISUALS, getTournamentVisual } from '../data/visual-assets'
 import { VisualPageShell } from '../components/VisualSystem'
 import NotFoundPage from './NotFoundPage'
 
@@ -29,7 +30,7 @@ const headerVariants = {
 /**
  * Detalle de un torneo (/torneos/[slug]) consumiendo el backend vía
  * useTorneoBySlug. Antes leía frontend/src/data/torneos.js estático con
- * `getTorneoBySlug(slug)` — Plan v2 §1.1 elimina ese archivo.
+ * `getTorneoBySlug(slug)` — 1 elimina ese archivo.
  *
  * El hook hace polling de 30s automáticamente cuando estado === IN_PROGRESS
  * (configurado en lib/torneosQueries.js), así el bracket se actualiza solo
@@ -53,6 +54,8 @@ function TorneoDetailPage() {
             `Sigue el bracket de ${torneo.nombre} con ${
               torneo.numParticipantes ?? '?'
             } personajes y vota en cada enfrentamiento.`,
+          canonical: `https://animeshowdown.dev/torneos/${torneo.slug}`,
+          image: `/api/og/torneo/${torneo.slug}.png`,
           type: 'website',
         }
       : { title: 'Torneo' },
@@ -60,9 +63,17 @@ function TorneoDetailPage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 items-center justify-center px-5 py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </section>
+      <VisualPageShell
+        visual={BRAND_VISUALS.torneos}
+        className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
+        contentClassName="flex flex-col items-center gap-3"
+        lateralKanji={null}
+      >
+        <KanjiSpinner kanji="戦" size="lg" tone="accent" />
+        <p className="text-[12px] uppercase tracking-[0.18em] text-fg-muted">
+          Preparando bracket…
+        </p>
+      </VisualPageShell>
     )
   }
 
@@ -104,6 +115,9 @@ function TorneoDetailPage() {
     ganadorSlug,
     enfrentamientos,
   } = torneo
+  const enfrentamientosList = Array.isArray(enfrentamientos)
+    ? enfrentamientos
+    : []
 
   const badge = getEstadoBadge(estado)
   const fechaInicioFmt = fechaInicio ? formatearFecha(fechaInicio) : null
@@ -112,7 +126,7 @@ function TorneoDetailPage() {
 
   // Roster: extraemos los participantes únicos de la ronda 1 (siempre los
   // tiene completos, incluso cuando rondas 2+ aún están vacías).
-  const rosterRonda1 = (enfrentamientos ?? [])
+  const rosterRonda1 = enfrentamientosList
     .filter((e) => e.ronda === 1)
     .flatMap((e) => [e.personaje1, e.personaje2])
     .filter(Boolean)
@@ -121,8 +135,8 @@ function TorneoDetailPage() {
   // backend nos da ganadorSlug, lo resolvemos en los matches para tener
   // nombre+anime+imagen sin viaje extra al endpoint de personajes.
   const campeon =
-    ganadorSlug && enfrentamientos
-      ? findPersonajePorSlug(enfrentamientos, ganadorSlug)
+    ganadorSlug
+      ? findPersonajePorSlug(enfrentamientosList, ganadorSlug)
       : null
 
   return (
@@ -146,7 +160,7 @@ function TorneoDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver a torneos
         </Link>
-        {/* Plan v2 §6.3: <header> con Microdata schema.org/SportsEvent.
+        {/* 3: <header> con Microdata schema.org/SportsEvent.
             JSON-LD del torneo va en JsonLd arriba; el Microdata aquí
             sirve a crawlers que prefieren parsearlo inline. */}
         <motion.header
@@ -185,7 +199,7 @@ function TorneoDetailPage() {
             {fechaInicioFmt && ` · ${fechaInicioFmt}`}
             {fechaFinFmt && ` → ${fechaFinFmt}`}
           </p>
-          {/* Plan v2 §4.3: reactions sobre el torneo. */}
+          {/* 3: reactions sobre el torneo. */}
           {torneo?.id && (
             <div className="relative">
               <ReactionsBar targetType="TORNEO" targetId={torneo.id} />
@@ -216,14 +230,14 @@ function TorneoDetailPage() {
         {estado === 'IN_PROGRESS' && torneo.currentMatch && (
           <LiveMatchSpectator torneo={torneo} />
         )}
-        {/* Sprint UX (2026-05-18): "Duelos abiertos" arriba del bracket
+        {/* "Duelos abiertos" arriba del bracket
             para que el usuario que aterriza en un torneo IN_PROGRESS no
             tenga que cazar a mano qué match está abierto en el bracket.
             Solo se renderiza si hay matches votables; el bracket sigue
             siendo el mapa global del torneo. */}
         {estado === 'IN_PROGRESS' && (
           <DuelosAbiertosStrip
-            enfrentamientos={enfrentamientos}
+            enfrentamientos={enfrentamientosList}
             torneoId={torneo.id}
             torneoSlug={torneo.slug}
           />
@@ -233,7 +247,7 @@ function TorneoDetailPage() {
         </h2>
         <div className="mb-12">
           <Bracket
-            enfrentamientos={enfrentamientos}
+            enfrentamientos={enfrentamientosList}
             ganadorSlug={ganadorSlug}
             totalRondas={totalRondas}
             estado={estado}

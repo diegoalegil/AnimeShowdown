@@ -45,7 +45,7 @@ public class VotoController {
     }
 
     /**
-     * Feed público de los últimos N votos (Plan producto, 2026-05-18).
+     * Feed público de los últimos N votos.
      *
      * <p>Pensado para la home (SectionPulso): pintar "hace 3 min @user
      * votó por Luffy frente a Zoro" y dar señal real de comunidad activa.
@@ -64,7 +64,7 @@ public class VotoController {
     }
 
     /**
-     * Ranking actual con indicadores de movimiento (Plan v2 §4.x).
+     * Ranking actual con indicadores de movimiento.
      *
      * <p>Compara la posición de cada personaje en el top-N actual contra
      * su posición en el ranking de hace {@code dias} días. Devuelve
@@ -78,7 +78,7 @@ public class VotoController {
     }
 
     /**
-     * Ranking segmentado (Plan v2 §4.6).
+     * Ranking segmentado.
      *
      * <ul>
      *   <li>{@code periodo=all|mes|trimestre|anio} — ventana temporal sobre
@@ -119,7 +119,7 @@ public class VotoController {
 
     /**
      * Lista de animes que han recibido al menos un voto. Útil para el
-     * dropdown "Por anime" en /ranking. Plan v2 §4.6.
+     * dropdown "Por anime" en /ranking. 6.
      */
     @GetMapping("/ranking/animes-disponibles")
     public List<String> animesConVotos() {
@@ -127,7 +127,7 @@ public class VotoController {
     }
 
     /**
-     * Top voters (Plan v2 §11.9) — leaderboard de los usuarios que más
+     * Top voters — leaderboard de los usuarios que más
      * han votado. Periodo: all|semana|mes. Sin auth — es transparencia
      * pública del engagement del sitio.
      *

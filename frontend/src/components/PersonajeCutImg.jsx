@@ -17,7 +17,7 @@ function PersonajeCutImg({
   const cutSrc = canUseCut ? cutUrl(slug) : null
   const cutBase = cutSrc?.replace(/\.webp$/i, '')
   const cutSrcSetWebp = cutBase
-    ? `${cutBase}-300.webp 300w, ${cutBase}-600.webp 600w, ${cutBase}-1024.webp 1024w`
+    ? `${cutBase}-300.webp 300w, ${cutBase}-600.webp 600w, ${cutSrc} 1024w`
     : undefined
   const sizesAttr = imgProps.sizes ?? '(min-width: 1024px) 360px, (min-width: 640px) 280px, 220px'
 

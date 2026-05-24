@@ -8,12 +8,12 @@ import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Component;
 
 /**
- * Cifrado simétrico AES para los secrets TOTP (Plan v2 §2.3).
+ * Cifrado simétrico AES para los secrets TOTP.
  *
  * <p>El secret TOTP debe poder leerse en plaintext para validar códigos
  * (no es un hash one-way como password). Si la BBDD se filtra con los
  * secrets en claro, todos los 2FA de la plataforma quedan inutilizados.
- * Cifrarlos con una clave que vive en el .env del backend (no en la BBDD)
+ * Cifrarlos con una clave que vive en el.env del backend (no en la BBDD)
  * hace que la fuga de BBDD sola no comprometa el 2FA.
  *
  * <p>Clave configurable vía env var <code>TOTP_ENCRYPTION_KEY</code>.

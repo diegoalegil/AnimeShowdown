@@ -50,7 +50,7 @@ public class TorneoController {
     /**
      * Listado de torneos en formato DTO. Antes devolvía entidades JPA
      * directas (problema N+1 por colecciones lazy, exposición de campos
-     * internos). Plan v2 §1.1: el frontend lo consume con react-query.
+     * internos). 1: el frontend lo consume con react-query.
      */
     @GetMapping
     public List<TorneoResumenDto> listarTodos() {
@@ -69,7 +69,7 @@ public class TorneoController {
     /**
      * Detalle por slug URL-safe. Es la ruta que consume el frontend para
      * `/torneos/{slug}` — coincide con el shape canonical de las URLs
-     * (Plan v2 §5.3) y permite caching CDN agresivo.
+     * y permite caching CDN agresivo.
      */
     @GetMapping("/slug/{slug}")
     public TorneoDetalleDto detallePorSlug(@PathVariable String slug) {
@@ -82,7 +82,7 @@ public class TorneoController {
     }
 
     /**
-     * Crea un torneo a partir de un usuario verificado (Plan v2 §4.9).
+     * Crea un torneo a partir de un usuario verificado.
      * Bracket precomputado pero estado_revision=PENDIENTE hasta que admin
      * apruebe. Hasta entonces, no aparece en GET /api/torneos público —
      * solo en /api/torneos/mios del creador y /api/admin/torneos/pendientes.
@@ -100,7 +100,7 @@ public class TorneoController {
 
     /**
      * Lista los torneos creados por el usuario autenticado, en cualquier
-     * estado de revisión. Plan v2 §4.9: el creador debe ver sus PENDIENTES
+     * estado de revisión. 9: el creador debe ver sus PENDIENTES
      * (esperando), APROBADOS (en juego) y RECHAZADOS (con motivo) para
      * tener feedback claro del flujo de moderación.
      */
@@ -119,7 +119,7 @@ public class TorneoController {
 
     /**
      * Inicia el torneo. Body opcional con `participantesIds` para que el
-     * servicio cree el bracket completo en cascada (Plan v2 §1.1). Si llega
+     * servicio cree el bracket completo en cascada. Si llega
      * sin body, solo cambia estado a IN_PROGRESS y deja la creación de
      * enfrentamientos al endpoint /enfrentamientos.
      */

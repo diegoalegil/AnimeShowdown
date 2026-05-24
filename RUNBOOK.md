@@ -1,7 +1,7 @@
 # Runbook operativo — AnimeShowdown
 
-> Plan v2 §16.6. Procedimientos para responder a incidentes y operar el
-> proyecto de forma predecible. Mantener este documento actualizado tras
+> Procedimientos para responder a incidentes y operar el proyecto de forma
+> predecible. Mantener este documento actualizado tras
 > cada incidente real o cambio significativo de infraestructura.
 
 ---
@@ -12,6 +12,7 @@
 |---|---|---|---|
 | DNS + Registrar | Cloudflare (`.dev`) | $10.44/año | TLD `.dev` fuerza HTTPS |
 | CDN frontend | Cloudflare Pages | Sí | Build con `npm run build:no-images` (timeout 20 min) |
+| CDN imágenes | Cloudflare/R2 público | Sí | `ANIMESHOWDOWN_IMG_CDN_BASE_URL` sirve el árbol público `/img/` |
 | Backend API | Railway Hobby | $5/mes | Dominio: `api.animeshowdown.dev` |
 | BBDD | Neon Postgres 17 (Frankfurt) | Sí (3GB) | Branch `main` |
 | Email | Resend HTTP API | Sí (3k/mes) | Dominio verificado |
@@ -64,7 +65,7 @@
 2. Crea branch nuevo en Neon (no escribas sobre `main`).
 3. Restaura: `pg_restore --format=custom --dbname=$NEW_DB_URL backup.dump`.
 4. Apunta `NEON_DATABASE_URL` al branch nuevo en Railway.
-5. Validar con smoke test (`/actuator/health` + `/api/personajes` cuenta=730).
+5. Validar con smoke test (`/actuator/health` + `/api/personajes` cuenta=1052).
 
 ---
 
@@ -98,18 +99,42 @@
 **Síntoma**: usuarios reportan personajes con imagen rota o con nombre extraño tipo "Akame-300".
 
 **Diagnóstico**:
-- Causa habitual: variantes responsive `-300.webp`/`-600.webp`/`-1024.webp`/`.avif` se colaron en `frontend/img/` y el sync las trató como personajes.
-- Verifica: `find frontend/img -name "*-300.webp" | wc -l` → debe ser 0.
+- Causa habitual: imagen fuente renombrada sin actualizar seed, slug duplicado o archivo no WebP en una carpeta de anime.
+- Las variantes responsive `-300.webp`/`-600.webp`/`-1024.webp`/`.avif` pueden existir en `frontend/img/`; `sync-personajes.mjs` las ignora explícitamente y no deben contarse como personajes.
 
 **Respuesta**:
 ```bash
-find frontend/img -type f \( -name "*-300.webp" -o -name "*-600.webp" -o -name "*-1024.webp" -o -name "*.avif" \) -delete
-node scripts/sync-personajes.mjs
-grep -c "slug:" frontend/src/data/personajes.js  # debe ser ~730
-git diff frontend/src/data/personajes.js backend/src/main/resources/personajes-seed.json
-git add -p && git commit -m "fix(catalog): limpia variantes responsive y resync"
-git push
+node scripts/sync-personajes.mjs --check
+node scripts/qa/catalog-quality.mjs
 ```
+
+Si el `--check` falla, revisa los slugs indicados y corrige seed/imagen de forma explícita. No elimines variantes responsive ni imágenes de personajes por ausencia de imports directos: se resuelven por ruta dinámica. El catálogo esperado es 1052 personajes.
+
+Para producción, `frontend/img/` no viaja dentro del artefacto de Cloudflare Pages. El build `npm run build:no-images` exige:
+
+```bash
+ANIMESHOWDOWN_IMG_CDN_BASE_URL=https://assets.animeshowdown.dev/img
+```
+
+Ese origen debe contener el mismo árbol relativo que la app expone bajo `/img/`: catálogo desde `frontend/img/` y stage assets desde `frontend/public/img/`. Ejemplo: `/img/One_Piece/luffy.webp` en la app redirige a `https://assets.animeshowdown.dev/img/One_Piece/luffy.webp`. Si falta la variable, el build se aborta para no publicar una SPA con imágenes rotas.
+
+El plan local de sincronización no toca remoto:
+
+```bash
+cd frontend
+npm run assets:cdn:plan
+```
+
+La subida real usa `scripts/sync-img-cdn.mjs` y requiere secretos dedicados:
+
+- `ANIMESHOWDOWN_IMG_CDN_BASE_URL`
+- `R2_IMG_ENDPOINT`
+- `R2_IMG_ACCESS_KEY_ID`
+- `R2_IMG_SECRET_ACCESS_KEY`
+- `R2_IMG_BUCKET`
+- `R2_IMG_PREFIX` (`img` por defecto)
+
+Desde GitHub Actions, usa el workflow manual **IMG CDN sync**. El input `apply=false` solo imprime el plan; `apply=true` sube cambios. El script no ejecuta `--delete` contra el bucket para evitar borrados accidentales.
 
 ---
 
@@ -176,12 +201,29 @@ Tras cada deploy a `main` (frontend + backend), ejecutar mentalmente:
 
 1. `https://animeshowdown.dev` carga el Hero.
 2. `https://api.animeshowdown.dev/actuator/health` → `{"status":"UP"}`.
-3. `https://api.animeshowdown.dev/api/personajes` devuelve 730 entries.
+3. `https://api.animeshowdown.dev/api/personajes` devuelve 1052 entries.
 4. `https://api.animeshowdown.dev/api/votos/ranking` no vacío.
 5. Login con cuenta admin → ver `/perfil` cargado.
 6. Hard refresh (Cmd+Shift+R) para invalidar SW.
 
 Si alguno falla: rollback inmediato desde dashboard provider (CF Pages / Railway).
+
+## E2E local seguro
+
+Para validar Playwright con backend real sin tocar Postgres local:
+
+```bash
+cd backend
+SPRING_PROFILES_ACTIVE=e2e ./mvnw spring-boot:run -Dspring-boot.run.useTestClasspath=true
+
+cd ../frontend
+npm run build:e2e
+npm run preview -- --host 127.0.0.1
+npm run test:e2e:local
+```
+
+`build:e2e` fija `VITE_API_BASE_URL` a `http://127.0.0.1:8080` por defecto. Sin esa variable, el build de producción bloquea el arranque del cliente para evitar fallback silencioso a una API real.
+El flag `useTestClasspath` mantiene H2 fuera del artefacto productivo y aun así permite usarlo en QA local.
 
 ---
 
@@ -199,7 +241,8 @@ Si alguno falla: rollback inmediato desde dashboard provider (CF Pages / Railway
 
 ## Cambios recientes
 
-- **2026-05-17**: piloto automático añadió referral system, light mode, time machine ELO, eliminación de cuenta GDPR, ranking ↑↓.
+- **2026-05-23**: hardening de producción: ranking personal local, misiones, comparador, sitemap/SEO y QA de catálogo/contraste.
+- **2026-05-17**: referral system, light mode, time machine ELO, eliminación de cuenta GDPR y ranking ↑↓.
 - **2026-05-17**: rebrand competitivo + fix imágenes producción.
 - **2026-05-16**: cron automático de torneos cada 3 días.
 - **2026-05-15**: backups R2 con rotación daily/weekly/monthly.

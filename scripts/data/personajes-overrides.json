@@ -4,7 +4,7 @@
     "actualizacion": "Editar a mano cuando quieras mejorar una descripción concreta. La próxima ejecución del script la propagará a personajes-seed.json."
   },
 
-  "L": { "nombre": "L", "descripcion": "El detective más brillante del mundo. Resuelve casos imposibles bajo seudónimo y enfrenta a Kira con un café siempre en mano." },
+  "l": { "nombre": "L", "descripcion": "El detective más brillante del mundo. Resuelve casos imposibles bajo seudónimo y enfrenta a Kira con un café siempre en mano." },
   "light_yagami": { "nombre": "Light Yagami", "descripcion": "Estudiante prodigio que encuentra el Death Note y se autoproclama dios del nuevo mundo justo." },
   "misa_amane": { "nombre": "Misa Amane", "descripcion": "Idol y segunda usuaria del Death Note. Devota a Light Yagami hasta extremos peligrosos." },
   "ryuk": { "nombre": "Ryuk", "descripcion": "Shinigami aburrido que dejó caer su Death Note en el mundo humano por puro entretenimiento. Adora las manzanas." },

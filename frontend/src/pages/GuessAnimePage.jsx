@@ -11,21 +11,25 @@ import {
   X,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompleteAnime from '../components/AutocompleteAnime'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import PersonajeImg from '../components/PersonajeImg'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   buildShareSquares,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { personajes } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { getGameVisual } from '../data/visual-assets'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-anime.v1'
+const SEO_IMAGE = getGameVisual('/games/anime-reveal').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -49,9 +53,35 @@ function GuessAnimePage() {
     title: 'Anime Reveal · Guess the Anime — Daily',
     description:
       'Ves al personaje, ¿de qué anime es? 5 intentos para acertar. Pista opcional revelando el nombre.',
+    canonical: 'https://animeshowdown.dev/games/anime-reveal',
+    image: SEO_IMAGE,
   })
 
-  const dailyObjetivo = useMemo(() => personajeDelDia('guess-anime'), [])
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const dailyObjetivo = useMemo(
+    () => personajeDelDia('guess-anime', new Date(), catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (!dailyObjetivo) {
+    return (
+      <GameCatalogLoading
+        kanji="開"
+        title="Preparando Anime Reveal"
+        description="Cargando catálogo para elegir el personaje diario."
+      />
+    )
+  }
+
+  return (
+    <GuessAnimeGame
+      dailyObjetivo={dailyObjetivo}
+      catalogoPersonajes={catalogoPersonajes}
+    />
+  )
+}
+
+function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
@@ -100,7 +130,8 @@ function GuessAnimePage() {
   }
 
   const jugarOtra = () => {
-    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
+    if (!random) return
     setExtraObjetivo(random)
     setEstado(loadEstado(random.slug, true))
   }
@@ -119,6 +150,28 @@ function GuessAnimePage() {
           { label: 'Anime Games', path: '/games' },
           { label: 'Anime Reveal', path: '/games/anime-reveal' },
         ])}
+      />
+      <JsonLd
+        id="game-anime-reveal"
+        schema={gameWebApplicationSchema({
+          name: 'Anime Reveal',
+          alternateName: 'Guess the Anime',
+          path: '/games/anime-reveal',
+          description:
+            'Juego diario para adivinar de qué anime viene el personaje mostrado antes de agotar cinco intentos.',
+          featureList: [
+            'Personaje diario determinístico',
+            'Adivinanza por anime',
+            'Pista opcional con nombre del personaje',
+            'Resultado compartible',
+          ],
+          keywords: [
+            'adivina anime',
+            'guess the anime',
+            'anime reveal',
+            'anime daily quiz',
+          ],
+        })}
       />
       <div className="mx-auto max-w-5xl">
         <Link
@@ -148,8 +201,8 @@ function GuessAnimePage() {
           </p>
         </motion.header>
 
-        {/* Nota visual (2026-05-18): cap mobile a 42vh para que el input
-            quede dentro del primer viewport. Width sigue al aspect-ratio. */}
+        {/* Cap mobile a 42vh para que el input quede dentro del primer viewport.
+            Width sigue al aspect-ratio. */}
         <div
           className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
             estado.acertado
@@ -280,11 +333,15 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     intentos.map((i) => i.acierto),
     MAX_INTENTOS,
   )
-  const texto = `📺 Guess the Anime — ${fechaDelDia()}\n${
-    acertado
-      ? `✅ Acerté en ${totalIntentos}/${MAX_INTENTOS}`
-      : `❌ Era ${objetivo.anime} (${objetivo.nombre})`
-  }\n${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/anime-reveal`
+  const texto = buildGameShareText({
+    game: 'Anime Reveal',
+    date: fechaDelDia(),
+    result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
+    detail: acertado
+      ? `Acerté que era ${objetivo.anime}.`
+      : `Era ${objetivo.anime} (${objetivo.nombre}).`,
+    grid: `${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}`,
+  })
 
   const titulo = perfecto
     ? `PERFECT CLEAR · ${objetivo.anime}`
@@ -303,6 +360,8 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       tier={tier}
       squares={intentos.map((i) => ({ ok: i.acierto }))}
       bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareTitle="Anime Reveal — AnimeShowdown"
+      shareUrl="/games/anime-reveal"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">

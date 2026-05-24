@@ -4,7 +4,7 @@ import { queryKeys } from '../lib/queryClient'
 import { useAuth } from '../contexts/AuthContext'
 
 /**
- * Hooks de "Mi roster / favoritos" (Plan producto 2026-05-18).
+ * Hooks de "Mi roster / favoritos".
  *
  * <p>Diseño:
  * <ul>

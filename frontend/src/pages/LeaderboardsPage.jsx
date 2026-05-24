@@ -27,7 +27,7 @@ const PERIODOS = [
 ]
 
 /**
- * Leaderboard de pioneros (Plan v2 §11.9). Tabs semana/mes/all-time.
+ * Leaderboard de pioneros. Tabs semana/mes/all-time.
  * Lista de top 20 usuarios por count de votos en el periodo. Cada item
  * linkea a `/u/{username}` perfil público.
  *
@@ -152,7 +152,7 @@ function LeaderboardsPage() {
 }
 
 /**
- * Sección "Senpai del mes" (Plan v2 §13.16) — destaca al Top Predictor
+ * Sección "Senpai del mes" — destaca al Top Predictor
  * del mes actual con un badge especial encima del leaderboard de voters.
  * Si nadie tiene predicciones acertadas, no se muestra.
  *

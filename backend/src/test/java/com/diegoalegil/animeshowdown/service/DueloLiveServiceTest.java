@@ -48,7 +48,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestAsyncConfig.class)
-// Nota técnica + CI flake (2026-05-23): sin TestAsyncConfig el executor
+// Sin TestAsyncConfig el executor
 // real corre los listeners async (BadgeEventListener, NotificacionService)
 // en hilo aparte. En CI con H2 los UPDATE concurrentes a `usuarios`
 // (elo_pvp del test + flush implícito del listener async) cruzan locks y
@@ -84,6 +84,7 @@ class DueloLiveServiceTest {
         DueloLiveStateDto matched = dueloLiveService.entrarCola(b, "10.0.0.2");
 
         assertThat(waiting.estado()).isEqualTo(DueloLiveEstado.WAITING);
+        assertThat(waiting.fallbackAfterSeconds()).isEqualTo(10);
         assertThat(matched.estado()).isEqualTo(DueloLiveEstado.IN_PROGRESS);
         assertThat(matched.rival().username()).isEqualTo("pvp_match_a");
         assertThat(Math.abs(matched.miEloBefore() - matched.rivalEloBefore())).isLessThanOrEqualTo(100);
@@ -182,17 +183,19 @@ class DueloLiveServiceTest {
     }
 
     @Test
-    void activaBotFallbackSiNoHayRivalTrasTreintaSegundos() {
+    void activaFallbackRapidoSiNoHayRival() {
         Usuario a = usuario("pvp_bot_a", 1000);
         DueloLiveStateDto waiting = dueloLiveService.entrarCola(a, "10.0.5.1");
+        assertThat(waiting.fallbackAfterSeconds()).isEqualTo(10);
 
-        clock.setInstant(Instant.parse("2026-05-22T10:00:31Z"));
+        clock.setInstant(Instant.parse("2026-05-22T10:00:11Z"));
         dueloLiveService.mantenimientoLive();
 
         DueloLiveStateDto state = dueloLiveService.estado(waiting.id(), a);
         assertThat(state.estado()).isEqualTo(DueloLiveEstado.IN_PROGRESS);
         assertThat(state.botMatch()).isTrue();
         assertThat(state.rival().bot()).isTrue();
+        assertThat(state.rival().username()).isEqualTo("Rival PvP");
     }
 
     private void asegurarDecisionA(DueloLiveStateDto state) {

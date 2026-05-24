@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Tv } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import {
-  personajes,
-  imagenPersonaje,
   getStatsPersonaje,
 } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import PersonajeImg from '../components/PersonajeImg'
 
 /**
- * TV Mode (Plan v2 §11.3) — vista pantalla completa sin chrome de la
+ * TV Mode — vista pantalla completa sin chrome de la
  * SPA. Pensada para streamers que quieren mostrar AnimeShowdown en su
  * stream, museos digitales, pantallas de eventos, etc.
  *
- * <p>Auto-rotación cada 10s entre 3 vistas: Top ELO, personaje aleatorio
+ * <p>Auto-rotación cada 10s entre 3 vistas: Top ELO base, personaje aleatorio
  * (con stats grandes), y un "trending" mock (top 3 por win-rate). Sin
  * navegación, sin scroll, sin clicks (pero con Esc para volver).
  *
@@ -29,14 +28,8 @@ import { ocultaImgRota } from '../lib/imgFallback'
 const VISTAS = ['top10', 'spotlight', 'matchup']
 const DURACION_S = 10
 
-const top10 = (() => {
-  return [...personajes]
-      .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
-      .sort((a, b) => b.elo - a.elo)
-      .slice(0, 10)
-})()
-
 function pickRandom(arr, seed) {
+  if (!arr.length) return null
   // No usamos Math.random aquí para que el seed cycling produzca el
   // mismo personaje en el mismo tick (predecible en tests).
   const idx = (seed * 2654435761) >>> 0
@@ -50,6 +43,15 @@ function TvModePage() {
       'Vista pantalla completa para streamers. Rotación de top ELO, personaje destacado y matchup random.',
     noindex: true,
   })
+  const { personajes } = usePersonajesCatalogo()
+  const top10 = useMemo(
+    () =>
+      [...personajes]
+          .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
+          .sort((a, b) => b.elo - a.elo)
+          .slice(0, 10),
+    [personajes],
+  )
   const [vistaIdx, setVistaIdx] = useState(0)
   const [tick, setTick] = useState(0)
 
@@ -109,9 +111,13 @@ function TvModePage() {
         </div>
 
         <AnimatePresence mode="wait">
-          {vista === 'top10' && <VistaTop10 key="top10" />}
-          {vista === 'spotlight' && <VistaSpotlight key={`spot-${tick}`} tick={tick} />}
-          {vista === 'matchup' && <VistaMatchup key={`mu-${tick}`} tick={tick} />}
+          {vista === 'top10' && <VistaTop10 key="top10" top10={top10} />}
+          {vista === 'spotlight' && (
+            <VistaSpotlight key={`spot-${tick}`} personajes={personajes} tick={tick} />
+          )}
+          {vista === 'matchup' && (
+            <VistaMatchup key={`mu-${tick}`} personajes={personajes} tick={tick} />
+          )}
         </AnimatePresence>
       </main>
 
@@ -129,7 +135,7 @@ function TvModePage() {
   )
 }
 
-function VistaTop10() {
+function VistaTop10({ top10 }) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 30 }}
@@ -140,7 +146,7 @@ function VistaTop10() {
     >
       <div className="mb-4 flex flex-col items-center text-center sm:mb-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold sm:text-[12px]">
-          Top 10 ELO global
+          Top 10 ELO base
         </p>
         <h1 className="mt-2 text-[clamp(1.5rem,6vw,5rem)] font-extrabold leading-none">
           ¿Quién manda hoy?
@@ -155,10 +161,10 @@ function VistaTop10() {
             <span className="font-mono text-[11px] font-bold text-gold">
               #{i + 1}
             </span>
-            <img
-              src={imagenPersonaje(p.slug)}
-              alt=""
-              onError={ocultaImgRota}
+            <PersonajeImg
+              slug={p.slug}
+              src={p.imagenUrl ?? p.imagen}
+              alt={p.nombre}
               className="h-24 w-20 rounded-lg object-cover object-top sm:h-32 sm:w-24"
             />
             <p className="line-clamp-1 text-center text-[13px] font-bold sm:text-sm">{p.nombre}</p>
@@ -173,8 +179,9 @@ function VistaTop10() {
   )
 }
 
-function VistaSpotlight({ tick }) {
+function VistaSpotlight({ personajes, tick }) {
   const p = pickRandom(personajes, tick + 7)
+  if (!p) return null
   const stats = getStatsPersonaje(p.slug)
   const total = stats.wins + stats.losses
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
@@ -187,13 +194,17 @@ function VistaSpotlight({ tick }) {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="relative z-10 grid w-full max-w-6xl items-center gap-6 px-4 py-6 sm:gap-12 sm:px-8 sm:py-0 md:grid-cols-2"
     >
-      <motion.img
-        src={imagenPersonaje(p.slug)}
-        alt={p.nombre}
-        onError={ocultaImgRota}
+      <motion.div
         className="mx-auto aspect-[2/3] w-auto max-h-[40vh] rounded-2xl object-cover object-top sm:rounded-3xl md:max-h-none md:w-full md:max-w-md"
         style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.38))' }}
-      />
+      >
+        <PersonajeImg
+          slug={p.slug}
+          src={p.imagenUrl ?? p.imagen}
+          alt={p.nombre}
+          className="h-full w-full rounded-2xl object-cover object-top sm:rounded-3xl"
+        />
+      </motion.div>
       <div className="flex flex-col gap-3 sm:gap-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold sm:text-[12px]">
           Personaje destacado
@@ -217,9 +228,10 @@ function VistaSpotlight({ tick }) {
   )
 }
 
-function VistaMatchup({ tick }) {
+function VistaMatchup({ personajes, tick }) {
   const a = pickRandom(personajes, tick + 1)
   let b = pickRandom(personajes, tick + 100)
+  if (!a || !b) return null
   // Garantizamos que no son el mismo (caso raro pero defensivo).
   if (b.slug === a.slug) b = pickRandom(personajes, tick + 200)
   const eloA = getStatsPersonaje(a.slug).elo
@@ -267,10 +279,10 @@ function Versus({ personaje, elo, esFavorito }) {
         esFavorito ? 'border-accent bg-accent/10' : 'border-white/10 bg-white/5'
       }`}
     >
-      <img
-        src={imagenPersonaje(personaje.slug)}
-        alt=""
-        onError={ocultaImgRota}
+      <PersonajeImg
+        slug={personaje.slug}
+        src={personaje.imagenUrl ?? personaje.imagen}
+        alt={personaje.nombre}
         className="h-28 w-20 rounded-lg object-cover object-top sm:h-64 sm:w-48"
       />
       <p className="line-clamp-1 text-center text-sm font-bold sm:text-2xl">{personaje.nombre}</p>

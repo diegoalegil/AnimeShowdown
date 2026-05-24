@@ -27,7 +27,7 @@ import com.diegoalegil.animeshowdown.security.LogSanitizer;
 /**
  * Envío de emails transaccionales vía Resend (HTTPS, sin SMTP).
  *
- * Plan v2 §2.12 — async queue robusta:
+ * 12 — async queue robusta:
  *
  *   - Pool dedicado emailExecutor (AsyncConfig): 2-5 hilos, queue 100,
  *     CallerRunsPolicy en saturación. Antes SimpleAsyncTaskExecutor
@@ -48,7 +48,7 @@ import com.diegoalegil.animeshowdown.security.LogSanitizer;
  * `enviarConfirmacionNewsletter` delegan al método compartido
  * `enviarConRetry` que es el que lleva @Retryable/@Recover. Spring Retry
  * (y @Async) funcionan vía proxy: una llamada `this.enviarConRetry` NO
- * pasa por el proxy y los retries no se activan. Nota P2 (2026-05-17):
+ * pasa por el proxy y los retries no se activan.
  * los wrappers llamaban `this.enviarConRetry`, así que un fallo de Resend
  * propagaba la excepción al hilo de emailExecutor y perdíamos el email
  * sin pasar por @Recover ni email_failed_queue. Fix: self-injection con
@@ -86,7 +86,7 @@ public class EmailService {
         this.apiKey = apiKey;
         this.from = from;
         this.enabled = apiKey != null && !apiKey.isBlank();
-        // Nota P2 (2026-05-17): el RestClient se construía sin timeout —
+        // el RestClient se construía sin timeout —
         // un Resend lento o colgado dejaba el hilo del emailExecutor
         // bloqueado indefinidamente, llenando el pool (core 2 / max 5) y
         // bloqueando emails reales detrás. Timeouts conservadores:
@@ -107,7 +107,7 @@ public class EmailService {
         }
     }
 
-    /** Reset de password (Plan v2 §1.3). */
+    /** Reset de password. */
     @Async("emailExecutor")
     public void enviarCodigoReset(String to, String username, String codigo) {
         String subject = "AnimeShowdown — Código para restablecer tu contraseña";
@@ -119,7 +119,7 @@ public class EmailService {
         self.enviarConRetry(EmailTipo.RESET_PASSWORD, to, subject, text);
     }
 
-    /** Verificación de email post-registro (Plan v2 §2.4). */
+    /** Verificación de email post-registro. */
     @Async("emailExecutor")
     public void enviarVerificacion(String to, String username, String linkVerificacion) {
         String subject = "AnimeShowdown — Verifica tu email";
@@ -131,7 +131,7 @@ public class EmailService {
         self.enviarConRetry(EmailTipo.VERIFICACION, to, subject, text);
     }
 
-    /** Confirmación double opt-in de suscripción a newsletter (Plan v2 §4.8). */
+    /** Confirmación double opt-in de suscripción a newsletter. */
     @Async("emailExecutor")
     public void enviarConfirmacionNewsletter(String to, String linkConfirmacion) {
         String subject = "AnimeShowdown — Confirma tu suscripción a la newsletter";

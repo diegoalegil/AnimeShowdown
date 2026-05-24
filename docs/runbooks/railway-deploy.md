@@ -53,11 +53,11 @@ git push origin main
 # Railway detecta push, deploya el revert, ~3min
 ```
 
-**Opción C — Pin a commit anterior:**
-```bash
-git push origin <hash-bueno>:main --force-with-lease
-# Riesgo: pierdes commits posteriores no en otro branch. Solo si A y B no van.
-```
+**Opción C — Contención sin reescribir historial:**
+1. Pausar deploys automáticos en Railway.
+2. Mantener el contenedor anterior activo o redeployar el último deployment verde desde dashboard.
+3. Preparar un commit de revert en `main` y empujarlo con `git push origin main`.
+4. Si el dashboard tampoco responde, abrir incidente con Railway y documentar el hash afectado.
 
 ## Checklist post-rollback
 
@@ -66,7 +66,7 @@ git push origin <hash-bueno>:main --force-with-lease
 - [ ] Voto funciona: `POST /api/enfrentamientos/:id/votar` → 200 + ELO actualizado
 - [ ] Rankings funcionan: `GET /api/votos/ranking` → array
 - [ ] Logs en Railway: sin stack traces nuevos en los últimos 5min
-- [ ] Sentry (cuando esté): sin nuevos issues en los últimos 5min
+- [ ] Sentry: sin nuevos issues en los últimos 5min
 - [ ] Notificar al canal de Slack/Discord con commit revertido + motivo
 
 ## Triage de un crash en arranque
@@ -100,4 +100,4 @@ Configuradas en Railway → Variables (NO en código):
 - **Nunca pushear con `--force` a `main`** sin coordinarlo con el equipo.
 - **Health-check first**: si añades una nueva dependencia externa (Redis, API tercera), añadirla al `/actuator/health` para que Railway sepa si está sana.
 - **Logs son la única fuente de verdad**: si no aparece en Railway logs, no pasó.
-- **Cuota gratuita de Railway**: 500h de ejecución/mes en plan free. Si pasas a paid, asegúrate de monitorear costes.
+- **Costes Railway**: backend en plan Hobby. Revisar uso y alertas de coste tras picos de tráfico o jobs largos.

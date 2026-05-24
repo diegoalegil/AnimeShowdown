@@ -12,22 +12,25 @@ import {
   X,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   buildShareSquares,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
-import { imagenPersonaje, personajes } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
 import PersonajeImg from '../components/PersonajeImg'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { getGameVisual } from '../data/visual-assets'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-character.v1'
+const SEO_IMAGE = getGameVisual('/games/shadow-guess').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -55,12 +58,38 @@ function GuessCharacterPage() {
     title: 'Shadow Guess · Guess the Character — Daily',
     description:
       'Adivina el personaje de anime del día por su imagen difuminada. 5 intentos. Comparte tu resultado estilo Wordle.',
+    canonical: 'https://animeshowdown.dev/games/shadow-guess',
+    image: SEO_IMAGE,
   })
 
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const dailyObjetivo = useMemo(
+    () => personajeDelDia('guess-character', new Date(), catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (!dailyObjetivo) {
+    return (
+      <GameCatalogLoading
+        kanji="影"
+        title="Preparando Shadow Guess"
+        description="Cargando personajes para elegir la silueta diaria."
+      />
+    )
+  }
+
+  return (
+    <GuessCharacterGame
+      dailyObjetivo={dailyObjetivo}
+      catalogoPersonajes={catalogoPersonajes}
+    />
+  )
+}
+
+function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
   // El "daily" usa personajeDelDia (determinístico, compartible). Cuando
   // el user pulsa "Jugar otra" tras terminar, generamos un personaje
   // random sin determinismo y sin compartir — modo endless improvisado.
-  const dailyObjetivo = useMemo(() => personajeDelDia('guess-character'), [])
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
@@ -93,7 +122,7 @@ function GuessCharacterPage() {
       toast.info('Ya probaste ese personaje')
       return
     }
-    const personaje = personajes.find((p) => p.slug === slug)
+    const personaje = catalogoPersonajes.find((p) => p.slug === slug)
     if (!personaje) return
     const acierto = slug === objetivo.slug
     const intentos = [
@@ -117,7 +146,8 @@ function GuessCharacterPage() {
 
   /** Genera nueva partida con personaje random (no comparable con otros) */
   const jugarOtra = () => {
-    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
+    if (!random) return
     setExtraObjetivo(random)
     setEstado(loadEstado(random.slug, true))
   }
@@ -137,6 +167,28 @@ function GuessCharacterPage() {
           { label: 'Anime Games', path: '/games' },
           { label: 'Shadow Guess', path: '/games/shadow-guess' },
         ])}
+      />
+      <JsonLd
+        id="game-shadow-guess"
+        schema={gameWebApplicationSchema({
+          name: 'Shadow Guess',
+          alternateName: 'Guess the Character',
+          path: '/games/shadow-guess',
+          description:
+            'Juego diario para adivinar un personaje de anime por una imagen difuminada con cinco intentos.',
+          featureList: [
+            'Personaje diario determinístico',
+            'Imagen difuminada que se aclara tras cada fallo',
+            'Pista opcional del anime',
+            'Resultado compartible estilo Wordle',
+          ],
+          keywords: [
+            'adivina personaje anime',
+            'guess the character anime',
+            'anime daily game',
+            'shadow guess',
+          ],
+        })}
       />
       <div className="mx-auto max-w-4xl">
         <Link
@@ -166,8 +218,8 @@ function GuessCharacterPage() {
           </p>
         </motion.header>
 
-        {/* Nota visual (2026-05-18): cap mobile a 42vh para que el input
-            quede dentro del primer viewport. La imagen aspect 2/3 toma su
+        {/* Cap mobile a 42vh para que el input quede dentro del primer viewport.
+            La imagen aspect 2/3 toma su
             anchura desde la altura (≈28vh wide) y queda centrada — sin
             barras vacías. En sm+ vuelve al max-w-sm original. */}
         <div
@@ -304,9 +356,15 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     intentos.map((i) => i.acierto),
     MAX_INTENTOS,
   )
-  const texto = `🎴 Guess the Character — ${fechaDelDia()}\n${
-    acertado ? `✅ Acerté en ${totalIntentos}/${MAX_INTENTOS}` : `❌ Era ${objetivo.nombre} (${objetivo.anime})`
-  }\n${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}\nanimeshowdown.dev/games/shadow-guess`
+  const texto = buildGameShareText({
+    game: 'Shadow Guess',
+    date: fechaDelDia(),
+    result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
+    detail: acertado
+      ? 'Acerté el personaje oculto.'
+      : `Era ${objetivo.nombre} (${objetivo.anime}).`,
+    grid: `${squaresRaw}${pistaUsada ? '  💡 pista usada' : ''}`,
+  })
 
   const titulo = perfecto
     ? 'PERFECT CLEAR · Acertaste en 1 intento'
@@ -323,6 +381,8 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       tier={tier}
       squares={intentos.map((i) => ({ ok: i.acierto }))}
       bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareTitle="Shadow Guess — AnimeShowdown"
+      shareUrl="/games/shadow-guess"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">
@@ -358,11 +418,11 @@ function ListaIntentos({ intentos, objetivo }) {
                 : 'border-border bg-bg'
             }`}
           >
-            <img
-              src={imagenPersonaje(i.slug)}
-              alt=""
+            <PersonajeImg
+              slug={i.slug}
+              alt={i.nombre}
               loading="lazy"
-              onError={ocultaImgRota}
+              sizes="40px"
               className="h-10 w-8 shrink-0 rounded object-cover object-top"
             />
             <div className="min-w-0 flex-1">

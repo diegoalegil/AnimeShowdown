@@ -224,12 +224,12 @@ function main() {
     { fg: resolved['fg-muted'].color, bg: surfaceAlt, fgName: '--color-fg-muted', bgName: '--color-surface-alt', context: 'Caption sobre surface elevado', large: false },
 
     // ---- Acentos sobre fondo (texto en color de marca) ----
-    { fg: resolved.accent.color, bg, fgName: '--color-accent', bgName: '--color-bg', context: 'Texto rojo de marca sobre fondo', large: false },
+    { fg: resolved.accent.color, bg, fgName: '--color-accent', bgName: '--color-bg', context: 'Texto rojo de marca sobre fondo', large: false, guardrail: 'text-accent' },
     { fg: resolved.gold.color, bg, fgName: '--color-gold', bgName: '--color-bg', context: 'Texto dorado (números ELO) sobre fondo', large: false },
     { fg: resolved.electric.color, bg, fgName: '--color-electric', bgName: '--color-bg', context: 'Texto cyan acento sobre fondo', large: false },
 
     // ---- Acentos sobre surface ----
-    { fg: resolved.accent.color, bg: surface, fgName: '--color-accent', bgName: '--color-surface', context: 'Acento rojo sobre panel', large: false },
+    { fg: resolved.accent.color, bg: surface, fgName: '--color-accent', bgName: '--color-surface', context: 'Acento rojo sobre panel', large: false, guardrail: 'text-accent' },
     { fg: resolved.gold.color, bg: surface, fgName: '--color-gold', bgName: '--color-surface', context: 'Acento dorado sobre panel', large: false },
     { fg: resolved.electric.color, bg: surface, fgName: '--color-electric', bgName: '--color-surface', context: 'Acento cyan sobre panel', large: false },
 
@@ -260,6 +260,7 @@ function main() {
       grade: gradeWcag(ratio, { large: p.large }),
       fgHex: colorToHex(p.fg),
       bgHex: colorToHex(p.bg),
+      blocking: isBlockingContrastResult(p, ratio, textAccentUsages),
     }
   })
 
@@ -270,11 +271,20 @@ function main() {
 
   // Resumen consola
   console.log(`\nRevisión de contraste — ${pairs.length} pares evaluados`)
-  const fails = results.filter((r) => r.grade === 'FAIL' || r.grade === 'AA-large-only').length
+  const fails = results.filter((r) => r.blocking).length
+  const informational = results.filter((r) => !r.blocking && (r.grade === 'FAIL' || r.grade === 'AA-large-only')).length
   const aa = results.filter((r) => r.grade === 'AA' || r.grade === 'AAA').length
-  console.log(`  ${aa} pasan AA, ${fails} fallan o solo AA-large`)
+  console.log(`  ${aa} pasan AA, ${fails} requieren acción, ${informational} son guardrails/no-texto`)
   console.log(`  text-accent en JSX/TSX: ${textAccentUsages.length}`)
   console.log(`Reporte: ${OUTPUT}`)
+}
+
+function isBlockingContrastResult(pair, ratio, textAccentUsages) {
+  const grade = gradeWcag(ratio, { large: pair.large })
+  if (grade !== 'FAIL' && grade !== 'AA-large-only') return false
+  if (pair.nonText) return false
+  if (pair.guardrail === 'text-accent' && textAccentUsages.length === 0) return false
+  return true
 }
 
 function generateReport(tokens, resolved, results, textAccentUsages) {
@@ -293,6 +303,8 @@ function generateReport(tokens, resolved, results, textAccentUsages) {
   const aa = results.filter((r) => r.grade === 'AA').length
   const aaLarge = results.filter((r) => r.grade === 'AA-large-only').length
   const fails = results.filter((r) => r.grade === 'FAIL').length
+  const blocking = results.filter((r) => r.blocking).length
+  const informational = results.filter((r) => !r.blocking && (r.grade === 'FAIL' || r.grade === 'AA-large-only')).length
 
   lines.push('## Resumen')
   lines.push('')
@@ -302,6 +314,8 @@ function generateReport(tokens, resolved, results, textAccentUsages) {
   lines.push(`| AA (>= 4.5:1) | ${aa} | ${Math.round(aa / total * 100)}% |`)
   lines.push(`| AA-large solo (3-4.5:1) | ${aaLarge} | ${Math.round(aaLarge / total * 100)}% ${aaLarge > 0 ? '⚠' : ''} |`)
   lines.push(`| FAIL (< 3:1) | ${fails} | ${Math.round(fails / total * 100)}% ${fails > 0 ? '⚠' : ''} |`)
+  lines.push(`| Requieren acción | ${blocking} | ${Math.round(blocking / total * 100)}% ${blocking > 0 ? '⚠' : '✅'} |`)
+  lines.push(`| Guardrails/no-texto bajo AA | ${informational} | ${Math.round(informational / total * 100)}% |`)
   lines.push('')
 
   lines.push('## Uso de rojo de marca como texto')
@@ -346,12 +360,13 @@ function generateReport(tokens, resolved, results, textAccentUsages) {
       'AA-large-only': '⚠ AA-large solo',
       FAIL: '❌ FAIL',
     }[r.grade]
-    lines.push(`| ${r.context} | \`${r.fgName}\` (${r.fgHex}) | \`${r.bgName}\` (${r.bgHex}) | ${ratio}:1 | ${gradeBadge} |`)
+    const actionBadge = r.blocking ? gradeBadge : (r.grade === 'FAIL' || r.grade === 'AA-large-only' ? `ℹ ${r.grade}` : gradeBadge)
+    lines.push(`| ${r.context} | \`${r.fgName}\` (${r.fgHex}) | \`${r.bgName}\` (${r.bgHex}) | ${ratio}:1 | ${actionBadge} |`)
   }
   lines.push('')
 
   // Recomendaciones para los que fallan
-  const problematic = results.filter((r) => r.grade === 'FAIL' || (r.grade === 'AA-large-only' && !r.large && !r.nonText))
+  const problematic = results.filter((r) => r.blocking)
   if (problematic.length) {
     lines.push('## Hallazgos y recomendaciones')
     lines.push('')

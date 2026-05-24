@@ -12,7 +12,7 @@ import PersonajeCutImg from './PersonajeCutImg'
 /**
  * Strip "Duelos abiertos" arriba del bracket en /torneos/:slug.
  *
- * <p>Nota de producto (2026-05-18): el bracket es un mapa global del torneo
+ * <p>Nota de producto: el bracket es un mapa global del torneo
  * — útil para entender la estructura pero pésimo como CTA. Un usuario
  * que aterriza en un torneo IN_PROGRESS quiere saber YA dónde puede
  * votar. Este strip muestra hasta 6 duelos abiertos (ambos personajes
@@ -76,6 +76,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
   const disabled = mutation.isPending || Boolean(votado)
 
   const onVote = (personaje) => {
+    if (disabled) return
     if (!user) {
       toast.error('Entra para votar este duelo', {
         description: 'Te devolvemos al torneo después.',
@@ -84,6 +85,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
       navigate(`/login?next=${encodeURIComponent(next)}`)
       return
     }
+    setVotado('pending')
     mutation.mutate(
       { enfrentamientoId: match.id, personajeGanadorId: personaje.id },
       {
@@ -101,9 +103,11 @@ function DueloAbiertoCard({ match, torneoSlug }) {
             setVotado('ya')
             toast.error('Ya votaste este enfrentamiento')
           } else if (status === 401 || status === 403) {
+            setVotado(null)
             const next = `${location.pathname}${location.search}${location.hash}`
             navigate(`/login?next=${encodeURIComponent(next)}`)
           } else {
+            setVotado(null)
             toast.error('No se pudo registrar el voto', {
               description: err?.message || 'Inténtalo de nuevo.',
             })
@@ -152,7 +156,12 @@ function DueloAbiertoCard({ match, torneoSlug }) {
           Ya habías votado este duelo.
         </p>
       )}
-      {votado && votado !== 'ya' && (
+      {votado === 'pending' && (
+        <p className="inline-flex items-center justify-center gap-1 text-center text-[11px] font-semibold text-fg-muted">
+          Registrando voto…
+        </p>
+      )}
+      {votado && votado !== 'ya' && votado !== 'pending' && (
         <p className="inline-flex items-center justify-center gap-1 text-center text-[11px] font-semibold text-gold">
           <Trophy className="h-3 w-3" /> Voto registrado
         </p>
@@ -169,7 +178,7 @@ function FighterTile({ personaje, alignRight = false }) {
       <PersonajeCutImg
         slug={personaje.slug}
         fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
-        alt=""
+        alt={personaje.nombre}
         loading="lazy"
         className="h-24 w-20 shrink-0 rounded-xl border border-accent/15"
         imgClassName="p-1"

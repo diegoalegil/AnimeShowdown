@@ -14,7 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Códigos de recuperación one-shot del 2FA TOTP (Plan v2 §2.3).
+ * Códigos de recuperación one-shot del 2FA TOTP.
  *
  * <p>Se generan 10 al activar 2FA y se le devuelven al usuario UNA vez
  * en plaintext (descarga/copia inmediata). En BBDD solo viven hasheados

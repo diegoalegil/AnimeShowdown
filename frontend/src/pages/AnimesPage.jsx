@@ -16,8 +16,8 @@ import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 const SORT_LABELS = {
   destacados: 'Destacados',
   personajes: 'Más personajes',
-  elo: 'Mayor ELO máximo',
-  promedio: 'Mayor ELO promedio',
+  elo: 'Mayor ELO base máximo',
+  promedio: 'Mayor ELO base promedio',
   az: 'A-Z',
 }
 
@@ -102,6 +102,7 @@ function AnimesPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="Buscar animes"
               placeholder="Busca anime, saga o universo… (ej: kimetsu, snk, mha)"
               className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
             />
@@ -155,8 +156,8 @@ function AnimesPage() {
             </button>
           </EmptyStateScene>
         ) : (
-          // Nota visual (2026-05-19): cada anime usa una portada editorial,
-          // no collage de cards. Mantenemos LazyOnView porque el grid puede
+          // Cada anime usa una portada editorial, no collage de cards.
+          // Mantenemos LazyOnView porque el grid puede
           // superar 100 universos y no hace falta montar todo en el primer
           // paint.
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -164,7 +165,7 @@ function AnimesPage() {
               i < 6 ? (
                 <AnimeTile key={a.slug} animeData={a} />
               ) : (
-                <LazyOnView key={a.slug} minHeight={280} rootMargin="500px">
+                <LazyOnView key={a.slug} minHeight={280} rootMargin="1200px 0px">
                   <AnimeTile animeData={a} />
                 </LazyOnView>
               ),
@@ -216,7 +217,7 @@ function AnimeTile({ animeData }) {
           </span>
           {topElo && (
             <span className="rounded-md border border-gold/35 bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-bold text-gold">
-              ELO {topElo.elo}
+              ELO base {topElo.elo}
             </span>
           )}
         </div>
@@ -231,7 +232,7 @@ function AnimeTile({ animeData }) {
         {topElo && (
           <p className="line-clamp-1 text-[12px] text-fg-muted">
             <Trophy className="mr-1 inline h-3 w-3 text-yellow-400" />
-            Top ELO:{' '}
+            Top ELO base:{' '}
             <strong className="text-fg-strong">{topElo.nombre}</strong>
             <span className="font-mono text-gold"> · {topElo.elo}</span>
           </p>

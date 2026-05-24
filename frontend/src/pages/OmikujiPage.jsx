@@ -14,7 +14,7 @@ import { fechaDelDia, safeStorage } from '../lib/games'
 const STORAGE_KEY = 'animeshowdown.omikuji.v1'
 
 /**
- * Suertes del omikuji (Plan v2 §13.5) en orden tradicional japonés del
+ * Suertes del omikuji en orden tradicional japonés del
  * más afortunado al menos. Probabilidades aproximadas de un omikuji real
  * (santuario Meiji-jingu): 大吉 31%, 中吉 17%, 小吉 18%, 末吉 17%, 凶 17%.
  *
@@ -157,7 +157,7 @@ const palitoVariants = {
 }
 
 /**
- * Omikuji diario (Plan v2 §13.5).
+ * Omikuji diario.
  *
  * <p>Cada visitante recibe una suerte determinística por fecha local —
  * todos en el mismo día ven la misma. Sin login no hay personalización

@@ -16,8 +16,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 /**
- * Calcula la actividad reciente de votos por personaje (Plan producto
- * sprint 2026-05-18 — actividad real por votos recientes).
+ * Calcula la actividad reciente de votos por personaje.
  *
  * <p>Una ventana actual ({@code now - dias} .. {@code now}) y una
  * inmediatamente anterior ({@code now - 2·dias} .. {@code now - dias}).

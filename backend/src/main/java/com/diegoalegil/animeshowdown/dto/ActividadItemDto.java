@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * Evento del feed "Actividad reciente" del perfil (Plan v2 §4.1).
+ * Evento del feed "Actividad reciente" del perfil.
  *
  * <p>Tipos soportados (literal en {@code tipo}):
  * <ul>

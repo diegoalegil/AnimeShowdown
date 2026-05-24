@@ -83,7 +83,7 @@ public class TorneoService {
     }
 
     /**
-     * Crea un torneo a partir de un usuario verificado (Plan v2 §4.9).
+     * Crea un torneo a partir de un usuario verificado.
      *
      * <p>Diferencias vs {@link #crear(TorneoCrearRequest)}:
      * <ul>
@@ -109,9 +109,8 @@ public class TorneoService {
             throw new IllegalArgumentException("Se requiere usuario autenticado");
         }
         if (!creador.estaVerificado()) {
-            // Plan v2 §4.9: "Solo cuentas verificadas".
-            // Ajuste #11 (2026-05-21): antes lanzabamos IllegalArgumentException
-            // → 400. Semanticamente correcto es 403 — el user esta autenticado
+            // Solo cuentas verificadas: semánticamente correcto es 403 porque
+            // el user está autenticado
             // pero le falta permiso (verificacion). ResponseStatusException de
             // Spring mapea limpio a 403 sin tocar GlobalExceptionHandler ni
             // crear una excepcion custom.
@@ -174,7 +173,7 @@ public class TorneoService {
     }
 
     /**
-     * Admin aprueba el torneo (Plan v2 §4.9): cambia estadoRevision a APROBADO
+     * Admin aprueba el torneo: cambia estadoRevision a APROBADO
      * y lo inicia automáticamente (estado SCHEDULED → IN_PROGRESS) para que
      * pase a ser visible y votable de inmediato. Notif TORNEO_APROBADO al
      * creador (best-effort).
@@ -202,7 +201,7 @@ public class TorneoService {
                 "\"" + guardado.getNombre() + "\" ya está en juego.",
                 payloadDeTorneo(guardado));
 
-        // Plan v2 §5.7: IndexNow ping a Bing/Yandex/etc. para que el
+        // IndexNow ping a Bing/Yandex/etc. para que el
         // nuevo URL del torneo se indexe en minutos en lugar de horas.
         // Best-effort async; no afecta al flujo de aprobación si falla.
         indexNowService.notificarUna("/torneos/" + guardado.getSlug());
@@ -214,7 +213,7 @@ public class TorneoService {
     }
 
     /**
-     * Admin rechaza el torneo (Plan v2 §4.9): RECHAZADO + motivo persistido
+     * Admin rechaza el torneo: RECHAZADO + motivo persistido
      * para que el creador lo vea en "Mis torneos". El torneo queda sin
      * iniciar — el bracket precomputado no se borra (puede servir para
      * que el creador vuelva a enviarlo con ajustes, futuro).
@@ -294,7 +293,7 @@ public class TorneoService {
     /**
      * Inicia un torneo cambiando su estado a IN_PROGRESS. Si el request lleva
      * `participantesIds` no vacíos, además crea el bracket precomputado en
-     * cascada vía BracketService — uso recomendado del Plan v2 §1.1. Si el
+     * cascada vía BracketService — uso recomendado del 1. Si el
      * request es null o sin participantes, solo cambia el estado y los
      * enfrentamientos deben crearse a mano con POST /enfrentamientos (modo
      * legacy mantenido para no romper tests existentes y el admin manual).
@@ -313,12 +312,8 @@ public class TorneoService {
         Torneo guardado = torneoRepository.save(torneo);
 
         if (request != null && request.getParticipantesIds() != null && !request.getParticipantesIds().isEmpty()) {
-            // Ajuste #10 (2026-05-21): antes la ruta admin (iniciarTorneo)
-            // creaba el bracket sin validar tamaño ni duplicados, mientras
-            // que crearPorUsuario validaba ambos. Resultado: admin podía
-            // crear torneos con 7 o 12 personajes (estructura rota) o con
-            // duplicados (el mismo personaje en 2 enfrentamientos de la
-            // misma ronda).
+            // La ruta admin valida tamaño y duplicados igual que crearPorUsuario,
+            // evitando brackets con estructura rota o personajes repetidos.
             //
             // Admin es más permisivo que crearPorUsuario (que exige 8 o
             // 16): aceptamos cualquier potencia de 2 entre 2 y 64. BracketService
@@ -389,7 +384,7 @@ public class TorneoService {
      * por count de votos y propagando a la ronda siguiente vía
      * {@link BracketAdvanceService}) hasta que llega a la final.
      *
-     * <p>Nota P1 (2026-05-17): antes este método iteraba todos los
+     * <p>antes este método iteraba todos los
      * enfrentamientos, saltaba los slots vacíos de rondas 2+ (que nunca se
      * rellenaban porque el BracketAvanceScheduler prometido no existía) y
      * marcaba el torneo como FINISHED igual. Resultado: torneos de 8/16
@@ -421,7 +416,7 @@ public class TorneoService {
         // Recargar tras los updates del advance service para tener el estado fresco
         Torneo guardado = torneoRepository.findById(id).orElseThrow();
 
-        // Plan v2 §4.4: resuelve todas las predicciones del torneo
+        // Resuelve todas las predicciones del torneo
         // comparando contra los ganadores recién calculados.
         int resueltas = prediccionService.resolverParaTorneo(guardado);
         log.info("Torneo {} finalizado en cascada: {} predicciones resueltas", id, resueltas);

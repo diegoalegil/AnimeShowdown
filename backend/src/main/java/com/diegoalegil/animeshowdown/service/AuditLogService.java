@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Audit log de eventos de auth/seguridad (Plan v2 §2.6).
+ * Audit log de eventos de auth/seguridad.
  *
  * Diseño:
  *
@@ -123,7 +123,7 @@ public class AuditLogService {
      * para que el FK audit_log.usuario_id apunte a una fila aún viva (la
      * cascada ON DELETE SET NULL lo limpia después). Con @Async, el
      * registro podía llegar tras el delete y fallar con FK violation
-     * (nota P2 2026-05-17). Si la persistencia lanza, propaga — el caller
+     * (nota técnica). Si la persistencia lanza, propaga — el caller
      * decide si esa pérdida de audit invalida o no la operación de negocio.
      */
     @Transactional

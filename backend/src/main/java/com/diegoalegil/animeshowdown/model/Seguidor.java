@@ -15,7 +15,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
 /**
- * Relación de seguimiento entre dos usuarios (Plan v2 §4.5).
+ * Relación de seguimiento entre dos usuarios.
  *
  * <p>PK compuesta {@link SeguidorId} = (seguidor_id, seguido_id). Postgres
  * y JPA modelan PKs compuestas mejor con {@code @EmbeddedId} que con

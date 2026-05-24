@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
@@ -19,34 +20,40 @@ import TorneoCard from '../components/TorneoCard'
 import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
+import DailyMissionPanel from '../components/DailyMissionPanel'
 import { useTorneos } from '../lib/torneosQueries'
-import {
-  personajes,
-  imagenPersonaje,
-  getStatsPersonaje,
-} from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { getGameVisual } from '../data/visual-assets'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
-const totalPersonajes = personajes.length
-const animeUniversos = new Set(personajes.map((p) => p.anime)).size
-const eloMax = Math.max(
-  ...personajes.map((p) => getStatsPersonaje(p.slug).elo),
-)
+function getHomeStats(catalogoPersonajes) {
+  if (catalogoPersonajes.length === 0) {
+    return { totalPersonajes: 0, animeUniversos: 0, eloMax: 0 }
+  }
+  return {
+    totalPersonajes: catalogoPersonajes.length,
+    animeUniversos: new Set(catalogoPersonajes.map((p) => p.anime)).size,
+    eloMax: Math.max(
+      ...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo),
+    ),
+  }
+}
 
-const byAnime = personajes.reduce((acc, p) => {
-  if (!acc[p.anime]) acc[p.anime] = []
-  acc[p.anime].push(p)
-  return acc
-}, {})
+function getHomeCarousels(catalogoPersonajes) {
+  const byAnime = catalogoPersonajes.reduce((acc, p) => {
+    if (!acc[p.anime]) acc[p.anime] = []
+    acc[p.anime].push(p)
+    return acc
+  }, {})
 
-const carousels = Object.entries(byAnime)
-  .filter(([, list]) => list.length >= 4)
-  .sort((a, b) => b[1].length - a[1].length)
-  .slice(0, 5)
-  .map(([anime, list]) => ({ anime, list }))
+  return Object.entries(byAnime)
+    .filter(([, list]) => list.length >= 4)
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, 5)
+    .map(([anime, list]) => ({ anime, list }))
+}
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -57,10 +64,12 @@ const sectionVariants = {
   },
 }
 
-const top10 = [...personajes]
-  .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
-  .sort((a, b) => b.elo - a.elo)
-  .slice(0, 10)
+function getHomeTop10(catalogoPersonajes) {
+  return [...catalogoPersonajes]
+    .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
+    .sort((a, b) => b.elo - a.elo)
+    .slice(0, 10)
+}
 
 const pasos = [
   {
@@ -90,12 +99,25 @@ const pasos = [
 ]
 
 function InicioPage() {
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const stats = useMemo(
+    () => getHomeStats(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const carousels = useMemo(
+    () => getHomeCarousels(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const top10 = useMemo(
+    () => getHomeTop10(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
   // useSeo en la home no setea title (el HTML inicial ya tiene el correcto
   // y queremos preservarlo como canonical); pero sí añadimos canonical
   // explícito y aseguramos OG con la imagen del logo.
   useSeo({
     description:
-      '1052 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el meta cada semana.',
+      '1052 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el ranking cada semana.',
     canonical: 'https://animeshowdown.dev/',
   })
   return (
@@ -105,16 +127,19 @@ function InicioPage() {
           → retos diarios → "Hecho para fans" → cómo funciona → torneos
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
-      <Hero />
-      {/* Nota de producto (2026-05-18): Pulso sustituye al antiguo
+      <Hero catalogoPersonajes={catalogoPersonajes} />
+      <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+        <DailyMissionPanel />
+      </section>
+      {/* Nota de producto: Pulso sustituye al antiguo
           SectionLiveBattle (duelo random cliente-side, no era "live").
           Cinco señales reales desde backend arriba del fold para que
           la home muestre producto en marcha, no solo feature list. */}
       <SectionPulso />
       <NombresMarquee />
-      <SectionStats />
-      <SectionTop10Ranking />
-      {/* Ajuste (2026-05-17): el resto de secciones eran below-the-fold
+      <SectionStats stats={stats} />
+      <SectionTop10Ranking top10={top10} />
+      {/* el resto de secciones eran below-the-fold
           típico — montarlas solo cuando se acercan al viewport recorta
           el initial DOM/JS a ~30%. LazyOnView mantiene el espacio
           reservado para no causar layout shift. */}
@@ -122,12 +147,14 @@ function InicioPage() {
       <LazyOnView minHeight={520}><SectionBento /></LazyOnView>
       <LazyOnView minHeight={420}><SectionComoFunciona /></LazyOnView>
       <LazyOnView minHeight={520}><SectionTorneosActivos /></LazyOnView>
-      <LazyOnView minHeight={520}><SectionPorAnime /></LazyOnView>
+      <LazyOnView minHeight={520}><SectionPorAnime carousels={carousels} /></LazyOnView>
     </>
   )
 }
 
-function SectionPorAnime() {
+function SectionPorAnime({ carousels }) {
+  if (carousels.length === 0) return null
+
   return (
     <motion.div
       variants={sectionVariants}
@@ -204,10 +231,10 @@ function SectionBento() {
             <div className="flex items-center gap-2">
               {featuredAvatars.map((s, i) => (
                 <div key={s} className="flex items-center gap-2">
-                  <img
-                    src={imagenPersonaje(s)}
+                  <PersonajeImg
+                    slug={s}
                     alt=""
-                    onError={ocultaImgRota}
+                    sizes="48px"
                     className="h-12 w-12 rounded-md border border-border object-cover object-top"
                   />
                   {i < featuredAvatars.length - 1 && (
@@ -246,11 +273,11 @@ function SectionBento() {
           >
             <div className="flex -space-x-3">
               {communityAvatars.map((s) => (
-                <img
+                <PersonajeImg
                   key={s}
-                  src={imagenPersonaje(s)}
+                  slug={s}
                   alt=""
-                  onError={ocultaImgRota}
+                  sizes="40px"
                   className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
                 />
               ))}
@@ -359,11 +386,13 @@ function BentoCard({
   )
 }
 
-function SectionStats() {
+function SectionStats({ stats }) {
   // Si hay torneos del backend mostramos el número. Si no, sustituimos
   // el tile por un "Ranking en vivo" para no transmitir vacío (un "0
   // torneos" hace pensar que la plataforma está incompleta).
   const { data: torneos = [] } = useTorneos()
+  if (stats.totalPersonajes === 0) return null
+
   const hayTorneos = torneos.length > 0
   return (
     <motion.section
@@ -375,9 +404,9 @@ function SectionStats() {
     >
       <div className="mx-auto max-w-5xl">
         <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
-          <Stat target={totalPersonajes} label="Personajes" />
-          <Stat target={animeUniversos} label="Animes" />
-          <Stat target={eloMax} label="ELO máximo" />
+          <Stat target={stats.totalPersonajes} label="Personajes" />
+          <Stat target={stats.animeUniversos} label="Animes" />
+          <Stat target={stats.eloMax} label="ELO máximo" />
           {hayTorneos ? (
             <Stat target={torneos.length} label="Torneos visibles" />
           ) : (
@@ -479,7 +508,9 @@ function SectionTorneosActivos() {
   )
 }
 
-function SectionTop10Ranking() {
+function SectionTop10Ranking({ top10 }) {
+  if (top10.length === 0) return null
+
   return (
     <motion.section
       className="bg-surface/40 px-5 py-16 sm:px-8 sm:py-20"
@@ -649,13 +680,9 @@ function SectionRetosDiarios() {
             </Link>
           </div>
         </div>
-        {/* Feedback visual (2026-05-22): el grid 5-col + cards solo
-            con kanji decorativo dejaba banners de ~140px de alto en desktop
-            — "miniaturas inútiles". Nuevo layout 1/2/3 cols con
-            background-image real del juego (cover en /assets/game-covers/),
-            min-h ~13rem mobile / 14rem desktop y overlay gradient
-            inferior para legibilidad. Mantenemos kanji decorativo + accent
-            por color, ahora respiran sobre la imagen. */}
+        {/* Layout 1/2/3 cols con cover real de cada juego, altura estable y
+            overlay inferior para legibilidad. El kanji decorativo respira
+            sobre la imagen. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {RETOS_DIARIOS.map((r) => {
             const colorClasses = RETO_COLORS[r.color]

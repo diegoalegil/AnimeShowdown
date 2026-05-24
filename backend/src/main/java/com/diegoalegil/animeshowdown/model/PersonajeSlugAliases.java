@@ -12,6 +12,7 @@ import java.util.Map;
 public final class PersonajeSlugAliases {
 
     private static final Map<String, String> ALIASES = Map.ofEntries(
+            Map.entry("L", "l"),
             Map.entry("all_might", "allmight"),
             Map.entry("monkey_d_luffy", "luffy"),
             Map.entry("roronoa_zoro", "zoro"),

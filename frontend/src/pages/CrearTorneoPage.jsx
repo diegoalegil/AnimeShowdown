@@ -14,9 +14,9 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { endpoints, ApiError } from '../lib/api'
-import { personajes as catalogoCliente } from '../lib/personajes-core'
+import PersonajeImg from '../components/PersonajeImg'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -48,6 +48,10 @@ function CrearTorneoPage() {
   useSeo({ title: 'Crea tu torneo', noindex: true })
   const { user } = useAuth()
   const navigate = useNavigate()
+  const {
+    personajes: catalogoPersonajes,
+    isLoading: cargandoCatalogoPersonajes,
+  } = usePersonajesCatalogo()
 
   // Lista del backend con IDs reales. La cachea 10 min porque el catálogo
   // no cambia entre peticiones (admin import-jikan es esporádico).
@@ -83,13 +87,13 @@ function CrearTorneoPage() {
   // sirve para mapear a IDs en el submit.
   const filtrados = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase()
-    if (!q) return catalogoCliente
-    return catalogoCliente.filter(
+    if (!q) return catalogoPersonajes
+    return catalogoPersonajes.filter(
       (p) =>
         p.nombre.toLowerCase().includes(q) ||
         p.anime.toLowerCase().includes(q),
     )
-  }, [deferredQuery])
+  }, [catalogoPersonajes, deferredQuery])
 
   if (!user) return <Navigate to="/login?next=/torneos/crear" replace />
 
@@ -204,7 +208,7 @@ function CrearTorneoPage() {
             query={query}
             onQuery={setQuery}
             filtrados={filtrados}
-            cargandoBackend={cargandoBackend}
+            cargandoBackend={cargandoBackend || cargandoCatalogoPersonajes}
           />
 
           {errors.root && (
@@ -386,6 +390,7 @@ function CardSeleccion({
           type="search"
           value={query}
           onChange={(e) => onQuery(e.target.value)}
+          aria-label="Filtrar personajes para el torneo"
           placeholder="Filtra por nombre o anime…"
           className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
         />
@@ -410,11 +415,11 @@ function CardSeleccion({
                   : 'border-border bg-bg hover:border-accent/40'
               }`}
             >
-              <img
-                src={p.imagen}
-                alt=""
+              <PersonajeImg
+                slug={p.slug}
+                src={p.imagenUrl ?? p.imagen}
+                alt={p.nombre}
                 loading="lazy"
-                onError={ocultaImgRota}
                 className="h-16 w-12 rounded object-cover object-top"
               />
               <span className="line-clamp-1 text-[11px] font-semibold text-fg-strong">

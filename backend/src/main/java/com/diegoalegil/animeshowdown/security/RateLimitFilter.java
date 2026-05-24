@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Rate limiting in-memory por IP. Plan v2 §2.1.
+ * Rate limiting in-memory por IP.
  *
  * Aplica a rutas críticas (auth + voto) con un bandwidth compuesto:
  *   - 5 requests / minuto: ráfaga corta
@@ -57,12 +57,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             "/api/auth/registro",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
-            // Plan v2 §2.3: el endpoint que valida el segundo factor también
-            // necesita rate limit — sin él, alguien con el challengeToken
+            // El endpoint que valida el segundo factor también necesita rate
+            // limit; sin él, alguien con el challengeToken
             // (60s) podría intentar 10⁶ códigos en paralelo desde varias IPs.
             // Bucket4j por IP no detiene el caso ideal pero sí frena el básico.
             "/api/auth/2fa/verify-login",
-            // Nota P2 (2026-05-17): newsletter envía email de confirmación
+            // newsletter envía email de confirmación
             // double opt-in. Sin rate limit, un script podía pinchar
             // POST /api/newsletter miles de veces con emails ajenos →
             // spam de confirmación a víctimas + Resend quota agotada +
@@ -72,7 +72,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
-    // Nota P2.5 (2026-05-17): endpoint legacy /api/personajes/{id}/votar
+    // endpoint legacy /api/personajes/{id}/votar
     // también entra al rate limit. Antes solo el moderno (enfrentamientos)
     // estaba limitado y el legacy era un bypass trivial.
     private static final String RUTA_VOTAR_PERSONAJE_PREFIJO = "/api/personajes/";
@@ -123,8 +123,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private boolean esRutaLimitada(HttpServletRequest req) {
         if (!"POST".equalsIgnoreCase(req.getMethod())) return false;
-        // Ajuste #12 (2026-05-21): antes usabamos req.getRequestURI() que
-        // INCLUYE el context path. Si la app se deploya con context path
+        // Antes usabamos req.getRequestURI() que INCLUYE el context path.
+        // Si la app se deploya con context path
         // (e.g. server.servlet.context-path=/api-v2), los URIs llegan como
         // '/api-v2/api/auth/login' y NO matchean con RUTAS_LIMITADAS que
         // tienen '/api/auth/login'. Rate limiting silenciosamente apagado.
@@ -141,7 +141,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (uri.startsWith(RUTA_VOTAR_PREFIJO) && uri.endsWith(RUTA_VOTAR_SUFIJO)) {
             return true;
         }
-        // /api/personajes/{id}/votar — endpoint legacy (P2.5).
+        // /api/personajes/{id}/votar — endpoint legacy.
         if (uri.startsWith(RUTA_VOTAR_PERSONAJE_PREFIJO) && uri.endsWith(RUTA_VOTAR_SUFIJO)) {
             return true;
         }
@@ -152,8 +152,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // 5/min + 50/hora compuestos. Bucket4j evalúa AMBOS antes de
         // permitir consumir — cumple ambos límites simultáneamente.
         return Bucket.builder()
-                .addLimit(Bandwidth.simple(5, Duration.ofMinutes(1)))
-                .addLimit(Bandwidth.simple(50, Duration.ofHours(1)))
+                .addLimit(Bandwidth.builder()
+                        .capacity(5)
+                        .refillGreedy(5, Duration.ofMinutes(1))
+                        .build())
+                .addLimit(Bandwidth.builder()
+                        .capacity(50)
+                        .refillGreedy(50, Duration.ofHours(1))
+                        .build())
                 .build();
     }
 

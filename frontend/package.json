@@ -4,18 +4,23 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && vite build",
-    "build:no-images": "node ../scripts/generate-sitemap.mjs && vite build",
-    "build:no-sitemap": "vite build",
+    "dev": "NODE_OPTIONS=--disable-warning=DEP0205 vite",
+    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build:no-images": "node ../scripts/generate-sitemap.mjs && ANIMESHOWDOWN_SKIP_IMG_COPY=true NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build:no-sitemap": "NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build:e2e": "VITE_API_BASE_URL=${E2E_API_URL:-http://127.0.0.1:8080} VITE_API_URL=${E2E_API_URL:-http://127.0.0.1:8080} npm run build:no-sitemap",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
     "build:images": "node scripts/generate-image-variants.mjs",
     "build:colors": "node scripts/generate-dominant-colors.mjs",
     "build:stage-assets": "node scripts/generate-stage-assets.mjs",
+    "assets:cdn:plan": "node ../scripts/sync-img-cdn.mjs --plan",
+    "assets:cdn:dry-run": "node ../scripts/sync-img-cdn.mjs --aws-dry-run",
+    "assets:cdn:sync": "node ../scripts/sync-img-cdn.mjs --apply",
     "test:bundle": "node scripts/check-bundle-budget.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:local": "E2E_BASE_URL=${E2E_BASE_URL:-http://127.0.0.1:4173} E2E_API_URL=${E2E_API_URL:-http://127.0.0.1:8080} playwright test",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "NODE_OPTIONS=--disable-warning=DEP0205 vite preview",
     "qa:a11y": "npx --yes @axe-core/cli@4.11.0 http://localhost:4173/ http://localhost:4173/personajes http://localhost:4173/animes http://localhost:4173/torneos http://localhost:4173/ranking http://localhost:4173/login http://localhost:4173/register --tags wcag2a,wcag2aa,wcag21a,wcag21aa --exit"
   },
   "dependencies": {
@@ -32,7 +37,7 @@
     "lucide-react": "^1.16.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-hook-form": "^7.76.0",
+    "react-hook-form": "^7.76.1",
     "react-i18next": "^17.0.8",
     "react-router-dom": "^7.15.1",
     "sonner": "^2.0.7",
@@ -43,6 +48,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.57.0",
+    "axe-core": "^4.11.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
@@ -52,7 +59,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "sharp": "^0.34.5",
-    "vite": "^8.0.13",
+    "vite": "^8.0.14",
     "vite-plugin-pwa": "^1.3.0"
   }
 }

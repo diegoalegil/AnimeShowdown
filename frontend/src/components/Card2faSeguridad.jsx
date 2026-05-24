@@ -18,7 +18,7 @@ import { endpoints, ApiError } from '../lib/api'
 import PasswordInput from './PasswordInput'
 
 /**
- * Card de "Verificación en dos pasos" para /perfil (Plan v2 §2.3).
+ * Card de "Verificación en dos pasos" para /perfil.
  *
  * Estado desactivado:
  *   - Card neutra con explicación + botón "Activar 2FA".
@@ -143,7 +143,7 @@ function Card2faSeguridad() {
 // ----------------------------------------------------------------------
 
 function ModalShell({ onClose, title, icon: Icon, children, wide }) {
-  // Ajuste (2026-05-17): focus trap completo + ESC para cerrar.
+  // focus trap completo + ESC para cerrar.
   // Antes el tab podía escapar del modal hacia elementos del header/footer
   // del fondo (WCAG 2.1 G109 modal management). Capturamos Tab/Shift+Tab
   // entre los elementos focusables del dialog y rebotamos al primer/último.
@@ -319,7 +319,7 @@ function SetupForm({ setupData, onBackupCodes }) {
   }
 
   const [secretCopiado, setSecretCopiado] = useState(false)
-  // Ajuste (2026-05-17): el setTimeout queda colgando si el modal se cierra
+  // el setTimeout queda colgando si el modal se cierra
   // antes de 2s — setState en componente desmontado. Ref + cleanup.
   const copiadoTimerRef = useRef(null)
   useEffect(() => () => {
@@ -398,6 +398,8 @@ function SetupForm({ setupData, onBackupCodes }) {
           autoFocus
           autoComplete="one-time-code"
           maxLength={6}
+          aria-invalid={Boolean(errors.codigo)}
+          aria-describedby={errors.codigo ? 'codigo-setup-error' : undefined}
           {...register('codigo', {
             required: 'Introduce el código',
             pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
@@ -408,7 +410,9 @@ function SetupForm({ setupData, onBackupCodes }) {
           placeholder="123456"
         />
         {errors.codigo && (
-          <p className="text-[12px] text-red-400">{errors.codigo.message}</p>
+          <p id="codigo-setup-error" className="text-[12px] text-red-400">
+            {errors.codigo.message}
+          </p>
         )}
       </div>
 
@@ -431,7 +435,7 @@ function SetupForm({ setupData, onBackupCodes }) {
 function ModalBackupCodes({ codes, onClose, descripcion }) {
   const [copiado, setCopiado] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
-  // Ajuste (2026-05-17): ref + cleanup para evitar setState en unmount.
+  // ref + cleanup para evitar setState en unmount.
   const copiadoTimerRef = useRef(null)
   useEffect(() => () => {
     if (copiadoTimerRef.current) clearTimeout(copiadoTimerRef.current)
@@ -602,10 +606,16 @@ function Modal2faDisable({ onClose, onSuccess }) {
             id="disable-password"
             autoComplete="current-password"
             error={Boolean(errors.password)}
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={
+              errors.password ? 'disable-password-error' : undefined
+            }
             {...register('password', { required: 'Introduce tu contraseña' })}
           />
           {errors.password && (
-            <p className="text-[11px] text-red-400">{errors.password.message}</p>
+            <p id="disable-password-error" className="text-[11px] text-red-400">
+              {errors.password.message}
+            </p>
           )}
         </div>
         <div className="flex flex-col gap-1.5">
@@ -622,6 +632,10 @@ function Modal2faDisable({ onClose, onSuccess }) {
             pattern="[0-9]*"
             autoComplete="one-time-code"
             maxLength={6}
+            aria-invalid={Boolean(errors.codigo)}
+            aria-describedby={
+              errors.codigo ? 'disable-codigo-error' : undefined
+            }
             {...register('codigo', {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
@@ -632,11 +646,15 @@ function Modal2faDisable({ onClose, onSuccess }) {
             placeholder="123456"
           />
           {errors.codigo && (
-            <p className="text-[11px] text-red-400">{errors.codigo.message}</p>
+            <p id="disable-codigo-error" className="text-[11px] text-red-400">
+              {errors.codigo.message}
+            </p>
           )}
         </div>
         {errors.root && (
-          <p className="text-[11px] text-red-400">{errors.root.message}</p>
+          <p role="alert" className="text-[11px] text-red-400">
+            {errors.root.message}
+          </p>
         )}
         <button
           type="submit"
@@ -717,6 +735,8 @@ function Modal2faRegenerate({ onClose }) {
             autoFocus
             autoComplete="one-time-code"
             maxLength={6}
+            aria-invalid={Boolean(errors.codigo)}
+            aria-describedby={errors.codigo ? 'regen-codigo-error' : undefined}
             {...register('codigo', {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
@@ -727,7 +747,9 @@ function Modal2faRegenerate({ onClose }) {
             placeholder="123456"
           />
           {errors.codigo && (
-            <p className="text-[11px] text-red-400">{errors.codigo.message}</p>
+            <p id="regen-codigo-error" className="text-[11px] text-red-400">
+              {errors.codigo.message}
+            </p>
           )}
         </div>
         <button

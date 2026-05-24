@@ -20,7 +20,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     Optional<RefreshToken> findByTokenHash(String tokenHash);
 
     /**
-     * Nota P2 (2026-05-17): variante con PESSIMISTIC_WRITE para rotar.
+     * variante con PESSIMISTIC_WRITE para rotar.
      * Sin lock, dos requests concurrentes leían el token ACTIVO al mismo
      * tiempo, ambas hacían revocar() + save() + emitir(), y emitían DOS
      * refresh tokens nuevos para el mismo predecesor — el reuse-detection
@@ -35,7 +35,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     /**
      * Revoca todas las sesiones activas de un usuario. Usado en
-     * POST /auth/revoke-all (Plan v2 §1.3) y en cambio de contraseña
+     * POST /auth/revoke-all y en cambio de contraseña
      * (invalidar sesiones previas tras password change).
      */
     @Modifying
@@ -49,7 +49,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     /**
      * Borra refresh tokens expirados o revocados hace más de 30 días.
      * Limpieza periódica para que la tabla no crezca indefinidamente. Se
-     * llamará desde un cron o tarea programada futura (Bloque 2.6 con
+     * llamará desde un cron o tarea programada futura (capa correspondiente con
      * scheduling). Por ahora queda accesible por si lo invocamos a mano.
      */
     @Modifying

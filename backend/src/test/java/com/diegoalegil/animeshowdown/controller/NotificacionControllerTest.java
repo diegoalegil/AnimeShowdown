@@ -26,7 +26,7 @@ import com.diegoalegil.animeshowdown.service.NotificacionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración de notificaciones in-app (Plan v2 §2.13).
+ * Tests integración de notificaciones in-app.
  *
  * <p>Cubre el flujo REST completo + el trigger BIENVENIDA tras verificar
  * email. Los tests no cubren el push WebSocket en vivo — eso requiere
@@ -197,8 +197,8 @@ class NotificacionControllerTest {
         // Spring Security con anyRequest().authenticated() + sin
         // authenticationEntryPoint custom devuelve 403 Forbidden cuando
         // falta auth en un endpoint protegido. No es 401 — esa diferencia
-        // se controla con un AuthenticationEntryPoint explícito (TODO si
-        // queremos pulir el contrato HTTP en el bloque 16).
+        // se controla con un AuthenticationEntryPoint explícito si más adelante
+        // queremos pulir el contrato HTTP.
         mvc.perform(get("/api/notificaciones"))
                 .andExpect(status().isForbidden());
         mvc.perform(get("/api/notificaciones/unread-count"))

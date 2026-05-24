@@ -1,15 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { ArrowLeft, Download, Image as ImageIcon, Plus, Sparkles, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  Download,
+  Image as ImageIcon,
+  Plus,
+  Share2,
+  Sparkles,
+  Trophy,
+  X,
+} from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
-import { personajes, imagenPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { getPersonajeBySlug, imagenPersonaje } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
+import { recordDailyShare } from '../lib/dailyProgress'
+import { shareOrCopy } from '../lib/share'
+import {
+  getLocalVoteStats,
+  listenLocalVotes,
+  readLocalVotes,
+} from '../lib/localVoteRanking'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -23,10 +39,49 @@ const containerVariants = {
 const SLOTS = 5
 const STORAGE_KEY = 'animeshowdown.mitop5.v1'
 
+function readStoredSlots() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return Array(SLOTS).fill(null)
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return Array(SLOTS).fill(null)
+    return parsed
+      .slice(0, SLOTS)
+      .concat(Array(SLOTS).fill(null))
+      .slice(0, SLOTS)
+  } catch {
+    return Array(SLOTS).fill(null)
+  }
+}
+
+function getTop5AddSlugs(searchParams) {
+  return [
+    ...new Set(
+      searchParams
+        .getAll('add')
+        .flatMap((value) => String(value).split(','))
+        .map((slug) => slug.trim())
+        .filter(Boolean),
+    ),
+  ].slice(0, SLOTS)
+}
+
+function buildInitialSlots(addSlugs = []) {
+  const slots = readStoredSlots()
+  const next = [...slots]
+  for (const slug of addSlugs) {
+    if (!getPersonajeBySlug(slug) || next.includes(slug)) continue
+    const idx = next.findIndex((slot) => !slot)
+    if (idx === -1) break
+    next[idx] = slug
+  }
+  return next
+}
+
 /**
  * Sugerencias rápidas para arrancar — 8 personajes muy reconocidos del
  * catálogo. Si alguno no existe (catálogo evoluciona), filtramos.
- * Nota de producto (2026-05-18): los slots vacíos enormes en móvil
+ * Nota de producto: los slots vacíos enormes en móvil
  * parecían herramienta rota. Añadir "Empieza con tu favorito" + chips
  * de personajes top reduce la fricción de la primera selección.
  */
@@ -36,7 +91,7 @@ const SUGERENCIAS_RAPIDAS_SLUGS = [
 ]
 
 /**
- * Generador "Mi Top 5" (Plan v2 §11.10) — el usuario elige 5 personajes
+ * Generador "Mi Top 5" — el usuario elige 5 personajes
  * favoritos del catálogo y exporta una imagen 1200×630 lista para
  * Twitter/Discord/Instagram con su selección.
  *
@@ -57,25 +112,26 @@ const SUGERENCIAS_RAPIDAS_SLUGS = [
  */
 function MiTop5Page() {
   useSeo({
-    title: 'Mi Top 5 — Generador',
+    title: 'Mi Top 5 anime — Generador compartible',
     description:
-      'Elige tus 5 personajes anime favoritos y exporta una imagen 1200×630 lista para compartir en Twitter, Discord o Instagram.',
+      'Elige tus 5 personajes anime favoritos o rellénalos desde tu ranking personal y exporta una imagen 1200×630 para compartir.',
+    canonical: 'https://animeshowdown.dev/mi-top5',
   })
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const addFromQuery = useMemo(
+    () => getTop5AddSlugs(searchParams),
+    [searchParams],
+  )
+  const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
+  const personajesBySlug = useMemo(
+    () => new Map(catalogoPersonajes.map((p) => [p.slug, p])),
+    [catalogoPersonajes],
+  )
 
-  const [slots, setSlots] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return Array(SLOTS).fill(null)
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return Array(SLOTS).fill(null)
-      return parsed
-          .slice(0, SLOTS)
-          .concat(Array(SLOTS).fill(null))
-          .slice(0, SLOTS)
-    } catch {
-      return Array(SLOTS).fill(null)
-    }
-  })
+  const [slots, setSlots] = useState(() =>
+    buildInitialSlots(addFromQuery),
+  )
 
   useEffect(() => {
     try {
@@ -84,6 +140,44 @@ function MiTop5Page() {
       // ignore
     }
   }, [slots])
+
+  useEffect(
+    () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
+    [],
+  )
+
+  useEffect(() => {
+    if (addFromQuery.length === 0) return
+    const validos = addFromQuery
+      .filter((slug) => getPersonajeBySlug(slug) && slots.includes(slug))
+      .map((slug) => getPersonajeBySlug(slug)?.nombre)
+      .filter(Boolean)
+    if (validos.length > 1) {
+      toast.success(`${validos.length} personajes listos en tu Top 5`)
+    } else if (validos.length === 1) {
+      toast.success(`${validos[0]} listo en tu Top 5`)
+    } else {
+      toast.error('No pude añadir esos personajes al Top 5')
+    }
+    setSearchParams({}, { replace: true })
+  }, [addFromQuery, setSearchParams, slots])
+
+  const personalStats = useMemo(
+    () => getLocalVoteStats(localVotes),
+    [localVotes],
+  )
+  const personalTopSlugs = useMemo(
+    () =>
+      personalStats.top
+        .map((item) => item.slug)
+        .filter((slug) => personajesBySlug.has(slug))
+        .slice(0, SLOTS),
+    [personalStats.top, personajesBySlug],
+  )
+  const personalTopPreview = personalTopSlugs
+    .map((slug) => personajesBySlug.get(slug)?.nombre)
+    .filter(Boolean)
+    .slice(0, 3)
 
   const setSlot = (idx, slug) => {
     setSlots((s) => {
@@ -101,10 +195,10 @@ function MiTop5Page() {
   // Sugerencias = top slugs que aún no están en el top del user
   const sugerenciasDisponibles = useMemo(() => {
     return SUGERENCIAS_RAPIDAS_SLUGS
-      .map((slug) => personajes.find((p) => p.slug === slug))
+      .map((slug) => personajesBySlug.get(slug))
       .filter((p) => p && !slots.includes(p.slug))
       .slice(0, 6)
-  }, [slots])
+  }, [personajesBySlug, slots])
 
   const addSlugAlPrimerSlotLibre = (slug) => {
     const idx = slots.findIndex((s) => !s)
@@ -119,6 +213,26 @@ function MiTop5Page() {
     setSlot(idx, slug)
   }
 
+  const rellenarDesdeRanking = () => {
+    if (personalTopSlugs.length === 0) {
+      toast.info('Vota algunos duelos para crear un ranking personal primero.')
+      return
+    }
+    const next = []
+    for (const slug of personalTopSlugs) {
+      if (!next.includes(slug)) next.push(slug)
+    }
+    for (const slug of slots) {
+      if (slug && !next.includes(slug)) next.push(slug)
+    }
+    setSlots(next.slice(0, SLOTS).concat(Array(SLOTS).fill(null)).slice(0, SLOTS))
+    toast.success(
+      personalTopSlugs.length >= SLOTS
+        ? 'Top 5 rellenado con tu ranking personal'
+        : `Añadidos ${personalTopSlugs.length} de tu ranking personal`,
+    )
+  }
+
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
       <JsonLd
@@ -128,6 +242,7 @@ function MiTop5Page() {
           { label: 'Mi Top 5', path: '/mi-top5' },
         ])}
       />
+      <JsonLd id="mi-top5-page" schema={miTop5Schema()} />
       <div className="mx-auto max-w-3xl">
         <Link
           to="/"
@@ -156,7 +271,14 @@ function MiTop5Page() {
           </p>
         </motion.header>
 
-        {/* Nota de producto (2026-05-18): antes los slots usaban grid 1-col
+        <RankingImportPanel
+          totalVotes={personalStats.total}
+          topNames={personalTopPreview}
+          canImport={personalTopSlugs.length > 0}
+          onImport={rellenarDesdeRanking}
+        />
+
+        {/* Nota de producto: antes los slots usaban grid 1-col
             en mobile → cada uno aspect-2/3 full-width = ~580px de alto
             vacío. Cambio a grid-cols-5 en TODAS las viewports con tamaño
             compacto que se escala con sm:; los slots vacíos quedan
@@ -164,7 +286,13 @@ function MiTop5Page() {
             entra dentro del primer viewport. */}
         <div className="mb-5 grid grid-cols-5 gap-2 sm:mb-8 sm:gap-4">
           {slots.map((slug, i) => (
-            <Slot key={i} slug={slug} index={i} onQuitar={() => quitarSlot(i)} />
+            <Slot
+              key={i}
+              slug={slug}
+              personaje={slug ? personajesBySlug.get(slug) : null}
+              index={i}
+              onQuitar={() => quitarSlot(i)}
+            />
           ))}
         </div>
 
@@ -188,11 +316,11 @@ function MiTop5Page() {
                   onClick={() => addSlugAlPrimerSlotLibre(p.slug)}
                   className="group inline-flex items-center gap-2 rounded-full border border-border bg-bg px-2 py-1 text-[12px] font-medium text-fg-strong transition-colors hover:border-accent hover:text-gold"
                 >
-                  <img
-                    src={imagenPersonaje(p.slug)}
-                    alt=""
+                  <PersonajeImg
+                    slug={p.slug}
+                    src={p.imagenUrl ?? p.imagen}
+                    alt={p.nombre}
                     loading="lazy"
-                    onError={ocultaImgRota}
                     className="h-5 w-5 rounded-full object-cover object-top"
                   />
                   {p.nombre}
@@ -213,13 +341,61 @@ function MiTop5Page() {
           />
         </div>
 
-        <CanvasPreview slots={slots} completo={completo} />
+        <CanvasPreview
+          slots={slots}
+          completo={completo}
+          personajesBySlug={personajesBySlug}
+        />
       </div>
     </section>
   )
 }
 
-function Slot({ slug, index, onQuitar }) {
+function RankingImportPanel({ totalVotes, topNames, canImport, onImport }) {
+  return (
+    <section className="mb-5 rounded-xl border border-gold/30 bg-gradient-to-br from-gold/[0.12] via-surface to-accent/[0.08] p-4 sm:mb-8 sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+            <Trophy className="h-3.5 w-3.5" />
+            Desde tu ranking
+          </p>
+          <h2 className="mt-1 text-lg font-black text-fg-strong">
+            {canImport ? 'Convierte tus votos en una imagen' : 'Tu Top 5 puede salir de tus votos'}
+          </h2>
+          <p className="mt-1 text-[13px] leading-5 text-fg-muted">
+            {canImport
+              ? `${totalVotes} voto${totalVotes === 1 ? '' : 's'} locales detectados. ${
+                  topNames.length > 0
+                    ? `Empieza con ${topNames.join(', ')}.`
+                    : 'Rellena los primeros puestos con tus personajes más votados.'
+                }`
+              : 'Vota unos cuantos duelos y este generador podrá rellenarse con tu ranking personal.'}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onImport}
+            disabled={!canImport}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-4 py-2 text-sm font-black text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            Usar mi ranking
+          </button>
+          <Link
+            to={canImport ? '/mi-ranking' : '/votar'}
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-bg/50 px-4 py-2 text-sm font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
+          >
+            {canImport ? 'Ver ranking' : 'Votar primero'}
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Slot({ slug, personaje, index, onQuitar }) {
   if (!slug) {
     return (
       <div className="flex aspect-[2/3] flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border bg-bg/30 text-fg-muted sm:gap-2 sm:rounded-xl">
@@ -230,12 +406,12 @@ function Slot({ slug, index, onQuitar }) {
       </div>
     )
   }
-  const p = personajes.find((x) => x.slug === slug)
   return (
     <div className="group relative aspect-[2/3] overflow-hidden rounded-lg border border-border sm:rounded-xl">
       <PersonajeImg
         slug={slug}
-        alt={p?.nombre ?? slug}
+        src={personaje?.imagenUrl ?? personaje?.imagen}
+        alt={personaje?.nombre ?? slug}
         className="h-full w-full object-cover object-top"
       />
       {/* Rank chip arriba — siempre visible para que la posición se lea
@@ -247,14 +423,16 @@ function Slot({ slug, index, onQuitar }) {
           estrecha para texto legible — la prioridad es ver el rostro). */}
       <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 sm:block">
         <p className="line-clamp-1 text-[12px] font-bold text-fg-strong">
-          {p?.nombre ?? slug}
+          {personaje?.nombre ?? slug}
         </p>
-        <p className="line-clamp-1 text-[10px] text-fg-muted">{p?.anime}</p>
+        <p className="line-clamp-1 text-[10px] text-fg-muted">
+          {personaje?.anime}
+        </p>
       </div>
       <button
         type="button"
         onClick={onQuitar}
-        aria-label={`Quitar ${p?.nombre ?? 'personaje'} del top`}
+        aria-label={`Quitar ${personaje?.nombre ?? 'personaje'} del top`}
         className="absolute right-0.5 top-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-opacity hover:text-rose-300 sm:right-1 sm:top-1 sm:h-6 sm:w-6 sm:opacity-0 sm:group-hover:opacity-100"
       >
         <X className="h-3 w-3" />
@@ -263,14 +441,20 @@ function Slot({ slug, index, onQuitar }) {
   )
 }
 
-function CanvasPreview({ slots, completo }) {
+function CanvasPreview({ slots, completo, personajesBySlug }) {
   const canvasRef = useRef(null)
+  const slotsSignature = slots.join('|')
   const [generando, setGenerando] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [compartiendo, setCompartiendo] = useState(false)
+  const [fallbackText, setFallbackText] = useState('')
+  const previewActual = preview?.signature === slotsSignature ? preview : null
+  const fallbackTextActual = previewActual ? fallbackText : ''
 
   const generar = async () => {
     if (!completo || !canvasRef.current) return
     setGenerando(true)
+    setFallbackText('')
     try {
       const canvas = canvasRef.current
       canvas.width = 1200
@@ -304,7 +488,7 @@ function CanvasPreview({ slots, completo }) {
       for (let i = 0; i < slots.length; i++) {
         const slug = slots[i]
         if (!slug) continue
-        const personaje = personajes.find((p) => p.slug === slug)
+        const personaje = personajesBySlug.get(slug)
         const x = startX + i * (cardW + gap)
 
         // Marco de card
@@ -315,7 +499,9 @@ function CanvasPreview({ slots, completo }) {
         ctx.strokeRect(x, startY, cardW, cardH)
 
         // Avatar
-        const img = await cargarImg(imagenPersonaje(slug))
+        const img = await cargarImg(
+          personaje?.imagenUrl ?? personaje?.imagen ?? imagenPersonaje(slug),
+        )
         if (img) {
           ctx.drawImage(img, x + 12, startY + 12, cardW - 24, 240)
         }
@@ -341,8 +527,9 @@ function CanvasPreview({ slots, completo }) {
       ctx.font = '18px Geist, system-ui, sans-serif'
       ctx.fillText('🔥 animeshowdown.dev', 60, 600)
 
+      const blob = await canvasToPngBlob(canvas)
       const url = canvas.toDataURL('image/png')
-      setPreviewUrl(url)
+      setPreview({ url, blob, signature: slotsSignature })
       toast.success('Imagen generada')
     } catch (err) {
       toast.error(`No se pudo generar: ${err.message}`)
@@ -352,13 +539,78 @@ function CanvasPreview({ slots, completo }) {
   }
 
   const descargar = () => {
-    if (!previewUrl) return
+    if (!previewActual) return
     const a = document.createElement('a')
-    a.href = previewUrl
+    a.href = previewActual.url
     a.download = 'animeshowdown-mi-top5.png'
     document.body.appendChild(a)
     a.click()
     a.remove()
+  }
+
+  const compartir = async () => {
+    if (!previewActual) return
+    setCompartiendo(true)
+    setFallbackText('')
+
+    const text = buildTop5ShareText(slots, personajesBySlug)
+    const shareUrl = buildTop5ShareUrl(slots)
+    const absoluteShareUrl =
+      typeof window !== 'undefined'
+        ? new URL(shareUrl, window.location.origin).toString()
+        : shareUrl
+    try {
+      const file =
+        previewActual.blob && typeof File !== 'undefined'
+          ? new File([previewActual.blob], 'animeshowdown-mi-top5.png', {
+              type: 'image/png',
+            })
+          : null
+      const filePayload = file
+        ? {
+            title: 'Mi Top 5 anime',
+            text,
+            url: absoluteShareUrl,
+            files: [file],
+          }
+        : null
+
+      if (
+        filePayload &&
+        typeof navigator !== 'undefined' &&
+        navigator.share &&
+        (!navigator.canShare || navigator.canShare({ files: [file] }))
+      ) {
+        try {
+          await navigator.share(filePayload)
+          recordDailyShare()
+          toast.success('Top 5 compartido')
+          return
+        } catch (error) {
+          if (error?.name === 'AbortError') return
+        }
+      }
+
+      const result = await shareOrCopy({
+        title: 'Mi Top 5 anime',
+        text,
+        url: shareUrl,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(
+        result === 'native'
+          ? 'Top 5 compartido'
+          : 'Texto copiado. Adjunta la imagen descargada si quieres.',
+      )
+    } catch (error) {
+      setFallbackText(error?.message || text)
+      toast.error('No se pudo compartir', {
+        description: 'Te dejo el texto visible para copiarlo a mano.',
+      })
+    } finally {
+      setCompartiendo(false)
+    }
   }
 
   return (
@@ -381,7 +633,7 @@ function CanvasPreview({ slots, completo }) {
           <ImageIcon className="h-3.5 w-3.5" />
           {generando ? 'Generando…' : 'Generar imagen'}
         </button>
-        {previewUrl && (
+        {previewActual && (
           <button
             type="button"
             onClick={descargar}
@@ -391,18 +643,37 @@ function CanvasPreview({ slots, completo }) {
             Descargar PNG
           </button>
         )}
+        {previewActual && (
+          <button
+            type="button"
+            onClick={compartir}
+            disabled={compartiendo}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-semibold text-gold transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            {compartiendo ? 'Compartiendo…' : 'Compartir mi Top 5'}
+          </button>
+        )}
       </div>
-      {previewUrl && (
+      {previewActual && (
         <div className="mt-5">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
             Vista previa
           </p>
           <img
-            src={previewUrl}
+            src={previewActual.url}
             alt="Vista previa de tu top 5"
             className="w-full rounded-lg border border-border"
           />
         </div>
+      )}
+      {fallbackTextActual && (
+        <textarea
+          readOnly
+          value={fallbackTextActual}
+          className="mt-4 min-h-28 w-full rounded-lg border border-border bg-bg/70 p-3 text-[12px] leading-5 text-fg-muted outline-none"
+          aria-label="Texto de tu Top 5 para copiar manualmente"
+        />
       )}
       <canvas
         ref={canvasRef}
@@ -412,6 +683,61 @@ function CanvasPreview({ slots, completo }) {
       />
     </div>
   )
+}
+
+function canvasToPngBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob)
+      else reject(new Error('El navegador no pudo exportar la imagen.'))
+    }, 'image/png')
+  })
+}
+
+function buildTop5ShareText(slots, personajesBySlug) {
+  const ranking = slots
+    .map((slug, index) => {
+      const personaje = personajesBySlug.get(slug)
+      return `${index + 1}. ${personaje?.nombre ?? slug}`
+    })
+    .join('\n')
+  return `Mi Top 5 anime en AnimeShowdown:\n${ranking}\n\nHaz el tuyo y dime a quién quitarías.`
+}
+
+function buildTop5ShareUrl(slots) {
+  const selected = slots.filter(Boolean)
+  if (selected.length === 0) return '/mi-top5'
+  return `/mi-top5?add=${encodeURIComponent(selected.join(','))}`
+}
+
+function miTop5Schema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Mi Top 5 anime — AnimeShowdown',
+    url: 'https://animeshowdown.dev/mi-top5',
+    applicationCategory: 'EntertainmentApplication',
+    operatingSystem: 'Web',
+    inLanguage: 'es-ES',
+    description:
+      'Generador gratuito para crear una imagen compartible con los cinco personajes anime favoritos del usuario.',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'AnimeShowdown',
+      url: 'https://animeshowdown.dev/',
+    },
+    featureList: [
+      'Seleccionar cinco personajes anime',
+      'Rellenar el Top 5 desde el ranking personal local',
+      'Exportar una imagen PNG 1200x630',
+      'Compartir el resultado en redes o copiar el texto',
+    ],
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+  }
 }
 
 function cargarImg(src) {

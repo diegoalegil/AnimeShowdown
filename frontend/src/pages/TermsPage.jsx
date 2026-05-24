@@ -15,7 +15,7 @@ const containerVariants = {
 }
 
 /**
- * Términos de uso (Plan v2 §16.13). Marco legal mínimo para uso del
+ * Términos de uso. Marco legal mínimo para uso del
  * servicio: aceptación, conducta esperada, contenido generado por
  * usuarios, propiedad intelectual.
  */
@@ -166,9 +166,10 @@ function TermsPage() {
             </h2>
             <p>
               AnimeShowdown es un proyecto educativo. Sin SLA, sin compromiso
-              de uptime, sin compensación por downtime. Si Railway/Neon caen,
-              el servicio cae. Hacemos mejor esfuerzo (UptimeRobot + backups
-              diarios) pero no garantizamos disponibilidad.
+              de uptime, sin compensación por downtime. El servicio depende de
+              proveedores externos y puede sufrir interrupciones. Hacemos mejor
+              esfuerzo (UptimeRobot + backups diarios), pero no garantizamos
+              disponibilidad.
             </p>
           </section>
 

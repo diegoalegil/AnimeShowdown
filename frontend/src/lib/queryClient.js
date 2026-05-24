@@ -13,7 +13,7 @@ import { QueryClient } from '@tanstack/react-query'
 //  - retry 1: un fallo es una llamada de gracia, dos retries más es spam
 //    contra Railway cold-start.
 //  - refetchOnWindowFocus false: el polling explícito en TorneoDetailPage
-//    (cada 30s, Plan v2 §1.1) ya cubre el caso de torneos en vivo.
+// ya cubre el caso de torneos en vivo.
 //    Refetch en focus añade hits innecesarios.
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,17 +30,17 @@ export const queryClient = new QueryClient({
 })
 
 /**
- * Convención de query keys: array `[recurso, ...identificadores]`.
+ * Convención de query keys: array `[recurso,...identificadores]`.
  * Funciones helper aquí para evitar typos y centralizar invalidaciones.
  */
 export const queryKeys = {
   torneos: () => ['torneos'],
   torneoBySlug: (slug) => ['torneos', 'slug', slug],
   torneoById: (id) => ['torneos', 'id', id],
-  // Mi roster / favoritos (Plan producto 2026-05-18)
+  // Mi roster / favoritos
   misFavoritos: () => ['favoritos', 'me'],
   favoritoSlug: (slug) => ['favoritos', 'slug', slug],
-  // Actividad reciente de votos (sprint 2026-05-18)
+  // Actividad reciente de votos
   votosPeriodoSlug: (slug, dias = 7) => ['votos-periodo', 'slug', slug, dias],
   votosPeriodoBatch: (slugs, dias = 7) => ['votos-periodo', 'batch', [...slugs].sort().join(','), dias],
 }

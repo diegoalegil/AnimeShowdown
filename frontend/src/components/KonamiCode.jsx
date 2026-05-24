@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { Sparkles } from 'lucide-react'
 
 /**
- * Easter egg Konami Code (Plan v2 §13.12).
+ * Easter egg Konami Code.
  *
  * <p>Secuencia clásica: ↑↑↓↓←→←→BA. Al completarla activa un overlay
  * temporal "modo arcade" con un mensaje + scanline retro CSS, durante
@@ -55,7 +55,7 @@ function KonamiCode() {
             icon: '👾',
             duration: 4000,
           })
-          // Auto-off tras 8s. Ajuste (2026-05-17): antes timeout suelto
+          // Auto-off tras 8s. antes timeout suelto
           // sin tracking — si el componente se desmontaba antes (nav o
           // route change), disparaba setState en componente desmontado.
           // Trackeamos en autoOffTimer para cancelar en el cleanup del

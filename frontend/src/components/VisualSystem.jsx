@@ -11,11 +11,8 @@ function visualImage(visual, fallback = BRAND_VISUALS.empty) {
 }
 
 export function ParticleLayer({ className = '', density = 'normal' }) {
-  // Nota visual (2026-05-20): "no pusiste particulas de fondo" — habia
-  // ParticleLayer pero estaba en density=low (opacity 0.10) por defecto y
-  // muchas paginas no la pasaban con density=normal. Ahora dos capas
-  // superpuestas: partículas pequeñas tipo polvo + partículas medianas con
-  // halo carmesí sutil, para que se sienta una atmósfera viva sin
+  // Dos capas superpuestas: partículas pequeñas tipo polvo + partículas
+  // medianas con halo carmesí sutil, para que se sienta una atmósfera viva sin
   // distraer del contenido. La densidad sigue siendo configurable.
   const opacityDots = density === 'low' ? 'opacity-[0.10]' : density === 'high' ? 'opacity-[0.22]' : 'opacity-[0.17]'
   const opacityGlow = density === 'low' ? 'opacity-[0.05]' : density === 'high' ? 'opacity-[0.14]' : 'opacity-[0.09]'
@@ -122,6 +119,7 @@ export function VisualPageShell({
   atmosphere,
 }) {
   const image = visualImage(visual)
+  const shellBackgroundPosition = visual?.shellObjectPosition ?? 'center center'
   // atmosphere puede venir como:
   // - string ('demon-slayer', 'arena', etc.) → render AtmospherePreset
   // - React node directo → render tal cual
@@ -151,15 +149,15 @@ export function VisualPageShell({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center opacity-75"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-75"
         style={{
           backgroundImage: `url("${image}")`,
-          backgroundPosition: visual?.objectPosition ?? 'center',
+          backgroundPosition: shellBackgroundPosition,
+          backgroundSize: 'cover',
         }}
       />
-      {/* Nota visual (2026-05-20): vignette progresiva hacia abajo en lugar
-          del overlay plano oscuro que apagaba la imagen entera. La imagen
-          respira arriba y el texto queda legible abajo. */}
+      {/* Vignette progresiva hacia abajo: la imagen respira arriba y el texto
+          queda legible abajo. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
@@ -204,10 +202,8 @@ export function CinematicHero({
           backgroundPosition: visual?.objectPosition ?? 'center',
         }}
       />
-      {/* Nota visual (2026-05-20): gradient horizontal 94%→30% izq→der
-          apagaba el lado izquierdo donde va el titulo. Cambio a vertical
-          + sutil oscuro lateral izquierdo para que la imagen respire en
-          el centro y la derecha quede mas clara. */}
+      {/* Gradiente vertical con oscurecido lateral izquierdo para que el título
+          sea legible y la imagen respire en centro/derecha. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"

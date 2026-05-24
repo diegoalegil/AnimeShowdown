@@ -1,8 +1,8 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { personajes, imagenPersonaje } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { normalizar } from '../lib/games'
-import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Combobox de selección de personaje para juegos y formularios.
@@ -28,6 +28,7 @@ function AutocompletePersonaje({
   autoFocus = false,
   filtroExtra,
 }) {
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const inputId = useId()
   const [query, setQuery] = useState('')
   const [activo, setActivo] = useState(0)
@@ -41,8 +42,7 @@ function AutocompletePersonaje({
     setQueryPrevia(query)
     setActivo(0)
   }
-  const inputRef = useRef(null)
-  // Ajuste (2026-05-17): el onBlur setTimeout queda colgando si el
+  // el onBlur setTimeout queda colgando si el
   // componente se desmonta antes de 120ms (típico al cerrar modal).
   // Trackeamos en ref y limpiamos en cleanup del unmount.
   const blurTimeoutRef = useRef(null)
@@ -53,7 +53,9 @@ function AutocompletePersonaje({
   const opciones = useMemo(() => {
     const q = normalizar(deferredQuery)
     if (!q) return []
-    const base = filtroExtra ? personajes.filter(filtroExtra) : personajes
+    const base = filtroExtra
+      ? catalogoPersonajes.filter(filtroExtra)
+      : catalogoPersonajes
     const matches = []
     for (const p of base) {
       const nombreN = normalizar(p.nombre)
@@ -70,14 +72,13 @@ function AutocompletePersonaje({
     }
     matches.sort((a, b) => a.score - b.score)
     return matches.slice(0, 8).map((m) => m.p)
-  }, [deferredQuery, filtroExtra])
+  }, [catalogoPersonajes, deferredQuery, filtroExtra])
 
   const elegir = (slug) => {
     if (!slug) return
     onSelect(slug)
     setQuery('')
     setAbierto(false)
-    if (inputRef.current) inputRef.current.focus()
   }
 
   const handleKey = (e) => {
@@ -99,11 +100,12 @@ function AutocompletePersonaje({
 
   const listboxId = `${inputId}-list`
   const optionId = (idx) => `${inputId}-option-${idx}`
+  const mostrarLista = abierto && (opciones.length > 0 || normalizar(deferredQuery).length > 0)
 
   return (
     <div className="relative">
       {/*
-        Patrón combobox WAI-ARIA 1.2 (revisión a11y 2026-05-17):
+        Patrón combobox WAI-ARIA 1.2:
         - role="combobox" en el input + aria-haspopup="listbox".
         - aria-activedescendant referencia el <li> activo por id, para
           que SR anuncie la opción navegada con flechas sin mover el
@@ -114,7 +116,6 @@ function AutocompletePersonaje({
         <Search className="h-4 w-4 text-fg-muted" />
         <input
           id={inputId}
-          ref={inputRef}
           type="text"
           role="combobox"
           value={query}
@@ -145,48 +146,59 @@ function AutocompletePersonaje({
           className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
-      {abierto && opciones.length > 0 && (
+      {mostrarLista && (
         <ul
           id={listboxId}
           role="listbox"
           className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface shadow-2xl"
         >
-          {opciones.map((p, idx) => (
+          {opciones.length === 0 ? (
             <li
-              key={p.slug}
-              id={optionId(idx)}
               role="option"
-              aria-selected={idx === activo}
+              aria-disabled="true"
+              className="px-3 py-3 text-[13px] text-fg-muted"
             >
-              <button
-                type="button"
-                tabIndex={-1}
-                onMouseEnter={() => setActivo(idx)}
-                onMouseDown={(e) => {
-                  // mousedown antes que onBlur del input para no cerrar.
-                  e.preventDefault()
-                  elegir(p.slug)
-                }}
-                className={`flex w-full items-center gap-3 px-3 py-2 text-left text-[13px] ${
-                  idx === activo ? 'bg-bg' : 'hover:bg-bg'
-                }`}
-              >
-                <img
-                  src={imagenPersonaje(p.slug)}
-                  alt=""
-                  loading="lazy"
-                  onError={ocultaImgRota}
-                  className="h-9 w-7 shrink-0 rounded object-cover object-top"
-                />
-                <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">
-                  {p.nombre}
-                </span>
-                <span className="hidden truncate text-[11px] text-fg-muted sm:inline">
-                  {p.anime}
-                </span>
-              </button>
+              Sin personajes para esa búsqueda.
             </li>
-          ))}
+          ) : (
+            opciones.map((p, idx) => (
+              <li
+                key={p.slug}
+                id={optionId(idx)}
+                role="option"
+                aria-selected={idx === activo}
+              >
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onMouseEnter={() => setActivo(idx)}
+                  onMouseDown={(e) => {
+                    // mousedown antes que onBlur del input para no cerrar.
+                    e.preventDefault()
+                    elegir(p.slug)
+                  }}
+                  className={`flex w-full items-center gap-3 px-3 py-2 text-left text-[13px] ${
+                    idx === activo ? 'bg-bg' : 'hover:bg-bg'
+                  }`}
+                >
+                  <PersonajeImg
+                    slug={p.slug}
+                    src={p.imagenUrl ?? p.imagen}
+                    alt={p.nombre}
+                    loading="lazy"
+                    sizes="36px"
+                    className="h-9 w-7 shrink-0 rounded object-cover object-top"
+                  />
+                  <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">
+                    {p.nombre}
+                  </span>
+                  <span className="hidden truncate text-[11px] text-fg-muted sm:inline">
+                    {p.anime}
+                  </span>
+                </button>
+              </li>
+            ))
+          )}
         </ul>
       )}
     </div>

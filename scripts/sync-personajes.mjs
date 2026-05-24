@@ -111,7 +111,7 @@ function scanFolder() {
         continue
       }
       if (!lower.endsWith('.webp')) continue
-      const baseSlug = basename(file, extname(file))
+      const baseSlug = basename(file, extname(file)).toLowerCase()
       // Ignorar variantes responsive — no son personajes, son outputs del
       // pipeline de imágenes.
       if (VARIANT_SUFFIX.test(baseSlug)) {

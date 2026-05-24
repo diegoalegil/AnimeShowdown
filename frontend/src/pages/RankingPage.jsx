@@ -1,5 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowRight,
@@ -10,6 +10,7 @@ import {
   HelpCircle,
   Medal,
   Search,
+  Share2,
   Sparkles,
   Swords,
   TrendingDown,
@@ -19,11 +20,9 @@ import {
   Vote,
   X,
 } from 'lucide-react'
-import {
-  personajes,
-  getStatsPersonaje,
-  imagenPersonaje,
-} from '../lib/personajes-core'
+import { toast } from 'sonner'
+import { getStatsPersonaje } from '../lib/personajes-core'
+import { EDITORIAL_RANKING_PAGES } from '../data/editorial-rankings'
 import {
   CATEGORIAS,
   MIN_PARA_SECCION,
@@ -31,9 +30,9 @@ import {
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
+import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
-import { ocultaImgRota } from '../lib/imgFallback'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -44,9 +43,12 @@ import {
   useRankingMovimientos,
   useRankingSegmentado,
 } from '../hooks/useRanking'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
 
 /**
- * RankingPage rebranded (Plan v2 §14 — "salón de la fama" competitivo).
+ * RankingPage rebranded.
  *
  * Tabs:
  *   - ELO actual — calculado desde catálogo, siempre disponible.
@@ -64,14 +66,16 @@ import {
  *   - Tabla extraíble plegable (datos técnicos)
  */
 
-const rankedElo = [...personajes]
-  .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
-  .sort((a, b) => b.elo - a.elo)
+function crearRankingElo(catalogoPersonajes) {
+  return [...catalogoPersonajes]
+    .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
+    .sort((a, b) => b.elo - a.elo)
+}
 
-const animeFilterOptions = (() => {
-  const set = new Set(personajes.map((p) => p.anime))
+function crearAnimeFilterOptions(catalogoPersonajes) {
+  const set = new Set(catalogoPersonajes.map((p) => p.anime).filter(Boolean))
   return ['', ...Array.from(set).sort()]
-})()
+}
 
 const TABS = [
   { id: 'elo', label: 'ELO actual', icon: Trophy },
@@ -83,11 +87,67 @@ const TABS = [
 
 function RankingPage() {
   useRankingDeltaSubscription()
+  const [searchParams] = useSearchParams()
+  const {
+    personajes: catalogoPersonajes,
+    isLoading: isCatalogLoading,
+  } = usePersonajesCatalogo()
+  const rankedElo = useMemo(
+    () => crearRankingElo(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const animeFilterOptions = useMemo(
+    () => crearAnimeFilterOptions(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
   useSeo({
-    title: 'Ranking ELO',
-    description: `Top ${personajes.length} personajes de anime ordenados por ELO. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
+    title: 'Ranking competitivo',
+    description: `Top ${catalogoPersonajes.length} personajes de anime ordenados por señales competitivas de la comunidad. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
+    image: '/api/og/ranking.png',
   })
-  const [tab, setTab] = useState('elo')
+
+  useEffect(() => {
+    recordDailyRankingView()
+  }, [])
+
+  const initialSearch = searchParams.get('q') ?? ''
+  const initialAnimeFilter = searchParams.get('anime') ?? ''
+  const initialTab = searchParams.get('tab')
+  const [tab, setTab] = useState(
+    TABS.some((item) => item.id === initialTab) ? initialTab : 'elo',
+  )
+  const consultadoA = useMemo(
+    () =>
+      new Date().toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    [],
+  )
+  const compartirRanking = async () => {
+    const top5 = rankedElo.slice(0, 5)
+    if (top5.length === 0) {
+      toast.error('El ranking todavía está cargando')
+      return
+    }
+    const resumen = top5
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO base`)
+      .join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: 'Top anime en AnimeShowdown',
+        text: `Mi top 5 ELO base en AnimeShowdown ahora mismo:\n${resumen}\n\nVota y cambia la tabla.`,
+        url: '/ranking',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el ranking', {
+        description: error?.message || 'Copia el top manualmente.',
+      })
+    }
+  }
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.ranking} className="py-10 sm:py-12" lateralKanji={{left: "頂", right: "点"}}>
@@ -102,13 +162,13 @@ function RankingPage() {
         <CinematicHero
           visual={BRAND_VISUALS.ranking}
           icon={Trophy}
-          eyebrow="Ranking ELO · Salón de la fama"
+          eyebrow="Ranking competitivo · Salón de la fama"
           title={
             <>
               ¿Quién domina <span className="as-title-gradient">AnimeShowdown?</span>
             </>
           }
-          subtitle="Estos son los personajes que la comunidad ha llevado a la cima. Cada voto afecta el ELO, cada duelo puede cambiar posiciones y ningún puesto está garantizado."
+          subtitle="Estos son los personajes que la comunidad ha llevado a la cima. Cada voto suma señal competitiva, cada duelo puede cambiar posiciones y ningún puesto está garantizado."
           actions={
             <>
               <Link
@@ -120,12 +180,21 @@ function RankingPage() {
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                to="/faq"
+                to="/metodologia-elo"
                 className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
               >
                 <HelpCircle className="h-4 w-4" />
-                Cómo funciona el ELO
+                Cómo funciona
               </Link>
+              <button
+                type="button"
+                onClick={compartirRanking}
+                disabled={isCatalogLoading && rankedElo.length === 0}
+                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartir top
+              </button>
             </>
           }
           aside={
@@ -136,6 +205,10 @@ function RankingPage() {
             <p className="text-sm leading-relaxed text-fg-muted">
               La tabla cambia con cada duelo. Entra a votar si quieres mover el
               podio antes del próximo corte semanal.
+            </p>
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+              <Clock className="h-3.5 w-3.5 text-gold" />
+              Consultado hoy a las {consultadoA}
             </p>
             <Link
               to="/votar"
@@ -153,27 +226,89 @@ function RankingPage() {
         {/* Meta report narrativo arriba del MoversStrip: lee los endpoints
             que ya carga la página y React Query deduplica las requests. */}
         <RankingMetaReport />
-        {/* Nota de producto (2026-05-18): el ranking se sentía estático.
+        {/* Nota de producto: el ranking se sentía estático.
             MoversStrip arriba pinta los 3 personajes con más movimiento
             de la semana — da sensación de vida temporal incluso antes
             de que el user elija un tab. Solo aparece si hay movimientos. */}
         <MoversStrip />
 
+        <PersonalRankingTeaser className="mt-6" />
+
+        <EditorialRankingsStrip />
+
         <Tabs activo={tab} onChange={setTab} />
 
         <div className="mt-6">
-          {tab === 'elo' && <ListaEloLocal />}
-          {tab === 'categorias' && <ListaCategoriasOtaku />}
+          {tab === 'elo' && (
+            <ListaEloLocal
+              key={`elo:${initialSearch}:${initialAnimeFilter}`}
+              rankedElo={rankedElo}
+              animeFilterOptions={animeFilterOptions}
+              isCatalogLoading={isCatalogLoading}
+              initialSearch={initialSearch}
+              initialAnimeFilter={initialAnimeFilter}
+            />
+          )}
+          {tab === 'categorias' && (
+            <ListaCategoriasOtaku
+              catalogoPersonajes={catalogoPersonajes}
+              isCatalogLoading={isCatalogLoading}
+            />
+          )}
           {tab === 'all' && <ListaBackend periodo="all" />}
           {tab === 'mes' && <ListaBackend periodo="mes" />}
-          {tab === 'anime' && <PorAnime />}
+          {tab === 'anime' && (
+            <PorAnime key={`anime:${initialAnimeFilter}`} initialAnime={initialAnimeFilter} />
+          )}
         </div>
 
         <HubLinks />
 
-        <TablaExtraible />
+        <RankingFaq />
+
+        <TablaExtraible rankedElo={rankedElo} />
       </div>
     </VisualPageShell>
+  )
+}
+
+function EditorialRankingsStrip() {
+  return (
+    <section className="mt-6 rounded-2xl border border-border bg-surface p-4 sm:p-5">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+            Rankings por intención
+          </p>
+          <h2 className="text-xl font-black text-fg-strong">
+            Entra directo al top que buscabas
+          </h2>
+        </div>
+        <Link
+          to="/rankings/mejores-personajes-anime"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-2 text-[12px] font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
+        >
+          Ver top global
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {EDITORIAL_RANKING_PAGES.map((page) => (
+          <Link
+            key={page.slug}
+            to={`/rankings/${page.slug}`}
+            className="group rounded-xl border border-border bg-bg/45 p-3 transition-all hover:-translate-y-0.5 hover:border-accent/45"
+          >
+            <p className="line-clamp-2 text-sm font-black text-fg-strong group-hover:text-gold">
+              {page.title}
+            </p>
+            <p className="mt-2 line-clamp-2 text-[12px] leading-5 text-fg-muted">
+              {page.intent}
+            </p>
+          </Link>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -181,15 +316,15 @@ function EloExplainer() {
   const pasos = [
     {
       icon: Swords,
-      titulo: 'Cada duelo compara expectativas',
+      titulo: 'Cada duelo registra una preferencia',
       texto:
-        'Si gana el favorito, el cambio es pequeño. Si gana quien venía por debajo, el salto pesa más.',
+        'La comunidad elige entre dos personajes. Es una señal competitiva agregada, no una verdad absoluta sobre poder o canon.',
     },
     {
       icon: TrendingUp,
-      titulo: 'El ELO sube y baja al instante',
+      titulo: 'La tabla se mueve con votos reales',
       texto:
-        'El ganador suma y el perdedor resta según la diferencia previa entre ambos personajes.',
+        'Los tabs históricos y mensuales salen de actividad pública. El ELO base del catálogo sirve como estimación inicial y contexto.',
     },
     {
       icon: Medal,
@@ -210,14 +345,14 @@ function EloExplainer() {
             Cómo se mueve la tabla
           </p>
           <h2 id="elo-explicacion" className="mt-1 text-2xl">
-            El ELO no es popularidad plana: premia sorpresas y constancia
+            El ranking mezcla actividad comunitaria y contexto competitivo
           </h2>
         </div>
         <Link
-          to="/faq"
+          to="/metodologia-elo"
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
-          Leer FAQ
+          Ver metodología
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
@@ -249,23 +384,31 @@ function EloExplainer() {
  * categoría si tiene menos de MIN_PARA_SECCION personajes (3) —
  * mejor no enseñar "Top mentores: 1 personaje" que se ve raro.
  *
- * Nota de producto (2026-05-18 — visión "estadio otaku"): el ranking
+ * Nota de producto: el ranking
  * por ELO global es la "tabla de la liga"; estas categorías son las
  * "competiciones temáticas" (Top heroínas, copa villanos, etc).
  * Tags vienen del archivo data/personajes-tags.js, sin backend.
  */
-function ListaCategoriasOtaku() {
+function ListaCategoriasOtaku({ catalogoPersonajes, isCatalogLoading }) {
   const secciones = useMemo(() => {
     return CATEGORIAS
       .map((cat) => {
-        const personajesCat = getPersonajesPorCategoria(cat.id, personajes)
+        const personajesCat = getPersonajesPorCategoria(cat.id, catalogoPersonajes)
           .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
           .sort((a, b) => b.elo - a.elo)
           .slice(0, 10)
         return { ...cat, personajes: personajesCat }
       })
       .filter((s) => s.personajes.length >= MIN_PARA_SECCION)
-  }, [])
+  }, [catalogoPersonajes])
+
+  if (isCatalogLoading && catalogoPersonajes.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </div>
+    )
+  }
 
   if (secciones.length === 0) {
     return (
@@ -337,11 +480,8 @@ function SeccionCategoria({ seccion }) {
 }
 
 function CategoriaCard({ rank, personaje, tono }) {
-  // Nota F011 (2026-05-22): el ranking devolvía a veces items con slug
-  // undefined (datos del backend en cold-start, items con campo opcional
-  // vacío). El <Link> generaba /personajes/undefined que crashea el
-  // PersonajeDetailPage. Guardamos contra ese caso devolviendo null —
-  // mejor card faltante que link roto que destruye SEO interno.
+  // El ranking puede devolver items sin slug durante cold-start o con datos
+  // incompletos. Evitamos /personajes/undefined y preferimos omitir la card.
   if (!personaje?.slug) return null
   const RANK_TONO = {
     sky: 'bg-sky-500/20 text-sky-200',
@@ -401,14 +541,14 @@ function CategoriaCard({ rank, personaje, tono }) {
  * de posición en los últimos 7 días. Hide si el endpoint no devuelve
  * datos significativos (sin votos suficientes para que haya movimientos).
  *
- * Nota de producto (2026-05-18): da sensación de vida temporal al ranking.
+ * Nota de producto: da sensación de vida temporal al ranking.
  * El user llega y ve quién está subiendo/bajando ahora mismo antes de
  * elegir un tab — el ranking deja de sentirse "tabla congelada".
  */
 function MoversStrip() {
   const { data: movs } = useRankingMovimientos({ dias: 7, limit: 30 })
   const top3 = useMemo(() => {
-    if (!movs) return []
+    if (!Array.isArray(movs)) return []
     return movs
       .filter((m) => m.delta != null && m.delta !== 0)
       .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
@@ -447,11 +587,12 @@ function MoverChip({ mover }) {
       to={`/personajes/${mover.slug}`}
       className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-2.5 transition-colors hover:border-accent/40"
     >
-      <img
-        src={mover.imagenUrl || imagenPersonaje(mover.slug)}
-        alt=""
+      <PersonajeImg
+        slug={mover.slug}
+        src={mover.imagenUrl}
+        alt={mover.nombre}
         loading="lazy"
-        onError={ocultaImgRota}
+        sizes="48px"
         className="h-12 w-9 shrink-0 rounded object-cover object-top"
       />
       <div className="min-w-0 flex-1">
@@ -472,7 +613,7 @@ function MoverChip({ mover }) {
 }
 
 function Tabs({ activo, onChange }) {
-  // Ajuste (2026-05-17): el flex-wrap hacía que 'Por anime' bajara a la
+  // El flex-wrap hacía que 'Por anime' bajara a la
   // segunda fila en 390px, dejando el control con apariencia rota.
   // Solución: scroll horizontal en móvil (-mx para que sangre full-bleed)
   // con whitespace-nowrap; en sm+ vuelve al grid sin scroll.
@@ -493,6 +634,8 @@ function Tabs({ activo, onChange }) {
             title={
               id === 'elo'
                 ? 'Calculado desde los datos del catálogo. Siempre disponible.'
+                : id === 'categorias'
+                  ? 'Rankings por arquetipo: héroes, villanos, estrategas y más.'
                 : id === 'all'
                   ? 'Top de votos desde que abrió AnimeShowdown.'
                   : id === 'mes'
@@ -514,9 +657,15 @@ function Tabs({ activo, onChange }) {
   )
 }
 
-function ListaEloLocal() {
-  const [search, setSearch] = useState('')
-  const [animeFilter, setAnimeFilter] = useState('')
+function ListaEloLocal({
+  rankedElo,
+  animeFilterOptions,
+  isCatalogLoading,
+  initialSearch = '',
+  initialAnimeFilter = '',
+}) {
+  const [search, setSearch] = useState(initialSearch)
+  const [animeFilter, setAnimeFilter] = useState(initialAnimeFilter)
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = useMemo(
     () => deferredSearch.trim().toLowerCase(),
@@ -534,7 +683,7 @@ function ListaEloLocal() {
       )
     }
     return list
-  }, [normalizedSearch, animeFilter])
+  }, [rankedElo, normalizedSearch, animeFilter])
 
   const podio = filtered.slice(0, 3)
   const resto = filtered.slice(3, 100)
@@ -549,16 +698,52 @@ function ListaEloLocal() {
     staleTime: 60 * 60 * 1000,
   })
   const hayFiltros = Boolean(search) || Boolean(animeFilter)
+  const compartirVista = async () => {
+    if (filtered.length === 0) {
+      toast.error('No hay personajes para compartir con estos filtros')
+      return
+    }
+    const params = new URLSearchParams()
+    const searchTrimmed = search.trim()
+    if (searchTrimmed) params.set('q', searchTrimmed)
+    if (animeFilter) params.set('anime', animeFilter)
+    const url = `/ranking${params.toString() ? `?${params.toString()}` : ''}`
+    const top5 = filtered
+      .slice(0, 5)
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO base`)
+      .join('\n')
+    const scope = animeFilter
+      ? ` de ${animeFilter}`
+      : searchTrimmed
+        ? ` para "${searchTrimmed}"`
+        : ''
+
+    try {
+      const result = await shareOrCopy({
+        title: `Ranking anime${scope}`,
+        text: `Mi top${scope} en AnimeShowdown:\n${top5}\n\nÁbrelo y dime a quién subirías votando.`,
+        url,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Vista compartida' : 'Vista copiada')
+    } catch (error) {
+      toast.error('No se pudo compartir la vista', {
+        description: error?.message || 'Copia el ranking manualmente.',
+      })
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="as-panel grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+      <div className="as-panel flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar personaje en el ranking"
             placeholder="Buscar personaje…"
             className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
           />
@@ -586,9 +771,22 @@ function ListaEloLocal() {
             </option>
           ))}
         </select>
+        <button
+          type="button"
+          onClick={compartirVista}
+          disabled={filtered.length === 0}
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+          Compartir vista
+        </button>
       </div>
 
-      {filtered.length === 0 ? (
+      {isCatalogLoading && rankedElo.length === 0 ? (
+        <div className="flex items-center justify-center py-10">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        </div>
+      ) : filtered.length === 0 ? (
         <EmptyStateScene
           visual={BRAND_VISUALS.empty}
           icon={Search}
@@ -675,7 +873,7 @@ function Podio({ top3, historyBySlug = {} }) {
 }
 
 function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
-  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Guard contra slug undefined; ver CategoriaCard.
   if (!personaje?.slug) return null
   const tone =
     rank === 1
@@ -840,7 +1038,7 @@ function ListaBackend({ periodo }) {
     enabled: periodo === 'all',
   })
   const movimientosPorSlug = useMemo(
-    () => movimientos ? new Map(movimientos.map((m) => [m.slug, m])) : null,
+    () => Array.isArray(movimientos) ? new Map(movimientos.map((m) => [m.slug, m])) : null,
     [movimientos],
   )
   return (
@@ -853,14 +1051,38 @@ function ListaBackend({ periodo }) {
   )
 }
 
-function PorAnime() {
+function PorAnime({ initialAnime = '' }) {
   const { data: animes, isLoading: cargandoAnimes } = useAnimesConVotos()
-  const [anime, setAnime] = useState('')
+  const [anime, setAnime] = useState(initialAnime)
   const { data, isLoading, isError } = useRankingSegmentado({
     anime,
     limit: 50,
     enabled: Boolean(anime),
   })
+  const compartirRankingAnime = async () => {
+    if (!anime || !Array.isArray(data) || data.length === 0) {
+      toast.error('Elige un anime con ranking para compartir')
+      return
+    }
+    const top5 = data
+      .slice(0, 5)
+      .map((item, index) => `${index + 1}. ${item.personaje.nombre} · ${item.votos} votos`)
+      .join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: `Ranking de ${anime}`,
+        text: `Ranking interno de ${anime} en AnimeShowdown:\n${top5}\n\nVota personajes de ${anime} y mueve este top.`,
+        url: `/ranking?tab=anime&anime=${encodeURIComponent(anime)}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Ranking compartido' : 'Ranking copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el ranking', {
+        description: error?.message || 'Copia el top manualmente.',
+      })
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -901,12 +1123,20 @@ function PorAnime() {
           {data?.length > 0 && (
             <div className="flex flex-wrap gap-2">
               <Link
-                to="/votar"
+                to={`/votar?anime=${encodeURIComponent(anime)}`}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Swords className="h-4 w-4" />
                 Votar personajes de {anime}
               </Link>
+              <button
+                type="button"
+                onClick={compartirRankingAnime}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-bold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartir ranking
+              </button>
             </div>
           )}
         </>
@@ -966,7 +1196,7 @@ function RankRowElo({
   wins,
   losses,
   history,
-  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Guard contra slug undefined; ver CategoriaCard.
   // En este componente el slug viene directo como prop (no anidado en
   // personaje), así que el check va aquí abajo (no en la firma).
   // Destructuramos también imagenUrl + colorDominante del item del ranking
@@ -980,103 +1210,124 @@ function RankRowElo({
   const total = wins + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
   const esTop10 = rank <= 10
+  const rowTone = esTop10
+    ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
+    : 'border-border bg-surface'
   return (
     <li>
-      <Link
-        to={`/personajes/${slug}`}
-        aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
-        title={`${nombre} de ${anime} · ELO ${elo}`}
-        className={`group flex items-center gap-3 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5 ${
-          esTop10
-            ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
-            : 'border-border bg-surface'
-        }`}
+      <div
+        className={`group flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
       >
-        <RankBadge rank={rank} />
-        <PersonajeImg
-          slug={slug}
-          src={imagenUrl}
-          nombre={nombre}
-          colorDominante={imagenColorDominante}
-          alt=""
-          loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-              {nombre}
-            </p>
-            {esTop10 && (
-              <span className="hidden shrink-0 rounded border border-yellow-400/40 bg-yellow-500/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 sm:inline">
-                Top 10
-              </span>
-            )}
+        <Link
+          to={`/personajes/${slug}`}
+          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
+          title={`${nombre} de ${anime} · ELO ${elo}`}
+          className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
+        >
+          <RankBadge rank={rank} />
+          <PersonajeImg
+            slug={slug}
+            src={imagenUrl}
+            nombre={nombre}
+            colorDominante={imagenColorDominante}
+            alt={nombre}
+            loading="lazy"
+            className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
+                {nombre}
+              </p>
+              {esTop10 && (
+                <span className="hidden shrink-0 rounded border border-yellow-400/40 bg-yellow-500/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 sm:inline">
+                  Top 10
+                </span>
+              )}
+            </div>
+            <p className="truncate text-[12px] text-fg-muted">{anime}</p>
+            {esTop10 && <EloSparkline points={history} className="mt-1" />}
           </div>
-          <p className="truncate text-[12px] text-fg-muted">{anime}</p>
-          {esTop10 && <EloSparkline points={history} className="mt-1" />}
-        </div>
-        <div className="hidden text-right sm:block">
-          <p className="text-[12px] text-fg-muted">
-            <span className="font-semibold text-emerald-300">{wins}V</span>
-            {' · '}
-            <span className="font-semibold text-rose-300">{losses}D</span>
-          </p>
-          <p className="text-[11px] font-semibold text-emerald-300/80">
-            {winRate}% WR
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-base font-bold text-gold">{elo}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-            ELO
-          </p>
-        </div>
-      </Link>
+          <div className="hidden text-right sm:block">
+            <p className="text-[12px] text-fg-muted">
+              <span className="font-semibold text-emerald-300">{wins}V</span>
+              {' · '}
+              <span className="font-semibold text-rose-300">{losses}D</span>
+            </p>
+            <p className="text-[11px] font-semibold text-emerald-300/80">
+              {winRate}% WR
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="font-mono text-base font-bold text-gold">{elo}</p>
+            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+              ELO
+            </p>
+          </div>
+        </Link>
+        <ChallengeLink slug={slug} nombre={nombre} />
+      </div>
     </li>
   )
 }
 
 function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
-  // Nota F011 (2026-05-22): guard contra slug undefined — ver CategoriaCard.
+  // Guard contra slug undefined; ver CategoriaCard.
   if (!personaje?.slug) return null
   return (
     <li>
-      <Link
-        to={`/personajes/${personaje.slug}`}
-        aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
-        title={`${personaje.nombre} de ${personaje.anime}`}
-        className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-5 sm:px-5"
-      >
-        <RankBadge rank={rank} />
-        <PersonajeImg
-          slug={personaje.slug}
-          src={personaje.imagenUrl}
-          nombre={personaje.nombre}
-          colorDominante={personaje.imagenColorDominante}
-          alt=""
-          loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-              {personaje.nombre}
+      <div className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5">
+        <Link
+          to={`/personajes/${personaje.slug}`}
+          aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
+          title={`${personaje.nombre} de ${personaje.anime}`}
+          className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
+        >
+          <RankBadge rank={rank} />
+          <PersonajeImg
+            slug={personaje.slug}
+            src={personaje.imagenUrl}
+            nombre={personaje.nombre}
+            colorDominante={personaje.imagenColorDominante}
+            alt={personaje.nombre}
+            loading="lazy"
+            className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
+                {personaje.nombre}
+              </p>
+              {movimiento && <MovimientoBadge movimiento={movimiento} />}
+            </div>
+            <p className="truncate text-[12px] text-fg-muted">
+              {personaje.anime}
             </p>
-            {movimiento && <MovimientoBadge movimiento={movimiento} />}
           </div>
-          <p className="truncate text-[12px] text-fg-muted">
-            {personaje.anime}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-base font-bold text-gold">{votos}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-            votos
-          </p>
-        </div>
-      </Link>
+          <div className="text-right">
+            <p className="font-mono text-base font-bold text-gold">{votos}</p>
+            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+              votos
+            </p>
+          </div>
+        </Link>
+        <ChallengeLink slug={personaje.slug} nombre={personaje.nombre} />
+      </div>
     </li>
+  )
+}
+
+function ChallengeLink({ slug, nombre }) {
+  return (
+    <Link
+      to={`/votar?personaje=${encodeURIComponent(slug)}`}
+      aria-label={`Retar a ${nombre} en un duelo`}
+      title={`Retar a ${nombre}`}
+      className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
+    >
+      <Swords className="h-3.5 w-3.5" />
+      <span className="hidden sm:inline">Retar</span>
+    </Link>
   )
 }
 
@@ -1100,7 +1351,7 @@ function RankBadge({ rank }) {
 
 /**
  * Badge ↑N / ↓N / = / Nuevo según el movimiento del personaje vs el
- * ranking de hace 7 días (Plan v2 §4.x).
+ * ranking de hace 7 días.
  */
 function MovimientoBadge({ movimiento }) {
   if (movimiento.esNuevo) {
@@ -1159,7 +1410,7 @@ function HubLinks() {
         </h2>
         <p className="mt-2 text-sm leading-7 text-fg-muted">
           Vota en nuevos duelos, explora personajes o revisa cómo funciona el
-          sistema ELO. Cada voto deja una marca visible en la tabla.
+          ranking competitivo. Cada voto deja una marca visible en la tabla.
         </p>
       </div>
       <div className="relative mt-5 flex flex-wrap gap-2">
@@ -1178,26 +1429,66 @@ function HubLinks() {
           Explorar personajes
         </Link>
         <Link
-          to="/faq"
+          to="/metodologia-elo"
           className="as-button-ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
         >
           <HelpCircle className="h-4 w-4" />
-          Cómo funciona el ELO
+          Cómo funciona
         </Link>
       </div>
     </div>
   )
 }
 
+function RankingFaq() {
+  const faqs = [
+    {
+      q: '¿Qué mide este ranking?',
+      a: 'Mide señales competitivas de la comunidad: votos, actividad reciente y posición estimada. No pretende decidir canon ni poder absoluto.',
+    },
+    {
+      q: '¿Cada cuánto cambia?',
+      a: 'Los datos públicos se consultan en vivo y los indicadores de movimiento comparan la posición actual con cortes recientes, como los últimos 7 días.',
+    },
+    {
+      q: '¿Los votos invitados cuentan igual?',
+      a: 'Los invitados pueden probar la arena con límite y peso reducido. Crear cuenta permite seguir votando con historial y mejor protección antiabuso.',
+    },
+    {
+      q: '¿Qué diferencia hay entre ELO base y ranking comunitario?',
+      a: 'El ELO base es una estimación estática del catálogo. El ranking comunitario se alimenta de votos reales y actividad dentro de AnimeShowdown.',
+    },
+  ]
+
+  return (
+    <section className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+        FAQ del ranking
+      </p>
+      <h2 className="mt-1 text-2xl font-black text-fg-strong">
+        Cómo leer la tabla sin confundirse
+      </h2>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {faqs.map((item) => (
+          <div key={item.q} className="rounded-xl border border-border bg-bg/45 p-4">
+            <h3 className="text-base font-bold text-fg-strong">{item.q}</h3>
+            <p className="mt-2 text-[13px] leading-6 text-fg-muted">{item.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 /**
- * Tabla HTML semántica con el top 10 ELO local (Plan v2 §6.2). Sirve a
- * crawlers de IA + usuarios que quieren copy/paste. Ahora dentro de un
- * <details> plegable para no competir con el ranking visual.
+ * Tabla HTML semántica con el top 10 ELO local. Sirve a buscadores y
+ * usuarios que quieren copy/paste. Ahora vive dentro de un <details>
+ * plegable para no competir con el ranking visual.
  */
-function TablaExtraible() {
+function TablaExtraible({ rankedElo }) {
   const top10 = rankedElo.slice(0, 10)
   return (
-    <details className="mt-6 rounded-xl border border-border bg-surface">
+    <details className="group mt-6 rounded-xl border border-border bg-surface">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">

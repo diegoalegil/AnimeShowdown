@@ -29,7 +29,7 @@ import { VisualPageShell } from '../components/VisualSystem'
 import NotFoundPage from './NotFoundPage'
 
 /**
- * Página detalle de un evento temporal (Plan producto 2026-05-18).
+ * Página detalle de un evento temporal.
  *
  * <p>Estructura:
  * <ul>
@@ -101,7 +101,7 @@ function EventoDetailPage() {
         ? `Empieza en ${restante}`
         : 'Finalizado'
 
-  // Sprint UX (2026-05-18): mini-stats agregadas + "Misión del evento"
+  // mini-stats agregadas + "Misión del evento"
   // — la página antes era header + grid plano. Falta sentido competitivo.
   // Calculamos en cliente desde el catálogo (sin tocar backend) para
   // dar contexto rápido: cuántos top 100 globales hay, cuántos top 25,
@@ -182,7 +182,7 @@ function EventoDetailPage() {
           )}
         </motion.header>
 
-        {/* Sprint UX (2026-05-18): bloque de "Misión del evento" + stats
+        {/* bloque de "Misión del evento" + stats
             agregadas para que la página se sienta como una temporada
             con métricas propias, no un grid plano. */}
         {participantes.length > 0 && (

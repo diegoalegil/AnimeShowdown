@@ -1,5 +1,5 @@
 /**
- * Factory functions de schema.org JSON-LD por tipo de página (Plan v2 §5.1).
+ * Factory functions de schema.org JSON-LD por tipo de página.
  *
  * <p>Cada función devuelve un objeto plano que se pasa como prop al
  * componente {@code <JsonLd>}. Validar con Google Rich Results Test
@@ -11,7 +11,7 @@
  * <ul>
  *   <li>Personaje: usamos {@code Person} (no {@code FictionalCharacter}
  *       todavía soportado de forma irregular por Google). {@code characterAttribute}
- *       lleva ELO y popularidad para que el rich snippet muestre datos.</li>
+ *       lleva ELO base y votos registrados para que el rich snippet muestre datos.</li>
  *   <li>Torneo: {@code SportsEvent} con {@code competitor[]} = personajes
  *       del bracket. El status mapea a {@code eventStatus} de schema.org.</li>
  *   <li>Anime: {@code TVSeries} con {@code character[]} referenciando
@@ -49,7 +49,7 @@ export function webSiteSchema() {
     url: SITIO,
     inLanguage: 'es-ES',
     description:
-      'Torneos cara a cara y rankings ELO de los personajes de anime más icónicos.',
+      'Duelos cara a cara, juegos diarios y rankings competitivos de personajes de anime.',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${SITIO}/personajes?q={search_term_string}`,
@@ -92,7 +92,7 @@ export function personajeSchema(personaje, stats) {
     schema.additionalProperty = [
       {
         '@type': 'PropertyValue',
-        name: 'ELO',
+        name: 'ELO base',
         value: stats.elo,
       },
       {
@@ -151,7 +151,7 @@ export function animeSeriesSchema(animeData) {
   if (animeData.topElo) {
     schema.additionalProperty.push({
       '@type': 'PropertyValue',
-      name: 'Top ELO',
+      name: 'Top ELO base',
       value: animeData.topElo.elo,
     })
   }
@@ -224,7 +224,7 @@ export function animesListSchema(animesList = []) {
 }
 
 /**
- * Schema {@code CollectionPage} con {@code ItemList} de logros (Plan v2 §4.10).
+ * Schema {@code CollectionPage} con {@code ItemList} de logros.
  * Cada badge entra como {@code Achievement} (subtype de CreativeWork con
  * mejor cobertura semántica que Thing) — el frontend lo pinta además con
  * Microdata inline en cada card.
@@ -257,7 +257,7 @@ export function logrosCollectionSchema(logros = []) {
 }
 
 /**
- * Schema {@code DefinedTermSet} (Plan v2 §13.8). Glosario de términos
+ * Schema {@code DefinedTermSet}. Glosario de términos
  * otaku. Cada término individual va como {@code DefinedTerm} dentro del
  * mainEntity para captura long-tail SEO ("qué es tsundere", "qué es isekai").
  *
@@ -280,7 +280,7 @@ export function definedTermSetSchema(items, nombreGlosario = 'Glosario otaku') {
 }
 
 /**
- * Schema {@code FAQPage} (Plan v2 §5.10). Cada item produce un acordeón
+ * Schema {@code FAQPage}. Cada item produce un acordeón
  * en el rich snippet de Google si la página alcanza autoridad suficiente.
  * Las respuestas se serializan como texto plano (HTML básico se permite
  * pero Google solo renderiza un subset; preferimos plain text).
@@ -300,6 +300,108 @@ export function faqPageSchema(items) {
         text: it.respuesta,
       },
     })),
+  }
+}
+
+/**
+ * Schema {@code CollectionPage} + {@code ItemList} para rankings públicos.
+ * Útil para páginas como /animes/{slug}/ranking donde el contenido central
+ * es una lista ordenada y estable de entidades con posición.
+ *
+ * @param {Object} opts
+ * @param {string} opts.name nombre de la lista
+ * @param {string} opts.path URL canónica relativa
+ * @param {string} opts.description descripción indexable
+ * @param {Array} opts.items items con {name, path, image?, score?, scoreLabel?}
+ */
+export function rankingItemListSchema({
+  name,
+  path,
+  description,
+  items = [],
+} = {}) {
+  if (!name || !path || !items.length) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    url: abs(path),
+    description,
+    isPartOf: { '@type': 'WebSite', name: 'AnimeShowdown', url: SITIO },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: items.length,
+      itemListElement: items.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Person',
+          name: item.name,
+          url: abs(item.path),
+          image: abs(item.image),
+          additionalType: 'https://schema.org/FictionalCharacter',
+          ...(item.score != null
+            ? {
+                additionalProperty: {
+                  '@type': 'PropertyValue',
+                  name: item.scoreLabel || 'Ranking score',
+                  value: item.score,
+                },
+              }
+            : {}),
+        },
+      })),
+    },
+  }
+}
+
+/**
+ * Schema {@code WebApplication} para juegos web individuales.
+ *
+ * @param {Object} opts
+ * @param {string} opts.name nombre público del juego
+ * @param {string} opts.path ruta canónica
+ * @param {string} opts.description descripción clara de la mecánica
+ * @param {string} [opts.alternateName] nombre alternativo o subtítulo
+ * @param {string[]} [opts.featureList] mecánicas principales
+ * @param {string[]} [opts.keywords] intenciones/búsquedas relacionadas
+ */
+export function gameWebApplicationSchema({
+  name,
+  path,
+  description,
+  alternateName,
+  featureList = [],
+  keywords = [],
+}) {
+  if (!name || !path) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name,
+    alternateName,
+    url: abs(path),
+    applicationCategory: 'GameApplication',
+    operatingSystem: 'Web',
+    inLanguage: 'es-ES',
+    description,
+    isAccessibleForFree: true,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'AnimeShowdown',
+      url: SITIO,
+    },
+    ...(featureList.length ? { featureList } : {}),
+    ...(keywords.length ? { keywords: keywords.join(', ') } : {}),
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+    potentialAction: {
+      '@type': 'PlayAction',
+      target: abs(path),
+    },
   }
 }
 

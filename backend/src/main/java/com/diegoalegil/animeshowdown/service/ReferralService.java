@@ -15,7 +15,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 /**
- * Sistema de referrals (Plan v2 §11.8).
+ * Sistema de referrals.
  *
  * <ul>
  *   <li>Cada usuario tiene un {@code referral_code} único de 8 chars,

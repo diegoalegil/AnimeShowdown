@@ -17,6 +17,9 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
     @Query("SELECT p FROM Personaje p ORDER BY p.slug ASC")
     List<Personaje> findAllOrderBySlug();
 
+    @Query("SELECT DISTINCT p.anime FROM Personaje p WHERE p.anime IS NOT NULL ORDER BY p.anime ASC")
+    List<String> findDistinctAnimes();
+
     /** Lookup por slug URL-safe — usado por OG image y endpoints públicos. */
     Optional<Personaje> findBySlug(String slug);
 

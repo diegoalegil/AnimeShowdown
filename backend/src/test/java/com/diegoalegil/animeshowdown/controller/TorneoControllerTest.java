@@ -19,7 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +48,9 @@ class TorneoControllerTest {
 
     @Autowired
     private PersonajeRepository personajeRepository;
+
+    @Autowired
+    private TorneoRepository torneoRepository;
 
     /**
      * Asegura un user con esas credenciales (idempotente entre tests). Si ya existe
@@ -76,7 +81,7 @@ class TorneoControllerTest {
     }
 
     /**
-     * Tras revisión P1.1, la auto-promoción a ADMIN ocurre en
+     * Tras revisión, la auto-promoción a ADMIN ocurre en
      * EmailVerificationService (no en registro) — el helper registra,
      * marca el user como ACTIVO + ADMIN directamente en BBDD para
      * simular el flow completo de verificación+promoción.
@@ -96,6 +101,33 @@ class TorneoControllerTest {
         mvc.perform(get("/api/torneos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void listadoPublicoSanitizaDescripcionLegacyDeTorneoAuto() throws Exception {
+        String slug = "random-showdown-copy-test-" + System.nanoTime();
+        Torneo torneo = new Torneo(
+                slug,
+                "Random Showdown #99999",
+                "[AUTO] Generado el 2026-05-23 · 16 personajes aleatorios");
+        torneoRepository.saveAndFlush(torneo);
+
+        MvcResult res = mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode arr = json.readTree(res.getResponse().getContentAsString());
+        JsonNode encontrado = null;
+        for (JsonNode t : arr) {
+            if (slug.equals(t.get("slug").asText())) {
+                encontrado = t;
+                break;
+            }
+        }
+        org.junit.jupiter.api.Assertions.assertNotNull(encontrado,
+                "Torneo automático legacy debería aparecer en /api/torneos");
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "Torneo automático de la comunidad con 16 personajes seleccionados al azar para mantener la arena activa.",
+                encontrado.get("descripcion").asText());
     }
 
     @Test
@@ -205,7 +237,7 @@ class TorneoControllerTest {
 
     private String tokenUserVerificado(String username, String email) throws Exception {
         String token = tokenUserRegistrado(username, email);
-        // Plan v2 §2.4: registros nacen PENDIENTE. Para el flow §4.9 el user
+        // Registros nacen PENDIENTE. Para este flow el user
         // necesita estar verificado — lo flippeamos directo en DB en el test.
         var u = usuarioRepository.findByUsername(username).orElseThrow();
         u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
@@ -232,11 +264,8 @@ class TorneoControllerTest {
 
     @Test
     void crearMioConUserNoVerificadoDevuelve403() throws Exception {
-        // Ajuste #11 (2026-05-21): antes este endpoint devolvia 400
-        // (IllegalArgumentException) cuando el user no estaba verificado.
-        // Semanticamente correcto es 403 — el user esta autenticado pero
-        // le falta permiso (verificacion). Ahora el service lanza
-        // ResponseStatusException(FORBIDDEN, ...).
+        // Un user autenticado pero no verificado recibe 403 porque le falta
+        // permiso para crear torneos.
         String token = tokenUserRegistrado("user_no_verif_torneo", "user_no_verif_torneo@example.com");
 
         mvc.perform(post("/api/torneos/mio")
@@ -598,7 +627,7 @@ class TorneoControllerTest {
     }
 
     /**
-     * Regresión de revisión P1 (2026-05-17): el bracket bloqueado dejaba que
+     * Regresión: el bracket bloqueado dejaba que
      * /finalizar marcase FINISHED sin haber jugado R2/R3. Este test valida
      * el flow correcto con BracketAdvanceService:
      *   - Torneo de 4 personajes ⇒ R1: 2 matches, R2 (final): 1 match.

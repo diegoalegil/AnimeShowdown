@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -7,6 +7,7 @@ import {
   Gamepad2,
   Grid3X3,
   Hourglass,
+  Share2,
   Sparkles,
   Trophy,
   TrendingUp,
@@ -15,10 +16,23 @@ import {
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { ELO_DUEL_BEST_KEY, fechaDelDia, safeStorage } from '../lib/games'
-import EditorialCover from '../components/EditorialCover'
+import {
+  ELO_DUEL_BEST_KEY,
+  fechaDelDia,
+  getDailyResetCountdown,
+  safeStorage,
+} from '../lib/games'
+import {
+  listenDailyProgress,
+  readDailyStreak,
+  readRecentDailyProgress,
+  recordDailyShare,
+  setDailyGamesCompleted,
+} from '../lib/dailyProgress'
+import { shareOrCopy } from '../lib/share'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
+import DailyMissionPanel from '../components/DailyMissionPanel'
 
 /**
  * Hub de modos de juego.
@@ -87,7 +101,7 @@ const GAMES = [
     kanji: '戦',
     titulo: 'ELO Duel',
     sub: 'Higher or Lower',
-    desc: '¿Quién tiene más ELO entre estos dos personajes? Adivina seguido y construye tu racha.',
+    desc: '¿Quién tiene más ELO base entre estos dos personajes? Adivina seguido y construye tu racha.',
     cadencia: 'Endless · sin límite',
     bestKey: ELO_DUEL_BEST_KEY,
     rarity: 'R',
@@ -140,6 +154,41 @@ const COLOR_THEMES = {
   },
 }
 
+function GameCardBackground({ visual, opacity = 0.48 }) {
+  const image = visual?.image || visual?.fallbackImage || BRAND_VISUALS.games.image
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-[1.03]"
+        style={{
+          backgroundImage: `url("${image}")`,
+          backgroundPosition: visual?.objectPosition ?? 'center center',
+          opacity,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, rgb(5 8 14 / 0.82) 0%, rgb(5 8 14 / 0.66) 46%, rgb(5 8 14 / 0.50) 100%), linear-gradient(180deg, rgb(5 8 14 / 0.20) 0%, rgb(5 8 14 / 0.72) 100%)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-[0.10]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.18) 1px, transparent 0)',
+          backgroundSize: '42px 42px',
+          maskImage: 'linear-gradient(to bottom, black, transparent 72%)',
+        }}
+      />
+    </>
+  )
+}
+
 // Lee el estado de un juego daily desde localStorage para saber si está
 // completado HOY y con qué resultado. Sin parsear no se sabe el detalle,
 // solo si la fecha coincide.
@@ -175,27 +224,18 @@ function leerMejorRacha(bestKey) {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
-function calcularReinicio() {
-  const now = new Date()
-  const mañana = new Date(now)
-  mañana.setDate(now.getDate() + 1)
-  mañana.setHours(0, 0, 0, 0)
-  const diffMs = mañana - now
-  const h = Math.floor(diffMs / 3_600_000)
-  const m = Math.floor((diffMs % 3_600_000) / 60_000)
-  return { h, m }
-}
-
 function GamesHubPage() {
   useSeo({
     title: 'Anime Daily Trials',
     description:
       'Retos diarios de anime: silueta borrosa, adivina el anime, AniGrid (Wordle), Impostor Trial y ELO Duel. Una ronda al día, una racha que proteger.',
+    canonical: 'https://animeshowdown.dev/games',
+    image: BRAND_VISUALS.games.image,
   })
 
-  const [reinicio, setReinicio] = useState(calcularReinicio)
+  const [reinicio, setReinicio] = useState(getDailyResetCountdown)
   useEffect(() => {
-    const id = setInterval(() => setReinicio(calcularReinicio()), 60_000)
+    const id = setInterval(() => setReinicio(getDailyResetCountdown()), 60_000)
     return () => clearInterval(id)
   }, [])
 
@@ -212,6 +252,13 @@ function GamesHubPage() {
       window.removeEventListener('storage', refresh)
     }
   }, [])
+
+  const [, setDailyProgressTick] = useState(0)
+  useEffect(
+    () => listenDailyProgress(() => setDailyProgressTick((tick) => tick + 1)),
+    [],
+  )
+
   const estadosJuegos = Object.fromEntries(
     GAMES.map((g) => [
       g.to,
@@ -227,8 +274,39 @@ function GamesHubPage() {
   ).length
   const totalDaily = GAMES.filter((g) => !g.endless).length
 
+  useEffect(() => {
+    setDailyGamesCompleted(completadosHoy)
+  }, [completadosHoy])
+
+  // Se recalcula en cada render; el listener solo fuerza el render
+  // cuando otra acción del ritual cambia localStorage en esta misma sesión.
+  const dailyHistory = readRecentDailyProgress(7)
+  const dailyStreak = readDailyStreak()
+
   const destacado = GAMES.find((g) => g.destacado) ?? GAMES[0]
   const otros = GAMES.filter((g) => g.to !== destacado.to)
+
+  const compartirResumen = async () => {
+    const completados = Object.entries(estadosJuegos)
+      .filter(([, estado]) => estado.completadoHoy)
+      .map(([to]) => GAMES.find((g) => g.to === to)?.titulo)
+      .filter(Boolean)
+    const texto = `Completé ${completadosHoy}/${totalDaily} Anime Daily Trials en AnimeShowdown — ${fechaDelDia()}${
+      completados.length ? `\n${completados.join(', ')}` : ''
+    }`
+    try {
+      const result = await shareOrCopy({
+        title: 'Anime Daily Trials',
+        text: texto,
+        url: '/games',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+    } catch {
+      // El panel de resultado individual tiene fallback visible; aquí el
+      // resumen es accesorio y no debe bloquear el hub.
+    }
+  }
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.games} className="py-8 sm:py-10" lateralKanji={{left: "遊", right: "戯"}}>
@@ -239,6 +317,7 @@ function GamesHubPage() {
           { label: 'Anime Daily Trials', path: '/games' },
         ])}
       />
+      <JsonLd id="games-hub" schema={gamesHubSchema(GAMES)} />
       <div className="mx-auto max-w-6xl">
         <CinematicHero
           visual={BRAND_VISUALS.games}
@@ -252,12 +331,43 @@ function GamesHubPage() {
                 Reset diario
               </p>
               <p className="mt-3 font-mono text-4xl font-black text-fg-strong">
-                {reinicio.h}h {reinicio.m}m
+                {reinicio.label}
               </p>
               <p className="text-sm text-fg-muted">hasta que cambie la suerte.</p>
             </div>
           }
         />
+
+        <DailyMissionPanel compact className="mb-6" />
+
+        {completadosHoy > 0 && (
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-black text-fg-strong">
+                Hoy completaste {completadosHoy}/{totalDaily} daily trials.
+              </p>
+              <p className="text-[12px] text-fg-muted">
+                Guarda el ritual: comparte el resumen o salta a votar para cerrar la misión.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={compartirResumen}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-[13px] font-black text-emerald-100 transition-colors hover:bg-emerald-500/25"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Compartir resumen
+              </button>
+              <Link
+                to="/votar"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-bold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+              >
+                Votar duelos
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Stats bar — racha hoy, mejor récord, countdown reinicio */}
         <div className="as-panel mb-6 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:p-5">
@@ -281,12 +391,14 @@ function GamesHubPage() {
             icon={Hourglass}
             iconColor="text-cyan-400"
             label="Próximo reset"
-            value={`${reinicio.h}h ${reinicio.m}m`}
+            value={reinicio.label}
             className="col-span-2 sm:col-span-1"
           />
         </div>
 
-        {/* Nota de producto (2026-05-19): el Omikuji va PRIMERO ahora.
+        <DailyHistoryStrip days={dailyHistory} streak={dailyStreak} />
+
+        {/* Nota de producto: el Omikuji va PRIMERO ahora.
             Sentido: el ritual diario abre el día — el palito que sacas
             puede regalarte la pista gratis de los retos de abajo. Antes
             estaba al final, justo después de los retos, lo cual era
@@ -350,6 +462,52 @@ function GamesHubPage() {
   )
 }
 
+function gamesHubSchema(games) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Anime Daily Trials — AnimeShowdown',
+    url: 'https://animeshowdown.dev/games',
+    inLanguage: 'es-ES',
+    description:
+      'Hub de retos diarios de anime con juegos de adivinar personajes, detectar impostores y competir por rachas.',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'AnimeShowdown',
+      url: 'https://animeshowdown.dev/',
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: games.length,
+      itemListElement: games.map((game, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'WebApplication',
+          name: game.titulo,
+          alternateName: game.sub,
+          url: `https://animeshowdown.dev${game.to}`,
+          applicationCategory: 'GameApplication',
+          operatingSystem: 'Web',
+          description: game.desc,
+          isAccessibleForFree: true,
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'EUR',
+          },
+        },
+      })),
+    },
+    about: [
+      'anime games online',
+      'daily anime quiz',
+      'anime higher or lower',
+      'anime character guessing game',
+    ],
+  }
+}
+
 function StatTile({ icon: Icon, iconColor, label, value, className = '' }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
@@ -368,28 +526,102 @@ function StatTile({ icon: Icon, iconColor, label, value, className = '' }) {
   )
 }
 
+function DailyHistoryStrip({ days, streak }) {
+  const dayFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat('es-ES', {
+        weekday: 'short',
+      }),
+    [],
+  )
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat('es-ES', {
+        day: 'numeric',
+        month: 'short',
+      }),
+    [],
+  )
+
+  return (
+    <section className="as-panel mb-6 rounded-2xl p-4 sm:p-5">
+      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gold">
+            Calendario daily
+          </p>
+          <h2 className="mt-1 text-lg font-black text-fg-strong">
+            Últimos 7 días de ritual
+          </h2>
+        </div>
+        <p className="text-[12px] text-fg-muted">
+          Racha actual <span className="font-mono font-black text-gold">{streak.current}</span>
+          {' '}· récord <span className="font-mono font-black text-fg-strong">{streak.longest}</span>
+        </p>
+      </div>
+      <div className="grid grid-cols-7 gap-2">
+        {days.map((day) => {
+          const parsed = new Date(`${day.date}T12:00:00`)
+          const completed = day.completed
+          const started = day.votes > 0 || day.gamesCompleted > 0 || day.rankingViewed
+          return (
+            <div
+              key={day.date}
+              className={`min-h-[5.75rem] rounded-xl border px-2 py-2 text-center ${
+                completed
+                  ? 'border-emerald-400/35 bg-emerald-500/10'
+                  : started
+                    ? 'border-gold/35 bg-gold-soft'
+                    : 'border-border bg-bg/45'
+              }`}
+              title={`${dateFormatter.format(parsed)} · ${
+                completed
+                  ? 'ritual completado'
+                  : started
+                    ? 'ritual empezado'
+                    : 'sin progreso'
+              }`}
+            >
+              <p className="text-[9px] font-black uppercase tracking-[0.08em] text-fg-muted">
+                {dayFormatter.format(parsed)}
+              </p>
+              <p
+                className={`mt-2 font-mono text-xl font-black ${
+                  completed
+                    ? 'text-emerald-200'
+                    : started
+                      ? 'text-gold'
+                      : 'text-fg-muted'
+                }`}
+              >
+                {completed ? '✓' : started ? '•' : '—'}
+              </p>
+              <p className="mt-2 text-[10px] leading-4 text-fg-muted">
+                {Math.min(day.votes, 10)}/10 votos
+                <br />
+                {Math.min(day.gamesCompleted, 1)}/1 daily
+              </p>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 function CardDestacado({ game, estado }) {
   const Icon = game.icon
   const theme = COLOR_THEMES[game.color]
   const done = estado?.completadoHoy
   const visual = getGameVisual(game.to, game.titulo)
-  // Nota visual (2026-05-20): antes habia un kanji-panel h-32 w-32 con
-  // text-6xl ocupando media card a la izquierda + el kanji decorativo
-  // sutil de EditorialCover en esquina. Resultado: dos kanjis del mismo
-  // caracter compitiendo + la imagen del juego (shadow-guess.webp)
-  // queda reducida a fondo apagado. Nuevo enfoque: la IMAGEN es el
-  // protagonista (min-h-44), kanji solo como badge corner inferior con
-  // glow + texto encima de un panel translucido para legibilidad.
+  // La imagen es protagonista (min-h-44); el kanji queda como badge inferior
+  // con glow y el texto descansa sobre un panel translúcido para legibilidad.
   return (
     <Link
       to={game.to}
       className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 motion-safe:hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} ${theme.hoverGlow}`}
     >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
+      <GameCardBackground visual={visual} opacity={0.56} />
 
       {/* Kanji decorativo grande detrás (mood), no panel separado */}
       <span
@@ -436,23 +668,14 @@ function CardMini({ game, estado }) {
   const done = estado?.completadoHoy
   const best = estado?.best
   const visual = getGameVisual(game.to, game.titulo)
-  // Card mini de juego con su portada cinematografica visible.
-  // Feedback visual (2026-05-22): min-h-[8.5rem] (136px) dejaba la imagen
-  // como "miniatura mal recortada" — el bottom-gradient del
-  // EditorialCover empezaba al 38% y oscurecía la mayoría del cover. Subimos
-  // min-h a 12rem (mobile) / 13rem (sm), dando ~50% más de zona superior
-  // de la imagen visible antes del degradado, para que cada juego se
-  // identifique por su arte y no por el kanji decorativo.
+  // Card mini de juego con portada cinematográfica visible antes del degradado,
+  // para que cada juego se identifique por su arte y no solo por el kanji.
   return (
     <Link
       to={game.to}
       className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
     >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
+      <GameCardBackground visual={visual} opacity={0.50} />
 
       {/* Kanji decorativo en background sin panel separado */}
       <span
@@ -498,21 +721,14 @@ function CardMini({ game, estado }) {
 
 function OmikujiCard() {
   const visual = getGameVisual('/omikuji', 'Omikuji diario')
-  // Feedback visual (2026-05-22): la card del ritual diario tenia altura ~80px
-  // (py-4 + contenido inline) — el cover del omikuji quedaba reducido a
-  // banda apagada, "inapreciable". Subimos a min-h ~9rem y damos
-  // protagonismo a la imagen con background-image + overlay gradient
-  // inferior, manteniendo el kanji 御 y el CTA sobre el panel.
+  // Card del ritual diario con suficiente altura para que el cover tenga
+  // presencia, manteniendo el kanji 御 y el CTA sobre el panel.
   return (
     <Link
       to="/omikuji"
       className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:border-accent/60 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_22px_65px_-25px_rgba(159,29,44,0.55)] sm:min-h-[10rem]"
     >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
+      <GameCardBackground visual={visual} opacity={0.48} />
       <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-accent/40 backdrop-blur-md sm:h-16 sm:w-16"
         style={{ background: 'linear-gradient(135deg, rgb(159 29 44 / 0.32) 0%, rgb(7 10 18 / 0.55) 100%)' }}
       >

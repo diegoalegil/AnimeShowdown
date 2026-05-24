@@ -10,16 +10,25 @@ import {
   readdirSync,
   copyFileSync,
   mkdirSync,
+  rmSync,
   readFileSync,
   writeFileSync,
 } from 'node:fs'
 import { extname } from 'node:path'
 import { createReadStream } from 'node:fs'
+import process from 'node:process'
 import Beasties from 'beasties'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const IMG_SRC = resolve(__dirname, 'img')
 const IMG_URL_PREFIX = '/img/'
+const IMG_CDN_BASE_URL = normalizeImageCdnBaseUrl(
+  process.env.ANIMESHOWDOWN_IMG_CDN_BASE_URL ||
+    process.env.ANIMESHOWDOWN_IMAGE_CDN_BASE_URL,
+)
+const SKIP_IMG_COPY =
+  process.env.ANIMESHOWDOWN_SKIP_IMG_COPY === 'true' ||
+  Boolean(IMG_CDN_BASE_URL)
 
 // MIME types que sirve este middleware. Si en el futuro añades .png/.jpg en
 // frontend/img/, basta con extender este mapa.
@@ -32,6 +41,64 @@ const MIME = {
   '.jpeg': 'image/jpeg',
   '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
+}
+
+// En producción copiamos solo formatos que el runtime referencia bajo /img/.
+// Las variantes AVIF siguen pudiendo existir en la carpeta fuente para pruebas
+// locales, pero PersonajeImg/PersonajeCutImg solo publican srcset WebP. Evitar
+// subirlas recorta cientos de MB del deploy de Cloudflare sin tocar el catálogo.
+const BUILD_IMAGE_MIME = Object.fromEntries(
+  Object.entries(MIME).filter(([ext]) => ext !== '.avif'),
+)
+
+function normalizeImageCdnBaseUrl(value) {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+  let url
+  try {
+    url = new URL(trimmed)
+  } catch {
+    throw new Error(
+      `ANIMESHOWDOWN_IMG_CDN_BASE_URL debe ser una URL absoluta https/http valida: ${trimmed}`,
+    )
+  }
+  if (!['https:', 'http:'].includes(url.protocol)) {
+    throw new Error(
+      `ANIMESHOWDOWN_IMG_CDN_BASE_URL debe usar https/http, no ${url.protocol}`,
+    )
+  }
+  if (url.protocol !== 'https:' && process.env.NODE_ENV === 'production') {
+    throw new Error('ANIMESHOWDOWN_IMG_CDN_BASE_URL debe usar https en produccion')
+  }
+  return url.toString().replace(/\/+$/, '')
+}
+
+function requireImageCdnBaseUrl() {
+  if (IMG_CDN_BASE_URL) return IMG_CDN_BASE_URL
+  throw new Error(
+    'ANIMESHOWDOWN_SKIP_IMG_COPY=true requiere ANIMESHOWDOWN_IMG_CDN_BASE_URL, por ejemplo https://assets.animeshowdown.dev/img',
+  )
+}
+
+function ensureImgCdnRedirect(cdnBaseUrl) {
+  const redirectsPath = resolve(__dirname, 'dist', '_redirects')
+  const generatedBlockStart =
+    '# Imagenes del catalogo: servidas desde CDN externo para mantener Cloudflare Pages liviano.'
+  const generatedBlock = `${generatedBlockStart}\n/img/* ${cdnBaseUrl}/:splat 302\n\n`
+  const existing = existsSync(redirectsPath)
+    ? readFileSync(redirectsPath, 'utf8')
+    : ''
+  const withoutGeneratedBlock = existing
+    .replace(
+      new RegExp(`${escapeRegExp(generatedBlockStart)}\\n/img/\\*\\s+\\S+\\s+30[1278]\\n\\n?`, 'g'),
+      '',
+    )
+    .replace(/^\/img\/\*\s+\S+\s+30[1278]\s*\n+/gm, '')
+  writeFileSync(redirectsPath, `${generatedBlock}${withoutGeneratedBlock}`)
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 /**
@@ -74,14 +141,23 @@ function imgFolderPlugin() {
     },
 
     closeBundle() {
-      // En build copiamos recursivo frontend/img/ → dist/img/ ignorando
-      // .DS_Store, archivos sueltos en la raíz (como logo.png que no es de
-      // ningún anime) y cualquier cosa que no sea una imagen reconocida.
       const outDir = resolve(__dirname, 'dist', 'img')
+      if (SKIP_IMG_COPY) {
+        const cdnBaseUrl = requireImageCdnBaseUrl()
+        rmSync(outDir, { recursive: true, force: true })
+        ensureImgCdnRedirect(cdnBaseUrl)
+        console.log(`[img-folder] /img/* servido desde CDN externo: ${cdnBaseUrl}/:splat`)
+        console.log('[img-folder] frontend/img/ no se copia al artefacto de build')
+        return
+      }
+
+      // En build copiamos recursivo frontend/img/ → dist/img/ ignorando
+      // .DS_Store, archivos sueltos en la raíz (logo vive en public/) y
+      // cualquier cosa que no sea una imagen usada en producción.
       if (!existsSync(IMG_SRC)) return
 
       let copied = 0
-      const walk = (srcDir, dstDir) => {
+      const walk = (srcDir, dstDir, isRoot = false) => {
         if (!existsSync(dstDir)) mkdirSync(dstDir, { recursive: true })
         for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
           if (entry.name === '.DS_Store') continue
@@ -89,13 +165,13 @@ function imgFolderPlugin() {
           const dstPath = join(dstDir, entry.name)
           if (entry.isDirectory()) {
             walk(srcPath, dstPath)
-          } else if (MIME[extname(entry.name).toLowerCase()]) {
+          } else if (!isRoot && BUILD_IMAGE_MIME[extname(entry.name).toLowerCase()]) {
             copyFileSync(srcPath, dstPath)
             copied++
           }
         }
       }
-      walk(IMG_SRC, outDir)
+      walk(IMG_SRC, outDir, true)
       // Log visible en build para detectar regresiones rápido.
       console.log(`[img-folder] copiadas ${copied} imágenes a ${basename(outDir)}/`)
     },
@@ -106,8 +182,10 @@ function imgFolderPlugin() {
  * Critical CSS inline. Tras el build de Vite, procesamos
  * dist/index.html con beasties (fork mantenido del abandonado critters).
  * Beasties analiza qué selectores usa el HTML inicial y los inlina en un
- * <style> dentro del <head>; el resto del CSS sigue siendo async via
- * <link rel="preload" as="style" onload=...>.
+ * <style> dentro del <head>; el CSS completo sigue cargando como stylesheet
+ * normal. Evitamos estrategias async con `media=print/onload`: si Safari o
+ * una pestaña con SW stale falla durante el bootstrap JS, la app no debe
+ * quedar con el HTML montado pero sin estilos globales.
  *
  * Resultado típico: -200ms LCP, FOUC eliminado en la primera pintura.
  *
@@ -128,7 +206,7 @@ function criticalCssPlugin() {
       const beasties = new Beasties({
         path: resolve(__dirname, 'dist'),
         publicPath: '/',
-        preload: 'media',
+        preload: false,
         pruneSource: false,
         inlineThreshold: 4096,
         logLevel: 'warn',
@@ -151,7 +229,7 @@ function criticalCssPlugin() {
  * Configuración PWA con vite-plugin-pwa y autoUpdate:
  *
  *   - registerType:'autoUpdate' → el SW comprueba updates en cada nav y
- *     refresca silenciosamente. Sin prompt al usuario.
+ *     refresca silenciosamente, sin pedir acción al usuario.
  *   - manifest con iconos 192/512 (estándar Android/Chrome) +
  *     apple-touch-icon (iOS). theme_color magenta para la status bar.
  *   - workbox runtime caching:
@@ -162,7 +240,8 @@ function criticalCssPlugin() {
  *         Si la red falla o tarda, devolvemos lo cacheado para no romper
  *         la UI en redes flaky.
  *       · /api/og/* → CacheFirst 7d (las OG son cacheables long-term).
- *   - navigateFallback:'/index.html' → SPA routing offline.
+ *   - navigateFallback:null → las navegaciones van a red para evitar HTML
+ *     stale apuntando a chunks antiguos tras deploy.
  *   - skipWaiting + clientsClaim → cambios entran inmediato sin esperar
  *     a cerrar todas las pestañas.
  */
@@ -299,7 +378,16 @@ const pwaPlugin = VitePWA({
         },
       },
       {
-        urlPattern: ({ url }) => url.pathname.startsWith('/api/personajes'),
+        // Solo cacheamos lectura pública, estable y sin Authorization del catálogo/personaje.
+        // Endpoints user-specific bajo /api/personajes/*/favorito quedan
+        // fuera para no guardar estado personal en CacheStorage. Además,
+        // si el usuario está logueado, api.js añade Authorization por defecto:
+        // no cacheamos esas variantes porque el backend puede devolver flags
+        // dependientes de sesión en rutas públicas actuales o futuras.
+        urlPattern: ({ url, request }) =>
+          request.method === 'GET' &&
+          !request.headers.has('Authorization') &&
+          /^\/api\/personajes(?:\/(?:catalogo|buscar|[^/]+))?$/.test(url.pathname),
         handler: 'NetworkFirst',
         options: {
           cacheName: 'api-personajes',
@@ -330,7 +418,10 @@ const pwaPlugin = VitePWA({
         handler: 'NetworkOnly',
       },
       {
-        urlPattern: ({ url }) => url.pathname.startsWith('/api/torneos'),
+        urlPattern: ({ url, request }) =>
+          request.method === 'GET' &&
+          !request.headers.has('Authorization') &&
+          url.pathname.startsWith('/api/torneos'),
         handler: 'NetworkFirst',
         options: {
           cacheName: 'api-torneos',
@@ -381,6 +472,14 @@ export default defineConfig({
     criticalCssPlugin(),
   ],
   build: {
+    // Personaje3D queda aislado como chunk lazy y lo vigila npm run test:bundle.
+    chunkSizeWarningLimit: 1000,
+    modulePreload: {
+      resolveDependencies(_filename, deps, { hostType }) {
+        if (hostType !== 'html') return deps
+        return deps.filter((dep) => !/assets\/personaje3d-[^/]+\.js$/.test(dep))
+      },
+    },
     // Vendor chunks explícitos: sin esto Rolldown junta todo en index y
     // pasa de 150KB a 300KB+ gzip. Cada vendor se aísla en su propio
     // chunk para que se cachee long-term separado (cambios en código de
@@ -413,6 +512,18 @@ export default defineConfig({
                 id.endsWith('\\src\\hooks\\useCatalogoPersonajes.js'),
             },
             {
+              name: 'react-vendor',
+              test: (id) =>
+                id.includes('/react-router-dom/') ||
+                id.includes('/react-router/') ||
+                id.includes('/react-dom/') ||
+                id.includes('/scheduler/') ||
+                id.includes('\\scheduler\\') ||
+                id.includes('/use-sync-external-store/') ||
+                id.includes('\\use-sync-external-store\\') ||
+                Boolean(id.match(/[/\\]node_modules[/\\]react[/\\]/)),
+            },
+            {
               name: 'personaje3d',
               test: (id) =>
                 id.includes('@react-three/') ||
@@ -433,14 +544,6 @@ export default defineConfig({
               test: (id) =>
                 id.includes('i18next') ||
                 id.includes('react-i18next'),
-            },
-            {
-              name: 'react-vendor',
-              test: (id) =>
-                id.includes('/react-router-dom/') ||
-                id.includes('/react-router/') ||
-                id.includes('/react-dom/') ||
-                Boolean(id.match(/[/\\]node_modules[/\\]react[/\\]/)),
             },
           ],
         },

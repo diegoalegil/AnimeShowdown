@@ -25,6 +25,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  *   - jikan-top-characters: 1h, 128 entradas. Imports Jikan.
  *   - og-personaje: 7 días, 500 entradas. PNG 1200x630 generados.
  *   - og-torneo: 7 días, 50 entradas. PNG de torneos.
+ *   - og-ranking / og-anime / og-pvp / og-duelo: 7 días. PNG compartibles
+ *     para ranking, fichas de anime, PvP live y comparativas.
  *
  * Definir el bean CacheManager explícitamente sobrescribe la
  * autoconfiguración Spring Boot — las properties `spring.cache.*` ya
@@ -41,34 +43,34 @@ public class CacheConfig {
                 buildCache("jikan-top-characters", Duration.ofHours(1), 128),
                 buildCache("og-personaje", Duration.ofDays(7), 500),
                 buildCache("og-torneo", Duration.ofDays(7), 50),
-                // Plan v2 §2.10: catálogo de personajes apenas cambia
-                // (solo cuando admin importa o el seed corre). TTL 5min
-                // ahorra ~95% de hits a Postgres en horas pico sin que
-                // el usuario note staleness.
+                buildCache("og-ranking", Duration.ofDays(7), 16),
+                buildCache("og-anime", Duration.ofDays(7), 256),
+                buildCache("og-pvp", Duration.ofDays(7), 8),
+                buildCache("og-duelo", Duration.ofDays(7), 1000),
+                // El catálogo de personajes apenas cambia (solo cuando admin
+                // importa o el seed corre). TTL 5min ahorra ~95% de hits a
+                // Postgres en horas pico sin que el usuario note staleness.
                 buildCache("personajes-listado", Duration.ofMinutes(5), 16),
-                // Catálogo público mínimo para frontend/IA. TTL 1h porque
-                // solo cambia con seed/admin; además el endpoint emite ETag.
+                // Catálogo público mínimo para frontend y sitemap. TTL 1h
+                // porque solo cambia con seed/admin; además emite ETag.
                 buildCache("personajes-catalogo", Duration.ofHours(1), 16),
                 // Autocomplete server-side. Key q+limit; TTL corto para no
                 // retener demasiadas combinaciones raras.
                 buildCache("personajes-busqueda", Duration.ofMinutes(10), 512),
                 buildCache("personajes-individual", Duration.ofMinutes(5), 2000),
-                // Plan v2 §4.12: similares cross-anime por slug. Estable
-                // entre votos (la similitud por votos casi no se mueve a
-                // escala minuto). Key compuesta slug+limit, max ~3000
-                // (730 slugs × 4 valores típicos de limit).
+                // Similares cross-anime por slug. Estable entre votos (la
+                // similitud por votos casi no se mueve a escala minuto). Key
+                // compuesta slug+limit, max ~3000.
                 buildCache("personajes-similares", Duration.ofMinutes(5), 3000),
-                // Plan v2 §4.x: ranking actual con deltas vs hace N días.
-                // Pesado (dos queries de COUNT con GROUP BY); cache 1min.
+                // Ranking actual con deltas vs hace N días. Pesado (dos
+                // queries de COUNT con GROUP BY); cache 1min.
                 buildCache("ranking-movimientos", Duration.ofMinutes(1), 64),
-                // Plan v2 §11.1: time machine ELO por personaje. La curva
-                // del pasado no cambia (solo extiende al cierre del día);
-                // cache largo 1h.
+                // Time machine ELO por personaje. La curva del pasado no
+                // cambia (solo extiende al cierre del día); cache largo 1h.
                 buildCache("personaje-elo-history", Duration.ofHours(1), 1500),
-                // Plan v2 §4.12 step 1: mapeo nombre+anime → mal_id resuelto
-                // contra Jikan /characters?q=. El mapeo es prácticamente
-                // inmutable (un personaje no cambia de mal_id); TTL 30d
-                // para cubrir el catálogo entero con un solo barrido inicial.
+                // Mapeo nombre+anime → mal_id resuelto contra Jikan
+                // /characters?q=. Es prácticamente inmutable; TTL 30d para
+                // cubrir el catálogo entero con un solo barrido inicial.
                 buildCache("jikan-character-malid", Duration.ofDays(30), 2000),
                 // URLs de /characters/{mal_id}/pictures. Las imágenes
                 // adicionales de un personaje cambian rara vez; TTL 7d.

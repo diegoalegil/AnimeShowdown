@@ -7,7 +7,7 @@ import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Torneo;
 
 /**
- * Vista de "Mis torneos" para el perfil del creador (Plan v2 §4.9).
+ * Vista de "Mis torneos" para el perfil del creador.
  *
  * <p>Incluye el estado de revisión y el motivo de rechazo (cuando aplica)
  * para que el frontend pueda pintar:

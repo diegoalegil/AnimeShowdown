@@ -75,6 +75,7 @@ function RegisterPage() {
     title: 'Crear cuenta',
     description:
       'Crea tu cuenta gratuita en AnimeShowdown. Vota, predice torneos, crea tu propio bracket y construye tu perfil público.',
+    noindex: true,
   })
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
@@ -113,9 +114,12 @@ function RegisterPage() {
         referralCode: data.referralCode || undefined,
       })
       navigate('/')
-    } catch {
+    } catch (err) {
       setError('root', {
-        message: 'No se pudo crear la cuenta. Intenta de nuevo.',
+        message:
+          err?.status === 409
+            ? 'Ese usuario o email ya está registrado. Prueba con otros datos o inicia sesión.'
+            : err?.message || 'No se pudo crear la cuenta. Intenta de nuevo.',
       })
     }
   }

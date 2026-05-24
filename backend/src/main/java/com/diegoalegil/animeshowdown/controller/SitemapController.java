@@ -16,7 +16,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 /**
- * Datos dinámicos para el sitemap (Plan v2 §5.4).
+ * Datos dinámicos para el sitemap.
  *
  * <p>Lo consume el script {@code scripts/generate-sitemap.mjs} en build-time
  * para incluir torneos APROBADO/NO_APLICA (los nuevos por user §4.9, no

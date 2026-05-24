@@ -2,7 +2,6 @@ package com.diegoalegil.animeshowdown.controller;
 
 import java.util.Map;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.EliminarCuentaRequest;
+import com.diegoalegil.animeshowdown.dto.PageResponse;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -28,7 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
- * Endpoints REST del perfil del usuario autenticado (Plan v2 §4.1).
+ * Endpoints REST del perfil del usuario autenticado.
  *
  * <p>Todos requieren auth — son sobre el usuario actual ({@code /me}).
  * <ul>
@@ -63,7 +63,7 @@ public class PerfilController {
     }
 
     /**
-     * Vista PÚBLICA del perfil de un usuario (Plan v2 §4.5). Stats + top
+     * Vista PÚBLICA del perfil de un usuario. Stats + top
      * personajes + logros desbloqueados + counts de seguidores en una
      * sola llamada. Si el caller está autenticado, incluye flags
      * {@code siguiendo} y {@code esMismoUsuario} para que el frontend
@@ -93,8 +93,8 @@ public class PerfilController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        Page<VotoHistorialDto> result = perfilService.historialVotos(usuario, page, size);
-        return ResponseEntity.ok(result);
+        var result = perfilService.historialVotos(usuario, page, size);
+        return ResponseEntity.ok(PageResponse.from(result));
     }
 
     @PostMapping("/me/migrar-votos-anonimos")
@@ -116,7 +116,7 @@ public class PerfilController {
     }
 
     /**
-     * Feed combinado de actividad reciente (Plan v2 §4.1). Mezcla votos
+     * Feed combinado de actividad reciente. Mezcla votos
      * en enfrentamientos, logros desbloqueados, torneos creados y
      * predicciones acertadas en orden temporal descendente.
      */
@@ -129,7 +129,7 @@ public class PerfilController {
     }
 
     /**
-     * Stats de referral del usuario (Plan v2 §11.8). Devuelve código
+     * Stats de referral del usuario. Devuelve código
      * único compartible + count de referidos verificados + tier badge.
      */
     @GetMapping("/me/referral")
@@ -147,7 +147,7 @@ public class PerfilController {
     }
 
     /**
-     * Eliminación irreversible de la cuenta (Plan v2 §4.1, GDPR right to
+     * Eliminación irreversible de la cuenta (GDPR right to
      * erasure). Requiere reconfirmar la contraseña actual aunque el
      * usuario tenga sesión.
      *
@@ -170,7 +170,7 @@ public class PerfilController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // Nota P2 (2026-05-17): el audit se hace AHORA dentro del service
+        // El audit se hace dentro del service
         // en la misma tx — después de verificar password y antes del delete.
         // Antes se hacía aquí en el controller ANTES del verifyPassword:
         // un password incorrecto generaba un registro CUENTA_ELIMINADA
@@ -184,7 +184,7 @@ public class PerfilController {
         }
         // Limpia la cookie de refresh para que el frontend no quede con
         // sesión zombie. JS de cliente debe además limpiar el access token.
-        // Nota P3 (2026-05-17): antes hardcodeaba secure=true + SameSite=Lax,
+        // antes hardcodeaba secure=true + SameSite=Lax,
         // pero AuthController emite la cookie con secure=cookieSecure +
         // SameSite=Strict. El mismatch de attributes hace que algunos
         // navegadores no consideren la cookie "la misma" y no la borren —

@@ -9,6 +9,7 @@ export const CATALOGO_PERSONAJES_STORAGE_KEY = 'animeshowdown.catalogo-personaje
 export const personajes = []
 
 export const PERSONAJE_SLUG_ALIASES = {
+  L: 'l',
   all_might: 'allmight',
   monkey_d_luffy: 'luffy',
   roronoa_zoro: 'zoro',
@@ -36,6 +37,7 @@ export function normalizarPersonajeCatalogo(personaje) {
   const imagen = personaje.imagenUrl ?? personaje.imagen ?? null
   return {
     ...personaje,
+    slug: canonicalPersonajeSlug(personaje.slug),
     imagen,
     imagenUrl: imagen,
   }
@@ -111,7 +113,7 @@ export function getIndicePersonaje(slug) {
 }
 
 const POPULARIDAD = {
-  luffy: 100, levi: 99, L: 98, zoro: 95, light_yagami: 93, naruto: 91,
+  luffy: 100, levi: 99, l: 98, zoro: 95, light_yagami: 93, naruto: 91,
   itachi: 88, gojo: 86, mikasa: 84, kaneki: 82, kakashi: 79, rem_and_ram: 76,
   megumin: 73,
   saber: 70, itadori: 68, sasuke: 67, sukuna: 65, frieren: 65, anya_forger: 65,
@@ -163,8 +165,8 @@ function hashSlug(slug) {
  *
  * <p><b>Reglas de honestidad en UI</b>: cualquier consumer DEBE etiquetar visualmente el valor
  * como "base", "estimado", "·b" o equivalente, o redirigir al ranking
- * competitivo real (/ranking) que sí está ponderado por SUM(v.peso) tras
- * AS-002. Mostrar "ELO 1850" sin contexto es engañoso para el usuario
+ * competitivo real (/ranking) que sí está ponderado por SUM(v.peso). Mostrar
+ * "ELO 1850" sin contexto es engañoso para el usuario
  * porque sugiere que el número se mueve con sus votos — no lo hace.
  *
  * <p>El flag {@code _sintetico: true} en el retorno permite que un consumer
@@ -179,7 +181,7 @@ function hashSlug(slug) {
  *
  * <p><b>Migración pendiente:</b>
  * <ol>
- *   <li>Reemplazar TODOS los consumers (15+ sitios) por una query a
+ *   <li>Reemplazar todos los consumers (15+ sitios) por una query a
  *       {@code /api/votos/ranking/segmentado} que devuelve votos físicos
  *       + pesoVotos ponderado por slug, o exponer el campo {@code elo}
  *       calculado server-side desde el peso.</li>

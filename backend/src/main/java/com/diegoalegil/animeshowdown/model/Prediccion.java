@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 /**
- * Predicción de un usuario sobre quién ganará un enfrentamiento (Plan v2 §4.4).
+ * Predicción de un usuario sobre quién ganará un enfrentamiento.
  *
  * <p>UNIQUE(usuario_id, enfrentamiento_id) → 1 predicción por par. Para
  * cambiar la predicción mientras el match esté abierto, el service hace

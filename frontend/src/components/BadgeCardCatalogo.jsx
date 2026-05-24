@@ -3,7 +3,7 @@ import { iconoDeBadge } from '../lib/badgeIcons'
 import { kanjiDeBadge } from '../lib/badgeKanji'
 
 /**
- * Card de badge para la página /logros (Plan v2 §4.10).
+ * Card de badge para la página /logros.
  *
  * Diferencias con {@link BadgeCard} (el del perfil):
  *   - Más grande y con descripción visible por default (no en tooltip).

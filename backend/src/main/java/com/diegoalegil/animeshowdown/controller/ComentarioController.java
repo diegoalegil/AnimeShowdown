@@ -1,6 +1,5 @@
 package com.diegoalegil.animeshowdown.controller;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.diegoalegil.animeshowdown.dto.ComentarioCrearRequest;
 import com.diegoalegil.animeshowdown.dto.ComentarioDto;
 import com.diegoalegil.animeshowdown.dto.ComentarioEstadoRequest;
+import com.diegoalegil.animeshowdown.dto.PageResponse;
 import com.diegoalegil.animeshowdown.model.ComentarioEstado;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.ComentarioService;
@@ -35,13 +35,13 @@ public class ComentarioController {
     }
 
     @GetMapping("/personajes/{slug}/comentarios")
-    public Page<ComentarioDto> listarPersonaje(
+    public PageResponse<ComentarioDto> listarPersonaje(
             @PathVariable String slug,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal Usuario usuario) {
-        return comentarioService.listarPublicos(slug, page(page, size))
-                .map(c -> ComentarioDto.from(c, comentarioService.esMio(c, usuario)));
+        return PageResponse.from(comentarioService.listarPublicos(slug, page(page, size))
+                .map(c -> ComentarioDto.from(c, comentarioService.esMio(c, usuario))));
     }
 
     @PostMapping("/personajes/{slug}/comentarios")
@@ -80,12 +80,12 @@ public class ComentarioController {
     }
 
     @GetMapping("/admin/comentarios")
-    public Page<ComentarioDto> listarAdmin(
+    public PageResponse<ComentarioDto> listarAdmin(
             @RequestParam(required = false) ComentarioEstado estado,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return comentarioService.listarAdmin(estado, page(page, size))
-                .map(c -> ComentarioDto.from(c, false));
+        return PageResponse.from(comentarioService.listarAdmin(estado, page(page, size))
+                .map(c -> ComentarioDto.from(c, false)));
     }
 
     @PutMapping("/admin/comentarios/{id}/estado")

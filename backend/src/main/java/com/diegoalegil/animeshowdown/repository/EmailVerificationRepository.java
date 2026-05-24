@@ -18,7 +18,7 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
 
     /**
      * Limpieza periódica: borra tokens expirados o usados hace más de 7
-     * días. La invocará un cron del Bloque 16 cuando llegue scheduling.
+     * días. La invocará un cron de la capa correspondiente cuando llegue scheduling.
      * Por ahora queda accesible para llamar a mano.
      */
     @Modifying

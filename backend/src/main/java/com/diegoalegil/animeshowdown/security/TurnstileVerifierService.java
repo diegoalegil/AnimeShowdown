@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 
 /**
- * Nota técnica AS-004 (2026-05-23): verifica tokens Turnstile server-side
+ * verifica tokens Turnstile server-side
  * contra el endpoint oficial de Cloudflare.
  *
  * <p>Flujo esperado:

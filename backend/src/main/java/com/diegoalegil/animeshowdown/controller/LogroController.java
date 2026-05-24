@@ -15,10 +15,10 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.BadgeService;
 
 /**
- * Endpoints de badges/logros (Plan v2 §4.2, §4.10).
+ * Endpoints de badges/logros.
  *
  * <ul>
- *   <li>{@code GET /api/logros} — público. Catálogo de los 14 badges con
+ *   <li>{@code GET /api/logros} — público. Catálogo de badges con
  *       icono, descripción y rareza. El frontend lo cachea long-term porque
  *       es inmutable salvo deploys con migración nueva.</li>
  *   <li>{@code GET /api/logros/mios} — autenticado. Lista enriquecida con

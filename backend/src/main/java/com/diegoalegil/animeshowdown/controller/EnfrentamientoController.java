@@ -110,7 +110,7 @@ public class EnfrentamientoController {
      * IN_PROGRESS, con ambos personajes y sin ganador) para que VotarPage
      * pueda mostrarlo en modo backend. 404 si ahora mismo no hay matches
      * abiertos — el frontend hace fallback a modo casual con pares random
-     * locales (Plan v2 §1.1).
+     * locales.
      */
     @GetMapping("/aleatorio")
     public ResponseEntity<EnfrentamientoDto> aleatorio() {
@@ -119,7 +119,7 @@ public class EnfrentamientoController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Nota P2 (2026-05-17): @Transactional es OBLIGATORIO aquí, no estético.
+    // @Transactional es OBLIGATORIO aquí, no estético.
     // Sin él, votoRepository.save() corre en auto-commit (su propia tx), y
     // cuando llega `eventPublisher.publishEvent(new VotoRegistradoEvent(...))`
     // ya no hay tx activa. BadgeEventListener escucha en AFTER_COMMIT, que sin
@@ -151,12 +151,12 @@ public class EnfrentamientoController {
                     .body("Solo se puede votar en enfrentamientos de torneos IN_PROGRESS");
         }
 
-        // Nota P1 (2026-05-17): antes solo se validaba el estado del torneo.
+        // antes solo se validaba el estado del torneo.
         // Por id directo el cliente podía votar:
         //  - Matches ya resueltos (ganador != null): votos inflados sobre un
         //    resultado cerrado, afectando counts post-bracket y stats.
         //  - Matches de R2+ todavía sin participantes propagados (personaje1
-        //    o 2 null): NullPointerException al hacer .getId() abajo → 500.
+        //    o 2 null): NullPointerException al hacer.getId() abajo → 500.
         // Ambos rechazados explícitamente con 409 + mensaje claro.
         if (enf.getGanador() != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -167,7 +167,7 @@ public class EnfrentamientoController {
                     .body("Este enfrentamiento aún no tiene participantes asignados (ronda futura del bracket)");
         }
 
-        // Plan v2 §2.4: usuarios PENDIENTE de verificación de email no
+        // Usuarios PENDIENTE de verificación de email no
         // pueden votar. Toggle vía app.email-verification.required-to-vote
         // (true en prod, false en tests para no obligar al fixture a
         // simular el flujo completo de email). 403 con mensaje claro.
@@ -195,7 +195,7 @@ public class EnfrentamientoController {
                         .body("Ya has votado este enfrentamiento");
             }
         } else {
-            // Nota técnica AS-004 (2026-05-23): antifraude antes del check
+            // antifraude antes del check
             // de 5 votos invitados. El throttle protege contra abusos que
             // rotan la cookie (medidos por anon_ip_hash); el límite de 5
             // sigue siendo el gate para empujar al CTA de "crea cuenta".
@@ -261,7 +261,7 @@ public class EnfrentamientoController {
         long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p1);
         long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p2);
         long votosTotalesGanador = votoRepository.countByPersonajeId(ganador.getId());
-        // Nota técnica B2.1a (2026-05-22): además del conteo físico
+        // además del conteo físico
         // publicamos la suma ponderada (peso 0.3 anónimo / 1.0 registrado)
         // para que el frontend reordene la caché live por la misma métrica
         // que el ORDER BY del ranking REST.
@@ -270,11 +270,11 @@ public class EnfrentamientoController {
         long votosGanador = ganador.getId().equals(p1.getId()) ? votosP1 : votosP2;
         long votosPerdedor = perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2;
 
-        // Plan v2 §2.13: push del estado actualizado del match al topic del
+        // Push del estado actualizado del match al topic del
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
-        // Nota técnica B2.2 (2026-05-23): además del total ponderado pasamos
+        // además del total ponderado pasamos
         // el peso del voto RECIÉN registrado (0.30 anónimo / 1.00 registrado).
         // El frontend lo SUMA al pesoVotos de las cachés temporales (mes,
         // trimestre, año). Sin esto, el hook restaba pesoVotos absoluto
@@ -287,7 +287,7 @@ public class EnfrentamientoController {
         publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador,
                 pesoVotoRegistrado);
 
-        // Plan v2 §4.2: evento de dominio. BadgeEventListener escucha tras
+        // Evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
         // Diseño extensible — futuros listeners podrán reaccionar también.
         if (usuario != null) {
@@ -349,7 +349,7 @@ public class EnfrentamientoController {
             Double pesoTotalesGanador, double pesoVotoRegistrado) {
         if (messaging == null || ganador == null) return;
         try {
-            // Nota técnica B2.1a + B2.2 (2026-05-22/23): payload incluye:
+            // payload incluye:
             //   - pesoVotos: total ponderado all-time (para periodo='all').
             //   - deltaPeso: peso del voto recién emitido (0.3 / 1.0). El
             //     frontend lo suma a las cachés temporales, evitando
@@ -364,7 +364,7 @@ public class EnfrentamientoController {
     }
 
     /**
-     * Nota técnica AS-004 (2026-05-23): cookie-first con fallback legacy.
+     * cookie-first con fallback legacy.
      * Orden de resolución de la identidad anónima:
      *   1. Cookie firmada {@code as_anon} con HMAC verificable.
      *   2. Cookie legacy {@code as_anon_vote_id} (no firmada, mantenida 1
@@ -378,7 +378,7 @@ public class EnfrentamientoController {
      * legacy). Eso fuerza la migración progresiva sin invalidar sesiones.
      */
     private AnonymousVoteContext resolverAnonymousContext(HttpServletRequest request) {
-        // 1. Cookie firmada (nueva): identidad estable server-side.
+        // Cookie firmada (nueva): identidad estable server-side.
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (anonymousIdentityService.getCookieName().equals(cookie.getName())) {
@@ -394,7 +394,7 @@ public class EnfrentamientoController {
                 }
             }
         }
-        // 2. Cookie legacy (no firmada).
+        // Cookie legacy (no firmada).
         String legacySessionId = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -404,7 +404,7 @@ public class EnfrentamientoController {
                 }
             }
         }
-        // 3. Header legacy (último fallback aceptado).
+        // Header legacy (último fallback aceptado).
         if (legacySessionId == null) {
             legacySessionId = normalizarAnonId(request.getHeader(ANON_ID_HEADER));
         }
@@ -415,7 +415,7 @@ public class EnfrentamientoController {
             // y haya perdido la legacy, o nunca si mantiene la legacy.
             return new AnonymousVoteContext(legacySessionId, hashAnonimo(request, legacySessionId), null);
         }
-        // 4. Sin identidad reconocible: emitimos token firmado nuevo.
+        // Sin identidad reconocible: emitimos token firmado nuevo.
         String token = anonymousIdentityService.emit();
         var verified = anonymousIdentityService.verify(token);
         String sid = verified.orElseGet(() -> UUID.randomUUID().toString());

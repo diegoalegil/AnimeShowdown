@@ -1,18 +1,8 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { personajes } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { getAnimeAliases, slugifyAnime } from '../lib/animes'
 import { normalizar } from '../lib/games'
-
-// Lista de animes únicos del catálogo + count para ranking en autocomplete.
-const ANIMES = (() => {
-  const counts = {}
-  for (const p of personajes) {
-    counts[p.anime] = (counts[p.anime] || 0) + 1
-  }
-  return Object.entries(counts)
-      .map(([anime, n]) => ({ anime, n }))
-      .sort((a, b) => b.n - a.n)
-})()
 
 /**
  * Combobox de selección de anime para juegos y formularios.
@@ -28,6 +18,7 @@ function AutocompleteAnime({
   autoFocus = false,
   filtroExtra,
 }) {
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const inputId = useId()
   const [query, setQuery] = useState('')
   const [activo, setActivo] = useState(0)
@@ -38,8 +29,7 @@ function AutocompleteAnime({
     setQueryPrevia(query)
     setActivo(0)
   }
-  const inputRef = useRef(null)
-  // Ajuste (2026-05-17): cleanup del onBlur setTimeout para evitar
+  // cleanup del onBlur setTimeout para evitar
   // setState en componente desmontado tras navegación rápida (mismo
   // patrón que AutocompletePersonaje).
   const blurTimeoutRef = useRef(null)
@@ -47,13 +37,28 @@ function AutocompleteAnime({
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
   }, [])
 
+  const animes = useMemo(() => {
+    const counts = {}
+    for (const p of catalogoPersonajes) {
+      counts[p.anime] = (counts[p.anime] || 0) + 1
+    }
+    return Object.entries(counts)
+        .map(([anime, n]) => ({
+          anime,
+          n,
+          aliases: getAnimeAliases(anime),
+          slug: slugifyAnime(anime),
+        }))
+        .sort((a, b) => b.n - a.n)
+  }, [catalogoPersonajes])
+
   const opciones = useMemo(() => {
     const q = normalizar(deferredQuery)
     if (!q) return []
-    const base = filtroExtra ? ANIMES.filter((a) => filtroExtra(a.anime)) : ANIMES
+    const base = filtroExtra ? animes.filter((a) => filtroExtra(a.anime)) : animes
     const matches = []
     for (const a of base) {
-      const animeN = normalizar(a.anime)
+      const animeN = normalizar(`${a.anime} ${a.slug} ${a.aliases.join(' ')}`)
       const idx = animeN.indexOf(q)
       if (idx === -1) continue
       const score = (idx === 0 ? 0 : idx + 1) - a.n * 0.001
@@ -61,14 +66,13 @@ function AutocompleteAnime({
     }
     matches.sort((x, y) => x.score - y.score)
     return matches.slice(0, 8)
-  }, [deferredQuery, filtroExtra])
+  }, [animes, deferredQuery, filtroExtra])
 
   const elegir = (anime) => {
     if (!anime) return
     onSelect(anime)
     setQuery('')
     setAbierto(false)
-    if (inputRef.current) inputRef.current.focus()
   }
 
   const handleKey = (e) => {
@@ -90,11 +94,12 @@ function AutocompleteAnime({
 
   const listboxId = `${inputId}-list`
   const optionId = (idx) => `${inputId}-option-${idx}`
+  const mostrarLista = abierto && (opciones.length > 0 || normalizar(deferredQuery).length > 0)
 
   return (
     <div className="relative">
       {/*
-        Nota P2 (2026-05-17): mismo patrón combobox WAI-ARIA 1.2 que
+        mismo patrón combobox WAI-ARIA 1.2 que
         AutocompletePersonaje. role='combobox' + aria-haspopup='listbox'
         + aria-activedescendant para que SR anuncie la opción navegada
         sin mover el foco del input.
@@ -103,7 +108,6 @@ function AutocompleteAnime({
         <Search className="h-4 w-4 text-fg-muted" />
         <input
           id={inputId}
-          ref={inputRef}
           type="text"
           role="combobox"
           value={query}
@@ -134,40 +138,50 @@ function AutocompleteAnime({
           className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
-      {abierto && opciones.length > 0 && (
+      {mostrarLista && (
         <ul
           id={listboxId}
           role="listbox"
           className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface shadow-2xl"
         >
-          {opciones.map((o, idx) => (
+          {opciones.length === 0 ? (
             <li
-              key={o.anime}
-              id={optionId(idx)}
               role="option"
-              aria-selected={idx === activo}
+              aria-disabled="true"
+              className="px-3 py-3 text-[13px] text-fg-muted"
             >
-              <button
-                type="button"
-                tabIndex={-1}
-                onMouseEnter={() => setActivo(idx)}
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  elegir(o.anime)
-                }}
-                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[13px] ${
-                  idx === activo ? 'bg-bg' : 'hover:bg-bg'
-                }`}
-              >
-                <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">
-                  {o.anime}
-                </span>
-                <span className="shrink-0 font-mono text-[11px] tabular-nums text-fg-muted">
-                  {o.n}
-                </span>
-              </button>
+              Sin animes para esa búsqueda.
             </li>
-          ))}
+          ) : (
+            opciones.map((o, idx) => (
+              <li
+                key={o.anime}
+                id={optionId(idx)}
+                role="option"
+                aria-selected={idx === activo}
+              >
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onMouseEnter={() => setActivo(idx)}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    elegir(o.anime)
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[13px] ${
+                    idx === activo ? 'bg-bg' : 'hover:bg-bg'
+                  }`}
+                >
+                  <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">
+                    {o.anime}
+                  </span>
+                  <span className="shrink-0 font-mono text-[11px] tabular-nums text-fg-muted">
+                    {o.n}
+                  </span>
+                </button>
+              </li>
+            ))
+          )}
         </ul>
       )}
     </div>

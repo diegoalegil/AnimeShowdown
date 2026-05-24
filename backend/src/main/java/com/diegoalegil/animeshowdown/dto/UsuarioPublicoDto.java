@@ -4,7 +4,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 
 /**
  * Vista PÚBLICA de un usuario para listas de seguidos/seguidores y perfiles
- * ajenos (Plan v2 §4.5). NO incluye email, password, intentos de login,
+ * ajenos. NO incluye email, password, intentos de login,
  * 2FA secret, ni ningún dato sensible — solo lo necesario para que otros
  * usuarios vean el avatar y el username.
  */

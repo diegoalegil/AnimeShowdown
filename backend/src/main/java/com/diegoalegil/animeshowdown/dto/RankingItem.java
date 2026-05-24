@@ -5,7 +5,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 /**
  * Entrada del ranking público.
  *
- * <p>Nota técnica AS-002 + B2.1b (2026-05-22): separamos dos métricas
+ * <p>Separamos dos métricas
  * para evitar truncar la ponderación de votos:
  *
  * <ul>

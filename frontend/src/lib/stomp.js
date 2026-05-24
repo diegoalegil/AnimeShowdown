@@ -1,4 +1,4 @@
-// Cliente STOMP singleton sobre @stomp/stompjs (Plan v2 §2.13).
+// Cliente STOMP singleton sobre @stomp/stompjs.
 //
 // Una sola conexión WS por pestaña de navegador, compartida entre todos los
 // hooks que necesitan subscribirse a topics distintos. Cuando el usuario
@@ -54,10 +54,12 @@ function createClient() {
     onConnect: () => notifyConnected(true),
     onWebSocketClose: () => notifyConnected(false),
     onStompError: (frame) => {
-      // Frame ERROR del broker — típicamente JWT inválido. Lo logueamos
-      // y dejamos que reconectemos solos; si el JWT no es válido, el
+      // Frame ERROR del broker — típicamente JWT inválido. Lo registramos
+      // solo en dev y dejamos que reconectemos solos; si el JWT no es válido, el
       // siguiente intento también fallará hasta que el usuario re-login.
-      console.warn('[stomp] error frame:', frame.headers?.message)
+      if (import.meta.env.DEV) {
+        console.warn('[stomp] error frame:', frame.headers?.message)
+      }
       notifyConnected(false)
     },
     debug: () => {
@@ -67,7 +69,7 @@ function createClient() {
   return c
 }
 
-// Nota P2 (2026-05-18, 5ª iter): cadena de deactivations. Antes el
+// Cadena de deactivations. Antes el
 // flag booleano isReconnecting no cubría dos reconnects consecutivos:
 // reconnect A guardaba stale, marcaba isReconnecting=true, hacía await
 // deactivate; reconnect B entraba MIENTRAS A esperaba, encontraba
@@ -92,7 +94,7 @@ export async function disconnect() {
   const stale = client
   client = null
   notifyConnected(false)
-  // Nota P2 (2026-05-18, 5ª iter): await el deactivate y encadena en
+  // Await el deactivate y encadena en
   // deactivationPromise para que ensureConnected lo respete igual que
   // un reconnect. Antes era fire-and-forget y un subscribe inmediato
   // podía crear cliente nuevo antes de cerrar el viejo.
@@ -107,18 +109,18 @@ export async function disconnect() {
   }
 }
 
-// Nota P1 (2026-05-17): reconectar cuando el token cambia (logout, login
+// Reconectar cuando el token cambia (logout, login
 // con otro usuario, refresh silencioso tras 401). Sin esto el WS singleton
 // seguía conectado con el JWT viejo y las notificaciones del usuario nuevo
 // iban a la cola del anterior. Se llama desde el listener registrado abajo.
 //
-// Nota P1 (2026-05-17, segunda iteración): además de deactivate el cliente,
+// Además de deactivate el cliente,
 // hay que LIMPIAR el activeListener y sub de cada subscription para que
 // attach() las trate como pendientes y re-cree listeners contra el cliente
 // nuevo. Antes el guard `if (entry.activeListener) return` impedía la
 // re-suscripción y el closure viejo apuntaba a un cliente destruido →
 // notificaciones/brackets silenciosos hasta reload.
-// Nota P3 (2026-05-17, 3ª iter): client.deactivate() es async — devuelve
+// client.deactivate() es async — devuelve
 // Promise. Si llamamos tryAttachPending() inmediatamente, attach() crea
 // un cliente nuevo MIENTRAS el viejo aún cierra su socket. Resultado: dos
 // conexiones WS vivas durante 50-200ms en cada refresh/login rápido.
@@ -136,7 +138,7 @@ async function reconnect() {
     }
     entry.sub = null
   }
-  // Nota P2 (2026-05-18, 5ª iter): encadena el deactivate del cliente
+  // Encadena el deactivate del cliente
   // actual sobre cualquier deactivationPromise previa. ensureConnected
   // ve deactivationPromise != null y devuelve null hasta el final de
   // toda la cadena → cero solape entre cliente viejo y nuevo aunque
@@ -230,7 +232,7 @@ export function tryAttachPending() {
  * @returns {() => void} cleanup
  */
 export function subscribe(destination, onMessage) {
-  // Nota P2 (2026-05-17): registramos siempre la subscription, incluso
+  // Registramos siempre la subscription, incluso
   // sin token. Antes returnabamos no-op silencioso y el hook quedaba
   // sordo — en bootstrap el user optimista de localStorage hacía que los
   // hooks llamaran subscribe ANTES de que refreshSession trajera el JWT,

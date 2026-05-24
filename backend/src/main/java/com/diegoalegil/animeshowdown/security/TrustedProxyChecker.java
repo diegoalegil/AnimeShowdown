@@ -17,12 +17,12 @@ import org.springframework.stereotype.Component;
  * Cualquier otro origen (atacante pegando directo al backend de Railway) hace
  * que la cabecera se IGNORE y se use el RemoteAddr real para rate limit/audit.
  *
- * <p>Nota P1.4 (2026-05-17): antes {@link ClientIpExtractor} confiaba en
+ * <p>antes {@link ClientIpExtractor} confiaba en
  * {@code CF-Connecting-IP} siempre — un atacante podía pegar directo a Railway
  * con esa cabecera spoofeada y rotar IP por request para bypassear el bucket
  * de 5/min + 50/h y envenenar audit_log.
  *
- * <p>Revisión de hardening P1 (2026-05-17): las CIDRs privadas RFC1918 NO están en
+ * <p>Hardening: las CIDRs privadas RFC1918 NO están en
  * el default. Razonamiento: si el atacante consigue posicionarse en la red
  * privada del proveedor (10.x/172.16/192.168), pegar directo al contenedor
  * con {@code CF-Connecting-IP} spoofeada vuelve a saltarse el rate limit.

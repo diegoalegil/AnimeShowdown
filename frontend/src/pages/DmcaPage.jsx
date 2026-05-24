@@ -15,7 +15,7 @@ const containerVariants = {
 }
 
 /**
- * Política DMCA / takedown notice (Plan v2 §16.15).
+ * Política DMCA / takedown notice.
  *
  * <p>AnimeShowdown muestra imágenes de personajes de anime bajo fair
  * use educativo. Si un titular de derechos quiere que retiremos algo,

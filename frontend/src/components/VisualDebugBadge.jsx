@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { isVisualDebugActive } from '../lib/visualDebug'
 
 /**
- * Badge de debug visual — se activa con `?debug=visual` en cualquier URL.
+ * Badge de debug visual local — se activa con `?debug=visual` en dev.
  *
  * Pinta una etiqueta flotante sobre cada componente que pase un `visual`
  * a VisualPageShell o EditorialCover, mostrando:
@@ -15,7 +15,7 @@ import { isVisualDebugActive } from '../lib/visualDebug'
  * Click → copia el slug al clipboard para reportarlo rapidamente
  * ("oye, este slug X esta mal recortado").
  *
- * En produccion sin `?debug=visual` no renderiza nada — coste cero.
+ * En producción no renderiza nada aunque llegue el query param.
  */
 export default function VisualDebugBadge({ visual, where, className = '' }) {
   const [active, setActive] = useState(isVisualDebugActive)

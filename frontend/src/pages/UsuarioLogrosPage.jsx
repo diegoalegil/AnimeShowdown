@@ -31,7 +31,7 @@ const FILTROS_RAREZA = [
 ]
 
 /**
- * Perfil público de logros (Plan v2 §4.10).
+ * Perfil público de logros.
  *
  * Ruta: /u/:username/logros. Reutiliza el endpoint /api/perfil/{username}
  * que ya devuelve el campo `logros` (catálogo enriquecido con desbloqueadoEn
@@ -61,7 +61,7 @@ function UsuarioLogrosPage() {
         return a.desbloqueadoEn ? -1 : 1
       }
       if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      // Ajuste (2026-05-17): locale dinámico, antes 'es' hardcoded.
+      // locale dinámico, antes 'es' hardcoded.
       return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
     })
   }, [logros, filtroRareza, i18n.language])

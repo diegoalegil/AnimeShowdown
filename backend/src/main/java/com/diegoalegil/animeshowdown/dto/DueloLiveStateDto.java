@@ -15,6 +15,7 @@ public record DueloLiveStateDto(
         LocalDateTime startedEn,
         LocalDateTime finishedEn,
         int queuePosition,
+        int fallbackAfterSeconds,
         int rondaActual,
         int rondasValidas,
         int miScore,
@@ -34,7 +35,7 @@ public record DueloLiveStateDto(
         String message) {
 
     public static DueloLiveStateDto from(DueloLive duelo, DueloLiveRoundDto ronda,
-            LocalDateTime now, boolean soyJugador1, int queuePosition, String event, String message) {
+            LocalDateTime now, boolean soyJugador1, int queuePosition, int fallbackAfterSeconds, String event, String message) {
         int miScore = soyJugador1 ? duelo.getScoreJugador1() : duelo.getScoreJugador2();
         int rivalScore = soyJugador1 ? duelo.getScoreJugador2() : duelo.getScoreJugador1();
         int miBefore = soyJugador1 ? duelo.getJugador1EloBefore() : duelo.getJugador2EloBefore();
@@ -57,6 +58,7 @@ public record DueloLiveStateDto(
                 duelo.getStartedEn(),
                 duelo.getFinishedEn(),
                 queuePosition,
+                fallbackAfterSeconds,
                 duelo.getRondaActual(),
                 duelo.getRondasValidas(),
                 miScore,

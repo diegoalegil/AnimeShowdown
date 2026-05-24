@@ -22,30 +22,28 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     boolean existsBySlug(String slug);
 
     /**
-     * Torneos cuyo prefijo de descripción coincida con el dado (típicamente
-     * "[AUTO]"), filtrados por fechaCreacion posterior al umbral. Reemplaza
-     * findAll().stream().filter() en TorneoAutoService que leía la tabla
-     * entera y filtraba en memoria — con miles de torneos eso sería un
-     * desastre. La query la resuelve Postgres usando el índice de
-     * fechaCreacion.
+     * Torneos automáticos identificados por prefijo de nombre público
+     * ("Random Showdown #"), filtrados por fechaCreacion posterior al umbral.
+     * Reemplaza findAll().stream().filter() en TorneoAutoService que leía la
+     * tabla entera y filtraba en memoria.
      */
     @Query("""
             SELECT t FROM Torneo t
-            WHERE t.descripcion LIKE CONCAT(:prefix, '%')
+            WHERE t.nombre LIKE CONCAT(:prefix, '%')
               AND t.fechaCreacion > :desde
             ORDER BY t.fechaCreacion DESC
             """)
-    List<Torneo> findAutoTorneosDesde(
+    List<Torneo> findTorneosPorNombrePrefixDesde(
             @Param("prefix") String prefix,
             @Param("desde") LocalDateTime desde);
 
-    /** Cuenta total de torneos con un prefijo concreto en la descripción. */
-    @Query("SELECT COUNT(t) FROM Torneo t WHERE t.descripcion LIKE CONCAT(:prefix, '%')")
-    long countByDescripcionPrefix(@Param("prefix") String prefix);
+    /** Cuenta total de torneos con un prefijo concreto en el nombre. */
+    @Query("SELECT COUNT(t) FROM Torneo t WHERE t.nombre LIKE CONCAT(:prefix, '%')")
+    long countByNombrePrefix(@Param("prefix") String prefix);
 
-    /** Atajo a findAutoTorneosDesde con LIMIT lógico 1 (el más reciente). */
-    default Optional<Torneo> findAutoTorneoMasRecienteDesde(String prefix, LocalDateTime desde) {
-        List<Torneo> resultados = findAutoTorneosDesde(prefix, desde);
+    /** Atajo a findTorneosPorNombrePrefixDesde con LIMIT lógico 1. */
+    default Optional<Torneo> findTorneoMasRecientePorNombrePrefixDesde(String prefix, LocalDateTime desde) {
+        List<Torneo> resultados = findTorneosPorNombrePrefixDesde(prefix, desde);
         return resultados.isEmpty() ? Optional.empty() : Optional.of(resultados.get(0));
     }
 
@@ -70,11 +68,11 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     /** Listado del propio creador, todos los estados, más recientes primero. */
     List<Torneo> findByCreadoPorOrderByFechaCreacionDesc(Usuario creador);
 
-    /** Count de torneos UGC creados por un usuario. Plan v2 §4.1 stats perfil. */
+    /** Count de torneos UGC creados por un usuario. 1 stats perfil. */
     long countByCreadoPor(Usuario creador);
 
     /**
-     * Nota P2 (2026-05-17): pone a NULL la FK ganador_personaje_id de los
+     * pone a NULL la FK ganador_personaje_id de los
      * torneos que apuntan al personaje dado. Usado por DataSeeder antes de
      * borrar un personaje retirado del seed — preserva el torneo y sus
      * enfrentamientos/votos históricos, solo pierde la asignación de ganador
