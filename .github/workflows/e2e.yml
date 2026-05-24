@@ -129,6 +129,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_BASE_URL: http://127.0.0.1:8080
+          VITE_API_URL: http://127.0.0.1:8080
           ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
         run: npm run build:no-images
 
