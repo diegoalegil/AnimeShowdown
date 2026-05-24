@@ -94,12 +94,13 @@ jobs:
       # Antes la docu mencionaba que CF corría `npm run build` completo,
       # que disparaba el timeout de 20 min del free tier.
       #
-      # VITE_API_BASE_URL es obligatoria en builds de producción: api.js falla
-      # rápido si falta. El valor público de prod valida el guard durante el
-      # build y evita publicar un bundle que arrancaría en blanco.
+      # Pasamos VITE_API_BASE_URL y el alias legacy VITE_API_URL mientras main
+      # termina la migración del cliente. El valor público de prod valida que
+      # el bundle no quede apuntando a un origen vacío.
       - name: Build (sin regenerar variantes de imagen)
         env:
           VITE_API_BASE_URL: https://api.animeshowdown.dev
+          VITE_API_URL: https://api.animeshowdown.dev
           ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
         run: npm run build:no-images
 
