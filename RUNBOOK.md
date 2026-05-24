@@ -12,6 +12,7 @@
 |---|---|---|---|
 | DNS + Registrar | Cloudflare (`.dev`) | $10.44/año | TLD `.dev` fuerza HTTPS |
 | CDN frontend | Cloudflare Pages | Sí | Build con `npm run build:no-images` (timeout 20 min) |
+| CDN imágenes | Cloudflare/R2 público | Sí | `ANIMESHOWDOWN_IMG_CDN_BASE_URL` sirve el árbol público `/img/` |
 | Backend API | Railway Hobby | $5/mes | Dominio: `api.animeshowdown.dev` |
 | BBDD | Neon Postgres 17 (Frankfurt) | Sí (3GB) | Branch `main` |
 | Email | Resend HTTP API | Sí (3k/mes) | Dominio verificado |
@@ -98,17 +99,42 @@
 **Síntoma**: usuarios reportan personajes con imagen rota o con nombre extraño tipo "Akame-300".
 
 **Diagnóstico**:
-- Causa habitual: variantes responsive `-300.webp`/`-600.webp`/`-1024.webp`/`.avif` se colaron en `frontend/img/` y el sync las trató como personajes.
-- Verifica: `find frontend/img -name "*-300.webp" | wc -l` → debe ser 0.
+- Causa habitual: imagen fuente renombrada sin actualizar seed, slug duplicado o archivo no WebP en una carpeta de anime.
+- Las variantes responsive `-300.webp`/`-600.webp`/`-1024.webp`/`.avif` pueden existir en `frontend/img/`; `sync-personajes.mjs` las ignora explícitamente y no deben contarse como personajes.
 
 **Respuesta**:
 ```bash
-find frontend/img -type f \( -name "*-300.webp" -o -name "*-600.webp" -o -name "*-1024.webp" -o -name "*.avif" \) -print
 node scripts/sync-personajes.mjs --check
 node scripts/qa/catalog-quality.mjs
 ```
 
-Si aparecen variantes responsive dentro de `frontend/img/`, moverlas fuera del catálogo o eliminarlas solo tras revisar `git status`, `git diff --stat` y confirmar que no son assets fuente. El catálogo esperado es 1052 personajes.
+Si el `--check` falla, revisa los slugs indicados y corrige seed/imagen de forma explícita. No elimines variantes responsive ni imágenes de personajes por ausencia de imports directos: se resuelven por ruta dinámica. El catálogo esperado es 1052 personajes.
+
+Para producción, `frontend/img/` no viaja dentro del artefacto de Cloudflare Pages. El build `npm run build:no-images` exige:
+
+```bash
+ANIMESHOWDOWN_IMG_CDN_BASE_URL=https://assets.animeshowdown.dev/img
+```
+
+Ese origen debe contener el mismo árbol relativo que la app expone bajo `/img/`: catálogo desde `frontend/img/` y stage assets desde `frontend/public/img/`. Ejemplo: `/img/One_Piece/luffy.webp` en la app redirige a `https://assets.animeshowdown.dev/img/One_Piece/luffy.webp`. Si falta la variable, el build se aborta para no publicar una SPA con imágenes rotas.
+
+El plan local de sincronización no toca remoto:
+
+```bash
+cd frontend
+npm run assets:cdn:plan
+```
+
+La subida real usa `scripts/sync-img-cdn.mjs` y requiere secretos dedicados:
+
+- `ANIMESHOWDOWN_IMG_CDN_BASE_URL`
+- `R2_IMG_ENDPOINT`
+- `R2_IMG_ACCESS_KEY_ID`
+- `R2_IMG_SECRET_ACCESS_KEY`
+- `R2_IMG_BUCKET`
+- `R2_IMG_PREFIX` (`img` por defecto)
+
+Desde GitHub Actions, usa el workflow manual **IMG CDN sync**. El input `apply=false` solo imprime el plan; `apply=true` sube cambios. El script no ejecuta `--delete` contra el bucket para evitar borrados accidentales.
 
 ---
 
@@ -181,6 +207,23 @@ Tras cada deploy a `main` (frontend + backend), ejecutar mentalmente:
 6. Hard refresh (Cmd+Shift+R) para invalidar SW.
 
 Si alguno falla: rollback inmediato desde dashboard provider (CF Pages / Railway).
+
+## E2E local seguro
+
+Para validar Playwright con backend real sin tocar Postgres local:
+
+```bash
+cd backend
+SPRING_PROFILES_ACTIVE=e2e ./mvnw spring-boot:run -Dspring-boot.run.useTestClasspath=true
+
+cd ../frontend
+npm run build:e2e
+npm run preview -- --host 127.0.0.1
+npm run test:e2e:local
+```
+
+`build:e2e` fija `VITE_API_BASE_URL` a `http://127.0.0.1:8080` por defecto. Sin esa variable, el build de producción bloquea el arranque del cliente para evitar fallback silencioso a una API real.
+El flag `useTestClasspath` mantiene H2 fuera del artefacto productivo y aun así permite usarlo en QA local.
 
 ---
 
