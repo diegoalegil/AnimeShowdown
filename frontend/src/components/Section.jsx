@@ -13,6 +13,8 @@ const Section = forwardRef(function Section(
     className = '',
     containerClassName = 'mx-auto max-w-6xl',
     headerClassName = 'mb-10 flex flex-col items-start gap-3',
+    headerContentClassName = 'flex flex-col gap-2',
+    headerAction,
     eyebrowClassName = 'text-[12px] font-semibold uppercase tracking-[0.05em] text-gold',
     titleClassName = 'text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight',
     descriptionClassName = 'max-w-3xl text-[14px] text-fg-muted',
@@ -22,6 +24,15 @@ const Section = forwardRef(function Section(
   ref,
 ) {
   const hasHeader = eyebrow || title || description
+  const headerContent = (
+    <>
+      {eyebrow && <span className={eyebrowClassName}>{eyebrow}</span>}
+      {title && <h2 className={titleClassName}>{title}</h2>}
+      {description && (
+        <p className={descriptionClassName}>{description}</p>
+      )}
+    </>
+  )
 
   return (
     <Component
@@ -32,11 +43,12 @@ const Section = forwardRef(function Section(
       <div className={containerClassName}>
         {hasHeader && (
           <div className={headerClassName}>
-            {eyebrow && <span className={eyebrowClassName}>{eyebrow}</span>}
-            {title && <h2 className={titleClassName}>{title}</h2>}
-            {description && (
-              <p className={descriptionClassName}>{description}</p>
+            {headerAction ? (
+              <div className={headerContentClassName}>{headerContent}</div>
+            ) : (
+              headerContent
             )}
+            {headerAction}
           </div>
         )}
         {children}
