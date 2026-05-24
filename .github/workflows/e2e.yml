@@ -128,8 +128,18 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         env:
+          VITE_API_BASE_URL: http://127.0.0.1:8080
           VITE_API_URL: http://127.0.0.1:8080
+          ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
         run: npm run build:no-images
+
+      - name: Stage preview image fixtures
+        working-directory: frontend
+        run: |
+          mkdir -p dist/img/One_Piece dist/img/Naruto
+          cp img/One_Piece/luffy.webp dist/img/One_Piece/luffy.webp
+          cp img/One_Piece/zoro.webp dist/img/One_Piece/zoro.webp
+          cp img/Naruto/naruto.webp dist/img/Naruto/naruto.webp
 
       - name: Start frontend preview
         working-directory: frontend
