@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Search, Sparkles, Trophy, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Search, Sparkles, Trophy, X } from 'lucide-react'
 import LazyOnView from '../components/LazyOnView'
 import { useSeo } from '../hooks/useSeo'
 import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
@@ -10,6 +10,8 @@ import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { buscarAnimes, getAnimesCatalogo } from '../lib/animes'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS, getAnimeVisual } from '../data/visual-assets'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
@@ -22,7 +24,7 @@ const SORT_LABELS = {
 }
 
 function AnimesPage() {
-  const { personajes } = usePersonajesCatalogo()
+  const { personajes, isLoading, isError, refetch } = usePersonajesCatalogo()
   const animesCatalogo = useMemo(
     () => getAnimesCatalogo(personajes),
     [personajes],
@@ -137,7 +139,24 @@ function AnimesPage() {
           {animesCatalogo.length} universos
         </p>
 
-        {filtrados.length === 0 ? (
+        {isLoading && animesCatalogo.length === 0 ? (
+          <CatalogoSkeletonGrid />
+        ) : isError && animesCatalogo.length === 0 ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="No pudimos cargar universos"
+            description="El catálogo anime no respondió a tiempo. Reintenta para volver a consultar el archivo."
+            action={
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="as-button-primary rounded-lg px-5 py-3 text-sm font-black"
+              >
+                Reintentar
+              </button>
+            }
+          />
+        ) : filtrados.length === 0 ? (
           <EmptyStateScene
             visual={BRAND_VISUALS.empty}
             icon={Search}
@@ -178,6 +197,16 @@ function AnimesPage() {
         </div>
       </div>
     </VisualPageShell>
+  )
+}
+
+function CatalogoSkeletonGrid() {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Skeleton key={i} variant="card" />
+      ))}
+    </div>
   )
 }
 
