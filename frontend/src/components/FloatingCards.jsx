@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion'
 
 /**
@@ -99,6 +99,8 @@ const tones = {
 function FloatingCards() {
   const reduceMotion = useReducedMotion()
   const [canFloat, setCanFloat] = useState(false)
+  const rafRef = useRef(null)
+  const pointerRef = useRef({ x: 0, y: 0 })
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
 
@@ -115,11 +117,27 @@ function FloatingCards() {
   useEffect(() => {
     if (reduceMotion || !canFloat) return undefined
     const handle = (e) => {
-      mouseX.set((e.clientX / window.innerWidth) * 2 - 1)
-      mouseY.set((e.clientY / window.innerHeight) * 2 - 1)
+      pointerRef.current = {
+        x: (e.clientX / window.innerWidth) * 2 - 1,
+        y: (e.clientY / window.innerHeight) * 2 - 1,
+      }
+
+      if (rafRef.current) return
+
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = null
+        mouseX.set(pointerRef.current.x)
+        mouseY.set(pointerRef.current.y)
+      })
     }
     window.addEventListener('mousemove', handle)
-    return () => window.removeEventListener('mousemove', handle)
+    return () => {
+      window.removeEventListener('mousemove', handle)
+      if (rafRef.current) {
+        window.cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+    }
   }, [canFloat, mouseX, mouseY, reduceMotion])
 
   if (reduceMotion || !canFloat) return null

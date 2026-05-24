@@ -1,5 +1,5 @@
 /**
- * Sistema de rangos dan/kyū (Plan v2 §13.2) — progresión cultural
+ * Sistema de rangos dan/kyū — progresión cultural
  * tradicional japonesa de artes marciales (judo, kendo) y juegos de
  * estrategia (go, shōgi).
  *
@@ -42,7 +42,7 @@ export const RANGOS = [
 
 /**
  * Calcula los puntos totales de progresión a partir de las stats del
- * usuario (Plan v2 §13.2 fórmula híbrida).
+ * usuario.
  */
 export function calcularPuntos({
   votosTotales = 0,

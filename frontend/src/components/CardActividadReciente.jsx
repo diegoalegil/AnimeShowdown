@@ -3,7 +3,7 @@ import { Activity, Award, Swords, Target, Trophy } from 'lucide-react'
 import { usePerfilActividad } from '../hooks/usePerfil'
 
 /**
- * Feed de actividad reciente del usuario (Plan v2 §4.1).
+ * Feed de actividad reciente del usuario.
  *
  * <p>Mezcla votos, logros, torneos creados y predicciones acertadas en
  * orden temporal descendente. Si está cargando muestra skeleton; si

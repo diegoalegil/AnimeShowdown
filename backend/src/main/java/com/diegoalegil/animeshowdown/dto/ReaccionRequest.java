@@ -6,7 +6,7 @@ import com.diegoalegil.animeshowdown.model.ReaccionTipo;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Body de POST /api/reacciones (Plan v2 §4.3).
+ * Body de POST /api/reacciones.
  *
  * Spring deserializa los enums {@code targetType} y {@code tipo} con
  * case-sensitive match al name() del enum. Si llega un valor inválido

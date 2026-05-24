@@ -23,7 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
  * client-side y los volúmenes son pequeños (cientos por personaje top
  * en este proyecto, muy lejos de un BattleNet).
  *
- * <p>Plan producto (2026-05-18 — visión estadio otaku): consumido por
+ * <p>Consumido por
  * {@code /api/personajes/{slug}/matchups} para pintar la sección
  * "Contra quién" en la ficha de personaje.
  */

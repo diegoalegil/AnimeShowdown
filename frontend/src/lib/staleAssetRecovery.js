@@ -6,6 +6,10 @@ const STALE_ASSET_PATTERNS = [
   'failed to fetch dynamically imported module',
   'importing a module script failed',
   'error loading dynamically imported module',
+  // React.lazy puede envolver un chunk corrupto/stale como un acceso a
+  // module.default en vez de emitir el preload error original.
+  "cannot read properties of undefined (reading 'default')",
+  "cannot read property 'default' of undefined",
   'chunkloaderror',
   'loading chunk',
 ]
@@ -66,7 +70,7 @@ async function clearRuntimeCaches() {
     try {
       const names = await cacheApi.keys()
       // Borramos TODAS las caches del SW, no solo chunks-js/precache/workbox.
-      // El bug recurrente (Nota P1 2026-05-20) lo causaba un index.html
+      // El bug recurrente lo causaba un index.html
       // stale precacheado por workbox; si filtramos por nombre dejamos otras
       // caches que pueden estar igual de corruptas. Es agresivo pero garantiza
       // que tras el reload el SW empiece limpio.

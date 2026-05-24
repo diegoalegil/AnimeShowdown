@@ -1,10 +1,10 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, LogIn, SkipForward, Swords, X, Zap } from 'lucide-react'
+import { ArrowRight, LogIn, Share2, SkipForward, Swords, X, Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { personajes, imagenPersonaje, getPopularidad } from '../lib/personajes-core'
+import { imagenPersonaje, getPopularidad } from '../lib/personajes-core'
 import { endpoints, ApiError, api } from '../lib/api'
 import {
   getAnonymousVoteHeaders,
@@ -12,6 +12,7 @@ import {
   incrementAnonymousVotesCount,
 } from '../lib/anonymousVoting'
 import { useSeo } from '../hooks/useSeo'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useSound } from '../contexts/SoundContext'
 import { useAuth } from '../contexts/AuthContext'
 import { VisualPageShell } from '../components/VisualSystem'
@@ -20,6 +21,10 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import AccessibleDialog from '../components/AccessibleDialog'
 import PersonajeImg from '../components/PersonajeImg'
+import DailyMissionPanel from '../components/DailyMissionPanel'
+import { recordDailyShare, recordDailyVote } from '../lib/dailyProgress'
+import { getLocalVoteStats, recordLocalVote } from '../lib/localVoteRanking'
+import { shareOrCopy } from '../lib/share'
 
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
 // vez. La mayoría de usuarios nunca caen en captcha, así que mantenemos
@@ -31,15 +36,14 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
  *
  * Pantalla diseñada para que todo el duelo quepa sin scroll:
  *   - Cards con max-h 55vh + object-contain (no recorta) + letterbox
- *     blur de la propia imagen como fondo (rellena las barras sin
- *     mostrar negro puro). Versión robusta tras intento fallido con
- *     object-cover que recortaba info importante de cartas SSR.
+ *     ligero con color dominante. Evitamos blur en tiempo real porque
+ *     castigaba el frame rate de la arena.
  *   - VS central grande con glow magenta.
  *   - "Saltar" arriba a la derecha, siempre visible.
  *   - Nombre + anime debajo de cada card (no overlay) → comparación rápida.
  *   - Atajos de teclado: ← vota izquierda, → derecha, S saltar, Espacio
  *     siguiente cuando ya hay voto.
- *   - Modo rápido (toggle): tras votar carga el siguiente duelo en 1.2s.
+ *   - Modo rápido (toggle): tras votar carga el siguiente duelo automáticamente.
  *
  * Mantiene el modo híbrido del backend (match real si hay torneo, casual
  * con pares random local si no).
@@ -49,16 +53,14 @@ const STORAGE_FAST = 'animeshowdown.votar.fast'
 const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
 const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 const ANON_VOTE_LIMIT = 5
-// Pausa entre voto y siguiente duelo. 1.8s da tiempo a ver el "+1 ELO"
-// animado y a confirmar visualmente quién ganó sin que el usuario tenga
-// que pulsar nada. Si se acorta a <1s no da pause para el overlay; si
-// se alarga >2s el flow se siente lento.
-const NEXT_DELAY_MS = 1800
+// Pausa breve entre voto y siguiente duelo. En una pantalla de juego, 1.8s
+// se percibía como bloqueo; ~0.9s conserva feedback y mantiene ritmo.
+const NEXT_DELAY_MS = 900
 
 /**
  * Emparejamientos balanceados + anti-repetición.
  *
- * Antes era 100% random sobre los 730 personajes — salían combinaciones
+ * Antes era 100% random sobre el catálogo — salían combinaciones
  * sin sentido (un nicho contra Luffy). Ahora:
  *   1. A es completamente aleatorio (penalizando personajes vistos
  *      recientemente para que no repita el mismo en 3 enfrentamientos
@@ -73,13 +75,13 @@ const NEXT_DELAY_MS = 1800
  *
  * Añadimos buffer de últimos pares en sessionStorage para evitar el mismo
  * enfrentamiento (A vs B y B vs A son equivalentes) y penalizar a personajes
- * vistos en los últimos 6 duelos. sessionStorage (no localStorage) porque
+ * vistos recientemente. sessionStorage (no localStorage) porque
  * queremos que la memoria se limpie al cerrar la pestaña.
  */
 const RECENT_PAIRS_KEY = 'animeshowdown.votar.recent-pairs'
 const RECENT_CHARS_KEY = 'animeshowdown.votar.recent-chars'
-const RECENT_PAIRS_MAX = 20
-const RECENT_CHARS_MAX = 6
+const RECENT_PAIRS_MAX = 48
+const RECENT_CHARS_MAX = 10
 
 function pairKey(slugA, slugB) {
   // A↔B equivalentes: ordenamos alfabéticamente el slug menor primero.
@@ -88,6 +90,7 @@ function pairKey(slugA, slugB) {
 
 function readSessionList(key) {
   try {
+    if (typeof sessionStorage === 'undefined') return []
     const raw = sessionStorage.getItem(key)
     if (!raw) return []
     const parsed = JSON.parse(raw)
@@ -99,6 +102,7 @@ function readSessionList(key) {
 
 function writeSessionList(key, list, max) {
   try {
+    if (typeof sessionStorage === 'undefined') return
     const trimmed = list.slice(-max)
     sessionStorage.setItem(key, JSON.stringify(trimmed))
   } catch {
@@ -108,6 +112,7 @@ function writeSessionList(key, list, max) {
 }
 
 function recordRecentPair(slugA, slugB) {
+  if (!slugA || !slugB) return
   const pairs = readSessionList(RECENT_PAIRS_KEY)
   pairs.push(pairKey(slugA, slugB))
   writeSessionList(RECENT_PAIRS_KEY, pairs, RECENT_PAIRS_MAX)
@@ -116,8 +121,9 @@ function recordRecentPair(slugA, slugB) {
   writeSessionList(RECENT_CHARS_KEY, chars, RECENT_CHARS_MAX * 2)
 }
 
-function getRandomPair() {
-  if (personajes.length < 2) return [personajes[0], personajes[0]]
+function selectRandomPair(catalogoPersonajes) {
+  const personajes = Array.isArray(catalogoPersonajes) ? catalogoPersonajes : []
+  if (personajes.length < 2) return [null, null]
   const recentPairs = new Set(readSessionList(RECENT_PAIRS_KEY))
   const recentChars = new Set(readSessionList(RECENT_CHARS_KEY))
 
@@ -154,7 +160,6 @@ function getRandomPair() {
   const pair =
     tryPair(12, 25, true) ?? tryPair(12, 12, false) ?? tryPair(25, 10, true)
   if (pair) {
-    recordRecentPair(pair[0].slug, pair[1].slug)
     return pair
   }
 
@@ -163,9 +168,36 @@ function getRandomPair() {
   const idxA = Math.floor(Math.random() * personajes.length)
   let idxB = Math.floor(Math.random() * personajes.length)
   while (idxB === idxA) idxB = Math.floor(Math.random() * personajes.length)
-  const fallback = [personajes[idxA], personajes[idxB]]
-  recordRecentPair(fallback[0].slug, fallback[1].slug)
-  return fallback
+  return [personajes[idxA], personajes[idxB]]
+}
+
+function getPairWithFixed(catalogoPersonajes, fixedPersonaje) {
+  const personajes = Array.isArray(catalogoPersonajes) ? catalogoPersonajes : []
+  if (!fixedPersonaje || personajes.length < 2) return [null, null]
+  const recentChars = new Set(readSessionList(RECENT_CHARS_KEY))
+  const popA = getPopularidad(fixedPersonaje.slug)
+
+  const candidatos = personajes
+    .filter((p) => p.slug !== fixedPersonaje.slug)
+    .map((p) => ({
+      personaje: p,
+      score:
+        Math.abs(getPopularidad(p.slug) - popA) +
+        (recentChars.has(p.slug) ? 20 : 0),
+    }))
+    .sort((x, y) => x.score - y.score)
+    .slice(0, 24)
+
+  const rival = candidatos[Math.floor(Math.random() * candidatos.length)]?.personaje
+  if (!rival) return selectRandomPair(personajes)
+  return Math.random() > 0.5 ? [fixedPersonaje, rival] : [rival, fixedPersonaje]
+}
+
+function getPairFromAnime(catalogoPersonajes, anime) {
+  const pool = (Array.isArray(catalogoPersonajes) ? catalogoPersonajes : [])
+    .filter((p) => p.anime === anime)
+  if (pool.length < 2) return selectRandomPair(catalogoPersonajes)
+  return selectRandomPair(pool)
 }
 
 function incrementarContadorLocalVotos() {
@@ -179,19 +211,10 @@ function incrementarContadorLocalVotos() {
   }
 }
 
-function responsiveImageVariant(src, width) {
-  if (!src) return src
-  const queryIndex = src.indexOf('?')
-  const srcPath = queryIndex === -1 ? src : src.slice(0, queryIndex)
-  const srcQuery = queryIndex === -1 ? '' : src.slice(queryIndex)
-  if (!srcPath.startsWith('/img/') || /-\d+\.webp$/i.test(srcPath)) return src
-  if (!/\.webp$/i.test(srcPath)) return src
-  return `${srcPath.replace(/\.webp$/i, '')}-${width}.webp${srcQuery}`
-}
-
-function cssImageUrl(src) {
-  if (!src) return 'none'
-  return `url("${String(src).replace(/["\\]/g, '\\$&')}")`
+function formatPersonalVoteImpact(impact) {
+  if (!impact) return ''
+  const plural = impact.count === 1 ? '' : 's'
+  return `#${impact.rank} en tu ranking personal · ${impact.count} voto${plural} tuyo${plural}`
 }
 
 function VotarPage() {
@@ -204,7 +227,30 @@ function VotarPage() {
   const { user } = useAuth()
   const reduceMotion = useReducedMotion()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const fixedSlug = searchParams.get('personaje')
+  const fixedRivalSlug = searchParams.get('rival')
+  const fixedAnime = searchParams.get('anime')
+  const fixedPersonaje = useMemo(
+    () => catalogoPersonajes.find((p) => p.slug === fixedSlug) ?? null,
+    [catalogoPersonajes, fixedSlug],
+  )
+  const fixedRival = useMemo(
+    () =>
+      catalogoPersonajes.find((p) => p.slug === fixedRivalSlug && p.slug !== fixedSlug) ?? null,
+    [catalogoPersonajes, fixedRivalSlug, fixedSlug],
+  )
+  const hasFixedDuel = Boolean(fixedPersonaje && fixedRival)
+  const hasFixedAnime = useMemo(
+    () =>
+      !fixedPersonaje &&
+      Boolean(fixedAnime) &&
+      catalogoPersonajes.filter((p) => p.anime === fixedAnime).length >= 2,
+    [catalogoPersonajes, fixedAnime, fixedPersonaje],
+  )
+  const casualContextKey = `${fixedSlug || ''}::${fixedRivalSlug || ''}::${fixedAnime || ''}`
 
   const {
     data: enfrentamiento,
@@ -221,8 +267,9 @@ function VotarPage() {
     retry: false,
   })
 
-  const [casualPair, setCasualPair] = useState(getRandomPair)
+  const [casualPairOverride, setCasualPairOverride] = useState(null)
   const [votedFor, setVotedFor] = useState(null)
+  const [isAdvancing, setIsAdvancing] = useState(false)
   // Auto-next por default (opt-out vía toggle). Antes era opt-in y la
   // gente tenía que pulsar "Siguiente duelo" tras cada voto — un click
   // extra por enfrentamiento que rompía el ritmo. Solo se respeta el
@@ -257,6 +304,18 @@ function VotarPage() {
   // Ref para cancelar el timeout de auto-next si el usuario pulsa
   // "Siguiente duelo" antes de que dispare o si el componente se desmonta.
   const autoNextTimeoutRef = useRef(null)
+  const handleNextRef = useRef(null)
+  const voteLockedRef = useRef(false)
+  const isVotePendingRef = useRef(false)
+  const isAdvancingRef = useRef(false)
+  const currentPairKeyRef = useRef('')
+  const recordedPairKeyRef = useRef('')
+
+  useEffect(() => {
+    if (fastMode || autoNextTimeoutRef.current == null) return
+    clearTimeout(autoNextTimeoutRef.current)
+    autoNextTimeoutRef.current = null
+  }, [fastMode])
 
   const votarMutation = useMutation({
     mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous, captchaToken }) => {
@@ -274,10 +333,19 @@ function VotarPage() {
       queryClient.invalidateQueries({ queryKey: ['torneos'] })
     },
   })
+  const isVotePending = votarMutation.isPending
+  useEffect(() => {
+    isVotePendingRef.current = isVotePending
+  }, [isVotePending])
 
-  const modoBackend = Boolean(enfrentamiento && !isError)
+  useEffect(() => {
+    isAdvancingRef.current = isAdvancing
+  }, [isAdvancing])
+
+  const modoBackend = !fixedPersonaje && !hasFixedAnime && Boolean(enfrentamiento && !isError)
   const sinMatchesAbiertos =
     isError && error instanceof ApiError && error.status === 404
+  const canUseLocalCatalog = catalogoPersonajes.length >= 2
   const {
     data: dueloSugerido,
     refetch: refetchDueloSugerido,
@@ -285,14 +353,36 @@ function VotarPage() {
   } = useQuery({
     queryKey: ['votar', 'duelo-sugerido'],
     queryFn: endpoints.dueloSugerido,
-    enabled: !isLoading && !modoBackend,
+    enabled: !fixedPersonaje && !hasFixedAnime && !isLoading && !modoBackend && !canUseLocalCatalog,
     staleTime: 0,
     gcTime: 0,
     retry: false,
   })
   const modoSugerido = Boolean(
-    !modoBackend && dueloSugerido?.personaje1 && dueloSugerido?.personaje2,
+    !fixedPersonaje &&
+      !hasFixedAnime &&
+      !modoBackend &&
+      !canUseLocalCatalog &&
+      dueloSugerido?.personaje1 &&
+      dueloSugerido?.personaje2,
   )
+  const shouldUseCasualPair =
+    Boolean(fixedPersonaje) || hasFixedAnime || (!modoBackend && canUseLocalCatalog)
+  const casualPair = useMemo(() => {
+    if (!shouldUseCasualPair) return [null, null]
+    if (
+      casualPairOverride?.key === casualContextKey &&
+      casualPairOverride?.pair?.[0] &&
+      casualPairOverride?.pair?.[1]
+    ) {
+      return casualPairOverride.pair
+    }
+    if (catalogoPersonajes.length < 2) return [null, null]
+    if (hasFixedDuel) return [fixedPersonaje, fixedRival]
+    if (fixedPersonaje) return getPairWithFixed(catalogoPersonajes, fixedPersonaje)
+    if (hasFixedAnime) return getPairFromAnime(catalogoPersonajes, fixedAnime)
+    return selectRandomPair(catalogoPersonajes)
+  }, [catalogoPersonajes, casualContextKey, casualPairOverride, fixedAnime, fixedPersonaje, fixedRival, hasFixedAnime, hasFixedDuel, shouldUseCasualPair])
   const votoInvitadoActivo = modoBackend && !user
 
   // Datos a renderizar uniformes para ambos modos. Calculados antes del
@@ -312,35 +402,182 @@ function VotarPage() {
     matchId = null
   }
 
-  const handleNext = useCallback(() => {
+  const currentPairKey = a?.slug && b?.slug ? pairKey(a.slug, b.slug) : ''
+  const exactDuelActive =
+    hasFixedDuel &&
+    a?.slug &&
+    b?.slug &&
+    pairKey(a.slug, b.slug) === pairKey(fixedPersonaje.slug, fixedRival.slug)
+
+  useEffect(() => {
+    currentPairKeyRef.current = currentPairKey
+  }, [currentPairKey])
+
+  useEffect(() => {
+    if (!a?.slug || !b?.slug || !currentPairKey) return
+    if (recordedPairKeyRef.current === currentPairKey) return
+    recordRecentPair(a.slug, b.slug)
+    recordedPairKeyRef.current = currentPairKey
+  }, [a?.slug, b?.slug, currentPairKey])
+
+  const votedPersonaje = votedFor === a?.slug ? a : votedFor === b?.slug ? b : null
+  const losingPersonaje = votedFor === a?.slug ? b : votedFor === b?.slug ? a : null
+  const [sessionStats, setSessionStats] = useState({
+    total: 0,
+    bySlug: {},
+    closeDuels: 0,
+    lastShareText: '',
+  })
+  const [personalVoteImpact, setPersonalVoteImpact] = useState(null)
+
+  const handleNext = useCallback(async (options = {}) => {
+    const force = options?.force === true
+    if (isAdvancingRef.current || (!force && isVotePendingRef.current)) return
+    const silent = options?.silent === true
     // Cancela cualquier auto-next pendiente — el user pulsó manual
     // antes del timeout, no queremos saltar dos matches.
     if (autoNextTimeoutRef.current != null) {
       clearTimeout(autoNextTimeoutRef.current)
       autoNextTimeoutRef.current = null
     }
-    play('playClick')
+    if (!silent) play('playClick')
+    setIsAdvancing(true)
     setVotedFor(null)
     setVoteResult(null)
-    if (modoBackend) {
-      refetch()
-    } else if (modoSugerido) {
-      refetchDueloSugerido()
-    } else {
-      setCasualPair(getRandomPair())
+    setPersonalVoteImpact(null)
+    try {
+      const previousKey = currentPairKeyRef.current
+      if (modoBackend) {
+        const result = await refetch()
+        const nextKey =
+          result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
+            ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
+            : ''
+        if (nextKey && nextKey === previousKey) {
+          await refetch()
+        }
+      } else if (modoSugerido) {
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          const result = await refetchDueloSugerido()
+          const nextKey =
+            result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
+              ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
+              : ''
+          if (nextKey && nextKey !== previousKey) break
+        }
+      } else {
+        setCasualPairOverride({
+          key: casualContextKey,
+          pair: hasFixedDuel
+            ? selectRandomPair(catalogoPersonajes)
+            : fixedPersonaje
+            ? getPairWithFixed(catalogoPersonajes, fixedPersonaje)
+            : hasFixedAnime
+              ? getPairFromAnime(catalogoPersonajes, fixedAnime)
+              : selectRandomPair(catalogoPersonajes),
+        })
+      }
+    } finally {
+      voteLockedRef.current = false
+      setIsAdvancing(false)
     }
-  }, [play, modoBackend, modoSugerido, refetch, refetchDueloSugerido])
+  }, [
+    play,
+    modoBackend,
+    modoSugerido,
+    refetch,
+    refetchDueloSugerido,
+    casualContextKey,
+    catalogoPersonajes,
+    fixedAnime,
+    fixedPersonaje,
+    hasFixedDuel,
+    hasFixedAnime,
+  ])
+
+  useEffect(() => {
+    handleNextRef.current = handleNext
+  }, [handleNext])
+
+  const scheduleAutoNext = useCallback(() => {
+    if (!fastMode) return
+    if (autoNextTimeoutRef.current != null) {
+      clearTimeout(autoNextTimeoutRef.current)
+    }
+    autoNextTimeoutRef.current = setTimeout(() => {
+      autoNextTimeoutRef.current = null
+      handleNextRef.current?.({ silent: true, force: true })
+    }, NEXT_DELAY_MS)
+  }, [fastMode])
+
+  const trackLocalVote = useCallback((ganador, perdedor, data) => {
+    recordDailyVote()
+    const localVotes = recordLocalVote(ganador, perdedor)
+    const localStats = getLocalVoteStats(localVotes)
+    const rankIndex = localStats.top.findIndex((item) => item.slug === ganador.slug)
+    const localRank = rankIndex >= 0 ? localStats.top[rankIndex] : null
+    const impact = localRank
+      ? {
+          slug: ganador.slug,
+          nombre: ganador.nombre,
+          rank: rankIndex + 1,
+          count: localRank.count,
+          total: localStats.total,
+        }
+      : null
+    setPersonalVoteImpact(impact)
+    const votosGanador = Number(data?.votosGanador)
+    const votosPerdedor = Number(data?.votosPerdedor)
+    const isClose =
+      Number.isFinite(votosGanador) &&
+      Number.isFinite(votosPerdedor) &&
+      Math.abs(votosGanador - votosPerdedor) <= 1
+    setSessionStats((prev) => {
+      const bySlug = { ...prev.bySlug }
+      const current = bySlug[ganador.slug] || {
+        nombre: ganador.nombre,
+        anime: ganador.anime,
+        count: 0,
+      }
+      bySlug[ganador.slug] = {
+        ...current,
+        count: current.count + 1,
+      }
+      const total = prev.total + 1
+      const top = Object.values(bySlug)
+        .sort((x, y) => y.count - x.count)
+        .slice(0, 3)
+        .map((p) => `${p.nombre} x${p.count}`)
+        .join(', ')
+      const lastShareText = [
+        `Voté ${ganador.nombre} sobre ${perdedor?.nombre ?? 'su rival'} en AnimeShowdown.`,
+        data?.votosGanador != null
+          ? `${ganador.nombre} suma ${data.votosGanador} votos en este duelo.`
+          : 'Mi voto acaba de mover el ranking casual.',
+        top ? `Mi sesión: ${total} votos. Top: ${top}.` : `Mi sesión: ${total} votos.`,
+      ].join('\n')
+      return {
+        total,
+        bySlug,
+        closeDuels: prev.closeDuels + (isClose ? 1 : 0),
+        lastShareText,
+      }
+    })
+    return impact
+  }, [])
 
   const handleVoteSuccess = useCallback(
-    (personaje, data) => {
+    (personaje, data, perdedor) => {
       if (data?.anonimo) {
         incrementAnonymousVotesCount()
       }
       incrementarContadorLocalVotos()
+      const impact = trackLocalVote(personaje, perdedor, data)
       setVoteResult({
         ganadorSlug: personaje.slug,
         delta: data?.delta ?? 1,
         votosGanador: data?.votosGanador ?? null,
+        votosPerdedor: data?.votosPerdedor ?? null,
       })
 
       const delta = data?.delta ?? 1
@@ -348,24 +585,100 @@ function VotarPage() {
       toast.success(`+${delta} ${sufijo} · ${personaje.nombre}`, {
         description: data?.votosGanador != null
           ? data?.anonimo
-            ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}`
-            : `Ahora suma ${data.votosGanador} votos en este match`
-          : 'Voto registrado · ranking actualizado',
+            ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+            : `Ahora suma ${data.votosGanador} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+          : impact
+            ? formatPersonalVoteImpact(impact)
+            : 'Voto registrado · ranking actualizado',
       })
 
-      if (fastMode) {
-        autoNextTimeoutRef.current = setTimeout(() => {
-          autoNextTimeoutRef.current = null
-          handleNext()
-        }, NEXT_DELAY_MS)
-      }
+      scheduleAutoNext()
     },
-    [fastMode, handleNext],
+    [scheduleAutoNext, trackLocalVote],
   )
+
+  const handleShareVote = useCallback(async () => {
+    if (!votedPersonaje) return
+    const personalLine = personalVoteImpact?.slug === votedPersonaje.slug
+      ? `En mi ranking personal va #${personalVoteImpact.rank} con ${personalVoteImpact.count} votos míos.`
+      : ''
+    const baseShareText =
+      sessionStats.lastShareText ||
+      `Voté por ${votedPersonaje.nombre} en AnimeShowdown. ¿Tú a quién elegirías?`
+    const text = [baseShareText, personalLine].filter(Boolean).join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: `${votedPersonaje.nombre} ganó mi duelo`,
+        text,
+        url: losingPersonaje?.slug
+          ? `/votar?personaje=${encodeURIComponent(votedPersonaje.slug)}&rival=${encodeURIComponent(losingPersonaje.slug)}`
+          : `/votar${
+              fixedSlug
+                ? `?personaje=${encodeURIComponent(fixedSlug)}`
+                : fixedAnime
+                  ? `?anime=${encodeURIComponent(fixedAnime)}`
+                  : ''
+            }`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Duelo compartido' : 'Duelo copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir', {
+        description: error?.message || 'Copia el resultado manualmente.',
+      })
+    }
+  }, [fixedAnime, fixedSlug, losingPersonaje, personalVoteImpact, sessionStats.lastShareText, votedPersonaje])
+
+  const handleShareSessionRecap = useCallback(async () => {
+    if (sessionStats.total <= 0) return
+    const top = Object.values(sessionStats.bySlug || {})
+      .sort((x, y) => y.count - x.count)
+      .slice(0, 5)
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · x${p.count}`)
+      .join('\n')
+    const text = [
+      `Llevo ${sessionStats.total} votos en AnimeShowdown hoy.`,
+      top ? `Mi top de la sesión:\n${top}` : null,
+      sessionStats.closeDuels > 0
+        ? `${sessionStats.closeDuels} duelos estuvieron a 1 voto o menos.`
+        : 'Todavía estoy buscando el duelo más polémico.',
+      '¿A quién defenderías tú?',
+    ].filter(Boolean).join('\n')
+    try {
+      const result = await shareOrCopy({
+        title: 'Mi recap de votos anime',
+        text,
+        url: '/mi-ranking',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Recap compartido' : 'Recap copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el recap', {
+        description: error?.message || 'Copia tu resumen manualmente.',
+      })
+    }
+  }, [sessionStats])
 
   const handleVote = useCallback(
     (personaje) => {
-      if (votedFor) return
+      if (
+        votedFor ||
+        voteLockedRef.current ||
+        isVotePendingRef.current ||
+        isAdvancingRef.current
+      ) {
+        return
+      }
+      if (modoBackend && !user && getAnonymousVotesCount() >= ANON_VOTE_LIMIT) {
+        setShowAnonLimitModal(true)
+        toast.info('Límite invitado alcanzado', {
+          description: 'Crea cuenta gratis para seguir votando y guardar tu racha.',
+        })
+        return
+      }
+      voteLockedRef.current = true
       // Solo playVote: antes había también playImpact (sub-bass thump)
       // pero los dos juntos disparaban 9 nodos Web Audio en el mismo
       // tick del click handler y se percibía un lag perceptible entre
@@ -374,23 +687,15 @@ function VotarPage() {
       play('playVote')
 
       if (modoBackend) {
-        if (!user) {
-          if (getAnonymousVotesCount() >= ANON_VOTE_LIMIT) {
-            setShowAnonLimitModal(true)
-            toast.info('Límite invitado alcanzado', {
-              description: 'Crea cuenta gratis para seguir votando y guardar tu racha.',
-            })
-            return
-          }
-        }
         setVotedFor(personaje.slug)
         votarMutation.mutate(
           { enfrentamientoId: matchId, personajeGanadorId: personaje.id, anonymous: !user },
           {
             onSuccess: (data) => {
-              handleVoteSuccess(personaje, data)
+              handleVoteSuccess(personaje, data, personaje.id === a?.id ? b : a)
             },
             onError: (err) => {
+              voteLockedRef.current = false
               setVotedFor(null)
               const status = err instanceof ApiError ? err.status : 0
               // 428 Precondition Required = el throttle antifraude pide
@@ -454,20 +759,19 @@ function VotarPage() {
         )
       } else {
         setVotedFor(personaje.slug)
-        incrementarContadorLocalVotos()
-        toast.success(`+${personaje.nombre}`, {
-          description: 'Modo casual · sin torneo activo',
+        setVoteResult({
+          ganadorSlug: personaje.slug,
+          delta: 1,
+          votosGanador: null,
         })
-        if (fastMode) {
-          // Mismo patrón que modo backend (línea 220): asignar a la ref para
-          // que handleNext() manual o el cleanup del unmount puedan cancelar.
-          // Sin esto, pulsar siguiente antes del auto-next o desmontar la
-          // página dispara doble salto / setState en componente desmontado.
-          autoNextTimeoutRef.current = setTimeout(() => {
-            autoNextTimeoutRef.current = null
-            handleNext()
-          }, NEXT_DELAY_MS)
-        }
+        incrementarContadorLocalVotos()
+        const impact = trackLocalVote(personaje, personaje.slug === a?.slug ? b : a, null)
+        toast.success(`+${personaje.nombre}`, {
+          description: impact
+            ? formatPersonalVoteImpact(impact)
+            : 'Modo casual · sin torneo activo',
+        })
+        scheduleAutoNext()
       }
     },
     [
@@ -477,10 +781,12 @@ function VotarPage() {
       navigate,
       votarMutation,
       matchId,
-      fastMode,
-      handleNext,
+      scheduleAutoNext,
       handleVoteSuccess,
       votedFor,
+      a,
+      b,
+      trackLocalVote,
     ],
   )
 
@@ -501,8 +807,21 @@ function VotarPage() {
   // input — el check `tagName` evita atrapar tecla cuando se escribe en
   // otro sitio de la UI (no debería haberlos en /votar pero defensivo).
   useEffect(() => {
-    if (isLoading || !a || !b) return
+    if (
+      isLoading ||
+      !a ||
+      !b ||
+      isFetching ||
+      isFetchingDueloSugerido ||
+      isVotePending ||
+      isAdvancing ||
+      showAnonLimitModal ||
+      captchaChallenge
+    ) {
+      return
+    }
     const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       const tag = e.target?.tagName?.toLowerCase()
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return
       if (e.key === 'ArrowLeft') {
@@ -521,9 +840,31 @@ function VotarPage() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isLoading, a, b, handleVote, handleNext, votedFor])
+  }, [
+    isLoading,
+    isFetching,
+    isFetchingDueloSugerido,
+    isVotePending,
+    isAdvancing,
+    showAnonLimitModal,
+    captchaChallenge,
+    a,
+    b,
+    handleVote,
+    handleNext,
+    votedFor,
+  ])
 
-  if (isLoading) {
+  const needsCasualPair = !modoBackend && !modoSugerido && (!a || !b)
+  const controlsDisabled = isVotePending || isAdvancing || isFetching || isFetchingDueloSugerido
+  const handleVoteLeft = useCallback(() => {
+    if (a) handleVote(a)
+  }, [a, handleVote])
+  const handleVoteRight = useCallback(() => {
+    if (b) handleVote(b)
+  }, [b, handleVote])
+
+  if ((!fixedPersonaje && !hasFixedAnime && isLoading) || needsCasualPair) {
     return (
       <VisualPageShell
         visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
@@ -556,6 +897,12 @@ function VotarPage() {
             </span>
             {modoBackend
               ? 'Match en juego · En vivo'
+              : exactDuelActive
+                ? `${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
+                : fixedPersonaje
+                ? `Retando a ${fixedPersonaje.nombre}`
+                : hasFixedAnime
+                  ? `Duelo interno · ${fixedAnime}`
               : modoSugerido
                 ? `Duelo ELO equilibrado · Δ ${dueloSugerido.eloDiff}`
                 : 'Enfrentamiento aleatorio'}
@@ -579,7 +926,7 @@ function VotarPage() {
             <button
               type="button"
               onClick={handleNext}
-              disabled={isFetching || isFetchingDueloSugerido}
+              disabled={controlsDisabled}
               className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
             >
               <SkipForward className="h-3.5 w-3.5" />
@@ -588,6 +935,17 @@ function VotarPage() {
             </button>
           </div>
         </div>
+
+        <DailyMissionPanel compact />
+
+        <VotarQuickModes
+          a={a}
+          b={b}
+          fixedAnime={fixedAnime}
+          fixedPersonaje={fixedPersonaje}
+          hasFixedDuel={exactDuelActive}
+          hasFixedAnime={hasFixedAnime}
+        />
 
         {/* Pregunta principal */}
         <header className="flex flex-col items-center gap-1 text-center">
@@ -601,7 +959,13 @@ function VotarPage() {
                 : 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
               : sinMatchesAbiertos
                 ? 'No hay torneos en juego — te proponemos pares de ELO similar'
-                : 'Elige quién gana este duelo y ayuda a mover el ranking ELO'}
+                : exactDuelActive
+                  ? `Duelo fijado desde una comparación: ${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
+                : fixedPersonaje
+                  ? `Duelo fijado desde la ficha de ${fixedPersonaje.nombre}`
+                  : hasFixedAnime
+                    ? `Solo personajes de ${fixedAnime} en este duelo`
+                  : 'Elige quién gana este duelo y ayuda a mover el ranking competitivo'}
           </p>
         </header>
 
@@ -628,7 +992,8 @@ function VotarPage() {
           </div>
           <VoteCard
             personaje={a}
-            onClick={() => handleVote(a)}
+            onClick={handleVoteLeft}
+            disabled={controlsDisabled}
             isVoted={votedFor === a.slug}
             isLoser={votedFor && votedFor !== a.slug}
             showResult={Boolean(votedFor)}
@@ -641,7 +1006,8 @@ function VotarPage() {
           </div>
           <VoteCard
             personaje={b}
-            onClick={() => handleVote(b)}
+            onClick={handleVoteRight}
+            disabled={controlsDisabled}
             isVoted={votedFor === b.slug}
             isLoser={votedFor && votedFor !== b.slug}
             showResult={Boolean(votedFor)}
@@ -650,6 +1016,47 @@ function VotarPage() {
             voteResult={voteResult?.ganadorSlug === b.slug ? voteResult : null}
           />
         </motion.div>
+
+        {votedPersonaje && (
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
+            <div>
+              <p className="text-sm font-black text-fg-strong">
+                {votedPersonaje.nombre} ganó tu duelo.
+              </p>
+              <p className="text-[12px] text-fg-muted">
+                {voteResult?.votosGanador != null
+                  ? `${voteResult.votosGanador} votos para ${votedPersonaje.nombre}${losingPersonaje ? ` · rival: ${losingPersonaje.nombre}` : ''}`
+                  : 'Voto registrado en modo casual. Sigue para completar tu misión diaria.'}
+              </p>
+              {personalVoteImpact?.slug === votedPersonaje.slug && (
+                <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-2.5 py-1 text-[11px] font-black text-gold">
+                  {formatPersonalVoteImpact(personalVoteImpact)}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                onClick={handleShareVote}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-4 py-2 text-[13px] font-black text-white transition-colors hover:bg-accent-hover"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Compartir duelo
+              </button>
+              <Link
+                to="/mi-ranking"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+              >
+                Mi ranking
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {sessionStats.total > 0 && sessionStats.total % 10 === 0 && (
+          <SessionRecap stats={sessionStats} onShare={handleShareSessionRecap} />
+        )}
 
         {/* Atajos + (en sin matches) link a torneos */}
         <div className="flex flex-col items-center gap-2">
@@ -739,13 +1146,86 @@ function VotarPage() {
   )
 }
 
-function VsBadge({ votedFor, compact = false }) {
+function VotarQuickModes({ a, b, fixedAnime, fixedPersonaje, hasFixedAnime, hasFixedDuel }) {
+  const animeContext = hasFixedAnime ? fixedAnime : a?.anime || b?.anime || ''
+  const animeHref = animeContext
+    ? `/votar?anime=${encodeURIComponent(animeContext)}`
+    : '/animes'
+  const compareHref = a?.slug && b?.slug
+    ? `/comparar?a=${encodeURIComponent(a.slug)}&b=${encodeURIComponent(b.slug)}`
+    : '/comparar'
+
+  return (
+    <nav
+      aria-label="Modos rápidos de voto"
+      className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      <QuickModeLink
+        to="/votar"
+        icon={Swords}
+        label="Equilibrado"
+        detail="Rivales cercanos"
+        active={!fixedPersonaje && !hasFixedAnime && !hasFixedDuel}
+      />
+      <QuickModeLink
+        to={animeHref}
+        icon={Zap}
+        label="Mismo anime"
+        detail={animeContext || 'Elige universo'}
+        active={hasFixedAnime}
+      />
+      <QuickModeLink
+        to={compareHref}
+        icon={Share2}
+        label="Comparar"
+        detail={a?.nombre && b?.nombre ? `${a.nombre} vs ${b.nombre}` : 'Crea un versus'}
+      />
+      <QuickModeLink
+        to="/misiones"
+        icon={ArrowRight}
+        label="Misión diaria"
+        detail="Completa 10 votos"
+      />
+    </nav>
+  )
+}
+
+function QuickModeLink({ to, icon: Icon, label, detail, active = false }) {
+  return (
+    <Link
+      to={to}
+      className={`group flex min-h-[58px] min-w-0 items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
+        active
+          ? 'border-gold/55 bg-gold-soft text-gold'
+          : 'border-border bg-surface/90 text-fg-muted hover:border-accent/50 hover:text-fg-strong'
+      }`}
+    >
+      <span
+        className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
+          active
+            ? 'border-gold/45 bg-gold/15'
+            : 'border-border bg-bg/50 group-hover:border-accent/35'
+        }`}
+        aria-hidden="true"
+      >
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-[13px] font-black text-fg-strong">
+          {label}
+        </span>
+        <span className="block truncate text-[11px] font-semibold text-fg-muted">
+          {detail}
+        </span>
+      </span>
+    </Link>
+  )
+}
+
+const VsBadge = memo(function VsBadge({ votedFor, compact = false }) {
   const reduceMotion = useReducedMotion()
-  // Revisión perf (2026-05-22): la animación infinita scale[1,1.06,1] cada 1.8s
-  // forzaba recomposición del badge cada frame durante TODA la sesión, aún
-  // cuando el usuario no había interactuado. Si el user respeta
-  // prefers-reduced-motion la quitamos del todo; en el resto la mantenemos
-  // pero con duración más larga (2.6s) para reducir frame churn.
+  // Sin animación infinita en idle: el badge central estaba recomponiendo
+  // frames durante toda la sesión aunque el usuario no interactuara.
   return (
     <motion.div
       animate={
@@ -753,13 +1233,11 @@ function VsBadge({ votedFor, compact = false }) {
           ? reduceMotion
             ? { scale: 1.1 }
             : { scale: [1, 1.25, 1], rotate: [0, 8, -8, 0] }
-          : reduceMotion
-            ? { scale: 1 }
-            : { scale: [1, 1.06, 1] }
+          : { scale: 1 }
       }
       transition={{
-        duration: votedFor ? 0.5 : 2.6,
-        repeat: votedFor || reduceMotion ? 0 : Infinity,
+        duration: votedFor ? 0.5 : 0,
+        repeat: 0,
         ease: 'easeInOut',
       }}
       className={`relative flex items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-gold shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] ${
@@ -774,11 +1252,80 @@ function VsBadge({ votedFor, compact = false }) {
       </span>
     </motion.div>
   )
+})
+
+function SessionRecap({ stats, onShare }) {
+  const top = Object.values(stats.bySlug || {})
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+
+  return (
+    <section className="rounded-xl border border-gold/35 bg-gold-soft p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+            Recap de sesión
+          </p>
+          <h2 className="mt-1 text-xl font-black text-fg-strong">
+            {stats.total} votos lanzados. El ranking ya notó tu mano.
+          </h2>
+          <p className="mt-1 text-[13px] text-fg-muted">
+            {stats.closeDuels > 0
+              ? `${stats.closeDuels} duelos quedaron ajustados por 1 voto o menos.`
+              : 'Sigue votando para encontrar duelos más polémicos.'}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/mi-ranking"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-bg/60 px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+          >
+            Ver mi ranking
+          </Link>
+          <Link
+            to="/mi-top5"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/45 bg-accent-soft px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold"
+          >
+            Crear mi Top 5
+          </Link>
+          <button
+            type="button"
+            onClick={onShare}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gold/45 bg-gold px-4 py-2 text-[13px] font-black text-bg transition-transform hover:scale-[1.01]"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Compartir recap
+          </button>
+        </div>
+      </div>
+      {top.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {top.map((item) => (
+            <span
+              key={item.nombre}
+              className="inline-flex rounded-full border border-border bg-bg/60 px-3 py-1 text-[12px] font-semibold text-fg-muted"
+            >
+              {item.nombre} · x{item.count}
+            </span>
+          ))}
+        </div>
+      )}
+    </section>
+  )
 }
 
-function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anonymousLimited, voteResult }) {
+const VoteCard = memo(function VoteCard({
+  personaje,
+  onClick,
+  disabled,
+  isVoted,
+  isLoser,
+  showResult,
+  side,
+  anonymousLimited,
+  voteResult,
+}) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
-  const blurSrc = responsiveImageVariant(imgSrc, 300)
   const dominantColor = personaje.imagenColorDominante ?? '#151923'
   // warm() en hover: anticipa que el user va a hacer click y resume el
   // AudioContext si estaba suspended. Sin esto el primer playVote tras
@@ -793,8 +1340,8 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
         onClick={onClick}
         onPointerEnter={warm}
         onFocus={warm}
-        disabled={showResult}
-        // Revisión perf (2026-05-22): los keyframes scale[1,1.08,1] +
+        disabled={disabled || showResult}
+        // perf: los keyframes scale[1,1.08,1] +
         // boxShadow[3 keyframes] al votar generaban 3 transiciones simultáneas
         // sobre una card de 400px; combinado con el blur del letterbox
         // disparaba 30+ms/frame durante 560ms. Mantenemos el pop con un
@@ -812,7 +1359,7 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             : `Votar por ${personaje.nombre} de ${personaje.anime}`
         }
         // transition: solo las props que realmente cambian, no `all`.
-        // `all` reanimaba TODO (filtros, fondos, padding...) en cada
+        // `all` reanimaba todo (filtros, fondos, padding...) en cada
         // hover/repaint, agitando el compositor en una página con dos
         // cards + dos letterboxes a la vez. Coste: del 30%-50% de un
         // frame en cards medianas según DevTools Performance.
@@ -828,30 +1375,11 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
           className="relative aspect-[2/3] max-h-[min(44svh,28rem)] w-full overflow-hidden sm:max-h-[min(55svh,34rem)]"
           style={{ backgroundColor: dominantColor }}
         >
-          {/* Letterbox del fondo:
-              - Antes: blur(48px) + scale(1.4) era brutal en repaint
-                (~10-15ms/frame). Pasó a blur(24px) + scale(1.2) + GPU layer.
-              - Revisión perf (2026-05-22): aun a 24px, en 2 cards a la vez +
-                hover scale + voto animation, el repaint del blur seguía
-                siendo el principal bottleneck según devtools. Bajamos a
-                blur(18px) + scale(1.1) (menos área a re-blurear) y opacity
-                0.55 para que el efecto se note menos al simplificarse.
-                contain:strict aísla el layer del compositor — los repaints
-                de la card no propagan al letterbox de la otra.
-              - dominantColor sigue ahí abajo como fondo de respaldo si
-                el blur tarda en pintar al primer frame. */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 hidden motion-reduce:hidden sm:block"
+            className="pointer-events-none absolute inset-0"
             style={{
-              backgroundImage: cssImageUrl(blurSrc),
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'blur(18px)',
-              transform: 'scale(1.1)',
-              opacity: 0.55,
-              willChange: 'filter',
-              contain: 'strict',
+              background: `radial-gradient(circle at 50% 36%, ${dominantColor} 0%, rgba(13, 13, 18, 0.72) 45%, rgba(13, 13, 18, 0.96) 100%)`,
             }}
           />
           <PersonajeImg
@@ -882,6 +1410,8 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
             active={Boolean(voteResult)}
             delta={voteResult?.delta}
             value={voteResult?.votosGanador}
+            animateValue={false}
+            particles={false}
             // El backend cuenta votos del match, no un K-factor ELO real.
             // "Voto registrado" evita prometer una métrica distinta.
             label="Voto registrado"
@@ -920,11 +1450,11 @@ function VoteCard({ personaje, onClick, isVoted, isLoser, showResult, side, anon
       </div>
     </div>
   )
-}
+})
 
 function AnonVoteLimitModal({ open, onClose }) {
   const next = encodeURIComponent('/votar')
-  // Revisión F018 (2026-05-22): este modal antes era un <div role="dialog">
+  // Este modal antes era un <div role="dialog">
   // sin focus trap, Escape, bloqueo de scroll ni restore de foco. Migrado
   // al componente AccessibleDialog que centraliza todos esos detalles.
   return (

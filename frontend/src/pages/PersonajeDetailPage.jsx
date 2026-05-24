@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -7,6 +7,7 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  Flame,
   Quote,
   Share2,
   Sparkles,
@@ -44,6 +45,13 @@ import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/visual-assets'
 import { slugifyAnime } from '../lib/animes'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyShare } from '../lib/dailyProgress'
+import {
+  getLocalVoteStats,
+  listenLocalVotes,
+  readLocalVotes,
+} from '../lib/localVoteRanking'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -91,8 +99,8 @@ function PersonajeDetailPage() {
   useSeo(
     personaje
       ? {
-          // Nota técnica AS-043 + B3.5 (2026-05-23): el ELO en el title era
-          // un número sin contexto que Google indexaba como si fuera ELO real.
+          // El ELO en el title necesita contexto para no indexarse como si
+          // fuera ELO competitivo real.
           // "ELO base" deja claro que es el cold-start estimado del catálogo
           // — el ranking competitivo real está en /ranking.
           title: `${personaje.nombre} de ${personaje.anime}${
@@ -101,7 +109,7 @@ function PersonajeDetailPage() {
           description:
             personaje.descripcion ||
             `Ficha de ${personaje.nombre}, personaje de ${personaje.anime}, en AnimeShowdown. ELO base estimado + posición en el ranking competitivo.`,
-          image: imagenPersonaje(personaje.slug),
+          image: `/api/og/personaje/${personaje.slug}.png`,
           type: 'profile',
         }
       : { title: '404 — Personaje no encontrado', noindex: true },
@@ -137,7 +145,7 @@ function PersonajeDetailPage() {
 
   // Lista cacheada (10 min stale) para mapear slug → id del backend. La
   // necesitamos porque las reactions usan targetId=long del backend, no
-  // el slug del catálogo client-side. Plan v2 §4.3.
+  // el slug del catálogo client-side. 3.
   const { data: listaBackend } = useQuery({
     queryKey: ['personajes', 'lista'],
     queryFn: endpoints.personajes,
@@ -146,6 +154,16 @@ function PersonajeDetailPage() {
   const personajeBackendId = personaje && listaBackend
     ? listaBackend.find((p) => p.slug === personaje.slug)?.id
     : null
+
+  const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
+  useEffect(
+    () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
+    [],
+  )
+  const personalLocalStats = useMemo(
+    () => getLocalVoteStats(localVotes),
+    [localVotes],
+  )
 
   if (idx !== -1 && slugParam !== slug) {
     return <Navigate to={`/personajes/${slug}`} replace />
@@ -169,31 +187,47 @@ function PersonajeDetailPage() {
     [...animePersonajes]
       .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
       .findIndex((p) => p.slug === slug) + 1
+  const personalRankIndex = personalLocalStats.top.findIndex((item) => item.slug === slug)
+  const personalSignal = personalRankIndex >= 0
+    ? {
+        rank: personalRankIndex + 1,
+        count: personalLocalStats.top[personalRankIndex].count,
+        total: personalLocalStats.total,
+      }
+    : null
 
   const compartir = async () => {
-    const url = `https://animeshowdown.dev/personajes/${slug}`
     const titulo = `${personaje.nombre} · ${personaje.anime} · AnimeShowdown`
+    const personalLine = personalSignal
+      ? `En mi ranking personal va #${personalSignal.rank} con ${personalSignal.count} voto${personalSignal.count === 1 ? '' : 's'} mío${personalSignal.count === 1 ? '' : 's'}.`
+      : ''
     try {
-      if (navigator.share) {
-        await navigator.share({ title: titulo, url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast.success('Enlace copiado al portapapeles')
-      }
+      const result = await shareOrCopy({
+        title: titulo,
+        text: [
+          `${personaje.nombre} de ${personaje.anime} está en AnimeShowdown con ELO base ${stats.elo}. ¿Lo subirías en el ranking?`,
+          personalLine,
+        ].filter(Boolean).join('\n'),
+        url: `/personajes/${slug}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Ficha compartida' : 'Ficha copiada')
     } catch (e) {
-      if (e?.name !== 'AbortError') {
-        toast.error('No se pudo compartir')
-      }
+      toast.error('No se pudo compartir', {
+        description: e?.message || 'Copia el enlace manualmente.',
+      })
     }
   }
-  // Plan v2 §5.6: hasta 10 personajes del mismo anime como internal linking
-  // estructurado. Google sigue estos links para entender la red semántica
+  // Hasta 10 personajes del mismo anime como internal linking estructurado.
+  // Google sigue estos links para entender la red semántica
   // ("Akame ga Kill!" → 10 personajes del anime); más de 10 saturaría la
   // página y reduciría link equity por dilución.
   const relacionados = personajes
     .filter((p) => p.anime === personaje.anime && p.slug !== slug)
     .slice(0, 10)
   const duelosPopulares = getDuelosPopulares(personaje)
+  const retoRecomendado = getRetoRecomendado(personaje)
   const totalAnime =
     personajes.filter((p) => p.anime === personaje.anime).length
   // Visual del anime al que pertenece el personaje: usa el banner editorial
@@ -201,6 +235,28 @@ function PersonajeDetailPage() {
   // detras del shell, en lugar de la as-stage genérica.
   const animeSlug = slugifyAnime(personaje.anime)
   const visualAnime = getAnimeVisual(animeSlug, personaje.anime)
+  const compartirRetoRecomendado = async () => {
+    if (!retoRecomendado) return
+    const rival = retoRecomendado.personaje
+    try {
+      const result = await shareOrCopy({
+        title: `${personaje.nombre} vs ${rival.nombre}`,
+        text: [
+          `Reto recomendado en AnimeShowdown: ${personaje.nombre} vs ${rival.nombre}.`,
+          `Diferencia ELO base: ${retoRecomendado.delta} puntos.`,
+          '¿A quién subirías votando?',
+        ].join('\n'),
+        url: `/duelos/${personaje.slug}-vs-${rival.slug}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Reto compartido' : 'Reto copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el reto', {
+        description: error?.message || 'Copia el enlace manualmente.',
+      })
+    }
+  }
 
   return (
     <VisualPageShell
@@ -228,7 +284,7 @@ function PersonajeDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver al catálogo
         </Link>
-        {/* Plan v2 §6.3: <article> con Microdata schema.org/Person para
+        {/* 3: <article> con Microdata schema.org/Person para
             crawlers que prefieren Microdata sobre JSON-LD. Coexiste con
             el JsonLd de arriba sin contradecirse — Google da prioridad a
             JSON-LD pero algunos LLMs y scrapers parsean ambos. itemprop
@@ -247,11 +303,8 @@ function PersonajeDetailPage() {
             content={`https://animeshowdown.dev${imagenPersonaje(slug)}`}
           />
           <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
-          {/* Nota visual (2026-05-18): en móvil reordenamos para que la
-              identidad (badges + H1 + CTAs) aparezca antes que la imagen,
-              y capamos la imagen a 55vh — antes empujaba todo el contenido
-              fuera del primer viewport. En desktop el orden y el aspect-ratio
-              originales se preservan vía md:* classes. */}
+          {/* En móvil la identidad aparece antes que la imagen y la imagen se
+              capa a 55vh; en desktop se preservan el orden y aspect-ratio. */}
           <motion.div
             className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
             variants={itemVariants}
@@ -262,13 +315,13 @@ function PersonajeDetailPage() {
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
             >
-              {/* Ajuste (2026-05-17): Personaje3D era opt-in al mount con
+              {/* Personaje3D era opt-in al mount con
                   imagen como fallback, pero el chunk se descargaba siempre
                   al entrar a la ficha y disparaba 'THREE.Clock deprecated'
                   en consola. Cambio a static-first: imagen como default y
                   un botón 'Ver en 3D' monta el lazy chunk on-demand.
 
-                  Sprint galería (2026-05-18): la imagen del hero ahora
+                  Galería: la imagen del hero ahora
                   es la del state `imagenActiva` que PersonajeGaleria
                   cambia al hacer click en una thumbnail. PersonajeStaticOr3D
                   recibe la URL como prop en vez de calcularla. */}
@@ -347,19 +400,26 @@ function PersonajeDetailPage() {
               variants={itemVariants}
             >
               <Link
-                to="/votar"
+                to={`/votar?personaje=${encodeURIComponent(personaje.slug)}`}
                 className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Swords className="h-4 w-4" />
-                Votar ahora
+                Retar a este personaje
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                to="/ranking"
+                to={`/ranking?q=${encodeURIComponent(personaje.nombre)}`}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
               >
                 <TrendingUp className="h-4 w-4" />
                 Ver en ranking
+              </Link>
+              <Link
+                to={`/mi-top5?add=${encodeURIComponent(personaje.slug)}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/55 hover:text-gold"
+              >
+                <Sparkles className="h-4 w-4" />
+                Llevar a mi Top 5
               </Link>
               <button
                 type="button"
@@ -371,6 +431,11 @@ function PersonajeDetailPage() {
               </button>
               <SeguirPersonajeButton slug={slug} nombre={personaje.nombre} />
             </motion.div>
+            <PersonalCharacterSignal
+              personaje={personaje}
+              signal={personalSignal}
+              totalVotes={personalLocalStats.total}
+            />
             {personajeBackendId && (
               <motion.div variants={itemVariants}>
                 <ReactionsBar
@@ -383,11 +448,9 @@ function PersonajeDetailPage() {
               className="grid w-full grid-cols-3 gap-3"
               variants={itemVariants}
             >
-              {/* Nota técnica AS-010/AS-043 (2026-05-23): el "ELO" mostrado
-                  aquí viene de getStatsPersonaje(slug), determinístico por
-                  slug + popularidad hardcoded. NO es ELO real con K-factor
-                  ni se mueve con los votos. Lo etiquetamos como base/estimado
-                  y el copy de abajo apunta al ranking real para no mentir. */}
+              {/* El "ELO" mostrado aquí viene de getStatsPersonaje(slug);
+                  es determinístico y no se mueve con los votos. Lo
+                  etiquetamos como base/estimado y apuntamos al ranking real. */}
               <Stat label="ELO base" value={stats.elo} accent />
               <Stat
                 label="Récord est."
@@ -451,11 +514,9 @@ function PersonajeDetailPage() {
               className="text-[12px] leading-relaxed text-fg-muted"
               variants={itemVariants}
             >
-              {/* Nota técnica AS-043 (2026-05-23): antes "Stats derivadas
-                  del historial de enfrentamientos" — falso porque estas
-                  stats se calculan determinísticamente desde el slug y
-                  una tabla de popularidad estimada, NO desde votos reales.
-                  El ELO real ponderado vive en /ranking. */}
+              {/* Estas stats se calculan desde el slug y una tabla de
+                  popularidad estimada, no desde votos reales. El ranking
+                  ponderado vive en /ranking. */}
               ELO base estimado por popularidad para el cold-start del
               catálogo. El{' '}
               <Link
@@ -497,6 +558,18 @@ function PersonajeDetailPage() {
             </motion.div>
           </motion.div>
         </motion.article>
+
+        {retoRecomendado && (
+          <RetoRecomendado
+            personaje={personaje}
+            stats={stats}
+            rival={retoRecomendado.personaje}
+            rivalStats={retoRecomendado.stats}
+            delta={retoRecomendado.delta}
+            tipo={retoRecomendado.tipo}
+            onShare={compartirRetoRecomendado}
+          />
+        )}
 
         <div className="mt-10">
           <EloHistoryChart slug={slug} />
@@ -611,8 +684,8 @@ function PersonajeDetailPage() {
           </div>
         )}
 
-        {/* Historial competitivo (Plan producto 2026-05-18): "Últimos
-            duelos" + "Contra quién". Lo metemos aquí, entre "Mismo
+        {/* Historial competitivo: "Últimos duelos" + "Contra quién".
+            Lo metemos aquí, entre "Mismo
             universo" y "Más allá del universo", para que el bloque
             historial-competitivo aparezca tras los datos básicos pero
             antes del discovery cross-anime. */}
@@ -620,6 +693,219 @@ function PersonajeDetailPage() {
 
       <CarruselSimilares slug={slug} nombre={personaje.nombre} />
     </VisualPageShell>
+  )
+}
+
+function getRetoRecomendado(personaje) {
+  const baseStats = getStatsPersonaje(personaje.slug)
+  const mismoAnime = personajes.filter(
+    (p) => p.anime === personaje.anime && p.slug !== personaje.slug,
+  )
+  const pool =
+    mismoAnime.length > 0
+      ? mismoAnime
+      : personajes.filter((p) => p.slug !== personaje.slug)
+  const rival = [...pool]
+    .map((p) => ({
+      personaje: p,
+      stats: getStatsPersonaje(p.slug),
+    }))
+    .sort((a, b) => {
+      const deltaA = Math.abs(a.stats.elo - baseStats.elo)
+      const deltaB = Math.abs(b.stats.elo - baseStats.elo)
+      if (deltaA !== deltaB) return deltaA - deltaB
+      return b.stats.elo - a.stats.elo
+    })[0]
+
+  if (!rival) return null
+  return {
+    ...rival,
+    delta: Math.abs(rival.stats.elo - baseStats.elo),
+    tipo: mismoAnime.length > 0 ? 'mismo anime' : 'cross-anime',
+  }
+}
+
+function RetoRecomendado({ personaje, stats, rival, rivalStats, delta, tipo, onShare }) {
+  const lider = stats.elo >= rivalStats.elo ? personaje : rival
+  return (
+    <section className="mt-10 overflow-hidden rounded-2xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.16),rgb(197_161_90_/_0.08),rgb(7_10_18_/_0.84))] p-5 shadow-[0_24px_90px_-58px_rgb(0_0_0)] sm:p-6">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+            <Flame className="h-3.5 w-3.5" />
+            Reto recomendado
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-fg-strong">
+            {personaje.nombre} vs {rival.nombre}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-fg-muted">
+            Rival elegido por cercanía de ELO base
+            {tipo === 'mismo anime' ? ` dentro de ${personaje.anime}` : ' entre universos'}.
+            Es el duelo más fácil de entender y compartir desde esta ficha.
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-bg/55 px-4 py-3 text-sm text-fg-muted">
+          <span className="font-bold text-gold">{lider.nombre}</span> llega con{' '}
+          <span className="font-mono font-bold text-fg-strong">{delta}</span>{' '}
+          puntos de diferencia.
+        </div>
+      </div>
+
+      <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_auto_1fr]">
+        <RetoCard personaje={personaje} stats={stats} label="Ficha actual" />
+        <div className="flex items-center justify-center">
+          <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-accent/50 bg-accent-soft font-black text-gold shadow-[0_0_38px_rgb(159_29_44_/_0.25)]">
+            VS
+          </span>
+        </div>
+        <RetoCard personaje={rival} stats={rivalStats} label="Rival sugerido" />
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Link
+          to={`/duelos/${personaje.slug}-vs-${rival.slug}`}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+        >
+          <Swords className="h-4 w-4" />
+          Comparar duelo
+        </Link>
+        <Link
+          to={`/votar?personaje=${encodeURIComponent(personaje.slug)}`}
+          className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-bold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+        >
+          <span className="truncate">Retar a {personaje.nombre}</span>
+        </Link>
+        <Link
+          to={`/votar?personaje=${encodeURIComponent(rival.slug)}`}
+          className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-bold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+        >
+          <span className="truncate">Retar a {rival.nombre}</span>
+        </Link>
+        <button
+          type="button"
+          onClick={onShare}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-bold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-accent/45 hover:text-gold"
+        >
+          <Share2 className="h-4 w-4" />
+          Compartir reto
+        </button>
+      </div>
+    </section>
+  )
+}
+
+function RetoCard({ personaje, stats, label }) {
+  return (
+    <article className="relative overflow-hidden rounded-xl border border-white/10 bg-bg/70">
+      <div className="grid gap-4 p-4 sm:grid-cols-[112px_minmax(0,1fr)] sm:p-5">
+        <Link
+          to={`/personajes/${personaje.slug}`}
+          className="aspect-[2/3] overflow-hidden rounded-lg border border-border bg-surface"
+        >
+          <PersonajeImg
+            slug={personaje.slug}
+            alt={personaje.nombre}
+            className="h-full w-full object-cover object-top transition-transform duration-300 hover:scale-105"
+            loading="lazy"
+          />
+        </Link>
+        <div className="min-w-0 self-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gold">
+            {label}
+          </p>
+          <h3 className="mt-1 truncate text-2xl font-black text-fg-strong">
+            {personaje.nombre}
+          </h3>
+          <p className="mt-1 text-sm text-fg-muted">{personaje.anime}</p>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <MiniRetoStat label="ELO" value={stats.elo} accent />
+            <MiniRetoStat label="V" value={stats.wins} />
+            <MiniRetoStat label="D" value={stats.losses} />
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function MiniRetoStat({ label, value, accent }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-surface/70 p-2">
+      <p className="text-[9px] font-black uppercase tracking-[0.12em] text-fg-muted">
+        {label}
+      </p>
+      <p className={`mt-1 font-mono text-sm font-black ${accent ? 'text-gold' : 'text-fg-strong'}`}>
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function PersonalCharacterSignal({ personaje, signal, totalVotes }) {
+  if (!personaje || (!signal && totalVotes <= 0)) return null
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      className={`w-full rounded-xl border p-4 ${
+        signal
+          ? 'border-gold/35 bg-gold-soft'
+          : 'border-border bg-surface'
+      }`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+            <Flame className="h-3.5 w-3.5" />
+            Tu ranking personal
+          </p>
+          {signal ? (
+            <>
+              <p className="mt-1 text-lg font-black text-fg-strong">
+                #{signal.rank} para ti · {signal.count} voto{signal.count === 1 ? '' : 's'} tuyo{signal.count === 1 ? '' : 's'}
+              </p>
+              <p className="mt-1 text-[12px] leading-5 text-fg-muted">
+                Este personaje ya forma parte de tu meta local. Sigue retándolo
+                para defenderlo o compara tu sesgo con el ranking global.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-lg font-black text-fg-strong">
+                Aún no lo has empujado
+              </p>
+              <p className="mt-1 text-[12px] leading-5 text-fg-muted">
+                Tienes {totalVotes} voto{totalVotes === 1 ? '' : 's'} en tu ranking local,
+                pero ninguno para {personaje.nombre}.
+              </p>
+            </>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link
+            to={`/votar?personaje=${encodeURIComponent(personaje.slug)}`}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-3.5 py-2 text-[12px] font-black text-white transition-colors hover:bg-accent-hover"
+          >
+            <Swords className="h-3.5 w-3.5" />
+            Retarlo
+          </Link>
+          <Link
+            to="/mi-ranking"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+          >
+            Ver mi ranking
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+          <Link
+            to={`/mi-top5?add=${encodeURIComponent(personaje.slug)}`}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/45 bg-accent-soft px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Llevar a mi Top 5
+          </Link>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
@@ -643,7 +929,7 @@ function getDuelosPopulares(personaje) {
 }
 
 /**
- * Carrusel de personajes recomendados cross-anime (Plan v2 §4.12).
+ * Carrusel de personajes recomendados cross-anime.
  *
  * <p>Se monta debajo de "Mismo universo" en la ficha de personaje.
  * Backend devuelve top N por similitud de votos. Scroll horizontal con
@@ -718,7 +1004,7 @@ function CarruselSimilares({ slug, nombre }) {
  * Al hacer click, monta el chunk lazy de Personaje3D. Evita pagar el
  * coste de three.js/Three Fiber en cada visita a la ficha.
  *
- * <p>Sprint galería (2026-05-18): imagenUrl viene del state externo
+ * <p>Galería: imagenUrl viene del state externo
  * `imagenActiva` para que PersonajeGaleria pueda cambiarla; el slug se
  * mantiene como prop separada porque Personaje3D lo necesita para cargar
  * el modelo lazy con sus propios assets.
@@ -732,7 +1018,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   if (!show3D) {
     return (
       <div className="relative h-full w-full">
-        {/* Sprint holo (2026-05-18): la imagen del personaje (cards SSR
+        {/* Holo: la imagen del personaje (cards SSR
             del catálogo) se renderiza con efecto Pokémon-TCG-style
             (tilt 3D + specular shine + rainbow holo). PersonajeCardHolo
             es zero-lib y respeta prefers-reduced-motion. */}
@@ -760,9 +1046,12 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
     <div className="relative h-full w-full">
       <Suspense
         fallback={
-          <img
+          <PersonajeImg
+            slug={slug}
             src={fallbackUrl || imagenUrl}
             alt={nombre}
+            loading="eager"
+            sizes="(min-width: 1024px) 520px, 90vw"
             className="h-full w-full object-cover"
           />
         }

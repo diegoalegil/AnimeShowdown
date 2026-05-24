@@ -38,7 +38,7 @@ public class Enfrentamiento {
     /**
      * Personaje1 del enfrentamiento. Nullable porque las rondas 2+ del
      * bracket se precomputan con slots vacíos y se rellenan al determinar
-     * el ganador de la ronda anterior (Plan v2 §1.1).
+     * el ganador de la ronda anterior.
      */
     @ManyToOne
     @JoinColumn(name = "personaje1_id")

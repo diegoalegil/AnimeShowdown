@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import { useSound } from '../contexts/SoundContext'
 
 /**
- * Nota de rendimiento (2026-05-18): muchos CTAs disparaban sonido en
+ * Nota de rendimiento: muchos CTAs disparaban sonido en
  * onClick — click se emite cuando se SUELTA el botón, no cuando se
  * presiona. En móvil o con click mantenido, el sonido suena tarde y
  * se percibe como lag aunque el AudioContext esté running.

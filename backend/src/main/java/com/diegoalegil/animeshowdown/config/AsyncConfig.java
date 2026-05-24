@@ -16,8 +16,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * Configuración de ejecutores asíncronos.
  *
- * <p>Ajuste #4 (2026-05-21): antes este config solo declaraba
- * {@code emailExecutor}. Los {@code @Async} sin nombre explícito
+ * <p>Este config declara un executor default además de {@code emailExecutor}.
+ * Los {@code @Async} sin nombre explícito
  * (AuditLogService, IndexNowService, BadgeEventListener) caían al
  * fallback de Spring Boot ({@code SimpleAsyncTaskExecutor}) que crea
  * un hilo nuevo por cada tarea sin pool — peligroso en ráfagas.
@@ -37,7 +37,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  *       descartado.</li>
  * </ul>
  *
- * <p>Pool dedicado email (Plan v2 §2.12):
+ * <p>Pool dedicado email:
  * <ul>
  *   <li>core 2, max 5: cubre el tráfico típico sin sobrecargar Railway free.</li>
  *   <li>queue 100: ráfagas (newsletter futura, mass invite) se encolan.</li>

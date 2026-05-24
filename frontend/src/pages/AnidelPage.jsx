@@ -10,26 +10,30 @@ import {
   Lightbulb,
   Minus,
   RotateCcw,
+  Tv,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
 import {
-  imagenPersonaje,
-  personajes,
   getStatsPersonaje,
 } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import PersonajeImg from '../components/PersonajeImg'
+import { getGameVisual } from '../data/visual-assets'
 
 const MAX_INTENTOS = 6
 const STORAGE_KEY = 'animeshowdown.anidel.v1'
+const SEO_IMAGE = getGameVisual('/games/anigrid').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -63,9 +67,35 @@ function AnidelPage() {
     title: 'AniGrid · Anidel — Wordle de personajes anime',
     description:
       'Adivina el personaje secreto del día en 6 intentos. Pistas por anime, primera letra y ELO. Comparte tu resultado.',
+    canonical: 'https://animeshowdown.dev/games/anigrid',
+    image: SEO_IMAGE,
   })
 
-  const dailyObjetivo = useMemo(() => personajeDelDia('anidel'), [])
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const dailyObjetivo = useMemo(
+    () => personajeDelDia('anidel', new Date(), catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (!dailyObjetivo) {
+    return (
+      <GameCatalogLoading
+        kanji="格"
+        title="Preparando AniGrid"
+        description="Cargando catálogo para montar el personaje secreto."
+      />
+    )
+  }
+
+  return (
+    <AnidelGame
+      dailyObjetivo={dailyObjetivo}
+      catalogoPersonajes={catalogoPersonajes}
+    />
+  )
+}
+
+function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
@@ -98,7 +128,7 @@ function AnidelPage() {
       toast.info('Ya probaste ese personaje')
       return
     }
-    const personaje = personajes.find((p) => p.slug === slug)
+    const personaje = catalogoPersonajes.find((p) => p.slug === slug)
     if (!personaje) return
     const elo = getStatsPersonaje(personaje.slug)?.elo ?? 1500
     const acierto = slug === objetivo.slug
@@ -145,7 +175,8 @@ function AnidelPage() {
   }
 
   const jugarOtra = () => {
-    const random = personajes[Math.floor(Math.random() * personajes.length)]
+    const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
+    if (!random) return
     setExtraObjetivo(random)
     setEstado(loadEstado(random.slug, true))
   }
@@ -164,6 +195,28 @@ function AnidelPage() {
           { label: 'Anime Games', path: '/games' },
           { label: 'AniGrid', path: '/games/anigrid' },
         ])}
+      />
+      <JsonLd
+        id="game-anigrid"
+        schema={gameWebApplicationSchema({
+          name: 'AniGrid',
+          alternateName: 'Anidel',
+          path: '/games/anigrid',
+          description:
+            'Wordle diario de personajes anime con pistas por anime, primera letra y ELO base.',
+          featureList: [
+            'Personaje secreto diario',
+            'Seis intentos',
+            'Pistas por anime, inicial y ELO base',
+            'Resultado compartible con cuadricula',
+          ],
+          keywords: [
+            'wordle anime',
+            'anigrid',
+            'anidel',
+            'adivina personaje anime',
+          ],
+        })}
       />
       <div className="mx-auto max-w-4xl">
         <Link
@@ -221,8 +274,8 @@ function AnidelPage() {
             <span>Letra inicial</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-[10px]">
-              📺
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-fg-strong">
+              <Tv className="h-3 w-3" />
             </span>
             <span>Anime</span>
           </div>
@@ -230,7 +283,7 @@ function AnidelPage() {
             <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-fg-strong">
               <ArrowUp className="h-3 w-3" />
             </span>
-            <span>ELO objetivo</span>
+            <span>ELO base objetivo</span>
           </div>
         </div>
 
@@ -322,11 +375,11 @@ function FilaIntento({ intento }) {
       }`}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <img
-          src={imagenPersonaje(intento.slug)}
-          alt=""
+        <PersonajeImg
+          slug={intento.slug}
+          alt={intento.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="36px"
           className="h-9 w-7 shrink-0 rounded object-cover object-top"
         />
         <div className="min-w-0">
@@ -347,7 +400,7 @@ function FilaIntento({ intento }) {
       />
       <Squarito
         ok={intento.matchAnime}
-        label="📺"
+        label={<Tv className="h-3 w-3" />}
         title={intento.matchAnime ? 'Mismo anime' : 'Anime distinto'}
       />
       <SquaritoFlecha dir={intento.direccionElo} elo={intento.elo} />
@@ -435,11 +488,15 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     return { ok: matches >= 2, emoji: matches >= 2 ? '🌟' : '🍂' }
   })
 
-  const texto = `🎴 Anidel — ${fechaDelDia()}\n${
-    acertado
-      ? `✅ ${totalIntentos}/${MAX_INTENTOS}`
-      : `❌ X/${MAX_INTENTOS} — era ${objetivo.nombre}`
-  }${pistaUsada ? '  💡' : ''}\n${squaresShare}\nanimeshowdown.dev/games/anigrid`
+  const texto = buildGameShareText({
+    game: 'AniGrid',
+    date: fechaDelDia(),
+    result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
+    detail: acertado
+      ? `Adiviné a ${objetivo.nombre}.`
+      : `Era ${objetivo.nombre} (${objetivo.anime}).`,
+    grid: `${squaresShare}${pistaUsada ? '\n💡 pista usada' : ''}`,
+  })
 
   const titulo = perfecto
     ? `PERFECT CLEAR · ${objetivo.nombre}`
@@ -458,6 +515,8 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       tier={tier}
       squares={squaresUI}
       bonusBadge={pistaUsada ? { emoji: '💡', label: 'pista usada' } : null}
+      shareTitle="AniGrid — AnimeShowdown"
+      shareUrl="/games/anigrid"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">

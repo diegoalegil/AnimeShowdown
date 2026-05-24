@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
- * Time machine del ELO (Plan v2 §11.1).
+ * Time machine del ELO.
  *
  * <p>Como el "ELO" del proyecto es el conteo de votos del personaje
  * (no un ELO con K-factor), la serie temporal se reconstruye agrupando

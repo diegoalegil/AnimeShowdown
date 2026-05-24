@@ -1,12 +1,15 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
   BarChart3,
   Flame,
+  Share2,
   Swords,
   Trophy,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   getPersonajeBySlug,
   getPopularidad,
@@ -18,6 +21,12 @@ import { useSeo } from '../hooks/useSeo'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
 import NotFoundPage from './NotFoundPage'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyShare } from '../lib/dailyProgress'
+import {
+  listenLocalVotes,
+  readLocalVotes,
+} from '../lib/localVoteRanking'
 
 const SITE = 'https://animeshowdown.dev'
 
@@ -30,6 +39,29 @@ function DueloVersusPage() {
   const personajeB = slugB ? getPersonajeBySlug(slugB) : null
   const valido = Boolean(personajeA && personajeB && personajeA.slug !== personajeB.slug)
   const canonical = valido ? `${SITE}/duelos/${personajeA.slug}-vs-${personajeB.slug}` : undefined
+  const ogImage = valido
+    ? `/api/og/duelo/${encodeURIComponent(personajeA.slug)}/vs/${encodeURIComponent(personajeB.slug)}.png`
+    : undefined
+  const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
+
+  useEffect(
+    () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
+    [],
+  )
+
+  const personalSignal = useMemo(() => {
+    if (!valido) {
+      return { total: 0, countA: 0, countB: 0, leader: null }
+    }
+    const countA = localVotes.filter((vote) => vote.ganadorSlug === personajeA.slug).length
+    const countB = localVotes.filter((vote) => vote.ganadorSlug === personajeB.slug).length
+    return {
+      total: countA + countB,
+      countA,
+      countB,
+      leader: countA === countB ? null : countA > countB ? personajeA : personajeB,
+    }
+  }, [localVotes, personajeA, personajeB, valido])
 
   useSeo(
     valido
@@ -37,7 +69,7 @@ function DueloVersusPage() {
           title: `${personajeA.nombre} vs ${personajeB.nombre} — ¿quién ganaría?`,
           description: `Comparativa ELO, votos comunitarios y duelo abierto entre ${personajeA.nombre} (${personajeA.anime}) y ${personajeB.nombre} (${personajeB.anime}) en AnimeShowdown.`,
           canonical,
-          image: imagenPersonaje(personajeA.slug),
+          image: ogImage,
           type: 'article',
         }
       : { title: '404 — Duelo no encontrado', noindex: true },
@@ -51,6 +83,36 @@ function DueloVersusPage() {
   const diferenciaElo = Math.abs(statsA.elo - statsB.elo)
   const sugerenciasA = getSugerenciasDuelo(personajeA, personajeB.slug)
   const sugerenciasB = getSugerenciasDuelo(personajeB, personajeA.slug)
+  const votarDueloUrl = `/votar?personaje=${encodeURIComponent(personajeA.slug)}&rival=${encodeURIComponent(personajeB.slug)}`
+  const compartirDuelo = async () => {
+    try {
+      const personalLine =
+        personalSignal.total > 0
+          ? personalSignal.leader
+            ? `En mi ranking local voy más con ${personalSignal.leader.nombre}: ${personalSignal.countA}-${personalSignal.countB}.`
+            : `En mi ranking local van empatados: ${personalSignal.countA}-${personalSignal.countB}.`
+          : null
+      const result = await shareOrCopy({
+        title: `${personajeA.nombre} vs ${personajeB.nombre}`,
+        text: [
+          `${personajeA.nombre} vs ${personajeB.nombre} en AnimeShowdown.`,
+          `${ganadorTeorico.nombre} llega con ventaja ELO de ${diferenciaElo} puntos.`,
+          personalLine,
+          '¿A quién subirías votando?',
+        ]
+          .filter(Boolean)
+          .join('\n'),
+        url: `/duelos/${personajeA.slug}-vs-${personajeB.slug}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Duelo compartido' : 'Duelo copiado')
+    } catch (error) {
+      toast.error('No se pudo compartir el duelo', {
+        description: error?.message || 'Copia el enlace manualmente.',
+      })
+    }
+  }
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
@@ -89,6 +151,12 @@ function DueloVersusPage() {
           </div>
           <VersusHeroCard personaje={personajeB} stats={statsB} side="right" />
         </div>
+
+        <PersonalDuelSignal
+          a={personajeA}
+          b={personajeB}
+          signal={personalSignal}
+        />
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
           <section className="rounded-xl border border-border bg-surface p-5">
@@ -139,14 +207,37 @@ function DueloVersusPage() {
               Diferencia actual: <strong className="text-fg-strong">{diferenciaElo} puntos</strong>.
               El voto real de la comunidad puede cambiar el guion en cualquier momento.
             </p>
-            <Link
-              to="/votar"
-              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-            >
-              <Swords className="h-4 w-4" />
-              Votar este duelo
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                to={votarDueloUrl}
+                className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              >
+                <Swords className="h-4 w-4 shrink-0" />
+                <span className="truncate">Votar este duelo</span>
+              </Link>
+              <Link
+                to={`/votar?personaje=${encodeURIComponent(personajeA.slug)}`}
+                className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-bold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+              >
+                <Swords className="h-4 w-4 shrink-0" />
+                <span className="truncate">Retar a {personajeA.nombre}</span>
+              </Link>
+              <Link
+                to={`/votar?personaje=${encodeURIComponent(personajeB.slug)}`}
+                className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-bold text-gold transition-all hover:-translate-y-0.5 hover:bg-accent/20"
+              >
+                <Swords className="h-4 w-4 shrink-0" />
+                <span className="truncate">Retar a {personajeB.nombre}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={compartirDuelo}
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-bold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-accent hover:text-gold"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartir duelo
+              </button>
+            </div>
           </section>
         </div>
 
@@ -162,6 +253,83 @@ function DueloVersusPage() {
         </section>
       </div>
     </section>
+  )
+}
+
+function PersonalDuelSignal({ a, b, signal }) {
+  const total = signal.total
+  const tied = total > 0 && signal.countA === signal.countB
+  const title =
+    total === 0
+      ? 'Tu historial local aún no ha tomado partido'
+      : tied
+        ? 'Tu ranking local va empatado'
+        : `Tu ranking local favorece a ${signal.leader.nombre}`
+
+  return (
+    <section className="mt-6 rounded-xl border border-gold/30 bg-gradient-to-br from-gold/[0.12] via-surface to-accent/[0.08] p-4 sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+            <Flame className="h-3.5 w-3.5" />
+            Tu sesgo local
+          </p>
+          <h2 className="mt-1 text-xl font-black text-fg-strong">
+            {title}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-fg-muted">
+            {total === 0
+              ? 'Vota duelos con cualquiera de estos personajes y esta comparativa empezará a reflejar a quién estás defendiendo tú.'
+              : `Este navegador registra ${total} voto${total === 1 ? '' : 's'} local${total === 1 ? '' : 'es'} repartido${total === 1 ? '' : 's'} entre ambos.`}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <LocalVotePill
+            personaje={a}
+            count={signal.countA}
+            highlighted={signal.leader?.slug === a.slug}
+          />
+          <LocalVotePill
+            personaje={b}
+            count={signal.countB}
+            highlighted={signal.leader?.slug === b.slug}
+          />
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          to="/mi-ranking"
+          className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-sm font-bold text-gold transition-colors hover:bg-gold/10"
+        >
+          <span className="truncate">Ver mi ranking</span>
+        </Link>
+        <Link
+          to={`/votar?personaje=${encodeURIComponent(signal.leader?.slug || a.slug)}`}
+          className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-bold text-gold transition-colors hover:bg-accent/20"
+        >
+          <Swords className="h-4 w-4 shrink-0" />
+          <span className="truncate">
+            {signal.leader ? `Defender a ${signal.leader.nombre}` : `Retar a ${a.nombre}`}
+          </span>
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+function LocalVotePill({ personaje, count, highlighted }) {
+  return (
+    <div
+      className={`min-w-32 rounded-lg border px-3 py-2 ${
+        highlighted
+          ? 'border-gold/45 bg-gold-soft text-gold'
+          : 'border-border bg-bg/45 text-fg-strong'
+      }`}
+    >
+      <p className="line-clamp-1 text-[12px] font-black">{personaje.nombre}</p>
+      <p className="mt-0.5 font-mono text-xl font-black">{count}</p>
+      <p className="text-[10px] uppercase tracking-[0.12em] text-fg-muted">votos tuyos</p>
+    </div>
   )
 }
 

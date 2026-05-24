@@ -2,7 +2,6 @@ package com.diegoalegil.animeshowdown.controller;
 
 import java.util.Map;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.NotificacionDto;
+import com.diegoalegil.animeshowdown.dto.PageResponse;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.NotificacionService;
 
 /**
- * Endpoints REST de notificaciones in-app (Plan v2 §2.13).
+ * Endpoints REST de notificaciones in-app.
  *
  * <ul>
  *   <li>{@code GET /api/notificaciones?soloNoLeidas=false&page=0&size=20}
@@ -47,7 +47,7 @@ public class NotificacionController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<NotificacionDto>> listar(
+    public ResponseEntity<PageResponse<NotificacionDto>> listar(
             @AuthenticationPrincipal Usuario usuario,
             @RequestParam(name = "soloNoLeidas", defaultValue = "false") boolean soloNoLeidas,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -57,9 +57,9 @@ public class NotificacionController {
         }
         int sanePage = Math.max(0, page);
         int saneSize = Math.min(MAX_PAGE_SIZE, Math.max(1, size));
-        Page<NotificacionDto> pageResult = notificacionService
+        PageResponse<NotificacionDto> pageResult = PageResponse.from(notificacionService
                 .listar(usuario, PageRequest.of(sanePage, saneSize), soloNoLeidas)
-                .map(NotificacionDto::from);
+                .map(NotificacionDto::from));
         return ResponseEntity.ok(pageResult);
     }
 

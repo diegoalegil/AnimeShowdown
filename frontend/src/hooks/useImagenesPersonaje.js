@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../lib/api.js'
 
 /**
- * Galería multi-imagen oficial del personaje (Plan v2 §4.12 step 1).
+ * Galería multi-imagen oficial del personaje.
  *
  * <p>Llama a {@code GET /api/personajes/{slug}/imagenes}. Backend cachea
  * mal_id 30d y pictures 7d en Caffeine; aquí staleTime 1h para no

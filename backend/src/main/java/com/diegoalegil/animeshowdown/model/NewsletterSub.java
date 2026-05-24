@@ -11,7 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Suscripción a newsletter (Plan v2 §4.8). Double opt-in:
+ * Suscripción a newsletter. Double opt-in:
  *   - {@code confirmado=false} hasta que el user clica el link del email.
  *   - {@code token_confirm} es one-shot: tras confirmar pasa a null.
  *   - {@code token_unsubscribe} se mantiene activo mientras la sub esté

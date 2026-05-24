@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -11,19 +11,24 @@ import {
   X,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
+  buildGameShareText,
   fechaDelDia,
   impostorDelDia,
   safeStorage,
 } from '../lib/games'
-import { ocultaImgRota } from '../lib/imgFallback'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import PersonajeImg from '../components/PersonajeImg'
+import { getGameVisual } from '../data/visual-assets'
 
 const RONDAS_POR_DIA = 3
 const STORAGE_KEY = 'animeshowdown.impostor.v1'
 const SEGUNDOS_POR_RONDA = 15
+const SEO_IMAGE = getGameVisual('/games/impostor-trial').image
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -34,11 +39,11 @@ const containerVariants = {
   },
 }
 
-function generarRondas(salt = '') {
+function generarRondas(catalogoPersonajes, salt = '') {
   const out = []
   const hoy = new Date()
   for (let r = 0; r < RONDAS_POR_DIA; r++) {
-    const ronda = impostorDelDia(hoy, `${salt}${r}`)
+    const ronda = impostorDelDia(hoy, `${salt}${r}`, catalogoPersonajes)
     if (ronda) out.push(ronda)
   }
   return out
@@ -65,12 +70,39 @@ function ImpostorPage() {
     title: 'Impostor Trial · Detector de Impostor — Daily',
     description:
       '5 cartas de anime, 4 del mismo, 1 intrusa. Pulsa el impostor antes de que pase el tiempo. 3 rondas al día.',
+    canonical: 'https://animeshowdown.dev/games/impostor-trial',
+    image: SEO_IMAGE,
   })
 
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const rondasDaily = useMemo(
+    () => generarRondas(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+
+  if (rondasDaily.length === 0) {
+    return (
+      <GameCatalogLoading
+        kanji="裏"
+        title="Preparando Impostor Trial"
+        description="Cargando personajes para construir las rondas del día."
+      />
+    )
+  }
+
+  return (
+    <ImpostorGame
+      catalogoPersonajes={catalogoPersonajes}
+      rondasDaily={rondasDaily}
+    />
+  )
+}
+
+function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
   // Rondas en useState (no useMemo) para que jugarOtra pueda regenerarlas
   // con salt distinto sin cambiar el daily. El daily usa salt=String(r),
   // los extras usan salt único por tirada.
-  const [rondas, setRondas] = useState(() => generarRondas())
+  const [rondas, setRondas] = useState(rondasDaily)
   const [esExtra, setEsExtra] = useState(false)
   const [estado, setEstado] = useState(() => loadEstado())
   const rondaActual = rondas[estado.rondaIdx]
@@ -112,13 +144,13 @@ function ImpostorPage() {
   }
 
   const jugarOtra = () => {
-    setRondas(generarRondas(`extra-${Date.now()}-`))
+    setRondas(generarRondas(catalogoPersonajes, `extra-${Date.now()}-`))
     setEsExtra(true)
     setEstado({ rondaIdx: 0, resultados: [] })
   }
 
   const volverAlDaily = () => {
-    setRondas(generarRondas())
+    setRondas(rondasDaily)
     setEsExtra(false)
     setEstado(loadEstado())
   }
@@ -132,6 +164,28 @@ function ImpostorPage() {
           { label: 'Anime Games', path: '/games' },
           { label: 'Impostor Trial', path: '/games/impostor-trial' },
         ])}
+      />
+      <JsonLd
+        id="game-impostor-trial"
+        schema={gameWebApplicationSchema({
+          name: 'Impostor Trial',
+          alternateName: 'Detector de Impostor',
+          path: '/games/impostor-trial',
+          description:
+            'Juego diario para detectar qué personaje no pertenece al anime de la ronda antes de que se acabe el tiempo.',
+          featureList: [
+            'Tres rondas diarias',
+            'Cinco cartas por ronda',
+            'Un personaje intruso de otro anime',
+            'Resultado compartible',
+          ],
+          keywords: [
+            'juego impostor anime',
+            'anime impostor',
+            'detector de impostor',
+            'anime daily game',
+          ],
+        })}
       />
       <div className="mx-auto max-w-6xl">
         <Link
@@ -221,22 +275,35 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
   // El `key` del componente cambia al avanzar de ronda, así que useState
   // reinicializa automáticamente el timer sin reset manual.
   const [segundos, setSegundos] = useState(SEGUNDOS_POR_RONDA)
+  const [locked, setLocked] = useState(false)
 
   useEffect(() => {
-    if (segundos <= 0) {
-      onTimeout?.()
-      return
-    }
-    const id = setTimeout(() => setSegundos((s) => s - 1), 1000)
+    if (locked) return
+    if (segundos <= 0) return
+    const id = setTimeout(() => {
+      if (segundos <= 1) {
+        setLocked(true)
+        setSegundos(0)
+        onTimeout?.()
+        return
+      }
+      setSegundos((s) => s - 1)
+    }, 1000)
     return () => clearTimeout(id)
     // onTimeout no se incluye en deps a propósito: viene del padre y es
     // estable durante la vida del componente (key cambia al avanzar de
     // ronda). Incluirla causaría re-disparos espurios del timer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segundos])
+  }, [segundos, locked])
 
   const porcentajeRestante = (segundos / SEGUNDOS_POR_RONDA) * 100
   const critico = segundos <= 5
+  const handleEleccion = (item) => {
+    if (locked) return
+    setLocked(true)
+    onEleccion(item)
+  }
+
   return (
     <div className="as-panel relative mb-6 overflow-hidden rounded-xl border-purple-500/30 p-6">
       {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
@@ -292,27 +359,34 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
 
       <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ronda.items.map((item) => (
-          <Carta key={item.slug} item={item} onClick={() => onEleccion(item)} />
+          <Carta
+            key={item.slug}
+            item={item}
+            disabled={locked}
+            onClick={() => handleEleccion(item)}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function Carta({ item, onClick }) {
+function Carta({ item, disabled, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={`${item.nombre} de ${item.anime} — ¿impostor?`}
-      className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/60"
+      className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/60 disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:translate-y-0"
     >
       <div className="aspect-[3/4] w-full overflow-hidden bg-surface-alt">
-        <img
+        <PersonajeImg
+          slug={item.slug}
           src={item.imagen}
-          alt=""
+          alt={item.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="(min-width: 1024px) 180px, (min-width: 640px) 28vw, 45vw"
           className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
         />
       </div>
@@ -367,7 +441,13 @@ function PanelResultado({ resultados, esExtra }) {
   const perfecto = aciertos === total && total >= 3
   const squaresShare = resultados.map((r) => (r ? '🟩' : '🟥')).join('')
 
-  const texto = `🕵️ Impostor Trial — ${fechaDelDia()}${esExtra ? ' (Extra)' : ''}\n${aciertos}/${total} aciertos  ${squaresShare}\nanimeshowdown.dev/games/impostor-trial`
+  const texto = buildGameShareText({
+    game: 'Impostor Trial',
+    date: fechaDelDia(),
+    result: `${aciertos}/${total}`,
+    detail: esExtra ? 'Ronda extra completada.' : 'Daily completado.',
+    grid: squaresShare,
+  })
 
   const titulo = perfecto
     ? `PERFECT CLEAR · ${aciertos}/${total} traidores detectados`
@@ -379,6 +459,8 @@ function PanelResultado({ resultados, esExtra }) {
       titulo={titulo}
       tier={tierImpostorPara(aciertos, total)}
       squares={resultados.map((r) => ({ ok: r }))}
+      shareTitle="Impostor Trial — AnimeShowdown"
+      shareUrl="/games/impostor-trial"
       shareText={texto}
     >
       <p className="text-[12px] text-fg-muted">

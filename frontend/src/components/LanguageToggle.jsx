@@ -9,7 +9,7 @@ const IDIOMAS = [
 ]
 
 /**
- * Toggle de idioma en Header (Plan v2 §4.11).
+ * Toggle de idioma en Header.
  *
  * <p>Pequeño botón con el código del idioma actual (ES / EN). Click abre
  * dropdown con la lista; al elegir, {@code i18n.changeLanguage} dispara
@@ -76,7 +76,7 @@ function LanguageToggle() {
           className="absolute right-0 top-10 z-50 w-40 origin-top-right rounded-xl border border-border bg-surface py-1 opacity-100 shadow-2xl transition-[opacity,transform] duration-150 ease-out"
         >
           {/*
-            Revisión a11y (2026-05-17): role='menuitem' no anunciaba estado
+            a11y: role='menuitem' no anunciaba estado
             de selección al lector de pantalla — solo el icono Check
             visual revelaba el idioma activo. menuitemradio + aria-checked
             hace que SR diga "Español, seleccionado" sin depender del icono.

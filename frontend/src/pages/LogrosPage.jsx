@@ -35,9 +35,9 @@ const FILTROS_RAREZA = [
 ]
 
 /**
- * Catálogo público de logros (Plan v2 §4.10).
+ * Catálogo público de logros.
  *
- * <p>Página pública que lista los 14 badges con descripción, rareza y
+ * <p>Página pública que lista el catálogo de logros con descripción, rareza y
  * count comunidad ("X usuarios lo tienen"). Si el visitante está logueado,
  * los desbloqueados se marcan con check + glow accent.
  *
@@ -71,20 +71,20 @@ function LogrosPage() {
     // Ordena por rareza desc (legendarios primero) y luego alfabético.
     return [...filtrados].sort((a, b) => {
       if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      // Ajuste (2026-05-17): locale dinámico segun el idioma activo en
+      // locale dinámico segun el idioma activo en
       // i18n, no hardcoded 'es'. Si el user cambia a EN, ordena con
       // collation inglés (los acentos y ñ rankean distinto).
       return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
     })
   }, [fuente, filtroRareza, i18n.language])
 
-  const total = catalogo?.length ?? 14
+  const total = catalogo?.length ?? 16
   const desbloqueados = mios?.filter((l) => l.desbloqueadoEn).length ?? 0
   const logroDestacado = searchParams.get('logro')
 
   // Stats derivadas: legendarios desbloqueados, rareza media de coleccion.
   // Util como "tarjetas grandes" tipo cabecera para sentir el progreso
-  // sin tener que leer 14 cards.
+  // sin tener que leer todo el catálogo.
   const legendariosDesbloqueados = mios?.filter((l) => l.desbloqueadoEn && l.rareza === 5).length ?? 0
   const legendariosTotal = catalogo?.filter((l) => l.rareza === 5).length ?? 0
   const progresoPct = total > 0 ? Math.round((desbloqueados / total) * 100) : 0

@@ -6,7 +6,7 @@ import KanjiSpinner from './KanjiSpinner'
 import BadgeCard from './BadgeCard'
 
 /**
- * Sección "Logros" del perfil (Plan v2 §4.2, §4.5).
+ * Sección "Logros" del perfil.
  *
  * Card con header "X / 14 desbloqueados" + grid responsive de badges.
  * En mobile el grid pasa a 4 columnas para que cada badge mantenga

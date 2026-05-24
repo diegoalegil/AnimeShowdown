@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Catálogo de logros/badges (Plan v2 §4.2). Inmutable — los registros vienen
+ * Catálogo de logros/badges. Inmutable — los registros vienen
  * del seed en V7 y nunca se modifican desde el código de aplicación. Para
  * añadir uno nuevo, una migración Flyway con un INSERT.
  *
@@ -34,7 +34,7 @@ public class Logro {
     @Column(nullable = false, length = 300)
     private String descripcion;
 
-    /** Nombre de icono lucide-react ("Trophy", "Crown", ...) o emoji literal. */
+    /** Nombre de icono lucide-react ("Trophy", "Crown",...) o emoji literal. */
     @Column(nullable = false, length = 50)
     private String icono;
 

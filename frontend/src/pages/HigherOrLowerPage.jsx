@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import {
@@ -9,34 +9,48 @@ import {
   ArrowDown,
   HelpCircle,
   Flame,
+  Share2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
-  personajes,
   getStatsPersonaje,
 } from '../lib/personajes-core'
 import {
+  buildGameShareText,
   ELO_DUEL_BEST_KEY,
   ELO_DUEL_LEGACY_BEST_KEY,
   safeStorage,
 } from '../lib/games'
 import PersonajeImg from '../components/PersonajeImg'
+import GameCatalogLoading from '../components/GameCatalogLoading'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { recordDailyShare } from '../lib/dailyProgress'
+import { shareOrCopy } from '../lib/share'
+import JsonLd from '../components/JsonLd'
+import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
+import { getGameVisual } from '../data/visual-assets'
 
-function pickRandom(exclude = null) {
-  let p
-  do {
-    p = personajes[Math.floor(Math.random() * personajes.length)]
-  } while (exclude && p.slug === exclude.slug)
+const SEO_IMAGE = getGameVisual('/games/elo-duel').image
+
+function pickRandom(catalogoPersonajes, exclude = null) {
+  const pool = exclude
+    ? catalogoPersonajes.filter((p) => p.slug !== exclude.slug)
+    : catalogoPersonajes
+  const p = pool[Math.floor(Math.random() * pool.length)]
+  if (!p) return null
   return { ...p, ...getStatsPersonaje(p.slug) }
 }
 
-function pickDistinctElo(reference) {
-  let p = pickRandom(reference)
+function pickDistinctElo(catalogoPersonajes, reference) {
+  let p = pickRandom(catalogoPersonajes, reference)
   // Si por azar tienen exactamente el mismo ELO, tira otro (evita ambigüedad
   // en la pregunta "más o menos" — en el catálogo solo pasa con personajes
   // muy similares en popularidad, pero por si acaso).
-  while (p.elo === reference.elo) p = pickRandom(reference)
+  for (let i = 0; p && p.elo === reference.elo && i < 12; i++) {
+    p = pickRandom(catalogoPersonajes, reference)
+  }
   return p
 }
 
@@ -57,8 +71,44 @@ function HigherOrLowerPage() {
   useSeo({
     title: 'ELO Duel · Higher or Lower',
     description:
-      'Mini-juego de adivinar quién tiene más ELO entre dos personajes anime. Sube tu mejor racha personal.',
+      'Mini-juego de adivinar quién tiene más ELO base entre dos personajes anime. Sube tu mejor racha personal.',
+    canonical: 'https://animeshowdown.dev/games/elo-duel',
+    image: SEO_IMAGE,
   })
+
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const parejaInicial = useMemo(() => {
+    const reference = pickRandom(catalogoPersonajes)
+    if (!reference) return null
+    const challenger = pickDistinctElo(catalogoPersonajes, reference)
+    if (!challenger) return null
+    return { reference, challenger }
+  }, [catalogoPersonajes])
+
+  if (!parejaInicial) {
+    return (
+      <GameCatalogLoading
+        kanji="戦"
+        title="Preparando ELO Duel"
+        description="Cargando ranking de personajes para iniciar el duelo."
+      />
+    )
+  }
+
+  return (
+    <HigherOrLowerGame
+      catalogoPersonajes={catalogoPersonajes}
+      initialChallenger={parejaInicial.challenger}
+      initialReference={parejaInicial.reference}
+    />
+  )
+}
+
+function HigherOrLowerGame({
+  catalogoPersonajes,
+  initialChallenger,
+  initialReference,
+}) {
   const { play } = useSound()
 
   // Mecánica clásica de Higher or Lower:
@@ -67,15 +117,13 @@ function HigherOrLowerPage() {
   //   - User predice: ¿el challenger tiene MÁS o MENOS ELO que reference?
   //   - Si acierta: challenger se convierte en el nuevo reference, aparece nuevo challenger
   //   - Esto rota la cadena así no hay racha infinita con un top-tier en izquierda
-  const [reference, setReference] = useState(() => pickRandom())
-  const [challenger, setChallenger] = useState(() =>
-    pickDistinctElo(reference || pickRandom()),
-  )
+  const [reference, setReference] = useState(initialReference)
+  const [challenger, setChallenger] = useState(initialChallenger)
   const [revealed, setRevealed] = useState(null) // null | 'correct' | 'wrong'
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(readBestStreak)
   const [gameOver, setGameOver] = useState(false)
-  // Ajuste (2026-05-17): los setTimeout de reveal (1100ms) no se
+  // los setTimeout de reveal (1100ms) no se
   // cancelan en unmount — si el user navega tras el guess pero antes
   // del reveal, el callback dispara setState en componente desmontado.
   const revealTimerRef = useRef(null)
@@ -103,7 +151,8 @@ function HigherOrLowerPage() {
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
       revealTimerRef.current = setTimeout(() => {
         revealTimerRef.current = null
-        const nuevoChallenger = pickDistinctElo(challenger)
+        const nuevoChallenger = pickDistinctElo(catalogoPersonajes, challenger)
+        if (!nuevoChallenger) return
         setReference(challenger)
         setChallenger(nuevoChallenger)
         setRevealed(null)
@@ -120,9 +169,12 @@ function HigherOrLowerPage() {
 
   const restart = () => {
     play('playClick')
-    const nuevoRef = pickRandom()
+    const nuevoRef = pickRandom(catalogoPersonajes)
+    if (!nuevoRef) return
+    const nuevoChallenger = pickDistinctElo(catalogoPersonajes, nuevoRef)
+    if (!nuevoChallenger) return
     setReference(nuevoRef)
-    setChallenger(pickDistinctElo(nuevoRef))
+    setChallenger(nuevoChallenger)
     setScore(0)
     setRevealed(null)
     setGameOver(false)
@@ -130,6 +182,36 @@ function HigherOrLowerPage() {
 
   return (
     <section className="as-stage as-stage-visual as-stage-duel relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-10">
+      <JsonLd
+        id="breadcrumbs"
+        schema={breadcrumbsSchema([
+          { label: 'Inicio', path: '/' },
+          { label: 'Anime Games', path: '/games' },
+          { label: 'ELO Duel', path: '/games/elo-duel' },
+        ])}
+      />
+      <JsonLd
+        id="game-elo-duel"
+        schema={gameWebApplicationSchema({
+          name: 'ELO Duel',
+          alternateName: 'Anime Higher or Lower',
+          path: '/games/elo-duel',
+          description:
+            'Juego endless de anime higher or lower para adivinar qué personaje tiene más ELO base y construir una racha personal.',
+          featureList: [
+            'Duelos de personajes anime',
+            'Pregunta higher or lower por ELO base',
+            'Racha personal guardada en el navegador',
+            'Resultado compartible',
+          ],
+          keywords: [
+            'anime higher or lower',
+            'elo duel',
+            'ranking ELO anime',
+            'juego anime online',
+          ],
+        })}
+      />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
         <header className="flex flex-col items-start gap-2 sm:gap-3">
           <span className="as-kicker border-cyan-500/45 bg-cyan-500/10 text-cyan-200">
@@ -140,7 +222,7 @@ function HigherOrLowerPage() {
             <span className="as-title-gradient">ELO</span> Duel
           </h1>
           <p className="max-w-2xl text-[13px] text-fg-muted sm:text-base">
-            ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO que el de la izquierda?
+            ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO base que el de la izquierda?
             Cada acierto el misterio se desvela y se convierte en el nuevo punto de comparación.
           </p>
         </header>
@@ -163,10 +245,8 @@ function HigherOrLowerPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              /* Nota visual (2026-05-18): 3 columnas desde mobile —
-                 antes stack vertical empujaba los botones Más/Menos
-                 fuera del primer viewport. Side-by-side compacta todo
-                 el duelo en un solo fold. */
+              /* Tres columnas desde mobile para mantener el duelo completo
+                 dentro del primer viewport. */
               className="mx-auto grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 md:items-center md:gap-6"
             >
               <ReferenceCard personaje={reference} />
@@ -279,7 +359,7 @@ function ReferenceCard({ personaje }) {
         />
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
           <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-            ELO conocido
+            ELO base
           </span>
           <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
             {personaje.elo}
@@ -328,7 +408,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4"
             >
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-                ELO misterio
+                ELO base oculto
               </span>
               <HelpCircle className="h-6 w-6 text-white/90 sm:h-9 sm:w-9" />
             </motion.div>
@@ -343,7 +423,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               }`}
             >
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-                ELO real
+                ELO base
               </span>
               <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
                 {personaje.elo}
@@ -384,6 +464,25 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
 
 function GameOver({ score, best, reference, challenger, onRestart }) {
   const challengerEsMayor = challenger.elo > reference.elo
+  const compartir = async () => {
+    try {
+      const result = await shareOrCopy({
+        title: 'ELO Duel',
+        text: buildGameShareText({
+          game: 'ELO Duel',
+          date: null,
+          result: `racha ${score}`,
+          detail: `Récord: ${best}. Fallé con ${challenger.nombre} vs ${reference.nombre}.`,
+        }),
+        url: '/games/elo-duel',
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Resultado compartido' : 'Resultado copiado')
+    } catch {
+      toast.error('No se pudo compartir el resultado')
+    }
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -402,7 +501,7 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
         seguidos. Tu récord es <span className="font-mono font-bold text-gold">{best}</span>.
       </p>
       <div className="text-sm text-fg-muted">
-        <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO{' '}
+        <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO base{' '}
         <span className="font-mono text-fg-strong">{challenger.elo}</span> →{' '}
         {challengerEsMayor ? (
           <span className="text-emerald-300">era MAYOR</span>
@@ -425,8 +524,16 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
           className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
           <Trophy className="h-4 w-4" />
-          Ver ranking ELO
+          Ver ranking
         </Link>
+        <button
+          type="button"
+          onClick={compartir}
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+        >
+          <Share2 className="h-4 w-4" />
+          Compartir racha
+        </button>
       </div>
     </motion.div>
   )

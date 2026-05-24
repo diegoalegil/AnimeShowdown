@@ -101,7 +101,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.username").value("alice"))
                 .andExpect(jsonPath("$.email").value("alice@example.com"))
                 .andExpect(jsonPath("$.rol").value("USER"))
-                // Plan v2 §2.4: usuarios nuevos nacen PENDIENTE de verificar email.
+                // Usuarios nuevos nacen PENDIENTE de verificar email.
                 .andExpect(jsonPath("$.estadoVerificacion").value("PENDIENTE"))
                 .andExpect(jsonPath("$.password").doesNotExist());
 
@@ -214,8 +214,8 @@ class AuthControllerTest {
 
     @Test
     void registroSinEmailDevuelve400ConDetalle() throws Exception {
-        // Ajuste #14 (2026-05-21): validacion ahora devuelve shape
-        // estandar { status, message, errors: { field: msg }, ... }
+        // La validación devuelve shape estándar
+        // { status, message, errors: { field: msg },... }
         // en lugar de field-map flat. El detalle del campo se accede
         // via $.errors.email en lugar de $.email.
         Map<String, String> body = Map.of(
@@ -378,7 +378,7 @@ class AuthControllerTest {
 
     @Test
     void securityLogRegistraLoginYRegistro() throws Exception {
-        // Plan v2 §2.6: verifica que el AuditLog captura eventos clave de auth.
+        // Verifica que el AuditLog captura eventos clave de auth.
         // El TestAsyncConfig hace que los @Async corran sincrónicamente, así
         // que cuando vuelve el POST la fila ya está persistida.
         long before = auditLogRepository.count();
@@ -427,7 +427,7 @@ class AuthControllerTest {
     }
 
     // ====================================================================
-    // 2FA TOTP — Plan v2 §2.3
+    // 2FA TOTP — 3
     // ====================================================================
 
     @Test
@@ -588,7 +588,7 @@ class AuthControllerTest {
     }
 
     /**
-     * Regresión de revisión P1/P2 (2026-05-18): grace cross-tab cubre el caso
+     * Regresión: grace cross-tab cubre el caso
      * dos pestañas refrescando con el mismo token viejo. La primera lo
      * rota OK, la segunda recibe 503 + Retry-After SIN Set-Cookie limpia
      * (no debe pisar la cookie nueva que la primera puso).
@@ -625,7 +625,7 @@ class AuthControllerTest {
     }
 
     /**
-     * Regresión de revisión P1 (2026-05-18, 5ª iter): logout con JWT válido
+     * Regresión: logout con JWT válido
      * revoca TODAS las sesiones del usuario, no solo la cookie presentada.
      * Cubre la race "tab A logout mientras tab B tenía un refresh en
      * vuelo del lado server" — tras el logout, en BD todos los refresh

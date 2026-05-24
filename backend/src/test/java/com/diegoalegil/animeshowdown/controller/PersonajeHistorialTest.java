@@ -12,8 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Cobertura de los endpoints de historial competitivo del personaje
- * (Plan producto 2026-05-18 — visión estadio otaku):
+ * Cobertura de los endpoints de historial competitivo del personaje:
  *
  * <ul>
  *   <li>{@code GET /api/personajes/{slug}/duelos-recientes}: 200 con

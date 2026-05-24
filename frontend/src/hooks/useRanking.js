@@ -4,7 +4,7 @@ import { endpoints } from '../lib/api.js'
 import { subscribe } from '../lib/stomp.js'
 
 /**
- * Hooks de ranking segmentado (Plan v2 §4.6).
+ * Hooks de ranking segmentado.
  *
  * - useRankingSegmentado({periodo, anime, limit}): top N personajes por
  *   votos en una ventana temporal o filtrados por anime.
@@ -36,7 +36,7 @@ export function useAnimesConVotos({ enabled = true } = {}) {
 }
 
 /**
- * Ranking actual con indicadores de movimiento ↑↓/Nuevo (Plan v2 §4.x).
+ * Ranking actual con indicadores de movimiento ↑↓/Nuevo.
  * Comparativa frente al ranking de hace {@code dias} días.
  */
 export function useRankingMovimientos({
@@ -60,9 +60,8 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
     if (!enabled) return undefined
     return subscribe('/topic/ranking-delta', (delta) => {
       if (!delta?.personaje?.slug) return
-      // Nota técnica B2.1a/B2.1b/B2.2 (2026-05-22/23): el backend manda
-      // cuatro métricas para mantener la caché live alineada con el ORDER
-      // BY del REST sin contaminar ventanas temporales:
+      // El backend manda cuatro métricas para mantener la caché live alineada
+      // con el ORDER BY del REST sin contaminar ventanas temporales:
       //   - votos: total físico all-time (COUNT). Para mostrar al usuario.
       //   - delta: votos físicos añadidos (siempre 1 hoy).
       //   - pesoVotos: total ponderado all-time (SUM(peso)).

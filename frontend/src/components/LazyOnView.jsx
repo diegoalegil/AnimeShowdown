@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
  * está a punto de entrar) en el viewport. Reserva `minHeight` para no
  * causar layout shift cuando el contenido aparece.
  *
- * Ajuste (2026-05-17): la home montaba 9 secciones de golpe al primer
+ * la home montaba 9 secciones de golpe al primer
  * paint (~7.836 nodos DOM, 221 imágenes). Wrappeando las secciones
  * below-the-fold reducimos el initial DOM a ~30% sin tocar la
  * estructura de cada sección. Una vez visible, se mantiene montado
@@ -17,10 +17,10 @@ import { useEffect, useRef, useState } from 'react'
 // react-hooks/set-state-in-effect).
 const supportsIO = typeof window !== 'undefined' && typeof IntersectionObserver !== 'undefined'
 
-export default function LazyOnView({ minHeight = 600, rootMargin = '400px', children }) {
+export default function LazyOnView({ minHeight = 600, rootMargin = '900px 0px', children }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(!supportsIO)
-  // Ajuste (2026-05-17): rootMargin en deps causaba disconnect/recreate
+  // rootMargin en deps causaba disconnect/recreate
   // del IntersectionObserver en cada render del padre si pasaban un
   // string literal (identidad nueva por render). Lo cacheamos en ref
   // y solo lo leemos al montar; cambios posteriores se ignoran (no
@@ -45,5 +45,19 @@ export default function LazyOnView({ minHeight = 600, rootMargin = '400px', chil
   }, [visible])
 
   if (visible) return <>{children}</>
-  return <div ref={ref} aria-hidden="true" style={{ minHeight }} />
+  return (
+    <div
+      ref={ref}
+      aria-hidden="true"
+      data-lazy-on-view-placeholder="true"
+      className="as-lazy-placeholder"
+      style={{ minHeight }}
+    >
+      <div className="as-lazy-placeholder__surface">
+        <span className="as-lazy-placeholder__media" />
+        <span className="as-lazy-placeholder__line as-lazy-placeholder__line--wide" />
+        <span className="as-lazy-placeholder__line" />
+      </div>
+    </div>
+  )
 }

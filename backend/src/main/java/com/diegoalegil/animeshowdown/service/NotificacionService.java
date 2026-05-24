@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.NotificacionRepository;
 
 /**
- * Notificaciones in-app (Plan v2 §2.13).
+ * Notificaciones in-app.
  *
  * <p>Doble canal:
  * <ol>

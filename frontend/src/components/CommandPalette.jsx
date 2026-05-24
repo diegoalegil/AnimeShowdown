@@ -22,6 +22,13 @@ import {
   Type,
   Grid3X3,
   BookOpen,
+  Activity,
+  CalendarDays,
+  FileText,
+  Heart,
+  PlusCircle,
+  ShieldCheck,
+  UserCircle,
 } from 'lucide-react'
 import {
   CATALOGO_PERSONAJES_HYDRATED_EVENT,
@@ -34,30 +41,55 @@ import { playWhoosh } from '../lib/sounds'
 import PersonajeImg from './PersonajeImg'
 
 const rutas = [
-  { to: '/', label: 'Inicio', icon: Home },
-  { to: '/personajes', label: 'Personajes', icon: Users },
-  { to: '/animes', label: 'Animes', icon: Tv },
-  { to: '/torneos', label: 'Torneos', icon: Trophy },
-  { to: '/votar', label: 'Votar', icon: Swords },
-  { to: '/games', label: 'Anime Games Hub', icon: Gamepad2 },
-  { to: '/games/shadow-guess', label: 'Shadow Guess (Guess the Character)', icon: Eye },
-  { to: '/games/anime-reveal', label: 'Anime Reveal (Guess the Anime)', icon: Type },
-  { to: '/games/anigrid', label: 'AniGrid (Anidel · Wordle)', icon: Grid3X3 },
-  { to: '/games/impostor-trial', label: 'Impostor Trial (Detector de Impostor)', icon: Sparkles },
-  { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles },
-  { to: '/glossary', label: 'Glosario otaku', icon: BookOpen },
-  { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy },
-  { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles },
-  { to: '/games/elo-duel', label: 'ELO Duel (Higher or Lower)', icon: Sparkles },
-  { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp },
-  { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp },
-  { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle },
-  { to: '/api-docs', label: 'API pública', icon: Code2 },
+  { to: '/', label: 'Inicio', icon: Home, searchTerms: 'home portada' },
+  { to: '/personajes', label: 'Personajes', icon: Users, searchTerms: 'catalogo roster' },
+  { to: '/animes', label: 'Animes', icon: Tv, searchTerms: 'series universos' },
+  { to: '/torneos', label: 'Torneos', icon: Trophy, searchTerms: 'brackets campeonatos' },
+  { to: '/eventos', label: 'Eventos', icon: CalendarDays, searchTerms: 'temporadas especiales pulso' },
+  { to: '/votar', label: 'Votar', icon: Swords, searchTerms: 'duelo arena versus' },
+  { to: '/comparar', label: 'Comparar personajes', icon: Swords, searchTerms: 'comparar versus vs duelo personajes anime' },
+  { to: '/duel-live', label: 'Duelos live PvP', icon: Swords, searchTerms: 'pvp directo versus' },
+  { to: '/games', label: 'Anime Games Hub', icon: Gamepad2, searchTerms: 'juegos daily trials' },
+  { to: '/juegos/anime', label: 'Juegos anime online', icon: Gamepad2, searchTerms: 'seo juegos anime online daily trials' },
+  { to: '/misiones', label: 'Misiones diarias', icon: CalendarDays, searchTerms: 'mision diaria ritual racha progreso daily loop' },
+  { to: '/games/shadow-guess', label: 'Shadow Guess (Guess the Character)', icon: Eye, searchTerms: 'guess character silueta personaje' },
+  { to: '/games/anime-reveal', label: 'Anime Reveal (Guess the Anime)', icon: Type, searchTerms: 'guess anime adivinar serie' },
+  { to: '/games/anigrid', label: 'AniGrid (Anidel · Wordle)', icon: Grid3X3, searchTerms: 'wordle personajes anidel' },
+  { to: '/games/impostor-trial', label: 'Impostor Trial (Detector de Impostor)', icon: Sparkles, searchTerms: 'traidor impostor trial' },
+  { to: '/games/elo-duel', label: 'ELO Duel (Higher or Lower)', icon: Sparkles, searchTerms: 'higher lower elo racha' },
+  { to: '/omikuji', label: 'Omikuji — Suerte del día', icon: Sparkles, searchTerms: 'suerte diario fortuna' },
+  { to: '/descubre-personaje', label: 'Descubre personaje', icon: Sparkles, searchTerms: 'random aleatorio descubrir personaje anime' },
+  { to: '/ranking', label: 'Ranking ELO', icon: TrendingUp, searchTerms: 'clasificacion leaderboard top' },
+  { to: '/mi-ranking', label: 'Mi ranking personal', icon: Trophy, searchTerms: 'ranking personal votos locales top personajes' },
+  { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp, searchTerms: 'comunidad usuarios ranking' },
+  { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy, searchTerms: 'badges achievements rareza' },
+  { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles, searchTerms: 'share top favoritos' },
+  { to: '/tv', label: 'Modo TV', icon: Tv, searchTerms: 'pantalla fullscreen directo' },
+  { to: '/apoya', label: 'Apoya AnimeShowdown', icon: Heart, searchTerms: 'donar soporte apoyo' },
+  { to: '/como-funciona', label: 'Cómo funciona', icon: HelpCircle, searchTerms: 'guia producto votar daily ranking' },
+  { to: '/metodologia-elo', label: 'Metodología del ranking', icon: ShieldCheck, searchTerms: 'elo ranking votos metodologia' },
+  { to: '/faq', label: 'Preguntas frecuentes', icon: HelpCircle, searchTerms: 'ayuda dudas' },
+  { to: '/glossary', label: 'Glosario otaku', icon: BookOpen, searchTerms: 'terminos anime diccionario' },
+  { to: '/api-docs', label: 'API pública', icon: Code2, searchTerms: 'swagger docs desarrolladores' },
+  { to: '/status', label: 'Estado del servicio', icon: Activity, searchTerms: 'status uptime salud api' },
+  { to: '/privacidad', label: 'Privacidad', icon: FileText, searchTerms: 'privacy datos legal' },
+  { to: '/terminos', label: 'Términos', icon: FileText, searchTerms: 'terms condiciones legal' },
+  { to: '/dmca', label: 'DMCA', icon: FileText, searchTerms: 'copyright legal takedown' },
 ]
 
 const rutasInvitado = [
-  { to: '/login', label: 'Iniciar sesión', icon: LogIn },
-  { to: '/register', label: 'Crear cuenta', icon: UserPlus },
+  { to: '/login', label: 'Iniciar sesión', icon: LogIn, searchTerms: 'login entrar cuenta' },
+  { to: '/register', label: 'Crear cuenta', icon: UserPlus, searchTerms: 'registro signup' },
+  { to: '/forgot-password', label: 'Recuperar contraseña', icon: HelpCircle, searchTerms: 'reset password contraseña' },
+]
+
+const rutasUsuario = [
+  { to: '/perfil', label: 'Mi perfil', icon: UserCircle, searchTerms: 'cuenta ajustes usuario' },
+  { to: '/torneos/crear', label: 'Crear torneo', icon: PlusCircle, searchTerms: 'nuevo bracket campeonato' },
+]
+
+const rutasAdmin = [
+  { to: '/admin', label: 'Panel admin', icon: ShieldCheck, searchTerms: 'moderacion administrador' },
 ]
 
 function normalizaBusqueda(value) {
@@ -75,7 +107,7 @@ function buildPersonajesIndex() {
 }
 
 function CommandPalette({ initialOpen = false } = {}) {
-  // Revisión (2026-05-17): initialOpen permite al wrapper LazyMount abrir
+  // initialOpen permite al wrapper LazyMount abrir
   // el dialog directamente al primer atajo, sin depender de re-dispatch
   // del KeyboardEvent (que podía tragarse en redes lentas porque el
   // listener interno aún no estaba registrado cuando se re-emitía).
@@ -110,7 +142,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
   useEffect(() => {
     const onKey = (e) => {
-      // Revisión (2026-05-17): ESC cierra el dialog cuando ya no usamos
+      // ESC cierra el dialog cuando ya no usamos
       // Command.Dialog (Radix lo manejaba antes). Tab no necesita trap
       // explicito porque el palette tiene solo un input focusable +
       // los items son keyboard-navigable via cmdk internamente.
@@ -120,7 +152,7 @@ function CommandPalette({ initialOpen = false } = {}) {
         setOpen(false)
         return
       }
-      // Revisión (2026-05-18, 5ª iter): escucha K y J. Antes solo K;
+      // escucha K y J. Antes solo K;
       // J solo funcionaba la primera vez (lo capturaba el wrapper
       // LazyMount para armar el mount, pero tras cerrar y volver a
       // pulsar J, el listener interno no respondía).
@@ -150,7 +182,7 @@ function CommandPalette({ initialOpen = false } = {}) {
     return () => { document.body.style.overflow = prev }
   }, [open])
 
-  // Revisión (2026-05-17, 4ª iter): focus trap + restore al cerrar.
+  // focus trap + restore al cerrar.
   // Sin esto, Tab escapa al header/footer del fondo y al cerrar el
   // palette el foco se pierde a <body> en lugar de volver al trigger.
   //  - Al abrir: guarda el elemento con foco previo.
@@ -216,7 +248,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
   return (
     /*
-      Revisión a11y (2026-05-17, 3ª iter): reemplazado Command.Dialog (que
+      a11y: reemplazado Command.Dialog (que
       delega en Radix Dialog y emitía DialogContent requires a DialogTitle
       + aria-describedby a id inexistente porque cmdk@1.1.1 no expone los
       slots de Radix). Dialog manual: overlay + content con role/aria
@@ -240,6 +272,7 @@ function CommandPalette({ initialOpen = false } = {}) {
       <button
         type="button"
         aria-label="Cerrar buscador"
+        tabIndex={-1}
         className="fixed inset-0 cursor-default bg-black/70 backdrop-blur-sm"
         onClick={() => {
           setSearch('')
@@ -253,7 +286,7 @@ function CommandPalette({ initialOpen = false } = {}) {
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <Search className="h-4 w-4 text-fg-muted" />
           {/*
-            Revisión (2026-05-18, 5ª iter): sin autoFocus. Antes el input
+            sin autoFocus. Antes el input
             se autofocuseaba en el commit y mi useEffect del focus trap
             capturaba activeElement DESPUÉS — terminaba guardando el
             propio input como "trigger previo" y al cerrar intentaba
@@ -284,10 +317,10 @@ function CommandPalette({ initialOpen = false } = {}) {
             heading="Páginas"
             className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
           >
-            {rutas.map(({ to, label, icon: Icon }) => (
+            {rutas.map(({ to, label, icon: Icon, searchTerms = '' }) => (
               <Command.Item
                 key={to}
-                value={`pagina ${label}`}
+                value={`pagina ${label} ${to} ${searchTerms}`}
                 onSelect={() => go(to)}
                 className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
@@ -296,10 +329,34 @@ function CommandPalette({ initialOpen = false } = {}) {
               </Command.Item>
             ))}
             {!user &&
-              rutasInvitado.map(({ to, label, icon: Icon }) => (
+              rutasInvitado.map(({ to, label, icon: Icon, searchTerms = '' }) => (
                 <Command.Item
                   key={to}
-                  value={`acceso ${label}`}
+                  value={`acceso ${label} ${to} ${searchTerms}`}
+                  onSelect={() => go(to)}
+                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                >
+                  <Icon className="h-4 w-4 text-fg-muted" />
+                  {label}
+                </Command.Item>
+              ))}
+            {user &&
+              rutasUsuario.map(({ to, label, icon: Icon, searchTerms = '' }) => (
+                <Command.Item
+                  key={to}
+                  value={`usuario ${label} ${to} ${searchTerms}`}
+                  onSelect={() => go(to)}
+                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                >
+                  <Icon className="h-4 w-4 text-fg-muted" />
+                  {label}
+                </Command.Item>
+              ))}
+            {user?.rol === 'ADMIN' &&
+              rutasAdmin.map(({ to, label, icon: Icon, searchTerms = '' }) => (
+                <Command.Item
+                  key={to}
+                  value={`admin ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
                   className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
                 >
@@ -421,7 +478,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
             slug={p.slug}
             src={p.imagenUrl}
             nombre={p.nombre}
-            alt=""
+            alt={p.nombre}
             loading="lazy"
             sizes="32px"
             className="h-7 w-5 shrink-0 rounded object-cover object-top"

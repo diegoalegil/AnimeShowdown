@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.model;
 
 /**
- * Estado de verificación del email de un usuario (Plan v2 §2.4).
+ * Estado de verificación del email de un usuario.
  *
  * Default para usuarios pre-existentes y para tests: ACTIVO (no se les
  * penaliza retroactivamente). El AuthController.registro fuerza PENDIENTE

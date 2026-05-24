@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Filtro de autenticación dedicado para {@code /actuator/prometheus}.
  *
- * <p>Nota técnica F007 (2026-05-22): antes el endpoint estaba en permitAll,
+ * <p>antes el endpoint estaba en permitAll,
  * lo que filtraba métricas internas (endpoints, latencias, tasas de error,
  * nombres de queries) a cualquier visitante. Estas señales son ORO para un
  * atacante que quiera mapear la superficie del backend o detectar incidentes

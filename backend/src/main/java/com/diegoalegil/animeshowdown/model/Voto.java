@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "votos", uniqueConstraints = {
-        // Nota P1 (2026-05-17): se eliminó uk_voto_personaje_usuario (un voto
+        // se eliminó uk_voto_personaje_usuario (un voto
         // por usuario y personaje globalmente). Bloqueaba votos legítimos en
         // rondas distintas del bracket cuando un personaje avanzaba: usuario
         // votó Luffy en R1 y al votarlo en R2 el constraint reventaba con
@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
         // El uniqueness real (un voto por usuario y enfrentamiento) lo cubre
         // uk_voto_enfrentamiento_usuario, que sí es semánticamente correcto.
         @UniqueConstraint(name = "uk_voto_enfrentamiento_usuario", columnNames = { "enfrentamiento_id", "usuario_id" }),
-        // Nota técnica AS-003 (2026-05-22): unicidad de votos anónimos por
+        // unicidad de votos anónimos por
         // sesión, declarada también en JPA para que ddl-auto=validate la
         // reconozca contra el schema real (V30). NULL != NULL en SQL hace
         // que la combinación solo se constrainee cuando ambos campos están
@@ -40,7 +40,7 @@ import java.time.LocalDateTime;
         // para acelerar lookups por una columna.
         @Index(name = "idx_votos_personaje", columnList = "personaje_id"),
         @Index(name = "idx_votos_enfrentamiento", columnList = "enfrentamiento_id"),
-        // Ajuste (2026-05-17): rankingDesde/rankingHasta filtran por
+        // rankingDesde/rankingHasta filtran por
         // votos.fecha (RankingMovimientosService). V18 lo materializa
         // explícito en BBDD; declarar aquí mantiene en sync el esquema
         // de Hibernate validate.

@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Token de verificación de email tras signup (Plan v2 §2.4).
+ * Token de verificación de email tras signup.
  *
  * Flujo:
  *   1. Tras /registro, se crea una fila con token UUID + expira_en = now+24h.

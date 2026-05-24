@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 /**
- * Hook para set de meta tags por ruta (Plan v2 §5.2 + §5.3).
+ * Hook para set de meta tags por ruta.
  *
  * <p>Extiende {@code useDocumentTitle} setando además:
  * <ul>
@@ -17,7 +17,7 @@ import { useEffect } from 'react'
  * originales del HTML inicial. Sin context, sin deps externas, sin
  * SSR (la SPA renderiza tras JS, los crawlers de Google ejecutan JS
  * desde 2018 — para previews social usamos OG image dinámica server-side
- * del Bloque 1.2).
+ * de la capa correspondiente).
  *
  * <p>Para JSON-LD usa {@code <JsonLd>} component (también gestiona limpieza).
  *
@@ -31,7 +31,7 @@ import { useEffect } from 'react'
  */
 const BASE = 'AnimeShowdown'
 const SITIO = 'https://animeshowdown.dev'
-// Plan v2 §5.9: idiomas que tenemos al menos parcialmente traducidos.
+// Idiomas que tenemos al menos parcialmente traducidos.
 // Cada uno produce un <link rel="alternate" hreflang="X" href="URL?lang=X">
 // más un x-default que apunta al ES (idioma original y catálogo completo).
 const LANGS = ['es', 'en']
@@ -72,7 +72,7 @@ export function useSeo({
       noindex
         ? setMetaName('robots', 'noindex,nofollow')
         : setMetaName('robots', null),
-      // Hreflang (Plan v2 §5.9): un link por idioma soportado más
+      // Hreflang: un link por idioma soportado más
       // x-default → ES. Si la página tiene noindex no los emitimos
       // porque hreflang en páginas no indexables es contradicción.
       ...(noindex
@@ -92,7 +92,14 @@ export function useSeo({
 
 function absolutizar(src) {
   if (!src) return src
-  if (src.startsWith('http://') || src.startsWith('https://')) return src
+  if (
+    src.startsWith('http://') ||
+    src.startsWith('https://') ||
+    src.startsWith('data:') ||
+    src.startsWith('blob:')
+  ) {
+    return src
+  }
   return `${SITIO}${src.startsWith('/') ? '' : '/'}${src}`
 }
 
@@ -103,9 +110,9 @@ function absolutizar(src) {
  * {@code ?lang} sobre la preferencia de localStorage para que crawlers
  * que entran via hreflang aterricen en el idioma correcto.
  *
- * <p>El soporte de {@code ?lang} en el cliente queda pendiente del
- * Bloque 5.9.b — por ahora los crawlers entran ignorando el param, que
- * no rompe nada (i18next cae a su detector normal).
+ * <p>El soporte de {@code ?lang} en el cliente todavía es parcial: si
+ * un crawler ignora el parámetro, i18next cae a su detector normal y la
+ * página sigue siendo accesible.
  */
 function withLangParam(url, lang) {
   try {

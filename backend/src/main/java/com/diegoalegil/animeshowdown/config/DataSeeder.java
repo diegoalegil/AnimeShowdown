@@ -134,7 +134,7 @@ public class DataSeeder implements CommandLineRunner {
                     SEED_TORNEOS_FILE, e.getMessage(), e);
         }
 
-        // Plan v2 §11.8: backfill de códigos de referral. Users pre-V14
+        // Backfill de códigos de referral. Users pre-V14
         // arrancan sin código; el primer boot tras la migración les asigna
         // uno único. Idempotente: re-ejecutar sobre BBDD ya backfilleada
         // no toca nada.
@@ -265,7 +265,7 @@ public class DataSeeder implements CommandLineRunner {
      * 6. El personaje en sí.
      *
      * El orden es crítico: si intentamos borrar el personaje antes que sus
-     * referenciadores, falla con constraint violation. Nota P2 (2026-05-17):
+     * referenciadores, falla con constraint violation.
      * antes del fix, los pasos 1 y 2 faltaban — retirar del seed un personaje
      * que ganó un torneo o fue predicho rompía el boot del backend en
      * producción con FK constraint violation. Si algún paso falla, la
@@ -318,7 +318,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     // ===================================================================
-    //  Torneos seed (Plan v2 §1.1 commit 6)
+    //  Torneos seed
     // ===================================================================
 
     /**

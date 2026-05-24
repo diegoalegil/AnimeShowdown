@@ -487,18 +487,14 @@ function UrlForm({ user, updateUser }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex items-center gap-4 rounded-lg border border-border bg-bg p-3">
-        {previewUrl?.trim() ? (
-          <img
-            src={previewUrl.trim()}
-            alt=""
-            className="h-12 w-12 rounded-full object-cover"
-            onError={(e) => {
-              e.currentTarget.style.opacity = 0.3
-            }}
-          />
-        ) : (
-          <Avatar user={user} size={48} />
-        )}
+        <Avatar
+          user={
+            previewUrl?.trim()
+              ? { ...user, avatarUrl: previewUrl.trim() }
+              : user
+          }
+          size={48}
+        />
         <p className="text-[12px] text-fg-muted">Vista previa</p>
       </div>
       <div className="flex flex-col gap-1.5">
@@ -713,7 +709,7 @@ function CardSesion({ onLogout }) {
 }
 
 /**
- * Zona peligrosa del perfil (Plan v2 §4.1, GDPR right to erasure).
+ * Zona peligrosa del perfil.
  *
  * <p>Doble confirmación: abrir modal → marcar checkbox de "entiendo
  * que es irreversible" + escribir contraseña → confirmar. El backend
@@ -781,13 +777,9 @@ function CardEliminarCuenta({ onEliminada }) {
         </button>
       </div>
 
-      {/* Nota F019 (2026-05-22): migrado a AccessibleDialog que añade
-          focus trap, Escape close, restore de foco al trigger y bloqueo
-          de scroll. closeOnEscape se desactiva mientras `pendiente=true`
-          para evitar que el usuario cancele sin querer un proceso de
-          borrado en curso. closeOnBackdrop hace lo mismo. El label del
-          password ahora va con htmlFor + id para que el lector lo asocie
-          al input correcto (antes era <label> hermano sin asociar). */}
+      {/* AccessibleDialog aporta focus trap, Escape, restore de foco y lock
+          de scroll. Escape/backdrop se bloquean durante el borrado para no
+          cancelar un proceso en curso por accidente. */}
       <AccessibleDialog
         open={modalAbierto}
         onClose={() => { if (!pendiente) reset() }}

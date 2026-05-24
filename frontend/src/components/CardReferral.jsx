@@ -5,7 +5,7 @@ import { usePerfilReferral } from '../hooks/usePerfil'
 import KanjiSpinner from './KanjiSpinner'
 
 /**
- * Card de referral (Plan v2 §11.8) — código único compartible + count
+ * Card de referral — código único compartible + count
  * de referidos verificados con progreso hacia el badge "Reclutador".
  *
  * <p>Se monta en /perfil tab Resumen. Si el usuario no tiene código aún

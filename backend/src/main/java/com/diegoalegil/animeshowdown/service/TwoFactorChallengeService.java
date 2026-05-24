@@ -16,7 +16,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * Gestiona los <em>challenge tokens</em> temporales del login con 2FA
- * (Plan v2 §2.3).
+ *.
  *
  * <p>Cuando el login pasa el paso 1 (username + password) pero el usuario
  * tiene 2FA activo, el backend NO emite JWT/refresh todavía. Emite un

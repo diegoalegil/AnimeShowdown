@@ -35,7 +35,7 @@ export function getEstadoBadge(estado) {
 /**
  * Hooks react-query para todas las lecturas/escrituras de torneos.
  * Aislados aquí para que las páginas no sepan ni de queryKeys ni de
- * cómo se invalida cada cosa. Plan v2 §1.1.
+ * cómo se invalida cada cosa. 1.
  */
 
 /** Listado de torneos (TorneoResumenDto[]). 5 min stale, sin refetch en focus. */
@@ -49,7 +49,7 @@ export function useTorneos() {
 /**
  * Detalle de un torneo por slug (TorneoDetalleDto incluye `enfrentamientos`).
  *
- * Doble canal de updates (Plan v2 §2.13):
+ * Doble canal de updates:
  *   1. Polling 30s mientras el torneo está IN_PROGRESS (fallback si el WS
  *      no conecta — proxies corporativos, mobile en red mala, etc).
  *   2. WebSocket STOMP suscrito a /topic/torneo.{id}.bracket: cuando alguien

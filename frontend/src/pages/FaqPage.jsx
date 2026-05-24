@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronDown, ExternalLink, HelpCircle, Search } from 'lucide-react'
@@ -17,7 +17,7 @@ const containerVariants = {
 }
 
 /**
- * Lista de preguntas frecuentes (Plan v2 §5.10).
+ * Lista de preguntas frecuentes.
  *
  * <p>Mantenida en este array porque son ~10 preguntas estables y traerlas
  * del backend / CMS sería sobre-ingeniería. Cuando crezca a 30+ o queramos
@@ -36,9 +36,9 @@ const FAQ = [
   },
   {
     categoria: 'Ranking',
-    pregunta: '¿Cómo funciona el ranking ELO?',
+    pregunta: '¿Cómo funciona el ranking competitivo?',
     respuesta:
-      'Cada personaje empieza con 1500 puntos. Ganar un duelo le suma puntos en función del rival: si bates a alguien fuerte sube mucho, si vences a alguien por debajo sube poco. Es el mismo sistema que se usa en ajedrez competitivo. El ranking se actualiza al instante con cada voto.',
+      'AnimeShowdown separa ELO base estimado y ranking comunitario. El ELO base ordena el catálogo como punto de partida; el ranking competitivo se alimenta de votos reales, periodos y actividad de la comunidad.',
   },
   {
     categoria: 'Torneos',
@@ -109,14 +109,15 @@ function FaqPage() {
   const [abiertaPregunta, setAbiertaPregunta] = useState(FAQ[0]?.pregunta ?? null)
   const [categoria, setCategoria] = useState('Todas')
   const [filtro, setFiltro] = useState('')
+  const deferredFiltro = useDeferredValue(filtro)
   const visibles = useMemo(() => {
-    const q = normalizarFaq(filtro.trim())
+    const q = normalizarFaq(deferredFiltro.trim())
     return FAQ.filter((item) => {
       if (categoria !== 'Todas' && item.categoria !== categoria) return false
       if (!q) return true
       return normalizarFaq(`${item.pregunta} ${item.respuesta} ${item.categoria}`).includes(q)
     })
-  }, [categoria, filtro])
+  }, [categoria, deferredFiltro])
 
   const preguntaAbiertaVisible = visibles.some((item) => item.pregunta === abiertaPregunta)
     ? abiertaPregunta

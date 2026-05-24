@@ -163,7 +163,7 @@ function PersonajesPage() {
     [deferredSearch],
   )
 
-  // Ajuste (2026-05-17): /personajes con 730 cards renderizaba ~9.8k nodos
+  // /personajes con 730 cards renderizaba ~9.8k nodos
   // DOM, ~790 imgs, scroll de >100k px en móvil. Paginación incremental:
   // 60 cards iniciales + botón "Cargar más" para ampliar de 60 en 60.
   // Reset automático al cambiar filtros: guardamos {key, count} juntos
@@ -295,7 +295,7 @@ function PersonajesPage() {
   useSeo({
     title: selectedTag ? `Personajes ${selectedTag.label}` : 'Personajes',
     description: selectedTag
-      ? `Personajes con rasgo ${selectedTag.label} en AnimeShowdown: ranking ELO, anime de origen y fichas para votar.`
+      ? `Personajes con categoría ${selectedTag.label} en AnimeShowdown: ranking ELO, anime de origen y fichas para votar.`
       : `Catálogo de ${catalogoPersonajes.length} personajes de anime con su ranking ELO, anime de origen y stats de votos.`,
   })
   const activeFilterBadges = useMemo(() => {
@@ -461,9 +461,17 @@ function PersonajesPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              role="combobox"
+              aria-label="Buscar personajes"
               placeholder="Busca personaje, anime o alias…"
+              aria-autocomplete="list"
               aria-expanded={autocompleteQuery.length >= 2}
-              aria-controls="personajes-search-results"
+              aria-haspopup="listbox"
+              aria-controls={
+                autocompleteQuery.length >= 2
+                  ? 'personajes-search-results'
+                  : undefined
+              }
               className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
             />
             {search && (
@@ -565,6 +573,7 @@ function PersonajesPage() {
                 play('playClick')
               }}
               aria-label="Vista cuadrícula"
+              aria-pressed={view === 'grid'}
               className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
                 view === 'grid'
                   ? 'bg-gold/15 text-gold'
@@ -580,6 +589,7 @@ function PersonajesPage() {
                 play('playClick')
               }}
               aria-label="Vista lista"
+              aria-pressed={view === 'list'}
               className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
                 view === 'list'
                   ? 'bg-gold/15 text-gold'
@@ -647,6 +657,7 @@ function PersonajesPage() {
           <button
             type="button"
             onClick={() => seleccionarAnime(null)}
+            aria-pressed={animeFilter === null}
             className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
               animeFilter === null
                 ? 'as-chip-active'
@@ -660,6 +671,7 @@ function PersonajesPage() {
               key={anime}
               type="button"
               onClick={() => seleccionarAnime(anime)}
+              aria-pressed={animeFilter === anime}
               className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
                 animeFilter === anime
                   ? 'as-chip-active'
@@ -671,15 +683,9 @@ function PersonajesPage() {
           ))}
         </div>
 
-        {/* Nota F017 (2026-05-22): el drawer de filtros móvil antes era
-            un <div role="dialog"> ad-hoc sin focus trap, Escape close ni
-            bloqueo de scroll del body — los lectores y users de teclado
-            podían tabbing salir al fondo. Ahora pasa por AccessibleDialog
-            con align="bottom" que conserva el look bottom-sheet pero añade
-            todas las features de accesibilidad. El backdrop, el lock de
-            scroll y el restore de foco quedan centralizados.
-            sm:hidden se aplica al backdrop wrapper para que el drawer solo
-            aparezca en viewports móviles — en desktop hay filtros inline. */}
+        {/* AccessibleDialog conserva el look bottom-sheet en mobile y
+            centraliza focus trap, Escape, backdrop, lock de scroll y restore
+            de foco. En desktop ya existen filtros inline. */}
         <AccessibleDialog
           open={filtersOpen}
           onClose={() => setFiltersOpen(false)}
@@ -814,6 +820,7 @@ function PersonajesPage() {
                     <button
                       type="button"
                       onClick={() => actualizarDraftFiltros({ view: 'list' })}
+                      aria-pressed={drawerFilters.view === 'list'}
                       className={`rounded-lg border px-3 py-2 text-sm font-bold ${
                         drawerFilters.view === 'list'
                           ? 'border-gold/60 bg-gold/15 text-gold'
@@ -825,6 +832,7 @@ function PersonajesPage() {
                     <button
                       type="button"
                       onClick={() => actualizarDraftFiltros({ view: 'grid' })}
+                      aria-pressed={drawerFilters.view === 'grid'}
                       className={`rounded-lg border px-3 py-2 text-sm font-bold ${
                         drawerFilters.view === 'grid'
                           ? 'border-gold/60 bg-gold/15 text-gold'
@@ -1000,7 +1008,7 @@ function PersonajeListRow({ slug, nombre, anime, rank }) {
         )}
         <PersonajeImg
           slug={slug}
-          alt=""
+          alt={nombre}
           loading="lazy"
           className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
         />

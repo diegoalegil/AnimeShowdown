@@ -10,7 +10,7 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 
 /**
  * Página /verify?token=XXX que cierra el flujo de email verification
- * del Plan v2 §2.4.
+ * del 4.
  *
  * Al montar, llama GET /api/auth/verify?token=... una sola vez. Posibles
  * resultados:
@@ -45,7 +45,7 @@ function VerifyPage() {
         if (cancelado) return
         if (data?.verificado) {
           setResultado('ok')
-          // Nota P2 (2026-05-17): refreshSession solo refresca el token y
+          // refreshSession solo refresca el token y
           // el state interno de api.js. Sin esto, AuthContext sigue con
           // estadoVerificacion=PENDIENTE en memoria (el user de
           // localStorage es viejo) y EmailVerifyBanner se mantiene aunque

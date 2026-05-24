@@ -32,10 +32,11 @@ function LoginPage() {
     title: 'Iniciar sesión',
     description:
       'Entra en tu cuenta AnimeShowdown para votar, predecir torneos y mantener tu perfil público con ranking ELO personalizado.',
+    noindex: true,
   })
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()
-  // Nota P2 (2026-05-17): rutas protegidas (CrearTorneoPage, etc.)
+  // Rutas protegidas (CrearTorneoPage, etc.)
   // redirigían a /login?next=... pero LoginPage navegaba siempre a /
   // tras éxito. Honramos el next si está presente Y es relativo —
   // negar absolutas/protocol-relative evita open-redirect.
@@ -125,9 +126,15 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
       } else {
         onSuccess()
       }
-    } catch {
+    } catch (err) {
+      const status = err?.status
       setError('root', {
-        message: 'No se pudo iniciar sesión. Intenta de nuevo.',
+        message:
+          status === 401
+            ? 'Credenciales inválidas. Revisa tu username/email y contraseña.'
+            : status === 429
+              ? 'Demasiados intentos. Espera unos segundos antes de probar otra vez.'
+              : err?.message || 'No se pudo iniciar sesión. Intenta de nuevo.',
       })
     }
   }
@@ -161,6 +168,10 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
             id="identificador"
             type="text"
             autoComplete="username"
+            aria-invalid={Boolean(errors.identificador)}
+            aria-describedby={
+              errors.identificador ? 'identificador-error' : undefined
+            }
             {...register('identificador', {
               required: 'Introduce tu username o email',
               minLength: { value: 3, message: 'Mínimo 3 caracteres' },
@@ -171,7 +182,7 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
             placeholder="Tu username o tu email"
           />
           {errors.identificador && (
-            <p className="text-[12px] text-red-400">
+            <p id="identificador-error" className="text-[12px] text-red-400">
               {errors.identificador.message}
             </p>
           )}
@@ -188,19 +199,23 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
             autoComplete="current-password"
             error={Boolean(errors.password)}
             placeholder="Tu contraseña"
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={errors.password ? 'login-password-error' : undefined}
             {...register('password', {
               required: 'Introduce tu contraseña',
               minLength: { value: 6, message: 'Mínimo 6 caracteres' },
             })}
           />
           {errors.password && (
-            <p className="text-[12px] text-red-400">
+            <p id="login-password-error" className="text-[12px] text-red-400">
               {errors.password.message}
             </p>
           )}
         </div>
         {errors.root && (
-          <p className="text-[12px] text-red-400">{errors.root.message}</p>
+          <p role="alert" className="text-[12px] text-red-400">
+            {errors.root.message}
+          </p>
         )}
         <button
           type="submit"
@@ -294,25 +309,20 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
           >
             Código TOTP o código de recuperación
           </label>
-          {/* Nota F012 (2026-05-22): antes este input tenía
-              inputMode="numeric" + pattern="[0-9]*" + label "6 dígitos",
-              pero el backend ACEPTA también códigos backup alfanuméricos
-              de 10 chars (mira Totp2faVerifyLoginRequest + AuthController).
-              Un usuario que perdió su authenticator y quiere usar un
-              backup code quedaba bloqueado: el teclado móvil salía numérico,
-              el form validation impedía letras, y el placeholder/label
-              hablaban solo del TOTP de 6 dígitos.
-              Ahora inputMode="text" + sin pattern restrictivo (la validación
-              de formato la hace el backend), label más honesto, placeholder
-              que muestra ambos formatos. minLength 6 sigue cubriendo el caso
-              de TOTP; backup codes tienen 10 así que también pasan. */}
+          {/* El campo acepta TOTP y backup codes alfanuméricos. Por eso no
+              usamos inputMode numeric ni pattern de solo dígitos; la
+              validación final de formato la hace el backend. */}
           <input
             id="codigo"
             type="text"
             inputMode="text"
             autoFocus
             autoComplete="one-time-code"
-            maxLength={11}
+            maxLength={12}
+            aria-invalid={Boolean(errors.codigo)}
+            aria-describedby={
+              errors.codigo ? 'codigo-error codigo-help' : 'codigo-help'
+            }
             {...register('codigo', {
               required: 'Introduce el código',
               minLength: { value: 6, message: 'Mínimo 6 caracteres' },
@@ -320,12 +330,14 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
             className={`rounded-lg border bg-bg px-3.5 py-3 text-center font-mono text-2xl tracking-[0.4em] text-fg-strong placeholder:text-fg-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
               errors.codigo ? 'border-red-500' : 'border-border'
             }`}
-            placeholder="123456 / abcd-ef-12"
+            placeholder="123456 o ABCD-EFGHJK"
           />
           {errors.codigo && (
-            <p className="text-[12px] text-red-400">{errors.codigo.message}</p>
+            <p id="codigo-error" className="text-[12px] text-red-400">
+              {errors.codigo.message}
+            </p>
           )}
-          <p className="text-[11px] text-fg-muted">
+          <p id="codigo-help" className="text-[11px] text-fg-muted">
             Usa el código de 6 dígitos de tu app TOTP, o uno de tus códigos de
             recuperación de 10 caracteres si perdiste el teléfono.
           </p>

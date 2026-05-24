@@ -18,7 +18,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
  * Ranking actual con indicadores de movimiento ↑/↓/=/Nuevo
- * (Plan v2 §4.x propuesta).
+ *.
  *
  * <p>Estrategia: pedimos el ranking all-time top-N actual y el ranking
  * "histórico" truncado en (ahora - dias) días. Para cada personaje del

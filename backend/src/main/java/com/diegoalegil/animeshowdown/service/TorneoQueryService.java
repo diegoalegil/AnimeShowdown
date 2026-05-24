@@ -4,10 +4,12 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,13 +43,16 @@ import jakarta.persistence.EntityNotFoundException;
  *   - ganadorSlug: slug del ganador del match de la última ronda, solo
  *     si está FINISHED.
  *
- * El render progresivo del bracket (Plan v2 §1.1 + §17.1) usa estos
+ * El render progresivo del bracket usa estos
  * tres campos para decidir qué rondas pintar con datos y cuáles difuminadas.
  */
 @Service
 public class TorneoQueryService {
 
     private static final Duration LIVE_MATCH_SLOT = Duration.ofMinutes(30);
+    private static final String LEGACY_AUTO_DESC_PREFIX = "[AUTO]";
+    private static final Pattern LEGACY_AUTO_SIZE =
+            Pattern.compile(".*·\\s*(\\d+)\\s+personajes.*");
 
     private final TorneoRepository torneoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
@@ -66,14 +71,14 @@ public class TorneoQueryService {
     }
 
     /**
-     * Listado público filtrado por visibilidad (Plan v2 §4.9): solo torneos
+     * Listado público filtrado por visibilidad: solo torneos
      * NO_APLICA (admin legacy) o APROBADO (revisado). Los PENDIENTES y
      * RECHAZADOS no aparecen aquí — el creador los ve en /api/torneos/mios
      * y el admin en /api/admin/torneos/pendientes.
      */
     @Transactional(readOnly = true)
     public List<TorneoResumenDto> listarResumenes() {
-        // Ajuste (2026-05-17): antes esto era N+1 — toResumen() llamaba
+        // antes esto era N+1 — toResumen() llamaba
         // findByTorneoOrderBy... por CADA torneo visible (1 + N queries
         // con N≈50 torneos). Ahora: 1 query de torneos + 1 query batch
         // de enfrentamientos (con JOIN FETCH de personajes) agrupada en
@@ -120,7 +125,7 @@ public class TorneoQueryService {
     public TorneoDetalleDto findById(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
-        // Nota P2 (2026-05-17): findBySlug filtra PENDIENTE/RECHAZADO pero
+        // findBySlug filtra PENDIENTE/RECHAZADO pero
         // findById no lo hacía — un atacante que enumere ids consecutivos
         // podía leer torneos UGC en cola de moderación o rechazados. Mismo
         // 404 que si no existiera para no filtrar metadata del bracket.
@@ -190,7 +195,7 @@ public class TorneoQueryService {
         dto.setId(t.getId());
         dto.setSlug(t.getSlug());
         dto.setNombre(t.getNombre());
-        dto.setDescripcion(t.getDescripcion());
+        dto.setDescripcion(descripcionPublica(t.getDescripcion()));
         dto.setEstado(t.getEstado());
         dto.setFechaCreacion(t.getFechaCreacion());
         dto.setFechaInicio(t.getFechaInicio());
@@ -206,6 +211,16 @@ public class TorneoQueryService {
         dto.setGanadorSlug(calcularGanadorSlug(t, totalRondas, matches));
         dto.setAvataresPrincipales(calcularAvataresPrincipales(matches));
         return dto;
+    }
+
+    private String descripcionPublica(String descripcion) {
+        if (descripcion == null || !descripcion.startsWith(LEGACY_AUTO_DESC_PREFIX)) {
+            return descripcion;
+        }
+        Matcher matcher = LEGACY_AUTO_SIZE.matcher(descripcion);
+        String tamano = matcher.matches() ? matcher.group(1) : "8";
+        return "Torneo automático de la comunidad con " + tamano
+                + " personajes seleccionados al azar para mantener la arena activa.";
     }
 
     /**

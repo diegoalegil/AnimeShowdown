@@ -21,7 +21,7 @@ import com.diegoalegil.animeshowdown.repository.ReaccionRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
 /**
- * Lógica de reactions emoji sobre personajes / torneos / matches (Plan v2 §4.3).
+ * Lógica de reactions emoji sobre personajes / torneos / matches.
  *
  * <p>Comportamiento del {@link #aplicar(Usuario, ReaccionTargetType, Long, ReaccionTipo)}
  * según el estado previo del par (usuario, target):
@@ -58,7 +58,7 @@ public class ReaccionService {
         if (usuario == null || targetType == null || targetId == null || tipo == null) {
             return Optional.empty();
         }
-        // Nota P2 (2026-05-17): antes el service persistía sin validar que
+        // antes el service persistía sin validar que
         // el target existiera. Un cliente directo podía mandar
         // targetType=PERSONAJE + targetId=999999 y la reacción se guardaba
         // huérfana — no entraba en ningún resumen real pero contaba como
@@ -99,7 +99,7 @@ public class ReaccionService {
     private boolean existeTarget(ReaccionTargetType type, Long id) {
         return switch (type) {
             case PERSONAJE -> personajeRepository.existsById(id);
-            // Nota P1 (2026-05-17): un torneo PENDIENTE o RECHAZADO no debe
+            // un torneo PENDIENTE o RECHAZADO no debe
             // considerarse "existente" para el público — eso filtraba metadata
             // de torneos en cola de moderación. Igualmente para MATCH: si su
             // torneo está oculto, el match tampoco existe a efectos del API
@@ -122,7 +122,7 @@ public class ReaccionService {
      * Devuelve el resumen del target: counts por tipo + mi reaction.
      * usuario puede ser null (anónimo) — en ese caso miReaccion=null.
      *
-     * <p>Nota P2 (2026-05-17): valida visibilidad del target antes de
+     * <p>valida visibilidad del target antes de
      * agregar counts. Antes el GET retornaba conteos para cualquier
      * (targetType, targetId), incluyendo torneos PENDIENTE/RECHAZADO
      * (filtraba metadata) o ids inexistentes (revela cardinalidad de la

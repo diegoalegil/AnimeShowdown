@@ -1,7 +1,5 @@
 package com.diegoalegil.animeshowdown.controller;
 
-import java.util.Optional;
-
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +14,15 @@ import java.time.Duration;
 
 /**
  * Endpoints que sirven PNGs 1200x630 pre-renderizados para previews
- * sociales (Twitter Cards, OpenGraph, Discord, Slack). Plan v2 §1.2.
+ * sociales (Twitter Cards, OpenGraph, Discord, Slack). 2.
  *
  * URLs canonical:
  *   - GET /api/og/personaje/{slug}.png
  *   - GET /api/og/torneo/{slug}.png
+ *   - GET /api/og/ranking.png
+ *   - GET /api/og/anime/{slug}.png
+ *   - GET /api/og/pvp.png
+ *   - GET /api/og/duelo/{slugA}/vs/{slugB}.png
  *
  * Headers:
  *   - Content-Type: image/png
@@ -49,23 +51,49 @@ public class OgImageController {
 
     @GetMapping(value = "/personaje/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> personaje(@PathVariable String slug) {
-        Optional<byte[]> png = ogImageService.renderPersonaje(slug);
-        return png
-                .map(bytes -> ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_PNG)
-                        .cacheControl(CACHE_7_DIAS)
-                        .body(bytes))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderPersonaje(slug));
     }
 
     @GetMapping(value = "/torneo/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> torneo(@PathVariable String slug) {
-        Optional<byte[]> png = ogImageService.renderTorneo(slug);
-        return png
-                .map(bytes -> ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_PNG)
-                        .cacheControl(CACHE_7_DIAS)
-                        .body(bytes))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderTorneo(slug));
+    }
+
+    @GetMapping(value = "/ranking.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> ranking() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderRanking());
+    }
+
+    @GetMapping(value = "/anime/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> anime(@PathVariable String slug) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderAnime(slug));
+    }
+
+    @GetMapping(value = "/pvp.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> pvp() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderPvp());
+    }
+
+    @GetMapping(value = "/duelo/{slugA}/vs/{slugB}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> duelo(@PathVariable String slugA, @PathVariable String slugB) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderDuelo(slugA, slugB));
     }
 }

@@ -1,8 +1,9 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Coffee, Swords } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
-import { personajes } from '../lib/personajes-core'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { slugifyAnime } from '../lib/animes'
 
 function GithubIcon({ className }) {
@@ -18,31 +19,38 @@ function GithubIcon({ className }) {
   )
 }
 
-// Nota de producto (2026-05-18): el footer antes mostraba el stack
+// Nota de producto: el footer antes mostraba el stack
 // técnico (React 19, Vite, Spring Boot, Java 21…) y un copyright
 // "Diego Alegil — DAM 1.º". Quitamos ambos: el footer público
-// representa la plataforma, no un portfolio. GitHub queda solo
+// representa la plataforma, no una presentación personal. GitHub queda solo
 // como link discreto en Comunidad bajo la etiqueta "código abierto".
 const productoLinks = [
   { to: '/', i18nKey: 'inicio' },
   { to: '/personajes', i18nKey: 'personajes' },
   { to: '/animes', i18nKey: 'animes' },
+  { to: '/descubre-personaje', i18nKey: 'descubrePersonaje' },
   { to: '/torneos', i18nKey: 'torneos' },
   { to: '/eventos', i18nKey: 'eventos' },
   { to: '/votar', i18nKey: 'votar' },
+  { to: '/comparar', i18nKey: 'comparar' },
   { to: '/ranking', i18nKey: 'ranking' },
+  { to: '/mi-ranking', i18nKey: 'miRanking' },
   { to: '/games', i18nKey: 'games' },
+  { to: '/misiones', i18nKey: 'misiones' },
+  { to: '/juegos/anime', i18nKey: 'juegosAnime' },
   { to: '/logros', i18nKey: 'logros' },
 ]
 
 const soporteLinks = [
+  { to: '/como-funciona', i18nKey: 'comoFunciona' },
+  { to: '/metodologia-elo', i18nKey: 'metodologia' },
   { to: '/faq', i18nKey: 'faq' },
   { to: '/glossary', i18nKey: 'glossary' },
   { to: '/api-docs', i18nKey: 'apiDocs' },
   { to: '/status', i18nKey: 'status' },
 ]
 
-function getTopAnimes() {
+function getTopAnimes(personajes) {
   const counts = {}
   personajes.forEach((p) => {
     counts[p.anime] = (counts[p.anime] || 0) + 1
@@ -54,7 +62,8 @@ function getTopAnimes() {
 
 function Footer() {
   const { t } = useTranslation()
-  const topAnimes = getTopAnimes()
+  const { personajes } = usePersonajesCatalogo()
+  const topAnimes = useMemo(() => getTopAnimes(personajes), [personajes])
   return (
     <footer className="relative isolate overflow-hidden border-t border-white/10 bg-bg/95">
       {/* Capas atmosféricas del footer: kanji 終 (fin), gradiente accent y particle dust.
@@ -177,31 +186,31 @@ function Footer() {
           </div>
         </div>
 
-        {/* SEO internal linking: top animes por roster */}
-        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
-            {t('footer.animesPopulares')}
-          </p>
-          <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
-            {topAnimes.map(([anime, count]) => (
-              <li key={anime}>
-                <Link
-                  to={`/animes/${slugifyAnime(anime)}`}
-                  className="text-fg-muted transition-colors hover:text-gold hover:underline"
-                  title={`Ranking interno y roster de ${anime} (${count} personajes)`}
-                >
-                  {anime}{' '}
-                  <span className="font-mono text-[11px] tabular-nums">
-                    ({count})
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {topAnimes.length > 0 && (
+          <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              {t('footer.animesPopulares')}
+            </p>
+            <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+              {topAnimes.map(([anime, count]) => (
+                <li key={anime}>
+                  <Link
+                    to={`/animes/${slugifyAnime(anime)}`}
+                    className="text-fg-muted transition-colors hover:text-gold hover:underline"
+                    title={`Ranking interno y roster de ${anime} (${count} personajes)`}
+                  >
+                    {anime}{' '}
+                    <span className="font-mono text-[11px] tabular-nums">
+                      ({count})
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-        {/* CTA de cierre: el footer ahora termina con una nota visual de
-            marca, no con un copyright seco. Pequeña tarjeta carmesí que
+        {/* CTA de cierre: el footer termina con una tarjeta de marca que
             invita a votar antes de salir. */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/12 via-bg/70 to-gold/[0.06] p-5 backdrop-blur-md sm:flex-row sm:p-6">
           <div className="flex flex-col gap-1 text-center sm:text-left">
@@ -221,13 +230,7 @@ function Footer() {
           </Link>
         </div>
 
-        {/* Legal + copyright minimalista.
-            Ajuste #20 (2026-05-21): los Links del legal eran un solo
-            renglon de texto sin padding vertical en mobile, dejando el
-            tap target en ~24px — por debajo del HIG/Material minimo
-            (44px iOS, 48dp Android). Anadido inline-flex items-center
-            min-h-[40px] px-2 py-2 para que cada link tenga area
-            generosa sin romper el visual desktop. */}
+        {/* Legal + copyright minimalista con tap targets cómodos en mobile. */}
         <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-fg-muted">
           <ul className="-mx-2 flex flex-wrap justify-center gap-y-1 sm:justify-start">
             <li>

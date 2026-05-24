@@ -14,12 +14,11 @@ import { endpoints } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { useMisFavoritos } from '../hooks/useFavoritos'
 import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
-import { imagenPersonaje } from '../lib/personajes-core'
-import { ocultaImgRota } from '../lib/imgFallback'
+import PersonajeImg from './PersonajeImg'
 
 /**
- * Banner de Pulso personalizado por usuario logueado (Plan producto
- * 2026-05-18). Cruza el roster del user (useMisFavoritos) con los
+ * Banner de Pulso personalizado por usuario logueado. Cruza el roster
+ * del user (useMisFavoritos) con los
  * movimientos de la última semana (rankingMovimientos) — sin pegar al
  * backend para esto, ambas queries ya viven en cache global desde Pulso.
  *
@@ -55,7 +54,7 @@ function FavoritosPulsoBanner() {
     () => (favoritos ?? []).map((f) => f.slug),
     [favoritos],
   )
-  // Sprint actividad reciente (2026-05-18): 1 batch request por la
+  // Actividad reciente: 1 batch request por la
   // lista de favoritos para enriquecer cada slug con su delta de
   // votos. Si un favorito no movió ELO pero recibió votos, igual
   // aparece como "actividad" en vez de quedarse fuera.
@@ -258,11 +257,12 @@ function FavoritoMovido({ favorito, movimiento, actividad }) {
         className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-gold/60"
         title={`${favorito.nombre} ${subio ? 'subió' : 'bajó'} ${Math.abs(movimiento.delta)} posiciones · ${votos} votos esta semana`}
       >
-        <img
-          src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
-          alt=""
+        <PersonajeImg
+          slug={favorito.slug}
+          src={favorito.imagenUrl}
+          alt={favorito.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="24px"
           className="h-6 w-6 rounded-full object-cover object-top"
         />
         <span className="line-clamp-1 font-semibold text-fg-strong">
@@ -291,11 +291,12 @@ function FavoritoActivo({ favorito, actividad }) {
         className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-emerald-400/60"
         title={`${favorito.nombre}: ${votos} votos esta semana · sin cambio de puesto`}
       >
-        <img
-          src={favorito.imagenUrl || imagenPersonaje(favorito.slug)}
-          alt=""
+        <PersonajeImg
+          slug={favorito.slug}
+          src={favorito.imagenUrl}
+          alt={favorito.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="24px"
           className="h-6 w-6 rounded-full object-cover object-top"
         />
         <span className="line-clamp-1 font-semibold text-fg-strong">

@@ -37,7 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Stats agregadas del usuario para el perfil (Plan v2 §4.1).
+ * Stats agregadas del usuario para el perfil.
  *
  * <p>Todos los métodos {@code @Transactional(readOnly = true)} para que el
  * mapeo a DTO con accesos lazy (Voto.enfrentamiento → personaje1/2, torneo)
@@ -78,7 +78,7 @@ public class PerfilService {
     }
 
     /**
-     * Vista pública agregada (Plan v2 §4.5). Junta stats + top + logros
+     * Vista pública agregada. Junta stats + top + logros
      * desbloqueados + counts de follow en una sola transacción para que
      * el mapeo lazy de UsuarioLogro.logro suceda con session viva.
      */
@@ -87,7 +87,7 @@ public class PerfilService {
         PerfilStatsDto statsDto = stats(duenyo);
         List<TopPersonajeItem> topItems = top(duenyo, topLimit);
         // Frontend pinta catálogo completo con locked, así que devolvemos
-        // los 14 con desbloqueadoEn poblado en los que el user tiene.
+        // el catálogo con desbloqueadoEn poblado cuando el usuario ya lo tiene.
         List<LogroDto> logrosDesbloqueados = badgeService
                 .listarCatalogoConDesbloqueos(duenyo);
         long countSeguidores = seguidorRepository.countByIdSeguidoId(duenyo.getId());
@@ -172,7 +172,7 @@ public class PerfilService {
     }
 
     /**
-     * Feed combinado de actividad reciente (Plan v2 §4.1).
+     * Feed combinado de actividad reciente.
      *
      * <p>Combina 4 fuentes en un único stream temporal descendente:
      * votos en enfrentamientos, logros desbloqueados, torneos creados y
@@ -278,7 +278,7 @@ public class PerfilService {
     }
 
     /**
-     * Borra la cuenta del usuario (Plan v2 §4.1, GDPR right to erasure).
+     * Borra la cuenta del usuario.
      *
      * <p>Verifica password antes de proceder. La cascada del schema
      * (V13) elimina datos derivados: refresh tokens, email verifications,
@@ -298,14 +298,14 @@ public class PerfilService {
         if (!passwordEncoder.matches(passwordPlano, usuario.getPassword())) {
             throw new IllegalArgumentException("Password incorrecta");
         }
-        // Nota P2 (2026-05-17): registrar DESPUÉS de verificar password (sin
+        // registrar DESPUÉS de verificar password (sin
         // password válido no hay borrado y no debe haber audit), pero ANTES
         // del delete (el FK audit_log.usuario_id necesita una fila viva; la
         // cascada ON DELETE SET NULL lo limpia tras el commit). Síncrono
         // dentro de la misma tx para que ambas escrituras commiteen juntas
         // o se rollee todo. La versión @Async anterior podía persistir
         // tarde con FK violation.
-        // Ajuste (2026-05-17): no incluir email en los detalles del audit.
+        // no incluir email en los detalles del audit.
         // Los logs tienen retención larga (forensic/compliance) y exponer
         // PII allí viola data minimization — el username es suficiente
         // para forense del evento. Si necesitamos contactar al usuario

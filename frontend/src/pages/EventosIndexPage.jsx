@@ -23,15 +23,16 @@ import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/V
 import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
 
 /**
- * Índice de eventos temporales (Plan producto 2026-05-18). Tres
+ * Índice de eventos temporales. Tres
  * secciones: activos, próximos, pasados — solo aparecen las que
  * tienen items. Cada card linka a /eventos/:slug.
  */
 function EventosIndexPage() {
   useSeo({
-    title: 'Eventos · AnimeShowdown',
+    title: 'Eventos',
     description:
       'Semanas y copas temporales de AnimeShowdown: arcos de villanos, top waifus, semanas de animes. Vota durante cada temporada y mira quién gana.',
+    image: BRAND_VISUALS.eventos.image,
   })
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
@@ -154,11 +155,8 @@ function EventoCard({ evento, now, etiqueta }) {
         ? `Empieza en ${restante}`
         : 'Finalizado'
 
-  // Nota visual (2026-05-20): cover h-48 era muy bajo para las
-  // composiciones generadas con GPT Image (que son ricas en personajes,
-  // siluetas y fondo). Subimos a h-56 para que respire y la imagen sea
-  // protagonista. Glow hover con accent del propio evento (rose/violet/
-  // amber/pink/cyan) en lugar del genérico amber.
+  // Cover h-56 para que composiciones ricas en personajes, siluetas y fondo
+  // respiren. Glow hover con accent del propio evento en lugar del genérico.
   const glowHover = {
     rose: 'hover:shadow-[0_28px_70px_-30px_rgba(244,63,94,0.55)]',
     violet: 'hover:shadow-[0_28px_70px_-30px_rgba(139,92,246,0.55)]',

@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { endpoints, ApiError } from '../lib/api'
 import { useTorneos } from '../lib/torneosQueries'
 import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personajes-core'
@@ -31,7 +31,6 @@ import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 import PersonajeCutImg from './PersonajeCutImg'
 import PersonajeImg from './PersonajeImg'
 import EditorialCover from './EditorialCover'
-import { ocultaImgRota } from '../lib/imgFallback'
 import {
   BRAND_VISUALS,
   getEventVisual,
@@ -39,6 +38,7 @@ import {
   getTournamentVisual,
 } from '../data/visual-assets'
 import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
+import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 /**
  * Campeón fallback derivado del catálogo local. Útil cuando el ranking
@@ -47,9 +47,11 @@ import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
  * con mayor ELO base del catálogo, marcado como "Top del catálogo"
  * para no mentir presentándolo como votado por la comunidad.
  */
-const CAMPEON_FALLBACK = (() => {
-  const top = [...personajes]
-    .filter((p) => tieneImagenPromocionable({ personaje: p }))
+function crearCampeonFallback(catalogoPersonajes) {
+  const top = [...catalogoPersonajes]
+    .filter((p) =>
+      tieneImagenPromocionable({ personaje: p }, catalogoPersonajes),
+    )
     .map((p) => ({ ...p, elo: getStatsPersonaje(p.slug).elo }))
     .sort((a, b) => b.elo - a.elo)[0]
   return top
@@ -58,24 +60,26 @@ const CAMPEON_FALLBACK = (() => {
           slug: top.slug,
           nombre: top.nombre,
           anime: top.anime,
-          imagenUrl: imagenPersonaje(top.slug),
+          imagenUrl: top.imagenUrl ?? top.imagen ?? imagenPersonaje(top.slug),
         },
         eloLocal: top.elo,
       }
     : null
-})()
+}
 
-function tieneImagenPromocionable(item) {
+function tieneImagenPromocionable(item, catalogoPersonajes = personajes) {
   const p = item?.personaje ?? item
-  const local = p?.slug ? personajes.find((personaje) => personaje.slug === p.slug) : null
-  const imagen = p?.imagenUrl ?? local?.imagen
+  const local = p?.slug
+    ? catalogoPersonajes.find((personaje) => personaje.slug === p.slug)
+    : null
+  const imagen = p?.imagenUrl ?? local?.imagenUrl ?? local?.imagen
   return Boolean(imagen && !imagen.includes('/_missing/') && !imagen.includes('placeholder'))
 }
 
 /**
  * Pulso AnimeShowdown — sección "live" en la home.
  *
- * <p>Nota de producto (2026-05-18): la home antes mostraba un duelo random
+ * <p>Nota de producto: la home antes mostraba un duelo random
  * cliente-side y stats estáticas. No transmitía sensación de plataforma
  * en marcha. Esta sección consolida cinco señales reales arriba de la
  * página:
@@ -142,6 +146,7 @@ function useUltimosVotos() {
 }
 
 function SectionPulso() {
+  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const { data: ranking, isLoading: rankingLoading } = useRanking()
   const { data: movimientos } = useMovimientos()
   const { data: torneos = [] } = useTorneos()
@@ -151,11 +156,15 @@ function SectionPulso() {
   // Campeón real si el backend tiene votos; si no, fallback al top del
   // catálogo. Distinguimos visualmente con flag esFallback.
   const campeonReal = Array.isArray(ranking)
-    ? ranking.find(tieneImagenPromocionable)
+    ? ranking.find((item) => tieneImagenPromocionable(item, catalogoPersonajes))
     : null
-  const campeon = campeonReal ?? CAMPEON_FALLBACK
+  const campeonFallback = useMemo(
+    () => crearCampeonFallback(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const campeon = campeonReal ?? campeonFallback
   const esFallback = !campeonReal
-  // Nota de producto (2026-05-18): el backend devuelve top por COUNT(votos),
+  // Nota de producto: el backend devuelve top por COUNT(votos),
   // así que en una DB joven con 1-5 votos totales presentar al top como
   // "campeón actual" es engañoso. Sumamos los votos del ranking servido
   // y aplicamos disclaimer si el total comunidad es pequeño.
@@ -166,7 +175,10 @@ function SectionPulso() {
   const votosCampeon = Number(campeon?.votos ?? 0)
   const mostrarCampeon =
     rankingLoading ||
-    (!esFallback && votosCampeon >= 10 && campeon?.personaje && tieneImagenPromocionable(campeon))
+    (!esFallback &&
+      votosCampeon >= 10 &&
+      campeon?.personaje &&
+      tieneImagenPromocionable(campeon, catalogoPersonajes))
   const topMovers = (movimientos || [])
     .filter((m) => m.delta != null && m.delta !== 0)
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
@@ -318,10 +330,8 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
           background: `radial-gradient(circle at 88% 0%, ${tone.glow}, transparent 13rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 42%)`,
         }}
       />
-      {/* Feedback visual (2026-05-20): re-eliminado kanji 戦 fantasma que
-          El bloque duplicado volvió a entrar en una iteración anterior. Las pulse-cards ya
-          tienen identidad con su tone + glow + backdrop-blur, no necesitan
-          glyph japones decorativo encima. */}
+      {/* Las pulse-cards ya tienen identidad con tone + glow + backdrop-blur;
+          no necesitan glyph japonés decorativo encima. */}
       {children}
     </div>
   )
@@ -342,11 +352,9 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   if (loading || !campeon?.personaje) {
     return (
       <PulseCard tono="amber">
-        {/* Nota técnica AS-010 (2026-05-23): label de loading neutro.
-            "Líder por votos" implicaba que la métrica era COUNT puro,
-            pero tras AS-002 el orden REST viene ponderado por peso
-            (anónimo 0.3 / registrado 1.0). "Líder del ranking" no
-            compromete la mecánica antes de que lleguen los datos. */}
+        {/* Label de loading neutro: el ranking se ordena por voto ponderado,
+            así que "Líder del ranking" no promete una métrica incorrecta
+            antes de que lleguen los datos. */}
         <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-amber-300" />
         <p className="text-sm text-fg-muted">Cargando al líder…</p>
       </PulseCard>
@@ -368,10 +376,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
     : comunidadArrancando
       ? 'Más votado ahora'
       : 'Top de la comunidad'
-  // Ajuste #9 (2026-05-21): antes el article tenia role="link" + onClick
-  // + tabIndex={0}, y dentro habia otro <Link> a /ranking con stopPropagation
-  // — accesibilidad ambigua (screen readers leian 2 links en el mismo
-  // componente). Patron nuevo "stretched link": el article es semantico
+  // Patrón "stretched link": el article es semántico
   // (article), y un Link absoluto invisible cubre toda la card. El CTA
   // interno a /ranking queda por encima con z-10, sigue siendo independiente.
   return (
@@ -417,10 +422,8 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
               Comunidad arrancando — tu voto puede cambiar el meta.
             </p>
           ) : (
-            // Nota técnica AS-010 + B3.5 (2026-05-23): el ranking REST se
-            // ordena por SUM(v.peso) tras AS-002 — el orden visible aquí ya
-            // refleja peso ponderado, no COUNT puro. "ranking ELO global"
-            // implicaba un cálculo distinto (K-factor real) que no existe.
+            // El ranking REST se ordena por votos ponderados. Evitamos
+            // llamarlo "ELO global" porque sugeriría un K-factor real.
             <p className="mt-1 text-[11px] leading-snug text-fg-muted">
               Top de la comunidad por votos ponderados.
             </p>
@@ -526,7 +529,7 @@ function DestacadoAvatar({ personaje }) {
 }
 
 function MoversCard({ movers }) {
-  // Sprint actividad reciente (2026-05-18): 1 request batch para los
+  // Actividad reciente: 1 request batch para los
   // 3 movers visibles — añade "+N votos" debajo del delta de posición.
   // Misma queryKey que otros consumidores del mismo set → cache hit.
   const slugs = movers.map((m) => m.slug)
@@ -565,11 +568,12 @@ function MoverRow({ mover, actividad }) {
   return (
     <li className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/[0.04]">
       <Link to={`/personajes/${mover.slug}`} className="shrink-0 transition-transform hover:scale-105">
-        <img
-          src={mover.imagenUrl || imagenPersonaje(mover.slug)}
-          alt=""
+        <PersonajeImg
+          slug={mover.slug}
+          src={mover.imagenUrl}
+          alt={mover.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="40px"
           className="h-10 w-8 rounded object-cover object-top"
         />
       </Link>
@@ -605,12 +609,8 @@ function RetoCard() {
   return (
     <Link
       to="/games/shadow-guess"
-      // Feedback visual (2026-05-22): la card tenía altura natural ~180px
-      // y el EditorialCover absolute inset-0 + el overlay degradado oscuro
-      // del 38% al 92% dejaban solo ~70px de imagen visible — el usuario
-      // lo describió como "tan finita que practicamente no se ve". Subimos
-      // min-h a 13rem para que la franja superior tenga aire y el sujeto
-      // del cover quepa antes de empezar el degradado de oscurecimiento.
+      // Altura estable para que la franja superior tenga aire y el sujeto
+      // del cover quepa antes del degradado de oscurecimiento.
       className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-xl border border-rose-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-rose-500/60 sm:p-5"
     >
       <EditorialCover
@@ -814,11 +814,12 @@ function VotoRow({ voto }) {
   return (
     <li className="flex items-center gap-2 py-2 text-[12px]">
       <Link to={`/personajes/${ganador.slug}`} className="shrink-0">
-        <img
-          src={ganador.imagenUrl || imagenPersonaje(ganador.slug)}
-          alt=""
+        <PersonajeImg
+          slug={ganador.slug}
+          src={ganador.imagenUrl}
+          alt={ganador.nombre}
           loading="lazy"
-          onError={ocultaImgRota}
+          sizes="28px"
           className="h-7 w-7 rounded object-cover object-top"
         />
       </Link>
@@ -885,7 +886,7 @@ function DueloAvatar({ personaje }) {
       <PersonajeCutImg
         slug={personaje.slug}
         fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
-        alt=""
+        alt={personaje.nombre}
         loading="lazy"
         className="h-28 w-24 rounded-xl border border-accent/20"
         imgClassName="p-1"
@@ -898,7 +899,7 @@ function DueloAvatar({ personaje }) {
 }
 
 /**
- * Banner del evento "headline" (Plan producto 2026-05-18). Muestra el
+ * Banner del evento "headline". Muestra el
  * primer evento activo, o el próximo más cercano si no hay activos.
  * Auto-refresh del contador cada 60s para que "termina en 3h" baje a
  * "termina en 2h" sin recargar la página.

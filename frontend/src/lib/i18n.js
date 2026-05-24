@@ -7,7 +7,7 @@ import en from '../locales/en.json'
 import ja from '../locales/ja.json'
 
 /**
- * Configuración i18n de AnimeShowdown (Plan v2 §4.11).
+ * Configuración i18n de AnimeShowdown.
  *
  * <p>Idiomas activos en esta iteración:
  * <ul>
@@ -42,8 +42,8 @@ i18n
             escapeValue: false,
         },
         detection: {
-            // Nota F079 (2026-05-22): antes el order incluía 'navigator' como
-            // fallback. Resultado: usuarios con navigator.language=en-US (Safari
+            // No usamos 'navigator' como fallback. Resultado: usuarios con
+            // navigator.language=en-US (Safari
             // por config del SO) veían el header traducido a EN ("Tournaments",
             // "Home") mientras el resto del sitio seguía hardcoded en ES (la
             // mayoría de páginas no llama a t()). El mix daba sensación de

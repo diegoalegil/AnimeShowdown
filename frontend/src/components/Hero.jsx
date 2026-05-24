@@ -2,10 +2,10 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Radio, Swords, TrendingUp, Trophy } from 'lucide-react'
+import { ArrowRight, Globe2, Radio, Swords, TrendingUp, Trophy } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
-import { personajes, getStatsPersonaje } from '../lib/personajes-core'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useTorneos } from '../lib/torneosQueries'
 import { endpoints } from '../lib/api'
@@ -39,22 +39,27 @@ const logoVariants = {
   },
 }
 
-function Hero() {
+function Hero({ catalogoPersonajes = [] }) {
   const { t } = useTranslation()
-  const totalPersonajes = personajes.length
-  const universos = new Set(personajes.map((p) => p.anime)).size
+  const hasCatalog = catalogoPersonajes.length > 0
+  const totalPersonajes = hasCatalog ? catalogoPersonajes.length : '—'
+  const universos = hasCatalog
+    ? new Set(catalogoPersonajes.map((p) => p.anime)).size
+    : '—'
   const { data: torneos = [] } = useTorneos()
   const { data: votosRecientes } = useQuery({
     queryKey: ['hero', 'votos-recientes', 4],
     queryFn: () => endpoints.votosRecientes({ limit: 4 }),
     staleTime: 30 * 1000,
   })
-  const eloMax = Math.max(...personajes.map((p) => getStatsPersonaje(p.slug).elo))
+  const eloMax = hasCatalog
+    ? Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))
+    : '—'
   const torneosVisibles = torneos.length > 0 ? torneos.length : '—'
   const torneoDestacado = torneos
     .filter((t) => Number(t.votosUltimos7Dias ?? 0) > 20)
     .sort((a, b) => Number(b.votosUltimos7Dias ?? 0) - Number(a.votosUltimos7Dias ?? 0))[0]
-  // Revisión perf 2026-05-18: CTAs principales del hero usan pointerdown
+  // perf: CTAs principales del hero usan pointerdown
   // para feedback inmediato. La nav del Link sigue ocurriendo en click
   // (default del browser); el sonido va por delante.
   const ctaVotar = useInstantSoundPress('playClick')
@@ -147,14 +152,13 @@ function Hero() {
           className="as-panel mt-5 grid w-full max-w-4xl grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:grid-cols-4"
           variants={itemVariants}
         >
-          <HeroStat icon="⚔" value={`${totalPersonajes}`} label="Personajes" />
-          <HeroStat icon="🏆" value={`${torneosVisibles}`} label="Torneos visibles" />
-          <HeroStat icon="👥" value={`${universos}`} label="Universos" />
-          {/* Revisión AS-010 (2026-05-23): eloMax viene de
-              getStatsPersonaje (sintético determinístico). Etiquetamos
-              como "Top ELO base" para no afirmar que es el #1 real del
+          <HeroStat icon={Swords} value={`${totalPersonajes}`} label="Personajes" />
+          <HeroStat icon={Trophy} value={`${torneosVisibles}`} label="Torneos" />
+          <HeroStat icon={Globe2} value={`${universos}`} label="Universos" />
+          {/* eloMax viene de getStatsPersonaje, que es una estimación
+              determinística. La etiqueta evita presentarlo como #1 real del
               ranking competitivo. */}
-          <HeroStat icon="↗" value={`${eloMax}`} label="Top ELO base" />
+          <HeroStat icon={TrendingUp} value={`${eloMax}`} label="ELO máximo" />
         </motion.div>
         {torneoDestacado && (
           <motion.div
@@ -243,11 +247,14 @@ function formatRelativo(fecha) {
   return 'hoy'
 }
 
-function HeroStat({ icon, value, label }) {
+function HeroStat({ icon: Icon, value, label }) {
   return (
     <div className="flex items-center justify-center gap-3 border-white/10 px-4 py-4 even:border-l sm:border-l first:sm:border-l-0">
-      <span className="text-2xl" aria-hidden="true">
-        {icon}
+      <span
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-gold"
+        aria-hidden="true"
+      >
+        <Icon className="h-5 w-5" />
       </span>
       <div className="text-left">
         <p className="font-mono text-2xl font-extrabold text-fg-strong tabular-nums">

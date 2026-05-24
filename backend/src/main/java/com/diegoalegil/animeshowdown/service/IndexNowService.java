@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 /**
- * Cliente de IndexNow (Plan v2 §5.7) — protocolo conjunto de Bing,
+ * Cliente de IndexNow — protocolo conjunto de Bing,
  * Yandex y otros para que los crawlers recojan URLs nuevas/actualizadas
  * al instante en lugar de esperar al recrawl natural.
  *

@@ -16,7 +16,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 /**
- * Nota técnica AS-004 (2026-05-23): identidad anónima server-side.
+ * identidad anónima server-side.
  *
  * <p>Antes el voto invitado se ataba a un identifier en localStorage +
  * header {@code X-AS-Anonymous-Id} controlable desde el cliente. Borrar

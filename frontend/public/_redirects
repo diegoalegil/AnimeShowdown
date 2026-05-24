@@ -17,6 +17,18 @@
 /games/impostor/*         /games/impostor-trial/:splat 301
 /higher-or-lower          /games/elo-duel            301
 /higher-or-lower/*        /games/elo-duel/:splat     301
+/glosario                 /glossary                  301
+/glosario/*               /glossary                  301
+/random                   /descubre-personaje        301
+/random/*                 /descubre-personaje        301
+/mision-diaria            /misiones                  301
+/mision-diaria/*          /misiones                  301
+/versus                   /comparar                  301
+/compare                  /comparar                  301
+/ranking-personal         /mi-ranking                301
+/mi-ranking-personal      /mi-ranking                301
+/rankings                 /ranking                   301
+/rankings/                /ranking                   301
 
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
@@ -27,6 +39,7 @@
 /personajes               / 200
 /personajes/:slug         / 200
 /animes                   / 200
+/animes/:slug/ranking     / 200
 /animes/:slug             / 200
 /torneos                  / 200
 /torneos/crear            / 200
@@ -34,7 +47,11 @@
 /eventos                  / 200
 /eventos/:slug            / 200
 /duelos/:par              / 200
+/comparar                 / 200
 /ranking                  / 200
+/rankings/:slug           / 200
+/mi-ranking               / 200
+/descubre-personaje       / 200
 /votar                    / 200
 /duel-live                / 200
 /login                    / 200
@@ -50,9 +67,13 @@
 /verify                   / 200
 /newsletter/confirmar     / 200
 /faq                      / 200
+/como-funciona            / 200
+/metodologia-elo          / 200
+/misiones                 / 200
 /api-docs                 / 200
 /status                   / 200
 /games                    / 200
+/juegos/anime             / 200
 /games/shadow-guess       / 200
 /games/anime-reveal       / 200
 /games/anigrid            / 200

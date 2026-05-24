@@ -6,7 +6,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Voto;
 
 /**
- * Item del feed público "Últimos votos" (Plan producto, 2026-05-18).
+ * Item del feed público "Últimos votos".
  *
  * <p>Lo consumimos en la home (SectionPulso) para dar sensación de
  * actividad real: "hace 3 min alguien votó por Luffy frente a Zoro".

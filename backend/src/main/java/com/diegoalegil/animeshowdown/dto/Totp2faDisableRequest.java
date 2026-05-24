@@ -3,7 +3,7 @@ package com.diegoalegil.animeshowdown.dto;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * Body de POST /api/auth/2fa/disable (Plan v2 §2.3).
+ * Body de POST /api/auth/2fa/disable.
  *
  * <p>Para desactivar 2FA pedimos AMBAS cosas:
  * <ul>

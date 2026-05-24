@@ -29,7 +29,7 @@ import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 
 /**
- * Predicciones de bracket (Plan v2 §4.4).
+ * Predicciones de bracket.
  *
  * <p>API:
  * <ul>
@@ -76,7 +76,7 @@ public class PrediccionService {
         Enfrentamiento enf = enfRepo.findById(enfrentamientoId)
                 .orElseThrow(() -> new IllegalArgumentException("Enfrentamiento no encontrado"));
 
-        // Nota P1 (2026-05-17): si el torneo está PENDIENTE o RECHAZADO,
+        // si el torneo está PENDIENTE o RECHAZADO,
         // las predicciones no aplican — el torneo no es público. Antes
         // permitía crear una predicción sobre un torneo en cola de
         // moderación, filtrando su existencia por id directo.

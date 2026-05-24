@@ -41,7 +41,7 @@ public class AdminController {
 
     /**
      * Dead letter queue de emails que fallaron tras los 3 reintentos
-     * (Plan v2 §2.12). Útil para diagnóstico cuando Resend tiene un
+     *. Útil para diagnóstico cuando Resend tiene un
      * incidente: aquí queda el contenido + error_msg de cada envío caído
      * para inspección y reenvío manual.
      */

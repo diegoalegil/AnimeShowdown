@@ -3,8 +3,7 @@ package com.diegoalegil.animeshowdown.dto;
 import java.time.LocalDateTime;
 
 /**
- * Actividad reciente de votos de un personaje (Plan producto sprint
- * 2026-05-18 — actividad real por votos recientes).
+ * Actividad reciente de votos de un personaje.
  *
  * <p>Devuelve los votos absolutos del periodo actual + el periodo
  * inmediatamente anterior de la misma duración. El frontend puede

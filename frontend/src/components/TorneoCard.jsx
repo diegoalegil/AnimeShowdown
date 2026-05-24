@@ -10,9 +10,9 @@ import {
 } from 'lucide-react'
 import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
-import { ocultaImgRota } from '../lib/imgFallback'
 import { getTournamentVisual } from '../data/visual-assets'
 import EditorialCover from './EditorialCover'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Card individual de torneo en /torneos. Antes recibía el torneo legacy
@@ -27,7 +27,7 @@ const ESTADO_ICON = {
   FINISHED: CheckCircle2,
 }
 
-// Nota de producto (2026-05-18): cada estado tiene una acción dominante
+// Nota de producto: cada estado tiene una acción dominante
 // distinta. La card antes solo era una caja de info — ahora cierra con
 // un CTA contextual al estado, así un usuario que escanea la lista de
 // torneos entiende DE UN VISTAZO qué puede hacer en cada uno.
@@ -90,12 +90,8 @@ function TorneoCard({ torneo }) {
     ? avatares.find((p) => p.slug === ganadorSlug)
     : null
 
-  // Nota visual (2026-05-20): muchas portadas de torneo generadas con
-  // GPT Image vienen como composicion grupal de 5 personajes alineados
-  // horizontalmente. Para amortiguar el efecto "fila de caras" sin
-  // regenerar el asset: subimos el cover a h-52 (mas verticalidad para
-  // que la composicion respire), aplicamos object-position que enfoca el
-  // tercio superior (donde suele estar el drama, no las caras pegadas) y
+  // Muchas portadas de torneo son composiciones grupales horizontales.
+  // Subimos el cover a h-52, aplicamos object-position al tercio superior y
   // un microblur que da sensacion cinematografica.
   const visualParaCard = { ...visual, objectPosition: visual.objectPosition || '50% 32%' }
   const fechaLabel = getFechaLabel(estado, fechaInicio, fechaFinalizacion, fechaCreacion)
@@ -161,10 +157,11 @@ function TorneoCard({ torneo }) {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">
               <Trophy className="h-4 w-4" />
             </div>
-            <img
+            <PersonajeImg
+              slug={ganadorAvatar.slug}
               src={ganadorAvatar.imagenUrl}
-              alt=""
-              onError={ocultaImgRota}
+              alt={ganadorAvatar.nombre}
+              sizes="36px"
               className="h-9 w-9 rounded-md object-cover object-top"
             />
             <div className="min-w-0">

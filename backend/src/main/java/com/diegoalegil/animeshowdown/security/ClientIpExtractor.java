@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Extracción centralizada de la IP del cliente real para rate limit, account
- * lockout y audit log (Plan v2 §2.1/§2.2/§2.6 + revisión P1.4 2026-05-17).
+ * lockout y audit log.
  *
  * <p>Estrategia: confiar en {@code CF-Connecting-IP} <b>solo si</b> el
  * {@code RemoteAddr} cae en un CIDR de {@link TrustedProxyChecker}

@@ -2,7 +2,7 @@ import { personajes } from '../lib/personajes-core'
 import { getCategoriasPersonaje } from './personajes-tags'
 
 /**
- * Eventos temporales (Plan producto 2026-05-18 — visión estadio otaku).
+ * Eventos temporales.
  *
  * <p>V1 deliberadamente simple: la fuente de verdad de los eventos vive
  * aquí (JSON versionado en git). Cada cambio = un commit revisable.

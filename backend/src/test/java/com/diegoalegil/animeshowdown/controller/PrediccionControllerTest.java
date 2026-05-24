@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración de predicciones de bracket (Plan v2 §4.4).
+ * Tests integración de predicciones de bracket.
  *
  * <p>Cubre el flow completo end-to-end:
  * <ul>
@@ -66,7 +66,7 @@ class PrediccionControllerTest {
         return json.readTree(res.getResponse().getContentAsString()).get("token").asText();
     }
 
-    // Revisión P1.1 (2026-05-17): la auto-promoción a ADMIN ocurre tras verificar
+    // la auto-promoción a ADMIN ocurre tras verificar
     // email (EmailVerificationService), no en /registro. El helper registra y
     // luego fuerza ACTIVO + ADMIN directamente en BBDD para simular el flow.
     private String tokenAdmin() throws Exception {

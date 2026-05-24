@@ -1,5 +1,5 @@
 /**
- * Mapeo código de badge → kanji asociado (Plan v2 §13.1).
+ * Mapeo código de badge → kanji asociado.
  *
  * <p>Cada badge tiene un kanji semánticamente relacionado que se muestra
  * como overlay sutil en BadgeCard, dando identidad japonesa sin tocar el

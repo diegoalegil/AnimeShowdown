@@ -64,7 +64,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        // Nota técnica F007 (2026-05-22): /actuator/prometheus
+                        // /actuator/prometheus
                         // expone métricas internas (endpoints, latencias,
                         // tasas de error, nombres de queries) — útiles para
                         // un atacante que quiera mapear superficie.
@@ -81,18 +81,18 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
                                 "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
                         .permitAll()
-                        // Plan v2 §2.13: endpoint STOMP/WebSocket. El handshake
+                        // Endpoint STOMP/WebSocket. El handshake
                         // HTTP es público; la autenticación se hace en el frame
                         // CONNECT con JWT (ver WebSocketConfig.JwtAuthChannelInterceptor).
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Nota P2.10: /api/cron/** se autentica con
+                        // /api/cron/** se autentica con
                         // X-Cron-Secret header (no JWT), así el GitHub
                         // Action no necesita login que falla si el admin
                         // tiene 2FA. La validación del secret se hace en
                         // CronTorneoController.
                         .requestMatchers("/api/cron/**").permitAll()
-                        // Nota P3 (2026-05-18): POST /api/personajes/*/votar
+                        // POST /api/personajes/*/votar
                         // está deshabilitado (devuelve 410 GONE en el controller).
                         // Antes requería auth → clientes anónimos veían 401, no
                         // el 410 que comunica explícitamente la deprecación.
@@ -102,8 +102,7 @@ public class SecurityConfig {
                         // Lectura pública para que VotarPage pueda mostrar el match aleatorio
                         // antes de pedir login (el voto sí requiere auth, regla de arriba).
                         .requestMatchers(HttpMethod.GET, "/api/enfrentamientos/**").permitAll()
-                        // Plan producto (2026-05-18): Mi roster / favoritos.
-                        // Estas rutas tienen que aparecer ANTES de las reglas
+                        // Mi roster / favoritos. Estas rutas tienen que aparecer ANTES de las reglas
                         // generales de /api/personajes/** porque Spring
                         // Security matchea por orden. Sin esto, POST/DELETE
                         // /favorito caía en hasRole("ADMIN") y se rechazaba
@@ -121,7 +120,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/torneos/mios").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").permitAll()
-                        // Plan v2 §4.9: torneos creados por usuario verificado.
+                        // Torneos creados por usuario verificado.
                         // POST /mio es autenticado normal; el service valida
                         // la verificación de email. El resto de POST/PUT/DELETE
                         // sobre /api/torneos sigue siendo admin-only.
@@ -131,7 +130,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/votar/**").permitAll()
                         .requestMatchers("/api/votos/**").permitAll()
-                        // Plan v2 §4.2: catálogo de badges público (cacheable
+                        // Catálogo de badges público (cacheable
                         // long-term en frontend); /mios requiere auth para
                         // saber a qué usuario pertenecen los desbloqueos.
                         // §4.10: /stats agregado por badge es público — alimenta
@@ -139,38 +138,39 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/logros/stats").permitAll()
                         .requestMatchers("/api/logros/mios").authenticated()
-                        // Plan v2 §4.3: reactions emoji. GET público (todos
+                        // Reactions emoji. GET público (todos
                         // ven los counts); POST autenticado (1 reaction por
                         // user-target con lógica toggle/swap en el service).
                         .requestMatchers(HttpMethod.GET, "/api/reacciones").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reacciones").authenticated()
-                        // Plan v2 §4.4: predicciones de bracket. Leaderboard
+                        // Predicciones de bracket. Leaderboard
                         // público (top predictores); /mias y POST autenticados.
                         .requestMatchers(HttpMethod.GET, "/api/predicciones/leaderboard").permitAll()
                         .requestMatchers("/api/predicciones/**").authenticated()
-                        // Plan v2 §4.8: newsletter con double opt-in. Todo
+                        // Newsletter con double opt-in. Todo
                         // público — form en footer y links de confirmación
                         // /unsubscribe llegan al email del user sin auth.
                         .requestMatchers("/api/newsletter/**").permitAll()
-                        // Plan v2 §4.5: friends / follow. GET de listas y
+                        // Friends / follow. GET de listas y
                         // stats es público (perfiles ajenos). POST/DELETE
                         // requiere ser el seguidor (auth).
                         .requestMatchers(HttpMethod.GET, "/api/seguidores/usuario/**").permitAll()
                         .requestMatchers("/api/seguidores/**").authenticated()
-                        // Plan v2 §4.5: perfil público por username. /me/** son
+                        // Perfil público por username. /me/** son
                         // del usuario autenticado (historial privado, etc).
                         // /api/perfil/{username} muestra stats + top + logros
                         // públicos sin necesidad de login.
                         .requestMatchers(HttpMethod.GET, "/api/perfil/me/**").authenticated()
-                        // Plan v2 §4.1: DELETE /api/perfil/me (GDPR right to
+                        // DELETE /api/perfil/me (GDPR right to
                         // erasure). Requiere sesión + reconfirmación de password
                         // en el body.
                         .requestMatchers(HttpMethod.DELETE, "/api/perfil/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/perfil/*").permitAll()
-                        // OG images server-side (Plan v2 §1.2): los PNG los consumen
+                        // OG images server-side: los PNG los consumen
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()
-                        // Datos para sitemap dinámico (Plan v2 §5.4). Consumido por
+                        .requestMatchers(HttpMethod.HEAD, "/api/og/**").permitAll()
+                        // Datos para sitemap dinámico. Consumido por
                         // el script generate-sitemap.mjs en build de Cloudflare
                         // Pages; público porque sitemaps son públicos por definición.
                         .requestMatchers(HttpMethod.GET, "/api/sitemap/**").permitAll()
@@ -220,7 +220,7 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin",
                 "X-AS-Anonymous-Id", "X-AS-Anonymous-Fingerprint"));
-        // Nota P2 (2026-05-18): expose Retry-After. El cliente lo lee en
+        // expose Retry-After. El cliente lo lee en
         // intentarRefresh() para respetar el backoff que indica el backend
         // tras un 503 cross-tab. Sin esto, en producción (cross-origin
         // animeshowdown.dev → api.animeshowdown.dev), headers.get('Retry-After')

@@ -15,7 +15,7 @@ import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 /**
- * Sistema de friends / follow asimétrico (Plan v2 §4.5).
+ * Sistema de friends / follow asimétrico.
  *
  * <p>Operaciones:
  * <ul>
@@ -60,7 +60,7 @@ public class SeguidorService {
         repo.save(new Seguidor(seguidor, seguido));
         log.info("Follow: {} → {}", seguidor.getUsername(), seguido.getUsername());
 
-        // Plan v2 §2.13 + §4.5: notifica al seguido. Best-effort.
+        // 13 + §4.5: notifica al seguido. Best-effort.
         try {
             notificacionService.crear(
                     seguido,

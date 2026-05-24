@@ -9,7 +9,7 @@ import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 
-// Nota de producto (2026-05-18): /votar sale de navLinks regular y pasa a
+// Nota de producto: /votar sale de navLinks regular y pasa a
 // CTA principal del header. El login deja de ser el botón accent (estaba
 // pidiendo a un usuario nuevo registrarse antes de aportar valor) y
 // queda como link ghost discreto: ahora la primera acción visible es
@@ -63,7 +63,7 @@ function loginGhostClass({ isActive }) {
   }`
 }
 
-// Ajuste (2026-05-17): en móvil 390px el header ocupaba ~25% del primer
+// En móvil 390px el header ocupaba ~25% del primer
 // viewport apilando logo + 7 navlinks + 5 iconos utility + login en
 // flex-col. Refactor: en móvil solo logo + acción primaria (login o
 // avatar+notif) + hamburger; nav y utility se abren en panel.
@@ -117,15 +117,13 @@ function Header() {
     }
   }, [])
 
-  // Ajuste #8 (2026-05-21): cuando el menu movil esta abierto, el
-  // fondo se podia seguir scrolleando (perdia el contexto del panel
-  // sobre la pagina) y el foco no quedaba atrapado dentro — Tab salia
-  // a links del DOM detras del overlay. Tres cosas:
-  //   1. Bloquear scroll del body con overflow: hidden mientras open.
-  //   2. Trap de Tab dentro del panel (Tab al ultimo → primero,
+  // Cuando el menu movil esta abierto, el fondo no debe scrollear y
+  // el foco debe quedar atrapado dentro del panel:
+  //   - Bloquear scroll del body con overflow: hidden mientras open.
+  //   - Trap de Tab dentro del panel (Tab al ultimo → primero,
   //      Shift+Tab al primero → ultimo).
-  //   3. Escape cierra el menu y devuelve foco al toggle button.
-  //   4. Al abrir, mover foco al primer NavLink del panel.
+  //   - Escape cierra el menu y devuelve foco al toggle button.
+  //   - Al abrir, mover foco al primer NavLink del panel.
   useEffect(() => {
     if (!mobileOpen) return undefined
     // Scroll-lock del body
@@ -192,8 +190,8 @@ function Header() {
         </span>
       </Link>
 
-      {/* Nav desktop (lg+). En móvil/tablet vive en el panel del hamburger. */}
-      <nav className="hidden flex-wrap items-center justify-center gap-1 lg:flex">
+      {/* Nav desktop (xl+). En móvil/tablet vive en el panel del hamburger. */}
+      <nav className="hidden flex-wrap items-center justify-center gap-1 xl:flex">
         {navLinks.map(({ to, i18nKey }) => (
           <NavLink
             key={to}
@@ -259,7 +257,7 @@ function Header() {
           hamburger. El Login en mobile pasa al panel del hamburger
           (nota de producto 2026-05-18: primero participar, después
           registrarse — login secundario hasta que haya valor acumulado). */}
-      <div className="flex items-center gap-1.5 lg:hidden">
+      <div className="flex items-center gap-1.5 xl:hidden">
         {user ? (
           <>
             <NotifBell />
@@ -272,7 +270,7 @@ function Header() {
             </Link>
           </>
         ) : (
-          /* Nota de producto (2026-05-18): "Votar ahora" en 2 líneas comía
+          /* Nota de producto: "Votar ahora" en 2 líneas comía
              demasiado del header móvil. Cambio a "Votar" + icono Swords:
              una palabra cabe en una línea y deja respirar al hamburger. */
           <NavLink
@@ -313,7 +311,7 @@ function Header() {
             type="button"
             aria-label="Cerrar menú"
             onClick={closeMobile}
-            className="fixed inset-0 top-0 z-20 bg-black/40 lg:hidden"
+            className="fixed inset-0 top-0 z-20 bg-black/40 xl:hidden"
           />
           <div
             ref={mobilePanelRef}
@@ -321,7 +319,7 @@ function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="Menú de navegación"
-            className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl lg:hidden"
+            className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 py-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl xl:hidden"
           >
             <div className="flex flex-col gap-1">
               {navLinks.map(({ to, i18nKey }) => (

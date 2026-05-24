@@ -6,8 +6,17 @@ import { gzipSync } from 'node:zlib'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const assetsDir = join(root, 'dist', 'assets')
+const imageDir = join(root, 'dist', 'img')
 const maxIndexRawKb = Number(process.env.MAX_INDEX_RAW_KB ?? 350)
 const maxIndexGzipKb = Number(process.env.MAX_INDEX_GZIP_KB ?? 250)
+const maxImageTotalMb = Number(process.env.MAX_DEPLOY_IMAGE_TOTAL_MB ?? 1100)
+const maxImageFileKb = Number(process.env.MAX_DEPLOY_IMAGE_FILE_KB ?? 900)
+const maxImageFileCount = Number(process.env.MAX_DEPLOY_IMAGE_FILE_COUNT ?? 8500)
+const imageCdnBaseUrl = normalizeImageCdnBaseUrl(
+  process.env.ANIMESHOWDOWN_IMG_CDN_BASE_URL ||
+    process.env.ANIMESHOWDOWN_IMAGE_CDN_BASE_URL,
+)
+const requireExternalImageCdn = process.env.REQUIRE_EXTERNAL_IMAGE_CDN === 'true'
 
 function fail(message) {
   console.error(`ERROR bundle budget: ${message}`)
@@ -16,6 +25,55 @@ function fail(message) {
 
 function sizeKb(bytes) {
   return bytes / 1024
+}
+
+function sizeMb(bytes) {
+  return bytes / 1024 / 1024
+}
+
+function walkFiles(dir) {
+  if (!existsSync(dir)) return []
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = join(dir, entry.name)
+    if (entry.isDirectory()) return walkFiles(fullPath)
+    return entry.isFile() ? [fullPath] : []
+  })
+}
+
+function normalizeImageCdnBaseUrl(value) {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+  try {
+    const url = new URL(trimmed)
+    if (!['https:', 'http:'].includes(url.protocol)) return null
+    return url.toString().replace(/\/+$/, '')
+  } catch {
+    return null
+  }
+}
+
+function checkExternalImageCdn(imageFiles) {
+  if (!requireExternalImageCdn) return
+  if (!imageCdnBaseUrl) {
+    fail('REQUIRE_EXTERNAL_IMAGE_CDN=true requiere ANIMESHOWDOWN_IMG_CDN_BASE_URL valida')
+    return
+  }
+  if (imageCdnBaseUrl.startsWith('http://')) {
+    fail(`ANIMESHOWDOWN_IMG_CDN_BASE_URL debe usar https: ${imageCdnBaseUrl}`)
+  }
+  if (imageFiles.length > 0) {
+    fail(`build CDN no debe contener dist/img; encontrados ${imageFiles.length} archivo(s)`)
+  }
+  const redirectsPath = join(root, 'dist', '_redirects')
+  if (!existsSync(redirectsPath)) {
+    fail('build CDN debe generar dist/_redirects con regla /img/* hacia CDN')
+    return
+  }
+  const redirects = readFileSync(redirectsPath, 'utf8')
+  const expected = `/img/* ${imageCdnBaseUrl}/:splat 302`
+  if (!redirects.includes(expected)) {
+    fail(`dist/_redirects no contiene la regla CDN esperada: ${expected}`)
+  }
 }
 
 if (!existsSync(assetsDir)) {
@@ -52,12 +110,10 @@ if (personaje3dChunks.length === 0) {
   console.log(`personaje3d chunks: ${personaje3dChunks.join(', ')}`)
 }
 
-// Ajuste de robustez (2026-05-22): el check original fallaba si EXISTIA
-// cualquier Personaje3D-*.js. Pero React.lazy genera un boundary chunk
-// chiquito (~1KB) con solo el import() dinamico — eso NO contiene
-// react-three/fiber, solo es el lazy wrapper. El peso real va al chunk
-// manual 'personaje3d' (verificado arriba). Solo fallamos si el wrapper
-// pesa > 50KB (señal de que NO se aislo bien).
+// React.lazy genera un boundary chunk pequeño (~1KB) con solo el import()
+// dinámico: eso no contiene react-three/fiber, solo el lazy wrapper. El peso
+// real va al chunk manual 'personaje3d' (verificado arriba). Solo fallamos si
+// el wrapper pesa > 50KB, señal de que no se aisló bien.
 const legacy3dChunks = files.filter((file) => /^Personaje3D-.*\.js$/.test(file))
 for (const chunk of legacy3dChunks) {
   const rawBytes = statSync(join(assetsDir, chunk)).size
@@ -65,6 +121,43 @@ for (const chunk of legacy3dChunks) {
     fail(`Personaje3D-*.js chunk pesado (${sizeKb(rawBytes).toFixed(1)}KB) — react-three no esta aislado en chunk 'personaje3d'`)
   } else {
     console.log(`Personaje3D lazy boundary: ${chunk} (${sizeKb(rawBytes).toFixed(1)}KB, OK)`)
+  }
+}
+
+const imageFiles = walkFiles(imageDir)
+checkExternalImageCdn(imageFiles)
+if (imageFiles.length > 0) {
+  let imageBytes = 0
+  let largestImage = { path: null, bytes: 0 }
+  for (const imagePath of imageFiles) {
+    const bytes = statSync(imagePath).size
+    imageBytes += bytes
+    if (bytes > largestImage.bytes) {
+      largestImage = { path: imagePath, bytes }
+    }
+  }
+
+  const largestRelativePath = largestImage.path
+    ? largestImage.path.replace(`${root}/dist/`, '')
+    : 'n/a'
+  console.log(
+    `deploy images: files=${imageFiles.length} total=${sizeMb(imageBytes).toFixed(1)}MB largest=${largestRelativePath} (${sizeKb(largestImage.bytes).toFixed(1)}KB)`,
+  )
+
+  if (imageFiles.length > maxImageFileCount) {
+    fail(`imagenes ${imageFiles.length} > ${maxImageFileCount}`)
+  }
+  if (imageBytes > maxImageTotalMb * 1024 * 1024) {
+    fail(`imagenes total ${sizeMb(imageBytes).toFixed(1)}MB > ${maxImageTotalMb}MB`)
+  }
+  if (largestImage.bytes > maxImageFileKb * 1024) {
+    fail(`imagen mas pesada ${sizeKb(largestImage.bytes).toFixed(1)}KB > ${maxImageFileKb}KB (${largestRelativePath})`)
+  }
+} else {
+  if (requireExternalImageCdn) {
+    console.log(`deploy images: external CDN ${imageCdnBaseUrl}/:splat`)
+  } else {
+    console.log('deploy images: dist/img no existe o no tiene imagenes')
   }
 }
 

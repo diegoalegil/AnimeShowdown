@@ -20,7 +20,7 @@ import com.diegoalegil.animeshowdown.TestAsyncConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración de reactions emoji (Plan v2 §4.3).
+ * Tests integración de reactions emoji.
  *
  * <p>Cubre:
  * <ul>
@@ -62,7 +62,7 @@ class ReaccionControllerTest {
     }
 
     /**
-     * Nota P2 (2026-05-17): ReaccionService ahora valida que el target exista
+     * ReaccionService ahora valida que el target exista
      * antes de persistir, así que los tests no pueden usar IDs sintéticos
      * como 999010. Resolvemos el id real de un personaje por slug — luffy
      * siempre está en el seed.

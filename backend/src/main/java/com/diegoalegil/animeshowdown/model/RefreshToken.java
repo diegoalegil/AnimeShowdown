@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Token de refresco persistido en BBDD. Plan v2 §1.3.
+ * Token de refresco persistido en BBDD. 3.
  *
  * Pareja con el access token JWT corto (15 min): cuando el JWT expira el
  * cliente llama POST /auth/refresh con la cookie httpOnly que contiene el
@@ -27,7 +27,7 @@ import jakarta.persistence.Table;
  *
  * Campos `userAgent` / `ipAddr` permiten enseñarle al usuario la lista
  * de sesiones activas en /perfil → "Cerrar sesión en otros dispositivos"
- * (Bloque 4.1 expone esta info).
+ * (capa correspondiente expone esta info).
  */
 @Entity
 @Table(name = "refresh_tokens", indexes = {

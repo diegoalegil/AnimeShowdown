@@ -37,6 +37,21 @@ export function fechaDelDia(date = new Date()) {
   return `${y}-${m}-${d}`
 }
 
+export function getDailyResetCountdown(date = new Date()) {
+  const nextReset = new Date(date)
+  nextReset.setDate(date.getDate() + 1)
+  nextReset.setHours(0, 0, 0, 0)
+  const ms = Math.max(0, nextReset - date)
+  const h = Math.floor(ms / 3_600_000)
+  const m = Math.floor((ms % 3_600_000) / 60_000)
+  return {
+    h,
+    m,
+    ms,
+    label: `${h}h ${m}m`,
+  }
+}
+
 /**
  * Personaje "del día" determinístico — todos los usuarios ven el mismo
  * en la misma fecha local. Sirve para los Daily de Guess Character /
@@ -44,8 +59,8 @@ export function fechaDelDia(date = new Date()) {
  * tenga su propio rotativo (sin que Guess Character y Anidel coincidan
  * en el mismo personaje cada día).
  */
-export function personajeDelDia(prefix = '', date = new Date()) {
-  const personajes = readCatalogoPersonajesSnapshot()
+export function personajeDelDia(prefix = '', date = new Date(), catalogo = readCatalogoPersonajesSnapshot()) {
+  const personajes = Array.isArray(catalogo) ? catalogo : []
   if (personajes.length === 0) return null
   const seed = `${prefix}:${fechaDelDia(date)}`
   const idx = djb2(seed) % personajes.length
@@ -65,8 +80,8 @@ export function personajeDelDia(prefix = '', date = new Date()) {
  * @returns {{anime: string, items: Array<{slug, nombre, anime, imagen, esImpostor: boolean}>}}
  *          o null si el catálogo no permite la ronda (debería pasar nunca con 730 personajes).
  */
-export function impostorDelDia(date = new Date(), salt = '') {
-  const personajes = readCatalogoPersonajesSnapshot()
+export function impostorDelDia(date = new Date(), salt = '', catalogo = readCatalogoPersonajesSnapshot()) {
+  const personajes = Array.isArray(catalogo) ? catalogo : []
   if (personajes.length === 0) return null
   const seed = `impostor:${fechaDelDia(date)}:${salt}`
   const rand = mulberry32(djb2(seed))
@@ -137,6 +152,20 @@ export function buildShareSquares(intentos, totalMax) {
     else line += '🟥'
   }
   return line
+}
+
+export function buildGameShareText({
+  game,
+  date = fechaDelDia(),
+  result,
+  detail,
+  grid,
+  extra,
+}) {
+  const heading = date
+    ? `${game} #${date}: ${result}`
+    : `${game}: ${result}`
+  return [heading, detail, grid, extra].filter(Boolean).join('\n')
 }
 
 /**

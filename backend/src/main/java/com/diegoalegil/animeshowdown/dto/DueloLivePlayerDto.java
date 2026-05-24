@@ -20,6 +20,6 @@ public record DueloLivePlayerDto(
     }
 
     public static DueloLivePlayerDto botPlayer() {
-        return new DueloLivePlayerDto(null, "AnimeShowdown Bot", null, 1000, true);
+        return new DueloLivePlayerDto(null, "Rival PvP", null, 1000, true);
     }
 }

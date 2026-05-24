@@ -24,7 +24,7 @@ export function slugifyAnime(nombre) {
 // Aliases cortos / nombres alternativos comunes para mejorar el buscador.
 // "kimetsu" debería encontrar Demon Slayer, "snk" Attack on Titan, etc.
 const ALIASES = {
-  'Attack on Titan': ['snk', 'shingeki', 'shingeki no kyojin'],
+  'Attack on Titan': ['aot', 'snk', 'shingeki', 'shingeki no kyojin'],
   'Demon Slayer': ['kimetsu', 'kimetsu no yaiba'],
   'My Hero Academia': ['boku no hero', 'mha', 'bnha', 'hero aca'],
   'Jujutsu Kaisen': ['jjk'],
@@ -39,12 +39,44 @@ const ALIASES = {
   'Naruto': ['ninja'],
   'Hunter x Hunter': ['hxh', 'hunter hunter'],
   'Tokyo Ghoul': ['ghoul', 'kaneki'],
-  'Spy x Family': ['spy family', 'anya'],
+  'Spy × Family': ['spy x family', 'spy family', 'anya', 'loid', 'yor'],
   'Dragon Ball': ['goku', 'dbz', 'db'],
   'Vinland Saga': ['vinland'],
   'Made in Abyss': ['abyss'],
   'Steins Gate': ['steins', 'steinsgate', 'el psy congroo'],
-  'Bunny Girl Senpai': ['bunny girl', 'bunny girl senpai', 'mai sakurajima', 'seishun buta yarou'],
+  "Frieren: Beyond Journey's End": ['frieren', 'sousou', 'sousou no frieren', 'beyond journey'],
+  'Kaguya-sama: Love is War': ['kaguya', 'kaguya sama', 'love is war', 'shinomiya'],
+  'Bunny Girl Senpai': [
+    'bunny girl',
+    'bunny girl senpai',
+    'mai sakurajima',
+    'rascal does not dream',
+    'seishun buta yarou',
+  ],
+  'Mazinger Z': ['mazinger', 'mazinger z', 'koji kabuto', 'super robot'],
+  'The Angel Next Door Spoils Me Rotten': [
+    'angel next door',
+    'mahiru shiina',
+    'otonari no tenshi',
+    'tenshi-sama',
+  ],
+  'Chuunibyou demo Koi ga Shitai!': [
+    'chuunibyou',
+    'chu2koi',
+    'love chunibyo',
+    'rikka takanashi',
+  ],
+  'Alya Sometimes Hides Her Feelings in Russian': [
+    'alya',
+    'roshidere',
+    'russian alya',
+    'alisa mikhailovna',
+    'tokidoki bosotto',
+  ],
+}
+
+export function getAnimeAliases(nombre) {
+  return ALIASES[nombre] ?? []
 }
 
 export function getAnimesCatalogo(catalogo = readCatalogoPersonajesSnapshot()) {
@@ -98,7 +130,7 @@ export function getAnimesCatalogo(catalogo = readCatalogoPersonajesSnapshot()) {
       porElo,
       porPopularidad,
       portada,
-      aliases: ALIASES[anime] ?? [],
+      aliases: getAnimeAliases(anime),
     }
   })
 }

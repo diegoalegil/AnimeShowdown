@@ -1,10 +1,11 @@
 const DEV_API_BASE = 'http://localhost:8080'
+const PROD_API_BASE = 'https://api.animeshowdown.dev'
 
 function normalizarApiBase(value) {
   const raw = typeof value === 'string' ? value.trim() : ''
   if (!raw) {
     if (import.meta.env.DEV) return DEV_API_BASE
-    throw new Error('VITE_API_URL es obligatoria en builds de producción')
+    return PROD_API_BASE
   }
   try {
     const url = new URL(raw)
@@ -20,7 +21,7 @@ function normalizarApiBase(value) {
 
 export const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 
-// Plan v2 §1.3: el JWT vive en MEMORIA, no en localStorage. La sesión
+// El JWT vive en memoria, no en localStorage. La sesión
 // persistente la da el refresh_token cookie httpOnly que pone el backend
 // — esa cookie no la pueden tocar scripts (defensa XSS) y solo viaja a
 // nuestro propio dominio en peticiones credentialed (defensa CSRF).
@@ -34,7 +35,7 @@ export function getToken() {
   return tokenEnMemoria
 }
 
-// Nota P1 (2026-05-17): listeners para "token cambió". Permite a stomp.js
+// Listeners para "token cambió". Permite a stomp.js
 // reconectar con JWT nuevo tras refresh silencioso (auto-refresh tras 401).
 // Sin esto, el WS singleton seguía con el JWT viejo hasta logout/reload.
 const tokenChangeListeners = new Set()
@@ -73,7 +74,7 @@ const DEFAULT_TIMEOUT_MS = 10000
 // la sesión por reuse-detection del backend.
 let refreshPromise = null
 
-// Nota P2 (2026-05-17, 4ª iter): flag que bloquea intentarRefresh durante
+// Flag que bloquea intentarRefresh durante
 // el logout. Si una request paralela recibe 401 y dispara refresh DESPUÉS
 // de que el user haya pulsado logout pero ANTES de que el backend revoque
 // el refresh, el refresh "exitoso" emite una cookie nueva y resucita la
@@ -84,7 +85,7 @@ export function setLoggingOut(value) {
   isLoggingOut = Boolean(value)
 }
 
-// Nota P1 (2026-05-18, 5ª iter): epoch de sesión. setLoggingOut(true)
+// Epoch de sesión. setLoggingOut(true)
 // cortaba refreshes NUEVOS, pero un refreshPromise YA en vuelo que
 // resolviera después seguía aplicando setToken → resucitaba la sesión.
 // Cada cambio de sesión (logout, login, refresh exitoso) incrementa el
@@ -97,7 +98,7 @@ export function bumpSessionEpoch() {
 }
 
 /**
- * Nota P2 (2026-05-17, 4ª iter): grace cross-tab robusto.
+ * Grace cross-tab robusto.
  * El backend devuelve 503 + Retry-After cuando otra pestaña acaba de
  * rotar el refresh. El cliente respeta Retry-After (segundos) y hace
  * hasta GRACE_MAX_RETRIES intentos antes de considerar muerta la
@@ -130,7 +131,7 @@ async function intentarRefresh() {
   // vuelo (logout, login en otra tab, etc.), no aplicamos el resultado.
   const myEpoch = sessionEpoch
   refreshPromise = (async () => {
-    // Nota P2 (2026-05-18, 5ª iter): AbortController por intento para
+    // AbortController por intento para
     // que /refresh tenga timeout propio. Antes el cliente global tenía
     // timeout pero intentarRefresh hacía fetch directo sin abort, así
     // que bootstrap y 401-retries quedaban colgados.
@@ -171,7 +172,7 @@ async function intentarRefresh() {
         return null
       }
       // 204 No Content: el backend señala "no había cookie de refresh"
-      // sin disparar el console.error del 401 (nota F003 follow-up).
+      // sin disparar el console.error del 401.
       // No hay body que parsear, tratamos como sesión vacía.
       if (res.status === 204) {
         const prev = tokenEnMemoria
@@ -208,8 +209,8 @@ export async function refreshSession() {
 }
 
 async function ejecutarFetch(path, { method, headers = {}, body, signal, includeAuth }) {
-  // Ajuste #7 (2026-05-21): Content-Type: application/json solo cuando
-  // hay body. En GET/HEAD sin body el header no aporta nada y dispara
+  // Content-Type: application/json solo cuando hay body.
+  // En GET/HEAD sin body el header no aporta nada y dispara
   // preflight CORS innecesario en cross-origin (es un "non-simple header"
   // segun fetch spec) — el browser hace OPTIONS extra antes del GET real.
   const fullHeaders = { ...headers }
@@ -258,8 +259,8 @@ async function request(
     // funciona, reintenta la petición original con el nuevo token. Si el
     // refresh falla, propaga el error original.
     //
-    // Ajuste #1 (2026-05-21): SecurityConfig devuelve 403 (no 401)
-    // cuando llega una API call sin auth o con JWT expirado — esto es
+    // SecurityConfig devuelve 403 (no 401) cuando llega una API call
+    // sin auth o con JWT expirado — esto es
     // intencional para no exponer entry-point que redirige a /login en
     // /api/**. Antes, frontend solo reaccionaba a 401; tras 15 min con
     // JWT expirado, todas las llamadas autenticadas devolvian 403 sin
@@ -350,7 +351,7 @@ export const endpoints = {
   refresh: () => api.post('/api/auth/refresh', undefined, { auth: false }),
   logout: () => api.post('/api/auth/logout', undefined, { auth: false }),
   revokeAll: () => api.post('/api/auth/revoke-all', undefined),
-  // Verificación de email (Plan v2 §2.4). /verify es público (el link
+  // Verificación de email. /verify es público (el link
   // viene del correo); /resend-verification requiere estar logueado.
   verifyEmail: (token) =>
     api.get(`/api/auth/verify?token=${encodeURIComponent(token)}`, { auth: false }),
@@ -359,7 +360,7 @@ export const endpoints = {
     api.post('/api/auth/forgot-password', { email }, { auth: false }),
   resetPassword: (data) =>
     api.post('/api/auth/reset-password', data, { auth: false }),
-  // 2FA TOTP (Plan v2 §2.3).
+  // 2FA TOTP.
   //   setup2fa: autenticado. Genera secret y devuelve { secret, otpauthUri, qrCodeDataUri }.
   //   enable2fa: autenticado. Body { codigo }. Devuelve { backupCodes: [...] }.
   //   disable2fa: autenticado. Body { password, codigo }.
@@ -377,7 +378,7 @@ export const endpoints = {
     ),
   regenerateBackupCodes: (codigo) =>
     api.post('/api/auth/2fa/backup-codes/regenerar', { codigo }),
-  // Notificaciones in-app (Plan v2 §2.13).
+  // Notificaciones in-app.
   notificaciones: ({ soloNoLeidas = false, page = 0, size = 20 } = {}) =>
     api.get(
       `/api/notificaciones?soloNoLeidas=${soloNoLeidas}&page=${page}&size=${size}`,
@@ -388,11 +389,11 @@ export const endpoints = {
     api.post(`/api/notificaciones/${id}/leida`, undefined),
   notificacionesMarcarTodasLeidas: () =>
     api.post('/api/notificaciones/marcar-todas-leidas', undefined),
-  // Logros / badges (Plan v2 §4.2).
-  //   logros: público, devuelve catálogo completo de 14 badges.
+  // Logros / badges.
+  //   logros: público, devuelve el catálogo completo de badges.
   //   misLogros: autenticado, catálogo enriquecido con desbloqueadoEn null/timestamp.
-  //   logrosStats: público (Plan v2 §4.10), counts por badge { codigo: count }.
-  //   personajesSimilares: público (Plan v2 §4.12), recomendaciones cross-anime
+  //   logrosStats: público, counts por badge { codigo: count }.
+  //   personajesSimilares: público, recomendaciones cross-anime
   //     por slug. Devuelve PersonajeSimilarDto[] con score y votos.
   logros: () => api.get('/api/logros', { auth: false }),
   misLogros: () => api.get('/api/logros/mios'),
@@ -403,14 +404,14 @@ export const endpoints = {
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,
       { auth: false },
     ),
-  // Galería multi-imagen oficial (Plan v2 §4.12 step 1). Devuelve hasta
+  // Galería multi-imagen oficial. Devuelve hasta
   // 12 URLs de Jikan /characters/{mal_id}/pictures. 404 solo si el slug
   // no existe; lista vacía si Jikan no resuelve mal_id o cae circuit.
   imagenesPersonaje: (slug) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/imagenes`, { auth: false }),
-  // Time machine del ELO (Plan v2 §11.1): serie {fecha, votosAcumulados}
+  // Time machine del ELO: serie {fecha, votosAcumulados}
   // por día. dias 1..90, default 30.
-  // Historial competitivo de un personaje (Plan producto 2026-05-18).
+  // Historial competitivo de un personaje.
   // Ambos endpoints son públicos y devuelven 404 si el slug no existe.
   duelosRecientesPersonaje: (slug, { limit = 10 } = {}) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/duelos-recientes?limit=${limit}`, { auth: false }),
@@ -447,7 +448,7 @@ export const endpoints = {
     return api.get(`/api/personajes/votos-periodo?slugs=${encodeURIComponent(lista)}&dias=${dias}`, { auth: false })
   },
 
-  // Mi roster / favoritos (Plan producto 2026-05-18). Todos requieren auth.
+  // Mi roster / favoritos. Todos requieren auth.
   // POST/DELETE son idempotentes server-side, así el hook puede hacer
   // optimistic update sin chequear estado previo.
   misFavoritos: () => api.get('/api/me/favoritos'),
@@ -469,7 +470,7 @@ export const endpoints = {
       { auth: false },
     )
   },
-  // Reactions (Plan v2 §4.3).
+  // Reactions.
   //   getReacciones: público, devuelve {counts, miReaccion, total}.
   //   aplicarReaccion: autenticado. Backend gestiona toggle/swap automático.
   getReacciones: (targetType, targetId) =>
@@ -478,7 +479,7 @@ export const endpoints = {
     ),
   aplicarReaccion: ({ targetType, targetId, tipo }) =>
     api.post('/api/reacciones', { targetType, targetId, tipo }),
-  // Predicciones de bracket (Plan v2 §4.4).
+  // Predicciones de bracket.
   //   aplicarPrediccion: autenticado. Backend INSERT/UPDATE según UNIQUE.
   //   misPredicciones(torneoId): autenticado. Lista del torneo concreto.
   //   leaderboardPredicciones: público. Top predictores últimos N días.
@@ -491,7 +492,7 @@ export const endpoints = {
       `/api/predicciones/leaderboard?dias=${dias}&limit=${limit}`,
       { auth: false },
     ),
-  // Perfil del usuario autenticado (Plan v2 §4.1).
+  // Perfil del usuario autenticado.
   perfilStats: () => api.get('/api/perfil/me/stats'),
   perfilHistorialVotos: ({ page = 0, size = 50 } = {}) =>
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
@@ -503,33 +504,33 @@ export const endpoints = {
   // predicciones acertadas. Cada item con {tipo, fecha, payload}.
   perfilActividad: ({ limit = 20 } = {}) =>
     api.get(`/api/perfil/me/actividad?limit=${limit}`),
-  // Referral del usuario (Plan v2 §11.8): código único + count
+  // Referral del usuario: código único + count
   // verificados + tier badge.
   perfilReferral: () => api.get('/api/perfil/me/referral'),
-  // GDPR right to erasure (Plan v2 §4.1). Requiere password de nuevo
+  // GDPR right to erasure. Requiere password de nuevo
   // en el body como reconfirmación; 400 si la password no coincide.
   // Tras éxito el backend limpia la cookie de refresh; el cliente debe
   // además limpiar tokens locales y redirigir a home.
   eliminarMiCuenta: ({ password }) =>
     api.del('/api/perfil/me', { body: { password } }),
-  // Perfil PÚBLICO de cualquier usuario (Plan v2 §4.5). Endpoint
+  // Perfil PÚBLICO de cualquier usuario. Endpoint
   // permitAll en el backend, pero si el caller está logueado el token
   // viaja y el backend rellena `siguiendo` y `esMismoUsuario`. Si no
   // hay token, esos campos vienen como null/false.
   perfilPublico: (username) =>
     api.get(`/api/perfil/${encodeURIComponent(username)}`),
-  // Friends / follow asimétrico (Plan v2 §4.5). seguir/dejarDeSeguir son
+  // Friends / follow asimétrico. seguir/dejarDeSeguir son
   // idempotentes en el backend — la UI no necesita comprobar estado previo.
   seguir: (usuarioId) =>
     api.post(`/api/seguidores/${usuarioId}`),
   dejarDeSeguir: (usuarioId) =>
     api.del(`/api/seguidores/${usuarioId}`),
-  // Ranking segmentado (Plan v2 §4.6).
+  // Ranking segmentado.
   //   rankingSegmentado: periodo all|mes|trimestre|anio, anime opcional toma
   //     precedencia, limit max 200.
   //   animesConVotos: lista de animes con al menos 1 voto, para popular
   //     el dropdown del tab 'Por anime'.
-  // Ranking actual con indicadores de movimiento (Plan v2 §4.x):
+  // Ranking actual con indicadores de movimiento:
   // delta vs hace N días + flag esNuevo para personajes que no aparecían.
   rankingMovimientos: ({ limit = 50, dias = 7 } = {}) =>
     api.get(`/api/votos/ranking/movimientos?limit=${limit}&dias=${dias}`, {
@@ -544,10 +545,10 @@ export const endpoints = {
   },
   animesConVotos: () =>
     api.get('/api/votos/ranking/animes-disponibles', { auth: false }),
-  // Top voters leaderboard (Plan v2 §11.9). periodo: all|semana|mes.
+  // Top voters leaderboard. periodo: all|semana|mes.
   topVoters: ({ periodo = 'all', limit = 10 } = {}) =>
     api.get(`/api/votos/top-voters?periodo=${periodo}&limit=${limit}`, { auth: false }),
-  // Newsletter con double opt-in (Plan v2 §4.8).
+  // Newsletter con double opt-in.
   suscribirNewsletter: (email) =>
     api.post('/api/newsletter', { email }, { auth: false }),
   confirmarNewsletter: (token) =>
@@ -579,7 +580,7 @@ export const endpoints = {
   personaje: (id) => api.get(`/api/personajes/${id}`),
   createPersonaje: (data) => api.post('/api/personajes', data),
   deletePersonaje: (id) => api.del(`/api/personajes/${id}`),
-  // Listado de torneos en formato TorneoResumenDto (Plan v2 §1.1):
+  // Listado de torneos en formato TorneoResumenDto:
   // id, slug, nombre, estado, fechas, numParticipantes, totalRondas,
   // rondaActual, ganadorSlug. Sin enfrentamientos — para eso usar
   // torneoBySlug.
@@ -590,7 +591,7 @@ export const endpoints = {
   // con la URL del frontend para que el polling y el cache sean limpios.
   torneoBySlug: (slug) => api.get(`/api/torneos/slug/${slug}`),
   createTorneo: (data) => api.post('/api/torneos', data),
-  // Plan v2 §4.9: torneos creados por usuario verificado.
+  // Torneos creados por usuario verificado.
   //   crearTorneoMio: body { nombre, descripcion?, publico?, participantesIds[8|16] }
   //     -> 201 con Torneo en estado SCHEDULED/PENDIENTE. Necesita email
   //     verificado o el backend devuelve 400.
@@ -613,12 +614,12 @@ export const endpoints = {
   // deleteTorneo eliminado: TorneoController no expone @DeleteMapping todavía,
   // si el frontend lo llamaba caía con 405. Se restaurará cuando se implemente backend-side.
   ranking: () => api.get('/api/votos/ranking'),
-  // Feed público "últimos votos" — Plan producto (2026-05-18). Lo
+  // Feed público "últimos votos". Lo
   // consume SectionPulso para pintar actividad real ("X votó por Y vs Z
   // hace 2 min"). Limit acotado server-side a [1, 20].
   votosRecientes: ({ limit = 10 } = {}) =>
     api.get(`/api/votos/recientes?limit=${limit}`, { auth: false }),
-  // Match aleatorio abierto (Plan v2 §1.1). Devuelve EnfrentamientoDto o
+  // Match aleatorio abierto. Devuelve EnfrentamientoDto o
   // 404 (modo casual del frontend toma el control). No requiere auth.
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/aleatorio', { auth: false }),
   dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),

@@ -20,7 +20,7 @@ import com.diegoalegil.animeshowdown.repository.LogroRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
 
 /**
- * Desbloqueo de badges/logros (Plan v2 §4.2).
+ * Desbloqueo de badges/logros.
  *
  * <p>API principal:
  * <ul>
@@ -30,7 +30,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
  *       y un evento de audit.</li>
  *   <li>{@link #listarUsuario(Usuario)} — los desbloqueados del usuario,
  *       ordenados por fecha desc.</li>
- *   <li>{@link #listarCatalogo()} — los 14 badges del catálogo, para que
+ *   <li>{@link #listarCatalogo()} — los badges del catálogo, para que
  *       el frontend pinte los "que te faltan" con icono atenuado.</li>
  * </ul>
  *
@@ -97,7 +97,7 @@ public class BadgeService {
             return Optional.empty();
         }
         try {
-            // Nota P3 (2026-05-17): saveAndFlush en lugar de save. Con save,
+            // saveAndFlush en lugar de save. Con save,
             // Hibernate puede aplazar el INSERT hasta el commit; si dos
             // listeners paralelos hacen el pre-check y avanzan, ambos save
             // pasan en el primer-level cache y la violación UNIQUE salta en
@@ -195,7 +195,7 @@ public class BadgeService {
     }
 
     /**
-     * Devuelve TODOS los badges del catálogo enriquecidos con la fecha de
+     * Devuelve todos los badges del catálogo enriquecidos con la fecha de
      * desbloqueo del usuario (null para los que aún no tiene). El merge se
      * hace dentro de la transacción para evitar LazyInitializationException
      * al acceder a {@code UsuarioLogro.logro} desde el controller.

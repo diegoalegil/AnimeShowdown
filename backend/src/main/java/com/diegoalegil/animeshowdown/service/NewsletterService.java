@@ -14,7 +14,7 @@ import com.diegoalegil.animeshowdown.repository.NewsletterSubRepository;
 import com.diegoalegil.animeshowdown.security.LogSanitizer;
 
 /**
- * Newsletter con double opt-in (Plan v2 §4.8).
+ * Newsletter con double opt-in.
  *
  * <p>Flow:
  * <ol>

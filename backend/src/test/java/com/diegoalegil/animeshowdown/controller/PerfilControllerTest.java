@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests integración del perfil del usuario (Plan v2 §4.1).
+ * Tests integración del perfil del usuario.
  *
  * <p>Cubre los 3 endpoints {@code /api/perfil/me/*} con auth, sin auth y
  * con datos básicos generados in-test.
@@ -57,7 +57,7 @@ class PerfilControllerTest {
 
     private String tokenAdmin() throws Exception {
         String token = tokenDe("admin_torneo_test", "diegogildam@gmail.com");
-        // Tras revisión P1.1: la promoción a ADMIN ya no ocurre en
+        // Tras revisión: la promoción a ADMIN ya no ocurre en
         // registro. Forzamos verificación + ADMIN en BBDD para tests.
         usuarioRepository.findByUsername("admin_torneo_test").ifPresent(u -> {
             u.setEstadoVerificacion(com.diegoalegil.animeshowdown.model.EstadoVerificacion.ACTIVO);

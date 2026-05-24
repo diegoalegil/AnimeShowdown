@@ -3,7 +3,7 @@ import { subscribe, onConnectionChange } from '../lib/stomp'
 
 /**
  * Hook que se suscribe a un destination STOMP y devuelve el último mensaje
- * recibido más un flag de estado de conexión (Plan v2 §2.13).
+ * recibido más un flag de estado de conexión.
  *
  * Uso típico:
  *   const { lastMessage, connected } = useStompSubscription(

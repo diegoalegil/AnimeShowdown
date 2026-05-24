@@ -24,7 +24,7 @@ class ObservabilityControllerTest {
     void prometheusExponeMetricasCustomDeAnimeShowdown() throws Exception {
         // El test pasa el secret de scrape (configurado en
         // application-test.properties) en el header X-Prometheus-Token.
-        // Nota F007 (2026-05-22): el endpoint ya no es público y exige
+        // el endpoint ya no es público y exige
         // este header para responder 200 con el body de métricas.
         mvc.perform(get("/actuator/prometheus")
                         .header("X-Prometheus-Token", "test-prometheus-token-no-secret"))

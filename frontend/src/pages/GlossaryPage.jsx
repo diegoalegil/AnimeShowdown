@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, BookOpen, Search } from 'lucide-react'
@@ -10,6 +10,7 @@ import { normalizar } from '../lib/games'
 import { EmptyStateScene } from '../components/VisualSystem'
 import { useAuth } from '../contexts/AuthContext'
 import { endpoints } from '../lib/api'
+import { hasCategoriaPersonaje } from '../data/personajes-tags'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -21,7 +22,7 @@ const containerVariants = {
 }
 
 /**
- * Glosario otaku (Plan v2 §13.8) — términos comunes del fandom anime
+ * Glosario otaku — términos comunes del fandom anime
  * con definición curada en español. Cada entrada produce un
  * {@code DefinedTerm} en JSON-LD para captura long-tail SEO.
  *
@@ -30,7 +31,7 @@ const containerVariants = {
  * mecha) y tropos (harem, slice of life).
  *
  * <p>Cada término linkea a un ejemplo del catálogo cuando hay match
- * obvio. Sin atributos extendidos (Bloque 15) no podemos auto-vincular
+ * obvio. Sin atributos extendidos (nota técnica) no podemos auto-vincular
  * personajes que ejemplifican un tropo; queda como nota informativa.
  */
 
@@ -295,23 +296,24 @@ function GlossaryPage() {
 
   const [filtro, setFiltro] = useState('')
   const [categoria, setCategoria] = useState(null)
+  const deferredFiltro = useDeferredValue(filtro)
   const { user } = useAuth()
   const [quiz, setQuiz] = useState([])
   const [answers, setAnswers] = useState({})
   const [quizResult, setQuizResult] = useState(null)
 
   const visibles = useMemo(() => {
-    const q = normalizar(filtro)
+    const q = normalizar(deferredFiltro)
     return TERMINOS.filter((t) => {
       if (categoria && t.categoria !== categoria) return false
       if (!q) return true
       return (
         normalizar(t.termino).includes(q) ||
         normalizar(t.definicion).includes(q) ||
-        (t.kanji && t.kanji.includes(filtro))
+        (t.kanji && t.kanji.includes(deferredFiltro))
       )
     })
-  }, [filtro, categoria])
+  }, [deferredFiltro, categoria])
 
   const startQuiz = () => {
     const questions = shuffle(QUIZ_POOL)
@@ -396,6 +398,7 @@ function GlossaryPage() {
               type="search"
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
+              aria-label="Filtrar glosario"
               placeholder="Filtra por palabra o definición…"
               className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
             />
@@ -443,47 +446,53 @@ function GlossaryPage() {
           </EmptyStateScene>
         ) : (
           <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {visibles.map((t) => (
-              <article
-                key={t.termino}
-                id={`term-${slugTermino(t.termino)}`}
-                itemScope
-                itemType="https://schema.org/DefinedTerm"
-                className="rounded-xl border border-border bg-surface p-5"
-              >
-                <header className="mb-2 flex items-baseline justify-between gap-2">
-                  <dt itemProp="name" className="text-lg font-bold text-fg-strong">
-                    {t.termino}
-                  </dt>
-                  {t.kanji && (
-                    <span lang="ja" className="font-jp text-[15px] text-gold">
-                      {t.kanji}
-                    </span>
+            {visibles.map((t) => {
+              const tag = slugTermino(t.termino)
+              const tienePersonajes = hasCategoriaPersonaje(tag)
+              return (
+                <article
+                  key={t.termino}
+                  id={`term-${tag}`}
+                  itemScope
+                  itemType="https://schema.org/DefinedTerm"
+                  className="rounded-xl border border-border bg-surface p-5"
+                >
+                  <header className="mb-2 flex items-baseline justify-between gap-2">
+                    <dt itemProp="name" className="text-lg font-bold text-fg-strong">
+                      {t.termino}
+                    </dt>
+                    {t.kanji && (
+                      <span lang="ja" className="font-jp text-[15px] text-gold">
+                        {t.kanji}
+                      </span>
+                    )}
+                  </header>
+                  <dd
+                    itemProp="description"
+                    className="text-[13px] leading-relaxed text-fg-muted"
+                  >
+                    {t.definicion}
+                  </dd>
+                  {t.ejemplo && (
+                    <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted/80">
+                      Ej.: <span className="font-normal normal-case">{t.ejemplo}</span>
+                    </p>
                   )}
-                </header>
-                <dd
-                  itemProp="description"
-                  className="text-[13px] leading-relaxed text-fg-muted"
-                >
-                  {t.definicion}
-                </dd>
-                {t.ejemplo && (
-                  <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted/80">
-                    Ej.: <span className="font-normal normal-case">{t.ejemplo}</span>
-                  </p>
-                )}
-                <span className="mt-3 inline-flex rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
-                  {t.categoria}
-                </span>
-                <Link
-                  to={`/personajes?tag=${slugTermino(t.termino)}`}
-                  className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold transition-colors hover:text-fg-strong"
-                >
-                  Ver personajes con este rasgo
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </article>
-            ))}
+                  <span className="mt-3 inline-flex rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+                    {t.categoria}
+                  </span>
+                  {tienePersonajes && (
+                    <Link
+                      to={`/personajes?tag=${tag}`}
+                      className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold transition-colors hover:text-fg-strong"
+                    >
+                      Ver personajes relacionados
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+                </article>
+              )
+            })}
           </dl>
         )}
 

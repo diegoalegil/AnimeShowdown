@@ -8,7 +8,7 @@ import {
 } from '../lib/staleAssetRecovery'
 
 /**
- * Error boundary global (Plan v2 §3.7).
+ * Error boundary global.
  *
  * React no atrapa errores async ni los disparados durante el render del
  * propio boundary; cubrimos solo errores síncronos del árbol descendiente,
@@ -35,7 +35,9 @@ class ErrorBoundary extends Component {
     const recoveringStaleAsset = recoverFromStaleAssetError(error)
 
     if (recoveringStaleAsset) {
-      console.warn('[ErrorBoundary] stale asset detectado; recargando shell', error)
+      if (import.meta.env.DEV) {
+        console.warn('[ErrorBoundary] stale asset detectado; recargando shell', error)
+      }
       return
     }
 
@@ -49,7 +51,9 @@ class ErrorBoundary extends Component {
     } catch {
       /* Sentry roto no debe tumbar el boundary */
     }
-    console.error('[ErrorBoundary]', error, info?.componentStack)
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary]', error, info?.componentStack)
+    }
   }
 
   handleReload = () => {

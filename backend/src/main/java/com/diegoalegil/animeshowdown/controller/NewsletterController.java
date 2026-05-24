@@ -19,7 +19,7 @@ import com.diegoalegil.animeshowdown.service.NewsletterService;
 import jakarta.validation.Valid;
 
 /**
- * Endpoints REST de newsletter con double opt-in (Plan v2 §4.8).
+ * Endpoints REST de newsletter con double opt-in.
  *
  * <ul>
  *   <li>{@code POST /api/newsletter} — público. Body {email}. Crea o
@@ -49,7 +49,7 @@ public class NewsletterController {
     @PostMapping
     public ResponseEntity<?> suscribir(@Valid @RequestBody NewsletterSubRequest req) {
         try {
-            // Nota P2 (2026-05-17): el servicio sigue distinguiendo CREADA /
+            // el servicio sigue distinguiendo CREADA /
             // REENVIADA / YA_CONFIRMADA para sus métricas internas, pero la
             // response al cliente unifica el mensaje. Antes "Ya estás
             // suscrito" delataba qué emails están dados de alta — info

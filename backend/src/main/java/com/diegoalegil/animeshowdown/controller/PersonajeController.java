@@ -80,7 +80,7 @@ public class PersonajeController {
     }
 
     /**
-     * Plan v2 §2.10: cache 5min del listado. Key por filtro (anime), o 'all'
+     * 10: cache 5min del listado. Key por filtro (anime), o 'all'
      * cuando no hay filtro. El catálogo es casi inmutable — las invalidaciones
      * vienen de crear/actualizar/eliminar/batch que hacen evict global.
      */
@@ -94,7 +94,7 @@ public class PersonajeController {
     }
 
     /**
-     * Catálogo público compacto para frontend/IA.
+     * Catálogo público compacto para frontend y sitemap.
      *
      * <p>fields permite bajar solo columnas necesarias:
      * {@code slug,nombre,anime,imagenUrl}. El endpoint emite ETag estable,
@@ -251,7 +251,7 @@ public class PersonajeController {
     }
 
     /**
-     * Personajes similares al de un slug (Plan v2 §4.12). Discovery
+     * Personajes similares al de un slug. Discovery
      * cross-anime basado en proximidad de votos.
      *
      * <p>Endpoint público. limit clampa entre 1 y 24; default 8.
@@ -263,7 +263,7 @@ public class PersonajeController {
     }
 
     /**
-     * Time machine del ELO (Plan v2 §11.1) — serie temporal de votos
+     * Time machine del ELO — serie temporal de votos
      * acumulados día a día. dias clampa entre 1 y 90; default 30.
      */
     @GetMapping("/{slug}/elo-history")
@@ -273,7 +273,7 @@ public class PersonajeController {
     }
 
     /**
-     * Historial de duelos recientes del personaje (Plan producto 2026-05-18).
+     * Historial de duelos recientes del personaje.
      *
      * <p>Devuelve los últimos N enfrentamientos donde participó (como
      * personaje1 o 2), incluyendo los aún sin ganador (resultado PENDING).
@@ -301,8 +301,7 @@ public class PersonajeController {
     }
 
     /**
-     * Actividad reciente de votos del personaje (Plan producto sprint
-     * 2026-05-18 — actividad real por votos recientes).
+     * Actividad reciente de votos del personaje.
      *
      * <p>Devuelve votos absolutos en la ventana actual + ventana
      * anterior + delta. Sin auth — son agregados públicos.
@@ -347,7 +346,7 @@ public class PersonajeController {
 
     /**
      * Resumen agregado "Contra quién" — mejores/peores/frecuentes
-     * matchups (Plan producto 2026-05-18). Sin auth.
+     * matchups. Sin auth.
      *
      * <p>404 si el slug no existe; 200 con listas vacías y total=0 si
      * el personaje no tiene aún enfrentamientos decididos (el frontend
@@ -363,8 +362,7 @@ public class PersonajeController {
     }
 
     /**
-     * Galería de imágenes adicionales del personaje desde Jikan (Plan v2
-     * §4.12 step 1 — multi-image oficial). Devuelve hasta 12 URLs de
+     * Galería de imágenes adicionales del personaje desde Jikan. Devuelve hasta 12 URLs de
      * /characters/{mal_id}/pictures. Lista vacía si:
      *   - Jikan no encuentra mal_id para el nombre+anime,
      *   - el personaje no tiene pictures registradas,
@@ -393,13 +391,13 @@ public class PersonajeController {
 
     /**
      * Endpoint legacy de voto directo a personaje (sin enfrentamiento).
-     * Deshabilitado (nota P2 2026-05-17): tras dropear el unique
+     * Deshabilitado (nota): tras dropear el unique
      * uk_voto_personaje_usuario en V16, el check app-level
      * existsByPersonajeAndUsuario era vulnerable a doble voto bajo
      * concurrencia. El endpoint canónico vive en otro recurso (enfrentamiento,
      * no personaje), así que no hay redirect 1:1.
      *
-     * <p>Nota P3 (2026-05-17, 4ª iter): quitado el header Link al
+     * <p>quitado el header Link al
      * canónico — apuntaba a /api/enfrentamientos/&#123;id&#125;/votar con el
      * mismo id legacy (personajeId), pero el sucesor espera un
      * enfrentamientoId. Eran recursos distintos y el Link confundía a

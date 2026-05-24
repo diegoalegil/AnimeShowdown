@@ -3,7 +3,7 @@ import { ShieldCheck, X } from 'lucide-react'
 import AccessibleDialog from './AccessibleDialog'
 
 /**
- * Nota técnica AS-004 (2026-05-23): modal de captcha bajo abuso.
+ * Modal de captcha bajo abuso.
  *
  * <p>Se monta cuando el backend devuelve 428 Precondition Required en
  * el endpoint de voto, con body
@@ -140,12 +140,12 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-3 top-3 rounded-full border border-border bg-surface p-2 text-fg-muted transition-colors hover:border-accent/50 hover:text-accent"
+        className="absolute right-3 top-3 rounded-full border border-border bg-surface p-2 text-fg-muted transition-colors hover:border-accent/50 hover:text-gold"
         aria-label="Cerrar captcha"
       >
         <X className="h-4 w-4" />
       </button>
-      <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/50 bg-accent/15 text-accent">
+      <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/50 bg-accent/15 text-gold">
         <ShieldCheck className="h-5 w-5" />
       </div>
       <h2 id="captcha-modal-title" className="text-xl font-black text-fg-strong">

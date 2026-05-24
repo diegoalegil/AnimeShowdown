@@ -6,12 +6,15 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Optional;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -19,16 +22,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.SlugUtil;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
  * Render server-side de OG images (1200×630 PNG) para previews ricos en
- * Twitter/Discord/WhatsApp/Slack. Plan v2 §1.2.
+ * Twitter/Discord/WhatsApp/Slack. 2.
  *
  * Diseño minimalista decidido en planning:
  *   - Fondo dark (#0d0a16) con gradiente magenta sutil arriba-izquierda.
@@ -38,7 +45,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
  *
  * Cache 7 días vía Caffeine (CacheConfig). Como las imágenes pesan
  * ~150-300KB, 500 entradas son ~100MB max — dentro del presupuesto de
- * Railway. Para mover a CDN en futuro cuando Bloque 15.7 pida pre-cache.
+ * Railway. Para mover a CDN en futuro cuando una tarea programada.7 pida pre-cache.
  *
  * I/O:
  *   - Lee imagen del personaje de `app.images.base-url` + `personaje.imagenUrl`
@@ -63,14 +70,17 @@ public class OgImageService {
 
     private final PersonajeRepository personajeRepository;
     private final TorneoRepository torneoRepository;
+    private final VotoRepository votoRepository;
     private final String imagesBaseUrl;
 
     public OgImageService(
             PersonajeRepository personajeRepository,
             TorneoRepository torneoRepository,
+            VotoRepository votoRepository,
             @Value("${app.images.base-url}") String imagesBaseUrl) {
         this.personajeRepository = personajeRepository;
         this.torneoRepository = torneoRepository;
+        this.votoRepository = votoRepository;
         this.imagesBaseUrl = imagesBaseUrl.endsWith("/")
                 ? imagesBaseUrl.substring(0, imagesBaseUrl.length() - 1)
                 : imagesBaseUrl;
@@ -78,15 +88,14 @@ public class OgImageService {
 
     /**
      * OG image para `/personajes/{slug}`. Cache key = slug; TTL 7 días.
-     * Devuelve Optional vacío si el personaje no existe (404 en controller).
+     * Devuelve una imagen fallback si el personaje no existe o falla el render.
      */
-    @Cacheable(value = "og-personaje", key = "#slug", unless = "#result == null || !#result.isPresent()")
-    public Optional<byte[]> renderPersonaje(String slug) {
-        Optional<Personaje> opt = personajeRepository.findBySlug(slug);
-        if (opt.isEmpty()) {
-            return Optional.empty();
+    @Cacheable(value = "og-personaje", key = "#slug", unless = "#result == null")
+    public byte[] renderPersonaje(String slug) {
+        Personaje p = personajeRepository.findBySlug(slug).orElse(null);
+        if (p == null) {
+            return renderFallback("Personaje anime", "Duelo y ranking en AnimeShowdown");
         }
-        Personaje p = opt.get();
         try {
             BufferedImage canvas = nuevoLienzo();
             Graphics2D g = canvas.createGraphics();
@@ -99,10 +108,10 @@ public class OgImageService {
             } finally {
                 g.dispose();
             }
-            return Optional.of(toPng(canvas));
+            return toPng(canvas);
         } catch (Exception e) {
             log.error("OgImageService.renderPersonaje fallo slug={}: {}", slug, e.getMessage(), e);
-            return Optional.empty();
+            return renderFallback(p.getNombre(), p.getAnime());
         }
     }
 
@@ -111,21 +120,20 @@ public class OgImageService {
      * los textos vienen del torneo: nombre arriba, descripción abajo, foto
      * del ganador (si está FINISHED) o del primer participante (resto).
      */
-    @Cacheable(value = "og-torneo", key = "#slug", unless = "#result == null || !#result.isPresent()")
-    public Optional<byte[]> renderTorneo(String slug) {
-        Optional<Torneo> opt = torneoRepository.findBySlug(slug);
-        if (opt.isEmpty()) {
-            return Optional.empty();
+    @Cacheable(value = "og-torneo", key = "#slug", unless = "#result == null")
+    public byte[] renderTorneo(String slug) {
+        Torneo t = torneoRepository.findBySlug(slug).orElse(null);
+        if (t == null) {
+            return renderFallback("Torneo anime", "Bracket visual en AnimeShowdown");
         }
-        Torneo t = opt.get();
-        // Nota P1 (2026-05-17): torneos PENDIENTE/RECHAZADO no son públicos —
+        // torneos PENDIENTE/RECHAZADO no son públicos —
         // generar y servir su OG image filtraría nombre + descripción a
         // cualquier scraper de Open Graph (Twitter, Discord, Slack). Same
         // 404-equivalent que findBySlug/findById ya hacen.
         var rev = t.getEstadoRevision();
         if (rev == com.diegoalegil.animeshowdown.model.EstadoRevision.PENDIENTE
                 || rev == com.diegoalegil.animeshowdown.model.EstadoRevision.RECHAZADO) {
-            return Optional.empty();
+            return renderFallback("Torneo anime", "Bracket visual en AnimeShowdown");
         }
         Personaje imagenFuente = t.getGanadorPersonaje();
         try {
@@ -142,14 +150,128 @@ public class OgImageService {
             } finally {
                 g.dispose();
             }
-            return Optional.of(toPng(canvas));
+            return toPng(canvas);
         } catch (Exception e) {
             log.error("OgImageService.renderTorneo fallo slug={}: {}", slug, e.getMessage(), e);
-            return Optional.empty();
+            return renderFallback(t.getNombre(), "Torneo en AnimeShowdown");
+        }
+    }
+
+    @Cacheable(value = "og-ranking", key = "'global'", unless = "#result == null")
+    public byte[] renderRanking() {
+        try {
+            List<RankingOgEntry> top = votoRepository.rankingAllTime(PageRequest.of(0, 5))
+                    .getContent()
+                    .stream()
+                    .map(RankingOgEntry::from)
+                    .toList();
+            if (top.isEmpty()) {
+                top = personajeRepository.findAllOrderBySlug()
+                        .stream()
+                        .limit(5)
+                        .map(RankingOgEntry::from)
+                        .toList();
+            }
+            return renderRankingCard(
+                    "Ranking competitivo",
+                    "Top de personajes anime votados por la comunidad",
+                    top,
+                    "Vota y cambia la tabla");
+        } catch (Exception e) {
+            log.error("OgImageService.renderRanking fallo: {}", e.getMessage(), e);
+            return renderFallback("Ranking competitivo", "Vota personajes anime en AnimeShowdown");
+        }
+    }
+
+    @Cacheable(value = "og-anime", key = "#slug", unless = "#result == null")
+    public byte[] renderAnime(String slug) {
+        String targetSlug = SlugUtil.slugify(slug);
+        String anime = personajeRepository.findDistinctAnimes()
+                .stream()
+                .filter(nombre -> SlugUtil.slugify(nombre).equals(targetSlug))
+                .findFirst()
+                .orElse(null);
+        if (anime == null) {
+            return renderFallback("Ranking de anime", "Top interno en AnimeShowdown");
+        }
+        try {
+            List<RankingOgEntry> top = votoRepository.rankingPorAnime(anime, PageRequest.of(0, 5))
+                    .stream()
+                    .map(RankingOgEntry::from)
+                    .toList();
+            if (top.isEmpty()) {
+                top = personajeRepository.findByAnime(anime)
+                        .stream()
+                        .sorted(Comparator.comparing(Personaje::getNombre, String.CASE_INSENSITIVE_ORDER))
+                        .limit(5)
+                        .map(RankingOgEntry::from)
+                        .toList();
+            }
+            return renderRankingCard(
+                    "Top de " + anime,
+                    "Ranking interno de personajes en AnimeShowdown",
+                    top,
+                    "Entra a votar personajes de " + anime);
+        } catch (Exception e) {
+            log.error("OgImageService.renderAnime fallo slug={}: {}", slug, e.getMessage(), e);
+            return renderFallback("Top de " + anime, "Ranking interno en AnimeShowdown");
+        }
+    }
+
+    @Cacheable(value = "og-pvp", key = "'pvp-live'", unless = "#result == null")
+    public byte[] renderPvp() {
+        return renderFallback(
+                "Duelo PvP en directo",
+                "1v1 al mejor de 5 rondas · sube tu ELO PvP");
+    }
+
+    @Cacheable(value = "og-duelo", key = "#slugA + '-vs-' + #slugB", unless = "#result == null")
+    public byte[] renderDuelo(String slugA, String slugB) {
+        Personaje a = personajeRepository.findBySlug(slugA).orElse(null);
+        Personaje b = personajeRepository.findBySlug(slugB).orElse(null);
+        if (a == null || b == null || a.getSlug().equals(b.getSlug())) {
+            return renderFallback("Duelo anime", "Compara personajes en AnimeShowdown");
+        }
+        try {
+            BufferedImage canvas = nuevoLienzo();
+            Graphics2D g = canvas.createGraphics();
+            try {
+                aplicarHints(g);
+                dibujarFondo(g);
+                dibujarFotoDuelo(g, a, PADDING, "壱");
+                dibujarFotoDuelo(g, b, ANCHO - PADDING - 360, "弐");
+                dibujarCentroDuelo(g, a, b);
+                dibujarLogoCentrado(g);
+            } finally {
+                g.dispose();
+            }
+            return toPng(canvas);
+        } catch (Exception e) {
+            log.error("OgImageService.renderDuelo fallo slugA={} slugB={}: {}", slugA, slugB, e.getMessage(), e);
+            return renderFallback(a.getNombre() + " vs " + b.getNombre(), "Duelo abierto en AnimeShowdown");
         }
     }
 
     // === helpers de render ===
+
+    private record RankingOgEntry(String nombre, String anime, String imagenUrl, long votos) {
+        static RankingOgEntry from(RankingItem item) {
+            Personaje p = item.getPersonaje();
+            return new RankingOgEntry(
+                    p.getNombre(),
+                    p.getAnime(),
+                    p.getImagenUrl(),
+                    item.getVotos() == null ? 0L : item.getVotos());
+        }
+
+        static RankingOgEntry from(Personaje personaje) {
+            return new RankingOgEntry(
+                    personaje.getNombre(),
+                    personaje.getAnime(),
+                    personaje.getImagenUrl(),
+                    0L);
+        }
+    }
 
     private BufferedImage nuevoLienzo() {
         return new BufferedImage(ANCHO, ALTO, BufferedImage.TYPE_INT_RGB);
@@ -201,8 +323,96 @@ public class OgImageService {
         }
     }
 
+    private void dibujarFotoDuelo(Graphics2D g, Personaje personaje, int x, String kanji) {
+        int y = 86;
+        int ancho = 360;
+        int alto = 430;
+
+        g.setColor(new Color(255, 46, 99, 34));
+        g.fillRoundRect(x, y, ancho, alto, 32, 32);
+        g.setColor(new Color(255, 255, 255, 34));
+        g.drawRoundRect(x, y, ancho, alto, 32, 32);
+
+        boolean imagenDibujada = false;
+        String imagenUrl = personaje.getImagenUrl();
+        if (imagenUrl != null && !imagenUrl.isBlank()) {
+            try {
+                String url = imagenUrl.startsWith("http") ? imagenUrl : imagesBaseUrl + imagenUrl;
+                BufferedImage foto = leerImagen(url);
+                if (foto != null) {
+                    Shape oldClip = g.getClip();
+                    g.setClip(new RoundRectangle2D.Float(x, y, ancho, alto, 32, 32));
+                    g.drawImage(foto, x, y, ancho, alto, null);
+                    g.setClip(oldClip);
+                    imagenDibujada = true;
+                }
+            } catch (Exception e) {
+                log.warn("OgImageService.dibujarFotoDuelo fallo slug={}: {}", personaje.getSlug(), e.getMessage());
+            }
+        }
+
+        if (!imagenDibujada) {
+            Font kanjiFont = new Font(Font.SANS_SERIF, Font.BOLD, 118);
+            g.setFont(kanjiFont);
+            g.setColor(new Color(245, 245, 250, 44));
+            g.drawString(kanji, x + 125, y + 245);
+        }
+
+        GradientPaint overlay = new GradientPaint(
+                x, y + alto - 150, new Color(0, 0, 0, 0),
+                x, y + alto, new Color(0, 0, 0, 215));
+        g.setPaint(overlay);
+        g.fillRoundRect(x, y + alto - 170, ancho, 170, 30, 30);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 34));
+        g.setColor(TEXTO_PRINCIPAL);
+        g.drawString(truncar(g, personaje.getNombre(), ancho - 44), x + 22, y + alto - 70);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 22));
+        g.setColor(TEXTO_SECUNDARIO);
+        g.drawString(truncar(g, personaje.getAnime(), ancho - 44), x + 22, y + alto - 34);
+    }
+
+    private void dibujarCentroDuelo(Graphics2D g, Personaje a, Personaje b) {
+        int centerX = ANCHO / 2;
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        g.setColor(ACENTO);
+        dibujarTextoCentrado(g, "DUELO ABIERTO", centerX, 116);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 92));
+        g.setColor(TEXTO_PRINCIPAL);
+        dibujarTextoCentrado(g, "VS", centerX, 282);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 30));
+        g.setColor(TEXTO_PRINCIPAL);
+        dibujarTextoCentrado(g, "¿A quién subirías?", centerX, 350);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 22));
+        g.setColor(TEXTO_SECUNDARIO);
+        dibujarTextoCentrado(g, "Vota y cambia el ranking competitivo", centerX, 386);
+
+        g.setColor(new Color(255, 46, 99, 80));
+        g.drawLine(463, 315, 737, 315);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        g.setColor(new Color(245, 245, 250, 190));
+        dibujarTextoCentrado(g, truncar(g, a.getNombre() + " vs " + b.getNombre(), 420), centerX, 464);
+    }
+
+    private void dibujarLogoCentrado(Graphics2D g) {
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
+        g.setColor(ACENTO);
+        dibujarTextoCentrado(g, "AnimeShowdown", ANCHO / 2, ALTO - 52);
+    }
+
+    private void dibujarTextoCentrado(Graphics2D g, String texto, int centerX, int y) {
+        int width = g.getFontMetrics().stringWidth(texto);
+        g.drawString(texto, centerX - width / 2, y);
+    }
+
     private BufferedImage leerImagen(String url) {
-        // Nota P2 (2026-05-17): ImageIO.read(URL) abre HttpURLConnection
+        // ImageIO.read(URL) abre HttpURLConnection
         // por debajo SIN timeouts (conn ni read), así que una imagen
         // remota lenta o muerta dejaba el hilo del request OG bloqueado
         // indefinidamente. Esto es accesible por públicos sin auth (OG
@@ -252,6 +462,131 @@ public class OgImageService {
         g.setFont(logoFont);
         g.setColor(ACENTO);
         g.drawString("AnimeShowdown", PADDING * 2 + FOTO_ANCHO, ALTO - PADDING);
+    }
+
+    private byte[] renderRankingCard(String titulo, String subtitulo, List<RankingOgEntry> top, String footer) {
+        try {
+            BufferedImage canvas = nuevoLienzo();
+            Graphics2D g = canvas.createGraphics();
+            try {
+                aplicarHints(g);
+                dibujarFondo(g);
+                if (!top.isEmpty()) {
+                    dibujarFoto(g, top.get(0).imagenUrl());
+                }
+                if (top.isEmpty()) {
+                    dibujarPanelFallback(g, "頂");
+                }
+                dibujarRankingTexto(g, titulo, subtitulo, top, footer);
+                dibujarLogo(g);
+            } finally {
+                g.dispose();
+            }
+            return toPng(canvas);
+        } catch (Exception e) {
+            log.error("OgImageService.renderRankingCard fallo: {}", e.getMessage(), e);
+            return renderFallback(titulo, subtitulo);
+        }
+    }
+
+    private void dibujarRankingTexto(Graphics2D g, String titulo, String subtitulo, List<RankingOgEntry> top, String footer) {
+        int x = PADDING * 2 + FOTO_ANCHO;
+        int anchoTexto = ANCHO - x - PADDING;
+        int y = 100;
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        g.setColor(ACENTO);
+        g.drawString("ANIMESHOWDOWN", x, y);
+
+        y += 56;
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 54));
+        g.setColor(TEXTO_PRINCIPAL);
+        for (String linea : envolver(g, titulo, anchoTexto, 2)) {
+            g.drawString(linea, x, y);
+            y += 60;
+        }
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 26));
+        g.setColor(TEXTO_SECUNDARIO);
+        y += 6;
+        for (String linea : envolver(g, subtitulo, anchoTexto, 2)) {
+            g.drawString(linea, x, y);
+            y += 34;
+        }
+
+        y += 18;
+        int rank = 1;
+        for (RankingOgEntry entry : top.stream().limit(5).toList()) {
+            dibujarFilaRanking(g, x, y, anchoTexto, rank, entry);
+            y += 54;
+            rank++;
+        }
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
+        g.setColor(new Color(245, 245, 250, 190));
+        g.drawString(footer, x, ALTO - 105);
+    }
+
+    private void dibujarFilaRanking(Graphics2D g, int x, int y, int anchoTexto, int rank, RankingOgEntry entry) {
+        g.setColor(new Color(255, 46, 99, rank == 1 ? 95 : 42));
+        g.fillRoundRect(x, y - 31, 46, 40, 14, 14);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        g.setColor(TEXTO_PRINCIPAL);
+        g.drawString("#" + rank, x + 10, y - 6);
+
+        int textoX = x + 62;
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        g.setColor(TEXTO_PRINCIPAL);
+        String nombre = truncar(g, entry.nombre(), anchoTexto - 62);
+        g.drawString(nombre, textoX, y - 12);
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
+        g.setColor(TEXTO_SECUNDARIO);
+        String votos = entry.votos() > 0 ? entry.votos() + " votos" : "listo para votar";
+        g.drawString(truncar(g, entry.anime() + " · " + votos, anchoTexto - 62), textoX, y + 14);
+    }
+
+    private String truncar(Graphics2D g, String texto, int maxAncho) {
+        if (texto == null) return "";
+        var fm = g.getFontMetrics();
+        if (fm.stringWidth(texto) <= maxAncho) return texto;
+        String out = texto;
+        while (out.length() > 1 && fm.stringWidth(out + "…") > maxAncho) {
+            out = out.substring(0, out.length() - 1);
+        }
+        return out + "…";
+    }
+
+    private byte[] renderFallback(String titulo, String subtitulo) {
+        try {
+            BufferedImage canvas = nuevoLienzo();
+            Graphics2D g = canvas.createGraphics();
+            try {
+                aplicarHints(g);
+                dibujarFondo(g);
+                dibujarPanelFallback(g, "勝");
+                dibujarTexto(g, titulo, subtitulo);
+                dibujarLogo(g);
+            } finally {
+                g.dispose();
+            }
+            return toPng(canvas);
+        } catch (Exception e) {
+            log.error("OgImageService.renderFallback fallo: {}", e.getMessage(), e);
+            return new byte[0];
+        }
+    }
+
+    private void dibujarPanelFallback(Graphics2D g, String kanji) {
+        g.setColor(new Color(255, 46, 99, 35));
+        g.fillRoundRect(PADDING, PADDING, FOTO_ANCHO, ALTO - PADDING * 2, 36, 36);
+        g.setColor(new Color(255, 255, 255, 28));
+        g.drawRoundRect(PADDING, PADDING, FOTO_ANCHO, ALTO - PADDING * 2, 36, 36);
+        Font kanjiFont = new Font(Font.SANS_SERIF, Font.BOLD, 132);
+        g.setFont(kanjiFont);
+        g.setColor(new Color(245, 245, 250, 42));
+        g.drawString(kanji, PADDING + 170, PADDING + 280);
     }
 
     /**

@@ -17,7 +17,7 @@ import jakarta.persistence.EntityNotFoundException;
 /**
  * Lógica de "Mi roster" — sigue/dejar de seguir personajes.
  *
- * <p>Decisiones (Plan producto 2026-05-18):
+ * <p>Decisiones:
  * <ul>
  *   <li>seguir es idempotente — si ya seguías, no se devuelve error
  *       (UX: el frontend no necesita conocer el estado previo).</li>

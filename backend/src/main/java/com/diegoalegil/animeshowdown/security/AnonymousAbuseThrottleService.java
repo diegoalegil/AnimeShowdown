@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
- * Nota técnica AS-004 (2026-05-23): aplica umbrales antifraude sobre el
+ * aplica umbrales antifraude sobre el
  * flujo de voto anónimo. Política aprobada por el revisor externo:
  *
  * <ul>
@@ -72,7 +72,7 @@ public class AnonymousAbuseThrottleService {
 
     /**
      * @param anonSessionId identidad anónima del cliente (cookie firmada
-     *        post-AS-004 o header legacy).
+     *        por cookie firmada o header legacy).
      * @param ipUaHash hash determinístico de IP + User-Agent del cliente.
      *        Sirve como fingerprint server-side resistente a rotar la
      *        cookie. Puede ser null si el extractor falla — en ese caso
