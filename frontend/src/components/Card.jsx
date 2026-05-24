@@ -12,7 +12,7 @@ const Card = forwardRef(function Card(
     <Component
       ref={ref}
       className={cx(
-        'as-panel as-card-lift relative overflow-hidden rounded-2xl p-6',
+        'as-panel as-card-lift relative overflow-hidden rounded-2xl',
         className,
       )}
       {...props}

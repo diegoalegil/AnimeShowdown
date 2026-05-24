@@ -22,6 +22,7 @@ import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
 import DailyMissionPanel from '../components/DailyMissionPanel'
 import Button from '../components/Button'
+import Card from '../components/Card'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -347,7 +348,7 @@ function BentoCard({
 }) {
   const t = BENTO_TONES[tone] ?? BENTO_TONES.crimson
   return (
-    <div
+    <Card
       className={`group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-white/8 bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hover} ${className}`}
     >
       {/* Kanji decorativo de background por card */}
@@ -383,7 +384,7 @@ function BentoCard({
         <p className="text-sm leading-relaxed text-fg-muted">{descripcion}</p>
       </div>
       {children && <div className="relative mt-auto pt-2">{children}</div>}
-    </div>
+    </Card>
   )
 }
 
@@ -578,7 +579,10 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
           {rank}
         </span>
         <div className="relative z-10 flex w-[140px] flex-col gap-1 sm:w-[160px]">
-          <div className="aspect-[2/3] overflow-hidden rounded-lg border border-border bg-surface transition-all group-hover:-translate-y-1 group-hover:border-accent/40">
+          <Card
+            as="div"
+            className="aspect-[2/3] border border-border bg-surface p-0 transition-all group-hover:-translate-y-1 group-hover:border-accent/40"
+          >
             <PersonajeImg
               slug={slug}
               alt={nombre}
@@ -586,7 +590,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
               fetchPriority={highPriorityImage ? 'high' : 'auto'}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-          </div>
+          </Card>
           <div className="flex items-center justify-between gap-2 px-1">
             <div className="min-w-0">
               <p className="truncate text-[13px] font-bold text-fg-strong group-hover:text-gold">
@@ -696,7 +700,8 @@ function SectionRetosDiarios() {
             const visual = getGameVisual(r.to, r.titulo)
             const coverImage = visual?.image || visual?.fallbackImage
             return (
-              <Link
+              <Card
+                as={Link}
                 key={r.to}
                 to={r.to}
                 className={`group relative flex min-h-[13rem] flex-col gap-2 overflow-hidden rounded-xl border bg-surface/85 p-5 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-[0_22px_70px_-22px_rgba(159,29,44,0.65)] backdrop-blur-sm sm:min-h-[14rem] ${colorClasses}`}
@@ -737,7 +742,7 @@ function SectionRetosDiarios() {
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-4 bottom-2 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-accent/60 to-transparent transition-transform duration-300 group-hover:scale-x-100"
                 />
-              </Link>
+              </Card>
             )
           })}
         </div>
@@ -813,7 +818,7 @@ const PASO_TONES = {
 function PasoCard({ numero, icon: Icon, titulo, descripcion, tone = 'rose', kanji }) {
   const t = PASO_TONES[tone] ?? PASO_TONES.rose
   return (
-    <div
+    <Card
       className={`group relative overflow-hidden rounded-xl border ${t.border} bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hoverBorder} ${t.hoverShadow}`}
     >
       {kanji && (
@@ -843,7 +848,7 @@ function PasoCard({ numero, icon: Icon, titulo, descripcion, tone = 'rose', kanj
       <p className="relative mt-2 text-sm leading-relaxed text-fg-muted">
         {descripcion}
       </p>
-    </div>
+    </Card>
   )
 }
 
