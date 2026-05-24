@@ -24,6 +24,7 @@ import DailyMissionPanel from '../components/DailyMissionPanel'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Section from '../components/Section'
+import Badge from '../components/Badge'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -357,11 +358,9 @@ function BentoCard({
           <Icon className="h-5 w-5" />
         </div>
         {eyebrow && (
-          <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${t.eyebrow}`}
-          >
+          <Badge className={t.eyebrow}>
             {eyebrow}
-          </span>
+          </Badge>
         )}
       </div>
       <div className="relative flex flex-col gap-2">
