@@ -28,7 +28,7 @@
     "@sentry/react": "^10.53.1",
     "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/vite": "^4.3.0",
-    "@tanstack/react-query": "^5.100.10",
+    "@tanstack/react-query": "^5.100.13",
     "canvas-confetti": "^1.9.4",
     "cmdk": "^1.1.1",
     "framer-motion": "^12.38.0",
