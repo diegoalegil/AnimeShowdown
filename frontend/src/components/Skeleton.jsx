@@ -1,0 +1,37 @@
+const VARIANTS = {
+  card: 'min-h-52 rounded-xl border border-border bg-surface p-4',
+  line: 'h-4 rounded-full bg-surface-alt',
+  circle: 'aspect-square rounded-full bg-surface-alt',
+  banner: 'min-h-48 rounded-2xl border border-border bg-surface',
+}
+
+const CONTENT = {
+  card: (
+    <>
+      <span className="block aspect-[4/3] rounded-lg bg-surface-alt" />
+      <span className="mt-4 block h-4 w-3/4 rounded-full bg-surface-alt" />
+      <span className="mt-2 block h-3 w-1/2 rounded-full bg-surface-alt" />
+    </>
+  ),
+  banner: (
+    <span className="flex h-full min-h-48 flex-col justify-end gap-3 p-5">
+      <span className="block h-5 w-2/3 rounded-full bg-surface-alt" />
+      <span className="block h-3 w-1/2 rounded-full bg-surface-alt" />
+    </span>
+  ),
+}
+
+function Skeleton({ variant = 'line', className = '' }) {
+  const variantClass = VARIANTS[variant] ?? VARIANTS.line
+
+  return (
+    <span
+      className={`block animate-pulse motion-reduce:animate-none ${variantClass} ${className}`}
+      aria-hidden="true"
+    >
+      {CONTENT[variant]}
+    </span>
+  )
+}
+
+export default Skeleton
