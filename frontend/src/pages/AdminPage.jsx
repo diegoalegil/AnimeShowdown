@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import {
+  AlertTriangle,
   Check,
   EyeOff,
   Inbox,
@@ -17,6 +18,8 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
@@ -148,16 +151,20 @@ function ColaTorneosPendientes() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <div className="grid gap-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} variant="line" className="h-28 w-full rounded-xl" />
+        ))}
       </div>
     )
   }
   if (isError) {
     return (
-      <p className="rounded-lg border border-border bg-surface p-4 text-fg-muted">
-        No se pudo cargar la cola. Reintenta en unos segundos.
-      </p>
+      <EmptyState
+        icon={AlertTriangle}
+        title="No se pudo cargar la cola"
+        description="Reintenta en unos segundos para revisar torneos pendientes."
+      />
     )
   }
   if (!pendientes || pendientes.length === 0) {
@@ -346,16 +353,20 @@ function ColaComentariosPendientes() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <div className="grid gap-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} variant="line" className="h-28 w-full rounded-xl" />
+        ))}
       </div>
     )
   }
   if (isError) {
     return (
-      <p className="rounded-lg border border-border bg-surface p-4 text-fg-muted">
-        No se pudo cargar la cola de comentarios.
-      </p>
+      <EmptyState
+        icon={AlertTriangle}
+        title="No se pudo cargar la cola de comentarios"
+        description="Reintenta en unos segundos para continuar moderando."
+      />
     )
   }
 
