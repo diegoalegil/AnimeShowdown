@@ -10,6 +10,7 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 import { useTorneos } from '../lib/torneosQueries'
 import { endpoints } from '../lib/api'
 import Button from './Button'
+import StatPill from './StatPill'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -254,20 +255,13 @@ function formatRelativo(fecha) {
 
 function HeroStat({ icon: Icon, value, label }) {
   return (
-    <div className="flex items-center justify-center gap-3 border-white/10 px-4 py-4 even:border-l sm:border-l first:sm:border-l-0">
-      <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-gold"
-        aria-hidden="true"
-      >
-        <Icon className="h-5 w-5" />
-      </span>
-      <div className="text-left">
-        <p className="font-mono text-2xl font-extrabold text-fg-strong tabular-nums">
-          {value}
-        </p>
-        <p className="text-xs text-fg-muted">{label}</p>
-      </div>
-    </div>
+    <StatPill
+      icon={Icon}
+      value={value}
+      label={label}
+      layout="inline"
+      className="border-white/10 px-4 py-4 even:border-l sm:border-l first:sm:border-l-0"
+    />
   )
 }
 

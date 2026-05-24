@@ -25,6 +25,7 @@ import Button from '../components/Button'
 import Card from '../components/Card'
 import Section from '../components/Section'
 import Badge from '../components/Badge'
+import StatPill from '../components/StatPill'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -410,14 +411,7 @@ function SectionStats({ stats }) {
 
 function Stat({ target, label }) {
   return (
-    <div className="flex flex-col gap-2 border-l-2 border-accent/30 pl-4">
-      <p className="font-mono text-4xl font-extrabold tracking-tight text-fg-strong tabular-nums sm:text-5xl">
-        <CountUp target={target} />
-      </p>
-      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
-        {label}
-      </p>
-    </div>
+    <StatPill value={<CountUp target={target} />} label={label} />
   )
 }
 
