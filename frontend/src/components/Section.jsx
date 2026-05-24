@@ -4,6 +4,22 @@ function cx(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
+/**
+ * Responsive section wrapper used by `InicioPage.jsx` to standardize headings and containers.
+ *
+ * @param {object} props
+ * @param {'section'|import('react').ElementType} [props.as='section'] Semantic section or motion-enabled section.
+ * @param {import('react').ReactNode} [props.eyebrow] Small label above the title.
+ * @param {import('react').ReactNode} [props.title] Section title.
+ * @param {import('react').ReactNode} [props.description] Optional intro copy.
+ * @param {import('react').ReactNode} [props.headerAction] Optional right-side action in the header row.
+ * @param {string} [props.className] Extra classes for the outer section.
+ * @param {string} [props.containerClassName] Classes for the inner container.
+ * @example
+ * <Section eyebrow="Torneos" title="Brackets en marcha">
+ *   <TorneoGrid />
+ * </Section>
+ */
 const Section = forwardRef(function Section(
   {
     as: Component = 'section',

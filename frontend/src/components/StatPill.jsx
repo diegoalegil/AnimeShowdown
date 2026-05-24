@@ -7,6 +7,18 @@ const layouts = {
   inline: 'flex items-center justify-center gap-3',
 }
 
+/**
+ * Numeric stat primitive used by `Hero.jsx` and `InicioPage.jsx`.
+ *
+ * @param {object} props
+ * @param {import('lucide-react').LucideIcon} [props.icon] Optional icon for inline stats.
+ * @param {import('react').ReactNode} props.value Main value, number or animated node.
+ * @param {import('react').ReactNode} props.label Short label under or beside the value.
+ * @param {'stack'|'inline'} [props.layout='stack'] Vertical stat or icon+value stat.
+ * @param {string} [props.className] Extra classes for borders and spacing.
+ * @example
+ * <StatPill value={<CountUp target={1052} />} label="Personajes" />
+ */
 function StatPill({
   icon: Icon,
   value,

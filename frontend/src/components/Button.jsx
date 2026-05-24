@@ -19,6 +19,19 @@ const sizes = {
   lg: 'min-h-12 px-5 text-sm',
 }
 
+/**
+ * Reusable action primitive used by `Hero.jsx` and `InicioPage.jsx`.
+ *
+ * @param {object} props
+ * @param {'button'|'a'|import('react').ElementType} [props.as='button'] Element or component to render.
+ * @param {'primary'|'secondary'|'ghost'} [props.variant='primary'] Visual treatment based on existing Tailwind tokens.
+ * @param {'sm'|'md'|'lg'} [props.size='md'] Control height. `md` is 44px and `lg` is 48px.
+ * @param {string} [props.className] Extra classes appended to the primitive styles.
+ * @example
+ * <Button as={Link} to="/votar" variant="primary" size="lg">
+ *   Votar ahora
+ * </Button>
+ */
 const Button = forwardRef(function Button(
   {
     as: Component = 'button',

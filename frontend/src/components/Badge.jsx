@@ -9,6 +9,17 @@ const variants = {
   info: 'border-border bg-surface text-fg-muted',
 }
 
+/**
+ * Compact label primitive used by `InicioPage.jsx` for card eyebrows.
+ *
+ * @param {object} props
+ * @param {'span'|import('react').ElementType} [props.as='span'] Element or component to render.
+ * @param {'ok'|'warn'|'err'|'info'} [props.variant='info'] Semantic tone.
+ * @param {string} [props.className] Extra classes for custom page-specific tones.
+ * @param {import('react').ReactNode} props.children Badge content.
+ * @example
+ * <Badge variant="warn">Top 10</Badge>
+ */
 function Badge({ as: Component = 'span', variant = 'info', className = '', children, ...props }) {
   return (
     <Component
