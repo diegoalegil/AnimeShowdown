@@ -63,8 +63,18 @@ class ErrorBoundary extends Component {
     window.location.reload()
   }
 
+  reset = () => {
+    this.setState({ hasError: false, error: null, staleAsset: false })
+  }
+
   render() {
     if (!this.state.hasError) return this.props.children
+    if (this.props.fallback) {
+      return typeof this.props.fallback === 'function'
+        ? this.props.fallback({ error: this.state.error, reset: this.reset })
+        : this.props.fallback
+    }
+
     const visual = BRAND_VISUALS.error
     const image = visual.image || visual.fallbackImage || '/img/stage/error-rain.webp'
     const staleAsset = this.state.staleAsset
