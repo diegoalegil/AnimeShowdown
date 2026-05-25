@@ -663,6 +663,8 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
           <img
             src={previewActual.url}
             alt="Vista previa de tu top 5"
+            width={1200}
+            height={630}
             className="w-full rounded-lg border border-border"
           />
         </div>

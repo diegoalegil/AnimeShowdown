@@ -101,6 +101,8 @@ function PersonajeCardHolo({ src, alt, className = '', fallbackSrc }) {
         <img
           src={currentSrc}
           alt={alt}
+          width={600}
+          height={900}
           // ReferrerPolicy no-referrer como defensa extra para imagenes
           // externas de MyAnimeList. Si aun asi fallan, volvemos a la imagen
           // local del catalogo para no dejar la ficha en blanco.

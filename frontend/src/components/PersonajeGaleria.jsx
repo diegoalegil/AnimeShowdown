@@ -78,6 +78,8 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
               <img
                 src={item.url}
                 alt={item.label}
+                width={64}
+                height={96}
                 loading="lazy"
                 // Defensa extra para imagenes externas de MyAnimeList. Las URLs
                 // se normalizan en backend al CDN permitido por CSP; no-referrer

@@ -354,6 +354,8 @@ function SetupForm({ setupData, onBackupCodes }) {
         <img
           src={setupData.qrCodeDataUri}
           alt="Código QR para 2FA"
+          width={176}
+          height={176}
           className="h-44 w-44 rounded-md bg-white p-2"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
