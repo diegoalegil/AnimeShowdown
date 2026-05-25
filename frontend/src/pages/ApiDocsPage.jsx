@@ -249,7 +249,7 @@ function ApiDocsPage() {
               href="https://api.animeshowdown.dev/swagger-ui/index.html"
               target="_blank"
               rel="noreferrer"
-              className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
+              className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Swagger UI interactivo
@@ -292,7 +292,7 @@ function ApiDocsPage() {
               href="https://github.com/diegoalegil/AnimeShowdown"
               target="_blank"
               rel="noreferrer"
-              className="text-gold hover:underline"
+              className="text-gold underline decoration-gold/60 underline-offset-2 hover:text-fg-strong"
             >
               clonar el repo
             </a>{' '}
@@ -358,7 +358,11 @@ function Endpoint({ ep }) {
       </div>
       <p className="mt-2 text-[12px] text-fg-muted">{ep.desc}</p>
       {ep.ejemplo && (
-        <pre className="mt-2 overflow-x-auto rounded-md bg-surface-alt p-2 font-mono text-[11px] text-fg-muted">
+        <pre
+          tabIndex={0}
+          aria-label={`Ejemplo de respuesta para ${ep.path}`}
+          className="mt-2 overflow-x-auto rounded-md bg-surface-alt p-2 font-mono text-[11px] text-fg-muted"
+        >
           {ep.ejemplo}
         </pre>
       )}

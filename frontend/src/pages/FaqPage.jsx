@@ -225,7 +225,7 @@ function FaqPage() {
           <div className="mt-4 flex flex-wrap gap-2">
             <a
               href="mailto:soporte@animeshowdown.dev"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               Escribir a soporte
             </a>
