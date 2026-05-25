@@ -5,7 +5,6 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
 import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
-import Splash from './components/Splash'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
 import SakuraPetals from './components/SakuraPetals'
@@ -109,6 +108,7 @@ const LeaderboardsPage = lazyRoute(() => import('./pages/LeaderboardsPage'))
 const VerifyPage = lazyRoute(() => import('./pages/VerifyPage'))
 const NewsletterConfirmarPage = lazyRoute(() => import('./pages/NewsletterConfirmarPage'))
 const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage'))
+const Splash = lazyRoute(() => import('./components/Splash'))
 
 const preloadedImporters = new Set()
 const idleRoutePreloads = [
@@ -395,7 +395,9 @@ function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Splash />
+      <Suspense fallback={null}>
+        <Splash />
+      </Suspense>
       <ScrollProgress />
       <CommandPaletteLazyMount />
       <Toaster
