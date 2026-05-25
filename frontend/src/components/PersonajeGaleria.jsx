@@ -43,20 +43,20 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
   if (itemsVisibles.length <= 1) return null
 
   return (
-    <section
+    <details
       aria-label="Galería de imágenes del personaje"
-      className="mt-6"
+      className="mt-5 rounded-xl border border-white/10 bg-surface/70 p-3 backdrop-blur-sm"
     >
-      <div className="mb-3 flex items-baseline justify-between">
+      <summary className="flex cursor-pointer list-none items-baseline justify-between gap-3 marker:hidden">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
           Galería · {itemsVisibles.length} imágenes
         </h3>
         <span className="text-[10px] text-fg-muted">
           Fuente: MyAnimeList vía Jikan
         </span>
-      </div>
+      </summary>
       <div
-        className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin] [scroll-snap-type:x_mandatory]"
+        className="mt-3 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin] [scroll-snap-type:x_mandatory]"
         style={{ scrollPaddingLeft: '8px' }}
       >
         {itemsVisibles.map((item) => {
@@ -102,7 +102,7 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
           )
         })}
       </div>
-    </section>
+    </details>
   )
 }
 
