@@ -438,6 +438,12 @@ function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3 focus:text-sm focus:font-black focus:text-fg-strong focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-gold"
+      >
+        Saltar al contenido
+      </a>
       <Suspense fallback={null}>
         <Splash />
       </Suspense>
@@ -466,7 +472,7 @@ function App() {
       {/* Easter egg ↑↑↓↓←→←→BA. */}
       <KonamiCode />
       <EmailVerifyBanner />
-      <main className="flex flex-1 flex-col">
+      <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
         <div key={location.pathname} className="flex flex-1 flex-col">
           <Suspense fallback={<PageLoader />}>
             <Routes location={location}>
