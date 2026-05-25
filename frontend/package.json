@@ -53,7 +53,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
-    "axe-core": "^4.11.0",
+    "axe-core": "^4.11.4",
     "beasties": "^0.4.2",
     "cross-env": "^10.1.0",
     "eslint": "^10.4.0",
