@@ -338,7 +338,7 @@ function GamesHubPage() {
           }
         />
 
-        <DailyMissionPanel compact className="mb-6" />
+        <DailyMissionPanel compact className="mb-6 hidden md:block" />
 
         {completadosHoy > 0 && (
           <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
