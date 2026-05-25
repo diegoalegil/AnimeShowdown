@@ -414,12 +414,12 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 - Migración **V30** (V1-V29 INTOCABLES): añadir columna `personajes.gender` (`enum: female | male | nonbinary | unknown`, default `unknown`, NULL-tolerant).
 - Backfill desde `frontend/src/data/personajes-seed.json` o un mapping nuevo `backend/src/main/resources/data/character-gender-seed.csv`. No pretender exhaustivo: marcar primero los top-200 más votados, el resto queda `unknown`.
 - Endpoint admin `/api/admin/characters/:id/gender` (PATCH) para curaduría manual posterior, con audit log.
-- `PvpEloService` y servicio de ranking popularidad: introducir multiplicador `POPULARITY_FEMALE_BOOST` (default `1.08`, configurable vía `application.properties`). Aplicar **solo en el ranking de popularidad mostrado**, NO en el ELO de duels.
+- `PvpEloService` y servicio de ranking popularidad: introducir multiplicador `POPULARITY_FEMALE_BOOST` (default `1.25`, configurable vía `application.properties`). Aplicar **solo en el ranking de popularidad mostrado**, NO en el ELO de duels.
 - `RankingItem` DTO: añadir campo `gender` (string) y `boostApplied` (boolean) para transparencia frontend.
-- Test unitarios: con boost = 1.0 el ranking es idéntico al actual; con 1.08 las femeninas con score próximo al masculino superior pasan adelante.
+- Test unitarios: con boost = 1.0 el ranking es idéntico al actual; con 1.25 las femeninas con score dentro del 20% inferior al masculino superior pasan adelante.
 
 **Scope frontend:**
-- En `RankingPage` y `LeaderboardsPage`: badge sutil "⚡ boost +8%" en filas con `boostApplied: true`. Tooltip explicativo: "Ranking de popularidad con boost de visibilidad para personajes femeninos."
+- En `RankingPage` y `LeaderboardsPage`: badge sutil "⚡ boost +25%" en filas con `boostApplied: true`. Tooltip explicativo: "Ranking de popularidad con boost de visibilidad para personajes femeninos."
 - Filtros nuevos del leaderboard:
   - Periodo: all-time / mensual / semanal.
   - Por anime específico.
@@ -440,7 +440,7 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 
 **Qué evitar:**
 - Aplicar boost al ELO de duels (rompería balance competitivo).
-- Boost agresivo (>1.15) — alteraría demasiado el ranking. Mantener 1.05-1.10 razonable.
+- Boost por encima de **1.50** sin OK del humano (decisión del humano fijó `1.25` como valor por defecto; ese es el target, no improvisar más alto).
 - Asumir género de personajes sin source confiable. Default `unknown` es válido; mejor sin datos que con error.
 
 ## Sprint 24 — Share cards (OG image generation)
