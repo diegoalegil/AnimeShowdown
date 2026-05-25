@@ -454,7 +454,9 @@ function App() {
       <Toaster
         position="top-right"
         theme="dark"
+        containerAriaLabel="Notificaciones de AnimeShowdown"
         toastOptions={{
+          closeButtonAriaLabel: 'Cerrar notificacion',
           style: {
             background: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
