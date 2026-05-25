@@ -31,6 +31,7 @@
 - 2026-05-25T23:31:26.5051429+01:00 | PR AUTO-02.4 / #51 | 6faedd39 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (15/16 + 1 skipped); CI PASS | decisions: se aplica `MotionConfig reducedMotion="user"` para que Framer respete preferencias de movimiento en toda la app.
 - 2026-05-25T23:51:42.0990047+01:00 | PR AUTO-02.5 / #52 | fe6aee78 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (35/36 + 1 skipped); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se amplia axe a rutas estaticas/legales y se corrigen contrastes, links distinguibles, `pre` focusable y semantica `dl` del glosario.
 - 2026-05-26T00:07:34.2640803+01:00 | PR AUTO-02.6 / #53 | 7b5803ad | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (55/56 + 1 skipped); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se amplia axe a votar/eventos/comparar/descubre/juegos diarios y se corrige contraste en Omikuji.
+- 2026-05-26T00:19:59.0103679+01:00 | PR AUTO-02.7 / #54 | d5b79de1 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (57/58 + 1 skipped); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se localiza el live region de Sonner y se anade test de regresion para `aria-live="polite"`.
 
 ## Tanda 3 visual side-stream
 
