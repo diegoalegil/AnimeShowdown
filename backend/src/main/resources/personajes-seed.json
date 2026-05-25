@@ -455,6 +455,20 @@
     "imagenUrl": "/img/Attack_On_Titan/erwin_smith.webp"
   },
   {
+    "slug": "falco_grice",
+    "nombre": "Falco Grice",
+    "anime": "Attack on Titan",
+    "descripcion": "Personaje del anime Attack on Titan.",
+    "imagenUrl": "/img/Attack_On_Titan/falco_grice.webp"
+  },
+  {
+    "slug": "gabi_braun",
+    "nombre": "Gabi Braun",
+    "anime": "Attack on Titan",
+    "descripcion": "Personaje del anime Attack on Titan.",
+    "imagenUrl": "/img/Attack_On_Titan/gabi_braun.webp"
+  },
+  {
     "slug": "hange_zoe",
     "nombre": "Hange Zoe",
     "anime": "Attack on Titan",
@@ -488,6 +502,13 @@
     "anime": "Attack on Titan",
     "descripcion": "Soldado prodigio del 104º. Hermana adoptiva de Eren con el mismo poder Ackerman.",
     "imagenUrl": "/img/Attack_On_Titan/mikasa_ackerman.webp"
+  },
+  {
+    "slug": "pieck_finger",
+    "nombre": "Pieck Finger",
+    "anime": "Attack on Titan",
+    "descripcion": "Personaje del anime Attack on Titan.",
+    "imagenUrl": "/img/Attack_On_Titan/pieck_finger.webp"
   },
   {
     "slug": "reiner_braun",
@@ -784,6 +805,13 @@
     "imagenUrl": "/img/Bleach/renji_abarai.webp"
   },
   {
+    "slug": "retsu_unohana",
+    "nombre": "Retsu Unohana",
+    "anime": "Bleach",
+    "descripcion": "Personaje del anime Bleach.",
+    "imagenUrl": "/img/Bleach/retsu_unohana.webp"
+  },
+  {
     "slug": "rukia_kuchiki",
     "nombre": "Rukia Kuchiki",
     "anime": "Bleach",
@@ -812,6 +840,20 @@
     "imagenUrl": "/img/Bleach/ulquiorra_cifer.webp"
   },
   {
+    "slug": "uryu_ishida",
+    "nombre": "Uryu Ishida",
+    "anime": "Bleach",
+    "descripcion": "Personaje del anime Bleach.",
+    "imagenUrl": "/img/Bleach/uryu_ishida.webp"
+  },
+  {
+    "slug": "yhwach",
+    "nombre": "Yhwach",
+    "anime": "Bleach",
+    "descripcion": "Personaje del anime Bleach.",
+    "imagenUrl": "/img/Bleach/yhwach.webp"
+  },
+  {
     "slug": "yoruichi_shihoin",
     "nombre": "Yoruichi Shihoin",
     "anime": "Bleach",
@@ -833,6 +875,20 @@
     "imagenUrl": "/img/Blue_Lock/meguru_bachira.webp"
   },
   {
+    "slug": "rensuke_kunigami",
+    "nombre": "Rensuke Kunigami",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/rensuke_kunigami.webp"
+  },
+  {
+    "slug": "reo_mikage",
+    "nombre": "Reo Mikage",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/reo_mikage.webp"
+  },
+  {
     "slug": "rin_itoshi",
     "nombre": "Rin Itoshi",
     "anime": "Blue Lock",
@@ -845,6 +901,13 @@
     "anime": "Blue Lock",
     "descripcion": "Personaje del anime Blue Lock.",
     "imagenUrl": "/img/Blue_Lock/seishiro_nagi.webp"
+  },
+  {
+    "slug": "shoei_baro",
+    "nombre": "Shoei Baro",
+    "anime": "Blue Lock",
+    "descripcion": "Personaje del anime Blue Lock.",
+    "imagenUrl": "/img/Blue_Lock/shoei_baro.webp"
   },
   {
     "slug": "yoichi_isagi",
@@ -1092,11 +1155,25 @@
     "imagenUrl": "/img/Chainsaw_Man/power.webp"
   },
   {
+    "slug": "quanxi",
+    "nombre": "Quanxi",
+    "anime": "Chainsaw Man",
+    "descripcion": "Personaje del anime Chainsaw Man.",
+    "imagenUrl": "/img/Chainsaw_Man/quanxi.webp"
+  },
+  {
     "slug": "reze",
     "nombre": "Reze",
     "anime": "Chainsaw Man",
     "descripcion": "Asesina de Chainsaw Man enviada de Rusia. Su tipo ideal son los cafés tranquilos.",
     "imagenUrl": "/img/Chainsaw_Man/reze.webp"
+  },
+  {
+    "slug": "santa_claus",
+    "nombre": "Santa Claus",
+    "anime": "Chainsaw Man",
+    "descripcion": "Personaje del anime Chainsaw Man.",
+    "imagenUrl": "/img/Chainsaw_Man/santa_claus.webp"
   },
   {
     "slug": "violence_fiend",
@@ -1456,11 +1533,25 @@
     "imagenUrl": "/img/Dandadan/aira_shiratori.webp"
   },
   {
+    "slug": "evil_eye",
+    "nombre": "Evil Eye",
+    "anime": "Dandadan",
+    "descripcion": "Personaje del anime Dandadan.",
+    "imagenUrl": "/img/Dandadan/evil_eye.webp"
+  },
+  {
     "slug": "jin_enjoji_jiji",
     "nombre": "Jin Enjoji Jiji",
     "anime": "Dandadan",
     "descripcion": "Personaje del anime Dandadan.",
     "imagenUrl": "/img/Dandadan/jin_enjoji_jiji.webp"
+  },
+  {
+    "slug": "kinta_sakata",
+    "nombre": "Kinta Sakata",
+    "anime": "Dandadan",
+    "descripcion": "Personaje del anime Dandadan.",
+    "imagenUrl": "/img/Dandadan/kinta_sakata.webp"
   },
   {
     "slug": "momo_ayase",
@@ -1883,6 +1974,13 @@
     "imagenUrl": "/img/Demon_Slayer/tamayo.webp"
   },
   {
+    "slug": "tanjiro",
+    "nombre": "Tanjiro Kamado",
+    "anime": "Demon Slayer",
+    "descripcion": "Cazador de demonios con Respiración del Agua y luego del Sol. Olfato sobrenatural y un corazón demasiado grande.",
+    "imagenUrl": "/img/Demon_Slayer/tanjiro.webp"
+  },
+  {
     "slug": "tengen_uzui",
     "nombre": "Tengen Uzui",
     "anime": "Demon Slayer",
@@ -2044,11 +2142,32 @@
     "imagenUrl": "/img/Dragon_Ball/gogeta.webp"
   },
   {
+    "slug": "gohan",
+    "nombre": "Son Gohan",
+    "anime": "Dragon Ball",
+    "descripcion": "Hijo mayor de Goku con potencial híbrido superior a su padre. Académico de día, guerrero cuando hace falta.",
+    "imagenUrl": "/img/Dragon_Ball/gohan.webp"
+  },
+  {
     "slug": "goku",
     "nombre": "Son Goku",
     "anime": "Dragon Ball",
     "descripcion": "Saiyajin criado en la Tierra que entrena por puro amor a la pelea. Salvó el universo varias veces y aún busca ser más fuerte.",
     "imagenUrl": "/img/Dragon_Ball/goku.webp"
+  },
+  {
+    "slug": "jiren",
+    "nombre": "Jiren",
+    "anime": "Dragon Ball",
+    "descripcion": "Personaje del anime Dragon Ball.",
+    "imagenUrl": "/img/Dragon_Ball/jiren.webp"
+  },
+  {
+    "slug": "krillin",
+    "nombre": "Krillin",
+    "anime": "Dragon Ball",
+    "descripcion": "Compañero de Goku desde Kame-sennin. El humano más fuerte de la Tierra; sin nariz, con corazón.",
+    "imagenUrl": "/img/Dragon_Ball/krillin.webp"
   },
   {
     "slug": "majin_buu",
@@ -2478,11 +2597,25 @@
     "imagenUrl": "/img/Frieren/himmel.webp"
   },
   {
+    "slug": "kanne",
+    "nombre": "Kanne",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/kanne.webp"
+  },
+  {
     "slug": "methode",
     "nombre": "Methode",
     "anime": "Frieren: Beyond Journey's End",
     "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
     "imagenUrl": "/img/Frieren/methode.webp"
+  },
+  {
+    "slug": "sein",
+    "nombre": "Sein",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/sein.webp"
   },
   {
     "slug": "serie",
@@ -2504,6 +2637,13 @@
     "anime": "Frieren: Beyond Journey's End",
     "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
     "imagenUrl": "/img/Frieren/ubel.webp"
+  },
+  {
+    "slug": "wirbel",
+    "nombre": "Wirbel",
+    "anime": "Frieren: Beyond Journey's End",
+    "descripcion": "Personaje del anime Frieren: Beyond Journey's End.",
+    "imagenUrl": "/img/Frieren/wirbel.webp"
   },
   {
     "slug": "alex_louis_armstrong",
@@ -3199,6 +3339,13 @@
     "imagenUrl": "/img/Hunter_x_Hunter/killua_zoldyck.webp"
   },
   {
+    "slug": "kite",
+    "nombre": "Kite",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/kite.webp"
+  },
+  {
     "slug": "komugi",
     "nombre": "Komugi",
     "anime": "Hunter x Hunter",
@@ -3232,6 +3379,13 @@
     "anime": "Hunter x Hunter",
     "descripcion": "Rey de las Quimera Hormiga. Nacido invencible, evoluciona descubriendo la humanidad junto a Komugi.",
     "imagenUrl": "/img/Hunter_x_Hunter/meruem.webp"
+  },
+  {
+    "slug": "neferpitou",
+    "nombre": "Neferpitou",
+    "anime": "Hunter x Hunter",
+    "descripcion": "Personaje del anime Hunter x Hunter.",
+    "imagenUrl": "/img/Hunter_x_Hunter/neferpitou.webp"
   },
   {
     "slug": "eru_chitanda",
@@ -3605,6 +3759,13 @@
     "imagenUrl": "/img/Jujutsu_Kaisen/momo_nishimiya.webp"
   },
   {
+    "slug": "naoya_zenin",
+    "nombre": "Naoya Zenin",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Personaje del anime Jujutsu Kaisen.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/naoya_zenin.webp"
+  },
+  {
     "slug": "nobara_kugisaki",
     "nombre": "Nobara Kugisaki",
     "anime": "Jujutsu Kaisen",
@@ -3645,6 +3806,13 @@
     "anime": "Jujutsu Kaisen",
     "descripcion": "Médica hechicera con técnica de Reverse Curse en humanos. Compañera de Gojo y Geto en su época.",
     "imagenUrl": "/img/Jujutsu_Kaisen/shoko_ieiri.webp"
+  },
+  {
+    "slug": "suguru_geto",
+    "nombre": "Suguru Geto",
+    "anime": "Jujutsu Kaisen",
+    "descripcion": "Personaje del anime Jujutsu Kaisen.",
+    "imagenUrl": "/img/Jujutsu_Kaisen/suguru_geto.webp"
   },
   {
     "slug": "sukuna",
@@ -5229,6 +5397,13 @@
     "imagenUrl": "/img/Naruto/juugo.webp"
   },
   {
+    "slug": "kabuto_yakushi",
+    "nombre": "Kabuto Yakushi",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/kabuto_yakushi.webp"
+  },
+  {
     "slug": "kaguya_otsutsuki",
     "nombre": "Kaguya Otsutsuki",
     "anime": "Naruto",
@@ -5297,6 +5472,13 @@
     "anime": "Naruto",
     "descripcion": "Co-fundador de Konoha y leyenda del clan Uchiha. Sharingan Eterno, Susanoo perfecto y el Plan Ojo de Luna.",
     "imagenUrl": "/img/Naruto/madara.webp"
+  },
+  {
+    "slug": "might_guy",
+    "nombre": "Might Guy",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/might_guy.webp"
   },
   {
     "slug": "minato",
@@ -5388,6 +5570,13 @@
     "anime": "Naruto",
     "descripcion": "Genio estratega de Konoha. IQ por encima de 200, técnica de manipulación de sombras del clan Nara.",
     "imagenUrl": "/img/Naruto/shikamaru_nara.webp"
+  },
+  {
+    "slug": "shisui_uchiha",
+    "nombre": "Shisui Uchiha",
+    "anime": "Naruto",
+    "descripcion": "Personaje del anime Naruto.",
+    "imagenUrl": "/img/Naruto/shisui_uchiha.webp"
   },
   {
     "slug": "suigetsu_hozuki",
@@ -5621,6 +5810,13 @@
     "imagenUrl": "/img/One_Piece/charlotte_linlin.webp"
   },
   {
+    "slug": "donquixote_doflamingo",
+    "nombre": "Donquixote Doflamingo",
+    "anime": "One Piece",
+    "descripcion": "Personaje del anime One Piece.",
+    "imagenUrl": "/img/One_Piece/donquixote_doflamingo.webp"
+  },
+  {
     "slug": "dracule_mihawk",
     "nombre": "Dracule Mihawk",
     "anime": "One Piece",
@@ -5654,6 +5850,13 @@
     "anime": "One Piece",
     "descripcion": "Caballero del Mar y ex-capitán de los Sun Pirates. Timonel de los Sombrero de Paja y maestro del Karate Gyojin.",
     "imagenUrl": "/img/One_Piece/jinbe.webp"
+  },
+  {
+    "slug": "kaido",
+    "nombre": "Kaido",
+    "anime": "One Piece",
+    "descripcion": "Yonko y bestia más fuerte del mundo. Comió la fruta dragón mítica; gobernaba Wano con tiranía hasta Luffy.",
+    "imagenUrl": "/img/One_Piece/kaido.webp"
   },
   {
     "slug": "luffy",
@@ -5724,6 +5927,27 @@
     "anime": "One Piece",
     "descripcion": "Pelirrojo Yonko y mentor inicial de Luffy. Le dio su sombrero y un futuro.",
     "imagenUrl": "/img/One_Piece/shanks.webp"
+  },
+  {
+    "slug": "tony_tony_chopper",
+    "nombre": "Tony Tony Chopper",
+    "anime": "One Piece",
+    "descripcion": "Personaje del anime One Piece.",
+    "imagenUrl": "/img/One_Piece/tony_tony_chopper.webp"
+  },
+  {
+    "slug": "trafalgar_law",
+    "nombre": "Trafalgar Law",
+    "anime": "One Piece",
+    "descripcion": "Personaje del anime One Piece.",
+    "imagenUrl": "/img/One_Piece/trafalgar_law.webp"
+  },
+  {
+    "slug": "usopp",
+    "nombre": "Usopp",
+    "anime": "One Piece",
+    "descripcion": "Tirador y mentiroso patológico de los Sombrero de Paja. Heredero de Yasopp y el guerrero de los mares más valiente cuando hace falta.",
+    "imagenUrl": "/img/One_Piece/usopp.webp"
   },
   {
     "slug": "zoro",
@@ -6503,11 +6727,25 @@
     "imagenUrl": "/img/Solo_Leveling/cha_hae_in.webp"
   },
   {
+    "slug": "choi_jong_in",
+    "nombre": "Choi Jong In",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/choi_jong_in.webp"
+  },
+  {
     "slug": "go_gunhee",
     "nombre": "Go Gunhee",
     "anime": "Solo Leveling",
     "descripcion": "Personaje del anime Solo Leveling.",
     "imagenUrl": "/img/Solo_Leveling/go_gunhee.webp"
+  },
+  {
+    "slug": "hwang_dongsoo",
+    "nombre": "Hwang Dongsoo",
+    "anime": "Solo Leveling",
+    "descripcion": "Personaje del anime Solo Leveling.",
+    "imagenUrl": "/img/Solo_Leveling/hwang_dongsoo.webp"
   },
   {
     "slug": "igris",
