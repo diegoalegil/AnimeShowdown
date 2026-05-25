@@ -9,7 +9,7 @@ import {
 } from '../hooks/usePredicciones'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
-import PersonajeImg from './PersonajeImg'
+import PersonajeCutImg from './PersonajeCutImg'
 import KanjiStroke from './KanjiStroke'
 
 /**
@@ -490,12 +490,10 @@ function PickButton({ personaje, onClick, disabled }) {
       title={`Predecir a ${personaje.nombre}`}
       className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-bg px-2 py-1.5 text-[11px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
     >
-      <PersonajeImg
+      <PersonajeCutImg
         slug={personaje.slug}
-        src={personaje.imagenUrl}
-        nombre={personaje.nombre}
         alt={personaje.nombre}
-        className="h-4 w-4 shrink-0 rounded object-cover object-top"
+        className="h-5 w-5 shrink-0 rounded border border-white/10"
       />
       <span className="truncate">{personaje.nombre}</span>
     </button>
@@ -509,13 +507,11 @@ function BracketSlot({ personaje, winner }) {
         winner ? 'bg-accent-soft' : ''
       }`}
     >
-      <PersonajeImg
+      <PersonajeCutImg
         slug={personaje.slug}
-        src={personaje.imagenUrl}
-        nombre={personaje.nombre}
         alt={personaje.nombre}
         loading="lazy"
-        className="h-8 w-8 shrink-0 rounded object-cover object-top"
+        className="h-9 w-9 shrink-0 rounded-lg border border-white/10"
       />
       <span
         className={`min-w-0 flex-1 truncate text-[13px] font-medium ${
@@ -537,10 +533,10 @@ function ChampionSlot({ personaje }) {
       className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-accent/40 bg-accent-soft p-3"
       style={{ boxShadow: '0 0 30px rgb(159 29 44 / 0.25)' }}
     >
-      <PersonajeImg
+      <PersonajeCutImg
         slug={personaje.slug}
         alt={personaje.nombre}
-        className="aspect-[2/3] w-full max-w-[130px] rounded-lg object-cover object-top"
+        className="aspect-[4/5] w-full max-w-[130px] rounded-lg border border-white/10"
       />
       <div className="text-center">
         <p className="text-sm font-bold text-fg-strong">{personaje.nombre}</p>

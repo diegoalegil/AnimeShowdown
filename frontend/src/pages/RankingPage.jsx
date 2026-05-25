@@ -35,6 +35,7 @@ import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
+import PersonajeCutImg from '../components/PersonajeCutImg'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -1247,7 +1248,14 @@ function RankRowElo({
             colorDominante={imagenColorDominante}
             alt={nombre}
             loading="lazy"
-            className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
+            className="h-14 w-10 shrink-0 rounded-md object-cover object-top sm:hidden"
+          />
+          <PersonajeCutImg
+            slug={slug}
+            alt={nombre}
+            loading="lazy"
+            sizes="56px"
+            className="hidden h-14 w-14 shrink-0 rounded-lg border border-white/10 sm:block"
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -1306,7 +1314,14 @@ function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
             colorDominante={personaje.imagenColorDominante}
             alt={personaje.nombre}
             loading="lazy"
-            className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
+            className="h-14 w-10 shrink-0 rounded-md object-cover object-top sm:hidden"
+          />
+          <PersonajeCutImg
+            slug={personaje.slug}
+            alt={personaje.nombre}
+            loading="lazy"
+            sizes="56px"
+            className="hidden h-14 w-14 shrink-0 rounded-lg border border-white/10 sm:block"
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
