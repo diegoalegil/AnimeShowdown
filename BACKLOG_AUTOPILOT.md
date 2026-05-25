@@ -305,13 +305,53 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
   - El portrait NO debe robar foco a la carta SSR. La carta sigue siendo el héroe visual.
   - Animación sutil al cargar (skeleton → fade in).
 
-**Estimated PRs:** 4-6.
+### Parte 2 del sprint — Form alts (formas finales como variante visual)
+
+**Contexto:** tanda 3 dejó listos 17 assets de formas finales con slug `<base>_<form>.webp` (luffy_gear5, naruto_baryon, goku_ultra_instinct, etc.). El humano decidió: **mismo personaje, mismo voto, mismo ranking** — las formas finales son variantes visuales del mismo personaje, no entidades separadas. UI: botón "ver forma final" con animación de transición de carta.
+
+**Scope adicional dentro del sprint 16:**
+
+1. **Modelo de datos**: añadir campo opcional `formAlt` (string) al schema de personajes. NO añade entrada nueva en `personajes-seed.json`, solo extiende los existentes con el slug de la forma final si existe.
+   ```json
+   {
+     "slug": "luffy",
+     "nombre": "Monkey D. Luffy",
+     "anime": "One Piece",
+     "imagenUrl": "/img/One_Piece/luffy.webp",
+     "formAlt": {
+       "slug": "luffy_gear5",
+       "nombre": "Gear 5 (Joy Boy)",
+       "imagenUrl": "/img/One_Piece/luffy_gear5.webp"
+     }
+   }
+   ```
+2. **Backfill `personajes-seed.json`** para los 17 chars con forma final ya generada en tanda 3:
+   `luffy`→luffy_gear5, `zoro`→zoro_king_of_hell, `sanji`→sanji_diable_jambe, `naruto`→naruto_baryon, `sasuke`→sasuke_rinnegan, `satoru_gojo`→satoru_gojo_hollow_purple, `sukuna`→sukuna_mahoraga, `itadori`→itadori_black_flash, `deku`→deku_full_cowling, `bakugo`→bakugo_ap_cluster, `shoto_todoroki`→shoto_todoroki_phosphor, `nezuko`→nezuko_awakening, `muzan`→muzan_demon_final, `goku`→goku_ultra_instinct, `levi_ackerman`→levi_ackerman_odm, `light_yagami`→light_yagami_kira, `denji`→denji_chainsaw.
+3. **Componente `PersonajeCardWithFormAlt`** (o ampliar `PersonajeCard` existente):
+   - Render principal: carta base.
+   - Si `formAlt` existe, mostrar botón flotante esquina superior derecha "✨ Ver forma final" (texto i18n).
+   - Click → animación Framer Motion (crossfade + scale + leve glow dorado, 600-800ms) intercambia las imágenes.
+   - Segundo click → vuelve a base con misma animación.
+   - Animación respeta `prefers-reduced-motion` (degrada a fade simple sin scale).
+   - El campo del DOM mantiene el slug base como identidad SEO (no cambia URL, no cambia schema.org Person/CreativeWork).
+4. **Voto, ranking, ELO**: NO se duplica. La forma final es solo capa visual. El ELO/ranking/votos siguen contabilizándose contra el slug base. **Crítico**: si alguien añade `luffy_gear5` accidentalmente como entrada separada en seed, debe ser rechazado en validación.
+5. **Tests**:
+   - `personajes-seed.json` con `formAlt` parsea OK.
+   - Personaje sin `formAlt` renderiza igual que ahora (no rompe nada).
+   - Click en "Ver forma final" cambia imagen pero NO cambia URL ni emite evento de voto.
+   - prefers-reduced-motion respetado.
+
+**Estimated PRs (total Parte 1 + Parte 2):** 7-9 (era 4-6 solo Parte 1).
 **Branch:** `sprint-auto-16-portrait-refactor`.
 **Qué evitar:**
 - Meter URLs externas como fallback del hero.
 - Romper la carta SSR como asset principal.
 - Eliminar la galería completa (queda colapsada al final, no se borra todo).
 - Tocar el sistema de cuts existente (`CUT_SLUGS` y rutas) más allá de consumirlo.
+- Crear entradas separadas para formas finales en `personajes-seed.json` — son el MISMO personaje, mismo ranking, mismo voto.
+- Cambiar URL al togglear forma final (debe ser solo cambio visual, sin nav).
+
+**Nota a futuro (FUERA del autopilot):** las cartas SSR base de los 17 chars refresh quedaron con su placeholder antiguo (no se regeneraron con calidad superior). En una pasada manual de imágenes futura (tanda 4 humano), el humano regenera esas 17 bases en alta calidad respetando la pose canónica del personaje (no la forma final). Slug destino igual: `luffy.webp`, `zoro.webp`, etc.
 
 ---
 
