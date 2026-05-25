@@ -70,7 +70,7 @@ function Hero({ catalogoPersonajes = [] }) {
   const heroImage = heroVisual.image || heroVisual.fallbackImage
   return (
     <section
-      className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100svh-5rem)] items-center justify-center overflow-hidden px-5 py-14 sm:px-8 sm:py-20"
+      className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100svh-4.5rem)] items-center justify-center overflow-hidden px-5 py-10 sm:px-8 sm:py-16 lg:py-18"
       style={{
         '--as-stage-image': `url("${heroImage}")`,
         '--as-stage-kanji': `"${heroVisual.kanji}"`,
@@ -86,7 +86,7 @@ function Hero({ catalogoPersonajes = [] }) {
       </div>
       <FloatingCards />
       <motion.div
-        className="relative z-10 flex max-w-4xl flex-col items-center gap-6 text-center"
+        className="relative z-10 flex max-w-5xl flex-col items-center gap-4 text-center sm:gap-5"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -96,12 +96,18 @@ function Hero({ catalogoPersonajes = [] }) {
           alt=""
           width={240}
           height={240}
-          className="h-40 w-40 object-contain sm:h-56 sm:w-56"
+          className="h-28 w-28 object-contain sm:h-40 sm:w-40 lg:h-44 lg:w-44"
           style={{ filter: 'drop-shadow(0 0 60px rgb(159 29 44 / 0.52))' }}
           variants={logoVariants}
         />
+        <motion.span
+          className="as-kicker"
+          variants={itemVariants}
+        >
+          Arena 1v1 · ranking vivo · retos diarios
+        </motion.span>
         <motion.h1
-          className="w-full max-w-[22rem] text-balance text-[clamp(2.05rem,9vw,5.2rem)] font-extrabold leading-[1.02] tracking-normal sm:max-w-4xl"
+          className="w-full max-w-[22rem] text-balance text-[clamp(1.95rem,8vw,4.55rem)] font-extrabold leading-[1.02] tracking-normal sm:max-w-4xl"
           variants={itemVariants}
         >
           {t('hero.tituloAntes')}{' '}
@@ -114,14 +120,13 @@ function Hero({ catalogoPersonajes = [] }) {
           {' '}{t('hero.tituloDespues')}
         </motion.h1>
         <motion.p
-          className="w-full max-w-[22rem] text-balance text-[clamp(0.98rem,1.7vw,1.2rem)] leading-relaxed text-fg-muted sm:max-w-2xl"
+          className="w-full max-w-[22rem] text-balance text-[clamp(0.98rem,1.55vw,1.15rem)] leading-relaxed text-fg-muted sm:max-w-2xl"
           variants={itemVariants}
         >
           {t('hero.subtitulo')}
         </motion.p>
-        <HeroVoteTicker votos={votosRecientes} />
         <motion.div
-          className="mt-2 flex flex-wrap justify-center gap-3"
+          className="mt-2 flex w-full max-w-[22rem] flex-col justify-center gap-3 sm:max-w-none sm:flex-row sm:flex-wrap"
           variants={itemVariants}
         >
           <Button
@@ -130,7 +135,7 @@ function Hero({ catalogoPersonajes = [] }) {
             size="lg"
             onPointerDown={ctaVotar.onPointerDown}
             onClick={ctaVotar.onClick}
-            className="group"
+            className="group w-full sm:w-auto"
           >
             <Swords className="h-4 w-4" />
             {t('hero.ctaTorneos')}
@@ -143,11 +148,13 @@ function Hero({ catalogoPersonajes = [] }) {
             size="lg"
             onPointerDown={ctaRanking.onPointerDown}
             onClick={ctaRanking.onClick}
+            className="w-full sm:w-auto"
           >
             <TrendingUp className="h-4 w-4" />
             {t('hero.ctaRanking')}
           </Button>
         </motion.div>
+        <HeroVoteTicker votos={votosRecientes} />
         <motion.p
           className="mt-2 max-w-[22rem] text-center text-[11px] font-medium uppercase leading-5 tracking-[0.14em] text-fg-muted sm:max-w-none sm:tracking-[0.18em]"
           variants={itemVariants}
@@ -155,7 +162,7 @@ function Hero({ catalogoPersonajes = [] }) {
           {t('hero.features')}
         </motion.p>
         <motion.div
-          className="as-panel mt-5 grid w-full max-w-4xl grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:grid-cols-4"
+          className="as-panel mt-3 grid w-full max-w-3xl grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:grid-cols-4"
           variants={itemVariants}
         >
           <HeroStat icon={Swords} value={`${totalPersonajes}`} label="Personajes" />

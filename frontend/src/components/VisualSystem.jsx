@@ -231,7 +231,7 @@ export function CinematicHero({
             </span>
           )}
           <div className="max-w-3xl">
-            <h1 className="text-[clamp(2.35rem,6vw,4.75rem)] font-black leading-[0.98] tracking-tight text-fg-strong">
+            <h1 className="max-w-full text-balance break-words text-[clamp(2rem,5.4vw,4.75rem)] font-black leading-[1.02] tracking-tight text-fg-strong">
               {title}
             </h1>
             {subtitle && (
