@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Base64;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -85,6 +86,19 @@ class AuthControllerTest {
                 .andReturn();
         String token = json.readTree(loginRes.getResponse().getContentAsString()).get("token").asText();
         return new Sesion(token, username, password);
+    }
+
+    private static String dataUri(String mime, byte[] bytes) {
+        return "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
+    }
+
+    private static byte[] pngBytes(int size) {
+        byte[] bytes = new byte[size];
+        byte[] signature = new byte[] {
+                (byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A
+        };
+        System.arraycopy(signature, 0, bytes, 0, Math.min(signature.length, bytes.length));
+        return bytes;
     }
 
     @Test
@@ -342,7 +356,7 @@ class AuthControllerTest {
     @Test
     void putAvatarAceptaDataUriImagenPermitida() throws Exception {
         Sesion sesion = registrarYLoguear("avatar_data_uri", "secreta123", "avatar_data_uri@example.com");
-        String avatar = "data:image/jpeg;base64,AQID";
+        String avatar = dataUri("image/png", pngBytes(32));
 
         mvc.perform(put("/api/auth/me/avatar")
                 .header("Authorization", "Bearer " + sesion.token())
@@ -350,6 +364,54 @@ class AuthControllerTest {
                 .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.avatarUrl").value(avatar));
+    }
+
+    @Test
+    void putAvatarRechazaMimeSpoofAunqueDeclarePng() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_mime_spoof", "secreta123", "avatar_mime_spoof@example.com");
+        String avatar = dataUri("image/png", "not-a-png".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
+                .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void putAvatarRechazaBase64ConPaddingMalo() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_bad_padding", "secreta123", "avatar_bad_padding@example.com");
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "avatarUrl", "data:image/png;base64,AQID="))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void putAvatarRechazaDataUriSinBytes() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_zero_bytes", "secreta123", "avatar_zero_bytes@example.com");
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "avatarUrl", "data:image/png;base64,"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void putAvatarAceptaDataUriExactamenteDosMb() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_exact_2mb", "secreta123", "avatar_exact_2mb@example.com");
+        String avatar = dataUri("image/png", pngBytes(2 * 1024 * 1024));
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
+                .andExpect(status().isOk());
     }
 
     @Test
