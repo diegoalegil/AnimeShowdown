@@ -85,10 +85,12 @@ cd backend
 
 Todos deben pasar. Si fallan, **diagnosticar y corregir** el origen. `git restore` solo si el cambio en sí es la causa y no hay recovery razonable.
 
-## 9. Auto-merge a ramas de sprint
+## 9. Auto-merge y push a main
 
-- Auto-merge **autorizado** a ramas `sprint-N-*`, `visuals/*`, `feature/*`, `fix/*` y `chore/*` con CI verde.
-- **Nunca** auto-merge a `main`. Main se mergea manualmente vía PR squash desde la rama del sprint.
+- Auto-merge **autorizado** en **todas** las ramas (sprint-N-*, visuals/*, feature/*, fix/*, chore/*, etc.) **incluida `main`** vía PR squash, siempre que **CI esté verde**.
+- Push directo a `main` permitido para hotfixes triviales (typo, lint fix, doc update con scope mínimo) sin necesidad de PR.
+- Excepción: cambios de schema de DB, autenticación o seguridad → siguen requiriendo PR + revisión humana antes de mergear, aunque CI esté verde.
+- Sigue prohibido: `git push --force` a `main`, `git reset --hard` sin OK humano, `--no-verify` para skipear hooks (AGENTS.md §3).
 
 ## 10. Bitácora de progreso
 
