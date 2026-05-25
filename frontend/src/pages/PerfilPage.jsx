@@ -399,6 +399,8 @@ function UploadForm({ user, updateUser }) {
             <img
               src={preview}
               alt="Vista previa"
+              width={80}
+              height={80}
               className="h-20 w-20 rounded-full object-cover"
             />
             <div className="min-w-0 flex-1">
