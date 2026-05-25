@@ -118,4 +118,13 @@ test.describe('keyboard navigation', () => {
     await expect(panel).toBeHidden()
     await expect(menuButton).toBeFocused()
   })
+
+  test('toast region exposes a localized polite live region', async ({ page }) => {
+    await preparePage(page)
+    await page.goto('/')
+
+    await expect(
+      page.locator('[aria-live="polite"][aria-label^="Notificaciones de AnimeShowdown"]'),
+    ).toBeAttached()
+  })
 })
