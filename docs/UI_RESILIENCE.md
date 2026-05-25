@@ -85,6 +85,6 @@ Skipped or preserved:
 
 ## Notes
 
-- `MISSING_ART.md` was not present in this worktree. The missing image sentinel is centralized through `MISSING_IMAGE_PREFIX`, so integrating `AssetFallback` in `PersonajeImg` covers all callers using `<PersonajeImg>`.
+- The missing image sentinel is centralized through `MISSING_IMAGE_PREFIX`, so integrating `AssetFallback` in `PersonajeImg` covers all callers using `<PersonajeImg>`.
 - `frontend/scripts/generate-dominant-colors.mjs` already exists and uses `sharp`; no new dominant-color script was added because Session C requested no new dependency path.
 - `build:no-images` requires `ANIMESHOWDOWN_IMG_CDN_BASE_URL` when `ANIMESHOWDOWN_SKIP_IMG_COPY=true`.
