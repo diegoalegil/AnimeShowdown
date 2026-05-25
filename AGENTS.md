@@ -6,7 +6,7 @@ Convenciones permanentes del proyecto AnimeShowdown. Cualquier colaborador o age
 
 ## 1. Autoría de commits
 
-- Autor único: el usuario humano del proyecto. Sin trailers `Co-Authored-By` que mencionen herramientas, asistentes o servicios automáticos.
+- Autor único: el usuario humano del proyecto. **Nunca** trailers `Co-Authored-By` (de herramientas, asistentes o servicios automáticos) en commits que aterrizan en `main`. En commits intermedios de feature branch se permiten — el squash a main los limpia automáticamente.
 - Conventional Commits expandido: `feat | fix | chore | refactor | test | docs | ci | build | perf | style | revert`.
 - Un commit = un cambio lógico atómico. Si la verificación falla, revert antes del siguiente.
 - Mensajes profesionales, descriptivos, en español o inglés (consistencia dentro del PR).
@@ -57,12 +57,13 @@ Ningún agente automatizado debe escribir prompts diseñados para reproducir per
 
 Un agente debe detenerse y reportar (sin auto-resolver) cuando:
 
-- CI rojo persistente (> 2 reintentos en el mismo PR).
-- El PR requiere una decisión no pre-tomada en el backlog.
+- CI rojo persistente con la **misma causa** durante > 4 reintentos sin progreso de diagnóstico. Flakes conocidos (duel-live, etc.) no cuentan.
+- El PR introduce un cambio que **contradice explícitamente** una decisión documentada en este archivo o en `BACKLOG.md`. Si no contradice, proceder con juicio.
 - Se introduce un coste mensual nuevo (SaaS, cuota API, infraestructura).
 - Se requiere cambio de seguridad/auth no listado en el ticket.
-- Cierre completo de un sprint (push de la rama y parar).
-- Más de 25 archivos modificados en un PR — dividir.
+- Más de 75 archivos modificados en un PR — **considerar** dividir si tienen alcance temático distinto; permitido sin split si son del mismo tipo (batch de assets, refactor mecánico, sync masivo, etc.).
+
+**Autopilot multi-sprint autorizado**: completar todos los sprints en secuencia (sprint 0 → ... → sprint N del backlog) sin pausa al cerrar uno, salvo que se active una de las condiciones de parada listadas arriba. El push de la rama del sprint y el merge a `main` siguen siendo operaciones separadas — main se mergea con squash desde la rama del sprint, no en vivo.
 
 ## 8. Verificación obligatoria antes de cada commit
 
@@ -82,11 +83,11 @@ cd backend
 ./mvnw -q test
 ```
 
-Todos deben pasar. Si fallan, `git restore` y reintentar.
+Todos deben pasar. Si fallan, **diagnosticar y corregir** el origen. `git restore` solo si el cambio en sí es la causa y no hay recovery razonable.
 
 ## 9. Auto-merge a ramas de sprint
 
-- Auto-merge **autorizado** a ramas `sprint-N-<tema>` con CI verde.
+- Auto-merge **autorizado** a ramas `sprint-N-*`, `visuals/*`, `feature/*`, `fix/*` y `chore/*` con CI verde.
 - **Nunca** auto-merge a `main`. Main se mergea manualmente vía PR squash desde la rama del sprint.
 
 ## 10. Bitácora de progreso
