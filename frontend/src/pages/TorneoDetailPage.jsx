@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
 import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
@@ -10,6 +10,7 @@ import ReactionsBar from '../components/ReactionsBar'
 import EditorialCover from '../components/EditorialCover'
 import ShareButtons from '../components/ShareButtons'
 import KanjiSpinner from '../components/KanjiSpinner'
+import EmptyState from '../components/EmptyState'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
@@ -38,7 +39,7 @@ const headerVariants = {
  */
 function TorneoDetailPage() {
   const { slug } = useParams()
-  const { data: torneo, isLoading, isError, error } = useTorneoBySlug(slug)
+  const { data: torneo, isLoading, isError, error, refetch } = useTorneoBySlug(slug)
 
   // useSeo por encima del early-return (Rules of Hooks). Cuando todavía no
   // hay datos pintamos un title genérico; cuando llegan, los meta tags
@@ -81,6 +82,24 @@ function TorneoDetailPage() {
   // mensaje simple para no asustar al usuario con stack traces.
   if (isError) {
     if (error?.status === 404) return <NotFoundPage />
+    if (error?.message) return (
+      <section className="px-5 py-16 sm:px-8">
+        <EmptyState
+          icon={AlertTriangle}
+          title="No se pudo cargar el torneo"
+          description={error?.message || 'Inténtalo de nuevo en unos segundos.'}
+          action={
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="as-button-primary rounded-lg px-5 py-3 text-sm font-black"
+            >
+              Reintentar
+            </button>
+          }
+        />
+      </section>
+    )
     return (
       <section className="px-5 py-16 sm:px-8">
         <div className="mx-auto max-w-2xl text-center">

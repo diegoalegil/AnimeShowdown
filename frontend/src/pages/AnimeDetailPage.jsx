@@ -19,6 +19,7 @@ import { animeSeriesSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PersonajeCard from '../components/PersonajeCard'
 import PersonajeImg from '../components/PersonajeImg'
+import Skeleton from '../components/Skeleton'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/visual-assets'
 import NotFoundPage from './NotFoundPage'
@@ -68,6 +69,11 @@ function AnimeDetailPage() {
     return (
       <VisualPageShell visual={getAnimeVisual(slug, slug)} lateralKanji={{ left: '界', right: '界' }}>
         <div className="mx-auto max-w-6xl py-16 text-center text-sm text-fg-muted">
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} variant="card" />
+            ))}
+          </div>
           Cargando universo…
         </div>
       </VisualPageShell>

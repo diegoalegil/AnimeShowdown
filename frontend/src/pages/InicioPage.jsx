@@ -5,8 +5,10 @@ import { useSeo } from '../hooks/useSeo'
 import { webSiteSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import {
+  AlertTriangle,
   ArrowRight,
   Heart,
+  Inbox,
   Swords,
   Trophy,
   TrendingUp,
@@ -26,6 +28,9 @@ import Card from '../components/Card'
 import Section from '../components/Section'
 import Badge from '../components/Badge'
 import StatPill from '../components/StatPill'
+import EmptyState from '../components/EmptyState'
+import ErrorBoundary from '../components/ErrorBoundary'
+import Skeleton from '../components/Skeleton'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -104,7 +109,12 @@ const pasos = [
 ]
 
 function InicioPage() {
-  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const {
+    personajes: catalogoPersonajes,
+    isLoading: isCatalogLoading,
+    isError: isCatalogError,
+    refetch: refetchCatalogo,
+  } = usePersonajesCatalogo()
   const stats = useMemo(
     () => getHomeStats(catalogoPersonajes),
     [catalogoPersonajes],
@@ -133,6 +143,12 @@ function InicioPage() {
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
       <Hero catalogoPersonajes={catalogoPersonajes} />
+      <HomeCatalogGuard
+        isLoading={isCatalogLoading}
+        isError={isCatalogError}
+        hasItems={catalogoPersonajes.length > 0}
+        onRetry={refetchCatalogo}
+      >
       <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
         <DailyMissionPanel />
       </section>
@@ -140,10 +156,14 @@ function InicioPage() {
           SectionLiveBattle (duelo random cliente-side, no era "live").
           Cinco señales reales desde backend arriba del fold para que
           la home muestre producto en marcha, no solo feature list. */}
-      <SectionPulso />
+      <HomeSectionBoundary title="No pudimos mostrar el pulso">
+        <SectionPulso />
+      </HomeSectionBoundary>
       <NombresMarquee />
       <SectionStats stats={stats} />
-      <SectionTop10Ranking top10={top10} />
+      <HomeSectionBoundary title="No pudimos mostrar el top ranking">
+        <SectionTop10Ranking top10={top10} />
+      </HomeSectionBoundary>
       {/* el resto de secciones eran below-the-fold
           típico — montarlas solo cuando se acercan al viewport recorta
           el initial DOM/JS a ~30%. LazyOnView mantiene el espacio
@@ -151,9 +171,87 @@ function InicioPage() {
       <LazyOnView minHeight={620}><SectionRetosDiarios /></LazyOnView>
       <LazyOnView minHeight={520}><SectionBento /></LazyOnView>
       <LazyOnView minHeight={420}><SectionComoFunciona /></LazyOnView>
-      <LazyOnView minHeight={520}><SectionTorneosActivos /></LazyOnView>
+      <LazyOnView minHeight={520}>
+        <HomeSectionBoundary title="No pudimos mostrar torneos activos">
+          <SectionTorneosActivos />
+        </HomeSectionBoundary>
+      </LazyOnView>
       <LazyOnView minHeight={520}><SectionPorAnime carousels={carousels} /></LazyOnView>
+      </HomeCatalogGuard>
     </>
+  )
+}
+
+function HomeCatalogGuard({ isLoading, isError, hasItems, onRetry, children }) {
+  if (isLoading && !hasItems) return <HomeSkeletonSections />
+  if (isError && !hasItems) {
+    return (
+      <div className="mx-auto w-full max-w-6xl px-5 py-12">
+        <EmptyState
+          icon={AlertTriangle}
+          title="No pudimos cargar la portada"
+          description="El catálogo de personajes no respondió. Reintenta para reconstruir rankings, juegos y secciones de la home."
+          action={
+            <button
+              type="button"
+              onClick={() => onRetry()}
+              className="as-button-primary rounded-lg px-5 py-3 text-sm font-black"
+            >
+              Reintentar
+            </button>
+          }
+        />
+      </div>
+    )
+  }
+  if (!hasItems) {
+    return (
+      <div className="mx-auto w-full max-w-6xl px-5 py-12">
+        <EmptyState
+          icon={Inbox}
+          title="Aún no hay personajes en la arena"
+          description="Cuando el catálogo tenga personajes, la portada montará rankings, torneos y universos automáticamente."
+        />
+      </div>
+    )
+  }
+  return children
+}
+
+function HomeSkeletonSections() {
+  return (
+    <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 px-5 py-12 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Skeleton key={i} variant="card" />
+      ))}
+    </div>
+  )
+}
+
+function HomeSectionBoundary({ title, children }) {
+  return (
+    <ErrorBoundary
+      fallback={({ reset }) => (
+        <div className="mx-auto w-full max-w-6xl px-5 py-8">
+          <EmptyState
+            icon={AlertTriangle}
+            title={title}
+            description="Esta sección se aisló para que el resto de la portada siga disponible."
+            action={
+              <button
+                type="button"
+                onClick={reset}
+                className="as-button-ghost rounded-lg px-5 py-3 text-sm font-bold"
+              >
+                Reintentar sección
+              </button>
+            }
+          />
+        </div>
+      )}
+    >
+      {children}
+    </ErrorBoundary>
   )
 }
 
