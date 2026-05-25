@@ -10,6 +10,16 @@ const ROUTES = [
   { path: '/ranking', name: 'ranking' },
   { path: '/torneos', name: 'torneos' },
   { path: '/games', name: 'games' },
+  { path: '/faq', name: 'faq' },
+  { path: '/como-funciona', name: 'como-funciona' },
+  { path: '/metodologia-elo', name: 'metodologia-elo' },
+  { path: '/api-docs', name: 'api-docs' },
+  { path: '/status', name: 'status' },
+  { path: '/apoya', name: 'apoya' },
+  { path: '/privacidad', name: 'privacidad' },
+  { path: '/terminos', name: 'terminos' },
+  { path: '/dmca', name: 'dmca' },
+  { path: '/glossary', name: 'glossary' },
 ]
 
 async function preparePage(page) {

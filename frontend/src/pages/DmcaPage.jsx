@@ -85,7 +85,7 @@ function DmcaPage() {
             <p className="mb-3">Email a:</p>
             <a
               href="mailto:diegogildam@gmail.com?subject=DMCA Takedown — AnimeShowdown"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               <Mail className="h-3.5 w-3.5" />
               diegogildam@gmail.com

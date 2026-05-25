@@ -409,7 +409,7 @@ function GlossaryPage() {
               onClick={() => setCategoria(null)}
               className={`rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                 categoria === null
-                  ? 'bg-accent text-bg'
+                  ? 'bg-accent text-white'
                   : 'border border-border bg-surface text-fg-muted hover:text-fg-strong'
               }`}
             >
@@ -424,7 +424,7 @@ function GlossaryPage() {
                   onClick={() => setCategoria(c)}
                   className={`rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                     categoria === c
-                      ? 'bg-accent text-bg'
+                      ? 'bg-accent text-white'
                       : 'border border-border bg-surface text-fg-muted hover:text-fg-strong'
                   }`}
                 >
@@ -450,23 +450,23 @@ function GlossaryPage() {
               const tag = slugTermino(t.termino)
               const tienePersonajes = hasCategoriaPersonaje(tag)
               return (
-                <article
+                <div
                   key={t.termino}
                   id={`term-${tag}`}
                   itemScope
                   itemType="https://schema.org/DefinedTerm"
                   className="rounded-xl border border-border bg-surface p-5"
                 >
-                  <header className="mb-2 flex items-baseline justify-between gap-2">
-                    <dt itemProp="name" className="text-lg font-bold text-fg-strong">
+                  <dt className="mb-2 flex items-baseline justify-between gap-2">
+                    <span itemProp="name" className="text-lg font-bold text-fg-strong">
                       {t.termino}
-                    </dt>
+                    </span>
                     {t.kanji && (
                       <span lang="ja" className="font-jp text-[15px] text-gold">
                         {t.kanji}
                       </span>
                     )}
-                  </header>
+                  </dt>
                   <dd
                     itemProp="description"
                     className="text-[13px] leading-relaxed text-fg-muted"
@@ -474,23 +474,25 @@ function GlossaryPage() {
                     {t.definicion}
                   </dd>
                   {t.ejemplo && (
-                    <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted/80">
+                    <dd className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted/80">
                       Ej.: <span className="font-normal normal-case">{t.ejemplo}</span>
-                    </p>
+                    </dd>
                   )}
-                  <span className="mt-3 inline-flex rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
-                    {t.categoria}
-                  </span>
-                  {tienePersonajes && (
-                    <Link
-                      to={`/personajes?tag=${tag}`}
-                      className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold transition-colors hover:text-fg-strong"
-                    >
-                      Ver personajes relacionados
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  )}
-                </article>
+                  <dd className="mt-3 flex flex-col items-start gap-3">
+                    <span className="inline-flex rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+                      {t.categoria}
+                    </span>
+                    {tienePersonajes && (
+                      <Link
+                        to={`/personajes?tag=${tag}`}
+                        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold underline decoration-gold/60 underline-offset-2 transition-colors hover:text-fg-strong"
+                      >
+                        Ver personajes relacionados
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    )}
+                  </dd>
+                </div>
               )
             })}
           </dl>
@@ -575,11 +577,11 @@ function GlossaryPage() {
           </h2>
           <p className="text-[13px] leading-relaxed text-fg-muted">
             ¿Quieres ver ejemplos de estos tropos? Mira{' '}
-            <Link to="/personajes" className="text-gold hover:underline">
+            <Link to="/personajes" className="text-gold underline decoration-gold/60 underline-offset-2 hover:text-fg-strong">
               el catálogo completo
             </Link>{' '}
             con más de 1.000 personajes anime, o{' '}
-            <Link to="/ranking" className="text-gold hover:underline">
+            <Link to="/ranking" className="text-gold underline decoration-gold/60 underline-offset-2 hover:text-fg-strong">
               el ranking ELO
             </Link>{' '}
             para ver quién manda hoy. Si echas en falta algún término en este
@@ -588,7 +590,7 @@ function GlossaryPage() {
               href="https://github.com/diegoalegil/AnimeShowdown/issues"
               target="_blank"
               rel="noreferrer"
-              className="text-gold hover:underline"
+              className="text-gold underline decoration-gold/60 underline-offset-2 hover:text-fg-strong"
             >
               abre un issue
             </a>
