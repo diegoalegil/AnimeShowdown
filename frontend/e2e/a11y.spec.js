@@ -20,6 +20,17 @@ const ROUTES = [
   { path: '/games/impostor-trial', name: 'impostor-trial' },
   { path: '/games/elo-duel', name: 'elo-duel' },
   { path: '/omikuji', name: 'omikuji' },
+  { path: '/login', name: 'login' },
+  { path: '/register', name: 'register' },
+  { path: '/forgot-password', name: 'forgot-password' },
+  { path: '/reset-password', name: 'reset-password' },
+  { path: '/verify', name: 'verify' },
+  { path: '/newsletter/confirmar', name: 'newsletter-confirmar' },
+  { path: '/misiones', name: 'misiones' },
+  { path: '/mi-ranking', name: 'mi-ranking' },
+  { path: '/logros', name: 'logros' },
+  { path: '/leaderboards', name: 'leaderboards' },
+  { path: '/mi-top5', name: 'mi-top5' },
   { path: '/faq', name: 'faq' },
   { path: '/como-funciona', name: 'como-funciona' },
   { path: '/metodologia-elo', name: 'metodologia-elo' },
@@ -30,6 +41,7 @@ const ROUTES = [
   { path: '/terminos', name: 'terminos' },
   { path: '/dmca', name: 'dmca' },
   { path: '/glossary', name: 'glossary' },
+  { path: '/no-existe-a11y', name: 'not-found' },
 ]
 
 async function preparePage(page) {

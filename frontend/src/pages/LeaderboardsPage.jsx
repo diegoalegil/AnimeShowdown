@@ -89,7 +89,7 @@ function LeaderboardsPage() {
               onClick={() => setPeriodo(id)}
               className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                 periodo === id
-                  ? 'bg-accent text-bg'
+                  ? 'bg-accent text-white'
                   : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
               }`}
             >
@@ -142,15 +142,15 @@ function LeaderboardsPage() {
           </h2>
           <p className="text-[13px] leading-relaxed text-fg-muted">
             Cada voto en{' '}
-            <Link to="/votar" className="text-gold hover:underline">
+            <Link to="/votar" className="text-gold underline decoration-gold/60 underline-offset-2 hover:text-fg-strong">
               /votar
             </Link>{' '}
             o en cualquier torneo activo cuenta. Mira el{' '}
-            <Link to="/ranking" className="text-gold hover:underline">
+            <Link to="/ranking" className="text-gold underline decoration-gold/60 underline-offset-2 hover:text-fg-strong">
               ranking ELO global
             </Link>{' '}
             para ver qué personajes están más reñidos y entra en{' '}
-            <Link to="/torneos" className="text-gold hover:underline">
+            <Link to="/torneos" className="text-gold underline decoration-gold/60 underline-offset-2 hover:text-fg-strong">
               torneos activos
             </Link>{' '}
             para acumular votos en eventos. Mientras la comunidad crece, esta
