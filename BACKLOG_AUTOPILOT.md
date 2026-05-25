@@ -186,18 +186,20 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Estimated PRs:** 4-6.
 **Branch:** `sprint-auto-09-microinteractions`.
 
-## Sprint 10 — Loading state choreography
+## Sprint 10 — Loading state choreography + skeleton variants
 
-**Goal:** ninguna pantalla muestra "blanco" durante carga. Skeletons consistentes.
+**Goal:** ninguna pantalla muestra "blanco" durante carga. Skeletons consistentes y con variantes específicas por contexto.
 
 **Scope:**
 - Skeleton variants en todas las páginas con fetch.
+- Variantes nuevas del primitive: `card-ssr`, `bracket-row`, `ranking-row`, `tournament-card`, `chat-message`.
+- Documentación de uso (ampliar `docs/UI_RESILIENCE.md` existente).
 - Suspense boundaries donde aplique.
 - Progressive loading (priority content first).
 - Streaming SSR si está disponible.
 - Spinner solo donde Skeleton no aplica.
 
-**Estimated PRs:** 4-6.
+**Estimated PRs:** 5-7.
 **Branch:** `sprint-auto-10-loading`.
 
 ## Sprint 11 — Empty/error states narrative refresh
@@ -273,17 +275,43 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Estimated PRs:** 3-4.
 **Branch:** `sprint-auto-15-toasts`.
 
-## Sprint 16 — Skeleton states variety
+## Sprint 16 — PersonajeDetailPage portrait refactor (matar galería externa)
 
-**Goal:** Skeleton primitive con más variantes específicas por contexto.
+**Goal:** eliminar la dependencia visual de la galería externa (URLs Jikan/AniList que pueden romperse y mostrar recortes irregulares) en la ficha de personaje. La carta SSR sigue siendo el asset principal; añadir un **portrait propio** (cut/portrait cerrado) como acompañamiento del hero, no como galería suelta.
+
+**Contexto del problema (confirmado por el humano):** la opción actual de galería externa no convence. Compite visualmente con la carta SSR, muestra recortes irregulares, y se rompe si la URL externa falla. El plan original ya documentó esto (`docs/FRONTEND_VISUAL_ASSET_PLAN.md` §12) pero no estaba implementado — este sprint lo cierra.
 
 **Scope:**
-- Variants nuevas: `card-ssr`, `bracket-row`, `ranking-row`, `tournament-card`, `chat-message`.
-- Documentación de uso (`docs/UI_RESILIENCE.md` ya existe — ampliar).
-- Storybook o demos page si aplica.
+- Audit de `frontend/src/components/PersonajeGaleria.jsx` y `frontend/src/pages/PersonajeDetailPage.jsx`. Identificar dónde se monta la galería en el viewport principal.
+- Refactor del layout del hero de la ficha:
+  - **Desktop**: carta SSR a la izquierda (sigue siendo asset principal) + **portrait propio** del personaje a la derecha (ratio 4:5 vertical o cut transparente 3:4).
+  - **Mobile**: card stacked, portrait debajo en card secundaria.
+- Fuente del portrait, en orden de prioridad:
+  1. `frontend/img/<Anime_Folder>/portraits/<slug>.webp` (portrait cerrado 4:5, ruta futura del plan §2). Si existe, usarlo.
+  2. `frontend/img/cuts/<slug>.webp` (cut transparente 4:5 o 3:4). Ya existen ~6027 cuts; `frontend/src/data/cut-slugs.js` lista los disponibles.
+  3. Fallback: ocultar la sección de portrait (la carta SSR sola es suficiente).
+- Galería externa (`PersonajeGaleria`):
+  - **Mover a sección secundaria** colapsable al final de la ficha ("ver más imágenes").
+  - **Retirar cualquier URL que falle** (404 / timeout): no debe afectar al hero.
+  - No dejar que una imagen externa rota cambie el hero principal.
+- Componentes nuevos / refactor:
+  - `PersonajeHeroPortrait.jsx` (componente nuevo): renderiza portrait con fallback chain.
+  - Reutilizar `PersonajeImg` y `PersonajeCutImg` existentes donde aplique.
+- Tests:
+  - Ficha de personaje no rompe si la API externa de imágenes (Jikan/AniList) falla.
+  - Si no hay cut ni portrait, la ficha sigue mostrándose con la carta SSR sola.
+  - Test E2E para `/personajes/luffy`, `/personajes/gojo` (top usados): verificar que el hero es estable.
+- Visual:
+  - El portrait NO debe robar foco a la carta SSR. La carta sigue siendo el héroe visual.
+  - Animación sutil al cargar (skeleton → fade in).
 
-**Estimated PRs:** 2-3.
-**Branch:** `sprint-auto-16-skeletons`.
+**Estimated PRs:** 4-6.
+**Branch:** `sprint-auto-16-portrait-refactor`.
+**Qué evitar:**
+- Meter URLs externas como fallback del hero.
+- Romper la carta SSR como asset principal.
+- Eliminar la galería completa (queda colapsada al final, no se borra todo).
+- Tocar el sistema de cuts existente (`CUT_SLUGS` y rutas) más allá de consumirlo.
 
 ---
 
