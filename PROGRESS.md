@@ -28,6 +28,7 @@
 - 2026-05-25T22:33:33.9933490+01:00 | PR AUTO-02.1 / #44 | 60ce3129 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS | decisions: se anade skip link visible por teclado y target `main` focusable para navegacion rapida al contenido.
 - 2026-05-25T22:52:38.1875367+01:00 | PR AUTO-02.2 / #45 | 5ac43a6f | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (12/12); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se anade gate axe-core para rutas publicas clave y se corrigen contrastes/list semantics detectados por el gate.
 - 2026-05-25T23:19:09.0924706+01:00 | PR AUTO-02.3 / #46 | 23e713ff | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (15/16 + 1 skipped); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se cubre teclado para skip link y foco atrapado/Escape en menu movil.
+- 2026-05-25T23:31:26.5051429+01:00 | PR AUTO-02.4 / #51 | 6faedd39 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (15/16 + 1 skipped); CI PASS | decisions: se aplica `MotionConfig reducedMotion="user"` para que Framer respete preferencias de movimiento en toda la app.
 
 ## Tanda 3 visual side-stream
 
