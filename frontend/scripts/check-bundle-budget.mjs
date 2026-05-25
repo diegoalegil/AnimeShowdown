@@ -7,8 +7,10 @@ import { gzipSync } from 'node:zlib'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const assetsDir = join(root, 'dist', 'assets')
 const imageDir = join(root, 'dist', 'img')
+const htmlPath = join(root, 'dist', 'index.html')
 const maxIndexRawKb = Number(process.env.MAX_INDEX_RAW_KB ?? 350)
 const maxIndexGzipKb = Number(process.env.MAX_INDEX_GZIP_KB ?? 250)
+const maxInitialJsGzipKb = Number(process.env.MAX_INITIAL_JS_GZIP_KB ?? 220)
 const maxImageTotalMb = Number(process.env.MAX_DEPLOY_IMAGE_TOTAL_MB ?? 1100)
 const maxImageFileKb = Number(process.env.MAX_DEPLOY_IMAGE_FILE_KB ?? 900)
 const maxImageFileCount = Number(process.env.MAX_DEPLOY_IMAGE_FILE_COUNT ?? 8500)
@@ -52,6 +54,32 @@ function normalizeImageCdnBaseUrl(value) {
   }
 }
 
+function normalizeDistAssetPath(value) {
+  try {
+    return new URL(value, 'https://animeshowdown.local').pathname.replace(/^\/+/, '')
+  } catch {
+    return value.replace(/^\/+/, '')
+  }
+}
+
+function extractInitialJsFiles(html) {
+  const result = new Set()
+  const tagRe = /<(script|link)\b[^>]*(?:src|href)=["']([^"']+)["'][^>]*>/gi
+  let match
+  while ((match = tagRe.exec(html))) {
+    const [, tagName, assetRef] = match
+    const tag = match[0]
+    if (tagName.toLowerCase() === 'link' && !/\brel=["'][^"']*modulepreload/i.test(tag)) {
+      continue
+    }
+    const assetPath = normalizeDistAssetPath(assetRef)
+    if (!/^assets\/.+\.js$/.test(assetPath)) continue
+    const fileName = assetPath.slice('assets/'.length)
+    if (existsSync(join(assetsDir, fileName))) result.add(fileName)
+  }
+  return [...result].sort()
+}
+
 function checkExternalImageCdn(imageFiles) {
   if (!requireExternalImageCdn) return
   if (!imageCdnBaseUrl) {
@@ -81,6 +109,11 @@ if (!existsSync(assetsDir)) {
   process.exit()
 }
 
+if (!existsSync(htmlPath)) {
+  fail(`no existe ${htmlPath}. Ejecuta npm run build:no-images antes.`)
+  process.exit()
+}
+
 const files = readdirSync(assetsDir)
 const indexFiles = files.filter((file) => /^index-.*\.js$/.test(file))
 if (indexFiles.length !== 1) {
@@ -100,6 +133,27 @@ if (indexFile) {
   }
   if (gzipBytes > maxIndexGzipKb * 1024) {
     fail(`index gzip ${sizeKb(gzipBytes).toFixed(1)}KB > ${maxIndexGzipKb}KB`)
+  }
+}
+
+const initialJsFiles = extractInitialJsFiles(readFileSync(htmlPath, 'utf8'))
+if (initialJsFiles.length === 0) {
+  fail('no se encontraron scripts iniciales en dist/index.html')
+} else {
+  let initialRawBytes = 0
+  let initialGzipBytes = 0
+  for (const file of initialJsFiles) {
+    const filePath = join(assetsDir, file)
+    const source = readFileSync(filePath)
+    initialRawBytes += statSync(filePath).size
+    initialGzipBytes += gzipSync(source).length
+  }
+  console.log(
+    `initial js: files=${initialJsFiles.length} raw=${sizeKb(initialRawBytes).toFixed(1)}KB gzip=${sizeKb(initialGzipBytes).toFixed(1)}KB budget=${maxInitialJsGzipKb}KB`,
+  )
+  console.log(`initial js files: ${initialJsFiles.join(', ')}`)
+  if (initialGzipBytes > maxInitialJsGzipKb * 1024) {
+    fail(`initial JS gzip ${sizeKb(initialGzipBytes).toFixed(1)}KB > ${maxInitialJsGzipKb}KB`)
   }
 }
 

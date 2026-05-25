@@ -489,7 +489,10 @@ export default defineConfig({
     modulePreload: {
       resolveDependencies(_filename, deps, { hostType }) {
         if (hostType !== 'html') return deps
-        return deps.filter((dep) => !/assets\/personaje3d-[^/]+\.js$/.test(dep))
+        return deps.filter((dep) =>
+          !/assets\/personaje3d-[^/]+\.js$/.test(dep) &&
+          !/assets\/framer-[^/]+\.js$/.test(dep)
+        )
       },
     },
     // Vendor chunks explícitos: sin esto Rolldown junta todo en index y
