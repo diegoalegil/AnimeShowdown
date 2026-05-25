@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "NODE_OPTIONS=--disable-warning=DEP0205 vite",
+    "dev": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite",
     "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && NODE_OPTIONS=--disable-warning=DEP0205 vite build",
     "build:no-images": "node ../scripts/generate-sitemap.mjs && ANIMESHOWDOWN_SKIP_IMG_COPY=true NODE_OPTIONS=--disable-warning=DEP0205 vite build",
     "build:no-sitemap": "NODE_OPTIONS=--disable-warning=DEP0205 vite build",
@@ -50,11 +50,12 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.57.0",
-    "axe-core": "^4.11.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
+    "axe-core": "^4.11.0",
     "beasties": "^0.4.2",
+    "cross-env": "^10.1.0",
     "eslint": "^10.4.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
