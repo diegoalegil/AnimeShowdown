@@ -9,6 +9,8 @@ import { getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useTorneos } from '../lib/torneosQueries'
 import { endpoints } from '../lib/api'
+import Button from './Button'
+import StatPill from './StatPill'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -122,25 +124,29 @@ function Hero({ catalogoPersonajes = [] }) {
           className="mt-2 flex flex-wrap justify-center gap-3"
           variants={itemVariants}
         >
-          <Link
+          <Button
+            as={Link}
             to="/votar"
+            size="lg"
             onPointerDown={ctaVotar.onPointerDown}
             onClick={ctaVotar.onClick}
-            className="group inline-flex items-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_34px_-14px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+            className="group"
           >
             <Swords className="h-4 w-4" />
             {t('hero.ctaTorneos')}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <Link
+          </Button>
+          <Button
+            as={Link}
             to="/ranking"
+            variant="secondary"
+            size="lg"
             onPointerDown={ctaRanking.onPointerDown}
             onClick={ctaRanking.onClick}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-surface/60 px-5 py-3 text-sm font-semibold text-fg-strong backdrop-blur-md transition-colors hover:border-gold/55 hover:text-gold"
           >
             <TrendingUp className="h-4 w-4" />
             {t('hero.ctaRanking')}
-          </Link>
+          </Button>
         </motion.div>
         <motion.p
           className="mt-2 max-w-[22rem] text-center text-[11px] font-medium uppercase leading-5 tracking-[0.14em] text-fg-muted sm:max-w-none sm:tracking-[0.18em]"
@@ -249,20 +255,13 @@ function formatRelativo(fecha) {
 
 function HeroStat({ icon: Icon, value, label }) {
   return (
-    <div className="flex items-center justify-center gap-3 border-white/10 px-4 py-4 even:border-l sm:border-l first:sm:border-l-0">
-      <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-gold"
-        aria-hidden="true"
-      >
-        <Icon className="h-5 w-5" />
-      </span>
-      <div className="text-left">
-        <p className="font-mono text-2xl font-extrabold text-fg-strong tabular-nums">
-          {value}
-        </p>
-        <p className="text-xs text-fg-muted">{label}</p>
-      </div>
-    </div>
+    <StatPill
+      icon={Icon}
+      value={value}
+      label={label}
+      layout="inline"
+      className="border-white/10 px-4 py-4 even:border-l sm:border-l first:sm:border-l-0"
+    />
   )
 }
 
