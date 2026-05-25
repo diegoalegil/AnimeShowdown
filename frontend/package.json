@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite",
-    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && NODE_OPTIONS=--disable-warning=DEP0205 vite build",
-    "build:no-images": "node ../scripts/generate-sitemap.mjs && ANIMESHOWDOWN_SKIP_IMG_COPY=true NODE_OPTIONS=--disable-warning=DEP0205 vite build",
-    "build:no-sitemap": "NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build:no-images": "node ../scripts/generate-sitemap.mjs && cross-env ANIMESHOWDOWN_SKIP_IMG_COPY=true NODE_OPTIONS=--disable-warning=DEP0205 vite build",
+    "build:no-sitemap": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite build",
     "build:e2e": "VITE_API_BASE_URL=${E2E_API_URL:-http://127.0.0.1:8080} VITE_API_URL=${E2E_API_URL:-http://127.0.0.1:8080} npm run build:no-sitemap",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
     "build:images": "node scripts/generate-image-variants.mjs",
@@ -21,7 +21,7 @@
     "test:e2e:local": "E2E_BASE_URL=${E2E_BASE_URL:-http://127.0.0.1:4173} E2E_API_URL=${E2E_API_URL:-http://127.0.0.1:8080} playwright test",
     "test:e2e:responsive": "playwright test e2e/home-responsive.spec.js",
     "lint": "eslint .",
-    "preview": "NODE_OPTIONS=--disable-warning=DEP0205 vite preview",
+    "preview": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite preview",
     "qa:a11y": "npx --yes @axe-core/cli@4.11.0 http://localhost:4173/ http://localhost:4173/personajes http://localhost:4173/animes http://localhost:4173/torneos http://localhost:4173/ranking http://localhost:4173/login http://localhost:4173/register --tags wcag2a,wcag2aa,wcag21a,wcag21aa --exit"
   },
   "dependencies": {
