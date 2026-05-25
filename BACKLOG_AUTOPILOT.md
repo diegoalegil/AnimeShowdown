@@ -404,44 +404,91 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Estimated PRs:** 3-5.
 **Branch:** `sprint-auto-22-streaks`.
 
-## Sprint 23 — Ranking popularity refresh: female boost + leaderboards filters
+## Sprint 23 — Ranking popularity FULL REBUILD desde cero + female boost + filtros
 
-**Goal:** dar una **ventaja explícita a personajes femeninos en el ranking de popularidad** (decisión de producto del humano) y añadir filtros expresivos al leaderboard. El boost es default-on, configurable, transparente para el usuario.
+**Goal:** reconstruir el ranking de popularidad **completamente desde cero** triangulando múltiples fuentes externas autoritativas, aplicar el **female boost +25%** al final, y añadir filtros expresivos al leaderboard. El ranking actual tiene personajes en posiciones obviamente incorrectas (humano confirma: "hay algunos mal") — esto se arregla con un rebuild basado en datos externos cross-validados.
 
-**Contexto de producto (decisión del humano):** el ranking actual es neutro y los personajes femeninos quedan infrarrepresentados en el top. Aplicar un multiplicador suave al score de popularidad para que la representación femenina sea más visible. No es "trampa" — es un ajuste de visibilidad consciente, mostrado al usuario en la UI con un badge ("boost"). El ranking ELO competitivo (duels reales) NO se toca; solo el ranking de popularidad/votación pasiva.
+**Contexto de producto (decisión del humano):**
+1. El ranking actual no refleja la popularidad real de muchos personajes. Casos típicos: secundarios poco conocidos rankeados por encima de protagonistas icónicos, personajes con apenas votos internos en top 50.
+2. **Hay que reconstruirlo desde cero** consultando múltiples sitios autoritativos antes de decidir cada posición. No aplicar boost al ranking actual y ya está — eso solo amplifica el sesgo existente.
+3. Una vez reconstruido el baseline, aplicar el female boost +25% sobre ese ranking limpio.
 
-**Scope backend:**
-- Migración **V30** (V1-V29 INTOCABLES): añadir columna `personajes.gender` (`enum: female | male | nonbinary | unknown`, default `unknown`, NULL-tolerant).
-- Backfill desde `frontend/src/data/personajes-seed.json` o un mapping nuevo `backend/src/main/resources/data/character-gender-seed.csv`. No pretender exhaustivo: marcar primero los top-200 más votados, el resto queda `unknown`.
-- Endpoint admin `/api/admin/characters/:id/gender` (PATCH) para curaduría manual posterior, con audit log.
-- `PvpEloService` y servicio de ranking popularidad: introducir multiplicador `POPULARITY_FEMALE_BOOST` (default `1.25`, configurable vía `application.properties`). Aplicar **solo en el ranking de popularidad mostrado**, NO en el ELO de duels.
-- `RankingItem` DTO: añadir campo `gender` (string) y `boostApplied` (boolean) para transparencia frontend.
-- Test unitarios: con boost = 1.0 el ranking es idéntico al actual; con 1.25 las femeninas con score dentro del 20% inferior al masculino superior pasan adelante.
+### Scope — Fase 1: ETL de popularidad ground-truth (5-7 PRs)
 
-**Scope frontend:**
-- En `RankingPage` y `LeaderboardsPage`: badge sutil "⚡ boost +25%" en filas con `boostApplied: true`. Tooltip explicativo: "Ranking de popularidad con boost de visibilidad para personajes femeninos."
+**Fuentes externas a triangular** (mínimo 5 por personaje top-300):
+
+| Fuente | Acceso | Métrica usable | Notas |
+|---|---|---|---|
+| MyAnimeList | API pública (Jikan v4 ya en uso) | `character.favorites` | Más completa para anime clásico/mainstream. Ya hay `buscarPersonajeJikan` en el repo, reutilizar. |
+| AniList | GraphQL público gratis | `Character.favourites` | Buena para anime moderno + niche. Sin auth requerida. |
+| Reddit r/anime polls | Scrape de threads anuales | Position en polls "best girl/boy" | Sesgo occidental, contrarresta sesgo MAL/AniList japonés. |
+| Anime Trending awards | Scrape categories "Best Boy/Girl" anuales | Win + nomination count | Premios anuales con votación pública. |
+| Goo Ranking (Japan) | Scrape de rankings JP | Position en rankings JP | Sesgo japonés, importante para representación cultural. |
+| Honey's Anime polls | Scrape de top-N articles | Position en listas | Complementa fuentes occidentales. |
+| Crunchyroll Anime Awards | Wikipedia/oficial scrape | Nominado/ganador en categorías de personaje | Premios industriales. |
+
+- Configurar acceso por fuente. **NO añadir coste mensual** (todas las fuentes listadas tienen tier gratuito). Si una fuente requiere SaaS de pago, descartarla y reportar.
+- Si está disponible el MCP `brightdata` o equivalente OSS para scraping, usarlo. Si no, fetch HTTP + parsing (cheerio para HTML, GraphQL para AniList).
+- Rate-limit respetuoso: máximo 1 req/seg por fuente, retries con backoff exponencial.
+- Caché de respuestas externas en `backend/src/main/resources/cache/popularity-sources/` (filesystem JSON, no DB) — re-ejecutar el ETL no debe golpear las APIs cada vez.
+
+### Scope — Fase 2: Algoritmo de ranking combinado (2-3 PRs)
+
+- Servicio nuevo `PopularityRankingRebuildService` (backend).
+- Para cada personaje del catálogo (`personajes-seed.json`):
+  1. Resolver identidad en cada fuente externa (búsqueda por nombre + anime + alias).
+  2. Recoger métrica normalizada por fuente (percentil 0-100 dentro de esa fuente).
+  3. Score combinado = media ponderada de percentiles disponibles. Pesos sugeridos: MAL 0.25, AniList 0.20, Goo 0.15, Reddit polls 0.15, Anime Trending 0.10, Honey's 0.10, Crunchyroll 0.05.
+  4. Si un personaje tiene <3 fuentes con datos → posición desconocida (no incluir en top, queda en cola).
+  5. **Cross-validation**: si un personaje considerado "top tier obvio" (Luffy, Gojo, Goku, Naruto, Mikasa, Levi, Tanjiro, Ichigo, Eren, Light) sale fuera del top 50 del ranking reconstruido, **parar y reportar** — indica error de matching de identidades en el ETL.
+- Output: tabla nueva `ranking_popularity_v2` con columnas `(personaje_id, score_combined, sources_used, sources_disagreement)`.
+
+### Scope — Fase 3: Replace + female boost + audit (3-4 PRs)
+
+- Migración **V30** (V1-V29 INTOCABLES): crear `ranking_popularity_v2` + columna `personajes.gender` (`enum: female | male | nonbinary | unknown`, default `unknown`).
+- **Archive del ranking actual** ANTES de reemplazar: `ranking_popularity_snapshot_2026_05_pre_rebuild` (copia exacta, retención indefinida por si hay que rollback).
+- Backfill `gender`: usar las fuentes externas del ETL (MAL/AniList tienen campo gender en mucho character data). Si no hay info confiable en 2+ fuentes → `unknown`.
+- Endpoint admin `/api/admin/characters/:id/gender` (PATCH) + `/api/admin/ranking-rebuild` (POST, gated por auth admin) para re-ejecutar el ETL manualmente.
+- `PopularityRankingService` consume `ranking_popularity_v2` como baseline. Multiplicador `POPULARITY_FEMALE_BOOST = 1.25` aplicado a personajes con `gender = female` **solo en el ranking de popularidad mostrado**. ELO de duels (`PvpEloService`) NO tocado.
+- `RankingItem` DTO: añadir `gender` (string), `boostApplied` (boolean), `sourcesUsed` (int) para transparencia.
+- Audit log de cada rebuild: timestamp, número de personajes actualizados, top-10 cambios más significativos vs snapshot anterior.
+
+### Scope frontend
+
+- En `RankingPage` y `LeaderboardsPage`: badge sutil "⚡ boost +25%" en filas con `boostApplied: true`. Tooltip: "Ranking de popularidad con boost de visibilidad para personajes femeninos."
+- Indicador discreto "✓ verificado en X fuentes" (X = `sourcesUsed`) en hover sobre la posición — ayuda a transparencia.
 - Filtros nuevos del leaderboard:
   - Periodo: all-time / mensual / semanal.
   - Por anime específico.
   - Por género del personaje (`female | male | nonbinary | all`).
   - Por género del anime (shonen, seinen, isekai, etc.).
-  - Por país (si user opt-in compartió) — opcional.
-- Toggle "modo competitivo" (boost off, ranking raw) en la UI para usuarios que quieran el ranking sin ajuste. Por defecto: boost on.
+  - Por país (opcional, si user opt-in).
+- Toggle "modo competitivo" (boost off, ranking raw) en la UI para opt-out.
 - Performance: cachear top-100 por combo de filtro (Caffeine en backend, 5 min TTL).
 - Vista destacada "Top Waifus" usa el event cover `top-waifus.webp` (slot 3.18 de tanda 3).
 
-**Estimated PRs:** 7-9.
-**Branch:** `sprint-auto-23-popularity-boost`.
+### Estimated PRs: 10-14 (sprint grande)
+**Branch raíz:** `sprint-auto-23-ranking-rebuild`.
+**Sub-ramas sugeridas:** `sprint-auto-23/etl-mal-anilist`, `sprint-auto-23/etl-reddit-goo`, `sprint-auto-23/combine-algorithm`, `sprint-auto-23/v30-migration`, `sprint-auto-23/gender-backfill`, `sprint-auto-23/boost-apply`, `sprint-auto-23/frontend-filters`, `sprint-auto-23/frontend-badge`.
 
-**Heads-up:**
-- Migración nueva V30 — Codex debe respetar AGENTS.md §2 (V1-V29 intocables).
-- Cambio de lógica de ranking → comunicar claramente al usuario (badge + tooltip). Si el humano lo prefiere completamente silencioso (sin badge), Codex puede quitar el badge pero **mantener el toggle** "modo competitivo" para opt-out.
-- NO tocar `PvpEloService` para duels reales — eso sigue siendo competitivo puro. El boost solo aplica al ranking de popularidad mostrado.
+### Heads-up para Codex
 
-**Qué evitar:**
+- Esta es **una de las áreas más sensibles del autopilot** porque toca rankings públicos. Hacer el ETL con cuidado, no precipitarse a publicar.
+- Si una fuente externa cambia su HTML/API y el scraper se rompe, **degradar gracilmente** (saltar esa fuente para ese personaje, marcar `sourcesUsed - 1`) en vez de abortar todo.
+- Si el rebuild detecta que un personaje obviamente top-tier cae fuera del top 50 → parar y reportar (probable bug de matching).
+- Cambio de lógica de ranking → comunicar claramente al usuario (badge + tooltip + sources verified count).
+- Migración V30 — Codex debe respetar AGENTS.md §2 (V1-V29 intocables).
+- ETL puede tomar 2-4 horas la primera vez para todo el catálogo. Hacerlo asincrónico, no bloqueante.
+
+### Qué evitar
+
+- Aplicar boost antes de reconstruir el baseline — el problema actual es que el baseline está mal.
+- Reemplazar el ranking actual sin haber archivado el anterior (snapshot obligatorio antes de drop).
 - Aplicar boost al ELO de duels (rompería balance competitivo).
-- Boost por encima de **1.50** sin OK del humano (decisión del humano fijó `1.25` como valor por defecto; ese es el target, no improvisar más alto).
-- Asumir género de personajes sin source confiable. Default `unknown` es válido; mejor sin datos que con error.
+- Boost por encima de **1.50** sin OK del humano (`1.25` es el target).
+- Asumir género de personajes sin 2+ sources confiables. Default `unknown` es válido.
+- Añadir SaaS de pago para scraping (Bright Data si está disponible OSS, perfecto; si no, fetch HTTP directo).
+- Publicar el ranking nuevo sin la cross-validation contra personajes obviamente top-tier.
 
 ## Sprint 24 — Share cards (OG image generation)
 
