@@ -6,12 +6,36 @@ import { AuthProvider } from './contexts/AuthContext.jsx'
 import { SoundProvider } from './contexts/SoundContext.jsx'
 import { queryClient } from './lib/queryClient.js'
 import { initSentry } from './lib/sentry.js'
-import { initWebVitals } from './lib/vitals.js'
-import { installStaleAssetRecovery } from './lib/staleAssetRecovery.js'
+import {
+  installStaleAssetRecovery,
+  recoverFromStaleAssetError,
+} from './lib/staleAssetRecovery.js'
 import './lib/i18n.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
 import App from './App.jsx'
+
+function startWebVitals() {
+  const loadVitals = () => {
+    import('./lib/vitals.js')
+      .then(({ initWebVitals }) => initWebVitals())
+      .catch(recoverFromStaleAssetError)
+  }
+
+  const scheduleVitals = () => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(loadVitals, { timeout: 3500 })
+      return
+    }
+    window.setTimeout(loadVitals, 0)
+  }
+
+  if (document.readyState === 'complete') {
+    scheduleVitals()
+  } else {
+    window.addEventListener('load', scheduleVitals, { once: true })
+  }
+}
 
 // Primer guardarraíl del bootstrap: si una pestaña antigua o el Service
 // Worker pide un chunk ya reemplazado y Cloudflare responde index.html,
@@ -23,8 +47,9 @@ installStaleAssetRecovery()
 // definida (dev local sin env).
 initSentry()
 
-// Web Vitals → Sentry measurements. En dev sin DSN solo log a consola.
-initWebVitals()
+// Web Vitals → Sentry measurements. Se carga tras load/idle para que la
+// observabilidad no compita con el render inicial.
+startWebVitals()
 
 // QueryClientProvider envuelve el árbol entero para que cualquier
 // página/componente pueda usar useQuery sin pasar props. El cliente vive
