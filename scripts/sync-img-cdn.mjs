@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
-import { existsSync, readdirSync, statSync } from 'node:fs'
-import { dirname, extname, join, relative, resolve } from 'node:path'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { dirname, extname, join, posix, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -17,23 +18,18 @@ const includeAvif =
 const extensions = includeAvif ? [...baseExtensions, '.avif'] : baseExtensions
 const mode = process.argv.includes('--apply')
   ? 'apply'
-  : process.argv.includes('--aws-dry-run')
-    ? 'aws-dry-run'
+  : process.argv.includes('--dry-run') || process.argv.includes('--aws-dry-run')
+    ? 'dry-run'
     : 'plan'
 
 const cdnBaseUrl = normalizeCdnBaseUrl(
   process.env.ANIMESHOWDOWN_IMG_CDN_BASE_URL ||
     process.env.ANIMESHOWDOWN_IMAGE_CDN_BASE_URL,
 )
-const endpoint =
-  process.env.R2_IMG_ENDPOINT ||
-  process.env.R2_ENDPOINT
-const accessKey =
-  process.env.R2_IMG_ACCESS_KEY_ID ||
-  process.env.R2_ACCESS_KEY_ID
+const endpoint = process.env.R2_IMG_ENDPOINT || process.env.R2_ENDPOINT
+const accessKey = process.env.R2_IMG_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID
 const secretKey =
-  process.env.R2_IMG_SECRET_ACCESS_KEY ||
-  process.env.R2_SECRET_ACCESS_KEY
+  process.env.R2_IMG_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY
 const bucket = process.env.R2_IMG_BUCKET
 const prefix = normalizePrefix(
   process.env.R2_IMG_PREFIX ??
@@ -71,6 +67,10 @@ function normalizePrefix(value) {
     .replace(/\/{2,}/g, '/')
 }
 
+function objectKey(relativePath) {
+  return prefix ? posix.join(prefix, relativePath) : relativePath
+}
+
 function walkImages(sourceDir) {
   if (!existsSync(sourceDir)) return []
   const out = []
@@ -86,11 +86,15 @@ function walkImages(sourceDir) {
       const ext = extname(entry.name).toLowerCase()
       if (!extensions.includes(ext)) continue
       const relativePath = relative(sourceDir, fullPath).split(/[\\/]/).join('/')
+      const bytes = readFileSync(fullPath)
       out.push({
         fullPath,
         relativePath,
-        size: statSync(fullPath).size,
+        key: objectKey(relativePath),
+        size: bytes.length,
         ext,
+        sha256: createHash('sha256').update(bytes).digest('hex'),
+        md5: createHash('md5').update(bytes).digest('hex'),
       })
     }
   }
@@ -109,6 +113,26 @@ function formatBytes(bytes) {
   return `${value.toFixed(unit === 0 ? 0 : 1)}${units[unit]}`
 }
 
+function mimeType(file) {
+  switch (file.ext) {
+    case '.avif':
+      return 'image/avif'
+    case '.gif':
+      return 'image/gif'
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg'
+    case '.png':
+      return 'image/png'
+    case '.svg':
+      return 'image/svg+xml'
+    case '.webp':
+      return 'image/webp'
+    default:
+      return 'application/octet-stream'
+  }
+}
+
 function requireRemoteConfig() {
   const missing = []
   if (!cdnBaseUrl) missing.push('ANIMESHOWDOWN_IMG_CDN_BASE_URL')
@@ -119,6 +143,41 @@ function requireRemoteConfig() {
   if (missing.length > 0) {
     fail(`faltan variables para ${mode}: ${missing.join(', ')}`)
   }
+}
+
+function awsEnv() {
+  return {
+    ...process.env,
+    AWS_ACCESS_KEY_ID: accessKey,
+    AWS_SECRET_ACCESS_KEY: secretKey,
+    AWS_DEFAULT_REGION: process.env.R2_REGION || 'auto',
+  }
+}
+
+function aws(args, { inherit = false } = {}) {
+  const result = spawnSync('aws', args, {
+    encoding: inherit ? undefined : 'utf8',
+    stdio: inherit ? 'inherit' : 'pipe',
+    env: awsEnv(),
+  })
+  if (result.error) {
+    return { ok: false, status: 1, stderr: result.error.message, stdout: '' }
+  }
+  return {
+    ok: result.status === 0,
+    status: result.status,
+    stdout: result.stdout?.toString() ?? '',
+    stderr: result.stderr?.toString() ?? '',
+  }
+}
+
+function validateAwsCli() {
+  const result = aws(['--version'])
+  if (!result.ok) {
+    fail('aws CLI no esta disponible en PATH')
+    return
+  }
+  console.log((result.stdout || result.stderr).trim())
 }
 
 function validateNoDuplicateRelativePaths(sourceResults) {
@@ -137,42 +196,153 @@ function validateNoDuplicateRelativePaths(sourceResults) {
   }
 }
 
-function syncSource(sourceDir, dryRun) {
-  const args = [
-    's3',
-    'sync',
-    sourceDir,
-    destination,
+function headObject(file) {
+  const result = aws([
+    's3api',
+    'head-object',
+    '--bucket',
+    bucket,
+    '--key',
+    file.key,
     '--endpoint-url',
     endpoint,
-    '--no-progress',
-    '--cache-control',
-    cacheControl,
-    '--exclude',
-    '*',
-  ]
-  for (const ext of extensions) {
-    args.push('--include', `*${ext}`)
-    args.push('--include', `*${ext.toUpperCase()}`)
+  ])
+  if (result.ok) {
+    try {
+      return { state: 'found', body: JSON.parse(result.stdout) }
+    } catch {
+      return { state: 'error', message: `respuesta head-object invalida: ${file.key}` }
+    }
   }
-  if (dryRun) args.push('--dryrun')
+  const stderr = `${result.stderr}\n${result.stdout}`
+  if (/Not Found|NoSuchKey|404|NotFound/i.test(stderr)) {
+    return { state: 'missing' }
+  }
+  return { state: 'error', message: stderr.trim() || `head-object fallo: ${file.key}` }
+}
 
-  console.log(`\n$ aws ${args.map((arg) => (arg.includes(' ') ? `"${arg}"` : arg)).join(' ')}`)
-  const result = spawnSync('aws', args, {
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      AWS_ACCESS_KEY_ID: accessKey,
-      AWS_SECRET_ACCESS_KEY: secretKey,
-      AWS_DEFAULT_REGION: process.env.AWS_DEFAULT_REGION || 'auto',
-    },
-  })
-  if (result.error) {
-    fail(`no se pudo ejecutar aws: ${result.error.message}`)
-    return
+function isRemoteCurrent(file, body) {
+  const metadata = body?.Metadata ?? {}
+  const remoteSha = metadata.sha256 || metadata['x-amz-meta-sha256']
+  if (remoteSha && remoteSha === file.sha256) return true
+  const etag = String(body?.ETag || '').replace(/"/g, '').toLowerCase()
+  return etag === file.md5
+}
+
+function putObject(file) {
+  return aws(
+    [
+      's3api',
+      'put-object',
+      '--bucket',
+      bucket,
+      '--key',
+      file.key,
+      '--body',
+      file.fullPath,
+      '--endpoint-url',
+      endpoint,
+      '--cache-control',
+      cacheControl,
+      '--content-type',
+      mimeType(file),
+      '--metadata',
+      `sha256=${file.sha256}`,
+    ],
+    { inherit: false },
+  )
+}
+
+function remotePlan(files) {
+  const report = {
+    uploaded: 0,
+    planned: 0,
+    skipped: 0,
+    errors: [],
+    uploadSamples: [],
+    skipSamples: [],
   }
-  if (result.status !== 0) {
-    fail(`aws s3 sync fallo con codigo ${result.status}`)
+  for (const file of files) {
+    const head = headObject(file)
+    if (head.state === 'error') {
+      report.errors.push(`${file.relativePath}: ${head.message}`)
+      continue
+    }
+    const current = head.state === 'found' && isRemoteCurrent(file, head.body)
+    if (current) {
+      report.skipped += 1
+      if (report.skipSamples.length < 8) report.skipSamples.push(file.relativePath)
+      continue
+    }
+    report.planned += 1
+    if (report.uploadSamples.length < 8) report.uploadSamples.push(file.relativePath)
+    if (mode !== 'apply') continue
+    const put = putObject(file)
+    if (put.ok) {
+      report.uploaded += 1
+    } else {
+      report.errors.push(
+        `${file.relativePath}: ${put.stderr || put.stdout || `put-object codigo ${put.status}`}`,
+      )
+    }
+  }
+  return report
+}
+
+function printInventory(sourceResults) {
+  const totalFiles = sourceResults.reduce((sum, source) => sum + source.files.length, 0)
+  const totalBytes = sourceResults.reduce(
+    (sum, source) => sum + source.files.reduce((inner, file) => inner + file.size, 0),
+    0,
+  )
+  const byExtension = new Map()
+  for (const { files } of sourceResults) {
+    for (const file of files) {
+      const stats = byExtension.get(file.ext) ?? { files: 0, bytes: 0 }
+      stats.files += 1
+      stats.bytes += file.size
+      byExtension.set(file.ext, stats)
+    }
+  }
+
+  console.log('============================================================')
+  console.log('AnimeShowdown /img CDN sync')
+  console.log(`Modo: ${mode}`)
+  console.log(`CDN base: ${cdnBaseUrl || '(no configurado)'}`)
+  console.log(`Destino: ${destination || '(no configurado)'}`)
+  console.log(`Cache-Control: ${cacheControl}`)
+  console.log(`Delete remoto: desactivado por seguridad`)
+  console.log('------------------------------------------------------------')
+  for (const { sourceDir, files } of sourceResults) {
+    const bytes = files.reduce((sum, file) => sum + file.size, 0)
+    console.log(
+      `${relative(repoRoot, sourceDir)}: ${files.length} archivo(s), ${formatBytes(bytes)}`,
+    )
+  }
+  console.log(`Total: ${totalFiles} archivo(s), ${formatBytes(totalBytes)}`)
+  for (const [ext, stats] of [...byExtension.entries()].sort()) {
+    console.log(`  ${ext}: ${stats.files} archivo(s), ${formatBytes(stats.bytes)}`)
+  }
+  console.log('============================================================')
+}
+
+function printRemoteReport(report) {
+  console.log('------------------------------------------------------------')
+  console.log(`Planned uploads: ${report.planned}`)
+  console.log(`Uploaded: ${report.uploaded}`)
+  console.log(`Skipped by hash: ${report.skipped}`)
+  console.log(`Errors: ${report.errors.length}`)
+  if (report.uploadSamples.length > 0) {
+    console.log(`Upload sample: ${report.uploadSamples.join(', ')}`)
+  }
+  if (report.skipSamples.length > 0) {
+    console.log(`Skip sample: ${report.skipSamples.join(', ')}`)
+  }
+  for (const error of report.errors.slice(0, 10)) {
+    console.error(`ERROR ${error}`)
+  }
+  if (report.errors.length > 10) {
+    console.error(`... ${report.errors.length - 10} error(es) mas`)
   }
 }
 
@@ -181,39 +351,7 @@ const sourceResults = sources.map((sourceDir) => ({
   files: walkImages(sourceDir),
 }))
 validateNoDuplicateRelativePaths(sourceResults)
-
-const totalFiles = sourceResults.reduce((sum, source) => sum + source.files.length, 0)
-const totalBytes = sourceResults.reduce(
-  (sum, source) => sum + source.files.reduce((inner, file) => inner + file.size, 0),
-  0,
-)
-const byExtension = new Map()
-for (const { files } of sourceResults) {
-  for (const file of files) {
-    const stats = byExtension.get(file.ext) ?? { files: 0, bytes: 0 }
-    stats.files += 1
-    stats.bytes += file.size
-    byExtension.set(file.ext, stats)
-  }
-}
-
-console.log('============================================================')
-console.log('AnimeShowdown /img CDN sync')
-console.log(`Modo: ${mode}`)
-console.log(`CDN base: ${cdnBaseUrl || '(no configurado)'}`)
-console.log(`Destino: ${destination || '(no configurado)'}`)
-console.log(`Cache-Control: ${cacheControl}`)
-console.log(`Delete remoto: desactivado por seguridad`)
-console.log('------------------------------------------------------------')
-for (const { sourceDir, files } of sourceResults) {
-  const bytes = files.reduce((sum, file) => sum + file.size, 0)
-  console.log(`${relative(repoRoot, sourceDir)}: ${files.length} archivo(s), ${formatBytes(bytes)}`)
-}
-console.log(`Total: ${totalFiles} archivo(s), ${formatBytes(totalBytes)}`)
-for (const [ext, stats] of [...byExtension.entries()].sort()) {
-  console.log(`  ${ext}: ${stats.files} archivo(s), ${formatBytes(stats.bytes)}`)
-}
-console.log('============================================================')
+printInventory(sourceResults)
 
 if (mode === 'plan') {
   console.log('Plan local OK. No se llamo a AWS ni se subio nada.')
@@ -222,17 +360,17 @@ if (mode === 'plan') {
 
 requireRemoteConfig()
 if (process.exitCode) process.exit(process.exitCode)
+validateAwsCli()
+if (process.exitCode) process.exit(process.exitCode)
 
-const awsVersion = spawnSync('aws', ['--version'], { encoding: 'utf8' })
-if (awsVersion.error || awsVersion.status !== 0) {
-  fail('aws CLI no esta disponible en PATH')
-  process.exit(process.exitCode)
-}
-console.log(awsVersion.stdout.trim() || awsVersion.stderr.trim())
-
-for (const source of sourceResults) {
-  syncSource(source.sourceDir, mode === 'aws-dry-run')
-}
+const files = sourceResults.flatMap((source) => source.files)
+const report = remotePlan(files)
+printRemoteReport(report)
+if (report.errors.length > 0) process.exitCode = 1
 
 if (process.exitCode) process.exit(process.exitCode)
-console.log(`\nImagenes ${mode === 'apply' ? 'sincronizadas' : 'validadas en dry-run'} correctamente.`)
+console.log(
+  mode === 'apply'
+    ? '\nImagenes sincronizadas correctamente.'
+    : '\nDry-run completado. No se subio nada.',
+)

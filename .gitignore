@@ -91,3 +91,6 @@ AUDIT*.md
 # Buzon temporal para imagenes generadas a mano (tanda N)
 # Se vacia al integrar cada tanda; los assets finales viven en frontend/public/assets o frontend/img.
 _inbox/
+
+# Reporte local de cobertura visual
+ASSET_MANIFEST.md

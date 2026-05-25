@@ -44,10 +44,16 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: Check responsive WebP/AVIF variants
+        if: github.event_name == 'pull_request'
+        run: npm run build:images:check
+
       - name: Generate responsive WebP/AVIF variants
+        if: github.event_name != 'pull_request'
         run: npm run build:images
 
       - name: Pack generated variants
+        if: github.event_name != 'pull_request'
         run: |
           find img -type f \( \
             -name '*-300.webp' -o -name '*-600.webp' -o -name '*-1024.webp' -o \
@@ -56,6 +62,7 @@ jobs:
           du -h image-variants.tgz
 
       - name: Upload image variants artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7
         with:
           name: image-variants-${{ github.sha }}

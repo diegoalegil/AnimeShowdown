@@ -1,58 +1,90 @@
 #!/usr/bin/env node
 // ===========================================================================
-// generate-image-variants.mjs — Variantes responsive + AVIF
+// generate-image-variants.mjs
 //
-// Para cada `frontend/img/<Anime>/<slug>.webp` genera:
-//   <slug>-300.webp   (300px de ancho, calidad 82)
-//   <slug>-600.webp   (600px, q 82)
-//   <slug>-1024.webp  (1024px, q 82) — solo si la original es mayor
-//   <slug>-300.avif   (300px, q 50; AVIF cunde más fuerte a baja Q)
-//   <slug>-600.avif   (600px, q 50)
-//   <slug>-1024.avif  (1024px, q 50)
+// Para cada `frontend/img/<Anime>/<slug>.webp` genera variantes responsive:
+//   <slug>-300.webp, <slug>-600.webp, <slug>-1024.webp
+//   <slug>-300.avif, <slug>-600.avif, <slug>-1024.avif
 //
-// Las variantes se generan fuera del build normal. El workflow
-// image-variants.yml corre sharp solo cuando cambia frontend/img/** y publica
-// un artefacto reutilizable. Idempotente: si la variante ya existe y es más
-// nueva que la fuente, no la regenera — así builds incrementales son rápidos.
-//
-// Salida típica para 700 imágenes desde cero: ~2-3 min con sharp en M1.
-// Builds posteriores (cache hit) terminan en <2s.
+// Idempotencia: si la variante existe y es igual o mas nueva que la fuente,
+// se salta. Usa `--check` para auditar cobertura sin escribir archivos y
+// `--strict` para que el check falle si hay variantes missing/stale.
 // ===========================================================================
 
-import { existsSync, readdirSync, statSync, mkdirSync } from 'node:fs'
-import { join, dirname, basename, extname, resolve } from 'node:path'
+import { existsSync, readdirSync, statSync } from 'node:fs'
+import { join, dirname, basename, extname, resolve, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const IMG_DIR = resolve(__dirname, '..', 'img')
+const args = new Set(process.argv.slice(2))
+const CHECK_ONLY = args.has('--check') || args.has('--verify')
+const STRICT = args.has('--strict')
 
-// Anchos objetivo y configuración por formato.
 const ANCHOS = [300, 600, 1024]
+const FORMATOS = ['webp', 'avif']
 const WEBP_QUALITY = 82
 const AVIF_QUALITY = 50
 
-let generadas = 0
-let saltadas = 0
-let errores = 0
+const stats = {
+  fuentes: 0,
+  generadas: 0,
+  saltadas: 0,
+  fresh: 0,
+  missing: 0,
+  stale: 0,
+  errores: 0,
+}
+const samples = {
+  missing: [],
+  stale: [],
+  errores: [],
+}
 
-/**
- * Genera una variante si no existe o es más antigua que la fuente.
- * @param {string} origen path absoluto a la imagen fuente.
- * @param {string} destino path absoluto al archivo destino.
- * @param {number} ancho objetivo en px (no upscale).
- * @param {'webp' | 'avif'} formato salida.
- */
-async function generar(origen, destino, ancho, formato) {
-  // Skip si la variante ya está al día (mismo o más nueva mtime).
-  if (existsSync(destino)) {
-    const srcM = statSync(origen).mtimeMs
-    const dstM = statSync(destino).mtimeMs
-    if (dstM >= srcM) {
-      saltadas++
-      return
-    }
+function sample(kind, value) {
+  if (samples[kind].length < 8) samples[kind].push(value)
+}
+
+function isSourceImage(fileName) {
+  const ext = extname(fileName).toLowerCase()
+  if (!['.webp', '.png', '.jpg', '.jpeg'].includes(ext)) return false
+  return !/-\d+$/.test(basename(fileName, ext))
+}
+
+function variantPath(origen, ancho, formato) {
+  const dir = dirname(origen)
+  const stem = basename(origen, extname(origen))
+  return join(dir, `${stem}-${ancho}.${formato}`)
+}
+
+function variantLabel(path) {
+  return relative(IMG_DIR, path).replace(/\\/g, '/')
+}
+
+function variantState(origen, destino) {
+  if (!existsSync(destino)) return 'missing'
+  const srcM = statSync(origen).mtimeMs
+  const dstM = statSync(destino).mtimeMs
+  return dstM >= srcM ? 'fresh' : 'stale'
+}
+
+function auditVariant(origen, destino) {
+  const state = variantState(origen, destino)
+  stats[state] += 1
+  if (state === 'missing' || state === 'stale') {
+    sample(state, variantLabel(destino))
   }
+  return state
+}
+
+async function generar(origen, destino, ancho, formato) {
+  const state = auditVariant(origen, destino)
+  if (state === 'fresh') {
+    stats.saltadas += 1
+    return
+  }
+  if (CHECK_ONLY) return
 
   try {
     const pipeline = sharp(origen).resize(ancho, null, {
@@ -64,18 +96,26 @@ async function generar(origen, destino, ancho, formato) {
     } else {
       await pipeline.avif({ quality: AVIF_QUALITY, effort: 4 }).toFile(destino)
     }
-    generadas++
+    stats.generadas += 1
   } catch (err) {
-    console.warn(`[img-variants] error procesando ${origen}: ${err.message}`)
-    errores++
+    const msg = `${variantLabel(origen)} -> ${variantLabel(destino)}: ${err.message}`
+    console.warn(`[img-variants] error procesando ${msg}`)
+    stats.errores += 1
+    sample('errores', msg)
   }
 }
 
-/**
- * Procesa todas las imágenes fuente del directorio. Una imagen "fuente" es
- * cualquier .webp/.png/.jpg que NO termine en -300/-600/-1024 (que sería
- * una variante ya generada).
- */
+async function procesarFuente(fullPath) {
+  stats.fuentes += 1
+  for (const ancho of ANCHOS) {
+    await Promise.all(
+      FORMATOS.map((formato) =>
+        generar(fullPath, variantPath(fullPath, ancho, formato), ancho, formato),
+      ),
+    )
+  }
+}
+
 async function procesarDir(dir) {
   if (!existsSync(dir)) return
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -85,32 +125,32 @@ async function procesarDir(dir) {
       await procesarDir(fullPath)
       continue
     }
-    const ext = extname(entry.name).toLowerCase()
-    if (!['.webp', '.png', '.jpg', '.jpeg'].includes(ext)) continue
-
-    const stem = basename(entry.name, ext)
-    // Skip variantes ya generadas (no recursar variantes de variantes).
-    if (/-\d+$/.test(stem)) continue
-
-    for (const ancho of ANCHOS) {
-      const destinoWebp = join(dir, `${stem}-${ancho}.webp`)
-      const destinoAvif = join(dir, `${stem}-${ancho}.avif`)
-      // Lanzamos en paralelo dentro de cada imagen — sharp ya usa threads
-      // internos para encoding. Paralelizar más allá no acelera mucho y
-      // satura memoria en runners pequeños.
-      await Promise.all([
-        generar(fullPath, destinoWebp, ancho, 'webp'),
-        generar(fullPath, destinoAvif, ancho, 'avif'),
-      ])
+    if (entry.isFile() && isSourceImage(entry.name)) {
+      await procesarFuente(fullPath)
     }
   }
 }
 
-console.log(`[img-variants] empezando, fuente: ${IMG_DIR}`)
+function printSamples(kind, label) {
+  if (samples[kind].length === 0) return
+  console.log(`[img-variants] ${label}: ${samples[kind].join(', ')}`)
+}
+
+console.log(
+  `[img-variants] empezando, fuente: ${IMG_DIR}, modo: ${CHECK_ONLY ? 'check' : 'write'}`,
+)
 const t0 = Date.now()
 await procesarDir(IMG_DIR)
 const seg = ((Date.now() - t0) / 1000).toFixed(1)
+const expected = stats.fuentes * ANCHOS.length * FORMATOS.length
 console.log(
-  `[img-variants] hecho en ${seg}s — generadas=${generadas}, saltadas=${saltadas}, errores=${errores}`,
+  `[img-variants] hecho en ${seg}s - fuentes=${stats.fuentes}, expected=${expected}, fresh=${stats.fresh}, missing=${stats.missing}, stale=${stats.stale}, generadas=${stats.generadas}, saltadas=${stats.saltadas}, errores=${stats.errores}`,
 )
-if (errores > 0) process.exit(1)
+console.log(`[img-variants] widths=${ANCHOS.join(',')} formatos=${FORMATOS.join(',')}`)
+printSamples('missing', 'missing sample')
+printSamples('stale', 'stale sample')
+printSamples('errores', 'error sample')
+
+if (stats.errores > 0 || (STRICT && (stats.missing > 0 || stats.stale > 0))) {
+  process.exit(1)
+}
