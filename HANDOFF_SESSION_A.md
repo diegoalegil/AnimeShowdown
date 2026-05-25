@@ -14,7 +14,7 @@ Checkpoints 3h: no hubo checkpoint intermedio porque la sesion termino antes de 
 | Fase | Estado | Notas |
 |---|---|---|
 | Fase 1 - primitivos core + home | DONE | Button, Card y Section creados/aplicados solo en home/Hero. |
-| Fase 2 - MISSING_ART + helper | DONE | Manifest exhaustivo creado; helper solo propuesto en este handoff. |
+| ~~Fase 2 - MISSING_ART + helper~~ | REMOVED | Propuesta de imágenes eliminada a petición del usuario para sustituir por otra nueva. |
 | Fase 3 - primitivos extras audit-driven | DONE | Badge y StatPill creados por duplicacion >3; Avatar/Tooltip skip. |
 | Fase 4 - docs + audit transversal | DONE | JSDoc, catalogo, token audit y page audit creados. |
 
@@ -30,8 +30,8 @@ Checkpoints 3h: no hubo checkpoint intermedio porque la sesion termino antes de 
 | T4 - CTAs inline de secciones con Button | DONE | `cade5386` |
 | T4 - Cards inline con Card | DONE | `7e62c9d1` |
 | T4 - Headers de seccion con Section | DONE | `dc5d82a4` |
-| T5 - `MISSING_ART.md` | DONE | `9959a963` |
-| T6 - propuesta helper colores dominantes | DONE | Documentada abajo; no se creo script por instruccion explicita. |
+| ~~T5 - `MISSING_ART.md`~~ | REMOVED | Archivo y propuesta eliminados por solicitud del usuario. Commit original `9959a963` queda en historial git pero el archivo ya no existe. |
+| ~~T6 - propuesta helper colores dominantes~~ | REMOVED | Eliminada junto con la propuesta de imágenes. |
 | T7 - `Badge.jsx` | DONE | `7c9f5e04` |
 | T8 - `StatPill.jsx` | DONE | `f8dcce79` |
 | T9 - `Avatar.jsx` | SKIP | Ya existe `frontend/src/components/Avatar.jsx` orientado a usuario; no se duplico API. |
@@ -50,7 +50,6 @@ Checkpoints 3h: no hubo checkpoint intermedio porque la sesion termino antes de 
 - Node disponible: `v24.16.0`. No se encontro nvm usable para Node 22 en este entorno Windows.
 - `npm.cmd run build:no-images` falla en PowerShell por asignacion POSIX dentro del script. Se documento como gap de plataforma y se valido con equivalente PowerShell sin modificar `package.json`.
 - `frontend/tailwind.config.js` no existe en esta rama; Tailwind v4 usa tokens en `frontend/src/index.css` con `@theme`. No se creo ni modifico config.
-- `frontend/src/data/*.js` no expone el catalogo hidratado completo de personajes; para el manifest se uso la fuente real `backend/src/main/resources/personajes-seed.json`, documentando el grep.
 - No se generaron imagenes, no se descargaron assets externos y no se tocaron archivos prohibidos.
 - `docs/TOKENS_AUDIT.md` y `docs/PAGES_PRIMITIVE_AUDIT.md` estaban ignorados por reglas existentes de `docs/`; se anadieron con `git add -f`.
 
@@ -71,45 +70,16 @@ Justificacion extras:
 - `Avatar`: skip conservador por componente existente no equivalente para personajes.
 - `Tooltip`: skip por falta de 3+ tooltips inline absolutos.
 
-## MISSING_ART
+## Propuesta de imágenes (REMOVIDA)
 
-Archivo: `MISSING_ART.md`.
+La sección original detallaba el manifest `MISSING_ART.md` y una propuesta de helper para extraer colores dominantes. Ambos fueron eliminados a petición del usuario para sustituirlos por una propuesta nueva.
 
-Conteos:
-
-| Categoria | Total detectado | Missing |
-|---|---:|---:|
-| Personajes | 1052 | 0 |
-| Banners de anime | 105 | 0 |
-| Torneos | 13 | 0 |
-| Eventos | 4 | 0 |
-| Juegos | 6 | 0 |
-
-Resultado: no se generaron prompts porque no habia assets faltantes. Las tablas quedan con `_Sin faltantes_`.
-
-Grep/documentacion de shape real:
-
-```bash
-rg -n 'slug|nombre|anime' backend/src/main/resources/personajes-seed.json frontend/src/data frontend/src/lib
-```
-
-## Propuesta T6 - `scripts/extract-dominant-colors.mjs`
-
-No se creo el script. Propuesta para Sesion C:
-
-1. Descubrir `frontend/img/**/*.webp` con `fs.promises.readdir` recursivo.
-2. Agrupar variantes por slug base quitando sufijos `-300`, `-600`, `-1024`.
-3. No instalar dependencias nuevas.
-4. macOS: usar `child_process.execFile("sips", ["-s", "format", "png", input, "--out", tmp])` para convertir muestras y leer una version pequena.
-5. Linux/Windows: si no hay decodificador node-only disponible, emitir warning y escribir color fallback por slug desde tokens existentes, sin bloquear build.
-6. Salida propuesta: `.codex/dominant-colors.json` para auditoria y, si C lo decide, `frontend/src/data/dominant-colors.generated.json`.
-7. Algoritmo: muestrear grid pequeno, ignorar alpha/negros extremos, cuantizar RGB en buckets de 16, elegir bucket dominante y devolver hex + rgb triplet.
+El commit original que añadió el manifest (`9959a963 docs(art): add missing-art manifest with ChatGPT-ready prompts`) queda en el historial git pero el archivo ya no existe en el árbol de trabajo. La propuesta del helper de colores dominantes queda anulada.
 
 ## Archivos modificados desde origin/main
 
 ```text
 .gitignore
-MISSING_ART.md
 docs/PAGES_PRIMITIVE_AUDIT.md
 docs/TOKENS_AUDIT.md
 docs/UI_PRIMITIVES.md
@@ -122,7 +92,7 @@ frontend/src/components/StatPill.jsx
 frontend/src/pages/InicioPage.jsx
 ```
 
-Total: 12 archivos, por debajo del limite de 20.
+Total operativo: 11 archivos (MISSING_ART.md eliminado posteriormente).
 
 ## Build state
 
