@@ -583,32 +583,34 @@ function MoverChip({ mover }) {
     : 'border-rose-500/40 bg-rose-500/10 text-rose-300'
   const verbo = subio ? 'subió' : 'bajó'
   return (
-    <Link
-      to={`/personajes/${mover.slug}`}
-      className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-2.5 transition-colors hover:border-accent/40"
-    >
-      <PersonajeImg
-        slug={mover.slug}
-        src={mover.imagenUrl}
-        alt={mover.nombre}
-        loading="lazy"
-        sizes="48px"
-        className="h-12 w-9 shrink-0 rounded object-cover object-top"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="line-clamp-1 text-[13px] font-bold text-fg-strong group-hover:text-gold">
-          {mover.nombre}
-        </p>
-        <p className="line-clamp-1 text-[11px] text-fg-muted">{mover.anime}</p>
-      </div>
-      <span
-        className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 font-mono text-[11px] font-extrabold ${colorClase}`}
-        title={`${verbo} ${Math.abs(mover.delta)} posiciones vs hace 7 días`}
+    <li>
+      <Link
+        to={`/personajes/${mover.slug}`}
+        className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-2.5 transition-colors hover:border-accent/40"
       >
-        <Icon className="h-3 w-3" />
-        {Math.abs(mover.delta)}
-      </span>
-    </Link>
+        <PersonajeImg
+          slug={mover.slug}
+          src={mover.imagenUrl}
+          alt={mover.nombre}
+          loading="lazy"
+          sizes="48px"
+          className="h-12 w-9 shrink-0 rounded object-cover object-top"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-1 text-[13px] font-bold text-fg-strong group-hover:text-gold">
+            {mover.nombre}
+          </p>
+          <p className="line-clamp-1 text-[11px] text-fg-muted">{mover.anime}</p>
+        </div>
+        <span
+          className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 font-mono text-[11px] font-extrabold ${colorClase}`}
+          title={`${verbo} ${Math.abs(mover.delta)} posiciones vs hace 7 días`}
+        >
+          <Icon className="h-3 w-3" />
+          {Math.abs(mover.delta)}
+        </span>
+      </Link>
+    </li>
   )
 }
 
@@ -644,7 +646,7 @@ function Tabs({ activo, onChange }) {
             }
             className={`inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-colors ${
               activo === id
-                ? 'bg-accent text-bg'
+                ? 'bg-accent text-white'
                 : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
             }`}
           >
