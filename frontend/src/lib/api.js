@@ -437,6 +437,7 @@ export const endpoints = {
   },
   adminCambiarEstadoComentario: (id, estado) =>
     api.put(`/api/admin/comentarios/${id}/estado`, { estado }),
+  adminAssetCoverage: () => api.get('/api/admin/assets/coverage'),
 
   // Actividad reciente de votos (sprint 2026-05-18). Públicos sin auth.
   // Individual para fichas, batch para listas (Pulso Movers, Favoritos).
