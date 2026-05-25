@@ -61,3 +61,41 @@ test.describe('accessibility smoke', () => {
     })
   }
 })
+
+test.describe('keyboard navigation', () => {
+  test('skip link moves keyboard focus to main content', async ({ page }) => {
+    await preparePage(page)
+    await page.goto('/')
+
+    const skipLink = page.getByRole('link', { name: 'Saltar al contenido' })
+    await page.keyboard.press('Tab')
+    await expect(skipLink).toBeFocused()
+    await expect(skipLink).toBeVisible()
+
+    await page.keyboard.press('Enter')
+    await expect(page.locator('#main-content')).toBeFocused()
+  })
+
+  test('mobile navigation traps focus and closes with Escape', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium-mobile', 'El panel movil solo existe bajo xl.')
+
+    await preparePage(page)
+    await page.goto('/')
+
+    const menuButton = page.getByRole('button', { name: 'Abrir menú' })
+    await menuButton.click()
+
+    const panel = page.getByRole('dialog', { name: 'Menú de navegación' })
+    await expect(panel).toBeVisible()
+    await expect(panel.getByRole('link', { name: 'Inicio' })).toBeFocused()
+
+    await page.keyboard.press('Shift+Tab')
+    const isFocusInsidePanel = () =>
+      page.evaluate(() => document.querySelector('#mobile-nav-panel')?.contains(document.activeElement))
+    await expect.poll(isFocusInsidePanel).toBe(true)
+
+    await page.keyboard.press('Escape')
+    await expect(panel).toBeHidden()
+    await expect(menuButton).toBeFocused()
+  })
+})
