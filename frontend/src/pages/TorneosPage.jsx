@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
+  AlertTriangle,
   CalendarClock,
   CheckCircle2,
   Clock,
@@ -13,6 +14,8 @@ import {
 import TorneoCard from '../components/TorneoCard'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import ResilientEmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { useTorneos } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -73,7 +76,7 @@ function TorneosPage() {
     title: t('torneos.tituloPagina'),
     description: t('torneos.subtitulo'),
   })
-  const { data: torneos, isLoading, isError, error } = useTorneos()
+  const { data: torneos, isLoading, isError, error, refetch } = useTorneos()
   const { user } = useAuth()
 
   const total = torneos?.length ?? 0
@@ -114,11 +117,22 @@ function TorneosPage() {
         {isLoading && <TorneosSkeleton />}
 
         {isError && (
-          <p className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 text-rose-200">
-            {t('torneos.errorLoad', {
+          <ResilientEmptyState
+            icon={AlertTriangle}
+            title="No pudimos cargar torneos"
+            description={t('torneos.errorLoad', {
               error: error?.message || t('torneos.errorFallback'),
             })}
-          </p>
+            action={
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="as-button-primary rounded-lg px-5 py-3 text-sm font-black"
+              >
+                Reintentar
+              </button>
+            }
+          />
         )}
 
         {!isLoading && !isError && total === 0 && (
@@ -229,22 +243,7 @@ function TorneosSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex animate-pulse flex-col gap-4 rounded-xl border border-border bg-surface p-5"
-          aria-hidden="true"
-        >
-          <div className="flex -space-x-3">
-            {Array.from({ length: 5 }).map((_, j) => (
-              <div
-                key={j}
-                className="h-10 w-10 rounded-full border-2 border-surface bg-surface-alt"
-              />
-            ))}
-          </div>
-          <div className="h-5 w-3/4 rounded bg-surface-alt" />
-          <div className="h-3 w-1/2 rounded bg-surface-alt" />
-        </div>
+        <Skeleton key={i} variant="card" />
       ))}
     </div>
   )

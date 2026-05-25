@@ -5,6 +5,7 @@ import {
   getPersonajeBySlug,
   imagenPersonaje,
 } from '../lib/personajes-core'
+import AssetFallback from './AssetFallback'
 import PersonajePlaceholder from './PersonajePlaceholder'
 
 function encodeImageUrl(url) {
@@ -101,11 +102,14 @@ function PersonajeImg({
   const isPlaceholderSrc = !src || src.startsWith(MISSING_IMAGE_PREFIX)
   if (isPlaceholderSrc) {
     return (
-      <span
-        className={`relative block overflow-hidden ${className}`}
-        style={{ backgroundColor: dominantColor, ...style }}
-        aria-busy="true"
-        aria-label={altText}
+      <AssetFallback
+        slug={slug}
+        anime={p?.anime}
+        dominantColor={dominantColor}
+        kind="character"
+        label={altText}
+        className={className}
+        style={style}
       />
     )
   }

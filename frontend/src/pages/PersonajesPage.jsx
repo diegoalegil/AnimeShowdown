@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
+  AlertTriangle,
   ArrowRight,
   Filter,
   LayoutGrid,
@@ -26,6 +27,8 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { endpoints } from '../lib/api'
 import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
@@ -93,7 +96,12 @@ function HighlightMatch({ text, query }) {
 }
 
 function PersonajesPage() {
-  const { data: catalogoRemoto } = useCatalogoPersonajes()
+  const {
+    data: catalogoRemoto,
+    isLoading: isCatalogLoading,
+    isError: isCatalogError,
+    refetch,
+  } = useCatalogoPersonajes()
   const catalogoPersonajes = useMemo(() => {
     if (!Array.isArray(catalogoRemoto) || catalogoRemoto.length === 0) {
       return personajes
@@ -103,6 +111,8 @@ function PersonajesPage() {
       imagen: p.imagenUrl ?? p.imagen,
     }))
   }, [catalogoRemoto])
+  const shouldShowCatalogLoading = isCatalogLoading && catalogoPersonajes.length === 0
+  const shouldShowCatalogError = isCatalogError && catalogoPersonajes.length === 0
 
   const animes = useMemo(() => {
     const counts = {}
@@ -880,7 +890,24 @@ function PersonajesPage() {
           )}
         </p>
 
-        {filtered.length === 0 ? (
+        {shouldShowCatalogLoading ? (
+          <CatalogoSkeletonGrid />
+        ) : shouldShowCatalogError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="No pudimos cargar personajes"
+            description="El catálogo no respondió y no hay datos locales para mostrar. Reintenta para volver a montar el roster."
+            action={
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="as-button-primary rounded-lg px-5 py-3 text-sm font-black"
+              >
+                Reintentar
+              </button>
+            }
+          />
+        ) : filtered.length === 0 ? (
           <EmptyStateScene
             visual={BRAND_VISUALS.empty}
             icon={Search}
@@ -988,6 +1015,16 @@ function PersonajesPage() {
           <SugerirPersonajeCTA titulo="¿No está tu personaje favorito?" />
         </div>
     </VisualPageShell>
+  )
+}
+
+function CatalogoSkeletonGrid() {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <Skeleton key={i} variant="card" />
+      ))}
+    </div>
   )
 }
 
