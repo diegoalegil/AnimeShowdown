@@ -111,6 +111,8 @@ const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage'))
 const Splash = lazyRoute(() => import('./components/Splash'))
 
 const preloadedImporters = new Set()
+const ROUTE_WARMUP_DELAY_MS = 1800
+const ROUTE_WARMUP_GAP_MS = 420
 const idleRoutePreloads = [
   '/',
   '/personajes',
@@ -158,6 +160,23 @@ function preloadRoute(pathname) {
     preloadedImporters.delete(importer)
     recoverFromStaleAssetError(error)
   })
+}
+
+function canWarmupRoutes() {
+  const connection = window.navigator?.connection
+  if (!connection) return true
+  if (connection.saveData) return false
+  return !['slow-2g', '2g'].includes(connection.effectiveType)
+}
+
+function scheduleIdle(callback, timeout = 3000) {
+  if ('requestIdleCallback' in window) {
+    const id = window.requestIdleCallback(callback, { timeout })
+    return () => window.cancelIdleCallback?.(id)
+  }
+
+  const id = window.setTimeout(callback, 0)
+  return () => window.clearTimeout(id)
 }
 
 // Fallback de Suspense compartido con shell mínimo de marca y label legible.
@@ -380,17 +399,41 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const preloadCriticalRoutes = () => {
-      idleRoutePreloads.forEach(preloadRoute)
+    if (!canWarmupRoutes()) return undefined
+
+    let cancelled = false
+    let routeIndex = 0
+    let delayId = 0
+    let cancelIdle = () => {}
+
+    const queueNextRoute = () => {
+      if (cancelled || routeIndex >= idleRoutePreloads.length) return
+      preloadRoute(idleRoutePreloads[routeIndex])
+      routeIndex += 1
+
+      delayId = window.setTimeout(() => {
+        cancelIdle = scheduleIdle(queueNextRoute)
+      }, ROUTE_WARMUP_GAP_MS)
     }
 
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(preloadCriticalRoutes, { timeout: 2500 })
-      return () => window.cancelIdleCallback?.(id)
+    const startRouteWarmup = () => {
+      delayId = window.setTimeout(() => {
+        cancelIdle = scheduleIdle(queueNextRoute, 4000)
+      }, ROUTE_WARMUP_DELAY_MS)
     }
 
-    const id = window.setTimeout(preloadCriticalRoutes, 1200)
-    return () => window.clearTimeout(id)
+    if (document.readyState === 'complete') {
+      startRouteWarmup()
+    } else {
+      window.addEventListener('load', startRouteWarmup, { once: true })
+    }
+
+    return () => {
+      cancelled = true
+      window.removeEventListener('load', startRouteWarmup)
+      window.clearTimeout(delayId)
+      cancelIdle()
+    }
   }, [])
 
   return (
