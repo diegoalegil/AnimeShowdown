@@ -23,6 +23,8 @@ public class PasswordResetService {
     private static final Logger log = LoggerFactory.getLogger(PasswordResetService.class);
     private static final int CODIGO_LENGTH_DIGITS = 6;
     private static final long EXPIRACION_MINUTOS = 15;
+    private static final int MAX_SOLICITUDES_24H = 3;
+    private static final long VENTANA_SOLICITUDES_HORAS = 24;
 
     private final PasswordResetTokenRepository tokenRepo;
     private final UsuarioRepository usuarioRepo;
@@ -60,15 +62,25 @@ public class PasswordResetService {
             return;
         }
         Usuario u = userOpt.get();
-        // Limpia tokens previos del usuario (1 token activo a la vez)
-        tokenRepo.deleteAllByUsuarioId(u.getId());
+        LocalDateTime ahora = LocalDateTime.now();
+        long solicitudesRecientes = tokenRepo.countByUsuarioIdAndCreadoEnAfter(
+                u.getId(),
+                ahora.minusHours(VENTANA_SOLICITUDES_HORAS));
+        if (solicitudesRecientes >= MAX_SOLICITUDES_24H) {
+            log.warn("Forgot-password limitado: email={} userId={}",
+                    LogSanitizer.email(u.getEmail()), u.getId());
+            return;
+        }
+        int tokensPrevios = tokenRepo.marcarTodosComoUsadosByUsuarioId(u.getId());
         String codigo = generarCodigo();
         PasswordResetToken token = new PasswordResetToken(
                 u.getId(),
                 codigo,
-                LocalDateTime.now().plusMinutes(EXPIRACION_MINUTOS));
+                ahora.plusMinutes(EXPIRACION_MINUTOS));
+        token.setCreadoEn(ahora);
         tokenRepo.save(token);
-        log.info("Token de reset generado para userId={} expiraEn={}", u.getId(), token.getExpiraEn());
+        log.info("Token de reset generado para userId={} expiraEn={} tokensPreviosUsados={}",
+                u.getId(), token.getExpiraEn(), tokensPrevios);
         emailService.enviarCodigoReset(u.getEmail(), u.getUsername(), codigo);
     }
 

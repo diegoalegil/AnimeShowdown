@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -8,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.repository.AuditLogRepository;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
+import com.diegoalegil.animeshowdown.repository.PasswordResetTokenRepository;
 import com.diegoalegil.animeshowdown.repository.RefreshTokenRepository;
 import com.diegoalegil.animeshowdown.repository.TotpBackupCodeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -62,6 +65,9 @@ class AuthControllerTest {
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     /** Genera el código TOTP actual para un secret dado, usando la misma lib que el backend. */
     private String generarCodigoActual(String secretPlano) throws Exception {
@@ -436,6 +442,28 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
                 .andExpect(status().isPayloadTooLarge());
+    }
+
+    @Test
+    void forgotPasswordLimitaTresSolicitudesEn24HorasSinRevelarEstado() throws Exception {
+        String email = "reset_rate_limit@example.com";
+        registrarYLoguear("reset_rate_limit", "secreta123", email);
+        Map<String, String> body = Map.of("email", email);
+
+        for (int i = 0; i < 4; i++) {
+            mvc.perform(post("/api/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").exists());
+        }
+
+        Long usuarioId = usuarioRepository.findByEmail(email).orElseThrow().getId();
+        assertEquals(
+                3,
+                passwordResetTokenRepository.countByUsuarioIdAndCreadoEnAfter(
+                        usuarioId,
+                        LocalDateTime.now().minusHours(24)));
     }
 
     @Test
