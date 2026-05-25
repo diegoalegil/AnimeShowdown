@@ -1,12 +1,14 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { UserMinus, UserPlus, Users, UserCheck } from 'lucide-react'
+import { AlertTriangle, UserMinus, UserPlus, Users, UserCheck } from 'lucide-react'
 import Avatar from '../components/Avatar'
 import CardStats from '../components/CardStats'
 import CardTop5 from '../components/CardTop5'
 import CardLogros from '../components/CardLogros'
 import CardDanKyu from '../components/CardDanKyu'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -60,8 +62,22 @@ function UsuarioPage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 items-center justify-center px-5 py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <section className="mx-auto grid w-full max-w-2xl gap-4 px-5 py-12">
+        <Skeleton variant="banner" />
+        <Skeleton variant="line" className="h-20 w-full rounded-lg" />
+        <Skeleton variant="line" className="h-20 w-full rounded-lg" />
+      </section>
+    )
+  }
+
+  if (error && error.status !== 404) {
+    return (
+      <section className="px-5 py-12 sm:px-8 sm:py-16">
+        <EmptyState
+          icon={AlertTriangle}
+          title="No pudimos cargar el perfil"
+          description={error?.message || 'Reintenta en unos segundos para volver a consultar el perfil público.'}
+        />
       </section>
     )
   }

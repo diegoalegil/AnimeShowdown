@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
+  AlertTriangle,
   ArrowRight,
   Calendar,
   ChevronDown,
@@ -32,6 +33,8 @@ import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
 import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -403,11 +406,7 @@ function ListaCategoriasOtaku({ catalogoPersonajes, isCatalogLoading }) {
   }, [catalogoPersonajes])
 
   if (isCatalogLoading && catalogoPersonajes.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    )
+    return <RankingSkeletonGrid />
   }
 
   if (secciones.length === 0) {
@@ -783,9 +782,7 @@ function ListaEloLocal({
       </div>
 
       {isCatalogLoading && rankedElo.length === 0 ? (
-        <div className="flex items-center justify-center py-10">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-        </div>
+        <RankingSkeletonList />
       ) : filtered.length === 0 ? (
         <EmptyStateScene
           visual={BRAND_VISUALS.empty}
@@ -1024,6 +1021,26 @@ function EloSparkline({ points, className = '' }) {
   )
 }
 
+function RankingSkeletonGrid() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {Array.from({ length: 10 }).map((_, i) => (
+        <Skeleton key={i} variant="card" />
+      ))}
+    </div>
+  )
+}
+
+function RankingSkeletonList() {
+  return (
+    <div className="flex flex-col gap-2">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Skeleton key={i} variant="line" className="h-16 w-full rounded-lg" />
+      ))}
+    </div>
+  )
+}
+
 function ListaBackend({ periodo }) {
   const { data, isLoading, isError } = useRankingSegmentado({
     periodo,
@@ -1147,17 +1164,15 @@ function PorAnime({ initialAnime = '' }) {
 
 function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null }) {
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    )
+    return <RankingSkeletonList />
   }
   if (isError) {
     return (
-      <p className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 text-[12px] text-rose-300">
-        No se pudo cargar el ranking. Reintenta en unos segundos.
-      </p>
+      <EmptyState
+        icon={AlertTriangle}
+        title="No pudimos cargar el ranking"
+        description="Reintenta en unos segundos para volver a consultar los votos de esta ventana."
+      />
     )
   }
   if (!items || items.length === 0) {
