@@ -22,3 +22,7 @@
 ## Sprint Auto 01 cierre
 
 - 2026-05-25T22:23:27.8514534+01:00 | done: PR AUTO-01.1, AUTO-01.2, AUTO-01.3, AUTO-01.4, AUTO-01.5, AUTO-01.6 | skipped: 0 | failed: 0 | result: initial JS 181.1KB gzip <= 220KB; CI verde en los PRs; queue de Sprint 1 agotada para cambios seguros de bajo riesgo.
+
+## Sprint Auto 02 - Accessibility WCAG 2.2 AA estricto
+
+- 2026-05-25T22:33:33.9933490+01:00 | PR AUTO-02.1 / #44 | 60ce3129 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS | decisions: se anade skip link visible por teclado y target `main` focusable para navegacion rapida al contenido.
