@@ -9,3 +9,7 @@
 ## Sprint 8 cierre
 
 - 2026-05-25T20:13:34.2946261+01:00 | done: PR 8.1, 8.2, 8.3, 8.4, 8.5 | skipped: 0 | failed: 0 | branch: `sprint-8-image-pipeline` | decision: queue agotada, listo para revision humana sin merge a `main`.
+
+## Sprint Auto 01 - Performance LCP + bundle budget
+
+- 2026-05-25T21:41:34.8205120+01:00 | PR AUTO-01.1 / #38 | 2dea0143 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:bundle` PASS (`initial js` 183.2KB gzip <= 220KB); preview smoke `/`, `/personajes`, `/ranking`, `/games` PASS; CI PASS | decisions: `Splash` carga lazy, Framer no se modulepreload en HTML inicial y el budget mide JS inicial agregado desde `dist/index.html`.
