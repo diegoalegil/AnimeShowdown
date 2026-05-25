@@ -33,7 +33,7 @@ Hoja de ruta del proyecto AnimeShowdown. Estructurada en sprints. Cada sprint vi
    - Verifica antes de commitear (`AGENTS.md` §8).
    - Auto-merge autorizado **solo** a la rama del sprint, nunca a `main`.
 5. Tras cada PR mergeado, actualiza `PROGRESS.md`.
-6. Al cierre del sprint: push final de la rama, parar, y dejar para revisión humana.
+6. Al cierre del sprint: push final de la rama y **continuar con el siguiente sprint sin pausa** (autopilot multi-sprint activo hasta terminar el último), salvo que se active una condición de parada de AGENTS.md §7.
 
 
 **Si la queue del sprint se agota antes del límite de tiempo**: stop, no inventes trabajo.
@@ -161,7 +161,7 @@ Hoja de ruta del proyecto AnimeShowdown. Estructurada en sprints. Cada sprint vi
 - Confirmar `git status` limpio, sin Co-authored-by en commits del sprint, sin rastros públicos remaining.
 
 **Tests:** todos los checks verdes. Si algo rojo, **STOP** y reportar antes de pushear el sprint.
-**Vetos:** no pushear con CI rojo. No autopilot resolver fallos críticos.
+**Vetos:** no pushear con CI rojo persistente (misma causa, >4 reintentos sin progreso). Permitido autopilot resolver fallos reparables (lint, typos, imports, build errors menores). Fallos críticos (seguridad, auth, schema, migración irreversible) → parar y reportar.
 **Acción final:** push de la rama `sprint-0-cleanup`. NO mergear a main.
 
 ---
