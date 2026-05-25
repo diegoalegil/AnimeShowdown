@@ -21,6 +21,11 @@ import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
 import DailyMissionPanel from '../components/DailyMissionPanel'
+import Button from '../components/Button'
+import Card from '../components/Card'
+import Section from '../components/Section'
+import Badge from '../components/Badge'
+import StatPill from '../components/StatPill'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -195,29 +200,16 @@ function SectionBento() {
     'toru_hagakure',
   ]
   return (
-    <motion.section
-      className="px-5 py-16 sm:px-8 sm:py-20"
+    <Section
+      as={motion.section}
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
+      eyebrow="Plataforma"
+      title="Una competición viva creada por fans"
+      description="AnimeShowdown combina duelos rápidos, rankings en vivo y torneos visuales para convertir cada voto en parte de una competición constante. No se trata solo de elegir personajes — se trata de construir, junto a la comunidad, un ranking donde los favoritos pueden caer y los tapados pueden sorprender."
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10 flex flex-col items-start gap-3">
-          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
-            Plataforma
-          </span>
-          <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
-            Una competición viva creada por fans
-          </h2>
-          <p className="max-w-3xl text-[14px] text-fg-muted">
-            AnimeShowdown combina duelos rápidos, rankings en vivo y torneos
-            visuales para convertir cada voto en parte de una competición
-            constante. No se trata solo de elegir personajes — se trata de
-            construir, junto a la comunidad, un ranking donde los favoritos
-            pueden caer y los tapados pueden sorprender.
-          </p>
-        </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <BentoCard
             className="md:col-span-2"
@@ -286,9 +278,8 @@ function SectionBento() {
               </span>
             </div>
           </BentoCard>
-        </div>
       </div>
-    </motion.section>
+    </Section>
   )
 }
 
@@ -346,7 +337,7 @@ function BentoCard({
 }) {
   const t = BENTO_TONES[tone] ?? BENTO_TONES.crimson
   return (
-    <div
+    <Card
       className={`group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-white/8 bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hover} ${className}`}
     >
       {/* Kanji decorativo de background por card */}
@@ -368,11 +359,9 @@ function BentoCard({
           <Icon className="h-5 w-5" />
         </div>
         {eyebrow && (
-          <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${t.eyebrow}`}
-          >
+          <Badge className={t.eyebrow}>
             {eyebrow}
-          </span>
+          </Badge>
         )}
       </div>
       <div className="relative flex flex-col gap-2">
@@ -382,7 +371,7 @@ function BentoCard({
         <p className="text-sm leading-relaxed text-fg-muted">{descripcion}</p>
       </div>
       {children && <div className="relative mt-auto pt-2">{children}</div>}
-    </div>
+    </Card>
   )
 }
 
@@ -395,42 +384,34 @@ function SectionStats({ stats }) {
 
   const hayTorneos = torneos.length > 0
   return (
-    <motion.section
-      className="px-5 py-16 sm:px-8 sm:py-20"
+    <Section
+      as={motion.section}
+      containerClassName="mx-auto max-w-5xl"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.3 }}
     >
-      <div className="mx-auto max-w-5xl">
-        <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
-          <Stat target={stats.totalPersonajes} label="Personajes" />
-          <Stat target={stats.animeUniversos} label="Animes" />
-          <Stat target={stats.eloMax} label="ELO máximo" />
-          {hayTorneos ? (
-            <Stat target={torneos.length} label="Torneos visibles" />
-          ) : (
-            <StatBadge
-              label="Ranking en vivo"
-              hint="Actualizado con cada voto"
-            />
-          )}
-        </div>
+      <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
+        <Stat target={stats.totalPersonajes} label="Personajes" />
+        <Stat target={stats.animeUniversos} label="Animes" />
+        <Stat target={stats.eloMax} label="ELO máximo" />
+        {hayTorneos ? (
+          <Stat target={torneos.length} label="Torneos visibles" />
+        ) : (
+          <StatBadge
+            label="Ranking en vivo"
+            hint="Actualizado con cada voto"
+          />
+        )}
       </div>
-    </motion.section>
+    </Section>
   )
 }
 
 function Stat({ target, label }) {
   return (
-    <div className="flex flex-col gap-2 border-l-2 border-accent/30 pl-4">
-      <p className="font-mono text-4xl font-extrabold tracking-tight text-fg-strong tabular-nums sm:text-5xl">
-        <CountUp target={target} />
-      </p>
-      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
-        {label}
-      </p>
-    </div>
+    <StatPill value={<CountUp target={target} />} label={label} />
   )
 }
 
@@ -453,30 +434,6 @@ function StatBadge({ label, hint }) {
   )
 }
 
-function SectionHeader({ eyebrow, titulo, link }) {
-  return (
-    <div className="mb-8 flex items-end justify-between gap-4">
-      <div className="flex flex-col gap-2">
-        <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-          {eyebrow}
-        </span>
-        <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
-          {titulo}
-        </h2>
-      </div>
-      {link && (
-        <Link
-          to={link.to}
-          className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-gold sm:inline-flex"
-        >
-          {link.label}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      )}
-    </div>
-  )
-}
-
 function SectionTorneosActivos() {
   // Preview de los 3 primeros torneos del backend. Si aún cargan o falla
   // la llamada, la sección se renderiza sin grid (no asusta al usuario
@@ -485,26 +442,34 @@ function SectionTorneosActivos() {
   const torneosPreview = torneos.slice(0, 3)
   if (torneosPreview.length === 0) return null
   return (
-    <motion.section
-      className="px-5 py-16 sm:px-8 sm:py-20"
+    <Section
+      as={motion.section}
+      containerClassName="mx-auto max-w-6xl"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
+      eyebrow="Torneos"
+      title="Brackets en marcha"
+      titleClassName="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight"
+      eyebrowClassName="text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted"
+      headerClassName="mb-8 flex items-end justify-between gap-4"
+      headerAction={
+        <Link
+          to="/torneos"
+          className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-gold sm:inline-flex"
+        >
+          Ver todos
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      }
     >
-      <div className="mx-auto max-w-6xl">
-        <SectionHeader
-          eyebrow="Torneos"
-          titulo="Brackets en marcha"
-          link={{ to: '/torneos', label: 'Ver todos' }}
-        />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {torneosPreview.map((t) => (
             <TorneoCard key={t.slug} torneo={t} />
           ))}
         </div>
-      </div>
-    </motion.section>
+    </Section>
   )
 }
 
@@ -512,44 +477,37 @@ function SectionTop10Ranking({ top10 }) {
   if (top10.length === 0) return null
 
   return (
-    <motion.section
-      className="bg-surface/40 px-5 py-16 sm:px-8 sm:py-20"
+    <Section
+      as={motion.section}
+      className="bg-surface/40"
+      containerClassName="mx-auto max-w-7xl"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
+      eyebrow="Top 10 · ELO"
+      title="Los más fuertes del ranking ELO"
+      description="Estos son los personajes que la comunidad ha llevado a la cima. Cada victoria suma puntos, cada derrota puede cambiarlo todo."
+      descriptionClassName="max-w-2xl text-[14px] text-fg-muted"
+      headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
+      headerAction={
+        <Button
+          as={Link}
+          to="/ranking"
+          variant="secondary"
+          className="group"
+        >
+          Ver ranking completo
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </Button>
+      }
     >
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-col gap-3">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="flex flex-col gap-2">
-              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
-                Top 10 · ELO
-              </span>
-              <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
-                Los más fuertes del ranking ELO
-              </h2>
-              <p className="max-w-2xl text-[14px] text-fg-muted">
-                Estos son los personajes que la comunidad ha llevado a la cima.
-                Cada victoria suma puntos, cada derrota puede cambiarlo todo.
-              </p>
-            </div>
-            <Link
-              to="/ranking"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:bg-accent/20 hover:text-gold"
-            >
-              Ver ranking completo
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-        </div>
         <ol className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
           {top10.map((p, i) => (
             <Top10Card key={p.slug} rank={i + 1} {...p} />
           ))}
         </ol>
-      </div>
-    </motion.section>
+    </Section>
   )
 }
 
@@ -575,7 +533,10 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
           {rank}
         </span>
         <div className="relative z-10 flex w-[140px] flex-col gap-1 sm:w-[160px]">
-          <div className="aspect-[2/3] overflow-hidden rounded-lg border border-border bg-surface transition-all group-hover:-translate-y-1 group-hover:border-accent/40">
+          <Card
+            as="div"
+            className="aspect-[2/3] border border-border bg-surface p-0 transition-all group-hover:-translate-y-1 group-hover:border-accent/40"
+          >
             <PersonajeImg
               slug={slug}
               alt={nombre}
@@ -583,7 +544,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
               fetchPriority={highPriorityImage ? 'high' : 'auto'}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-          </div>
+          </Card>
           <div className="flex items-center justify-between gap-2 px-1">
             <div className="min-w-0">
               <p className="truncate text-[13px] font-bold text-fg-strong group-hover:text-gold">
@@ -649,37 +610,31 @@ const RETO_COLORS = {
 
 function SectionRetosDiarios() {
   return (
-    <motion.section
-      className="bg-surface/30 px-5 py-16 sm:px-8 sm:py-20"
+    <Section
+      as={motion.section}
+      className="bg-surface/30"
+      containerClassName="mx-auto max-w-6xl"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
+      eyebrow={<><span lang="ja">御</span> · Anime Daily Trials</>}
+      title="Retos diarios de anime"
+      description="Pon a prueba tu memoria otaku con modos rápidos: adivina personajes, detecta impostores y protege tu racha diaria."
+      descriptionClassName="max-w-2xl text-[14px] text-fg-muted"
+      headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
+      headerAction={
+        <Button
+          as={Link}
+          to="/games"
+          variant="secondary"
+          className="group"
+        >
+          Jugar retos diarios
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </Button>
+      }
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-8 flex flex-col gap-3">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="flex flex-col gap-2">
-              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
-                <span lang="ja">御</span> · Anime Daily Trials
-              </span>
-              <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
-                Retos diarios de anime
-              </h2>
-              <p className="max-w-2xl text-[14px] text-fg-muted">
-                Pon a prueba tu memoria otaku con modos rápidos: adivina
-                personajes, detecta impostores y protege tu racha diaria.
-              </p>
-            </div>
-            <Link
-              to="/games"
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:bg-accent/20 hover:text-gold"
-            >
-              Jugar retos diarios
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-        </div>
         {/* Layout 1/2/3 cols con cover real de cada juego, altura estable y
             overlay inferior para legibilidad. El kanji decorativo respira
             sobre la imagen. */}
@@ -691,7 +646,8 @@ function SectionRetosDiarios() {
             const visual = getGameVisual(r.to, r.titulo)
             const coverImage = visual?.image || visual?.fallbackImage
             return (
-              <Link
+              <Card
+                as={Link}
                 key={r.to}
                 to={r.to}
                 className={`group relative flex min-h-[13rem] flex-col gap-2 overflow-hidden rounded-xl border bg-surface/85 p-5 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-[0_22px_70px_-22px_rgba(159,29,44,0.65)] backdrop-blur-sm sm:min-h-[14rem] ${colorClasses}`}
@@ -732,40 +688,34 @@ function SectionRetosDiarios() {
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-4 bottom-2 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-accent/60 to-transparent transition-transform duration-300 group-hover:scale-x-100"
                 />
-              </Link>
+              </Card>
             )
           })}
         </div>
-      </div>
-    </motion.section>
+    </Section>
   )
 }
 
 function SectionComoFunciona() {
   return (
-    <motion.section
-      className="bg-dots px-5 py-16 sm:px-8 sm:py-20"
+    <Section
+      as={motion.section}
+      className="bg-dots"
+      containerClassName="mx-auto max-w-6xl"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
+      eyebrow="Cómo funciona"
+      title="Tres pasos para coronar al campeón"
+      headerClassName="mb-10 flex flex-col items-start gap-2"
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10 flex flex-col items-start gap-2">
-          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
-            Cómo funciona
-          </span>
-          <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight">
-            Tres pasos para coronar al campeón
-          </h2>
-        </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {pasos.map((paso, i) => (
             <PasoCard key={paso.titulo} numero={i + 1} {...paso} />
           ))}
         </div>
-      </div>
-    </motion.section>
+    </Section>
   )
 }
 
@@ -808,7 +758,7 @@ const PASO_TONES = {
 function PasoCard({ numero, icon: Icon, titulo, descripcion, tone = 'rose', kanji }) {
   const t = PASO_TONES[tone] ?? PASO_TONES.rose
   return (
-    <div
+    <Card
       className={`group relative overflow-hidden rounded-xl border ${t.border} bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hoverBorder} ${t.hoverShadow}`}
     >
       {kanji && (
@@ -838,7 +788,7 @@ function PasoCard({ numero, icon: Icon, titulo, descripcion, tone = 'rose', kanj
       <p className="relative mt-2 text-sm leading-relaxed text-fg-muted">
         {descripcion}
       </p>
-    </div>
+    </Card>
   )
 }
 
