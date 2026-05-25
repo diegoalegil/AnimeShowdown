@@ -34,6 +34,10 @@
 - 2026-05-26T00:19:59.0103679+01:00 | PR AUTO-02.7 / #54 | d5b79de1 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (57/58 + 1 skipped); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se localiza el live region de Sonner y se anade test de regresion para `aria-live="polite"`.
 - 2026-05-26T00:42:09.1214931+01:00 | PR AUTO-02.8 / #55 | 4760765c | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (81/82 + 1 skipped); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se amplia axe a auth, cuenta, 404 y rutas de usuario; se corrigen contraste y enlaces distinguibles detectados en Logros y Leaderboards.
 
+## Sprint Auto 02 cierre
+
+- 2026-05-26T00:43:14.1573693+01:00 | done: PR AUTO-02.1, AUTO-02.2, AUTO-02.3, AUTO-02.4, AUTO-02.5, AUTO-02.6, AUTO-02.7, AUTO-02.8 | skipped: 0 | failed: 0 | result: axe WCAG A/AA cubre 39 rutas en desktop/mobile mas flujos de teclado y live region; CI verde en todos los PRs; queue segura agotada para Sprint 2.
+
 ## Tanda 3 visual side-stream
 
 - 2026-05-25T23:19:09.0924706+01:00 | PR VISUALS-3.1 / #47 | a6520097 | verify: CI parcial; `sync-personajes` quedo con drift por assets WIP y se corrigio despues con #48, d1f9c63f y 11e0fa2e | decisions: batch visual concurrente aceptado como assets; no se promovieron formas finales como personajes independientes.
