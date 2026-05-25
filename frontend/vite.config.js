@@ -75,9 +75,17 @@ function normalizeImageCdnBaseUrl(value) {
 
 function requireImageCdnBaseUrl() {
   if (IMG_CDN_BASE_URL) return IMG_CDN_BASE_URL
-  throw new Error(
-    'ANIMESHOWDOWN_SKIP_IMG_COPY=true requiere ANIMESHOWDOWN_IMG_CDN_BASE_URL, por ejemplo https://assets.animeshowdown.dev/img',
-  )
+  // Sin CDN URL: bloqueamos SOLO en el deploy real de Cloudflare Pages
+  // (que setea CF_PAGES=1). Vite `build` setea NODE_ENV=production siempre,
+  // incluso en local/CI, así que no podemos usar eso como discriminador.
+  // En local/CI/preview/sandbox: warn + skip redirect. El bundle sigue
+  // siendo válido y los tests E2E no necesitan asset CDN para correr.
+  if (process.env.CF_PAGES === '1') {
+    throw new Error(
+      'ANIMESHOWDOWN_SKIP_IMG_COPY=true requiere ANIMESHOWDOWN_IMG_CDN_BASE_URL en CF Pages deploy, por ejemplo https://assets.animeshowdown.dev/img',
+    )
+  }
+  return null
 }
 
 function ensureImgCdnRedirect(cdnBaseUrl) {
@@ -145,8 +153,12 @@ function imgFolderPlugin() {
       if (SKIP_IMG_COPY) {
         const cdnBaseUrl = requireImageCdnBaseUrl()
         rmSync(outDir, { recursive: true, force: true })
-        ensureImgCdnRedirect(cdnBaseUrl)
-        console.log(`[img-folder] /img/* servido desde CDN externo: ${cdnBaseUrl}/:splat`)
+        if (cdnBaseUrl) {
+          ensureImgCdnRedirect(cdnBaseUrl)
+          console.log(`[img-folder] /img/* servido desde CDN externo: ${cdnBaseUrl}/:splat`)
+        } else {
+          console.log('[img-folder] CDN URL no configurada; redirect /img/* no generado (OK para local/CI)')
+        }
         console.log('[img-folder] frontend/img/ no se copia al artefacto de build')
         return
       }
