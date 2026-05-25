@@ -27,3 +27,12 @@
 
 - 2026-05-25T22:33:33.9933490+01:00 | PR AUTO-02.1 / #44 | 60ce3129 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS | decisions: se anade skip link visible por teclado y target `main` focusable para navegacion rapida al contenido.
 - 2026-05-25T22:52:38.1875367+01:00 | PR AUTO-02.2 / #45 | 5ac43a6f | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (12/12); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se anade gate axe-core para rutas publicas clave y se corrigen contrastes/list semantics detectados por el gate.
+- 2026-05-25T23:19:09.0924706+01:00 | PR AUTO-02.3 / #46 | 23e713ff | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:a11y` PASS (15/16 + 1 skipped); `npm run test:e2e:responsive` PASS (16/16); CI PASS | decisions: se cubre teclado para skip link y foco atrapado/Escape en menu movil.
+
+## Tanda 3 visual side-stream
+
+- 2026-05-25T23:19:09.0924706+01:00 | PR VISUALS-3.1 / #47 | a6520097 | verify: CI parcial; `sync-personajes` quedo con drift por assets WIP y se corrigio despues con #48, d1f9c63f y 11e0fa2e | decisions: batch visual concurrente aceptado como assets; no se promovieron formas finales como personajes independientes.
+- 2026-05-25T23:19:09.0924706+01:00 | PR VISUALS-3.2 / #49 | 6503774a | verify: CI parcial; `sync-personajes` quedo con drift por formas finales y se corrigio despues con d1f9c63f/11e0fa2e | decisions: se restauran SSR base y las formas finales quedan como variantes visuales WIP.
+- 2026-05-25T23:19:09.0924706+01:00 | PR VISUALS-3.3 / #48 | 18136cd7 | verify: `node scripts/sync-personajes.mjs --check` PASS; `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS | decisions: se allowlistean temporalmente slugs de tanda 3 pendientes sin publicarlos como catalogo.
+- 2026-05-25T23:19:09.0924706+01:00 | VISUALS-3.4 | d1f9c63f, 11e0fa2e | verify: `node scripts/sync-personajes.mjs --check` PASS (1086 = 1086) tras `git pull --ff-only`; CI verde en los checks posteriores | decisions: formas finales permanecen WIP; 34 personajes nuevos pasan a seed curado.
+- 2026-05-25T23:19:09.0924706+01:00 | PR #50 | skipped | verify: no mergeado; cerrado | decisions: PR duplicado superseded por d1f9c63f/11e0fa2e para evitar conflicto stale.
