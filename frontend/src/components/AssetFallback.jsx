@@ -1,3 +1,6 @@
+import { useEffect, useRef } from 'react'
+import { trackAssetFallback } from '../lib/asset-tracking'
+
 const GLYPHS = {
   character: (
     <>
@@ -43,11 +46,18 @@ function AssetFallback({
   label,
   style,
 }) {
+  const trackedRef = useRef(false)
   const glyph = GLYPHS[kind] ?? GLYPHS.character
   const initial = readableInitial(label ?? slug ?? anime)
   const fallbackStyle = style
     ? { '--asset-dominant': dominantColor, ...style }
     : { '--asset-dominant': dominantColor }
+
+  useEffect(() => {
+    if (trackedRef.current) return
+    trackedRef.current = true
+    trackAssetFallback(kind)
+  }, [kind])
 
   return (
     <div
