@@ -84,7 +84,13 @@ function TvModePage() {
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-black text-fg-strong">
       <header className="flex items-center justify-between gap-2 border-b border-white/10 bg-black/40 px-3 py-2.5 backdrop-blur-xl sm:px-8 sm:py-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <img src="/logo.webp" alt="" className="h-7 w-7 sm:h-10 sm:w-10" />
+          <img
+            src="/logo.webp"
+            alt=""
+            width={40}
+            height={40}
+            className="h-7 w-7 sm:h-10 sm:w-10"
+          />
           <span className="truncate text-base font-extrabold tracking-tight sm:text-2xl">
             AnimeShowdown
           </span>
