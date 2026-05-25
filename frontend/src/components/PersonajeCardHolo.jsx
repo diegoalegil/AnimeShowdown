@@ -88,9 +88,14 @@ function PersonajeCardHolo({ src, alt, className = '', fallbackSrc }) {
       }}
     >
       {imageFailed ? (
-        <div className="card-holo__img flex h-full w-full flex-col items-center justify-center gap-2 bg-surface px-6 text-center">
-          <span className="text-lg font-semibold text-fg-strong">{alt}</span>
-          <span className="text-xs text-fg-muted">Imagen no disponible</span>
+        <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_50%_20%,rgb(197_161_90_/_0.14),transparent_15rem),linear-gradient(180deg,rgb(255_255_255_/_0.04),rgb(255_255_255_/_0.01)),var(--color-surface)] px-6 text-center">
+          <span className="rounded-full border border-gold/35 bg-gold-soft px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-gold">
+            Carta pendiente
+          </span>
+          <span className="text-xl font-black text-fg-strong">{alt}</span>
+          <span className="max-w-44 text-xs leading-5 text-fg-muted">
+            El asset principal no cargo. Se mantiene la ficha y las acciones.
+          </span>
         </div>
       ) : (
         <img

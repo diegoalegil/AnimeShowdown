@@ -12,7 +12,7 @@ import { getEstadoBadge } from '../lib/torneosQueries'
 import { useSound } from '../contexts/SoundContext'
 import { getTournamentVisual } from '../data/visual-assets'
 import EditorialCover from './EditorialCover'
-import PersonajeImg from './PersonajeImg'
+import PersonajeCutImg from './PersonajeCutImg'
 
 /**
  * Card individual de torneo en /torneos. Antes recibía el torneo legacy
@@ -157,12 +157,11 @@ function TorneoCard({ torneo }) {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">
               <Trophy className="h-4 w-4" />
             </div>
-            <PersonajeImg
+            <PersonajeCutImg
               slug={ganadorAvatar.slug}
-              src={ganadorAvatar.imagenUrl}
               alt={ganadorAvatar.nombre}
               sizes="36px"
-              className="h-9 w-9 rounded-md object-cover object-top"
+              className="h-10 w-10 rounded-lg border border-white/10"
             />
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-fg-muted">
