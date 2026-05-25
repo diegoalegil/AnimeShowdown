@@ -404,19 +404,44 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Estimated PRs:** 3-5.
 **Branch:** `sprint-auto-22-streaks`.
 
-## Sprint 23 — Leaderboards filters
+## Sprint 23 — Ranking popularity refresh: female boost + leaderboards filters
 
-**Goal:** rankings filtrables por anime, género, periodo.
+**Goal:** dar una **ventaja explícita a personajes femeninos en el ranking de popularidad** (decisión de producto del humano) y añadir filtros expresivos al leaderboard. El boost es default-on, configurable, transparente para el usuario.
 
-**Scope:**
-- Filtros: all-time, mensual, semanal.
-- Por anime específico.
-- Por país (si user opt-in compartió).
-- Por género (shonen, seinen, isekai, etc.).
-- Performance: cachear top-100 por filtro.
+**Contexto de producto (decisión del humano):** el ranking actual es neutro y los personajes femeninos quedan infrarrepresentados en el top. Aplicar un multiplicador suave al score de popularidad para que la representación femenina sea más visible. No es "trampa" — es un ajuste de visibilidad consciente, mostrado al usuario en la UI con un badge ("boost"). El ranking ELO competitivo (duels reales) NO se toca; solo el ranking de popularidad/votación pasiva.
 
-**Estimated PRs:** 4-6.
-**Branch:** `sprint-auto-23-leaderboards`.
+**Scope backend:**
+- Migración **V30** (V1-V29 INTOCABLES): añadir columna `personajes.gender` (`enum: female | male | nonbinary | unknown`, default `unknown`, NULL-tolerant).
+- Backfill desde `frontend/src/data/personajes-seed.json` o un mapping nuevo `backend/src/main/resources/data/character-gender-seed.csv`. No pretender exhaustivo: marcar primero los top-200 más votados, el resto queda `unknown`.
+- Endpoint admin `/api/admin/characters/:id/gender` (PATCH) para curaduría manual posterior, con audit log.
+- `PvpEloService` y servicio de ranking popularidad: introducir multiplicador `POPULARITY_FEMALE_BOOST` (default `1.08`, configurable vía `application.properties`). Aplicar **solo en el ranking de popularidad mostrado**, NO en el ELO de duels.
+- `RankingItem` DTO: añadir campo `gender` (string) y `boostApplied` (boolean) para transparencia frontend.
+- Test unitarios: con boost = 1.0 el ranking es idéntico al actual; con 1.08 las femeninas con score próximo al masculino superior pasan adelante.
+
+**Scope frontend:**
+- En `RankingPage` y `LeaderboardsPage`: badge sutil "⚡ boost +8%" en filas con `boostApplied: true`. Tooltip explicativo: "Ranking de popularidad con boost de visibilidad para personajes femeninos."
+- Filtros nuevos del leaderboard:
+  - Periodo: all-time / mensual / semanal.
+  - Por anime específico.
+  - Por género del personaje (`female | male | nonbinary | all`).
+  - Por género del anime (shonen, seinen, isekai, etc.).
+  - Por país (si user opt-in compartió) — opcional.
+- Toggle "modo competitivo" (boost off, ranking raw) en la UI para usuarios que quieran el ranking sin ajuste. Por defecto: boost on.
+- Performance: cachear top-100 por combo de filtro (Caffeine en backend, 5 min TTL).
+- Vista destacada "Top Waifus" usa el event cover `top-waifus.webp` (slot 3.18 de tanda 3).
+
+**Estimated PRs:** 7-9.
+**Branch:** `sprint-auto-23-popularity-boost`.
+
+**Heads-up:**
+- Migración nueva V30 — Codex debe respetar AGENTS.md §2 (V1-V29 intocables).
+- Cambio de lógica de ranking → comunicar claramente al usuario (badge + tooltip). Si el humano lo prefiere completamente silencioso (sin badge), Codex puede quitar el badge pero **mantener el toggle** "modo competitivo" para opt-out.
+- NO tocar `PvpEloService` para duels reales — eso sigue siendo competitivo puro. El boost solo aplica al ranking de popularidad mostrado.
+
+**Qué evitar:**
+- Aplicar boost al ELO de duels (rompería balance competitivo).
+- Boost agresivo (>1.15) — alteraría demasiado el ranking. Mantener 1.05-1.10 razonable.
+- Asumir género de personajes sin source confiable. Default `unknown` es válido; mejor sin datos que con error.
 
 ## Sprint 24 — Share cards (OG image generation)
 
