@@ -936,17 +936,6 @@ function VotarPage() {
           </div>
         </div>
 
-        <DailyMissionPanel compact />
-
-        <VotarQuickModes
-          a={a}
-          b={b}
-          fixedAnime={fixedAnime}
-          fixedPersonaje={fixedPersonaje}
-          hasFixedDuel={exactDuelActive}
-          hasFixedAnime={hasFixedAnime}
-        />
-
         {/* Pregunta principal */}
         <header className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-extrabold leading-tight tracking-tight">
@@ -1057,6 +1046,17 @@ function VotarPage() {
         {sessionStats.total > 0 && sessionStats.total % 10 === 0 && (
           <SessionRecap stats={sessionStats} onShare={handleShareSessionRecap} />
         )}
+
+        <VotarQuickModes
+          a={a}
+          b={b}
+          fixedAnime={fixedAnime}
+          fixedPersonaje={fixedPersonaje}
+          hasFixedDuel={exactDuelActive}
+          hasFixedAnime={hasFixedAnime}
+        />
+
+        <DailyMissionPanel compact />
 
         {/* Atajos + (en sin matches) link a torneos */}
         <div className="flex flex-col items-center gap-2">
