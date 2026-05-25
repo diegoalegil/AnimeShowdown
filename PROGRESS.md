@@ -18,3 +18,7 @@
 - 2026-05-25T22:05:37.0489313+01:00 | PR AUTO-01.4 / #41 | 959bbdc8 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:bundle` PASS (`initial js` 183.2KB gzip <= 220KB); CI PASS | decisions: se anaden dimensiones intrinsecas a imagenes fijas y previews para reducir incertidumbre de layout.
 - 2026-05-25T22:13:51.5420717+01:00 | PR AUTO-01.5 / #42 | 4e2b16c2 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:bundle` PASS (`initial js` 183.4KB gzip <= 220KB); CI PASS | decisions: el warmup de rutas pasa a ejecutarse tras `load`, escalonado en idle y desactivado en Data Saver/2G.
 - 2026-05-25T22:22:00.0827534+01:00 | PR AUTO-01.6 / #43 | d1596c3b | verify: `node --version` v24.16.0; `npm run lint` PASS tras corregir import; `npm run build:no-images` PASS; `npm run test:bundle` PASS (`initial js` 181.1KB gzip <= 220KB); CI PASS | decisions: Web Vitals pasa a import dinamico post-load/idle para sacar observabilidad no critica del JS inicial.
+
+## Sprint Auto 01 cierre
+
+- 2026-05-25T22:23:27.8514534+01:00 | done: PR AUTO-01.1, AUTO-01.2, AUTO-01.3, AUTO-01.4, AUTO-01.5, AUTO-01.6 | skipped: 0 | failed: 0 | result: initial JS 181.1KB gzip <= 220KB; CI verde en los PRs; queue de Sprint 1 agotada para cambios seguros de bajo riesgo.
