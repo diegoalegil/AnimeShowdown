@@ -176,7 +176,7 @@ function CardBadges({ rank, elo, nombre, anime, winRate }) {
         aria-label={`${elo} ELO base estimado`}
       >
         {elo}
-        <span className="ml-0.5 text-[8px] font-bold text-gold/55">·b</span>
+        <span className="ml-0.5 text-[8px] font-bold text-gold">·b</span>
       </span>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3.5 pt-10">
         <h3 className="line-clamp-1 text-sm font-bold text-fg-strong">
