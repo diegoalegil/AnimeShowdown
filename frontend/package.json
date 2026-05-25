@@ -18,6 +18,7 @@
     "assets:cdn:dry-run": "node ../scripts/sync-img-cdn.mjs --dry-run",
     "assets:cdn:sync": "node ../scripts/sync-img-cdn.mjs --apply",
     "test:bundle": "node scripts/check-bundle-budget.mjs",
+    "test:a11y": "playwright test e2e/a11y.spec.js",
     "test:e2e": "playwright test",
     "test:e2e:local": "E2E_BASE_URL=${E2E_BASE_URL:-http://127.0.0.1:4173} E2E_API_URL=${E2E_API_URL:-http://127.0.0.1:8080} playwright test",
     "test:e2e:responsive": "playwright test e2e/home-responsive.spec.js",
