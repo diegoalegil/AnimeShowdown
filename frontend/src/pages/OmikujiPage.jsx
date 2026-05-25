@@ -267,7 +267,7 @@ function OmikujiPage() {
             <button
               type="button"
               onClick={revelar}
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-bg transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
             >
               <Sparkles className="h-4 w-4" />
               Sacar palito
@@ -400,7 +400,7 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
         <button
           type="button"
           onClick={onCompartir}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-bg transition-colors hover:bg-accent-hover"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover"
         >
           <Copy className="h-3.5 w-3.5" />
           Compartir
