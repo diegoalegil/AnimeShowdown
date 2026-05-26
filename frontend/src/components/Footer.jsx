@@ -5,6 +5,7 @@ import { Coffee, Swords } from 'lucide-react'
 import NewsletterForm from './NewsletterForm'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { slugifyAnime } from '../lib/animes'
+import { LEGAL_CONTACT_MAILTO } from '../data/legal'
 
 function GithubIcon({ className }) {
   return (
@@ -19,11 +20,8 @@ function GithubIcon({ className }) {
   )
 }
 
-// Nota de producto: el footer antes mostraba el stack
-// técnico (React 19, Vite, Spring Boot, Java 21…) y un copyright
-// "Diego Alegil — DAM 1.º". Quitamos ambos: el footer público
-// representa la plataforma, no una presentación personal. GitHub queda solo
-// como link discreto en Comunidad bajo la etiqueta "código abierto".
+// Nota de producto: el footer público representa la plataforma, no una ficha
+// técnica. GitHub queda como link discreto bajo la etiqueta "código abierto".
 const productoLinks = [
   { to: '/', i18nKey: 'inicio' },
   { to: '/personajes', i18nKey: 'personajes' },
@@ -177,7 +175,7 @@ function Footer() {
                 </Link>
               ))}
               <a
-                href="mailto:soporte@animeshowdown.dev"
+                href={LEGAL_CONTACT_MAILTO}
                 className="w-fit text-[13px] text-fg transition-colors hover:text-gold"
               >
                 {t('footer.contacto')}

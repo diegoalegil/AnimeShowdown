@@ -1,6 +1,6 @@
 import { Mail, ArrowUpRight } from 'lucide-react'
+import { LEGAL_CONTACT_EMAIL, buildContactMailto } from '../data/legal'
 
-const EMAIL = 'soporte@animeshowdown.dev'
 const SUBJECT = 'AnimeShowdown — Sugerencia de personaje'
 const BODY = `Hola,
 
@@ -12,7 +12,7 @@ Me gustaría que añadieran este personaje al catálogo de AnimeShowdown:
 
 Gracias!`
 
-const MAILTO = `mailto:${EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(BODY)}`
+const MAILTO = buildContactMailto({ subject: SUBJECT, body: BODY })
 
 /**
  * CTA al final de /personajes y /animes para que el visitante sugiera un personaje
@@ -31,8 +31,8 @@ function SugerirPersonajeCTA({ titulo = '¿No está tu personaje favorito?' }) {
             {titulo}
           </h2>
           <p className="text-sm leading-relaxed text-fg-muted">
-            Mándame un correo y lo añado al catálogo. Si tu sugerencia entra,
-            te aviso cuando esté en producción.
+            Escríbenos a {LEGAL_CONTACT_EMAIL} con tu propuesta. Si tu
+            sugerencia entra, te avisamos cuando esté en producción.
           </p>
         </div>
         <a
