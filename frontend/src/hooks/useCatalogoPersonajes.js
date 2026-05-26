@@ -8,6 +8,7 @@ import {
 } from '../lib/personajes-core'
 
 const FIELDS = 'slug,nombre,anime,imagenUrl,imagenColorDominante'
+const CATALOG_STALE_MS = 10 * 60 * 1000
 
 function readPersistedCatalogo() {
   try {
@@ -35,13 +36,12 @@ export function useCatalogoPersonajes() {
     queryKey: ['personajes', 'catalogo', FIELDS],
     queryFn: () => endpoints.personajesCatalogo({ fields: FIELDS }),
     initialData: readPersistedCatalogo,
-    staleTime: Infinity,
+    initialDataUpdatedAt: 0,
+    staleTime: CATALOG_STALE_MS,
     gcTime: 24 * 60 * 60 * 1000,
     retry: 1,
     networkMode: 'always',
   })
-
-  syncCatalogoPersonajes(query.data)
 
   useEffect(() => {
     persistCatalogo(query.data)
