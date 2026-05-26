@@ -21,6 +21,16 @@ class ObservabilityControllerTest {
     @Autowired private MockMvc mvc;
 
     @Test
+    void healthExponeHeadersDeSeguridadBasicos() throws Exception {
+        mvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
+                .andExpect(header().string(
+                        "Permissions-Policy",
+                        "camera=(), microphone=(), geolocation=()"));
+    }
+
+    @Test
     void prometheusExponeMetricasCustomDeAnimeShowdown() throws Exception {
         // El test pasa el secret de scrape (configurado en
         // application-test.properties) en el header X-Prometheus-Token.

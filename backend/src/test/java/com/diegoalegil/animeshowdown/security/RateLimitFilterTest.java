@@ -1,0 +1,114 @@
+package com.diegoalegil.animeshowdown.security;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+
+import com.diegoalegil.animeshowdown.model.Rol;
+import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+class RateLimitFilterTest {
+
+    private ClientIpExtractor clientIpExtractor;
+    private JwtUtil jwtUtil;
+    private UsuarioRepository usuarioRepository;
+    private RateLimitFilter filter;
+
+    @BeforeEach
+    void setUp() {
+        clientIpExtractor = mock(ClientIpExtractor.class);
+        jwtUtil = mock(JwtUtil.class);
+        usuarioRepository = mock(UsuarioRepository.class);
+        when(clientIpExtractor.extract(any(HttpServletRequest.class))).thenReturn("203.0.113.10");
+        filter = new RateLimitFilter(true, clientIpExtractor, jwtUtil, usuarioRepository);
+    }
+
+    @Test
+    void loginPermiteDiezPeticionesPorMinuto() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            assertEquals(200, post("/api/auth/login").getStatus());
+        }
+
+        assertEquals(429, post("/api/auth/login").getStatus());
+    }
+
+    @Test
+    void registroPermiteCincoPeticionesPorMinuto() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            assertEquals(200, post("/api/auth/registro").getStatus());
+        }
+
+        assertEquals(429, post("/api/auth/registro").getStatus());
+    }
+
+    @Test
+    void resetPasswordComparteTresPeticionesPorMinutoEntreForgotYReset() throws Exception {
+        assertEquals(200, post("/api/auth/forgot-password").getStatus());
+        assertEquals(200, post("/api/auth/reset-password").getStatus());
+        assertEquals(200, post("/api/auth/forgot-password").getStatus());
+
+        assertEquals(429, post("/api/auth/reset-password").getStatus());
+    }
+
+    @Test
+    void votosPermitenSesentaPeticionesPorMinuto() throws Exception {
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, post("/api/enfrentamientos/42/votar").getStatus());
+        }
+
+        assertEquals(429, post("/api/personajes/42/votar").getStatus());
+    }
+
+    @Test
+    void newsletterPermiteCincoPeticionesPorHoraSinConsumirLogin() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            assertEquals(200, post("/api/newsletter").getStatus());
+        }
+
+        assertEquals(429, post("/api/newsletter").getStatus());
+        assertEquals(200, post("/api/auth/login").getStatus());
+    }
+
+    @Test
+    void tokenAdminValidoSaltaElRateLimit() throws Exception {
+        Usuario admin = new Usuario("admin", "password", "admin@example.com");
+        admin.setRol(Rol.ADMIN);
+        when(jwtUtil.validarToken("admin-token")).thenReturn(true);
+        when(jwtUtil.extraerUsername("admin-token")).thenReturn("admin");
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+
+        for (int i = 0; i < 10; i++) {
+            assertEquals(200, post("/api/auth/login").getStatus());
+        }
+        assertEquals(429, post("/api/auth/login").getStatus());
+
+        assertEquals(200, post("/api/auth/login", "Bearer admin-token").getStatus());
+    }
+
+    private MockHttpServletResponse post(String path) throws Exception {
+        return post(path, null);
+    }
+
+    private MockHttpServletResponse post(String path, String authorization) throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+        request.setServletPath(path);
+        if (authorization != null) {
+            request.addHeader("Authorization", authorization);
+        }
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(request, response, new MockFilterChain());
+        return response;
+    }
+}

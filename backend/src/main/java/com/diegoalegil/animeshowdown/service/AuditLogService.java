@@ -1,10 +1,15 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -52,20 +57,41 @@ import jakarta.servlet.http.HttpServletRequest;
 public class AuditLogService {
 
     private static final Logger log = LoggerFactory.getLogger(AuditLogService.class);
+    private static final Set<AuditEvento> EVENTOS_SENSIBLES = EnumSet.of(
+            AuditEvento.LOGIN_FAIL,
+            AuditEvento.LOGIN_BLOQUEADO,
+            AuditEvento.CUENTA_BLOQUEADA,
+            AuditEvento.PASSWORD_CAMBIO,
+            AuditEvento.PASSWORD_RESET_SOLICITADO,
+            AuditEvento.PASSWORD_RESET_OK,
+            AuditEvento.REFRESH_TOKEN_REUSE_DETECTADO,
+            AuditEvento.SESIONES_REVOCADAS_TODAS,
+            AuditEvento.TOTP_HABILITADO,
+            AuditEvento.TOTP_DESHABILITADO,
+            AuditEvento.TOTP_LOGIN_FAIL,
+            AuditEvento.TOTP_BACKUP_CODE_USADO,
+            AuditEvento.TOTP_BACKUP_CODES_REGENERADOS,
+            AuditEvento.CUENTA_ELIMINADA);
 
     private final AuditLogRepository repository;
     private final ObjectMapper objectMapper;
     private final ClientIpExtractor clientIpExtractor;
+    private final int retentionDays;
+    private final int sensitiveRetentionDays;
 
     @Autowired
     @Lazy
     private AuditLogService self;
 
     public AuditLogService(AuditLogRepository repository, ObjectMapper objectMapper,
-            ClientIpExtractor clientIpExtractor) {
+            ClientIpExtractor clientIpExtractor,
+            @Value("${app.audit.cleanup.retention-days:90}") int retentionDays,
+            @Value("${app.audit.cleanup.sensitive-retention-days:30}") int sensitiveRetentionDays) {
         this.repository = repository;
         this.objectMapper = objectMapper;
         this.clientIpExtractor = clientIpExtractor;
+        this.retentionDays = Math.max(1, retentionDays);
+        this.sensitiveRetentionDays = Math.max(1, sensitiveRetentionDays);
     }
 
     /**
@@ -136,6 +162,25 @@ public class AuditLogService {
         String ip = request != null ? clientIpExtractor.extract(request) : null;
         String userAgent = request != null ? extraerUserAgent(request) : null;
         repository.save(new AuditLog(evento, usuario, detallesJson, ip, userAgent));
+    }
+
+    @Transactional
+    public PurgeResult purgarRetencion(LocalDateTime referenciaUtc) {
+        LocalDateTime referencia = referenciaUtc != null
+                ? referenciaUtc
+                : LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime cutoffSensibles = referencia.minusDays(sensitiveRetentionDays);
+        LocalDateTime cutoffGeneral = referencia.minusDays(retentionDays);
+
+        long sensibles = repository.deleteByEventoInAndTsBefore(EVENTOS_SENSIBLES, cutoffSensibles);
+        long general = repository.deleteByTsBefore(cutoffGeneral);
+        return new PurgeResult(general, sensibles);
+    }
+
+    public record PurgeResult(long generalDeleted, long sensitiveDeleted) {
+        public long totalDeleted() {
+            return generalDeleted + sensitiveDeleted;
+        }
     }
 
     private String serializar(Map<String, Object> detalles) {
