@@ -747,7 +747,7 @@ function ListaEloLocal({
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Buscar personaje en el ranking"
             placeholder="Buscar personaje…"
-            className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
+            className="as-control min-h-11 w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
           />
           {search && (
             <button
@@ -764,7 +764,7 @@ function ListaEloLocal({
           value={animeFilter}
           onChange={(e) => setAnimeFilter(e.target.value)}
           aria-label="Filtrar por anime"
-          className="as-control w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
+          className="as-control min-h-11 w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
         >
           <option value="">Anime: Todos</option>
           {animeFilterOptions.slice(1).map((a) => (
