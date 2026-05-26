@@ -76,6 +76,13 @@ function tieneImagenPromocionable(item, catalogoPersonajes = personajes) {
   return Boolean(imagen && !imagen.includes('/_missing/') && !imagen.includes('placeholder'))
 }
 
+function buildDuelVoteUrl(a, b) {
+  const slugA = a?.slug
+  const slugB = b?.slug
+  if (!slugA || !slugB) return '/votar'
+  return `/votar?personaje=${encodeURIComponent(slugA)}&rival=${encodeURIComponent(slugB)}`
+}
+
 /**
  * Pulso AnimeShowdown — sección "live" en la home.
  *
@@ -454,7 +461,11 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
   const a = duelo?.personajeA
   const b = duelo?.personajeB
   const tieneDuelo = Boolean(a && b)
-  const destino = tieneDuelo ? '/votar' : torneoEnCurso ? `/torneos/${torneoEnCurso.slug}` : '/votar'
+  const destino = tieneDuelo
+    ? buildDuelVoteUrl(a, b)
+    : torneoEnCurso
+      ? `/torneos/${torneoEnCurso.slug}`
+      : '/votar'
   const titulo = tieneDuelo
     ? 'Vota el duelo que mueve el meta'
     : torneoEnCurso
@@ -776,9 +787,10 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
   }
   const a = duelo.personajeA
   const b = duelo.personajeB
+  const destino = buildDuelVoteUrl(a, b)
   return (
     <Link
-      to="/votar"
+      to={destino}
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
     >
       <CardEyebrow icon={Sparkles} label="Duelo abierto" tono="text-gold" />
