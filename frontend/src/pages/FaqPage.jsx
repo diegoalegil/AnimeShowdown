@@ -6,6 +6,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, faqPageSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { EmptyStateScene } from '../components/VisualSystem'
+import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_MAILTO } from '../data/legal'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -73,8 +74,7 @@ const FAQ = [
   {
     categoria: 'Soporte',
     pregunta: '¿Quién está detrás del proyecto?',
-    respuesta:
-      'AnimeShowdown lo mantiene una persona en sus horas libres, desde Tenerife. Si tienes una idea, un bug o quieres saludar, escribe a soporte@animeshowdown.dev.',
+    respuesta: `AnimeShowdown es un proyecto independiente. Si tienes una idea, un bug o quieres saludar, escribe a ${LEGAL_CONTACT_EMAIL}.`,
   },
   {
     categoria: 'Catálogo',
@@ -150,7 +150,7 @@ function FaqPage() {
           <p className="max-w-2xl text-fg-muted">
             Todo lo que necesitas saber sobre AnimeShowdown sin tener que
             escribirnos. Si tu pregunta no está aquí, puedes mandarnos un
-            correo a soporte@animeshowdown.dev.
+            correo a {LEGAL_CONTACT_EMAIL}.
           </p>
         </motion.header>
 
@@ -218,13 +218,13 @@ function FaqPage() {
             ¿No has encontrado tu respuesta?
           </h2>
           <p className="mt-2 text-[13px] text-fg-muted">
-            Escríbenos a soporte@animeshowdown.dev — leemos todo. Si
+            Escríbenos a {LEGAL_CONTACT_EMAIL} — leemos todo. Si
             quieres ojear el código o reportar un bug técnico, también
             tenemos repo público en GitHub.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <a
-              href="mailto:soporte@animeshowdown.dev"
+              href={LEGAL_CONTACT_MAILTO}
               className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               Escribir a soporte
