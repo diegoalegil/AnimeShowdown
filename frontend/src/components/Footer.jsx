@@ -99,7 +99,7 @@ function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
           {/* Marca + claim */}
           <div className="flex flex-col gap-3">
-            <Link to="/" className="flex items-center gap-3">
+            <Link to="/" className="inline-flex min-h-11 items-center gap-3">
               <img
                 src="/logo.webp"
                 alt=""
