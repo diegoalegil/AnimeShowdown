@@ -586,7 +586,7 @@ function App() {
       </main>
       {!isFullscreenRoute && <MobileBottomNav />}
       {!isFullscreenRoute && (
-        <div className="pb-28 md:pb-0">
+        <div className="pb-[calc(7rem_+_env(safe-area-inset-bottom))] md:pb-0">
           <Footer />
         </div>
       )}
