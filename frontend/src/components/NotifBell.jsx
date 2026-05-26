@@ -96,7 +96,11 @@ function NotifBell() {
 }
 
 function NotifDropdown({ enabled, onClose }) {
-  const { data, isLoading } = useNotificaciones({ size: 10, enabled })
+  const { data, isLoading } = useNotificaciones({
+    size: 10,
+    enabled,
+    subscribeToPush: false,
+  })
   const marcarLeida = useMarcarLeida()
   const marcarTodasLeidas = useMarcarTodasLeidas()
   const navigate = useNavigate()
