@@ -70,7 +70,23 @@
     "subtitulo": "1v1 duels, live ELO ranking and new tournaments every week. Your vote moves the ranking.",
     "ctaTorneos": "Start voting",
     "ctaRanking": "View ranking",
-    "features": "Vote duels · Decide rankings · Compete in tournaments"
+    "features": "Vote duels · Decide rankings · Compete in tournaments",
+    "torneoDestacado": "Featured tournament",
+    "verComunidad": "View community",
+    "votesAria": "Recent community votes",
+    "votesNow": "Now",
+    "votesFallbackUser": "someone",
+    "votesAction": "voted for",
+    "timeNow": "now",
+    "timeMinutes": "{{count}} min ago",
+    "timeHours": "{{count}} h ago",
+    "timeToday": "today",
+    "stats": {
+      "personajes": "Characters",
+      "torneos": "Tournaments",
+      "universos": "Universes",
+      "eloMaximo": "Max ELO"
+    }
   },
   "torneos": {
     "tituloPagina": "Tournaments",
@@ -105,6 +121,17 @@
   "personajes": {
     "tituloPagina": "Characters",
     "subtituloPagina": "Full catalog with stats by anime."
+  },
+  "mobileNav": {
+    "ariaLabel": "Main mobile navigation",
+    "mission": {
+      "completedTitle": "Ritual complete",
+      "completedDetail": "Streak protected. Another round comes tomorrow.",
+      "todayTitle": "Today's mission",
+      "votesDetail": "{{count}} votes left to close the arena.",
+      "gamesDetail": "Complete 1 daily trial to keep the rhythm.",
+      "rankingDetail": "See how the ranking moved after voting."
+    }
   },
   "comun": {
     "cargando": "Loading…",
