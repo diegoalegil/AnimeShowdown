@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -8,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -25,6 +28,7 @@ import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.repository.AuditLogRepository;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
+import com.diegoalegil.animeshowdown.repository.PasswordResetTokenRepository;
 import com.diegoalegil.animeshowdown.repository.RefreshTokenRepository;
 import com.diegoalegil.animeshowdown.repository.TotpBackupCodeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -62,6 +66,9 @@ class AuthControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
     /** Genera el código TOTP actual para un secret dado, usando la misma lib que el backend. */
     private String generarCodigoActual(String secretPlano) throws Exception {
         long counter = Math.floorDiv(new SystemTimeProvider().getTime(), 30);
@@ -85,6 +92,19 @@ class AuthControllerTest {
                 .andReturn();
         String token = json.readTree(loginRes.getResponse().getContentAsString()).get("token").asText();
         return new Sesion(token, username, password);
+    }
+
+    private static String dataUri(String mime, byte[] bytes) {
+        return "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
+    }
+
+    private static byte[] pngBytes(int size) {
+        byte[] bytes = new byte[size];
+        byte[] signature = new byte[] {
+                (byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A
+        };
+        System.arraycopy(signature, 0, bytes, 0, Math.min(signature.length, bytes.length));
+        return bytes;
     }
 
     @Test
@@ -342,7 +362,7 @@ class AuthControllerTest {
     @Test
     void putAvatarAceptaDataUriImagenPermitida() throws Exception {
         Sesion sesion = registrarYLoguear("avatar_data_uri", "secreta123", "avatar_data_uri@example.com");
-        String avatar = "data:image/jpeg;base64,AQID";
+        String avatar = dataUri("image/png", pngBytes(32));
 
         mvc.perform(put("/api/auth/me/avatar")
                 .header("Authorization", "Bearer " + sesion.token())
@@ -350,6 +370,54 @@ class AuthControllerTest {
                 .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.avatarUrl").value(avatar));
+    }
+
+    @Test
+    void putAvatarRechazaMimeSpoofAunqueDeclarePng() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_mime_spoof", "secreta123", "avatar_mime_spoof@example.com");
+        String avatar = dataUri("image/png", "not-a-png".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
+                .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void putAvatarRechazaBase64ConPaddingMalo() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_bad_padding", "secreta123", "avatar_bad_padding@example.com");
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "avatarUrl", "data:image/png;base64,AQID="))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void putAvatarRechazaDataUriSinBytes() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_zero_bytes", "secreta123", "avatar_zero_bytes@example.com");
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "avatarUrl", "data:image/png;base64,"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void putAvatarAceptaDataUriExactamenteDosMb() throws Exception {
+        Sesion sesion = registrarYLoguear("avatar_exact_2mb", "secreta123", "avatar_exact_2mb@example.com");
+        String avatar = dataUri("image/png", pngBytes(2 * 1024 * 1024));
+
+        mvc.perform(put("/api/auth/me/avatar")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -374,6 +442,28 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("avatarUrl", avatar))))
                 .andExpect(status().isPayloadTooLarge());
+    }
+
+    @Test
+    void forgotPasswordLimitaTresSolicitudesEn24HorasSinRevelarEstado() throws Exception {
+        String email = "reset_rate_limit@example.com";
+        registrarYLoguear("reset_rate_limit", "secreta123", email);
+        Map<String, String> body = Map.of("email", email);
+
+        for (int i = 0; i < 4; i++) {
+            mvc.perform(post("/api/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").exists());
+        }
+
+        Long usuarioId = usuarioRepository.findByEmail(email).orElseThrow().getId();
+        assertEquals(
+                3,
+                passwordResetTokenRepository.countByUsuarioIdAndCreadoEnAfter(
+                        usuarioId,
+                        LocalDateTime.now().minusHours(24)));
     }
 
     @Test

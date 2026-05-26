@@ -22,8 +22,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.diegoalegil.animeshowdown.dto.CambioPasswordRequest;
@@ -544,7 +546,8 @@ public class AuthController {
     }
 
     private static ResponseEntity<?> validarAvatarDataUri(String avatarUrl) {
-        if (!AVATAR_DATA_URI_PATTERN.matcher(avatarUrl).find()) {
+        Matcher matcher = AVATAR_DATA_URI_PATTERN.matcher(avatarUrl);
+        if (!matcher.find()) {
             return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                     .body("Formato de avatar no permitido. Usa PNG, JPEG o WebP.");
         }
@@ -558,13 +561,51 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                     .body("Avatar demasiado grande (máx 2 MB)");
         }
+        byte[] decoded;
         try {
-            Base64.getDecoder().decode(base64);
+            decoded = Base64.getDecoder().decode(base64);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("avatarUrl base64 inválido");
         }
+        if (decoded.length == 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("avatarUrl data URI vacia");
+        }
+        String mime = matcher.group(1).toLowerCase(Locale.ROOT);
+        if (!avatarBytesCoincidenConMime(mime, decoded)) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                    .body("El contenido del avatar no coincide con el tipo declarado");
+        }
         return null;
+    }
+
+    private static boolean avatarBytesCoincidenConMime(String mime, byte[] bytes) {
+        return switch (mime) {
+            case "png" -> bytes.length >= 8
+                    && (bytes[0] & 0xFF) == 0x89
+                    && bytes[1] == 'P'
+                    && bytes[2] == 'N'
+                    && bytes[3] == 'G'
+                    && bytes[4] == 0x0D
+                    && bytes[5] == 0x0A
+                    && bytes[6] == 0x1A
+                    && bytes[7] == 0x0A;
+            case "jpg", "jpeg" -> bytes.length >= 3
+                    && (bytes[0] & 0xFF) == 0xFF
+                    && (bytes[1] & 0xFF) == 0xD8
+                    && (bytes[2] & 0xFF) == 0xFF;
+            case "webp" -> bytes.length >= 12
+                    && bytes[0] == 'R'
+                    && bytes[1] == 'I'
+                    && bytes[2] == 'F'
+                    && bytes[3] == 'F'
+                    && bytes[8] == 'W'
+                    && bytes[9] == 'E'
+                    && bytes[10] == 'B'
+                    && bytes[11] == 'P';
+            default -> false;
+        };
     }
 
     private static long decodedBase64Bytes(String base64) {
