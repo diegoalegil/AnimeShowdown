@@ -68,6 +68,56 @@ export class ApiError extends Error {
 // el backend tardaba en responder, dejando spinners eternos en el frontend.
 const DEFAULT_TIMEOUT_MS = 10000
 
+export function createRequestSignal({ signal, timeoutMs } = {}) {
+  const hasTimeout = Number.isFinite(timeoutMs) && timeoutMs > 0
+  if (!signal && !hasTimeout) {
+    return {
+      signal: undefined,
+      timedOut: () => false,
+      cleanup: () => {},
+    }
+  }
+
+  const controller = new AbortController()
+  const cleanupFns = []
+  let didTimeout = false
+
+  const abortFrom = (sourceSignal) => {
+    if (controller.signal.aborted) return
+    try {
+      controller.abort(sourceSignal?.reason)
+    } catch {
+      controller.abort()
+    }
+  }
+
+  if (signal) {
+    if (signal.aborted) {
+      abortFrom(signal)
+    } else {
+      const onAbort = () => abortFrom(signal)
+      signal.addEventListener('abort', onAbort, { once: true })
+      cleanupFns.push(() => signal.removeEventListener('abort', onAbort))
+    }
+  }
+
+  if (hasTimeout) {
+    const timeoutId = setTimeout(() => {
+      didTimeout = true
+      abortFrom()
+    }, timeoutMs)
+    cleanupFns.push(() => clearTimeout(timeoutId))
+  }
+
+  return {
+    signal: controller.signal,
+    timedOut: () => didTimeout,
+    cleanup: () => {
+      cleanupFns.forEach((fn) => fn())
+    },
+  }
+}
+
 // Promesa singleton para deduplicar refresh paralelos. Si dos peticiones
 // reciben 401 a la vez, ambas comparten el mismo intento de refresh —
 // evitamos cosas raras como "rotar el refresh dos veces" que invalidaría
@@ -236,13 +286,10 @@ async function request(
   path,
   { method = 'GET', body, auth = true, timeoutMs = DEFAULT_TIMEOUT_MS, signal, headers = {} } = {},
 ) {
-  // Si el caller pasa su propio signal lo respetamos; si no, montamos un
-  // AbortController interno con el timeout configurado.
-  const controller = signal ? null : new AbortController()
-  const effectiveSignal = signal ?? controller.signal
-  const timeoutId = controller
-    ? setTimeout(() => controller.abort(), timeoutMs)
-    : null
+  // Combinamos el signal externo del caller con el timeout propio.
+  // Antes pasar `signal` desactivaba el timeout y podia dejar requests
+  // colgadas si el caller no abortaba manualmente.
+  const requestSignal = createRequestSignal({ signal, timeoutMs })
 
   let res
   try {
@@ -250,7 +297,7 @@ async function request(
       method,
       body,
       headers,
-      signal: effectiveSignal,
+      signal: requestSignal.signal,
       includeAuth: auth,
     })
 
@@ -287,13 +334,16 @@ async function request(
           method,
           body,
           headers,
-          signal: effectiveSignal,
+          signal: requestSignal.signal,
           includeAuth: true,
         })
       }
     }
   } catch (err) {
     if (err.name === 'AbortError') {
+      if (!requestSignal.timedOut()) {
+        throw new ApiError('La petición se canceló', 0, null)
+      }
       throw new ApiError(
         `La petición tardó demasiado (más de ${timeoutMs}ms) y se canceló`,
         0,
@@ -306,7 +356,7 @@ async function request(
       null,
     )
   } finally {
-    if (timeoutId) clearTimeout(timeoutId)
+    requestSignal.cleanup()
   }
 
   const text = await res.text()
@@ -443,8 +493,11 @@ export const endpoints = {
   // Individual para fichas, batch para listas (Pulso Movers, Favoritos).
   votosPeriodoPersonaje: (slug, { dias = 7 } = {}) =>
     api.get(`/api/personajes/${encodeURIComponent(slug)}/votos-periodo?dias=${dias}`, { auth: false }),
-  votosPeriodoBatch: ({ slugs, dias = 7 }) => {
-    const lista = slugs.filter(Boolean).slice(0, 50).join(',')
+  votosPeriodoBatch: ({ slugs = [], dias = 7 } = {}) => {
+    const lista = (Array.isArray(slugs) ? slugs : [])
+      .filter(Boolean)
+      .slice(0, 50)
+      .join(',')
     if (!lista) return Promise.resolve([])
     return api.get(`/api/personajes/votos-periodo?slugs=${encodeURIComponent(lista)}&dias=${dias}`, { auth: false })
   },
