@@ -16,6 +16,28 @@
 /img/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
+# Mismo razonamiento que /img/*: los assets de anime-banners, brand,
+# game-covers, tournament-banners, event-covers, empty-states y error-scenes
+# tienen path estable (slug por anime/torneo/evento) y se sobrescriben
+# entre tandas de arte sin cambiar de nombre. NO pueden ser immutable o el
+# CDN sirve cache stale tras cada update visual (problema observado tras tanda 3).
+/assets/anime-banners/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/brand/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/game-covers/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/tournament-banners/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/event-covers/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/empty-states/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/error-scenes/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# Bundles JS/CSS de Vite tienen hash en el filename (index-B7ScjF8C.js etc.).
+# Sí pueden ser immutable porque el filename cambia con cada build.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
