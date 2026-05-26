@@ -638,7 +638,7 @@ function PersonajesPage() {
           )}
         </div>
 
-        <div className="fixed bottom-20 right-4 z-40 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2 sm:hidden">
+        <div className="fixed bottom-[calc(5rem_+_env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 flex max-w-[calc(100vw_-_2rem)] flex-col items-end gap-2 sm:hidden">
           {activeFilterBadges.length > 0 && (
             <div className="flex max-w-[78vw] flex-wrap justify-end gap-1.5">
               {activeFilterBadges.slice(0, 3).map((badge) => (
