@@ -663,7 +663,7 @@ function PersonajesPage() {
           </button>
         </div>
 
-        <div className="scrollbar-hide -mx-5 mb-6 hidden gap-2 overflow-x-auto px-5 pb-1 sm:flex sm:-mx-0 sm:px-0">
+        <div className="scrollbar-hide scroll-x-affordance scroll-x-fade-mobile -mx-5 mb-6 hidden gap-2 overflow-x-auto px-5 pb-1 sm:flex sm:-mx-0 sm:px-0">
           <button
             type="button"
             onClick={() => seleccionarAnime(null)}

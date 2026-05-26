@@ -981,7 +981,8 @@ function CarruselSimilares({ slug, nombre }) {
       </div>
       <div
         ref={scrollRef}
-        className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 scroll-smooth sm:-mx-8 sm:px-8"
+        aria-label={`Recomendaciones si te gusta ${nombre}`}
+        className="scrollbar-hide scroll-x-affordance scroll-x-fade -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 scroll-smooth sm:-mx-8 sm:px-8"
       >
         {data.map((p) => (
           <div
