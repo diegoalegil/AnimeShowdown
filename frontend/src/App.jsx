@@ -13,6 +13,7 @@ import KonamiCode from './components/KonamiCode'
 import MobileBottomNav from './components/MobileBottomNav'
 import { useCatalogoPersonajes } from './hooks/useCatalogoPersonajes'
 import { recoverFromStaleAssetError } from './lib/staleAssetRecovery'
+import i18n from './lib/i18n'
 
 function lazyRoute(importer) {
   return lazy(() =>
@@ -114,6 +115,7 @@ const Splash = lazyRoute(() => import('./components/Splash'))
 const preloadedImporters = new Set()
 const ROUTE_WARMUP_DELAY_MS = 1800
 const ROUTE_WARMUP_GAP_MS = 420
+const SUPPORTED_ROUTE_LANGS = new Set(['es', 'en', 'ja'])
 const idleRoutePreloads = [
   '/',
   '/personajes',
@@ -178,6 +180,36 @@ function scheduleIdle(callback, timeout = 3000) {
 
   const id = window.setTimeout(callback, 0)
   return () => window.clearTimeout(id)
+}
+
+function normalizeRouteLanguage(value) {
+  const base = value?.toLowerCase?.().split('-')[0]
+  return SUPPORTED_ROUTE_LANGS.has(base) ? base : null
+}
+
+function useQueryLanguageSync(search) {
+  useEffect(() => {
+    const applyDocumentLang = (value) => {
+      document.documentElement.lang = normalizeRouteLanguage(value) ?? 'es'
+    }
+
+    applyDocumentLang(i18n.resolvedLanguage || i18n.language)
+    i18n.on('languageChanged', applyDocumentLang)
+
+    return () => {
+      i18n.off('languageChanged', applyDocumentLang)
+    }
+  }, [])
+
+  useEffect(() => {
+    const requestedLang = normalizeRouteLanguage(new URLSearchParams(search).get('lang'))
+    if (!requestedLang) return
+
+    const currentLang = normalizeRouteLanguage(i18n.resolvedLanguage || i18n.language)
+    if (currentLang === requestedLang) return
+
+    i18n.changeLanguage(requestedLang).catch(() => {})
+  }, [search])
 }
 
 // Fallback de Suspense compartido con shell mínimo de marca y label legible.
@@ -346,6 +378,7 @@ function CatalogoVacio({ onRetry }) {
 function App() {
   const location = useLocation()
   const catalogoQuery = useCatalogoPersonajes()
+  useQueryLanguageSync(location.search)
   // Rutas fullscreen sin chrome global (TV mode, etc.). Si el usuario
   // navega aquí queremos que el viewport sea solo del contenido — sin
   // header global, sin bottom nav móvil, sin footer.
