@@ -11,12 +11,19 @@ function EditorialCover({
   contentClassName = '',
   imageClassName = '',
   compact = false,
+  // Override opcional: si se pasa una URL aquí, se usa en vez de
+  // visual.image. Útil cuando una card representa un universo a través de
+  // su personaje top (carta SSR vertical 2:3) en vez del banner panorámico.
+  imageOverride,
+  // Override del object-position para encuadrar mejor cuando la imagen
+  // tiene una orientación distinta a la esperada por el visual.
+  objectPositionOverride,
 }) {
   const cover = visual ?? {}
-  const image = cover.image || cover.fallbackImage || '/img/stage/home-pulse.webp'
+  const image = imageOverride || cover.image || cover.fallbackImage || '/img/stage/home-pulse.webp'
   const accentRgb = cover.accentRgb ?? '159 29 44'
   const glowRgb = cover.glowRgb ?? '197 161 90'
-  const objectPosition = cover.objectPosition ?? 'center'
+  const objectPosition = objectPositionOverride ?? cover.objectPosition ?? 'center'
 
   return (
     <div
