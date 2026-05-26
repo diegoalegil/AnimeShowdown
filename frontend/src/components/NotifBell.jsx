@@ -19,6 +19,7 @@ import {
   useUnreadCount,
 } from '../hooks/useNotificaciones'
 import { getToken, onTokenChange } from '../lib/api'
+import { formatRelativeSafe } from '../lib/dateUtils'
 
 /**
  * Campanita de notificaciones en el header.
@@ -320,17 +321,9 @@ function NotifItem({ notif, onClick }) {
 
 /** "hace 2 min", "hace 3 h", "hace 5 días", fallback a fecha corta. */
 function formatRelativo(iso) {
-  if (!iso) return ''
-  const fecha = new Date(iso)
-  const diffMs = Date.now() - fecha.getTime()
-  const min = Math.round(diffMs / 60000)
-  if (min < 1) return 'ahora mismo'
-  if (min < 60) return `hace ${min} min`
-  const h = Math.round(min / 60)
-  if (h < 24) return `hace ${h} h`
-  const d = Math.round(h / 24)
-  if (d < 7) return `hace ${d} día${d > 1 ? 's' : ''}`
-  return fecha.toLocaleDateString()
+  return formatRelativeSafe(iso, {
+    dayLabel: (days) => `hace ${days} día${days > 1 ? 's' : ''}`,
+  })
 }
 
 export default NotifBell
