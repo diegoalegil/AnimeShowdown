@@ -57,3 +57,4 @@
 ## Sprint Auto 3.5a - Stability pass
 
 - 2026-05-26T15:57:03.8192508+01:00 | PR AUTO-3.5a.1 / #63 | 797346af | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS | decisions: se combinan timeout interno y signal externo en API shared; `votosPeriodoBatch` y queryKey aceptan slugs undefined/no-array sin romper render.
+- 2026-05-26T16:23:32.5063368+01:00 | PR AUTO-3.5a.2 / #64 | 4f8e0a5 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; main tests PASS; main e2e PASS | decisions: VerifyPage, NewsletterConfirmarPage y Modal2faSetup deduplican efectos one-shot en StrictMode sin descartar la respuesta en vuelo.
