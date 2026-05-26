@@ -416,19 +416,34 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Estimated PRs:** 6-8.
 **Branch:** `sprint-auto-20-achievements`.
 
-## Sprint 21 — Daily challenges system
+## Sprint 21 — Daily challenges system + redesign del calendario daily
 
-**Goal:** desafío diario rotativo para incentivar visita.
+**Goal:** desafío diario rotativo para incentivar visita, **y** redesign visual completo del calendario diario.
 
-**Scope:**
-- Backend: tabla `daily_challenges`, generación diaria server-side.
-- Tipos: "vota X duels", "votar en anime Y", "completa Z game".
+**Heads-up del humano (feedback directo):** el calendario daily actual en la home "se ve VACÍO y FEO". Esta sprint NO es solo backend — debe incluir un redesign visual del calendario completo. Estados llenos vs vacíos diferenciados con personalidad anime, placeholder mientras carga (skeleton), microinteracciones de hover/check, mood premium consistente con el resto del sitio (dark + gold accent).
+
+**Scope backend:**
+- Tabla `daily_challenges`, generación diaria server-side.
+- Tipos: "vota X duels", "votar en anime Y", "completa Z game", "raca completa", "voto por personaje femenino" (sinergia con boost Sprint 23).
 - Recompensa simbólica (badge, XP si aplica, rank boost).
-- UI: card en home + página dedicada `/desafios`.
-- Reset 00:00 UTC.
+- Reset 00:00 UTC con timezone del usuario opcional.
+- Endpoint `/api/daily-challenges/today`, `/api/daily-challenges/claim/:id`.
 
-**Estimated PRs:** 5-7.
+**Scope frontend (redesign del calendario):**
+- Card del desafío en home con preview del reto + progress bar (no card vacía).
+- Calendario de racha tipo heatmap (estilo GitHub) en `/desafios` y `/perfil/stats`.
+- Estados: día completado (check dorado + animación), día actual (glow rojo accent), día perdido (gris), día futuro (vacío con hint).
+- Animación al completar (Framer Motion: scale up + confetti dorado discreto).
+- Tooltip por día mostrando el reto que fue.
+- Empty state cuando no hay challenges activos: ilustración + microcopy con personalidad anime, no "no data".
+- Skeleton mientras carga (variant `card-day`).
+
+**Estimated PRs:** 7-9 (era 5-7 antes del redesign).
 **Branch:** `sprint-auto-21-daily-challenges`.
+**Qué evitar:**
+- Dejar el calendario con casillas vacías por default antes de tener data.
+- Animaciones agresivas (respetar `prefers-reduced-motion`).
+- Reto del día sin preview visible (humano debe saber qué le toca antes de hacer click).
 
 ## Sprint 22 — Streak rewards
 
