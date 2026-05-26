@@ -8,6 +8,7 @@ import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { buscarAnimes, getAnimesCatalogo } from '../lib/animes'
+import { imagenPersonaje } from '../lib/personajes-core'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
@@ -214,6 +215,11 @@ function AnimeTile({ animeData }) {
   const { anime, slug, total, topElo } = animeData
   const { play } = useSound()
   const visual = getAnimeVisual(slug, anime)
+  // Usar la carta SSR del top ELO como cover en lugar del banner panorámico.
+  // El banner suele tener composición horizontal 21:9 y al recortar a h-44
+  // del card pierde a los personajes; la carta SSR es vertical y centrada
+  // en el protagonista, por lo que comunica mejor el universo.
+  const protaCoverImage = topElo?.slug ? imagenPersonaje(topElo.slug) : undefined
   // El visual ya trae accent del propio anime (chakra naranja para Naruto,
   // dorado mar para One Piece, etc.). Usamos eso para el glow del hover.
   const accentRgb = visual?.accentRgb ?? '159 29 44'
@@ -234,6 +240,8 @@ function AnimeTile({ animeData }) {
     >
       <EditorialCover
         visual={visual}
+        imageOverride={protaCoverImage}
+        objectPositionOverride={protaCoverImage ? 'center 18%' : undefined}
         title={anime}
         eyebrow="Universo"
         className="h-44 rounded-none border-0"
