@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { CheckCircle2, Gamepad2, Home, Swords, Trophy, UsersRound } from 'lucide-react'
 import {
   DAILY_GAME_TARGET,
@@ -9,18 +10,18 @@ import {
 } from '../lib/dailyProgress'
 
 const items = [
-  { to: '/', label: 'Inicio', icon: Home },
-  { to: '/personajes', label: 'Personajes', icon: UsersRound },
-  { to: '/votar', label: 'Votar', icon: Swords },
-  { to: '/games', label: 'Juegos', icon: Gamepad2 },
-  { to: '/ranking', label: 'Ranking', icon: Trophy },
+  { to: '/', i18nKey: 'inicio', icon: Home },
+  { to: '/personajes', i18nKey: 'personajes', icon: UsersRound },
+  { to: '/votar', i18nKey: 'votar', icon: Swords },
+  { to: '/games', i18nKey: 'games', icon: Gamepad2 },
+  { to: '/ranking', i18nKey: 'ranking', icon: Trophy },
 ]
 
 function clamp(value, max) {
   return Math.min(Math.max(0, value), max)
 }
 
-function getMissionPrompt(progress) {
+function getMissionPrompt(progress, t) {
   const votes = clamp(progress.votes, DAILY_VOTE_TARGET)
   const games = clamp(progress.gamesCompleted, DAILY_GAME_TARGET)
   const rankingViewed = Boolean(progress.rankingViewed)
@@ -32,8 +33,8 @@ function getMissionPrompt(progress) {
     return {
       to: '/misiones',
       icon: CheckCircle2,
-      title: 'Ritual completo',
-      detail: 'Racha protegida. Mañana hay otra ronda.',
+      title: t('mobileNav.mission.completedTitle'),
+      detail: t('mobileNav.mission.completedDetail'),
       percent: 100,
       completed: true,
     }
@@ -43,8 +44,8 @@ function getMissionPrompt(progress) {
     return {
       to: '/votar',
       icon: Swords,
-      title: 'Misión de hoy',
-      detail: `Faltan ${DAILY_VOTE_TARGET - votes} votos para cerrar la arena.`,
+      title: t('mobileNav.mission.todayTitle'),
+      detail: t('mobileNav.mission.votesDetail', { count: DAILY_VOTE_TARGET - votes }),
       percent,
       completed: false,
     }
@@ -54,8 +55,8 @@ function getMissionPrompt(progress) {
     return {
       to: '/games',
       icon: Gamepad2,
-      title: 'Misión de hoy',
-      detail: 'Completa 1 daily trial para mantener el ritmo.',
+      title: t('mobileNav.mission.todayTitle'),
+      detail: t('mobileNav.mission.gamesDetail'),
       percent,
       completed: false,
     }
@@ -64,17 +65,18 @@ function getMissionPrompt(progress) {
   return {
     to: '/ranking',
     icon: Trophy,
-    title: 'Misión de hoy',
-    detail: 'Mira cómo se movió el ranking después de votar.',
+    title: t('mobileNav.mission.todayTitle'),
+    detail: t('mobileNav.mission.rankingDetail'),
     percent,
     completed: false,
   }
 }
 
 function MobileBottomNav() {
+  const { t } = useTranslation()
   const location = useLocation()
   const [progress, setProgress] = useState(() => readDailyProgress())
-  const mission = useMemo(() => getMissionPrompt(progress), [progress])
+  const mission = useMemo(() => getMissionPrompt(progress, t), [progress, t])
 
   useEffect(
     () =>
@@ -90,7 +92,7 @@ function MobileBottomNav() {
 
   return (
     <nav
-      aria-label="Navegación móvil principal"
+      aria-label={t('mobileNav.ariaLabel')}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-bg/92 pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pt-2 shadow-[0_-18px_60px_-36px_rgb(0_0_0_/_0.95)] backdrop-blur-xl md:hidden"
     >
       <Link
@@ -125,7 +127,7 @@ function MobileBottomNav() {
         </span>
       </Link>
       <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1">
-        {items.map(({ to, label, icon: Icon }) => (
+        {items.map(({ to, i18nKey, icon: Icon }) => (
           <li key={to}>
             <NavLink
               to={to}
@@ -147,7 +149,7 @@ function MobileBottomNav() {
                   />
                 )}
               </span>
-              <span className="max-w-full truncate">{label}</span>
+              <span className="max-w-full truncate">{t(`nav.${i18nKey}`)}</span>
             </NavLink>
           </li>
         ))}
