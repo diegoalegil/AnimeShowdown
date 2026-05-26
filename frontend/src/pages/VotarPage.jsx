@@ -914,7 +914,7 @@ function VotarPage() {
               onClick={() => setFastMode((f) => !f)}
               aria-pressed={fastMode}
               title={fastMode ? 'Auto-siguiente activo · clic para desactivar' : 'Auto-siguiente desactivado · clic para activar'}
-              className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[12px] font-semibold transition-all ${
+              className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[12px] font-semibold transition-all ${
                 fastMode
                   ? 'border-yellow-400/60 bg-yellow-500/10 text-yellow-200'
                   : 'border-border bg-surface text-fg-muted hover:border-yellow-400/40 hover:text-yellow-200'
@@ -927,7 +927,7 @@ function VotarPage() {
               type="button"
               onClick={handleNext}
               disabled={controlsDisabled}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
             >
               <SkipForward className="h-3.5 w-3.5" />
               {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
