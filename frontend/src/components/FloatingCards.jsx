@@ -12,11 +12,16 @@ import { motion, useMotionValue, useReducedMotion, useTransform } from 'framer-m
  * no CTA. El CTA principal sigue siendo el boton "Empieza a votar"
  * del hero central.
  */
+// Cada card decorativa muestra la carta SSR del personaje elegido por el
+// humano para ese universo (no el banner panorámico, que cropeaba mal en
+// el formato vertical 7:10). Si `image` no se define, cae al banner por
+// defecto.
 const cards = [
   {
     id: 'demon-slayer-tl',
     slug: 'demon-slayer',
     title: 'Demon Slayer',
+    image: '/img/Demon_Slayer/mitsuri_kanroji.webp',
     top: '10%',
     left: '4%',
     rotate: -10,
@@ -26,6 +31,7 @@ const cards = [
     id: 'one-piece-tr',
     slug: 'one-piece',
     title: 'One Piece',
+    image: '/img/One_Piece/luffy_gear5.webp',
     top: '9%',
     right: '5%',
     rotate: 8,
@@ -35,37 +41,41 @@ const cards = [
     id: 'jjk-ml',
     slug: 'jujutsu-kaisen',
     title: 'Jujutsu Kaisen',
+    image: '/img/Jujutsu_Kaisen/satoru_gojo.webp',
     top: '36%',
     left: '1%',
     rotate: -6,
     tone: 'electric',
   },
   {
-    id: 'tokyo-ghoul-mr',
-    slug: 'tokyo-ghoul',
-    title: 'Tokyo Ghoul',
+    id: 'naruto-mr',
+    slug: 'naruto',
+    title: 'Naruto',
+    image: '/img/Naruto/naruto_baryon.webp',
     top: '36%',
     right: '1%',
     rotate: 7,
-    tone: 'violet',
+    tone: 'gold',
   },
   {
     id: 'mha-bl',
     slug: 'my-hero-academia',
     title: 'My Hero Academia',
+    image: '/img/My_Hero_Academia/toru_hagakure.webp',
     bottom: '12%',
     left: '6%',
     rotate: 8,
     tone: 'gold',
   },
   {
-    id: 'aot-br',
-    slug: 'attack-on-titan',
-    title: 'Attack on Titan',
+    id: 'death-note-br',
+    slug: 'death-note',
+    title: 'Death Note',
+    image: '/img/Death_Note/light_yagami_kira.webp',
     bottom: '12%',
     right: '7%',
     rotate: -7,
-    tone: 'crimson',
+    tone: 'violet',
   },
 ]
 
@@ -165,7 +175,9 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
   const parallaxX = useTransform(mouseX, (v) => v * 18 * depth)
   const parallaxY = useTransform(mouseY, (v) => v * 12 * depth)
   const tone = tones[card.tone] ?? tones.crimson
-  const bannerUrl = `/assets/anime-banners/${card.slug}.webp`
+  // Si la card define `image` se usa esa (carta SSR del prota elegido por
+  // el humano para representar el universo). Si no, cae al banner clásico.
+  const cardImage = card.image || `/assets/anime-banners/${card.slug}.webp`
 
   return (
     <motion.div
@@ -191,13 +203,15 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
         rotate: { duration: 1.4, delay: 0.5 + index * 0.15 },
       }}
     >
-      {/* Banner como background. object-cover + object-center recorta
-          bien la composicion 16:9 al formato vertical 7:10 de las
-          mini-cards. El banner es decorativo (aria-hidden en el contenedor
-          padre), no necesita alt descriptivo. */}
+      {/* Cover del card: si el universo tiene una carta SSR específica
+          (asignada por el humano para representar mejor el anime que el
+          banner panorámico), se usa esa. Si no, cae al banner. La carta
+          SSR es 2:3 vertical, encaja bien con el formato 7:10 de las
+          mini-cards. Las cards son decorativas (aria-hidden en el padre),
+          no necesitan alt descriptivo. */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url("${bannerUrl}")` }}
+        className="absolute inset-0 bg-cover bg-top"
+        style={{ backgroundImage: `url("${cardImage}")` }}
       />
       {/* Vignette inferior para legibilidad del label */}
       <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/45 to-transparent" />
