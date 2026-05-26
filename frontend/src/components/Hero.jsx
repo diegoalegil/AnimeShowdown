@@ -165,13 +165,13 @@ function Hero({ catalogoPersonajes = [] }) {
           className="as-panel mt-3 grid w-full max-w-3xl grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:grid-cols-4"
           variants={itemVariants}
         >
-          <HeroStat icon={Swords} value={`${totalPersonajes}`} label="Personajes" />
-          <HeroStat icon={Trophy} value={`${torneosVisibles}`} label="Torneos" />
-          <HeroStat icon={Globe2} value={`${universos}`} label="Universos" />
+          <HeroStat icon={Swords} value={`${totalPersonajes}`} label={t('hero.stats.personajes')} />
+          <HeroStat icon={Trophy} value={`${torneosVisibles}`} label={t('hero.stats.torneos')} />
+          <HeroStat icon={Globe2} value={`${universos}`} label={t('hero.stats.universos')} />
           {/* eloMax viene de getStatsPersonaje, que es una estimación
               determinística. La etiqueta evita presentarlo como #1 real del
               ranking competitivo. */}
-          <HeroStat icon={TrendingUp} value={`${eloMax}`} label="ELO máximo" />
+          <HeroStat icon={TrendingUp} value={`${eloMax}`} label={t('hero.stats.eloMaximo')} />
         </motion.div>
         {torneoDestacado && (
           <motion.div
@@ -183,7 +183,7 @@ function Hero({ catalogoPersonajes = [] }) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
-                Torneo destacado
+                {t('hero.torneoDestacado')}
               </p>
               <p className="truncate text-sm font-bold text-fg-strong">
                 {torneoDestacado.nombre}
@@ -193,7 +193,7 @@ function Hero({ catalogoPersonajes = [] }) {
               to={`/torneos/${torneoDestacado.slug}`}
               className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-2 text-[12px] font-black text-bg transition-colors hover:brightness-110"
             >
-              Ver comunidad
+              {t('hero.verComunidad')}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </motion.div>
@@ -204,17 +204,18 @@ function Hero({ catalogoPersonajes = [] }) {
 }
 
 function HeroVoteTicker({ votos }) {
+  const { t } = useTranslation()
   const items = (votos || []).filter((v) => v.ganador).slice(0, 3)
   if (items.length === 0) return null
   return (
     <motion.div
       variants={itemVariants}
       className="flex w-full max-w-2xl flex-col gap-1 rounded-2xl border border-emerald-400/25 bg-bg/55 px-4 py-3 text-left shadow-[0_20px_70px_-45px_rgba(16,185,129,0.55)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-3"
-      aria-label="Votos recientes de la comunidad"
+      aria-label={t('hero.votesAria')}
     >
       <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-emerald-300">
         <Radio className="h-3.5 w-3.5" />
-        Ahora
+        {t('hero.votesNow')}
       </span>
       <div className="min-w-0 flex-1 overflow-hidden">
         <div className="flex animate-marquee gap-8 whitespace-nowrap motion-reduce:animate-none">
@@ -223,8 +224,8 @@ function HeroVoteTicker({ votos }) {
               key={`${voto.fecha}-${voto.ganador.slug}-${index}`}
               className="text-xs font-medium text-fg-muted"
             >
-              <strong className="text-fg-strong">{voto.username ?? 'alguien'}</strong>{' '}
-              votó por{' '}
+              <strong className="text-fg-strong">{voto.username ?? t('hero.votesFallbackUser')}</strong>{' '}
+              {t('hero.votesAction')}{' '}
               <Link
                 to={`/personajes/${voto.ganador.slug}`}
                 className="font-semibold text-gold hover:underline"
@@ -238,7 +239,7 @@ function HeroVoteTicker({ votos }) {
               )}
               {voto.fecha && (
                 <span className="ml-1 text-fg-muted/75">
-                  · {formatRelativo(voto.fecha)}
+                  · {formatRelativo(voto.fecha, t)}
                 </span>
               )}
             </span>
@@ -249,15 +250,15 @@ function HeroVoteTicker({ votos }) {
   )
 }
 
-function formatRelativo(fecha) {
+function formatRelativo(fecha, t) {
   const diff = Date.now() - new Date(fecha).getTime()
-  if (!Number.isFinite(diff) || diff < 0) return 'ahora'
+  if (!Number.isFinite(diff) || diff < 0) return t('hero.timeNow')
   const min = Math.floor(diff / 60_000)
-  if (min < 1) return 'ahora'
-  if (min < 60) return `hace ${min} min`
+  if (min < 1) return t('hero.timeNow')
+  if (min < 60) return t('hero.timeMinutes', { count: min })
   const h = Math.floor(min / 60)
-  if (h < 24) return `hace ${h} h`
-  return 'hoy'
+  if (h < 24) return t('hero.timeHours', { count: h })
+  return t('hero.timeToday')
 }
 
 function HeroStat({ icon: Icon, value, label }) {
