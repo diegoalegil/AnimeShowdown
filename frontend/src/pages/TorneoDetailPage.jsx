@@ -41,9 +41,8 @@ function TorneoDetailPage() {
   const { slug } = useParams()
   const { data: torneo, isLoading, isError, error, refetch } = useTorneoBySlug(slug)
 
-  // useSeo por encima del early-return (Rules of Hooks). Cuando todavía no
-  // hay datos pintamos un title genérico; cuando llegan, los meta tags
-  // se actualizan en el siguiente tick (efecto dependiente de torneo).
+  // useSeo por encima del early-return (Rules of Hooks). Durante la carga
+  // usamos un title temporal no indexable para no emitir un falso 404.
   useSeo(
     torneo
       ? {
@@ -59,7 +58,20 @@ function TorneoDetailPage() {
           image: `/api/og/torneo/${torneo.slug}.png`,
           type: 'website',
         }
-      : { title: 'Torneo' },
+      : isLoading
+        ? {
+            title: 'Cargando torneo',
+            description: 'Preparando bracket de torneo en AnimeShowdown.',
+            canonical: `https://animeshowdown.dev/torneos/${slug}`,
+            noindex: true,
+          }
+        : error?.status === 404
+          ? { title: '404 — Torneo no encontrado', noindex: true }
+          : {
+              title: 'Torneo no disponible',
+              description: 'No se pudo cargar el torneo en AnimeShowdown.',
+              noindex: true,
+            },
   )
 
   if (isLoading) {
