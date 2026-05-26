@@ -435,9 +435,20 @@ function CardSeleccion({
           )
         })}
         {filtrados.length === 0 && (
-          <p className="col-span-full py-8 text-center text-[12px] text-fg-muted">
-            No hay personajes que coincidan con "{query}".
-          </p>
+          <div className="col-span-full flex flex-col items-center gap-3 py-8 text-center">
+            <p className="text-[12px] text-fg-muted">
+              No hay personajes que coincidan con "{query}".
+            </p>
+            {query && (
+              <button
+                type="button"
+                onClick={() => onQuery('')}
+                className="rounded-lg border border-border bg-bg px-3 py-2 text-[12px] font-bold text-fg-strong transition-colors hover:border-accent/50 hover:text-gold"
+              >
+                Limpiar búsqueda
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
