@@ -62,7 +62,13 @@ function AnimeDetailPage() {
           description: `Roster, ranking ELO base interno y stats de ${data.anime} en AnimeShowdown. Top ELO base: ${data.topElo.nombre} (${data.topElo.elo}).`,
           image: `/api/og/anime/${slug}.png`,
         }
-      : { title: '404 — Anime no encontrado', noindex: true },
+      : isLoading
+        ? {
+            title: 'Cargando anime',
+            description: 'Cargando ficha de anime en AnimeShowdown.',
+            noindex: true,
+          }
+        : { title: '404 — Anime no encontrado', noindex: true },
   )
 
   if (!data && isLoading) {

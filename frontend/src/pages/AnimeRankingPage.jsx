@@ -89,7 +89,13 @@ function AnimeRankingPage() {
           canonical: `https://animeshowdown.dev/animes/${slug}/ranking`,
           image: `/api/og/anime/${slug}.png`,
         }
-      : { title: '404 — Ranking de anime no encontrado', noindex: true },
+      : isCatalogLoading
+        ? {
+            title: 'Cargando ranking de anime',
+            description: 'Cargando ranking del universo en AnimeShowdown.',
+            noindex: true,
+          }
+        : { title: '404 — Ranking de anime no encontrado', noindex: true },
   )
 
   if (!data && isCatalogLoading) {
