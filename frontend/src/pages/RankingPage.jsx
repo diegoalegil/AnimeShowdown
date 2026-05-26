@@ -47,6 +47,7 @@ import {
   useRankingMovimientos,
   useRankingSegmentado,
 } from '../hooks/useRanking'
+import { useQueryState } from '../hooks/useQueryState'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { shareOrCopy } from '../lib/share'
 import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
@@ -116,10 +117,8 @@ function RankingPage() {
 
   const initialSearch = searchParams.get('q') ?? ''
   const initialAnimeFilter = searchParams.get('anime') ?? ''
-  const initialTab = searchParams.get('tab')
-  const [tab, setTab] = useState(
-    TABS.some((item) => item.id === initialTab) ? initialTab : 'elo',
-  )
+  const [queryTab, setTab] = useQueryState('tab', 'elo')
+  const tab = TABS.some((item) => item.id === queryTab) ? queryTab : 'elo'
   const consultadoA = useMemo(
     () =>
       new Date().toLocaleTimeString('es-ES', {
