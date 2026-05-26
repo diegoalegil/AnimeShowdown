@@ -469,7 +469,7 @@ function VotarPage() {
         setCasualPairOverride({
           key: casualContextKey,
           pair: hasFixedDuel
-            ? selectRandomPair(catalogoPersonajes)
+            ? [fixedPersonaje, fixedRival]
             : fixedPersonaje
             ? getPairWithFixed(catalogoPersonajes, fixedPersonaje)
             : hasFixedAnime
@@ -491,6 +491,7 @@ function VotarPage() {
     catalogoPersonajes,
     fixedAnime,
     fixedPersonaje,
+    fixedRival,
     hasFixedDuel,
     hasFixedAnime,
   ])
@@ -695,8 +696,6 @@ function VotarPage() {
               handleVoteSuccess(personaje, data, personaje.id === a?.id ? b : a)
             },
             onError: (err) => {
-              voteLockedRef.current = false
-              setVotedFor(null)
               const status = err instanceof ApiError ? err.status : 0
               // 428 Precondition Required = el throttle antifraude pide
               // captcha. Body trae {captchaRequired, provider, sitekey}.
@@ -707,11 +706,15 @@ function VotarPage() {
                   personajeId: personaje.id,
                   personajeNombre: personaje.nombre,
                   personajeSlug: personaje.slug,
+                  personaje,
+                  perdedor: personaje.id === a?.id ? b : a,
                   sitekey: err.body.sitekey || '',
                   anonymous: !user,
                 })
                 return
               }
+              voteLockedRef.current = false
+              setVotedFor(null)
               // 403 con retryAfterSeconds: throttle bloqueó 24h. Sin retry,
               // toast informativo y CTA suave a /login.
               if (status === 403 && err?.body?.retryAfterSeconds) {
@@ -1109,6 +1112,7 @@ function VotarPage() {
                 const ch = captchaChallenge
                 setCaptchaChallenge(null)
                 if (!ch) return
+                voteLockedRef.current = true
                 setVotedFor(ch.personajeSlug)
                 // Re-emitimos el voto con el token. El backend valida
                 // contra Cloudflare y, si OK, registra el voto.
@@ -1122,11 +1126,13 @@ function VotarPage() {
                   {
                     onSuccess: (data) => {
                       handleVoteSuccess(
-                        { slug: ch.personajeSlug, nombre: ch.personajeNombre },
+                        ch.personaje || { slug: ch.personajeSlug, nombre: ch.personajeNombre },
                         data,
+                        ch.perdedor,
                       )
                     },
                     onError: (err) => {
+                      voteLockedRef.current = false
                       setVotedFor(null)
                       toast.error('No se pudo validar el captcha', {
                         description: err?.message || 'Inténtalo de nuevo.',
@@ -1136,6 +1142,7 @@ function VotarPage() {
                 )
               }}
               onClose={() => {
+                voteLockedRef.current = false
                 setCaptchaChallenge(null)
                 setVotedFor(null)
               }}
