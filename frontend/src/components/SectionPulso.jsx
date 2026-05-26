@@ -495,6 +495,31 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
             <span className="font-mono text-2xl font-black text-gold">VS</span>
             <DestacadoAvatar personaje={b} />
           </div>
+        ) : torneoEnCurso ? (
+          // Si no hay duelo concreto pero sí un torneo en curso, mostrar el
+          // banner del torneo (más informativo que el kanji genérico).
+          // Mantenemos el kanji como overlay sutil arriba a la derecha
+          // para conservar identidad visual.
+          <div
+            aria-hidden="true"
+            className="relative h-24 w-40 overflow-hidden rounded-2xl border border-amber-400/30 bg-amber-500/5 sm:h-28 sm:w-48"
+            style={{
+              backgroundImage: `url("/assets/tournament-banners/${torneoEnCurso.slug}.webp")`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-bg/85 via-bg/30 to-transparent"
+            />
+            <span
+              lang="ja"
+              className="absolute right-2 top-1 font-mono text-xl font-black text-amber-200 drop-shadow"
+            >
+              戦
+            </span>
+          </div>
         ) : (
           <div
             aria-hidden="true"
