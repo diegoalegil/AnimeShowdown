@@ -34,7 +34,7 @@ const SITIO = 'https://animeshowdown.dev'
 // Idiomas que tenemos al menos parcialmente traducidos.
 // Cada uno produce un <link rel="alternate" hreflang="X" href="URL?lang=X">
 // más un x-default que apunta al ES (idioma original y catálogo completo).
-const LANGS = ['es', 'en']
+const LANGS = ['es', 'en', 'ja']
 
 export function useSeo({
   title,
