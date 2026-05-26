@@ -70,7 +70,23 @@
     "subtitulo": "1対1デュエル、リアルタイムELOランキング、毎週のトーナメント。あなたの一票がランキングを動かします。",
     "ctaTorneos": "投票を始める",
     "ctaRanking": "ランキングを見る",
-    "features": "デュエルに投票 · ランキングを決める · トーナメントで競う"
+    "features": "デュエルに投票 · ランキングを決める · トーナメントで競う",
+    "torneoDestacado": "注目トーナメント",
+    "verComunidad": "コミュニティを見る",
+    "votesAria": "コミュニティの最新投票",
+    "votesNow": "現在",
+    "votesFallbackUser": "誰か",
+    "votesAction": "が投票した相手",
+    "timeNow": "今",
+    "timeMinutes": "{{count}}分前",
+    "timeHours": "{{count}}時間前",
+    "timeToday": "今日",
+    "stats": {
+      "personajes": "キャラクター",
+      "torneos": "トーナメント",
+      "universos": "作品世界",
+      "eloMaximo": "最高ELO"
+    }
   },
   "torneos": {
     "tituloPagina": "トーナメント",
@@ -105,6 +121,17 @@
   "personajes": {
     "tituloPagina": "キャラクター",
     "subtituloPagina": "各アニメのステータス付き完全カタログ。"
+  },
+  "mobileNav": {
+    "ariaLabel": "メインモバイルナビゲーション",
+    "mission": {
+      "completedTitle": "儀式完了",
+      "completedDetail": "連続記録を守りました。明日も新しいラウンドがあります。",
+      "todayTitle": "今日のミッション",
+      "votesDetail": "アリーナを締めるまであと{{count}}票。",
+      "gamesDetail": "リズムを保つためにデイリートライアルを1つ完了しましょう。",
+      "rankingDetail": "投票後にランキングがどう動いたか見てみましょう。"
+    }
   },
   "comun": {
     "cargando": "読み込み中…",
