@@ -60,7 +60,6 @@ function RosterCard({ favorito }) {
   const { toggle, isPending } = useToggleFavorito(slug)
 
   const onQuitar = (e) => {
-    e.preventDefault()
     e.stopPropagation()
     toggle()
     toast(`Has dejado de seguir a ${nombre}`, { duration: 1800 })
@@ -81,15 +80,6 @@ function RosterCard({ favorito }) {
             sizes="(min-width: 1024px) 120px, (min-width: 640px) 160px, 45vw"
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
-          <button
-            type="button"
-            onClick={onQuitar}
-            disabled={isPending}
-            aria-label={`Quitar ${nombre} del roster`}
-            className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-colors hover:text-gold disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
-          >
-            <X className="h-3 w-3" />
-          </button>
         </div>
         <div className="min-w-0">
           <p className="line-clamp-1 text-[12px] font-bold text-fg-strong group-hover:text-gold sm:text-[13px]">
@@ -105,6 +95,15 @@ function RosterCard({ favorito }) {
           </p>
         )}
       </Link>
+      <button
+        type="button"
+        onClick={onQuitar}
+        disabled={isPending}
+        aria-label={`Quitar ${nombre} del roster`}
+        className="absolute right-3 top-3 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-colors hover:text-gold disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+      >
+        <X className="h-3 w-3" />
+      </button>
     </li>
   )
 }
