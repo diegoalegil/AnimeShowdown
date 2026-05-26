@@ -129,6 +129,22 @@
     display: none;
   }
 
+  .scroll-x-affordance {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 1.25rem;
+  }
+
+  .scroll-x-fade {
+    mask-image: linear-gradient(to right, transparent 0, black 1rem, black calc(100% - 1rem), transparent 100%);
+  }
+
+  @media (max-width: 639px) {
+    .scroll-x-fade-mobile {
+      mask-image: linear-gradient(to right, transparent 0, black 1rem, black calc(100% - 1rem), transparent 100%);
+    }
+  }
+
   html.as-tab-hidden *,
   html.as-tab-hidden *::before,
   html.as-tab-hidden *::after {

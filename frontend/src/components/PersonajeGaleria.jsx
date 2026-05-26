@@ -56,7 +56,7 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
         </span>
       </summary>
       <div
-        className="mt-3 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin] [scroll-snap-type:x_mandatory]"
+        className="scroll-x-affordance scroll-x-fade mt-3 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin] [scroll-snap-type:x_mandatory]"
         style={{ scrollPaddingLeft: '8px' }}
       >
         {itemsVisibles.map((item) => {
