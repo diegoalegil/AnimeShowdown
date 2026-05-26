@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { TrendingUp } from 'lucide-react'
 import { endpoints } from '../lib/api'
+import { formatDateSafe } from '../lib/dateUtils'
 
 /**
  * Time machine del ELO.
@@ -140,15 +141,10 @@ function computarStats(data) {
 }
 
 function formatearFecha(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-    })
-  } catch {
-    return iso
-  }
+  return formatDateSafe(iso, {
+    day: '2-digit',
+    month: 'short',
+  })
 }
 
 export default EloHistoryChart

@@ -11,6 +11,7 @@ import EditorialCover from '../components/EditorialCover'
 import ShareButtons from '../components/ShareButtons'
 import KanjiSpinner from '../components/KanjiSpinner'
 import EmptyState from '../components/EmptyState'
+import { formatDateSafe, parseDateSafe } from '../lib/dateUtils'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
@@ -151,8 +152,10 @@ function TorneoDetailPage() {
     : []
 
   const badge = getEstadoBadge(estado)
-  const fechaInicioFmt = fechaInicio ? formatearFecha(fechaInicio) : null
-  const fechaFinFmt = fechaFinalizacion ? formatearFecha(fechaFinalizacion) : null
+  const fechaInicioDate = parseDateSafe(fechaInicio)
+  const fechaFinDate = parseDateSafe(fechaFinalizacion)
+  const fechaInicioFmt = formatearFecha(fechaInicio)
+  const fechaFinFmt = formatearFecha(fechaFinalizacion)
   const visual = getTournamentVisual(torneo.slug, nombre)
 
   // Roster: extraemos los participantes únicos de la ronda 1 (siempre los
@@ -208,8 +211,8 @@ function TorneoDetailPage() {
             imageClassName="saturate-110 contrast-105"
           />
           <meta itemProp="url" content={`https://animeshowdown.dev/torneos/${torneo.slug}`} />
-          {fechaInicio && <meta itemProp="startDate" content={fechaInicio} />}
-          {fechaFinalizacion && <meta itemProp="endDate" content={fechaFinalizacion} />}
+          {fechaInicioDate && <meta itemProp="startDate" content={fechaInicio} />}
+          {fechaFinDate && <meta itemProp="endDate" content={fechaFinalizacion} />}
           <span className="relative inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted backdrop-blur">
             <span className={`h-2 w-2 rounded-full ${badge.dot}`} />
             {badge.label}
@@ -352,8 +355,7 @@ function findPersonajePorSlug(enfrentamientos, slug) {
 }
 
 function formatearFecha(iso) {
-  const d = new Date(iso)
-  return d.toLocaleDateString('es-ES', {
+  return formatDateSafe(iso, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

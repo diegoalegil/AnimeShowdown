@@ -11,6 +11,7 @@ import {
   Trophy,
 } from 'lucide-react'
 import { endpoints, ApiError } from '../lib/api'
+import { formatRelativeSafe } from '../lib/dateUtils'
 import { useVotosPeriodo } from '../hooks/useVotosPeriodo'
 import PersonajeImg from './PersonajeImg'
 
@@ -488,21 +489,7 @@ function MatchupsSkeleton() {
 }
 
 function formatRelativo(isoString) {
-  if (!isoString) return ''
-  try {
-    const fecha = new Date(isoString)
-    const segs = Math.floor((Date.now() - fecha.getTime()) / 1000)
-    if (segs < 60) return 'ahora mismo'
-    const min = Math.floor(segs / 60)
-    if (min < 60) return `hace ${min} min`
-    const h = Math.floor(min / 60)
-    if (h < 24) return `hace ${h} h`
-    const d = Math.floor(h / 24)
-    if (d < 7) return `hace ${d} d`
-    return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
-  } catch {
-    return ''
-  }
+  return formatRelativeSafe(isoString)
 }
 
 export default HistorialCompetitivo

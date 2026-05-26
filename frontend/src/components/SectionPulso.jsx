@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { endpoints, ApiError } from '../lib/api'
+import { formatRelativeSafe } from '../lib/dateUtils'
 import { useTorneos } from '../lib/torneosQueries'
 import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { personajeDelDia } from '../lib/games'
@@ -895,26 +896,11 @@ function VotoRow({ voto }) {
 
 /**
  * Formato relativo simple: "hace 3 min", "hace 2 h", "hace 5 d", o la
- * fecha corta si es más antiguo. No usamos Intl.RelativeTimeFormat porque
- * para 4-5 items render es overkill; el cálculo simple basta y los
- * timestamps llegan ya en local time del server.
+ * fecha corta si es más antiguo. El helper central evita que una fecha
+ * inválida llegue al UI como "Invalid Date".
  */
 function formatRelativo(isoString) {
-  try {
-    const fecha = new Date(isoString)
-    const ahora = Date.now()
-    const segs = Math.floor((ahora - fecha.getTime()) / 1000)
-    if (segs < 60) return 'ahora mismo'
-    const min = Math.floor(segs / 60)
-    if (min < 60) return `hace ${min} min`
-    const h = Math.floor(min / 60)
-    if (h < 24) return `hace ${h} h`
-    const d = Math.floor(h / 24)
-    if (d < 7) return `hace ${d} d`
-    return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
-  } catch {
-    return ''
-  }
+  return formatRelativeSafe(isoString)
 }
 
 function DueloAvatar({ personaje }) {
