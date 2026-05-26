@@ -46,7 +46,8 @@ function CarouselRow({ titulo, personajes, eyebrow }) {
         </div>
         <div
           ref={scrollRef}
-          className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 scroll-smooth sm:-mx-8 sm:px-8"
+          aria-label={`${titulo}: lista desplazable`}
+          className="scrollbar-hide scroll-x-affordance scroll-x-fade -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 scroll-smooth sm:-mx-8 sm:px-8"
         >
           {personajes.map((p) => (
             <div

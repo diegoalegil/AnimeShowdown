@@ -620,7 +620,7 @@ function Tabs({ activo, onChange }) {
   // Solución: scroll horizontal en móvil (-mx para que sangre full-bleed)
   // con whitespace-nowrap; en sm+ vuelve al grid sin scroll.
   return (
-    <div className="scrollbar-hide -mx-5 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0">
+    <div className="scrollbar-hide scroll-x-affordance scroll-x-fade-mobile -mx-5 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0">
       <div
         role="tablist"
         aria-label="Secciones del ranking"
@@ -1533,8 +1533,11 @@ function TablaExtraible({ rankedElo }) {
         <ChevronDown className="h-5 w-5 shrink-0 text-fg-muted transition-transform group-open:rotate-180 [details[open]_&]:rotate-180" />
       </summary>
       <div className="border-t border-border p-4">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[13px]">
+        <div
+          className="scroll-x-affordance scroll-x-fade-mobile overflow-x-auto"
+          aria-label="Tabla técnica del ranking ELO"
+        >
+          <table className="min-w-[36rem] border-collapse text-[13px] sm:w-full">
             <thead>
               <tr className="border-b border-border text-left text-fg-muted">
                 <th scope="col" className="py-2 pr-3 font-semibold">
