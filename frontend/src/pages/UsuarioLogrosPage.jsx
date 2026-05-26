@@ -196,10 +196,20 @@ function UsuarioLogrosPage() {
           <EmptyStateScene
             icon={Trophy}
             title="Sin logros en esta rareza"
-            action={{ to: `/u/${perfil.username}/logros`, label: 'Ver todos' }}
           >
-            Prueba otra rareza o vuelve al listado completo de logros del
-            perfil.
+            <p>
+              Prueba otra rareza o vuelve al listado completo de logros del
+              perfil.
+            </p>
+            {filtroRareza != null && (
+              <button
+                type="button"
+                onClick={() => setFiltroRareza(null)}
+                className="as-button-primary mt-3 rounded-lg px-5 py-3 text-sm font-black"
+              >
+                Limpiar filtro
+              </button>
+            )}
           </EmptyStateScene>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
