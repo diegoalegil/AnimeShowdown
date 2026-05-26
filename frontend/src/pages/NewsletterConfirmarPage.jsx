@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
@@ -33,21 +33,30 @@ function NewsletterConfirmarPage() {
           mensaje: 'Falta el token de confirmación en la URL.',
         },
   )
+  const mountedRef = useRef(false)
+  const startedTokenRef = useRef(null)
 
   useEffect(() => {
-    if (!token) return
-    let cancelado = false
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!token || startedTokenRef.current === token) return
+    startedTokenRef.current = token
     endpoints
       .confirmarNewsletter(token)
       .then((res) => {
-        if (cancelado) return
+        if (!mountedRef.current) return
         setEstado({
           tipo: 'ok',
           mensaje: res?.message ?? 'Suscripción confirmada.',
         })
       })
       .catch((err) => {
-        if (cancelado) return
+        if (!mountedRef.current) return
         setEstado({
           tipo: 'error',
           mensaje:
@@ -56,9 +65,6 @@ function NewsletterConfirmarPage() {
             'No se pudo confirmar. El link puede haber caducado.',
         })
       })
-    return () => {
-      cancelado = true
-    }
   }, [token])
 
   return (
