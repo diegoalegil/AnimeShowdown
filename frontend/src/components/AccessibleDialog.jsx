@@ -186,7 +186,7 @@ function AccessibleDialog({
         aria-labelledby={titleId}
         aria-label={titleId ? undefined : label}
         tabIndex={-1}
-        className={`relative max-h-[90vh] overflow-y-auto border border-border bg-surface p-6 shadow-2xl focus:outline-none ${defaultPanelByAlign} ${panelClassName}`}
+        className={`relative max-h-[90vh] max-h-[calc(100dvh_-_env(safe-area-inset-top))] overflow-y-auto border border-border bg-surface p-6 shadow-2xl focus:outline-none ${defaultPanelByAlign} ${panelClassName}`}
       >
         {children}
       </div>
