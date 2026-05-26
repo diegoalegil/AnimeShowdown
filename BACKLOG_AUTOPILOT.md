@@ -445,6 +445,71 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 - Animaciones agresivas (respetar `prefers-reduced-motion`).
 - Reto del día sin preview visible (humano debe saber qué le toca antes de hacer click).
 
+## Sprint 21b — Games hub overhaul + AniGrid rework (research-driven)
+
+**Goal:** revisar la sección /juegos completa y rehacer AniGrid casi desde cero. La implementación actual de AniGrid es demasiado difícil y las pistas no ayudan. **Antes de tocar código, Codex DEBE investigar online cómo funcionan los juegos de referencia para comparar**.
+
+**Heads-up del humano (feedback directo):**
+- AniGrid: "demasiado difícil, las pistas no ayudan en nada". Hay que casi rehacerlo desde cero.
+- Sección /juegos en general necesita una vuelta de tuerca: revisar UX, evaluar si conviene añadir más juegos, si los actuales tienen retención, etc.
+
+### Fase 1 — Investigación obligatoria ANTES de tocar código (1-2 PRs de docs)
+
+Codex debe **consultar fuentes reales en internet** y documentar hallazgos en `docs/games/anigrid-research.md`. Mínimo 4 fuentes distintas. Buscar:
+
+- **AniGrid / Anidle / AnimeWordle / AnimeGuessr / Animedle** y juegos análogos populares.
+- Mecánica real:
+  - ¿Cuántos intentos por defecto?
+  - ¿Qué atributos compara cada intento? (típicamente: anime, género del anime, año de debut, género del personaje, edad, altura, color de pelo, color de ojos, atributo principal — ej. quirk en MHA, jutsu en Naruto, etc.)
+  - ¿Cómo es el feedback visual? (verde = match exacto, amarillo = parcial/cerca, rojo = lejano, flechas ↑↓ para numéricos como año/edad)
+  - ¿Hay pistas pasivas o activas? ¿Coste?
+  - ¿Modo daily vs práctica?
+  - ¿Compartible? (formato copiar emoji tipo Wordle)
+- Capturar 4-6 screenshots de referencia y dejar enlaces al `docs/games/anigrid-research.md`.
+- Comparar la implementación actual (`AnidelPage.jsx`) con el patrón canónico de Wordle-style: ¿qué falta, qué sobra, qué confunde al jugador?
+
+**Veto:** NO empezar el rework sin tener el research doc commiteado y revisable.
+
+### Fase 2 — AniGrid rework (3-5 PRs)
+
+Basado en la investigación de Fase 1:
+
+- Rediseñar el flujo de adivinanza con feedback visual claro tipo Wordle (verde/amarillo/rojo por atributo).
+- Tabla de atributos comparados visible tras cada intento (no solo "frío/caliente" abstracto).
+- Indicadores numéricos con flechas (↑ adivina más alto, ↓ más bajo) para año, edad, altura.
+- Pistas accionables, no decorativas: "este personaje pertenece al mismo anime que tu intento N°2", etc.
+- Dificultad escalada: pool de personajes top-100 inicialmente (no los 1086 random — eso es la causa de "imposible adivinar").
+- Modo daily (mismo personaje del día para toda la comunidad, comparable por emoji compartible) + modo práctica (random).
+- Animaciones de reveal por columna al confirmar intento (Framer Motion).
+- Estado de fin: resumen con stats del intento + share button (emoji grid tipo Wordle).
+
+### Fase 3 — Games hub overhaul (2-4 PRs)
+
+Revisar `/juegos` completa:
+
+- Card de cada juego (Shadow Guess, Anime Reveal, AniGrid, Impostor Trial, ELO Duel, Omikuji) con stats del usuario: best streak, win rate, último resultado. No solo el cover decorativo.
+- "Otros retos de hoy" — actualmente con cards muy oscurecidas (parche aplicado en commit `2efd73e` con `GameCardBackground` opacity ajustada). Confirmar que sigue legible.
+- Sección "Próximamente" con teasers de juegos que el humano valore añadir. Sugerencias para evaluar:
+  - **Anime Connections** (estilo NYT Connections: 16 personajes, agruparlos en 4 categorías secretas).
+  - **Anime Higher/Lower** (variante: año de debut, ratings MAL, etc., no solo ELO).
+  - **Voice Match** (audio voiceline → adivina personaje, requiere assets de audio que el humano debe valorar).
+  - **Opening Quiz** (audio de OP → adivina anime).
+  - **Frame Match** (frame de anime borroso → adivina; reutiliza dataset Shadow Guess).
+  - **Power Tier Builder** (compite con la comunidad armando tu top-10 de un universo).
+- Empty state cuando el usuario completó todos los retos del día: que no se vea triste, sugerir "vuelve mañana" + link a torneos/votar.
+- Estadística agregada del hub: "X jugadores activos hoy", "Y partidas completadas esta semana".
+
+### Estimated PRs Sprint 21b: 6-11 (1-2 docs + 3-5 AniGrid + 2-4 hub).
+**Branch:** `sprint-auto-21b-games-overhaul`.
+
+**Qué evitar:**
+- Empezar AniGrid sin haber commiteado el research doc primero. La implementación actual ya falla por no respetar el patrón Wordle canónico — repetir el error sería costoso.
+- Inflar el pool de personajes "para variedad" — los 1086 personajes hacen el juego imposible. Empezar con top-100 y subir gradualmente si el feedback lo pide.
+- Añadir Voice Match / Opening Quiz sin OK explícito del humano (assets de audio = licencias + bandwidth + nuevo coste que requiere parar y reportar per AGENTS.md §7).
+- Tocar el sistema de ELO de duels (separado de los juegos del hub).
+
+---
+
 ## Sprint 22 — Streak rewards
 
 **Goal:** racha diaria visible con incentivo.
