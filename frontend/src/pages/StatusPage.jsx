@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Activity, AlertTriangle, CheckCircle2, Clock3, Server } from 'lucide-react'
 import { endpoints } from '../lib/api'
+import { formatDateSafe } from '../lib/dateUtils'
 import { useSeo } from '../hooks/useSeo'
 import { VisualPageShell } from '../components/VisualSystem'
 import KanjiSpinner from '../components/KanjiSpinner'
@@ -18,11 +19,10 @@ function formatLatency(value) {
 }
 
 function formatCheckedAt(value) {
-  if (!value) return 'Sin muestras todavía'
-  return new Intl.DateTimeFormat('es', {
+  return formatDateSafe(value, {
     dateStyle: 'medium',
     timeStyle: 'short',
-  }).format(new Date(value))
+  }, { locale: 'es', fallback: 'Sin muestras todavía' })
 }
 
 function statusTone(status) {
