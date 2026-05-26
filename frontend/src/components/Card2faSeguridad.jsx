@@ -239,17 +239,28 @@ function Modal2faSetup({ onClose, onSuccess }) {
   const [paso, setPaso] = useState('cargando')
   const [setupData, setSetupData] = useState(null) // {secret, otpauthUri, qrCodeDataUri}
   const [backupCodes, setBackupCodes] = useState(null)
+  const mountedRef = useRef(false)
+  const setupStartedRef = useRef(false)
 
   useEffect(() => {
-    let cancelled = false
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (setupStartedRef.current) return
+    setupStartedRef.current = true
     endpoints
       .setup2fa()
       .then((data) => {
-        if (cancelled) return
+        if (!mountedRef.current) return
         setSetupData(data)
         setPaso('codigo')
       })
       .catch((err) => {
+        if (!mountedRef.current) return
         toast.error('No se pudo iniciar 2FA', {
           description:
             err instanceof ApiError
@@ -258,9 +269,6 @@ function Modal2faSetup({ onClose, onSuccess }) {
         })
         onClose()
       })
-    return () => {
-      cancelled = true
-    }
   }, [onClose])
 
   if (paso === 'cargando' || !setupData) {

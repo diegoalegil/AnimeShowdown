@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle2, XCircle, MailWarning, ArrowRight } from 'lucide-react'
@@ -33,16 +33,25 @@ function VerifyPage() {
   // interno solo trackea el resultado de la llamada async.
   const [resultado, setResultado] = useState('verificando')
   // 'verificando' | 'ok' | 'invalido' | 'error_red'
+  const mountedRef = useRef(false)
+  const startedTokenRef = useRef(null)
 
   const estado = token ? resultado : 'sin_token'
 
   useEffect(() => {
-    if (!token) return
-    let cancelado = false
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!token || startedTokenRef.current === token) return
+    startedTokenRef.current = token
     endpoints
       .verifyEmail(token)
       .then((data) => {
-        if (cancelado) return
+        if (!mountedRef.current) return
         if (data?.verificado) {
           setResultado('ok')
           // refreshSession solo refresca el token y
@@ -53,7 +62,7 @@ function VerifyPage() {
           // fresco al contexto vía updateUser.
           refreshSession()
             .then((res) => {
-              if (cancelado || !res?.usuario) return
+              if (!mountedRef.current || !res?.usuario) return
               updateUser({
                 estadoVerificacion: res.usuario.estadoVerificacion,
                 totpHabilitado: res.usuario.totpHabilitado === true,
@@ -65,12 +74,9 @@ function VerifyPage() {
         }
       })
       .catch(() => {
-        if (cancelado) return
+        if (!mountedRef.current) return
         setResultado('error_red')
       })
-    return () => {
-      cancelado = true
-    }
   }, [token, updateUser])
 
   return (
