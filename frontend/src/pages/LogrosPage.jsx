@@ -260,12 +260,22 @@ function LogrosPage() {
           <EmptyStateScene
             icon={Trophy}
             title={`No hay logros ${FILTROS_RAREZA.find((f) => f.value === filtroRareza)?.label.toLowerCase() ?? ''}.`}
-            action={{ to: '/logros', label: 'Ver todos los logros' }}
           >
-            Prueba con otra rareza o explora el catálogo completo. Cada
-            rareza es una categoría diferente — los legendarios son los
-            más difíciles, los comunes los que casi todo el mundo
-            consigue empezando.
+            <p>
+              Prueba con otra rareza o explora el catálogo completo. Cada
+              rareza es una categoría diferente: los legendarios son los más
+              difíciles, los comunes los que casi todo el mundo consigue
+              empezando.
+            </p>
+            {filtroRareza != null && (
+              <button
+                type="button"
+                onClick={() => setFiltroRareza(null)}
+                className="as-button-primary mt-3 rounded-lg px-5 py-3 text-sm font-black"
+              >
+                Limpiar filtro
+              </button>
+            )}
           </EmptyStateScene>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
