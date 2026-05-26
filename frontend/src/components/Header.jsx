@@ -177,7 +177,7 @@ function Header() {
           : 'border-b border-white/8 bg-bg/52 backdrop-blur-xl'
       }`}
     >
-      <Link to="/" className="flex items-center gap-2.5">
+      <Link to="/" className="flex min-h-11 items-center gap-2.5">
         <img
           src="/logo.webp"
           alt=""

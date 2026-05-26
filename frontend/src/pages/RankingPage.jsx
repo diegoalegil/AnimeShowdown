@@ -177,7 +177,7 @@ function RankingPage() {
             <>
               <Link
                 to="/votar"
-                className="group inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+                className="group inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Swords className="h-4 w-4" />
                 Votar ahora
@@ -185,7 +185,7 @@ function RankingPage() {
               </Link>
               <Link
                 to="/metodologia-elo"
-                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+                className="as-panel inline-flex min-h-11 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
               >
                 <HelpCircle className="h-4 w-4" />
                 Cómo funciona
@@ -194,7 +194,7 @@ function RankingPage() {
                 type="button"
                 onClick={compartirRanking}
                 disabled={isCatalogLoading && rankedElo.length === 0}
-                className="as-panel inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-60"
+                className="as-panel inline-flex min-h-11 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Share2 className="h-4 w-4" />
                 Compartir top
@@ -216,7 +216,7 @@ function RankingPage() {
             </p>
             <Link
               to="/votar"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-500/20"
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-500/20"
             >
               Votar duelos abiertos
               <ArrowRight className="h-3.5 w-3.5" />
@@ -290,7 +290,7 @@ function EditorialRankingsStrip() {
         </div>
         <Link
           to="/rankings/mejores-personajes-anime"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-2 text-[12px] font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-2 text-[12px] font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
         >
           Ver top global
           <ArrowRight className="h-3.5 w-3.5" />
@@ -354,7 +354,7 @@ function EloExplainer() {
         </div>
         <Link
           to="/metodologia-elo"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
         >
           Ver metodología
           <ArrowRight className="h-3.5 w-3.5" />
@@ -747,7 +747,7 @@ function ListaEloLocal({
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Buscar personaje en el ranking"
             placeholder="Buscar personaje…"
-            className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
+            className="as-control min-h-11 w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
           />
           {search && (
             <button
@@ -764,7 +764,7 @@ function ListaEloLocal({
           value={animeFilter}
           onChange={(e) => setAnimeFilter(e.target.value)}
           aria-label="Filtrar por anime"
-          className="as-control w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
+          className="as-control min-h-11 w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
         >
           <option value="">Anime: Todos</option>
           {animeFilterOptions.slice(1).map((a) => (
@@ -1144,7 +1144,7 @@ function PorAnime({ initialAnime = '' }) {
             <div className="flex flex-wrap gap-2">
               <Link
                 to={`/votar?anime=${encodeURIComponent(anime)}`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Swords className="h-4 w-4" />
                 Votar personajes de {anime}
@@ -1152,7 +1152,7 @@ function PorAnime({ initialAnime = '' }) {
               <button
                 type="button"
                 onClick={compartirRankingAnime}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-bold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-bold text-fg-strong transition-colors hover:border-accent hover:text-gold"
               >
                 <Share2 className="h-4 w-4" />
                 Compartir ranking
@@ -1448,7 +1448,7 @@ function HubLinks() {
       <div className="relative mt-5 flex flex-wrap gap-2">
         <Link
           to="/votar"
-          className="as-button-primary group inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-black"
+          className="as-button-primary group inline-flex min-h-11 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-black"
         >
           <Swords className="h-4 w-4" />
           Votar ahora
@@ -1456,13 +1456,13 @@ function HubLinks() {
         </Link>
         <Link
           to="/personajes"
-          className="as-button-ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
+          className="as-button-ghost inline-flex min-h-11 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
         >
           Explorar personajes
         </Link>
         <Link
           to="/metodologia-elo"
-          className="as-button-ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
+          className="as-button-ghost inline-flex min-h-11 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold"
         >
           <HelpCircle className="h-4 w-4" />
           Cómo funciona

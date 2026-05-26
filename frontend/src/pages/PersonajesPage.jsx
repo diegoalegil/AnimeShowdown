@@ -482,7 +482,7 @@ function PersonajesPage() {
                   ? 'personajes-search-results'
                   : undefined
               }
-              className="as-control w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
+              className="as-control min-h-11 w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
             />
             {search && (
               <button
@@ -551,7 +551,7 @@ function PersonajesPage() {
               play('playClick')
             }}
             aria-label="Filtrar por rasgo otaku"
-            className="as-control hidden rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
+            className="as-control hidden min-h-11 rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
           >
             <option value="">Rasgo: todos</option>
             {RASGOS_OTAKU.map((tag) => (
@@ -567,7 +567,7 @@ function PersonajesPage() {
               play('playClick')
             }}
             aria-label="Ordenar por"
-            className="as-control hidden rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
+            className="as-control hidden min-h-11 rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
           >
             {Object.entries(sortLabels).map(([k, v]) => (
               <option key={k} value={k}>
@@ -732,7 +732,7 @@ function PersonajesPage() {
                   <select
                     value={drawerFilters.animeFilter ?? ''}
                     onChange={(e) => actualizarDraftFiltros({ animeFilter: e.target.value || null })}
-                    className="as-control w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
+                    className="as-control min-h-11 w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
                   >
                     <option value="">Todos · {catalogoPersonajes.length}</option>
                     {animes.map(([anime, count]) => (
@@ -750,7 +750,7 @@ function PersonajesPage() {
                   <select
                     value={drawerFilters.tagFilter ?? ''}
                     onChange={(e) => actualizarDraftFiltros({ tagFilter: e.target.value || null })}
-                    className="as-control w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
+                    className="as-control min-h-11 w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
                   >
                     <option value="">Todos los rasgos</option>
                     {RASGOS_OTAKU.map((tag) => (
@@ -768,7 +768,7 @@ function PersonajesPage() {
                   <select
                     value={drawerFilters.sort}
                     onChange={(e) => actualizarDraftFiltros({ sort: e.target.value })}
-                    className="as-control w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
+                    className="as-control min-h-11 w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
                   >
                     {Object.entries(sortLabels).map(([k, v]) => (
                       <option key={k} value={k}>

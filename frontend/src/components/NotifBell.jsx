@@ -18,6 +18,7 @@ import {
   useNotificaciones,
   useUnreadCount,
 } from '../hooks/useNotificaciones'
+import { getToken, onTokenChange } from '../lib/api'
 
 /**
  * Campanita de notificaciones en el header.
@@ -30,12 +31,21 @@ import {
  * queue STOMP; cuando llega un push el badge se incrementa solo y el
  * dropdown muestra la nueva al abrir.
  */
+function useAccessTokenReady() {
+  const [hasToken, setHasToken] = useState(() => Boolean(getToken()))
+
+  useEffect(() => onTokenChange((token) => setHasToken(Boolean(token))), [])
+
+  return hasToken
+}
+
 function NotifBell() {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
+  const hasAccessToken = useAccessTokenReady()
 
-  const { data: countData } = useUnreadCount()
-  const unread = countData?.count ?? 0
+  const { data: countData } = useUnreadCount({ enabled: hasAccessToken })
+  const unread = hasAccessToken ? countData?.count ?? 0 : 0
 
   // Cerrar al hacer click fuera o presionar Escape.
   useEffect(() => {
@@ -63,7 +73,7 @@ function NotifBell() {
         onClick={() => setOpen((v) => !v)}
         aria-label="Notificaciones"
         aria-expanded={open}
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+        className="relative inline-flex h-11 w-11 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (
@@ -74,14 +84,19 @@ function NotifBell() {
       </button>
 
       <AnimatePresence>
-        {open && <NotifDropdown onClose={() => setOpen(false)} />}
+        {open && (
+          <NotifDropdown
+            enabled={hasAccessToken}
+            onClose={() => setOpen(false)}
+          />
+        )}
       </AnimatePresence>
     </div>
   )
 }
 
-function NotifDropdown({ onClose }) {
-  const { data, isLoading } = useNotificaciones({ size: 10 })
+function NotifDropdown({ enabled, onClose }) {
+  const { data, isLoading } = useNotificaciones({ size: 10, enabled })
   const marcarLeida = useMarcarLeida()
   const marcarTodasLeidas = useMarcarTodasLeidas()
   const navigate = useNavigate()
