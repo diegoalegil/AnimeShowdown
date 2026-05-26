@@ -33,10 +33,82 @@ const ROUTES = [
   { path: '/leaderboards', name: 'leaderboards' },
 ]
 
+const TOUCH_ROUTES = [
+  { path: '/', name: 'home' },
+  { path: '/personajes', name: 'personajes' },
+  { path: '/ranking', name: 'ranking' },
+  { path: '/votar', name: 'votar' },
+  { path: '/games', name: 'games' },
+]
+
+const TOUCH_VIEWPORT = { name: 'iphone-13-mini', width: 390, height: 844 }
+const MIN_TOUCH_TARGET = 44
+
 async function settleRoute(page, path) {
   await page.goto(path)
   await page.waitForLoadState('domcontentloaded')
   await page.waitForTimeout(250)
+}
+
+async function expectVisibleTouchTargets(page, label) {
+  const violations = await page.evaluate((minSize) => {
+    const selector = [
+      'a[href]',
+      'button',
+      'input',
+      'select',
+      'textarea',
+      '[role="button"]',
+      '[role="link"]',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(',')
+
+    return Array.from(document.querySelectorAll(selector))
+      .map((el) => {
+        const rect = el.getBoundingClientRect()
+        const style = window.getComputedStyle(el)
+        const tag = el.tagName.toLowerCase()
+        const className = typeof el.className === 'string' ? el.className : ''
+        const isVisible =
+          rect.width > 0 &&
+          rect.height > 0 &&
+          rect.bottom >= 0 &&
+          rect.right >= 0 &&
+          rect.top <= window.innerHeight &&
+          rect.left <= window.innerWidth &&
+          style.display !== 'none' &&
+          style.visibility !== 'hidden' &&
+          style.pointerEvents !== 'none'
+
+        if (!isVisible || el.hasAttribute('disabled') || el.getAttribute('aria-hidden') === 'true') {
+          return null
+        }
+
+        if (className.includes('sr-only')) return null
+
+        const isPlainTextLink =
+          tag === 'a' &&
+          !el.querySelector('svg,img') &&
+          !/(as-button|inline-flex|flex|grid|block|rounded|min-h-|h-\d|w-\d|px-|py-|p-)/.test(className)
+
+        if (isPlainTextLink) return null
+
+        const width = Math.round(rect.width)
+        const height = Math.round(rect.height)
+        if (width >= minSize && height >= minSize) return null
+
+        return {
+          tag,
+          text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 80),
+          width,
+          height,
+          className,
+        }
+      })
+      .filter(Boolean)
+  }, MIN_TOUCH_TARGET)
+
+  expect(violations, `Touch targets menores de ${MIN_TOUCH_TARGET}px @ ${label}`).toEqual([])
 }
 
 async function expectNoHorizontalOverflow(page, label) {
@@ -72,3 +144,30 @@ for (const vp of VIEWPORTS) {
     }
   })
 }
+
+test('rutas clave mantienen touch targets visibles de al menos 44px', async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium-desktop',
+    'La auditoria fija viewport movil manualmente para evitar duplicado por proyecto.',
+  )
+
+  await page.setViewportSize({ width: TOUCH_VIEWPORT.width, height: TOUCH_VIEWPORT.height })
+
+  for (const route of TOUCH_ROUTES) {
+    await settleRoute(page, route.path)
+    await expectVisibleTouchTargets(page, `${route.name} ${TOUCH_VIEWPORT.name}`)
+  }
+})
+
+test('panel de navegacion movil mantiene touch targets de al menos 44px', async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium-desktop',
+    'La auditoria fija viewport movil manualmente para evitar duplicado por proyecto.',
+  )
+
+  await page.setViewportSize({ width: TOUCH_VIEWPORT.width, height: TOUCH_VIEWPORT.height })
+  await settleRoute(page, '/')
+  await page.getByRole('button', { name: /Abrir menú|Abrir menu/i }).click()
+  await expect(page.getByRole('dialog', { name: /Menú de navegación|Menu de navegacion/i })).toBeVisible()
+  await expectVisibleTouchTargets(page, `mobile-nav ${TOUCH_VIEWPORT.name}`)
+})
