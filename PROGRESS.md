@@ -53,3 +53,7 @@
 - 2026-05-26T14:51:33.5525698+01:00 | PR AUTO-03.3 / #60 | 29e70b54 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:e2e:responsive` PASS (11/22 + 11 skipped); CI PASS | decisions: se estabilizan safe-area insets en bottom nav, drawer movil, dialogs y FAB de filtros; se anade contencion global de overflow horizontal.
 - 2026-05-26T15:16:55.0047979+01:00 | PR AUTO-03.4 / #61 | 4ac5fe2c | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:e2e:responsive` PASS (11/22 + 11 skipped); CI PASS | decisions: se centraliza la affordance de scroll horizontal y se aplica a brackets, carruseles, galeria, tabs y tabla tecnica sin tocar backend ni assets.
 - 2026-05-26T15:36:57.6775575+01:00 | PR AUTO-03.5 / #62 | 414552a7 | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:e2e:responsive` PASS (11/22 + 11 skipped); CI PASS | decisions: se preserva clearance de footer contra bottom nav con safe-area real; Sprint Auto 03 cerrado y siguiente bloque prioritario es Sprint 3.5a.
+
+## Sprint Auto 3.5a - Stability pass
+
+- 2026-05-26T15:57:03.8192508+01:00 | PR AUTO-3.5a.1 / #63 | 797346af | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS | decisions: se combinan timeout interno y signal externo en API shared; `votosPeriodoBatch` y queryKey aceptan slugs undefined/no-array sin romper render.
