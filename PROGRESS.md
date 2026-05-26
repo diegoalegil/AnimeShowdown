@@ -45,3 +45,7 @@
 - 2026-05-25T23:19:09.0924706+01:00 | PR VISUALS-3.3 / #48 | 18136cd7 | verify: `node scripts/sync-personajes.mjs --check` PASS; `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS | decisions: se allowlistean temporalmente slugs de tanda 3 pendientes sin publicarlos como catalogo.
 - 2026-05-25T23:19:09.0924706+01:00 | VISUALS-3.4 | d1f9c63f, 11e0fa2e | verify: `node scripts/sync-personajes.mjs --check` PASS (1086 = 1086) tras `git pull --ff-only`; CI verde en los checks posteriores | decisions: formas finales permanecen WIP; 34 personajes nuevos pasan a seed curado.
 - 2026-05-25T23:19:09.0924706+01:00 | PR #50 | skipped | verify: no mergeado; cerrado | decisions: PR duplicado superseded por d1f9c63f/11e0fa2e para evitar conflicto stale.
+
+## Sprint Auto 03 - Mobile responsive deep audit
+
+- 2026-05-26T01:04:22.0598895+01:00 | PR AUTO-03.1 / #56 | bcf35bfa | verify: `node --version` v24.16.0; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:e2e:responsive` PASS (9/18 + 9 skipped); CI PASS | decisions: responsive gate pasa de home-only a 12 rutas clave x 9 viewports efectivos, incluye 320px y evita duplicado de proyecto movil para mantener CI rapido.
