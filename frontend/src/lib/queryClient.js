@@ -42,5 +42,10 @@ export const queryKeys = {
   favoritoSlug: (slug) => ['favoritos', 'slug', slug],
   // Actividad reciente de votos
   votosPeriodoSlug: (slug, dias = 7) => ['votos-periodo', 'slug', slug, dias],
-  votosPeriodoBatch: (slugs, dias = 7) => ['votos-periodo', 'batch', [...slugs].sort().join(','), dias],
+  votosPeriodoBatch: (slugs = [], dias = 7) => [
+    'votos-periodo',
+    'batch',
+    (Array.isArray(slugs) ? slugs : []).filter(Boolean).sort().join(','),
+    dias,
+  ],
 }
