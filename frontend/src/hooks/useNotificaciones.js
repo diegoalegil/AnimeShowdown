@@ -15,8 +15,24 @@ import { useStompSubscription } from './useStompSubscription.js'
 const KEY_LIST_BASE = ['notificaciones']
 const KEY_UNREAD = ['notificaciones', 'unread-count']
 
-export function useNotificaciones({ soloNoLeidas = false, enabled = true, size = 20 } = {}) {
+function useNotificacionesPushInvalidation(enabled) {
   const queryClient = useQueryClient()
+  const { lastMessage } = useStompSubscription(
+    enabled ? '/user/queue/notificaciones' : null,
+  )
+
+  useEffect(() => {
+    if (!lastMessage) return
+    queryClient.invalidateQueries({ queryKey: KEY_LIST_BASE })
+  }, [lastMessage, queryClient])
+}
+
+export function useNotificaciones({
+  soloNoLeidas = false,
+  enabled = true,
+  size = 20,
+  subscribeToPush = true,
+} = {}) {
   const queryKey = [...KEY_LIST_BASE, { soloNoLeidas, size }]
 
   const query = useQuery({
@@ -27,19 +43,13 @@ export function useNotificaciones({ soloNoLeidas = false, enabled = true, size =
 
   // Suscripción WS: cuando llega un push, invalidamos tanto la lista como
   // el unread-count para que ambos se refresquen.
-  const { lastMessage } = useStompSubscription(
-    enabled ? '/user/queue/notificaciones' : null,
-  )
-  useEffect(() => {
-    if (!lastMessage) return
-    queryClient.invalidateQueries({ queryKey: KEY_LIST_BASE })
-  }, [lastMessage, queryClient])
+  useNotificacionesPushInvalidation(enabled && subscribeToPush)
 
   return query
 }
 
 export function useUnreadCount({ enabled = true } = {}) {
-  return useQuery({
+  const query = useQuery({
     queryKey: KEY_UNREAD,
     queryFn: endpoints.notificacionesUnreadCount,
     enabled,
@@ -48,6 +58,8 @@ export function useUnreadCount({ enabled = true } = {}) {
     // en caso de que un usuario tenga el WS roto y no notar las notifs.
     refetchInterval: 60_000,
   })
+  useNotificacionesPushInvalidation(enabled)
+  return query
 }
 
 export function useMarcarLeida() {
