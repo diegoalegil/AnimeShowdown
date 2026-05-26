@@ -32,6 +32,7 @@ import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { endpoints } from '../lib/api'
 import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
+import { useQueryState } from '../hooks/useQueryState'
 import {
   RASGOS_OTAKU,
   getCategoriasPersonaje,
@@ -142,7 +143,7 @@ function PersonajesPage() {
 
   const { play } = useSound()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useQueryState('q', '')
   const [animeFilter, setAnimeFilter] = useState(
     () => searchParams.get('anime') || null,
   )
