@@ -13,14 +13,21 @@ import { useAuth } from '../contexts/AuthContext.jsx'
  * - useLeaderboardPredicciones({dias, limit}): top predictores. Público.
  */
 
-function buildMiasKey(torneoId) {
-  return ['predicciones', 'mias', String(torneoId)]
+function getUserCacheKey(user) {
+  if (user?.id != null) return `user:${user.id}`
+  if (user?.username) return `username:${user.username}`
+  return 'anon'
+}
+
+function buildMiasKey(torneoId, userKey) {
+  return ['predicciones', 'mias', String(torneoId), userKey]
 }
 
 export function useMisPredicciones(torneoId) {
   const { user } = useAuth()
+  const userKey = getUserCacheKey(user)
   return useQuery({
-    queryKey: buildMiasKey(torneoId),
+    queryKey: buildMiasKey(torneoId, userKey),
     queryFn: () => endpoints.misPredicciones(torneoId),
     enabled: Boolean(torneoId) && Boolean(user),
     staleTime: 30_000,
@@ -28,12 +35,14 @@ export function useMisPredicciones(torneoId) {
 }
 
 export function useAplicarPrediccion(torneoId) {
+  const { user } = useAuth()
+  const userKey = getUserCacheKey(user)
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ enfrentamientoId, personajePredichoId }) =>
       endpoints.aplicarPrediccion({ enfrentamientoId, personajePredichoId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: buildMiasKey(torneoId) })
+      queryClient.invalidateQueries({ queryKey: buildMiasKey(torneoId, userKey) })
     },
   })
 }
