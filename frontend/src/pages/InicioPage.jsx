@@ -600,7 +600,7 @@ function SectionTop10Ranking({ top10 }) {
         </Button>
       }
     >
-        <ol className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
+        <ol className="scrollbar-hide scroll-x-affordance scroll-x-fade -mx-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
           {top10.map((p, i) => (
             <Top10Card key={p.slug} rank={i + 1} {...p} />
           ))}

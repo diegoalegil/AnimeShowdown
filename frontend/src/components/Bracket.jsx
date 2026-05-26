@@ -137,7 +137,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
         </span>
       </div>
       <div
-        className="scrollbar-hide -mx-5 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8"
+        className="scrollbar-hide scroll-x-affordance scroll-x-fade -mx-5 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8"
         aria-label="Bracket desplazable horizontalmente"
       >
         <div className="flex min-w-max snap-x snap-mandatory items-stretch gap-3 scroll-smooth">
