@@ -4,6 +4,11 @@ import { Shield } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import {
+  LEGAL_CONTACT_EMAIL,
+  LEGAL_CONTACT_MAILTO,
+  PRIVACY_PROVIDERS,
+} from '../data/legal'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -15,16 +20,8 @@ const containerVariants = {
 }
 
 /**
- * Política de privacidad.
- *
- * <p>Cumple GDPR mínimo: qué datos guardamos, por cuánto tiempo, quién
- * los procesa, cómo ejercer derechos del usuario. No usa Termly ni
- * generador legal porque AnimeShowdown es proyecto educativo open
- * source con stack acotado y la política se mantiene legible en menos
- * de 1 página.
- *
- * <p>Importante: las URLs y datos de contacto son reales pero el
- * proyecto NO está registrado como entidad jurídica. Esto es portafolio.
+ * Política de privacidad mantenida como texto de producto: datos tratados,
+ * proveedores, conservación, cookies esenciales y derechos del usuario.
  */
 function PrivacyPage() {
   useSeo({
@@ -59,9 +56,8 @@ function PrivacyPage() {
           </h1>
           <p className="max-w-2xl text-[13px] text-fg-muted">
             Última actualización: 16 mayo 2026. AnimeShowdown es un proyecto
-            independiente mantenido por una persona, con código abierto en
-            GitHub. Esta política explica qué datos personales recopilamos
-            y cómo se usan.
+            independiente con código abierto en GitHub. Esta política explica
+            qué datos personales recopilamos y cómo se usan.
           </p>
         </motion.header>
 
@@ -71,16 +67,15 @@ function PrivacyPage() {
               1 · Quién es el responsable
             </h2>
             <p>
-              Diego Alegil García, residente en Tenerife (Islas Canarias, España).
-              Contacto:{' '}
+              Responsable del servicio: AnimeShowdown. Contacto legal:{' '}
               <a
-                href="mailto:diegogildam@gmail.com"
+                href={LEGAL_CONTACT_MAILTO}
                 className="text-gold hover:underline"
               >
-                diegogildam@gmail.com
+                {LEGAL_CONTACT_EMAIL}
               </a>
-              . AnimeShowdown no es una entidad jurídica registrada — es un
-              proyecto independiente con código abierto bajo licencia MIT.
+              . AnimeShowdown es un proyecto independiente con código abierto
+              bajo licencia MIT.
             </p>
           </section>
 
@@ -105,13 +100,16 @@ function PrivacyPage() {
               </li>
               <li>
                 <strong className="text-fg-strong">Métricas de rendimiento</strong>{' '}
-                (Web Vitals como LCP, INP, CLS) enviadas a Sentry para
-                diagnóstico. Sin datos personales, sin replay de sesión.
+                (Web Vitals como LCP, INP, CLS) y errores técnicos enviados a
+                Sentry solo si el despliegue tiene DSN configurado. Sin cookies,
+                sin IP por defecto; el replay solo se activa ante errores y con
+                texto enmascarado.
               </li>
               <li>
                 <strong className="text-fg-strong">localStorage local</strong>{' '}
-                con preferencias (idioma, sesión y progreso de juegos diarios).
-                Nunca sale de tu navegador.
+                con preferencias (idioma, sonido, progreso de juegos diarios) y
+                una copia ligera del usuario para mejorar la UX. El JWT de acceso
+                vive en memoria y no se guarda en localStorage.
               </li>
             </ul>
             <p className="mt-3">
@@ -139,35 +137,17 @@ function PrivacyPage() {
               4 · Quién procesa tus datos
             </h2>
             <ul className="list-inside list-disc space-y-1">
-              <li>
-                <strong className="text-fg-strong">Railway</strong> (US) — hosting
-                del backend Spring Boot.
-              </li>
-              <li>
-                <strong className="text-fg-strong">Neon</strong> (US/EU región
-                Frankfurt) — base de datos PostgreSQL.
-              </li>
-              <li>
-                <strong className="text-fg-strong">Cloudflare Pages</strong> (CDN
-                global) — hosting estático del frontend.
-              </li>
-              <li>
-                <strong className="text-fg-strong">Cloudflare R2</strong> (EU) —
-                backups diarios encriptados de la BBDD.
-              </li>
-              <li>
-                <strong className="text-fg-strong">Resend</strong> (EU) — envío
-                de emails transaccionales.
-              </li>
-              <li>
-                <strong className="text-fg-strong">Sentry</strong> (EU región
-                de.sentry.io) — métricas de errores y Web Vitals. Sin replay
-                de sesión, sin PII.
-              </li>
+              {PRIVACY_PROVIDERS.map((provider) => (
+                <li key={provider.name}>
+                  <strong className="text-fg-strong">{provider.name}</strong> —{' '}
+                  {provider.description}
+                </li>
+              ))}
             </ul>
             <p className="mt-3">
-              Todos son proveedores con cláusulas GDPR estándar (DPA) y
-              encriptación at-rest e in-transit.
+              No vendemos datos ni los usamos para publicidad. Los proveedores
+              se usan para operar el producto, autenticar usuarios, entregar
+              contenido y diagnosticar errores técnicos.
             </p>
           </section>
 
@@ -185,12 +165,14 @@ function PrivacyPage() {
                 días, luego se purga automáticamente.
               </li>
               <li>
-                <strong className="text-fg-strong">Backups Neon → R2:</strong>{' '}
-                7 días diarios, 28 días semanales, 365 días mensuales.
+                <strong className="text-fg-strong">Backups y logs operativos:</strong>{' '}
+                según la política técnica vigente del proveedor y solo para
+                continuidad del servicio.
               </li>
               <li>
-                <strong className="text-fg-strong">Métricas Sentry:</strong> 30
-                días por la configuración actual del servicio.
+                <strong className="text-fg-strong">Métricas de errores:</strong>{' '}
+                retención limitada a la configuración activa del servicio si
+                Sentry está habilitado en el despliegue.
               </li>
             </ul>
           </section>
@@ -208,12 +190,12 @@ function PrivacyPage() {
               <li>Portabilidad (export en formato máquina-legible).</li>
             </ul>
             <p className="mt-3">
-              Para ejercer cualquiera de estos derechos, escríbeme a{' '}
+              Para ejercer cualquiera de estos derechos, escribe a{' '}
               <a
-                href="mailto:diegogildam@gmail.com"
+                href={LEGAL_CONTACT_MAILTO}
                 className="text-gold hover:underline"
               >
-                diegogildam@gmail.com
+                {LEGAL_CONTACT_EMAIL}
               </a>
               . Respuesta en menos de 30 días según GDPR.
             </p>
@@ -230,19 +212,22 @@ function PrivacyPage() {
             <ul className="list-inside list-disc space-y-1">
               <li>
                 <code className="text-fg-strong">refresh_token</code> — cookie
-                httpOnly necesaria para mantener sesión sin volver a logear cada
-                15 min. Funcional, sin tracking.
+                httpOnly necesaria para mantener sesión sin volver a iniciar
+                sesión cada 15 minutos. Funcional, sin tracking y no accesible
+                desde JavaScript.
               </li>
               <li>
                 <code className="text-fg-strong">localStorage</code> con
-                preferencias (idioma, sesión, progreso de juegos). Nunca sale de
-                tu navegador.
+                preferencias, progreso local de juegos y una copia ligera del
+                usuario para pintar la interfaz antes del refresh. Nunca contiene
+                el JWT de acceso.
               </li>
             </ul>
             <p className="mt-3">
               No mostramos banner de cookies porque la ePrivacy directive solo
-              lo exige cuando hay cookies de tracking. Si en el futuro
-              activamos session replay de Sentry, mostraremos banner.
+              lo exige cuando hay cookies de tracking o publicidad. Si en el
+              futuro añadimos analítica no esencial, se pedirá consentimiento
+              antes de activarla.
             </p>
           </section>
 
@@ -271,7 +256,7 @@ function PrivacyPage() {
           </Link>
           <span aria-hidden="true">·</span>
           <a
-            href="mailto:diegogildam@gmail.com"
+            href={LEGAL_CONTACT_MAILTO}
             className="hover:text-gold hover:underline"
           >
             Contacto

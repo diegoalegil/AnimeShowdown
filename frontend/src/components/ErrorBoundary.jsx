@@ -2,6 +2,7 @@ import { Component } from 'react'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { Sentry } from '../lib/sentry'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_MAILTO } from '../data/legal'
 import {
   isStaleAssetError,
   recoverFromStaleAssetError,
@@ -119,10 +120,10 @@ class ErrorBoundary extends Component {
                   <>
                     {' '}
                     <a
-                      href="mailto:soporte@animeshowdown.dev"
+                      href={LEGAL_CONTACT_MAILTO}
                       className="font-semibold text-gold hover:text-fg-strong"
                     >
-                      soporte@animeshowdown.dev
+                      {LEGAL_CONTACT_EMAIL}
                     </a>
                     .
                   </>

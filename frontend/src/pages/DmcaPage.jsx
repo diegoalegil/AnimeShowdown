@@ -4,6 +4,7 @@ import { AlertTriangle, Mail } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
+import { DMCA_CONTACT_MAILTO, LEGAL_CONTACT_EMAIL } from '../data/legal'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -84,11 +85,11 @@ function DmcaPage() {
             </h2>
             <p className="mb-3">Email a:</p>
             <a
-              href="mailto:diegogildam@gmail.com?subject=DMCA Takedown — AnimeShowdown"
+              href={DMCA_CONTACT_MAILTO}
               className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               <Mail className="h-3.5 w-3.5" />
-              diegogildam@gmail.com
+              {LEGAL_CONTACT_EMAIL}
             </a>
             <p className="mt-3 mb-2">Incluye en el mensaje:</p>
             <ol className="list-inside list-decimal space-y-1">

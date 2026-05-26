@@ -154,8 +154,8 @@ function TermsPage() {
               </li>
               <li>
                 <strong className="text-fg-strong">Nombre y logo</strong> de
-                AnimeShowdown son del autor (Diego Alegil) — no los uses para
-                productos derivados sin permiso.
+                AnimeShowdown forman parte de la identidad del proyecto — no los
+                uses para productos derivados sin permiso.
               </li>
             </ul>
           </section>
@@ -168,7 +168,7 @@ function TermsPage() {
               AnimeShowdown es un proyecto educativo. Sin SLA, sin compromiso
               de uptime, sin compensación por downtime. El servicio depende de
               proveedores externos y puede sufrir interrupciones. Hacemos mejor
-              esfuerzo (UptimeRobot + backups diarios), pero no garantizamos
+              esfuerzo con monitorización y copias operativas, pero no garantizamos
               disponibilidad.
             </p>
           </section>
@@ -178,9 +178,9 @@ function TermsPage() {
               7 · Limitación de responsabilidad
             </h2>
             <p>
-              AnimeShowdown se ofrece "AS IS". El autor no se hace responsable
-              de pérdida de datos, decisiones de compra basadas en rankings,
-              ni de daños indirectos derivados del uso del servicio.
+              AnimeShowdown se ofrece "AS IS". El proyecto no se hace
+              responsable de pérdida de datos, decisiones de compra basadas en
+              rankings, ni de daños indirectos derivados del uso del servicio.
             </p>
           </section>
 
@@ -201,9 +201,9 @@ function TermsPage() {
             </h2>
             <p>
               Estos términos se rigen por la legislación española. Conflictos
-              jurisdicción de los tribunales de Santa Cruz de Tenerife,
-              España. Para usuarios europeos los derechos otorgados por GDPR
-              y otras leyes locales obligatorias prevalecen sobre esta cláusula.
+              jurisdicción de los tribunales competentes en España. Para
+              usuarios europeos los derechos otorgados por GDPR y otras leyes
+              locales obligatorias prevalecen sobre esta cláusula.
             </p>
           </section>
         </article>
