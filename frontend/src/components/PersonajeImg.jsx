@@ -40,6 +40,8 @@ function PersonajeImg({
   colorDominante,
   imagenColorDominante,
   style,
+  onLoad,
+  onError,
   ...imgProps
 }) {
   const [status, setStatus] = useState({ src: null, loaded: false, errored: false })
@@ -75,12 +77,14 @@ function PersonajeImg({
   const dominantColor =
     colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
   const altText = alt ?? nombre ?? p?.nombre ?? slug
-  const handleImageLoad = useCallback(() => {
+  const handleImageLoad = useCallback((event) => {
     setStatus({ src, loaded: true, errored: false })
-  }, [src])
-  const handleImageError = useCallback(() => {
+    onLoad?.(event)
+  }, [onLoad, src])
+  const handleImageError = useCallback((event) => {
     setStatus({ src, loaded: false, errored: true })
-  }, [src])
+    onError?.(event)
+  }, [onError, src])
   const handleImageRef = useCallback(
     (node) => {
       if (!node || loaded || errored) return
@@ -164,9 +168,9 @@ function PersonajeImg({
           }`}
           loading={loading ?? 'lazy'}
           decoding={decoding ?? 'async'}
+          {...imgProps}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          {...imgProps}
         />
       </picture>
     </span>

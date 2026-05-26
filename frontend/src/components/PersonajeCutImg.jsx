@@ -10,11 +10,14 @@ function PersonajeCutImg({
   imgClassName = '',
   loading,
   decoding,
+  onLoad,
+  onError,
   ...imgProps
 }) {
-  const [failed, setFailed] = useState(false)
-  const canUseCut = hasCut(slug) && !failed
-  const cutSrc = canUseCut ? cutUrl(slug) : null
+  const [failedSrc, setFailedSrc] = useState(null)
+  const availableCutSrc = hasCut(slug) ? cutUrl(slug) : null
+  const canUseCut = Boolean(availableCutSrc) && failedSrc !== availableCutSrc
+  const cutSrc = canUseCut ? availableCutSrc : null
   const cutBase = cutSrc?.replace(/\.webp$/i, '')
   const cutSrcSetWebp = cutBase
     ? `${cutBase}-300.webp 300w, ${cutBase}-600.webp 600w, ${cutSrc} 1024w`
@@ -31,6 +34,8 @@ function PersonajeCutImg({
           decoding={decoding ?? 'async'}
           className={className}
           {...imgProps}
+          onLoad={onLoad}
+          onError={onError}
         />
       )
     }
@@ -42,6 +47,8 @@ function PersonajeCutImg({
         decoding={decoding}
         className={className}
         {...imgProps}
+        onLoad={onLoad}
+        onError={onError}
       />
     )
   }
@@ -66,8 +73,12 @@ function PersonajeCutImg({
           loading={loading ?? 'lazy'}
           decoding={decoding ?? 'async'}
           className={`relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_18px_22px_rgb(0_0_0_/_0.55)] ${imgClassName}`.trim()}
-          onError={() => setFailed(true)}
           {...imgProps}
+          onLoad={onLoad}
+          onError={(event) => {
+            setFailedSrc(cutSrc)
+            onError?.(event)
+          }}
         />
       </picture>
     </div>
