@@ -85,6 +85,159 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Estimated PRs:** 5-7.
 **Branch:** `sprint-auto-03-mobile-deep`.
 
+# 🚨 PRIORITARIO — Stability + Cleanup + Pro Pass (sprints 3.5a, 3.5b, 3.5c)
+
+**Heads-up del humano (orden directa):** tras completar Sprint 3, Codex SALTA inmediatamente a los sprints 3.5a → 3.5b → 3.5c. Estos cubren un macro-informe de auditoría del frontend completo (bugs reales que rompen UX, deuda técnica, prep portfolio). Tras terminar 3.5c, Codex continúa con Sprint 4 (SEO) y el resto del autopilot normalmente.
+
+Source: macro informe del humano. Diagnóstico completo: producto serio con identidad, pero crecido lo suficiente para necesitar pasada de estabilidad antes de seguir añadiendo features. No saltarse esta pasada.
+
+---
+
+## Sprint 3.5a — STABILITY PASS (12 críticos + 8 importantes)
+
+**Goal:** arreglar los bugs reales identificados en la auditoría que rompen UX hoy. No es opcional. CI verde en cada PR.
+
+**Branch raíz:** `sprint-auto-3.5a-stability-pass`.
+**Estimated PRs:** 15-18.
+
+### 12 CRÍTICOS (atacar primero)
+
+1. **`api.js` timeout + signal externo**: si el caller pasa un `AbortController` externo, el `timeoutMs` interno puede quedar anulado. Crear helper `createRequestSignal({ signal, timeoutMs })` que combine ambos abort signals.
+2. **`api.js` `votosPeriodoBatch` con `slugs` undefined**: `slugs.filter(Boolean)` peta si `slugs` viene undefined. Default `{ slugs = [], dias = 7 } = {}` + guard `Array.isArray`. Aplicar también a la queryKey en `queryClient`.
+3. **StrictMode double calls en `VerifyPage`, `NewsletterConfirmarPage`, `Modal2faSetup`**: useEffect ejecuta 2x en dev, consumiendo el token la primera vez y mostrando error la segunda. Usar `useRef` guardia (`startedRef`).
+4. **`VotarPage` duelo fijo se pierde al siguiente voto**: `/votar?personaje=luffy&rival=naruto` muestra el primer duelo correcto, pero al pulsar "siguiente" cae a duelo random aunque la URL siga diciendo Luffy. Mantener el personaje fijo en `nextPair` cuando `fixedPersonaje` exista.
+5. **`VotarPage` captcha pierde metadatos**: el flujo de captcha reconstruye un objeto pobre con solo slug/nombre, perdiendo anime/rival/metadatos. Guardar objetos completos dentro del `captchaChallenge`.
+6. **Bracket predicciones cache por usuario**: queryKey `['predicciones', 'mias', torneoId]` puede leak entre usuarios. Incluir `user?.id` en la queryKey.
+7. **`PersonajeImg` / `PersonajeCutImg` handlers sobrescribibles**: si el caller pasa `onError`/`onLoad`, sobrescribe los handlers internos. Combinarlos: llamar internal primero y luego `imgProps.onError?.(event)`.
+8. **`PersonajeCutImg` `failed` no se resetea al cambiar slug**: `useEffect(() => setFailed(false), [slug])`.
+9. **`useCatalogoPersonajes` staleTime Infinity**: initialData desde localStorage + staleTime Infinity → usuarios podrían no recibir personajes nuevos hasta limpiar caché. Cambiar a `staleTime: 60 * 1000` + `refetchOnMount: true`. Quitar `syncCatalogoPersonajes(query.data)` durante render — solo dentro de useEffect.
+10. **`NotifBell` / `useUnreadCount` no recibe WS si dropdown cerrado**: badge tarda en actualizar. Hacer que `useUnreadCount` escuche `/user/queue/notificaciones` y invalide `KEY_UNREAD` + `KEY_LIST_BASE` al recibir mensaje.
+11. **`CardMiRoster` button dentro de Link**: HTML interactivo anidado inválido. Sacar el button del Link, posicionarlo `absolute` con `pointer-events` correcto.
+12. **`SectionPulso` duelo mostrado vs duelo random al hacer click**: la card muestra A vs B pero el CTA va a `/votar` random. Link debe ser `/votar?personaje=${a.slug}&rival=${b.slug}`.
+
+### 8 IMPORTANTES (atacar después de los críticos)
+
+13. **SEO 404 durante carga**: `useSeo` muestra "404 — No encontrado" mientras `data` está loading. Distinguir `isLoading` → "Cargando..." + noindex temporal. Aplicar en `AnimeDetailPage`, `AnimeRankingPage`, `TorneoDetailPage`, `PersonajeDetailPage`.
+14. **`RankingPage` tabs en URL**: tab actual no se sincroniza con query params. Crear hook `useQueryState(key, defaultValue)` reusable.
+15. **`PersonajesPage` búsqueda en URL**: `q` no se sincroniza con query params. Mismo hook `useQueryState`.
+16. **i18n: japonés activo pero textos hardcoded + falta hreflang ja**: `useSeo` debería emitir hreflang `ja`. Migrar al menos Hero/Header/Footer/MobileNav/Hero.
+17. **Fechas inválidas centralizadas**: helper `parseDateSafe` + `formatRelativeSafe` (validar `Number.isNaN(getTime())`). Aplicar en `HistorialCompetitivo`, `NotifBell`, `SectionPulso`, `StatusPage`, `TorneoDetailPage`, `EloHistoryChart`.
+18. **Empty states que no limpian filtros**: añadir botón "Limpiar filtros" a los EmptyState que aparecen tras filtrar.
+19. **Legal sin email/nombre personal**: cambiar a `contacto@animeshowdown.dev`. Mover datos de proveedores a config separada. Alinear claims legales con implementación real (JWT en memoria + cookie refresh, no localStorage).
+20. **`Footer` no debería cargar catálogo en todas las rutas**: actualmente carga personajes globales para mostrar top animes. Lazy load o solo en rutas relevantes (home/about).
+
+**Qué evitar:**
+- Saltarse cualquiera de los 12 críticos por "no parece urgente". El humano los validó como bugs reales que afectan UX.
+- Cambios masivos de refactor en este sprint. Aquí solo bugfixes quirúrgicos. El refactor va en 3.5b.
+
+---
+
+## Sprint 3.5b — CLEANUP PASS (refactor + helpers + unificación)
+
+**Goal:** reducir deuda técnica acumulada. Dividir páginas enormes, crear helpers reusables, unificar componentes duplicados.
+
+**Branch raíz:** `sprint-auto-3.5b-cleanup-pass`.
+**Estimated PRs:** 10-12.
+
+**Scope:**
+
+### Refactor de páginas enormes (5-7 PRs)
+
+Migrar a estructura `src/features/<feature>/` con `hooks/` + `components/` separados:
+
+- **`VotarPage.jsx` (~1500 LOC)** → `features/votar/`: extraer `useVotePair`, `useVoteSessionStats`, `useCaptchaVoteFlow`, `useVoteKeyboardShortcuts`. Componentes: `VoteCard`, `VoteControls`, `SessionRecap`.
+- **`RankingPage.jsx` (~1600 LOC)** → `features/ranking/`: `RankingTabs`, `RankingTable`, `RankingMetaReport`, `RankingPodium`.
+- **`PersonajeDetailPage.jsx` (~1000 LOC)** → `features/personajes/`: `PersonajeHero`, `PersonajeStats`, `PersonajeGallery`, `HistorialCompetitivo` (ya existe, mover).
+- **`PersonajesPage.jsx` (~1000 LOC)** → `features/personajes/CatalogoPersonajes/`.
+- **`SectionPulso.jsx` (~1000 LOC)** → split por bloque (DueloDestacado, MoversCard, EventoCard, RetoDelDia, TorneoActivoCard, DuelosPendientes, UltimosVotos).
+- **`PerfilPage.jsx` (~900 LOC)** + **`AdminPage.jsx` (~800 LOC)** + **`GamesHubPage.jsx` (~700 LOC)** + **`MiTop5Page.jsx` (~700 LOC)** + **`AnimeDetailPage.jsx` (~600 LOC)** → split similar.
+
+### Helpers + hooks reusables (2-3 PRs)
+
+- `lib/dateUtils.js`: `parseDateSafe`, `formatRelativeSafe`, `formatAbsoluteSafe`.
+- `hooks/useQueryState.js`: sincronización URL ↔ estado para tabs, filtros, búsqueda.
+- `lib/shareWithToast.js`: factorizar el patrón native share + clipboard fallback + toast (actualmente duplicado en cada game daily).
+- `hooks/useDailyGameState.js` + `useTodayKey`: hook canónico que rebota cuando cruza medianoche.
+- `lib/buildUrl.js`: builder de URLs con `encodeURIComponent` automático (resolver inconsistencias actuales).
+
+### Unificaciones (2-3 PRs)
+
+- **Modales/dialogs**: unificar `AccessibleDialog` + variantes ad-hoc en `<Dialog>` única con focus trap, ESC close, scroll lock, `aria-labelledby` auto.
+- **`EmptyState` vs `EmptyStateScene`**: APIs distintas, mismo propósito. Consolidar en una sola con prop `scene` opcional.
+- **Mover datos hardcodeados a config**: emails, URLs, social handles, proveedores → `frontend/src/data/config.js` o env vars.
+
+**Qué evitar:**
+- Tocar lógica de negocio durante el refactor. Mismo comportamiento, distinta estructura.
+- Renombrar archivos sin actualizar todos los imports (eslint-plugin-import debe quedar verde).
+- Romper las queryKeys actuales (los caches en uso deben seguir hits hasta que se vacíen naturalmente).
+
+---
+
+## Sprint 3.5c — PRO PASS (TS lib/* + tests + asset dashboard + README portfolio)
+
+**Goal:** dejar el proyecto presentable como portfolio premium. TypeScript en los archivos críticos de lib/, tests E2E de los flujos que el informe identifica como críticos, dashboard admin de assets, README brutal con screenshots.
+
+**Branch raíz:** `sprint-auto-3.5c-pro-pass`.
+**Estimated PRs:** 7-9.
+
+**Scope:**
+
+### TypeScript en `lib/*` críticos (2-3 PRs)
+
+Migrar solo estos 7 archivos (sin tocar componentes ni páginas, por scope):
+
+- `lib/api.js` → `api.ts`
+- `lib/queryClient.js` → `queryClient.ts`
+- `lib/personajes-core.js` → `personajes-core.ts`
+- `lib/localVoteRanking.js` → `localVoteRanking.ts`
+- `lib/games.js` → `games.ts`
+- `lib/torneosQueries.js` → `torneosQueries.ts`
+- `lib/share.js` → `share.ts`
+
+Configurar `tsconfig.json` con `allowJs: true` + `strict: true` solo para estos archivos. Types compartidos en `lib/types.ts`.
+
+### Tests E2E críticos (3-4 PRs)
+
+Playwright tests para los flujos identificados como críticos:
+
+1. Usuario entra, vota, ranking local cambia.
+2. `/votar?personaje=a&rival=b` muestra ese duelo exacto y el siguiente sigue girando alrededor del fijo.
+3. Login con `next` vuelve a la ruta original tras éxito.
+4. `RankingPage` tab cambia URL y al recargar mantiene el tab.
+5. `PersonajesPage` búsqueda persiste en URL.
+6. Verify page no llama 2x en StrictMode (test en build production donde StrictMode está off — pero el guard de useRef debe pasar igualmente).
+7. Notificación WS aumenta badge sin abrir dropdown.
+8. Mobile nav no tapa contenido final (regresión Sprint 3).
+9. Reduced motion desactiva animaciones clave.
+10. Favorito se actualiza optimistic y rollback si falla.
+11. MiTop5 con `?add=slug` añade slot aunque la página ya esté montada.
+
+### Asset health dashboard (1 PR)
+
+Ruta `/admin/assets` (gated por auth admin):
+
+- Listado de fallbacks por tipo (cuts, banners, SSR, brand).
+- Imágenes con 404 reportados por `asset-tracking.js`.
+- Slugs sin cut.
+- Visuales missing en `visual-assets-manifest.js`.
+- Últimos errores tracked.
+- Botón "Copiar reporte" como markdown.
+
+### README portfolio + Lighthouse checklist (1-2 PRs)
+
+- `README.md` rewrite siguiendo la estructura del informe (Stack / Features / Arquitectura / Performance / Testing / Screenshots).
+- Generar `docs/screenshots/` con capturas de home, votar, ranking, personaje, torneo, games, perfil, modo TV.
+- Sección "Performance budget" con resultados Lighthouse 4 categorías ≥ 90.
+- Badges de CI/coverage/version.
+- `docs/DEMO.md` con video o GIF de los flujos clave.
+
+**Qué evitar:**
+- TS migration de componentes o páginas (fuera de scope para 3.5c — eso es Sprint 39 i18n + futuro).
+- README con marketing genérico. Que cuente la decisión técnica + qué problemas resuelve.
+- Screenshots con datos de usuario real. Usar fixtures.
+
+---
+
 ## Sprint 4 — SEO structured data exhaustivo
 
 **Goal:** Schema.org JSON-LD completo en todas las entidades (CreativeWork, Person, Event, SportsEvent, BreadcrumbList).
@@ -857,16 +1010,150 @@ Revisar `/juegos` completa:
 
 ---
 
+# TIER E — Ideas nuevas potentes (sprints 41-47)
+
+Source: macro informe del humano. Estas son features nuevas que amplían el producto significativamente. Codex las ataca tras cerrar Sprint 40 (release prep).
+
+## Sprint 41 — Comparador 1v1 definitivo (`/personajes/<a>-vs-<b>`)
+
+**Goal:** ruta dedicada para comparar 2 personajes lado a lado con datos competitivos reales + social share.
+
+**Scope:**
+- Ruta `/personajes/<slug-a>-vs-<slug-b>` (parser de URL maneja orden alfabético canónico para evitar duplicados).
+- Vista split con: ELO real, votos recientes (últimos 7d), historial cara a cara (cuántas veces se enfrentaron, quién ganó), favoritos de la comunidad, porcentaje "más votado", winrate por anime, comentarios contextuales del duelo.
+- Share card con OG image generada (reutilizar pipeline Sprint 24).
+- CTA "Vota tú este duelo" → `/votar?personaje=<a>&rival=<b>` (sinergia con fix Sprint 3.5a #4).
+- Recomendación algorítmica al final: "si te interesa este duelo, también te puede gustar X vs Y".
+
+**Estimated PRs:** 5-7.
+**Branch:** `sprint-auto-41-comparador-1v1`.
+**Qué evitar:** mostrar 0/0 sin contexto si nunca se enfrentaron. Caer a "todavía no se han enfrentado, sé el primero" con CTA claro.
+
+---
+
+## Sprint 42 — Temporadas de ranking (`/temporadas`)
+
+**Goal:** sistema de temporadas competitivas con reset parcial, hall of fame y badges.
+
+**Scope:**
+- Backend: tabla `temporadas` (id, nombre, inicio, fin, tema, ranking_snapshot_url). Migración V31+ (V1-V29 intocables).
+- Tipos de temporada: regulares trimestrales (Primavera/Verano/Otoño/Invierno 2026) + temáticas (Villanos, Waifus, Shonen, Isekai).
+- Reset parcial al cerrar temporada: ELO se mantiene, pero "ELO temporada" se reinicia. Top-50 de cada temporada queda en Hall of Fame.
+- Vista `/temporadas` con: temporada actual + countdown + tablas pasadas.
+- Badges de "Ganador Temporada X" en el perfil.
+- Cron job server-side para abrir/cerrar temporadas automáticamente.
+
+**Estimated PRs:** 7-9.
+**Branch:** `sprint-auto-42-temporadas`.
+**Heads-up:** toca lógica de ranking — coordinar con Sprint 23 (rebuild popularidad + female boost). El boost femenino aplica también en temporadas o no? Decisión: SÍ por defecto, mismo toggle "modo competitivo" para opt-out.
+
+---
+
+## Sprint 43 — Perfil público social (`/u/<username>`)
+
+**Goal:** perfil compartible más rico, con identidad de "trainer" anime.
+
+**Scope:**
+- Ruta `/u/<username>` pública (sin auth requerida para leer).
+- Main character pickeable (carta SSR destacada como avatar grande).
+- Top 5 público (si el user lo hace público en privacy settings).
+- Badges destacados (3-5 elegibles).
+- Rango dan/kyu basado en activity + winrate (sistema tipo judo: 9-kyu novato → 1-dan → 8-dan maestro).
+- Torneos creados / participados.
+- Predicciones acertadas (sinergia Sprint 32 audit).
+- Racha diaria visible (sinergia Sprint 22 streaks).
+- OG image generada para el share del perfil (sinergia Sprint 24).
+- Toggle privacy (público/seguidores/privado).
+
+**Estimated PRs:** 6-8.
+**Branch:** `sprint-auto-43-perfil-publico`.
+
+---
+
+## Sprint 44 — Asset health dashboard (admin)
+
+**Goal:** dashboard interno para monitorear estado de assets (extensión del que se hace en Sprint 3.5c).
+
+**Scope:**
+- Ya parcialmente cubierto en Sprint 3.5c — aquí se amplía:
+- Histórico de errores por asset (gráfica 30d).
+- Alertas si el ratio "fallback hit / total request" supera el 5%.
+- Cola de "assets sugeridos para regenerar" (los que más fallback hits acumulan).
+- Acción rápida: "marcar como WIP" (lo añade al allowlist) o "promover a seed" (lo quita del allowlist y regenera personajes-seed.json).
+- Reporte exportable como JSON/CSV para el humano.
+
+**Estimated PRs:** 4-5.
+**Branch:** `sprint-auto-44-asset-dashboard-v2`.
+**Qué evitar:** que el dashboard mismo sea pesado (limit a 100 assets visibles + paginación).
+
+---
+
+## Sprint 45 — Daily streak cloud (sincronizar racha local ↔ servidor)
+
+**Goal:** la racha diaria actualmente es 100% local. Sincronizarla al backend cuando el user esté logueado.
+
+**Scope:**
+- Backend: tabla `user_streaks` (user_id, current_streak, longest_streak, last_active_date).
+- Endpoint `POST /api/streaks/touch` que se llama al hacer cualquier acción daily (votar, completar reto, jugar daily game).
+- Merge inteligente al login: si racha local > racha cloud, propone "tu racha local es mayor, ¿quieres reclamarla?" (anti-cheat: validar via votos efectivos).
+- Ranking de rachas en `/leaderboards/streaks` (nuevo tab).
+- Badges 7/30/100 días desbloqueables (sinergia Sprint 20 achievements).
+- Calendario heatmap de actividad (sinergia Sprint 21 daily calendar redesign).
+
+**Estimated PRs:** 5-7.
+**Branch:** `sprint-auto-45-streak-cloud`.
+
+---
+
+## Sprint 46 — Modo evento en directo (overlay streamer)
+
+**Goal:** modo para que los torneos sean watchable en directo, con overlay para streamers.
+
+**Scope:**
+- Vista `/torneos/<slug>/live`: match actual fullscreen, votos en directo, ranking actualizándose.
+- QR code grande con link directo al voto del match abierto (asistentes escanean y votan desde móvil).
+- Overlay para OBS/Streamlabs: HTML page minimalista que el streamer puede capturar como browser source. Muestra match + votos + countdown.
+- Modo TV ya existe — extender con esta capa "live event".
+- Hotkey "L" para entrar/salir de live mode (admin only).
+- Estadísticas post-evento: pico de votos por minuto, distribución geográfica si aplica, MVP del evento.
+
+**Estimated PRs:** 5-7.
+**Branch:** `sprint-auto-46-live-event-mode`.
+**Heads-up:** integración OBS browser source + QR code = nuevas deps (`qrcode.react` o similar). Verificar OSS y sin coste recurrente.
+
+---
+
+## Sprint 47 — Sistema de colecciones SSR desbloqueables
+
+**Goal:** turn the SSR cards into a collectibles meta-loop. Vota → desbloqueas cartas → completa colecciones por anime → reward.
+
+**Scope:**
+- Tabla `user_card_collection` (user_id, personaje_slug, unlocked_at, votes_count, rarity).
+- Cada N votos por un personaje desbloquea una variante de su carta (base → holo → glow).
+- Colecciones por anime: "completa los 10 personajes de One Piece" → badge "Capitán Pirata" + reward visual (theme del perfil).
+- Vista `/colecciones`: álbum tipo Pokédex con progreso visual.
+- Rarezas: bronze (≥10 votos), silver (≥50), gold (≥200), platinum (≥500), diamond (≥1000).
+- Share de colección como OG image grid (sinergia Sprint 24).
+- No es pay-to-win: solo cosmético, todo desbloqueable jugando.
+
+**Estimated PRs:** 7-10.
+**Branch:** `sprint-auto-47-colecciones-ssr`.
+**Heads-up:** posible synergy con formas finales del Sprint 16. Las 17 cartas con `formAlt` (luffy_gear5, naruto_baryon, etc.) pueden ser rewards de "completaste el universo" en lugar de un toggle libre. Decisión a evaluar dentro del sprint.
+
+---
+
 ## Resumen numérico
 
 | Tier | Sprints | PRs estimados |
 |---|---|---|
 | S (Foundational) | 1-8 | 51-67 |
+| 🚨 PRIORITARIO (Stability/Cleanup/Pro Pass) | 3.5a, 3.5b, 3.5c | 32-39 |
 | A (UX polish) | 9-16 | 29-42 |
-| B (Features) | 17-25 | 44-61 |
+| B (Features) | 17-25 + 21b | 50-72 |
 | C (Backend depth) | 26-32 | 30-42 |
 | D (Code + docs) | 33-40 | 31-44 |
-| **TOTAL** | **40 sprints** | **~185-256 PRs** |
+| E (Ideas nuevas potentes) | 41-47 | 39-53 |
+| **TOTAL** | **51 sprints** | **~262-359 PRs** |
 
 ## Convivencia con tanda 3 de imágenes
 
