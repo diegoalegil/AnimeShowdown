@@ -713,11 +713,14 @@
       radial-gradient(circle at 78% 0%, rgb(36 198 220 / 0.08), transparent 26rem),
       radial-gradient(circle at 12% 18%, rgb(159 29 44 / 0.14), transparent 30rem),
       linear-gradient(180deg, #080b12 0%, #070a11 45%, #04070c 100%);
+    overflow-x: clip;
+    scroll-padding-top: calc(4.5rem + env(safe-area-inset-top));
   }
 
   body {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     background:
       radial-gradient(circle at 70% 8%, rgb(36 198 220 / 0.05), transparent 26rem),
       radial-gradient(circle at 16% 12%, rgb(159 29 44 / 0.10), transparent 32rem),
@@ -727,7 +730,14 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+    overscroll-behavior-x: none;
     position: relative;
+  }
+
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   body::before {
