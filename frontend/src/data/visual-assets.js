@@ -63,6 +63,15 @@ function makeVisual({
   fallbackImage,
   expectedPath,
   image = null,
+  // Imagen vertical opcional (1024x1536 portrait 2:3) usada por
+  // VisualPageShell para el fondo de página completa. Se separa del
+  // `image` (horizontal 16:9 para CinematicHero/banners) porque una
+  // imagen 16:9 estirada para cubrir una sección de página de 200vh+
+  // se ve recortada o estirada feo. Si shellImage no se define, el
+  // shell no muestra imagen de fondo — solo overlay gradient + color.
+  shellExpectedPath = null,
+  shellImage = null,
+  shellObjectPosition = 'center top',
   description = '',
   mood = '',
   objectPosition = 'center',
@@ -75,14 +84,19 @@ function makeVisual({
 }) {
   const p = palette(paletteSeed)
   const resolvedImage = image ?? resolveAsset(expectedPath) ?? fallbackImage
+  const resolvedShellImage =
+    shellImage ?? (shellExpectedPath ? resolveAsset(shellExpectedPath) : null)
   return {
     slug,
     title,
     type,
     kanji,
     image: resolvedImage,
+    shellImage: resolvedShellImage,
+    shellObjectPosition,
     fallbackImage,
     expectedPath,
+    shellExpectedPath,
     description,
     mood,
     objectPosition,
