@@ -58,7 +58,7 @@ Catalogo de primitivos creados en la sesion A para reutilizar el sistema visual 
 `StatPill` cubre stats numericos en modo vertical o inline con icono.
 
 ```jsx
-<StatPill value={<CountUp target={1052} />} label="Personajes" />
+<StatPill value={<CountUp target={1086} />} label="Personajes" />
 <StatPill icon={Trophy} value="13" label="Torneos" layout="inline" />
 ```
 
