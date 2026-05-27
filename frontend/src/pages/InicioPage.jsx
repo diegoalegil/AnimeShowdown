@@ -108,6 +108,19 @@ const pasos = [
   },
 ]
 
+const HOME_SKELETON_BLOCKS = [
+  { id: 'daily', variant: 'banner', className: 'h-[369px]' },
+  { id: 'pulse', variant: 'banner', className: 'h-[926px]' },
+  { id: 'marquee', variant: 'line', className: 'h-[86px]' },
+  { id: 'stats', variant: 'banner', className: 'h-[224px]' },
+  { id: 'ranking', variant: 'banner', className: 'h-[606px]' },
+  { id: 'daily-trials', variant: 'banner', className: 'h-[620px]' },
+  { id: 'platform', variant: 'banner', className: 'h-[520px]' },
+  { id: 'how-it-works', variant: 'banner', className: 'h-[420px]' },
+  { id: 'tournaments', variant: 'banner', className: 'h-[520px]' },
+  { id: 'anime-universes', variant: 'banner', className: 'h-[520px]' },
+]
+
 function InicioPage() {
   const {
     personajes: catalogoPersonajes,
@@ -220,9 +233,13 @@ function HomeCatalogGuard({ isLoading, isError, hasItems, onRetry, children }) {
 
 function HomeSkeletonSections() {
   return (
-    <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 px-5 py-12 sm:grid-cols-2 lg:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <Skeleton key={i} variant="card" />
+    <div className="mx-auto flex w-full max-w-7xl flex-col px-5 py-6 sm:px-8">
+      {HOME_SKELETON_BLOCKS.map((block) => (
+        <Skeleton
+          key={block.id}
+          variant={block.variant}
+          className={`w-full ${block.className}`}
+        />
       ))}
     </div>
   )

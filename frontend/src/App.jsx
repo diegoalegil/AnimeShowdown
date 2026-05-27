@@ -213,12 +213,15 @@ function useQueryLanguageSync(search) {
 }
 
 // Fallback de Suspense compartido con shell mínimo de marca y label legible.
-function PageLoader() {
+function PageLoader({ reserveClassName = '', alignTop = false }) {
   // Anillo accent, kanji 勝 y tres dots suaves. Las clases motion-safe
   // respetan prefers-reduced-motion.
+  const layoutClassName = alignTop
+    ? 'items-start justify-center px-5 pb-20 pt-36'
+    : 'items-center justify-center px-5 py-20'
   return (
     <div
-      className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20"
+      className={`as-stage as-stage-visual as-stage-home flex flex-1 ${layoutClassName} ${reserveClassName}`}
       role="status"
       aria-live="polite"
       aria-busy="true"
@@ -326,7 +329,12 @@ function useCatalogoLoadingTimeout(isLoading) {
 // Wrapper que sólo deja pasar children cuando el catálogo de personajes está
 // hidratado. Las rutas de soporte/auth/legal/status cargan independiente para
 // que sigan disponibles aunque falle /api/personajes/catalogo.
-function RequireCatalog({ catalogoQuery, children }) {
+function RequireCatalog({
+  catalogoQuery,
+  loadingReserveClassName = '',
+  loadingAlignTop = false,
+  children,
+}) {
   // Diferenciamos dos estados distintos:
   //   - loading: catalogoQuery aún no resolvió.
   //   - loaded-empty: el backend respondió, pero con [] (DB nueva, seed
@@ -345,7 +353,12 @@ function RequireCatalog({ catalogoQuery, children }) {
   if (hasData) return children
   if (isError || hasTimedOut) return <CatalogoError onRetry={handleRetry} />
   if (isLoadedEmpty) return <CatalogoVacio onRetry={handleRetry} />
-  return <PageLoader />
+  return (
+    <PageLoader
+      reserveClassName={loadingReserveClassName}
+      alignTop={loadingAlignTop}
+    />
+  )
 }
 
 function CatalogoVacio({ onRetry }) {
@@ -375,6 +388,16 @@ function CatalogoVacio({ onRetry }) {
   )
 }
 
+function getPageLoaderReserveClassName(pathname) {
+  if (pathname === '/') return 'min-h-[5818px]'
+  if (pathname === '/votar') return 'min-h-[1256px]'
+  if (pathname === '/ranking') return 'min-h-[12233px]'
+  if (pathname.startsWith('/personajes/')) return 'min-h-[4244px]'
+  if (pathname.startsWith('/torneos/')) return 'min-h-[3404px]'
+  if (pathname === '/games') return 'min-h-[2167px]'
+  return ''
+}
+
 function App() {
   const location = useLocation()
   const catalogoQuery = useCatalogoPersonajes()
@@ -383,9 +406,17 @@ function App() {
   // navega aquí queremos que el viewport sea solo del contenido — sin
   // header global, sin bottom nav móvil, sin footer.
   const isFullscreenRoute = location.pathname.startsWith('/tv')
+  const pageLoaderReserveClassName = getPageLoaderReserveClassName(location.pathname)
+  const pageLoaderAlignTop = Boolean(pageLoaderReserveClassName)
   // Helper local para no repetir el wrapper en cada Route catalog-gated.
   const gated = (element) => (
-    <RequireCatalog catalogoQuery={catalogoQuery}>{element}</RequireCatalog>
+    <RequireCatalog
+      catalogoQuery={catalogoQuery}
+      loadingReserveClassName={pageLoaderReserveClassName}
+      loadingAlignTop={pageLoaderAlignTop}
+    >
+      {element}
+    </RequireCatalog>
   )
 
   // Scroll to top en cada cambio de ruta — antes la página quedaba con el scroll
@@ -511,7 +542,14 @@ function App() {
       <EmailVerifyBanner />
       <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
         <div key={location.pathname} className="flex flex-1 flex-col">
-          <Suspense fallback={<PageLoader />}>
+          <Suspense
+            fallback={(
+              <PageLoader
+                reserveClassName={pageLoaderReserveClassName}
+                alignTop={pageLoaderAlignTop}
+              />
+            )}
+          >
             <Routes location={location}>
               {/* ===== Rutas INDEPENDIENTES del catálogo ===== */}
               {/* Auth, soporte, legal y status. Estas páginas tienen que
