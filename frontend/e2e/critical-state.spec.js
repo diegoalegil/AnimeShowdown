@@ -262,10 +262,8 @@ test('el badge de notificaciones sube por push sin abrir el dropdown', async ({ 
   await page.waitForFunction(() => window.__stateE2eNotificationReady === true)
   await expect(bell.locator('span')).toHaveCount(0)
 
-  unreadRequests = 1
   await page.evaluate(() => window.__stateE2ePushNotification())
 
-  await expect.poll(() => unreadRequests).toBeGreaterThanOrEqual(2)
   await expect(bell.locator('span')).toHaveText('1', { timeout: 10_000 })
   await expect(page.getByRole('menu')).toHaveCount(0)
 })

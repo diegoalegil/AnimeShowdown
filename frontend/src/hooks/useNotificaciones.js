@@ -15,7 +15,12 @@ import { useStompSubscription } from './useStompSubscription.js'
 const KEY_LIST_BASE = ['notificaciones']
 const KEY_UNREAD = ['notificaciones', 'unread-count']
 
-function useNotificacionesPushInvalidation(enabled) {
+function shouldIncrementUnread(lastMessage) {
+  if (!lastMessage || typeof lastMessage !== 'object') return true
+  return lastMessage.leida !== true
+}
+
+function useNotificacionesPushInvalidation(enabled, { incrementUnread = false } = {}) {
   const queryClient = useQueryClient()
   const { lastMessage } = useStompSubscription(
     enabled ? '/user/queue/notificaciones' : null,
@@ -23,8 +28,14 @@ function useNotificacionesPushInvalidation(enabled) {
 
   useEffect(() => {
     if (!lastMessage) return
+    if (incrementUnread && shouldIncrementUnread(lastMessage)) {
+      queryClient.setQueryData(KEY_UNREAD, (prev) => ({
+        ...prev,
+        count: Math.max(0, Number(prev?.count ?? 0) + 1),
+      }))
+    }
     queryClient.invalidateQueries({ queryKey: KEY_LIST_BASE })
-  }, [lastMessage, queryClient])
+  }, [incrementUnread, lastMessage, queryClient])
 }
 
 export function useNotificaciones({
@@ -58,7 +69,7 @@ export function useUnreadCount({ enabled = true } = {}) {
     // en caso de que un usuario tenga el WS roto y no notar las notifs.
     refetchInterval: 60_000,
   })
-  useNotificacionesPushInvalidation(enabled)
+  useNotificacionesPushInvalidation(enabled, { incrementUnread: true })
   return query
 }
 
