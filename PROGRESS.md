@@ -123,3 +123,7 @@
 ## Sprint Auto 3.5c cierre
 
 - 2026-05-27T14:55:04+01:00 | done: PR AUTO-3.5c.1-8 (#110-#117) | skipped: 0 | failed: 0 | result: 7 `lib/*` migrados a TypeScript estricto, E2E criticos de UI/estado anadidos, dashboard de salud de assets publicado en `/admin/assets`, README portfolio/demo/screenshot set actualizado y Lighthouse desktop local por encima de presupuesto; siguiente sprint: Sprint Auto 04.
+
+## Sprint Auto 04 - SEO structured data exhaustivo
+
+- 2026-05-27T15:12:59+01:00 | PR AUTO-04.1 / #118 | 200094c | verify: `node --version` v22.22.2; `npm run test:seo-schema` PASS; `npm run lint` PASS; `npm run build:no-images` PASS; CI PASS (frontend, backend, sync-personajes, sharp variants cache, Cloudflare, Playwright production build 9m32s) | decisions: `Person` JSON-LD de personajes queda enriquecido con `@id`, `identifier`, `mainEntityOfPage`, `VoteAction` y `PropertyValue` de ranking usando metricas ya calculadas por la pagina; se anade smoke test SEO para validar Person + BreadcrumbList sin cambiar comportamiento visible.
