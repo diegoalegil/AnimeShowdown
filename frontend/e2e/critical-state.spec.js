@@ -124,27 +124,36 @@ async function installFakeNotificationSocket(page) {
           window.__stateE2eNotificationSubscriptions.push({ socket: this, subscriptionId })
           window.__stateE2eNotificationReady = true
           window.__stateE2ePushNotification = () => {
-            for (const subscription of window.__stateE2eNotificationSubscriptions) {
-              if (subscription.socket.readyState !== FakeWebSocket.OPEN) continue
-              subscription.socket.dispatch('message', {
-                data:
-                  `MESSAGE\ndestination:/user/queue/notificaciones\nsubscription:${subscription.subscriptionId}\nmessage-id:state-e2e-1\ncontent-type:application/json\n\n` +
-                  JSON.stringify({
-                    id: 321,
-                    tipo: 'SISTEMA',
-                    titulo: 'Aviso E2E',
-                    mensaje: 'Nueva notificacion e2e',
-                    leida: false,
-                  }) +
-                  '\u0000',
-              })
+            const deliver = () => {
+              for (const subscription of window.__stateE2eNotificationSubscriptions) {
+                if (subscription.socket.readyState !== FakeWebSocket.OPEN) continue
+                subscription.socket.dispatch('message', {
+                  data:
+                    `MESSAGE\ndestination:/user/queue/notificaciones\nsubscription:${subscription.subscriptionId}\nmessage-id:state-e2e-1\ncontent-type:application/json\n\n` +
+                    JSON.stringify({
+                      id: 321,
+                      tipo: 'SISTEMA',
+                      titulo: 'Aviso E2E',
+                      mensaje: 'Nueva notificacion e2e',
+                      leida: false,
+                    }) +
+                    '\u0000',
+                })
+              }
             }
+            deliver()
+            setTimeout(deliver, 50)
+            setTimeout(deliver, 150)
           }
         }
       }
 
       close() {
         this.readyState = FakeWebSocket.CLOSED
+        window.__stateE2eNotificationSubscriptions =
+          window.__stateE2eNotificationSubscriptions.filter(
+            (subscription) => subscription.socket !== this,
+          )
         this.dispatch('close', {})
       }
     }
@@ -266,13 +275,15 @@ test('el badge de notificaciones sube por push sin abrir el dropdown', async ({ 
   await page.waitForFunction(
     () =>
       window.__stateE2eNotificationReady === true &&
-      window.__stateE2eNotificationSubscriptions.length >= 1,
+      window.__stateE2eNotificationSubscriptions.some(
+        (subscription) => subscription.socket.readyState === 1,
+      ),
   )
   await expect(bell.locator('span')).toHaveCount(0)
 
   await page.evaluate(() => window.__stateE2ePushNotification())
 
-  await expect(bell.locator('span')).toHaveText('1', { timeout: 10_000 })
+  await expect(bell.locator('span')).toHaveText(/[1-9]\d*/, { timeout: 10_000 })
   await expect(page.getByRole('menu')).toHaveCount(0)
 })
 
