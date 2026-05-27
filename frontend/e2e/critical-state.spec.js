@@ -82,6 +82,7 @@ async function prepareAuthedPage(page) {
 async function installFakeNotificationSocket(page) {
   await page.addInitScript(() => {
     window.__stateE2eNotificationReady = false
+    window.__stateE2eNotificationSubscriptions = []
     window.__stateE2ePushNotification = () => {}
 
     class FakeWebSocket extends EventTarget {
@@ -120,21 +121,24 @@ async function installFakeNotificationSocket(page) {
         }
         if (text.startsWith('SUBSCRIBE') && text.includes('/user/queue/notificaciones')) {
           const subscriptionId = /^id:(.+)$/m.exec(text)?.[1] ?? 'sub-0'
+          window.__stateE2eNotificationSubscriptions.push({ socket: this, subscriptionId })
           window.__stateE2eNotificationReady = true
           window.__stateE2ePushNotification = () => {
-            if (this.readyState !== FakeWebSocket.OPEN) return
-            this.dispatch('message', {
-              data:
-                `MESSAGE\ndestination:/user/queue/notificaciones\nsubscription:${subscriptionId}\nmessage-id:state-e2e-1\ncontent-type:application/json\n\n` +
-                JSON.stringify({
-                  id: 321,
-                  tipo: 'SISTEMA',
-                  titulo: 'Aviso E2E',
-                  mensaje: 'Nueva notificacion e2e',
-                  leida: false,
-                }) +
-                '\u0000',
-            })
+            for (const subscription of window.__stateE2eNotificationSubscriptions) {
+              if (subscription.socket.readyState !== FakeWebSocket.OPEN) continue
+              subscription.socket.dispatch('message', {
+                data:
+                  `MESSAGE\ndestination:/user/queue/notificaciones\nsubscription:${subscription.subscriptionId}\nmessage-id:state-e2e-1\ncontent-type:application/json\n\n` +
+                  JSON.stringify({
+                    id: 321,
+                    tipo: 'SISTEMA',
+                    titulo: 'Aviso E2E',
+                    mensaje: 'Nueva notificacion e2e',
+                    leida: false,
+                  }) +
+                  '\u0000',
+              })
+            }
           }
         }
       }
