@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, Share2, SkipForward, Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { getPopularidad } from '../lib/personajes-core'
 import { endpoints, ApiError } from '../lib/api'
 import {
   getAnonymousVoteHeaders,
@@ -28,6 +27,13 @@ import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import VsBadge from '../features/votar/components/VsBadge'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
+import {
+  getPairFromAnime,
+  getPairWithFixed,
+  pairKey,
+  recordRecentPair,
+  selectRandomPair,
+} from '../features/votar/vote-pairing'
 
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
 // vez. La mayoría de usuarios nunca caen en captcha, así que mantenemos
@@ -59,149 +65,6 @@ const ANON_VOTE_LIMIT = 5
 // Pausa breve entre voto y siguiente duelo. En una pantalla de juego, 1.8s
 // se percibía como bloqueo; ~0.9s conserva feedback y mantiene ritmo.
 const NEXT_DELAY_MS = 900
-
-/**
- * Emparejamientos balanceados + anti-repetición.
- *
- * Antes era 100% random sobre el catálogo — salían combinaciones
- * sin sentido (un nicho contra Luffy). Ahora:
- *   1. A es completamente aleatorio (penalizando personajes vistos
- *      recientemente para que no repita el mismo en 3 enfrentamientos
- *      seguidos).
- *   2. B se busca con popularidad cercana a A (delta ≤ 12 puntos).
- *   3. Si tras 25 intentos no encuentra match cercano (zona muy peculiar),
- *      ampliamos a delta 25 con un intento más. Si tampoco, fallback a
- *      random clásico (garantizamos siempre devolver un par).
- *
- * El delta 12 sobre popularidad [0,100] se traduce a ELO ~±84 (popularidad·7),
- * range razonable para que el duelo se sienta competido sin clonar pares.
- *
- * Añadimos buffer de últimos pares en sessionStorage para evitar el mismo
- * enfrentamiento (A vs B y B vs A son equivalentes) y penalizar a personajes
- * vistos recientemente. sessionStorage (no localStorage) porque
- * queremos que la memoria se limpie al cerrar la pestaña.
- */
-const RECENT_PAIRS_KEY = 'animeshowdown.votar.recent-pairs'
-const RECENT_CHARS_KEY = 'animeshowdown.votar.recent-chars'
-const RECENT_PAIRS_MAX = 48
-const RECENT_CHARS_MAX = 10
-
-function pairKey(slugA, slugB) {
-  // A↔B equivalentes: ordenamos alfabéticamente el slug menor primero.
-  return slugA < slugB ? `${slugA}|${slugB}` : `${slugB}|${slugA}`
-}
-
-function readSessionList(key) {
-  try {
-    if (typeof sessionStorage === 'undefined') return []
-    const raw = sessionStorage.getItem(key)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-function writeSessionList(key, list, max) {
-  try {
-    if (typeof sessionStorage === 'undefined') return
-    const trimmed = list.slice(-max)
-    sessionStorage.setItem(key, JSON.stringify(trimmed))
-  } catch {
-    // sessionStorage puede fallar en private mode; sin él, la anti-
-    // repetición simplemente no funciona en esa sesión (acceptable).
-  }
-}
-
-function recordRecentPair(slugA, slugB) {
-  if (!slugA || !slugB) return
-  const pairs = readSessionList(RECENT_PAIRS_KEY)
-  pairs.push(pairKey(slugA, slugB))
-  writeSessionList(RECENT_PAIRS_KEY, pairs, RECENT_PAIRS_MAX)
-  const chars = readSessionList(RECENT_CHARS_KEY)
-  chars.push(slugA, slugB)
-  writeSessionList(RECENT_CHARS_KEY, chars, RECENT_CHARS_MAX * 2)
-}
-
-function selectRandomPair(catalogoPersonajes) {
-  const personajes = Array.isArray(catalogoPersonajes) ? catalogoPersonajes : []
-  if (personajes.length < 2) return [null, null]
-  const recentPairs = new Set(readSessionList(RECENT_PAIRS_KEY))
-  const recentChars = new Set(readSessionList(RECENT_CHARS_KEY))
-
-  // Helper: índice random preferentemente fuera de recentChars. Si tras N
-  // intentos no encuentra uno fresco, devuelve cualquiera (no bloqueamos).
-  const pickIdxA = () => {
-    for (let i = 0; i < 30; i++) {
-      const idx = Math.floor(Math.random() * personajes.length)
-      if (!recentChars.has(personajes[idx].slug)) return idx
-    }
-    return Math.floor(Math.random() * personajes.length)
-  }
-
-  const tryPair = (deltaMax, intentos, blockRecent) => {
-    const idxA = pickIdxA()
-    const a = personajes[idxA]
-    const popA = getPopularidad(a.slug)
-    for (let i = 0; i < intentos; i++) {
-      const idxB = Math.floor(Math.random() * personajes.length)
-      if (idxB === idxA) continue
-      const b = personajes[idxB]
-      if (Math.abs(getPopularidad(b.slug) - popA) > deltaMax) continue
-      if (blockRecent && recentPairs.has(pairKey(a.slug, b.slug))) continue
-      if (blockRecent && recentChars.has(b.slug)) continue
-      return [a, b]
-    }
-    return null
-  }
-
-  // Paso 1: ELO cercano + sin repeticiones recientes (delta 12, 25 tries).
-  // Paso 2: relajamos el anti-repetición pero mantenemos ELO cercano.
-  // Paso 3: relajamos ELO pero no recientes.
-  // Paso 4: random clásico (último recurso).
-  const pair =
-    tryPair(12, 25, true) ?? tryPair(12, 12, false) ?? tryPair(25, 10, true)
-  if (pair) {
-    return pair
-  }
-
-  // Fallback final: random sin restricciones (catálogo demasiado pequeño
-  // o restricciones imposibles de satisfacer).
-  const idxA = Math.floor(Math.random() * personajes.length)
-  let idxB = Math.floor(Math.random() * personajes.length)
-  while (idxB === idxA) idxB = Math.floor(Math.random() * personajes.length)
-  return [personajes[idxA], personajes[idxB]]
-}
-
-function getPairWithFixed(catalogoPersonajes, fixedPersonaje) {
-  const personajes = Array.isArray(catalogoPersonajes) ? catalogoPersonajes : []
-  if (!fixedPersonaje || personajes.length < 2) return [null, null]
-  const recentChars = new Set(readSessionList(RECENT_CHARS_KEY))
-  const popA = getPopularidad(fixedPersonaje.slug)
-
-  const candidatos = personajes
-    .filter((p) => p.slug !== fixedPersonaje.slug)
-    .map((p) => ({
-      personaje: p,
-      score:
-        Math.abs(getPopularidad(p.slug) - popA) +
-        (recentChars.has(p.slug) ? 20 : 0),
-    }))
-    .sort((x, y) => x.score - y.score)
-    .slice(0, 24)
-
-  const rival = candidatos[Math.floor(Math.random() * candidatos.length)]?.personaje
-  if (!rival) return selectRandomPair(personajes)
-  return Math.random() > 0.5 ? [fixedPersonaje, rival] : [rival, fixedPersonaje]
-}
-
-function getPairFromAnime(catalogoPersonajes, anime) {
-  const pool = (Array.isArray(catalogoPersonajes) ? catalogoPersonajes : [])
-    .filter((p) => p.anime === anime)
-  if (pool.length < 2) return selectRandomPair(catalogoPersonajes)
-  return selectRandomPair(pool)
-}
 
 function incrementarContadorLocalVotos() {
   try {
