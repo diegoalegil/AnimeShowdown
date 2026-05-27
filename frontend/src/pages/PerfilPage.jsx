@@ -1,28 +1,18 @@
 import { useRef, useState } from 'react'
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import {
   AlertTriangle,
-  ExternalLink,
   ImagePlus,
   Key,
   Link as LinkIcon,
   LogOut,
-  Mail,
-  Shield,
-  Swords,
   Trash2,
   Upload,
   User,
-  Vote,
-  Trophy,
-  Target,
-  Award,
 } from 'lucide-react'
-import { usePerfilStats } from '../hooks/usePerfil'
-import { rangoDe } from '../lib/danKyu'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
@@ -40,6 +30,10 @@ import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import CardDatosCuenta from '../features/perfil/components/CardDatosCuenta'
+import PerfilQuickStats from '../features/perfil/components/PerfilQuickStats'
+import PerfilTabs from '../features/perfil/components/PerfilTabs'
+import { tabValida } from '../features/perfil/perfil-tabs'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -72,18 +66,6 @@ async function fileToBase64(file, maxSize = 256, quality = 0.82) {
   const ctx = canvas.getContext('2d')
   ctx.drawImage(img, 0, 0, w, h)
   return canvas.toDataURL('image/jpeg', quality)
-}
-
-const PERFIL_TABS = [
-  { id: 'resumen', label: 'Resumen' },
-  { id: 'roster', label: 'Mi roster' },
-  { id: 'logros', label: 'Logros' },
-  { id: 'torneos', label: 'Mis torneos' },
-  { id: 'ajustes', label: 'Ajustes' },
-]
-
-function tabValida(id) {
-  return PERFIL_TABS.some((t) => t.id === id) ? id : 'resumen'
 }
 
 function PerfilPage() {
@@ -132,36 +114,19 @@ function PerfilPage() {
         {/* Tabs: separa la parte de gamificación (Resumen/Logros/Torneos)
             de la parte sensible (Ajustes). Antes todas las cards iban
             seguidas en un único scroll de ~3000px de alto. */}
-        <div
-          role="tablist"
-          className="mb-6 flex flex-wrap gap-1 rounded-lg border border-border bg-surface p-1"
-        >
-          {PERFIL_TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              onClick={() => {
-                setSearchParams(t.id === 'resumen' ? {} : { tab: t.id }, {
-                  replace: true,
-                })
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-                tab === t.id
-                  ? 'bg-accent text-bg'
-                  : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <PerfilTabs
+          activeTab={tab}
+          onChange={(nextTab) => {
+            setSearchParams(nextTab === 'resumen' ? {} : { tab: nextTab }, {
+              replace: true,
+            })
+          }}
+        />
 
         <div className="grid gap-6">
           {tab === 'resumen' && (
             <>
-              <CardDatos user={user} />
+              <CardDatosCuenta user={user} />
               <CardDanKyu />
               <CardReferral />
               <CardActividadReciente />
@@ -181,56 +146,6 @@ function PerfilPage() {
           )}
         </div>
     </VisualPageShell>
-  )
-}
-
-function CardDatos({ user }) {
-  return (
-    <div className="pattern-overlay pattern-overlay-asanoha rounded-xl border border-border bg-surface p-6">
-      <div className="flex items-center gap-5">
-        <Avatar user={user} size={80} />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="text-xl font-bold tracking-tight text-fg-strong">
-            {user.username}
-          </p>
-          <p className="inline-flex items-center gap-1.5 text-[13px] text-fg-muted">
-            <Mail className="h-3.5 w-3.5" />
-            {user.email || 'sin email'}
-          </p>
-          <p className="inline-flex items-center gap-1.5 text-[12px]">
-            <User className="h-3.5 w-3.5 text-fg-muted" />
-            <span
-              className={`font-mono font-bold ${
-                user.rol === 'ADMIN' ? 'text-gold' : 'text-fg-muted'
-              }`}
-            >
-              {user.rol || 'USER'}
-            </span>
-            {user.rol === 'ADMIN' && (
-              <Shield className="h-3 w-3 text-gold" />
-            )}
-          </p>
-        </div>
-      </div>
-      <p className="mt-3 text-[11px] italic text-fg-muted">
-        Tu email y datos de seguridad no se muestran en tu perfil público.
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          to={`/u/${encodeURIComponent(user.username)}`}
-          className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-gold transition-colors hover:bg-accent/20"
-        >
-          <ExternalLink className="h-3 w-3" />
-          Ver mi perfil público
-        </Link>
-        <Link
-          to="/votar"
-          className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-accent-hover"
-        >
-          Votar ahora
-        </Link>
-      </div>
-    </div>
   )
 }
 
@@ -857,101 +772,6 @@ function CardEliminarCuenta({ onEliminada }) {
         </div>
       </AccessibleDialog>
     </>
-  )
-}
-
-/**
- * Quick stats del perfil: votos, predicciones, badges + rango actual.
- *
- * Antes el usuario tenia que entrar en Resumen para ver Dan/Kyu, hacer
- * scroll para ver actividad, navegar a Logros para badges, etc. Esto
- * pone las 4 metricas clave arriba de los tabs.
- *
- * Skeletons mientras carga el query. Si no hay sesion/stats, se omite
- * silenciosamente (return null) — el resto del perfil sigue siendo util.
- */
-function PerfilQuickStats() {
-  const { data: stats, isLoading } = usePerfilStats()
-  if (isLoading) {
-    return (
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-20 animate-shimmer rounded-xl border border-border bg-gradient-to-r from-surface/40 via-surface/70 to-surface/40 bg-[length:200%_100%]"
-          />
-        ))}
-      </div>
-    )
-  }
-  if (!stats) return null
-  const puntos =
-    (stats.votos ?? 0) * 2 +
-    (stats.predicciones ?? 0) * 5 +
-    (stats.badges ?? 0) * 20
-  const { actual } = rangoDe(puntos)
-  const tiles = [
-    {
-      icon: Vote,
-      valor: stats.votos ?? 0,
-      label: 'Votos emitidos',
-      cls: 'text-rose-300 border-rose-500/30 bg-rose-500/5',
-    },
-    {
-      icon: Target,
-      valor: stats.predicciones ?? 0,
-      label: 'Predicciones',
-      cls: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/5',
-    },
-    {
-      icon: Trophy,
-      valor: stats.badges ?? 0,
-      label: 'Logros',
-      cls: 'text-amber-300 border-amber-500/30 bg-amber-500/5',
-    },
-    {
-      icon: Swords,
-      valor: stats.eloPvp ?? 1000,
-      label: 'ELO PvP',
-      cls: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/5',
-    },
-    {
-      icon: Award,
-      valor: actual.nombre,
-      label: 'Rango actual',
-      cls: 'text-violet-300 border-violet-500/30 bg-violet-500/5',
-      strong: true,
-    },
-  ]
-  return (
-    <motion.div
-      className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
-    >
-      {tiles.map((t) => (
-        <div
-          key={t.label}
-          className={`flex items-center gap-2.5 rounded-xl border bg-surface/40 p-4 backdrop-blur-sm ${t.cls}`}
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg/30">
-            <t.icon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <div
-              className={`tabular-nums text-fg-strong ${t.strong ? 'truncate text-base font-bold' : 'text-2xl font-black'}`}
-              title={t.strong ? String(t.valor) : undefined}
-            >
-              {t.valor}
-            </div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
-              {t.label}
-            </p>
-          </div>
-        </div>
-      ))}
-    </motion.div>
   )
 }
 
