@@ -14,7 +14,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
-import AccessibleDialog from '../components/AccessibleDialog'
+import Dialog from '../components/Dialog'
 import Card2faSeguridad from '../components/Card2faSeguridad'
 import CardActividadReciente from '../components/CardActividadReciente'
 import CardDanKyu from '../components/CardDanKyu'
@@ -361,10 +361,10 @@ function CardEliminarCuenta({ onEliminada }) {
         </button>
       </div>
 
-      {/* AccessibleDialog aporta focus trap, Escape, restore de foco y lock
+      {/* Dialog aporta focus trap, Escape, restore de foco y lock
           de scroll. Escape/backdrop se bloquean durante el borrado para no
           cancelar un proceso en curso por accidente. */}
-      <AccessibleDialog
+      <Dialog
         open={modalAbierto}
         onClose={() => { if (!pendiente) reset() }}
         titleId="modal-eliminar-titulo"
@@ -437,7 +437,7 @@ function CardEliminarCuenta({ onEliminada }) {
             {pendiente ? 'Eliminando…' : 'Confirmar eliminación'}
           </button>
         </div>
-      </AccessibleDialog>
+      </Dialog>
     </>
   )
 }
