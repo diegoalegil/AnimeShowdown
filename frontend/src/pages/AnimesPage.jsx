@@ -97,6 +97,14 @@ function AnimesPage() {
           }
         />
 
+        <p className="mb-6 max-w-3xl text-sm leading-7 text-fg-muted">
+          El catálogo de animes agrupa cada universo por roster, ELO base máximo
+          y ranking interno. Entra en una ficha para ver sus personajes
+          destacados, abrir duelos relacionados o revisar qué saga concentra más
+          fuerza competitiva dentro de AnimeShowdown. Los alias ayudan a encontrar
+          nombres populares como MHA, Kimetsu o SNK sin duplicar páginas.
+        </p>
+
         <div className="as-panel mb-6 grid gap-3 rounded-2xl p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
