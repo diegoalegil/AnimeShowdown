@@ -29,13 +29,18 @@ const containerVariants = {
   },
 }
 
+function getAdminTabFromPath(pathname) {
+  if (pathname.endsWith('/assets')) return 'assets'
+  if (pathname.endsWith('/comentarios')) return 'comentarios'
+  if (pathname.endsWith('/torneos')) return 'cola'
+  return 'mantenimiento'
+}
+
 function AdminPage() {
   useSeo({ title: 'Admin', noindex: true })
   const { user } = useAuth()
   const location = useLocation()
-  const [tab, setTab] = useState(
-    location.pathname.endsWith('/comentarios') ? 'comentarios' : 'mantenimiento',
-  )
+  const tab = getAdminTabFromPath(location.pathname)
   const { data: pendientes } = useTorneosPendientes()
   const pendientesCount = pendientes?.length ?? 0
 
@@ -81,9 +86,8 @@ function AdminPage() {
         </motion.header>
 
         <div className="mb-6 grid grid-cols-1 gap-1 rounded-lg border border-border bg-bg p-1 sm:grid-cols-4">
-          <button
-            type="button"
-            onClick={() => setTab('mantenimiento')}
+          <Link
+            to="/admin"
             className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'mantenimiento'
                 ? 'bg-surface-alt text-fg-strong'
@@ -92,10 +96,9 @@ function AdminPage() {
           >
             <Wrench className="h-4 w-4" />
             Crear
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('cola')}
+          </Link>
+          <Link
+            to="/admin/torneos"
             className={`relative inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'cola'
                 ? 'bg-surface-alt text-fg-strong'
@@ -109,10 +112,9 @@ function AdminPage() {
                 {pendientesCount}
               </span>
             )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('comentarios')}
+          </Link>
+          <Link
+            to="/admin/comentarios"
             className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'comentarios'
                 ? 'bg-surface-alt text-fg-strong'
@@ -121,10 +123,9 @@ function AdminPage() {
           >
             <MessageSquare className="h-4 w-4" />
             Comentarios
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('assets')}
+          </Link>
+          <Link
+            to="/admin/assets"
             className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'assets'
                 ? 'bg-surface-alt text-fg-strong'
@@ -133,7 +134,7 @@ function AdminPage() {
           >
             <Images className="h-4 w-4" />
             Assets
-          </button>
+          </Link>
         </div>
 
         {tab === 'mantenimiento' && (
