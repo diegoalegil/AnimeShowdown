@@ -1,0 +1,63 @@
+import { ArrowRight, Trophy } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import EditorialCover from '../../../../components/EditorialCover'
+import { getTournamentVisual } from '../../../../data/visual-assets'
+import CardEyebrow from './CardEyebrow'
+import PulseCard from './PulseCard'
+
+function TorneoActivoCard({ torneo }) {
+  if (!torneo) {
+    return (
+      <PulseCard tono="cyan">
+        <CardEyebrow icon={Trophy} label="Torneo activo" tono="text-cyan-300" />
+        <p className="text-[13px] text-fg-muted">
+          Sin torneos en marcha ahora mismo. Lanzamos un nuevo bracket cada
+          pocos días — vuelve pronto.
+        </p>
+      </PulseCard>
+    )
+  }
+
+  const enCurso = torneo.estado === 'IN_PROGRESS'
+  const estadoLabel = enCurso ? 'En curso' : 'Próximamente'
+  const visual = getTournamentVisual(torneo.slug, torneo.nombre)
+
+  return (
+    <Link
+      to={`/torneos/${torneo.slug}`}
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-cyan-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-cyan-500/60 sm:p-5"
+    >
+      <EditorialCover
+        visual={visual}
+        className="absolute inset-0 rounded-none border-0 opacity-95"
+        imageClassName="saturate-110 contrast-105"
+      />
+      <CardEyebrow icon={Trophy} label="Torneo activo" tono="relative text-cyan-300" />
+      <div className="relative flex flex-col gap-1">
+        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+          {torneo.nombre}
+        </h3>
+        <p className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              enCurso ? 'bg-emerald-400' : 'bg-cyan-400'
+            }`}
+          />
+          {estadoLabel}
+          {torneo.totalParticipantes ? (
+            <>
+              {' · '}
+              {torneo.totalParticipantes} participantes
+            </>
+          ) : null}
+        </p>
+      </div>
+      <span className="relative mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-cyan-300 transition-transform group-hover:translate-x-0.5">
+        Ver bracket
+        <ArrowRight className="h-3 w-3" />
+      </span>
+    </Link>
+  )
+}
+
+export default TorneoActivoCard

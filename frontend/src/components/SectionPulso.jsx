@@ -3,17 +3,11 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
-  Calendar,
   CalendarClock,
   Crown,
-  Radio,
-  TrendingDown,
-  TrendingUp,
-  Trophy,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { endpoints, ApiError } from '../lib/api'
-import { formatRelativeSafe } from '../lib/dateUtils'
 import { useTorneos } from '../lib/torneosQueries'
 import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { personajeDelDia } from '../lib/games'
@@ -25,19 +19,20 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
-import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 import PersonajeImg from './PersonajeImg'
 import EditorialCover from './EditorialCover'
 import CardEyebrow from '../features/home/pulso/components/CardEyebrow'
 import DueloAbiertoCard from '../features/home/pulso/components/DueloAbiertoCard'
 import DueloDestacadoCard from '../features/home/pulso/components/DueloDestacadoCard'
+import MoversCard from '../features/home/pulso/components/MoversCard'
 import PulseCard from '../features/home/pulso/components/PulseCard'
+import RetoCard from '../features/home/pulso/components/RetoCard'
+import TorneoActivoCard from '../features/home/pulso/components/TorneoActivoCard'
+import UltimosVotosCard from '../features/home/pulso/components/UltimosVotosCard'
 import {
   BRAND_VISUALS,
   getEventVisual,
-  getGameVisual,
-  getTournamentVisual,
 } from '../data/visual-assets'
 import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
@@ -389,270 +384,6 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
       </div>
     </article>
   )
-}
-
-function MoversCard({ movers }) {
-  // Actividad reciente: 1 request batch para los
-  // 3 movers visibles — añade "+N votos" debajo del delta de posición.
-  // Misma queryKey que otros consumidores del mismo set → cache hit.
-  const slugs = movers.map((m) => m.slug)
-  const { bySlug: votosBySlug } = useVotosPeriodoBatch(slugs, { dias: 7 })
-
-  if (movers.length === 0) return null
-
-  return (
-    <PulseCard tono="emerald">
-      <CardEyebrow icon={TrendingUp} label="Movers · 7 días" tono="text-emerald-300" />
-      <ul className="flex flex-col divide-y divide-border">
-        {movers.map((m) => (
-          <MoverRow
-            key={m.slug}
-            mover={m}
-            actividad={votosBySlug.get(m.slug)}
-          />
-        ))}
-      </ul>
-      <Link
-        to="/ranking"
-        className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-300 hover:text-emerald-200"
-      >
-        Ver ranking completo
-        <ArrowRight className="h-3 w-3" />
-      </Link>
-    </PulseCard>
-  )
-}
-
-function MoverRow({ mover, actividad }) {
-  const subio = mover.delta > 0
-  const Icon = subio ? TrendingUp : TrendingDown
-  const colorClase = subio ? 'text-emerald-300' : 'text-rose-300'
-  const votosPeriodo = actividad?.votosPeriodoActual ?? 0
-  return (
-    <li className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/[0.04]">
-      <Link to={`/personajes/${mover.slug}`} className="shrink-0 transition-transform hover:scale-105">
-        <PersonajeImg
-          slug={mover.slug}
-          src={mover.imagenUrl}
-          alt={mover.nombre}
-          loading="lazy"
-          sizes="40px"
-          className="h-10 w-8 rounded object-cover object-top"
-        />
-      </Link>
-      <div className="min-w-0 flex-1">
-        <Link
-          to={`/personajes/${mover.slug}`}
-          className="line-clamp-1 text-[13px] font-semibold text-fg-strong hover:text-gold"
-        >
-          {mover.nombre}
-        </Link>
-        <p className="line-clamp-1 text-[11px] text-fg-muted">
-          {mover.anime}
-          {votosPeriodo > 0 && (
-            <span className="ml-1 font-mono tabular-nums text-emerald-300/80">
-              · +{votosPeriodo} votos
-            </span>
-          )}
-        </p>
-      </div>
-      <div
-        className={`flex items-center gap-1 text-[13px] font-bold ${colorClase}`}
-        title={`${subio ? 'Subió' : 'Bajó'} ${Math.abs(mover.delta)} posiciones · ${votosPeriodo} votos esta semana`}
-      >
-        <Icon className="h-3.5 w-3.5" />
-        <span className="tabular-nums">{Math.abs(mover.delta)}</span>
-      </div>
-    </li>
-  )
-}
-
-function RetoCard() {
-  const visual = getGameVisual('/games/shadow-guess', 'Shadow Guess')
-  return (
-    <Link
-      to="/games/shadow-guess"
-      // Altura estable para que la franja superior tenga aire y el sujeto
-      // del cover quepa antes del degradado de oscurecimiento.
-      className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-xl border border-rose-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-rose-500/60 sm:p-5"
-    >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
-      <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-rose-300" />
-      <div className="relative mt-auto flex items-start gap-3">
-        <div
-          aria-hidden="true"
-          lang="ja"
-          className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-rose-500/35 bg-bg/65 font-mono text-3xl font-black text-rose-200 shadow-[0_0_34px_-16px_rgba(159,29,44,0.9)]"
-        >
-          影
-        </div>
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[15px] font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
-            Adivina la silueta
-          </h3>
-          <p className="text-[12px] leading-snug text-fg-muted">
-            Cinco intentos. Cada fallo aclara un poco la imagen.
-          </p>
-        </div>
-      </div>
-      <span className="relative inline-flex items-center gap-1 text-[12px] font-semibold text-rose-300 transition-transform group-hover:translate-x-0.5">
-        Jugar daily
-        <ArrowRight className="h-3 w-3" />
-      </span>
-    </Link>
-  )
-}
-
-function TorneoActivoCard({ torneo }) {
-  if (!torneo) {
-    return (
-      <PulseCard tono="cyan">
-        <CardEyebrow icon={Trophy} label="Torneo activo" tono="text-cyan-300" />
-        <p className="text-[13px] text-fg-muted">
-          Sin torneos en marcha ahora mismo. Lanzamos un nuevo bracket cada
-          pocos días — vuelve pronto.
-        </p>
-      </PulseCard>
-    )
-  }
-  const enCurso = torneo.estado === 'IN_PROGRESS'
-  const estadoLabel = enCurso ? 'En curso' : 'Próximamente'
-  const visual = getTournamentVisual(torneo.slug, torneo.nombre)
-  return (
-    <Link
-      to={`/torneos/${torneo.slug}`}
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-cyan-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-cyan-500/60 sm:p-5"
-    >
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-110 contrast-105"
-      />
-      <CardEyebrow icon={Trophy} label="Torneo activo" tono="relative text-cyan-300" />
-      <div className="relative flex flex-col gap-1">
-        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
-          {torneo.nombre}
-        </h3>
-        <p className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted">
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              enCurso ? 'bg-emerald-400' : 'bg-cyan-400'
-            }`}
-          />
-          {estadoLabel}
-          {torneo.totalParticipantes ? (
-            <>
-              {' · '}
-              {torneo.totalParticipantes} participantes
-            </>
-          ) : null}
-        </p>
-      </div>
-      <span className="relative mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-cyan-300 transition-transform group-hover:translate-x-0.5">
-        Ver bracket
-        <ArrowRight className="h-3 w-3" />
-      </span>
-    </Link>
-  )
-}
-
-function UltimosVotosCard({ votos }) {
-  const items = (votos || []).slice(0, 4)
-  if (items.length === 0) {
-    return (
-      <PulseCard tono="violet">
-        <CardEyebrow icon={Radio} label="Últimos votos" tono="text-violet-300" />
-        <p className="text-[13px] text-fg-muted">
-          Esperando votos. Sé tú el primero del día.
-        </p>
-        <Link
-          to="/votar"
-          className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-violet-300 hover:text-violet-200"
-        >
-          Vota ahora
-          <ArrowRight className="h-3 w-3" />
-        </Link>
-      </PulseCard>
-    )
-  }
-  return (
-    <PulseCard tono="violet">
-      <CardEyebrow icon={Radio} label="Últimos votos" tono="text-violet-300" />
-      <ul className="flex flex-col divide-y divide-border">
-        {items.map((v, i) => (
-          <VotoRow key={`${v.fecha}-${i}`} voto={v} />
-        ))}
-      </ul>
-      <Link
-        to="/ranking"
-        className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-violet-300 hover:text-violet-200"
-      >
-        Ver ranking en vivo
-        <ArrowRight className="h-3 w-3" />
-      </Link>
-    </PulseCard>
-  )
-}
-
-function VotoRow({ voto }) {
-  const { ganador, rival, username, fecha } = voto
-  if (!ganador) return null
-  return (
-    <li className="flex items-center gap-2 py-2 text-[12px]">
-      <Link to={`/personajes/${ganador.slug}`} className="shrink-0">
-        <PersonajeImg
-          slug={ganador.slug}
-          src={ganador.imagenUrl}
-          alt={ganador.nombre}
-          loading="lazy"
-          sizes="28px"
-          className="h-7 w-7 rounded object-cover object-top"
-        />
-      </Link>
-      <div className="min-w-0 flex-1 leading-tight">
-        <p className="line-clamp-1">
-          <span className="font-semibold text-fg-strong">
-            {username ?? 'alguien'}
-          </span>{' '}
-          <span className="text-fg-muted">votó por</span>{' '}
-          <Link
-            to={`/personajes/${ganador.slug}`}
-            className="font-semibold text-fg-strong hover:text-gold"
-          >
-            {ganador.nombre}
-          </Link>
-          {rival && (
-            <>
-              {' '}
-              <span className="text-fg-muted">vs</span>{' '}
-              <Link
-                to={`/personajes/${rival.slug}`}
-                className="text-fg-muted hover:text-gold"
-              >
-                {rival.nombre}
-              </Link>
-            </>
-          )}
-        </p>
-        {fecha && (
-          <p className="text-[10px] text-fg-muted">{formatRelativo(fecha)}</p>
-        )}
-      </div>
-    </li>
-  )
-}
-
-/**
- * Formato relativo simple: "hace 3 min", "hace 2 h", "hace 5 d", o la
- * fecha corta si es más antiguo. El helper central evita que una fecha
- * inválida llegue al UI como "Invalid Date".
- */
-function formatRelativo(isoString) {
-  return formatRelativeSafe(isoString)
 }
 
 /**
