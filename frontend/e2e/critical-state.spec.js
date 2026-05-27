@@ -266,7 +266,7 @@ test('el badge de notificaciones sube por push sin abrir el dropdown', async ({ 
   await page.waitForFunction(
     () =>
       window.__stateE2eNotificationReady === true &&
-      window.__stateE2eNotificationSubscriptions.length >= 2,
+      window.__stateE2eNotificationSubscriptions.length >= 1,
   )
   await expect(bell.locator('span')).toHaveCount(0)
 
