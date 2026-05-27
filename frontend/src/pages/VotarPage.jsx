@@ -19,8 +19,7 @@ import { VisualPageShell } from '../components/VisualSystem'
 import KanjiSpinner from '../components/KanjiSpinner'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import DailyMissionPanel from '../components/DailyMissionPanel'
-import { recordDailyShare, recordDailyVote } from '../lib/dailyProgress'
-import { getLocalVoteStats, recordLocalVote } from '../lib/localVoteRanking'
+import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
 import SessionRecap from '../features/votar/components/SessionRecap'
@@ -28,6 +27,7 @@ import VoteCard from '../features/votar/components/VoteCard'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import VsBadge from '../features/votar/components/VsBadge'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
+import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
 
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
 // vez. La mayoría de usuarios nunca caen en captcha, así que mantenemos
@@ -425,13 +425,12 @@ function VotarPage() {
 
   const votedPersonaje = votedFor === a?.slug ? a : votedFor === b?.slug ? b : null
   const losingPersonaje = votedFor === a?.slug ? b : votedFor === b?.slug ? a : null
-  const [sessionStats, setSessionStats] = useState({
-    total: 0,
-    bySlug: {},
-    closeDuels: 0,
-    lastShareText: '',
-  })
-  const [personalVoteImpact, setPersonalVoteImpact] = useState(null)
+  const {
+    sessionStats,
+    personalVoteImpact,
+    setPersonalVoteImpact,
+    trackLocalVote,
+  } = useVoteSessionStats()
 
   const handleNext = useCallback(async (options = {}) => {
     const force = options?.force === true
@@ -497,6 +496,7 @@ function VotarPage() {
     fixedRival,
     hasFixedDuel,
     hasFixedAnime,
+    setPersonalVoteImpact,
   ])
 
   useEffect(() => {
@@ -513,62 +513,6 @@ function VotarPage() {
       handleNextRef.current?.({ silent: true, force: true })
     }, NEXT_DELAY_MS)
   }, [fastMode])
-
-  const trackLocalVote = useCallback((ganador, perdedor, data) => {
-    recordDailyVote()
-    const localVotes = recordLocalVote(ganador, perdedor)
-    const localStats = getLocalVoteStats(localVotes)
-    const rankIndex = localStats.top.findIndex((item) => item.slug === ganador.slug)
-    const localRank = rankIndex >= 0 ? localStats.top[rankIndex] : null
-    const impact = localRank
-      ? {
-          slug: ganador.slug,
-          nombre: ganador.nombre,
-          rank: rankIndex + 1,
-          count: localRank.count,
-          total: localStats.total,
-        }
-      : null
-    setPersonalVoteImpact(impact)
-    const votosGanador = Number(data?.votosGanador)
-    const votosPerdedor = Number(data?.votosPerdedor)
-    const isClose =
-      Number.isFinite(votosGanador) &&
-      Number.isFinite(votosPerdedor) &&
-      Math.abs(votosGanador - votosPerdedor) <= 1
-    setSessionStats((prev) => {
-      const bySlug = { ...prev.bySlug }
-      const current = bySlug[ganador.slug] || {
-        nombre: ganador.nombre,
-        anime: ganador.anime,
-        count: 0,
-      }
-      bySlug[ganador.slug] = {
-        ...current,
-        count: current.count + 1,
-      }
-      const total = prev.total + 1
-      const top = Object.values(bySlug)
-        .sort((x, y) => y.count - x.count)
-        .slice(0, 3)
-        .map((p) => `${p.nombre} x${p.count}`)
-        .join(', ')
-      const lastShareText = [
-        `Voté ${ganador.nombre} sobre ${perdedor?.nombre ?? 'su rival'} en AnimeShowdown.`,
-        data?.votosGanador != null
-          ? `${ganador.nombre} suma ${data.votosGanador} votos en este duelo.`
-          : 'Mi voto acaba de mover el ranking casual.',
-        top ? `Mi sesión: ${total} votos. Top: ${top}.` : `Mi sesión: ${total} votos.`,
-      ].join('\n')
-      return {
-        total,
-        bySlug,
-        closeDuels: prev.closeDuels + (isClose ? 1 : 0),
-        lastShareText,
-      }
-    })
-    return impact
-  }, [])
 
   const handleVoteSuccess = useCallback(
     (personaje, data, perdedor) => {
