@@ -1,5 +1,16 @@
 import { QueryClient } from '@tanstack/react-query'
 
+type QueryKeyPart = string | number | boolean | null | undefined
+type QueryKey = QueryKeyPart[]
+
+function normalizeSlugs(slugs: unknown): string {
+  return (Array.isArray(slugs) ? slugs : [])
+    .filter(Boolean)
+    .map(String)
+    .sort()
+    .join(',')
+}
+
 // QueryClient global compartido entre App.jsx y tests. Lo exportamos como
 // constante única (no factory) porque queremos UNA cache para toda la
 // SPA — cambiar de página no debe perder el ranking ya cargado, ni el
@@ -34,18 +45,18 @@ export const queryClient = new QueryClient({
  * Funciones helper aquí para evitar typos y centralizar invalidaciones.
  */
 export const queryKeys = {
-  torneos: () => ['torneos'],
-  torneoBySlug: (slug) => ['torneos', 'slug', slug],
-  torneoById: (id) => ['torneos', 'id', id],
+  torneos: (): QueryKey => ['torneos'],
+  torneoBySlug: (slug: string): QueryKey => ['torneos', 'slug', slug],
+  torneoById: (id: string | number): QueryKey => ['torneos', 'id', id],
   // Mi roster / favoritos
-  misFavoritos: () => ['favoritos', 'me'],
-  favoritoSlug: (slug) => ['favoritos', 'slug', slug],
+  misFavoritos: (): QueryKey => ['favoritos', 'me'],
+  favoritoSlug: (slug: string): QueryKey => ['favoritos', 'slug', slug],
   // Actividad reciente de votos
-  votosPeriodoSlug: (slug, dias = 7) => ['votos-periodo', 'slug', slug, dias],
-  votosPeriodoBatch: (slugs = [], dias = 7) => [
+  votosPeriodoSlug: (slug: string, dias = 7): QueryKey => ['votos-periodo', 'slug', slug, dias],
+  votosPeriodoBatch: (slugs: unknown[] = [], dias = 7): QueryKey => [
     'votos-periodo',
     'batch',
-    (Array.isArray(slugs) ? slugs : []).filter(Boolean).sort().join(','),
+    normalizeSlugs(slugs),
     dias,
   ],
 }
