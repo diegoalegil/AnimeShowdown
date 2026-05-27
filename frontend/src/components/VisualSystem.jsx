@@ -118,8 +118,18 @@ export function VisualPageShell({
   lateralKanji,
   atmosphere,
 }) {
-  const image = visualImage(visual)
-  const shellBackgroundPosition = visual?.shellObjectPosition ?? 'center center'
+  // shellImage (vertical 2:3) tiene preferencia sobre image (horizontal 16:9)
+  // cuando exista. Razón: el shell envuelve toda la sección de la página
+  // (200vh+ scrolleable). Una imagen 16:9 estirada para cubrir eso se
+  // recorta arriba y abajo dejando solo el centro vertical. Una imagen
+  // 2:3 portrait encaja nativamente con el flow vertical de la página.
+  const image = visual?.shellImage || visualImage(visual)
+  const hasShellImage = Boolean(visual?.shellImage)
+  // Si hay shellImage vertical → anchor al top (se ve la parte de arriba
+  // nítida cuando carga, el fade hacia bottom queda detrás del scroll).
+  // Si solo hay imagen horizontal → usar el objectPosition del visual.
+  const shellBackgroundPosition =
+    visual?.shellObjectPosition ?? (hasShellImage ? 'center top' : 'center center')
   // atmosphere puede venir como:
   // - string ('demon-slayer', 'arena', etc.) → render AtmospherePreset
   // - React node directo → render tal cual
