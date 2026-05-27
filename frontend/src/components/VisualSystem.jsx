@@ -159,11 +159,15 @@ export function VisualPageShell({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-75"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url("${image}")`,
           backgroundPosition: shellBackgroundPosition,
           backgroundSize: 'cover',
+          // Opacity dinámica por visual: para composiciones visualmente
+          // densas (anime-catalog con muchos carteles, ranking con haz
+          // dorado central intenso), se baja a 0.30-0.45 para que respire.
+          opacity: visual?.shellOpacity ?? 0.75,
         }}
       />
       {/* Vignette progresiva hacia abajo: la imagen respira arriba y el texto
