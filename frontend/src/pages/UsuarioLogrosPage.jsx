@@ -7,7 +7,6 @@ import Avatar from '../components/Avatar'
 import BadgeCardCatalogo from '../components/BadgeCardCatalogo'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
-import { EmptyStateScene } from '../components/VisualSystem'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -193,7 +192,7 @@ function UsuarioLogrosPage() {
         </div>
 
         {visibles.length === 0 ? (
-          <EmptyStateScene
+          <EmptyState scene
             icon={Trophy}
             title="Sin logros en esta rareza"
           >
@@ -210,7 +209,7 @@ function UsuarioLogrosPage() {
                 Limpiar filtro
               </button>
             )}
-          </EmptyStateScene>
+          </EmptyState>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibles.map((l) => (

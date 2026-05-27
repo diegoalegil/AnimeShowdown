@@ -10,7 +10,7 @@ import Avatar from '../components/Avatar'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { endpoints } from '../lib/api'
-import { EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
@@ -119,14 +119,14 @@ function LeaderboardsPage() {
           />
         )}
         {!isLoading && !isError && (!data || data.length === 0) && (
-          <EmptyStateScene
+          <EmptyState scene
             icon={Clock}
             title="Sin votos en esta ventana"
             action={{ to: '/votar', label: 'Votar ahora' }}
           >
             Todavía no hay tráfico suficiente para esta ventana de tiempo.
             Esta tabla solo muestra votos reales. Sé tú quien inaugure la ventana.
-          </EmptyStateScene>
+          </EmptyState>
         )}
         {!isLoading && !isError && data && data.length > 0 && (
           <ol className="flex flex-col gap-2">

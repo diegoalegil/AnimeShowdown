@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Home, MapPinned } from 'lucide-react'
-import { EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useSeo } from '../hooks/useSeo'
 
@@ -22,7 +23,7 @@ function NotFoundPage() {
       lateralKanji={{left: "迷", right: "路"}}
     >
       <h1 className="sr-only">404 — Página no encontrada</h1>
-      <EmptyStateScene
+      <EmptyState scene
         visual={visual}
         icon={MapPinned}
         title="Esta ruta se perdió entre la niebla"
@@ -48,7 +49,7 @@ function NotFoundPage() {
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-      </EmptyStateScene>
+      </EmptyState>
     </VisualPageShell>
   )
 }

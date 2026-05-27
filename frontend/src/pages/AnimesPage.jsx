@@ -9,7 +9,7 @@ import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { buscarAnimes, getAnimesCatalogo } from '../lib/animes'
 import EditorialCover from '../components/EditorialCover'
-import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS, getAnimeVisual } from '../data/visual-assets'
@@ -157,7 +157,7 @@ function AnimesPage() {
             }
           />
         ) : filtrados.length === 0 ? (
-          <EmptyStateScene
+          <EmptyState scene
             visual={BRAND_VISUALS.empty}
             icon={Search}
             title="No aparece ese universo"
@@ -173,7 +173,7 @@ function AnimesPage() {
             >
               Limpiar búsqueda
             </button>
-          </EmptyStateScene>
+          </EmptyState>
         ) : (
           // Cada anime usa una portada editorial, no collage de cards.
           // Mantenemos LazyOnView porque el grid puede
