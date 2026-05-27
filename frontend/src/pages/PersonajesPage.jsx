@@ -28,7 +28,6 @@ import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
-import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { endpoints } from '../lib/api'
 import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
@@ -37,6 +36,16 @@ import {
   RASGOS_OTAKU,
   getCategoriasPersonaje,
 } from '../data/personajes-tags'
+import CatalogoSkeletonGrid from '../features/personajes/CatalogoPersonajes/CatalogoSkeletonGrid'
+import HighlightMatch from '../features/personajes/CatalogoPersonajes/HighlightMatch'
+import MiniHeroStat from '../features/personajes/CatalogoPersonajes/MiniHeroStat'
+import PersonajeListRow from '../features/personajes/CatalogoPersonajes/PersonajeListRow'
+import {
+  DEFAULT_SORT,
+  DEFAULT_VIEW,
+  parseOptionalInt,
+  sortLabels,
+} from '../features/personajes/CatalogoPersonajes/catalogo-config'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -45,55 +54,6 @@ const headerVariants = {
     y: 0,
     transition: { duration: 0.5, ease: 'easeOut' },
   },
-}
-
-const sortLabels = {
-  popularidad: 'Popularidad',
-  elo_desc: 'Mayor ELO',
-  elo_asc: 'Menor ELO',
-  winrate: 'Mejor win rate',
-  nombre_az: 'Nombre A-Z',
-  nombre_za: 'Nombre Z-A',
-  anime: 'Anime A-Z',
-}
-
-const DEFAULT_SORT = 'popularidad'
-const DEFAULT_VIEW = 'grid'
-
-function parseOptionalInt(value) {
-  if (value == null || value === '') return null
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? Math.round(parsed) : null
-}
-
-function MiniHeroStat({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.045] p-3">
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-fg-muted">
-        {label}
-      </p>
-      <p className="mt-1 font-mono text-2xl font-black text-gold tabular-nums">
-        {Number(value).toLocaleString('es-ES')}
-      </p>
-    </div>
-  )
-}
-
-function HighlightMatch({ text, query }) {
-  if (!query) return text
-  const lower = text.toLowerCase()
-  const needle = query.toLowerCase()
-  const idx = lower.indexOf(needle)
-  if (idx === -1) return text
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark className="rounded bg-gold/20 px-0.5 text-gold">
-        {text.slice(idx, idx + needle.length)}
-      </mark>
-      {text.slice(idx + needle.length)}
-    </>
-  )
 }
 
 function PersonajesPage() {
@@ -1016,70 +976,6 @@ function PersonajesPage() {
           <SugerirPersonajeCTA titulo="¿No está tu personaje favorito?" />
         </div>
     </VisualPageShell>
-  )
-}
-
-function CatalogoSkeletonGrid() {
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-      {Array.from({ length: 12 }).map((_, i) => (
-        <Skeleton key={i} variant="card" />
-      ))}
-    </div>
-  )
-}
-
-function PersonajeListRow({ slug, nombre, anime, rank }) {
-  const { elo, wins, losses } = getStatsPersonaje(slug)
-  const total = wins + losses
-  const winRate = total > 0 ? Math.round((wins / total) * 100) : null
-  return (
-    <li>
-      <Link
-        to={`/personajes/${slug}`}
-        className="group flex items-center gap-4 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 sm:px-5"
-      >
-        {rank && rank <= 100 && (
-          <span className="hidden w-10 shrink-0 font-mono text-[13px] font-extrabold text-fg-muted sm:block">
-            #{rank}
-          </span>
-        )}
-        <PersonajeImg
-          slug={slug}
-          alt={nombre}
-          loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-            {nombre}
-          </p>
-          <p className="truncate text-[12px] text-fg-muted">{anime}</p>
-        </div>
-        <div className="hidden text-right text-[12px] sm:block">
-          <p className="text-fg-muted">
-            <span className="font-semibold text-emerald-300">{wins}V</span>
-            {' · '}
-            <span className="font-semibold text-rose-300">{losses}D</span>
-          </p>
-          {winRate != null && (
-            <p className="font-mono text-[11px] font-semibold text-emerald-300/80">
-              {winRate}% WR
-            </p>
-          )}
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-sm font-bold text-gold">{elo}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-            ELO
-          </p>
-        </div>
-        <span className="hidden items-center gap-1 rounded-md border border-border bg-bg px-2.5 py-1 text-[11px] font-semibold text-fg-muted transition-colors group-hover:border-accent/40 group-hover:text-gold md:inline-flex">
-          Ver ficha
-          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-        </span>
-      </Link>
-    </li>
   )
 }
 
