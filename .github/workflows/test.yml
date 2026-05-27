@@ -84,6 +84,27 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Vitest unit tests + coverage. Sprint Auto 06 introduce el target
+      # 70% lines / 60% branches sobre src/lib/*. Los thresholds van
+      # escalonados por PR (06.1 entra con umbral mínimo 5% como
+      # smoke). Cada PR posterior sube el umbral en vitest.config.js
+      # antes de mergear.
+      #
+      # --run fuerza modo no-watch (Vitest defaults a watch en TTY).
+      - name: Unit tests + coverage
+        run: npm run test:coverage -- --run
+
+      # Sube el reporte de cobertura como artifact para inspección
+      # post-run desde la UI de GitHub Actions. lcov.info también queda
+      # disponible si más adelante se conecta Codecov / Coveralls.
+      - name: Upload coverage report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+          retention-days: 7
+
       # build:no-images no copia /img/ al artefacto: exige CDN externo y
       # mantiene Cloudflare Pages ligero. El CI solo VERIFICA que el bundle
       # compila — no despliega nada.
