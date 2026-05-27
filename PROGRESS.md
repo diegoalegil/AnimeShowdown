@@ -108,3 +108,7 @@
 ## Sprint Auto 3.5b cierre
 
 - 2026-05-27T08:08:48+01:00 | done: PR AUTO-3.5b.1-23 (#85-#109, excepto #87/#89 no usados) | skipped: 0 | failed: 0 | result: helpers de URL/share/daily/date/query auditados o creados; 10 paginas gigantes quedan por debajo de 1000 LOC (Ranking 874, Votar 928, PersonajeDetail 947, Personajes 982, SectionPulso 268, Perfil 445, Admin 350, GamesHub 215, MiTop5 266, AnimeDetail 164); `Dialog` y `EmptyState` quedan como APIs canonicas; datos publicos/proveedores ya estaban centralizados desde 3.5a #79.
+
+## Sprint Auto 3.5c - Pro pass
+
+- 2026-05-27T08:21:48+01:00 | PR AUTO-3.5c.1 / #110 | 5b27ee4 | verify: `node --version` v22.22.2; `npm run typecheck` PASS; `npm run lint` PASS; `npm run build:no-images` PASS; `git diff --check` PASS; CI PASS (frontend, backend, sync-personajes, sharp variants cache, Cloudflare, Playwright production build) | decisions: se instala TypeScript local, `tsconfig.json` queda en `strict` + `allowJs` limitado a los 7 `lib/*` del sprint, se anade `lib/types.ts` y se migran `queryClient`/`share` a `.ts` sin cambiar exports publicos.
