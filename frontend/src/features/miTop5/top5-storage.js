@@ -43,6 +43,10 @@ export function getTop5AddSlugs(searchParams) {
 
 export function buildInitialSlots(addSlugs = []) {
   const slots = readStoredSlots()
+  return mergeTop5AddSlugs(slots, addSlugs)
+}
+
+export function mergeTop5AddSlugs(slots, addSlugs = []) {
   const next = [...slots]
   for (const slug of addSlugs) {
     if (!getPersonajeBySlug(slug) || next.includes(slug)) continue
