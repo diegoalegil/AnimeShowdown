@@ -114,10 +114,17 @@ test('votar un duelo fijado actualiza el ranking local y mantiene el matchup exa
   await expect(page.getByRole('button', { name: /Votar.*Zoro.*One Piece/i })).toBeVisible()
 
   await page.goto('/mi-ranking')
-  await expect(page.getByText('Votos locales')).toBeVisible()
-  await expect(page.getByText('Luffy', { exact: true }).first()).toBeVisible()
-  await expect(page.getByText('One Piece').first()).toBeVisible()
-  await expect(page.getByText('1', { exact: true }).first()).toBeVisible()
+  const main = page.getByRole('main')
+  await expect(main.getByText('Luffy', { exact: true }).first()).toBeVisible()
+  await expect(main.getByText('One Piece').first()).toBeVisible()
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const raw = localStorage.getItem('animeshowdown.local-votes.v1')
+        return raw ? JSON.parse(raw)[0]?.ganadorSlug : null
+      }),
+    )
+    .toBe('luffy')
 })
 
 test('RankingPage sincroniza el tab activo con la URL y lo conserva al recargar', async ({ page }) => {
