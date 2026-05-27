@@ -269,7 +269,12 @@ function PersonajeDetailPage() {
     >
       <JsonLd
         id="personaje"
-        schema={personajeSchema(personaje, stats)}
+        schema={personajeSchema(personaje, stats, {
+          rankGlobal,
+          rankAnime,
+          totalAnime,
+          totalCatalogo: personajes.length,
+        })}
       />
       <JsonLd
         id="breadcrumbs"
