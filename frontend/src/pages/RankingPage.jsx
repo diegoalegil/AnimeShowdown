@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ArrowRight,
-  Calendar,
   ChevronDown,
   Clock,
   Crown,
@@ -12,18 +11,12 @@ import {
   Medal,
   Search,
   Share2,
-  Sparkles,
   Swords,
-  TrendingDown,
-  TrendingUp,
   Trophy,
-  Tv,
-  Vote,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getStatsPersonaje } from '../lib/personajes-core'
-import { EDITORIAL_RANKING_PAGES } from '../data/editorial-rankings'
 import {
   CATEGORIAS,
   MIN_PARA_SECCION,
@@ -51,6 +44,11 @@ import { useQueryState } from '../hooks/useQueryState'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { shareOrCopy } from '../lib/share'
 import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
+import EditorialRankingsStrip from '../features/ranking/components/EditorialRankingsStrip'
+import EloExplainer from '../features/ranking/components/EloExplainer'
+import MoversStrip from '../features/ranking/components/MoversStrip'
+import RankingTabs from '../features/ranking/components/RankingTabs'
+import { RANKING_TABS } from '../features/ranking/ranking-tabs'
 
 /**
  * RankingPage rebranded.
@@ -82,14 +80,6 @@ function crearAnimeFilterOptions(catalogoPersonajes) {
   return ['', ...Array.from(set).sort()]
 }
 
-const TABS = [
-  { id: 'elo', label: 'ELO actual', icon: Trophy },
-  { id: 'categorias', label: 'Categorías', icon: Sparkles },
-  { id: 'all', label: 'Histórico', icon: Vote },
-  { id: 'mes', label: 'Este mes', icon: Calendar },
-  { id: 'anime', label: 'Por anime', icon: Tv },
-]
-
 function RankingPage() {
   useRankingDeltaSubscription()
   const [searchParams] = useSearchParams()
@@ -118,7 +108,7 @@ function RankingPage() {
   const initialSearch = searchParams.get('q') ?? ''
   const initialAnimeFilter = searchParams.get('anime') ?? ''
   const [queryTab, setTab] = useQueryState('tab', 'elo')
-  const tab = TABS.some((item) => item.id === queryTab) ? queryTab : 'elo'
+  const tab = RANKING_TABS.some((item) => item.id === queryTab) ? queryTab : 'elo'
   const consultadoA = useMemo(
     () =>
       new Date().toLocaleTimeString('es-ES', {
@@ -239,7 +229,7 @@ function RankingPage() {
 
         <EditorialRankingsStrip />
 
-        <Tabs activo={tab} onChange={setTab} />
+        <RankingTabs activo={tab} onChange={setTab} />
 
         <div className="mt-6">
           {tab === 'elo' && (
@@ -272,110 +262,6 @@ function RankingPage() {
         <TablaExtraible rankedElo={rankedElo} />
       </div>
     </VisualPageShell>
-  )
-}
-
-function EditorialRankingsStrip() {
-  return (
-    <section className="mt-6 rounded-2xl border border-border bg-surface p-4 sm:p-5">
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
-            Rankings por intención
-          </p>
-          <h2 className="text-xl font-black text-fg-strong">
-            Entra directo al top que buscabas
-          </h2>
-        </div>
-        <Link
-          to="/rankings/mejores-personajes-anime"
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-2 text-[12px] font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
-        >
-          Ver top global
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {EDITORIAL_RANKING_PAGES.map((page) => (
-          <Link
-            key={page.slug}
-            to={`/rankings/${page.slug}`}
-            className="group rounded-xl border border-border bg-bg/45 p-3 transition-all hover:-translate-y-0.5 hover:border-accent/45"
-          >
-            <p className="line-clamp-2 text-sm font-black text-fg-strong group-hover:text-gold">
-              {page.title}
-            </p>
-            <p className="mt-2 line-clamp-2 text-[12px] leading-5 text-fg-muted">
-              {page.intent}
-            </p>
-          </Link>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function EloExplainer() {
-  const pasos = [
-    {
-      icon: Swords,
-      titulo: 'Cada duelo registra una preferencia',
-      texto:
-        'La comunidad elige entre dos personajes. Es una señal competitiva agregada, no una verdad absoluta sobre poder o canon.',
-    },
-    {
-      icon: TrendingUp,
-      titulo: 'La tabla se mueve con votos reales',
-      texto:
-        'Los tabs históricos y mensuales salen de actividad pública. El ELO base del catálogo sirve como estimación inicial y contexto.',
-    },
-    {
-      icon: Medal,
-      titulo: 'El ranking separa histórico y momento',
-      texto:
-        'El histórico acumula toda la actividad; el mes enseña qué personajes vienen moviendo el meta ahora.',
-    },
-  ]
-
-  return (
-    <section
-      aria-labelledby="elo-explicacion"
-      className="as-panel mt-8 rounded-2xl p-5 sm:p-6"
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-gold">
-            Cómo se mueve la tabla
-          </p>
-          <h2 id="elo-explicacion" className="mt-1 text-2xl">
-            El ranking mezcla actividad comunitaria y contexto competitivo
-          </h2>
-        </div>
-        <Link
-          to="/metodologia-elo"
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
-        >
-          Ver metodología
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
-        {pasos.map(({ icon: Icon, titulo, texto }) => (
-          <div
-            key={titulo}
-            className="rounded-xl border border-border bg-bg/45 p-4"
-          >
-            <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-accent/35 bg-accent-soft text-gold">
-              <Icon className="h-4 w-4" />
-            </span>
-            <h3 className="text-base">{titulo}</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-fg-muted">
-              {texto}
-            </p>
-          </div>
-        ))}
-      </div>
-    </section>
   )
 }
 
@@ -532,129 +418,6 @@ function CategoriaCard({ rank, personaje, tono }) {
         </p>
       </Link>
     </li>
-  )
-}
-
-/**
- * Strip "Movers de la semana" — pinta los 3 personajes con mayor cambio
- * de posición en los últimos 7 días. Hide si el endpoint no devuelve
- * datos significativos (sin votos suficientes para que haya movimientos).
- *
- * Nota de producto: da sensación de vida temporal al ranking.
- * El user llega y ve quién está subiendo/bajando ahora mismo antes de
- * elegir un tab — el ranking deja de sentirse "tabla congelada".
- */
-function MoversStrip() {
-  const { data: movs } = useRankingMovimientos({ dias: 7, limit: 30 })
-  const top3 = useMemo(() => {
-    if (!Array.isArray(movs)) return []
-    return movs
-      .filter((m) => m.delta != null && m.delta !== 0)
-      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-      .slice(0, 3)
-  }, [movs])
-
-  if (top3.length === 0) return null
-
-  return (
-    <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5">
-      <div className="mb-3 flex items-center gap-2">
-        <TrendingUp className="h-4 w-4 text-emerald-300" />
-        <h2 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-emerald-300">
-          Movers de la semana
-        </h2>
-        <span className="ml-auto text-[11px] text-fg-muted">últimos 7 días</span>
-      </div>
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {top3.map((m) => (
-          <MoverChip key={m.slug} mover={m} />
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function MoverChip({ mover }) {
-  const subio = mover.delta > 0
-  const Icon = subio ? TrendingUp : TrendingDown
-  const colorClase = subio
-    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
-    : 'border-rose-500/40 bg-rose-500/10 text-rose-300'
-  const verbo = subio ? 'subió' : 'bajó'
-  return (
-    <li>
-      <Link
-        to={`/personajes/${mover.slug}`}
-        className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-2.5 transition-colors hover:border-accent/40"
-      >
-        <PersonajeImg
-          slug={mover.slug}
-          src={mover.imagenUrl}
-          alt={mover.nombre}
-          loading="lazy"
-          sizes="48px"
-          className="h-12 w-9 shrink-0 rounded object-cover object-top"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="line-clamp-1 text-[13px] font-bold text-fg-strong group-hover:text-gold">
-            {mover.nombre}
-          </p>
-          <p className="line-clamp-1 text-[11px] text-fg-muted">{mover.anime}</p>
-        </div>
-        <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 font-mono text-[11px] font-extrabold ${colorClase}`}
-          title={`${verbo} ${Math.abs(mover.delta)} posiciones vs hace 7 días`}
-        >
-          <Icon className="h-3 w-3" />
-          {Math.abs(mover.delta)}
-        </span>
-      </Link>
-    </li>
-  )
-}
-
-function Tabs({ activo, onChange }) {
-  // El flex-wrap hacía que 'Por anime' bajara a la
-  // segunda fila en 390px, dejando el control con apariencia rota.
-  // Solución: scroll horizontal en móvil (-mx para que sangre full-bleed)
-  // con whitespace-nowrap; en sm+ vuelve al grid sin scroll.
-  return (
-    <div className="scrollbar-hide scroll-x-affordance scroll-x-fade-mobile -mx-5 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0">
-      <div
-        role="tablist"
-        aria-label="Secciones del ranking"
-        className="inline-flex w-max gap-1 whitespace-nowrap rounded-lg border border-border bg-surface p-1 sm:flex sm:w-full sm:flex-wrap"
-      >
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={activo === id}
-            onClick={() => onChange(id)}
-            title={
-              id === 'elo'
-                ? 'Calculado desde los datos del catálogo. Siempre disponible.'
-                : id === 'categorias'
-                  ? 'Rankings por arquetipo: héroes, villanos, estrategas y más.'
-                : id === 'all'
-                  ? 'Top de votos desde que abrió AnimeShowdown.'
-                  : id === 'mes'
-                    ? 'Top de votos en los últimos 30 días.'
-                    : 'Selecciona un anime para ver su ranking interno.'
-            }
-            className={`inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-colors ${
-              activo === id
-                ? 'bg-accent text-white'
-                : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
-            }`}
-          >
-            <Icon className="h-3.5 w-3.5" />
-            {label}
-          </button>
-        ))}
-      </div>
-    </div>
   )
 }
 
