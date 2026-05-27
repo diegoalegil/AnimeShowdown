@@ -576,7 +576,9 @@ function App() {
               <Route path="/votar" element={gated(<VotarPage />)} />
               <Route path="/duel-live" element={gated(<DueloLivePage />)} />
               <Route path="/admin" element={gated(<AdminPage />)} />
+              <Route path="/admin/torneos" element={gated(<AdminPage />)} />
               <Route path="/admin/comentarios" element={gated(<AdminPage />)} />
+              <Route path="/admin/assets" element={gated(<AdminPage />)} />
               <Route path="/perfil" element={gated(<PerfilPage />)} />
               <Route path="/u/:username" element={gated(<UsuarioPage />)} />
               <Route path="/u/:username/logros" element={gated(<UsuarioLogrosPage />)} />
