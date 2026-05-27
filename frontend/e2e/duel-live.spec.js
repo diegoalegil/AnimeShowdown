@@ -45,6 +45,16 @@ async function finished(page) {
   return page.getByText('Resultado final').isVisible().catch(() => false)
 }
 
+async function expectPvpEloChanged(page) {
+  await expect(page.getByText('ELO PvP')).toBeVisible()
+  await expect(
+    page
+      .locator('#main-content .tabular-nums')
+      .filter({ hasText: /^(1016|984)$/ })
+      .first(),
+  ).toBeVisible()
+}
+
 test('duel-live empareja dos usuarios, completa duelo y refleja ELO PvP', async ({ browser, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium-desktop', 'El PvP multi-context se cubre una vez en desktop para no duplicar carga.')
 
@@ -95,10 +105,8 @@ test('duel-live empareja dos usuarios, completa duelo y refleja ELO PvP', async 
 
     await pageA.goto('/perfil')
     await pageB.goto('/perfil')
-    await expect(pageA.getByText('ELO PvP')).toBeVisible()
-    await expect(pageB.getByText('ELO PvP')).toBeVisible()
-    await expect(pageA.getByText(/1016|984/)).toBeVisible()
-    await expect(pageB.getByText(/1016|984/)).toBeVisible()
+    await expectPvpEloChanged(pageA)
+    await expectPvpEloChanged(pageB)
   } finally {
     await contextA.close()
     await contextB.close()

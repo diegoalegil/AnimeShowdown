@@ -14,6 +14,7 @@ import {
   Type,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
+import { useTodayKey } from '../hooks/useDailyGameState'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import {
@@ -26,10 +27,9 @@ import {
   listenDailyProgress,
   readDailyStreak,
   readRecentDailyProgress,
-  recordDailyShare,
   setDailyGamesCompleted,
 } from '../lib/dailyProgress'
-import { shareOrCopy } from '../lib/share'
+import { shareWithToast } from '../lib/shareWithToast'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getGameVisual } from '../data/visual-assets'
 import DailyMissionPanel from '../components/DailyMissionPanel'
@@ -238,6 +238,7 @@ function GamesHubPage() {
   })
 
   const [reinicio, setReinicio] = useState(getDailyResetCountdown)
+  const todayKey = useTodayKey()
   useEffect(() => {
     const id = setInterval(() => setReinicio(getDailyResetCountdown()), 60_000)
     return () => clearInterval(id)
@@ -284,7 +285,7 @@ function GamesHubPage() {
 
   // Se recalcula en cada render; el listener solo fuerza el render
   // cuando otra acción del ritual cambia localStorage en esta misma sesión.
-  const dailyHistory = readRecentDailyProgress(7)
+  const dailyHistory = readRecentDailyProgress(7, todayKey)
   const dailyStreak = readDailyStreak()
 
   const destacado = GAMES.find((g) => g.destacado) ?? GAMES[0]
@@ -295,21 +296,21 @@ function GamesHubPage() {
       .filter(([, estado]) => estado.completadoHoy)
       .map(([to]) => GAMES.find((g) => g.to === to)?.titulo)
       .filter(Boolean)
-    const texto = `Completé ${completadosHoy}/${totalDaily} Anime Daily Trials en AnimeShowdown — ${fechaDelDia()}${
+    const texto = `Completé ${completadosHoy}/${totalDaily} Anime Daily Trials en AnimeShowdown — ${todayKey}${
       completados.length ? `\n${completados.join(', ')}` : ''
     }`
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: 'Anime Daily Trials',
         text: texto,
         url: '/games',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-    } catch {
-      // El panel de resultado individual tiene fallback visible; aquí el
-      // resumen es accesorio y no debe bloquear el hub.
-    }
+      },
+      {
+        clipboardSuccess: 'Resumen copiado',
+        errorTitle: 'No se pudo compartir el resumen',
+        nativeSuccess: 'Resumen compartido',
+      },
+    )
   }
 
   return (

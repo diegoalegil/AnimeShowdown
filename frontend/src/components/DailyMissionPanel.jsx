@@ -11,17 +11,15 @@ import {
   Swords,
   Trophy,
 } from 'lucide-react'
-import { toast } from 'sonner'
 import {
   DAILY_GAME_TARGET,
   DAILY_VOTE_TARGET,
   listenDailyProgress,
   readDailyProgress,
   readDailyStreak,
-  recordDailyShare,
 } from '../lib/dailyProgress'
 import { getDailyResetCountdown } from '../lib/games'
-import { shareOrCopy } from '../lib/share'
+import { shareWithToast } from '../lib/shareWithToast'
 
 function clamp(value, max) {
   return Math.min(Math.max(0, value), max)
@@ -143,20 +141,19 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       `${DAILY_VOTE_TARGET}/${DAILY_VOTE_TARGET} duelos votados · ${games}/${DAILY_GAME_TARGET} daily trial · ranking revisado.`,
       `Racha actual: ${streak.current} día${streak.current === 1 ? '' : 's'}.`,
     ].join('\n')
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: 'Misión diaria completada',
         text,
         url: '/misiones',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Misión compartida' : 'Misión copiada')
-    } catch (error) {
-      toast.error('No se pudo compartir la misión', {
-        description: error?.message || 'Copia el resultado manualmente.',
-      })
-    }
+      },
+      {
+        clipboardSuccess: 'Misión copiada',
+        errorDescription: 'Copia el resultado manualmente.',
+        errorTitle: 'No se pudo compartir la misión',
+        nativeSuccess: 'Misión compartida',
+      },
+    )
   }
 
   return (
