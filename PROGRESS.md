@@ -78,3 +78,7 @@
 ## Sprint Auto 3.5a cierre
 
 - 2026-05-26T22:57:26.8922123+01:00 | done: PR AUTO-3.5a.1-18 (#63-#80) | skipped: 0 | failed: 0 | result: 12 criticos y 8 importantes cerrados; CI main verde; siguiente bloque prioritario: Sprint Auto 3.5b cleanup pass.
+
+## Sprint Auto 3.5b - Cleanup pass
+
+- 2026-05-27T02:48:08+01:00 | PR AUTO-3.5b.1 / #85 | 3127ff3 | verify: `node --version` v22.22.2; `npm run lint` PASS; `npm run build:no-images` PASS; `npm run test:e2e:responsive` PASS (11 skipped); CI PASS (frontend, backend, sync-personajes, Cloudflare, Playwright production build) | decisions: se anaden `buildUrl`, `shareWithToast`, `useTodayKey` y `useDailyGameState`; se migran shares daily de bajo riesgo; se estabiliza el selector E2E de duel-live para evitar strict-mode por usernames numericos; `.gitignore` queda alineado con higiene publica y artefactos locales de Playwright.
