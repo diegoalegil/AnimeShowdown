@@ -46,7 +46,7 @@ export const queryClient = new QueryClient({
  */
 export const queryKeys = {
   torneos: (): QueryKey => ['torneos'],
-  torneoBySlug: (slug: string): QueryKey => ['torneos', 'slug', slug],
+  torneoBySlug: (slug: string | undefined): QueryKey => ['torneos', 'slug', slug],
   torneoById: (id: string | number): QueryKey => ['torneos', 'id', id],
   // Mi roster / favoritos
   misFavoritos: (): QueryKey => ['favoritos', 'me'],
