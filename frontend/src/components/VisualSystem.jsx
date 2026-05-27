@@ -154,12 +154,6 @@ export function VisualPageShell({
           backgroundImage: `url("${image}")`,
           backgroundPosition: shellBackgroundPosition,
           backgroundSize: 'cover',
-          // Blur sutil + leve saturación: convierte cualquier pixelación
-          // residual del upscale en un look cinematográfico de fondo
-          // difuminado tipo Netflix/Disney+ hero. Imperceptible como blur
-          // explícito, pero esconde aliasing y artefactos de generación.
-          filter: 'blur(2px) saturate(1.08)',
-          transform: 'scale(1.04)', // compensa el blur edge crop
         }}
       />
       {/* Vignette progresiva hacia abajo: la imagen respira arriba y el texto
@@ -206,12 +200,6 @@ export function CinematicHero({
         style={{
           backgroundImage: `url("${visualImage(visual)}")`,
           backgroundPosition: visual?.objectPosition ?? 'center',
-          // Mismo truco que en VisualPageShell pero más leve: el
-          // CinematicHero suele tener un container más pequeño, así
-          // que basta blur(1px) para que el contenido frontal "respire"
-          // sobre un fondo difuminado intencional.
-          filter: 'blur(1px) saturate(1.06)',
-          transform: 'scale(1.03)',
         }}
       />
       {/* Gradiente vertical con oscurecido lateral izquierdo para que el título
