@@ -85,9 +85,15 @@ audits/
 AUDIT*.md
 *AUDIT*.md
 *audit*.md
+CODEX*.md
+MERGE_REPORT*.md
+HANDOFF_SESSION_*.md
 *.private.md
 *.local.md
 .codex/
+ai-notes/
+private-notes/
+prompt-notes/
 
 # Buzon temporal para imagenes generadas a mano (tanda N)
 # Se vacia al integrar cada tanda; los assets finales viven en frontend/public/assets o frontend/img.
