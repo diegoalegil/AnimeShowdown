@@ -7,7 +7,8 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, logrosCollectionSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
-import { VisualPageShell, EmptyStateScene } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import {
   useCatalogoLogros,
@@ -257,7 +258,7 @@ function LogrosPage() {
           // Empty state cinematic: aprovecha quiet-arena + Trophy + accion.
           // Antes era solo un parrafo gris, ahora es una escena completa
           // que invita a quitar el filtro.
-          <EmptyStateScene
+          <EmptyState scene
             icon={Trophy}
             title={`No hay logros ${FILTROS_RAREZA.find((f) => f.value === filtroRareza)?.label.toLowerCase() ?? ''}.`}
           >
@@ -276,7 +277,7 @@ function LogrosPage() {
                 Limpiar filtro
               </button>
             )}
-          </EmptyStateScene>
+          </EmptyState>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibles.map((l) => (
