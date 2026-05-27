@@ -382,23 +382,12 @@ export function AuroraGlow({ tone = 'carmine', intensity = 'normal' }) {
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
       <div
-        className="as-aurora absolute -inset-[35%]"
+        className="as-aurora absolute inset-0"
         style={{
           background: palette,
           filter: blur,
-          animation: 'as-aurora-spin 38s linear infinite',
         }}
       />
-      <style>{`
-        @keyframes as-aurora-spin {
-          0%   { transform: rotate(0deg)   scale(1.15); }
-          50%  { transform: rotate(180deg) scale(1.25); }
-          100% { transform: rotate(360deg) scale(1.15); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .as-aurora { animation: none !important; }
-        }
-      `}</style>
     </div>
   )
 }

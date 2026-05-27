@@ -1,5 +1,9 @@
 # AnimeShowdown
 
+[![Tests](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/test.yml/badge.svg)](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/test.yml)
+[![E2E](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/e2e.yml/badge.svg)](https://github.com/diegoalegil/AnimeShowdown/actions/workflows/e2e.yml)
+![Coverage](https://img.shields.io/badge/Coverage-JaCoCo%20configured-C5A15A)
+![Version](https://img.shields.io/badge/Version-FE%200.0.0%20%7C%20BE%200.0.1--SNAPSHOT-24C6DC)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-38BDF8?logo=tailwindcss&logoColor=white)
@@ -13,7 +17,7 @@
 
 AnimeShowdown es una aplicación desplegada en producción para votar duelos 1v1, explorar rankings comunitarios, jugar pruebas diarias, seguir perfiles públicos y consultar una API REST abierta. La experiencia combina producto visual y base técnica seria: catálogo versionado, brackets en vivo, leaderboards, misiones, command palette, Open Graph dinámicas, PWA y observabilidad.
 
-El catálogo actual contiene **1052 personajes únicos** distribuidos en **105 universos anime**, sincronizados desde imágenes locales hacia frontend, backend y datos seed.
+El catálogo actual contiene **1086 personajes únicos** distribuidos en **105 universos anime**, sincronizados desde imágenes locales hacia frontend, backend y datos seed.
 
 <p align="center">
   <a href="https://animeshowdown.dev/">
@@ -33,7 +37,9 @@ El catálogo actual contiene **1052 personajes únicos** distribuidos en **105 u
 | Healthcheck | https://api.animeshowdown.dev/actuator/health |
 | Status monitor | https://animeshowdown.dev/status |
 
-## Experiencia
+El tour de producto con los flujos clave está en [docs/DEMO.md](docs/DEMO.md).
+
+## Screenshots
 
 Haz clic en cualquier captura para abrir esa sección en producción.
 
@@ -57,13 +63,17 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 |---|---|
 | [![Ficha de personaje](docs/screenshots/personaje-detail.webp)](https://animeshowdown.dev/personajes/frieren) | [![Swagger UI de AnimeShowdown](docs/screenshots/swagger-overview.webp)](https://api.animeshowdown.dev/swagger-ui/index.html) |
 
+| Perfil privado | Modo TV |
+|---|---|
+| [![Perfil privado con progreso y rango](docs/screenshots/perfil.webp)](https://animeshowdown.dev/perfil) | [![Modo TV fullscreen de AnimeShowdown](docs/screenshots/tv-mode.webp)](https://animeshowdown.dev/tv) |
+
 ## Features
 
 - **Duelos 1v1** con ranking ELO, modo rápido, atajos de teclado, links exactos de votación, feedback visual, anti-repetición y votos anónimos o autenticados.
 - **Ranking personal local** privado por navegador, alimentado por tus votos, con `/mi-top5` compartible y señales en fichas de personaje.
 - **Ranking competitivo y leaderboards** con podio, histórico, filtros, búsqueda, vistas por anime, usuarios destacados e indicadores de movimiento.
 - **Comparador y descubrimiento** para enfrentar dos personajes concretos, descubrir personajes al azar, abrir `/omikuji` y generar duelos recomendados.
-- **Catálogo visual** de 1052 personajes con filtros, buscador, modo grid/list y fichas individuales.
+- **Catálogo visual** de 1086 personajes con filtros, buscador, modo grid/list y fichas individuales.
 - **Universos anime** con collages, stats agregadas, top interno y CTA para votar dentro de cada roster.
 - **Torneos y eventos** con estados, participantes, duelos abiertos, avance de bracket, predicciones y temporadas temáticas.
 - **Anime Daily Trials y misiones** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial, ELO Duel, progreso diario local y rachas.
@@ -128,6 +138,21 @@ node scripts/sync-personajes.mjs --dry-run
 
 Las variantes responsive (`300`, `600`, `1024`, AVIF/WebP) ya están versionadas. En Cloudflare se usa `build:no-images` para no copiar `/img/` al artefacto: el build exige `ANIMESHOWDOWN_IMG_CDN_BASE_URL` y genera un redirect `/img/*` hacia ese origen externo. Ese origen debe contener el catálogo de `frontend/img/` y los stage assets de `frontend/public/img/`.
 
+## Performance
+
+Presupuesto Lighthouse de release: Performance >= 90, Accessibility >= 95, Best Practices >= 95 y SEO >= 95. Snapshot local de build producción desktop tomado el 2026-05-27 con `npm run build:no-images`, `vite preview` y `/img` servido desde el catálogo versionado:
+
+| Ruta | Performance | A11y | Best Practices | SEO | CLS | LCP |
+|---|---:|---:|---:|---:|---:|---:|
+| `/` | 97 | 100 | 100 | 100 | 0.023 | 1.0s |
+| `/votar` | 97 | 100 | 100 | 100 | 0.018 | 1.0s |
+| `/ranking` | 97 | 100 | 100 | 100 | 0.008 | 1.1s |
+| `/personajes/frieren` | 97 | 97 | 100 | 100 | 0.026 | 1.0s |
+| `/torneos/mha-heroes-vs-villains` | 96 | 96 | 100 | 100 | 0.025 | 1.0s |
+| `/games` | 98 | 100 | 100 | 100 | 0.005 | 1.0s |
+
+Decisiones relevantes: el loader de rutas reserva altura estable para evitar saltos de footer durante la hidratación inicial, y las capas atmosféricas decorativas se mantienen dentro de su contenedor para no penalizar CLS.
+
 ## Setup local
 
 ### Requisitos
@@ -159,10 +184,10 @@ npm run dev
 Vite levanta en `http://localhost:5173`. Para usar backend local:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080
+VITE_API_URL=http://localhost:8080
 ```
 
-## Calidad
+## Testing y QA
 
 Validaciones recomendadas antes de publicar cambios:
 
@@ -267,7 +292,7 @@ La API completa incluye auth, perfiles públicos, logros, reacciones, follow, to
 
 ## Estado
 
-- Catálogo sincronizado: **1052 personajes**.
+- Catálogo sincronizado: **1086 personajes**.
 - Universos anime: **105**.
 - Torneos visibles en producción: **15**; seed base versionado: **13**.
 - Logros base publicados por API: **16**.
