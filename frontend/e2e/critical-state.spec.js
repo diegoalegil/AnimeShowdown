@@ -81,6 +81,9 @@ async function prepareAuthedPage(page) {
 
 async function installFakeNotificationSocket(page) {
   await page.addInitScript(() => {
+    window.__stateE2eNotificationReady = false
+    window.__stateE2ePushNotification = () => {}
+
     class FakeWebSocket extends EventTarget {
       static CONNECTING = 0
       static OPEN = 1
@@ -117,7 +120,8 @@ async function installFakeNotificationSocket(page) {
         }
         if (text.startsWith('SUBSCRIBE') && text.includes('/user/queue/notificaciones')) {
           const subscriptionId = /^id:(.+)$/m.exec(text)?.[1] ?? 'sub-0'
-          setTimeout(() => {
+          window.__stateE2eNotificationReady = true
+          window.__stateE2ePushNotification = () => {
             if (this.readyState !== FakeWebSocket.OPEN) return
             this.dispatch('message', {
               data:
@@ -131,7 +135,7 @@ async function installFakeNotificationSocket(page) {
                 }) +
                 '\u0000',
             })
-          }, 800)
+          }
         }
       }
 
@@ -254,7 +258,14 @@ test('el badge de notificaciones sube por push sin abrir el dropdown', async ({ 
 
   const bell = page.locator('button[aria-label="Notificaciones"]').first()
   await expect(bell).toBeVisible()
+  await expect.poll(() => unreadRequests).toBeGreaterThanOrEqual(1)
+  await page.waitForFunction(() => window.__stateE2eNotificationReady === true)
   await expect(bell.locator('span')).toHaveCount(0)
+
+  unreadRequests = 1
+  await page.evaluate(() => window.__stateE2ePushNotification())
+
+  await expect.poll(() => unreadRequests).toBeGreaterThanOrEqual(2)
   await expect(bell.locator('span')).toHaveText('1', { timeout: 10_000 })
   await expect(page.getByRole('menu')).toHaveCount(0)
 })
@@ -262,6 +273,10 @@ test('el badge de notificaciones sube por push sin abrir el dropdown', async ({ 
 test('seguir personaje hace optimistic update y rollback si falla', async ({ page }) => {
   await prepareAuthedPage(page)
   await mockQuietPersonajeDetail(page)
+  let releaseFailedFollow
+  const failedFollowReady = new Promise((resolve) => {
+    releaseFailedFollow = resolve
+  })
   await page.route('**/api/personajes/luffy/favorito', async (route) => {
     const method = route.request().method()
     if (method === 'GET') {
@@ -273,7 +288,7 @@ test('seguir personaje hace optimistic update y rollback si falla', async ({ pag
       return
     }
     if (method === 'POST') {
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await failedFollowReady
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -288,8 +303,10 @@ test('seguir personaje hace optimistic update y rollback si falla', async ({ pag
 
   const follow = page.getByRole('button', { name: 'Seguir a Luffy' })
   await expect(follow).toHaveAttribute('aria-pressed', 'false')
+  await expect(follow).toBeEnabled()
   await follow.click()
   await expect(page.getByRole('button', { name: 'Dejar de seguir a Luffy' })).toHaveAttribute('aria-pressed', 'true')
+  releaseFailedFollow()
   await expect(page.getByRole('button', { name: 'Seguir a Luffy' })).toHaveAttribute('aria-pressed', 'false', { timeout: 10_000 })
 })
 
