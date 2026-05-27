@@ -1,39 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import {
-  ArrowRight,
-  CalendarClock,
-  Crown,
-} from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { endpoints, ApiError } from '../lib/api'
 import { useTorneos } from '../lib/torneosQueries'
 import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { personajeDelDia } from '../lib/games'
-import {
-  ESTADO_EVENTO,
-  formatRestante,
-  getEstadoEvento,
-  getEventoHeadline,
-  getMsRestantes,
-  getPersonajesEvento,
-} from '../data/eventos'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
-import PersonajeImg from './PersonajeImg'
-import EditorialCover from './EditorialCover'
-import CardEyebrow from '../features/home/pulso/components/CardEyebrow'
+import CampeonCard from '../features/home/pulso/components/CampeonCard'
 import DueloAbiertoCard from '../features/home/pulso/components/DueloAbiertoCard'
 import DueloDestacadoCard from '../features/home/pulso/components/DueloDestacadoCard'
+import EventoHeadlineBanner from '../features/home/pulso/components/EventoHeadlineBanner'
 import MoversCard from '../features/home/pulso/components/MoversCard'
-import PulseCard from '../features/home/pulso/components/PulseCard'
 import RetoCard from '../features/home/pulso/components/RetoCard'
 import TorneoActivoCard from '../features/home/pulso/components/TorneoActivoCard'
 import UltimosVotosCard from '../features/home/pulso/components/UltimosVotosCard'
-import {
-  BRAND_VISUALS,
-  getEventVisual,
-} from '../data/visual-assets'
+import { BRAND_VISUALS } from '../data/visual-assets'
 import { LateralKanjiPair, ParticleLayer } from './VisualSystem'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
@@ -281,195 +262,6 @@ function SectionPulso() {
         </div>
       </div>
     </motion.section>
-  )
-}
-
-function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
-  if (loading || !campeon?.personaje) {
-    return (
-      <PulseCard tono="amber">
-        {/* Label de loading neutro: el ranking se ordena por voto ponderado,
-            así que "Líder del ranking" no promete una métrica incorrecta
-            antes de que lleguen los datos. */}
-        <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-amber-300" />
-        <p className="text-sm text-fg-muted">Cargando al líder…</p>
-      </PulseCard>
-    )
-  }
-  const p = campeon.personaje
-  const votos = Number(campeon.votos ?? 0)
-  // La métrica detrás es el TOP del endpoint /api/votos/ranking, ordenado
-  // por SUM(v.peso) ponderado (anónimo 0.3, registrado 1.0). El campo
-  // `votos` mostrado sigue siendo COUNT físico para no truncar números.
-  // Distinguimos tres copys según contexto:
-  //   - esFallback: backend sin votos → "Top del catálogo (ELO base)".
-  //   - comunidadArrancando: muy pocos votos totales → "Más votado ahora".
-  //   - normal: "Top de la comunidad" (orden ponderado).
-  // CTA visible al ranking competitivo para el user que quiere el
-  // "salón de la fama" completo.
-  const eyebrow = esFallback
-    ? 'Top del catálogo'
-    : comunidadArrancando
-      ? 'Más votado ahora'
-      : 'Top de la comunidad'
-  // Patrón "stretched link": el article es semántico
-  // (article), y un Link absoluto invisible cubre toda la card. El CTA
-  // interno a /ranking queda por encima con z-10, sigue siendo independiente.
-  return (
-    <article className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5">
-      {/* Stretched link invisible que hace TODA la card clickeable.
-          z-0 + el resto de elementos en z relativo (no absolute) =
-          la card es accesible con teclado y screen-reader como un solo
-          link a la ficha del personaje. */}
-      <Link
-        to={`/personajes/${p.slug}`}
-        className="absolute inset-0 z-0"
-        aria-label={`Ver ficha de ${p.nombre}`}
-      />
-      <CardEyebrow icon={Crown} label={eyebrow} tono="text-amber-300" />
-      <div className="flex items-start gap-4">
-        <PersonajeImg
-          slug={p.slug}
-          alt={p.nombre}
-          className="h-28 w-20 shrink-0 rounded-lg object-cover object-top sm:h-32 sm:w-24"
-        />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 className="line-clamp-2 text-lg font-extrabold leading-tight text-fg-strong sm:text-xl">
-            {p.nombre}
-          </h3>
-          <p className="text-[13px] text-fg-muted">{p.anime}</p>
-          {esFallback ? (
-            <p className="mt-2 font-mono text-2xl font-bold text-amber-300 tabular-nums">
-              {Number(campeon.eloLocal ?? 0).toLocaleString('es-ES')}
-              <span className="ml-1 text-[11px] font-medium uppercase text-fg-muted">
-                ELO base
-              </span>
-            </p>
-          ) : (
-            <p className="mt-2 font-mono text-2xl font-bold text-amber-300 tabular-nums">
-              {votos.toLocaleString('es-ES')}
-              <span className="ml-1 text-[11px] font-medium uppercase text-fg-muted">
-                {votos === 1 ? 'voto' : 'votos'}
-              </span>
-            </p>
-          )}
-          {comunidadArrancando ? (
-            <p className="mt-1 text-[11px] leading-snug text-amber-200/70">
-              Comunidad arrancando — tu voto puede cambiar el meta.
-            </p>
-          ) : (
-            // El ranking REST se ordena por votos ponderados. Evitamos
-            // llamarlo "ELO global" porque sugeriría un K-factor real.
-            <p className="mt-1 text-[11px] leading-snug text-fg-muted">
-              Top de la comunidad por votos ponderados.
-            </p>
-          )}
-        </div>
-      </div>
-      {/* mt-auto + relative z-10 → el CTA queda POR ENCIMA del stretched
-          link. Sin stopPropagation: ya no es necesario, no hay onClick
-          en el padre. */}
-      <div className="relative z-10 mt-auto flex items-center justify-between gap-2 pt-1">
-        <Link
-          to="/ranking"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted hover:text-amber-300"
-        >
-          Ver ranking competitivo
-          <ArrowRight className="h-3 w-3" />
-        </Link>
-        <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-amber-300 opacity-0 transition-opacity group-hover:opacity-100">
-          Ver ficha
-          <ArrowRight className="h-3 w-3" />
-        </span>
-      </div>
-    </article>
-  )
-}
-
-/**
- * Banner del evento "headline". Muestra el
- * primer evento activo, o el próximo más cercano si no hay activos.
- * Auto-refresh del contador cada 60s para que "termina en 3h" baje a
- * "termina en 2h" sin recargar la página.
- */
-function EventoHeadlineBanner() {
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    return () => clearInterval(id)
-  }, [])
-
-  const evento = getEventoHeadline(now)
-  if (!evento) return null
-
-  const estado = getEstadoEvento(evento, now)
-  const ms = getMsRestantes(evento, now)
-  const restante = formatRestante(ms)
-  const participantes = getPersonajesEvento(evento).length
-  const visual = getEventVisual(evento.slug, evento.titulo)
-
-  const tonosBg = {
-    rose: 'border-rose-500/30 bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent',
-    violet: 'border-violet-500/30 bg-gradient-to-br from-violet-500/15 via-violet-500/5 to-transparent',
-    amber: 'border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent',
-    pink: 'border-pink-500/30 bg-gradient-to-br from-pink-500/15 via-pink-500/5 to-transparent',
-    cyan: 'border-cyan-500/30 bg-gradient-to-br from-cyan-500/15 via-cyan-500/5 to-transparent',
-  }
-  const tonosTexto = {
-    rose: 'text-rose-200',
-    violet: 'text-violet-200',
-    amber: 'text-amber-200',
-    pink: 'text-pink-200',
-    cyan: 'text-cyan-200',
-  }
-  const tonoBg = tonosBg[evento.color] ?? tonosBg.amber
-  const tonoTexto = tonosTexto[evento.color] ?? tonosTexto.amber
-
-  const ctaLabel = estado === ESTADO_EVENTO.ACTIVO ? 'Entrar al evento' : 'Ver detalles'
-  const tiempoLabel = estado === ESTADO_EVENTO.ACTIVO
-    ? `Termina en ${restante}`
-    : `Empieza en ${restante}`
-  const eyebrowLabel = estado === ESTADO_EVENTO.ACTIVO ? 'Evento en curso' : 'Próximo evento'
-
-  return (
-    <div className={`relative mb-3 overflow-hidden rounded-xl border p-4 sm:mb-4 sm:p-5 ${tonoBg}`}>
-      <EditorialCover
-        visual={visual}
-        className="absolute inset-0 rounded-none border-0 opacity-95"
-        imageClassName="saturate-105 contrast-100"
-      />
-      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 flex-col gap-2">
-          <span className={`inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
-            <CalendarClock className="h-3 w-3" />
-            {eyebrowLabel} · {tiempoLabel}
-          </span>
-          <div className="flex items-center gap-2">
-            <span aria-hidden="true" className="text-xl sm:text-2xl">
-              {evento.emoji}
-            </span>
-            <h3 className="text-lg font-extrabold text-fg-strong drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:text-xl">
-              {evento.titulo}
-            </h3>
-          </div>
-          <p className="line-clamp-2 text-[13px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
-            {evento.descripcionCorta} · {participantes} personajes
-          </p>
-        </div>
-        <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-          <span className="rounded-full border border-white/10 bg-bg/55 px-3 py-1 font-mono text-[11px] font-bold text-fg-muted backdrop-blur">
-            {participantes} participantes
-          </span>
-          <Link
-            to={`/eventos/${evento.slug}`}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border bg-bg/40 px-4 py-2 text-[13px] font-semibold ${tonoTexto} hover:bg-bg/60`}
-          >
-            {ctaLabel}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </div>
-    </div>
   )
 }
 
