@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,7 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.TorneoAutoService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Endpoint admin para auto-generar torneos. Lo invoca el GitHub Action
@@ -26,13 +31,18 @@ import com.diegoalegil.animeshowdown.service.TorneoAutoService;
 public class AutoTorneoController {
 
     private final TorneoAutoService autoService;
+    private final AuditLogService auditLogService;
 
-    public AutoTorneoController(TorneoAutoService autoService) {
+    public AutoTorneoController(TorneoAutoService autoService, AuditLogService auditLogService) {
         this.autoService = autoService;
+        this.auditLogService = auditLogService;
     }
 
     @PostMapping("/auto-generar")
-    public ResponseEntity<?> autoGenerar(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> autoGenerar(
+            @RequestBody(required = false) Map<String, Object> body,
+            @AuthenticationPrincipal Usuario admin,
+            HttpServletRequest request) {
         if (!autoService.isEnabled()) {
             Map<String, Object> resp = new HashMap<>();
             resp.put("error", "Auto-generación deshabilitada");
@@ -51,6 +61,12 @@ public class AutoTorneoController {
 
         try {
             Torneo creado = autoService.generar(tamano, force);
+            Map<String, Object> detallesAudit = new HashMap<>();
+            detallesAudit.put("tamano", tamano);
+            detallesAudit.put("force", force);
+            if (creado.getId() != null) detallesAudit.put("torneoId", creado.getId());
+            if (creado.getSlug() != null) detallesAudit.put("slug", creado.getSlug());
+            auditLogService.registrarAdmin(admin, "admin.torneos.auto-generar", detallesAudit, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(creado);
         } catch (TorneoAutoService.IdempotenciaException e) {
             Map<String, Object> resp = new HashMap<>();
