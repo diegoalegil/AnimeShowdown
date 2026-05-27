@@ -10,7 +10,7 @@ import {
   Swords,
 } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
-import { breadcrumbsSchema } from '../lib/schema'
+import { breadcrumbsSchema, eventoSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import {
   ESTADO_EVENTO,
@@ -122,6 +122,13 @@ function EventoDetailPage() {
 
   return (
     <VisualPageShell visual={visual} contentClassName="mx-auto max-w-5xl" density="low" lateralKanji={{left: visual?.kanji ?? "祭", right: "祭"}}>
+      <JsonLd
+        id="evento"
+        schema={eventoSchema(evento, participantes, {
+          estado,
+          image: visual?.image,
+        })}
+      />
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
