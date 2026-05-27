@@ -6,7 +6,6 @@ import { ArrowLeft, Image as ImageIcon } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { getPersonajeBySlug } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import {
   getLocalVoteStats,
@@ -22,6 +21,7 @@ import Top5Slot from '../features/miTop5/Top5Slot'
 import {
   buildInitialSlots,
   getTop5AddSlugs,
+  mergeTop5AddSlugs,
   SLOTS,
   STORAGE_KEY,
   SUGERENCIAS_RAPIDAS_SLUGS,
@@ -64,7 +64,7 @@ function MiTop5Page() {
     canonical: 'https://animeshowdown.dev/mi-top5',
   })
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const addFromQuery = useMemo(
     () => getTop5AddSlugs(searchParams),
     [searchParams],
@@ -78,35 +78,23 @@ function MiTop5Page() {
   const [slots, setSlots] = useState(() =>
     buildInitialSlots(addFromQuery),
   )
+  const effectiveSlots = useMemo(
+    () => mergeTop5AddSlugs(slots, addFromQuery),
+    [slots, addFromQuery],
+  )
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(slots))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(effectiveSlots))
     } catch {
       // ignore
     }
-  }, [slots])
+  }, [effectiveSlots])
 
   useEffect(
     () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
     [],
   )
-
-  useEffect(() => {
-    if (addFromQuery.length === 0) return
-    const validos = addFromQuery
-      .filter((slug) => getPersonajeBySlug(slug) && slots.includes(slug))
-      .map((slug) => getPersonajeBySlug(slug)?.nombre)
-      .filter(Boolean)
-    if (validos.length > 1) {
-      toast.success(`${validos.length} personajes listos en tu Top 5`)
-    } else if (validos.length === 1) {
-      toast.success(`${validos[0]} listo en tu Top 5`)
-    } else {
-      toast.error('No pude añadir esos personajes al Top 5')
-    }
-    setSearchParams({}, { replace: true })
-  }, [addFromQuery, setSearchParams, slots])
 
   const personalStats = useMemo(
     () => getLocalVoteStats(localVotes),
@@ -126,8 +114,8 @@ function MiTop5Page() {
     .slice(0, 3)
 
   const setSlot = (idx, slug) => {
-    setSlots((s) => {
-      const next = [...s]
+    setSlots(() => {
+      const next = [...effectiveSlots]
       next[idx] = slug
       return next
     })
@@ -135,24 +123,24 @@ function MiTop5Page() {
 
   const quitarSlot = (idx) => setSlot(idx, null)
 
-  const completo = slots.every(Boolean)
-  const slotsVacios = slots.filter((s) => !s).length
+  const completo = effectiveSlots.every(Boolean)
+  const slotsVacios = effectiveSlots.filter((s) => !s).length
 
   // Sugerencias = top slugs que aún no están en el top del user
   const sugerenciasDisponibles = useMemo(() => {
     return SUGERENCIAS_RAPIDAS_SLUGS
       .map((slug) => personajesBySlug.get(slug))
-      .filter((p) => p && !slots.includes(p.slug))
+      .filter((p) => p && !effectiveSlots.includes(p.slug))
       .slice(0, 6)
-  }, [personajesBySlug, slots])
+  }, [personajesBySlug, effectiveSlots])
 
   const addSlugAlPrimerSlotLibre = (slug) => {
-    const idx = slots.findIndex((s) => !s)
+    const idx = effectiveSlots.findIndex((s) => !s)
     if (idx === -1) {
       toast.info('Top 5 completo. Quita uno para añadir otro.')
       return
     }
-    if (slots.includes(slug)) {
+    if (effectiveSlots.includes(slug)) {
       toast.info('Ese personaje ya está en tu top.')
       return
     }
@@ -168,7 +156,7 @@ function MiTop5Page() {
     for (const slug of personalTopSlugs) {
       if (!next.includes(slug)) next.push(slug)
     }
-    for (const slug of slots) {
+    for (const slug of effectiveSlots) {
       if (slug && !next.includes(slug)) next.push(slug)
     }
     setSlots(next.slice(0, SLOTS).concat(Array(SLOTS).fill(null)).slice(0, SLOTS))
@@ -231,7 +219,7 @@ function MiTop5Page() {
             pequeños y el resto de la página (buscador + sugerencias)
             entra dentro del primer viewport. */}
         <div className="mb-5 grid grid-cols-5 gap-2 sm:mb-8 sm:gap-4">
-          {slots.map((slug, i) => (
+          {effectiveSlots.map((slug, i) => (
             <Top5Slot
               key={i}
               slug={slug}
@@ -250,11 +238,11 @@ function MiTop5Page() {
 
         <Top5SearchPanel
           onSelect={addSlugAlPrimerSlotLibre}
-          filtroExtra={(p) => !slots.includes(p.slug)}
+          filtroExtra={(p) => !effectiveSlots.includes(p.slug)}
         />
 
         <CanvasPreview
-          slots={slots}
+          slots={effectiveSlots}
           completo={completo}
           personajesBySlug={personajesBySlug}
         />
