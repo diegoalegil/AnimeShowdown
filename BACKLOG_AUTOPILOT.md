@@ -3,6 +3,13 @@
 > **Lee primero `AGENTS.md`** — convenciones permanentes. Si algo aquí contradice `AGENTS.md`, AGENTS gana.
 > **Este backlog es para autopilot multi-sprint de larga duración.** El `BACKLOG.md` original (sprints 0-8) tiene prioridad si aún no está cerrado.
 
+## Estado de avance (2026-05-27)
+
+- ✅ DONE (8 sprints): 1, 2, 3, 3.5a, 3.5b, 3.5c, 4, 5
+- 🚧 IN PROGRESS (1 sprint): 6 (1/12 PRs mergeados — PR 06.1 Vitest infra cerrado)
+- ⏳ PENDING (42 sprints): 7-40 + 41-47 (ideas T-)
+- Detalle por sprint en `PROGRESS.md`. SPECs pre-cocinados: `docs/SPEC_SPRINT_06.md`.
+
 ---
 
 ## Misión
@@ -33,7 +40,7 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 
 # TIER S — Foundational (sprints 1-8)
 
-## Sprint 1 — Performance LCP + bundle budget
+## [✅ DONE] Sprint 1 — Performance LCP + bundle budget
 
 **Goal:** llevar LCP < 2.0s en desktop, < 2.5s en mobile (móvil 4G simulado). Bundle JS inicial < 220 KB gzip.
 
@@ -51,7 +58,7 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Branch:** `sprint-auto-01-perf-lcp`.
 **Qué evitar:** quitar features visibles para mejorar números. Si una optimización rompe UX, descartar.
 
-## Sprint 2 — Accessibility WCAG 2.2 AA estricto
+## [✅ DONE] Sprint 2 — Accessibility WCAG 2.2 AA estricto
 
 **Goal:** todas las páginas pasan axe-core sin violaciones de nivel A o AA.
 
@@ -70,7 +77,7 @@ Completar 40 sprints temáticos en aproximadamente **48 horas de autopilot conti
 **Branch:** `sprint-auto-02-a11y-wcag-aa`.
 **Tests:** añadir `npm run test:a11y` con axe-core en e2e si no existe.
 
-## Sprint 3 — Mobile responsive deep audit
+## [✅ DONE] Sprint 3 — Mobile responsive deep audit
 
 **Goal:** cero overflow horizontal en 320/360/390/430/768/1024/1280/1440/1920. Touch targets ≥ 44×44.
 
@@ -93,7 +100,7 @@ Source: macro informe del humano. Diagnóstico completo: producto serio con iden
 
 ---
 
-## Sprint 3.5a — STABILITY PASS (12 críticos + 8 importantes)
+## [✅ DONE] Sprint 3.5a — STABILITY PASS (12 críticos + 8 importantes)
 
 **Goal:** arreglar los bugs reales identificados en la auditoría que rompen UX hoy. No es opcional. CI verde en cada PR.
 
@@ -132,7 +139,7 @@ Source: macro informe del humano. Diagnóstico completo: producto serio con iden
 
 ---
 
-## Sprint 3.5b — CLEANUP PASS (refactor + helpers + unificación)
+## [✅ DONE] Sprint 3.5b — CLEANUP PASS (refactor + helpers + unificación)
 
 **Goal:** reducir deuda técnica acumulada. Dividir páginas enormes, crear helpers reusables, unificar componentes duplicados.
 
@@ -173,7 +180,7 @@ Migrar a estructura `src/features/<feature>/` con `hooks/` + `components/` separ
 
 ---
 
-## Sprint 3.5c — PRO PASS (TS lib/* + tests + asset dashboard + README portfolio)
+## [✅ DONE] Sprint 3.5c — PRO PASS (TS lib/* + tests + asset dashboard + README portfolio)
 
 **Goal:** dejar el proyecto presentable como portfolio premium. TypeScript en los archivos críticos de lib/, tests E2E de los flujos que el informe identifica como críticos, dashboard admin de assets, README brutal con screenshots.
 
@@ -238,7 +245,7 @@ Ruta `/admin/assets` (gated por auth admin):
 
 ---
 
-## Sprint 4 — SEO structured data exhaustivo
+## [✅ DONE] Sprint 4 — SEO structured data exhaustivo
 
 **Goal:** Schema.org JSON-LD completo en todas las entidades (CreativeWork, Person, Event, SportsEvent, BreadcrumbList).
 
@@ -255,7 +262,7 @@ Ruta `/admin/assets` (gated por auth admin):
 **Estimated PRs:** 6-8.
 **Branch:** `sprint-auto-04-seo-structured`.
 
-## Sprint 5 — Security audit + headers tightening
+## [✅ DONE] Sprint 5 — Security audit + headers tightening
 
 **Goal:** A+ en securityheaders.com, A+ en SSL Labs, CSP estricto sin `unsafe-inline`.
 
@@ -274,7 +281,10 @@ Ruta `/admin/assets` (gated por auth admin):
 **Branch:** `sprint-auto-05-security`.
 **Heads-up:** este sprint toca seguridad. AGENTS.md §9 dice que cambios de auth/security siguen requiriendo PR + revisión. NO auto-merge en este sprint sin OK del humano.
 
-## Sprint 6 — Test coverage to 70%
+## [🚧 IN PROGRESS] Sprint 6 — Test coverage to 70%
+
+> **Pre-cooked spec**: `docs/SPEC_SPRINT_06.md`. PR 06.1 (Vitest infra) ya mergeado (#123, commit 437e1257). Restantes: 06.2-06.12.
+
 
 **Goal:** frontend Vitest + backend JaCoCo a 70% en líneas / 60% en ramas.
 
