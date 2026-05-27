@@ -1,10 +1,7 @@
+import { buildUrl } from './buildUrl'
+
 export function absoluteUrl(path = '/') {
-  if (/^https?:\/\//i.test(path)) return path
-  const origin =
-    typeof window !== 'undefined'
-      ? window.location.origin
-      : 'https://animeshowdown.dev'
-  return new URL(path, origin).toString()
+  return buildUrl(path)
 }
 
 export async function shareOrCopy({ title = 'AnimeShowdown', text, url }) {
