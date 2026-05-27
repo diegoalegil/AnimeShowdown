@@ -5,6 +5,7 @@ import {
   getPersonajeBySlug,
   imagenPersonaje,
 } from '../lib/personajes-core'
+import { trackAssetError } from '../lib/asset-tracking'
 import AssetFallback from './AssetFallback'
 import PersonajePlaceholder from './PersonajePlaceholder'
 
@@ -83,8 +84,13 @@ function PersonajeImg({
   }, [onLoad, src])
   const handleImageError = useCallback((event) => {
     setStatus({ src, loaded: false, errored: true })
+    trackAssetError({
+      src: event.currentTarget?.currentSrc || src,
+      category: 'character',
+      slug,
+    })
     onError?.(event)
-  }, [onError, src])
+  }, [onError, slug, src])
   const handleImageRef = useCallback(
     (node) => {
       if (!node || loaded || errored) return
