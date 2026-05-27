@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ShieldCheck, X } from 'lucide-react'
-import AccessibleDialog from './AccessibleDialog'
+import Dialog from './Dialog'
 
 /**
  * Modal de captcha bajo abuso.
@@ -131,7 +131,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
   }, [open, sitekey, onSuccess])
 
   return (
-    <AccessibleDialog
+    <Dialog
       open={open}
       onClose={onClose}
       titleId="captcha-modal-title"
@@ -179,7 +179,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
           className={!sitekeyAusente && status === 'ready' ? 'block' : 'hidden'}
         />
       </div>
-    </AccessibleDialog>
+    </Dialog>
   )
 }
 

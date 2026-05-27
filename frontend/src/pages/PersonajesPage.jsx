@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
-import AccessibleDialog from '../components/AccessibleDialog'
+import Dialog from '../components/Dialog'
 import PersonajeCard from '../components/PersonajeCard'
 import PersonajeImg from '../components/PersonajeImg'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
@@ -654,10 +654,10 @@ function PersonajesPage() {
           ))}
         </div>
 
-        {/* AccessibleDialog conserva el look bottom-sheet en mobile y
+        {/* Dialog conserva el look bottom-sheet en mobile y
             centraliza focus trap, Escape, backdrop, lock de scroll y restore
             de foco. En desktop ya existen filtros inline. */}
-        <AccessibleDialog
+        <Dialog
           open={filtersOpen}
           onClose={() => setFiltersOpen(false)}
           label="Filtros de personajes"
@@ -832,7 +832,7 @@ function PersonajesPage() {
                 </button>
               </div>
           </section>
-        </AccessibleDialog>
+        </Dialog>
 
         <p className="mb-4 text-[11px] text-fg-muted">
           Mostrando <strong className="text-fg-strong">{filtered.length}</strong>{' '}
