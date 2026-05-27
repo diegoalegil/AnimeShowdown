@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "skipLibCheck": true,
+    "types": ["vite/client", "react", "react-dom"]
+  },
+  "include": [
+    "src/lib/api.ts",
+    "src/lib/queryClient.ts",
+    "src/lib/personajes-core.ts",
+    "src/lib/localVoteRanking.ts",
+    "src/lib/games.ts",
+    "src/lib/torneosQueries.ts",
+    "src/lib/share.ts",
+    "src/lib/types.ts"
+  ]
+}

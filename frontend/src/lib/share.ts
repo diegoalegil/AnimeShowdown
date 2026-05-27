@@ -1,10 +1,21 @@
 import { buildUrl } from './buildUrl'
+import type { ShareResult } from './types'
 
-export function absoluteUrl(path = '/') {
+type ShareInput = {
+  title?: string
+  text?: string
+  url?: string
+}
+
+export function absoluteUrl(path = '/'): string {
   return buildUrl(path)
 }
 
-export async function shareOrCopy({ title = 'AnimeShowdown', text, url }) {
+export async function shareOrCopy({
+  title = 'AnimeShowdown',
+  text,
+  url,
+}: ShareInput): Promise<ShareResult> {
   const shareUrl = absoluteUrl(url || '/')
   const payload = {
     title,
@@ -17,7 +28,7 @@ export async function shareOrCopy({ title = 'AnimeShowdown', text, url }) {
       await navigator.share(payload)
       return 'native'
     } catch (error) {
-      if (error?.name === 'AbortError') return 'cancelled'
+      if (error instanceof DOMException && error.name === 'AbortError') return 'cancelled'
     }
   }
 
