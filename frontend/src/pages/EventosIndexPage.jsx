@@ -19,7 +19,8 @@ import {
   getPersonajesEvento,
 } from '../data/eventos'
 import EditorialCover from '../components/EditorialCover'
-import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS, getEventVisual } from '../data/visual-assets'
 
 /**
@@ -209,7 +210,7 @@ function EventoCard({ evento, now, etiqueta }) {
 
 function EmptyTodos() {
   return (
-    <EmptyStateScene
+    <EmptyState scene
       visual={BRAND_VISUALS.empty}
       icon={CalendarClock}
       title="Sin eventos en el calendario"
@@ -219,7 +220,7 @@ function EmptyTodos() {
         Cuando preparamos una nueva temporada (Semana X, Copa Y…), aparece
         aquí con su contador. Vuelve pronto.
       </p>
-    </EmptyStateScene>
+    </EmptyState>
   )
 }
 

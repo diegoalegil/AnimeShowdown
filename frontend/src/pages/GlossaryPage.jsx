@@ -7,7 +7,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, definedTermSetSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { normalizar } from '../lib/games'
-import { EmptyStateScene } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
 import { useAuth } from '../contexts/AuthContext'
 import { endpoints } from '../lib/api'
 import { hasCategoriaPersonaje } from '../data/personajes-tags'
@@ -436,14 +436,14 @@ function GlossaryPage() {
         </div>
 
         {visibles.length === 0 ? (
-          <EmptyStateScene
+          <EmptyState scene
             icon={BookOpen}
             title={`Sin términos para "${filtro}"`}
             action={{ to: '/glossary', label: 'Limpiar búsqueda' }}
           >
             Prueba con otra palabra o limpia el filtro para ver el glosario
             completo.
-          </EmptyStateScene>
+          </EmptyState>
         ) : (
           <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {visibles.map((t) => {

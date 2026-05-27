@@ -22,7 +22,7 @@ import {
 import PersonajeImg from '../components/PersonajeImg'
 import RankingMetaReport from '../components/RankingMetaReport'
 import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
-import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS } from '../data/visual-assets'
@@ -548,7 +548,7 @@ function ListaEloLocal({
       {isCatalogLoading && rankedElo.length === 0 ? (
         <RankingSkeletonList />
       ) : filtered.length === 0 ? (
-        <EmptyStateScene
+        <EmptyState scene
           visual={BRAND_VISUALS.empty}
           icon={Search}
           title="El salón de la fama no encontró ese combatiente"
@@ -567,7 +567,7 @@ function ListaEloLocal({
           >
             Limpiar filtros
           </button>
-        </EmptyStateScene>
+        </EmptyState>
       ) : (
         <>
           {/* Podio Top 3 — solo cuando no hay filtros activos. Si el
@@ -758,14 +758,14 @@ function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null
   }
   if (!items || items.length === 0) {
     return (
-      <EmptyStateScene
+      <EmptyState scene
         icon={Clock}
         title="Sin actividad en esta ventana"
         action={{ to: '/votar', label: 'Votar ahora' }}
       >
         Todavía no hay votos suficientes para esta ventana de tiempo. El
         ranking se rellena cuando hay tráfico real — sé tú el primero.
-      </EmptyStateScene>
+      </EmptyState>
     )
   }
   return (

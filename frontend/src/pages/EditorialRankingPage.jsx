@@ -29,7 +29,8 @@ import {
 } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
-import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { shareOrCopy } from '../lib/share'
 import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
@@ -254,7 +255,7 @@ function EditorialRankingPage() {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
           </div>
         ) : rows.length === 0 ? (
-          <EmptyStateScene
+          <EmptyState scene
             visual={BRAND_VISUALS.empty}
             icon={Search}
             title="No hay personajes suficientes para este ranking"
@@ -262,7 +263,7 @@ function EditorialRankingPage() {
           >
             Este top necesita más personajes etiquetados para no parecer una
             página vacía.
-          </EmptyStateScene>
+          </EmptyState>
         ) : (
           <>
             {top3.length === 3 && <EditorialPodium top3={top3} />}
