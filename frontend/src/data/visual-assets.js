@@ -72,6 +72,11 @@ function makeVisual({
   shellExpectedPath = null,
   shellImage = null,
   shellObjectPosition = 'center top',
+  // Opacidad del shellImage en el fondo de página completa. Default
+  // 0.75 funciona bien para composiciones balanceadas. Para imágenes
+  // visualmente densas (mucho detalle pequeño, haces de luz intensos,
+  // mucha saturación) bajar a 0.30-0.45 para que respiren.
+  shellOpacity = 0.75,
   description = '',
   mood = '',
   objectPosition = 'center',
@@ -94,6 +99,7 @@ function makeVisual({
     image: resolvedImage,
     shellImage: resolvedShellImage,
     shellObjectPosition,
+    shellOpacity,
     fallbackImage,
     expectedPath,
     shellExpectedPath,
@@ -1031,6 +1037,9 @@ export const BRAND_VISUALS = {
     fallbackImage: STAGE.ranking,
     expectedPath: '/assets/brand/backgrounds/ranking-hero.webp',
     shellExpectedPath: '/assets/brand/backgrounds/ranking-bg.webp',
+    // shellImage tiene haz dorado central muy intenso — bajamos opacity
+    // para que respire y no sature visualmente.
+    shellOpacity: 0.4,
     mood: 'salón de la fama, trofeo y luz dorada',
     objectPosition: 'center',
     accent: '#c5a15a',
@@ -1047,6 +1056,9 @@ export const BRAND_VISUALS = {
     fallbackImage: STAGE.animes,
     expectedPath: '/assets/brand/backgrounds/anime-catalog.webp',
     shellExpectedPath: '/assets/brand/backgrounds/anime-catalog-bg.webp',
+    // shellImage tiene muchos carteles pequeños detallados — bajamos
+    // opacity para que el ojo no la perciba como ruido visual.
+    shellOpacity: 0.4,
     mood: 'archivo premium de universos anime',
     objectPosition: 'center',
   }),
