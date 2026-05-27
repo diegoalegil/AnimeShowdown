@@ -7,8 +7,6 @@ import {
   CalendarClock,
   Crown,
   Radio,
-  Sparkles,
-  Swords,
   TrendingDown,
   TrendingUp,
   Trophy,
@@ -29,9 +27,12 @@ import {
 } from '../data/eventos'
 import { useVotosPeriodoBatch } from '../hooks/useVotosPeriodo'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
-import PersonajeCutImg from './PersonajeCutImg'
 import PersonajeImg from './PersonajeImg'
 import EditorialCover from './EditorialCover'
+import CardEyebrow from '../features/home/pulso/components/CardEyebrow'
+import DueloAbiertoCard from '../features/home/pulso/components/DueloAbiertoCard'
+import DueloDestacadoCard from '../features/home/pulso/components/DueloDestacadoCard'
+import PulseCard from '../features/home/pulso/components/PulseCard'
 import {
   BRAND_VISUALS,
   getEventVisual,
@@ -75,13 +76,6 @@ function tieneImagenPromocionable(item, catalogoPersonajes = personajes) {
     : null
   const imagen = p?.imagenUrl ?? local?.imagenUrl ?? local?.imagen
   return Boolean(imagen && !imagen.includes('/_missing/') && !imagen.includes('placeholder'))
-}
-
-function buildDuelVoteUrl(a, b) {
-  const slugA = a?.slug
-  const slugB = b?.slug
-  if (!slugA || !slugB) return '/votar'
-  return `/votar?personaje=${encodeURIComponent(slugA)}&rival=${encodeURIComponent(slugB)}`
 }
 
 /**
@@ -295,67 +289,6 @@ function SectionPulso() {
   )
 }
 
-function PulseCard({ tono = 'accent', children, ...rest }) {
-  const tonos = {
-    accent: {
-      border: 'border-accent/34 hover:border-accent/70',
-      glow: 'rgb(159 29 44 / 0.24)',
-    },
-    emerald: {
-      border: 'border-emerald-500/34 hover:border-emerald-400/70',
-      glow: 'rgb(16 185 129 / 0.22)',
-    },
-    amber: {
-      border: 'border-amber-500/34 hover:border-amber-400/70',
-      glow: 'rgb(245 158 11 / 0.24)',
-    },
-    cyan: {
-      border: 'border-cyan-500/34 hover:border-cyan-400/70',
-      glow: 'rgb(6 182 212 / 0.22)',
-    },
-    rose: {
-      border: 'border-rose-500/34 hover:border-rose-400/70',
-      glow: 'rgb(244 63 94 / 0.23)',
-    },
-    violet: {
-      border: 'border-violet-500/34 hover:border-violet-400/70',
-      glow: 'rgb(139 92 246 / 0.23)',
-    },
-  }
-  const tone = tonos[tono] ?? tonos.accent
-  return (
-    <div
-      className={`as-card-lift group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-surface/88 p-4 backdrop-blur-md sm:p-5 ${tone.border}`}
-      style={{
-        boxShadow: `inset 0 1px 0 rgb(255 255 255 / 0.055), 0 24px 80px -54px ${tone.glow}`,
-      }}
-      {...rest}
-    >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-80"
-        style={{
-          background: `radial-gradient(circle at 88% 0%, ${tone.glow}, transparent 13rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 42%)`,
-        }}
-      />
-      {/* Las pulse-cards ya tienen identidad con tone + glow + backdrop-blur;
-          no necesitan glyph japonés decorativo encima. */}
-      {children}
-    </div>
-  )
-}
-
-function CardEyebrow({ icon: Icon, label, tono = 'text-gold' }) {
-  return (
-    <span
-      className={`inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-alt px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] ${tono}`}
-    >
-      <Icon className="h-3 w-3" />
-      {label}
-    </span>
-  )
-}
-
 function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   if (loading || !campeon?.personaje) {
     return (
@@ -455,113 +388,6 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
         </span>
       </div>
     </article>
-  )
-}
-
-function DueloDestacadoCard({ duelo, torneoEnCurso }) {
-  const a = duelo?.personajeA
-  const b = duelo?.personajeB
-  const tieneDuelo = Boolean(a && b)
-  const destino = tieneDuelo
-    ? buildDuelVoteUrl(a, b)
-    : torneoEnCurso
-      ? `/torneos/${torneoEnCurso.slug}`
-      : '/votar'
-  const titulo = tieneDuelo
-    ? 'Vota el duelo que mueve el meta'
-    : torneoEnCurso
-      ? torneoEnCurso.nombre
-      : 'Vota tu primer duelo del día'
-  const subtitulo = tieneDuelo
-    ? 'Dos personajes. Un click. Sin registro para empezar.'
-    : torneoEnCurso
-      ? 'Hay un bracket activo esperando votos de la comunidad.'
-      : 'Elige favorito, mira el feedback y entra en la liga.'
-
-  return (
-    <Link
-      to={destino}
-      className="group relative flex min-h-[220px] flex-col gap-4 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5"
-    >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-90"
-        style={{
-          background:
-            'radial-gradient(circle at 18% 8%, rgb(197 161 90 / 0.20), transparent 16rem), radial-gradient(circle at 86% 0%, rgb(36 198 220 / 0.14), transparent 18rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 45%)',
-        }}
-      />
-      <CardEyebrow icon={Swords} label="Duelo destacado" tono="relative text-amber-300" />
-      <div className="relative grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-        <div className="min-w-0">
-          <h3 className="max-w-xl text-2xl font-black leading-tight tracking-tight text-fg-strong sm:text-3xl">
-            {titulo}
-          </h3>
-          <p className="mt-2 max-w-lg text-sm leading-relaxed text-fg-muted">
-            {subtitulo}
-          </p>
-        </div>
-        {tieneDuelo ? (
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-            <DestacadoAvatar personaje={a} />
-            <span className="font-mono text-2xl font-black text-gold">VS</span>
-            <DestacadoAvatar personaje={b} />
-          </div>
-        ) : torneoEnCurso ? (
-          // Si no hay duelo concreto pero sí un torneo en curso, mostrar el
-          // banner del torneo (más informativo que el kanji genérico).
-          // Mantenemos el kanji como overlay sutil arriba a la derecha
-          // para conservar identidad visual.
-          <div
-            aria-hidden="true"
-            className="relative h-24 w-40 overflow-hidden rounded-2xl border border-amber-400/30 bg-amber-500/5 sm:h-28 sm:w-48"
-            style={{
-              backgroundImage: `url("/assets/tournament-banners/${torneoEnCurso.slug}.webp")`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-bg/85 via-bg/30 to-transparent"
-            />
-            <span
-              lang="ja"
-              className="absolute right-2 top-1 font-mono text-xl font-black text-amber-200 drop-shadow"
-            >
-              戦
-            </span>
-          </div>
-        ) : (
-          <div
-            aria-hidden="true"
-            lang="ja"
-            className="flex h-24 w-24 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 font-mono text-5xl font-black text-amber-200"
-          >
-            戦
-          </div>
-        )}
-      </div>
-      <span className="relative mt-auto inline-flex items-center gap-1 text-sm font-bold text-amber-300 transition-transform group-hover:translate-x-0.5">
-        {tieneDuelo ? 'Votar ahora' : 'Entrar'}
-        <ArrowRight className="h-4 w-4" />
-      </span>
-    </Link>
-  )
-}
-
-function DestacadoAvatar({ personaje }) {
-  return (
-    <div className="min-w-0 text-center">
-      <PersonajeImg
-        slug={personaje.slug}
-        alt={personaje.nombre}
-        className="mx-auto h-28 w-20 rounded-xl object-cover object-top shadow-[0_18px_55px_-32px_rgba(0,0,0,0.9)] sm:h-32 sm:w-24"
-      />
-      <p className="mt-2 line-clamp-1 max-w-24 text-[12px] font-bold text-fg-strong">
-        {personaje.nombre}
-      </p>
-    </div>
   )
 }
 
@@ -734,80 +560,6 @@ function TorneoActivoCard({ torneo }) {
   )
 }
 
-function DueloAbiertoCard({ duelo, torneoEnCurso }) {
-  // Sin duelo del endpoint /enfrentamientos/aleatorio: dos escenarios.
-  //  1) Hay torneo IN_PROGRESS → es muy probable que sí queden duelos
-  //     pendientes (el endpoint puede haber fallado o estar entre
-  //     batches). NO digamos "sin duelos", redirigimos al bracket
-  //     donde sí los hay.
-  //  2) Sin torneo en curso → modo casual real, copy honesto.
-  if (!duelo || !duelo.personajeA || !duelo.personajeB) {
-    if (torneoEnCurso) {
-      const visual = getTournamentVisual(torneoEnCurso.slug, torneoEnCurso.nombre)
-      return (
-        <Link
-          to={`/torneos/${torneoEnCurso.slug}`}
-          className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
-        >
-          <EditorialCover
-            visual={visual}
-            className="absolute inset-0 rounded-none border-0 opacity-95"
-            imageClassName="saturate-110 contrast-105"
-          />
-          <CardEyebrow icon={Swords} label="Duelos pendientes" />
-          <p className="relative text-[13px] leading-snug text-fg-muted">
-            Hay duelos esperando en{' '}
-            <span className="font-semibold text-fg-strong">
-              {torneoEnCurso.nombre}
-            </span>
-            . Entra al bracket y vota.
-          </p>
-          <span className="relative mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-gold transition-transform group-hover:translate-x-0.5">
-            Ir al bracket
-            <ArrowRight className="h-3 w-3" />
-          </span>
-        </Link>
-      )
-    }
-    return (
-      <PulseCard tono="accent">
-        <CardEyebrow icon={Swords} label="Modo casual" />
-        <p className="text-[13px] text-fg-muted">
-          Sin torneos abiertos ahora. Entra al modo casual y vota duelos
-          random del catálogo.
-        </p>
-        <Link
-          to="/votar"
-          className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-gold hover:text-gold"
-        >
-          Ir a votar
-          <ArrowRight className="h-3 w-3" />
-        </Link>
-      </PulseCard>
-    )
-  }
-  const a = duelo.personajeA
-  const b = duelo.personajeB
-  const destino = buildDuelVoteUrl(a, b)
-  return (
-    <Link
-      to={destino}
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
-    >
-      <CardEyebrow icon={Sparkles} label="Duelo abierto" tono="text-gold" />
-      <div className="flex items-center justify-center gap-3">
-        <DueloAvatar personaje={a} />
-        <span className="font-mono text-xl font-extrabold text-gold">VS</span>
-        <DueloAvatar personaje={b} />
-      </div>
-      <span className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-gold transition-transform group-hover:translate-x-0.5">
-        Vota tu favorito
-        <ArrowRight className="h-3 w-3" />
-      </span>
-    </Link>
-  )
-}
-
 function UltimosVotosCard({ votos }) {
   const items = (votos || []).slice(0, 4)
   if (items.length === 0) {
@@ -901,24 +653,6 @@ function VotoRow({ voto }) {
  */
 function formatRelativo(isoString) {
   return formatRelativeSafe(isoString)
-}
-
-function DueloAvatar({ personaje }) {
-  return (
-    <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-      <PersonajeCutImg
-        slug={personaje.slug}
-        fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
-        alt={personaje.nombre}
-        loading="lazy"
-        className="h-28 w-24 rounded-xl border border-accent/20"
-        imgClassName="p-1"
-      />
-      <p className="line-clamp-1 max-w-full text-center text-[11px] font-semibold text-fg-strong">
-        {personaje.nombre}
-      </p>
-    </div>
-  )
 }
 
 /**
