@@ -27,6 +27,7 @@ import SessionRecap from '../features/votar/components/SessionRecap'
 import VoteCard from '../features/votar/components/VoteCard'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import VsBadge from '../features/votar/components/VsBadge'
+import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
 // vez. La mayoría de usuarios nunca caen en captcha, así que mantenemos
@@ -807,58 +808,20 @@ function VotarPage() {
     }
   }, [])
 
-  // Atajos de teclado: ← vota izquierda, → derecha, S saltar, Espacio
-  // siguiente si ya votó. Solo activos cuando el usuario no está en un
-  // input — el check `tagName` evita atrapar tecla cuando se escribe en
-  // otro sitio de la UI (no debería haberlos en /votar pero defensivo).
-  useEffect(() => {
-    if (
-      isLoading ||
-      !a ||
-      !b ||
-      isFetching ||
-      isFetchingDueloSugerido ||
-      isVotePending ||
-      isAdvancing ||
-      showAnonLimitModal ||
-      captchaChallenge
-    ) {
-      return
-    }
-    const onKey = (e) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
-      const tag = e.target?.tagName?.toLowerCase()
-      if (tag === 'input' || tag === 'textarea' || tag === 'select') return
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        handleVote(a)
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        handleVote(b)
-      } else if (e.key.toLowerCase() === 's') {
-        e.preventDefault()
-        handleNext()
-      } else if (e.key === ' ' && votedFor) {
-        e.preventDefault()
-        handleNext()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [
-    isLoading,
-    isFetching,
-    isFetchingDueloSugerido,
-    isVotePending,
-    isAdvancing,
-    showAnonLimitModal,
-    captchaChallenge,
+  useVoteKeyboardShortcuts({
     a,
     b,
-    handleVote,
+    captchaChallenge,
     handleNext,
+    handleVote,
+    isAdvancing,
+    isFetching,
+    isFetchingDueloSugerido,
+    isLoading,
+    isVotePending,
+    showAnonLimitModal,
     votedFor,
-  ])
+  })
 
   const needsCasualPair = !modoBackend && !modoSugerido && (!a || !b)
   const controlsDisabled = isVotePending || isAdvancing || isFetching || isFetchingDueloSugerido
