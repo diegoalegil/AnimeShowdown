@@ -26,7 +26,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
-import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { endpoints } from '../lib/api'
@@ -869,7 +869,7 @@ function PersonajesPage() {
             }
           />
         ) : filtered.length === 0 ? (
-          <EmptyStateScene
+          <EmptyState scene
             visual={BRAND_VISUALS.empty}
             icon={Search}
             title="No hay combatientes con esos filtros"
@@ -886,7 +886,7 @@ function PersonajesPage() {
             >
               Limpiar filtros
             </button>
-          </EmptyStateScene>
+          </EmptyState>
         ) : view === 'grid' ? (
           <>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">

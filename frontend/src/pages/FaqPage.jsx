@@ -5,7 +5,7 @@ import { ChevronDown, ExternalLink, HelpCircle, Search } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, faqPageSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import { EmptyStateScene } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_MAILTO } from '../data/legal'
 
 const containerVariants = {
@@ -198,7 +198,7 @@ function FaqPage() {
             ))}
           </ul>
         ) : (
-          <EmptyStateScene
+          <EmptyState scene
             icon={HelpCircle}
             title={`Sin respuestas para "${filtro}"`}
           >
@@ -210,7 +210,7 @@ function FaqPage() {
             >
               Limpiar búsqueda
             </button>
-          </EmptyStateScene>
+          </EmptyState>
         )}
 
         <div className="mt-10 rounded-xl border border-border bg-surface p-6">

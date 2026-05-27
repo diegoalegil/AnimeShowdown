@@ -26,7 +26,8 @@ import {
 } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
-import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
+import EmptyState from '../components/EmptyState'
+import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/visual-assets'
 import { shareOrCopy } from '../lib/share'
 import { recordDailyShare } from '../lib/dailyProgress'
@@ -262,14 +263,14 @@ function AnimeRankingPage() {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
           </div>
         ) : rows.length === 0 ? (
-          <EmptyStateScene
+          <EmptyState scene
             icon={Trophy}
             title={`Todavía no hay ranking para ${anime}`}
             action={{ to: `/votar?anime=${encodeURIComponent(anime)}`, label: `Votar ${anime}` }}
           >
             El ranking aparecerá cuando el catálogo tenga personajes o cuando
             entren votos suficientes para construir la tabla.
-          </EmptyStateScene>
+          </EmptyState>
         ) : (
           <>
             {top3.length === 3 && <AnimePodium top3={top3} />}
