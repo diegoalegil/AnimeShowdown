@@ -3,13 +3,13 @@ import {
   LogIn,
   X,
 } from 'lucide-react'
-import AccessibleDialog from '../../../components/AccessibleDialog'
+import Dialog from '../../../components/Dialog'
 import { api } from '../../../lib/api'
 
 function AnonVoteLimitModal({ open, onClose }) {
   const next = encodeURIComponent('/votar')
   return (
-    <AccessibleDialog
+    <Dialog
       open={open}
       onClose={onClose}
       titleId="anon-vote-limit-title"
@@ -53,7 +53,7 @@ function AnonVoteLimitModal({ open, onClose }) {
       >
         Entrar con email
       </Link>
-    </AccessibleDialog>
+    </Dialog>
   )
 }
 
