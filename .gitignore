@@ -101,3 +101,7 @@ _inbox/
 
 # Reporte local de cobertura visual
 ASSET_MANIFEST.md
+
+# Artefactos locales de Playwright
+frontend/playwright-report/
+frontend/test-results/
