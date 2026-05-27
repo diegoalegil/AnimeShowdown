@@ -1,4 +1,35 @@
 import { readCatalogoPersonajesSnapshot } from './personajes-core'
+import type { PersonajeLite } from './types'
+
+type GamePersonaje = PersonajeLite & { anime: string }
+
+type DailyResetCountdown = {
+  h: number
+  m: number
+  ms: number
+  label: string
+}
+
+type ImpostorItem = GamePersonaje & { esImpostor: boolean }
+
+type ImpostorRound = {
+  anime: string
+  items: ImpostorItem[]
+}
+
+type GameShareInput = {
+  game: string
+  date?: string
+  result: string
+  detail?: string
+  grid?: string
+  extra?: string
+}
+
+type SafeStorage = {
+  get: (key: string) => string | null
+  set: (key: string, value: string) => void
+}
 
 export const ELO_DUEL_BEST_KEY = 'animeshowdown.higherOrLower.best'
 export const ELO_DUEL_LEGACY_BEST_KEY = 'animeshowdown.higher-or-lower.best'
@@ -16,7 +47,7 @@ export const ELO_DUEL_LEGACY_BEST_KEY = 'animeshowdown.higher-or-lower.best'
  */
 
 /** Hash estable djb2 — mejor distribuido que sumar charCodes. */
-function djb2(str) {
+function djb2(str: string): number {
   let h = 5381
   for (let i = 0; i < str.length; i++) {
     h = (h * 33) ^ str.charCodeAt(i)
@@ -30,18 +61,18 @@ function djb2(str) {
  * el daily de "ayer" durante 9h. Usamos hora local para que el reset
  * de medianoche coincida con la percepción del usuario.
  */
-export function fechaDelDia(date = new Date()) {
+export function fechaDelDia(date = new Date()): string {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
 }
 
-export function getDailyResetCountdown(date = new Date()) {
+export function getDailyResetCountdown(date = new Date()): DailyResetCountdown {
   const nextReset = new Date(date)
   nextReset.setDate(date.getDate() + 1)
   nextReset.setHours(0, 0, 0, 0)
-  const ms = Math.max(0, nextReset - date)
+  const ms = Math.max(0, nextReset.getTime() - date.getTime())
   const h = Math.floor(ms / 3_600_000)
   const m = Math.floor((ms % 3_600_000) / 60_000)
   return {
@@ -59,8 +90,12 @@ export function getDailyResetCountdown(date = new Date()) {
  * tenga su propio rotativo (sin que Guess Character y Anidel coincidan
  * en el mismo personaje cada día).
  */
-export function personajeDelDia(prefix = '', date = new Date(), catalogo = readCatalogoPersonajesSnapshot()) {
-  const personajes = Array.isArray(catalogo) ? catalogo : []
+export function personajeDelDia(
+  prefix = '',
+  date = new Date(),
+  catalogo: unknown = readCatalogoPersonajesSnapshot(),
+): GamePersonaje | null {
+  const personajes = Array.isArray(catalogo) ? catalogo as GamePersonaje[] : []
   if (personajes.length === 0) return null
   const seed = `${prefix}:${fechaDelDia(date)}`
   const idx = djb2(seed) % personajes.length
@@ -80,14 +115,18 @@ export function personajeDelDia(prefix = '', date = new Date(), catalogo = readC
  * @returns {{anime: string, items: Array<{slug, nombre, anime, imagen, esImpostor: boolean}>}}
  *          o null si el catálogo no permite la ronda (debería pasar nunca con 730 personajes).
  */
-export function impostorDelDia(date = new Date(), salt = '', catalogo = readCatalogoPersonajesSnapshot()) {
-  const personajes = Array.isArray(catalogo) ? catalogo : []
+export function impostorDelDia(
+  date = new Date(),
+  salt = '',
+  catalogo: unknown = readCatalogoPersonajesSnapshot(),
+): ImpostorRound | null {
+  const personajes = Array.isArray(catalogo) ? catalogo as GamePersonaje[] : []
   if (personajes.length === 0) return null
   const seed = `impostor:${fechaDelDia(date)}:${salt}`
   const rand = mulberry32(djb2(seed))
 
   // Agrupa personajes por anime y filtra a animes con ≥4.
-  const porAnime = {}
+  const porAnime: Record<string, GamePersonaje[]> = {}
   for (const p of personajes) {
     if (!porAnime[p.anime]) porAnime[p.anime] = []
     porAnime[p.anime].push(p)
@@ -113,7 +152,7 @@ export function impostorDelDia(date = new Date(), salt = '', catalogo = readCata
 }
 
 /** PRNG determinístico simple inicializado por seed entero. */
-function mulberry32(seed) {
+function mulberry32(seed: number): () => number {
   let t = seed >>> 0
   return function () {
     t = (t + 0x6d2b79f5) >>> 0
@@ -129,7 +168,7 @@ function mulberry32(seed) {
  * sin espacios extra. Usado por los autocompletes para que "Akame" y
  * "akame" matcheen, y para que "AkameGaKill" busque "Akame ga Kill!".
  */
-export function normalizar(s) {
+export function normalizar(s: unknown): string {
   return String(s ?? '')
       .toLowerCase()
       .normalize('NFD')
@@ -143,7 +182,10 @@ export function normalizar(s) {
  * (correct/incorrect por intento) en línea de squares: 🟩 acierto, 🟥
  * fallo, ⬛ no usado.
  */
-export function buildShareSquares(intentos, totalMax) {
+export function buildShareSquares(
+  intentos: Array<boolean | null | undefined>,
+  totalMax: number,
+): string {
   let line = ''
   for (let i = 0; i < totalMax; i++) {
     const intento = intentos[i]
@@ -161,7 +203,7 @@ export function buildGameShareText({
   detail,
   grid,
   extra,
-}) {
+}: GameShareInput): string {
   const heading = date
     ? `${game} #${date}: ${result}`
     : `${game}: ${result}`
@@ -173,7 +215,7 @@ export function buildGameShareText({
  * (modo privado iOS, cookies bloqueadas). Devuelve null en lectura
  * fallida, no-op en escritura.
  */
-export const safeStorage = {
+export const safeStorage: SafeStorage = {
   get(key) {
     try {
       return localStorage.getItem(key)
