@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 
-import { animeSeriesSchema, breadcrumbsSchema, personajeSchema } from '../src/lib/schema.js'
+import {
+  animeSeriesSchema,
+  breadcrumbsSchema,
+  eventoSchema,
+  personajeSchema,
+  torneoSchema,
+} from '../src/lib/schema.js'
 
 const personaje = {
   slug: 'frieren',
@@ -78,6 +84,46 @@ assert.equal(anime.additionalProperty[0].name, 'Personajes en AnimeShowdown')
 assert.equal(anime.additionalProperty[1].name, 'ELO promedio base')
 assert.equal(anime.additionalProperty[2].description, 'Frieren lidera el ELO base de Sousou no Frieren.')
 
-const serialized = JSON.stringify([schema, breadcrumb, anime])
+const torneo = torneoSchema(
+  {
+    slug: 'copa-frieren',
+    nombre: 'Copa Frieren',
+    descripcion: 'Bracket de prueba para validar SportsEvent.',
+    estado: 'FINISHED',
+    fechaInicio: '2026-05-01T00:00:00Z',
+    fechaFinalizacion: '2026-05-02T00:00:00Z',
+  },
+  [personaje],
+  { image: '/assets/torneos/copa-frieren.webp' },
+)
+
+assert.equal(torneo['@type'], 'SportsEvent')
+assert.equal(torneo['@id'], 'https://animeshowdown.dev/torneos/copa-frieren#torneo')
+assert.equal(torneo.eventStatus, 'https://schema.org/EventCompleted')
+assert.equal(torneo.eventAttendanceMode, 'https://schema.org/OnlineEventAttendanceMode')
+assert.equal(torneo.mainEntityOfPage.inLanguage, 'es-ES')
+assert.equal(torneo.offers.price, '0')
+assert.equal(torneo.competitor[0]['@id'], 'https://animeshowdown.dev/personajes/frieren#personaje')
+
+const evento = eventoSchema(
+  {
+    slug: 'festival-frieren',
+    titulo: 'Festival Frieren',
+    descripcionCorta: 'Evento temporal de prueba para validar Event.',
+    inicioISO: '2026-05-10T00:00:00Z',
+    finISO: '2026-05-17T00:00:00Z',
+  },
+  [personaje],
+  { estado: 'ACTIVO', image: '/assets/eventos/festival-frieren.webp' },
+)
+
+assert.equal(evento['@type'], 'Event')
+assert.equal(evento['@id'], 'https://animeshowdown.dev/eventos/festival-frieren#evento')
+assert.equal(evento.eventStatus, 'https://schema.org/EventScheduled')
+assert.equal(evento.location['@type'], 'VirtualLocation')
+assert.equal(evento.offers.validFrom, '2026-05-10T00:00:00Z')
+assert.equal(evento.performer[0].additionalType, 'https://schema.org/FictionalCharacter')
+
+const serialized = JSON.stringify([schema, breadcrumb, anime, torneo, evento])
 assert(!serialized.includes('undefined'))
 assert(!serialized.includes('null'))
