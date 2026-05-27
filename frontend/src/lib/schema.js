@@ -10,8 +10,9 @@
  * <p>Decisiones de modelado:
  * <ul>
  *   <li>Personaje: usamos {@code Person} (no {@code FictionalCharacter}
- *       todavía soportado de forma irregular por Google). {@code characterAttribute}
- *       lleva ELO base y votos registrados para que el rich snippet muestre datos.</li>
+ *       todavía soportado de forma irregular por Google). {@code additionalProperty}
+ *       lleva ELO base, votos registrados y señales de ranking como datos
+ *       interpretables sin inventar un tipo propio.</li>
  *   <li>Torneo: {@code SportsEvent} con {@code competitor[]} = personajes
  *       del bracket. El status mapea a {@code eventStatus} de schema.org.</li>
  *   <li>Anime: {@code TVSeries} con {@code character[]} referenciando
@@ -63,33 +64,16 @@ export function webSiteSchema() {
  *
  * @param personaje objeto del catálogo cliente-side con {slug, nombre, anime, descripcion, imagen}
  * @param stats opcional con {elo, wins, losses}
+ * @param ranking opcional con {rankGlobal, rankAnime, totalAnime, totalCatalogo}
  */
-export function personajeSchema(personaje, stats) {
+export function personajeSchema(personaje, stats, ranking = {}) {
   if (!personaje) return null
   const url = abs(`/personajes/${personaje.slug}`)
   const imagen = abs(personaje.imagen ?? personaje.imagenUrl)
   const animeSlug = slugifySchemaName(personaje.anime)
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: personaje.nombre,
-    url,
-    image: imagen,
-    description: personaje.descripcion,
-    additionalType: 'https://schema.org/FictionalCharacter',
-    affiliation: {
-      '@type': 'CreativeWorkSeries',
-      name: personaje.anime,
-      url: animeSlug ? abs(`/animes/${animeSlug}`) : undefined,
-    },
-  }
-  if (personaje.sameAs || personaje.wikidataUrl || personaje.malUrl) {
-    schema.sameAs = [personaje.sameAs, personaje.wikidataUrl, personaje.malUrl]
-      .flat()
-      .filter(Boolean)
-  }
+  const properties = []
   if (stats && Number.isFinite(stats.elo)) {
-    schema.additionalProperty = [
+    properties.push(
       {
         '@type': 'PropertyValue',
         name: 'ELO base',
@@ -100,8 +84,67 @@ export function personajeSchema(personaje, stats) {
         name: 'Votos registrados',
         value: Number(stats.wins ?? 0) + Number(stats.losses ?? 0),
       },
-    ]
+    )
   }
+  if (Number.isFinite(ranking.rankGlobal) && ranking.rankGlobal > 0) {
+    properties.push({
+      '@type': 'PropertyValue',
+      name: 'Ranking global ELO base',
+      value: ranking.rankGlobal,
+      ...(Number.isFinite(ranking.totalCatalogo)
+        ? { unitText: `${ranking.totalCatalogo} personajes` }
+        : {}),
+    })
+  }
+  if (Number.isFinite(ranking.rankAnime) && ranking.rankAnime > 0) {
+    properties.push({
+      '@type': 'PropertyValue',
+      name: `Ranking en ${personaje.anime}`,
+      value: ranking.rankAnime,
+      ...(Number.isFinite(ranking.totalAnime)
+        ? { unitText: `${ranking.totalAnime} personajes del anime` }
+        : {}),
+    })
+  }
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': `${url}#personaje`,
+    identifier: personaje.slug,
+    name: personaje.nombre,
+    url,
+    image: imagen,
+    description: personaje.descripcion,
+    disambiguatingDescription: `${personaje.nombre} es un personaje de ${personaje.anime} representado en el catálogo competitivo de AnimeShowdown.`,
+    additionalType: 'https://schema.org/FictionalCharacter',
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+      url,
+      name: `${personaje.nombre} de ${personaje.anime} en AnimeShowdown`,
+      isPartOf: {
+        '@type': 'WebSite',
+        name: 'AnimeShowdown',
+        url: SITIO,
+      },
+    },
+    affiliation: {
+      '@type': 'CreativeWorkSeries',
+      name: personaje.anime,
+      url: animeSlug ? abs(`/animes/${animeSlug}`) : undefined,
+    },
+    potentialAction: {
+      '@type': 'VoteAction',
+      target: abs(`/votar?personaje=${encodeURIComponent(personaje.slug)}`),
+      name: `Votar a ${personaje.nombre}`,
+    },
+  }
+  if (personaje.sameAs || personaje.wikidataUrl || personaje.malUrl) {
+    schema.sameAs = [personaje.sameAs, personaje.wikidataUrl, personaje.malUrl]
+      .flat()
+      .filter(Boolean)
+  }
+  if (properties.length > 0) schema.additionalProperty = properties
   return schema
 }
 
