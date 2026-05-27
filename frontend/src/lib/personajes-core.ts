@@ -1,3 +1,5 @@
+import type { PersonajeLite } from './types'
+
 const IMAGE_CACHE_BUST_VERSION = '2026-05-21'
 const IMAGE_CACHE_BUST_PREFIXES = [
   '/img/Erased/',
@@ -6,9 +8,9 @@ const IMAGE_CACHE_BUST_PREFIXES = [
 
 export const CATALOGO_PERSONAJES_STORAGE_KEY = 'animeshowdown.catalogo-personajes.v1'
 
-export const personajes = []
+export const personajes: PersonajeLite[] = []
 
-export const PERSONAJE_SLUG_ALIASES = {
+export const PERSONAJE_SLUG_ALIASES: Record<string, string> = {
   L: 'l',
   all_might: 'allmight',
   monkey_d_luffy: 'luffy',
@@ -21,18 +23,31 @@ export const PERSONAJE_SLUG_ALIASES = {
   boa_hancock_alt: 'boa_hancock',
 }
 
-export function canonicalPersonajeSlug(slug) {
+type PersonajeCatalogoInput = PersonajeLite & {
+  imagenUrl?: string | null
+}
+
+type StatsPersonajeEstimado = {
+  elo: number
+  wins: number
+  losses: number
+  _sintetico: true
+}
+
+export function canonicalPersonajeSlug(slug: string): string {
   return PERSONAJE_SLUG_ALIASES[slug] ?? slug
 }
 
-function versionarImagenSiHaceFalta(src) {
+function versionarImagenSiHaceFalta(src: string): string {
   if (!src || !IMAGE_CACHE_BUST_PREFIXES.some((prefix) => src.startsWith(prefix))) {
     return src
   }
   return `${src}${src.includes('?') ? '&' : '?'}v=${IMAGE_CACHE_BUST_VERSION}`
 }
 
-export function normalizarPersonajeCatalogo(personaje) {
+export function normalizarPersonajeCatalogo(
+  personaje: PersonajeCatalogoInput | null | undefined,
+): PersonajeLite | null {
   if (!personaje) return null
   const imagen = personaje.imagenUrl ?? personaje.imagen ?? null
   return {
@@ -43,9 +58,11 @@ export function normalizarPersonajeCatalogo(personaje) {
   }
 }
 
-export function normalizarCatalogoPersonajes(catalogo) {
+export function normalizarCatalogoPersonajes(catalogo: unknown): PersonajeLite[] {
   return Array.isArray(catalogo)
-    ? catalogo.map(normalizarPersonajeCatalogo).filter(Boolean)
+    ? catalogo
+      .map(normalizarPersonajeCatalogo)
+      .filter((personaje): personaje is PersonajeLite => Boolean(personaje))
     : []
 }
 
@@ -59,7 +76,7 @@ export function normalizarCatalogoPersonajes(catalogo) {
 // vuelve a intentar el load del src correcto.
 export const CATALOGO_PERSONAJES_HYDRATED_EVENT = 'animeshowdown:catalogo-personajes-hidratado'
 
-export function syncCatalogoPersonajes(catalogo) {
+export function syncCatalogoPersonajes(catalogo: unknown): PersonajeLite[] {
   const normalizado = normalizarCatalogoPersonajes(catalogo)
   if (normalizado.length === 0) return personajes
   const cambiado =
@@ -72,7 +89,7 @@ export function syncCatalogoPersonajes(catalogo) {
   return personajes
 }
 
-export function readCatalogoPersonajesSnapshot() {
+export function readCatalogoPersonajesSnapshot(): PersonajeLite[] {
   if (personajes.length > 0) return personajes
   if (typeof localStorage === 'undefined') return personajes
   try {
@@ -96,23 +113,23 @@ readCatalogoPersonajesSnapshot()
 // transitorio mientras hidrata.
 export const MISSING_IMAGE_PREFIX = '/img/_missing/'
 
-export function imagenPersonaje(slug) {
+export function imagenPersonaje(slug: string): string {
   const canonical = canonicalPersonajeSlug(slug)
   const fromCache = readCatalogoPersonajesSnapshot().find((p) => p.slug === canonical)
   return versionarImagenSiHaceFalta(fromCache?.imagenUrl ?? `${MISSING_IMAGE_PREFIX}${canonical}.webp`)
 }
 
-export function getPersonajeBySlug(slug) {
+export function getPersonajeBySlug(slug: string): PersonajeLite | null {
   const canonical = canonicalPersonajeSlug(slug)
   return readCatalogoPersonajesSnapshot().find((p) => p.slug === canonical) ?? null
 }
 
-export function getIndicePersonaje(slug) {
+export function getIndicePersonaje(slug: string): number {
   const canonical = canonicalPersonajeSlug(slug)
   return readCatalogoPersonajesSnapshot().findIndex((p) => p.slug === canonical)
 }
 
-const POPULARIDAD = {
+const POPULARIDAD: Record<string, number> = {
   luffy: 100, levi: 99, l: 98, zoro: 95, light_yagami: 93, naruto: 91,
   itachi: 88, gojo: 86, mikasa: 84, kaneki: 82, kakashi: 79, rem_and_ram: 76,
   megumin: 73,
@@ -142,11 +159,11 @@ const POPULARIDAD = {
   mazinkaiser: 15,
 }
 
-export function getPopularidad(slug) {
+export function getPopularidad(slug: string): number {
   return POPULARIDAD[canonicalPersonajeSlug(slug)] ?? 30
 }
 
-function hashSlug(slug) {
+function hashSlug(slug: string): number {
   let h = 0
   for (let i = 0; i < slug.length; i++) {
     h = (h << 5) - h + slug.charCodeAt(i)
@@ -212,7 +229,7 @@ function hashSlug(slug) {
  *   El flag _sintetico permite a los consumers detectar que el dato no
  *   viene de votos reales y aplicar el copy/etiqueta correspondiente.
  */
-export function getStatsPersonaje(slug) {
+export function getStatsPersonaje(slug: string): StatsPersonajeEstimado {
   const popularidad = getPopularidad(slug)
   const h = hashSlug(slug)
   const variacion = h % 16 - 8
@@ -230,6 +247,6 @@ export function getStatsPersonaje(slug) {
  *
  * @deprecated Misma migración que getStatsPersonaje: usar backend real.
  */
-export function getStatsPersonajeEstimado(slug) {
+export function getStatsPersonajeEstimado(slug: string): StatsPersonajeEstimado {
   return getStatsPersonaje(slug)
 }

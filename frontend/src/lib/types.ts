@@ -4,7 +4,8 @@ export type PersonajeLite = {
   slug: string
   nombre: string
   anime?: string
-  imagen?: string
+  imagen?: string | null
+  imagenUrl?: string | null
   [key: string]: unknown
 }
 

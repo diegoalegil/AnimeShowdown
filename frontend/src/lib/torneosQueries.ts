@@ -4,12 +4,28 @@ import { endpoints } from './api.js'
 import { queryKeys } from './queryClient.js'
 import { useStompSubscription } from '../hooks/useStompSubscription.js'
 
+type EstadoBadge = {
+  label: string
+  dot: string
+  color: string
+}
+
+type TorneoDetalleMinimo = {
+  id?: string | number
+  estado?: string
+}
+
+type VotoEnfrentamientoPayload = {
+  enfrentamientoId: string | number
+  personajeGanadorId: string | number
+}
+
 /**
  * Mapping del enum del backend (SCHEDULED/IN_PROGRESS/FINISHED) a las
  * etiquetas visuales que usa el frontend. Reemplaza al `estadoBadge` que
  * vivía en frontend/src/data/torneos.js con keys legacy en español.
  */
-export const ESTADO_BADGE = {
+export const ESTADO_BADGE: Record<string, EstadoBadge> = {
   SCHEDULED: {
     label: 'Próximamente',
     dot: 'bg-accent',
@@ -28,8 +44,8 @@ export const ESTADO_BADGE = {
 }
 
 /** Fallback defensivo si llega un estado desconocido del backend. */
-export function getEstadoBadge(estado) {
-  return ESTADO_BADGE[estado] ?? ESTADO_BADGE.SCHEDULED
+export function getEstadoBadge(estado?: string): EstadoBadge {
+  return estado ? ESTADO_BADGE[estado] ?? ESTADO_BADGE.SCHEDULED : ESTADO_BADGE.SCHEDULED
 }
 
 /**
@@ -61,9 +77,9 @@ export function useTorneos() {
  * pasa automáticamente de "no polling" a "polling 30s" cuando admin lo
  * inicia, sin remontar el componente.
  */
-export function useTorneoBySlug(slug) {
+export function useTorneoBySlug(slug?: string) {
   const queryClient = useQueryClient()
-  const query = useQuery({
+  const query = useQuery<TorneoDetalleMinimo | null>({
     queryKey: queryKeys.torneoBySlug(slug),
     queryFn: () => endpoints.torneoBySlug(slug),
     enabled: Boolean(slug),
@@ -104,10 +120,10 @@ export function useTorneoBySlug(slug) {
  *  - 409: ya votó este enfrentamiento, o torneo no IN_PROGRESS.
  *  - 404: enfrentamiento no existe.
  */
-export function useVotarEnfrentamiento(torneoSlug) {
+export function useVotarEnfrentamiento(torneoSlug?: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ enfrentamientoId, personajeGanadorId }) =>
+    mutationFn: ({ enfrentamientoId, personajeGanadorId }: VotoEnfrentamientoPayload) =>
       endpoints.votar(enfrentamientoId, personajeGanadorId),
     onSuccess: () => {
       if (torneoSlug) {
