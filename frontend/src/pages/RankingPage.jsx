@@ -4,11 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ArrowRight,
-  ChevronDown,
   Clock,
-  Crown,
   HelpCircle,
-  Medal,
   Search,
   Share2,
   Swords,
@@ -28,7 +25,6 @@ import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, EmptyStateScene, VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
-import PersonajeCutImg from '../components/PersonajeCutImg'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -47,7 +43,10 @@ import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
 import EditorialRankingsStrip from '../features/ranking/components/EditorialRankingsStrip'
 import EloExplainer from '../features/ranking/components/EloExplainer'
 import MoversStrip from '../features/ranking/components/MoversStrip'
+import RankingPodium from '../features/ranking/components/RankingPodium'
+import { RankRowElo, RankRowVotos } from '../features/ranking/components/RankingRows'
 import RankingTabs from '../features/ranking/components/RankingTabs'
+import RankingTechnicalTable from '../features/ranking/components/RankingTechnicalTable'
 import { RANKING_TABS } from '../features/ranking/ranking-tabs'
 
 /**
@@ -259,7 +258,7 @@ function RankingPage() {
 
         <RankingFaq />
 
-        <TablaExtraible rankedElo={rankedElo} />
+        <RankingTechnicalTable rankedElo={rankedElo} />
       </div>
     </VisualPageShell>
   )
@@ -575,7 +574,7 @@ function ListaEloLocal({
               usuario filtra perdería sentido ver "Top 3 global" mezclado
               con un subconjunto. */}
           {!hayFiltros && podio.length === 3 && (
-            <Podio top3={podio} historyBySlug={eloHistoryTop10 ?? {}} />
+            <RankingPodium top3={podio} historyBySlug={eloHistoryTop10 ?? {}} />
           )}
 
           {hayFiltros && (
@@ -600,189 +599,6 @@ function ListaEloLocal({
         </>
       )}
     </div>
-  )
-}
-
-/**
- * Podio Top 3 — campeón al centro, plata izquierda, bronce derecha.
- * Imagen grande y badges diferenciados por posición.
- */
-function Podio({ top3, historyBySlug = {} }) {
-  const [primero, segundo, tercero] = top3
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-6">
-      <PodioCard
-        personaje={primero}
-        rank={1}
-        highlighted
-        history={historyBySlug[primero.slug]}
-        className="col-span-2 sm:order-2 sm:col-span-1"
-      />
-      <PodioCard
-        personaje={segundo}
-        rank={2}
-        history={historyBySlug[segundo.slug]}
-        className="sm:order-1"
-      />
-      <PodioCard
-        personaje={tercero}
-        rank={3}
-        history={historyBySlug[tercero.slug]}
-        className="sm:order-3"
-      />
-    </div>
-  )
-}
-
-function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
-  // Guard contra slug undefined; ver CategoriaCard.
-  if (!personaje?.slug) return null
-  const tone =
-    rank === 1
-      ? {
-          border: 'border-yellow-400/70',
-          bg: 'bg-gradient-to-b from-yellow-500/15 via-amber-500/5 to-transparent',
-          text: 'text-yellow-300',
-          glow: 'shadow-[0_0_80px_-15px_rgba(251,191,36,0.6)]',
-          icon: Crown,
-          label: 'Campeón actual',
-        }
-      : rank === 2
-        ? {
-            border: 'border-zinc-300/50',
-            bg: 'bg-gradient-to-b from-zinc-400/10 via-zinc-500/5 to-transparent',
-            text: 'text-zinc-200',
-            glow: 'shadow-[0_0_40px_-15px_rgba(244,244,245,0.4)]',
-            icon: Medal,
-            label: '2º puesto',
-          }
-        : {
-            border: 'border-orange-400/50',
-            bg: 'bg-gradient-to-b from-orange-500/10 via-amber-700/5 to-transparent',
-            text: 'text-orange-300',
-            glow: 'shadow-[0_0_40px_-15px_rgba(251,146,60,0.4)]',
-            icon: Medal,
-            label: '3er puesto',
-          }
-  const Icon = tone.icon
-  const linkLayout = highlighted
-    ? 'grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-3 p-4 text-left sm:flex sm:flex-col sm:items-center sm:gap-2 sm:p-3 sm:pt-6 sm:text-center'
-    : 'flex flex-col items-center gap-2 p-3 pt-4 text-center'
-
-  return (
-    <Link
-      to={`/personajes/${personaje.slug}`}
-      className={`group relative overflow-hidden rounded-2xl border-2 transition-all motion-safe:hover:-translate-y-1 ${linkLayout} ${tone.border} ${tone.bg} ${highlighted ? tone.glow : ''} ${className}`}
-    >
-      <span
-        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.15em] ${tone.border} ${tone.text} ${highlighted ? 'col-span-2 justify-self-start sm:justify-self-auto' : ''}`}
-      >
-        <Icon className="h-3 w-3" />
-        #{rank}
-        {highlighted && ` · ${tone.label}`}
-      </span>
-      <div
-        className={`relative aspect-[2/3] w-full overflow-hidden rounded-xl border ${tone.border} bg-surface ${
-          highlighted
-            ? 'max-w-[8.5rem] sm:mx-auto sm:max-w-none'
-            : 'mx-auto max-w-[8rem] opacity-95 sm:max-w-none'
-        }`}
-      >
-        <PersonajeImg
-          slug={personaje.slug}
-          // Mismo motivo que CategoriaCard: pasamos src directo del personaje
-          // recibido para no depender del catálogo módulo-global.
-          src={personaje.imagenUrl}
-          nombre={personaje.nombre}
-          colorDominante={personaje.imagenColorDominante}
-          alt={personaje.nombre}
-          loading="eager"
-          className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
-      <div
-        className={`flex min-w-0 flex-col gap-0.5 ${
-          highlighted ? 'items-start sm:items-center' : 'items-center'
-        }`}
-      >
-        <h3
-          className={`line-clamp-1 font-bold text-fg-strong group-hover:text-gold ${
-            highlighted ? 'text-base sm:text-lg' : 'text-sm'
-          }`}
-        >
-          {personaje.nombre}
-        </h3>
-        <p className="line-clamp-1 text-[11px] text-fg-muted">
-          {personaje.anime}
-        </p>
-        <p
-          className={`mt-1 font-mono font-extrabold tabular-nums ${tone.text} ${
-            highlighted ? 'text-2xl' : 'text-lg'
-          }`}
-        >
-          {personaje.elo}
-          <span className="ml-1 text-[10px] uppercase tracking-wider opacity-70">
-            ELO
-          </span>
-        </p>
-        <EloSparkline points={history} className="mt-1" />
-      </div>
-    </Link>
-  )
-}
-
-function EloSparkline({ points, className = '' }) {
-  const values = Array.isArray(points)
-    ? points.map((p) => Number(p.votosAcumulados ?? p.elo ?? 0))
-    : []
-  if (values.length < 2) {
-    return (
-      <svg
-        viewBox="0 0 60 20"
-        role="img"
-        aria-label="Sin tendencia suficiente"
-        className={`h-5 w-[60px] text-fg-muted/50 ${className}`}
-      >
-        <line x1="2" y1="10" x2="58" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    )
-  }
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const range = Math.max(1, max - min)
-  const step = 56 / (values.length - 1)
-  const polyline = values
-    .map((value, index) => {
-      const x = 2 + index * step
-      const y = 18 - ((value - min) / range) * 16
-      return `${x.toFixed(2)},${y.toFixed(2)}`
-    })
-    .join(' ')
-  const trend = values[values.length - 1] - values[0]
-  const color =
-    trend > 0 ? 'text-emerald-300' : trend < 0 ? 'text-rose-300' : 'text-fg-muted'
-  const label =
-    trend > 0
-      ? `Tendencia positiva de ${trend} votos`
-      : trend < 0
-        ? `Tendencia negativa de ${Math.abs(trend)} votos`
-        : 'Tendencia plana'
-  return (
-    <svg
-      viewBox="0 0 60 20"
-      role="img"
-      aria-label={label}
-      className={`h-5 w-[60px] ${color} ${className}`}
-    >
-      <polyline
-        points={polyline}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   )
 }
 
@@ -967,225 +783,6 @@ function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null
   )
 }
 
-function RankRowElo({
-  rank,
-  slug,
-  nombre,
-  anime,
-  elo,
-  wins,
-  losses,
-  history,
-  // Guard contra slug undefined; ver CategoriaCard.
-  // En este componente el slug viene directo como prop (no anidado en
-  // personaje), así que el check va aquí abajo (no en la firma).
-  // Destructuramos también imagenUrl + colorDominante del item del ranking
-  // para pasárselos al PersonajeImg. Sin estos campos, el componente caía
-  // al catálogo módulo-global vía imagenPersonaje(slug) y, si rankedElo se
-  // snapshoteó antes de la hidratación, el slug no resolvía a la URL real.
-  imagenUrl,
-  imagenColorDominante,
-}) {
-  if (!slug) return null
-  const total = wins + losses
-  const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
-  const esTop10 = rank <= 10
-  const rowTone = esTop10
-    ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
-    : 'border-border bg-surface'
-  return (
-    <li>
-      <div
-        className={`group flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
-      >
-        <Link
-          to={`/personajes/${slug}`}
-          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
-          title={`${nombre} de ${anime} · ELO ${elo}`}
-          className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
-        >
-          <RankBadge rank={rank} />
-          <PersonajeImg
-            slug={slug}
-            src={imagenUrl}
-            nombre={nombre}
-            colorDominante={imagenColorDominante}
-            alt={nombre}
-            loading="lazy"
-            className="h-14 w-10 shrink-0 rounded-md object-cover object-top sm:hidden"
-          />
-          <PersonajeCutImg
-            slug={slug}
-            alt={nombre}
-            loading="lazy"
-            sizes="56px"
-            className="hidden h-14 w-14 shrink-0 rounded-lg border border-white/10 sm:block"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-                {nombre}
-              </p>
-              {esTop10 && (
-                <span className="hidden shrink-0 rounded border border-yellow-400/40 bg-yellow-500/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 sm:inline">
-                  Top 10
-                </span>
-              )}
-            </div>
-            <p className="truncate text-[12px] text-fg-muted">{anime}</p>
-            {esTop10 && <EloSparkline points={history} className="mt-1" />}
-          </div>
-          <div className="hidden text-right sm:block">
-            <p className="text-[12px] text-fg-muted">
-              <span className="font-semibold text-emerald-300">{wins}V</span>
-              {' · '}
-              <span className="font-semibold text-rose-300">{losses}D</span>
-            </p>
-            <p className="text-[11px] font-semibold text-emerald-300/80">
-              {winRate}% WR
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="font-mono text-base font-bold text-gold">{elo}</p>
-            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-              ELO
-            </p>
-          </div>
-        </Link>
-        <ChallengeLink slug={slug} nombre={nombre} />
-      </div>
-    </li>
-  )
-}
-
-function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
-  // Guard contra slug undefined; ver CategoriaCard.
-  if (!personaje?.slug) return null
-  return (
-    <li>
-      <div className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5">
-        <Link
-          to={`/personajes/${personaje.slug}`}
-          aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
-          title={`${personaje.nombre} de ${personaje.anime}`}
-          className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
-        >
-          <RankBadge rank={rank} />
-          <PersonajeImg
-            slug={personaje.slug}
-            src={personaje.imagenUrl}
-            nombre={personaje.nombre}
-            colorDominante={personaje.imagenColorDominante}
-            alt={personaje.nombre}
-            loading="lazy"
-            className="h-14 w-10 shrink-0 rounded-md object-cover object-top sm:hidden"
-          />
-          <PersonajeCutImg
-            slug={personaje.slug}
-            alt={personaje.nombre}
-            loading="lazy"
-            sizes="56px"
-            className="hidden h-14 w-14 shrink-0 rounded-lg border border-white/10 sm:block"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-                {personaje.nombre}
-              </p>
-              {movimiento && <MovimientoBadge movimiento={movimiento} />}
-            </div>
-            <p className="truncate text-[12px] text-fg-muted">
-              {personaje.anime}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="font-mono text-base font-bold text-gold">{votos}</p>
-            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-              votos
-            </p>
-          </div>
-        </Link>
-        <ChallengeLink slug={personaje.slug} nombre={personaje.nombre} />
-      </div>
-    </li>
-  )
-}
-
-function ChallengeLink({ slug, nombre }) {
-  return (
-    <Link
-      to={`/votar?personaje=${encodeURIComponent(slug)}`}
-      aria-label={`Retar a ${nombre} en un duelo`}
-      title={`Retar a ${nombre}`}
-      className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
-    >
-      <Swords className="h-3.5 w-3.5" />
-      <span className="hidden sm:inline">Retar</span>
-    </Link>
-  )
-}
-
-function RankBadge({ rank }) {
-  return (
-    <span
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-mono text-sm font-bold ${
-        rank === 1
-          ? 'bg-yellow-500/15 text-yellow-400'
-          : rank === 2
-            ? 'bg-zinc-400/15 text-zinc-300'
-            : rank === 3
-              ? 'bg-orange-500/15 text-orange-400'
-              : 'bg-surface-alt text-fg-muted'
-      }`}
-    >
-      {rank === 1 ? <Crown className="h-5 w-5" /> : rank}
-    </span>
-  )
-}
-
-/**
- * Badge ↑N / ↓N / = / Nuevo según el movimiento del personaje vs el
- * ranking de hace 7 días.
- */
-function MovimientoBadge({ movimiento }) {
-  if (movimiento.esNuevo) {
-    return (
-      <span className="inline-flex shrink-0 items-center rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold uppercase tracking-wider text-gold">
-        Nuevo
-      </span>
-    )
-  }
-  const delta = movimiento.delta
-  if (delta == null || delta === 0) {
-    return (
-      <span
-        className="inline-flex shrink-0 items-center font-mono text-[11px] font-bold text-fg-muted"
-        title="Mantiene posición vs hace 7 días"
-      >
-        =
-      </span>
-    )
-  }
-  if (delta > 0) {
-    return (
-      <span
-        className="inline-flex shrink-0 items-center gap-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-emerald-300"
-        title={`Subió ${delta} posiciones vs hace 7 días`}
-      >
-        ↑{delta}
-      </span>
-    )
-  }
-  return (
-    <span
-      className="inline-flex shrink-0 items-center gap-0.5 rounded border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-rose-300"
-      title={`Bajó ${Math.abs(delta)} posiciones vs hace 7 días`}
-    >
-      ↓{Math.abs(delta)}
-    </span>
-  )
-}
-
 /**
  * Hub "Sigue moviendo el ranking" — CTAs accionables, no párrafo de
  * links inline como antes.
@@ -1271,94 +868,6 @@ function RankingFaq() {
         ))}
       </div>
     </section>
-  )
-}
-
-/**
- * Tabla HTML semántica con el top 10 ELO local. Sirve a buscadores y
- * usuarios que quieren copy/paste. Ahora vive dentro de un <details>
- * plegable para no competir con el ranking visual.
- */
-function TablaExtraible({ rankedElo }) {
-  const top10 = rankedElo.slice(0, 10)
-  return (
-    <details className="group mt-6 rounded-xl border border-border bg-surface">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
-            Datos técnicos
-          </h2>
-          <p className="mt-0.5 text-[11px] text-fg-muted">
-            Tabla en formato estándar para copia rápida o referencia.
-          </p>
-        </div>
-        <ChevronDown className="h-5 w-5 shrink-0 text-fg-muted transition-transform group-open:rotate-180 [details[open]_&]:rotate-180" />
-      </summary>
-      <div className="border-t border-border p-4">
-        <div
-          className="scroll-x-affordance scroll-x-fade-mobile overflow-x-auto"
-          aria-label="Tabla técnica del ranking ELO"
-        >
-          <table className="min-w-[36rem] border-collapse text-[13px] sm:w-full">
-            <thead>
-              <tr className="border-b border-border text-left text-fg-muted">
-                <th scope="col" className="py-2 pr-3 font-semibold">
-                  Rank
-                </th>
-                <th scope="col" className="py-2 pr-3 font-semibold">
-                  Personaje
-                </th>
-                <th scope="col" className="py-2 pr-3 font-semibold">
-                  Anime
-                </th>
-                <th
-                  scope="col"
-                  className="py-2 pr-3 text-right font-mono font-semibold tabular-nums"
-                >
-                  ELO
-                </th>
-                <th
-                  scope="col"
-                  className="hidden py-2 pr-3 text-right font-semibold sm:table-cell"
-                >
-                  W/L
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {top10.map((p, i) => (
-                <tr
-                  key={p.slug}
-                  className="border-b border-border/60 last:border-0"
-                >
-                  <th
-                    scope="row"
-                    className="py-2 pr-3 font-mono font-semibold text-fg-strong tabular-nums"
-                  >
-                    {i + 1}
-                  </th>
-                  <td className="py-2 pr-3 text-fg-strong">
-                    <Link
-                      to={`/personajes/${p.slug}`}
-                      className="hover:text-gold hover:underline"
-                    >
-                      {p.nombre}
-                    </Link>
-                  </td>
-                  <td className="py-2 pr-3 text-fg-muted">{p.anime}</td>
-                  <td className="py-2 pr-3 text-right font-mono tabular-nums text-gold">
-                    {p.elo}
-                  </td>
-                  <td className="hidden py-2 pr-3 text-right font-mono text-fg-muted tabular-nums sm:table-cell">
-                    {p.wins}/{p.losses}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </details>
   )
 }
 
