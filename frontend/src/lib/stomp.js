@@ -115,9 +115,9 @@ export async function disconnect() {
 // iban a la cola del anterior. Se llama desde el listener registrado abajo.
 //
 // Además de deactivate el cliente,
-// hay que LIMPIAR el activeListener y sub de cada subscription para que
-// attach() las trate como pendientes y re-cree listeners contra el cliente
-// nuevo. Antes el guard `if (entry.activeListener) return` impedía la
+// hay que LIMPIAR el activeListener y sub de cada canal para que
+// attach() los trate como pendientes y re-cree listeners contra el cliente
+// nuevo. Antes el guard `if (channel.activeListener) return` impedía la
 // re-suscripción y el closure viejo apuntaba a un cliente destruido →
 // notificaciones/brackets silenciosos hasta reload.
 // client.deactivate() es async — devuelve
@@ -131,12 +131,12 @@ async function reconnect() {
   const gen = ++reconnectGeneration
   const stale = client
   client = null
-  for (const entry of subscriptions) {
-    if (entry.activeListener) {
-      connectedListeners.delete(entry.activeListener)
-      entry.activeListener = null
+  for (const channel of subscriptions.values()) {
+    if (channel.activeListener) {
+      connectedListeners.delete(channel.activeListener)
+      channel.activeListener = null
     }
-    entry.sub = null
+    channel.sub = null
   }
   // Encadena el deactivate del cliente
   // actual sobre cualquier deactivationPromise previa. ensureConnected
@@ -169,46 +169,90 @@ export function isConnected() {
   return !!client && client.connected
 }
 
-// Subscriptions abiertas (pendientes y activas). Cuando hay token y cliente,
-// cada entry tiene su sub real y su listener. Cuando no, queda pendiente y
-// se re-engancha vía tryAttachPending() (llamado al activar el cliente).
-const subscriptions = new Set()
+// Canales abiertos por destination (pendientes y activos). Una destination
+// STOMP se suscribe una sola vez al broker y fan-out local reparte el payload
+// entre todos los hooks. Esto evita que dos consumidores de una queue privada
+// (/user/queue/...) compitan entre si y uno se quede sin mensaje.
+const subscriptions = new Map()
 
-function attach(entry) {
+function parseMessageBody(message) {
+  try {
+    return message.body ? JSON.parse(message.body) : null
+  } catch {
+    return message.body
+  }
+}
+
+function notifyChannel(channel, payload) {
+  for (const listener of channel.listeners) {
+    try {
+      listener.onMessage(payload)
+    } catch {
+      /* listener errors aren't ours */
+    }
+  }
+}
+
+function getChannel(destination) {
+  let channel = subscriptions.get(destination)
+  if (!channel) {
+    channel = {
+      destination,
+      listeners: new Set(),
+      sub: null,
+      activeListener: null,
+    }
+    subscriptions.set(destination, channel)
+  }
+  return channel
+}
+
+function detachChannel(channel) {
+  if (channel.sub) {
+    try {
+      channel.sub.unsubscribe()
+    } catch {
+      /* ignore */
+    }
+    channel.sub = null
+  }
+  if (channel.activeListener) {
+    connectedListeners.delete(channel.activeListener)
+    channel.activeListener = null
+  }
+  subscriptions.delete(channel.destination)
+}
+
+function attach(channel) {
   const c = ensureConnected()
   if (!c) return // No hay token todavía — queda pendiente.
-  if (entry.activeListener) return // Ya estaba enganchado.
+  if (channel.activeListener) return // Ya estaba enganchado.
 
   const doSubscribe = () => {
     if (!c.connected) return
-    entry.sub = c.subscribe(entry.destination, (message) => {
-      try {
-        const body = message.body ? JSON.parse(message.body) : null
-        entry.onMessage(body)
-      } catch {
-        entry.onMessage(message.body)
-      }
+    channel.sub = c.subscribe(channel.destination, (message) => {
+      notifyChannel(channel, parseMessageBody(message))
     })
   }
   doSubscribe()
   const onConnect = (connected) => {
     if (connected) {
       // Defensivo: si seguía referenciando una vieja, unsubscribe antes.
-      if (entry.sub) {
+      if (channel.sub) {
         try {
-          entry.sub.unsubscribe()
+          channel.sub.unsubscribe()
         } catch {
           /* ignore */
         }
-        entry.sub = null
+        channel.sub = null
       }
       doSubscribe()
     } else {
       // El WS cayó: olvida la sub local para que el próximo reconnect re-suscriba.
-      entry.sub = null
+      channel.sub = null
     }
   }
-  entry.activeListener = onConnect
+  channel.activeListener = onConnect
   connectedListeners.add(onConnect)
 }
 
@@ -219,7 +263,7 @@ function attach(entry) {
  * recuperan sus subscripciones sin remount.
  */
 export function tryAttachPending() {
-  for (const entry of subscriptions) attach(entry)
+  for (const channel of subscriptions.values()) attach(channel)
 }
 
 /**
@@ -238,21 +282,13 @@ export function subscribe(destination, onMessage) {
   // hooks llamaran subscribe ANTES de que refreshSession trajera el JWT,
   // y sus suscripciones se perdían hasta remount. Ahora attach se
   // reintenta vía tryAttachPending tras setToken.
-  const entry = { destination, onMessage, sub: null, activeListener: null }
-  subscriptions.add(entry)
-  attach(entry)
+  const channel = getChannel(destination)
+  const listener = { onMessage }
+  channel.listeners.add(listener)
+  attach(channel)
   return () => {
-    if (entry.sub) {
-      try {
-        entry.sub.unsubscribe()
-      } catch {
-        /* ignore */
-      }
-    }
-    if (entry.activeListener) {
-      connectedListeners.delete(entry.activeListener)
-    }
-    subscriptions.delete(entry)
+    channel.listeners.delete(listener)
+    if (channel.listeners.size === 0) detachChannel(channel)
   }
 }
 
