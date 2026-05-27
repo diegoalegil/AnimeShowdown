@@ -1,7 +1,57 @@
 const DEV_API_BASE = 'http://localhost:8080'
 const PROD_API_BASE = 'https://api.animeshowdown.dev'
 
-function normalizarApiBase(value) {
+type TokenChangeListener = (token: string | null) => void
+
+type ApiErrorBody = unknown
+
+type RequestSignalOptions = {
+  signal?: AbortSignal
+  timeoutMs?: number
+}
+
+type RequestSignalState = {
+  signal?: AbortSignal
+  timedOut: () => boolean
+  cleanup: () => void
+}
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+
+type RequestOptions = {
+  method?: HttpMethod
+  body?: unknown
+  auth?: boolean
+  timeoutMs?: number
+  signal?: AbortSignal
+  headers?: Record<string, string>
+}
+
+type FetchExecutionOptions = {
+  method: HttpMethod
+  headers?: Record<string, string>
+  body?: unknown
+  signal?: AbortSignal
+  includeAuth?: boolean
+}
+
+type RefreshPayload = {
+  token?: string
+  usuario?: unknown
+  [key: string]: unknown
+} | null
+
+type ApiClient = {
+  base: string
+  get: (path: string, opts?: RequestOptions) => Promise<unknown>
+  post: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
+  put: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
+  del: (path: string, opts?: RequestOptions) => Promise<unknown>
+}
+
+type EndpointMap = Record<string, (...args: any[]) => any>
+
+function normalizarApiBase(value: unknown): string {
   const raw = typeof value === 'string' ? value.trim() : ''
   if (!raw) {
     if (import.meta.env.DEV) return DEV_API_BASE
@@ -29,35 +79,39 @@ export const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 // Bootstrap: al abrir la app, AuthContext llama refreshSession() para
 // intentar conseguir un JWT fresco usando la cookie persistente. Si éxito
 // el usuario sigue logueado; si fallo aparece como invitado.
-let tokenEnMemoria = null
+let tokenEnMemoria: string | null = null
 
-export function getToken() {
+export function getToken(): string | null {
   return tokenEnMemoria
 }
 
 // Listeners para "token cambió". Permite a stomp.js
 // reconectar con JWT nuevo tras refresh silencioso (auto-refresh tras 401).
 // Sin esto, el WS singleton seguía con el JWT viejo hasta logout/reload.
-const tokenChangeListeners = new Set()
-export function onTokenChange(cb) {
+const tokenChangeListeners = new Set<TokenChangeListener>()
+export function onTokenChange(cb: TokenChangeListener): () => boolean {
   tokenChangeListeners.add(cb)
   return () => tokenChangeListeners.delete(cb)
 }
-function notifyTokenChange() {
+function notifyTokenChange(): void {
   for (const cb of tokenChangeListeners) {
     try { cb(tokenEnMemoria) } catch { /* listener errors aren't ours */ }
   }
 }
 
-export function setToken(token) {
+export function setToken(token: string | null | undefined): void {
   const prev = tokenEnMemoria
   tokenEnMemoria = token || null
   if (prev !== tokenEnMemoria) notifyTokenChange()
 }
 
 export class ApiError extends Error {
-  constructor(message, status, body) {
+  status: number
+  body: ApiErrorBody
+
+  constructor(message: string, status: number, body: ApiErrorBody) {
     super(message)
+    this.name = 'ApiError'
     this.status = status
     this.body = body
   }
@@ -68,8 +122,12 @@ export class ApiError extends Error {
 // el backend tardaba en responder, dejando spinners eternos en el frontend.
 const DEFAULT_TIMEOUT_MS = 10000
 
-export function createRequestSignal({ signal, timeoutMs } = {}) {
-  const hasTimeout = Number.isFinite(timeoutMs) && timeoutMs > 0
+export function createRequestSignal({
+  signal,
+  timeoutMs,
+}: RequestSignalOptions = {}): RequestSignalState {
+  const timeout = timeoutMs ?? 0
+  const hasTimeout = Number.isFinite(timeout) && timeout > 0
   if (!signal && !hasTimeout) {
     return {
       signal: undefined,
@@ -79,10 +137,10 @@ export function createRequestSignal({ signal, timeoutMs } = {}) {
   }
 
   const controller = new AbortController()
-  const cleanupFns = []
+  const cleanupFns: Array<() => void> = []
   let didTimeout = false
 
-  const abortFrom = (sourceSignal) => {
+  const abortFrom = (sourceSignal?: AbortSignal) => {
     if (controller.signal.aborted) return
     try {
       controller.abort(sourceSignal?.reason)
@@ -105,7 +163,7 @@ export function createRequestSignal({ signal, timeoutMs } = {}) {
     const timeoutId = setTimeout(() => {
       didTimeout = true
       abortFrom()
-    }, timeoutMs)
+    }, timeout)
     cleanupFns.push(() => clearTimeout(timeoutId))
   }
 
@@ -122,7 +180,7 @@ export function createRequestSignal({ signal, timeoutMs } = {}) {
 // reciben 401 a la vez, ambas comparten el mismo intento de refresh —
 // evitamos cosas raras como "rotar el refresh dos veces" que invalidaría
 // la sesión por reuse-detection del backend.
-let refreshPromise = null
+let refreshPromise: Promise<RefreshPayload> | null = null
 
 // Flag que bloquea intentarRefresh durante
 // el logout. Si una request paralela recibe 401 y dispara refresh DESPUÉS
@@ -131,7 +189,7 @@ let refreshPromise = null
 // sesión que el user acababa de cerrar. Al activar el flag, cualquier
 // intentarRefresh devuelve null inmediato y la request queda 401-final.
 let isLoggingOut = false
-export function setLoggingOut(value) {
+export function setLoggingOut(value: unknown): void {
   isLoggingOut = Boolean(value)
 }
 
@@ -143,7 +201,7 @@ export function setLoggingOut(value) {
 // siendo el suyo antes de propagar tokenEnMemoria / notify. Si cambió
 // (otro flow ya pasó por ahí), descarta el resultado silenciosamente.
 let sessionEpoch = 0
-export function bumpSessionEpoch() {
+export function bumpSessionEpoch(): void {
   sessionEpoch++
 }
 
@@ -159,7 +217,7 @@ export function bumpSessionEpoch() {
 const GRACE_MAX_RETRIES = 3
 const GRACE_MIN_DELAY_MS = 300
 
-function parseRetryAfterMs(headerValue, fallbackMs) {
+function parseRetryAfterMs(headerValue: string | null, fallbackMs: number): number {
   if (!headerValue) return fallbackMs
   // Retry-After estándar HTTP: segundos enteros (o fecha HTTP-date).
   const seconds = parseInt(headerValue, 10)
@@ -174,7 +232,7 @@ function parseRetryAfterMs(headerValue, fallbackMs) {
 // está saturado, fail-fast en 6s evita spinners eternos.
 const REFRESH_TIMEOUT_MS = 6000
 
-async function intentarRefresh() {
+async function intentarRefresh(): Promise<RefreshPayload> {
   if (isLoggingOut) return null
   if (refreshPromise) return refreshPromise
   // Captura el epoch al iniciar. Si cambia mientras la promesa está en
@@ -185,7 +243,7 @@ async function intentarRefresh() {
     // que /refresh tenga timeout propio. Antes el cliente global tenía
     // timeout pero intentarRefresh hacía fetch directo sin abort, así
     // que bootstrap y 401-retries quedaban colgados.
-    const doFetch = async () => {
+    const doFetch = async (): Promise<Response> => {
       const ctl = new AbortController()
       const tid = setTimeout(() => ctl.abort(), REFRESH_TIMEOUT_MS)
       try {
@@ -230,7 +288,7 @@ async function intentarRefresh() {
         if (prev !== null) notifyTokenChange()
         return null
       }
-      const data = await res.json()
+      const data = await res.json() as RefreshPayload
       if (data?.token) {
         const prev = tokenEnMemoria
         tokenEnMemoria = data.token
@@ -254,11 +312,20 @@ async function intentarRefresh() {
  * Llamada pública para que AuthContext intente recuperar sesión al montar.
  * Devuelve { token, usuario } si éxito, null si la cookie no es válida.
  */
-export async function refreshSession() {
+export async function refreshSession(): Promise<RefreshPayload> {
   return intentarRefresh()
 }
 
-async function ejecutarFetch(path, { method, headers = {}, body, signal, includeAuth }) {
+async function ejecutarFetch(
+  path: string,
+  {
+    method,
+    headers = {},
+    body,
+    signal,
+    includeAuth,
+  }: FetchExecutionOptions,
+): Promise<Response> {
   // Content-Type: application/json solo cuando hay body.
   // En GET/HEAD sin body el header no aporta nada y dispara
   // preflight CORS innecesario en cross-origin (es un "non-simple header"
@@ -283,9 +350,16 @@ async function ejecutarFetch(path, { method, headers = {}, body, signal, include
 }
 
 async function request(
-  path,
-  { method = 'GET', body, auth = true, timeoutMs = DEFAULT_TIMEOUT_MS, signal, headers = {} } = {},
-) {
+  path: string,
+  {
+    method = 'GET',
+    body,
+    auth = true,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal,
+    headers = {},
+  }: RequestOptions = {},
+): Promise<unknown> {
   // Combinamos el signal externo del caller con el timeout propio.
   // Antes pasar `signal` desactivaba el timeout y podia dejar requests
   // colgadas si el caller no abortaba manualmente.
@@ -340,7 +414,7 @@ async function request(
       }
     }
   } catch (err) {
-    if (err.name === 'AbortError') {
+    if (err instanceof DOMException && err.name === 'AbortError') {
       if (!requestSignal.timedOut()) {
         throw new ApiError('La petición se canceló', 0, null)
       }
@@ -351,7 +425,7 @@ async function request(
       )
     }
     throw new ApiError(
-      err.message || 'Error de red al contactar con el servidor',
+      err instanceof Error ? err.message : 'Error de red al contactar con el servidor',
       0,
       null,
     )
@@ -360,7 +434,7 @@ async function request(
   }
 
   const text = await res.text()
-  let parsed = null
+  let parsed: unknown = null
   if (text) {
     try {
       parsed = JSON.parse(text)
@@ -373,11 +447,15 @@ async function request(
       typeof parsed === 'string' && parsed.length > 0
         ? parsed.slice(0, 200)
         : null
+    const parsedMessage =
+      parsed &&
+      typeof parsed === 'object' &&
+      'message' in parsed &&
+      typeof parsed.message === 'string'
+        ? parsed.message
+        : null
     throw new ApiError(
-      (parsed && parsed.message) ||
-        fallback ||
-        res.statusText ||
-        `Error ${res.status} del servidor`,
+      parsedMessage || fallback || res.statusText || `Error ${res.status} del servidor`,
       res.status,
       parsed,
     )
@@ -385,7 +463,7 @@ async function request(
   return parsed
 }
 
-export const api = {
+export const api: ApiClient = {
   base: API_BASE,
   get: (path, opts) => request(path, { ...opts, method: 'GET' }),
   post: (path, body, opts) => request(path, { ...opts, method: 'POST', body }),
@@ -393,7 +471,7 @@ export const api = {
   del: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
 }
 
-export const endpoints = {
+export const endpoints: EndpointMap = {
   login: (credentials) => api.post('/api/auth/login', credentials, { auth: false }),
   register: (data) => api.post('/api/auth/registro', data, { auth: false }),
   // /refresh y /logout viven sin Authorization Bearer — el backend lee la
