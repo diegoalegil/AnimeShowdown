@@ -24,6 +24,8 @@
     "src/lib/games.ts",
     "src/lib/torneosQueries.ts",
     "src/lib/share.ts",
-    "src/lib/types.ts"
+    "src/lib/types.ts",
+    "src/lib/**/*.test.ts",
+    "src/test/**/*.ts"
   ]
 }
