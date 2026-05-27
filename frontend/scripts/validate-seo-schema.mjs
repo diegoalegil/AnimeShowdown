@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 
-import { breadcrumbsSchema, personajeSchema } from '../src/lib/schema.js'
+import { animeSeriesSchema, breadcrumbsSchema, personajeSchema } from '../src/lib/schema.js'
 
 const personaje = {
   slug: 'frieren',
@@ -54,7 +54,30 @@ assert.equal(
   'https://animeshowdown.dev/personajes/frieren',
 )
 
-const serialized = JSON.stringify([schema, breadcrumb])
+const anime = animeSeriesSchema({
+  anime: 'Sousou no Frieren',
+  slug: 'sousou-no-frieren',
+  image: '/assets/anime-banners/sousou-no-frieren.webp',
+  personajes: [personaje],
+  total: 1,
+  topElo: { nombre: 'Frieren', elo: 1842 },
+  eloPromedio: 1842,
+  aliases: ['frieren', 'sousou no frieren'],
+})
+
+assert.equal(anime['@type'], 'TVSeries')
+assert.equal(anime['@id'], 'https://animeshowdown.dev/animes/sousou-no-frieren#anime')
+assert.equal(anime.additionalType, 'https://schema.org/CreativeWorkSeries')
+assert.equal(anime.identifier, 'sousou-no-frieren')
+assert.equal(anime.mainEntityOfPage['@type'], 'WebPage')
+assert.equal(anime.mainEntityOfPage.inLanguage, 'es-ES')
+assert.equal(anime.alternateName.length, 2)
+assert.equal(anime.character[0]['@id'], 'https://animeshowdown.dev/personajes/frieren#personaje')
+assert.equal(anime.character[0].additionalType, 'https://schema.org/FictionalCharacter')
+assert.equal(anime.additionalProperty[0].name, 'Personajes en AnimeShowdown')
+assert.equal(anime.additionalProperty[1].name, 'ELO promedio base')
+assert.equal(anime.additionalProperty[2].description, 'Frieren lidera el ELO base de Sousou no Frieren.')
+
+const serialized = JSON.stringify([schema, breadcrumb, anime])
 assert(!serialized.includes('undefined'))
 assert(!serialized.includes('null'))
-
