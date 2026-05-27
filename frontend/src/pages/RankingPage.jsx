@@ -213,6 +213,14 @@ function RankingPage() {
           }
         />
 
+        <p className="mb-6 max-w-3xl text-sm leading-7 text-fg-muted">
+          El ranking de AnimeShowdown ordena personajes por actividad competitiva
+          de la comunidad y por ELO base cuando todavía falta señal real. Úsalo
+          para detectar cambios de meta, comparar universos y saltar a duelos
+          donde tu voto puede mover posiciones. No es canon oficial: es una
+          fotografía viva de preferencias fandom dentro de la plataforma.
+        </p>
+
         <EloExplainer />
 
         {/* Meta report narrativo arriba del MoversStrip: lee los endpoints
