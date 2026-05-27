@@ -156,28 +156,48 @@ export function personajeSchema(personaje, stats, ranking = {}) {
 export function animeSeriesSchema(animeData) {
   if (!animeData) return null
   const slug = animeData.slug || slugifySchemaName(animeData.anime)
+  const url = abs(`/animes/${slug}`)
+  const image = abs(animeData.image || `/assets/anime-banners/${slug}.webp`)
   const personajes = Array.isArray(animeData.personajes)
     ? animeData.personajes
     : []
   const character = personajes.slice(0, 80).map((p) => ({
     '@type': 'Person',
-    '@id': abs(`/personajes/${p.slug}`),
+    '@id': abs(`/personajes/${p.slug}#personaje`),
     name: p.nombre,
     url: abs(`/personajes/${p.slug}`),
     image: abs(p.imagen ?? p.imagenUrl),
+    additionalType: 'https://schema.org/FictionalCharacter',
   }))
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'CreativeWorkSeries',
-    additionalType: 'https://schema.org/TVSeries',
+    '@type': 'TVSeries',
+    '@id': `${url}#anime`,
+    additionalType: 'https://schema.org/CreativeWorkSeries',
+    identifier: slug,
     name: animeData.anime,
-    url: abs(`/animes/${slug}`),
-    image: abs(`/assets/anime-banners/${slug}.webp`),
+    alternateName: Array.isArray(animeData.aliases) && animeData.aliases.length
+      ? animeData.aliases
+      : undefined,
+    url,
+    image,
+    description:
+      animeData.description ||
+      `Ficha de ${animeData.anime} en AnimeShowdown con ${Number(animeData.total ?? personajes.length)} personajes, ranking ELO base y duelos destacados.`,
+    genre: ['Anime', 'Ranking competitivo'],
     inLanguage: 'ja',
-    isPartOf: {
-      '@type': 'WebSite',
-      name: 'AnimeShowdown',
-      url: SITIO,
+    isAccessibleForFree: true,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+      url,
+      name: `${animeData.anime} en AnimeShowdown`,
+      inLanguage: 'es-ES',
+      isPartOf: {
+        '@type': 'WebSite',
+        name: 'AnimeShowdown',
+        url: SITIO,
+      },
     },
     character,
     additionalProperty: [
@@ -188,14 +208,25 @@ export function animeSeriesSchema(animeData) {
       },
     ],
   }
+  if (Array.isArray(animeData.aliases) && animeData.aliases.length) {
+    schema.keywords = animeData.aliases.join(', ')
+  }
   if (Number.isFinite(animeData.numberOfEpisodes)) {
     schema.numberOfEpisodes = animeData.numberOfEpisodes
+  }
+  if (Number.isFinite(animeData.eloPromedio)) {
+    schema.additionalProperty.push({
+      '@type': 'PropertyValue',
+      name: 'ELO promedio base',
+      value: animeData.eloPromedio,
+    })
   }
   if (animeData.topElo) {
     schema.additionalProperty.push({
       '@type': 'PropertyValue',
       name: 'Top ELO base',
       value: animeData.topElo.elo,
+      description: `${animeData.topElo.nombre} lidera el ELO base de ${animeData.anime}.`,
     })
   }
   return schema

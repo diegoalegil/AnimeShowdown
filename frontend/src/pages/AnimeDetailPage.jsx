@@ -102,7 +102,7 @@ function AnimeDetailPage() {
     >
       <JsonLd
         id="anime-series"
-        schema={animeSeriesSchema({ ...data, slug })}
+        schema={animeSeriesSchema({ ...data, image: visual?.image, slug })}
       />
       <JsonLd
         id="breadcrumbs"
