@@ -1,11 +1,20 @@
 import { fechaDelDia } from './games'
+import type { LocalVote, PersonajeLite } from './types'
 
 export const LOCAL_VOTE_RANKING_EVENT = 'animeshowdown:local-vote-ranking'
 
 const STORAGE_KEY = 'animeshowdown.local-votes.v1'
 const MAX_LOCAL_VOTES = 500
 
-function safeGet() {
+type LocalVoteSource = {
+  source?: string
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object')
+}
+
+function safeGet(): string | null {
   if (typeof localStorage === 'undefined') return null
   try {
     return localStorage.getItem(STORAGE_KEY)
@@ -14,7 +23,7 @@ function safeGet() {
   }
 }
 
-function safeSet(value) {
+function safeSet(value: string): void {
   if (typeof localStorage === 'undefined') return
   try {
     localStorage.setItem(STORAGE_KEY, value)
@@ -23,7 +32,7 @@ function safeSet(value) {
   }
 }
 
-function notify() {
+function notify(): void {
   if (typeof window === 'undefined') return
   window.dispatchEvent(
     new CustomEvent(LOCAL_VOTE_RANKING_EVENT, {
@@ -32,18 +41,22 @@ function notify() {
   )
 }
 
-function safeDate(value) {
-  const date = value ? new Date(value) : new Date()
+function safeDate(value: unknown): Date {
+  const date =
+    typeof value === 'string' || typeof value === 'number' || value instanceof Date
+      ? new Date(value)
+      : new Date()
   return Number.isNaN(date.getTime()) ? new Date() : date
 }
 
-function normalizeDate(value, atDate) {
+function normalizeDate(value: unknown, atDate: Date): string {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))
     ? String(value)
     : fechaDelDia(atDate)
 }
 
-function normalizeVote(value) {
+function normalizeVote(value: unknown): LocalVote | null {
+  if (!isRecord(value)) return null
   if (!value?.ganadorSlug || !value?.ganadorNombre) return null
   const atDate = safeDate(value.at)
   const at = atDate.toISOString()
@@ -61,7 +74,7 @@ function normalizeVote(value) {
   }
 }
 
-function publicPersonajeFields(personaje) {
+function publicPersonajeFields(personaje: PersonajeLite | null | undefined): Partial<PersonajeLite> {
   if (!personaje) return {}
   return {
     slug: personaje.slug,
@@ -70,7 +83,7 @@ function publicPersonajeFields(personaje) {
   }
 }
 
-export function readLocalVotes() {
+export function readLocalVotes(): LocalVote[] {
   const raw = safeGet()
   if (!raw) return []
   try {
@@ -78,7 +91,7 @@ export function readLocalVotes() {
     if (!Array.isArray(parsed)) return []
     return parsed
       .map(normalizeVote)
-      .filter(Boolean)
+      .filter((vote): vote is LocalVote => Boolean(vote))
       .slice(-MAX_LOCAL_VOTES)
       .reverse()
   } catch {
@@ -86,7 +99,11 @@ export function readLocalVotes() {
   }
 }
 
-export function recordLocalVote(ganador, perdedor, { source = 'votar' } = {}) {
+export function recordLocalVote(
+  ganador: PersonajeLite | null | undefined,
+  perdedor: PersonajeLite | null | undefined,
+  { source = 'votar' }: LocalVoteSource = {},
+): LocalVote[] {
   const g = publicPersonajeFields(ganador)
   if (!g.slug || !g.nombre) return []
   const p = publicPersonajeFields(perdedor)
@@ -104,6 +121,8 @@ export function recordLocalVote(ganador, perdedor, { source = 'votar' } = {}) {
     source,
   })
 
+  if (!entry) return readLocalVotes()
+
   const existing = readLocalVotes().reverse()
   const next = [...existing, entry].slice(-MAX_LOCAL_VOTES)
   safeSet(JSON.stringify(next))
@@ -111,17 +130,18 @@ export function recordLocalVote(ganador, perdedor, { source = 'votar' } = {}) {
   return next.reverse()
 }
 
-export function clearLocalVotes() {
+export function clearLocalVotes(): void {
   safeSet(JSON.stringify([]))
   notify()
 }
 
-export function listenLocalVotes(callback) {
+export function listenLocalVotes(callback: (votes: LocalVote[]) => void): () => void {
   if (typeof window === 'undefined') return () => {}
-  const handler = (event) => {
-    callback(event.detail?.votes || readLocalVotes())
+  const handler = (event: Event) => {
+    const votes = event instanceof CustomEvent ? event.detail?.votes : null
+    callback(votes || readLocalVotes())
   }
-  const storageHandler = (event) => {
+  const storageHandler = (event: StorageEvent) => {
     if (event.key === STORAGE_KEY) callback(readLocalVotes())
   }
   window.addEventListener(LOCAL_VOTE_RANKING_EVENT, handler)
@@ -132,8 +152,11 @@ export function listenLocalVotes(callback) {
   }
 }
 
-export function filterLocalVotesByPeriod(votes, period = 'all') {
-  const list = Array.isArray(votes) ? votes : []
+export function filterLocalVotesByPeriod(
+  votes: unknown,
+  period: string | number = 'all',
+): LocalVote[] {
+  const list = Array.isArray(votes) ? votes as LocalVote[] : []
   if (period === 'all') return list
   const today = fechaDelDia()
   if (period === 'today') return list.filter((vote) => vote.date === today)
@@ -145,7 +168,7 @@ export function filterLocalVotesByPeriod(votes, period = 'all') {
   return list.filter((vote) => vote.date >= minDate)
 }
 
-export function getLocalVoteStats(votes = readLocalVotes()) {
+export function getLocalVoteStats(votes: LocalVote[] = readLocalVotes()) {
   const list = Array.isArray(votes) ? votes : []
   const bySlug = new Map()
   const byAnime = new Map()
