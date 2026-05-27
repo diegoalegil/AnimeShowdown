@@ -134,3 +134,10 @@
 ## Sprint Auto 04 cierre
 
 - 2026-05-27T16:10:09+01:00 | done: PR AUTO-04.1-4 (#118-#121) | skipped: FAQ schema en `/llms.txt` porque es archivo estatico, no pagina React; sitemap segmentado porque el sitemap actual tiene 1346 URLs y no ha crecido hasta umbral de split | failed: 0 | result: JSON-LD de `Person`, `TVSeries`, `SportsEvent`, `Event` y `BreadcrumbList` queda enriquecido con IDs estables, `mainEntityOfPage`, imagenes y enlaces entre entidades; smoke `npm run test:seo-schema` cubre el grafo principal; siguiente sprint: Sprint Auto 05.
+
+## Sprint Auto 05 - Security audit + headers tightening
+
+
+## Sprint Auto 05 cierre
+
+- 2026-05-27T16:59:52+01:00 | done: PR AUTO-05.1 (#122) | skipped: 0 | failed: 0 | result: headers de seguridad endurecidos (COOP same-origin, CORP same-site, CSP sin unsafe-inline en script-src), audit log centralizado para mutaciones admin, deploy Cloudflare Pages verificado y branches stale limpiadas del remote; siguiente sprint: Sprint Auto 06 (Test coverage to 70%).
