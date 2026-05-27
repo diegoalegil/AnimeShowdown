@@ -177,7 +177,7 @@ function TorneoDetailPage() {
     <VisualPageShell visual={visual} contentClassName="mx-auto max-w-6xl" density="low" lateralKanji={{left: visual?.kanji ?? "戦", right: "戦"}}>
       <JsonLd
         id="torneo"
-        schema={torneoSchema(torneo, rosterRonda1)}
+        schema={torneoSchema(torneo, rosterRonda1, { image: visual?.image })}
       />
       <JsonLd
         id="breadcrumbs"
