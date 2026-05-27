@@ -3,6 +3,7 @@ package com.diegoalegil.animeshowdown.service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,6 +72,7 @@ public class AuditLogService {
             AuditEvento.TOTP_LOGIN_FAIL,
             AuditEvento.TOTP_BACKUP_CODE_USADO,
             AuditEvento.TOTP_BACKUP_CODES_REGENERADOS,
+            AuditEvento.ADMIN_OPERACION,
             AuditEvento.CUENTA_ELIMINADA);
 
     private final AuditLogRepository repository;
@@ -139,6 +141,19 @@ public class AuditLogService {
     /** Versión simplificada sin detalles ni request — para eventos cron. */
     public void registrarSimple(AuditEvento evento, Usuario usuario) {
         self.registrarConContexto(evento, usuario, null, null, null);
+    }
+
+    public void registrarAdmin(
+            Usuario admin,
+            String accion,
+            Map<String, Object> detalles,
+            HttpServletRequest request) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("accion", accion);
+        if (detalles != null) {
+            payload.putAll(detalles);
+        }
+        registrar(AuditEvento.ADMIN_OPERACION, admin, payload, request);
     }
 
     /**

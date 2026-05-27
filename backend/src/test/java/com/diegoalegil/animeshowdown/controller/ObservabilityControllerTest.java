@@ -27,7 +27,9 @@ class ObservabilityControllerTest {
                 .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
                 .andExpect(header().string(
                         "Permissions-Policy",
-                        "camera=(), microphone=(), geolocation=()"));
+                        "camera=(), microphone=(), geolocation=()"))
+                .andExpect(header().string("Cross-Origin-Opener-Policy", "same-origin"))
+                .andExpect(header().string("Cross-Origin-Resource-Policy", "same-site"));
     }
 
     @Test

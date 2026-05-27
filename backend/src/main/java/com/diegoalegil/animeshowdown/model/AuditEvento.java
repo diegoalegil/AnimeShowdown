@@ -47,6 +47,8 @@ public enum AuditEvento {
     SESIONES_REVOCADAS_TODAS,
     /** Rol cambiado (USER ↔ ADMIN). Reservado para futuro panel admin. */
     ROL_CAMBIADO,
+    /** Operación mutante ejecutada desde un endpoint administrativo. */
+    ADMIN_OPERACION,
     /** El usuario activó 2FA TOTP en su cuenta. */
     TOTP_HABILITADO,
     /** El usuario desactivó 2FA TOTP. */
