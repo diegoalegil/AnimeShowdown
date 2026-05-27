@@ -5,7 +5,10 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // `coverage` es el output de Vitest (`vitest run --coverage`). Lo
+  // ignoramos en lint porque incluye HTML/JS generado por istanbul y
+  // reportes intermedios — no es código de aplicación.
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
