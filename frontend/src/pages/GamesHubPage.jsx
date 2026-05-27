@@ -157,6 +157,14 @@ function GamesHubPage() {
           }
         />
 
+        <p className="mb-6 max-w-3xl text-sm leading-7 text-fg-muted">
+          Anime Daily Trials reúne juegos breves para volver cada día: adivinar
+          personajes, reconocer animes, resolver una grilla, detectar impostores
+          y comparar ELO. Cada reto guarda progreso local, aporta misiones y
+          ofrece resultados compartibles sin convertir el hub en una página de
+          instrucciones larga.
+        </p>
+
         <DailyMissionPanel compact className="mb-6 hidden md:block" />
 
         <GamesHubSummaryBanner
