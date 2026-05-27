@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,8 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.model.EmailFailure;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EmailFailureRepository;
+import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.JikanService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -25,17 +30,28 @@ public class AdminController {
 
     private final JikanService jikanService;
     private final EmailFailureRepository emailFailureRepository;
+    private final AuditLogService auditLogService;
 
-    public AdminController(JikanService jikanService, EmailFailureRepository emailFailureRepository) {
+    public AdminController(
+            JikanService jikanService,
+            EmailFailureRepository emailFailureRepository,
+            AuditLogService auditLogService) {
         this.jikanService = jikanService;
         this.emailFailureRepository = emailFailureRepository;
+        this.auditLogService = auditLogService;
     }
 
     @PostMapping("/personajes/importar")
-    public ResponseEntity<List<Personaje>> importarPersonajes(@RequestParam(defaultValue = "10") int cantidad) {
+    public ResponseEntity<List<Personaje>> importarPersonajes(
+            @RequestParam(defaultValue = "10") int cantidad,
+            @AuthenticationPrincipal Usuario admin,
+            HttpServletRequest request) {
         log.info("Importación Jikan iniciada: cantidad solicitada={}", cantidad);
         List<Personaje> importados = jikanService.importarTopPersonajes(cantidad);
         log.info("Importación Jikan completada: {} personajes guardados", importados.size());
+        auditLogService.registrarAdmin(admin, "admin.personajes.importar", Map.of(
+                "cantidadSolicitada", cantidad,
+                "importados", importados.size()), request);
         return ResponseEntity.ok(importados);
     }
 
