@@ -11,7 +11,6 @@ import {
   Flame,
   Share2,
 } from 'lucide-react'
-import { toast } from 'sonner'
 import {
   getStatsPersonaje,
 } from '../lib/personajes-core'
@@ -26,8 +25,7 @@ import GameCatalogLoading from '../components/GameCatalogLoading'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
-import { recordDailyShare } from '../lib/dailyProgress'
-import { shareOrCopy } from '../lib/share'
+import { shareWithToast } from '../lib/shareWithToast'
 import JsonLd from '../components/JsonLd'
 import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import { getGameVisual } from '../data/visual-assets'
@@ -465,8 +463,8 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
 function GameOver({ score, best, reference, challenger, onRestart }) {
   const challengerEsMayor = challenger.elo > reference.elo
   const compartir = async () => {
-    try {
-      const result = await shareOrCopy({
+    await shareWithToast(
+      {
         title: 'ELO Duel',
         text: buildGameShareText({
           game: 'ELO Duel',
@@ -475,13 +473,13 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
           detail: `Récord: ${best}. Fallé con ${challenger.nombre} vs ${reference.nombre}.`,
         }),
         url: '/games/elo-duel',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Resultado compartido' : 'Resultado copiado')
-    } catch {
-      toast.error('No se pudo compartir el resultado')
-    }
+      },
+      {
+        clipboardSuccess: 'Resultado copiado',
+        errorTitle: 'No se pudo compartir el resultado',
+        nativeSuccess: 'Resultado compartido',
+      },
+    )
   }
   return (
     <motion.div
