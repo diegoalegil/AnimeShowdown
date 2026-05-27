@@ -1,8 +1,11 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -12,8 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.TorneoMioDto;
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.TorneoService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -31,9 +37,11 @@ import jakarta.validation.constraints.Size;
 public class AdminTorneoController {
 
     private final TorneoService torneoService;
+    private final AuditLogService auditLogService;
 
-    public AdminTorneoController(TorneoService torneoService) {
+    public AdminTorneoController(TorneoService torneoService, AuditLogService auditLogService) {
         this.torneoService = torneoService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/pendientes")
@@ -44,15 +52,34 @@ public class AdminTorneoController {
     }
 
     @PutMapping("/{id}/aprobar")
-    public ResponseEntity<Torneo> aprobar(@PathVariable Long id) {
-        return ResponseEntity.ok(torneoService.aprobar(id));
+    public ResponseEntity<Torneo> aprobar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario admin,
+            HttpServletRequest request) {
+        Torneo torneo = torneoService.aprobar(id);
+        auditLogService.registrarAdmin(admin, "admin.torneos.aprobar", detallesTorneo(id, torneo), request);
+        return ResponseEntity.ok(torneo);
     }
 
     @PutMapping("/{id}/rechazar")
     public ResponseEntity<Torneo> rechazar(
             @PathVariable Long id,
-            @Valid @RequestBody RechazoRequest body) {
-        return ResponseEntity.ok(torneoService.rechazar(id, body.getMotivo()));
+            @Valid @RequestBody RechazoRequest body,
+            @AuthenticationPrincipal Usuario admin,
+            HttpServletRequest request) {
+        Torneo torneo = torneoService.rechazar(id, body.getMotivo());
+        Map<String, Object> detalles = detallesTorneo(id, torneo);
+        detalles.put("motivoLength", body.getMotivo().length());
+        auditLogService.registrarAdmin(admin, "admin.torneos.rechazar", detalles, request);
+        return ResponseEntity.ok(torneo);
+    }
+
+    private static Map<String, Object> detallesTorneo(Long requestId, Torneo torneo) {
+        Map<String, Object> detalles = new LinkedHashMap<>();
+        detalles.put("torneoId", torneo.getId() != null ? torneo.getId() : requestId);
+        if (torneo.getSlug() != null) detalles.put("slug", torneo.getSlug());
+        if (torneo.getNombre() != null) detalles.put("nombre", torneo.getNombre());
+        return detalles;
     }
 
     /**

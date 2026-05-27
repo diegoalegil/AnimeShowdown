@@ -1,5 +1,7 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import java.util.Map;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,8 +22,10 @@ import com.diegoalegil.animeshowdown.dto.ComentarioEstadoRequest;
 import com.diegoalegil.animeshowdown.dto.PageResponse;
 import com.diegoalegil.animeshowdown.model.ComentarioEstado;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.ComentarioService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -29,9 +33,11 @@ import jakarta.validation.Valid;
 public class ComentarioController {
 
     private final ComentarioService comentarioService;
+    private final AuditLogService auditLogService;
 
-    public ComentarioController(ComentarioService comentarioService) {
+    public ComentarioController(ComentarioService comentarioService, AuditLogService auditLogService) {
         this.comentarioService = comentarioService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/personajes/{slug}/comentarios")
@@ -91,8 +97,13 @@ public class ComentarioController {
     @PutMapping("/admin/comentarios/{id}/estado")
     public ComentarioDto cambiarEstadoAdmin(
             @PathVariable Long id,
-            @Valid @RequestBody ComentarioEstadoRequest request) {
+            @Valid @RequestBody ComentarioEstadoRequest request,
+            @AuthenticationPrincipal Usuario admin,
+            HttpServletRequest httpRequest) {
         var comentario = comentarioService.cambiarEstadoAdmin(id, request.estado());
+        auditLogService.registrarAdmin(admin, "admin.comentarios.estado", Map.of(
+                "comentarioId", id,
+                "estado", request.estado().name()), httpRequest);
         return ComentarioDto.from(comentario, false);
     }
 
