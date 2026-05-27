@@ -238,21 +238,40 @@ export function animeSeriesSchema(animeData) {
  *
  * @param torneo {nombre, slug, descripcion, estado, fechaInicio, fechaFinalizacion}
  * @param competidores array de personajes {nombre, slug, imagen}
+ * @param options opcional con {image}
  */
-export function torneoSchema(torneo, competidores = []) {
+export function torneoSchema(torneo, competidores = [], options = {}) {
   if (!torneo) return null
   const url = abs(`/torneos/${torneo.slug}`)
+  const image = abs(options.image || `/api/og/torneo/${torneo.slug}.png`)
   const eventStatus = mapEstadoEvento(torneo.estado)
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'SportsEvent',
+    '@id': `${url}#torneo`,
+    identifier: torneo.slug,
     name: torneo.nombre,
     url,
+    image,
     description:
       torneo.descripcion ||
       `Bracket de ${competidores.length} personajes de anime cara a cara.`,
+    sport: 'Anime character voting',
     eventStatus,
     eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+    isAccessibleForFree: true,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+      url,
+      name: `${torneo.nombre} en AnimeShowdown`,
+      inLanguage: 'es-ES',
+      isPartOf: {
+        '@type': 'WebSite',
+        name: 'AnimeShowdown',
+        url: SITIO,
+      },
+    },
     location: {
       '@type': 'VirtualLocation',
       url,
@@ -262,18 +281,102 @@ export function torneoSchema(torneo, competidores = []) {
       name: 'AnimeShowdown',
       url: SITIO,
     },
+    offers: {
+      '@type': 'Offer',
+      url,
+      price: '0',
+      priceCurrency: 'EUR',
+      availability: 'https://schema.org/InStock',
+    },
   }
   if (torneo.fechaInicio) schema.startDate = torneo.fechaInicio
   if (torneo.fechaFinalizacion) schema.endDate = torneo.fechaFinalizacion
   if (competidores.length > 0) {
     schema.competitor = competidores.map((c) => ({
       '@type': 'Person',
+      '@id': abs(`/personajes/${c.slug}#personaje`),
       name: c.nombre,
       url: abs(`/personajes/${c.slug}`),
       // El catálogo cliente usa {imagen}; el DTO backend usa {imagenUrl}.
       // Aceptamos ambos para que esta factory sirva en cualquiera de los
       // dos contextos sin tener que mapear antes.
       image: abs(c.imagen ?? c.imagenUrl),
+      additionalType: 'https://schema.org/FictionalCharacter',
+    }))
+  }
+  return schema
+}
+
+/**
+ * Schema {@code Event} para eventos temporales versionados en frontend.
+ *
+ * @param evento {titulo, slug, descripcionCorta, inicioISO, finISO}
+ * @param participantes array de personajes del evento
+ * @param options opcional con {estado, image}
+ */
+export function eventoSchema(evento, participantes = [], options = {}) {
+  if (!evento) return null
+  const url = abs(`/eventos/${evento.slug}`)
+  const image = abs(options.image || `/api/og/evento/${evento.slug}.png`)
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    '@id': `${url}#evento`,
+    identifier: evento.slug,
+    name: evento.titulo,
+    url,
+    image,
+    description: evento.descripcionCorta,
+    eventStatus: mapEstadoEvento(options.estado),
+    eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+    isAccessibleForFree: true,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+      url,
+      name: `${evento.titulo} en AnimeShowdown`,
+      inLanguage: 'es-ES',
+      isPartOf: {
+        '@type': 'WebSite',
+        name: 'AnimeShowdown',
+        url: SITIO,
+      },
+    },
+    location: {
+      '@type': 'VirtualLocation',
+      url,
+    },
+    organizer: {
+      '@type': 'Organization',
+      name: 'AnimeShowdown',
+      url: SITIO,
+    },
+    offers: {
+      '@type': 'Offer',
+      url,
+      price: '0',
+      priceCurrency: 'EUR',
+      availability: 'https://schema.org/InStock',
+      validFrom: evento.inicioISO,
+    },
+    additionalProperty: [
+      {
+        '@type': 'PropertyValue',
+        name: 'Participantes en AnimeShowdown',
+        value: participantes.length,
+      },
+    ],
+  }
+  if (evento.inicioISO) schema.startDate = evento.inicioISO
+  if (evento.finISO) schema.endDate = evento.finISO
+  if (participantes.length > 0) {
+    schema.performer = participantes.slice(0, 40).map((p) => ({
+      '@type': 'Person',
+      '@id': abs(`/personajes/${p.slug}#personaje`),
+      name: p.nombre,
+      url: abs(`/personajes/${p.slug}`),
+      image: abs(p.imagen ?? p.imagenUrl),
+      additionalType: 'https://schema.org/FictionalCharacter',
     }))
   }
   return schema
@@ -498,13 +601,16 @@ export function breadcrumbsSchema(items) {
 }
 
 function mapEstadoEvento(estado) {
-  // schema.org no tiene "in progress" — usamos EventScheduled para los
-  // 3 estados (SCHEDULED, IN_PROGRESS, FINISHED). Rich snippets aún
-  // mostrarán las fechas correctamente porque ahí va startDate / endDate.
+  // schema.org no tiene "in progress" ni "proximo" en castellano: eventos
+  // activos/proximos quedan scheduled y los cerrados completed.
   switch (estado) {
-    case 'IN_PROGRESS':
     case 'FINISHED':
+    case 'PASADO':
+      return 'https://schema.org/EventCompleted'
+    case 'IN_PROGRESS':
     case 'SCHEDULED':
+    case 'ACTIVO':
+    case 'PROXIMO':
     default:
       return 'https://schema.org/EventScheduled'
   }
