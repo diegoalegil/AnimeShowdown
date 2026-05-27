@@ -83,7 +83,7 @@ async function installFakeNotificationSocket(page) {
   await page.addInitScript(() => {
     window.__stateE2eNotificationReady = false
     window.__stateE2eNotificationSubscriptions = []
-    window.__stateE2ePushNotification = () => {}
+    window.__stateE2ePushNotification = () => 0
 
     class FakeWebSocket extends EventTarget {
       static CONNECTING = 0
@@ -124,9 +124,11 @@ async function installFakeNotificationSocket(page) {
           window.__stateE2eNotificationSubscriptions.push({ socket: this, subscriptionId })
           window.__stateE2eNotificationReady = true
           window.__stateE2ePushNotification = () => {
+            let delivered = 0
             const deliver = () => {
               for (const subscription of window.__stateE2eNotificationSubscriptions) {
                 if (subscription.socket.readyState !== FakeWebSocket.OPEN) continue
+                delivered += 1
                 subscription.socket.dispatch('message', {
                   data:
                     `MESSAGE\ndestination:/user/queue/notificaciones\nsubscription:${subscription.subscriptionId}\nmessage-id:state-e2e-1\ncontent-type:application/json\n\n` +
@@ -144,6 +146,7 @@ async function installFakeNotificationSocket(page) {
             deliver()
             setTimeout(deliver, 50)
             setTimeout(deliver, 150)
+            return delivered
           }
         }
       }
@@ -159,6 +162,57 @@ async function installFakeNotificationSocket(page) {
     }
 
     window.WebSocket = FakeWebSocket
+  })
+}
+
+async function mockQuietHomeApis(page) {
+  const ranking = CATALOG.map((personaje, index) => ({
+    ...personaje,
+    elo: 1900 - index * 25,
+    votos: 25 - index * 4,
+  }))
+
+  await page.route('**/api/torneos', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  })
+  await page.route('**/api/votos/ranking', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(ranking),
+    })
+  })
+  await page.route('**/api/votos/ranking/movimientos**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  })
+  await page.route('**/api/votos/recientes**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  })
+  await page.route('**/api/me/favoritos', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  })
+  await page.route('**/api/enfrentamientos/aleatorio', async (route) => {
+    await route.fulfill({
+      status: 404,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: 'Sin duelo abierto en E2E' }),
+    })
   })
 }
 
@@ -258,6 +312,7 @@ test('el badge de notificaciones sube por push sin abrir el dropdown', async ({ 
   let unreadRequests = 0
   await installFakeNotificationSocket(page)
   await prepareAuthedPage(page)
+  await mockQuietHomeApis(page)
   await page.route('**/api/notificaciones/unread-count', async (route) => {
     unreadRequests += 1
     await route.fulfill({
@@ -281,7 +336,11 @@ test('el badge de notificaciones sube por push sin abrir el dropdown', async ({ 
   )
   await expect(bell.locator('span')).toHaveCount(0)
 
-  await page.evaluate(() => window.__stateE2ePushNotification())
+  await expect
+    .poll(() => page.evaluate(() => window.__stateE2ePushNotification()), {
+      timeout: 10_000,
+    })
+    .toBeGreaterThan(0)
 
   await expect(bell.locator('span')).toHaveText(/[1-9]\d*/, { timeout: 10_000 })
   await expect(page.getByRole('menu')).toHaveCount(0)
