@@ -4,6 +4,20 @@
 User-agent: *
 Allow: /
 
+# Bots de IA/LLM — allowlist explícita para GEO (Generative Engine Optimization).
+# La plataforma quiere ser indexada por motores de respuesta generativa.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
 # Rutas privadas o de usuario autenticado — sin valor para indexación.
 Disallow: /admin
 Disallow: /perfil
