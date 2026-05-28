@@ -69,7 +69,7 @@ Un agente debe detenerse y reportar (sin auto-resolver) cuando:
 
 ```bash
 cd frontend
-[ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" && nvm use 22 || node --version
+[ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" && nvm use || node --version
 npm run lint
 npm run build:no-images
 # Solo si el PR toca tests E2E:
