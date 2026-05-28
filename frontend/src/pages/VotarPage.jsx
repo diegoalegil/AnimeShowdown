@@ -215,6 +215,10 @@ function VotarPage() {
   const isAdvancingRef = useRef(false)
   const currentPairKeyRef = useRef('')
   const recordedPairKeyRef = useRef('')
+  // Set de pairKey ya vistos en la sesión — dedup real para modo backend.
+  // Se acumula durante toda la sesión sin límite; en torneos normales no
+  // supera los pocos cientos de pares disponibles.
+  const seenBackendPairsRef = useRef(new Set())
 
   useEffect(() => {
     if (fastMode || autoNextTimeoutRef.current == null) return
@@ -322,6 +326,8 @@ function VotarPage() {
     if (!a?.slug || !b?.slug || !currentPairKey) return
     if (recordedPairKeyRef.current === currentPairKey) return
     recordRecentPair(a.slug, b.slug)
+    // Registrar en el Set de dedup de sesión para modo backend
+    seenBackendPairsRef.current.add(currentPairKey)
     recordedPairKeyRef.current = currentPairKey
   }, [a?.slug, b?.slug, currentPairKey])
 
@@ -381,16 +387,31 @@ function VotarPage() {
           prefetchedData?.personaje1?.slug && prefetchedData?.personaje2?.slug
             ? pairKey(prefetchedData.personaje1.slug, prefetchedData.personaje2.slug)
             : ''
-        if (prefetchedData && prefetchedKey && prefetchedKey !== previousKey) {
+        // Usar prefetch solo si el par es nuevo (no visto en esta sesión)
+        const prefetchIsNew = prefetchedKey && !seenBackendPairsRef.current.has(prefetchedKey)
+        if (prefetchedData && prefetchIsNew) {
           queryClient.setQueryData(['enfrentamientos', 'aleatorio'], prefetchedData)
           queryClient.removeQueries({ queryKey: PREFETCH_BACKEND_KEY })
         } else {
-          const result = await refetch()
-          const nextKey =
-            result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
-              ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
-              : ''
-          if (nextKey && nextKey === previousKey) {
+          // Reintentar hasta MAX_BACKEND_RETRIES para encontrar un par no visto.
+          // Si el torneo tiene pocos pares disponibles, aceptamos duplicados
+          // tras agotar los intentos para no bloquear la sesión.
+          const MAX_BACKEND_RETRIES = 3
+          let found = false
+          for (let attempt = 0; attempt < MAX_BACKEND_RETRIES; attempt += 1) {
+            const result = await refetch()
+            const nextKey =
+              result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
+                ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
+                : ''
+            if (nextKey && !seenBackendPairsRef.current.has(nextKey)) {
+              found = true
+              break
+            }
+          }
+          if (!found) {
+            // Todos los intentos devolvieron pares ya vistos. Aceptamos el último
+            // para no bloquear — puede pasar en torneos con muy pocos matches.
             await refetch()
           }
         }
