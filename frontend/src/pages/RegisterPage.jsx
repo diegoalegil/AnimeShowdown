@@ -213,7 +213,7 @@ function RegisterPage() {
               id="password"
               autoComplete="new-password"
               error={Boolean(errors.password)}
-              placeholder="Mínimo 8, con mayúscula y número"
+              placeholder="Mínimo 8, con letra y número"
               aria-invalid={Boolean(errors.password)}
               aria-describedby={errors.password ? 'password-error' : undefined}
               {...register('password')}
@@ -275,7 +275,7 @@ function RegisterPage() {
             )}
           </div>
           {errors.root && (
-            <p className="text-[12px] text-red-400">{errors.root.message}</p>
+            <p role="alert" className="text-[12px] text-red-400">{errors.root.message}</p>
           )}
           {/* Antes: disabled={isSubmitting || !isValid}. El !isValid bloqueaba
               el submit hasta que react-hook-form considerara el form válido,
