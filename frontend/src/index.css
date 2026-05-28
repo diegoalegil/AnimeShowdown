@@ -758,13 +758,23 @@
 
   body::before {
     content: "";
-    position: fixed;
+    /* absolute en lugar de fixed: elimina la compositing-layer permanente
+       que forzaba el navegador a mantener un stacking context fijo sobre
+       todo el viewport. El efecto visual es idéntico (body cubre 100vh+),
+       pero el coste de GPU/paint se reduce porque ya no es una capa
+       compositeada independiente que se actualiza en cada scroll. */
+    position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.055;
+    /* Opacidad reducida de 0.055 → 0.038: menos intrusivo en móviles
+       con pantallas OLED donde el grano era visible en fondos oscuros. */
+    opacity: 0.038;
     mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    /* numOctaves 3→2: el tercer octavo añade detalle de alta frecuencia
+       prácticamente invisible a ojo humano en pantallas normales pero
+       multiplica el tiempo de rasterizado del SVG filter. */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
 
   a {
