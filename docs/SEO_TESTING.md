@@ -1,7 +1,53 @@
 # SEO Testing & Setup — AnimeShowdown
 
-Guía operacional para SEO técnico, configuración externa (DNS, Search
-Console, IndexNow) y mediciones manuales de Core Web Vitals.
+Guía operacional para SEO técnico, diagnóstico de indexación, configuración
+externa (DNS, Search Console, IndexNow) y mediciones manuales de Core Web
+Vitals.
+
+---
+
+## Diagnóstico de indexación y readiness para Google
+
+**Arquitectura actual.** El frontend es una SPA (React + Vite) servida por
+Cloudflare Pages. Googlebot renderiza JavaScript, así que ve el `<title>`,
+`description`, `canonical` y `hreflang` que `useSeo` fija por ruta tras la
+hidratación. Para crawlers sociales que NO ejecutan JS (Twitter/X, Facebook,
+Discord, WhatsApp) una Cloudflare Pages Function (`frontend/functions/_middleware.js`)
+reescribe las meta OG en el edge para personaje, anime, ranking interno de
+anime, torneo, rankings curados y ranking global. El resto de rutas usa el OG
+por defecto del `index.html` (logo + claim de marca, ya en URL absoluta).
+
+**Por qué puede tardar en aparecer en Google.** No es un bloqueo técnico
+(robots permite rastreo, hay sitemap y meta por ruta), sino factores de
+madurez:
+
+- Dominio reciente, sin autoridad ni backlinks consolidados.
+- Render de JS: Google indexa SPAs, pero el rastreo en dos fases (HTML →
+  render) tarda más que un sitio que sirve HTML completo.
+- Pocas señales de marca externas todavía.
+
+**Acciones externas prioritarias (no resolubles solo con código):**
+
+1. Verificar `animeshowdown.dev` en Google Search Console (Domain property,
+   ver sección 5.7) y enviar `sitemap.xml`.
+2. URL Inspection → "Probar URL publicada" en la home y los hubs clave
+   (`/personajes`, `/animes`, `/ranking`, `/como-funciona`, `/metodologia-elo`,
+   `/faq`, `/glossary` y las landings `/rankings/*`). Confirmar que el HTML
+   renderizado incluye el `<title>`/`description`/`canonical` correctos por
+   ruta. En una SPA esto NO se ve en "ver código fuente"; usar la pestaña
+   renderizada del inspector.
+3. "Solicitar indexación" para esas mismas URLs tras verificar.
+4. Revisar Cobertura/Páginas: vigilar "Descubierta: actualmente sin indexar" y
+   "Rastreada: actualmente sin indexar" en rutas de personaje/anime.
+5. Construir señales de marca: enlazar el dominio desde el README y el perfil
+   de GitHub, y desde las redes del proyecto.
+6. Validar Rich Results de una ficha de personaje y del ranking en
+   https://search.google.com/test/rich-results.
+
+**Verificar la Pages Function tras cada cambio.** El OG por ruta del edge no
+se ejecuta en `vite dev`; comprobar en un Preview de Cloudflare Pages que
+`/animes/{slug}`, `/torneos/{slug}` y `/rankings/{slug}` devuelven el OG y el
+título correctos (p. ej. con https://www.opengraph.xyz/ o `curl` al HTML).
 
 ---
 
