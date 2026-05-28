@@ -44,15 +44,15 @@ export default defineConfig({
       //   PR 06.5 (api.ts):                  lines 70, branches 60  ← meta
       // Cada PR sube estos valores ANTES de mergear. Si CI falla por
       // threshold, el PR no llegó a la meta de su fase.
-      // PR 06.2 thresholds:
-      //   share.ts:     100% lines, 100% branches
-      //   queryClient: 100% lines, 100% branches (normalizeSlugs line 7 fully exercised)
-      // Global lines ~6% because 5 of 7 lib files are still untested; climbs through PRs 06.3-06.5.
+      // PR 06.4 thresholds:
+      //   personajes-core.test.ts:  46 tests (canonical slug, normalize, sync, snapshot, stats)
+      //   torneosQueries.test.ts:   6 tests (ESTADO_BADGE, getEstadoBadge)
+      // Global lines ~45% / branches ~35% after 06.4; climbs through 06.5.
       thresholds: {
-        lines: 25,
-        statements: 25,
-        branches: 20,
-        functions: 25,
+        lines: 45,
+        statements: 45,
+        branches: 35,
+        functions: 45,
       },
     },
   },
