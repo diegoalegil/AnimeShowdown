@@ -63,7 +63,7 @@ describe('getEstadoBadge', () => {
   it('returns SCHEDULED fallback for empty/undefined estado', () => {
     expect(getEstadoBadge(undefined)).toEqual(ESTADO_BADGE.SCHEDULED)
     expect(getEstadoBadge('')).toEqual(ESTADO_BADGE.SCHEDULED)
-    expect(getEstadoBadge(null)).toEqual(ESTADO_BADGE.SCHEDULED)
+    expect(getEstadoBadge(null as unknown as undefined)).toEqual(ESTADO_BADGE.SCHEDULED)
   })
 
   it('returns IN_PROGRESS fallback for any unmatched string', () => {
