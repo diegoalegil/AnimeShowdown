@@ -33,12 +33,20 @@ function VoteFeedbackBurst({
   active,
   delta,
   value,
+  votosPerdedor,
   label = 'Voto registrado',
   animateValue = true,
   particles = true,
 }) {
   const reduceMotion = useReducedMotion()
   if (!active) return null
+
+  const totalVotos = Number.isFinite(value) && Number.isFinite(votosPerdedor) && (value + votosPerdedor) > 0
+    ? value + votosPerdedor
+    : null
+  const pctGanador = totalVotos != null ? Math.round((value / totalVotos) * 100) : null
+  const pctPerdedor = pctGanador != null ? 100 - pctGanador : null
+
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
       <motion.div
@@ -60,6 +68,11 @@ function VoteFeedbackBurst({
             </>
           )}
         </span>
+        {pctGanador != null && (
+          <span className="mt-0.5 block text-[11px] font-bold text-gold/90">
+            {pctGanador}% · {pctPerdedor}%
+          </span>
+        )}
       </motion.div>
       {particles && !reduceMotion && PARTICLES.map((particle) => {
         const angle = (Math.PI * 2 * particle) / PARTICLES.length

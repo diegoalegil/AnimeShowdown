@@ -83,6 +83,42 @@ function incrementarContadorLocalVotos() {
   }
 }
 
+/**
+ * Barra split cabeza-a-cabeza con porcentajes: resalta mayoría (ganador)
+ * y minoría (perdedor). Se muestra solo cuando el backend devuelve ambos
+ * totales de votos.
+ */
+function HeadToHeadBar({ ganadorNombre, perdedorNombre, votosGanador, votosPerdedor }) {
+  const total = votosGanador + votosPerdedor
+  if (total <= 0) return null
+  const pctGanador = Math.round((votosGanador / total) * 100)
+  const pctPerdedor = 100 - pctGanador
+  const esCercano = pctGanador < 60 // consideramos "polémico" si el ganador tiene < 60%
+  return (
+    <div className="mt-2 w-full">
+      <div className="mb-1 flex justify-between text-[11px] font-black">
+        <span className="text-fg-strong">{ganadorNombre}</span>
+        <span className="text-fg-muted">{perdedorNombre}</span>
+      </div>
+      <div className="relative flex h-2.5 w-full overflow-hidden rounded-full bg-border">
+        <div
+          className="h-full rounded-l-full bg-accent transition-all duration-500"
+          style={{ width: `${pctGanador}%` }}
+        />
+      </div>
+      <div className="mt-1 flex justify-between text-[11px] font-semibold">
+        <span className="text-accent">{pctGanador}%</span>
+        {esCercano && (
+          <span className="text-center text-[10px] font-bold uppercase tracking-[0.1em] text-fg-muted">
+            ¡Duelo reñido!
+          </span>
+        )}
+        <span className="text-fg-muted">{pctPerdedor}%</span>
+      </div>
+    </div>
+  )
+}
+
 function formatPersonalVoteImpact(impact) {
   if (!impact) return ''
   const plural = impact.count === 1 ? '' : 's'
@@ -833,7 +869,7 @@ function VotarPage() {
 
         {votedPersonaje && (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-black text-fg-strong">
                 {votedPersonaje.nombre} ganó tu duelo.
               </p>
@@ -842,6 +878,15 @@ function VotarPage() {
                   ? `${voteResult.votosGanador} votos para ${votedPersonaje.nombre}${losingPersonaje ? ` · rival: ${losingPersonaje.nombre}` : ''}`
                   : 'Voto registrado en modo casual. Sigue para completar tu misión diaria.'}
               </p>
+              {/* Barra split cabeza-a-cabeza — solo cuando el backend devuelve ambos totales */}
+              {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null && losingPersonaje && (
+                <HeadToHeadBar
+                  ganadorNombre={votedPersonaje.nombre}
+                  perdedorNombre={losingPersonaje.nombre}
+                  votosGanador={voteResult.votosGanador}
+                  votosPerdedor={voteResult.votosPerdedor}
+                />
+              )}
               {personalVoteImpact?.slug === votedPersonaje.slug && (
                 <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-2.5 py-1 text-[11px] font-black text-gold">
                   {formatPersonalVoteImpact(personalVoteImpact)}

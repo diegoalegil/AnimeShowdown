@@ -100,6 +100,7 @@ const VoteCard = memo(function VoteCard({
             active={Boolean(voteResult)}
             delta={voteResult?.delta}
             value={voteResult?.votosGanador}
+            votosPerdedor={voteResult?.votosPerdedor}
             animateValue={false}
             particles={false}
             label="Voto registrado"
