@@ -43,21 +43,28 @@ function useAccessTokenReady() {
 function NotifBell() {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
+  const triggerRef = useRef(null)
   const hasAccessToken = useAccessTokenReady()
 
   const { data: countData } = useUnreadCount({ enabled: hasAccessToken })
   const unread = hasAccessToken ? countData?.count ?? 0 : 0
+
+  const closeAndRestoreFocus = () => {
+    setOpen(false)
+    // Restaura el foco al botón disparador al cerrar el popover.
+    triggerRef.current?.focus()
+  }
 
   // Cerrar al hacer click fuera o presionar Escape.
   useEffect(() => {
     if (!open) return
     const onDocClick = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        setOpen(false)
+        closeAndRestoreFocus()
       }
     }
     const onKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') closeAndRestoreFocus()
     }
     document.addEventListener('mousedown', onDocClick)
     document.addEventListener('keydown', onKey)
@@ -70,10 +77,12 @@ function NotifBell() {
   return (
     <div ref={wrapperRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Notificaciones"
         aria-expanded={open}
+        aria-haspopup="dialog"
         className="relative inline-flex h-11 w-11 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Bell className="h-4 w-4" />
@@ -88,7 +97,7 @@ function NotifBell() {
         {open && (
           <NotifDropdown
             enabled={hasAccessToken}
-            onClose={() => setOpen(false)}
+            onClose={closeAndRestoreFocus}
           />
         )}
       </AnimatePresence>
@@ -111,7 +120,9 @@ function NotifDropdown({ enabled, onClose }) {
 
   return (
     <motion.div
-      role="menu"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Panel de notificaciones"
       initial={{ opacity: 0, y: -8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -4, scale: 0.98 }}
