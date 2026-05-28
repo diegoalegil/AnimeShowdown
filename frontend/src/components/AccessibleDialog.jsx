@@ -98,6 +98,36 @@ function AccessibleDialog({
     }
   }, [open])
 
+  // inert + aria-hidden sobre el árbol de la app mientras el modal está
+  // abierto. El diálogo se portaliza a document.body (hermano de #root), así
+  // que inertizar #root saca del tab-order y del árbol accesible TODO el
+  // contenido de fondo sin tocar el modal. Esto cumple lo prometido en el
+  // docblock: lectores de pantalla no navegan el contenido bajo el modal y
+  // Tab no puede salirse hacia él (defensa en profundidad sobre el focus
+  // trap). El foco vive dentro del portal, no bajo #root, así que poner
+  // aria-hidden en #root no oculta el elemento enfocado (sin violación a11y).
+  // inert es no-op en navegadores que no lo soportan (Safari <15.5), igual
+  // que dice el docblock ("cuando el browser lo soporta").
+  // Guardamos/restauramos el valor previo para soportar diálogos apilados
+  // (cierre LIFO restaura el estado correcto en cada nivel).
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined
+    const appRoot = document.getElementById('root')
+    if (!appRoot) return undefined
+    const previaInert = appRoot.inert
+    const previaAriaHidden = appRoot.getAttribute('aria-hidden')
+    appRoot.inert = true
+    appRoot.setAttribute('aria-hidden', 'true')
+    return () => {
+      appRoot.inert = previaInert
+      if (previaAriaHidden === null) {
+        appRoot.removeAttribute('aria-hidden')
+      } else {
+        appRoot.setAttribute('aria-hidden', previaAriaHidden)
+      }
+    }
+  }, [open])
+
   // Focus inicial al primer elemento focusable dentro del diálogo. Si no
   // hay ninguno, focuseamos el panel (que tiene tabIndex=-1) para que el
   // lector empiece a leer su contenido.
