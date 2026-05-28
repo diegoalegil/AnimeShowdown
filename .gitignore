@@ -93,6 +93,11 @@ ai-notes/
 private-notes/
 prompt-notes/
 
+# Convenciones y bitácora de proceso: solo locales, fuera del repo público
+AGENTS.md
+BACKLOG.md
+PROGRESS.md
+
 # Buzon temporal para imagenes generadas a mano (tanda N)
 # Se vacia al integrar cada tanda; los assets finales viven en frontend/public/assets o frontend/img.
 _inbox/

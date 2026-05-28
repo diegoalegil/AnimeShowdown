@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     # No gastamos ~10 min de Playwright en cambios que no tocan código
-    # (docs, PROGRESS.md, SPECs, BACKLOG). Si un cambio toca código Y docs,
+    # (docs y archivos .md). Si un cambio toca código Y docs,
     # SÍ corre (paths-ignore solo salta cuando TODOS los paths están ignorados).
     paths-ignore:
       - '**.md'
