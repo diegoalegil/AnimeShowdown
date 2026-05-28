@@ -145,7 +145,7 @@ function InicioPage() {
   // explícito y aseguramos OG con la imagen del logo.
   useSeo({
     description:
-      '1052 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el ranking cada semana.',
+      'Más de 1000 personajes, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el ranking cada semana.',
     canonical: 'https://animeshowdown.dev/',
   })
   return (
@@ -510,7 +510,10 @@ function SectionStats({ stats }) {
       <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
         <Stat target={stats.totalPersonajes} label="Personajes" />
         <Stat target={stats.animeUniversos} label="Animes" />
-        <Stat target={stats.eloMax} label="ELO máximo" />
+        {/* ELO base máx es una estimación por popularidad, no un dato que
+            "suba" con votos: no lo animamos con CountUp para no sugerir que
+            es una métrica en movimiento (A7). */}
+        <Stat target={stats.eloMax} label="ELO base máx" animate={false} />
         {hayTorneos ? (
           <Stat target={torneos.length} label="Torneos visibles" />
         ) : (
@@ -524,9 +527,12 @@ function SectionStats({ stats }) {
   )
 }
 
-function Stat({ target, label }) {
+function Stat({ target, label, animate = true }) {
   return (
-    <StatPill value={<CountUp target={target} />} label={label} />
+    <StatPill
+      value={animate ? <CountUp target={target} /> : target}
+      label={label}
+    />
   )
 }
 
@@ -600,9 +606,9 @@ function SectionTop10Ranking({ top10 }) {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
-      eyebrow="Top 10 · ELO"
-      title="Los más fuertes del ranking ELO"
-      description="Estos son los personajes que la comunidad ha llevado a la cima. Cada victoria suma puntos, cada derrota puede cambiarlo todo."
+      eyebrow="Top 10 · ELO base"
+      title="Top 10 por ELO base"
+      description="Orden estimado por popularidad del catálogo, no por votos. El ranking competitivo real, que sí se mueve con cada voto, está en /ranking."
       descriptionClassName="max-w-2xl text-[14px] text-fg-muted"
       headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
       headerAction={
@@ -667,8 +673,12 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
               </p>
               <p className="truncate text-xs text-fg-muted">{anime}</p>
             </div>
-            <p className="shrink-0 font-mono text-[12px] font-bold text-elo-number tabular-nums">
+            <p
+              className="shrink-0 font-mono text-[12px] font-bold text-elo-number tabular-nums"
+              title="ELO base estimado por popularidad. El ranking real por votos está en /ranking."
+            >
               {elo}
+              <span className="ml-0.5 text-[9px] font-bold text-elo-number/70">·b</span>
             </p>
           </div>
         </div>
