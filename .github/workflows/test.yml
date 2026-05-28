@@ -84,6 +84,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Typecheck (tsc --noEmit). La migración a TS es parcial, pero los
+      # módulos .ts/.tsx ya existentes (api, types, queries...) tienen que
+      # compilar. Antes esto solo se corría en local; un type error podía
+      # llegar a main sin que el CI lo bloqueara.
+      - name: Typecheck
+        run: npm run typecheck
+
       # Vitest unit tests + coverage. Sprint Auto 06 introduce el target
       # 70% lines / 60% branches sobre src/lib/*. Los thresholds van
       # escalonados por PR (06.1 entra con umbral mínimo 5% como
