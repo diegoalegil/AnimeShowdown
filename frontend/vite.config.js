@@ -243,7 +243,7 @@ function criticalCssPlugin() {
  *   - registerType:'autoUpdate' → el SW comprueba updates en cada nav y
  *     refresca silenciosamente, sin pedir acción al usuario.
  *   - manifest con iconos 192/512 (estándar Android/Chrome) +
- *     apple-touch-icon (iOS). theme_color magenta para la status bar.
+ *     apple-touch-icon (iOS). theme_color #080b12 (fondo real del body) para la status bar.
  *   - workbox runtime caching:
  *       · /img/* → NetworkFirst mientras el catálogo sigue en curación.
  *         Hay cartas que se reemplazan manteniendo el mismo slug/path; servir
@@ -266,8 +266,8 @@ const pwaPlugin = VitePWA({
     short_name: 'AnimeShowdown',
     description:
       'Torneos de personajes anime con sistema ELO en vivo, brackets visuales y votación social.',
-    theme_color: '#0d0d12',
-    background_color: '#0d0d12',
+    theme_color: '#080b12',
+    background_color: '#080b12',
     display: 'standalone',
     orientation: 'portrait-primary',
     scope: '/',
