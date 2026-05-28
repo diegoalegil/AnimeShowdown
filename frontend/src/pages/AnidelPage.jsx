@@ -33,6 +33,11 @@ import { getGameVisual } from '../data/visual-assets'
 
 const MAX_INTENTOS = 6
 const STORAGE_KEY = 'animeshowdown.anidel.v1'
+// El ELO base es sintético y casi todo el catálogo empata en una franja
+// estrecha; una flecha ↑/↓ por cualquier diferencia mínima sería una pista
+// "ciega" (engañosa). Solo damos dirección cuando el gap es significativo;
+// por debajo del umbral mostramos "≈ parecido" (mismo tier), que es honesto.
+const ELO_UMBRAL = 40
 const SEO_IMAGE = getGameVisual('/games/anigrid').image
 
 const containerVariants = {
@@ -42,6 +47,14 @@ const containerVariants = {
     y: 0,
     transition: { duration: 0.5, ease: 'easeOut' },
   },
+}
+
+// 'up' = el objetivo tiene MÁS ELO base; 'down' = MENOS; 'cerca' = la
+// diferencia está dentro del umbral (mismo tier, sin dirección fiable).
+function direccionEloEntre(elo, eloObjetivo) {
+  const delta = eloObjetivo - elo
+  if (Math.abs(delta) < ELO_UMBRAL) return 'cerca'
+  return delta > 0 ? 'up' : 'down'
 }
 
 /**
@@ -142,8 +155,7 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
         personaje.nombre.charAt(0).toUpperCase() ===
         objetivo.nombre.charAt(0).toUpperCase(),
       matchAnime: personaje.anime === objetivo.anime,
-      direccionElo:
-        elo === eloObjetivo ? 'eq' : elo < eloObjetivo ? 'up' : 'down',
+      direccionElo: direccionEloEntre(elo, eloObjetivo),
     }
     const intentos = [...estado.intentos, intento]
     const finalizado =
@@ -425,11 +437,14 @@ function Squarito({ ok, label, title }) {
 }
 
 function SquaritoFlecha({ dir, elo }) {
-  if (dir === 'eq')
+  // 'cerca' (y el legacy 'eq' de estados guardados) = ELO base muy parecido:
+  // mismo tier, sin dirección fiable. No usamos verde para no sugerir un match
+  // exacto; ámbar con − indica "pista de proximidad, no de dirección".
+  if (dir === 'cerca' || dir === 'eq')
     return (
       <span
-        className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-200"
-        title={`ELO ${elo} = objetivo`}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/15 text-amber-200"
+        title={`ELO base ${elo} — muy parecido al objetivo (mismo tier)`}
       >
         <Minus className="h-3.5 w-3.5" />
       </span>
@@ -439,8 +454,8 @@ function SquaritoFlecha({ dir, elo }) {
       className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/15 text-amber-200"
       title={
         dir === 'up'
-          ? `ELO ${elo} — el objetivo es mayor`
-          : `ELO ${elo} — el objetivo es menor`
+          ? `ELO base ${elo} — el objetivo tiene bastante más`
+          : `ELO base ${elo} — el objetivo tiene bastante menos`
       }
     >
       {dir === 'up' ? (
@@ -470,10 +485,11 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   const squaresShare = intentos
     .map((i) => {
       if (i.acierto) return '🟩🟩🟩'
+      const eloCerca = i.direccionElo === 'cerca' || i.direccionElo === 'eq'
       const parts = [
         i.matchLetra ? '🟩' : '🟥',
         i.matchAnime ? '🟩' : '🟥',
-        i.direccionElo === 'eq' ? '🟩' : '🟨',
+        eloCerca ? '🟩' : '🟨',
       ]
       return parts.join('')
     })
@@ -484,7 +500,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
     const matches =
       (i.matchLetra ? 1 : 0) +
       (i.matchAnime ? 1 : 0) +
-      (i.direccionElo === 'eq' ? 1 : 0)
+      (i.direccionElo === 'cerca' || i.direccionElo === 'eq' ? 1 : 0)
     return { ok: matches >= 2, emoji: matches >= 2 ? '🌟' : '🍂' }
   })
 
