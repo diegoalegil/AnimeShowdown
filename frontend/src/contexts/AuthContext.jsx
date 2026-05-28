@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 import {
   endpoints,
@@ -152,7 +159,7 @@ export function AuthProvider({ children }) {
   // Helper interno: aplica el resultado de un login exitoso (token + user)
   // a la sesión local. Se llama tanto desde login() sin 2FA como desde
   // completeLogin2fa() tras superar el segundo paso.
-  const aplicarSesion = (res, identificadorFallback) => {
+  const aplicarSesion = useCallback((res, identificadorFallback) => {
     if (res?.token) {
       // Bump epoch ANTES de setToken para
       // invalidar cualquier refreshPromise que pudiera estar en vuelo.
@@ -196,7 +203,7 @@ export function AuthProvider({ children }) {
         u.rol === 'ADMIN' ? 'Sesión ADMIN iniciada.' : 'Sesión iniciada.',
     })
     return u
-  }
+  }, [])
 
   /**
    * Inicia sesión. Si el usuario tiene 2FA activo, el backend NO devuelve
@@ -204,7 +211,7 @@ export function AuthProvider({ children }) {
    * devolvemos ese mismo objeto al caller para que pinte el segundo paso.
    * En el caso normal sin 2FA aplicamos la sesión y devolvemos null.
    */
-  const login = async (identificador, password) => {
+  const login = useCallback(async (identificador, password) => {
     try {
       const res = await endpoints.login({
         username: identificador,
@@ -227,20 +234,23 @@ export function AuthProvider({ children }) {
       toast.error(title, { description })
       throw err
     }
-  }
+  }, [aplicarSesion])
 
   /** Completa el paso 2 del login con 2FA. Devuelve el usuario logueado. */
-  const completeLogin2fa = async (challengeToken, codigo, identificador) => {
-    const res = await endpoints.verifyLogin2fa(challengeToken, codigo)
-    return aplicarSesion(res, identificador)
-  }
+  const completeLogin2fa = useCallback(
+    async (challengeToken, codigo, identificador) => {
+      const res = await endpoints.verifyLogin2fa(challengeToken, codigo)
+      return aplicarSesion(res, identificador)
+    },
+    [aplicarSesion],
+  )
 
   /**
    * Finaliza un login externo (Google/Discord). El backend ya dejó la
    * refresh cookie httpOnly en el callback OAuth; aquí solo pedimos un JWT
    * corto vía /refresh y aplicamos la sesión al estado React.
    */
-  const finalizeOAuthLogin = async () => {
+  const finalizeOAuthLogin = useCallback(async () => {
     try {
       const res = await refreshSession()
       if (!res?.token || !res?.usuario) {
@@ -253,30 +263,33 @@ export function AuthProvider({ children }) {
       })
       throw err
     }
-  }
+  }, [aplicarSesion])
 
-  const register = async ({ username, email, password, referralCode }) => {
-    try {
-      await endpoints.register({
-        username,
-        email,
-        password,
-        referralCode: referralCode || undefined,
-      })
-      // Backend register no devuelve token; hacemos login automático con username + password
-      await login(username, password)
-    } catch (err) {
-      const { title, description } = describeError(err)
-      toast.error(title, { description })
-      throw err
-    }
-  }
+  const register = useCallback(
+    async ({ username, email, password, referralCode }) => {
+      try {
+        await endpoints.register({
+          username,
+          email,
+          password,
+          referralCode: referralCode || undefined,
+        })
+        // Backend register no devuelve token; hacemos login automático con username + password
+        await login(username, password)
+      } catch (err) {
+        const { title, description } = describeError(err)
+        toast.error(title, { description })
+        throw err
+      }
+    },
+    [login],
+  )
 
-  const updateUser = (partial) => {
+  const updateUser = useCallback((partial) => {
     setUser((prev) => (prev ? { ...prev, ...partial } : prev))
-  }
+  }, [])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     // Marca isLoggingOut ANTES de pegar
     // al backend. Si una request paralela recibe 401 mientras logout
     // está en vuelo, intentarRefresh devolvía un refresh exitoso que
@@ -316,23 +329,33 @@ export function AuthProvider({ children }) {
     } finally {
       setLoggingOut(false)
     }
-  }
+  }, [])
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        completeLogin2fa,
-        finalizeOAuthLogin,
-        register,
-        logout,
-        updateUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  // Memoizamos el value para que los consumidores de useAuth no se
+  // re-rendericen en cada render del provider. Las funciones son estables
+  // (useCallback), así que el objeto solo cambia cuando cambia `user`.
+  const value = useMemo(
+    () => ({
+      user,
+      login,
+      completeLogin2fa,
+      finalizeOAuthLogin,
+      register,
+      logout,
+      updateUser,
+    }),
+    [
+      user,
+      login,
+      completeLogin2fa,
+      finalizeOAuthLogin,
+      register,
+      logout,
+      updateUser,
+    ],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
