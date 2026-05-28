@@ -106,8 +106,12 @@ function RankingPage() {
 
   const initialSearch = searchParams.get('q') ?? ''
   const initialAnimeFilter = searchParams.get('anime') ?? ''
-  const [queryTab, setTab] = useQueryState('tab', 'elo')
-  const tab = RANKING_TABS.some((item) => item.id === queryTab) ? queryTab : 'elo'
+  // Por defecto mostramos "Histórico" (votos reales), no el ELO base sintético.
+  const [queryTab, setTab] = useQueryState('tab', 'all')
+  const tab = RANKING_TABS.some((item) => item.id === queryTab) ? queryTab : 'all'
+  // La tabla técnica (extraíble por crawlers/LLMs) debe exponer SOLO datos
+  // reales: top por votos del backend, nunca el ELO base sintético.
+  const { data: rankingRealTop } = useRankingSegmentado({ periodo: 'all', limit: 10 })
   const consultadoA = useMemo(
     () =>
       new Date().toLocaleTimeString('es-ES', {
@@ -266,7 +270,7 @@ function RankingPage() {
 
         <RankingFaq />
 
-        <RankingTechnicalTable rankedElo={rankedElo} />
+        <RankingTechnicalTable items={rankingRealTop} />
       </div>
     </VisualPageShell>
   )
@@ -507,6 +511,23 @@ function ListaEloLocal({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Banner de honestidad: esta pestaña ordena por ELO base (estimación
+          por popularidad), no por votos reales. Dirige a las pestañas con
+          datos reales para que nadie lea estos números como competitivos. */}
+      <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-[12px] leading-5 text-amber-200/90">
+        <strong className="font-bold text-amber-200">ELO base · estimado.</strong>{' '}
+        Este orden usa una estimación por popularidad del catálogo, no votos
+        reales (no se mueve con tus votos). Para el ranking competitivo por
+        votos mira{' '}
+        <Link to="/ranking?tab=all" className="font-semibold text-gold underline">
+          Histórico
+        </Link>{' '}
+        o{' '}
+        <Link to="/ranking?tab=mes" className="font-semibold text-gold underline">
+          Este mes
+        </Link>
+        .
+      </p>
       <div className="as-panel flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
