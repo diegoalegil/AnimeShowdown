@@ -43,6 +43,22 @@ function startWebVitals() {
 // caches runtime y recargamos una vez antes de dejar caer la app al boundary.
 installStaleAssetRecovery()
 
+// Tras un deploy, el SW nuevo se activa (skipWaiting + clientsClaim) pero la
+// pestaña abierta sigue ejecutando el bundle viejo: en una SPA con navegación
+// client-side el shell viejo persiste hasta que el usuario hace hard-refresh.
+// Recargamos UNA sola vez cuando un SW NUEVO toma el control (controllerchange
+// con un controller previo => actualización, no primera instalación), para que
+// el contenido nuevo aparezca sin intervención manual.
+if ('serviceWorker' in navigator) {
+  const teniaController = Boolean(navigator.serviceWorker.controller)
+  let swRecargado = false
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRecargado || !teniaController) return
+    swRecargado = true
+    window.location.reload()
+  })
+}
+
 // Bootstrap Sentry antes de montar React. No-op si VITE_SENTRY_DSN no está
 // definida (dev local sin env).
 initSentry()
