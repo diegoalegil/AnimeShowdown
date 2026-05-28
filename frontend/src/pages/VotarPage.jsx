@@ -490,12 +490,8 @@ function VotarPage() {
         return
       }
       voteLockedRef.current = true
-      // Solo playVote: antes había también playImpact (sub-bass thump)
-      // pero los dos juntos disparaban 9 nodos Web Audio en el mismo
-      // tick del click handler y se percibía un lag perceptible entre
-      // el click y el primer sample. playVote ya tiene 4 notas + sparkle,
-      // suficiente para feedback contundente.
-      play('playVote')
+      // El sonido playVote ahora se dispara en onPointerDown desde VoteCard
+      // vía useInstantSoundPress — feedback instantáneo sin esperar al onClick.
 
       if (modoBackend) {
         setVotedFor(personaje.slug)
@@ -588,7 +584,6 @@ function VotarPage() {
       }
     },
     [
-      play,
       modoBackend,
       user,
       navigate,
