@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { z } from 'zod'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
@@ -19,6 +19,11 @@ const containerVariants = {
     y: 0,
     transition: { duration: 0.5, ease: 'easeOut' },
   },
+}
+
+const containerVariantsReduced = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.15 } },
 }
 
 const registerSchema = z
@@ -79,6 +84,7 @@ function RegisterPage() {
       'Crea tu cuenta gratuita en AnimeShowdown. Vota, predice torneos, crea tu propio bracket y construye tu perfil público.',
     noindex: true,
   })
+  const prefersReducedMotion = useReducedMotion()
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -136,7 +142,7 @@ function RegisterPage() {
         className="w-full"
         initial="hidden"
         animate="visible"
-        variants={containerVariants}
+        variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
       >
         <div className="mb-6 flex flex-col items-start gap-2">
           <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">

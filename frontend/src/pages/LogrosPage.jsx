@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Trophy, Users, ArrowRight, Sparkles, Award } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
@@ -49,6 +49,7 @@ const FILTROS_RAREZA = [
  *     de registrarse; el logueado ve qué le falta.
  */
 function LogrosPage() {
+  const prefersReducedMotion = useReducedMotion()
   const { user } = useAuth()
   const { i18n } = useTranslation()
   const [searchParams] = useSearchParams()
@@ -121,7 +122,7 @@ function LogrosPage() {
           className="mb-10 flex flex-col items-start gap-3"
           initial="hidden"
           animate="visible"
-          variants={containerVariants}
+          variants={prefersReducedMotion ? { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.15 } } } : containerVariants}
         >
           {/* Acento oro místico (nota de producto 2026-05-18): logros tira
               al mismo dorado del ranking pero con tono más ámbar oscuro
@@ -175,9 +176,9 @@ function LogrosPage() {
         {user && (
           <motion.div
             className="mb-8 grid gap-3 sm:grid-cols-3"
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+            transition={prefersReducedMotion ? { duration: 0.15 } : { duration: 0.5, delay: 0.1, ease: 'easeOut' }}
           >
             <StatTile
               icon={Trophy}
@@ -202,9 +203,9 @@ function LogrosPage() {
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg/60">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-amber-300 to-fuchsia-400"
-                  initial={{ width: 0 }}
+                  initial={{ width: prefersReducedMotion ? `${progresoPct}%` : 0 }}
                   animate={{ width: `${progresoPct}%` }}
-                  transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.2, ease: 'easeOut', delay: 0.3 }}
                 />
               </div>
             </StatTile>
