@@ -41,15 +41,28 @@ function pickRandom(catalogoPersonajes, exclude = null) {
   return { ...p, ...getStatsPersonaje(p.slug) }
 }
 
+// El ELO base es sintético (deriva de la popularidad) y hace que >85% del
+// catálogo empate en una franja estrecha. Sin un delta mínimo, muchos duelos
+// eran cara-o-cruz: dos personajes con ELO casi idéntico y respuesta ambigua.
+// Exigimos una diferencia mínima para que "más o menos" siempre tenga una
+// respuesta defendible. Si tras varios intentos no la hallamos (catálogo
+// diminuto), devolvemos el de mayor diferencia encontrada.
+const MIN_ELO_DELTA = 40
+
 function pickDistinctElo(catalogoPersonajes, reference) {
-  let p = pickRandom(catalogoPersonajes, reference)
-  // Si por azar tienen exactamente el mismo ELO, tira otro (evita ambigüedad
-  // en la pregunta "más o menos" — en el catálogo solo pasa con personajes
-  // muy similares en popularidad, pero por si acaso).
-  for (let i = 0; p && p.elo === reference.elo && i < 12; i++) {
-    p = pickRandom(catalogoPersonajes, reference)
+  let best = null
+  let bestDelta = -1
+  for (let i = 0; i < 24; i++) {
+    const p = pickRandom(catalogoPersonajes, reference)
+    if (!p) break
+    const delta = Math.abs(p.elo - reference.elo)
+    if (delta >= MIN_ELO_DELTA) return p
+    if (delta > bestDelta) {
+      best = p
+      bestDelta = delta
+    }
   }
-  return p
+  return best
 }
 
 function parseBestStreak(value) {
