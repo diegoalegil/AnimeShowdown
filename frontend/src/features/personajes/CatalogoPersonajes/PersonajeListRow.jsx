@@ -4,9 +4,10 @@ import PersonajeImg from '../../../components/PersonajeImg'
 import { getStatsPersonaje } from '../../../lib/personajes-core'
 
 function PersonajeListRow({ slug, nombre, anime, rank }) {
-  const { elo, wins, losses } = getStatsPersonaje(slug)
-  const total = wins + losses
-  const winRate = total > 0 ? Math.round((wins / total) * 100) : null
+  // Solo ELO base (estimado por popularidad). Las W/L y el win rate de
+  // getStatsPersonaje son sintéticos y se ocultan, igual que en la card,
+  // para mantener paridad y no exhibir métricas de combate falsas.
+  const { elo } = getStatsPersonaje(slug)
 
   return (
     <li>
@@ -31,22 +32,16 @@ function PersonajeListRow({ slug, nombre, anime, rank }) {
           </p>
           <p className="truncate text-[12px] text-fg-muted">{anime}</p>
         </div>
-        <div className="hidden text-right text-[12px] sm:block">
-          <p className="text-fg-muted">
-            <span className="font-semibold text-emerald-300">{wins}V</span>
-            {' · '}
-            <span className="font-semibold text-rose-300">{losses}D</span>
+        <div
+          className="text-right"
+          title="ELO base estimado por popularidad. El ranking competitivo real está en /ranking."
+        >
+          <p className="font-mono text-sm font-bold text-gold">
+            {elo}
+            <span className="ml-0.5 text-[10px] font-bold text-gold/80">·b</span>
           </p>
-          {winRate != null && (
-            <p className="font-mono text-[11px] font-semibold text-emerald-300/80">
-              {winRate}% WR
-            </p>
-          )}
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-sm font-bold text-gold">{elo}</p>
           <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-            ELO
+            ELO base
           </p>
         </div>
         <span className="hidden items-center gap-1 rounded-md border border-border bg-bg px-2.5 py-1 text-[11px] font-semibold text-fg-muted transition-colors group-hover:border-accent/40 group-hover:text-gold md:inline-flex">

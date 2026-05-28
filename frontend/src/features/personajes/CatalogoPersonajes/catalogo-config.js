@@ -1,8 +1,11 @@
+// El "win rate" salía de stats sintéticos (getStatsPersonaje) y no de votos
+// reales, así que se retira como criterio de orden (ver decisión "ocultar W/L
+// sintéticos"). Los órdenes por ELO se etiquetan "base" porque ese ELO es una
+// estimación por popularidad, no el ranking competitivo real de /ranking.
 export const sortLabels = {
   popularidad: 'Popularidad',
-  elo_desc: 'Mayor ELO',
-  elo_asc: 'Menor ELO',
-  winrate: 'Mejor win rate',
+  elo_desc: 'Mayor ELO base',
+  elo_asc: 'Menor ELO base',
   nombre_az: 'Nombre A-Z',
   nombre_za: 'Nombre Z-A',
   anime: 'Anime A-Z',
