@@ -107,12 +107,12 @@ function Hero({ catalogoPersonajes = [] }) {
           Arena 1v1 · ranking vivo · retos diarios
         </motion.span>
         <motion.h1
-          className="w-full max-w-[22rem] text-balance text-[clamp(1.95rem,8vw,4.55rem)] font-extrabold leading-[1.02] tracking-normal sm:max-w-4xl"
+          className="w-full max-w-[min(90vw,28rem)] text-balance text-[clamp(1.95rem,8vw,4.55rem)] font-extrabold leading-[1.02] tracking-normal sm:max-w-4xl"
           variants={itemVariants}
         >
           {t('hero.tituloAntes')}{' '}
           <span
-            className="bg-gradient-to-r from-fg-strong via-gold to-accent bg-clip-text text-transparent motion-safe:animate-shimmer"
+            className="bg-gradient-to-r from-fg-strong via-gold to-accent bg-clip-text text-transparent motion-safe:animate-[shimmer_3.2s_ease-out_forwards]"
             style={{ backgroundSize: '200% auto' }}
           >
             {t('hero.tituloAnime')}
