@@ -202,14 +202,6 @@ function PersonajesPage() {
       list = [...list].sort(
         (a, b) => getStatsPersonaje(a.slug).elo - getStatsPersonaje(b.slug).elo,
       )
-    } else if (sort === 'winrate') {
-      list = [...list].sort((a, b) => {
-        const sa = getStatsPersonaje(a.slug)
-        const sb = getStatsPersonaje(b.slug)
-        const wra = sa.wins + sa.losses > 0 ? sa.wins / (sa.wins + sa.losses) : 0
-        const wrb = sb.wins + sb.losses > 0 ? sb.wins / (sb.wins + sb.losses) : 0
-        return wrb - wra
-      })
     } else if (sort === 'nombre_az') {
       list = [...list].sort((a, b) => a.nombre.localeCompare(b.nombre))
     } else if (sort === 'nombre_za') {
@@ -274,7 +266,7 @@ function PersonajesPage() {
     if (animeFilter) badges.push(animeFilter)
     if (selectedTag) badges.push(selectedTag.label)
     if (eloMin != null || eloMax != null) {
-      badges.push(`${eloMin ?? eloBounds.min}-${eloMax ?? eloBounds.max} ELO`)
+      badges.push(`${eloMin ?? eloBounds.min}-${eloMax ?? eloBounds.max} ELO base`)
     }
     if (sort !== DEFAULT_SORT) badges.push(sortLabels[sort])
     if (view === 'list') badges.push('Vista densa')
@@ -418,7 +410,7 @@ function PersonajesPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <MiniHeroStat label="Universos" value={animes.length} />
-                  <MiniHeroStat label="Top ELO" value={Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))} />
+                  <MiniHeroStat label="Top ELO base" value={Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))} />
                 </div>
               </div>
             }
@@ -741,7 +733,7 @@ function PersonajesPage() {
 
                 <fieldset className="space-y-3">
                   <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
-                    Rango ELO
+                    Rango ELO base
                   </legend>
                   <div className="flex items-center justify-between rounded-lg border border-border bg-bg px-3 py-2 font-mono text-[12px] font-bold text-gold tabular-nums">
                     <span>{drawerEloMin}</span>
@@ -849,6 +841,19 @@ function PersonajesPage() {
               <strong className="text-fg-strong">{selectedTag.label}</strong>
             </>
           )}
+        </p>
+
+        {/* Leyenda del sufijo "·b": aclara una sola vez que el ELO de las
+            cards/lista es una estimación por popularidad, no el ranking real
+            por votos. Evita repetir el matiz en cada tarjeta. */}
+        <p className="mb-4 text-[11px] text-fg-muted">
+          <span className="font-mono font-bold text-gold">·b</span> = ELO base
+          estimado por popularidad (no se mueve con tus votos). El ranking
+          competitivo real, por votos, está en{' '}
+          <Link to="/ranking" className="font-semibold text-gold hover:underline">
+            /ranking
+          </Link>
+          .
         </p>
 
         {shouldShowCatalogLoading ? (

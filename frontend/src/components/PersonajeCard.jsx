@@ -36,9 +36,10 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
   // guarda contra SSR retornando false.
   const [hoverEnabled] = useState(detectHover)
 
-  const { elo, wins, losses } = getStatsPersonaje(slug)
-  const totalCombates = wins + losses
-  const winRate = totalCombates > 0 ? Math.round((wins / totalCombates) * 100) : null
+  // Solo usamos el ELO base (estimado por popularidad). Las W/L y el win rate
+  // de getStatsPersonaje son sintéticos y se ocultan para no mostrar métricas
+  // de combate falsas (ver decisión "ocultar W/L sintéticos").
+  const { elo } = getStatsPersonaje(slug)
   const priorityImage = Boolean(rank && rank <= 12)
   const imageLoading = priorityImage ? 'eager' : 'lazy'
   const imageFetchPriority = priorityImage ? 'high' : 'auto'
@@ -51,7 +52,6 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
         anime={anime}
         rank={rank}
         elo={elo}
-        winRate={winRate}
         imageLoading={imageLoading}
         imageFetchPriority={imageFetchPriority}
         onClick={() => play('playWhoosh')}
@@ -74,7 +74,7 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
           fetchPriority={imageFetchPriority}
           className="aspect-[2/3] w-full object-cover"
         />
-        <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} winRate={winRate} />
+        <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} />
       </article>
     </Link>
   )
@@ -88,7 +88,6 @@ function CardWithTilt({
   anime,
   rank,
   elo,
-  winRate,
   imageLoading,
   imageFetchPriority,
   onClick,
@@ -150,13 +149,13 @@ function CardWithTilt({
           className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{ background: spotlight }}
         />
-        <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} winRate={winRate} />
+        <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} />
       </motion.article>
     </Link>
   )
 }
 
-function CardBadges({ rank, elo, nombre, anime, winRate }) {
+function CardBadges({ rank, elo, nombre, anime }) {
   return (
     <>
       {rank && rank <= 10 && (
@@ -182,18 +181,7 @@ function CardBadges({ rank, elo, nombre, anime, winRate }) {
         <h3 className="line-clamp-1 text-sm font-bold text-fg-strong">
           {nombre}
         </h3>
-        <div className="flex items-center justify-between gap-2">
-          <p className="line-clamp-1 text-[12px] text-fg-muted">{anime}</p>
-          {winRate != null && (
-            <span
-              className="shrink-0 font-mono text-[10px] font-semibold text-emerald-300/90"
-              title="Win rate estimado a partir del ELO base. No es un win rate real con votos."
-              aria-label={`${winRate}% win rate estimado`}
-            >
-              {winRate}% WR<span className="ml-0.5 text-emerald-300/55">·e</span>
-            </span>
-          )}
-        </div>
+        <p className="line-clamp-1 text-[12px] text-fg-muted">{anime}</p>
       </div>
     </>
   )
