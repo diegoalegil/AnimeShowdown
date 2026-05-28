@@ -35,6 +35,12 @@ import {
   selectRandomPair,
 } from '../features/votar/vote-pairing'
 
+// Claves y tiempo de vida para el prefetch del siguiente par.
+// gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
+const PREFETCH_BACKEND_KEY = ['enfrentamientos', 'prefetch-siguiente']
+const PREFETCH_SUGERIDO_KEY = ['votar', 'duelo-sugerido-prefetch']
+const PREFETCH_GC_TIME = 8_000
+
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
 // vez. La mayoría de usuarios nunca caen en captcha, así que mantenemos
 // el bundle inicial sin ese coste.
@@ -295,6 +301,28 @@ function VotarPage() {
     trackLocalVote,
   } = useVoteSessionStats()
 
+  // Prefetch del siguiente par en background mientras el usuario ve el resultado.
+  // Se llama justo después de registrar el voto para que la petición al backend
+  // vuele en paralelo con la animación de resultado (~900ms).
+  const prefetchSiguientePar = useCallback(() => {
+    if (modoBackend) {
+      queryClient.prefetchQuery({
+        queryKey: PREFETCH_BACKEND_KEY,
+        queryFn: endpoints.enfrentamientoAleatorio,
+        staleTime: 0,
+        gcTime: PREFETCH_GC_TIME,
+      })
+    } else if (modoSugerido) {
+      queryClient.prefetchQuery({
+        queryKey: PREFETCH_SUGERIDO_KEY,
+        queryFn: endpoints.dueloSugerido,
+        staleTime: 0,
+        gcTime: PREFETCH_GC_TIME,
+      })
+    }
+    // Modo casual es instantáneo (solo estado local), no necesita prefetch.
+  }, [modoBackend, modoSugerido, queryClient])
+
   const handleNext = useCallback(async (options = {}) => {
     const force = options?.force === true
     if (isAdvancingRef.current || (!force && isVotePendingRef.current)) return
@@ -313,22 +341,44 @@ function VotarPage() {
     try {
       const previousKey = currentPairKeyRef.current
       if (modoBackend) {
-        const result = await refetch()
-        const nextKey =
-          result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
-            ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
+        // Si hay datos pre-cargados del siguiente par, los inyectamos
+        // directamente en la query principal para transición instantánea.
+        const prefetchedData = queryClient.getQueryData(PREFETCH_BACKEND_KEY)
+        const prefetchedKey =
+          prefetchedData?.personaje1?.slug && prefetchedData?.personaje2?.slug
+            ? pairKey(prefetchedData.personaje1.slug, prefetchedData.personaje2.slug)
             : ''
-        if (nextKey && nextKey === previousKey) {
-          await refetch()
-        }
-      } else if (modoSugerido) {
-        for (let attempt = 0; attempt < 3; attempt += 1) {
-          const result = await refetchDueloSugerido()
+        if (prefetchedData && prefetchedKey && prefetchedKey !== previousKey) {
+          queryClient.setQueryData(['enfrentamientos', 'aleatorio'], prefetchedData)
+          queryClient.removeQueries({ queryKey: PREFETCH_BACKEND_KEY })
+        } else {
+          const result = await refetch()
           const nextKey =
             result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
               ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
               : ''
-          if (nextKey && nextKey !== previousKey) break
+          if (nextKey && nextKey === previousKey) {
+            await refetch()
+          }
+        }
+      } else if (modoSugerido) {
+        const prefetchedData = queryClient.getQueryData(PREFETCH_SUGERIDO_KEY)
+        const prefetchedKey =
+          prefetchedData?.personaje1?.slug && prefetchedData?.personaje2?.slug
+            ? pairKey(prefetchedData.personaje1.slug, prefetchedData.personaje2.slug)
+            : ''
+        if (prefetchedData && prefetchedKey && prefetchedKey !== previousKey) {
+          queryClient.setQueryData(['votar', 'duelo-sugerido'], prefetchedData)
+          queryClient.removeQueries({ queryKey: PREFETCH_SUGERIDO_KEY })
+        } else {
+          for (let attempt = 0; attempt < 3; attempt += 1) {
+            const result = await refetchDueloSugerido()
+            const nextKey =
+              result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
+                ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
+                : ''
+            if (nextKey && nextKey !== previousKey) break
+          }
         }
       } else {
         setCasualPairOverride({
@@ -350,6 +400,7 @@ function VotarPage() {
     play,
     modoBackend,
     modoSugerido,
+    queryClient,
     refetch,
     refetchDueloSugerido,
     casualContextKey,
@@ -403,9 +454,11 @@ function VotarPage() {
             : 'Voto registrado · ranking actualizado',
       })
 
+      // Prefetch del siguiente par mientras el usuario ve la animación de resultado.
+      prefetchSiguientePar()
       scheduleAutoNext()
     },
-    [scheduleAutoNext, trackLocalVote],
+    [scheduleAutoNext, trackLocalVote, prefetchSiguientePar],
   )
 
   const handleShareVote = useCallback(async () => {
@@ -580,6 +633,7 @@ function VotarPage() {
             ? formatPersonalVoteImpact(impact)
             : 'Modo casual · sin torneo activo',
         })
+        prefetchSiguientePar()
         scheduleAutoNext()
       }
     },
@@ -591,6 +645,7 @@ function VotarPage() {
       matchId,
       scheduleAutoNext,
       handleVoteSuccess,
+      prefetchSiguientePar,
       votedFor,
       a,
       b,
