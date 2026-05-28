@@ -484,6 +484,10 @@ export default defineConfig({
     criticalCssPlugin(),
   ],
   build: {
+    // 'hidden' emite los .map SIN referenciarlos desde el bundle: los stack
+    // traces de Sentry se desminifican (subir los .map al release y NO
+    // desplegarlos), pero no se expone el código fuente en producción.
+    sourcemap: 'hidden',
     // Personaje3D queda aislado como chunk lazy y lo vigila npm run test:bundle.
     chunkSizeWarningLimit: 1000,
     modulePreload: {
