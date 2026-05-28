@@ -46,6 +46,16 @@ function sourcePath(imagenUrl) {
   return join(FRONTEND_ROOT, imagenUrl)
 }
 
+// Solo escribe si el contenido cambió. El color dominante es determinístico
+// (promedio de píxeles de la misma imagen), así que re-ejecutar produce JSON
+// idéntico: sin esta guarda, cada build reescribía ~1000 archivos trackeados y
+// ensuciaba el working tree (mtime) aunque el contenido fuera el mismo.
+function writeIfChanged(path, contenido) {
+  if (existsSync(path) && readFileSync(path, 'utf8') === contenido) return false
+  writeFileSync(path, contenido)
+  return true
+}
+
 function dominantJsonPath(imagenUrl) {
   const filePath = sourcePath(imagenUrl)
   if (!filePath) return null
@@ -55,6 +65,7 @@ function dominantJsonPath(imagenUrl) {
 const personajes = JSON.parse(readFileSync(SEED_PATH, 'utf8'))
 const backendColors = {}
 let generados = 0
+let escritos = 0
 let saltados = 0
 let errores = 0
 
@@ -69,15 +80,13 @@ for (const personaje of personajes) {
     const color = await dominantColor(img)
     backendColors[personaje.slug] = color.hex
     mkdirSync(dirname(out), { recursive: true })
-    writeFileSync(
-      out,
-      `${JSON.stringify({
-        slug: personaje.slug,
-        imagenUrl: personaje.imagenUrl,
-        rgb: color.rgb,
-        hex: color.hex,
-      })}\n`,
-    )
+    const contenido = `${JSON.stringify({
+      slug: personaje.slug,
+      imagenUrl: personaje.imagenUrl,
+      rgb: color.rgb,
+      hex: color.hex,
+    })}\n`
+    if (writeIfChanged(out, contenido)) escritos++
     generados++
   } catch (err) {
     errores++
@@ -85,9 +94,9 @@ for (const personaje of personajes) {
   }
 }
 
-writeFileSync(BACKEND_COLORS_PATH, `${JSON.stringify(backendColors, null, 2)}\n`)
+if (writeIfChanged(BACKEND_COLORS_PATH, `${JSON.stringify(backendColors, null, 2)}\n`)) escritos++
 
 console.log(
-  `[dominant-colors] generados=${generados}, saltados=${saltados}, errores=${errores}`,
+  `[dominant-colors] generados=${generados}, escritos=${escritos}, saltados=${saltados}, errores=${errores}`,
 )
 if (errores > 0) process.exit(1)
