@@ -71,6 +71,8 @@ Un agente debe detenerse y reportar (sin auto-resolver) cuando:
 cd frontend
 [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" && nvm use || node --version
 npm run lint
+npm run typecheck
+npm run test
 npm run build:no-images
 # Solo si el PR toca tests E2E:
 npm run test:e2e:responsive 2>&1 | tail -5
@@ -80,7 +82,7 @@ Backend (solo si el PR toca Java):
 
 ```bash
 cd backend
-./mvnw -q test
+./mvnw -q verify
 ```
 
 Todos deben pasar. Si fallan, **diagnosticar y corregir** el origen. `git restore` solo si el cambio en sí es la causa y no hay recovery razonable.
