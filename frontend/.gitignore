@@ -13,6 +13,10 @@ dist-ssr
 coverage
 *.local
 
+# Salida del POC de regeneración de recortes (scripts/regen-cuts.mjs):
+# previews para inspección, no se commitean.
+scripts/.regen-cuts-out/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
