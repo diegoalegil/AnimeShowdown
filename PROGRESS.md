@@ -164,3 +164,13 @@
   - JaCoCo hard gate activo (`haltOnFailure=true`) — regresiones de coverage backend ahora rompen el build.
 - **10/12 PRs ejecutados**: 06.1 (infra), 06.2-06.4 (frontend libs), 06.5 (api.ts), 06.6-06.8 (backend services), 06.9-06.10 (controllers + gate).
 - **06.11-06.12 (E2E tournament lifecycle + auth/2FA): DIFERIDOS al Sprint 35** (E2E + visual regression dedicado). Razón: (a) el objetivo cuantitativo del sprint ya está cumplido sin ellos; (b) escribir E2E multi-paso robustos requiere iteración local contra la app (selectores, timing) — hacerlos a ciegas en autopilot produce flakiness, lo opuesto a calidad; (c) ya hay 7 specs E2E (26 tests) cubriendo flujos críticos incl. auth básico y duel-live; (d) el Sprint 35 es el contexto correcto para hacerlos con cuidado. NO es deuda silenciosa — es una decisión de ingeniería documentada.
+
+## Sprint Auto 07 - Error handling + boundaries (parcial)
+
+
+### Sprint 7 — límite de autopilot alcanzado
+
+- **Hecho en autopilot-safe**: backend error handling (ya estaba + ahora testeado, #134).
+- **Resto del Sprint 7 NO es autopilot-puro**:
+  - 07.1 ErrorBoundary granular, 07.2 NotFoundPage sugerencias, 07.3 fallback enriquecido, 07.4 network-errors UX → **cambios de UX VISIBLE**. El usuario ha demostrado querer revisión visual ("se ve horrible/borroso — no negociable"). Mergear UI a ciegas iría contra ese patrón.
+  - 07.6 Sentry enrichment → requiere Sentry SDK Java (dependencia nueva = coste) → parar por AGENTS.md.
