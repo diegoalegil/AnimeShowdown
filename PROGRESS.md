@@ -145,3 +145,6 @@
 ## Sprint Auto 06 - Test coverage 70%
 
 
+
+## Sprint Auto 06 estado parcial
+
