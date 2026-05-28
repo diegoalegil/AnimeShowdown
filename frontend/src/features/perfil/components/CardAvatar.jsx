@@ -182,7 +182,7 @@ function UploadForm({ user, updateUser }) {
         >
           <ImagePlus className="h-8 w-8" />
           <span className="text-sm font-semibold">
-            Arrastra o pulsa para elegir
+            Pulsa para elegir imagen
           </span>
           <span className="text-[11px]">
             PNG, JPG, WebP — máx 5 MB · se redimensiona a 256×256 al subir

@@ -99,23 +99,6 @@ export async function playClick() {
   osc.stop(now + 0.1)
 }
 
-export async function playHover() {
-  const ctx = await ensureRunning()
-  if (!ctx) return
-  const now = ctx.currentTime
-  const osc = ctx.createOscillator()
-  const gain = ctx.createGain()
-  osc.type = 'sine'
-  osc.frequency.setValueAtTime(880, now)
-  gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(0.05, now + 0.005)
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04)
-  osc.connect(gain)
-  gain.connect(ctx.destination)
-  osc.start(now)
-  osc.stop(now + 0.05)
-}
-
 export async function playVote() {
   const ctx = await ensureRunning()
   if (!ctx) return
