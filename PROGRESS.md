@@ -177,3 +177,15 @@
 - **06.11-06.12 (E2E tournament lifecycle + auth/2FA): DIFERIDOS al Sprint 35** (E2E + visual regression dedicado). Razón: (a) el objetivo cuantitativo del sprint ya está cumplido sin ellos; (b) escribir E2E multi-paso robustos requiere iteración local contra la app (selectores, timing) — hacerlos a ciegas en autopilot produce flakiness, lo opuesto a calidad; (c) ya hay 7 specs E2E (26 tests) cubriendo flujos críticos incl. auth básico y duel-live; (d) el Sprint 35 es el contexto correcto para hacerlos con cuidado. NO es deuda silenciosa — es una decisión de ingeniería documentada.
 - **WIP de Minimax (stash@{0}, ~63 archivos Sprint 7)**: sigue intacto en stash, sin integrar. Es material de Sprint 7 (ErrorResponse DTO estandarizado) — se revisará como bloque coherente al abordar Sprint 7, no fragmentado. Plan curado en commit 47f8de99.
 - **Siguiente sprint**: Sprint Auto 07 (Error handling + boundaries) — SPEC en `docs/SPEC_SPRINT_07.md`. Considerar el WIP de Minimax como punto de partida.
+
+## Sprint Auto 07 - Error handling + boundaries (parcial)
+
+- 2026-05-28T18:20:00+01:00 | PR AUTO-07.5 / #134 | 859549c8 | autor: Claude | verify: `./mvnw -B test -Dtest=GlobalExceptionHandlerTest` 9 passed BUILD SUCCESS; CI PASS 7/7 | HALLAZGO: el núcleo backend del Sprint 7 (error-response estandarizado) YA estaba implementado en main — `GlobalExceptionHandler` ya devuelve shape uniforme `{timestamp, status, error, message, path}` en sus 11 handlers, validación añade `errors`, el genérico 500 no filtra internals. El auditor externo lo listó como pendiente: falso positivo (3o suyo). Este PR BLINDA ese contrato con 9 tests (incl. verificación de que el 500 no leak el mensaje interno). Confirmado por inspección: frontend `api.ts` solo lee `body.message` (body como `unknown`), ningún consumer parsea field-errors estructurados → enriquecer respuestas es seguro, pero el shape ya es consistente. | DIFERIDO (requiere OK/coste): migración a record `ErrorResponse` (cosmético), `traceId` via MDC, Sentry server-side (dependencia Java nueva = coste, AGENTS.md).
+
+### Sprint 7 — límite de autopilot alcanzado
+
+- **Hecho en autopilot-safe**: backend error handling (ya estaba + ahora testeado, #134).
+- **Resto del Sprint 7 NO es autopilot-puro**:
+  - 07.1 ErrorBoundary granular, 07.2 NotFoundPage sugerencias, 07.3 fallback enriquecido, 07.4 network-errors UX → **cambios de UX VISIBLE**. El usuario ha demostrado querer revisión visual ("se ve horrible/borroso — no negociable"). Mergear UI a ciegas iría contra ese patrón.
+  - 07.6 Sentry enrichment → requiere Sentry SDK Java (dependencia nueva = coste) → parar por AGENTS.md.
+- **Decisión**: lo técnico-seguro del Sprint 7 está cerrado. El frontend UX queda para una sesión con revisión visual del usuario (idealmente con la herramienta de preview). El WIP de Minimax (stash@{0}) y su plan curado (`docs/SPRINT7_WIP_INTEGRATION_PLAN.md`) son el punto de partida para esa sesión.
