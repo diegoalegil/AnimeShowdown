@@ -195,8 +195,11 @@ function RankingPage() {
           }
           aside={
             <div className="as-panel rounded-2xl border-amber-500/35 p-5">
+            {/* Antes esto era un segundo "Meta report" que duplicaba el
+                componente RankingMetaReport de abajo. Lo reconvertimos en una
+                caja-CTA para mover la tabla (E2). */}
             <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.14em] text-amber-300">
-              Meta report · esta semana
+              Mueve la tabla
             </p>
             <p className="text-sm leading-relaxed text-fg-muted">
               La tabla cambia con cada duelo. Entra a votar si quieres mover el
@@ -225,21 +228,9 @@ function RankingPage() {
           fotografía viva de preferencias fandom dentro de la plataforma.
         </p>
 
-        <EloExplainer />
-
-        {/* Meta report narrativo arriba del MoversStrip: lee los endpoints
-            que ya carga la página y React Query deduplica las requests. */}
-        <RankingMetaReport />
-        {/* Nota de producto: el ranking se sentía estático.
-            MoversStrip arriba pinta los 3 personajes con más movimiento
-            de la semana — da sensación de vida temporal incluso antes
-            de que el user elija un tab. Solo aparece si hay movimientos. */}
-        <MoversStrip />
-
-        <PersonalRankingTeaser className="mt-6" />
-
-        <EditorialRankingsStrip />
-
+        {/* Tabs + lista PRIMERO (E2): el ranking es lo que el usuario viene a
+            ver, así que va justo bajo el hero, por encima del explainer, el
+            meta report, los movers y los rankings editoriales. */}
         <RankingTabs activo={tab} onChange={setTab} />
 
         <div className="mt-6">
@@ -265,6 +256,21 @@ function RankingPage() {
             <PorAnime key={`anime:${initialAnimeFilter}`} initialAnime={initialAnimeFilter} />
           )}
         </div>
+
+        <div className="mt-10">
+          <EloExplainer />
+        </div>
+
+        {/* Meta report narrativo: lee los endpoints que ya carga la página y
+            React Query deduplica las requests. */}
+        <RankingMetaReport />
+        {/* MoversStrip: los 3 personajes con más movimiento de la semana.
+            Solo aparece si hay movimientos. */}
+        <MoversStrip />
+
+        <PersonalRankingTeaser className="mt-6" />
+
+        <EditorialRankingsStrip />
 
         <HubLinks />
 
