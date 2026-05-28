@@ -25,6 +25,8 @@ import {
   safeStorage,
 } from '../lib/games'
 import PersonajeImg from '../components/PersonajeImg'
+import PersonajeCutImg from '../components/PersonajeCutImg'
+import { hasCut } from '../lib/cuts'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { getGameVisual } from '../data/visual-assets'
 
@@ -115,6 +117,12 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
   const intentosUsados = estado.intentos.length + (estado.pistaUsada ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
   const blurPx = estado.finalizado ? 0 : Math.max(0, 32 - intentosUsados * 8)
+  // Silueta REAL en los primeros intentos: con el recorte transparente,
+  // brightness(0) pinta la figura en negro (sombra) y se va iluminando al
+  // fallar. El difuminado anterior dejaba ver colores (pelo, ropa) y no
+  // parecía una silueta. Sin recorte caemos al retrato difuminado completo.
+  const usarSilueta = hasCut(objetivo.slug) && !estado.finalizado
+  const brilloSilueta = Math.min(1, intentosUsados / 3)
 
   const handleGuess = (slug) => {
     if (estado.finalizado) return
@@ -218,27 +226,39 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
           </p>
         </motion.header>
 
-        {/* Cap mobile a 42vh para que el input quede dentro del primer viewport.
-            La imagen aspect 2/3 toma su
-            anchura desde la altura (≈28vh wide) y queda centrada — sin
-            barras vacías. En sm+ vuelve al max-w-sm original. */}
+        {/* Ancho cómodo en móvil (antes la imagen quedaba diminuta capada a
+            42vh ≈ 28vw de ancho). max-w-[min(78vw,320px)] la hace protagonista
+            sin desbordar; en sm+ vuelve al max-w-sm original. */}
         <div
-          className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
+          className={`as-panel relative mx-auto mb-4 w-full max-w-[min(78vw,320px)] overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:max-w-sm ${
             estado.acertado
               ? 'border-emerald-400/60 shadow-[0_0_60px_-10px_rgba(52,211,153,0.55)]'
               : 'border-border'
           }`}
         >
-          <div className="relative aspect-[2/3] h-[42vh] w-auto overflow-hidden bg-bg sm:h-auto sm:w-full">
-            <PersonajeImg
-              slug={objetivo.slug}
-              alt={estado.finalizado ? objetivo.nombre : 'Personaje difuminado'}
-              className="h-full w-full object-contain transition-all duration-500"
-              style={{
-                filter: `blur(${blurPx}px)`,
-                transform: blurPx > 0 ? 'scale(1.05)' : 'scale(1)',
-              }}
-            />
+          <div className="relative aspect-[2/3] w-full overflow-hidden bg-bg">
+            {usarSilueta ? (
+              <PersonajeCutImg
+                slug={objetivo.slug}
+                alt="Silueta del personaje"
+                className="h-full w-full"
+                imgClassName="transition-all duration-500"
+                style={{
+                  filter: `brightness(${brilloSilueta}) blur(${blurPx}px)`,
+                  transform: 'scale(1.05)',
+                }}
+              />
+            ) : (
+              <PersonajeImg
+                slug={objetivo.slug}
+                alt={estado.finalizado ? objetivo.nombre : 'Personaje difuminado'}
+                className="h-full w-full object-contain transition-all duration-500"
+                style={{
+                  filter: `blur(${blurPx}px)`,
+                  transform: blurPx > 0 ? 'scale(1.05)' : 'scale(1)',
+                }}
+              />
+            )}
             {estado.acertado && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.6 }}
