@@ -169,12 +169,13 @@ describe('syncCatalogoPersonajes', () => {
   })
 
   it('dispatches event when catalog changes', () => {
+    const dispatchSpy = vi.fn()
     vi.stubGlobal('window', {
-      dispatchEvent: vi.fn(),
+      dispatchEvent: dispatchSpy,
     })
     syncCatalogoPersonajes(personajesFixtures.slice(0, 2))
-    expect(window.dispatchEvent).toHaveBeenCalled()
-    expect(window.dispatchEvent.mock.calls[0][0].type).toBe(CATALOGO_PERSONAJES_HYDRATED_EVENT)
+    expect(dispatchSpy).toHaveBeenCalled()
+    expect((dispatchSpy.mock.calls[0][0] as Event).type).toBe(CATALOGO_PERSONAJES_HYDRATED_EVENT)
   })
 
   it('does not dispatch event when nothing changes', () => {
