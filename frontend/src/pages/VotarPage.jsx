@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, Share2, SkipForward, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
@@ -22,9 +21,8 @@ import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
 import SessionRecap from '../features/votar/components/SessionRecap'
-import VoteCard from '../features/votar/components/VoteCard'
+import VoteArena from '../features/votar/components/VoteArena'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
-import VsBadge from '../features/votar/components/VsBadge'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
 import {
@@ -133,7 +131,6 @@ function VotarPage() {
   })
   const { play } = useSound()
   const { user } = useAuth()
-  const reduceMotion = useReducedMotion()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
@@ -828,44 +825,17 @@ function VotarPage() {
           </div>
         )}
 
-        {/* Arena */}
-        <motion.div
-          data-votar-arena
-          key={`${a.slug}-${b.slug}`}
-          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.3 }}
-          className="relative grid grid-cols-2 items-start gap-x-2 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-stretch sm:gap-6"
-        >
-          <div className="pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 sm:hidden">
-            <VsBadge votedFor={votedFor} compact />
-          </div>
-          <VoteCard
-            personaje={a}
-            onClick={handleVoteLeft}
-            disabled={controlsDisabled}
-            isVoted={votedFor === a.slug}
-            isLoser={votedFor && votedFor !== a.slug}
-            showResult={Boolean(votedFor)}
-            side="left"
-            anonymousLimited={votoInvitadoActivo}
-            voteResult={voteResult?.ganadorSlug === a.slug ? voteResult : null}
-          />
-          <div className="hidden self-center justify-self-center sm:flex">
-            <VsBadge votedFor={votedFor} />
-          </div>
-          <VoteCard
-            personaje={b}
-            onClick={handleVoteRight}
-            disabled={controlsDisabled}
-            isVoted={votedFor === b.slug}
-            isLoser={votedFor && votedFor !== b.slug}
-            showResult={Boolean(votedFor)}
-            side="right"
-            anonymousLimited={votoInvitadoActivo}
-            voteResult={voteResult?.ganadorSlug === b.slug ? voteResult : null}
-          />
-        </motion.div>
+        {/* Arena — subcomponente memoizado con AnimatePresence para aislar re-renders */}
+        <VoteArena
+          a={a}
+          b={b}
+          votedFor={votedFor}
+          voteResult={voteResult}
+          controlsDisabled={controlsDisabled}
+          votoInvitadoActivo={votoInvitadoActivo}
+          handleVoteLeft={handleVoteLeft}
+          handleVoteRight={handleVoteRight}
+        />
 
         {votedPersonaje && (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
