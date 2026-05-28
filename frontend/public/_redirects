@@ -61,6 +61,8 @@
 /reset-password           / 200
 /admin                    / 200
 /admin/comentarios        / 200
+/admin/torneos            / 200
+/admin/assets             / 200
 /perfil                   / 200
 /u/:username/logros       / 200
 /u/:username              / 200
