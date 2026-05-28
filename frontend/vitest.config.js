@@ -38,7 +38,7 @@ export default defineConfig({
       ],
       // Thresholds escalonados por PR del Sprint Auto 06:
       //   PR 06.1 (infra + smoke):           0% baseline
-      //   PR 06.2 (share/queryClient):       lines 10, branches 8
+      //   PR 06.2 (share/queryClient):       lines 5%, branches 85%
       //   PR 06.3 (localVoteRanking/games):  lines 25, branches 20
       //   PR 06.4 (personajes-core/torneos): lines 45, branches 35
       //   PR 06.5 (api.ts):                  lines 70, branches 60  ← meta
