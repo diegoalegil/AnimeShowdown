@@ -387,7 +387,7 @@ function Carta({ item, disabled, onClick }) {
           alt={item.nombre}
           loading="lazy"
           sizes="(min-width: 1024px) 180px, (min-width: 640px) 28vw, 45vw"
-          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
         />
       </div>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2.5">
