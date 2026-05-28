@@ -108,10 +108,9 @@ function computeAnimesCatalogo(catalogo) {
       ...getStatsPersonaje(p.slug),
       popularidad: getPopularidad(p.slug),
     }))
-    // Top por ELO para la portada y datos competitivos.
+    // Top por ELO base para datos competitivos y ranking interno del anime.
     const porElo = [...stats].sort((a, b) => b.elo - a.elo)
-    // Top por popularidad para complementar la portada — combinación de
-    // los 2 ejes (relevancia narrativa + rendimiento) según la propuesta.
+    // Top por popularidad: lo consume AnimeDetailPage para los "destacados".
     const porPopularidad = [...stats].sort(
       (a, b) => b.popularidad - a.popularidad,
     )
@@ -119,24 +118,6 @@ function computeAnimesCatalogo(catalogo) {
     const eloPromedio = Math.round(
       stats.reduce((a, p) => a + p.elo, 0) / stats.length,
     )
-    // Selección de portada: 2 por popularidad + 2 por ELO (sin dups).
-    // Garantiza que el protagonista (alto popularidad) aparezca aunque
-    // su ELO sea bajo, y que el mejor competidor aparezca aunque sea
-    // secundario en la trama.
-    const slugsCovered = new Set()
-    const portada = []
-    for (const p of porPopularidad) {
-      if (portada.length >= 2) break
-      if (slugsCovered.has(p.slug)) continue
-      portada.push(p)
-      slugsCovered.add(p.slug)
-    }
-    for (const p of porElo) {
-      if (portada.length >= 4) break
-      if (slugsCovered.has(p.slug)) continue
-      portada.push(p)
-      slugsCovered.add(p.slug)
-    }
     return {
       anime,
       slug: slugifyAnime(anime),
@@ -146,7 +127,6 @@ function computeAnimesCatalogo(catalogo) {
       eloPromedio,
       porElo,
       porPopularidad,
-      portada,
       aliases: getAnimeAliases(anime),
     }
   })
