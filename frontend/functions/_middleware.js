@@ -9,7 +9,8 @@
 //
 // DISEÑO DEFENSIVO (alto blast radius: corre en CADA request):
 //   - Solo toca respuestas text/html; assets y /api pasan intactos.
-//   - Solo reescribe rutas mapeadas (personaje, ranking); el resto conserva
+//   - Solo reescribe rutas mapeadas (personaje, anime, ranking interno de
+//     anime, torneo, rankings curados y ranking global); el resto conserva
 //     el OG por defecto del index.html.
 //   - Cualquier error → devuelve la respuesta original sin tocar (try/catch).
 //
@@ -46,6 +47,50 @@ function ogParaRuta(pathname, apiBase) {
       image: `${apiBase}/api/og/personaje/${encodeURIComponent(slug)}.png`,
       title: `${nombre} · AnimeShowdown`,
       description: `Ficha de ${nombre} en AnimeShowdown: ranking ELO, anime de origen y duelos. Vota y mueve el ranking.`,
+    }
+  }
+  // Ranking interno de un anime: /animes/{slug}/ranking (antes que /animes/{slug}).
+  const animeRanking = pathname.match(/^\/animes\/([^/]+)\/ranking\/?$/)
+  if (animeRanking) {
+    const slug = decodeURIComponent(animeRanking[1])
+    const nombre = humanizarSlug(slug)
+    return {
+      image: `${apiBase}/api/og/anime/${encodeURIComponent(slug)}.png`,
+      title: `Ranking de ${nombre} · AnimeShowdown`,
+      description: `Ranking de personajes de ${nombre} por votos de la comunidad en AnimeShowdown. Vota y mueve la tabla.`,
+    }
+  }
+  // Ficha de un universo anime: /animes/{slug}.
+  const anime = pathname.match(/^\/animes\/([^/]+)\/?$/)
+  if (anime) {
+    const slug = decodeURIComponent(anime[1])
+    const nombre = humanizarSlug(slug)
+    return {
+      image: `${apiBase}/api/og/anime/${encodeURIComponent(slug)}.png`,
+      title: `${nombre} · AnimeShowdown`,
+      description: `Personajes de ${nombre} en AnimeShowdown: ranking ELO, duelos y votos de la comunidad.`,
+    }
+  }
+  // Torneo: /torneos/{slug} (excluye la ruta de creación, que es privada/noindex).
+  const torneo = pathname.match(/^\/torneos\/([^/]+)\/?$/)
+  if (torneo && decodeURIComponent(torneo[1]) !== 'crear') {
+    const slug = decodeURIComponent(torneo[1])
+    const nombre = humanizarSlug(slug)
+    return {
+      image: `${apiBase}/api/og/torneo/${encodeURIComponent(slug)}.png`,
+      title: `${nombre} · AnimeShowdown`,
+      description: `Bracket del torneo ${nombre} en AnimeShowdown. Sigue los duelos y vota a tus personajes.`,
+    }
+  }
+  // Landings de ranking curadas (alta intención SEO): /rankings/{slug}.
+  const rankingLanding = pathname.match(/^\/rankings\/([^/]+)\/?$/)
+  if (rankingLanding) {
+    const slug = decodeURIComponent(rankingLanding[1])
+    const nombre = humanizarSlug(slug)
+    return {
+      image: `${apiBase}/api/og/ranking.png`,
+      title: `${nombre} · AnimeShowdown`,
+      description: `${nombre}: ranking de personajes anime votado por la comunidad de AnimeShowdown.`,
     }
   }
   if (pathname === '/ranking') {
