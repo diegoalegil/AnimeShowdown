@@ -37,8 +37,10 @@ const registerSchema = z
       .string()
       .min(8, 'Mínimo 8 caracteres')
       .max(100, 'Máximo 100 caracteres')
-      .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
-      .regex(/\d/, 'Debe incluir al menos un número'),
+      // Mismo contrato que el backend (RegistroRequest.java): al menos una
+      // letra y un dígito. Antes exigía mayúscula → bloqueaba passwords que el
+      // servidor sí acepta, e incoherente con ResetPasswordPage.
+      .regex(/^(?=.*[A-Za-z])(?=.*\d).{8,100}$/, 'Debe incluir al menos una letra y un número'),
     confirmPassword: z.string().min(1, 'Confirma tu contraseña'),
     referralCode: z
       .string()
