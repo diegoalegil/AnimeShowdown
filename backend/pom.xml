@@ -267,13 +267,18 @@
 						</goals>
 					</execution>
 					<execution>
-						<id>service-coverage-warning</id>
+						<id>service-coverage-gate</id>
 						<phase>verify</phase>
 						<goals>
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<haltOnFailure>false</haltOnFailure>
+							<!-- Sprint Auto 06 PR 06.10: hard gate activado. Coverage
+							     real de service.* tras 06.6-06.10: LINE 76.1% / BRANCH
+							     55.1%. Umbrales con margen defensivo (LINE 65, BRANCH
+							     50) para no romper por fluctuaciones y dejar techo
+							     para futuras refactors sin penalizar PRs no relacionados. -->
+							<haltOnFailure>true</haltOnFailure>
 							<rules>
 								<rule>
 									<element>PACKAGE</element>
@@ -283,6 +288,11 @@
 									<limits>
 										<limit>
 											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.65</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
 											<value>COVEREDRATIO</value>
 											<minimum>0.50</minimum>
 										</limit>
