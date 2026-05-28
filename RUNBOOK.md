@@ -242,7 +242,7 @@ El flag `useTestClasspath` mantiene H2 fuera del artefacto productivo y aun así
 ## Cambios recientes
 
 - **2026-05-23**: hardening de producción: ranking personal local, misiones, comparador, sitemap/SEO y QA de catálogo/contraste.
-- **2026-05-17**: referral system, light mode, time machine ELO, eliminación de cuenta GDPR y ranking ↑↓.
+- **2026-05-17**: referral system, time machine ELO, eliminación de cuenta GDPR y ranking ↑↓. (El light mode opt-in se retiró después.)
 - **2026-05-17**: rebrand competitivo + fix imágenes producción.
 - **2026-05-16**: cron automático de torneos cada 3 días.
 - **2026-05-15**: backups R2 con rotación daily/weekly/monthly.
