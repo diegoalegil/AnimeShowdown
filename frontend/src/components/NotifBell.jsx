@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   Award,
   Bell,
@@ -106,6 +106,7 @@ function NotifBell() {
 }
 
 function NotifDropdown({ enabled, onClose }) {
+  const prefersReducedMotion = useReducedMotion()
   const { data, isLoading } = useNotificaciones({
     size: 10,
     enabled,
@@ -123,10 +124,10 @@ function NotifDropdown({ enabled, onClose }) {
       role="dialog"
       aria-modal="false"
       aria-label="Panel de notificaciones"
-      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -8, scale: prefersReducedMotion ? 1 : 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -4, scale: 0.98 }}
-      transition={{ duration: 0.15, ease: 'easeOut' }}
+      exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -4, scale: prefersReducedMotion ? 1 : 0.98 }}
+      transition={{ duration: prefersReducedMotion ? 0.1 : 0.15, ease: 'easeOut' }}
       className="absolute right-0 top-10 z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-surface shadow-2xl shadow-black/30"
     >
       <header className="flex items-center justify-between border-b border-border px-4 py-3">

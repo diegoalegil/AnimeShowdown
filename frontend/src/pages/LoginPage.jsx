@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
@@ -27,6 +27,17 @@ const stepVariants = {
   exit: { opacity: 0, x: -20, transition: { duration: 0.2, ease: 'easeIn' } },
 }
 
+const containerVariantsReduced = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.15 } },
+}
+
+const stepVariantsReduced = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.1 } },
+  exit: { opacity: 0, transition: { duration: 0.1 } },
+}
+
 function LoginPage() {
   useSeo({
     title: 'Iniciar sesión',
@@ -34,6 +45,7 @@ function LoginPage() {
       'Entra en tu cuenta AnimeShowdown para votar, predecir torneos y mantener tu perfil público con ranking ELO personalizado.',
     noindex: true,
   })
+  const prefersReducedMotion = useReducedMotion()
   const { login, completeLogin2fa } = useAuth()
   const navigate = useNavigate()
   // Rutas protegidas (CrearTorneoPage, etc.)
@@ -70,13 +82,13 @@ function LoginPage() {
         className="w-full"
         initial="hidden"
         animate="visible"
-        variants={containerVariants}
+        variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
       >
         <AnimatePresence mode="wait">
           {pendingChallenge ? (
             <motion.div
               key="step2"
-              variants={stepVariants}
+              variants={prefersReducedMotion ? stepVariantsReduced : stepVariants}
               initial="initial"
               animate="animate"
               exit="exit"
@@ -91,7 +103,7 @@ function LoginPage() {
           ) : (
             <motion.div
               key="step1"
-              variants={stepVariants}
+              variants={prefersReducedMotion ? stepVariantsReduced : stepVariants}
               initial="initial"
               animate="animate"
               exit="exit"

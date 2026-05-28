@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { toast } from 'sonner'
 import { ApiError } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
@@ -30,6 +30,7 @@ const EMOJIS = [
 ]
 
 function ReactionsBar({ targetType, targetId, className = '' }) {
+  const prefersReducedMotion = useReducedMotion()
   const { user } = useAuth()
   const { play } = useSound()
   const navigate = useNavigate()
@@ -82,8 +83,8 @@ function ReactionsBar({ targetType, targetId, className = '' }) {
               aria-label={tooltipInvitado ? `${label} — ${tooltipInvitado}` : label}
               aria-pressed={seleccionada}
               title={tooltipInvitado || label}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.05 }}
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.9 }}
+              whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                 seleccionada
                   ? 'border-accent bg-accent/15 text-fg-strong'
