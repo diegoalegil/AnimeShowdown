@@ -84,11 +84,15 @@ function PersonajesPage() {
   }, [catalogoPersonajes])
 
   const eloBounds = useMemo(() => {
-    if (catalogoPersonajes.length === 0) return { min: 1000, max: 2300 }
+    if (catalogoPersonajes.length === 0) return { min: 1000, max: 2300, top: 0 }
     const elos = catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo)
+    const rawMax = Math.max(...elos)
     return {
       min: Math.floor(Math.min(...elos) / 25) * 25,
-      max: Math.ceil(Math.max(...elos) / 25) * 25,
+      max: Math.ceil(rawMax / 25) * 25,
+      // `top` (max real) lo consume el hero; antes se recalculaba inline en
+      // render sobre los ~1052 personajes en cada pintura (E4).
+      top: rawMax,
     }
   }, [catalogoPersonajes])
 
@@ -410,7 +414,7 @@ function PersonajesPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <MiniHeroStat label="Universos" value={animes.length} />
-                  <MiniHeroStat label="Top ELO base" value={Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))} />
+                  <MiniHeroStat label="Top ELO base" value={eloBounds.top} />
                 </div>
               </div>
             }

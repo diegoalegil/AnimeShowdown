@@ -35,6 +35,12 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
   // dispara linter react-hooks/set-state-in-effect). detectHover() ya
   // guarda contra SSR retornando false.
   const [hoverEnabled] = useState(detectHover)
+  // El tilt (motionValues + springs + transforms de framer-motion) es caro y
+  // antes se montaba en TODAS las cards a la vez (~600 suscriptores con 60+
+  // cards). Lo diferimos al PRIMER hover: hasta entonces la card es plana, con
+  // cero coste de motion. Al entrar el puntero, armamos el tilt y se monta solo
+  // esa card. El hover lift/glow funciona vía CSS aunque el tilt no esté armado.
+  const [tiltArmado, setTiltArmado] = useState(false)
 
   // Solo usamos el ELO base (estimado por popularidad). Las W/L y el win rate
   // de getStatsPersonaje son sintéticos y se ocultan para no mostrar métricas
@@ -43,8 +49,9 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
   const priorityImage = Boolean(rank && rank <= 12)
   const imageLoading = priorityImage ? 'eager' : 'lazy'
   const imageFetchPriority = priorityImage ? 'high' : 'auto'
+  const puedeTilt = hoverEnabled && !reduceMotion
 
-  if (hoverEnabled && !reduceMotion) {
+  if (puedeTilt && tiltArmado) {
     return (
       <CardWithTilt
         slug={slug}
@@ -58,12 +65,13 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
       />
     )
   }
-  // Móvil/touch: render plano sin motion. Mantiene aspecto y badges,
-  // sin coste de framer-motion. Tap dispara sonido + nav igual.
+  // Render plano sin motion (móvil/touch siempre; desktop hasta el primer
+  // hover). Mantiene aspecto, badges y hover por CSS. Tap dispara sonido + nav.
   return (
     <Link
       to={`/personajes/${slug}`}
       onClick={() => play('playWhoosh')}
+      onMouseEnter={puedeTilt ? () => setTiltArmado(true) : undefined}
       className="group block"
     >
       <article className="as-ssr-card relative overflow-hidden rounded-xl transition-all motion-safe:group-hover:-translate-y-1 group-hover:border-gold/45 group-hover:shadow-[0_24px_70px_-38px_rgba(197,161,90,0.55)]">
@@ -127,10 +135,9 @@ function CardWithTilt({
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        /* Se monta al primer hover, así que NO animamos entrada (la card ya
+           estaba visible como versión plana); evita un flicker al armar el tilt. */
+        initial={false}
         style={{
           rotateX,
           rotateY,
