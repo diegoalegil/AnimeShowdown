@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite",
     "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite build",
