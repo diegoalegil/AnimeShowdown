@@ -4,6 +4,7 @@ import { MotionConfig } from 'framer-motion'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import ErrorBoundary from './components/ErrorBoundary'
 import ScrollProgress from './components/ScrollProgress'
 import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
@@ -542,6 +543,13 @@ function App() {
       <EmailVerifyBanner />
       <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
         <div key={location.pathname} className="flex flex-1 flex-col">
+          {/* Boundary a nivel de ruta. Un error de render en una página se
+              contiene aquí y el shell (Header, Footer, nav) sigue vivo, en
+              vez de tumbar toda la app contra el boundary raíz de main.jsx.
+              El div padre lleva key={location.pathname}: al navegar a otra
+              ruta este subárbol se remonta y el boundary se resetea solo, sin
+              estado de error pegajoso entre páginas. */}
+          <ErrorBoundary>
           <Suspense
             fallback={(
               <PageLoader
@@ -655,6 +663,7 @@ function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
+          </ErrorBoundary>
         </div>
       </main>
       {!isFullscreenRoute && <MobileBottomNav />}
