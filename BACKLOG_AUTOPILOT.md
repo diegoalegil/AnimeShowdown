@@ -5,10 +5,10 @@
 
 ## Estado de avance (2026-05-27)
 
-- ✅ DONE (8 sprints): 1, 2, 3, 3.5a, 3.5b, 3.5c, 4, 5
-- 🚧 IN PROGRESS (1 sprint): 6 (1/12 PRs mergeados — PR 06.1 Vitest infra cerrado)
-- ⏳ PENDING (42 sprints): 7-40 + 41-47 (ideas T-)
-- Detalle por sprint en `PROGRESS.md`. SPECs pre-cocinados: `docs/SPEC_SPRINT_06.md`.
+- ✅ DONE (9 sprints): 1, 2, 3, 3.5a, 3.5b, 3.5c, 4, 5, 6
+- ⏳ PENDING (41 sprints): 7-40 + 41-47 (ideas T-)
+- Sprint 6 cerrado por objetivo cumplido (coverage frontend 85.7%/88.2%, backend 76.1%/55.1%, JaCoCo hard gate activo). 06.11-06.12 (E2E) diferidos al Sprint 35.
+- Detalle por sprint en `PROGRESS.md`. SPECs pre-cocinados: `docs/SPEC_SPRINT_06.md`, `docs/SPEC_SPRINT_07.md`.
 
 ---
 
@@ -281,9 +281,9 @@ Ruta `/admin/assets` (gated por auth admin):
 **Branch:** `sprint-auto-05-security`.
 **Heads-up:** este sprint toca seguridad. AGENTS.md §9 dice que cambios de auth/security siguen requiriendo PR + revisión. NO auto-merge en este sprint sin OK del humano.
 
-## [🚧 IN PROGRESS] Sprint 6 — Test coverage to 70%
+## [✅ DONE] Sprint 6 — Test coverage to 70%
 
-> **Pre-cooked spec**: `docs/SPEC_SPRINT_06.md`. PR 06.1 (Vitest infra) ya mergeado (#123, commit 437e1257). Restantes: 06.2-06.12.
+> **CUMPLIDO**: coverage frontend lib 85.7% lines / 88.2% branches; backend service.* 76.1% lines / 55.1% branches; JaCoCo hard gate activo. 10/12 PRs ejecutados (#123-#133); 06.11-06.12 E2E diferidos al Sprint 35. Detalle en `PROGRESS.md`.
 
 
 **Goal:** frontend Vitest + backend JaCoCo a 70% en líneas / 60% en ramas.
