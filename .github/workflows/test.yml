@@ -47,8 +47,14 @@ jobs:
 
       # -B = batch mode (sin colores ASCII en log)
       # --no-transfer-progress = sin spam de descarga de deps
-      - name: Run tests
-        run: ./mvnw -B --no-transfer-progress test
+      # verify (no test): corre la fase verify completa para que se ejecute
+      # el gate de cobertura JaCoCo (jacoco:check service-coverage-gate,
+      # LINE 65% / BRANCH 50% sobre service.*). Con `test` el gate NO se
+      # ejecutaba en CI, así que una caída de cobertura podía llegar a main
+      # sin que el pipeline avisara. Validado en local: 365 tests verdes y
+      # "All coverage checks have been met".
+      - name: Run tests + coverage gate (verify)
+        run: ./mvnw -B --no-transfer-progress verify
 
       # Sube los reports incluso si los tests fallaron, así se puede
       # inspeccionar surefire-reports desde la UI de GitHub Actions.
