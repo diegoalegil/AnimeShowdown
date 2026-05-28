@@ -94,6 +94,13 @@ function TorneoCard({ torneo }) {
   // Subimos el cover a h-52, aplicamos object-position al tercio superior y
   // un microblur que da sensacion cinematografica.
   const visualParaCard = { ...visual, objectPosition: visual.objectPosition || '50% 32%' }
+  // Diferenciación de estado (F7): IN_PROGRESS resalta en vivo (borde emerald
+  // + punto pulsante); FINISHED se atenúa (cover desaturado + chip "Histórico")
+  // para que de un vistazo se distinga lo activo de lo ya cerrado.
+  const enVivo = estado === 'IN_PROGRESS'
+  const finalizado = estado === 'FINISHED'
+  const cardEstadoClass = enVivo ? 'border-emerald-500/45' : 'border-border'
+  const coverImageClass = finalizado ? 'saturate-50 contrast-100' : 'saturate-105 contrast-100'
   const fechaLabel = getFechaLabel(estado, fechaInicio, fechaFinalizacion, fechaCreacion)
   const rondaLabel = totalRondas
     ? estado === 'IN_PROGRESS' && rondaActual
@@ -105,7 +112,7 @@ function TorneoCard({ torneo }) {
     <Link
       to={`/torneos/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="as-panel group flex flex-col overflow-hidden rounded-xl border-border p-0 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-[0_28px_70px_-30px_rgba(197,161,90,0.6)]"
+      className={`as-panel group flex flex-col overflow-hidden rounded-xl p-0 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-[0_28px_70px_-30px_rgba(197,161,90,0.6)] ${cardEstadoClass}`}
     >
       <EditorialCover
         visual={visualParaCard}
@@ -113,7 +120,7 @@ function TorneoCard({ torneo }) {
         eyebrow="Bracket"
         meta={`${numParticipantes} participantes`}
         className="h-52 rounded-none border-0"
-        imageClassName="saturate-105 contrast-100"
+        imageClassName={coverImageClass}
         compact
       />
       <div className="flex flex-1 flex-col p-5">
@@ -122,9 +129,20 @@ function TorneoCard({ torneo }) {
         </h3>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-fg-muted">
           <span className={`inline-flex items-center gap-1.5 ${badge.color}`}>
+            {enVivo && (
+              <span className="relative inline-flex h-2 w-2" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping motion-reduce:hidden" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+            )}
             <Icon className="h-3.5 w-3.5" />
             <span className="uppercase tracking-wider">{badge.label}</span>
           </span>
+          {finalizado && (
+            <span className="inline-flex items-center rounded border border-border bg-bg/55 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-fg-muted">
+              Histórico
+            </span>
+          )}
           <span className="text-border">·</span>
           <span className="inline-flex items-center gap-1">
             <Users className="h-3.5 w-3.5" />
