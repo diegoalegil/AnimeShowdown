@@ -133,10 +133,10 @@ function MobileBottomNav() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1.5 text-[10px] font-bold leading-tight transition-colors sm:text-xs ${
+                `flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1.5 text-[10px] leading-tight transition-colors sm:text-xs ${
                   isActive
-                    ? 'bg-gold/15 text-gold'
-                    : 'text-fg-muted hover:bg-white/5 hover:text-fg-strong'
+                    ? 'bg-gold/15 font-black text-gold ring-2 ring-inset ring-gold/40'
+                    : 'font-bold text-fg-muted hover:bg-white/5 hover:text-fg-strong'
                   }`
               }
             >
