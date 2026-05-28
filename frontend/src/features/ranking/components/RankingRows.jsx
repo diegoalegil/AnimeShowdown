@@ -13,15 +13,13 @@ export function RankRowElo({
   nombre,
   anime,
   elo,
-  wins,
-  losses,
   history,
   imagenUrl,
   imagenColorDominante,
 }) {
   if (!slug) return null
-  const total = wins + losses
-  const winRate = total > 0 ? Math.round((wins / total) * 100) : 0
+  // Solo ELO base (estimado). Las W/L sintéticas no se muestran: el "X% WR"
+  // que salía aquí no venía de votos reales y leía como dato competitivo.
   const esTop10 = rank <= 10
   const rowTone = esTop10
     ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
@@ -33,8 +31,8 @@ export function RankRowElo({
       >
         <Link
           to={`/personajes/${slug}`}
-          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}, ${winRate}% win rate`}
-          title={`${nombre} de ${anime} · ELO ${elo}`}
+          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO base ${elo}`}
+          title={`${nombre} de ${anime} · ELO base ${elo}`}
           className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
         >
           <RankBadge rank={rank} />
@@ -68,20 +66,16 @@ export function RankRowElo({
             <p className="truncate text-[12px] text-fg-muted">{anime}</p>
             {esTop10 && <EloSparkline points={history} className="mt-1" />}
           </div>
-          <div className="hidden text-right sm:block">
-            <p className="text-[12px] text-fg-muted">
-              <span className="font-semibold text-emerald-300">{wins}V</span>
-              {' · '}
-              <span className="font-semibold text-rose-300">{losses}D</span>
+          <div
+            className="text-right"
+            title="ELO base estimado por popularidad. El ranking real por votos está en las pestañas Histórico y Este mes."
+          >
+            <p className="font-mono text-base font-bold text-gold">
+              {elo}
+              <span className="ml-0.5 text-[10px] font-bold text-gold/80">·b</span>
             </p>
-            <p className="text-[11px] font-semibold text-emerald-300/80">
-              {winRate}% WR
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="font-mono text-base font-bold text-gold">{elo}</p>
             <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-              ELO
+              ELO base
             </p>
           </div>
         </Link>
