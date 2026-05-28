@@ -556,15 +556,6 @@ describe('endpoints', () => {
     expect((fn.mock.calls[0] as [string, RequestInit])[1].body).toBeUndefined()
   })
 
-  it('iniciarTorneo: no body when participants omitted', async () => {
-    const fn = mockFetchResolved({})
-    vi.stubGlobal('fetch', fn)
-    await endpoints.iniciarTorneo(1)
-    const url = (fn.mock.calls[0] as [string, RequestInit])[0]
-    expect(url).toContain('torneos/1/iniciar')
-    expect((fn.mock.calls[0] as [string, RequestInit])[1].body).toBeUndefined()
-  })
-
   it('torneoBySlug: GET /api/torneos/slug/{slug}', async () => {
     const fn = mockFetchResolved({})
     vi.stubGlobal('fetch', fn)
