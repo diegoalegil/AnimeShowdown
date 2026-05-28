@@ -96,7 +96,12 @@ function PerfilPage() {
           }}
         />
 
-        <div className="grid gap-6">
+        <div
+          id={`perfilpanel-${tab}`}
+          role="tabpanel"
+          aria-labelledby={`perfiltab-${tab}`}
+          className="grid gap-6"
+        >
           {tab === 'resumen' && (
             <>
               <CardDatosCuenta user={user} />
@@ -248,7 +253,7 @@ function CardPassword() {
           )}
         </div>
         {errors.root && (
-          <p className="text-[12px] text-red-400">{errors.root.message}</p>
+          <p role="alert" className="text-[12px] text-red-400">{errors.root.message}</p>
         )}
         <button
           type="submit"
