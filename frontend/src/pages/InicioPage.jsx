@@ -7,16 +7,9 @@ import JsonLd from '../components/JsonLd'
 import {
   AlertTriangle,
   ArrowRight,
-  Heart,
   Inbox,
-  Swords,
-  Trophy,
-  TrendingUp,
-  User,
-  Users,
 } from 'lucide-react'
 import Hero from '../components/Hero'
-import NombresMarquee from '../components/NombresMarquee'
 import SectionPulso from '../components/SectionPulso'
 import TorneoCard from '../components/TorneoCard'
 import CountUp from '../components/CountUp'
@@ -26,7 +19,6 @@ import DailyMissionPanel from '../components/DailyMissionPanel'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Section from '../components/Section'
-import Badge from '../components/Badge'
 import StatPill from '../components/StatPill'
 import EmptyState from '../components/EmptyState'
 import ErrorBoundary from '../components/ErrorBoundary'
@@ -81,42 +73,11 @@ function getHomeTop10(catalogoPersonajes) {
     .slice(0, 10)
 }
 
-const pasos = [
-  {
-    icon: Heart,
-    titulo: 'Elige tu lado',
-    descripcion:
-      'Explora personajes de distintos animes y entra en duelos donde solo uno puede ganar.',
-    tone: 'rose',
-    kanji: '撰',
-  },
-  {
-    icon: Swords,
-    titulo: 'Vota cara a cara',
-    descripcion:
-      'Decide quién merece subir. Tus votos afectan el ELO y pueden cambiar la posición de cada personaje.',
-    tone: 'cyan',
-    kanji: '闘',
-  },
-  {
-    icon: Trophy,
-    titulo: 'Corona al campeón',
-    descripcion:
-      'Sigue los rankings, mira qué personajes dominan y descubre quién se mantiene en la cima.',
-    tone: 'gold',
-    kanji: '冠',
-  },
-]
-
 const HOME_SKELETON_BLOCKS = [
-  { id: 'daily', variant: 'banner', className: 'h-[369px]' },
   { id: 'pulse', variant: 'banner', className: 'h-[926px]' },
-  { id: 'marquee', variant: 'line', className: 'h-[86px]' },
   { id: 'stats', variant: 'banner', className: 'h-[224px]' },
   { id: 'ranking', variant: 'banner', className: 'h-[606px]' },
   { id: 'daily-trials', variant: 'banner', className: 'h-[620px]' },
-  { id: 'platform', variant: 'banner', className: 'h-[520px]' },
-  { id: 'how-it-works', variant: 'banner', className: 'h-[420px]' },
   { id: 'tournaments', variant: 'banner', className: 'h-[520px]' },
   { id: 'anime-universes', variant: 'banner', className: 'h-[520px]' },
 ]
@@ -162,28 +123,24 @@ function InicioPage() {
         hasItems={catalogoPersonajes.length > 0}
         onRetry={refetchCatalogo}
       >
-      <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
-        <DailyMissionPanel />
-      </section>
-      {/* Nota de producto: Pulso sustituye al antiguo
-          SectionLiveBattle (duelo random cliente-side, no era "live").
-          Cinco señales reales desde backend arriba del fold para que
-          la home muestre producto en marcha, no solo feature list. */}
+      {/* Bloque "en vivo" (F2): el Pulso (cinco señales reales del backend)
+          y tu misión diaria van juntos arriba del fold. Antes la misión era
+          una sección suelta propia; fusionarla aquí recorta la home. */}
       <HomeSectionBoundary title="No pudimos mostrar el pulso">
         <SectionPulso />
+        <section className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6">
+          <DailyMissionPanel />
+        </section>
       </HomeSectionBoundary>
-      <NombresMarquee />
       <SectionStats stats={stats} />
       <HomeSectionBoundary title="No pudimos mostrar el top ranking">
         <SectionTop10Ranking top10={top10} />
       </HomeSectionBoundary>
-      {/* el resto de secciones eran below-the-fold
-          típico — montarlas solo cuando se acercan al viewport recorta
-          el initial DOM/JS a ~30%. LazyOnView mantiene el espacio
-          reservado para no causar layout shift. */}
+      {/* Recorte de home (F2): se retiraron el marquee de nombres, el bento
+          "Plataforma" (feature-list estilo SaaS) y "Cómo funciona" (vive ya en
+          /como-funciona) para que el ranking y las acciones no queden
+          enterrados. LazyOnView monta el resto al acercarse al viewport. */}
       <LazyOnView minHeight={620}><SectionRetosDiarios /></LazyOnView>
-      <LazyOnView minHeight={520}><SectionBento /></LazyOnView>
-      <LazyOnView minHeight={420}><SectionComoFunciona /></LazyOnView>
       <LazyOnView minHeight={520}>
         <HomeSectionBoundary title="No pudimos mostrar torneos activos">
           <SectionTorneosActivos />
@@ -301,192 +258,6 @@ function SectionPorAnime({ carousels }) {
         />
       ))}
     </motion.div>
-  )
-}
-
-function SectionBento() {
-  const featuredAvatars = ['luffy', 'naruto', 'satoru_gojo', 'makima']
-  const communityAvatars = [
-    'mai_sakurajima',
-    'satoru_gojo',
-    'kuroneko',
-    'momo_ayase',
-    'shinobu',
-    'toru_hagakure',
-  ]
-  return (
-    <Section
-      as={motion.section}
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-      eyebrow="Plataforma"
-      title="Una competición viva creada por fans"
-      description="AnimeShowdown combina duelos rápidos, rankings en vivo y torneos visuales para convertir cada voto en parte de una competición constante. No se trata solo de elegir personajes — se trata de construir, junto a la comunidad, un ranking donde los favoritos pueden caer y los tapados pueden sorprender."
-    >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <BentoCard
-            className="md:col-span-2"
-            icon={Trophy}
-            eyebrow="Brackets"
-            tone="gold"
-            kanji="戦"
-            titulo="Brackets estilo batalla"
-            descripcion="Sigue cada ronda como si fuera un torneo shonen: enfrentamientos directos, favoritos eliminados y campeones que se ganan su puesto voto a voto."
-          >
-            <div className="flex items-center gap-2">
-              {featuredAvatars.map((s, i) => (
-                <div key={s} className="flex items-center gap-2">
-                  <PersonajeImg
-                    slug={s}
-                    alt=""
-                    sizes="48px"
-                    className="h-12 w-12 rounded-md border border-border object-cover object-top"
-                  />
-                  {i < featuredAvatars.length - 1 && (
-                    <span className="font-mono text-xs font-bold text-gold">
-                      vs
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </BentoCard>
-          <BentoCard
-            icon={TrendingUp}
-            eyebrow="ELO"
-            tone="crimson"
-            kanji="冠"
-            titulo="Ranking en directo"
-            descripcion="Cada voto suma o resta puntos. El ranking se actualiza con los resultados y muestra qué personajes dominan el meta."
-          />
-          <BentoCard
-            icon={User}
-            eyebrow="Cuenta"
-            tone="violet"
-            kanji="私"
-            titulo="Tu historial, tus votos"
-            descripcion="Inicia sesión para guardar tus votos, seguir tus personajes favoritos y construir tu propio recorrido dentro de AnimeShowdown."
-          />
-          <BentoCard
-            className="md:col-span-2"
-            icon={Users}
-            eyebrow="Comunidad"
-            tone="cyan"
-            kanji="衆"
-            titulo="La comunidad decide"
-            descripcion="Cada enfrentamiento recoge la opinión de otros fans y convierte el ranking en una decisión colectiva. Los tapados pueden sorprender."
-          >
-            <div className="flex -space-x-3">
-              {communityAvatars.map((s) => (
-                <PersonajeImg
-                  key={s}
-                  slug={s}
-                  alt=""
-                  sizes="40px"
-                  className="h-10 w-10 rounded-full border-2 border-surface object-cover object-top"
-                />
-              ))}
-              <span className="ml-2 inline-flex items-center text-[12px] font-semibold text-fg-muted">
-                +90
-              </span>
-            </div>
-          </BentoCard>
-      </div>
-    </Section>
-  )
-}
-
-// Paletas por tone para BentoCard: cada feature tiene SU color en lugar
-// del rojo accent monotono que daba look "landing SaaS". El glow del
-// hover, el icon halo y el eyebrow border heredan el mismo tone.
-const BENTO_TONES = {
-  gold: {
-    eyebrow: 'border-amber-500/45 bg-amber-500/12 text-amber-200',
-    iconRing: 'border-amber-500/45 bg-amber-500/10 text-amber-300',
-    iconGlow: '0 0 28px -4px rgba(245,158,11,0.55)',
-    titleHover: 'group-hover:text-amber-200',
-    hover: 'hover:border-amber-500/55 hover:shadow-[0_20px_60px_-30px_rgba(245,158,11,0.55)]',
-    kanji: 'text-amber-300',
-    kanjiShadow: '0 0 70px rgba(245,158,11,0.40)',
-  },
-  crimson: {
-    eyebrow: 'border-rose-500/45 bg-rose-500/12 text-rose-200',
-    iconRing: 'border-rose-500/45 bg-rose-500/10 text-rose-300',
-    iconGlow: '0 0 28px -4px rgba(244,63,94,0.55)',
-    titleHover: 'group-hover:text-rose-200',
-    hover: 'hover:border-rose-500/55 hover:shadow-[0_20px_60px_-30px_rgba(244,63,94,0.55)]',
-    kanji: 'text-rose-300',
-    kanjiShadow: '0 0 70px rgba(244,63,94,0.40)',
-  },
-  violet: {
-    eyebrow: 'border-violet-500/45 bg-violet-500/12 text-violet-200',
-    iconRing: 'border-violet-500/45 bg-violet-500/10 text-violet-300',
-    iconGlow: '0 0 28px -4px rgba(139,92,246,0.55)',
-    titleHover: 'group-hover:text-violet-200',
-    hover: 'hover:border-violet-500/55 hover:shadow-[0_20px_60px_-30px_rgba(139,92,246,0.55)]',
-    kanji: 'text-violet-300',
-    kanjiShadow: '0 0 70px rgba(139,92,246,0.40)',
-  },
-  cyan: {
-    eyebrow: 'border-cyan-500/45 bg-cyan-500/12 text-cyan-200',
-    iconRing: 'border-cyan-500/45 bg-cyan-500/10 text-cyan-300',
-    iconGlow: '0 0 28px -4px rgba(6,182,212,0.55)',
-    titleHover: 'group-hover:text-cyan-200',
-    hover: 'hover:border-cyan-500/55 hover:shadow-[0_20px_60px_-30px_rgba(6,182,212,0.55)]',
-    kanji: 'text-cyan-300',
-    kanjiShadow: '0 0 70px rgba(6,182,212,0.40)',
-  },
-}
-
-function BentoCard({
-  icon: Icon,
-  eyebrow,
-  titulo,
-  descripcion,
-  className = '',
-  children,
-  tone = 'crimson',
-  kanji,
-}) {
-  const t = BENTO_TONES[tone] ?? BENTO_TONES.crimson
-  return (
-    <Card
-      className={`group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-white/8 bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hover} ${className}`}
-    >
-      {/* Kanji decorativo de background por card */}
-      {kanji && (
-        <span
-          aria-hidden="true"
-          lang="ja"
-          className={`pointer-events-none absolute -right-4 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-[0.07] sm:text-[9rem] sm:opacity-[0.10] ${t.kanji}`}
-          style={{ textShadow: t.kanjiShadow }}
-        >
-          {kanji}
-        </span>
-      )}
-      <div className="relative flex items-center gap-3">
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl border ${t.iconRing}`}
-          style={{ boxShadow: t.iconGlow }}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-        {eyebrow && (
-          <Badge className={t.eyebrow}>
-            {eyebrow}
-          </Badge>
-        )}
-      </div>
-      <div className="relative flex flex-col gap-2">
-        <h3 className={`text-xl font-bold text-fg-strong transition-colors ${t.titleHover}`}>
-          {titulo}
-        </h3>
-        <p className="text-sm leading-relaxed text-fg-muted">{descripcion}</p>
-      </div>
-      {children && <div className="relative mt-auto pt-2">{children}</div>}
-    </Card>
   )
 }
 
@@ -818,102 +589,6 @@ function SectionRetosDiarios() {
           })}
         </div>
     </Section>
-  )
-}
-
-function SectionComoFunciona() {
-  return (
-    <Section
-      as={motion.section}
-      className="bg-dots"
-      containerClassName="mx-auto max-w-6xl"
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-      eyebrow="Cómo funciona"
-      title="Tres pasos para coronar al campeón"
-      headerClassName="mb-10 flex flex-col items-start gap-2"
-    >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {pasos.map((paso, i) => (
-            <PasoCard key={paso.titulo} numero={i + 1} {...paso} />
-          ))}
-        </div>
-    </Section>
-  )
-}
-
-const PASO_TONES = {
-  rose: {
-    border: 'border-rose-500/35',
-    hoverBorder: 'hover:border-rose-500/55',
-    iconRing: 'border-rose-500/45 bg-rose-500/10 text-rose-300',
-    iconGlow: '0 0 28px -6px rgba(244,63,94,0.55)',
-    hoverShadow: 'hover:shadow-[0_20px_60px_-30px_rgba(244,63,94,0.50)]',
-    titleHover: 'group-hover:text-rose-200',
-    kanji: 'text-rose-300',
-    kanjiShadow: '0 0 70px rgba(244,63,94,0.40)',
-    number: 'text-rose-300/70',
-  },
-  cyan: {
-    border: 'border-cyan-500/35',
-    hoverBorder: 'hover:border-cyan-500/55',
-    iconRing: 'border-cyan-500/45 bg-cyan-500/10 text-cyan-300',
-    iconGlow: '0 0 28px -6px rgba(6,182,212,0.55)',
-    hoverShadow: 'hover:shadow-[0_20px_60px_-30px_rgba(6,182,212,0.50)]',
-    titleHover: 'group-hover:text-cyan-200',
-    kanji: 'text-cyan-300',
-    kanjiShadow: '0 0 70px rgba(6,182,212,0.40)',
-    number: 'text-cyan-300/70',
-  },
-  gold: {
-    border: 'border-amber-500/35',
-    hoverBorder: 'hover:border-amber-500/55',
-    iconRing: 'border-amber-500/45 bg-amber-500/10 text-amber-300',
-    iconGlow: '0 0 28px -6px rgba(245,158,11,0.55)',
-    hoverShadow: 'hover:shadow-[0_20px_60px_-30px_rgba(245,158,11,0.50)]',
-    titleHover: 'group-hover:text-amber-200',
-    kanji: 'text-amber-300',
-    kanjiShadow: '0 0 70px rgba(245,158,11,0.40)',
-    number: 'text-amber-300/70',
-  },
-}
-
-function PasoCard({ numero, icon: Icon, titulo, descripcion, tone = 'rose', kanji }) {
-  const t = PASO_TONES[tone] ?? PASO_TONES.rose
-  return (
-    <Card
-      className={`group relative overflow-hidden rounded-xl border ${t.border} bg-surface/85 p-6 backdrop-blur-md transition-all duration-300 ${t.hoverBorder} ${t.hoverShadow}`}
-    >
-      {kanji && (
-        <span
-          aria-hidden="true"
-          lang="ja"
-          className={`pointer-events-none absolute -right-4 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-[0.08] sm:text-[9rem] sm:opacity-[0.12] ${t.kanji}`}
-          style={{ textShadow: t.kanjiShadow }}
-        >
-          {kanji}
-        </span>
-      )}
-      <div className="relative mb-4 flex items-center gap-3">
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl border ${t.iconRing}`}
-          style={{ boxShadow: t.iconGlow }}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-        <span className={`font-mono text-[28px] font-black tabular-nums leading-none ${t.number}`}>
-          0{numero}
-        </span>
-      </div>
-      <h3 className={`relative text-lg font-bold text-fg-strong transition-colors ${t.titleHover}`}>
-        {titulo}
-      </h3>
-      <p className="relative mt-2 text-sm leading-relaxed text-fg-muted">
-        {descripcion}
-      </p>
-    </Card>
   )
 }
 
