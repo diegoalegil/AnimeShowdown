@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PersonajeCard from '../../components/PersonajeCard'
 import PersonajeImg from '../../components/PersonajeImg'
+
+const ROSTER_PAGE = 24
 
 function RankingRow({ rank, slug, nombre, elo }) {
   // Solo ELO base (estimado). Las W/L sintéticas no se muestran.
@@ -50,6 +53,13 @@ function RankingRow({ rank, slug, nombre, elo }) {
 }
 
 function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
+  // Paginación incremental del roster completo (E3): rosters grandes (One
+  // Piece, Naruto…) montaban 50-100+ cards de golpe. Mostramos de 24 en 24.
+  // El patrón {key, count} resetea al cambiar de anime sin useEffect
+  // (compatible con el React Compiler, igual que en PersonajesPage).
+  const [pag, setPag] = useState({ key: anime, count: ROSTER_PAGE })
+  const visibles = pag.key === anime ? pag.count : ROSTER_PAGE
+  const verMas = () => setPag({ key: anime, count: visibles + ROSTER_PAGE })
   return (
     <>
       <section className="mb-12">
@@ -113,7 +123,7 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {personajes.map((personaje) => (
+            {personajes.slice(0, visibles).map((personaje) => (
               <PersonajeCard
                 key={personaje.slug}
                 slug={personaje.slug}
@@ -122,6 +132,20 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
               />
             ))}
           </div>
+          {visibles < personajes.length && (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={verMas}
+                className="as-button-ghost rounded-lg px-6 py-2.5 text-sm font-bold"
+              >
+                Cargar {Math.min(ROSTER_PAGE, personajes.length - visibles)} más
+                <span className="ml-2 text-fg-muted">
+                  ({visibles} de {personajes.length})
+                </span>
+              </button>
+            </div>
+          )}
         </section>
       )}
 
