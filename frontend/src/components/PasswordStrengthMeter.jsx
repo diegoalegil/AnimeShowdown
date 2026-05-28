@@ -26,14 +26,18 @@ const COLORES = [
 // eslint-disable-next-line react-refresh/only-export-components
 export function evaluarPassword(pass) {
   if (!pass) return { score: 0, label: 'Muy débil', color: COLORES[0] }
+  // Regla mínima real (misma que el schema zod y el backend):
+  // al menos una letra Y al menos un dígito. Si no se cumple → 0.
+  const tieneLetra = /[A-Za-z]/.test(pass)
+  const tieneDigito = /\d/.test(pass)
+  if (!tieneLetra || !tieneDigito) {
+    return { score: 0, label: 'Muy débil', color: COLORES[0] }
+  }
   let score = 0
   if (pass.length >= 8) score += 1
   if (pass.length >= 12) score += 1
   if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) score += 1
-  if (/\d/.test(pass)) score += 1
   if (/[^a-zA-Z0-9]/.test(pass)) score += 1
-  // Penalización suave por composición trivial (solo dígitos, solo letras).
-  if (/^\d+$/.test(pass) || /^[a-zA-Z]+$/.test(pass)) score = Math.max(0, score - 1)
   // Penalización por repeticiones largas tipo "aaaaaa" o "111111".
   if (/(.)\1{3,}/.test(pass)) score = Math.max(0, score - 1)
   score = Math.min(score, 4)
