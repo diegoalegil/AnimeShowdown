@@ -44,11 +44,15 @@ export default defineConfig({
       //   PR 06.5 (api.ts):                  lines 70, branches 60  ← meta
       // Cada PR sube estos valores ANTES de mergear. Si CI falla por
       // threshold, el PR no llegó a la meta de su fase.
+      // PR 06.2 thresholds:
+      //   share.ts:     100% lines, 100% branches
+      //   queryClient: 100% lines, 100% branches (normalizeSlugs line 7 fully exercised)
+      // Global lines ~6% because 5 of 7 lib files are still untested; climbs through PRs 06.3-06.5.
       thresholds: {
-        lines: 0,
-        statements: 0,
-        branches: 0,
-        functions: 0,
+        lines: 5,
+        statements: 5,
+        branches: 85,
+        functions: 5,
       },
     },
   },
