@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogOut, Menu, Shield, Swords, Volume2, VolumeX, X } from 'lucide-react'
+import { LogOut, Menu, Search, Shield, Swords, Volume2, VolumeX, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
+import { OPEN_COMMAND_PALETTE_EVENT } from './CommandPaletteLazyMount'
 
 // Nota de producto: /votar sale de navLinks regular y pasa a
 // CTA principal del header. El login deja de ser el botón accent (estaba
@@ -41,7 +42,7 @@ function readLocalVoteCount() {
 function regularLinkClass({ isActive }) {
   return `${navLinkBase} font-medium ${
     isActive
-      ? 'bg-white/5 text-fg-strong shadow-[inset_0_-1px_0_var(--color-accent),0_12px_34px_-26px_var(--color-accent)]'
+      ? 'bg-white/5 font-bold text-fg-strong underline decoration-accent decoration-2 underline-offset-4 shadow-[0_12px_34px_-26px_var(--color-accent)]'
       : 'text-fg hover:bg-white/5 hover:text-fg-strong'
   }`
 }
@@ -190,8 +191,8 @@ function Header() {
         </span>
       </Link>
 
-      {/* Nav desktop (xl+). En móvil/tablet vive en el panel del hamburger. */}
-      <nav className="hidden flex-wrap items-center justify-center gap-1 xl:flex">
+      {/* Nav desktop (lg+). En móvil/tablet vive en el panel del hamburger. */}
+      <nav className="hidden flex-wrap items-center justify-center gap-1 lg:flex">
         {navLinks.map(({ to, i18nKey }) => (
           <NavLink
             key={to}
@@ -221,6 +222,18 @@ function Header() {
             </span>
           )}
         </NavLink>
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent(OPEN_COMMAND_PALETTE_EVENT))}
+          aria-label="Abrir buscador rápido (⌘K)"
+          className="inline-flex h-10 items-center gap-1.5 rounded-md border border-border/60 bg-surface px-2.5 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+        >
+          <Search className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden text-[11px] xl:inline">Buscar</span>
+          <kbd className="hidden rounded border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted xl:inline-block">
+            ⌘K
+          </kbd>
+        </button>
         <LanguageToggle />
         <button
           type="button"
@@ -257,7 +270,7 @@ function Header() {
           hamburger. El Login en mobile pasa al panel del hamburger
           (nota de producto 2026-05-18: primero participar, después
           registrarse — login secundario hasta que haya valor acumulado). */}
-      <div className="flex items-center gap-1.5 xl:hidden">
+      <div className="flex items-center gap-1.5 lg:hidden">
         {user ? (
           <>
             <NotifBell />
@@ -311,7 +324,7 @@ function Header() {
             type="button"
             aria-label="Cerrar menú"
             onClick={closeMobile}
-            className="fixed inset-0 top-0 z-20 bg-black/40 xl:hidden"
+            className="fixed inset-0 top-0 z-20 bg-black/40 lg:hidden"
           />
           <div
             ref={mobilePanelRef}
@@ -319,7 +332,7 @@ function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="Menú de navegación"
-            className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh_-_4rem_-_env(safe-area-inset-bottom))] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pt-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl xl:hidden"
+            className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh_-_4rem_-_env(safe-area-inset-bottom))] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pt-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl lg:hidden"
           >
             <div className="flex flex-col gap-1">
               {navLinks.map(({ to, i18nKey }) => (
