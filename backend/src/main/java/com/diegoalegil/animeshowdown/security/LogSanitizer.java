@@ -24,6 +24,21 @@ public final class LogSanitizer {
         return identifier.contains("@") ? email(identifier) : identifier;
     }
 
+    public static String textWithMaskedEmails(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(
+                "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}").matcher(value);
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb,
+                    java.util.regex.Matcher.quoteReplacement(email(matcher.group())));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
     private static String mask(String value) {
         if (value.length() <= 1) {
             return "*";
