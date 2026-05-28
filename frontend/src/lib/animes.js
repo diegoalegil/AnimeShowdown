@@ -79,7 +79,24 @@ export function getAnimeAliases(nombre) {
   return ALIASES[nombre] ?? []
 }
 
+// Memo de getAnimesCatalogo. `buscarAnimes` lo invoca en cada keystroke del
+// buscador de animes y el cómputo (agrupar + ordenar por ELO/popularidad +
+// stats de ~1000 personajes) es caro; antes se recomputaba entero por tecla y
+// además se duplicaba entre la portada y los detalles. Cacheamos por identidad
+// del array de catálogo. El catálogo se hidrata mutando el MISMO array in-place
+// (ver syncCatalogoPersonajes), así que la referencia no cambia entre el estado
+// pre/post hidratación: usamos la longitud como discriminador para invalidar.
+const animesCatalogoCache = new WeakMap()
+
 export function getAnimesCatalogo(catalogo = readCatalogoPersonajesSnapshot()) {
+  const cached = animesCatalogoCache.get(catalogo)
+  if (cached && cached.length === catalogo.length) return cached.result
+  const result = computeAnimesCatalogo(catalogo)
+  animesCatalogoCache.set(catalogo, { length: catalogo.length, result })
+  return result
+}
+
+function computeAnimesCatalogo(catalogo) {
   const groups = {}
   for (const p of catalogo) {
     if (!groups[p.anime]) groups[p.anime] = []
