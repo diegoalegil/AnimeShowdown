@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import PersonajeImg from '../../../components/PersonajeImg'
 import VoteFeedbackBurst from '../../../components/VoteFeedbackBurst'
 import { useSound } from '../../../contexts/SoundContext'
+import { useInstantSoundPress } from '../../../hooks/useInstantSoundPress'
 import { imagenPersonaje } from '../../../lib/personajes-core'
 
 const FALLBACK_DOMINANT_COLOR = 'var(--color-surface)'
@@ -23,12 +24,21 @@ const VoteCard = memo(function VoteCard({
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   const dominantColor = personaje.imagenColorDominante ?? FALLBACK_DOMINANT_COLOR
   const { warm } = useSound()
+  const { onPointerDown: onSoundPointerDown, onClick: onSoundClick } = useInstantSoundPress('playVote')
   const reduceMotion = useReducedMotion()
+
+  const handlePointerDown = (disabled || showResult) ? undefined : onSoundPointerDown
+  const handleClick = (e) => {
+    onSoundClick(e)
+    onClick(e)
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <motion.button
         type="button"
-        onClick={onClick}
+        onClick={handleClick}
+        onPointerDown={handlePointerDown}
         onPointerEnter={warm}
         onFocus={warm}
         disabled={disabled || showResult}
