@@ -3,8 +3,19 @@ name: e2e
 on:
   pull_request:
     branches: [main]
+    # No gastamos ~10 min de Playwright en cambios que no tocan código
+    # (docs, PROGRESS.md, SPECs, BACKLOG). Si un cambio toca código Y docs,
+    # SÍ corre (paths-ignore solo salta cuando TODOS los paths están ignorados).
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   workflow_dispatch:
 
 concurrency:

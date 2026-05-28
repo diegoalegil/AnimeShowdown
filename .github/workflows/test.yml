@@ -3,8 +3,19 @@ name: tests
 on:
   pull_request:
     branches: [main]
+    # Cambios solo-docs (markdown, SPECs, PROGRESS) no necesitan correr la
+    # suite backend+frontend. paths-ignore solo salta si TODOS los archivos
+    # del cambio están ignorados; un cambio mixto código+docs SÍ corre.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   workflow_dispatch:
 
 # Cancela ejecuciones previas si llega un push nuevo a la misma rama/PR.
