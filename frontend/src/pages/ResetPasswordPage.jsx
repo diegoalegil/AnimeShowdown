@@ -194,7 +194,7 @@ function ResetPasswordPage() {
             )}
           </div>
           {errors.root && (
-            <p className="text-[12px] text-red-400">{errors.root.message}</p>
+            <p role="alert" className="text-[12px] text-red-400">{errors.root.message}</p>
           )}
           <button
             type="submit"
