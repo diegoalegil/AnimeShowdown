@@ -241,6 +241,13 @@ function VotarPage() {
   // éxito, re-emitimos la mutation con el header X-AS-Captcha-Token.
   const [captchaChallenge, setCaptchaChallenge] = useState(null)
 
+  // Ref sincronizada con fastMode para que handleVoteSuccess pueda leerlo
+  // sin necesitar regenerarse en cada toggle.
+  const fastModeRef = useRef(fastMode)
+  useEffect(() => {
+    fastModeRef.current = fastMode
+  }, [fastMode])
+
   // Ref para cancelar el timeout de auto-next si el usuario pulsa
   // "Siguiente duelo" antes de que dispare o si el componente se desmonta.
   const autoNextTimeoutRef = useRef(null)
@@ -531,17 +538,22 @@ function VotarPage() {
         votosPerdedor: data?.votosPerdedor ?? null,
       })
 
-      const delta = data?.delta ?? 1
-      const sufijo = delta === 1 ? 'voto' : 'votos'
-      toast.success(`+${delta} ${sufijo} · ${personaje.nombre}`, {
-        description: data?.votosGanador != null
-          ? data?.anonimo
-            ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}${impact ? ` · #${impact.rank} en tu ranking` : ''}`
-            : `Ahora suma ${data.votosGanador} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
-          : impact
-            ? formatPersonalVoteImpact(impact)
-            : 'Voto registrado · ranking actualizado',
-      })
+      // En modo rápido el auto-next salta cada ~900ms; el toast sería ruido
+      // visual constante. Solo mostramos toast en modo normal o si es invitado
+      // (necesita ver el contador de votos restantes).
+      if (!fastModeRef.current || data?.anonimo) {
+        const delta = data?.delta ?? 1
+        const sufijo = delta === 1 ? 'voto' : 'votos'
+        toast.success(`+${delta} ${sufijo} · ${personaje.nombre}`, {
+          description: data?.votosGanador != null
+            ? data?.anonimo
+              ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+              : `Ahora suma ${data.votosGanador} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+            : impact
+              ? formatPersonalVoteImpact(impact)
+              : 'Voto registrado · ranking actualizado',
+        })
+      }
 
       // Prefetch del siguiente par mientras el usuario ve la animación de resultado.
       prefetchSiguientePar()
@@ -717,11 +729,15 @@ function VotarPage() {
         })
         incrementarContadorLocalVotos()
         const impact = trackLocalVote(personaje, personaje.slug === a?.slug ? b : a, null)
-        toast.success(`+${personaje.nombre}`, {
-          description: impact
-            ? formatPersonalVoteImpact(impact)
-            : 'Modo casual · sin torneo activo',
-        })
+        // En modo rápido suprimimos el toast casual — es ruido cuando el
+        // auto-next salta cada ~900ms. El feedback visual de la arena es suficiente.
+        if (!fastModeRef.current) {
+          toast.success(`+${personaje.nombre}`, {
+            description: impact
+              ? formatPersonalVoteImpact(impact)
+              : 'Modo casual · sin torneo activo',
+          })
+        }
         prefetchSiguientePar()
         scheduleAutoNext()
       }
