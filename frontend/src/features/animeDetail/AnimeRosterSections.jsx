@@ -2,9 +2,8 @@ import { Link } from 'react-router-dom'
 import PersonajeCard from '../../components/PersonajeCard'
 import PersonajeImg from '../../components/PersonajeImg'
 
-function RankingRow({ rank, slug, nombre, elo, wins, losses }) {
-  const total = wins + losses
-  const winRate = total > 0 ? Math.round((wins / total) * 100) : null
+function RankingRow({ rank, slug, nombre, elo }) {
+  // Solo ELO base (estimado). Las W/L sintéticas no se muestran.
   const tone =
     rank === 1
       ? 'border-yellow-400/50 bg-yellow-500/5'
@@ -38,12 +37,6 @@ function RankingRow({ rank, slug, nombre, elo, wins, losses }) {
           <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
             {nombre}
           </p>
-          {winRate != null && (
-            <p className="text-[11px] text-fg-muted">
-              {wins}V · {losses}D ·{' '}
-              <span className="text-emerald-300/80">{winRate}% WR</span>
-            </p>
-          )}
         </div>
         <div className="text-right">
           <p className="font-mono text-sm font-bold text-gold">{elo}</p>
@@ -104,8 +97,6 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
               slug={personaje.slug}
               nombre={personaje.nombre}
               elo={personaje.elo}
-              wins={personaje.wins}
-              losses={personaje.losses}
             />
           ))}
         </ol>
