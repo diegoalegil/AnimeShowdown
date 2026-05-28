@@ -402,25 +402,27 @@ function CommandPalette({ initialOpen = false } = {}) {
             )}
           </Command.Group>
 
-          <Command.Group
-            heading="Torneos"
-            className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
-          >
-            {torneos.map((t) => (
-              <Command.Item
-                key={t.slug}
-                value={`torneo ${t.nombre}`}
-                onSelect={() => go(`/torneos/${t.slug}`)}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
-              >
-                <Trophy className="h-4 w-4 text-fg-muted" />
-                {t.nombre}
-                <span className="ml-auto text-[11px] text-fg-muted">
-                  {t.numParticipantes} personajes
-                </span>
-              </Command.Item>
-            ))}
-          </Command.Group>
+          {torneos.length > 0 && (
+            <Command.Group
+              heading="Torneos"
+              className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+            >
+              {torneos.map((t) => (
+                <Command.Item
+                  key={t.slug}
+                  value={`torneo ${t.nombre}`}
+                  onSelect={() => go(`/torneos/${t.slug}`)}
+                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                >
+                  <Trophy className="h-4 w-4 text-fg-muted" />
+                  {t.nombre}
+                  <span className="ml-auto text-[11px] text-fg-muted">
+                    {t.numParticipantes} personajes
+                  </span>
+                </Command.Item>
+              ))}
+            </Command.Group>
+          )}
 
           {queryPersonajes.length < 2 && (
             <Command.Group

@@ -99,12 +99,22 @@ function ForgotPasswordPage() {
           </div>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || enviado}
             className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Mail className="h-4 w-4" />
             {isSubmitting ? 'Enviando…' : 'Enviar código'}
           </button>
+          {/* Confirmación persistente: el toast desaparece pero el usuario
+              sigue necesitando saber que el email fue enviado mientras
+              decide navegar al formulario de código. */}
+          <div aria-live="polite" aria-atomic="true">
+            {enviado && (
+              <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[13px] text-emerald-300">
+                Código enviado. Revisa tu bandeja de entrada (y la carpeta spam).
+              </p>
+            )}
+          </div>
           {enviado && (
             <button
               type="button"

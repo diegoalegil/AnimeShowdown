@@ -127,7 +127,7 @@ function BadgeCard({ logro }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-1/2 top-full z-10 mt-2 w-52 -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-left shadow-2xl"
+            className="absolute left-1/2 top-full z-10 mt-2 w-52 max-w-[min(13rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-left shadow-2xl"
           >
             <p className="mb-1.5 flex items-center gap-1.5">
               <span

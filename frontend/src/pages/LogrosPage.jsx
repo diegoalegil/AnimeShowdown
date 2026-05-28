@@ -223,7 +223,7 @@ function LogrosPage() {
                 key={f.label}
                 type="button"
                 onClick={() => setFiltroRareza(f.value)}
-                className={`rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+                className={`min-h-11 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                   filtroRareza === f.value
                     ? 'bg-accent text-white'
                     : 'border border-border bg-surface text-fg-muted hover:text-fg-strong'
