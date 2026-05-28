@@ -123,6 +123,41 @@ function formatPersonalVoteImpact(impact) {
   return `#${impact.rank} en tu ranking personal · ${impact.count} voto${plural} tuyo${plural}`
 }
 
+/**
+ * MobileExtrasToggle — visible solo en móvil (sm:hidden).
+ * Muestra un botón compacto que expande/contrae VotarQuickModes y
+ * DailyMissionPanel para que la arena + resultado quepan sin scroll.
+ */
+function MobileExtrasToggle({ a, b, fixedAnime, fixedPersonaje, exactDuelActive, hasFixedAnime }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="sm:hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-fg-strong"
+        aria-expanded={open}
+      >
+        <span>{open ? 'Ocultar opciones' : 'Más opciones'}</span>
+        <span aria-hidden="true" className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      {open && (
+        <div className="mt-2 flex flex-col gap-2">
+          <VotarQuickModes
+            a={a}
+            b={b}
+            fixedAnime={fixedAnime}
+            fixedPersonaje={fixedPersonaje}
+            hasFixedDuel={exactDuelActive}
+            hasFixedAnime={hasFixedAnime}
+          />
+          <DailyMissionPanel compact />
+        </div>
+      )}
+    </div>
+  )
+}
+
 function VotarPage() {
   useSeo({
     title: 'Votar',
@@ -908,16 +943,27 @@ function VotarPage() {
           <SessionRecap stats={sessionStats} onShare={handleShareSessionRecap} />
         )}
 
-        <VotarQuickModes
+        {/* Modos rápidos + misión diaria — en móvil colapsados para que
+            la arena y el panel de resultado quepan sin scroll */}
+        <div className="hidden sm:contents">
+          <VotarQuickModes
+            a={a}
+            b={b}
+            fixedAnime={fixedAnime}
+            fixedPersonaje={fixedPersonaje}
+            hasFixedDuel={exactDuelActive}
+            hasFixedAnime={hasFixedAnime}
+          />
+          <DailyMissionPanel compact />
+        </div>
+        <MobileExtrasToggle
           a={a}
           b={b}
           fixedAnime={fixedAnime}
           fixedPersonaje={fixedPersonaje}
-          hasFixedDuel={exactDuelActive}
+          exactDuelActive={exactDuelActive}
           hasFixedAnime={hasFixedAnime}
         />
-
-        <DailyMissionPanel compact />
 
         {/* Atajos + (en sin matches) link a torneos */}
         <div className="flex flex-col items-center gap-2">
