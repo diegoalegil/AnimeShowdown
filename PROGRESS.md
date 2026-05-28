@@ -148,3 +148,7 @@
 
 ## Sprint Auto 06 estado parcial
 
+
+## Sprint Auto 06 — resumen de cierre parcial (2026-05-28)
+
+- **8/12 PRs mergeados** (06.1-06.8). Objetivo de coverage frontend CUMPLIDO (85% lines vs 70% meta). Backend services criticos cubiertos.
