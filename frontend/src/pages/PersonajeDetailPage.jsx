@@ -303,7 +303,7 @@ function PersonajeDetailPage() {
           key={slug}
           itemScope
           itemType="https://schema.org/Person"
-          className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-center md:gap-12"
+          className="flex flex-col gap-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -315,14 +315,18 @@ function PersonajeDetailPage() {
           <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
           {/* En móvil la identidad aparece antes que la imagen y la imagen se
               capa a 55vh; en desktop se preservan el orden y aspect-ratio. */}
+          {/* Showcase (carta holo + 3D + galería) reubicado debajo de la info
+              (order-2). El hero ahora lo encabeza un avatar circular pequeño;
+              aquí vive la pieza grande para quien quiera verla/girarla en 3D. */}
           <motion.div
-            className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
+            className="order-2 mt-2 flex w-full flex-col gap-3 border-t border-border pt-8"
             variants={itemVariants}
           >
-            {/* El contenedor limita la galería en mobile para evitar overflow
-                horizontal cuando hay muchas miniaturas. */}
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+              Carta · galería · vista 3D
+            </h2>
             <div
-              className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
+              className="relative mx-auto aspect-[2/3] w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-surface"
               style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
             >
               {/* Personaje3D era opt-in al mount con
@@ -368,7 +372,7 @@ function PersonajeDetailPage() {
             )}
           </motion.div>
           <motion.div
-            className="order-1 flex flex-col items-start gap-4 md:order-2"
+            className="order-1 flex flex-col items-start gap-5"
             variants={containerVariants}
           >
             <motion.div
@@ -402,27 +406,43 @@ function PersonajeDetailPage() {
                 </span>
               )}
             </motion.div>
-            <motion.h1
-              itemProp="name"
-              className="text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight"
+            <motion.div
+              className="flex items-center gap-4 sm:gap-5"
               variants={itemVariants}
             >
-              {personaje.nombre}
-            </motion.h1>
-            <motion.p
-              className="text-lg text-fg-muted"
-              variants={itemVariants}
-            >
-              de{' '}
-              <span
-                itemProp="affiliation"
-                itemScope
-                itemType="https://schema.org/TVSeries"
-                className="font-semibold text-fg-strong"
-              >
-                <span itemProp="name">{personaje.anime}</span>
-              </span>
-            </motion.p>
+              {/* Retrato circular pequeño: imagen limpia del catálogo, estable
+                  (no cambia con la galería de abajo). object-top favorece la
+                  cabeza dentro del recorte circular. */}
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-gold/30 bg-surface shadow-glow sm:h-28 sm:w-28">
+                <PersonajeImg
+                  slug={slug}
+                  src={imagenCatalogo}
+                  alt={personaje.nombre}
+                  nombre={personaje.nombre}
+                  loading="eager"
+                  className="h-full w-full object-cover object-top"
+                />
+              </div>
+              <div className="flex min-w-0 flex-col gap-1">
+                <h1
+                  itemProp="name"
+                  className="text-[clamp(1.75rem,4.5vw,3rem)] leading-tight tracking-tight"
+                >
+                  {personaje.nombre}
+                </h1>
+                <p className="text-lg text-fg-muted">
+                  de{' '}
+                  <span
+                    itemProp="affiliation"
+                    itemScope
+                    itemType="https://schema.org/TVSeries"
+                    className="font-semibold text-fg-strong"
+                  >
+                    <span itemProp="name">{personaje.anime}</span>
+                  </span>
+                </p>
+              </div>
+            </motion.div>
             <motion.div
               className="flex flex-wrap gap-2"
               variants={itemVariants}
