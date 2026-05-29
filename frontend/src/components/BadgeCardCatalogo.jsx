@@ -17,43 +17,43 @@ import { kanjiDeBadge } from '../lib/badgeKanji'
 const RAREZA_STYLE = {
   1: {
     nombre: 'Común',
-    borde: 'border-zinc-400/40',
+    borde: 'border-rarity-common/40',
     glow: '',
-    icono: 'text-zinc-300',
-    chip: 'bg-zinc-400/10 text-zinc-300 border-zinc-400/40',
-    kanjiBg: 'bg-zinc-400/15',
+    icono: 'text-rarity-common',
+    chip: 'bg-rarity-common/10 text-rarity-common border-rarity-common/40',
+    kanjiBg: 'bg-rarity-common/15',
   },
   2: {
     nombre: 'Poco común',
-    borde: 'border-emerald-500/50',
+    borde: 'border-rarity-uncommon/50',
     glow: 'shadow-[0_0_20px_-6px_rgb(16,185,129,0.5)]',
-    icono: 'text-emerald-300',
-    chip: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/40',
-    kanjiBg: 'bg-emerald-500/15',
+    icono: 'text-rarity-uncommon',
+    chip: 'bg-rarity-uncommon/10 text-rarity-uncommon border-rarity-uncommon/40',
+    kanjiBg: 'bg-rarity-uncommon/15',
   },
   3: {
     nombre: 'Raro',
-    borde: 'border-sky-500/50',
+    borde: 'border-rarity-rare/50',
     glow: 'shadow-[0_0_20px_-6px_rgb(56,189,248,0.55)]',
-    icono: 'text-sky-300',
-    chip: 'bg-sky-500/10 text-sky-300 border-sky-500/40',
-    kanjiBg: 'bg-sky-500/15',
+    icono: 'text-rarity-rare',
+    chip: 'bg-rarity-rare/10 text-rarity-rare border-rarity-rare/40',
+    kanjiBg: 'bg-rarity-rare/15',
   },
   4: {
     nombre: 'Épico',
-    borde: 'border-purple-500/55',
+    borde: 'border-rarity-epic/55',
     glow: 'shadow-[0_0_24px_-6px_rgb(168,85,247,0.6)]',
-    icono: 'text-purple-300',
-    chip: 'bg-purple-500/10 text-purple-300 border-purple-500/40',
-    kanjiBg: 'bg-purple-500/15',
+    icono: 'text-rarity-epic',
+    chip: 'bg-rarity-epic/10 text-rarity-epic border-rarity-epic/40',
+    kanjiBg: 'bg-rarity-epic/15',
   },
   5: {
     nombre: 'Legendario',
-    borde: 'border-amber-400/60',
+    borde: 'border-rarity-legendary/60',
     glow: 'shadow-[0_0_32px_-6px_rgb(251,191,36,0.7)] animate-pulse-halo',
-    icono: 'text-amber-300',
-    chip: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
-    kanjiBg: 'bg-amber-500/15',
+    icono: 'text-rarity-legendary',
+    chip: 'bg-rarity-legendary/15 text-rarity-legendary border-rarity-legendary/40',
+    kanjiBg: 'bg-rarity-legendary/15',
   },
 }
 
@@ -87,7 +87,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = fa
         desbloqueado ? `bg-surface ${style.glow}` : 'bg-surface/60'
       } scroll-mt-28 p-5 transition-all ${
         destacado
-          ? 'ring-2 ring-amber-300/80 shadow-[0_0_38px_-12px_rgba(251,191,36,0.9)]'
+          ? 'ring-2 ring-rarity-legendary/80 shadow-[0_0_38px_-12px_rgba(251,191,36,0.9)]'
           : ''
       }`}
       itemScope
