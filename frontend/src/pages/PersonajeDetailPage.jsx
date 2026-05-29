@@ -34,12 +34,9 @@ import EloHistoryChart from '../components/EloHistoryChart'
 import HistorialCompetitivo from '../components/HistorialCompetitivo'
 import PersonajeCard from '../components/PersonajeCard'
 import PersonajeCardHolo from '../components/PersonajeCardHolo'
-import PersonajeCutImg from '../components/PersonajeCutImg'
-import PersonajeGaleria from '../components/PersonajeGaleria'
 import PersonajeImg from '../components/PersonajeImg'
 import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
 import ErrorBoundary from '../components/ErrorBoundary'
-import { hasCut } from '../lib/cuts'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
@@ -349,30 +346,6 @@ function PersonajeDetailPage() {
                 nombre={personaje.nombre}
               />
             </div>
-            <PersonajeGaleria
-              slug={slug}
-              principalUrl={imagenCatalogo}
-              imagenActiva={imagenActiva}
-              onSelect={setImagenActiva}
-            />
-            {/* Carta + FIGURA juntas (B2): además de la carta holo de arriba,
-                mostramos la figura recortada sin marco cuando existe. Da el
-                "personaje en pose" que pedía el feedback. La resolución de los
-                recortes se mejora regenerándolos (scripts/regen-cuts.mjs), no
-                con CSS — por ahora se muestra el recorte disponible. */}
-            {hasCut(slug) && (
-              <figure className="mt-4">
-                <PersonajeCutImg
-                  slug={slug}
-                  alt={`Figura recortada de ${personaje.nombre}`}
-                  loading="lazy"
-                  className="mx-auto aspect-[3/4] max-h-[40vh] w-full rounded-2xl border border-border md:max-h-[44vh]"
-                />
-                <figcaption className="mt-1.5 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
-                  Figura · sin marco
-                </figcaption>
-              </figure>
-            )}
           </motion.div>
           <motion.div
             className="order-1 flex flex-col items-start gap-5 md:order-2"
