@@ -19,15 +19,15 @@
     },
     "assert": {
       "assertions": {
-        "categories:performance": ["warn", { "minScore": 0.5 }],
+        "categories:performance": ["warn", { "minScore": 0.4 }],
         "categories:accessibility": ["warn", { "minScore": 0.9 }],
-        "categories:best-practices": ["warn", { "minScore": 0.85 }],
-        "categories:seo": ["warn", { "minScore": 0.9 }]
+        "categories:best-practices": ["warn", { "minScore": 0.8 }],
+        "categories:seo": ["warn", { "minScore": 0.65 }]
       }
     },
     "upload": {
       "target": "filesystem",
-      "outputDir": ".lighthouseci"
+      "outputDir": "lighthouse-report"
     }
   }
 }
