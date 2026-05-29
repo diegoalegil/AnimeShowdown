@@ -822,8 +822,8 @@ function VotarPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
             <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
             </span>
             {modoBackend
               ? 'Match en juego · En vivo'
@@ -846,11 +846,11 @@ function VotarPage() {
               title={fastMode ? 'Auto-siguiente activo · clic para desactivar' : 'Auto-siguiente desactivado · clic para activar'}
               className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[12px] font-semibold transition-all ${
                 fastMode
-                  ? 'border-yellow-400/60 bg-yellow-500/10 text-yellow-200'
-                  : 'border-border bg-surface text-fg-muted hover:border-yellow-400/40 hover:text-yellow-200'
+                  ? 'border-medal-gold/60 bg-medal-gold/10 text-medal-gold'
+                  : 'border-border bg-surface text-fg-muted hover:border-medal-gold/40 hover:text-medal-gold'
               }`}
             >
-              <Zap className={`h-3.5 w-3.5 ${fastMode ? 'fill-yellow-300' : ''}`} />
+              <Zap className={`h-3.5 w-3.5 ${fastMode ? 'fill-medal-gold' : ''}`} />
               Modo rápido
             </button>
             <button

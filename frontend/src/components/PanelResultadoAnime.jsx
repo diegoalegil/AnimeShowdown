@@ -76,24 +76,24 @@ function PanelResultadoAnime({
       transition={{ type: 'spring', stiffness: 180, damping: 18 }}
       className={`relative mb-6 overflow-hidden rounded-2xl border p-6 ${
         acertado
-          ? 'border-emerald-400/40 bg-gradient-to-br from-emerald-500/15 via-cyan-500/5 to-fuchsia-500/10'
-          : 'border-rose-400/40 bg-gradient-to-br from-rose-500/15 via-purple-500/5 to-slate-900/20'
+          ? 'border-success/40 bg-gradient-to-br from-success/15 via-electric/5 to-rarity-epic/10'
+          : 'border-danger/40 bg-gradient-to-br from-danger/15 via-rarity-epic/5 to-bg/20'
       }`}
     >
       <span
         aria-hidden="true"
         lang="ja"
         className={`pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none opacity-[0.07] ${
-          acertado ? 'text-emerald-200' : 'text-rose-200'
+          acertado ? 'text-success' : 'text-danger'
         }`}
       >
         {kanjiFinal}
       </span>
       {acertado && (
         <>
-          <Sparkles className="absolute right-4 top-4 h-4 w-4 animate-pulse text-emerald-300/70" />
-          <Sparkles className="absolute bottom-6 right-12 h-3 w-3 animate-pulse text-cyan-300/60 [animation-delay:0.4s]" />
-          <Sparkles className="absolute left-8 top-10 h-3 w-3 animate-pulse text-fuchsia-300/60 [animation-delay:0.8s]" />
+          <Sparkles className="absolute right-4 top-4 h-4 w-4 animate-pulse text-success/70" />
+          <Sparkles className="absolute bottom-6 right-12 h-3 w-3 animate-pulse text-electric/60 [animation-delay:0.4s]" />
+          <Sparkles className="absolute left-8 top-10 h-3 w-3 animate-pulse text-rarity-epic/60 [animation-delay:0.8s]" />
         </>
       )}
 
@@ -102,15 +102,15 @@ function PanelResultadoAnime({
           <span
             className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${
               acertado
-                ? 'bg-emerald-500/30 text-emerald-100'
-                : 'bg-rose-500/25 text-rose-100'
+                ? 'bg-success/30 text-success'
+                : 'bg-danger/25 text-danger'
             }`}
           >
             {acertado ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </span>
           <p
             className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
-              acertado ? 'text-emerald-200' : 'text-rose-200'
+              acertado ? 'text-success' : 'text-danger'
             }`}
           >
             <span lang="ja">{acertado ? '勝利' : '敗北'}</span>
@@ -123,7 +123,7 @@ function PanelResultadoAnime({
         {tier && (
           <p
             className={`mb-4 text-[13px] font-semibold ${
-              acertado ? 'text-emerald-200/90' : 'text-rose-200/90'
+              acertado ? 'text-success/90' : 'text-danger/90'
             }`}
           >
             {tier}
@@ -137,8 +137,8 @@ function PanelResultadoAnime({
                 key={idx}
                 className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-base ${
                   s.ok
-                    ? 'border border-emerald-400/40 bg-emerald-500/15'
-                    : 'border border-rose-400/30 bg-rose-500/10'
+                    ? 'border border-success/40 bg-success/15'
+                    : 'border border-danger/30 bg-danger/10'
                 }`}
                 aria-label={s.ok ? 'acierto' : 'fallo'}
               >
@@ -147,7 +147,7 @@ function PanelResultadoAnime({
             ))}
             {bonusBadge && (
               <span
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-400/40 bg-amber-500/15 text-base"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gold/40 bg-gold/15 text-base"
                 aria-label={bonusBadge.label}
                 title={bonusBadge.label}
               >
@@ -170,7 +170,7 @@ function PanelResultadoAnime({
             <>
               <Link
                 to="/misiones"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/35 bg-emerald-500/10 px-4 py-2 text-[13px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-success/35 bg-success/10 px-4 py-2 text-[13px] font-semibold text-success transition-colors hover:bg-success/20"
               >
                 <Trophy className="h-3.5 w-3.5" />
                 Ver misión

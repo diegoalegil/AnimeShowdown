@@ -54,16 +54,16 @@ function LiveMatchSpectator({ torneo }) {
 
   return (
     <section
-      className="mb-10 overflow-hidden rounded-2xl border border-emerald-400/25 bg-surface/95 shadow-[0_18px_55px_rgba(16,185,129,0.08)]"
+      className="mb-10 overflow-hidden rounded-2xl border border-success/25 bg-surface/95 shadow-[0_18px_55px_rgba(16,185,129,0.08)]"
       aria-label="Modo espectador del torneo en directo"
     >
       <div className="flex flex-col gap-4 border-b border-border bg-bg/70 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-400/15 text-emerald-300">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-success/15 text-success">
             <Radio className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-300">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-success">
               Spectator live
             </p>
             <h2 className="text-lg font-extrabold text-fg-strong">
@@ -163,7 +163,7 @@ function CountdownPill({ remainingMs, endsAt }) {
 
   return (
     <span className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-bg px-3 font-mono text-sm font-black tabular-nums text-fg-strong">
-      <Timer className="h-4 w-4 text-emerald-300" />
+      <Timer className="h-4 w-4 text-success" />
       {label}
     </span>
   )

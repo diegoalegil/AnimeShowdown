@@ -15,7 +15,7 @@ function StatTile({ icon: Icon, label, value, hint, accent }) {
     <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-surface p-4">
       <div className="flex items-center gap-2">
         <Icon
-          className={`h-3.5 w-3.5 ${accent ? 'text-yellow-400' : 'text-fg-muted'}`}
+          className={`h-3.5 w-3.5 ${accent ? 'text-gold' : 'text-fg-muted'}`}
         />
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
           {label}

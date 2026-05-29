@@ -9,9 +9,9 @@ function RankingRow({ rank, slug, nombre, elo }) {
   // Solo ELO base (estimado). Las W/L sintéticas no se muestran.
   const tone =
     rank === 1
-      ? 'border-yellow-400/50 bg-yellow-500/5'
+      ? 'border-medal-gold/50 bg-medal-gold/5'
       : rank <= 3
-        ? 'border-amber-400/40 bg-amber-500/5'
+        ? 'border-gold/40 bg-gold/5'
         : 'border-border bg-surface'
   return (
     <li>
@@ -22,9 +22,9 @@ function RankingRow({ rank, slug, nombre, elo }) {
         <span
           className={`w-8 shrink-0 font-mono text-base font-extrabold tabular-nums ${
             rank === 1
-              ? 'text-yellow-300'
+              ? 'text-medal-gold'
               : rank <= 3
-                ? 'text-amber-300'
+                ? 'text-gold'
                 : 'text-fg-muted'
           }`}
         >
