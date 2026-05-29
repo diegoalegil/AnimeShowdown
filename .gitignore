@@ -82,6 +82,7 @@ local-notes/
 review-notes/
 audit/
 audits/
+auditoria/
 AUDIT*.md
 *AUDIT*.md
 *audit*.md
