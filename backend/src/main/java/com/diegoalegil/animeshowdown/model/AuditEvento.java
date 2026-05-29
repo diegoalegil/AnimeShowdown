@@ -66,5 +66,7 @@ public enum AuditEvento {
     /** Cuenta eliminada por su propio dueño. */
     CUENTA_ELIMINADA,
     /** El usuario cambió su username (onboarding o ajustes). */
-    USERNAME_CAMBIADO
+    USERNAME_CAMBIADO,
+    /** El usuario editó su bio pública (B7 §1a). */
+    BIO_CAMBIADA
 }

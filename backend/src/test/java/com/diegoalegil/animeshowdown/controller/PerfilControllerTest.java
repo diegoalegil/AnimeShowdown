@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -274,5 +275,68 @@ class PerfilControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void bioSinAuthDevuelveForbidden() throws Exception {
+        mvc.perform(patch("/api/perfil/me/bio")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bio", "hola"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void bioSeGuardaYApareceEnPerfilPublico() throws Exception {
+        String token = tokenDe("bio_alice", "bio_alice@example.com");
+        mvc.perform(patch("/api/perfil/me/bio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bio", "Fan de One Piece desde 2010"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bio").value("Fan de One Piece desde 2010"));
+
+        // La vista pública refleja la bio + fechaRegistro (B7 §1a/§1b).
+        mvc.perform(get("/api/perfil/bio_alice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bio").value("Fan de One Piece desde 2010"))
+                .andExpect(jsonPath("$.fechaRegistro").exists());
+    }
+
+    @Test
+    void bioConHtmlSeGuardaComoTextoPlano() throws Exception {
+        String token = tokenDe("bio_bob", "bio_bob@example.com");
+        mvc.perform(patch("/api/perfil/me/bio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(
+                        Map.of("bio", "<b>Hola</b> <script>x</script>mundo"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bio").value("Hola xmundo"));
+    }
+
+    @Test
+    void bioVaciaLaBorra() throws Exception {
+        String token = tokenDe("bio_carla", "bio_carla@example.com");
+        mvc.perform(patch("/api/perfil/me/bio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bio", "algo"))))
+                .andExpect(status().isOk());
+        mvc.perform(patch("/api/perfil/me/bio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bio", "   "))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bio").doesNotExist());
+    }
+
+    @Test
+    void bioDemasiadoLargaDevuelve400() throws Exception {
+        String token = tokenDe("bio_dario", "bio_dario@example.com");
+        mvc.perform(patch("/api/perfil/me/bio")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bio", "a".repeat(241)))))
+                .andExpect(status().isBadRequest());
     }
 }
