@@ -157,42 +157,9 @@ function GamesHubPage() {
           }
         />
 
-        <p className="mb-6 max-w-3xl text-sm leading-7 text-fg-muted">
-          Anime Daily Trials reúne juegos breves para volver cada día: adivinar
-          personajes, reconocer animes, resolver una grilla, detectar impostores
-          y comparar ELO. Cada reto guarda progreso local, aporta misiones y
-          ofrece resultados compartibles sin convertir el hub en una página de
-          instrucciones larga.
-        </p>
-
-        <DailyMissionPanel compact className="mb-6 hidden md:block" />
-
-        <GamesHubSummaryBanner
-          completadosHoy={completadosHoy}
-          totalDaily={totalDaily}
-          onShare={compartirResumen}
-        />
-
-        <GamesHubStatsBar
-          completadosHoy={completadosHoy}
-          totalDaily={totalDaily}
-          eloBest={estadosJuegos['/games/elo-duel']?.best}
-          resetLabel={reinicio.label}
-        />
-
-        <DailyHistoryStrip days={dailyHistory} streak={dailyStreak} />
-
-        {/* Nota de producto: el Omikuji va PRIMERO ahora.
-            Sentido: el ritual diario abre el día — el palito que sacas
-            puede regalarte la pista gratis de los retos de abajo. Antes
-            estaba al final, justo después de los retos, lo cual era
-            absurdo (¿de qué te sirve la pista si ya jugaste todo?). */}
-        <section className="mb-6">
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
-            Ritual diario
-          </h2>
-          <OmikujiCard />
-        </section>
+        {/* V-6: los JUEGOS van PRIMERO, justo tras el hero. Antes el usuario
+            entraba a misión/calendario/ritual —todo a cero en cuentas nuevas—
+            y los retos quedaban al final, con sensación de "contenido vacío". */}
 
         {/* Reto destacado del día */}
         <section className="mb-6">
@@ -214,7 +181,45 @@ function GamesHubPage() {
           </div>
         </section>
 
+        {/* Ritual diario (omikuji): el palito puede regalar pista para los
+            retos de arriba. Va debajo de los juegos pero antes que misión/stats. */}
+        <section className="mb-6">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+            Ritual diario
+          </h2>
+          <OmikujiCard />
+        </section>
+
+        <DailyMissionPanel compact className="mb-6 hidden md:block" />
+
+        <GamesHubSummaryBanner
+          completadosHoy={completadosHoy}
+          totalDaily={totalDaily}
+          onShare={compartirResumen}
+        />
+
+        <GamesHubStatsBar
+          completadosHoy={completadosHoy}
+          totalDaily={totalDaily}
+          eloBest={estadosJuegos['/games/elo-duel']?.best}
+          resetLabel={reinicio.label}
+        />
+
+        {/* Calendario condicionado a actividad: una cuenta nueva (sin racha ni
+            juegos completados hoy) no ve una tira de 7 días a cero. */}
+        {(dailyStreak > 0 || completadosHoy > 0) && (
+          <DailyHistoryStrip days={dailyHistory} streak={dailyStreak} />
+        )}
+
         <DailyRulesDetails />
+
+        <p className="mt-8 max-w-3xl text-sm leading-7 text-fg-muted">
+          Anime Daily Trials reúne juegos breves para volver cada día: adivinar
+          personajes, reconocer animes, resolver una grilla, detectar impostores
+          y comparar ELO. Cada reto guarda progreso local, aporta misiones y
+          ofrece resultados compartibles sin convertir el hub en una página de
+          instrucciones larga.
+        </p>
       </div>
     </VisualPageShell>
   )
