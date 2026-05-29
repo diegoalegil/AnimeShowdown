@@ -243,7 +243,7 @@ function DueloVersusPage() {
 
         <section className="mt-10 rounded-xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2">
-            <Flame className="h-4 w-4 text-amber-300" />
+            <Flame className="h-4 w-4 text-gold" />
             <h2 className="text-lg font-bold text-fg-strong">Más duelos populares</h2>
           </div>
           <div className="mt-5 grid gap-6 lg:grid-cols-2">

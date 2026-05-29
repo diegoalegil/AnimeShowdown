@@ -187,7 +187,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="as-kicker border-amber-500/45 bg-amber-500/10 text-amber-200">
+          <span className="as-kicker border-gold/45 bg-gold/10 text-gold">
             <Type className="h-3 w-3" />
             Anime Reveal · Daily
           </span>
@@ -206,7 +206,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
         <div
           className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
             estado.acertado
-              ? 'border-amber-400/60 shadow-[0_0_60px_-10px_rgba(251,191,36,0.55)]'
+              ? 'border-gold/60 shadow-[0_0_60px_-10px_rgba(251,191,36,0.55)]'
               : 'border-border'
           }`}
         >
@@ -228,7 +228,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
                 <motion.div
                   animate={{ rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 0.6, repeat: 1 }}
-                  className="rounded-full border-2 border-amber-300/80 bg-amber-500/20 px-5 py-2 text-lg font-extrabold uppercase tracking-[0.2em] text-amber-100 backdrop-blur-sm"
+                  className="rounded-full border-2 border-gold/80 bg-gold/20 px-5 py-2 text-lg font-extrabold uppercase tracking-[0.2em] text-gold backdrop-blur-sm"
                 >
                   ¡Acertaste!
                 </motion.div>
@@ -242,15 +242,15 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
                 <p className="text-xl font-bold text-fg-strong">
                   {objetivo.nombre}
                 </p>
-                <p className="text-[12px] text-amber-200">{objetivo.anime}</p>
+                <p className="text-[12px] text-gold">{objetivo.anime}</p>
               </div>
             )}
           </div>
         </div>
 
         {estado.pistaUsada && !estado.finalizado && (
-          <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[13px]">
-            <p className="text-amber-200">
+          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 p-3 text-[13px]">
+            <p className="text-gold">
               <Lightbulb className="mr-1 inline h-3.5 w-3.5" />
               Pista: el personaje se llama{' '}
               <strong className="font-semibold">{objetivo.nombre}</strong>.
@@ -270,7 +270,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
               type="button"
               onClick={handlePista}
               disabled={estado.pistaUsada || restantes <= 1}
-            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-gold/40 hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Lightbulb className="h-3.5 w-3.5" />
               {estado.pistaUsada
@@ -393,7 +393,7 @@ function ListaIntentosAnime({ intentos }) {
             key={`${i.anime}-${idx}`}
             className={`flex items-center gap-3 rounded-lg border p-2.5 ${
               i.acierto
-                ? 'border-emerald-500/40 bg-emerald-500/5'
+                ? 'border-success/40 bg-success/5'
                 : 'border-border bg-bg'
             }`}
           >
@@ -401,9 +401,9 @@ function ListaIntentosAnime({ intentos }) {
               {i.anime}
             </span>
             {i.acierto ? (
-              <Check className="h-4 w-4 text-emerald-300" />
+              <Check className="h-4 w-4 text-success" />
             ) : (
-              <X className="h-4 w-4 text-rose-300/70" />
+              <X className="h-4 w-4 text-danger/70" />
             )}
           </li>
         ))}

@@ -5,7 +5,7 @@ function GamesHubSummaryBanner({ completadosHoy, totalDaily, onShare }) {
   if (completadosHoy <= 0) return null
 
   return (
-    <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-success/30 bg-success/10 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-sm font-black text-fg-strong">
           Hoy completaste {completadosHoy}/{totalDaily} daily trials.
@@ -18,7 +18,7 @@ function GamesHubSummaryBanner({ completadosHoy, totalDaily, onShare }) {
         <button
           type="button"
           onClick={onShare}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-[13px] font-black text-emerald-100 transition-colors hover:bg-emerald-500/25"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-success/40 bg-success/15 px-4 py-2 text-[13px] font-black text-success transition-colors hover:bg-success/25"
         >
           <Share2 className="h-3.5 w-3.5" />
           Compartir resumen

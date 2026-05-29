@@ -24,19 +24,19 @@ export function GamesHubStatsBar({ completadosHoy, totalDaily, eloBest, resetLab
     <div className="as-panel mb-6 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:p-5">
       <StatTile
         icon={Flame}
-        iconColor="text-orange-400"
+        iconColor="text-medal-bronze"
         label="Completados hoy"
         value={`${completadosHoy}/${totalDaily}`}
       />
       <StatTile
         icon={Trophy}
-        iconColor="text-yellow-400"
+        iconColor="text-medal-gold"
         label="Mejor racha ELO Duel"
         value={eloBest != null ? `${eloBest}` : '—'}
       />
       <StatTile
         icon={Hourglass}
-        iconColor="text-cyan-400"
+        iconColor="text-electric"
         label="Próximo reset"
         value={resetLabel}
         className="col-span-2 sm:col-span-1"
@@ -88,7 +88,7 @@ export function DailyHistoryStrip({ days, streak }) {
               key={day.date}
               className={`min-h-[5.75rem] rounded-xl border px-2 py-2 text-center ${
                 completed
-                  ? 'border-emerald-400/35 bg-emerald-500/10'
+                  ? 'border-success/35 bg-success/10'
                   : started
                     ? 'border-gold/35 bg-gold-soft'
                     : 'border-border bg-bg/45'
@@ -107,7 +107,7 @@ export function DailyHistoryStrip({ days, streak }) {
               <p
                 className={`mt-2 font-mono text-xl font-black ${
                   completed
-                    ? 'text-emerald-200'
+                    ? 'text-success'
                     : started
                       ? 'text-gold'
                       : 'text-fg-muted'

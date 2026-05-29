@@ -36,7 +36,7 @@ export function CardDestacado({ game, estado }) {
             {game.rarity} · Reto del día
           </span>
           {done && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-200 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-success backdrop-blur-md">
               ✓ Completado
             </span>
           )}
@@ -89,12 +89,12 @@ export function CardMini({ game, estado }) {
             {game.rarity}
           </span>
           {done && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-emerald-200 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-success backdrop-blur-md">
               ✓
             </span>
           )}
           {best != null && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-yellow-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-yellow-200 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 rounded-full border border-medal-gold/40 bg-medal-gold/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-medal-gold backdrop-blur-md">
               <Trophy className="h-2.5 w-2.5" />
               Récord {best}
             </span>

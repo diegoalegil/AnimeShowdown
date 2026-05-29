@@ -225,7 +225,7 @@ function HigherOrLowerGame({
       />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
         <header className="flex flex-col items-start gap-2 sm:gap-3">
-          <span className="as-kicker border-cyan-500/45 bg-cyan-500/10 text-cyan-200">
+          <span className="as-kicker border-electric/45 bg-electric/10 text-electric">
             <Sparkles className="h-3 w-3" />
             <span lang="ja">戦</span> · ELO Duel · Endless
           </span>
@@ -295,7 +295,7 @@ function ScoreBar({ score, best }) {
     >
       <div className="flex items-center gap-2">
         <Flame
-          className={`h-4 w-4 ${cerca ? 'animate-pulse text-orange-400' : 'text-fg-muted'}`}
+          className={`h-4 w-4 ${cerca ? 'animate-pulse text-medal-bronze' : 'text-fg-muted'}`}
         />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
           Racha actual
@@ -305,7 +305,7 @@ function ScoreBar({ score, best }) {
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <Trophy className="h-4 w-4 text-yellow-400" />
+        <Trophy className="h-4 w-4 text-medal-gold" />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
           Récord
         </span>
@@ -338,9 +338,9 @@ function VsBadge({ revealed }) {
         }}
         className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 sm:h-14 sm:w-14 ${
           revealed === 'correct'
-            ? 'border-emerald-400 bg-emerald-500/20 text-emerald-200'
+            ? 'border-success bg-success/20 text-success'
             : revealed === 'wrong'
-              ? 'border-rose-400 bg-rose-500/20 text-rose-200'
+              ? 'border-danger bg-danger/20 text-danger'
               : 'border-accent/60 bg-accent-soft text-gold'
         }`}
       >
@@ -391,9 +391,9 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
   const isRevealed = revealedState !== null
 
   const borderClass = isCorrect
-    ? 'border-emerald-500'
+    ? 'border-success'
     : isWrong
-      ? 'border-rose-500'
+      ? 'border-danger'
       : 'border-border'
 
   return (
@@ -430,7 +430,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               className={`absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4 ${
-                isCorrect ? 'bg-emerald-500/90' : 'bg-rose-500/90'
+                isCorrect ? 'bg-success/90' : 'bg-danger/90'
               }`}
             >
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
@@ -453,7 +453,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
             type="button"
             onClick={onMayor}
             disabled={isRevealed}
-            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-2 text-[12px] font-semibold text-emerald-300 transition-all hover:-translate-y-0.5 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
+            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-success/40 bg-success/10 px-2 py-2 text-[12px] font-semibold text-success transition-all hover:-translate-y-0.5 hover:bg-success/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
           >
             <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Más ELO
@@ -462,7 +462,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
             type="button"
             onClick={onMenor}
             disabled={isRevealed}
-            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/40 bg-rose-500/10 px-2 py-2 text-[12px] font-semibold text-rose-300 transition-all hover:-translate-y-0.5 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
+            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-danger/40 bg-danger/10 px-2 py-2 text-[12px] font-semibold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
           >
             <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Menos ELO
@@ -499,9 +499,9 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="as-panel flex flex-col items-center gap-4 rounded-xl border-rose-500/30 bg-rose-500/5 p-8 text-center"
+      className="as-panel flex flex-col items-center gap-4 rounded-xl border-danger/30 bg-danger/5 p-8 text-center"
     >
-      <span className="inline-flex rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-rose-300">
+      <span className="inline-flex rounded-full border border-danger/40 bg-danger/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-danger">
         Game Over
       </span>
       <h2 className="text-3xl font-bold tracking-tight text-fg-strong">
@@ -515,9 +515,9 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
         <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO base{' '}
         <span className="font-mono text-fg-strong">{challenger.elo}</span> →{' '}
         {challengerEsMayor ? (
-          <span className="text-emerald-300">era MAYOR</span>
+          <span className="text-success">era MAYOR</span>
         ) : (
-          <span className="text-rose-300">era MENOR</span>
+          <span className="text-danger">era MENOR</span>
         )}{' '}
         que <span className="font-bold text-fg-strong">{reference.nombre}</span> ({reference.elo}).
       </div>
