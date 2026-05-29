@@ -1,11 +1,16 @@
 name: lighthouse
 
 # Gate de rendimiento/a11y/best-practices/SEO con Lighthouse CI (B5).
-# WARN-only: nunca tumba el push, solo deja el reporte + avisos como artefacto.
+# Categorías = WARN (solo reporte + avisos). Core Web Vitals de paint/CLS
+# (FCP/LCP/CLS) = ERROR con margen amplio (límite "poor" de Web Vitals): no
+# flakean en una página normal pero tumban el run si vuelve el "blanco al
+# navegar" (V-2) — sin skeleton el paint se dispara varios segundos. El gate
+# determinista de esa regresión es el test de RequireCatalog (vitest); este es
+# la red secundaria de perf.
 # Corre sobre push a main (flujo solo-dev: cada cambio aterriza en main) y a
 # demanda. Para convertirlo en check de PR, añadir `pull_request` abajo.
-# La primera corrida establece el baseline real (artefacto .lighthouseci) →
-# ajustar entonces los umbrales de lighthouserc.json a baseline - margen.
+# Tras la primera corrida con estos gates, revisar el artefacto .lighthouseci y
+# apretar FCP/LCP/CLS a baseline - margen (hoy van holgados a propósito).
 
 on:
   push:
