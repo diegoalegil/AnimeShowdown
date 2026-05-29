@@ -1,0 +1,40 @@
+name: migration guard
+
+# Backstop de CI del guardrail local (.husky/pre-commit): falla si un PR o un
+# push a main modifica/borra una migración Flyway ya existente. Las migraciones
+# aplicadas son inmutables — cambiar su contenido rompe el checksum y tumba el
+# arranque en prod. Ver scripts/check-migrations-immutable.mjs.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/src/main/resources/db/migration/**'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/src/main/resources/db/migration/**'
+
+permissions:
+  contents: read
+
+jobs:
+  immutable-migrations:
+    name: migraciones aplicadas inmutables
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 22 LTS
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Verificar que no se modifican migraciones existentes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            node scripts/check-migrations-immutable.mjs --range "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          else
+            node scripts/check-migrations-immutable.mjs --range "${{ github.event.before }}" "${{ github.sha }}"
+          fi

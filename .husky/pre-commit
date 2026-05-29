@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Bloquea modificar/borrar migraciones Flyway ya aplicadas (rompen el checksum
+# en prod). Solo se permite añadir nuevas V{n}__*.sql. Ver el script para el
+# incidente de referencia (2026-05-29).
+node scripts/check-migrations-immutable.mjs --staged
