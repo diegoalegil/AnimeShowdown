@@ -426,7 +426,7 @@ function CategoriaCard({ rank, personaje, tono }) {
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
           <span
-            className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-lg px-1 font-mono text-[10px] font-extrabold ${rankTono}`}
+            className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 font-mono text-[10px] font-extrabold ${rankTono}`}
           >
             #{rank}
           </span>

@@ -91,7 +91,7 @@ function UsuarioPage() {
           </h1>
           <p className="mt-3 text-fg-muted">
             No existe ningún usuario con el username{' '}
-            <code className="rounded-lg bg-surface px-1.5 py-0.5 text-[13px]">
+            <code className="rounded-md bg-surface px-1.5 py-0.5 text-[13px]">
               {username}
             </code>
             .

@@ -131,7 +131,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = fa
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span
-            className={`inline-flex w-fit rounded-lg border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
+            className={`inline-flex w-fit rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
           >
             {style.nombre}
           </span>

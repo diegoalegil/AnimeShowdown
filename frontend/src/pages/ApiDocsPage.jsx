@@ -238,7 +238,7 @@ function ApiDocsPage() {
             AnimeShowdown expone una API REST pública para lectura del catálogo
             de personajes, ranking competitivo, torneos y perfiles. Sin auth para los
             endpoints de abajo. La raíz{' '}
-            <code className="rounded-lg bg-surface px-1 py-0.5 font-mono text-[0.9em] text-fg-strong">
+            <code className="rounded-md bg-surface px-1 py-0.5 font-mono text-[0.9em] text-fg-strong">
               https://api.animeshowdown.dev/
             </code>{' '}
             es la base técnica y puede responder 403; las entradas navegables son

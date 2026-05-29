@@ -139,7 +139,7 @@ function TorneoCard({ torneo }) {
             <span className="uppercase tracking-wider">{badge.label}</span>
           </span>
           {finalizado && (
-            <span className="inline-flex items-center rounded-lg border border-border bg-bg/55 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-fg-muted">
+            <span className="inline-flex items-center rounded-md border border-border bg-bg/55 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-fg-muted">
               Histórico
             </span>
           )}

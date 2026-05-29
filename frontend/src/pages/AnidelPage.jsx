@@ -280,7 +280,7 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
             En las filas, verde = coincide, rojo = no coincide, ámbar = dirección. */}
         <div className="as-panel mb-4 grid grid-cols-3 gap-2 rounded-lg p-3 text-[11px] text-fg-muted">
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border border-border bg-bg px-1 font-mono text-[10px] font-bold text-fg-strong">
+            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-bg px-1 font-mono text-[10px] font-bold text-fg-strong">
               Aa
             </span>
             <span>Letra inicial</span>

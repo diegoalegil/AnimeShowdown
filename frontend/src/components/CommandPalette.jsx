@@ -299,7 +299,7 @@ function CommandPalette({ initialOpen = false } = {}) {
             placeholder="Busca personajes, torneos o navega..."
             className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
           />
-          <kbd className="hidden rounded-lg border border-border bg-bg px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline-block">
+          <kbd className="hidden rounded-md border border-border bg-bg px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline-block">
             ESC
           </kbd>
         </div>

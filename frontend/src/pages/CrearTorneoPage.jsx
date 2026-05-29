@@ -337,7 +337,7 @@ function CardDatos({ register, errors }) {
           <input
             type="checkbox"
             {...register('publico')}
-            className="mt-1 h-4 w-4 rounded-lg border-border bg-bg accent-[var(--color-accent)]"
+            className="mt-1 h-4 w-4 rounded-md border-border bg-bg accent-[var(--color-accent)]"
           />
           <span>
             <span className="block font-semibold text-fg-strong">
