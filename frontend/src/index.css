@@ -35,6 +35,20 @@
      a 110-120s. Si pareciera lento otra vez, bajar a 60s. */
   --animate-marquee: marquee 40s linear infinite;
   --animate-pulse-halo: pulse-halo 2.4s ease-out infinite;
+
+  /* Motion — única fuente de verdad de las curvas del sistema.
+     "lift": entradas y hovers premium. "brush": trazo de pincel del kanji.
+     Generan las utilidades Tailwind ease-lift / ease-brush. */
+  --ease-lift: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-brush: cubic-bezier(0.65, 0.05, 0.36, 1);
+
+  /* Radios base del sistema (Tailwind mantiene rounded-lg/xl/full/etc.).
+     --radius-card: superficie de panel/card. --radius-pill: chips y badges. */
+  --radius-card: 0.875rem;
+  --radius-pill: 9999px;
+
+  /* Glow carmesí de marca — utilidad shadow-glow para componentes nuevos. */
+  --shadow-glow: 0 0 40px -16px rgb(159 29 44 / 0.55);
 }
 
 @keyframes pulse-halo {
@@ -175,7 +189,7 @@
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
     animation-name: kanji-stroke-draw;
-    animation-timing-function: cubic-bezier(0.65, 0.05, 0.36, 1);
+    animation-timing-function: var(--ease-brush);
     animation-fill-mode: forwards;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -390,7 +404,7 @@
     position: relative;
     min-width: 0;
     overflow: hidden;
-    border-radius: 0.875rem;
+    border-radius: var(--radius-card);
     border: 1px solid rgb(255 255 255 / 0.09);
     background:
       radial-gradient(circle at 18% 12%, rgb(197 161 90 / 0.11), transparent 15rem),
@@ -538,7 +552,7 @@
 
   .as-card-lift {
     transition:
-      transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 240ms var(--ease-lift),
       border-color 240ms ease,
       box-shadow 240ms ease,
       filter 240ms ease;
@@ -617,7 +631,7 @@
     transform-style: preserve-3d;
     transform: rotateY(calc((var(--mx) - 0.5) * 14deg * var(--active)))
       rotateX(calc((var(--my) - 0.5) * -14deg * var(--active)));
-    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 220ms var(--ease-lift);
   }
   .card-holo__img {
     display: block;
