@@ -183,7 +183,7 @@ function DueloLivePage() {
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-xl border border-border bg-surface/70 px-4 py-3 text-sm text-fg-muted">
-          <Radio className={`h-4 w-4 ${connected ? 'text-emerald-300' : 'text-amber-300'}`} />
+          <Radio className={`h-4 w-4 ${connected ? 'text-success' : 'text-gold'}`} />
           {connected ? 'Conectado en directo' : 'Reconectando directo'}
         </div>
       </section>
@@ -241,9 +241,9 @@ function StartArena({ state, joining, onJoin }) {
           {resultado && (
             <p className={`mt-2 text-4xl font-black ${
               resultado === 'Victoria'
-                ? 'text-emerald-300'
+                ? 'text-success'
                 : resultado === 'Derrota'
-                  ? 'text-rose-300'
+                  ? 'text-danger'
                   : 'text-gold'
             }`}>
               {resultado}
@@ -254,7 +254,7 @@ function StartArena({ state, joining, onJoin }) {
               {state.miScore} - {state.rivalScore}
             </h2>
             {delta != null && (
-              <span className={`text-2xl font-black tabular-nums ${delta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+              <span className={`text-2xl font-black tabular-nums ${delta >= 0 ? 'text-success' : 'text-danger'}`}>
                 {delta >= 0 ? '+' : ''}{delta} ELO PvP
               </span>
             )}
@@ -323,7 +323,7 @@ function WaitingArena({ state, onLeave }) {
           className="h-2 overflow-hidden rounded-full bg-surface-alt"
         >
           <div
-            className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-emerald-300 transition-[width] duration-500"
+            className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-success transition-[width] duration-500"
             style={{ width: `${fallbackProgress}%` }}
           />
         </div>
@@ -331,7 +331,7 @@ function WaitingArena({ state, onLeave }) {
       <button
         type="button"
         onClick={onLeave}
-        className="mt-6 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-bold text-fg-muted transition hover:border-rose-400/50 hover:text-rose-200"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-bold text-fg-muted transition hover:border-danger/50 hover:text-danger"
       >
         <LogOut className="h-4 w-4" />
         Salir de cola
@@ -392,7 +392,7 @@ function BattleArena({ state, voting, onVote, onLeave }) {
         <button
           type="button"
           onClick={onLeave}
-          className="mt-5 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-bold text-fg-muted transition hover:border-rose-400/50 hover:text-rose-200"
+          className="mt-5 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-bold text-fg-muted transition hover:border-danger/50 hover:text-danger"
         >
           <LogOut className="h-4 w-4" />
           Abandonar duelo
@@ -474,10 +474,10 @@ function CharacterChoice({ label, personaje, disabled, onClick }) {
 function RoundResult({ state }) {
   const ok = state.ronda?.yoAcerte
   return (
-    <div className={`mt-5 rounded-xl border p-4 ${ok ? 'border-emerald-400/30 bg-emerald-500/10' : 'border-rose-400/30 bg-rose-500/10'}`}>
+    <div className={`mt-5 rounded-xl border p-4 ${ok ? 'border-success/30 bg-success/10' : 'border-danger/30 bg-danger/10'}`}>
       <div className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em]">
-        {ok ? <ShieldCheck className="h-4 w-4 text-emerald-300" /> : <Activity className="h-4 w-4 text-rose-300" />}
-        <span className={ok ? 'text-emerald-200' : 'text-rose-200'}>
+        {ok ? <ShieldCheck className="h-4 w-4 text-success" /> : <Activity className="h-4 w-4 text-danger" />}
+        <span className={ok ? 'text-success' : 'text-danger'}>
           {ok ? 'Acertaste la comunidad' : 'La comunidad eligió otra cosa'}
         </span>
       </div>

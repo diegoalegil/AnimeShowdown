@@ -280,7 +280,7 @@ function DailyCalendar({ days }) {
               key={day.date}
               className={`min-h-[5.4rem] rounded-xl border px-2 py-2 text-center ${
                 day.completed
-                  ? 'border-emerald-400/35 bg-emerald-500/10'
+                  ? 'border-success/35 bg-success/10'
                   : started
                     ? 'border-gold/35 bg-gold-soft'
                     : 'border-border bg-bg/45'
@@ -299,7 +299,7 @@ function DailyCalendar({ days }) {
               <p
                 className={`mt-2 font-mono text-xl font-black ${
                   day.completed
-                    ? 'text-emerald-200'
+                    ? 'text-success'
                     : started
                       ? 'text-gold'
                       : 'text-fg-muted'

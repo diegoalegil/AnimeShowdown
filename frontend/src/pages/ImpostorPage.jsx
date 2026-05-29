@@ -201,7 +201,7 @@ function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="as-kicker border-purple-500/45 bg-purple-500/10 text-purple-200">
+          <span className="as-kicker border-rarity-epic/45 bg-rarity-epic/10 text-rarity-epic">
             <Sparkles className="h-3 w-3" />
             <span lang="ja">裏</span> · Impostor Trial · Daily
           </span>
@@ -305,19 +305,19 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
   }
 
   return (
-    <div className="as-panel relative mb-6 overflow-hidden rounded-xl border-purple-500/30 p-6">
+    <div className="as-panel relative mb-6 overflow-hidden rounded-xl border-rarity-epic/30 p-6">
       {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
       <span
         aria-hidden="true"
         lang="ja"
-        className="pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none text-purple-200 opacity-[0.06]"
+        className="pointer-events-none absolute -right-2 -top-4 select-none font-mono text-[7rem] leading-none text-rarity-epic opacity-[0.06]"
       >
         裏
       </span>
 
       <div className="relative mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 items-center justify-center rounded-md bg-purple-500/20 px-2 font-mono text-[12px] font-extrabold text-purple-100">
+          <span className="inline-flex h-7 items-center justify-center rounded-md bg-rarity-epic/20 px-2 font-mono text-[12px] font-extrabold text-rarity-epic">
             R{rondaIdx + 1}/{totalRondas}
           </span>
           <p className="text-[13px] text-fg-muted">
@@ -327,7 +327,7 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
         </div>
         <span
           className={`inline-flex items-center gap-1 font-mono text-[12px] font-bold tabular-nums ${
-            critico ? 'text-rose-300' : 'text-purple-100'
+            critico ? 'text-danger' : 'text-rarity-epic'
           }`}
           aria-live="polite"
         >
@@ -350,8 +350,8 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
         <div
           className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${
             critico
-              ? 'bg-gradient-to-r from-rose-500 via-red-500 to-orange-400'
-              : 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-400'
+              ? 'bg-gradient-to-r from-danger via-danger to-medal-bronze'
+              : 'bg-gradient-to-r from-rarity-epic via-rarity-epic to-arc-waifu'
           }`}
           style={{ width: `${porcentajeRestante}%` }}
         />
@@ -378,7 +378,7 @@ function Carta({ item, disabled, onClick }) {
       onClick={onClick}
       disabled={disabled}
       aria-label={`${item.nombre} de ${item.anime} — ¿impostor?`}
-      className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-purple-500/60 disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:translate-y-0"
+      className="as-ssr-card group relative overflow-hidden rounded-xl text-left transition-all hover:-translate-y-0.5 hover:border-rarity-epic/60 disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:translate-y-0"
     >
       <div className="aspect-[3/4] w-full overflow-hidden bg-surface-alt">
         <PersonajeImg
@@ -408,11 +408,11 @@ function ProgresoRondas({ rondaActual, resultados, total }) {
             key={i}
             className={`inline-flex h-8 min-w-[3rem] items-center justify-center gap-1 rounded-md px-2 text-[12px] font-semibold ${
               resultado === true
-                ? 'bg-emerald-500/20 text-emerald-200'
+                ? 'bg-success/20 text-success'
                 : resultado === false
-                  ? 'bg-rose-500/15 text-rose-300'
+                  ? 'bg-danger/15 text-danger'
                   : esActual
-                    ? 'border border-purple-500/40 bg-purple-500/10 text-purple-200'
+                    ? 'border border-rarity-epic/40 bg-rarity-epic/10 text-rarity-epic'
                     : 'border border-border bg-bg text-fg-muted'
             }`}
           >

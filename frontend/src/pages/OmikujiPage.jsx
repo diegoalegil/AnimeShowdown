@@ -76,11 +76,11 @@ const SUERTES = [
 ]
 
 const COLOR_CLASSES = {
-  amber: 'border-amber-500/40 bg-amber-500/10 text-amber-200',
-  emerald: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200',
-  cyan: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-200',
-  purple: 'border-purple-500/40 bg-purple-500/10 text-purple-200',
-  rose: 'border-rose-500/40 bg-rose-500/10 text-rose-200',
+  amber: 'border-gold/40 bg-gold/10 text-gold',
+  emerald: 'border-success/40 bg-success/10 text-success',
+  cyan: 'border-electric/40 bg-electric/10 text-electric',
+  purple: 'border-rarity-epic/40 bg-rarity-epic/10 text-rarity-epic',
+  rose: 'border-danger/40 bg-danger/10 text-danger',
 }
 
 // RGB del glow latente de cada suerte — se inyecta como CSS custom
@@ -251,7 +251,7 @@ function OmikujiPage() {
               <strong className="text-fg-strong">{fecha}</strong>?
             </p>
             <motion.div
-              className="mb-6 inline-block rounded-2xl border-2 border-amber-500/30 bg-amber-500/5 px-8 py-12 font-mono text-6xl text-amber-200/40"
+              className="mb-6 inline-block rounded-2xl border-2 border-gold/30 bg-gold/5 px-8 py-12 font-mono text-6xl text-gold/40"
               animate={{
                 rotate: [-2, 2, -2, 2, 0],
                 y: [0, -3, 0, -3, 0],

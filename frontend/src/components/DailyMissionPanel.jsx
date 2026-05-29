@@ -75,14 +75,14 @@ function MissionItem({ icon: Icon, label, detail, done, to }) {
       to={to}
       className={`group flex min-h-[4.5rem] items-center gap-3 rounded-xl border px-4 py-3 transition-all hover:-translate-y-0.5 ${
         done
-          ? 'border-emerald-400/35 bg-emerald-500/10'
+          ? 'border-success/35 bg-success/10'
           : 'border-border bg-bg/45 hover:border-accent/45'
       }`}
     >
       <span
         className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
           done
-            ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200'
+            ? 'border-success/40 bg-success/15 text-success'
             : 'border-accent/35 bg-accent-soft text-gold'
         }`}
       >
@@ -163,7 +163,7 @@ function DailyMissionPanel({ compact = false, className = '' }) {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-gold to-emerald-300"
+        className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-gold to-success"
       />
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-xl">
@@ -203,7 +203,7 @@ function DailyMissionPanel({ compact = false, className = '' }) {
 
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-bg">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-emerald-300 transition-all duration-500"
+          className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-success transition-all duration-500"
           style={{ width: `${progressPct}%` }}
         />
       </div>
@@ -239,9 +239,9 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       </div>
 
       {completed && (
-        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-success/30 bg-success/10 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-200">
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-success">
               <Sparkles className="h-3.5 w-3.5" />
               Ritual sellado
             </p>
@@ -252,7 +252,7 @@ function DailyMissionPanel({ compact = false, className = '' }) {
           <button
             type="button"
             onClick={compartirMision}
-            className="inline-flex w-fit items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-[12px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
+            className="inline-flex w-fit items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-[12px] font-semibold text-success transition-colors hover:bg-success/20"
           >
             <Share2 className="h-3.5 w-3.5" />
             Compartir ritual

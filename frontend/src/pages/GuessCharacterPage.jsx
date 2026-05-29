@@ -212,7 +212,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="as-kicker border-rose-500/45 bg-rose-500/10 text-rose-200">
+          <span className="as-kicker border-danger/45 bg-danger/10 text-danger">
             <Eye className="h-3 w-3" />
             Shadow Guess · Daily
           </span>
@@ -232,7 +232,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
         <div
           className={`as-panel relative mx-auto mb-4 w-full max-w-[min(78vw,320px)] overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:max-w-sm ${
             estado.acertado
-              ? 'border-emerald-400/60 shadow-[0_0_60px_-10px_rgba(52,211,153,0.55)]'
+              ? 'border-success/60 shadow-[0_0_60px_-10px_rgba(52,211,153,0.55)]'
               : 'border-border'
           }`}
         >
@@ -269,7 +269,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
                 <motion.div
                   animate={{ rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 0.6, repeat: 1 }}
-                  className="rounded-full border-2 border-emerald-300/80 bg-emerald-500/20 px-5 py-2 text-lg font-extrabold uppercase tracking-[0.2em] text-emerald-100 backdrop-blur-sm"
+                  className="rounded-full border-2 border-success/80 bg-success/20 px-5 py-2 text-lg font-extrabold uppercase tracking-[0.2em] text-success backdrop-blur-sm"
                 >
                   ¡Acertaste!
                 </motion.div>
@@ -290,8 +290,8 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
         </div>
 
         {estado.pistaUsada && !estado.finalizado && (
-          <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[13px]">
-            <p className="text-amber-200">
+          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 p-3 text-[13px]">
+            <p className="text-gold">
               <Lightbulb className="mr-1 inline h-3.5 w-3.5" />
               Pista: es del anime{' '}
               <strong className="font-semibold">{objetivo.anime}</strong>.
@@ -311,7 +311,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
               type="button"
               onClick={handlePista}
               disabled={estado.pistaUsada || restantes <= 1}
-            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-gold/40 hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Lightbulb className="h-3.5 w-3.5" />
               {estado.pistaUsada
@@ -434,7 +434,7 @@ function ListaIntentos({ intentos, objetivo }) {
             key={`${i.slug}-${idx}`}
             className={`flex items-center gap-3 rounded-lg border p-2.5 ${
               i.acierto
-                ? 'border-emerald-500/40 bg-emerald-500/5'
+                ? 'border-success/40 bg-success/5'
                 : 'border-border bg-bg'
             }`}
           >
@@ -453,7 +453,7 @@ function ListaIntentos({ intentos, objetivo }) {
             </div>
             <Sparkles
               className={`h-3.5 w-3.5 shrink-0 ${
-                i.anime === objetivo.anime ? 'text-amber-300' : 'text-fg-muted/30'
+                i.anime === objetivo.anime ? 'text-gold' : 'text-fg-muted/30'
               }`}
               aria-label={
                 i.anime === objetivo.anime
@@ -462,9 +462,9 @@ function ListaIntentos({ intentos, objetivo }) {
               }
             />
             {i.acierto ? (
-              <Check className="h-4 w-4 text-emerald-300" />
+              <Check className="h-4 w-4 text-success" />
             ) : (
-              <X className="h-4 w-4 text-rose-300/70" />
+              <X className="h-4 w-4 text-danger/70" />
             )}
           </li>
         ))}
