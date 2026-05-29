@@ -10,6 +10,7 @@ import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import { buscarAnimes, getAnimesCatalogo } from '../lib/animes'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import BrandSelect from '../components/BrandSelect'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { BRAND_VISUALS, getAnimeVisual } from '../data/visual-assets'
@@ -127,18 +128,16 @@ function AnimesPage() {
               </button>
             )}
           </div>
-          <select
+          <BrandSelect
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            aria-label="Ordenar por"
-            className="as-control min-h-11 w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
-          >
-            {Object.entries(SORT_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                Ordenar: {v}
-              </option>
-            ))}
-          </select>
+            onChange={setSort}
+            ariaLabel="Ordenar por"
+            className="w-full min-w-0"
+            options={Object.entries(SORT_LABELS).map(([k, v]) => ({
+              value: k,
+              label: `Ordenar: ${v}`,
+            }))}
+          />
         </div>
 
         <p className="mb-4 text-[11px] text-fg-muted">
