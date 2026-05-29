@@ -124,7 +124,7 @@ function FighterPanel({ personaje, votes, percent, leading, alignRight = false }
         fallback={personaje.imagenUrl || imagenPersonaje(personaje.slug)}
         alt={personaje.nombre}
         loading="lazy"
-        className="h-24 w-20 shrink-0 rounded-xl border border-accent/15"
+        className="h-28 w-24 shrink-0 rounded-xl border border-accent/15 sm:h-36 sm:w-28"
         imgClassName="p-1"
       />
       <div className="min-w-0 flex-1">
