@@ -389,7 +389,7 @@ function PersonajeDetailPage() {
               {/* Retrato circular pequeño: imagen limpia del catálogo, estable
                   (no cambia con la galería de abajo). object-top favorece la
                   cabeza dentro del recorte circular. */}
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-gold/30 bg-surface shadow-glow sm:h-28 sm:w-28">
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-gold/30 bg-surface shadow-aura sm:h-28 sm:w-28">
                 {/* Retrato limpio de la galería (MAL/Jikan) si existe; si falla
                     o no hay, cae a la imagen del catálogo (la carta). no-referrer
                     como en la galería para no romper por hotlink protection. */}
