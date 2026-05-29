@@ -59,6 +59,10 @@ describe('ogParaRuta', () => {
     expect(og('/mi-ranking')?.image).toBe(`${API}/api/og/ranking.png`)
   })
 
+  it('mapea /ranking con barra final igual que las rutas hermanas', () => {
+    expect(og('/ranking/')?.image).toBe(`${API}/api/og/ranking.png`)
+  })
+
   it('devuelve null para rutas no mapeadas', () => {
     expect(og('/apoya')).toBeNull()
     expect(og('/')).toBeNull()
