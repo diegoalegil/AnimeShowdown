@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ===========================================================================
-# backup-and-rotate.sh — Backup diario Neon → Cloudflare R2
+# backup-and-rotate.sh — Backup diario de la BBDD (Supabase) → Cloudflare R2
 #
 # Flow:
-#   1. pg_dump --format=custom de Neon production.
+#   1. pg_dump --format=custom de la BBDD de producción (Supabase).
 #   2. Sube a R2 con AWS CLI (R2 es S3-compatible, requiere --endpoint-url).
 #   3. Si es lunes, también copia el dump a weekly/.
 #   4. Si es día 1 del mes, también copia el dump a monthly/.
@@ -13,7 +13,7 @@
 #        monthly/ > 365 días (~12 meses)
 #
 # Variables de entorno requeridas:
-#   NEON_DATABASE_URL      postgresql://user:pass@host/db?sslmode=require
+#   NEON_DATABASE_URL      postgres://postgres.<ref>:pass@aws-0-<region>.pooler.supabase.com:5432/postgres  (secret legacy → Supabase)
 #   R2_ENDPOINT            https://<account-id>.r2.cloudflarestorage.com
 #   R2_ACCESS_KEY_ID       (Access Key del API token R2)
 #   R2_SECRET_ACCESS_KEY   (Secret del API token R2)
@@ -62,7 +62,7 @@ echo "============================================================"
 # --format=custom comprime nativo (~85% reducción), permite pg_restore
 # selectivo, y es el formato recomendado por la propia doc de Postgres
 # para backups. --no-owner / --no-acl evitan que un restore en una BBDD
-# nueva falle por roles/usuarios distintos a los de Neon.
+# nueva falle por roles/usuarios distintos a los de Supabase.
 echo "→ pg_dump (custom, no-owner, no-acl) ..."
 pg_dump \
     --no-owner \
