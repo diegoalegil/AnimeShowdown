@@ -26,7 +26,7 @@ const navLinks = [
   { to: '/ranking', i18nKey: 'ranking' },
 ]
 
-const navLinkBase = 'relative rounded-md px-3.5 py-2 text-sm transition-colors'
+const navLinkBase = 'relative rounded-md px-3 py-2 text-sm transition-colors'
 const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
 const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 
@@ -191,8 +191,10 @@ function Header() {
         </span>
       </Link>
 
-      {/* Nav desktop (lg+). En móvil/tablet vive en el panel del hamburger. */}
-      <nav className="hidden flex-wrap items-center justify-center gap-1 lg:flex">
+      {/* Nav desktop (xl+). Por debajo no caben los 8 enlaces + CTA + utilidades
+          en una sola fila, así que pasa al panel del hamburger en vez de
+          envolver a dos filas. */}
+      <nav className="hidden flex-nowrap items-center justify-center gap-1 xl:flex">
         {navLinks.map(({ to, i18nKey }) => (
           <NavLink
             key={to}
@@ -229,8 +231,8 @@ function Header() {
           className="inline-flex h-10 items-center gap-1.5 rounded-md border border-border/60 bg-surface px-2.5 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
-          <span className="hidden text-[11px] xl:inline">Buscar</span>
-          <kbd className="hidden rounded border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted xl:inline-block">
+          <span className="hidden text-[11px] 2xl:inline">Buscar</span>
+          <kbd className="hidden rounded border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted 2xl:inline-block">
             ⌘K
           </kbd>
         </button>
@@ -266,11 +268,11 @@ function Header() {
         )}
       </nav>
 
-      {/* Cluster móvil: avatar/notif si logueado, CTA Votar si no, +
+      {/* Cluster móvil/tablet: avatar/notif si logueado, CTA Votar si no, +
           hamburger. El Login en mobile pasa al panel del hamburger
           (nota de producto 2026-05-18: primero participar, después
           registrarse — login secundario hasta que haya valor acumulado). */}
-      <div className="flex items-center gap-1.5 lg:hidden">
+      <div className="flex items-center gap-1.5 xl:hidden">
         {user ? (
           <>
             <NotifBell />
