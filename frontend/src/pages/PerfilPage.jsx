@@ -27,6 +27,7 @@ import PasswordInput from '../components/PasswordInput'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import CardAvatar from '../features/perfil/components/CardAvatar'
+import CardUsername from '../features/perfil/components/CardUsername'
 import CardDatosCuenta from '../features/perfil/components/CardDatosCuenta'
 import PerfilQuickStats from '../features/perfil/components/PerfilQuickStats'
 import PerfilTabs from '../features/perfil/components/PerfilTabs'
@@ -115,6 +116,7 @@ function PerfilPage() {
           {tab === 'torneos' && <CardMisTorneos />}
           {tab === 'ajustes' && (
             <>
+              <CardUsername user={user} />
               <CardAvatar user={user} updateUser={updateUser} />
               <CardPassword />
               <Card2faSeguridad />
