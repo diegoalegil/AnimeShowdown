@@ -29,7 +29,7 @@ Activos a proteger:
 Activos NO en alcance:
 - DDoS volumétrico (Railway/Cloudflare cubren capa 3-4).
 - Phishing de la página de login (no se puede prevenir desde la app).
-- Compromiso del proveedor (Neon, Railway, Cloudflare).
+- Compromiso del proveedor (Supabase, Railway, Cloudflare).
 
 ---
 
@@ -68,7 +68,7 @@ Activos NO en alcance:
 - `Personaje.descripcion` y `Personaje.imagenUrl` con `@Column(length = 500)` — el avatar URL acepta hasta 500_000 chars (validación a mano en `AuthController.actualizarAvatar`).
 
 ### BBDD
-- **PostgreSQL 17** (Neon) con conexión SSL forzada (`?sslmode=require` en JDBC URL).
+- **PostgreSQL 17** (Supabase) con conexión SSL forzada (`?sslmode=require` en JDBC URL).
 - Constraints UNIQUE para evitar votos duplicados:
   - `UNIQUE (personaje_id, usuario_id)` en `votos`.
   - `UNIQUE (enfrentamiento_id, usuario_id)` en `votos`.

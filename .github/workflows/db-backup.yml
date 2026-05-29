@@ -1,11 +1,13 @@
 name: DB backup → R2
 
-# Cron diario que hace pg_dump de Neon production y lo sube a Cloudflare R2
-# con rotación daily 7d / weekly 4w / monthly 12m.
+# Cron diario que hace pg_dump de la BBDD de producción (Supabase) y lo sube a
+# Cloudflare R2 con rotación daily 7d / weekly 4w / monthly 12m.
 #
 # Para activar — secrets necesarios en Settings → Secrets → Actions:
-#   NEON_DATABASE_URL      postgresql://user:pass@host/db?sslmode=require
-#                          (¡SIN -pooler! pg_dump necesita conexión directa)
+#   NEON_DATABASE_URL      postgresql://postgres.<ref>:pass@aws-0-<region>.pooler.supabase.com:5432/postgres
+#                          (nombre legacy del secret; hoy apunta a Supabase. Usa el
+#                          SESSION pooler :5432 —IPv4, compatible con pg_dump—, NO
+#                          el transaction pooler :6543 que rompe pg_dump)
 #   R2_ENDPOINT            https://<account-id>.r2.cloudflarestorage.com
 #   R2_ACCESS_KEY_ID       Access Key del API token R2 con write al bucket
 #   R2_SECRET_ACCESS_KEY   Secret correspondiente
@@ -21,7 +23,7 @@ name: DB backup → R2
 on:
   schedule:
     # 04:00 UTC = 06:00 Madrid (CEST en verano, CET en invierno). Horario
-    # valle: cero tráfico humano, Neon ya despierto del baseline.
+    # valle: cero tráfico humano.
     - cron: '0 4 * * *'
   workflow_dispatch:
 
@@ -43,7 +45,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install PostgreSQL 17 client
-        # ubuntu-latest viene con pg_dump 16 por default; Neon corre Postgres 17
+        # ubuntu-latest viene con pg_dump 16 por default; Supabase corre Postgres 17
         # y pg_dump 16 contra server 17 falla con "server version mismatch".
         # Repo oficial de PostgreSQL → instalar postgresql-client-17 + ponerlo
         # al frente del PATH (los binarios viven en /usr/lib/postgresql/17/bin

@@ -44,7 +44,7 @@ auth, votos, torneos y observabilidad.
 |---|---|
 | Cloudflare Pages | Frontend, redirects, headers, PWA assets |
 | Railway | Backend Spring Boot |
-| Neon | PostgreSQL |
+| Supabase | PostgreSQL |
 | Cloudflare/R2 compatible | Catalogo de imagenes y assets pesados |
 | GitHub Actions | Validacion, jobs manuales y mantenimiento |
 
@@ -249,7 +249,7 @@ https://api.animeshowdown.dev/actuator/health
 
 ### Base de datos
 
-Neon aloja PostgreSQL. Flyway aplica migraciones al arranque. Los backups y
+Supabase aloja PostgreSQL. Flyway aplica migraciones al arranque. Los backups y
 rotaciones se documentan en scripts y runbooks.
 
 ### Assets
