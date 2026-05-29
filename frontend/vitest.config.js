@@ -17,6 +17,11 @@ import { defineConfig } from 'vitest/config'
 //   componentes React (Fase 5) ampliarán el patrón.
 
 export default defineConfig({
+  // Runtime JSX automático en los tests, igual que el build de la app
+  // (@vitejs/plugin-react). Sin esto, esbuild transforma el JSX con el runtime
+  // clásico y los tests de componente (.test.tsx) fallan con "React is not
+  // defined" al renderizar componentes que no importan React explícitamente.
+  esbuild: { jsx: 'automatic' },
   test: {
     environment: 'happy-dom',
     setupFiles: ['./src/test/setup.ts'],
