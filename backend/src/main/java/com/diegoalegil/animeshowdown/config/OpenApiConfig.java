@@ -51,7 +51,7 @@ public class OpenApiConfig {
                                 .url("https://opensource.org/licenses/MIT")))
                 .addServersItem(new Server()
                         .url("https://api.animeshowdown.dev")
-                        .description("Producción (Railway + Neon)"))
+                        .description("Producción (Railway + Supabase)"))
                 .addServersItem(new Server()
                         .url("http://localhost:8080")
                         .description("Local dev"))
