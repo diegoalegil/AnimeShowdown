@@ -212,7 +212,7 @@ function TorneosHeroBanner() {
         imageClassName="saturate-110 contrast-105"
       />
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="rounded-full border border-gold/50 bg-gold-soft px-6 py-3 text-5xl font-black uppercase tracking-tighter text-gold shadow-[0_0_60px_-14px_rgba(197,161,90,0.85)]">
+        <div className="rounded-full border border-gold/50 bg-gold-soft px-6 py-3 text-5xl font-black uppercase tracking-tighter text-gold shadow-aura-lg [--aura-color:rgb(197_161_90_/_0.85)]">
           VS
         </div>
       </div>

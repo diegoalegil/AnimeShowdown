@@ -276,7 +276,7 @@ export function VisualCard({
   return (
     <Wrapper
       {...props}
-      className={`as-panel group block overflow-hidden rounded-2xl transition-all hover:-translate-y-1 hover:border-gold/45 hover:shadow-[0_0_70px_-28px_rgba(197,161,90,0.7)] ${className}`}
+      className={`as-panel group block overflow-hidden rounded-2xl transition-all hover:-translate-y-1 hover:border-gold/45 hover:shadow-aura-lg [--aura-color:rgb(197_161_90_/_0.7)] ${className}`}
     >
       <EditorialCover
         visual={visual}
