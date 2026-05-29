@@ -37,6 +37,7 @@ import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeGaleria from '../components/PersonajeGaleria'
 import PersonajeImg from '../components/PersonajeImg'
+import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { hasCut } from '../lib/cuts'
 import ReactionsBar from '../components/ReactionsBar'
@@ -128,6 +129,12 @@ function PersonajeDetailPage() {
   // dispara un render extra: https://react.dev/reference/react/useState
   const imagenCatalogo = personaje ? imagenPersonaje(slug) : null
   const [imagenActiva, setImagenActiva] = useState(imagenCatalogo)
+  // Avatar del hero: primer retrato limpio de la galería (Jikan/MAL) si existe,
+  // con fallback a la imagen del catálogo (la carta). Mismo queryKey que la
+  // galería de abajo → TanStack lo deduplica, sin doble fetch.
+  const { data: galeriaExtras } = useImagenesPersonaje(slug)
+  const avatarSrc =
+    (Array.isArray(galeriaExtras) && galeriaExtras[0]) || imagenCatalogo
   const [slugAnterior, setSlugAnterior] = useState(slug)
   if (slug !== slugAnterior) {
     setSlugAnterior(slug)
@@ -414,13 +421,24 @@ function PersonajeDetailPage() {
                   (no cambia con la galería de abajo). object-top favorece la
                   cabeza dentro del recorte circular. */}
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-gold/30 bg-surface shadow-glow sm:h-28 sm:w-28">
-                <PersonajeImg
-                  slug={slug}
-                  src={imagenCatalogo}
+                {/* Retrato limpio de la galería (MAL/Jikan) si existe; si falla
+                    o no hay, cae a la imagen del catálogo (la carta). no-referrer
+                    como en la galería para no romper por hotlink protection. */}
+                <img
+                  src={avatarSrc}
                   alt={personaje.nombre}
-                  nombre={personaje.nombre}
+                  width={112}
+                  height={112}
                   loading="eager"
+                  referrerPolicy="no-referrer"
                   className="h-full w-full object-cover object-top"
+                  onError={(e) => {
+                    const img = e.currentTarget
+                    if (!img.dataset.fellBack && imagenCatalogo) {
+                      img.dataset.fellBack = '1'
+                      img.src = imagenCatalogo
+                    }
+                  }}
                 />
               </div>
               <div className="flex min-w-0 flex-col gap-1">
