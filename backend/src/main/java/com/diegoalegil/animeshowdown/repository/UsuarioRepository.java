@@ -14,6 +14,15 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByEmail(String email);
 
+    /**
+     * V-8: cuenta usuarios con el mismo username (case-insensitive) que NO sean
+     * el indicado. Sirve para la unicidad del cambio de username sin chocar con
+     * uno mismo —y tolera colisiones de mayúsculas legacy, donde un
+     * findByUsernameIgnoreCase devolvería más de una fila—.
+     */
+    @Query("SELECT COUNT(u) FROM Usuario u WHERE LOWER(u.username) = LOWER(:username) AND u.id <> :excludeId")
+    long countByUsernameIgnoreCaseExcludingId(String username, Long excludeId);
+
     /** 8: lookup por código de referral en el registro. */
     Optional<Usuario> findByReferralCode(String referralCode);
 

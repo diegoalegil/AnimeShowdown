@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.diegoalegil.animeshowdown.dto.CambioPasswordRequest;
+import com.diegoalegil.animeshowdown.dto.CambioUsernameRequest;
 import com.diegoalegil.animeshowdown.dto.ForgotPasswordRequest;
 import com.diegoalegil.animeshowdown.dto.LoginRequest;
 import com.diegoalegil.animeshowdown.dto.RegistroRequest;
@@ -71,6 +72,12 @@ public class AuthController {
     private static final long MAX_AVATAR_DATA_BYTES = 2L * 1024L * 1024L;
     private static final Pattern AVATAR_DATA_URI_PATTERN =
             Pattern.compile("^data:image/(png|jpe?g|webp);base64,", Pattern.CASE_INSENSITIVE);
+
+    // V-8: mismas reglas que CambioUsernameRequest/RegistroRequest. Se reusan
+    // en el chequeo en vivo GET /me/username-available, que no pasa por @Valid.
+    private static final int USERNAME_MIN_LENGTH = 3;
+    private static final int USERNAME_MAX_LENGTH = 30;
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -189,6 +196,10 @@ public class AuthController {
         // Registros nuevos nacen PENDIENTE hasta verificar email.
         // No pueden votar ni crear torneos en este estado.
         nuevoUsuario.setEstadoVerificacion(EstadoVerificacion.PENDIENTE);
+        // Registro por formulario: el usuario ya eligió su username, así que
+        // no necesita el onboarding post-login (ese flujo es para cuentas
+        // OAuth con username autogenerado). V-8.
+        nuevoUsuario.setOnboardingCompletado(true);
         // la auto-promoción a ADMIN NO ocurre aquí — se hace
         // en EmailVerificationService.verificar() tras pasar a ACTIVO.
         // Antes un atacante podía registrarse con el email del owner en
@@ -616,6 +627,102 @@ public class AuthController {
             padding = 1;
         }
         return (base64.length() * 3L / 4L) - padding;
+    }
+
+    // ====================================================================
+    // V-8 — Onboarding OAuth: username editable + flag needsOnboarding
+    // ====================================================================
+
+    /**
+     * Cambia el username del usuario autenticado (desde el onboarding o
+     * desde Ajustes). Valida formato vía {@link CambioUsernameRequest} y
+     * unicidad case-insensitive (409 si está tomado por otra cuenta).
+     *
+     * <p>Marca el onboarding como completado: confirmar el username (aunque
+     * sea el autogenerado) cierra el paso post-login.
+     *
+     * <p>El JWT lleva el username como {@code subject} y JwtAuthFilter
+     * resuelve el principal con {@code findByUsername}. Si solo cambiáramos
+     * la fila, el access token en memoria del cliente (válido hasta 15 min)
+     * apuntaría a un username que ya no existe → 401 hasta el siguiente
+     * refresh. Por eso devolvemos un JWT fresco con el username nuevo para
+     * que la sesión siga viva sin cortes (el refresh token de la cookie no
+     * embebe el username, así que no hace falta rotarlo).
+     */
+    @PutMapping("/me/username")
+    public ResponseEntity<?> cambiarUsername(
+            @Valid @RequestBody CambioUsernameRequest request,
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String nuevo = request.getUsername().trim();
+        // Solo chequeamos colisión si realmente cambia (un confirm idempotente
+        // del mismo username no debe dar 409 contra uno mismo). El cambio de
+        // solo-mayúsculas ("naruto" -> "Naruto") sí pasa por aquí pero el count
+        // excluye la propia fila, así que es válido.
+        if (!nuevo.equals(usuario.getUsername())
+                && usuarioRepository.countByUsernameIgnoreCaseExcludingId(nuevo, usuario.getId()) > 0) {
+            log.warn("Cambio de username rechazado (ya en uso): solicitado={}", nuevo);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Ese username ya está en uso. Prueba con otro."));
+        }
+        String anterior = usuario.getUsername();
+        usuario.setUsername(nuevo);
+        usuario.setOnboardingCompletado(true);
+        usuarioRepository.save(usuario);
+        log.info("Username cambiado: {} -> {}", anterior, nuevo);
+        auditLogService.registrar(AuditEvento.USERNAME_CAMBIADO, usuario,
+                Map.of("anterior", anterior, "nuevo", nuevo), httpRequest);
+        String token = jwtUtil.generarToken(usuario);
+        return ResponseEntity.ok(new TokenRespuesta(token, new UsuarioRespuesta(usuario)));
+    }
+
+    /**
+     * Chequeo en vivo de disponibilidad de username para el onboarding/Ajustes
+     * (debounced en el frontend). Devuelve {@code {available, reason}} sin
+     * lanzar excepciones de validación: {@code reason} es "formato" si el
+     * candidato no cumple las reglas, "tomado" si ya existe (case-insensitive)
+     * en otra cuenta, o ausente si está libre. El username propio cuenta como
+     * disponible (es tuyo). No está rate-limited (solo GET).
+     */
+    @GetMapping("/me/username-available")
+    public ResponseEntity<?> usernameDisponible(
+            @RequestParam("u") String u,
+            @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String candidato = u == null ? "" : u.trim();
+        if (candidato.length() < USERNAME_MIN_LENGTH
+                || candidato.length() > USERNAME_MAX_LENGTH
+                || !USERNAME_PATTERN.matcher(candidato).matches()) {
+            return ResponseEntity.ok(Map.of("available", false, "reason", "formato"));
+        }
+        boolean tomado = !candidato.equalsIgnoreCase(usuario.getUsername())
+                && usuarioRepository.countByUsernameIgnoreCaseExcludingId(candidato, usuario.getId()) > 0;
+        if (tomado) {
+            return ResponseEntity.ok(Map.of("available", false, "reason", "tomado"));
+        }
+        return ResponseEntity.ok(Map.of("available", true));
+    }
+
+    /**
+     * Marca el onboarding como completado sin cambiar nada más ("Saltar por
+     * ahora", o cerrar el modal tras tocar solo el avatar). Idempotente.
+     */
+    @PostMapping("/me/onboarding/skip")
+    public ResponseEntity<?> saltarOnboarding(@AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!usuario.isOnboardingCompletado()) {
+            usuario.setOnboardingCompletado(true);
+            usuarioRepository.save(usuario);
+            log.info("Onboarding saltado/completado: username={}", usuario.getUsername());
+        }
+        return ResponseEntity.ok(new UsuarioRespuesta(usuario));
     }
 
     @PutMapping("/me/password")

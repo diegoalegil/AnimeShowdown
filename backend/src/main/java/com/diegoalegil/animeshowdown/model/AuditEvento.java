@@ -64,5 +64,7 @@ public enum AuditEvento {
     /** Badge/logro desbloqueado por el usuario. */
     BADGE_DESBLOQUEADO,
     /** Cuenta eliminada por su propio dueño. */
-    CUENTA_ELIMINADA
+    CUENTA_ELIMINADA,
+    /** El usuario cambió su username (onboarding o ajustes). */
+    USERNAME_CAMBIADO
 }

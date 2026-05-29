@@ -757,4 +757,167 @@ class AuthControllerTest {
         assert activosDespues == 0
                 : "Post-logout: deben quedar 0 sesiones activas, hay " + activosDespues;
     }
+
+    // ====================================================================
+    // V-8 — Onboarding OAuth: PUT /me/username, GET /me/username-available,
+    //        POST /me/onboarding/skip, flag needsOnboarding
+    // ====================================================================
+
+    @Test
+    void registroMarcaOnboardingCompletado() throws Exception {
+        // El registro por formulario ya elige username → no necesita onboarding.
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "onbreg",
+                        "password", "secreta123",
+                        "email", "onbreg@example.com"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.needsOnboarding").value(false));
+    }
+
+    @Test
+    void putUsernameCambiaDevuelveTokenFrescoYResuelveEnMe() throws Exception {
+        Sesion s = registrarYLoguear("oldname1", "secreta123", "oldname1@example.com");
+
+        var res = mvc.perform(put("/api/auth/me/username")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "NuevoNombre"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists())
+                .andExpect(jsonPath("$.usuario.username").value("NuevoNombre"))
+                .andExpect(jsonPath("$.usuario.needsOnboarding").value(false))
+                .andReturn();
+
+        // La fila quedó renombrada y marcada como onboarded.
+        var u = usuarioRepository.findByUsername("NuevoNombre").orElseThrow();
+        assertEquals(true, u.isOnboardingCompletado());
+
+        // El JWT fresco resuelve al usuario renombrado en /me.
+        String nuevoToken = json.readTree(res.getResponse().getContentAsString())
+                .get("token").asText();
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + nuevoToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("NuevoNombre"));
+
+        // El token VIEJO lleva el username anterior como subject; tras el
+        // rename ya no resuelve a ningún usuario → 403 (sin esto, el cambio
+        // de username habría dejado la sesión rota hasta el siguiente refresh).
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void putUsernameDuplicadoCaseInsensitiveDevuelve409() throws Exception {
+        registrarYLoguear("sasuke_taken", "secreta123", "sasuke_taken@example.com");
+        Sesion b = registrarYLoguear("user_b_dup", "secreta123", "user_b_dup@example.com");
+
+        mvc.perform(put("/api/auth/me/username")
+                .header("Authorization", "Bearer " + b.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "Sasuke_Taken"))))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void putUsernameFormatoInvalidoDevuelve400() throws Exception {
+        Sesion s = registrarYLoguear("validuser1", "secreta123", "validuser1@example.com");
+
+        // Demasiado corto (mínimo 3).
+        mvc.perform(put("/api/auth/me/username")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "ab"))))
+                .andExpect(status().isBadRequest());
+
+        // Caracteres no permitidos (espacio).
+        mvc.perform(put("/api/auth/me/username")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "bad name"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void putUsernameSinTokenDevuelve403() throws Exception {
+        mvc.perform(put("/api/auth/me/username")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "whatever1"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getUsernameAvailableLibreDevuelveTrue() throws Exception {
+        Sesion s = registrarYLoguear("checker1", "secreta123", "checker1@example.com");
+        mvc.perform(get("/api/auth/me/username-available")
+                .param("u", "TotallyFreeName")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(true));
+    }
+
+    @Test
+    void getUsernameAvailableTomadoDevuelveFalse() throws Exception {
+        registrarYLoguear("occupied_name", "secreta123", "occupied_name@example.com");
+        Sesion s = registrarYLoguear("checker2", "secreta123", "checker2@example.com");
+        mvc.perform(get("/api/auth/me/username-available")
+                .param("u", "Occupied_Name")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(false))
+                .andExpect(jsonPath("$.reason").value("tomado"));
+    }
+
+    @Test
+    void getUsernameAvailableFormatoInvalidoDevuelveFalse() throws Exception {
+        Sesion s = registrarYLoguear("checker3", "secreta123", "checker3@example.com");
+        mvc.perform(get("/api/auth/me/username-available")
+                .param("u", "ab")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(false))
+                .andExpect(jsonPath("$.reason").value("formato"));
+    }
+
+    @Test
+    void getUsernameAvailablePropioCuentaComoDisponible() throws Exception {
+        Sesion s = registrarYLoguear("checker4", "secreta123", "checker4@example.com");
+        mvc.perform(get("/api/auth/me/username-available")
+                .param("u", "checker4")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(true));
+    }
+
+    @Test
+    void postOnboardingSkipMarcaCompletado() throws Exception {
+        Sesion s = registrarYLoguear("skipper1", "secreta123", "skipper1@example.com");
+        // Simula una cuenta OAuth pendiente de onboarding (el registro normal
+        // nace ya completado, así que lo forzamos para ejercitar el flujo).
+        var u = usuarioRepository.findByUsername("skipper1").orElseThrow();
+        u.setOnboardingCompletado(false);
+        usuarioRepository.save(u);
+
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.needsOnboarding").value(true));
+
+        mvc.perform(post("/api/auth/me/onboarding/skip")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.needsOnboarding").value(false));
+
+        var despues = usuarioRepository.findByUsername("skipper1").orElseThrow();
+        assertEquals(true, despues.isOnboardingCompletado());
+    }
+
+    @Test
+    void postOnboardingSkipSinTokenDevuelve403() throws Exception {
+        mvc.perform(post("/api/auth/me/onboarding/skip"))
+                .andExpect(status().isForbidden());
+    }
 }

@@ -41,6 +41,9 @@ class OAuthAccountServiceTest {
         assertEquals(Rol.USER, result.usuario().getRol());
         assertEquals("https://example.com/avatar.png", result.usuario().getAvatarUrl());
         assertNotNull(result.usuario().getReferralCode());
+        // V-8: el username es autogenerado, así que la cuenta nace pendiente
+        // de onboarding (el frontend mostrará el modal una vez).
+        assertFalse(result.usuario().isOnboardingCompletado());
     }
 
     @Test
