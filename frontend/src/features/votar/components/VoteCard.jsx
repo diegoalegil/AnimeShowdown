@@ -53,25 +53,25 @@ const VoteCard = memo(function VoteCard({
             ? `Votar como invitado por ${personaje.nombre} de ${personaje.anime}`
             : `Votar por ${personaje.nombre} de ${personaje.anime}`
         }
-        className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 bg-surface transition-[transform,border-color,box-shadow,opacity,filter] ${
+        className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 transition-[transform,border-color,box-shadow,opacity,filter] ${
           isVoted
-            ? 'border-accent shadow-aura-lg ring-2 ring-accent/40'
+            ? 'shadow-aura-lg ring-2 ring-white/25'
             : isLoser
-              ? 'border-border opacity-40 grayscale'
-              : 'border-border motion-safe:hover:-translate-y-1 hover:border-accent/60 hover:shadow-aura'
+              ? 'border-transparent opacity-40 grayscale'
+              : 'border-transparent motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-aura'
         } disabled:cursor-default`}
+        style={{
+          // Glow y borde de selección personalizados con el color dominante de
+          // cada carta (ranura --aura-color de la escala de sombras). La carta
+          // va "a sangre": sin marco de superficie ni viñeta oscura.
+          '--aura-color': dominantColor,
+          borderColor: isVoted ? dominantColor : undefined,
+        }}
       >
         <div
           className="relative aspect-[2/3] max-h-[min(44svh,28rem)] w-full overflow-hidden sm:max-h-[min(55svh,34rem)]"
           style={{ backgroundColor: dominantColor }}
         >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: `radial-gradient(circle at 50% 36%, ${dominantColor} 0%, rgba(13, 13, 18, 0.72) 45%, rgba(13, 13, 18, 0.96) 100%)`,
-            }}
-          />
           <PersonajeImg
             slug={personaje.slug}
             src={imgSrc}
@@ -82,7 +82,7 @@ const VoteCard = memo(function VoteCard({
             decoding="async"
             fetchPriority={side === 'left' ? 'high' : 'auto'}
             sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
-            className="relative h-full w-full object-contain transition-transform duration-300 motion-safe:group-hover:scale-[1.03]"
+            className="relative h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-[1.03]"
           />
           {isVoted && (
             <motion.div
