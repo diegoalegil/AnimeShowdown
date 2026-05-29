@@ -14,7 +14,7 @@
 | CDN frontend | Cloudflare Pages | Sí | Build con `npm run build:no-images` (timeout 20 min) |
 | CDN imágenes | Cloudflare/R2 público | Sí | `ANIMESHOWDOWN_IMG_CDN_BASE_URL` sirve el árbol público `/img/` |
 | Backend API | Railway Hobby | $5/mes | Dominio: `api.animeshowdown.dev` |
-| BBDD | Neon Postgres 17 (Frankfurt) | Sí (3GB) | Branch `main` |
+| BBDD | Supabase Postgres 17 | Sí (free tier) | Session pooler IPv4 (Railway) |
 | Email | Resend HTTP API | Sí (3k/mes) | Dominio verificado |
 | Backups | Cloudflare R2 | Sí (10GB) | Cron diario, rotación daily/weekly/monthly |
 | Observabilidad | Sentry (Web Vitals + JS errors) | Sí (5k/mes) | GDPR-safe defaults |
@@ -40,31 +40,31 @@
 1. Entra al dashboard de Railway → proyecto AnimeShowdown → Deployments.
 2. Revisa **Logs** del deploy actual. Causas comunes:
    - OOM (heap >512MB). Mira `heap` events en logs.
-   - Conexiones a Neon agotadas (HikariCP `pool exhaustion`).
+   - Conexiones a Supabase agotadas (HikariCP `pool exhaustion`).
    - Migración Flyway falló (V14+ logs `Migration of schema`).
 
 **Respuesta**:
 - **OOM**: reinicia el deploy desde Railway. Si recurrente, sube el plan o ajusta HikariCP `maximum-pool-size` (actual 8).
-- **Pool exhaustion**: verifica si Neon está sano (https://console.neon.tech). Si sí, sube `maximum-pool-size` temporalmente.
+- **Pool exhaustion**: verifica si Supabase está sano (dashboard de Supabase → Database). Si sí, sube `maximum-pool-size` temporalmente.
 - **Flyway**: lee el SQL de la migración fallida en `backend/src/main/resources/db/migration/`. Si es bug, corrige y redeploy. Si el estado de BBDD quedó inconsistente, marca la migración como reparada con `mvn flyway:repair` ANTES del siguiente boot.
 
 **Fallback (~1h downtime)**: redeploy desde Docker Hub a Render free tier. Variables de entorno desde 1Password.
 
 ---
 
-### 2. BBDD corrupta o caída (Neon)
+### 2. BBDD corrupta o caída (Supabase)
 
 **Síntoma**: backend logs muestran `JDBCConnectionException` continuo. Frontend muestra `500` en endpoints de catálogo.
 
 **Diagnóstico**:
-1. Consola Neon → estado del branch `main`.
-2. Si está sano pero el backend no conecta: rota credenciales (`NEON_DATABASE_URL` en Railway).
+1. Dashboard de Supabase → Database → estado de la instancia y connection pooling.
+2. Si está sano pero el backend no conecta: rota credenciales (`NEON_DATABASE_URL` en Railway — nombre legacy del secret, hoy apunta a Supabase).
 
 **Restore (~4h downtime)**:
 1. Identifica el último backup R2 OK: `daily/animeshowdown-YYYY-MM-DD.dump`.
-2. Crea branch nuevo en Neon (no escribas sobre `main`).
+2. Crea una instancia/proyecto Supabase nuevo (no restaures sobre el de producción).
 3. Restaura: `pg_restore --format=custom --dbname=$NEW_DB_URL backup.dump`.
-4. Apunta `NEON_DATABASE_URL` al branch nuevo en Railway.
+4. Apunta `NEON_DATABASE_URL` (secret legacy) a la instancia nueva en Railway.
 5. Validar con smoke test (`/actuator/health` + `/api/personajes` cuenta=1052).
 
 ---
@@ -147,7 +147,7 @@ Desde GitHub Actions, usa el workflow manual **IMG CDN sync**. El input `apply=f
 2. Logs del último run: errores comunes:
    - `NEON_DATABASE_URL` expirada.
    - `R2_ACCESS_KEY_ID` rotado.
-   - `pg_dump` versión no compatible con Neon 17.
+   - `pg_dump` versión no compatible con Postgres 17.
 
 **Respuesta**:
 - Rota secrets si fueron expirados (los 4 keys de R2 + `NEON_DATABASE_URL`).
@@ -234,13 +234,14 @@ El flag `useTestClasspath` mantiene H2 fuera del artefacto productivo y aun así
 - **Status pages**:
   - Cloudflare: https://www.cloudflarestatus.com/
   - Railway: https://status.railway.com/
-  - Neon: https://status.neon.tech/
+  - Supabase: https://status.supabase.com/
   - Resend: https://status.resend.com/
 
 ---
 
 ## Cambios recientes
 
+- **2026-05-28**: migración de BBDD de Neon a Supabase (Postgres 17, session pooler IPv4). El secret `NEON_DATABASE_URL` conserva el nombre legacy.
 - **2026-05-23**: hardening de producción: ranking personal local, misiones, comparador, sitemap/SEO y QA de catálogo/contraste.
 - **2026-05-17**: referral system, time machine ELO, eliminación de cuenta GDPR y ranking ↑↓. (El light mode opt-in se retiró después.)
 - **2026-05-17**: rebrand competitivo + fix imágenes producción.

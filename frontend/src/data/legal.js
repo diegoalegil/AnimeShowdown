@@ -10,7 +10,7 @@ export const PRIVACY_PROVIDERS = [
     description: 'hosting del backend Spring Boot y ejecución de la API.',
   },
   {
-    name: 'Neon PostgreSQL',
+    name: 'Supabase PostgreSQL',
     description: 'base de datos gestionada para cuentas, votos, rankings y torneos.',
   },
   {
