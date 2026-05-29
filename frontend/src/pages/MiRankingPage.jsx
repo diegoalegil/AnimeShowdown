@@ -212,7 +212,7 @@ function MiRankingPage() {
             <button
               type="button"
               onClick={reiniciar}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/50 px-3 py-2 text-[12px] font-bold text-fg-muted transition-colors hover:border-red-400/45 hover:text-red-200"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/50 px-3 py-2 text-[12px] font-bold text-fg-muted transition-colors hover:border-danger/45 hover:text-danger"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Reiniciar

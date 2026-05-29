@@ -106,7 +106,7 @@ function FavoritosPulsoBanner() {
 function BannerWrapper({ children, tono = 'roster' }) {
   const tonos = {
     roster: 'border-gold/30 bg-gradient-to-br from-gold/14 via-accent/8 to-transparent',
-    emerald: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent',
+    emerald: 'border-success/30 bg-gradient-to-br from-success/10 via-success/5 to-transparent',
     surface: 'border-border bg-surface/60',
   }
   return (
@@ -151,7 +151,7 @@ function BannerEstable({ total }) {
     <BannerWrapper tono="emerald">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-success/15 text-success">
             <Minus className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
@@ -167,7 +167,7 @@ function BannerEstable({ total }) {
         </div>
         <Link
           to="/votar"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-1.5 text-[12px] font-semibold text-emerald-200 hover:bg-emerald-500/20"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-success/40 bg-success/10 px-3 py-1.5 text-[12px] font-semibold text-success hover:bg-success/20"
         >
           <Swords className="h-3 w-3" />
           Vota ahora
@@ -218,8 +218,8 @@ function BannerConActividad({ items, total }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <TrendingUp className="h-3 w-3 text-emerald-300" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-300">
+            <TrendingUp className="h-3 w-3 text-success" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-success">
               Tus favoritos están activos · últimos 7 días
             </span>
           </div>
@@ -235,7 +235,7 @@ function BannerConActividad({ items, total }) {
         </div>
         <Link
           to="/perfil"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/5 px-3 py-1.5 text-[12px] font-semibold text-emerald-200 hover:bg-emerald-500/15"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-success/40 bg-success/5 px-3 py-1.5 text-[12px] font-semibold text-success hover:bg-success/15"
         >
           Mi roster ({total})
           <ArrowRight className="h-3 w-3" />
@@ -248,7 +248,7 @@ function BannerConActividad({ items, total }) {
 function FavoritoMovido({ favorito, movimiento, actividad }) {
   const subio = movimiento.delta > 0
   const Icon = subio ? TrendingUp : TrendingDown
-  const colorClase = subio ? 'text-emerald-300' : 'text-rose-300'
+  const colorClase = subio ? 'text-success' : 'text-danger'
   const votos = actividad?.votosPeriodoActual ?? 0
   return (
     <li>
@@ -288,7 +288,7 @@ function FavoritoActivo({ favorito, actividad }) {
     <li>
       <Link
         to={`/personajes/${favorito.slug}`}
-        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-emerald-400/60"
+        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-success/60"
         title={`${favorito.nombre}: ${votos} votos esta semana · sin cambio de puesto`}
       >
         <PersonajeImg
@@ -302,7 +302,7 @@ function FavoritoActivo({ favorito, actividad }) {
         <span className="line-clamp-1 font-semibold text-fg-strong">
           {favorito.nombre}
         </span>
-        <span className="inline-flex items-center gap-0.5 font-mono text-[11px] font-extrabold text-emerald-300">
+        <span className="inline-flex items-center gap-0.5 font-mono text-[11px] font-extrabold text-success">
           +{votos}
         </span>
       </Link>

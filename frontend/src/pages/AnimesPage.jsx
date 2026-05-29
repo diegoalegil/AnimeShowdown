@@ -268,7 +268,7 @@ function AnimeTile({ animeData }) {
         </div>
         {topElo && (
           <p className="line-clamp-1 text-[12px] text-fg-muted">
-            <Trophy className="mr-1 inline h-3 w-3 text-yellow-400" />
+            <Trophy className="mr-1 inline h-3 w-3 text-medal-gold" />
             Top ELO base:{' '}
             <strong className="text-fg-strong">{topElo.nombre}</strong>
             <span className="font-mono text-gold"> · {topElo.elo}</span>

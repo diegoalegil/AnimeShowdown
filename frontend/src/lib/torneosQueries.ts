@@ -33,8 +33,8 @@ export const ESTADO_BADGE: Record<string, EstadoBadge> = {
   },
   IN_PROGRESS: {
     label: 'En curso',
-    dot: 'bg-emerald-400',
-    color: 'text-emerald-400',
+    dot: 'bg-success',
+    color: 'text-success',
   },
   FINISHED: {
     label: 'Finalizado',

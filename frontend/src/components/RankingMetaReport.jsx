@@ -55,13 +55,13 @@ function RankingMetaReport() {
   return (
     <section
       aria-label="Meta report"
-      className="mt-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent p-5 sm:p-6"
+      className="mt-6 rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/10 via-gold/5 to-transparent p-5 sm:p-6"
     >
       <div className="mb-3 flex items-center gap-2">
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-500/20 text-amber-300">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold/20 text-gold">
           <Sparkles className="h-3.5 w-3.5" />
         </span>
-        <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber-300">
+        <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-gold">
           Meta report · esta semana
         </h2>
       </div>
@@ -98,7 +98,7 @@ function RankingMetaReport() {
             <span className="text-fg-muted">Últimos 7 días: </span>
             {ups.length > 0 && (
               <>
-                <span className="inline-flex items-center gap-1 font-semibold text-emerald-300">
+                <span className="inline-flex items-center gap-1 font-semibold text-success">
                   <TrendingUp className="h-3.5 w-3.5" />
                   {ups.length} {ups.length === 1 ? 'subida' : 'subidas'}
                 </span>
@@ -108,7 +108,7 @@ function RankingMetaReport() {
                     <ProperLink to={`/personajes/${topUp.slug}`}>
                       {topUp.nombre}
                     </ProperLink>
-                    <span className="font-mono font-bold text-emerald-300">
+                    <span className="font-mono font-bold text-success">
                       {' '}
                       +{Math.abs(topUp.delta)}
                     </span>
@@ -120,7 +120,7 @@ function RankingMetaReport() {
             {downs.length > 0 && (
               <>
                 {' '}
-                <span className="inline-flex items-center gap-1 font-semibold text-rose-300">
+                <span className="inline-flex items-center gap-1 font-semibold text-danger">
                   <TrendingDown className="h-3.5 w-3.5" />
                   {downs.length} {downs.length === 1 ? 'caída' : 'caídas'}
                 </span>
@@ -130,7 +130,7 @@ function RankingMetaReport() {
                     <ProperLink to={`/personajes/${topDown.slug}`}>
                       {topDown.nombre}
                     </ProperLink>
-                    <span className="font-mono font-bold text-rose-300">
+                    <span className="font-mono font-bold text-danger">
                       {' '}
                       {topDown.delta}
                     </span>
@@ -145,14 +145,14 @@ function RankingMetaReport() {
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           to="/votar"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-3 py-1.5 text-[12px] font-semibold text-amber-200 transition-colors hover:bg-amber-500/30"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-gold/20 px-3 py-1.5 text-[12px] font-semibold text-gold transition-colors hover:bg-gold/30"
         >
           Vota duelos abiertos
           <ArrowRight className="h-3 w-3" />
         </Link>
         <Link
           to="/metodologia-elo"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/30 px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-amber-500/50 hover:text-amber-200"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/30 px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-gold/50 hover:text-gold"
         >
           Cómo se calcula el ranking
         </Link>
@@ -165,7 +165,7 @@ function ProperLink({ to, children }) {
   return (
     <Link
       to={to}
-      className="font-semibold text-fg-strong underline-offset-2 hover:text-amber-200 hover:underline"
+      className="font-semibold text-fg-strong underline-offset-2 hover:text-gold hover:underline"
     >
       {children}
     </Link>

@@ -129,7 +129,7 @@ function LogrosPage() {
               para evocar "salón de trofeos" / coleccionismo. Mantenemos
               el kanji 勲章 (medalla) — tiene intención semántica directa
               con el tema de la página. */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-amber-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             <Trophy className="h-3 w-3" />
             勲章 · Logros
           </span>
@@ -185,24 +185,24 @@ function LogrosPage() {
               valor={desbloqueados}
               total={total}
               label="Desbloqueados"
-              accentClass="text-amber-300 border-amber-500/30 bg-amber-500/5"
+              accentClass="text-gold border-gold/30 bg-gold/5"
             />
             <StatTile
               icon={Sparkles}
               valor={legendariosDesbloqueados}
               total={legendariosTotal}
               label="Legendarios"
-              accentClass="text-fuchsia-300 border-fuchsia-500/30 bg-fuchsia-500/5"
+              accentClass="text-rarity-epic border-rarity-epic/30 bg-rarity-epic/5"
             />
             <StatTile
               icon={Award}
               valor={`${progresoPct}%`}
               label="Progreso total"
-              accentClass="text-emerald-300 border-emerald-500/30 bg-emerald-500/5"
+              accentClass="text-success border-success/30 bg-success/5"
             >
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg/60">
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-amber-300 to-fuchsia-400"
+                  className="h-full rounded-full bg-gradient-to-r from-success via-gold to-rarity-epic"
                   initial={{ width: prefersReducedMotion ? `${progresoPct}%` : 0 }}
                   animate={{ width: `${progresoPct}%` }}
                   transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.2, ease: 'easeOut', delay: 0.3 }}

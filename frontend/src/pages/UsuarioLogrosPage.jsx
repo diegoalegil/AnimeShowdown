@@ -152,7 +152,7 @@ function UsuarioLogrosPage() {
             <Avatar user={perfil} size={72} />
             <div className="flex flex-col gap-1.5">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
-                <Trophy className="h-3 w-3 text-amber-400" />
+                <Trophy className="h-3 w-3 text-gold" />
                 勲章 · Logros
               </span>
               <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight tracking-tight">

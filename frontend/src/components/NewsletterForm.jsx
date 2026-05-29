@@ -37,14 +37,14 @@ function NewsletterForm() {
 
   if (exito) {
     return (
-      <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-[12px] text-emerald-300">
+      <div className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/5 p-3 text-[12px] text-success">
         <Check className="mt-0.5 h-4 w-4 shrink-0" />
         <div className="min-w-0">
           <p className="font-semibold">{exito.mensaje}</p>
           <button
             type="button"
             onClick={() => setExito(null)}
-            className="mt-1 text-[11px] text-emerald-200/70 hover:text-emerald-200"
+            className="mt-1 text-[11px] text-success/70 hover:text-success"
           >
             {t('newsletter.reintentar')}
           </button>
@@ -72,7 +72,7 @@ function NewsletterForm() {
             },
           })}
           className={`w-full min-w-0 rounded-lg border bg-bg px-3 py-2 text-[13px] text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-            errors.email ? 'border-red-500' : 'border-border'
+            errors.email ? 'border-danger' : 'border-border'
           }`}
         />
         <button
@@ -85,7 +85,7 @@ function NewsletterForm() {
         </button>
       </div>
       {errors.email && (
-        <p className="text-[11px] text-red-400">{errors.email.message}</p>
+        <p className="text-[11px] text-danger">{errors.email.message}</p>
       )}
       <p className="text-[10px] text-fg-muted">{t('newsletter.doubleOptIn')}</p>
     </form>

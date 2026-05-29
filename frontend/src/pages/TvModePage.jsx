@@ -113,7 +113,7 @@ function TvModePage() {
         {/* Aurora fondo decorativa */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-32 left-1/4 h-[40rem] w-[40rem] rounded-full bg-accent opacity-25 blur-3xl animate-aurora-1" />
-          <div className="absolute top-1/4 right-1/4 h-[36rem] w-[36rem] rounded-full bg-purple-500 opacity-20 blur-3xl animate-aurora-2" />
+          <div className="absolute top-1/4 right-1/4 h-[36rem] w-[36rem] rounded-full bg-rarity-epic opacity-20 blur-3xl animate-aurora-2" />
         </div>
 
         <AnimatePresence mode="wait">

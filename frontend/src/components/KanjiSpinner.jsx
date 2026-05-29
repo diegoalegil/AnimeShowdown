@@ -38,19 +38,19 @@ function KanjiSpinner({
   const toneRing = tone === 'gold'
     ? 'border-gold/30 border-t-gold'
     : tone === 'cyan'
-      ? 'border-cyan-500/25 border-t-cyan-400'
+      ? 'border-electric/25 border-t-electric'
       : 'border-accent/25 border-t-accent'
   // El kanji usa un tono legible del mismo rango cromático que el anillo.
   // El rojo de marca como texto queda por debajo de contraste AA sobre bg.
   const toneKanji = tone === 'gold'
     ? 'text-gold'
     : tone === 'cyan'
-      ? 'text-cyan-300'
-      : 'text-rose-300'
+      ? 'text-electric'
+      : 'text-danger'
   const toneHalo = tone === 'gold'
     ? 'bg-gold/10'
     : tone === 'cyan'
-      ? 'bg-cyan-500/10'
+      ? 'bg-electric/10'
       : 'bg-accent/10'
   return (
     <div

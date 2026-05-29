@@ -99,7 +99,7 @@ function MobileBottomNav() {
         to={mission.to}
         className={`mx-auto mb-2 flex max-w-lg items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${
           mission.completed
-            ? 'border-emerald-400/35 bg-emerald-500/10 text-emerald-100'
+            ? 'border-success/35 bg-success/10 text-success'
             : 'border-gold/25 bg-gold/10 text-fg-strong hover:border-gold/45 hover:bg-gold/15'
         }`}
       >
@@ -107,7 +107,7 @@ function MobileBottomNav() {
           <span
             className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
               mission.completed
-                ? 'border-emerald-400/35 bg-emerald-500/15'
+                ? 'border-success/35 bg-success/15'
                 : 'border-gold/30 bg-bg/45 text-gold'
             }`}
           >

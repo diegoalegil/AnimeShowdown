@@ -346,7 +346,7 @@ function Endpoint({ ep }) {
         <span
           className={`inline-flex rounded-md px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
             ep.metodo === 'GET'
-              ? 'bg-emerald-500/15 text-emerald-300'
+              ? 'bg-success/15 text-success'
               : 'bg-accent/15 text-gold'
           }`}
         >

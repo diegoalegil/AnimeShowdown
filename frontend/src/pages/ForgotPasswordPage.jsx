@@ -89,12 +89,12 @@ function ForgotPasswordPage() {
                 },
               })}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.email ? 'border-red-500' : 'border-border'
+                errors.email ? 'border-danger' : 'border-border'
               }`}
               placeholder="tu@correo.com"
             />
             {errors.email && (
-              <p className="text-[12px] text-red-400">{errors.email.message}</p>
+              <p className="text-[12px] text-danger">{errors.email.message}</p>
             )}
           </div>
           <button
@@ -110,7 +110,7 @@ function ForgotPasswordPage() {
               decide navegar al formulario de código. */}
           <div aria-live="polite" aria-atomic="true">
             {enviado && (
-              <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[13px] text-emerald-300">
+              <p className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-[13px] text-success">
                 Código enviado. Revisa tu bandeja de entrada (y la carpeta spam).
               </p>
             )}

@@ -36,7 +36,7 @@ function CardLogros({
   return (
     <div className="pattern-overlay pattern-overlay-seigaiha rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Trophy className="h-4 w-4 text-amber-400" />
+        <Trophy className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">{titulo}</h2>
         {!isLoading && (
           <span className="ml-auto inline-flex rounded-full border border-border bg-bg px-2.5 py-0.5 text-[11px] font-semibold tabular-nums text-fg-muted">

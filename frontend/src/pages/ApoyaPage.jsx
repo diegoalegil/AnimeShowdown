@@ -100,11 +100,11 @@ function ApoyaPage() {
             href="https://ko-fi.com/diegoalegil"
             target="_blank"
             rel="noreferrer"
-            className="group flex flex-col gap-3 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-amber-500/70 hover:shadow-[0_0_50px_-15px_rgba(251,191,36,0.5)]"
+            className="group flex flex-col gap-3 rounded-xl border border-gold/40 bg-gradient-to-br from-gold/10 via-medal-bronze/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-gold/70 hover:shadow-[0_0_50px_-15px_rgba(251,191,36,0.5)]"
           >
             <div className="flex items-center gap-2">
-              <Coffee className="h-5 w-5 text-amber-300" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-300">
+              <Coffee className="h-5 w-5 text-gold" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
                 Ko-fi
               </p>
             </div>
@@ -116,7 +116,7 @@ function ApoyaPage() {
               base de datos, dominio y servicios del proyecto para que
               AnimeShowdown siga creciendo sin anuncios.
             </p>
-            <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-amber-300">
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-gold">
               Donar en Ko-fi
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </span>
@@ -126,11 +126,11 @@ function ApoyaPage() {
             href="https://github.com/sponsors/diegoalegil"
             target="_blank"
             rel="noreferrer"
-            className="group flex flex-col gap-3 rounded-xl border border-fuchsia-500/40 bg-gradient-to-br from-fuchsia-500/10 via-pink-500/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-fuchsia-500/70 hover:shadow-[0_0_50px_-15px_rgba(217,70,239,0.5)]"
+            className="group flex flex-col gap-3 rounded-xl border border-rarity-epic/40 bg-gradient-to-br from-rarity-epic/10 via-arc-waifu/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-rarity-epic/70 hover:shadow-[0_0_50px_-15px_rgba(217,70,239,0.5)]"
           >
             <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-fuchsia-300" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-fuchsia-300">
+              <Heart className="h-5 w-5 text-rarity-epic" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-rarity-epic">
                 GitHub Sponsors
               </p>
             </div>
@@ -141,7 +141,7 @@ function ApoyaPage() {
               Apoyo mensual para quienes quieran ayudar de forma constante al
               desarrollo. Aparece como sponsor en mi perfil de GitHub.
             </p>
-            <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-fuchsia-300">
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-rarity-epic">
               Ser sponsor
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </span>
@@ -169,7 +169,7 @@ function ApoyaPage() {
         </div>
 
         {/* Ayuda gratis — mismo peso visual que las donaciones */}
-        <div className="mb-10 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-6">
+        <div className="mb-10 rounded-2xl border border-success/40 bg-gradient-to-br from-success/10 via-success/5 to-transparent p-6">
           <h2 className="mb-2 text-lg font-bold text-fg-strong">
             También puedes ayudar gratis
           </h2>
@@ -210,8 +210,8 @@ function ApoyaPage() {
         </div>
 
         {/* Promesa */}
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
-          <p className="text-[13px] leading-relaxed text-emerald-200">
+        <div className="rounded-2xl border border-success/30 bg-success/5 p-6 text-center">
+          <p className="text-[13px] leading-relaxed text-success">
             <strong>Compromiso:</strong> AnimeShowdown seguirá siendo
             gratuito, sin anuncios invasivos, sin popups molestos y sin
             funciones importantes detrás de un muro de pago. El código y el
@@ -219,7 +219,7 @@ function ApoyaPage() {
           </p>
           <Link
             to="/"
-            className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-emerald-300/90 transition-colors hover:text-emerald-200 hover:underline"
+            className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-success/90 transition-colors hover:text-success hover:underline"
           >
             ← Volver al inicio
           </Link>
@@ -259,7 +259,7 @@ function MetaMensual({ recibido, objetivo }) {
         className="relative h-2.5 overflow-hidden rounded-full bg-bg"
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-accent transition-all duration-700"
+          className="h-full rounded-full bg-gradient-to-r from-gold via-medal-bronze to-accent transition-all duration-700"
           style={{ width: `${porcentaje}%` }}
         />
       </div>
@@ -284,8 +284,8 @@ function CosteTile({ icon: Icon, label }) {
 
 function AyudaGratis({ icon: Icon, titulo, texto, cta }) {
   return (
-    <li className="flex gap-3 rounded-lg border border-border bg-surface/50 p-3 transition-colors hover:border-emerald-500/40">
-      <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
+    <li className="flex gap-3 rounded-lg border border-border bg-surface/50 p-3 transition-colors hover:border-success/40">
+      <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-success/15 text-success">
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
@@ -298,7 +298,7 @@ function AyudaGratis({ icon: Icon, titulo, texto, cta }) {
             href={cta.href}
             target="_blank"
             rel="noreferrer"
-            className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-300 transition-colors hover:text-emerald-200 hover:underline"
+            className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-semibold text-success transition-colors hover:text-success hover:underline"
           >
             {cta.label}
             <ArrowRight className="h-3 w-3" />

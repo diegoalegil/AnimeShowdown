@@ -55,14 +55,14 @@ export default function VisualDebugBadge({ visual, where, className = '' }) {
     <button
       type="button"
       onClick={handleClick}
-      className={`pointer-events-auto absolute left-2 top-2 z-[60] flex flex-col items-start gap-0.5 rounded-md border border-amber-400/60 bg-amber-950/95 px-2 py-1.5 text-left font-mono text-[10px] text-amber-100 shadow-lg backdrop-blur-sm hover:bg-amber-900/95 ${className}`}
+      className={`pointer-events-auto absolute left-2 top-2 z-[60] flex flex-col items-start gap-0.5 rounded-md border border-gold/60 bg-gold/95 px-2 py-1.5 text-left font-mono text-[10px] text-gold shadow-lg backdrop-blur-sm hover:bg-gold/95 ${className}`}
       title="Click para copiar info del visual"
       aria-label={`Debug visual ${slug}`}
     >
-      <span className="font-bold text-amber-200">
+      <span className="font-bold text-gold">
         {slug}
         {expectedNotFound && (
-          <span className="ml-1 text-rose-300" title="expectedPath no se encontro en VISUAL_ASSET_PATHS (manifest probablemente cacheado por SW)">
+          <span className="ml-1 text-danger" title="expectedPath no se encontro en VISUAL_ASSET_PATHS (manifest probablemente cacheado por SW)">
             (manifest miss)
           </span>
         )}

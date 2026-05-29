@@ -113,7 +113,7 @@ function Verificando() {
 function Exito() {
   return (
     <div className="flex flex-col items-center gap-4">
-      <CheckCircle2 className="h-14 w-14 text-emerald-400" />
+      <CheckCircle2 className="h-14 w-14 text-success" />
       <h1 className="text-2xl font-bold text-fg-strong">¡Email verificado!</h1>
       <p className="text-fg-muted">
         Tu cuenta está activa. Ya puedes votar en los torneos.
@@ -132,7 +132,7 @@ function Exito() {
 function TokenInvalido() {
   return (
     <div className="flex flex-col items-center gap-4">
-      <XCircle className="h-14 w-14 text-red-400" />
+      <XCircle className="h-14 w-14 text-danger" />
       <h1 className="text-2xl font-bold text-fg-strong">Enlace inválido o caducado</h1>
       <p className="text-fg-muted">
         El enlace de verificación ya no es válido. Si tienes la sesión iniciada,
@@ -152,7 +152,7 @@ function TokenInvalido() {
 function SinToken() {
   return (
     <div className="flex flex-col items-center gap-4">
-      <MailWarning className="h-14 w-14 text-amber-400" />
+      <MailWarning className="h-14 w-14 text-gold" />
       <h1 className="text-2xl font-bold text-fg-strong">Falta el token</h1>
       <p className="text-fg-muted">
         Esta página espera un parámetro <code>?token=...</code> que llega en el
@@ -166,7 +166,7 @@ function SinToken() {
 function ErrorRed() {
   return (
     <div className="flex flex-col items-center gap-4">
-      <XCircle className="h-14 w-14 text-red-400" />
+      <XCircle className="h-14 w-14 text-danger" />
       <h1 className="text-2xl font-bold text-fg-strong">No se pudo verificar</h1>
       <p className="text-fg-muted">
         Hubo un problema al contactar con el servidor. Espera unos segundos y

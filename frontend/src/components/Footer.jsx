@@ -185,7 +185,7 @@ function Footer() {
                 to="/apoya"
                 className="inline-flex w-fit items-center gap-1.5 text-[13px] text-fg transition-colors hover:text-gold"
               >
-                <Coffee className="h-3.5 w-3.5 text-amber-300" />
+                <Coffee className="h-3.5 w-3.5 text-gold" />
                 {t('footer.apoyaCta')}
               </Link>
               <a
