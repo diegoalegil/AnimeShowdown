@@ -22,7 +22,7 @@ import Section from '../components/Section'
 import StatPill from '../components/StatPill'
 import EmptyState from '../components/EmptyState'
 import ErrorBoundary from '../components/ErrorBoundary'
-import Skeleton from '../components/Skeleton'
+import { HomeSkeleton } from '../components/PageSkeleton'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeImg from '../components/PersonajeImg'
@@ -72,15 +72,6 @@ function getHomeTop10(catalogoPersonajes) {
     .sort((a, b) => b.elo - a.elo)
     .slice(0, 10)
 }
-
-const HOME_SKELETON_BLOCKS = [
-  { id: 'pulse', variant: 'banner', className: 'h-[926px]' },
-  { id: 'stats', variant: 'banner', className: 'h-[224px]' },
-  { id: 'ranking', variant: 'banner', className: 'h-[606px]' },
-  { id: 'daily-trials', variant: 'banner', className: 'h-[620px]' },
-  { id: 'tournaments', variant: 'banner', className: 'h-[520px]' },
-  { id: 'anime-universes', variant: 'banner', className: 'h-[520px]' },
-]
 
 function InicioPage() {
   const {
@@ -153,7 +144,7 @@ function InicioPage() {
 }
 
 function HomeCatalogGuard({ isLoading, isError, hasItems, onRetry, children }) {
-  if (isLoading && !hasItems) return <HomeSkeletonSections />
+  if (isLoading && !hasItems) return <HomeSkeleton />
   if (isError && !hasItems) {
     return (
       <div className="mx-auto w-full max-w-6xl px-5 py-12">
@@ -186,20 +177,6 @@ function HomeCatalogGuard({ isLoading, isError, hasItems, onRetry, children }) {
     )
   }
   return children
-}
-
-function HomeSkeletonSections() {
-  return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col px-5 py-6 sm:px-8">
-      {HOME_SKELETON_BLOCKS.map((block) => (
-        <Skeleton
-          key={block.id}
-          variant={block.variant}
-          className={`w-full ${block.className}`}
-        />
-      ))}
-    </div>
-  )
 }
 
 function HomeSectionBoundary({ title, children }) {

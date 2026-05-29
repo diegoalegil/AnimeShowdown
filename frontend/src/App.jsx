@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import { Toaster } from 'sonner'
@@ -13,6 +13,8 @@ import OnboardingGate from './components/onboarding/OnboardingGate'
 import SakuraPetals from './components/SakuraPetals'
 import KonamiCode from './components/KonamiCode'
 import MobileBottomNav from './components/MobileBottomNav'
+import RequireCatalog from './components/RequireCatalog'
+import PageSkeleton from './components/PageSkeleton'
 import { useCatalogoPersonajes } from './hooks/useCatalogoPersonajes'
 import { recoverFromStaleAssetError } from './lib/staleAssetRecovery'
 import i18n from './lib/i18n'
@@ -214,183 +216,10 @@ function useQueryLanguageSync(search) {
   }, [search])
 }
 
-// Fallback de Suspense compartido con shell mínimo de marca y label legible.
-function PageLoader({ reserveClassName = '', alignTop = false }) {
-  // Anillo accent, kanji 勝 y tres dots suaves. Las clases motion-safe
-  // respetan prefers-reduced-motion.
-  const layoutClassName = alignTop
-    ? 'items-start justify-center px-5 pb-20 pt-36'
-    : 'items-center justify-center px-5 py-20'
-  return (
-    <div
-      className={`as-stage as-stage-visual as-stage-home flex flex-1 ${layoutClassName} ${reserveClassName}`}
-      role="status"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      <div className="as-panel relative flex min-w-64 flex-col items-center gap-5 rounded-2xl p-8 shadow-aura-lg">
-        {/* Anillo accent rotando + kanji 勝 (victoria) dorado.
-            Usamos motion-safe:* para que prefers-reduced-motion deje
-            los layers estaticos sin marear a usuarios sensibles. */}
-        <div className="relative flex h-16 w-16 items-center justify-center">
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 rounded-full motion-safe:animate-ping"
-            style={{
-              background: 'radial-gradient(circle, rgb(159 29 44 / 0.45) 0%, transparent 70%)',
-              animationDuration: '2.4s',
-            }}
-          />
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 rounded-full motion-safe:animate-spin"
-            style={{
-              background:
-                'conic-gradient(from 0deg, transparent 0deg, rgb(159 29 44 / 0.85) 90deg, rgb(197 161 90 / 0.95) 200deg, transparent 320deg)',
-              animationDuration: '1.6s',
-              WebkitMask: 'radial-gradient(circle, transparent 56%, black 58%)',
-              mask: 'radial-gradient(circle, transparent 56%, black 58%)',
-            }}
-          />
-          <span
-            aria-hidden="true"
-            className="absolute inset-1.5 rounded-full border border-accent/35 bg-bg/60 backdrop-blur"
-          />
-          <span
-            aria-hidden="true"
-            lang="ja"
-            className="relative font-mono text-2xl font-black text-gold"
-            style={{ textShadow: 'var(--text-shadow-brand)' }}
-          >
-            勝
-          </span>
-        </div>
-        {/* 3 dots accent — bouncing suave, mantiene la sensación
-            "thinking" para que la espera no parezca congelada. */}
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-accent/80 motion-safe:animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="h-1.5 w-1.5 rounded-full bg-accent/80 motion-safe:animate-bounce" style={{ animationDelay: '160ms' }} />
-          <span className="h-1.5 w-1.5 rounded-full bg-accent/80 motion-safe:animate-bounce" style={{ animationDelay: '320ms' }} />
-        </div>
-        <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
-          Preparando arena
-        </p>
-        <span className="sr-only">
-          Cargando la página de AnimeShowdown, un momento.
-        </span>
-      </div>
-    </div>
-  )
-}
-
-function CatalogoError({ onRetry }) {
-  return (
-    <div className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20">
-      <div className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
-          Catálogo no disponible
-        </p>
-        <h1 className="text-2xl font-black text-fg-strong">
-          No pudimos cargar los personajes
-        </h1>
-        <p className="text-sm leading-6 text-fg-muted">
-          AnimeShowdown necesita el catálogo para montar rankings, juegos y fichas sin datos incompletos.
-        </p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-600"
-        >
-          Reintentar
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function useCatalogoLoadingTimeout(isLoading) {
-  const [attempt, setAttempt] = useState(0)
-  const [timedOut, setTimedOut] = useState(false)
-
-  useEffect(() => {
-    if (!isLoading || timedOut) return undefined
-
-    const id = window.setTimeout(() => setTimedOut(true), 12000)
-    return () => window.clearTimeout(id)
-  }, [attempt, isLoading, timedOut])
-
-  return [
-    isLoading && timedOut,
-    () => {
-      setTimedOut(false)
-      setAttempt((value) => value + 1)
-    },
-  ]
-}
-
-// Wrapper que sólo deja pasar children cuando el catálogo de personajes está
-// hidratado. Las rutas de soporte/auth/legal/status cargan independiente para
-// que sigan disponibles aunque falle /api/personajes/catalogo.
-function RequireCatalog({
-  catalogoQuery,
-  loadingReserveClassName = '',
-  loadingAlignTop = false,
-  children,
-}) {
-  // Diferenciamos dos estados distintos:
-  //   - loading: catalogoQuery aún no resolvió.
-  //   - loaded-empty: el backend respondió, pero con [] (DB nueva, seed
-  //     no aplicado, migración en curso, entorno de staging vacío...).
-  const hasData = Array.isArray(catalogoQuery.data) && catalogoQuery.data.length > 0
-  const isLoading = catalogoQuery.isPending || catalogoQuery.isFetching
-  const isError = catalogoQuery.isError
-  const isLoadedEmpty =
-    !hasData && !isLoading && !isError && Array.isArray(catalogoQuery.data)
-  const [hasTimedOut, resetTimeout] = useCatalogoLoadingTimeout(isLoading)
-  const handleRetry = () => {
-    resetTimeout()
-    catalogoQuery.refetch()
-  }
-
-  if (hasData) return children
-  if (isError || hasTimedOut) return <CatalogoError onRetry={handleRetry} />
-  if (isLoadedEmpty) return <CatalogoVacio onRetry={handleRetry} />
-  return (
-    <PageLoader
-      reserveClassName={loadingReserveClassName}
-      alignTop={loadingAlignTop}
-    />
-  )
-}
-
-function CatalogoVacio({ onRetry }) {
-  return (
-    <div className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20">
-      <div className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
-          Catálogo vacío
-        </p>
-        <h1 className="text-2xl font-black text-fg-strong">
-          Aún no hay personajes para mostrar
-        </h1>
-        <p className="text-sm leading-6 text-fg-muted">
-          El backend respondió correctamente pero el catálogo está vacío. Si
-          eres operador, ejecuta el seed o aplica las migraciones pendientes.
-          Si eres usuario, vuelve en un rato — estamos preparando el roster.
-        </p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-600"
-        >
-          Volver a comprobar
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function getPageLoaderReserveClassName(pathname) {
+// Reserva de altura por ruta (anti-CLS): el esqueleto y, después, la página
+// real arrancan con esta min-height para que el swap no provoque saltos de
+// layout. Medidas tomadas sobre la altura real de cada página larga.
+function getRouteSkeletonReserve(pathname) {
   if (pathname === '/') return 'min-h-[5818px]'
   if (pathname === '/votar') return 'min-h-[1256px]'
   if (pathname === '/ranking') return 'min-h-[12233px]'
@@ -408,14 +237,13 @@ function App() {
   // navega aquí queremos que el viewport sea solo del contenido — sin
   // header global, sin bottom nav móvil, sin footer.
   const isFullscreenRoute = location.pathname.startsWith('/tv')
-  const pageLoaderReserveClassName = getPageLoaderReserveClassName(location.pathname)
-  const pageLoaderAlignTop = Boolean(pageLoaderReserveClassName)
+  const routeSkeletonReserve = getRouteSkeletonReserve(location.pathname)
   // Helper local para no repetir el wrapper en cada Route catalog-gated.
   const gated = (element) => (
     <RequireCatalog
       catalogoQuery={catalogoQuery}
-      loadingReserveClassName={pageLoaderReserveClassName}
-      loadingAlignTop={pageLoaderAlignTop}
+      loadingPathname={location.pathname}
+      loadingReserveClassName={routeSkeletonReserve}
     >
       {element}
     </RequireCatalog>
@@ -556,9 +384,9 @@ function App() {
           <ErrorBoundary>
           <Suspense
             fallback={(
-              <PageLoader
-                reserveClassName={pageLoaderReserveClassName}
-                alignTop={pageLoaderAlignTop}
+              <PageSkeleton
+                pathname={location.pathname}
+                reserveClassName={routeSkeletonReserve}
               />
             )}
           >
@@ -595,9 +423,10 @@ function App() {
 
               {/* ===== Rutas que DEPENDEN del catálogo ===== */}
               {/* Cada una pasa por <RequireCatalog>: si el fetch del
-                  catálogo aún está en vuelo muestra PageLoader; si falló
-                  muestra CatalogoError con botón Reintentar. Solo cuando
-                  el catálogo está hidratado renderiza la página. */}
+                  catálogo aún está en vuelo muestra el <PageSkeleton> con la
+                  forma de la ruta; si falló muestra CatalogoError con botón
+                  Reintentar. Solo cuando el catálogo está hidratado renderiza
+                  la página. */}
               <Route path="/" element={gated(<InicioPage />)} />
               <Route path="/personajes" element={gated(<PersonajesPage />)} />
               <Route path="/personajes/:slug" element={gated(<PersonajeDetailPage />)} />
