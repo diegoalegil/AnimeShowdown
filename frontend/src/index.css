@@ -17,6 +17,22 @@
   --color-electric: #24c6dc;
   --color-electric-soft: rgb(36 198 220 / 0.12);
 
+  /* Semánticos — generan text-/bg-/border-success|warning|danger|info.
+     Hues estándar (emerald/amber/rose/sky-500) con contraste AA en oscuro. */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #f43f5e;
+  --color-info: #38bdf8;
+
+  /* Rareza de logros (1→5), escalera tipo TCG/WoW. Mismos hues que la
+     paleta original (zinc/emerald/sky/purple/amber) para no alterar los
+     glows derivados. Generan text-/bg-/border-rarity-*. */
+  --color-rarity-common: #a1a1aa;
+  --color-rarity-uncommon: #10b981;
+  --color-rarity-rare: #38bdf8;
+  --color-rarity-epic: #a855f7;
+  --color-rarity-legendary: #fbbf24;
+
   --font-sans: "Geist", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", Consolas, monospace;
 
