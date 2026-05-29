@@ -17,6 +17,7 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -56,7 +57,6 @@ public class JikanService {
 
     private static final Logger log = LoggerFactory.getLogger(JikanService.class);
 
-    private static final String BASE_URL = "https://api.jikan.moe/v4";
     private static final int MAX_PAGES = 10;
     private static final long DELAY_BETWEEN_PAGES_MS = 400;
 
@@ -73,7 +73,8 @@ public class JikanService {
     @Lazy
     private JikanService self;
 
-    public JikanService(PersonajeRepository personajeRepository) {
+    public JikanService(PersonajeRepository personajeRepository,
+            @Value("${app.jikan.base-url:https://api.jikan.moe/v4}") String baseUrl) {
         // RestClient con timeout explícito. Antes se construía con
         // RestClient.create(BASE_URL) y el factory por defecto no impone
         // timeout en absoluto.
@@ -82,7 +83,7 @@ public class JikanService {
         factory.setReadTimeout((int) Duration.ofSeconds(5).toMillis());
 
         this.restClient = RestClient.builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(baseUrl)
                 .requestFactory(factory)
                 .build();
         this.personajeRepository = personajeRepository;
