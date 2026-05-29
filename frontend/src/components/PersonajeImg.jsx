@@ -51,7 +51,7 @@ function PersonajeImg({
   height = 600,
   ...imgProps
 }) {
-  const [status, setStatus] = useState({ src: null, loaded: false, errored: false })
+  const [status, setStatus] = useState({ src: null, loaded: false, errored: false, instant: false })
   // Tick para forzar rerender cuando el catálogo de personajes se hidrata
   // (evento CATALOGO_PERSONAJES_HYDRATED_EVENT). Antes de hidratarse,
   // imagenPersonaje(slug) cae a `/img/_missing/${slug}.webp` y dispara
@@ -77,15 +77,20 @@ function PersonajeImg({
   //     soportarlo: e.g. carousel que reusa la misma instancia).
   // https://react.dev/reference/react/useState#storing-information-from-previous-renders
   if (status.src !== src && status.src !== null) {
-    setStatus({ src: null, loaded: false, errored: false })
+    setStatus({ src: null, loaded: false, errored: false, instant: false })
   }
   const loaded = status.src === src && status.loaded
   const errored = status.src === src && status.errored
+  // Imagen ya completa al montar (cache del navegador): pintar a opacidad
+  // plena SIN el fade opacity 0→1. En un remonte —p.ej. PersonajeCard arma el
+  // tilt al primer hover y reemplaza el subárbol— ese fade se percibe como un
+  // parpadeo de la silueta (la imagen desaparece y reaparece). V-3.
+  const instant = status.src === src && status.instant
   const dominantColor =
     colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
   const altText = alt ?? nombre ?? p?.nombre ?? slug
   const handleImageLoad = useCallback((event) => {
-    setStatus({ src, loaded: true, errored: false })
+    setStatus({ src, loaded: true, errored: false, instant: false })
     onLoad?.(event)
   }, [onLoad, src])
   const handleImageError = useCallback((event) => {
@@ -101,7 +106,8 @@ function PersonajeImg({
     (node) => {
       if (!node || loaded || errored) return
       if (node.complete && node.naturalWidth > 0) {
-        setStatus({ src, loaded: true, errored: false })
+        // Cacheada: marcar instant para pintar a opacidad plena sin fade.
+        setStatus({ src, loaded: true, errored: false, instant: true })
       }
     },
     [errored, loaded, src],
@@ -177,9 +183,9 @@ function PersonajeImg({
           alt={altText}
           width={width}
           height={height}
-          className={`h-full w-full ${fitClass} ${positionClass} transition-opacity duration-300 motion-reduce:transition-none ${
-            loaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`h-full w-full ${fitClass} ${positionClass} ${
+            loaded && instant ? '' : 'transition-opacity duration-300 motion-reduce:transition-none'
+          } ${loaded ? 'opacity-100' : 'opacity-0'}`}
           loading={loading ?? 'lazy'}
           decoding={decoding ?? 'async'}
           {...imgProps}
