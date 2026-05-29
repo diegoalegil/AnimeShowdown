@@ -210,10 +210,10 @@ function HeroVoteTicker({ votos }) {
   return (
     <motion.div
       variants={itemVariants}
-      className="flex w-full max-w-2xl flex-col gap-1 rounded-2xl border border-emerald-400/25 bg-bg/55 px-4 py-3 text-left shadow-[0_20px_70px_-45px_rgba(16,185,129,0.55)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-3"
+      className="flex w-full max-w-2xl flex-col gap-1 rounded-2xl border border-success/25 bg-bg/55 px-4 py-3 text-left shadow-[0_20px_70px_-45px_rgba(16,185,129,0.55)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-3"
       aria-label={t('hero.votesAria')}
     >
-      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-emerald-300">
+      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-success">
         <Radio className="h-3.5 w-3.5" />
         {t('hero.votesNow')}
       </span>

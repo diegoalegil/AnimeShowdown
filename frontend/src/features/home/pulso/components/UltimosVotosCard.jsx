@@ -11,13 +11,13 @@ function UltimosVotosCard({ votos }) {
   if (items.length === 0) {
     return (
       <PulseCard tono="violet">
-        <CardEyebrow icon={Radio} label="Últimos votos" tono="text-violet-300" />
+        <CardEyebrow icon={Radio} label="Últimos votos" tono="text-rarity-epic" />
         <p className="text-[13px] text-fg-muted">
           Esperando votos. Sé tú el primero del día.
         </p>
         <Link
           to="/votar"
-          className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-violet-300 hover:text-violet-200"
+          className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-rarity-epic hover:text-rarity-epic"
         >
           Vota ahora
           <ArrowRight className="h-3 w-3" />
@@ -28,7 +28,7 @@ function UltimosVotosCard({ votos }) {
 
   return (
     <PulseCard tono="violet">
-      <CardEyebrow icon={Radio} label="Últimos votos" tono="text-violet-300" />
+      <CardEyebrow icon={Radio} label="Últimos votos" tono="text-rarity-epic" />
       <ul className="flex flex-col divide-y divide-border">
         {items.map((v, i) => (
           <VotoRow key={`${v.fecha}-${i}`} voto={v} />
@@ -36,7 +36,7 @@ function UltimosVotosCard({ votos }) {
       </ul>
       <Link
         to="/ranking"
-        className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-violet-300 hover:text-violet-200"
+        className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-rarity-epic hover:text-rarity-epic"
       >
         Ver ranking en vivo
         <ArrowRight className="h-3 w-3" />

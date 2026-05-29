@@ -35,18 +35,18 @@ function EventoHeadlineBanner() {
   const visual = getEventVisual(evento.slug, evento.titulo)
 
   const tonosBg = {
-    rose: 'border-rose-500/30 bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent',
-    violet: 'border-violet-500/30 bg-gradient-to-br from-violet-500/15 via-violet-500/5 to-transparent',
-    amber: 'border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent',
-    pink: 'border-pink-500/30 bg-gradient-to-br from-pink-500/15 via-pink-500/5 to-transparent',
-    cyan: 'border-cyan-500/30 bg-gradient-to-br from-cyan-500/15 via-cyan-500/5 to-transparent',
+    rose: 'border-danger/30 bg-gradient-to-br from-danger/15 via-danger/5 to-transparent',
+    violet: 'border-rarity-epic/30 bg-gradient-to-br from-rarity-epic/15 via-rarity-epic/5 to-transparent',
+    amber: 'border-gold/30 bg-gradient-to-br from-gold/15 via-gold/5 to-transparent',
+    pink: 'border-arc-waifu/30 bg-gradient-to-br from-arc-waifu/15 via-arc-waifu/5 to-transparent',
+    cyan: 'border-electric/30 bg-gradient-to-br from-electric/15 via-electric/5 to-transparent',
   }
   const tonosTexto = {
-    rose: 'text-rose-200',
-    violet: 'text-violet-200',
-    amber: 'text-amber-200',
-    pink: 'text-pink-200',
-    cyan: 'text-cyan-200',
+    rose: 'text-danger',
+    violet: 'text-rarity-epic',
+    amber: 'text-gold',
+    pink: 'text-arc-waifu',
+    cyan: 'text-electric',
   }
   const tonoBg = tonosBg[evento.color] ?? tonosBg.amber
   const tonoTexto = tonosTexto[evento.color] ?? tonosTexto.amber

@@ -27,7 +27,7 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
   return (
     <Link
       to={destino}
-      className="group relative flex min-h-[220px] flex-col gap-4 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5"
+      className="group relative flex min-h-[220px] flex-col gap-4 overflow-hidden rounded-xl border border-gold/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-gold/60 sm:p-5"
     >
       <span
         aria-hidden="true"
@@ -37,7 +37,7 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
             'radial-gradient(circle at 18% 8%, rgb(197 161 90 / 0.20), transparent 16rem), radial-gradient(circle at 86% 0%, rgb(36 198 220 / 0.14), transparent 18rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 45%)',
         }}
       />
-      <CardEyebrow icon={Swords} label="Duelo destacado" tono="relative text-amber-300" />
+      <CardEyebrow icon={Swords} label="Duelo destacado" tono="relative text-gold" />
       <div className="relative grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
         <div className="min-w-0">
           <h3 className="max-w-xl text-2xl font-black leading-tight tracking-tight text-fg-strong sm:text-3xl">
@@ -60,7 +60,7 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
           // para conservar identidad visual.
           <div
             aria-hidden="true"
-            className="relative h-24 w-40 overflow-hidden rounded-2xl border border-amber-400/30 bg-amber-500/5 sm:h-28 sm:w-48"
+            className="relative h-24 w-40 overflow-hidden rounded-2xl border border-gold/30 bg-gold/5 sm:h-28 sm:w-48"
             style={{
               backgroundImage: `url("/assets/tournament-banners/${torneoEnCurso.slug}.webp")`,
               backgroundSize: 'cover',
@@ -73,7 +73,7 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
             />
             <span
               lang="ja"
-              className="absolute right-2 top-1 font-mono text-xl font-black text-amber-200 drop-shadow"
+              className="absolute right-2 top-1 font-mono text-xl font-black text-gold drop-shadow"
             >
               戦
             </span>
@@ -82,13 +82,13 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
           <div
             aria-hidden="true"
             lang="ja"
-            className="flex h-24 w-24 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 font-mono text-5xl font-black text-amber-200"
+            className="flex h-24 w-24 items-center justify-center rounded-2xl border border-gold/30 bg-gold/10 font-mono text-5xl font-black text-gold"
           >
             戦
           </div>
         )}
       </div>
-      <span className="relative mt-auto inline-flex items-center gap-1 text-sm font-bold text-amber-300 transition-transform group-hover:translate-x-0.5">
+      <span className="relative mt-auto inline-flex items-center gap-1 text-sm font-bold text-gold transition-transform group-hover:translate-x-0.5">
         {tieneDuelo ? 'Votar ahora' : 'Entrar'}
         <ArrowRight className="h-4 w-4" />
       </span>

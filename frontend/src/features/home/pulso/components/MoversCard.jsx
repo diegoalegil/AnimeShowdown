@@ -16,7 +16,7 @@ function MoversCard({ movers }) {
 
   return (
     <PulseCard tono="emerald">
-      <CardEyebrow icon={TrendingUp} label="Movers · 7 días" tono="text-emerald-300" />
+      <CardEyebrow icon={TrendingUp} label="Movers · 7 días" tono="text-success" />
       <ul className="flex flex-col divide-y divide-border">
         {movers.map((m) => (
           <MoverRow
@@ -28,7 +28,7 @@ function MoversCard({ movers }) {
       </ul>
       <Link
         to="/ranking"
-        className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-300 hover:text-emerald-200"
+        className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-success hover:text-success"
       >
         Ver ranking completo
         <ArrowRight className="h-3 w-3" />
@@ -40,7 +40,7 @@ function MoversCard({ movers }) {
 function MoverRow({ mover, actividad }) {
   const subio = mover.delta > 0
   const Icon = subio ? TrendingUp : TrendingDown
-  const colorClase = subio ? 'text-emerald-300' : 'text-rose-300'
+  const colorClase = subio ? 'text-success' : 'text-danger'
   const votosPeriodo = actividad?.votosPeriodoActual ?? 0
 
   return (
@@ -65,7 +65,7 @@ function MoverRow({ mover, actividad }) {
         <p className="line-clamp-1 text-[11px] text-fg-muted">
           {mover.anime}
           {votosPeriodo > 0 && (
-            <span className="ml-1 font-mono tabular-nums text-emerald-300/80">
+            <span className="ml-1 font-mono tabular-nums text-success/80">
               · +{votosPeriodo} votos
             </span>
           )}
