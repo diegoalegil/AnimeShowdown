@@ -18,7 +18,7 @@ const VsBadge = memo(function VsBadge({ votedFor, compact = false }) {
         repeat: 0,
         ease: 'easeInOut',
       }}
-      className={`relative flex items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-gold shadow-[0_0_40px_-10px_rgba(255,46,99,0.7)] ${
+      className={`relative flex items-center justify-center justify-self-center rounded-full border-2 border-accent bg-accent-soft text-gold shadow-[0_0_40px_-10px_rgba(159,29,44,0.7)] ${
         compact ? 'h-11 w-11' : 'h-14 w-14 sm:h-20 sm:w-20'
       }`}
     >

@@ -55,10 +55,10 @@ const VoteCard = memo(function VoteCard({
         }
         className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-[transform,border-color,box-shadow,opacity,filter] ${
           isVoted
-            ? 'border-accent shadow-[0_0_60px_-10px_rgba(255,46,99,0.7)] ring-2 ring-accent/40'
+            ? 'border-accent shadow-[0_0_60px_-10px_rgba(159,29,44,0.7)] ring-2 ring-accent/40'
             : isLoser
               ? 'border-border opacity-40 grayscale'
-              : 'border-border motion-safe:hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-15px_rgba(255,46,99,0.55)]'
+              : 'border-border motion-safe:hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_40px_-15px_rgba(159,29,44,0.55)]'
         } disabled:cursor-default`}
       >
         <div

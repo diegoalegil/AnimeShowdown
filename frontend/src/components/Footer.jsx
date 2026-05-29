@@ -241,7 +241,7 @@ function Footer() {
           </div>
           <Link
             to="/votar"
-            className="inline-flex items-center gap-2 rounded-lg border border-accent/55 bg-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_36px_-12px_rgba(255,46,99,0.65)] transition-transform hover:-translate-y-0.5 hover:bg-accent-hover"
+            className="inline-flex items-center gap-2 rounded-lg border border-accent/55 bg-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_36px_-12px_rgba(159,29,44,0.65)] transition-transform hover:-translate-y-0.5 hover:bg-accent-hover"
           >
             <Swords className="h-4 w-4" />
             {t('footer.ctaButton', 'Votar ahora')}
