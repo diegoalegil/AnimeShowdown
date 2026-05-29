@@ -238,7 +238,7 @@ function UploadForm({ user, updateUser }) {
           Quitar avatar actual
         </button>
       )}
-      {error && <p className="text-[12px] text-red-400">{error}</p>}
+      {error && <p className="text-[12px] text-danger">{error}</p>}
     </div>
   )
 }
@@ -311,11 +311,11 @@ function UrlForm({ user, updateUser }) {
           })}
           placeholder="https://i.imgur.com/abc.jpg"
           className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-            errors.avatarUrl ? 'border-red-500' : 'border-border'
+            errors.avatarUrl ? 'border-danger' : 'border-border'
           }`}
         />
         {errors.avatarUrl && (
-          <p className="text-[11px] text-red-400">
+          <p className="text-[11px] text-danger">
             {errors.avatarUrl.message}
           </p>
         )}
@@ -328,7 +328,7 @@ function UrlForm({ user, updateUser }) {
         <LinkIcon className="h-4 w-4" />
         {isSubmitting ? 'Guardando…' : 'Guardar URL'}
       </button>
-      {error && <p className="text-[11px] text-red-400">{error}</p>}
+      {error && <p className="text-[11px] text-danger">{error}</p>}
     </form>
   )
 }

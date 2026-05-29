@@ -42,13 +42,13 @@ function Card2faSeguridad() {
     <div
       className={
         habilitado
-          ? 'rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6'
+          ? 'rounded-xl border border-success/20 bg-success/5 p-6'
           : 'rounded-xl border border-border bg-surface p-6'
       }
     >
       <div className="mb-3 flex items-center gap-2">
         {habilitado ? (
-          <ShieldCheck className="h-4 w-4 text-emerald-300" />
+          <ShieldCheck className="h-4 w-4 text-success" />
         ) : (
           <Shield className="h-4 w-4 text-gold" />
         )}
@@ -56,7 +56,7 @@ function Card2faSeguridad() {
           Verificación en dos pasos
         </h2>
         {habilitado && (
-          <span className="ml-auto inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-300">
+          <span className="ml-auto inline-flex rounded-full border border-success/30 bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-success">
             Activo
           </span>
         )}
@@ -79,7 +79,7 @@ function Card2faSeguridad() {
             <button
               type="button"
               onClick={() => setModal('disable')}
-              className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-[13px] font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+              className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2.5 text-[13px] font-semibold text-danger transition-colors hover:bg-danger/20"
             >
               <ShieldOff className="h-4 w-4" />
               Desactivar 2FA
@@ -384,7 +384,7 @@ function SetupForm({ setupData, onBackupCodes }) {
               aria-label="Copiar secret"
             >
               {secretCopiado ? (
-                <Check className="h-4 w-4 text-emerald-300" />
+                <Check className="h-4 w-4 text-success" />
               ) : (
                 <Copy className="h-4 w-4" />
               )}
@@ -415,12 +415,12 @@ function SetupForm({ setupData, onBackupCodes }) {
             pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
           })}
           className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-            errors.codigo ? 'border-red-500' : 'border-border'
+            errors.codigo ? 'border-danger' : 'border-border'
           }`}
           placeholder="123456"
         />
         {errors.codigo && (
-          <p id="codigo-setup-error" className="text-[12px] text-red-400">
+          <p id="codigo-setup-error" className="text-[12px] text-danger">
             {errors.codigo.message}
           </p>
         )}
@@ -504,7 +504,7 @@ function ModalBackupCodes({ codes, onClose, descripcion }) {
     >
       <p className="mb-4 text-[13px] text-fg-muted">{descripcion}</p>
 
-      <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 font-mono text-[14px] tracking-[0.15em] text-fg-strong">
+      <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-success/20 bg-success/5 p-4 font-mono text-[14px] tracking-[0.15em] text-fg-strong">
         {codes.map((c, i) => (
           <div key={i} className="select-all">
             {c}
@@ -519,7 +519,7 @@ function ModalBackupCodes({ codes, onClose, descripcion }) {
           className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-3.5 py-2 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
         >
           {copiado ? (
-            <Check className="h-3.5 w-3.5 text-emerald-300" />
+            <Check className="h-3.5 w-3.5 text-success" />
           ) : (
             <Copy className="h-3.5 w-3.5" />
           )}
@@ -623,7 +623,7 @@ function Modal2faDisable({ onClose, onSuccess }) {
             {...register('password', { required: 'Introduce tu contraseña' })}
           />
           {errors.password && (
-            <p id="disable-password-error" className="text-[11px] text-red-400">
+            <p id="disable-password-error" className="text-[11px] text-danger">
               {errors.password.message}
             </p>
           )}
@@ -651,25 +651,25 @@ function Modal2faDisable({ onClose, onSuccess }) {
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
             })}
             className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.codigo ? 'border-red-500' : 'border-border'
+              errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456"
           />
           {errors.codigo && (
-            <p id="disable-codigo-error" className="text-[11px] text-red-400">
+            <p id="disable-codigo-error" className="text-[11px] text-danger">
               {errors.codigo.message}
             </p>
           )}
         </div>
         {errors.root && (
-          <p role="alert" className="text-[11px] text-red-400">
+          <p role="alert" className="text-[11px] text-danger">
             {errors.root.message}
           </p>
         )}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-5 py-3 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-5 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <ShieldOff className="h-4 w-4" />
           {isSubmitting ? 'Desactivando…' : 'Desactivar 2FA'}
@@ -752,12 +752,12 @@ function Modal2faRegenerate({ onClose }) {
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
             })}
             className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.codigo ? 'border-red-500' : 'border-border'
+              errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456"
           />
           {errors.codigo && (
-            <p id="regen-codigo-error" className="text-[11px] text-red-400">
+            <p id="regen-codigo-error" className="text-[11px] text-danger">
               {errors.codigo.message}
             </p>
           )}

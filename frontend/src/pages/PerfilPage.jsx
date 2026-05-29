@@ -195,7 +195,7 @@ function CardPassword() {
             })}
           />
           {errors.currentPassword && (
-            <p className="text-[11px] text-red-400">
+            <p className="text-[11px] text-danger">
               {errors.currentPassword.message}
             </p>
           )}
@@ -222,7 +222,7 @@ function CardPassword() {
             })}
           />
           {errors.newPassword && (
-            <p className="text-[11px] text-red-400">
+            <p className="text-[11px] text-danger">
               {errors.newPassword.message}
             </p>
           )}
@@ -247,13 +247,13 @@ function CardPassword() {
             })}
           />
           {errors.confirmNewPassword && (
-            <p className="text-[11px] text-red-400">
+            <p className="text-[11px] text-danger">
               {errors.confirmNewPassword.message}
             </p>
           )}
         </div>
         {errors.root && (
-          <p role="alert" className="text-[12px] text-red-400">{errors.root.message}</p>
+          <p role="alert" className="text-[12px] text-danger">{errors.root.message}</p>
         )}
         <button
           type="submit"
@@ -275,9 +275,9 @@ function CardSesion({ onLogout }) {
     onLogout()
   }
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-danger/20 bg-danger/5 p-4">
       <div className="flex items-center gap-3">
-        <LogOut className="h-4 w-4 text-rose-300" />
+        <LogOut className="h-4 w-4 text-danger" />
         <div>
           <p className="text-sm font-bold text-fg-strong">Cerrar sesión</p>
           <p className="text-[11px] text-fg-muted">
@@ -288,7 +288,7 @@ function CardSesion({ onLogout }) {
       <button
         type="button"
         onClick={handleClick}
-        className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-[13px] font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+        className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-[13px] font-semibold text-danger transition-colors hover:bg-danger/20"
       >
         <LogOut className="h-3.5 w-3.5" />
         Salir de mi cuenta
@@ -344,9 +344,9 @@ function CardEliminarCuenta({ onEliminada }) {
 
   return (
     <>
-      <div className="rounded-xl border border-rose-500/30 bg-rose-500/[0.04] p-5">
+      <div className="rounded-xl border border-danger/30 bg-danger/[0.04] p-5">
         <div className="mb-3 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-rose-300" />
+          <AlertTriangle className="h-4 w-4 text-danger" />
           <h2 className="text-sm font-bold text-fg-strong">Zona peligrosa</h2>
         </div>
         <p className="mb-4 text-[12px] leading-relaxed text-fg-muted">
@@ -359,7 +359,7 @@ function CardEliminarCuenta({ onEliminada }) {
         <button
           type="button"
           onClick={() => setModalAbierto(true)}
-          className="inline-flex items-center gap-2 rounded-lg border border-rose-500/50 bg-rose-500/10 px-4 py-2 text-[13px] font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+          className="inline-flex items-center gap-2 rounded-lg border border-danger/50 bg-danger/10 px-4 py-2 text-[13px] font-semibold text-danger transition-colors hover:bg-danger/20"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Eliminar mi cuenta
@@ -375,10 +375,10 @@ function CardEliminarCuenta({ onEliminada }) {
         titleId="modal-eliminar-titulo"
         closeOnBackdrop={!pendiente}
         closeOnEscape={!pendiente}
-        panelClassName="border-rose-500/40 max-w-md"
+        panelClassName="border-danger/40 max-w-md"
       >
         <div className="mb-3 flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-rose-300" />
+          <AlertTriangle className="h-5 w-5 text-danger" />
           <h3
             id="modal-eliminar-titulo"
             className="text-base font-bold text-fg-strong"
@@ -398,7 +398,7 @@ function CardEliminarCuenta({ onEliminada }) {
             checked={confirmado}
             onChange={(e) => setConfirmado(e.target.checked)}
             disabled={pendiente}
-            className="mt-0.5 accent-rose-400"
+            className="mt-0.5 accent-danger"
           />
           <span className="text-[12px] leading-relaxed text-fg-muted">
             Entiendo que la acción es irreversible y que perderé
@@ -436,7 +436,7 @@ function CardEliminarCuenta({ onEliminada }) {
             type="button"
             onClick={handleConfirmar}
             disabled={!puedeEliminar}
-            className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-danger px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-danger disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
             {pendiente ? 'Eliminando…' : 'Confirmar eliminación'}

@@ -33,7 +33,7 @@ function CardTop5({
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Heart className="h-4 w-4 text-rose-400" />
+        <Heart className="h-4 w-4 text-danger" />
         <h2 className="text-lg font-bold text-fg-strong">{titulo}</h2>
       </div>
       <p className="mb-4 text-[12px] text-fg-muted">{mensajeIntro}</p>
