@@ -206,7 +206,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
         <div
           className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
             estado.acertado
-              ? 'border-gold/60 shadow-[0_0_60px_-10px_rgba(251,191,36,0.55)]'
+              ? 'border-gold/60 shadow-aura-lg [--aura-color:rgb(251_191_36_/_0.55)]'
               : 'border-border'
           }`}
         >

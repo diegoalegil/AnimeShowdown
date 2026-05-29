@@ -159,11 +159,11 @@ function EventoCard({ evento, now, etiqueta }) {
   // Cover h-56 para que composiciones ricas en personajes, siluetas y fondo
   // respiren. Glow hover con accent del propio evento en lugar del genérico.
   const glowHover = {
-    rose: 'hover:shadow-[0_28px_70px_-30px_rgba(244,63,94,0.55)]',
-    violet: 'hover:shadow-[0_28px_70px_-30px_rgba(139,92,246,0.55)]',
-    amber: 'hover:shadow-[0_28px_70px_-30px_rgba(245,158,11,0.55)]',
-    pink: 'hover:shadow-[0_28px_70px_-30px_rgba(236,72,153,0.55)]',
-    cyan: 'hover:shadow-[0_28px_70px_-30px_rgba(6,182,212,0.55)]',
+    rose: 'hover:shadow-lift [--aura-color:rgb(244_63_94_/_0.55)]',
+    violet: 'hover:shadow-lift [--aura-color:rgb(139_92_246_/_0.55)]',
+    amber: 'hover:shadow-lift [--aura-color:rgb(245_158_11_/_0.55)]',
+    pink: 'hover:shadow-lift [--aura-color:rgb(236_72_153_/_0.55)]',
+    cyan: 'hover:shadow-lift [--aura-color:rgb(6_182_212_/_0.55)]',
   }
   const sombra = glowHover[evento.color] ?? glowHover.amber
 

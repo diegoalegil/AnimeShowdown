@@ -100,7 +100,7 @@ function ApoyaPage() {
             href="https://ko-fi.com/diegoalegil"
             target="_blank"
             rel="noreferrer"
-            className="group flex flex-col gap-3 rounded-xl border border-gold/40 bg-gradient-to-br from-gold/10 via-medal-bronze/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-gold/70 hover:shadow-[0_0_50px_-15px_rgba(251,191,36,0.5)]"
+            className="group flex flex-col gap-3 rounded-xl border border-gold/40 bg-gradient-to-br from-gold/10 via-medal-bronze/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-gold/70 hover:shadow-aura-lg [--aura-color:rgb(251_191_36_/_0.5)]"
           >
             <div className="flex items-center gap-2">
               <Coffee className="h-5 w-5 text-gold" />
@@ -126,7 +126,7 @@ function ApoyaPage() {
             href="https://github.com/sponsors/diegoalegil"
             target="_blank"
             rel="noreferrer"
-            className="group flex flex-col gap-3 rounded-xl border border-rarity-epic/40 bg-gradient-to-br from-rarity-epic/10 via-arc-waifu/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-rarity-epic/70 hover:shadow-[0_0_50px_-15px_rgba(217,70,239,0.5)]"
+            className="group flex flex-col gap-3 rounded-xl border border-rarity-epic/40 bg-gradient-to-br from-rarity-epic/10 via-arc-waifu/5 to-transparent p-6 transition-all hover:-translate-y-1 hover:border-rarity-epic/70 hover:shadow-aura-lg [--aura-color:rgb(217_70_239_/_0.5)]"
           >
             <div className="flex items-center gap-2">
               <Heart className="h-5 w-5 text-rarity-epic" />

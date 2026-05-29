@@ -41,7 +41,7 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
           border: 'border-medal-gold/70',
           bg: 'bg-gradient-to-b from-medal-gold/15 via-medal-gold/5 to-transparent',
           text: 'text-medal-gold',
-          glow: 'shadow-[0_0_80px_-15px_rgba(251,191,36,0.6)]',
+          glow: 'shadow-aura-lg [--aura-color:rgb(251_191_36_/_0.6)]',
           icon: Crown,
           label: 'Campeón actual',
         }
@@ -50,7 +50,7 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
             border: 'border-medal-silver/50',
             bg: 'bg-gradient-to-b from-medal-silver/10 via-medal-silver/5 to-transparent',
             text: 'text-medal-silver',
-            glow: 'shadow-[0_0_40px_-15px_rgba(244,244,245,0.4)]',
+            glow: 'shadow-aura [--aura-color:rgb(244_244_245_/_0.4)]',
             icon: Medal,
             label: '2º puesto',
           }
@@ -58,7 +58,7 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
             border: 'border-medal-bronze/50',
             bg: 'bg-gradient-to-b from-medal-bronze/10 via-medal-bronze/5 to-transparent',
             text: 'text-medal-bronze',
-            glow: 'shadow-[0_0_40px_-15px_rgba(251,146,60,0.4)]',
+            glow: 'shadow-aura [--aura-color:rgb(251_146_60_/_0.4)]',
             icon: Medal,
             label: '3er puesto',
           }

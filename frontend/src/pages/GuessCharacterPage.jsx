@@ -232,7 +232,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
         <div
           className={`as-panel relative mx-auto mb-4 w-full max-w-[min(78vw,320px)] overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:max-w-sm ${
             estado.acertado
-              ? 'border-success/60 shadow-[0_0_60px_-10px_rgba(52,211,153,0.55)]'
+              ? 'border-success/60 shadow-aura-lg [--aura-color:rgb(52_211_153_/_0.55)]'
               : 'border-border'
           }`}
         >
