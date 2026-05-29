@@ -10,8 +10,9 @@
 // DISEÑO DEFENSIVO (alto blast radius: corre en CADA request):
 //   - Solo toca respuestas text/html; assets y /api pasan intactos.
 //   - Solo reescribe rutas mapeadas (personaje, anime, ranking interno de
-//     anime, torneo, rankings curados y ranking global); el resto conserva
-//     el OG por defecto del index.html.
+//     anime, torneo, rankings curados, ranking global, duelos compartibles
+//     `/duelos/A-vs-B`, retos directos `/votar?personaje=&rival=` y mi-ranking);
+//     el resto conserva el OG por defecto del index.html.
 //   - Cualquier error → devuelve la respuesta original sin tocar (try/catch).
 //
 // VERIFICAR EN PREVIEW DE CF antes de confiar en producción (no es testeable
@@ -37,8 +38,28 @@ function humanizarSlug(slug) {
     .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
+// OG de un duelo A vs B, reutilizado por `/duelos/A-vs-B` (landing) y por el
+// deep-link de reto `/votar?personaje=A&rival=B`. La imagen la sirve el backend
+// en /api/og/duelo/{A}/vs/{B}.png (render server-side con ambas fotos + VS).
+function ogDuelo(slugA, slugB, apiBase, esReto) {
+  const nombreA = humanizarSlug(slugA)
+  const nombreB = humanizarSlug(slugB)
+  return {
+    image: `${apiBase}/api/og/duelo/${encodeURIComponent(slugA)}/vs/${encodeURIComponent(slugB)}.png`,
+    title: `${nombreA} vs ${nombreB} · AnimeShowdown`,
+    description: esReto
+      ? `Te reto a este duelo: ${nombreA} vs ${nombreB}. Vota quién gana en AnimeShowdown y mueve el ranking.`
+      : `Duelo abierto: ${nombreA} vs ${nombreB}. Compara ELO, vota quién gana y mueve el ranking en AnimeShowdown.`,
+  }
+}
+
 // Devuelve { image, title, description } para las rutas con OG propio, o null.
-function ogParaRuta(pathname, apiBase) {
+// Recibe el `URL` completo: la mayoría de rutas resuelven por pathname, pero los
+// retos directos (`/votar`) dependen de los query params (personaje/rival/anime).
+export function ogParaRuta(url, apiBase) {
+  const pathname = url.pathname
+  const params = url.searchParams
+
   const personaje = pathname.match(/^\/personajes\/([^/]+)\/?$/)
   if (personaje) {
     const slug = decodeURIComponent(personaje[1])
@@ -48,6 +69,42 @@ function ogParaRuta(pathname, apiBase) {
       title: `${nombre} · AnimeShowdown`,
       description: `Ficha de ${nombre} en AnimeShowdown: ranking ELO, anime de origen y duelos. Vota y mueve el ranking.`,
     }
+  }
+  // Landing de duelo compartible: /duelos/A-vs-B. El slug del par puede contener
+  // guiones, así que se separa por el patrón `-vs-` (igual que DueloVersusPage).
+  const dueloPath = pathname.match(/^\/duelos\/([^/]+)\/?$/)
+  if (dueloPath) {
+    const par = decodeURIComponent(dueloPath[1]).match(/^(.+)-vs-(.+)$/)
+    if (par && par[1] !== par[2]) {
+      return ogDuelo(par[1], par[2], apiBase, false)
+    }
+  }
+  // Reto directo a la arena: /votar?personaje=A[&rival=B] o ?anime=X.
+  // Es el deep-link "Reta a un amigo": el receptor aterriza votando ese mismo duelo.
+  if (pathname === '/votar' || pathname === '/votar/') {
+    const slugA = params.get('personaje')
+    const slugB = params.get('rival')
+    const anime = params.get('anime')
+    if (slugA && slugB && slugA !== slugB) {
+      return ogDuelo(slugA, slugB, apiBase, true)
+    }
+    if (slugA) {
+      const nombre = humanizarSlug(slugA)
+      return {
+        image: `${apiBase}/api/og/personaje/${encodeURIComponent(slugA)}.png`,
+        title: `Reto a ${nombre} · AnimeShowdown`,
+        description: `Te reto a un duelo contra ${nombre} en AnimeShowdown. Vota quién gana y mueve el ranking.`,
+      }
+    }
+    if (anime) {
+      const nombre = humanizarSlug(anime)
+      return {
+        image: `${apiBase}/api/og/anime/${encodeURIComponent(anime)}.png`,
+        title: `Duelos de ${nombre} · AnimeShowdown`,
+        description: `Vota duelos internos de ${nombre} en AnimeShowdown y mueve su ranking.`,
+      }
+    }
+    // /votar sin params → OG genérico (return null al final).
   }
   // Ranking interno de un anime: /animes/{slug}/ranking (antes que /animes/{slug}).
   const animeRanking = pathname.match(/^\/animes\/([^/]+)\/ranking\/?$/)
@@ -100,6 +157,15 @@ function ogParaRuta(pathname, apiBase) {
       description: 'Quién domina AnimeShowdown: ranking de personajes anime por votos reales de la comunidad.',
     }
   }
+  // Recap personal: el ranking local de la sesión no es renderizable server-side,
+  // así que el share reutiliza la OG del ranking global (genérica pero on-brand).
+  if (pathname === '/mi-ranking' || pathname === '/mi-ranking/') {
+    return {
+      image: `${apiBase}/api/og/ranking.png`,
+      title: 'Mi ranking anime · AnimeShowdown',
+      description: 'Mi top personal de personajes anime en AnimeShowdown. Crea el tuyo votando duelos.',
+    }
+  }
   return null
 }
 
@@ -129,7 +195,7 @@ export async function onRequest(context) {
 
     const url = new URL(context.request.url)
     const apiBase = (context.env && context.env.OG_API_BASE) || DEFAULT_API_BASE
-    const og = ogParaRuta(url.pathname, apiBase)
+    const og = ogParaRuta(url, apiBase)
     if (!og) return response
 
     return new HTMLRewriter()
