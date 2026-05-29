@@ -106,12 +106,21 @@ function RankingPage() {
 
   const initialSearch = searchParams.get('q') ?? ''
   const initialAnimeFilter = searchParams.get('anime') ?? ''
-  // Por defecto mostramos "Histórico" (votos reales), no el ELO base sintético.
-  const [queryTab, setTab] = useQueryState('tab', 'all')
-  const tab = RANKING_TABS.some((item) => item.id === queryTab) ? queryTab : 'all'
   // La tabla técnica (extraíble por crawlers/LLMs) debe exponer SOLO datos
   // reales: top por votos del backend, nunca el ELO base sintético.
   const { data: rankingRealTop } = useRankingSegmentado({ periodo: 'all', limit: 10 })
+  // Default inteligente: sin pestaña elegida a mano, lideramos con "ELO base"
+  // (siempre lleno, 1086) mientras el Histórico de votos reales esté escaso, para
+  // no recibir al usuario con una tabla casi vacía. Cuando el Histórico acumule
+  // señal real (>= UMBRAL con votos), pasará a liderar él solo. El default '' hace
+  // que cualquier elección (incluida "Histórico"=all) quede explícita en la URL
+  // y se respete; los crawlers siguen extrayendo datos reales de la tabla técnica.
+  const UMBRAL_HISTORICO = 10
+  const [queryTab, setTab] = useQueryState('tab', '')
+  const tabExplicito = RANKING_TABS.some((item) => item.id === queryTab)
+  const historicoConSenal =
+    Array.isArray(rankingRealTop) && rankingRealTop.length >= UMBRAL_HISTORICO
+  const tab = tabExplicito ? queryTab : historicoConSenal ? 'all' : 'elo'
   const consultadoA = useMemo(
     () =>
       new Date().toLocaleTimeString('es-ES', {
