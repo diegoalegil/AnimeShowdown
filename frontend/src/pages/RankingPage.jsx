@@ -20,6 +20,7 @@ import {
   getPersonajesPorCategoria,
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
+import BrandSelect from '../components/BrandSelect'
 import RankingMetaReport from '../components/RankingMetaReport'
 import PersonalRankingTeaser from '../components/PersonalRankingTeaser'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
@@ -565,19 +566,16 @@ function ListaEloLocal({
             </button>
           )}
         </div>
-        <select
+        <BrandSelect
           value={animeFilter}
-          onChange={(e) => setAnimeFilter(e.target.value)}
-          aria-label="Filtrar por anime"
-          className="as-control min-h-11 w-full min-w-0 rounded-lg py-2.5 px-3 text-sm text-fg-strong"
-        >
-          <option value="">Anime: Todos</option>
-          {animeFilterOptions.slice(1).map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
+          onChange={setAnimeFilter}
+          ariaLabel="Filtrar por anime"
+          className="w-full min-w-0"
+          options={[
+            { value: '', label: 'Anime: Todos' },
+            ...animeFilterOptions.slice(1).map((a) => ({ value: a, label: a })),
+          ]}
+        />
         <button
           type="button"
           onClick={compartirVista}
