@@ -140,12 +140,12 @@ public class TorneoQueryService {
     // --- mapping helpers ---
 
     private TorneoResumenDto toResumen(Torneo t) {
-        List<Enfrentamiento> matches = enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t);
+        List<Enfrentamiento> matches = enfrentamientoRepository.findByTorneoOrderedFetch(t);
         return rellenarResumen(new TorneoResumenDto(), t, matches);
     }
 
     private TorneoDetalleDto toDetalle(Torneo t) {
-        List<Enfrentamiento> matches = enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t);
+        List<Enfrentamiento> matches = enfrentamientoRepository.findByTorneoOrderedFetch(t);
         TorneoDetalleDto dto = new TorneoDetalleDto();
         rellenarResumen(dto, t, matches);
 
