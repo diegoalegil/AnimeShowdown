@@ -120,7 +120,11 @@ export class ApiError extends Error {
 // Timeout por defecto para todas las requests al backend. Antes el fetch no
 // tenía timeout y se podía quedar colgado indefinidamente en redes lentas o si
 // el backend tardaba en responder, dejando spinners eternos en el frontend.
-const DEFAULT_TIMEOUT_MS = 10000
+// 20s (no 10s): el backend (Railway) puede tardar en responder la PRIMERA
+// request tras un periodo idle (cold-start del JVM); 10s cancelaba esa primera
+// carga (p.ej. /torneos, /animes) con "la petición tardó demasiado". 20s da
+// margen al warm-up sin colgar indefinidamente ante fallos reales.
+const DEFAULT_TIMEOUT_MS = 20000
 
 export function createRequestSignal({
   signal,
