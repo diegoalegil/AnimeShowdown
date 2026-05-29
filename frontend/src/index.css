@@ -33,6 +33,23 @@
   --color-rarity-epic: #a855f7;
   --color-rarity-legendary: #fbbf24;
 
+  /* Decorativos — arquetipos de personaje (/ranking). Variedad intencional,
+     no semántica: namespace propio para no dejar clases stock sueltas. */
+  --color-arc-hero: #38bdf8;
+  --color-arc-villain: #f43f5e;
+  --color-arc-waifu: #ec4899;
+  --color-arc-husbando: #8b5cf6;
+  --color-arc-protagonist: #f59e0b;
+  --color-arc-rival: #f97316;
+  --color-arc-mentor: #10b981;
+  --color-arc-antihero: #a855f7;
+
+  /* Medallero del podio/top-10. Oro brillante (distinto del oro de marca,
+     más apagado) + plata + bronce. */
+  --color-medal-gold: #facc15;
+  --color-medal-silver: #d4d4d8;
+  --color-medal-bronze: #fb923c;
+
   --font-sans: "Geist", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", Consolas, monospace;
 

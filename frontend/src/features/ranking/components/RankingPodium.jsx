@@ -38,26 +38,26 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
   const tone =
     rank === 1
       ? {
-          border: 'border-yellow-400/70',
-          bg: 'bg-gradient-to-b from-yellow-500/15 via-amber-500/5 to-transparent',
-          text: 'text-yellow-300',
+          border: 'border-medal-gold/70',
+          bg: 'bg-gradient-to-b from-medal-gold/15 via-medal-gold/5 to-transparent',
+          text: 'text-medal-gold',
           glow: 'shadow-[0_0_80px_-15px_rgba(251,191,36,0.6)]',
           icon: Crown,
           label: 'Campeón actual',
         }
       : rank === 2
         ? {
-            border: 'border-zinc-300/50',
-            bg: 'bg-gradient-to-b from-zinc-400/10 via-zinc-500/5 to-transparent',
-            text: 'text-zinc-200',
+            border: 'border-medal-silver/50',
+            bg: 'bg-gradient-to-b from-medal-silver/10 via-medal-silver/5 to-transparent',
+            text: 'text-medal-silver',
             glow: 'shadow-[0_0_40px_-15px_rgba(244,244,245,0.4)]',
             icon: Medal,
             label: '2º puesto',
           }
         : {
-            border: 'border-orange-400/50',
-            bg: 'bg-gradient-to-b from-orange-500/10 via-amber-700/5 to-transparent',
-            text: 'text-orange-300',
+            border: 'border-medal-bronze/50',
+            bg: 'bg-gradient-to-b from-medal-bronze/10 via-medal-bronze/5 to-transparent',
+            text: 'text-medal-bronze',
             glow: 'shadow-[0_0_40px_-15px_rgba(251,146,60,0.4)]',
             icon: Medal,
             label: '3er puesto',

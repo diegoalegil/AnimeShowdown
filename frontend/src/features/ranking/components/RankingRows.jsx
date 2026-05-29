@@ -22,7 +22,7 @@ export function RankRowElo({
   // que salía aquí no venía de votos reales y leía como dato competitivo.
   const esTop10 = rank <= 10
   const rowTone = esTop10
-    ? 'border-yellow-400/30 bg-gradient-to-r from-yellow-500/5 to-surface'
+    ? 'border-medal-gold/30 bg-gradient-to-r from-medal-gold/5 to-surface'
     : 'border-border bg-surface'
   return (
     <li>
@@ -58,7 +58,7 @@ export function RankRowElo({
                 {nombre}
               </p>
               {esTop10 && (
-                <span className="hidden shrink-0 rounded border border-yellow-400/40 bg-yellow-500/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-yellow-300 sm:inline">
+                <span className="hidden shrink-0 rounded border border-medal-gold/40 bg-medal-gold/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-medal-gold sm:inline">
                   Top 10
                 </span>
               )}
@@ -156,11 +156,11 @@ function RankBadge({ rank }) {
     <span
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-mono text-sm font-bold ${
         rank === 1
-          ? 'bg-yellow-500/15 text-yellow-400'
+          ? 'bg-medal-gold/15 text-medal-gold'
           : rank === 2
-            ? 'bg-zinc-400/15 text-zinc-300'
+            ? 'bg-medal-silver/15 text-medal-silver'
             : rank === 3
-              ? 'bg-orange-500/15 text-orange-400'
+              ? 'bg-medal-bronze/15 text-medal-bronze'
               : 'bg-surface-alt text-fg-muted'
       }`}
     >
@@ -191,7 +191,7 @@ function MovimientoBadge({ movimiento }) {
   if (delta > 0) {
     return (
       <span
-        className="inline-flex shrink-0 items-center gap-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-emerald-300"
+        className="inline-flex shrink-0 items-center gap-0.5 rounded border border-success/30 bg-success/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-success"
         title={`Subió ${delta} posiciones vs hace 7 días`}
       >
         ↑{delta}
@@ -200,7 +200,7 @@ function MovimientoBadge({ movimiento }) {
   }
   return (
     <span
-      className="inline-flex shrink-0 items-center gap-0.5 rounded border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-rose-300"
+      className="inline-flex shrink-0 items-center gap-0.5 rounded border border-danger/30 bg-danger/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-danger"
       title={`Bajó ${Math.abs(delta)} posiciones vs hace 7 días`}
     >
       ↓{Math.abs(delta)}

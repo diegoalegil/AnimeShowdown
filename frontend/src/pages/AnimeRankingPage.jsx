@@ -355,7 +355,7 @@ function AnimeRankingPage() {
 function RankingModeNotice({ mode, anime, hasError }) {
   if (hasError) {
     return (
-      <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm leading-6 text-amber-100">
+      <div className="mt-6 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm leading-6 text-warning">
         No se pudo cargar el ranking comunitario de {anime}. Mostramos el ELO
         base del catálogo como fallback para que la página siga siendo útil.
       </div>
@@ -384,10 +384,10 @@ function AnimePodium({ top3 }) {
 function PodiumCard({ personaje, rank, featured = false, className = '' }) {
   const tone =
     rank === 1
-      ? 'border-yellow-400/65 bg-yellow-500/10 text-yellow-300'
+      ? 'border-medal-gold/65 bg-medal-gold/10 text-medal-gold'
       : rank === 2
-        ? 'border-zinc-300/45 bg-zinc-400/10 text-zinc-200'
-        : 'border-orange-400/45 bg-orange-500/10 text-orange-300'
+        ? 'border-medal-silver/45 bg-medal-silver/10 text-medal-silver'
+        : 'border-medal-bronze/45 bg-medal-bronze/10 text-medal-bronze'
   return (
     <Link
       to={`/personajes/${personaje.slug}`}

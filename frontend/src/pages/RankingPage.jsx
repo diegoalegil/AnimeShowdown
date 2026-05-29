@@ -194,11 +194,11 @@ function RankingPage() {
             </>
           }
           aside={
-            <div className="as-panel rounded-2xl border-amber-500/35 p-5">
+            <div className="as-panel rounded-2xl border-gold/35 p-5">
             {/* Antes esto era un segundo "Meta report" que duplicaba el
                 componente RankingMetaReport de abajo. Lo reconvertimos en una
                 caja-CTA para mover la tabla (E2). */}
-            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.14em] text-amber-300">
+            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.14em] text-gold">
               Mueve la tabla
             </p>
             <p className="text-sm leading-relaxed text-fg-muted">
@@ -211,7 +211,7 @@ function RankingPage() {
             </p>
             <Link
               to="/votar"
-              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-500/20"
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
             >
               Votar duelos abiertos
               <ArrowRight className="h-3.5 w-3.5" />
@@ -339,14 +339,14 @@ function SeccionCategoria({ seccion }) {
   // waifus, violet husbandos, amber protagonistas, orange rivales,
   // emerald mentores, purple antihéroes).
   const TONO_CLASES = {
-    sky: 'text-sky-300 border-sky-500/40 bg-sky-500/10',
-    rose: 'text-rose-300 border-rose-500/40 bg-rose-500/10',
-    pink: 'text-pink-300 border-pink-500/40 bg-pink-500/10',
-    violet: 'text-violet-300 border-violet-500/40 bg-violet-500/10',
-    amber: 'text-amber-300 border-amber-500/40 bg-amber-500/10',
-    orange: 'text-orange-300 border-orange-500/40 bg-orange-500/10',
-    emerald: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
-    purple: 'text-purple-300 border-purple-500/40 bg-purple-500/10',
+    sky: 'text-arc-hero border-arc-hero/40 bg-arc-hero/10',
+    rose: 'text-arc-villain border-arc-villain/40 bg-arc-villain/10',
+    pink: 'text-arc-waifu border-arc-waifu/40 bg-arc-waifu/10',
+    violet: 'text-arc-husbando border-arc-husbando/40 bg-arc-husbando/10',
+    amber: 'text-arc-protagonist border-arc-protagonist/40 bg-arc-protagonist/10',
+    orange: 'text-arc-rival border-arc-rival/40 bg-arc-rival/10',
+    emerald: 'text-arc-mentor border-arc-mentor/40 bg-arc-mentor/10',
+    purple: 'text-arc-antihero border-arc-antihero/40 bg-arc-antihero/10',
   }
   const tonoClase = TONO_CLASES[seccion.tono] ?? TONO_CLASES.sky
   // Sprint 5h (2026-05-18): el chip eyebrow era un <span> — sin landmark
@@ -386,14 +386,14 @@ function CategoriaCard({ rank, personaje, tono }) {
   // incompletos. Evitamos /personajes/undefined y preferimos omitir la card.
   if (!personaje?.slug) return null
   const RANK_TONO = {
-    sky: 'bg-sky-500/20 text-sky-200',
-    rose: 'bg-rose-500/20 text-rose-200',
-    pink: 'bg-pink-500/20 text-pink-200',
-    violet: 'bg-violet-500/20 text-violet-200',
-    amber: 'bg-amber-500/20 text-amber-200',
-    orange: 'bg-orange-500/20 text-orange-200',
-    emerald: 'bg-emerald-500/20 text-emerald-200',
-    purple: 'bg-purple-500/20 text-purple-200',
+    sky: 'bg-arc-hero/20 text-arc-hero',
+    rose: 'bg-arc-villain/20 text-arc-villain',
+    pink: 'bg-arc-waifu/20 text-arc-waifu',
+    violet: 'bg-arc-husbando/20 text-arc-husbando',
+    amber: 'bg-arc-protagonist/20 text-arc-protagonist',
+    orange: 'bg-arc-rival/20 text-arc-rival',
+    emerald: 'bg-arc-mentor/20 text-arc-mentor',
+    purple: 'bg-arc-antihero/20 text-arc-antihero',
   }
   const rankTono = RANK_TONO[tono] ?? RANK_TONO.sky
   return (
@@ -520,8 +520,8 @@ function ListaEloLocal({
       {/* Banner de honestidad: esta pestaña ordena por ELO base (estimación
           por popularidad), no por votos reales. Dirige a las pestañas con
           datos reales para que nadie lea estos números como competitivos. */}
-      <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-[12px] leading-5 text-amber-200/90">
-        <strong className="font-bold text-amber-200">ELO base · estimado.</strong>{' '}
+      <p className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-[12px] leading-5 text-warning/90">
+        <strong className="font-bold text-warning">ELO base · estimado.</strong>{' '}
         Este orden usa una estimación por popularidad del catálogo, no votos
         reales (no se mueve con tus votos). Para el ranking competitivo por
         votos mira{' '}

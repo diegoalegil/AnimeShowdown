@@ -191,11 +191,11 @@ function SenpaiDelMes() {
   const top = data[0]
 
   return (
-    <div className="mb-6 overflow-hidden rounded-xl border-2 border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5">
+    <div className="mb-6 overflow-hidden rounded-xl border-2 border-gold/40 bg-gradient-to-r from-gold/10 via-gold/5 to-transparent p-5">
       <div className="flex items-center gap-4">
-        <Crown className="h-8 w-8 shrink-0 text-amber-300" />
+        <Crown className="h-8 w-8 shrink-0 text-gold" />
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold">
             <span lang="ja">先輩</span> · Senpai del mes
           </p>
           <p className="mt-0.5 text-xl font-extrabold text-fg-strong">
@@ -208,7 +208,7 @@ function SenpaiDelMes() {
           </p>
           <p className="text-[12px] text-fg-muted">
             Predictor más acertado de los últimos 30 días ·{' '}
-            <strong className="text-amber-200">{top.aciertos} aciertos</strong>
+            <strong className="text-gold">{top.aciertos} aciertos</strong>
           </p>
         </div>
       </div>
