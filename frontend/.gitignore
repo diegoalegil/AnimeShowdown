@@ -12,6 +12,7 @@ dist
 dist-ssr
 coverage
 .lighthouseci
+lighthouse-report
 *.local
 
 # Salida del POC de regeneración de recortes (scripts/regen-cuts.mjs):
