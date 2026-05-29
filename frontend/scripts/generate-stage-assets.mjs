@@ -16,29 +16,29 @@ const bySlug = new Map(personajes.map((p) => [p.slug, p]))
 
 const THEMES = {
   pink: {
-    a: '#ff2e63',
+    a: '#be2b38',
     b: '#b33cff',
     c: '#18d6ff',
     dark: '#070912',
-    kanji: '#ff2e63',
+    kanji: '#9f1d2c',
   },
   cyan: {
     a: '#22d3ee',
-    b: '#ff2e63',
+    b: '#be2b38',
     c: '#34d399',
     dark: '#050a12',
     kanji: '#22d3ee',
   },
   amber: {
     a: '#fbbf24',
-    b: '#ff2e63',
+    b: '#be2b38',
     c: '#fb7185',
     dark: '#0c0910',
     kanji: '#fbbf24',
   },
   purple: {
     a: '#a855f7',
-    b: '#ff2e63',
+    b: '#be2b38',
     c: '#22d3ee',
     dark: '#080713',
     kanji: '#a855f7',
@@ -46,7 +46,7 @@ const THEMES = {
   emerald: {
     a: '#34d399',
     b: '#22d3ee',
-    c: '#ff2e63',
+    c: '#be2b38',
     dark: '#050d11',
     kanji: '#34d399',
   },
