@@ -93,7 +93,7 @@ function MobileBottomNav() {
   return (
     <nav
       aria-label={t('mobileNav.ariaLabel')}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-bg/92 pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pt-2 shadow-[0_-18px_60px_-36px_rgb(0_0_0_/_0.95)] backdrop-blur-xl md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-bg/92 pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pt-2 shadow-elev-up backdrop-blur-xl md:hidden"
     >
       <Link
         to={mission.to}

@@ -13,7 +13,7 @@ function AnonVoteLimitModal({ open, onClose }) {
       open={open}
       onClose={onClose}
       titleId="anon-vote-limit-title"
-      panelClassName="border-gold/40 shadow-[0_30px_90px_rgba(0,0,0,0.5)]"
+      panelClassName="border-gold/40 shadow-elev-3"
     >
       <button
         type="button"

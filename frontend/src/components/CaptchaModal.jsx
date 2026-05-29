@@ -135,7 +135,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
       open={open}
       onClose={onClose}
       titleId="captcha-modal-title"
-      panelClassName="border-accent/40 shadow-[0_30px_90px_rgba(0,0,0,0.5)]"
+      panelClassName="border-accent/40 shadow-elev-3"
     >
       <button
         type="button"

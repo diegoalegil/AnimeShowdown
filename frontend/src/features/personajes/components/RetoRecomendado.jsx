@@ -9,7 +9,7 @@ import PersonajeImg from '../../../components/PersonajeImg'
 function RetoRecomendado({ personaje, stats, rival, rivalStats, delta, tipo, onShare }) {
   const lider = stats.elo >= rivalStats.elo ? personaje : rival
   return (
-    <section className="mt-10 overflow-hidden rounded-2xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.16),rgb(197_161_90_/_0.08),rgb(7_10_18_/_0.84))] p-5 shadow-[0_24px_90px_-58px_rgb(0_0_0)] sm:p-6">
+    <section className="mt-10 overflow-hidden rounded-2xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.16),rgb(197_161_90_/_0.08),rgb(7_10_18_/_0.84))] p-5 shadow-elev-3 sm:p-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-gold">
