@@ -135,7 +135,7 @@ function MobileExtrasToggle({ a, b, fixedAnime, fixedPersonaje, exactDuelActive,
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-fg-strong"
+        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-fg-strong"
         aria-expanded={open}
       >
         <span>{open ? 'Ocultar opciones' : 'Más opciones'}</span>
