@@ -55,6 +55,8 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
      */
     @Query("""
             SELECT t FROM Torneo t
+            LEFT JOIN FETCH t.ganadorPersonaje
+            LEFT JOIN FETCH t.creadoPor
             WHERE t.estadoRevision IN (
                 com.diegoalegil.animeshowdown.model.EstadoRevision.NO_APLICA,
                 com.diegoalegil.animeshowdown.model.EstadoRevision.APROBADO)
