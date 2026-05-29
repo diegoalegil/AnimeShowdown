@@ -3,6 +3,11 @@ const VARIANTS = {
   line: 'h-4 rounded-full bg-surface-alt',
   circle: 'aspect-square rounded-full bg-surface-alt',
   banner: 'min-h-48 rounded-2xl border border-border bg-surface',
+  // Rectángulo neutro sin alto fijo: el tamaño/proporción se controla 100%
+  // desde className (h-*, w-*, aspect-*). Útil para los esqueletos de página
+  // (barras de título, frames de retrato, filas) donde line (rounded-full) o
+  // card (con contenido interno) no encajan.
+  box: 'rounded-lg bg-surface-alt',
 }
 
 const CONTENT = {
