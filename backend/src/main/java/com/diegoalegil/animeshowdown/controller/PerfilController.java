@@ -184,15 +184,14 @@ public class PerfilController {
         }
         // Limpia la cookie de refresh para que el frontend no quede con
         // sesión zombie. JS de cliente debe además limpiar el access token.
-        // antes hardcodeaba secure=true + SameSite=Lax,
-        // pero AuthController emite la cookie con secure=cookieSecure +
-        // SameSite=Strict. El mismatch de attributes hace que algunos
-        // navegadores no consideren la cookie "la misma" y no la borren —
-        // el user queda con refresh zombie en disco hasta que expire.
+        // §SEC-005: debe coincidir con la cookie que emite AuthController
+        // (secure=cookieSecure + SameSite=Lax). El navegador solo borra una
+        // cookie si los atributos coinciden con la original; el mismatch previo
+        // (aquí Strict vs Lax en AuthController) dejaba un refresh zombie en disco.
         ResponseCookie clear = ResponseCookie.from(REFRESH_COOKIE, "")
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .path("/")
                 .maxAge(0)
                 .build();
