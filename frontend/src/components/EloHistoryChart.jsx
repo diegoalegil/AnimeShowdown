@@ -94,26 +94,26 @@ function Sparkline({ points, stats }) {
     >
       <defs>
         <linearGradient id="elo-history-fill" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="rgb(255, 46, 99)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="rgb(255, 46, 99)" stopOpacity="0" />
+          <stop offset="0%" stopColor="rgb(159, 29, 44)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="rgb(159, 29, 44)" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={area} fill="url(#elo-history-fill)" />
       <path
         d={path}
-        stroke="rgb(255, 46, 99)"
+        stroke="rgb(190, 43, 56)"
         strokeWidth="2"
         strokeLinejoin="round"
         strokeLinecap="round"
         fill="none"
       />
       {/* Puntos sutiles solo en el primero y el último. */}
-      <circle cx={pts[0].x} cy={pts[0].y} r="3" fill="rgb(255, 46, 99)" opacity="0.5" />
+      <circle cx={pts[0].x} cy={pts[0].y} r="3" fill="rgb(190, 43, 56)" opacity="0.5" />
       <circle
         cx={pts[pts.length - 1].x}
         cy={pts[pts.length - 1].y}
         r="3.5"
-        fill="rgb(255, 46, 99)"
+        fill="rgb(190, 43, 56)"
       />
     </svg>
   )

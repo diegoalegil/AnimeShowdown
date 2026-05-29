@@ -61,7 +61,7 @@ async function celebrateDailyCompletion(date) {
       particleCount: 72,
       spread: 64,
       origin: { y: 0.72 },
-      colors: ['#ff2e63', '#facc15', '#34d399', '#f4f4f5'],
+      colors: ['#be2b38', '#c5a15a', '#34d399', '#f4f4f5'],
       disableForReducedMotion: true,
     })
   } catch {

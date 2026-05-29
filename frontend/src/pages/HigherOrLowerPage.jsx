@@ -281,7 +281,7 @@ function HigherOrLowerGame({
 }
 
 function ScoreBar({ score, best }) {
-  // Cerca del récord = a 2 o menos. Glow rosa para crear tensión "no te
+  // Cerca del récord = a 2 o menos. Glow carmesí para crear tensión "no te
   // duermas, casi lo igualas". A partir del récord el glow se mantiene
   // como recompensa de "estás en territorio nuevo".
   const cerca = best > 0 && score >= best - 2
@@ -289,7 +289,7 @@ function ScoreBar({ score, best }) {
     <div
       className={`as-panel flex items-center justify-between gap-3 rounded-xl px-5 py-3 transition-all duration-300 ${
         cerca
-          ? 'border-accent/60 shadow-[0_0_40px_-12px_rgba(255,46,99,0.65)]'
+          ? 'border-accent/60 shadow-[0_0_40px_-12px_rgba(159,29,44,0.65)]'
           : 'border-border'
       }`}
     >

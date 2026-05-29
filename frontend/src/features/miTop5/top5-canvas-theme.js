@@ -4,8 +4,8 @@ export const TOP5_CANVAS_THEME = {
   muted: '#a1a1aa',
   accent: '#9f1d2c',
   watermark: '#71717a',
-  auroraStart: 'rgba(255, 46, 99, 0.4)',
-  auroraEnd: 'rgba(255, 46, 99, 0)',
+  auroraStart: 'rgba(159, 29, 44, 0.4)',
+  auroraEnd: 'rgba(159, 29, 44, 0)',
   cardFill: 'rgba(255,255,255,0.05)',
-  cardStroke: 'rgba(255,46,99,0.4)',
+  cardStroke: 'rgba(159,29,44,0.4)',
 }

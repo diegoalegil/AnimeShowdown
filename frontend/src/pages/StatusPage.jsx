@@ -133,7 +133,7 @@ function Sparkline({ samples }) {
             cx={point.x}
             cy={point.y}
             r={point.status === 'UP' ? 1.6 : 2.4}
-            fill={point.status === 'UP' ? '#34d399' : '#ff2e63'}
+            fill={point.status === 'UP' ? '#34d399' : '#be2b38'}
           />
         ))}
       </svg>
