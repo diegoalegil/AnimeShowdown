@@ -42,7 +42,7 @@ function AnonVoteLimitModal({ open, onClose }) {
         </a>
         <a
           href={`${api.base}/oauth2/authorization/discord?next=${next}`}
-          className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-4 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-violet-400/60 hover:text-violet-200"
+          className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-4 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-rarity-epic/60 hover:text-rarity-epic"
         >
           Discord
         </a>

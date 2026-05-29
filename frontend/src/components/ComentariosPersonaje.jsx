@@ -186,7 +186,7 @@ function ComentariosPersonaje({ slug, nombre }) {
                       disabled={reportarComentario.isPending}
                       aria-label="Reportar comentario"
                       title="Reportar comentario"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-fg-muted transition-colors hover:border-amber-400/60 hover:text-amber-200 disabled:opacity-60"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-fg-muted transition-colors hover:border-warning/60 hover:text-warning disabled:opacity-60"
                     >
                       <Flag className="h-4 w-4" />
                     </button>
@@ -198,7 +198,7 @@ function ComentariosPersonaje({ slug, nombre }) {
                       disabled={eliminarComentario.isPending}
                       aria-label="Eliminar comentario"
                       title="Eliminar comentario"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-fg-muted transition-colors hover:border-rose-400/60 hover:text-rose-200 disabled:opacity-60"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-fg-muted transition-colors hover:border-danger/60 hover:text-danger disabled:opacity-60"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
