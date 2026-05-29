@@ -46,7 +46,7 @@ function EloHistoryChart({ slug }) {
           </h2>
         </div>
         <p className="font-mono text-[12px] text-fg-muted tabular-nums">
-          <span className={stats.delta > 0 ? 'text-emerald-300' : stats.delta < 0 ? 'text-rose-300' : 'text-fg-muted'}>
+          <span className={stats.delta > 0 ? 'text-success' : stats.delta < 0 ? 'text-danger' : 'text-fg-muted'}>
             {stats.delta > 0 ? '+' : ''}
             {stats.delta}
           </span>{' '}

@@ -29,7 +29,7 @@ function CardDanKyu({ data: dataProp = null }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Award className="h-4 w-4 text-amber-400" />
+        <Award className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Rango</h2>
       </div>
       <p className="mb-5 text-[12px] text-fg-muted">
@@ -45,7 +45,7 @@ function CardDanKyu({ data: dataProp = null }) {
           <span
             className={`inline-flex items-center justify-center rounded-2xl border-2 px-4 py-2 ${
               actual.tipo === 'dan'
-                ? 'border-amber-500/50 bg-amber-500/10 text-amber-200'
+                ? 'border-gold/50 bg-gold/10 text-gold'
                 : 'border-border bg-bg text-fg-muted'
             }`}
           >
@@ -86,7 +86,7 @@ function CardDanKyu({ data: dataProp = null }) {
               </p>
             </div>
           ) : (
-            <p className="text-[11px] font-semibold text-amber-300">
+            <p className="text-[11px] font-semibold text-gold">
               Rango máximo alcanzado · <span lang="ja" className="font-jp">九段</span>
             </p>
           )}

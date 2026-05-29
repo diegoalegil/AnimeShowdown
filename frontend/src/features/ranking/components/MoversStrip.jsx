@@ -20,10 +20,10 @@ function MoversStrip() {
   if (top3.length === 0) return null
 
   return (
-    <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5">
+    <div className="mt-6 rounded-xl border border-success/30 bg-success/5 p-4 sm:p-5">
       <div className="mb-3 flex items-center gap-2">
-        <TrendingUp className="h-4 w-4 text-emerald-300" />
-        <h2 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-emerald-300">
+        <TrendingUp className="h-4 w-4 text-success" />
+        <h2 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-success">
           Movers de la semana
         </h2>
         <span className="ml-auto text-[11px] text-fg-muted">últimos 7 días</span>
@@ -41,8 +41,8 @@ function MoverChip({ mover }) {
   const subio = mover.delta > 0
   const Icon = subio ? TrendingUp : TrendingDown
   const colorClase = subio
-    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
-    : 'border-rose-500/40 bg-rose-500/10 text-rose-300'
+    ? 'border-success/40 bg-success/10 text-success'
+    : 'border-danger/40 bg-danger/10 text-danger'
   const verbo = subio ? 'subió' : 'bajó'
   return (
     <li>

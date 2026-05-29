@@ -27,7 +27,7 @@ function EloSparkline({ points, className = '' }) {
     .join(' ')
   const trend = values[values.length - 1] - values[0]
   const color =
-    trend > 0 ? 'text-emerald-300' : trend < 0 ? 'text-rose-300' : 'text-fg-muted'
+    trend > 0 ? 'text-success' : trend < 0 ? 'text-danger' : 'text-fg-muted'
   const label =
     trend > 0
       ? `Tendencia positiva de ${trend} votos`
