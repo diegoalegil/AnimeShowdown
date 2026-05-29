@@ -139,6 +139,16 @@ public class Usuario {
     @Column(name = "pvp_partidos", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
     private Integer pvpPartidos = 0;
 
+    /**
+     * V-8: el usuario ya pasó (o saltó) el onboarding post-login donde
+     * elige username + avatar. Las cuentas OAuth nacen en false (username
+     * autogenerado) y disparan el modal una vez; los registros por
+     * formulario nacen en true porque ya eligieron su username. El frontend
+     * lee {@code needsOnboarding = !onboardingCompletado} desde /me.
+     */
+    @Column(name = "onboarding_completado", nullable = false)
+    private Boolean onboardingCompletado = false;
+
     public Usuario() {
     }
 
@@ -320,6 +330,14 @@ public class Usuario {
 
     public void setPvpPartidos(Integer pvpPartidos) {
         this.pvpPartidos = pvpPartidos == null ? 0 : pvpPartidos;
+    }
+
+    public boolean isOnboardingCompletado() {
+        return onboardingCompletado != null && onboardingCompletado;
+    }
+
+    public void setOnboardingCompletado(boolean onboardingCompletado) {
+        this.onboardingCompletado = onboardingCompletado;
     }
 
 }
