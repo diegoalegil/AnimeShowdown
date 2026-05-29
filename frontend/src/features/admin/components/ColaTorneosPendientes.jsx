@@ -96,7 +96,7 @@ function RevisionCard({ torneo }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
       <div className="mb-3 flex flex-wrap items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/15 text-warning">
           <Trophy className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
@@ -122,7 +122,7 @@ function RevisionCard({ torneo }) {
             type="button"
             onClick={handleAprobar}
             disabled={pending}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-success px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-success disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Check className="h-4 w-4" />
             {aprobar.isPending ? 'Aprobando…' : 'Aprobar'}
@@ -131,17 +131,17 @@ function RevisionCard({ torneo }) {
             type="button"
             onClick={() => setMostrandoMotivo(true)}
             disabled={pending}
-            className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <X className="h-4 w-4" />
             Rechazar
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 rounded-lg border border-rose-500/30 bg-rose-500/5 p-3">
+        <div className="flex flex-col gap-2 rounded-lg border border-danger/30 bg-danger/5 p-3">
           <label
             htmlFor={`motivo-${torneo.id}`}
-            className="text-[12px] font-medium text-rose-200"
+            className="text-[12px] font-medium text-danger"
           >
             Motivo del rechazo
           </label>
@@ -152,14 +152,14 @@ function RevisionCard({ torneo }) {
             onChange={(e) => setMotivo(e.target.value)}
             maxLength={500}
             placeholder="Mínimo 5 caracteres — esto se lo enseña el frontend al creador."
-            className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+            className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-danger/40"
           />
           <div className="flex gap-2">
             <button
               type="button"
               onClick={handleRechazar}
               disabled={pending}
-              className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-rose-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-danger disabled:cursor-not-allowed disabled:opacity-60"
             >
               <X className="h-4 w-4" />
               {rechazar.isPending ? 'Enviando…' : 'Confirmar rechazo'}

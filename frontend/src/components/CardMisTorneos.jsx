@@ -19,7 +19,7 @@ function CardMisTorneos() {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Trophy className="h-4 w-4 text-amber-400" />
+        <Trophy className="h-4 w-4 text-warning" />
         <h2 className="text-lg font-bold text-fg-strong">Mis torneos</h2>
         {!isLoading && torneos && torneos.length > 0 && (
           <span className="ml-auto inline-flex rounded-full border border-border bg-bg px-2.5 py-0.5 text-[11px] font-semibold tabular-nums text-fg-muted">
@@ -66,15 +66,15 @@ function CardMisTorneos() {
 const PILLS = {
   PENDIENTE: {
     text: 'En revisión',
-    cls: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
+    cls: 'border-warning/40 bg-warning/10 text-warning',
   },
   APROBADO: {
     text: 'Aprobado',
-    cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
+    cls: 'border-success/40 bg-success/10 text-success',
   },
   RECHAZADO: {
     text: 'Rechazado',
-    cls: 'border-rose-500/40 bg-rose-500/10 text-rose-300',
+    cls: 'border-danger/40 bg-danger/10 text-danger',
   },
   NO_APLICA: {
     text: 'Publicado',
@@ -106,7 +106,7 @@ function ItemTorneo({ torneo }) {
           </p>
         )}
         {torneo.estadoRevision === 'RECHAZADO' && torneo.motivoRechazo && (
-          <p className="mt-1 text-[11px] text-rose-300/80">
+          <p className="mt-1 text-[11px] text-danger/80">
             <strong className="font-semibold">Motivo:</strong>{' '}
             {torneo.motivoRechazo}
           </p>

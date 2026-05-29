@@ -212,7 +212,7 @@ function CrearTorneoPage() {
           />
 
           {errors.root && (
-            <p className="text-[13px] text-red-400">{errors.root.message}</p>
+            <p className="text-[13px] text-danger">{errors.root.message}</p>
           )}
 
           <div className="flex flex-wrap items-center gap-3">
@@ -279,7 +279,7 @@ function CardDatos({ register, errors }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Trophy className="h-4 w-4 text-amber-400" />
+        <Trophy className="h-4 w-4 text-warning" />
         <h2 className="text-lg font-bold text-fg-strong">Datos del torneo</h2>
       </div>
       <div className="flex flex-col gap-4">
@@ -300,11 +300,11 @@ function CardDatos({ register, errors }) {
             })}
             placeholder='Ej. "Las mejores chicas de los 2010"'
             className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.nombre ? 'border-red-500' : 'border-border'
+              errors.nombre ? 'border-danger' : 'border-border'
             }`}
           />
           {errors.nombre && (
-            <p className="text-[11px] text-red-400">
+            <p className="text-[11px] text-danger">
               {errors.nombre.message}
             </p>
           )}
@@ -324,11 +324,11 @@ function CardDatos({ register, errors }) {
             })}
             placeholder="Cuenta el concepto del torneo."
             className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.descripcion ? 'border-red-500' : 'border-border'
+              errors.descripcion ? 'border-danger' : 'border-border'
             }`}
           />
           {errors.descripcion && (
-            <p className="text-[11px] text-red-400">
+            <p className="text-[11px] text-danger">
               {errors.descripcion.message}
             </p>
           )}
@@ -370,7 +370,7 @@ function CardSeleccion({
         <span
           className={`ml-auto inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums ${
             seleccionados.size === tamano
-              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+              ? 'border-success/40 bg-success/10 text-success'
               : 'border-border bg-bg text-fg-muted'
           }`}
         >

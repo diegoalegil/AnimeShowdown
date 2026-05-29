@@ -403,8 +403,8 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
       <div
         className={`mt-1.5 flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-semibold ${
           acerto
-            ? 'bg-emerald-500/10 text-emerald-300'
-            : 'bg-rose-500/10 text-rose-300'
+            ? 'bg-success/10 text-success'
+            : 'bg-danger/10 text-danger'
         }`}
       >
         <Sparkles className="h-3 w-3" />

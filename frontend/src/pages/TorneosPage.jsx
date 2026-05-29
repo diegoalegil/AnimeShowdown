@@ -144,8 +144,8 @@ function TorneosPage() {
             {enCurso.length > 0 && (
               <TorneosSeccion
                 icon={PlayCircle}
-                tono="text-emerald-300"
-                dotColor="bg-emerald-400"
+                tono="text-success"
+                dotColor="bg-success"
                 titulo={t('torneos.seccionEnCurso')}
                 count={enCurso.length}
                 torneos={enCurso}
@@ -154,8 +154,8 @@ function TorneosPage() {
             {proximos.length > 0 && (
               <TorneosSeccion
                 icon={CalendarClock}
-                tono="text-cyan-300"
-                dotColor="bg-cyan-400"
+                tono="text-electric"
+                dotColor="bg-electric"
                 titulo={t('torneos.seccionProximos')}
                 count={proximos.length}
                 torneos={proximos}
@@ -205,7 +205,7 @@ function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) 
 function TorneosHeroBanner() {
   const visual = getTournamentVisual('mha-heroes-vs-villains', 'Arena de torneos')
   return (
-    <div className="as-panel-hot relative min-h-64 overflow-hidden rounded-2xl border border-cyan-500/20">
+    <div className="as-panel-hot relative min-h-64 overflow-hidden rounded-2xl border border-electric/20">
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0"
@@ -218,7 +218,7 @@ function TorneosHeroBanner() {
       </div>
       <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-electric">
             Brackets en vivo
           </p>
           <p className="mt-1 max-w-sm text-sm text-fg-muted">

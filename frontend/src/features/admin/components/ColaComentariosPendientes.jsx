@@ -98,7 +98,7 @@ function ComentarioRevisionCard({ comentario, pending, onEstado }) {
             {comentario.reportes} reportes
           </p>
         </div>
-        <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold text-amber-200">
+        <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-[11px] font-semibold text-warning">
           Pendiente
         </span>
       </div>
@@ -110,7 +110,7 @@ function ComentarioRevisionCard({ comentario, pending, onEstado }) {
           type="button"
           onClick={() => onEstado('VISIBLE')}
           disabled={pending}
-          className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg bg-success px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-success disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Check className="h-4 w-4" />
           Aprobar
@@ -119,7 +119,7 @@ function ComentarioRevisionCard({ comentario, pending, onEstado }) {
           type="button"
           onClick={() => onEstado('OCULTO')}
           disabled={pending}
-          className="inline-flex items-center gap-2 rounded-lg border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-100 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-4 py-2 text-sm font-semibold text-warning transition-colors hover:bg-warning/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <EyeOff className="h-4 w-4" />
           Ocultar
@@ -128,7 +128,7 @@ function ComentarioRevisionCard({ comentario, pending, onEstado }) {
           type="button"
           onClick={() => onEstado('ELIMINADO')}
           disabled={pending}
-          className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Trash2 className="h-4 w-4" />
           Eliminar
