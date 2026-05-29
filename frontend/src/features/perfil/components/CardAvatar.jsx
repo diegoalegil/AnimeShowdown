@@ -51,7 +51,7 @@ function CardAvatar({ user, updateUser }) {
         <button
           type="button"
           onClick={() => setTab('archivo')}
-          className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-[13px] font-semibold transition-colors ${
+          className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${
             tab === 'archivo'
               ? 'bg-surface-alt text-fg-strong'
               : 'text-fg-muted hover:text-fg-strong'
@@ -63,7 +63,7 @@ function CardAvatar({ user, updateUser }) {
         <button
           type="button"
           onClick={() => setTab('url')}
-          className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-[13px] font-semibold transition-colors ${
+          className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${
             tab === 'url'
               ? 'bg-surface-alt text-fg-strong'
               : 'text-fg-muted hover:text-fg-strong'

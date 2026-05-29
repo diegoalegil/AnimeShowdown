@@ -249,11 +249,11 @@ function AnimeTile({ animeData }) {
         compact
       >
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="rounded-md border border-white/10 bg-bg/60 px-2 py-0.5 font-mono text-[10px] font-semibold text-fg-muted backdrop-blur">
+          <span className="rounded-lg border border-white/10 bg-bg/60 px-2 py-0.5 font-mono text-[10px] font-semibold text-fg-muted backdrop-blur">
             {total} personajes
           </span>
           {topElo && (
-            <span className="rounded-md border border-gold/35 bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-bold text-gold">
+            <span className="rounded-lg border border-gold/35 bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-bold text-gold">
               ELO base {topElo.elo}
             </span>
           )}

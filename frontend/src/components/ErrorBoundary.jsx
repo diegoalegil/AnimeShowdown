@@ -160,7 +160,7 @@ class ErrorBoundary extends Component {
                 <summary className="cursor-pointer text-[11px] font-mono text-fg-muted">
                   Stack (solo en dev)
                 </summary>
-                <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-white/10 bg-bg/85 p-3 text-[11px] text-gold">
+                <pre className="mt-2 max-h-64 overflow-auto rounded-lg border border-white/10 bg-bg/85 p-3 text-[11px] text-gold">
                   {String(this.state.error.stack || this.state.error)}
                 </pre>
               </details>

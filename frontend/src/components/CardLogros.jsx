@@ -64,14 +64,14 @@ function CardLogros({
           <div className="flex flex-wrap gap-2">
             <Link
               to="/logros"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg px-3 py-1.5 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
             >
               Ver catálogo completo
               <ArrowRight className="h-3 w-3" />
             </Link>
             <Link
               to={`/u/${user.username}/logros`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-gold transition-colors hover:bg-accent/15"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-gold transition-colors hover:bg-accent/15"
             >
               <Share2 className="h-3 w-3" />
               Mi perfil público

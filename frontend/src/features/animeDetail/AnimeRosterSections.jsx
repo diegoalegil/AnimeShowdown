@@ -34,7 +34,7 @@ function RankingRow({ rank, slug, nombre, elo }) {
           slug={slug}
           alt={nombre}
           loading="lazy"
-          className="h-12 w-9 shrink-0 rounded-md object-cover object-top"
+          className="h-12 w-9 shrink-0 rounded-lg object-cover object-top"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">

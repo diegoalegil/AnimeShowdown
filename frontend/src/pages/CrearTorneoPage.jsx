@@ -260,7 +260,7 @@ function CardTamano({ tamano, onCambio }) {
               key={n}
               type="button"
               onClick={() => onCambio(n)}
-              className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold transition-colors ${
+              className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
                 activo
                   ? 'bg-accent text-bg'
                   : 'text-fg-muted hover:text-fg-strong'
@@ -337,7 +337,7 @@ function CardDatos({ register, errors }) {
           <input
             type="checkbox"
             {...register('publico')}
-            className="mt-1 h-4 w-4 rounded border-border bg-bg accent-[var(--color-accent)]"
+            className="mt-1 h-4 w-4 rounded-lg border-border bg-bg accent-[var(--color-accent)]"
           />
           <span>
             <span className="block font-semibold text-fg-strong">
@@ -420,7 +420,7 @@ function CardSeleccion({
                 src={p.imagenUrl ?? p.imagen}
                 alt={p.nombre}
                 loading="lazy"
-                className="h-16 w-12 rounded object-cover object-top"
+                className="h-16 w-12 rounded-lg object-cover object-top"
               />
               <span className="line-clamp-1 text-[11px] font-semibold text-fg-strong">
                 {p.nombre}

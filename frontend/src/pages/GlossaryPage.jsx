@@ -407,7 +407,7 @@ function GlossaryPage() {
             <button
               type="button"
               onClick={() => setCategoria(null)}
-              className={`rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+              className={`rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                 categoria === null
                   ? 'bg-accent text-white'
                   : 'border border-border bg-surface text-fg-muted hover:text-fg-strong'
@@ -422,7 +422,7 @@ function GlossaryPage() {
                   key={c}
                   type="button"
                   onClick={() => setCategoria(c)}
-                  className={`rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+                  className={`rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                     categoria === c
                       ? 'bg-accent text-white'
                       : 'border border-border bg-surface text-fg-muted hover:text-fg-strong'

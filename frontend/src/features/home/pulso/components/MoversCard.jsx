@@ -52,7 +52,7 @@ function MoverRow({ mover, actividad }) {
           alt={mover.nombre}
           loading="lazy"
           sizes="40px"
-          className="h-10 w-8 rounded object-cover object-top"
+          className="h-10 w-8 rounded-lg object-cover object-top"
         />
       </Link>
       <div className="min-w-0 flex-1">

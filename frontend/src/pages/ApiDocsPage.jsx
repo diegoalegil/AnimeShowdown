@@ -238,7 +238,7 @@ function ApiDocsPage() {
             AnimeShowdown expone una API REST pública para lectura del catálogo
             de personajes, ranking competitivo, torneos y perfiles. Sin auth para los
             endpoints de abajo. La raíz{' '}
-            <code className="rounded bg-surface px-1 py-0.5 font-mono text-[0.9em] text-fg-strong">
+            <code className="rounded-lg bg-surface px-1 py-0.5 font-mono text-[0.9em] text-fg-strong">
               https://api.animeshowdown.dev/
             </code>{' '}
             es la base técnica y puede responder 403; las entradas navegables son
@@ -344,7 +344,7 @@ function Endpoint({ ep }) {
     <div className="rounded-lg border border-border bg-bg p-3">
       <div className="flex flex-wrap items-center gap-2">
         <span
-          className={`inline-flex rounded-md px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
+          className={`inline-flex rounded-lg px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
             ep.metodo === 'GET'
               ? 'bg-success/15 text-success'
               : 'bg-accent/15 text-gold'
@@ -361,7 +361,7 @@ function Endpoint({ ep }) {
         <pre
           tabIndex={0}
           aria-label={`Ejemplo de respuesta para ${ep.path}`}
-          className="mt-2 overflow-x-auto rounded-md bg-surface-alt p-2 font-mono text-[11px] text-fg-muted"
+          className="mt-2 overflow-x-auto rounded-lg bg-surface-alt p-2 font-mono text-[11px] text-fg-muted"
         >
           {ep.ejemplo}
         </pre>

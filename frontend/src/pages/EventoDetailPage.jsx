@@ -337,14 +337,14 @@ function ParticipanteCard({ rank, personaje, tono }) {
         to={`/personajes/${personaje.slug}`}
         className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"
       >
-        <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-bg">
+        <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-bg">
           <PersonajeImg
             slug={personaje.slug}
             alt={personaje.nombre}
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
           <span
-            className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded px-1 font-mono text-[10px] font-extrabold ${tonoRank}`}
+            className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-lg px-1 font-mono text-[10px] font-extrabold ${tonoRank}`}
           >
             {rank === 1 ? <Crown className="h-3 w-3" /> : `#${rank}`}
           </span>

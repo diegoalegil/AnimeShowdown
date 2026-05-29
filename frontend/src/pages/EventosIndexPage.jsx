@@ -114,7 +114,7 @@ function Seccion({ icon: Icon, tono, dotColor, titulo, count, eventos, now, etiq
   return (
     <div className={`flex flex-col gap-4 ${className}`}>
       <div className="flex items-center gap-2 border-b border-border pb-3">
-        <span className={`flex h-6 w-6 items-center justify-center rounded-md bg-surface ${tono}`}>
+        <span className={`flex h-6 w-6 items-center justify-center rounded-lg bg-surface ${tono}`}>
           <Icon className="h-3.5 w-3.5" />
         </span>
         <h2 className={`text-[13px] font-semibold uppercase tracking-[0.1em] ${tono}`}>

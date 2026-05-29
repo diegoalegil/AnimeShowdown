@@ -35,7 +35,7 @@ const PasswordInput = forwardRef(function PasswordInput(
         // no podian activarlo. La conveniencia de "no romper Tab" no
         // justifica bloquear el toggle. Ahora focusable; el orden es
         // input → toggle → siguiente field, que es razonable.
-        className="absolute right-1.5 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded text-fg-muted transition-colors hover:text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+        className="absolute right-1.5 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg-muted transition-colors hover:text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
       >
         <Icon className="h-4 w-4" aria-hidden="true" />
       </button>

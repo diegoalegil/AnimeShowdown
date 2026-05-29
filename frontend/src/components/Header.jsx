@@ -30,7 +30,7 @@ const moreNavLinks = [
   { to: '/duel-live', i18nKey: 'pvp' },
 ]
 
-const navLinkBase = 'relative rounded-md px-3 py-2 text-sm transition-colors'
+const navLinkBase = 'relative rounded-lg px-3 py-2 text-sm transition-colors'
 const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
 const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 
@@ -232,11 +232,11 @@ function Header() {
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent(OPEN_COMMAND_PALETTE_EVENT))}
           aria-label="Abrir buscador rápido (⌘K)"
-          className="inline-flex h-10 items-center gap-1.5 rounded-md border border-border/60 bg-surface px-2.5 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+          className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border/60 bg-surface px-2.5 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="hidden text-[11px] 2xl:inline">Buscar</span>
-          <kbd className="hidden rounded border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted 2xl:inline-block">
+          <kbd className="hidden rounded-lg border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted 2xl:inline-block">
             ⌘K
           </kbd>
         </button>
@@ -248,7 +248,7 @@ function Header() {
             if (muted) play('playClick')
           }}
           aria-label={muted ? t('header.activarSonidos') : t('header.silenciar')}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
         >
           {muted ? (
             <VolumeX className="h-4 w-4" />
@@ -296,7 +296,7 @@ function Header() {
             to="/votar"
             onPointerDown={ctaVotarMobile.onPointerDown}
             onClick={ctaVotarMobile.onClick}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-accent/50 bg-gradient-to-b from-accent-hover to-accent px-3 text-[13px] font-black text-white shadow-aura"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-accent/50 bg-gradient-to-b from-accent-hover to-accent px-3 text-[13px] font-black text-white shadow-aura"
           >
             <Swords className="h-3.5 w-3.5" />
             {t('header.ctaVotarCompact')}
@@ -317,7 +317,7 @@ function Header() {
           aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav-panel"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-fg-strong transition-colors hover:bg-surface-alt"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-strong transition-colors hover:bg-surface-alt"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -347,7 +347,7 @@ function Header() {
                   to={to}
                   onClick={() => { play('playClick'); closeMobile() }}
                   className={({ isActive }) =>
-                    `flex min-h-11 items-center rounded-md px-3 text-sm font-medium ${
+                    `flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
                       isActive
                         ? 'bg-surface-alt text-fg-strong'
                         : 'text-fg hover:bg-surface-alt'
@@ -361,7 +361,7 @@ function Header() {
                 to="/votar"
                 onClick={() => { play('playClick'); closeMobile() }}
                 className={({ isActive }) =>
-                  `flex min-h-11 items-center rounded-md px-3 text-sm font-medium ${
+                  `flex min-h-11 items-center rounded-lg px-3 text-sm font-medium ${
                     isActive
                       ? 'bg-surface-alt text-fg-strong'
                       : 'text-fg hover:bg-surface-alt'
@@ -374,7 +374,7 @@ function Header() {
                 <NavLink
                   to="/login"
                   onClick={() => { play('playClick'); closeMobile() }}
-                  className="mt-1 inline-flex min-h-11 items-center justify-center rounded-md border border-border px-3 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
+                  className="mt-1 inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
                 >
                   {t('nav.login')}
                 </NavLink>
@@ -386,7 +386,7 @@ function Header() {
                 type="button"
                 onClick={() => { toggleMute(); if (muted) play('playClick') }}
                 aria-label={muted ? t('header.activarSonidos') : t('header.silenciar')}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-md text-fg-muted hover:bg-surface-alt hover:text-fg-strong"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-alt hover:text-fg-strong"
               >
                 {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </button>
@@ -394,7 +394,7 @@ function Header() {
                 <button
                   type="button"
                   onClick={() => { logout(); closeMobile() }}
-                  className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-md border border-border bg-surface px-3 text-[12px] font-semibold text-fg-strong"
+                  className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-lg border border-border bg-surface px-3 text-[12px] font-semibold text-fg-strong"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   {t('nav.salir')}
@@ -470,7 +470,7 @@ function MoreMenu({ moreLinks, t, play }) {
               to={to}
               onClick={() => { play('playClick'); setOpen(false) }}
               className={({ isActive: linkActive }) =>
-                `flex min-h-10 items-center rounded-md px-3 text-sm font-medium ${
+                `flex min-h-10 items-center rounded-lg px-3 text-sm font-medium ${
                   linkActive
                     ? 'bg-surface-alt text-fg-strong'
                     : 'text-fg hover:bg-surface-alt hover:text-fg-strong'
@@ -489,7 +489,7 @@ function MoreMenu({ moreLinks, t, play }) {
 function UserBadge({ user, onLogout, t }) {
   const isAdmin = user.rol === 'ADMIN'
   return (
-    <div className="ml-2 flex items-center gap-2 rounded-md bg-surface-alt px-2 py-1.5">
+    <div className="ml-2 flex items-center gap-2 rounded-lg bg-surface-alt px-2 py-1.5">
       <Link
         to="/perfil"
         aria-label={t('nav.perfil')}
@@ -504,7 +504,7 @@ function UserBadge({ user, onLogout, t }) {
         <Link
           to="/admin"
           aria-label={t('nav.admin')}
-          className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold transition-colors hover:bg-accent/25"
+          className="inline-flex items-center gap-1 rounded-lg bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold transition-colors hover:bg-accent/25"
         >
           <Shield className="h-3 w-3" />
           {t('nav.admin')}
@@ -514,7 +514,7 @@ function UserBadge({ user, onLogout, t }) {
         type="button"
         onClick={onLogout}
         aria-label={t('nav.salir')}
-        className="ml-1 inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+        className="ml-1 inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2 py-1 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
       >
         <LogOut className="h-3.5 w-3.5" />
         {t('nav.salir')}

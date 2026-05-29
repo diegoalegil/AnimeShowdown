@@ -167,7 +167,7 @@ function CardBadges({ rank, elo, nombre, anime }) {
     <>
       {rank && rank <= 10 && (
         <span
-          className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md border border-medal-gold/50 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-medal-gold backdrop-blur-sm"
+          className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-lg border border-medal-gold/50 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-medal-gold backdrop-blur-sm"
           title="Posición en el ranking del catálogo por ELO base estimado. El ranking competitivo real se mueve con votos en /ranking."
         >
           #{rank}
@@ -177,7 +177,7 @@ function CardBadges({ rank, elo, nombre, anime }) {
           getStatsPersonaje, no métricas reales calculadas con votos.
           Tooltip + sufijo "·b"/"·e" aclaran el dato sin saturar la card. */}
       <span
-        className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold backdrop-blur-sm"
+        className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-lg border border-accent/40 bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold backdrop-blur-sm"
         title="ELO base estimado por popularidad. El ranking competitivo real está en /ranking."
         aria-label={`${elo} ELO base estimado`}
       >

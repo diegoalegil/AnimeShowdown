@@ -985,22 +985,22 @@ function VotarPage() {
         <div className="flex flex-col items-center gap-2">
           <p className="hidden text-[11px] uppercase tracking-[0.15em] text-fg-muted sm:block">
             Atajos:{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
               ←
             </kbd>{' '}
             izquierda ·{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
               →
             </kbd>{' '}
             derecha ·{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
               S
             </kbd>{' '}
             saltar
             {votedFor && (
               <>
                 {' '}·{' '}
-                <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
+                <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
                   Espacio
                 </kbd>{' '}
                 siguiente

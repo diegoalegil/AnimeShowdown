@@ -83,7 +83,7 @@ function NotifBell() {
         aria-label="Notificaciones"
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="relative inline-flex h-11 w-11 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+        className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (

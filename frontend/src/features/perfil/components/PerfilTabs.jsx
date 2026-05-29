@@ -54,7 +54,7 @@ function PerfilTabs({ activeTab, onChange }) {
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(t.id)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
-            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
               isActive
                 ? 'bg-accent text-white'
                 : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'

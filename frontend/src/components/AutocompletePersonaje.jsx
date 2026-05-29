@@ -187,7 +187,7 @@ function AutocompletePersonaje({
                     alt={p.nombre}
                     loading="lazy"
                     sizes="36px"
-                    className="h-9 w-7 shrink-0 rounded object-cover object-top"
+                    className="h-9 w-7 shrink-0 rounded-lg object-cover object-top"
                   />
                   <span className="min-w-0 flex-1 truncate font-semibold text-fg-strong">
                     {p.nombre}

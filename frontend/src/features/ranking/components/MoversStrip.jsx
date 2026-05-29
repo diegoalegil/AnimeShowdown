@@ -56,7 +56,7 @@ function MoverChip({ mover }) {
           alt={mover.nombre}
           loading="lazy"
           sizes="48px"
-          className="h-12 w-9 shrink-0 rounded object-cover object-top"
+          className="h-12 w-9 shrink-0 rounded-lg object-cover object-top"
         />
         <div className="min-w-0 flex-1">
           <p className="line-clamp-1 text-[13px] font-bold text-fg-strong group-hover:text-gold">
@@ -65,7 +65,7 @@ function MoverChip({ mover }) {
           <p className="line-clamp-1 text-[11px] text-fg-muted">{mover.anime}</p>
         </div>
         <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 font-mono text-[11px] font-extrabold ${colorClase}`}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 font-mono text-[11px] font-extrabold ${colorClase}`}
           title={`${verbo} ${Math.abs(mover.delta)} posiciones vs hace 7 días`}
         >
           <Icon className="h-3 w-3" />
