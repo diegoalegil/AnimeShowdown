@@ -191,6 +191,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/status").permitAll()
                         .requestMatchers("/api/duelo-live/**").authenticated()
                         .requestMatchers("/api/auth/me", "/api/auth/me/**").authenticated()
+                        // §SEC-003: estas rutas modifican el 2FA o las sesiones del
+                        // usuario AUTENTICADO. Antes solo las protegía el check
+                        // usuario==null del controller (en la cadena eran permitAll por
+                        // el patrón /api/auth/**). Las exigimos authenticated explícitamente
+                        // como defensa en profundidad. OJO: /2fa/verify-login NO entra aquí
+                        // — es el paso 2 del login y el usuario aún no está autenticado.
+                        .requestMatchers("/api/auth/2fa/setup", "/api/auth/2fa/enable",
+                                "/api/auth/2fa/disable", "/api/auth/2fa/backup-codes/regenerar",
+                                "/api/auth/revoke-all").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
                 // rateLimitFilter va ANTES del jwtAuthFilter para que las
