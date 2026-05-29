@@ -150,7 +150,7 @@ export function ogParaRuta(url, apiBase) {
       description: `${nombre}: ranking de personajes anime votado por la comunidad de AnimeShowdown.`,
     }
   }
-  if (pathname === '/ranking') {
+  if (pathname === '/ranking' || pathname === '/ranking/') {
     return {
       image: `${apiBase}/api/og/ranking.png`,
       title: 'Ranking competitivo · AnimeShowdown',
