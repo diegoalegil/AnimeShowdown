@@ -43,6 +43,12 @@ function PersonajeImg({
   style,
   onLoad,
   onError,
+  // Dimensiones intrínsecas (ratio 2:3 de carta) para que el navegador reserve
+  // el espacio y no haya CLS aunque el contenedor no fije aspecto. El CSS
+  // (h-full w-full) sigue mandando en el tamaño real; solo importa la proporción.
+  // Overridable por el caller para usos no-2:3.
+  width = 400,
+  height = 600,
   ...imgProps
 }) {
   const [status, setStatus] = useState({ src: null, loaded: false, errored: false })
@@ -169,6 +175,8 @@ function PersonajeImg({
           ref={handleImageRef}
           src={imgSrc}
           alt={altText}
+          width={width}
+          height={height}
           className={`h-full w-full ${fitClass} ${positionClass} transition-opacity duration-300 motion-reduce:transition-none ${
             loaded ? 'opacity-100' : 'opacity-0'
           }`}

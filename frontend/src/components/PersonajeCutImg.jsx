@@ -12,6 +12,10 @@ function PersonajeCutImg({
   decoding,
   onLoad,
   onError,
+  // Dimensiones del recorte (los archivos son 225x350) para reservar espacio
+  // y evitar CLS; el contenedor del caller manda en el tamaño real.
+  width = 225,
+  height = 350,
   ...imgProps
 }) {
   const [failedSrc, setFailedSrc] = useState(null)
@@ -69,6 +73,8 @@ function PersonajeCutImg({
       <img
         src={cutSrc}
         alt={alt}
+        width={width}
+        height={height}
         loading={loading ?? 'lazy'}
         decoding={decoding ?? 'async'}
         className={`relative z-10 h-full w-full object-contain object-bottom drop-shadow-figure ${imgClassName}`.trim()}
