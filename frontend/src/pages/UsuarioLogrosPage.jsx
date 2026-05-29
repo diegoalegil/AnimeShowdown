@@ -222,7 +222,7 @@ function UsuarioLogrosPage() {
           </div>
         )}
 
-        <div className="mt-10 rounded-xl border border-border bg-surface p-5">
+        <div className="mt-10 rounded-2xl border border-border bg-surface p-5">
           <p className="text-[13px] text-fg-muted">
             ¿Quieres ver el catálogo completo de los logros que puedes
             desbloquear?{' '}

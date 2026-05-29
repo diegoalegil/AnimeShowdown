@@ -25,7 +25,7 @@ function TorneoActivoCard({ torneo }) {
   return (
     <Link
       to={`/torneos/${torneo.slug}`}
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-electric/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-electric/60 sm:p-5"
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-electric/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-electric/60 sm:p-5"
     >
       <EditorialCover
         visual={visual}

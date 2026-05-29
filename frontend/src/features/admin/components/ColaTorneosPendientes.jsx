@@ -94,7 +94,7 @@ function RevisionCard({ torneo }) {
   const pending = aprobar.isPending || rechazar.isPending
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <div className="rounded-2xl border border-border bg-surface p-5">
       <div className="mb-3 flex flex-wrap items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/15 text-warning">
           <Trophy className="h-5 w-5" />

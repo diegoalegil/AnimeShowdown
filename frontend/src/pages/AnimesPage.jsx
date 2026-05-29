@@ -229,7 +229,7 @@ function AnimeTile({ animeData }) {
     <Link
       to={`/animes/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="as-panel group relative block overflow-hidden rounded-xl p-0 transition-all duration-300 motion-safe:hover:-translate-y-1.5 hover:border-gold/45"
+      className="as-panel group relative block overflow-hidden rounded-2xl p-0 transition-all duration-300 motion-safe:hover:-translate-y-1.5 hover:border-gold/45"
       style={{
         '--anime-accent': accentRgb,
       }}

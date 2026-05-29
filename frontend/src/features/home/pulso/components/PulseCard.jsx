@@ -29,7 +29,7 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
 
   return (
     <div
-      className={`as-card-lift group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-surface/88 p-4 backdrop-blur-md sm:p-5 ${tone.border}`}
+      className={`as-card-lift group relative flex flex-col gap-3 overflow-hidden rounded-2xl border bg-surface/88 p-4 backdrop-blur-md sm:p-5 ${tone.border}`}
       style={{
         boxShadow: `inset 0 1px 0 rgb(255 255 255 / 0.055), 0 24px 80px -54px ${tone.glow}`,
       }}

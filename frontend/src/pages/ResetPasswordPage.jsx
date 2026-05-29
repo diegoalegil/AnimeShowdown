@@ -81,7 +81,7 @@ function ResetPasswordPage() {
         </div>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
+          className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6"
         >
           <div className="flex flex-col gap-1.5">
             <label

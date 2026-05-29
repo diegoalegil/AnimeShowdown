@@ -183,7 +183,7 @@ function FormPersonaje() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-gold">
           <Users className="h-5 w-5" />
@@ -279,7 +279,7 @@ function FormTorneo() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-gold">
           <Trophy className="h-5 w-5" />

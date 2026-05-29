@@ -2,7 +2,7 @@ import AutocompletePersonaje from '../../components/AutocompletePersonaje'
 
 function Top5SearchPanel({ onSelect, filtroExtra }) {
   return (
-    <div className="mb-6 rounded-xl border border-border bg-surface p-4 sm:p-5">
+    <div className="mb-6 rounded-2xl border border-border bg-surface p-4 sm:p-5">
       <p className="mb-3 text-[13px] font-semibold text-fg-strong">
         O busca cualquier personaje del catálogo
       </p>

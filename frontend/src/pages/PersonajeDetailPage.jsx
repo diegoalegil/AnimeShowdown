@@ -609,7 +609,7 @@ function PersonajeDetailPage() {
           <EloHistoryChart slug={slug} />
         </div>
 
-        <div className="mt-8 rounded-xl border border-border bg-surface p-5">
+        <div className="mt-8 rounded-2xl border border-border bg-surface p-5">
           <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
             Comparte la ficha de {personaje.nombre}
           </p>

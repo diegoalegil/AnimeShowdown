@@ -167,7 +167,7 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
       <AuthLegalNote action="entrar" />
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mt-4 flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
+        className="mt-4 flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6"
       >
         <div className="flex flex-col gap-1.5">
           <label
@@ -312,7 +312,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
       </div>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
+        className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6"
       >
         <div className="flex flex-col gap-1.5">
           <label

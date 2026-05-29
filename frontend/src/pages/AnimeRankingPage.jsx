@@ -314,7 +314,7 @@ function AnimeRankingPage() {
           </h2>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {faqs.map((item) => (
-              <article key={item.pregunta} className="rounded-xl border border-border bg-bg/45 p-4">
+              <article key={item.pregunta} className="rounded-2xl border border-border bg-bg/45 p-4">
                 <h3 className="text-base font-bold text-fg-strong">{item.pregunta}</h3>
                 <p className="mt-2 text-[13px] leading-6 text-fg-muted">{item.respuesta}</p>
               </article>
@@ -362,7 +362,7 @@ function RankingModeNotice({ mode, anime, hasError }) {
     )
   }
   return (
-    <div className="mt-6 rounded-xl border border-border bg-surface p-4 text-sm leading-6 text-fg-muted">
+    <div className="mt-6 rounded-2xl border border-border bg-surface p-4 text-sm leading-6 text-fg-muted">
       Esta página prioriza el ranking comunitario cuando ya hay votos para{' '}
       {anime}. Si no hay actividad suficiente, usa <strong className="text-gold">{mode}</strong>{' '}
       como lectura inicial y lo declara de forma visible.
@@ -463,7 +463,7 @@ function AnimeRankingRow({ rank, personaje }) {
 
 function StatTile({ icon: Icon, label, value, compact = false }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 rounded-xl border border-border bg-surface p-4">
+    <div className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-surface p-4">
       <div className="flex items-center gap-2">
         <Icon className="h-3.5 w-3.5 text-gold" />
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">

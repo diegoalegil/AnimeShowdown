@@ -305,7 +305,7 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
   }
 
   return (
-    <div className="as-panel relative mb-6 overflow-hidden rounded-xl border-rarity-epic/30 p-6">
+    <div className="as-panel relative mb-6 overflow-hidden rounded-2xl border-rarity-epic/30 p-6">
       {/* Kanji 裏 (ura, "reverso/oculto") como textura. */}
       <span
         aria-hidden="true"

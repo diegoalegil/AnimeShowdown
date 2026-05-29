@@ -242,7 +242,7 @@ function juegosItemListSchema() {
 
 function InfoTile({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-bg/55 p-4 backdrop-blur">
+    <div className="rounded-2xl border border-white/10 bg-bg/55 p-4 backdrop-blur">
       <Icon className="h-4 w-4 text-gold" />
       <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-fg-muted">
         {label}
@@ -257,7 +257,7 @@ function GameCard({ juego }) {
   return (
     <Link
       to={juego.to}
-      className="group rounded-xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent/45 hover:bg-surface-alt"
+      className="group rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent/45 hover:bg-surface-alt"
     >
       <div className="flex items-start justify-between gap-3">
         <Icon className="h-5 w-5 text-gold" />
@@ -283,7 +283,7 @@ function StepBlock({ step, index }) {
   return (
     <Link
       to={step.to}
-      className="group rounded-xl border border-border bg-surface/85 p-5 transition-colors hover:border-accent/45 hover:bg-surface-alt"
+      className="group rounded-2xl border border-border bg-surface/85 p-5 transition-colors hover:border-accent/45 hover:bg-surface-alt"
     >
       <div className="flex items-center gap-3">
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft font-mono text-sm font-black text-gold">

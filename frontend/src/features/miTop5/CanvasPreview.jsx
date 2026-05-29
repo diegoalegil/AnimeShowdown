@@ -172,7 +172,7 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
         Generar imagen
       </h2>

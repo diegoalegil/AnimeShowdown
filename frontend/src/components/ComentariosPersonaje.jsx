@@ -103,7 +103,7 @@ function ComentariosPersonaje({ slug, nombre }) {
   }
 
   return (
-    <section className="mt-10 rounded-xl border border-border bg-surface p-5">
+    <section className="mt-10 rounded-2xl border border-border bg-surface p-5">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">

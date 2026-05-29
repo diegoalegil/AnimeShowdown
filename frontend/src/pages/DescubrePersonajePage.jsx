@@ -168,7 +168,7 @@ function DescubrePersonajePage() {
             </article>
 
             <div className="flex flex-col gap-4">
-              <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
+              <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
                 <div className="mb-5 grid gap-3 sm:grid-cols-3">
                   <StatTile icon={CalendarDays} label="Ritual" value="del día" />
                   <StatTile icon={UserRound} label="Ficha" value="disponible" />
@@ -230,7 +230,7 @@ function DescubrePersonajePage() {
             </div>
           </section>
         ) : (
-          <section className="rounded-xl border border-border bg-surface p-6 text-sm text-fg-muted">
+          <section className="rounded-2xl border border-border bg-surface p-6 text-sm text-fg-muted">
             No hay personajes disponibles para descubrir ahora mismo.
           </section>
         )}
@@ -271,7 +271,7 @@ function ActionLink({ to, icon: Icon, title, text }) {
   return (
     <Link
       to={to}
-      className="group rounded-xl border border-border bg-surface p-5 transition-colors hover:border-accent/45 hover:bg-surface-alt"
+      className="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-accent/45 hover:bg-surface-alt"
     >
       <div className="flex items-start justify-between gap-3">
         <Icon className="h-5 w-5 text-gold" />

@@ -499,7 +499,7 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="as-panel flex flex-col items-center gap-4 rounded-xl border-danger/30 bg-danger/5 p-8 text-center"
+      className="as-panel flex flex-col items-center gap-4 rounded-2xl border-danger/30 bg-danger/5 p-8 text-center"
     >
       <span className="inline-flex rounded-full border border-danger/40 bg-danger/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-danger">
         Game Over

@@ -280,7 +280,7 @@ function ApiDocsPage() {
           ))}
         </div>
 
-        <div className="mt-12 rounded-xl border border-border bg-surface p-6">
+        <div className="mt-12 rounded-2xl border border-border bg-surface p-6">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
             Política de uso
           </h2>
@@ -327,7 +327,7 @@ function ApiDocsPage() {
 
 function Seccion({ seccion }) {
   return (
-    <section className="rounded-xl border border-border bg-surface p-6">
+    <section className="rounded-2xl border border-border bg-surface p-6">
       <h2 className="mb-1 text-lg font-bold text-fg-strong">{seccion.titulo}</h2>
       <p className="mb-4 text-[12px] text-fg-muted">{seccion.descripcion}</p>
       <div className="flex flex-col gap-3">

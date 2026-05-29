@@ -32,7 +32,7 @@ async function fileToBase64(file, maxSize = 256, quality = 0.82) {
 function CardAvatar({ user, updateUser }) {
   const [tab, setTab] = useState('archivo')
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4">
         <h2 className="text-lg font-bold text-fg-strong">
           Personaliza tu avatar

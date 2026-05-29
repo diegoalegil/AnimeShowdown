@@ -424,7 +424,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
 
 function ListaIntentos({ intentos, objetivo }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
+    <div className="rounded-2xl border border-border bg-surface p-4">
       <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
         Tus intentos
       </p>

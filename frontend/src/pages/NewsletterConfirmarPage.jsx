@@ -80,7 +80,7 @@ function NewsletterConfirmarPage() {
         className="w-full"
       >
         {estado.tipo === 'loading' && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface p-8 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin text-fg-muted" />
             <p className="text-[13px] text-fg-muted">
               Confirmando tu suscripción…

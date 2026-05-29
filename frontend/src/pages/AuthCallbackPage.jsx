@@ -48,7 +48,7 @@ function AuthCallbackPage() {
 
   return (
     <section className="flex flex-1 items-center justify-center px-5 py-20">
-      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 text-center">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-accent/30 bg-accent-soft text-gold">
           {failed ? (
             <TriangleAlert className="h-5 w-5" />

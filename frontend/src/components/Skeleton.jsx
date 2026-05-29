@@ -1,5 +1,5 @@
 const VARIANTS = {
-  card: 'min-h-52 rounded-xl border border-border bg-surface p-4',
+  card: 'min-h-52 rounded-2xl border border-border bg-surface p-4',
   line: 'h-4 rounded-full bg-surface-alt',
   circle: 'aspect-square rounded-full bg-surface-alt',
   banner: 'min-h-48 rounded-2xl border border-border bg-surface',

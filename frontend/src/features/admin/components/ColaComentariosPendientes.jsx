@@ -87,7 +87,7 @@ function ColaComentariosPendientes() {
 
 function ComentarioRevisionCard({ comentario, pending, onEstado }) {
   return (
-    <article className="rounded-xl border border-border bg-surface p-5">
+    <article className="rounded-2xl border border-border bg-surface p-5">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-bold text-fg-strong">

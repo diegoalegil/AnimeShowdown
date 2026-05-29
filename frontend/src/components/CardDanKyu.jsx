@@ -27,7 +27,7 @@ function CardDanKyu({ data: dataProp = null }) {
   const { actual, siguiente, progreso } = rangoDe(puntos)
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Award className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Rango</h2>

@@ -281,7 +281,7 @@ function OmikujiPage() {
           />
         )}
 
-        <div className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
             Las 5 suertes y su kanji
           </h2>

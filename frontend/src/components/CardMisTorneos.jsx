@@ -17,7 +17,7 @@ function CardMisTorneos() {
   const { data: torneos, isLoading } = useMisTorneos()
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Trophy className="h-4 w-4 text-warning" />
         <h2 className="text-lg font-bold text-fg-strong">Mis torneos</h2>

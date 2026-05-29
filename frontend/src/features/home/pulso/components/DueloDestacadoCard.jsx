@@ -27,7 +27,7 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
   return (
     <Link
       to={destino}
-      className="group relative flex min-h-[220px] flex-col gap-4 overflow-hidden rounded-xl border border-gold/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-gold/60 sm:p-5"
+      className="group relative flex min-h-[220px] flex-col gap-4 overflow-hidden rounded-2xl border border-gold/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-gold/60 sm:p-5"
     >
       <span
         aria-hidden="true"

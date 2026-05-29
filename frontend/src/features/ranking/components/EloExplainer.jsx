@@ -54,7 +54,7 @@ function EloExplainer() {
         {pasos.map(({ icon: Icon, titulo, texto }) => (
           <div
             key={titulo}
-            className="rounded-xl border border-border bg-bg/45 p-4"
+            className="rounded-2xl border border-border bg-bg/45 p-4"
           >
             <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-accent/35 bg-accent-soft text-gold">
               <Icon className="h-4 w-4" />

@@ -80,7 +80,7 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
         {highlighted && ` · ${tone.label}`}
       </span>
       <div
-        className={`relative aspect-[2/3] w-full overflow-hidden rounded-xl border ${tone.border} bg-surface ${
+        className={`relative aspect-[2/3] w-full overflow-hidden rounded-2xl border ${tone.border} bg-surface ${
           highlighted
             ? 'max-w-[8.5rem] sm:mx-auto sm:max-w-none'
             : 'mx-auto max-w-[8rem] opacity-95 sm:max-w-none'

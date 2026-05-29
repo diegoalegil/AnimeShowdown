@@ -243,7 +243,7 @@ function EditorialRankingPage() {
               catálogo, etiquetas curadas y ELO base. Para evitar contenido
               fino, cada landing existe solo si responde a una intención clara.
             </p>
-            <div className="rounded-xl border border-border bg-bg/45 p-4 text-[13px] leading-6 text-fg-muted">
+            <div className="rounded-2xl border border-border bg-bg/45 p-4 text-[13px] leading-6 text-fg-muted">
               No es canon oficial. Es una vista de producto para descubrir,
               votar, comparar y compartir rankings dentro de AnimeShowdown.
             </div>
@@ -307,7 +307,7 @@ function EditorialRankingPage() {
               <Link
                 key={item.slug}
                 to={`/rankings/${item.slug}`}
-                className="rounded-xl border border-border bg-bg/45 p-4 transition-colors hover:border-gold/45 hover:text-gold"
+                className="rounded-2xl border border-border bg-bg/45 p-4 transition-colors hover:border-gold/45 hover:text-gold"
               >
                 <p className="line-clamp-2 text-sm font-black text-fg-strong">
                   {item.title}
@@ -423,7 +423,7 @@ function EditorialRankingRow({ rank, personaje }) {
 
 function StatTile({ label, value }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 rounded-xl border border-border bg-surface p-4">
+    <div className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-surface p-4">
       <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
         {label}
       </span>

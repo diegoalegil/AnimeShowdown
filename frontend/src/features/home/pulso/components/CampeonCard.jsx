@@ -38,7 +38,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   // (article), y un Link absoluto invisible cubre toda la card. El CTA
   // interno a /ranking queda por encima con z-10, sigue siendo independiente.
   return (
-    <article className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-gold/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-gold/60 sm:p-5">
+    <article className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-gold/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-gold/60 sm:p-5">
       {/* Stretched link invisible que hace TODA la card clickeable.
           z-0 + el resto de elementos en z relativo (no absolute) =
           la card es accesible con teclado y screen-reader como un solo

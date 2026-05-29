@@ -5,7 +5,7 @@ function Top5QuickSuggestions({ slotsVacios, sugerencias, onAdd }) {
   if (slotsVacios <= 0 || sugerencias.length === 0) return null
 
   return (
-    <div className="mb-5 rounded-xl border border-border bg-surface/60 p-4 sm:p-5">
+    <div className="mb-5 rounded-2xl border border-border bg-surface/60 p-4 sm:p-5">
       <div className="mb-3 flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-gold" />
         <p className="text-[13px] font-semibold text-fg-strong">

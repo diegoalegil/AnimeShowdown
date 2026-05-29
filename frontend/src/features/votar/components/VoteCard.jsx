@@ -53,7 +53,7 @@ const VoteCard = memo(function VoteCard({
             ? `Votar como invitado por ${personaje.nombre} de ${personaje.anime}`
             : `Votar por ${personaje.nombre} de ${personaje.anime}`
         }
-        className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-surface transition-[transform,border-color,box-shadow,opacity,filter] ${
+        className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 bg-surface transition-[transform,border-color,box-shadow,opacity,filter] ${
           isVoted
             ? 'border-accent shadow-aura-lg ring-2 ring-accent/40'
             : isLoser

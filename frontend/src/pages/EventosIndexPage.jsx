@@ -170,7 +170,7 @@ function EventoCard({ evento, now, etiqueta }) {
   return (
     <Link
       to={`/eventos/${evento.slug}`}
-      className={`as-panel group flex flex-col overflow-hidden rounded-xl border p-0 transition-all duration-300 hover:-translate-y-1.5 ${tono} ${sombra}`}
+      className={`as-panel group flex flex-col overflow-hidden rounded-2xl border p-0 transition-all duration-300 hover:-translate-y-1.5 ${tono} ${sombra}`}
     >
       <EditorialCover
         visual={visual}

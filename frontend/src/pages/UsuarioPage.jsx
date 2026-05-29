@@ -173,7 +173,7 @@ function UsuarioPage() {
 function HeaderCard({ perfil, onToggle, pending, userLogueado }) {
   const { esMismoUsuario, siguiendo } = perfil
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="flex items-start gap-5">
         <Avatar user={perfil} size={80} />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
