@@ -42,6 +42,21 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
     List<Enfrentamiento> findByTorneoIdInOrdered(@Param("torneoIds") List<Long> torneoIds);
 
     /**
+     * §DB-001: variante con JOIN FETCH de personaje1/2/ganador para el detalle de
+     * UN torneo. findByTorneoOrderByRondaAscIdAsc no hace fetch y disparaba N+1
+     * (una query por personaje distinto del bracket) en TorneoQueryService.toDetalle.
+     */
+    @Query("""
+            SELECT e FROM Enfrentamiento e
+            LEFT JOIN FETCH e.personaje1
+            LEFT JOIN FETCH e.personaje2
+            LEFT JOIN FETCH e.ganador
+            WHERE e.torneo = :torneo
+            ORDER BY e.ronda ASC, e.id ASC
+            """)
+    List<Enfrentamiento> findByTorneoOrderedFetch(@Param("torneo") Torneo torneo);
+
+    /**
      * Devuelve un enfrentamiento aleatorio "abierto" (ambos personajes
      * presentes y sin ganador) de cualquier torneo en estado IN_PROGRESS.
      * Usado por VotarPage modo backend: el usuario vota un match real
