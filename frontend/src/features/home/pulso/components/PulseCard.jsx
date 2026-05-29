@@ -5,23 +5,23 @@ function PulseCard({ tono = 'accent', children, ...rest }) {
       glow: 'rgb(159 29 44 / 0.24)',
     },
     emerald: {
-      border: 'border-emerald-500/34 hover:border-emerald-400/70',
+      border: 'border-success/34 hover:border-success/70',
       glow: 'rgb(16 185 129 / 0.22)',
     },
     amber: {
-      border: 'border-amber-500/34 hover:border-amber-400/70',
+      border: 'border-gold/34 hover:border-gold/70',
       glow: 'rgb(245 158 11 / 0.24)',
     },
     cyan: {
-      border: 'border-cyan-500/34 hover:border-cyan-400/70',
+      border: 'border-electric/34 hover:border-electric/70',
       glow: 'rgb(6 182 212 / 0.22)',
     },
     rose: {
-      border: 'border-rose-500/34 hover:border-rose-400/70',
+      border: 'border-danger/34 hover:border-danger/70',
       glow: 'rgb(244 63 94 / 0.23)',
     },
     violet: {
-      border: 'border-violet-500/34 hover:border-violet-400/70',
+      border: 'border-rarity-epic/34 hover:border-rarity-epic/70',
       glow: 'rgb(139 92 246 / 0.23)',
     },
   }

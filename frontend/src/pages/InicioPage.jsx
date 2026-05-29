@@ -309,13 +309,13 @@ function Stat({ target, label, animate = true }) {
 
 function StatBadge({ label, hint }) {
   return (
-    <div className="flex flex-col gap-2 border-l-2 border-emerald-400/50 pl-4">
+    <div className="flex flex-col gap-2 border-l-2 border-success/50 pl-4">
       <div className="flex items-center gap-2">
         <span className="relative inline-flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
         </span>
-        <p className="font-mono text-2xl font-extrabold tracking-tight text-emerald-200 sm:text-3xl">
+        <p className="font-mono text-2xl font-extrabold tracking-tight text-success sm:text-3xl">
           {label}
         </p>
       </div>
@@ -497,11 +497,11 @@ const RETOS_DIARIOS = [
 ]
 
 const RETO_COLORS = {
-  rose: 'border-rose-500/40 bg-rose-500/10 text-rose-200',
-  amber: 'border-amber-500/40 bg-amber-500/10 text-amber-200',
-  emerald: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200',
-  purple: 'border-purple-500/40 bg-purple-500/10 text-purple-200',
-  cyan: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-200',
+  rose: 'border-danger/40 bg-danger/10 text-danger',
+  amber: 'border-gold/40 bg-gold/10 text-gold',
+  emerald: 'border-success/40 bg-success/10 text-success',
+  purple: 'border-rarity-epic/40 bg-rarity-epic/10 text-rarity-epic',
+  cyan: 'border-electric/40 bg-electric/10 text-electric',
 }
 
 function SectionRetosDiarios() {

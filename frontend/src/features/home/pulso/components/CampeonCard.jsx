@@ -11,7 +11,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
         {/* Label de loading neutro: el ranking se ordena por voto ponderado,
             así que "Líder del ranking" no promete una métrica incorrecta
             antes de que lleguen los datos. */}
-        <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-amber-300" />
+        <CardEyebrow icon={Crown} label="Líder del ranking" tono="text-gold" />
         <p className="text-sm text-fg-muted">Cargando al líder…</p>
       </PulseCard>
     )
@@ -38,7 +38,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
   // (article), y un Link absoluto invisible cubre toda la card. El CTA
   // interno a /ranking queda por encima con z-10, sigue siendo independiente.
   return (
-    <article className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-amber-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-amber-500/60 sm:p-5">
+    <article className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-gold/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-gold/60 sm:p-5">
       {/* Stretched link invisible que hace TODA la card clickeable.
           z-0 + el resto de elementos en z relativo (no absolute) =
           la card es accesible con teclado y screen-reader como un solo
@@ -48,7 +48,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
         className="absolute inset-0 z-0"
         aria-label={`Ver ficha de ${p.nombre}`}
       />
-      <CardEyebrow icon={Crown} label={eyebrow} tono="text-amber-300" />
+      <CardEyebrow icon={Crown} label={eyebrow} tono="text-gold" />
       <div className="flex items-start gap-4">
         <PersonajeImg
           slug={p.slug}
@@ -61,14 +61,14 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
           </h3>
           <p className="text-[13px] text-fg-muted">{p.anime}</p>
           {esFallback ? (
-            <p className="mt-2 font-mono text-2xl font-bold text-amber-300 tabular-nums">
+            <p className="mt-2 font-mono text-2xl font-bold text-gold tabular-nums">
               {Number(campeon.eloLocal ?? 0).toLocaleString('es-ES')}
               <span className="ml-1 text-[11px] font-medium uppercase text-fg-muted">
                 ELO base
               </span>
             </p>
           ) : (
-            <p className="mt-2 font-mono text-2xl font-bold text-amber-300 tabular-nums">
+            <p className="mt-2 font-mono text-2xl font-bold text-gold tabular-nums">
               {votos.toLocaleString('es-ES')}
               <span className="ml-1 text-[11px] font-medium uppercase text-fg-muted">
                 {votos === 1 ? 'voto' : 'votos'}
@@ -76,7 +76,7 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
             </p>
           )}
           {comunidadArrancando ? (
-            <p className="mt-1 text-[11px] leading-snug text-amber-200/70">
+            <p className="mt-1 text-[11px] leading-snug text-gold/70">
               Comunidad arrancando — tu voto puede cambiar el meta.
             </p>
           ) : (
@@ -94,12 +94,12 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
       <div className="relative z-10 mt-auto flex items-center justify-between gap-2 pt-1">
         <Link
           to="/ranking"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted hover:text-amber-300"
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted hover:text-gold"
         >
           Ver ranking competitivo
           <ArrowRight className="h-3 w-3" />
         </Link>
-        <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-amber-300 opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-gold opacity-0 transition-opacity group-hover:opacity-100">
           Ver ficha
           <ArrowRight className="h-3 w-3" />
         </span>

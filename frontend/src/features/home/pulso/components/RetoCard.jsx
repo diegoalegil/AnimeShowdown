@@ -12,19 +12,19 @@ function RetoCard() {
       to="/games/shadow-guess"
       // Altura estable para que la franja superior tenga aire y el sujeto
       // del cover quepa antes del degradado de oscurecimiento.
-      className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-xl border border-rose-500/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-rose-500/60 sm:p-5"
+      className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-xl border border-danger/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-danger/60 sm:p-5"
     >
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-95"
         imageClassName="saturate-110 contrast-105"
       />
-      <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-rose-300" />
+      <CardEyebrow icon={Calendar} label="Reto del día" tono="relative text-danger" />
       <div className="relative mt-auto flex items-start gap-3">
         <div
           aria-hidden="true"
           lang="ja"
-          className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-rose-500/35 bg-bg/65 font-mono text-3xl font-black text-rose-200 shadow-[0_0_34px_-16px_rgba(159,29,44,0.9)]"
+          className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-danger/35 bg-bg/65 font-mono text-3xl font-black text-danger shadow-[0_0_34px_-16px_rgba(159,29,44,0.9)]"
         >
           影
         </div>
@@ -37,7 +37,7 @@ function RetoCard() {
           </p>
         </div>
       </div>
-      <span className="relative inline-flex items-center gap-1 text-[12px] font-semibold text-rose-300 transition-transform group-hover:translate-x-0.5">
+      <span className="relative inline-flex items-center gap-1 text-[12px] font-semibold text-danger transition-transform group-hover:translate-x-0.5">
         Jugar daily
         <ArrowRight className="h-3 w-3" />
       </span>

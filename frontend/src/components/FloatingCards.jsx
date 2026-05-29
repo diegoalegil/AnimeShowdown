@@ -99,10 +99,10 @@ const tones = {
     labelBg: 'bg-electric/14 border-electric/30',
   },
   violet: {
-    border: 'border-violet-500/35',
+    border: 'border-rarity-epic/35',
     glow: 'rgb(139 92 246 / 0.35)',
-    labelText: 'text-violet-300',
-    labelBg: 'bg-violet-500/14 border-violet-500/30',
+    labelText: 'text-rarity-epic',
+    labelBg: 'bg-rarity-epic/14 border-rarity-epic/30',
   },
 }
 
