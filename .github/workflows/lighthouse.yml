@@ -1,0 +1,169 @@
+name: lighthouse
+
+# Gate de rendimiento/a11y/best-practices/SEO con Lighthouse CI (B5).
+# WARN-only: nunca tumba el push, solo deja el reporte + avisos como artefacto.
+# Corre sobre push a main (flujo solo-dev: cada cambio aterriza en main) y a
+# demanda. Para convertirlo en check de PR, añadir `pull_request` abajo.
+# La primera corrida establece el baseline real (artefacto .lighthouseci) →
+# ajustar entonces los umbrales de lighthouserc.json a baseline - margen.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+  workflow_dispatch:
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse CI (WARN-only)
+    runs-on: ubuntu-latest
+
+    # Mismo backend Postgres-real que e2e.yml: la app bloquea el primer paint en
+    # <RequireCatalog> hasta hidratar GET /api/personajes/catalogo, así que sin
+    # backend Lighthouse mediría una pantalla de carga, no las páginas reales.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: animeshowdown_lh
+          POSTGRES_USER: animeshowdown_user
+          POSTGRES_PASSWORD: animeshowdown_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/animeshowdown_lh
+      SPRING_DATASOURCE_USERNAME: animeshowdown_user
+      SPRING_DATASOURCE_PASSWORD: animeshowdown_pass
+      SPRING_PROFILES_ACTIVE: test
+      JWT_SECRET: clave_solo_para_lighthouse_ci_no_usar_en_produccion_minimo_64_chars_aleatorio
+      TOTP_ENCRYPTION_KEY: clave_solo_para_lighthouse_ci_no_usar_en_produccion
+      RATELIMIT_ENABLED: 'false'
+      EMAIL_VERIFICATION_REQUIRED: 'false'
+      STATUS_MONITOR_ENABLED: 'false'
+      REFRESH_COOKIE_SECURE: 'false'
+      PROMETHEUS_ENABLED: 'false'
+      GOOGLE_CLIENT_ID: ci-dummy-google-id
+      GOOGLE_CLIENT_SECRET: ci-dummy-google-secret
+      DISCORD_CLIENT_ID: ci-dummy-discord-id
+      DISCORD_CLIENT_SECRET: ci-dummy-discord-secret
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Set up Node 22 LTS
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Start backend (Postgres-backed)
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw -B --no-transfer-progress \
+            -Dspring-boot.run.arguments="--server.port=8080" \
+            spring-boot:run > ../backend-lh.log 2>&1 &
+          echo $! > ../backend-lh.pid
+
+      - name: Wait for backend
+        run: |
+          for i in {1..120}; do
+            if curl -fsS http://127.0.0.1:8080/actuator/health >/dev/null; then
+              echo "✓ Backend up after $((i * 2))s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "❌ Backend never came up — last 200 lines of backend-lh.log:"
+          tail -200 backend-lh.log
+          exit 1
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:8080
+          VITE_API_URL: http://127.0.0.1:8080
+          ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
+        run: npm run build:no-images
+
+      - name: Stage preview image fixtures
+        working-directory: frontend
+        run: |
+          mkdir -p dist/img/One_Piece dist/img/Naruto
+          cp img/One_Piece/luffy.webp dist/img/One_Piece/luffy.webp
+          cp img/One_Piece/zoro.webp dist/img/One_Piece/zoro.webp
+          cp img/Naruto/naruto.webp dist/img/Naruto/naruto.webp
+
+      - name: Start frontend preview
+        working-directory: frontend
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 > ../frontend-lh.log 2>&1 &
+          echo $! > ../frontend-lh.pid
+
+      - name: Wait for frontend
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:4173 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat frontend-lh.log
+          exit 1
+
+      - name: Run Lighthouse CI
+        working-directory: frontend
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+        # autorun = collect + assert + upload (según lighthouserc.json). Las
+        # assertions son WARN, así que el comando sale 0 aunque haya avisos.
+        run: npx --yes @lhci/cli@0.14.x autorun
+
+      - name: Upload Lighthouse reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-reports
+          path: frontend/.lighthouseci
+          retention-days: 14
+
+      - name: Upload service logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-service-logs
+          path: |
+            backend-lh.log
+            frontend-lh.log
+          retention-days: 7

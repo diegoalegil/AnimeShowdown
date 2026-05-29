@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 coverage
+.lighthouseci
 *.local
 
 # Salida del POC de regeneración de recortes (scripts/regen-cuts.mjs):
