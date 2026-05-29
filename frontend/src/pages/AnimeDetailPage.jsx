@@ -9,6 +9,7 @@ import JsonLd from '../components/JsonLd'
 import Skeleton from '../components/Skeleton'
 import { VisualPageShell } from '../components/VisualSystem'
 import { getAnimeVisual } from '../data/visual-assets'
+import { hexToRgbChannels } from '../lib/color'
 import NotFoundPage from './NotFoundPage'
 import { listenLocalVotes, readLocalVotes } from '../lib/localVoteRanking'
 import AnimeHero from '../features/animeDetail/AnimeHero'
@@ -97,7 +98,12 @@ function AnimeDetailPage() {
 
   return (
     <VisualPageShell
-      visual={visual}
+      visual={{
+        ...visual,
+        // V-1.1: tinte por universo — el fondo toma el color dominante del
+        // personaje más popular del anime; fallback al accent del visual.
+        accentRgb: hexToRgbChannels(porPopularidad?.[0]?.imagenColorDominante) ?? visual?.accentRgb,
+      }}
       lateralKanji={{ left: visual?.kanji ?? '界', right: '界' }}
     >
       <JsonLd
