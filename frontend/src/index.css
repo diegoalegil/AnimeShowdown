@@ -364,16 +364,6 @@
     --as-stage-kanji: "決";
   }
 
-  .as-stage-pulse {
-    --as-stage-image: url('/assets/brand/backgrounds/home-pulse.svg');
-    --as-stage-kanji: "今";
-  }
-
-  .as-stage-games {
-    --as-stage-image: url('/assets/brand/backgrounds/games-hub.svg');
-    --as-stage-kanji: "遊";
-  }
-
   .as-stage-shadow {
     /* WEBP cinematográfica (vs SVG outline) — el SVG es solo silueta
        minimalista; el WEBP es la portada real del juego. Mucha más
@@ -402,43 +392,11 @@
     --as-stage-kanji: "裏";
   }
 
-  .as-stage-ranking {
-    --as-stage-image: url('/assets/brand/backgrounds/ranking-hero.svg');
-    --as-stage-kanji: "冠";
-  }
-
-  .as-stage-animes {
-    --as-stage-image: url('/assets/brand/backgrounds/anime-catalog.svg');
-    --as-stage-kanji: "界";
-  }
-
-  .as-stage-torneos {
-    --as-stage-image: url('/assets/brand/backgrounds/tournament-catalog.svg');
-    --as-stage-kanji: "戦";
-  }
-
-  .as-stage-eventos {
-    --as-stage-image: url('/assets/brand/backgrounds/events-hero.svg');
-    --as-stage-kanji: "祭";
-  }
-
-  .as-stage-omikuji {
-    --as-stage-image: url('/assets/game-covers/omikuji.svg');
-    --as-stage-kanji: "吉";
-  }
-
   .as-stage-cyan {
     background:
       radial-gradient(circle at 70% 10%, rgb(36 198 220 / 0.14), transparent 30rem),
       radial-gradient(circle at 16% 24%, rgb(159 29 44 / 0.12), transparent 24rem),
       linear-gradient(180deg, rgb(8 10 18 / 0.99), rgb(4 8 14 / 1) 72%);
-  }
-
-  .as-stage-amber {
-    background:
-      radial-gradient(circle at 78% 12%, rgb(197 161 90 / 0.18), transparent 28rem),
-      radial-gradient(circle at 18% 28%, rgb(159 29 44 / 0.12), transparent 24rem),
-      linear-gradient(180deg, rgb(13 12 18 / 0.99), rgb(8 7 12 / 1) 72%);
   }
 
   .as-stage-purple {
