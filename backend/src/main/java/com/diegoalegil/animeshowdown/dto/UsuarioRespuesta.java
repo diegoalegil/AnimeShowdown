@@ -24,6 +24,12 @@ public class UsuarioRespuesta {
     private boolean totpHabilitado;
     private int eloPvp;
     private int pvpPartidos;
+    /**
+     * V-8: true mientras el usuario no haya pasado/saltado el onboarding
+     * (username + avatar). El frontend lo usa para disparar el OnboardingModal
+     * una sola vez tras el primer login OAuth.
+     */
+    private boolean needsOnboarding;
 
     public UsuarioRespuesta(Usuario usuario) {
         this.id = usuario.getId();
@@ -35,6 +41,7 @@ public class UsuarioRespuesta {
         this.totpHabilitado = usuario.isTotpHabilitado();
         this.eloPvp = usuario.getEloPvp();
         this.pvpPartidos = usuario.getPvpPartidos();
+        this.needsOnboarding = !usuario.isOnboardingCompletado();
     }
 
     public Long getId() { return id; }
@@ -46,4 +53,5 @@ public class UsuarioRespuesta {
     public boolean isTotpHabilitado() { return totpHabilitado; }
     public int getEloPvp() { return eloPvp; }
     public int getPvpPartidos() { return pvpPartidos; }
+    public boolean isNeedsOnboarding() { return needsOnboarding; }
 }
