@@ -70,8 +70,8 @@ function EventosIndexPage() {
         {activos.length > 0 && (
           <Seccion
             icon={Sparkles}
-            tono="text-emerald-300"
-            dotColor="bg-emerald-400"
+            tono="text-success"
+            dotColor="bg-success"
             titulo="En curso"
             count={activos.length}
             eventos={activos}
@@ -82,8 +82,8 @@ function EventosIndexPage() {
         {proximos.length > 0 && (
           <Seccion
             icon={Clock}
-            tono="text-cyan-300"
-            dotColor="bg-cyan-400"
+            tono="text-electric"
+            dotColor="bg-electric"
             titulo="Próximamente"
             count={proximos.length}
             eventos={proximos}
@@ -141,11 +141,11 @@ function EventoCard({ evento, now, etiqueta }) {
   const visual = getEventVisual(evento.slug, evento.titulo)
 
   const TONOS = {
-    rose: 'border-rose-500/30 hover:border-rose-500/60',
-    violet: 'border-violet-500/30 hover:border-violet-500/60',
-    amber: 'border-amber-500/30 hover:border-amber-500/60',
-    pink: 'border-pink-500/30 hover:border-pink-500/60',
-    cyan: 'border-cyan-500/30 hover:border-cyan-500/60',
+    rose: 'border-danger/30 hover:border-danger/60',
+    violet: 'border-rarity-epic/30 hover:border-rarity-epic/60',
+    amber: 'border-gold/30 hover:border-gold/60',
+    pink: 'border-arc-waifu/30 hover:border-arc-waifu/60',
+    cyan: 'border-electric/30 hover:border-electric/60',
   }
   const tono = TONOS[evento.color] ?? TONOS.amber
 

@@ -99,7 +99,7 @@ function TorneoCard({ torneo }) {
   // para que de un vistazo se distinga lo activo de lo ya cerrado.
   const enVivo = estado === 'IN_PROGRESS'
   const finalizado = estado === 'FINISHED'
-  const cardEstadoClass = enVivo ? 'border-emerald-500/45' : 'border-border'
+  const cardEstadoClass = enVivo ? 'border-success/45' : 'border-border'
   const coverImageClass = finalizado ? 'saturate-50 contrast-100' : 'saturate-105 contrast-100'
   const fechaLabel = getFechaLabel(estado, fechaInicio, fechaFinalizacion, fechaCreacion)
   const rondaLabel = totalRondas
@@ -131,8 +131,8 @@ function TorneoCard({ torneo }) {
           <span className={`inline-flex items-center gap-1.5 ${badge.color}`}>
             {enVivo && (
               <span className="relative inline-flex h-2 w-2" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping motion-reduce:hidden" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping motion-reduce:hidden" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
               </span>
             )}
             <Icon className="h-3.5 w-3.5" />

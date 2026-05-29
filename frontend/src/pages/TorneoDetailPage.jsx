@@ -361,7 +361,7 @@ function PanelProfetas() {
   return (
     <div className="mt-10 rounded-xl border border-border bg-surface p-6">
       <div className="mb-5 flex items-center gap-2.5">
-        <Crown className="h-4 w-4 shrink-0 text-amber-300" />
+        <Crown className="h-4 w-4 shrink-0 text-gold" />
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-fg-strong">
             Ranking de profetas
@@ -417,7 +417,7 @@ function PanelProfetas() {
                     {predictor.username}
                   </span>
                   <div className="text-right">
-                    <p className="font-mono text-sm font-bold text-amber-300">
+                    <p className="font-mono text-sm font-bold text-gold">
                       {predictor.aciertos}
                     </p>
                     <p className="text-[10px] uppercase tracking-wider text-fg-muted">

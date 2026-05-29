@@ -77,18 +77,18 @@ function EventoDetailPage() {
     .sort((a, b) => b.elo - a.elo)
 
   const tonosBg = {
-    rose: 'border-rose-500/30 bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent',
-    violet: 'border-violet-500/30 bg-gradient-to-br from-violet-500/15 via-violet-500/5 to-transparent',
-    amber: 'border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent',
-    pink: 'border-pink-500/30 bg-gradient-to-br from-pink-500/15 via-pink-500/5 to-transparent',
-    cyan: 'border-cyan-500/30 bg-gradient-to-br from-cyan-500/15 via-cyan-500/5 to-transparent',
+    rose: 'border-danger/30 bg-gradient-to-br from-danger/15 via-danger/5 to-transparent',
+    violet: 'border-rarity-epic/30 bg-gradient-to-br from-rarity-epic/15 via-rarity-epic/5 to-transparent',
+    amber: 'border-gold/30 bg-gradient-to-br from-gold/15 via-gold/5 to-transparent',
+    pink: 'border-arc-waifu/30 bg-gradient-to-br from-arc-waifu/15 via-arc-waifu/5 to-transparent',
+    cyan: 'border-electric/30 bg-gradient-to-br from-electric/15 via-electric/5 to-transparent',
   }
   const tonosTexto = {
-    rose: 'text-rose-200',
-    violet: 'text-violet-200',
-    amber: 'text-amber-200',
-    pink: 'text-pink-200',
-    cyan: 'text-cyan-200',
+    rose: 'text-danger',
+    violet: 'text-rarity-epic',
+    amber: 'text-gold',
+    pink: 'text-arc-waifu',
+    cyan: 'text-electric',
   }
   const tonoBg = tonosBg[evento.color] ?? tonosBg.amber
   const tonoTexto = tonosTexto[evento.color] ?? tonosTexto.amber
@@ -255,29 +255,29 @@ function PodioEvento({ participantes, tono }) {
   if (participantes.length === 0) return null
   const [primero, segundo, tercero] = participantes
   const ring = {
-    rose: 'border-rose-500/35 from-rose-500/20',
-    violet: 'border-violet-500/35 from-violet-500/20',
-    amber: 'border-amber-500/35 from-amber-500/20',
-    pink: 'border-pink-500/35 from-pink-500/20',
-    cyan: 'border-cyan-500/35 from-cyan-500/20',
-  }[tono] ?? 'border-amber-500/35 from-amber-500/20'
+    rose: 'border-danger/35 from-danger/20',
+    violet: 'border-rarity-epic/35 from-rarity-epic/20',
+    amber: 'border-gold/35 from-gold/20',
+    pink: 'border-arc-waifu/35 from-arc-waifu/20',
+    cyan: 'border-electric/35 from-electric/20',
+  }[tono] ?? 'border-gold/35 from-gold/20'
 
   return (
     <section className={`grid gap-3 rounded-2xl border bg-gradient-to-br via-surface to-bg p-4 sm:grid-cols-[1.25fr_0.85fr] sm:p-5 ${ring}`}>
       <Link
         to={`/personajes/${primero.slug}`}
-        className="group relative grid overflow-hidden rounded-xl border border-amber-300/35 bg-bg/55 p-4 sm:grid-cols-[minmax(150px,220px)_1fr] sm:items-center"
+        className="group relative grid overflow-hidden rounded-xl border border-gold/35 bg-bg/55 p-4 sm:grid-cols-[minmax(150px,220px)_1fr] sm:items-center"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_20%,rgb(255_199_44_/_0.24),transparent_40%)]" />
         <PersonajeCutImg
           slug={primero.slug}
           alt={primero.nombre}
-          className="relative h-64 w-full rounded-xl border border-amber-300/25 sm:h-72"
+          className="relative h-64 w-full rounded-xl border border-gold/25 sm:h-72"
           imgClassName="p-2 transition-transform duration-300 group-hover:scale-105"
           loading="eager"
         />
         <div className="relative mt-4 min-w-0 sm:mt-0 sm:pl-5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-300/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-amber-200">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-gold">
             <Crown className="h-3.5 w-3.5" />
             #1 del evento
           </span>
@@ -324,11 +324,11 @@ function PodioEvento({ participantes, tono }) {
 
 function ParticipanteCard({ rank, personaje, tono }) {
   const TONO_RANK = {
-    rose: 'bg-rose-500/20 text-rose-200',
-    violet: 'bg-violet-500/20 text-violet-200',
-    amber: 'bg-amber-500/20 text-amber-200',
-    pink: 'bg-pink-500/20 text-pink-200',
-    cyan: 'bg-cyan-500/20 text-cyan-200',
+    rose: 'bg-danger/20 text-danger',
+    violet: 'bg-rarity-epic/20 text-rarity-epic',
+    amber: 'bg-gold/20 text-gold',
+    pink: 'bg-arc-waifu/20 text-arc-waifu',
+    cyan: 'bg-electric/20 text-electric',
   }
   const tonoRank = TONO_RANK[tono] ?? TONO_RANK.amber
   return (
@@ -367,7 +367,7 @@ function ParticipanteCard({ rank, personaje, tono }) {
 
 function MiniStat({ label, value, tone, mono }) {
   const toneClass =
-    tone === 'amber' ? 'text-amber-300' : 'text-fg-strong'
+    tone === 'amber' ? 'text-gold' : 'text-fg-strong'
   return (
     <div className="flex flex-col items-center gap-0.5 text-center">
       <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-fg-muted sm:text-[10px]">
