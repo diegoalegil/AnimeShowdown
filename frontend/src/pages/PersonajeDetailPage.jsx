@@ -44,6 +44,7 @@ import ComentariosPersonaje from '../components/ComentariosPersonaje'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
 import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
+import { hexToRgbChannels } from '../lib/color'
 import { getAnimeVisual } from '../data/visual-assets'
 import { slugifyAnime } from '../lib/animes'
 import { shareOrCopy } from '../lib/share'
@@ -269,7 +270,12 @@ function PersonajeDetailPage() {
 
   return (
     <VisualPageShell
-      visual={visualAnime}
+      visual={{
+        ...visualAnime,
+        // V-1.1: tinte por personaje — el fondo procedural toma el color
+        // dominante de la carta; fallback al accent del universo.
+        accentRgb: hexToRgbChannels(personaje?.imagenColorDominante) ?? visualAnime?.accentRgb,
+      }}
       contentClassName="mx-auto max-w-6xl"
       density="low"
       lateralKanji={{ left: visualAnime?.kanji ?? '人', right: '心' }}
