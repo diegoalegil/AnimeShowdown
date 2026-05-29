@@ -702,6 +702,20 @@ export const endpoints: EndpointMap = {
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
   changePassword: (currentPassword, newPassword) =>
     api.put('/api/auth/me/password', { currentPassword, newPassword }),
+  // V-8 onboarding: cambia el username. Devuelve { token, usuario } con un JWT
+  // fresco (el subject del JWT es el username, así que hay que reemplazar el
+  // token en memoria para no romper la sesión hasta el siguiente refresh).
+  changeUsername: (username) =>
+    api.put('/api/auth/me/username', { username }),
+  // Chequeo en vivo de disponibilidad (debounce en el componente). Devuelve
+  // { available, reason? }. timeout corto: es teclear-y-comprobar.
+  usernameAvailable: (u, { signal } = {}) =>
+    api.get(`/api/auth/me/username-available?u=${encodeURIComponent(u || '')}`, {
+      signal,
+      timeoutMs: 4000,
+    }),
+  // Marca el onboarding como visto ("Saltar por ahora" o cerrar el modal).
+  skipOnboarding: () => api.post('/api/auth/me/onboarding/skip'),
   personajes: () => api.get('/api/personajes'),
   personajesCatalogo: ({ fields = 'slug,nombre,anime,imagenUrl' } = {}) =>
     api.get(`/api/personajes/catalogo?fields=${encodeURIComponent(fields)}`, {

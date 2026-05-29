@@ -54,6 +54,10 @@ function buildLocalUser(payload) {
     rol: payload.rol || 'USER',
     estadoVerificacion: payload.estadoVerificacion || 'PENDIENTE',
     totpHabilitado: payload.totpHabilitado === true,
+    // V-8: true mientras el usuario (típicamente OAuth con username
+    // autogenerado) no haya pasado/saltado el onboarding. Dispara el
+    // OnboardingModal una vez. Se refresca desde /me en cada bootstrap.
+    needsOnboarding: payload.needsOnboarding === true,
   }
 }
 
@@ -289,6 +293,39 @@ export function AuthProvider({ children }) {
     setUser((prev) => (prev ? { ...prev, ...partial } : prev))
   }, [])
 
+  /**
+   * V-8: cambia el username del usuario logueado. El backend devuelve un JWT
+   * fresco porque el subject del JWT es el username — sin reemplazarlo en
+   * memoria, el access token actual apuntaría a un username inexistente y la
+   * sesión caería en 401 hasta el siguiente refresh. Bumpeamos epoch + setToken
+   * igual que aplicarSesion para invalidar cualquier refresh en vuelo, y
+   * marcamos needsOnboarding=false (el cambio cierra el paso de onboarding).
+   */
+  const changeUsername = useCallback(async (username) => {
+    const res = await endpoints.changeUsername(username)
+    if (res?.token) {
+      bumpSessionEpoch()
+      setToken(res.token)
+    }
+    const nuevoUsername = res?.usuario?.username || username
+    updateUser({ username: nuevoUsername, needsOnboarding: false })
+    return nuevoUsername
+  }, [updateUser])
+
+  /**
+   * V-8: marca el onboarding como visto sin tocar username ni avatar
+   * ("Saltar por ahora"). Best-effort: si la red falla cerramos igualmente el
+   * modal en local; el flag del backend se reintenta en el siguiente cambio.
+   */
+  const skipOnboarding = useCallback(async () => {
+    try {
+      await endpoints.skipOnboarding()
+    } catch {
+      // best-effort: el modal se cierra igual con el updateUser de abajo.
+    }
+    updateUser({ needsOnboarding: false })
+  }, [updateUser])
+
   const logout = useCallback(async () => {
     // Marca isLoggingOut ANTES de pegar
     // al backend. Si una request paralela recibe 401 mientras logout
@@ -343,6 +380,8 @@ export function AuthProvider({ children }) {
       register,
       logout,
       updateUser,
+      changeUsername,
+      skipOnboarding,
     }),
     [
       user,
@@ -352,6 +391,8 @@ export function AuthProvider({ children }) {
       register,
       logout,
       updateUser,
+      changeUsername,
+      skipOnboarding,
     ],
   )
 
