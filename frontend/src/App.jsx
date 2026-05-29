@@ -259,7 +259,7 @@ function PageLoader({ reserveClassName = '', alignTop = false }) {
             aria-hidden="true"
             lang="ja"
             className="relative font-mono text-2xl font-black text-gold"
-            style={{ textShadow: '0 0 18px rgb(197 161 90 / 0.75), 0 0 30px rgb(159 29 44 / 0.55)' }}
+            style={{ textShadow: 'var(--text-shadow-brand)' }}
           >
             勝
           </span>

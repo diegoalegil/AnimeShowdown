@@ -229,7 +229,7 @@ function AnimeRankingPage() {
             </>
           }
           aside={
-            <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)] backdrop-blur-md">
+            <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 inset-shadow-hairline backdrop-blur-md">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
                 Estado del ranking
               </p>

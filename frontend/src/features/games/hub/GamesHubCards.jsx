@@ -22,7 +22,7 @@ export function CardDestacado({ game, estado }) {
         aria-hidden="true"
         lang="ja"
         className={`pointer-events-none absolute -right-6 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-15 sm:text-[10rem] ${theme.text}`}
-        style={{ textShadow: '0 0 60px currentColor' }}
+        style={{ textShadow: 'var(--text-shadow-glow)' }}
       >
         {game.kanji}
       </span>
@@ -75,7 +75,7 @@ export function CardMini({ game, estado }) {
         aria-hidden="true"
         lang="ja"
         className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] font-extrabold leading-none opacity-20 sm:text-[6rem] ${theme.text}`}
-        style={{ textShadow: '0 0 40px currentColor' }}
+        style={{ textShadow: 'var(--text-shadow-glow)' }}
       >
         {game.kanji}
       </span>
@@ -132,7 +132,7 @@ export function OmikujiCard() {
           aria-hidden="true"
           lang="ja"
           className="font-mono text-2xl font-extrabold text-gold sm:text-3xl"
-          style={{ textShadow: '0 0 18px currentColor, 0 2px 5px rgb(0 0 0 / 0.75)' }}
+          style={{ textShadow: 'var(--text-shadow-glow-sm), var(--text-shadow-scrim)' }}
         >
           御
         </span>
