@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   lighthouse:
-    name: Lighthouse CI (WARN-only)
+    name: Lighthouse CI (Core Web Vitals gated)
     runs-on: ubuntu-latest
 
     # Mismo backend Postgres-real que e2e.yml: la app bloquea el primer paint en
@@ -152,7 +152,9 @@ jobs:
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         # autorun = collect + assert + upload (según lighthouserc.json). Las
-        # assertions son WARN, así que el comando sale 0 aunque haya avisos.
+        # categorías son WARN (el comando sale 0 aunque haya avisos), pero
+        # FCP/LCP/CLS son ERROR: un breach de esos Core Web Vitals hace que
+        # autorun salga !=0 y tumbe el push (red secundaria del "blanco al navegar").
         run: npx --yes @lhci/cli@0.14.x autorun
 
       - name: Upload Lighthouse reports
