@@ -13,8 +13,8 @@ export function ParticleLayer({ className = '', density = 'normal' }) {
   // Dos capas superpuestas: partículas pequeñas tipo polvo + partículas
   // medianas con halo carmesí sutil, para que se sienta una atmósfera viva sin
   // distraer del contenido. La densidad sigue siendo configurable.
-  const opacityDots = density === 'low' ? 'opacity-[0.10]' : density === 'high' ? 'opacity-[0.22]' : 'opacity-[0.17]'
-  const opacityGlow = density === 'low' ? 'opacity-[0.05]' : density === 'high' ? 'opacity-[0.14]' : 'opacity-[0.09]'
+  const opacityDots = density === 'low' ? 'opacity-[0.12]' : density === 'high' ? 'opacity-[0.26]' : 'opacity-[0.20]'
+  const opacityGlow = density === 'low' ? 'opacity-[0.06]' : density === 'high' ? 'opacity-[0.16]' : 'opacity-[0.11]'
   const sizeDots = density === 'low' ? '56px 56px' : density === 'high' ? '30px 30px' : '38px 38px'
   return (
     <>
@@ -72,7 +72,7 @@ export function KanjiBackdrop({ kanji = '戦', visual, className = '' }) {
 export function LateralKanjiPair({ kanji, visual, intensity = 'normal' }) {
   const left = typeof kanji === 'object' ? kanji.left : kanji
   const right = typeof kanji === 'object' ? kanji.right : kanji
-  const opacity = intensity === 'soft' ? 'opacity-[0.05] sm:opacity-[0.07]' : 'opacity-[0.07] sm:opacity-[0.10]'
+  const opacity = intensity === 'soft' ? 'opacity-[0.06] sm:opacity-[0.08]' : 'opacity-[0.09] sm:opacity-[0.13]'
   const glow = visual?.glowRgb ?? '197 161 90'
   const accent = visual?.accentRgb ?? '159 29 44'
   return (
@@ -151,32 +151,55 @@ export function VisualPageShell({
         '--visual-glow': visual?.glowRgb ?? '197 161 90',
       }}
     >
-      {/* Base oscura + aurora procedural carmesí/oro (motor del Home),
-          teñida por --visual-accent/--visual-glow para mantener la identidad
-          de color de cada sección. */}
+      {/* Fondo procedural (motor del Home), teñido por --visual-accent/--visual-glow:
+          acento de color por sección y, en /animes y fichas, por universo. Capas
+          elegantes y sutiles: base + aurora + malla geométrica + god-rays +
+          vignette. Nítido a cualquier resolución, peso ~0. */}
       <div aria-hidden="true" className="absolute inset-0 bg-bg" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute -left-[15%] -top-[18%] h-[42rem] w-[42rem] rounded-full opacity-25 blur-3xl motion-safe:animate-aurora-1"
+          className="absolute -left-[15%] -top-[18%] h-[42rem] w-[42rem] rounded-full opacity-30 blur-3xl motion-safe:animate-aurora-1"
           style={{ background: 'rgb(var(--visual-accent) / 1)' }}
         />
         <div
-          className="absolute -right-[12%] top-[6%] h-[34rem] w-[34rem] rounded-full opacity-[0.16] blur-3xl motion-safe:animate-aurora-2"
+          className="absolute -right-[12%] top-[4%] h-[36rem] w-[36rem] rounded-full opacity-20 blur-3xl motion-safe:animate-aurora-2"
           style={{ background: 'rgb(var(--visual-glow) / 1)' }}
         />
         <div
-          className="absolute -bottom-[22%] left-[28%] h-[38rem] w-[38rem] rounded-full opacity-[0.12] blur-3xl motion-safe:animate-aurora-1"
+          className="absolute -bottom-[22%] left-[26%] h-[40rem] w-[40rem] rounded-full opacity-[0.14] blur-3xl motion-safe:animate-aurora-1"
           style={{ background: 'rgb(var(--visual-accent) / 1)' }}
         />
       </div>
-      {/* Vignette progresiva hacia abajo + acentos radiales: el fondo respira
-          arriba y el texto queda legible abajo. */}
+      {/* Malla geométrica sutil — aire competitivo, encaja con brackets. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgb(255 255 255 / 0.028) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.028) 1px, transparent 1px)',
+          backgroundSize: '46px 46px',
+          maskImage: 'radial-gradient(ellipse 95% 65% at 50% 0%, black, transparent 78%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 95% 65% at 50% 0%, black, transparent 78%)',
+        }}
+      />
+      {/* God-rays — haces de luz diagonales suaves desde arriba. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(102deg, transparent 33%, rgb(var(--visual-glow) / 0.07) 45%, transparent 54%), linear-gradient(97deg, transparent 60%, rgb(255 255 255 / 0.04) 70%, transparent 76%)',
+          maskImage: 'linear-gradient(to bottom, black, transparent 72%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black, transparent 72%)',
+        }}
+      />
+      {/* Vignette progresiva + acentos radiales: legibilidad del contenido. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgb(7 10 18 / 0.30) 0%, rgb(7 10 18 / 0.72) 58%, rgb(7 10 18 / 0.92) 100%), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.16), transparent 30rem), radial-gradient(circle at 82% 0%, rgb(var(--visual-glow) / 0.10), transparent 26rem)',
+            'linear-gradient(180deg, rgb(7 10 18 / 0.26) 0%, rgb(7 10 18 / 0.68) 58%, rgb(7 10 18 / 0.92) 100%), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.18), transparent 30rem), radial-gradient(circle at 82% 0%, rgb(var(--visual-glow) / 0.12), transparent 26rem)',
         }}
       />
       <ParticleLayer density={density} />
