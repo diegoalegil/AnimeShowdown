@@ -23,6 +23,10 @@ const VoteCard = memo(function VoteCard({
 }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   const dominantColor = personaje.imagenColorDominante ?? FALLBACK_DOMINANT_COLOR
+  // Glow ambiente teñido con el color dominante, suavizado con alpha vía
+  // color-mix para que cada carta brille en su color también en reposo sin
+  // resultar agresivo. El borde de "votado" usa el color sólido.
+  const glowColor = `color-mix(in srgb, ${dominantColor} 55%, transparent)`
   const { warm } = useSound()
   const { onPointerDown: onSoundPointerDown, onClick: onSoundClick } = useInstantSoundPress('playVote')
   const reduceMotion = useReducedMotion()
@@ -58,13 +62,13 @@ const VoteCard = memo(function VoteCard({
             ? 'shadow-aura-lg ring-2 ring-white/25'
             : isLoser
               ? 'border-transparent opacity-40 grayscale'
-              : 'border-transparent motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-aura'
+              : 'border-transparent shadow-aura motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-aura-lg'
         } disabled:cursor-default`}
         style={{
           // Glow y borde de selección personalizados con el color dominante de
           // cada carta (ranura --aura-color de la escala de sombras). La carta
           // va "a sangre": sin marco de superficie ni viñeta oscura.
-          '--aura-color': dominantColor,
+          '--aura-color': glowColor,
           borderColor: isVoted ? dominantColor : undefined,
         }}
       >
