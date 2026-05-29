@@ -98,6 +98,10 @@ AGENTS.md
 BACKLOG.md
 PROGRESS.md
 
+# Config local de herramientas de asistencia al desarrollo (no versionar)
+.opencode/
+.claude/
+
 # Buzon temporal para imagenes generadas a mano (tanda N)
 # Se vacia al integrar cada tanda; los assets finales viven en frontend/public/assets o frontend/img.
 _inbox/
