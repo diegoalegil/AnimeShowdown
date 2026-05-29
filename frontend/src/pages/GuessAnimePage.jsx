@@ -270,7 +270,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
               type="button"
               onClick={handlePista}
               disabled={estado.pistaUsada || restantes <= 1}
-            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-gold/40 hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
+            className="as-panel inline-flex w-fit items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-gold/40 hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Lightbulb className="h-3.5 w-3.5" />
               {estado.pistaUsada

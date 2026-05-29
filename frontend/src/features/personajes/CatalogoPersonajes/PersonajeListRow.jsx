@@ -24,7 +24,7 @@ function PersonajeListRow({ slug, nombre, anime, rank }) {
           slug={slug}
           alt={nombre}
           loading="lazy"
-          className="h-14 w-10 shrink-0 rounded-md object-cover object-top"
+          className="h-14 w-10 shrink-0 rounded-lg object-cover object-top"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
@@ -44,7 +44,7 @@ function PersonajeListRow({ slug, nombre, anime, rank }) {
             ELO base
           </p>
         </div>
-        <span className="hidden items-center gap-1 rounded-md border border-border bg-bg px-2.5 py-1 text-[11px] font-semibold text-fg-muted transition-colors group-hover:border-accent/40 group-hover:text-gold md:inline-flex">
+        <span className="hidden items-center gap-1 rounded-lg border border-border bg-bg px-2.5 py-1 text-[11px] font-semibold text-fg-muted transition-colors group-hover:border-accent/40 group-hover:text-gold md:inline-flex">
           Ver ficha
           <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
         </span>

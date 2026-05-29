@@ -123,7 +123,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = fa
             <span
               aria-hidden="true"
               lang="ja"
-              className={`font-jp absolute -right-1.5 -top-1.5 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md border border-border ${style.kanjiBg} px-1 text-[12px] leading-none ${style.icono}`}
+              className={`font-jp absolute -right-1.5 -top-1.5 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-lg border border-border ${style.kanjiBg} px-1 text-[12px] leading-none ${style.icono}`}
             >
               {kanji}
             </span>
@@ -131,7 +131,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = fa
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span
-            className={`inline-flex w-fit rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
+            className={`inline-flex w-fit rounded-lg border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
           >
             {style.nombre}
           </span>

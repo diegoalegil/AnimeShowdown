@@ -139,7 +139,7 @@ function TorneoCard({ torneo }) {
             <span className="uppercase tracking-wider">{badge.label}</span>
           </span>
           {finalizado && (
-            <span className="inline-flex items-center rounded border border-border bg-bg/55 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-fg-muted">
+            <span className="inline-flex items-center rounded-lg border border-border bg-bg/55 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-fg-muted">
               Histórico
             </span>
           )}
@@ -157,13 +157,13 @@ function TorneoCard({ torneo }) {
         {(fechaLabel || rondaLabel) && (
           <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-fg-muted">
             {fechaLabel && (
-              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-bg/55 px-2 py-1">
+              <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-bg/55 px-2 py-1">
                 <CalendarDays className="h-3 w-3" />
                 {fechaLabel}
               </span>
             )}
             {rondaLabel && (
-              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-bg/55 px-2 py-1">
+              <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-bg/55 px-2 py-1">
                 <Trophy className="h-3 w-3" />
                 {rondaLabel}
               </span>
@@ -172,7 +172,7 @@ function TorneoCard({ torneo }) {
         )}
         {ganadorAvatar && (
           <div className="mt-4 flex items-center gap-3 rounded-lg bg-accent-soft p-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
               <Trophy className="h-4 w-4" />
             </div>
             <PersonajeCutImg

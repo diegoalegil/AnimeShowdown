@@ -299,7 +299,7 @@ function CommandPalette({ initialOpen = false } = {}) {
             placeholder="Busca personajes, torneos o navega..."
             className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
           />
-          <kbd className="hidden rounded-md border border-border bg-bg px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline-block">
+          <kbd className="hidden rounded-lg border border-border bg-bg px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline-block">
             ESC
           </kbd>
         </div>
@@ -322,7 +322,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 key={to}
                 value={`pagina ${label} ${to} ${searchTerms}`}
                 onSelect={() => go(to)}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
                 <Icon className="h-4 w-4 text-fg-muted" />
                 {label}
@@ -334,7 +334,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={to}
                   value={`acceso ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
-                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
                 >
                   <Icon className="h-4 w-4 text-fg-muted" />
                   {label}
@@ -346,7 +346,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={to}
                   value={`usuario ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
-                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
                 >
                   <Icon className="h-4 w-4 text-fg-muted" />
                   {label}
@@ -358,7 +358,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={to}
                   value={`admin ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
-                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
                 >
                   <Icon className="h-4 w-4 text-fg-muted" />
                   {label}
@@ -377,7 +377,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 setSearch('')
                 setOpen(false)
               }}
-              className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+              className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
             >
               {muted ? (
                 <Volume2 className="h-4 w-4 text-fg-muted" />
@@ -394,7 +394,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   setSearch('')
                   setOpen(false)
                 }}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
               >
                 <LogOut className="h-4 w-4 text-fg-muted" />
                 Cerrar sesión
@@ -412,7 +412,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={t.slug}
                   value={`torneo ${t.nombre}`}
                   onSelect={() => go(`/torneos/${t.slug}`)}
-                  className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
                 >
                   <Trophy className="h-4 w-4 text-fg-muted" />
                   {t.nombre}
@@ -432,7 +432,7 @@ function CommandPalette({ initialOpen = false } = {}) {
               <Command.Item
                 disabled
                 value="personajes escribe dos letras"
-                className="rounded-md px-3 py-2 text-sm normal-case tracking-normal text-fg-muted"
+                className="rounded-lg px-3 py-2 text-sm normal-case tracking-normal text-fg-muted"
               >
                 Escribe al menos 2 letras para buscar entre todos los personajes.
               </Command.Item>
@@ -464,7 +464,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
         <Command.Item
           disabled
           value="personajes sin resultados"
-          className="rounded-md px-3 py-2 text-sm normal-case tracking-normal text-fg-muted"
+          className="rounded-lg px-3 py-2 text-sm normal-case tracking-normal text-fg-muted"
         >
           No hay personajes con esa búsqueda.
         </Command.Item>
@@ -474,7 +474,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
           key={p.slug}
           value={`personaje ${p.nombre} ${p.anime}`}
           onSelect={() => go(`/personajes/${p.slug}`)}
-          className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+          className="flex min-w-0 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
         >
           <PersonajeImg
             slug={p.slug}
@@ -483,7 +483,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
             alt={p.nombre}
             loading="lazy"
             sizes="32px"
-            className="h-7 w-5 shrink-0 rounded object-cover object-top"
+            className="h-7 w-5 shrink-0 rounded-lg object-cover object-top"
           />
           <span className="min-w-0 truncate">{p.nombre}</span>
           <span className="ml-auto max-w-[45%] truncate text-[11px] text-fg-muted">

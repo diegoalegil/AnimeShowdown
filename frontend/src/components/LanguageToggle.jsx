@@ -62,7 +62,7 @@ function LanguageToggle() {
         onClick={() => setOpen((v) => !v)}
         aria-label={t('header.elegirIdioma')}
         aria-expanded={open}
-        className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong xl:h-8 xl:min-h-0 xl:px-1.5"
+        className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong xl:h-8 xl:min-h-0 xl:px-1.5"
       >
         <Languages className="h-4 w-4" />
         <span className="text-[11px] font-bold tracking-wider tabular-nums">

@@ -223,7 +223,7 @@ function LogrosPage() {
                 key={f.label}
                 type="button"
                 onClick={() => setFiltroRareza(f.value)}
-                className={`min-h-11 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+                className={`min-h-11 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                   filtroRareza === f.value
                     ? 'bg-accent text-white'
                     : 'border border-border bg-surface text-fg-muted hover:text-fg-strong'
@@ -248,8 +248,8 @@ function LogrosPage() {
                 <div className="absolute inset-4 flex flex-col justify-between">
                   <div className="h-8 w-8 rounded-lg bg-bg/40" />
                   <div className="space-y-2">
-                    <div className="h-3 w-2/3 rounded bg-bg/40" />
-                    <div className="h-2 w-1/2 rounded bg-bg/30" />
+                    <div className="h-3 w-2/3 rounded-lg bg-bg/40" />
+                    <div className="h-2 w-1/2 rounded-lg bg-bg/30" />
                   </div>
                 </div>
               </div>

@@ -402,7 +402,7 @@ function CategoriaCard({ rank, personaje, tono }) {
         to={`/personajes/${personaje.slug}`}
         className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"
       >
-        <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-bg">
+        <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-bg">
           <PersonajeImg
             slug={personaje.slug}
             // Pasamos src/colorDominante explícitos desde la data del ranking
@@ -417,7 +417,7 @@ function CategoriaCard({ rank, personaje, tono }) {
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
           <span
-            className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded px-1 font-mono text-[10px] font-extrabold ${rankTono}`}
+            className={`absolute left-1.5 top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-lg px-1 font-mono text-[10px] font-extrabold ${rankTono}`}
           >
             #{rank}
           </span>
@@ -731,7 +731,7 @@ function PorAnime({ initialAnime = '' }) {
           value={anime}
           onChange={(e) => setAnime(e.target.value)}
           disabled={cargandoAnimes}
-          className="flex-1 rounded-md border border-border bg-bg px-2.5 py-1.5 text-[13px] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className="flex-1 rounded-lg border border-border bg-bg px-2.5 py-1.5 text-[13px] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
         >
           <option value="">— Elige un anime —</option>
           {(animes ?? []).map((a) => (

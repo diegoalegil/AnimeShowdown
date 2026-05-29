@@ -71,7 +71,7 @@ function RosterCard({ favorito }) {
         to={`/personajes/${slug}`}
         className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-2 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-2.5"
       >
-        <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-surface-alt">
+        <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-surface-alt">
           <PersonajeImg
             slug={slug}
             src={imagenUrl}
@@ -119,9 +119,9 @@ function RosterSkeleton() {
           key={i}
           className="flex animate-pulse flex-col gap-2 rounded-lg border border-border bg-bg p-2.5"
         >
-          <div className="aspect-[2/3] rounded-md bg-surface-alt" />
-          <div className="h-3 w-3/4 rounded bg-surface-alt" />
-          <div className="h-2.5 w-1/2 rounded bg-surface-alt" />
+          <div className="aspect-[2/3] rounded-lg bg-surface-alt" />
+          <div className="h-3 w-3/4 rounded-lg bg-surface-alt" />
+          <div className="h-2.5 w-1/2 rounded-lg bg-surface-alt" />
         </li>
       ))}
     </ul>

@@ -36,14 +36,14 @@ function CardDatosCuenta({ user }) {
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           to={`/u/${encodeURIComponent(user.username)}`}
-          className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-gold transition-colors hover:bg-accent/20"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 py-1.5 text-[12px] font-semibold text-gold transition-colors hover:bg-accent/20"
         >
           <ExternalLink className="h-3 w-3" />
           Ver mi perfil público
         </Link>
         <Link
           to="/votar"
-          className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-accent-hover"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-accent-hover"
         >
           Votar ahora
         </Link>

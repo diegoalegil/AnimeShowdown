@@ -317,7 +317,7 @@ function Ronda({ ronda, rondaIdx, totalRondas, onEleccion, onTimeout }) {
 
       <div className="relative mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 items-center justify-center rounded-md bg-rarity-epic/20 px-2 font-mono text-[12px] font-extrabold text-rarity-epic">
+          <span className="inline-flex h-7 items-center justify-center rounded-lg bg-rarity-epic/20 px-2 font-mono text-[12px] font-extrabold text-rarity-epic">
             R{rondaIdx + 1}/{totalRondas}
           </span>
           <p className="text-[13px] text-fg-muted">
@@ -406,7 +406,7 @@ function ProgresoRondas({ rondaActual, resultados, total }) {
         return (
           <span
             key={i}
-            className={`inline-flex h-8 min-w-[3rem] items-center justify-center gap-1 rounded-md px-2 text-[12px] font-semibold ${
+            className={`inline-flex h-8 min-w-[3rem] items-center justify-center gap-1 rounded-lg px-2 text-[12px] font-semibold ${
               resultado === true
                 ? 'bg-success/20 text-success'
                 : resultado === false

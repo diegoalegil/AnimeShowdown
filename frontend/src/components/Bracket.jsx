@@ -371,7 +371,7 @@ function VotoButton({ personaje, active, disabled, onClick }) {
       onClick={onClick}
       disabled={disabled}
       title={`Votar a ${personaje.nombre}`}
-      className={`min-h-9 min-w-0 flex-1 rounded-md border px-2 py-1.5 text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+      className={`min-h-9 min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
         active
           ? 'border-accent bg-accent text-bg'
           : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-gold'
@@ -401,7 +401,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
     const acerto = prediccion.acertada === true
     return (
       <div
-        className={`mt-1.5 flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-semibold ${
+        className={`mt-1.5 flex items-center justify-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-semibold ${
           acerto
             ? 'bg-success/10 text-success'
             : 'bg-danger/10 text-danger'
@@ -454,7 +454,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
           <button
             type="button"
             onClick={() => setPicking(true)}
-            className="min-h-9 w-full rounded-md border border-dashed border-border px-2 py-1.5 text-[11px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-gold"
+            className="min-h-9 w-full rounded-lg border border-dashed border-border px-2 py-1.5 text-[11px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-gold"
           >
             🔮 Predice el ganador
           </button>
@@ -465,7 +465,7 @@ function PrediccionRow({ match, prediccion, resuelto, torneoId }) {
 
   // Predicción ya hecha (sin resolver). Mostrar resumen + opción cambiar.
   return (
-    <div className="mt-1.5 flex items-center gap-1.5 rounded-md bg-accent-soft px-2 py-1">
+    <div className="mt-1.5 flex items-center gap-1.5 rounded-lg bg-accent-soft px-2 py-1">
       <Check className="h-3 w-3 shrink-0 text-gold" />
       <span className="min-w-0 flex-1 truncate text-[10px] font-medium text-fg-strong">
         Predigo: {prediccion.personajePredichoNombre}
@@ -488,12 +488,12 @@ function PickButton({ personaje, onClick, disabled }) {
       onClick={onClick}
       disabled={disabled}
       title={`Predecir a ${personaje.nombre}`}
-      className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-bg px-2 py-1.5 text-[11px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-border bg-bg px-2 py-1.5 text-[11px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
     >
       <PersonajeCutImg
         slug={personaje.slug}
         alt={personaje.nombre}
-        className="h-5 w-5 shrink-0 rounded border border-white/10"
+        className="h-5 w-5 shrink-0 rounded-lg border border-white/10"
       />
       <span className="truncate">{personaje.nombre}</span>
     </button>
@@ -503,7 +503,7 @@ function PickButton({ personaje, onClick, disabled }) {
 function BracketSlot({ personaje, winner }) {
   return (
     <div
-      className={`flex items-center gap-2.5 rounded px-2 py-1.5 ${
+      className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 ${
         winner ? 'bg-accent-soft' : ''
       }`}
     >

@@ -88,7 +88,7 @@ function AdminPage() {
         <div className="mb-6 grid grid-cols-1 gap-1 rounded-lg border border-border bg-bg p-1 sm:grid-cols-4">
           <Link
             to="/admin"
-            className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+            className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'mantenimiento'
                 ? 'bg-surface-alt text-fg-strong'
                 : 'text-fg-muted hover:text-fg-strong'
@@ -99,7 +99,7 @@ function AdminPage() {
           </Link>
           <Link
             to="/admin/torneos"
-            className={`relative inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+            className={`relative inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'cola'
                 ? 'bg-surface-alt text-fg-strong'
                 : 'text-fg-muted hover:text-fg-strong'
@@ -115,7 +115,7 @@ function AdminPage() {
           </Link>
           <Link
             to="/admin/comentarios"
-            className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+            className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'comentarios'
                 ? 'bg-surface-alt text-fg-strong'
                 : 'text-fg-muted hover:text-fg-strong'
@@ -126,7 +126,7 @@ function AdminPage() {
           </Link>
           <Link
             to="/admin/assets"
-            className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+            className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               tab === 'assets'
                 ? 'bg-surface-alt text-fg-strong'
                 : 'text-fg-muted hover:text-fg-strong'

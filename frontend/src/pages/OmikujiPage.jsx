@@ -305,7 +305,7 @@ function OmikujiPage() {
                     // 5 brillen "out of sync" — sensación viva, no robot.
                     '--glow-delay': `${i * 0.4}s`,
                   }}
-                  className={`kanji-ink inline-flex h-14 w-14 shrink-0 cursor-default items-center justify-center self-start rounded-md border ${COLOR_CLASSES[s.color]}`}
+                  className={`kanji-ink inline-flex h-14 w-14 shrink-0 cursor-default items-center justify-center self-start rounded-lg border ${COLOR_CLASSES[s.color]}`}
                 >
                   <KanjiStroke
                     kanji={s.kanji}

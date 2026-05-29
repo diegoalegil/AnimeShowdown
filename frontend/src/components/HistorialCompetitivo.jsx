@@ -136,7 +136,7 @@ function ActividadReciente({ slug, nombre }) {
           {actual === 1 ? 'voto' : 'votos'}
         </p>
       </div>
-      <div className="inline-flex items-center gap-1.5 self-start rounded-md border border-border bg-bg/40 px-2.5 py-1 sm:self-auto">
+      <div className="inline-flex items-center gap-1.5 self-start rounded-lg border border-border bg-bg/40 px-2.5 py-1 sm:self-auto">
         <DeltaIcon className={`h-3.5 w-3.5 ${subio ? 'text-success' : bajo ? 'text-danger' : 'text-fg-muted'}`} />
         <span className={`font-mono text-[12px] font-bold tabular-nums ${subio ? 'text-success' : bajo ? 'text-danger' : 'text-fg-muted'}`}>
           {deltaTexto}
@@ -151,10 +151,10 @@ function ActividadSkeleton() {
     <div className="flex animate-pulse items-center gap-3 rounded-xl border border-border bg-surface/40 p-4 sm:p-5" aria-hidden="true">
       <div className="h-10 w-10 rounded-lg bg-surface-alt" />
       <div className="flex-1 space-y-1.5">
-        <div className="h-2.5 w-1/4 rounded bg-surface-alt" />
-        <div className="h-3 w-1/3 rounded bg-surface-alt" />
+        <div className="h-2.5 w-1/4 rounded-lg bg-surface-alt" />
+        <div className="h-3 w-1/3 rounded-lg bg-surface-alt" />
       </div>
-      <div className="h-6 w-32 rounded bg-surface-alt" />
+      <div className="h-6 w-32 rounded-lg bg-surface-alt" />
     </div>
   )
 }
@@ -219,7 +219,7 @@ function DueloRow({ duelo }) {
   return (
     <li className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-3 transition-colors hover:border-accent/40">
       <span
-        className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${style.chip}`}
+        className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${style.chip}`}
         title={style.label}
         aria-label={style.label}
       >
@@ -233,11 +233,11 @@ function DueloRow({ duelo }) {
             alt={rival.nombre}
             loading="lazy"
             sizes="48px"
-            className="h-12 w-9 rounded object-cover object-top"
+            className="h-12 w-9 rounded-lg object-cover object-top"
           />
         </Link>
       ) : (
-        <div className="h-12 w-9 shrink-0 rounded bg-surface-alt" aria-hidden="true" />
+        <div className="h-12 w-9 shrink-0 rounded-lg bg-surface-alt" aria-hidden="true" />
       )}
       <div className="min-w-0 flex-1">
         <p className="line-clamp-1 text-[13px] font-semibold text-fg-strong">
@@ -281,11 +281,11 @@ function DuelosSkeleton() {
           key={i}
           className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3"
         >
-          <div className="h-9 w-9 rounded-md bg-surface-alt" />
-          <div className="h-12 w-9 rounded bg-surface-alt" />
+          <div className="h-9 w-9 rounded-lg bg-surface-alt" />
+          <div className="h-12 w-9 rounded-lg bg-surface-alt" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-3 w-3/4 rounded bg-surface-alt" />
-            <div className="h-2.5 w-1/2 rounded bg-surface-alt" />
+            <div className="h-3 w-3/4 rounded-lg bg-surface-alt" />
+            <div className="h-2.5 w-1/2 rounded-lg bg-surface-alt" />
           </div>
         </li>
       ))}
@@ -448,7 +448,7 @@ function MatchupRow({ item, tipo }) {
           alt={rival.nombre}
           loading="lazy"
           sizes="28px"
-          className="h-7 w-5 rounded object-cover object-top"
+          className="h-7 w-5 rounded-lg object-cover object-top"
         />
       </Link>
       <Link
@@ -472,13 +472,13 @@ function MatchupsSkeleton() {
     <div className="flex animate-pulse flex-col gap-3" aria-hidden="true">
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="rounded-lg border border-border bg-surface p-3">
-          <div className="mb-3 h-3 w-1/3 rounded bg-surface-alt" />
+          <div className="mb-3 h-3 w-1/3 rounded-lg bg-surface-alt" />
           <div className="space-y-1.5">
             {Array.from({ length: 3 }).map((_, j) => (
               <div key={j} className="flex items-center gap-2">
-                <div className="h-7 w-5 rounded bg-surface-alt" />
-                <div className="h-3 flex-1 rounded bg-surface-alt" />
-                <div className="h-3 w-10 rounded bg-surface-alt" />
+                <div className="h-7 w-5 rounded-lg bg-surface-alt" />
+                <div className="h-3 flex-1 rounded-lg bg-surface-alt" />
+                <div className="h-3 w-10 rounded-lg bg-surface-alt" />
               </div>
             ))}
           </div>

@@ -135,7 +135,7 @@ function PanelResultadoAnime({
             {squares.map((s, idx) => (
               <span
                 key={idx}
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-base ${
+                className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-base ${
                   s.ok
                     ? 'border border-success/40 bg-success/15'
                     : 'border border-danger/30 bg-danger/10'
@@ -147,7 +147,7 @@ function PanelResultadoAnime({
             ))}
             {bonusBadge && (
               <span
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gold/40 bg-gold/15 text-base"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gold/40 bg-gold/15 text-base"
                 aria-label={bonusBadge.label}
                 title={bonusBadge.label}
               >

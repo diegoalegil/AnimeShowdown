@@ -60,7 +60,7 @@ function EmailVerifyBanner() {
           type="button"
           onClick={handleReenviar}
           disabled={reenviando || yaReenviado}
-          className="shrink-0 rounded-md border border-warning/40 bg-warning/10 px-3 py-1 text-[12px] font-semibold text-warning transition-colors hover:bg-warning/20 disabled:opacity-50"
+          className="shrink-0 rounded-lg border border-warning/40 bg-warning/10 px-3 py-1 text-[12px] font-semibold text-warning transition-colors hover:bg-warning/20 disabled:opacity-50"
         >
           {yaReenviado ? '✓ Enviado' : reenviando ? 'Enviando…' : 'Reenviar email'}
         </button>

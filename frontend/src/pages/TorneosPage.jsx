@@ -182,7 +182,7 @@ function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 border-b border-border pb-3">
-        <span className={`flex h-6 w-6 items-center justify-center rounded-md bg-surface ${tono}`}>
+        <span className={`flex h-6 w-6 items-center justify-center rounded-lg bg-surface ${tono}`}>
           <Icon className="h-3.5 w-3.5" />
         </span>
         <h2 className={`text-[13px] font-semibold uppercase tracking-[0.1em] ${tono}`}>
@@ -299,7 +299,7 @@ function EmptyState({ user, t }) {
           tipo de bracket que el cron puede generar. */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 border-b border-border pb-3">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-surface text-gold">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-surface text-gold">
             <Sparkles className="h-3.5 w-3.5" />
           </span>
           <h2 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-gold">

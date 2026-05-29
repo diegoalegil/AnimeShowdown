@@ -222,7 +222,7 @@ function FloatingCard({ card, index, mouseX, mouseY }) {
 
       {/* Label inferior con el nombre del anime */}
       <span
-        className={`absolute inset-x-2 bottom-2 truncate rounded-md border px-2 py-1 text-center text-[12px] font-bold uppercase tracking-wider backdrop-blur-sm ${tone.labelBg} ${tone.labelText}`}
+        className={`absolute inset-x-2 bottom-2 truncate rounded-lg border px-2 py-1 text-center text-[12px] font-bold uppercase tracking-wider backdrop-blur-sm ${tone.labelBg} ${tone.labelText}`}
         style={{ textShadow: 'var(--text-shadow-scrim)' }}
       >
         {card.title}

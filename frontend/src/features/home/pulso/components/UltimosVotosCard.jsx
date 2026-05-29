@@ -58,7 +58,7 @@ function VotoRow({ voto }) {
           alt={ganador.nombre}
           loading="lazy"
           sizes="28px"
-          className="h-7 w-7 rounded object-cover object-top"
+          className="h-7 w-7 rounded-lg object-cover object-top"
         />
       </Link>
       <div className="min-w-0 flex-1 leading-tight">

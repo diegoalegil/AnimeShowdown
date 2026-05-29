@@ -75,7 +75,7 @@ function CardTop5({
                   alt={p.nombre}
                   loading="lazy"
                   sizes="40px"
-                  className="h-10 w-8 shrink-0 rounded object-cover object-top"
+                  className="h-10 w-8 shrink-0 rounded-lg object-cover object-top"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-semibold text-fg-strong">

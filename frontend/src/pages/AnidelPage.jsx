@@ -280,19 +280,19 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
             En las filas, verde = coincide, rojo = no coincide, ámbar = dirección. */}
         <div className="as-panel mb-4 grid grid-cols-3 gap-2 rounded-lg p-3 text-[11px] text-fg-muted">
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-bg px-1 font-mono text-[10px] font-bold text-fg-strong">
+            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border border-border bg-bg px-1 font-mono text-[10px] font-bold text-fg-strong">
               Aa
             </span>
             <span>Letra inicial</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-fg-strong">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-lg border border-border bg-bg text-fg-strong">
               <Tv className="h-3 w-3" />
             </span>
             <span>Anime</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-bg text-fg-strong">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-lg border border-border bg-bg text-fg-strong">
               <ArrowUp className="h-3 w-3" />
             </span>
             <span>ELO base objetivo</span>
@@ -324,7 +324,7 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
               type="button"
               onClick={handlePista}
               disabled={estado.pistaLetra || restantes <= 1}
-              className="as-panel inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-gold/40 hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
+              className="as-panel inline-flex w-fit items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold text-fg-muted transition-colors hover:border-gold/40 hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Lightbulb className="h-3.5 w-3.5" />
               {estado.pistaLetra
@@ -372,9 +372,9 @@ function FilaIntento({ intento }) {
     return (
       <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2 rounded-lg border border-dashed border-border bg-bg/40 p-2">
         <span className="text-[12px] text-fg-muted/50">·</span>
-        <span className="h-7 w-7 rounded-md border border-border/50" />
-        <span className="h-7 w-7 rounded-md border border-border/50" />
-        <span className="h-7 w-7 rounded-md border border-border/50" />
+        <span className="h-7 w-7 rounded-lg border border-border/50" />
+        <span className="h-7 w-7 rounded-lg border border-border/50" />
+        <span className="h-7 w-7 rounded-lg border border-border/50" />
       </div>
     )
   }
@@ -392,7 +392,7 @@ function FilaIntento({ intento }) {
           alt={intento.nombre}
           loading="lazy"
           sizes="36px"
-          className="h-9 w-7 shrink-0 rounded object-cover object-top"
+          className="h-9 w-7 shrink-0 rounded-lg object-cover object-top"
         />
         <div className="min-w-0">
           <p className="truncate text-[13px] font-semibold text-fg-strong">
@@ -425,7 +425,7 @@ function Squarito({ ok, label, title }) {
     <span
       title={title}
       aria-label={title}
-      className={`inline-flex h-7 w-7 items-center justify-center rounded-md font-mono text-[11px] font-bold ${
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-lg font-mono text-[11px] font-bold ${
         ok
           ? 'bg-success/20 text-success'
           : 'bg-danger/15 text-danger/80'
@@ -443,7 +443,7 @@ function SquaritoFlecha({ dir, elo }) {
   if (dir === 'cerca' || dir === 'eq')
     return (
       <span
-        className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gold/15 text-gold"
+        className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gold/15 text-gold"
         title={`ELO base ${elo} — muy parecido al objetivo (mismo tier)`}
       >
         <Minus className="h-3.5 w-3.5" />
@@ -451,7 +451,7 @@ function SquaritoFlecha({ dir, elo }) {
     )
   return (
     <span
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gold/15 text-gold"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gold/15 text-gold"
       title={
         dir === 'up'
           ? `ELO base ${elo} — el objetivo tiene bastante más`

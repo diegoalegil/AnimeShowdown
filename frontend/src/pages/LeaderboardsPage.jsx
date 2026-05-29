@@ -87,7 +87,7 @@ function LeaderboardsPage() {
               key={id}
               type="button"
               onClick={() => setPeriodo(id)}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                 periodo === id
                   ? 'bg-accent text-white'
                   : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'
@@ -225,7 +225,7 @@ function FilaVoter({ rank, voter }) {
         aria-label={`Rank #${rank} — ${voter.username}, ${voter.votos} votos`}
         className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:border-accent/40 hover:bg-surface-alt sm:gap-4 sm:px-5"
       >
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-bg font-mono text-sm font-bold text-fg-muted">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg font-mono text-sm font-bold text-fg-muted">
           {medalla ?? `#${rank}`}
         </span>
         <Avatar user={voter} size={36} />

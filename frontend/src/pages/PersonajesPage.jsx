@@ -541,7 +541,7 @@ function PersonajesPage() {
               }}
               aria-label="Vista cuadrícula"
               aria-pressed={view === 'grid'}
-              className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
+              className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
                 view === 'grid'
                   ? 'bg-gold/15 text-gold'
                   : 'text-fg-muted hover:bg-white/5 hover:text-fg-strong'
@@ -557,7 +557,7 @@ function PersonajesPage() {
               }}
               aria-label="Vista lista"
               aria-pressed={view === 'list'}
-              className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
+              className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
                 view === 'list'
                   ? 'bg-gold/15 text-gold'
                   : 'text-fg-muted hover:bg-white/5 hover:text-fg-strong'

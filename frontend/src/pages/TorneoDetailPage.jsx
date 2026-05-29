@@ -250,7 +250,7 @@ function TorneoDetailPage() {
             <PersonajeImg
               slug={campeon.slug}
               alt={campeon.nombre}
-              className="h-16 w-12 rounded-md object-cover"
+              className="h-16 w-12 rounded-lg object-cover"
             />
             <div className="min-w-0">
               <p className="text-[11px] uppercase tracking-wider text-fg-muted">
@@ -410,7 +410,7 @@ function PanelProfetas() {
                   aria-label={`Rank #${i + 1} — ${predictor.username}, ${predictor.aciertos} aciertos`}
                   className="group flex items-center gap-3 rounded-lg border border-border bg-bg px-3 py-2.5 transition-all hover:border-accent/40 hover:bg-surface-alt"
                 >
-                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-surface font-mono text-sm font-bold text-fg-muted">
+                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface font-mono text-sm font-bold text-fg-muted">
                     {medalla ?? `#${i + 1}`}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-fg-strong group-hover:text-gold">

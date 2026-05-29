@@ -26,7 +26,7 @@ function RankingTabs({ activo, onChange }) {
                       ? 'Top de votos en los últimos 30 días.'
                       : 'Selecciona un anime para ver su ranking interno.'
             }
-            className={`inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 py-2 text-[12px] font-semibold transition-colors ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3.5 py-2 text-[12px] font-semibold transition-colors ${
               activo === id
                 ? 'bg-accent text-white'
                 : 'text-fg-muted hover:bg-surface-alt hover:text-fg-strong'

@@ -107,7 +107,7 @@ function BadgeCard({ logro }) {
           <span
             aria-hidden="true"
             lang="ja"
-            className={`font-jp absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-bg px-1 text-[10px] leading-none ${style.icono}`}
+            className={`font-jp absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border border-border bg-bg px-1 text-[10px] leading-none ${style.icono}`}
           >
             {kanjiDeBadge(logro.codigo)}
           </span>
@@ -131,7 +131,7 @@ function BadgeCard({ logro }) {
           >
             <p className="mb-1.5 flex items-center gap-1.5">
               <span
-                className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
+                className={`inline-flex rounded-lg px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
               >
                 {style.nombre}
               </span>

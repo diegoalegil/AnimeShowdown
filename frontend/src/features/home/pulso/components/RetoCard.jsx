@@ -24,7 +24,7 @@ function RetoCard() {
         <div
           aria-hidden="true"
           lang="ja"
-          className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-danger/35 bg-bg/65 font-mono text-3xl font-black text-danger shadow-aura"
+          className="flex h-20 w-14 shrink-0 items-center justify-center rounded-lg border border-danger/35 bg-bg/65 font-mono text-3xl font-black text-danger shadow-aura"
         >
           影
         </div>

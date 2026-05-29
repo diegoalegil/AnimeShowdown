@@ -274,7 +274,7 @@ function MetaMensual({ recibido, objetivo }) {
 function CosteTile({ icon: Icon, label }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-2.5">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-soft text-gold">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-gold">
         <Icon className="h-3.5 w-3.5" />
       </span>
       <span className="text-[12px] font-semibold text-fg-strong">{label}</span>

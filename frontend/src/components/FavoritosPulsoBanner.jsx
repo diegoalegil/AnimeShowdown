@@ -254,7 +254,7 @@ function FavoritoMovido({ favorito, movimiento, actividad }) {
     <li>
       <Link
         to={`/personajes/${favorito.slug}`}
-        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-gold/60"
+        className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-gold/60"
         title={`${favorito.nombre} ${subio ? 'subió' : 'bajó'} ${Math.abs(movimiento.delta)} posiciones · ${votos} votos esta semana`}
       >
         <PersonajeImg
@@ -288,7 +288,7 @@ function FavoritoActivo({ favorito, actividad }) {
     <li>
       <Link
         to={`/personajes/${favorito.slug}`}
-        className="inline-flex items-center gap-2 rounded-md border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-success/60"
+        className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg/40 px-2 py-1 text-[12px] transition-colors hover:border-success/60"
         title={`${favorito.nombre}: ${votos} votos esta semana · sin cambio de puesto`}
       >
         <PersonajeImg
@@ -316,8 +316,8 @@ function BannerSkeleton() {
       <div className="flex animate-pulse items-center gap-3" aria-hidden="true">
         <div className="h-9 w-9 rounded-lg bg-surface-alt" />
         <div className="flex-1 space-y-1.5">
-          <div className="h-3 w-1/3 rounded bg-surface-alt" />
-          <div className="h-2.5 w-1/2 rounded bg-surface-alt" />
+          <div className="h-3 w-1/3 rounded-lg bg-surface-alt" />
+          <div className="h-2.5 w-1/2 rounded-lg bg-surface-alt" />
         </div>
       </div>
     </BannerWrapper>

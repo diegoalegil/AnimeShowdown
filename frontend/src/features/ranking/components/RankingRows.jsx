@@ -43,7 +43,7 @@ export function RankRowElo({
             colorDominante={imagenColorDominante}
             alt={nombre}
             loading="lazy"
-            className="h-14 w-10 shrink-0 rounded-md object-cover object-top sm:hidden"
+            className="h-14 w-10 shrink-0 rounded-lg object-cover object-top sm:hidden"
           />
           <PersonajeCutImg
             slug={slug}
@@ -58,7 +58,7 @@ export function RankRowElo({
                 {nombre}
               </p>
               {esTop10 && (
-                <span className="hidden shrink-0 rounded border border-medal-gold/40 bg-medal-gold/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-medal-gold sm:inline">
+                <span className="hidden shrink-0 rounded-lg border border-medal-gold/40 bg-medal-gold/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-medal-gold sm:inline">
                   Top 10
                 </span>
               )}
@@ -104,7 +104,7 @@ export function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
             colorDominante={personaje.imagenColorDominante}
             alt={personaje.nombre}
             loading="lazy"
-            className="h-14 w-10 shrink-0 rounded-md object-cover object-top sm:hidden"
+            className="h-14 w-10 shrink-0 rounded-lg object-cover object-top sm:hidden"
           />
           <PersonajeCutImg
             slug={personaje.slug}
@@ -154,7 +154,7 @@ function ChallengeLink({ slug, nombre }) {
 function RankBadge({ rank }) {
   return (
     <span
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-mono text-sm font-bold ${
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold ${
         rank === 1
           ? 'bg-medal-gold/15 text-medal-gold'
           : rank === 2
@@ -172,7 +172,7 @@ function RankBadge({ rank }) {
 function MovimientoBadge({ movimiento }) {
   if (movimiento.esNuevo) {
     return (
-      <span className="inline-flex shrink-0 items-center rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold uppercase tracking-wider text-gold">
+      <span className="inline-flex shrink-0 items-center rounded-lg border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold uppercase tracking-wider text-gold">
         Nuevo
       </span>
     )
@@ -191,7 +191,7 @@ function MovimientoBadge({ movimiento }) {
   if (delta > 0) {
     return (
       <span
-        className="inline-flex shrink-0 items-center gap-0.5 rounded border border-success/30 bg-success/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-success"
+        className="inline-flex shrink-0 items-center gap-0.5 rounded-lg border border-success/30 bg-success/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-success"
         title={`Subió ${delta} posiciones vs hace 7 días`}
       >
         ↑{delta}
@@ -200,7 +200,7 @@ function MovimientoBadge({ movimiento }) {
   }
   return (
     <span
-      className="inline-flex shrink-0 items-center gap-0.5 rounded border border-danger/30 bg-danger/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-danger"
+      className="inline-flex shrink-0 items-center gap-0.5 rounded-lg border border-danger/30 bg-danger/10 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-danger"
       title={`Bajó ${Math.abs(delta)} posiciones vs hace 7 días`}
     >
       ↓{Math.abs(delta)}

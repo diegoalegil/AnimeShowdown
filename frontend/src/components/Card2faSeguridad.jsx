@@ -216,7 +216,7 @@ function ModalShell({ onClose, title, icon: Icon, children, wide }) {
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className="absolute right-4 top-4 rounded-md p-1 text-fg-muted transition-colors hover:bg-bg hover:text-fg-strong"
+          className="absolute right-4 top-4 rounded-lg p-1 text-fg-muted transition-colors hover:bg-bg hover:text-fg-strong"
         >
           <X className="h-4 w-4" />
         </button>
@@ -364,7 +364,7 @@ function SetupForm({ setupData, onBackupCodes }) {
           alt="Código QR para 2FA"
           width={176}
           height={176}
-          className="h-44 w-44 rounded-md bg-white p-2"
+          className="h-44 w-44 rounded-lg bg-white p-2"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <p className="text-[12px] font-semibold uppercase tracking-wide text-fg-muted">
@@ -373,7 +373,7 @@ function SetupForm({ setupData, onBackupCodes }) {
           <p className="text-[12px] text-fg-muted">
             Pega este secret manualmente en tu app:
           </p>
-          <div className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2">
             <code className="min-w-0 flex-1 truncate font-mono text-[12px] text-fg-strong">
               {setupData.secret}
             </code>
