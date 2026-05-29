@@ -898,7 +898,7 @@ function PersonajesPage() {
           </EmptyState>
         ) : view === 'grid' ? (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 [&>*]:[content-visibility:auto] [&>*]:[contain-intrinsic-size:auto_320px]">
               {filtered.slice(0, visibleCount).map((p) => (
                 <PersonajeCard key={p.slug} rank={rankPorSlug.get(p.slug)} {...p} />
               ))}
@@ -920,7 +920,7 @@ function PersonajesPage() {
           </>
         ) : (
           <>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-2 [&>*]:[content-visibility:auto] [&>*]:[contain-intrinsic-size:auto_72px]">
               {filtered.slice(0, visibleCount).map((p) => (
                 <PersonajeListRow
                   key={p.slug}
