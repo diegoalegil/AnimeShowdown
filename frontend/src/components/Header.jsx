@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogOut, Menu, Search, Shield, Swords, Volume2, VolumeX, X } from 'lucide-react'
+import { ChevronDown, LogOut, Menu, Search, Shield, Swords, Volume2, VolumeX, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
@@ -10,20 +10,24 @@ import NotifBell from './NotifBell'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { OPEN_COMMAND_PALETTE_EVENT } from './CommandPaletteLazyMount'
 
-// Nota de producto: /votar sale de navLinks regular y pasa a
+// Nota de producto: /votar sale de los enlaces regulares y pasa a
 // CTA principal del header. El login deja de ser el botón accent (estaba
 // pidiendo a un usuario nuevo registrarse antes de aportar valor) y
 // queda como link ghost discreto: ahora la primera acción visible es
 // participar (votar) y el login es secundario para usuarios existentes.
-const navLinks = [
-  { to: '/', i18nKey: 'inicio' },
+// Inicio se quita del nav (el logo ya lleva a home) y los enlaces
+// secundarios (Eventos, PvP) se agrupan en un menú "Más", para que los
+// principales quepan en una fila desde lg sin saturar el header.
+const primaryNavLinks = [
   { to: '/personajes', i18nKey: 'personajes' },
   { to: '/animes', i18nKey: 'animes' },
   { to: '/torneos', i18nKey: 'torneos' },
-  { to: '/eventos', i18nKey: 'eventos' },
   { to: '/games', i18nKey: 'games' },
-  { to: '/duel-live', i18nKey: 'pvp' },
   { to: '/ranking', i18nKey: 'ranking' },
+]
+const moreNavLinks = [
+  { to: '/eventos', i18nKey: 'eventos' },
+  { to: '/duel-live', i18nKey: 'pvp' },
 ]
 
 const navLinkBase = 'relative rounded-md px-3 py-2 text-sm transition-colors'
@@ -49,7 +53,7 @@ function regularLinkClass({ isActive }) {
 
 // CTA principal de torneo: carmesí fijo + brillo dorado muy controlado.
 function ctaVotarClass({ isActive }) {
-  return `${navLinkBase} ml-2 inline-flex items-center gap-1.5 border border-accent/50 bg-gradient-to-b from-accent-hover to-accent font-black text-white shadow-[0_0_34px_-16px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] ${
+  return `${navLinkBase} ml-2 inline-flex items-center gap-1.5 whitespace-nowrap border border-accent/50 bg-gradient-to-b from-accent-hover to-accent font-black text-white shadow-[0_0_34px_-16px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] ${
     isActive ? 'brightness-110' : 'hover:-translate-y-0.5 hover:brightness-110'
   }`
 }
@@ -191,21 +195,21 @@ function Header() {
         </span>
       </Link>
 
-      {/* Nav desktop (xl+). Por debajo no caben los 8 enlaces + CTA + utilidades
-          en una sola fila, así que pasa al panel del hamburger en vez de
-          envolver a dos filas. */}
-      <nav className="hidden flex-nowrap items-center justify-center gap-1 xl:flex">
-        {navLinks.map(({ to, i18nKey }) => (
+      {/* Nav desktop (≥1120px). 5 enlaces principales + menú "Más" + CTA caben
+          en una fila con holgura; por debajo pasa al panel del hamburger.
+          1024px (lg) era demasiado justo con el logotipo + estos elementos. */}
+      <nav className="hidden flex-nowrap items-center justify-center gap-1 min-[1120px]:flex">
+        {primaryNavLinks.map(({ to, i18nKey }) => (
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
             onClick={() => play('playClick')}
             className={regularLinkClass}
           >
             {t(`nav.${i18nKey}`)}
           </NavLink>
         ))}
+        <MoreMenu moreLinks={moreNavLinks} t={t} play={play} />
         {/* CTA principal: votar siempre visible, no requiere login. */}
         <NavLink
           to="/votar"
@@ -272,7 +276,7 @@ function Header() {
           hamburger. El Login en mobile pasa al panel del hamburger
           (nota de producto 2026-05-18: primero participar, después
           registrarse — login secundario hasta que haya valor acumulado). */}
-      <div className="flex items-center gap-1.5 xl:hidden">
+      <div className="flex items-center gap-1.5 min-[1120px]:hidden">
         {user ? (
           <>
             <NotifBell />
@@ -337,11 +341,10 @@ function Header() {
             className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh_-_4rem_-_env(safe-area-inset-bottom))] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pt-4 shadow-[0_24px_80px_-44px_rgb(0_0_0_/_0.95)] backdrop-blur-2xl lg:hidden"
           >
             <div className="flex flex-col gap-1">
-              {navLinks.map(({ to, i18nKey }) => (
+              {[...primaryNavLinks, ...moreNavLinks].map(({ to, i18nKey }) => (
                 <NavLink
                   key={to}
                   to={to}
-                  end={to === '/'}
                   onClick={() => { play('playClick'); closeMobile() }}
                   className={({ isActive }) =>
                     `flex min-h-11 items-center rounded-md px-3 text-sm font-medium ${
@@ -402,6 +405,84 @@ function Header() {
         </>
       )}
     </header>
+  )
+}
+
+// Menú "Más" del nav desktop: disclosure accesible (botón + región de
+// enlaces). Escape y click fuera cierran; el botón se resalta si la ruta
+// activa está dentro del grupo.
+function MoreMenu({ moreLinks, t, play }) {
+  const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
+  const btnRef = useRef(null)
+  const menuRef = useRef(null)
+  const isActive = moreLinks.some(
+    ({ to }) => pathname === to || pathname.startsWith(`${to}/`),
+  )
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onPointer = (e) => {
+      if (btnRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return
+      setOpen(false)
+    }
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        btnRef.current?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className="relative">
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => { setOpen((v) => !v); play('playClick') }}
+        aria-haspopup="true"
+        aria-expanded={open}
+        className={`${navLinkBase} inline-flex items-center gap-1 font-medium ${
+          isActive || open
+            ? 'bg-white/5 text-fg-strong'
+            : 'text-fg hover:bg-white/5 hover:text-fg-strong'
+        }`}
+      >
+        {t('nav.mas', 'Más')}
+        <ChevronDown
+          className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && (
+        <div
+          ref={menuRef}
+          className="absolute right-0 top-full z-40 mt-2 min-w-44 overflow-hidden rounded-xl border border-white/10 bg-bg/95 p-1.5 shadow-[0_24px_70px_-30px_rgb(0_0_0_/_0.9)] backdrop-blur-xl"
+        >
+          {moreLinks.map(({ to, i18nKey }) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => { play('playClick'); setOpen(false) }}
+              className={({ isActive: linkActive }) =>
+                `flex min-h-10 items-center rounded-md px-3 text-sm font-medium ${
+                  linkActive
+                    ? 'bg-surface-alt text-fg-strong'
+                    : 'text-fg hover:bg-surface-alt hover:text-fg-strong'
+                }`
+              }
+            >
+              {t(`nav.${i18nKey}`)}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
