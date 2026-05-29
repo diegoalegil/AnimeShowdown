@@ -70,7 +70,7 @@ function PersonajeGaleria({ slug, principalUrl, imagenActiva, onSelect }) {
               aria-pressed={activa}
               className={`relative shrink-0 overflow-hidden rounded-lg border-2 transition-all [scroll-snap-align:start] ${
                 activa
-                  ? 'border-accent shadow-[0_0_0_3px_rgb(255_46_99_/_0.18)]'
+                  ? 'border-accent shadow-[0_0_0_3px_rgb(159_29_44_/_0.18)]'
                   : 'border-border hover:border-fg-muted'
               }`}
               style={{ width: '64px', height: '96px' }}

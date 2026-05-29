@@ -617,7 +617,7 @@ function PersonajeDetailPage() {
         <ComentariosPersonaje slug={slug} nombre={personaje.nombre} />
 
         {duelosPopulares.length > 0 && (
-          <section className="mt-8 rounded-xl border border-accent/25 bg-[linear-gradient(135deg,rgb(255_46_99_/_0.10),rgb(20_20_30_/_0.92))] p-5">
+          <section className="mt-8 rounded-xl border border-accent/25 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.10),rgb(20_20_30_/_0.92))] p-5">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
