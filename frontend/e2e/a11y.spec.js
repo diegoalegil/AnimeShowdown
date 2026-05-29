@@ -119,7 +119,9 @@ test.describe('keyboard navigation', () => {
 
     const panel = page.getByRole('dialog', { name: 'Menú de navegación' })
     await expect(panel).toBeVisible()
-    await expect(panel.getByRole('link', { name: 'Inicio' })).toBeFocused()
+    // §FE-004: el nav ya no incluye "Inicio" (lo cubre el logo); el primer enlace
+    // del drawer es "Personajes", que es quien recibe el foco al abrir el panel.
+    await expect(panel.getByRole('link', { name: 'Personajes' })).toBeFocused()
 
     await page.keyboard.press('Shift+Tab')
     const isFocusInsidePanel = () =>
