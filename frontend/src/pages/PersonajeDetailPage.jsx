@@ -310,7 +310,7 @@ function PersonajeDetailPage() {
           key={slug}
           itemScope
           itemType="https://schema.org/Person"
-          className="flex flex-col gap-8"
+          className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start md:gap-12"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -320,20 +320,16 @@ function PersonajeDetailPage() {
             content={`https://animeshowdown.dev${imagenPersonaje(slug)}`}
           />
           <meta itemProp="url" content={`https://animeshowdown.dev/personajes/${slug}`} />
-          {/* En móvil la identidad aparece antes que la imagen y la imagen se
-              capa a 55vh; en desktop se preservan el orden y aspect-ratio. */}
-          {/* Showcase (carta holo + 3D + galería) reubicado debajo de la info
-              (order-2). El hero ahora lo encabeza un avatar circular pequeño;
-              aquí vive la pieza grande para quien quiera verla/girarla en 3D. */}
+          {/* Columna visual (izquierda en desktop): carta holo + galería +
+              figura. A la derecha, la info encabezada por el avatar circular +
+              nombre. items-start en el grid evita el espacio muerto que dejaba
+              items-center; en móvil la identidad va antes (order-1). */}
           <motion.div
-            className="order-2 mt-2 flex w-full flex-col gap-3 border-t border-border pt-8"
+            className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
             variants={itemVariants}
           >
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
-              Carta · galería · vista 3D
-            </h2>
             <div
-              className="relative mx-auto aspect-[2/3] w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-surface"
+              className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
             >
               {/* Personaje3D era opt-in al mount con
@@ -379,7 +375,7 @@ function PersonajeDetailPage() {
             )}
           </motion.div>
           <motion.div
-            className="order-1 flex flex-col items-start gap-5"
+            className="order-1 flex flex-col items-start gap-5 md:order-2"
             variants={containerVariants}
           >
             <motion.div
