@@ -37,6 +37,7 @@ import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeGaleria from '../components/PersonajeGaleria'
 import PersonajeImg from '../components/PersonajeImg'
+import ErrorBoundary from '../components/ErrorBoundary'
 import { hasCut } from '../lib/cuts'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
@@ -925,22 +926,28 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   }
   // Modo 3D activo: incluimos el chunk lazy del modelo + toggle para volver
   // a la imagen estática sin recargar la página.
+  // Fallback 2D compartido: se muestra mientras carga el chunk 3D (Suspense) y
+  // TAMBIÉN si la textura WebGL falla (ErrorBoundary) — p. ej. si el CDN de
+  // imágenes no envía CORS. Antes, una textura caída lanzaba en useLoader y, al
+  // no haber boundary local, subía a la ErrorBoundary global y tumbaba TODA la
+  // ficha ("La batalla se ha interrumpido"). Ahora degrada a la imagen estática.
+  const imagen2dFallback = (
+    <PersonajeImg
+      slug={slug}
+      src={fallbackUrl || imagenUrl}
+      alt={nombre}
+      loading="eager"
+      sizes="(min-width: 1024px) 520px, 90vw"
+      className="h-full w-full object-cover"
+    />
+  )
   return (
     <div className="relative h-full w-full">
-      <Suspense
-        fallback={
-          <PersonajeImg
-            slug={slug}
-            src={fallbackUrl || imagenUrl}
-            alt={nombre}
-            loading="eager"
-            sizes="(min-width: 1024px) 520px, 90vw"
-            className="h-full w-full object-cover"
-          />
-        }
-      >
-        <Personaje3D slug={slug} />
-      </Suspense>
+      <ErrorBoundary fallback={imagen2dFallback}>
+        <Suspense fallback={imagen2dFallback}>
+          <Personaje3D slug={slug} />
+        </Suspense>
+      </ErrorBoundary>
       <button
         type="button"
         onClick={() => setShow3D(false)}
