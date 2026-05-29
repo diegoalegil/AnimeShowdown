@@ -119,8 +119,8 @@ function PersonajeDetailPage() {
   )
   const [jikan, setJikan] = useState(null)
   const [cita, setCita] = useState(null)
-  // Imagen mostrada en el hero. Default = imagen del catálogo. La galería
-  // (PersonajeGaleria) actualiza este state al clickar una thumbnail.
+  // Imagen mostrada en el hero. Default = imagen del catálogo (la galería
+  // que permitía cambiarla se retiró; el state se conserva por el reset).
   // Reset al cambiar de slug usando el patrón "storing info from previous
   // renders" de React docs — evita el anti-patrón useEffect+setState que
   // dispara un render extra: https://react.dev/reference/react/useState
@@ -335,10 +335,9 @@ function PersonajeDetailPage() {
                   en consola. Cambio a static-first: imagen como default y
                   un botón 'Ver en 3D' monta el lazy chunk on-demand.
 
-                  Galería: la imagen del hero ahora
-                  es la del state `imagenActiva` que PersonajeGaleria
-                  cambia al hacer click en una thumbnail. PersonajeStaticOr3D
-                  recibe la URL como prop en vez de calcularla. */}
+                  La imagen del hero es la del state `imagenActiva`
+                  (hoy siempre la del catálogo, sin galería).
+                  PersonajeStaticOr3D recibe la URL como prop. */}
               <PersonajeStaticOr3D
                 imagenUrl={imagenActiva}
                 fallbackUrl={imagenCatalogo}
