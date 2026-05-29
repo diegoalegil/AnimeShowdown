@@ -117,18 +117,13 @@ export function VisualPageShell({
   lateralKanji,
   atmosphere,
 }) {
-  // shellImage (vertical 2:3) tiene preferencia sobre image (horizontal 16:9)
-  // cuando exista. Razón: el shell envuelve toda la sección de la página
-  // (200vh+ scrolleable). Una imagen 16:9 estirada para cubrir eso se
-  // recorta arriba y abajo dejando solo el centro vertical. Una imagen
-  // 2:3 portrait encaja nativamente con el flow vertical de la página.
-  const image = visual?.shellImage || visualImage(visual)
-  const hasShellImage = Boolean(visual?.shellImage)
-  // Si hay shellImage vertical → anchor al top (se ve la parte de arriba
-  // nítida cuando carga, el fade hacia bottom queda detrás del scroll).
-  // Si solo hay imagen horizontal → usar el objectPosition del visual.
-  const shellBackgroundPosition =
-    visual?.shellObjectPosition ?? (hasShellImage ? 'center top' : 'center center')
+  // V-1: el fondo de stage ya NO usa foto. Los composites WebP de
+  // `/img/stage/*` se veían pixelados en pantalla grande/retina en casi toda
+  // la plataforma (menos el Home, que es procedural). Se sustituyen por un
+  // fondo procedural —aurora carmesí/oro animada + malla radial + partículas
+  // + kanji— nítido a cualquier resolución, de peso ~0 y coherente con el
+  // Home. Los campos visual.shellImage/shellOpacity/shellObjectPosition
+  // quedan sin efecto en el shell (siguen usándose en EditorialCover/hero).
   // atmosphere puede venir como:
   // - string ('demon-slayer', 'arena', etc.) → render AtmospherePreset
   // - React node directo → render tal cual
@@ -156,27 +151,32 @@ export function VisualPageShell({
         '--visual-glow': visual?.glowRgb ?? '197 161 90',
       }}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url("${image}")`,
-          backgroundPosition: shellBackgroundPosition,
-          backgroundSize: 'cover',
-          // Opacity dinámica por visual: para composiciones visualmente
-          // densas (anime-catalog con muchos carteles, ranking con haz
-          // dorado central intenso), se baja a 0.30-0.45 para que respire.
-          opacity: visual?.shellOpacity ?? 0.75,
-        }}
-      />
-      {/* Vignette progresiva hacia abajo: la imagen respira arriba y el texto
-          queda legible abajo. */}
+      {/* Base oscura + aurora procedural carmesí/oro (motor del Home),
+          teñida por --visual-accent/--visual-glow para mantener la identidad
+          de color de cada sección. */}
+      <div aria-hidden="true" className="absolute inset-0 bg-bg" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute -left-[15%] -top-[18%] h-[42rem] w-[42rem] rounded-full opacity-25 blur-3xl motion-safe:animate-aurora-1"
+          style={{ background: 'rgb(var(--visual-accent) / 1)' }}
+        />
+        <div
+          className="absolute -right-[12%] top-[6%] h-[34rem] w-[34rem] rounded-full opacity-[0.16] blur-3xl motion-safe:animate-aurora-2"
+          style={{ background: 'rgb(var(--visual-glow) / 1)' }}
+        />
+        <div
+          className="absolute -bottom-[22%] left-[28%] h-[38rem] w-[38rem] rounded-full opacity-[0.12] blur-3xl motion-safe:animate-aurora-1"
+          style={{ background: 'rgb(var(--visual-accent) / 1)' }}
+        />
+      </div>
+      {/* Vignette progresiva hacia abajo + acentos radiales: el fondo respira
+          arriba y el texto queda legible abajo. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgb(7 10 18 / 0.42) 0%, rgb(7 10 18 / 0.78) 55%, rgb(7 10 18 / 0.94) 100%), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.20), transparent 30rem), radial-gradient(circle at 82% 0%, rgb(var(--visual-glow) / 0.10), transparent 26rem)',
+            'linear-gradient(180deg, rgb(7 10 18 / 0.30) 0%, rgb(7 10 18 / 0.72) 58%, rgb(7 10 18 / 0.92) 100%), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.16), transparent 30rem), radial-gradient(circle at 82% 0%, rgb(var(--visual-glow) / 0.10), transparent 26rem)',
         }}
       />
       <ParticleLayer density={density} />
