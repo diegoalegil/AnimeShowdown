@@ -75,10 +75,17 @@
   --ease-lift: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-brush: cubic-bezier(0.65, 0.05, 0.36, 1);
 
-  /* Radios base del sistema (Tailwind mantiene rounded-lg/xl/full/etc.).
-     --radius-card: superficie de panel/card. --radius-pill: chips y badges. */
-  --radius-card: 0.875rem;
-  --radius-pill: 9999px;
+  /* Radios — escala formalizada (B6). Valores explícitos = los de Tailwind v4
+     (cero cambio visual); aquí quedan documentados y en un solo sitio. Suelo del
+     sistema = 8px (rounded-lg): no usamos rounded-sm/md ni el rounded suelto (4/6px).
+     --radius-card es el radio canónico de superficie de contenido (= rounded-2xl,
+     16px); --radius-pill ≡ rounded-full (chips, badges, botones redondeados). */
+  --radius-lg: 0.5rem;   /* 8px  — suelo: inputs, chips internos, miniaturas */
+  --radius-xl: 0.75rem;  /* 12px — secundarios: dropdowns, filas, cajas internas */
+  --radius-2xl: 1rem;    /* 16px — superficie de card/panel de contenido */
+  --radius-3xl: 1.5rem;  /* 24px — secciones / heros grandes */
+  --radius-card: 1rem;   /* 16px — alias semántico de superficie (= rounded-2xl) */
+  --radius-pill: 9999px; /* ≡ rounded-full */
 
   /* ============================================================
      Sistema de sombras (B2) — escala única que sustituye ~85 recetas
@@ -445,7 +452,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     border: 1px solid rgb(197 161 90 / 0.42);
     background: linear-gradient(135deg, rgb(159 29 44 / 0.16), rgb(197 161 90 / 0.10));
     padding: 0.38rem 0.9rem;
@@ -526,7 +533,7 @@
   .as-lazy-placeholder__media {
     position: absolute;
     inset: 0 0 3.75rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-xl);
     background:
       linear-gradient(180deg, rgb(255 255 255 / 0.055), rgb(255 255 255 / 0.015)),
       radial-gradient(circle at 50% 20%, rgb(197 161 90 / 0.16), transparent 12rem);
@@ -539,7 +546,7 @@
     display: block;
     height: 0.7rem;
     width: min(62%, 18rem);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: rgb(255 255 255 / 0.11);
   }
 
@@ -912,7 +919,7 @@
 
   ::-webkit-scrollbar-thumb {
     background: var(--color-surface-alt);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     border: 2px solid var(--color-bg);
   }
 
