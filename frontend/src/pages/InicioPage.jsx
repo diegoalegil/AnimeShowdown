@@ -568,7 +568,7 @@ function SectionRetosDiarios() {
                   {r.kanji}
                 </span>
                 <div
-                  className={`relative z-10 mt-auto flex h-12 w-12 items-center justify-center rounded-lg border-2 backdrop-blur transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_28px_-6px_currentColor] ${colorClasses}`}
+                  className={`relative z-10 mt-auto flex h-12 w-12 items-center justify-center rounded-lg border-2 backdrop-blur transition-all duration-300 group-hover:scale-105 group-hover:shadow-aura [--aura-color:currentColor] ${colorClasses}`}
                 >
                   <span lang="ja" className="font-mono text-2xl font-extrabold">
                     {r.kanji}

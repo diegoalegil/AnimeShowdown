@@ -241,7 +241,7 @@ const tipoStyle = {
   },
   BADGE_DESBLOQUEADO: {
     item: 'border-gold/30 bg-gradient-to-r from-gold/12 via-surface to-surface hover:border-gold/60 hover:from-gold/18',
-    icon: 'border-gold/30 bg-gold/15 text-gold shadow-[0_0_18px_-8px_rgba(251,191,36,0.9)]',
+    icon: 'border-gold/30 bg-gold/15 text-gold shadow-aura-sm [--aura-color:rgb(251_191_36_/_0.9)]',
     unread: 'bg-gold',
   },
   TORNEO_APROBADO: {

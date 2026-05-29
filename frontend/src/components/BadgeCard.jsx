@@ -28,21 +28,21 @@ const RAREZA_STYLE = {
   2: {
     nombre: 'Poco común',
     borde: 'border-rarity-uncommon/50',
-    glow: 'shadow-[0_0_16px_-4px_rgb(16,185,129,0.45)]',
+    glow: 'shadow-aura-sm [--aura-color:rgb(16_185_129_/_0.45)]',
     icono: 'text-rarity-uncommon',
     chip: 'bg-rarity-uncommon/10 text-rarity-uncommon',
   },
   3: {
     nombre: 'Raro',
     borde: 'border-rarity-rare/50',
-    glow: 'shadow-[0_0_16px_-4px_rgb(56,189,248,0.5)]',
+    glow: 'shadow-aura-sm [--aura-color:rgb(56_189_248_/_0.5)]',
     icono: 'text-rarity-rare',
     chip: 'bg-rarity-rare/10 text-rarity-rare',
   },
   4: {
     nombre: 'Épico',
     borde: 'border-rarity-epic/55',
-    glow: 'shadow-[0_0_18px_-4px_rgb(168,85,247,0.55)]',
+    glow: 'shadow-aura-sm [--aura-color:rgb(168_85_247_/_0.55)]',
     icono: 'text-rarity-epic',
     chip: 'bg-rarity-epic/10 text-rarity-epic',
   },
@@ -50,7 +50,7 @@ const RAREZA_STYLE = {
     nombre: 'Legendario',
     borde: 'border-rarity-legendary/60',
     // Glow doble + animado para legendarios — el premio mayor del catálogo.
-    glow: 'shadow-[0_0_24px_-4px_rgb(251,191,36,0.65)] animate-pulse-halo',
+    glow: 'shadow-aura-sm [--aura-color:rgb(251_191_36_/_0.65)] animate-pulse-halo',
     icono: 'text-rarity-legendary',
     chip: 'bg-rarity-legendary/15 text-rarity-legendary',
   },

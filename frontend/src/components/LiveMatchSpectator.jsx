@@ -54,7 +54,7 @@ function LiveMatchSpectator({ torneo }) {
 
   return (
     <section
-      className="mb-10 overflow-hidden rounded-2xl border border-success/25 bg-surface/95 shadow-[0_18px_55px_rgba(16,185,129,0.08)]"
+      className="mb-10 overflow-hidden rounded-2xl border border-success/25 bg-surface/95 shadow-lift [--aura-color:rgb(16_185_129_/_0.12)]"
       aria-label="Modo espectador del torneo en directo"
     >
       <div className="flex flex-col gap-4 border-b border-border bg-bg/70 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
