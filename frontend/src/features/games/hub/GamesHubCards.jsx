@@ -41,10 +41,10 @@ export function CardDestacado({ game, estado }) {
             </span>
           )}
         </div>
-        <h3 className="text-2xl font-extrabold leading-tight text-fg-strong drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] sm:text-4xl">
+        <h3 className="text-2xl font-extrabold leading-tight text-fg-strong drop-shadow-scrim-lg sm:text-4xl">
           {game.titulo}
         </h3>
-        <p className="max-w-lg text-[13px] text-fg-muted drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] sm:text-sm">
+        <p className="max-w-lg text-[13px] text-fg-muted drop-shadow-scrim-sm sm:text-sm">
           {game.desc}
         </p>
         <p className={`inline-flex items-center gap-1 text-[12px] font-semibold ${theme.text}`}>
@@ -100,10 +100,10 @@ export function CardMini({ game, estado }) {
             </span>
           )}
         </div>
-        <h3 className="truncate text-base font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] group-hover:text-gold">
+        <h3 className="truncate text-base font-bold text-fg-strong drop-shadow-scrim group-hover:text-gold">
           {game.titulo}
         </h3>
-        <p className="line-clamp-2 text-[12px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
+        <p className="line-clamp-2 text-[12px] text-fg-muted drop-shadow-scrim-sm">
           {game.desc}
         </p>
         <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-fg-muted/90">
@@ -141,10 +141,10 @@ export function OmikujiCard() {
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold/90">
           Ritual diario
         </p>
-        <h3 className="mt-1 text-lg font-bold text-fg-strong drop-shadow-[0_2px_5px_rgba(0,0,0,0.85)] group-hover:text-gold sm:text-xl">
+        <h3 className="mt-1 text-lg font-bold text-fg-strong drop-shadow-scrim group-hover:text-gold sm:text-xl">
           Omikuji diario
         </h3>
-        <p className="mt-1 text-[13px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.75)]">
+        <p className="mt-1 text-[13px] text-fg-muted drop-shadow-scrim-sm">
           Tira tu suerte del día al estilo de los santuarios japoneses.
         </p>
       </div>

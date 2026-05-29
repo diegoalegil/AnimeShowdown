@@ -74,11 +74,11 @@ function EventoHeadlineBanner() {
             <span aria-hidden="true" className="text-xl sm:text-2xl">
               {evento.emoji}
             </span>
-            <h3 className="text-lg font-extrabold text-fg-strong drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:text-xl">
+            <h3 className="text-lg font-extrabold text-fg-strong drop-shadow-scrim sm:text-xl">
               {evento.titulo}
             </h3>
           </div>
-          <p className="line-clamp-2 text-[13px] text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
+          <p className="line-clamp-2 text-[13px] text-fg-muted drop-shadow-scrim-sm">
             {evento.descripcionCorta} · {participantes} personajes
           </p>
         </div>
