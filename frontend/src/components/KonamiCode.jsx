@@ -94,15 +94,15 @@ function KonamiCode() {
             'repeating-linear-gradient(0deg, rgba(0,255,170,0.04) 0px, rgba(0,255,170,0.04) 1px, transparent 1px, transparent 4px)',
         }}
       />
-      <div className="pointer-events-none rounded-2xl border-4 border-emerald-400 bg-emerald-500/10 px-10 py-8 text-center font-mono shadow-[0_0_60px_rgba(0,255,170,0.4)] backdrop-blur-sm">
-        <Sparkles className="mx-auto mb-2 h-8 w-8 text-emerald-300" />
-        <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-300/80">
+      <div className="pointer-events-none rounded-2xl border-4 border-success bg-success/10 px-10 py-8 text-center font-mono shadow-[0_0_60px_rgba(0,255,170,0.4)] backdrop-blur-sm">
+        <Sparkles className="mx-auto mb-2 h-8 w-8 text-success" />
+        <p className="text-[11px] uppercase tracking-[0.3em] text-success/80">
           Cheat code activado
         </p>
-        <p className="mt-2 text-2xl font-bold text-emerald-200">
+        <p className="mt-2 text-2xl font-bold text-success">
           ↑↑↓↓←→←→BA
         </p>
-        <p className="mt-3 text-[12px] text-emerald-300/70">
+        <p className="mt-3 text-[12px] text-success/70">
           Modo arcade · {Math.ceil(8 - 0)}s
         </p>
       </div>

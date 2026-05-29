@@ -757,7 +757,7 @@ function PersonajesPage() {
                           eloMin: value === eloBounds.min ? null : value,
                         })
                       }}
-                      className="mt-2 w-full accent-amber-400"
+                      className="mt-2 w-full accent-gold"
                     />
                   </label>
                   <label className="block text-[11px] font-semibold text-fg-muted">
@@ -774,7 +774,7 @@ function PersonajesPage() {
                           eloMax: value === eloBounds.max ? null : value,
                         })
                       }}
-                      className="mt-2 w-full accent-amber-400"
+                      className="mt-2 w-full accent-gold"
                     />
                   </label>
                 </fieldset>

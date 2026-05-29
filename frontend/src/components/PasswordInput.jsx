@@ -23,7 +23,7 @@ const PasswordInput = forwardRef(function PasswordInput(
         type={visible ? 'text' : 'password'}
         {...rest}
         className={`w-full rounded-lg border bg-bg py-2.5 pl-3.5 pr-12 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-          error ? 'border-red-500' : 'border-border'
+          error ? 'border-danger' : 'border-border'
         } ${className}`}
       />
       <button

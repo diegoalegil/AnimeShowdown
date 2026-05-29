@@ -110,7 +110,7 @@ function configPorTipo(item) {
     case 'LOGRO':
       return {
         icon: Award,
-        color: 'bg-amber-500/15 text-amber-300',
+        color: 'bg-gold/15 text-gold',
         contenido: (
           <>
             Desbloqueaste{' '}
@@ -123,7 +123,7 @@ function configPorTipo(item) {
     case 'TORNEO_CREADO':
       return {
         icon: Trophy,
-        color: 'bg-fuchsia-500/15 text-fuchsia-300',
+        color: 'bg-rarity-epic/15 text-rarity-epic',
         contenido: (
           <>
             Creaste el torneo{' '}
@@ -146,7 +146,7 @@ function configPorTipo(item) {
     case 'PREDICCION_ACERTADA':
       return {
         icon: Target,
-        color: 'bg-emerald-500/15 text-emerald-300',
+        color: 'bg-success/15 text-success',
         contenido: (
           <>
             Acertaste predicción:{' '}

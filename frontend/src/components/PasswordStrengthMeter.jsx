@@ -16,11 +16,11 @@
 
 const ETIQUETAS = ['Muy débil', 'Débil', 'Aceptable', 'Buena', 'Excelente']
 const COLORES = [
-  'bg-red-500',
-  'bg-orange-500',
-  'bg-yellow-500',
-  'bg-emerald-500',
-  'bg-emerald-400',
+  'bg-danger',
+  'bg-medal-bronze',
+  'bg-medal-gold',
+  'bg-success',
+  'bg-success',
 ]
 
 // eslint-disable-next-line react-refresh/only-export-components

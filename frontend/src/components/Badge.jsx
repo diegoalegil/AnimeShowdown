@@ -3,9 +3,9 @@ function cx(...classes) {
 }
 
 const variants = {
-  ok: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
-  warn: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
-  err: 'border-rose-500/40 bg-rose-500/10 text-rose-300',
+  ok: 'border-success/40 bg-success/10 text-success',
+  warn: 'border-warning/40 bg-warning/10 text-warning',
+  err: 'border-danger/40 bg-danger/10 text-danger',
   info: 'border-border bg-surface text-fg-muted',
 }
 

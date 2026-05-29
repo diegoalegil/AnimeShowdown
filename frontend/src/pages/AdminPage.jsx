@@ -245,7 +245,7 @@ function FormPersonaje() {
           {isSubmitting ? 'Creando…' : 'Crear personaje'}
         </button>
         {error && (
-          <p className="sm:col-span-2 text-[12px] text-red-400">{error}</p>
+          <p className="sm:col-span-2 text-[12px] text-danger">{error}</p>
         )}
       </form>
     </div>
@@ -317,7 +317,7 @@ function FormTorneo() {
         >
           {isSubmitting ? 'Creando…' : 'Crear torneo'}
         </button>
-        {error && <p className="text-[12px] text-red-400">{error}</p>}
+        {error && <p className="text-[12px] text-danger">{error}</p>}
       </form>
     </div>
   )
@@ -338,11 +338,11 @@ function Field({ label, name, register, rules, errors, placeholder, fullWidth })
         {...register(name, rules)}
         placeholder={placeholder}
         className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-          errors[name] ? 'border-red-500' : 'border-border'
+          errors[name] ? 'border-danger' : 'border-border'
         }`}
       />
       {errors[name] && (
-        <p className="text-[11px] text-red-400">{errors[name].message}</p>
+        <p className="text-[11px] text-danger">{errors[name].message}</p>
       )}
     </div>
   )

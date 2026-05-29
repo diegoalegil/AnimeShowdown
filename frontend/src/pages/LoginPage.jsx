@@ -189,12 +189,12 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
               minLength: { value: 3, message: 'Mínimo 3 caracteres' },
             })}
             className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.identificador ? 'border-red-500' : 'border-border'
+              errors.identificador ? 'border-danger' : 'border-border'
             }`}
             placeholder="Tu username o tu email"
           />
           {errors.identificador && (
-            <p id="identificador-error" className="text-[12px] text-red-400">
+            <p id="identificador-error" className="text-[12px] text-danger">
               {errors.identificador.message}
             </p>
           )}
@@ -219,13 +219,13 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
             })}
           />
           {errors.password && (
-            <p id="login-password-error" className="text-[12px] text-red-400">
+            <p id="login-password-error" className="text-[12px] text-danger">
               {errors.password.message}
             </p>
           )}
         </div>
         {errors.root && (
-          <p role="alert" className="text-[12px] text-red-400">
+          <p role="alert" className="text-[12px] text-danger">
             {errors.root.message}
           </p>
         )}
@@ -300,7 +300,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
   return (
     <>
       <div className="mb-6 flex flex-col items-start gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-emerald-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-success">
           <ShieldCheck className="h-3.5 w-3.5" />
           Verificación en dos pasos
         </span>
@@ -340,12 +340,12 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
               minLength: { value: 6, message: 'Mínimo 6 caracteres' },
             })}
             className={`rounded-lg border bg-bg px-3.5 py-3 text-center font-mono text-2xl tracking-[0.4em] text-fg-strong placeholder:text-fg-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.codigo ? 'border-red-500' : 'border-border'
+              errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456 o ABCD-EFGHJK"
           />
           {errors.codigo && (
-            <p id="codigo-error" className="text-[12px] text-red-400">
+            <p id="codigo-error" className="text-[12px] text-danger">
               {errors.codigo.message}
             </p>
           )}
@@ -357,7 +357,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
         <div className="flex items-center justify-between text-[12px] text-fg-muted">
           <span>
             Caduca en{' '}
-            <span className={segundos <= 10 ? 'font-bold text-rose-400' : 'font-bold text-fg-strong'}>
+            <span className={segundos <= 10 ? 'font-bold text-danger' : 'font-bold text-fg-strong'}>
               {segundos}s
             </span>
           </span>

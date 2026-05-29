@@ -343,10 +343,10 @@ function EditorialPodium({ top3 }) {
 function PodiumCard({ personaje, rank, featured = false, className = '' }) {
   const tone =
     rank === 1
-      ? 'border-yellow-400/65 bg-yellow-500/10 text-yellow-300'
+      ? 'border-medal-gold/65 bg-medal-gold/10 text-medal-gold'
       : rank === 2
         ? 'border-zinc-300/45 bg-zinc-400/10 text-zinc-200'
-        : 'border-orange-400/45 bg-orange-500/10 text-orange-300'
+        : 'border-medal-bronze/45 bg-medal-bronze/10 text-medal-bronze'
   return (
     <Link
       to={`/personajes/${personaje.slug}`}

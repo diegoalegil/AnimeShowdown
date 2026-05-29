@@ -175,12 +175,12 @@ function RegisterPage() {
               aria-describedby={errors.username ? 'username-error' : undefined}
               {...register('username')}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.username ? 'border-red-500' : 'border-border'
+                errors.username ? 'border-danger' : 'border-border'
               }`}
               placeholder="Elige un nombre de usuario"
             />
             {errors.username && (
-              <p id="username-error" className="text-[12px] text-red-400">
+              <p id="username-error" className="text-[12px] text-danger">
                 {errors.username.message}
               </p>
             )}
@@ -200,12 +200,12 @@ function RegisterPage() {
               aria-describedby={errors.email ? 'email-error' : undefined}
               {...register('email')}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.email ? 'border-red-500' : 'border-border'
+                errors.email ? 'border-danger' : 'border-border'
               }`}
               placeholder="tu@correo.com"
             />
             {errors.email && (
-              <p id="email-error" className="text-[12px] text-red-400">{errors.email.message}</p>
+              <p id="email-error" className="text-[12px] text-danger">{errors.email.message}</p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
@@ -225,7 +225,7 @@ function RegisterPage() {
               {...register('password')}
             />
             {errors.password && (
-              <p id="password-error" className="text-[12px] text-red-400">
+              <p id="password-error" className="text-[12px] text-danger">
                 {errors.password.message}
               </p>
             )}
@@ -248,7 +248,7 @@ function RegisterPage() {
               {...register('confirmPassword')}
             />
             {errors.confirmPassword && (
-              <p id="confirmPassword-error" className="text-[12px] text-red-400">
+              <p id="confirmPassword-error" className="text-[12px] text-danger">
                 {errors.confirmPassword.message}
               </p>
             )}
@@ -275,13 +275,13 @@ function RegisterPage() {
               placeholder="Si un amigo te invitó…"
             />
             {errors.referralCode && (
-              <p id="referralCode-error" className="text-[12px] text-red-400">
+              <p id="referralCode-error" className="text-[12px] text-danger">
                 {errors.referralCode.message}
               </p>
             )}
           </div>
           {errors.root && (
-            <p role="alert" className="text-[12px] text-red-400">{errors.root.message}</p>
+            <p role="alert" className="text-[12px] text-danger">{errors.root.message}</p>
           )}
           {/* Antes: disabled={isSubmitting || !isValid}. El !isValid bloqueaba
               el submit hasta que react-hook-form considerara el form válido,

@@ -119,14 +119,14 @@ function CardReferral() {
           <div
             className={`h-full rounded-full transition-all duration-700 ${
               data.reclutadorDesbloqueado
-                ? 'bg-gradient-to-r from-emerald-400 to-emerald-300'
-                : 'bg-gradient-to-r from-accent via-fuchsia-400 to-purple-400'
+                ? 'bg-gradient-to-r from-success to-success'
+                : 'bg-gradient-to-r from-accent via-rarity-epic to-rarity-epic'
             }`}
             style={{ width: `${progresoPct}%` }}
           />
         </div>
         {data.reclutadorDesbloqueado && (
-          <p className="mt-2 text-[11px] text-emerald-300">
+          <p className="mt-2 text-[11px] text-success">
             ✓ Badge Reclutador desbloqueado. Cada referido extra cuenta
             para futuras tiers.
           </p>

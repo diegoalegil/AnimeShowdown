@@ -130,7 +130,7 @@ function AssetCoveragePanel() {
       </div>
 
       {!data?.filesystemAvailable && (
-        <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-sm text-amber-100">
+        <div className="rounded-xl border border-gold/40 bg-gold/10 p-4 text-sm text-gold">
           El backend no encontró la carpeta local del frontend. La cobertura se
           mostrará completa en entornos donde el repo esté disponible en disco.
         </div>
@@ -168,7 +168,7 @@ function AssetCoveragePanel() {
                 </p>
                 <Icon
                   className={`h-4 w-4 ${
-                    isHealthy ? 'text-emerald-300' : 'text-amber-200'
+                    isHealthy ? 'text-success' : 'text-gold'
                   }`}
                 />
               </div>
@@ -309,10 +309,10 @@ function AssetCoveragePanel() {
               <span className="font-mono text-fg-muted">
                 {bucket.totalSlots}
               </span>
-              <span className="font-mono text-emerald-300">
+              <span className="font-mono text-success">
                 {bucket.realAssets}
               </span>
-              <span className="font-mono text-amber-200">
+              <span className="font-mono text-gold">
                 {bucket.fallbackSlots}
               </span>
             </div>

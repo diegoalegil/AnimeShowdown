@@ -376,7 +376,7 @@ function PersonajeDetailPage() {
             >
               {rankGlobal <= 100 && (
                 <span
-                  className="inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-200"
+                  className="inline-flex items-center gap-1 rounded-full border border-medal-gold/40 bg-medal-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-medal-gold"
                   title="Ranking del catálogo según ELO base estimado (popularidad). El ranking competitivo real vive en /ranking."
                 >
                   <Trophy className="h-3 w-3" />

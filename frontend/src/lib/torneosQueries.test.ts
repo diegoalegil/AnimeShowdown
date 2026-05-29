@@ -23,8 +23,8 @@ describe('ESTADO_BADGE', () => {
   it('exports IN_PROGRESS mapping', () => {
     expect(ESTADO_BADGE.IN_PROGRESS).toEqual({
       label: 'En curso',
-      dot: 'bg-emerald-400',
-      color: 'text-emerald-400',
+      dot: 'bg-success',
+      color: 'text-success',
     })
   })
 

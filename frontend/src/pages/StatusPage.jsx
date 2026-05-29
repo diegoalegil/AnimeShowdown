@@ -30,8 +30,8 @@ function statusTone(status) {
     return {
       label: 'Operativo',
       icon: CheckCircle2,
-      className: 'border-emerald-400/45 bg-emerald-400/10 text-emerald-200',
-      dot: 'bg-emerald-300',
+      className: 'border-success/45 bg-success/10 text-success',
+      dot: 'bg-success',
     }
   }
   if (status === 'DEGRADED') {

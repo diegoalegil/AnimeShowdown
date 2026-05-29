@@ -235,24 +235,24 @@ function enlaceDeNotif(notif) {
 
 const tipoStyle = {
   BIENVENIDA: {
-    item: 'border-emerald-500/25 bg-gradient-to-r from-emerald-500/10 via-surface to-surface hover:border-emerald-400/50',
-    icon: 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300',
-    unread: 'bg-emerald-300',
+    item: 'border-success/25 bg-gradient-to-r from-success/10 via-surface to-surface hover:border-success/50',
+    icon: 'border-success/30 bg-success/15 text-success',
+    unread: 'bg-success',
   },
   BADGE_DESBLOQUEADO: {
-    item: 'border-amber-500/30 bg-gradient-to-r from-amber-500/12 via-surface to-surface hover:border-amber-400/60 hover:from-amber-500/18',
-    icon: 'border-amber-400/30 bg-amber-500/15 text-amber-300 shadow-[0_0_18px_-8px_rgba(251,191,36,0.9)]',
-    unread: 'bg-amber-300',
+    item: 'border-gold/30 bg-gradient-to-r from-gold/12 via-surface to-surface hover:border-gold/60 hover:from-gold/18',
+    icon: 'border-gold/30 bg-gold/15 text-gold shadow-[0_0_18px_-8px_rgba(251,191,36,0.9)]',
+    unread: 'bg-gold',
   },
   TORNEO_APROBADO: {
-    item: 'border-emerald-500/25 bg-gradient-to-r from-emerald-500/10 via-surface to-surface hover:border-emerald-400/50',
-    icon: 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300',
-    unread: 'bg-emerald-300',
+    item: 'border-success/25 bg-gradient-to-r from-success/10 via-surface to-surface hover:border-success/50',
+    icon: 'border-success/30 bg-success/15 text-success',
+    unread: 'bg-success',
   },
   TORNEO_RECHAZADO: {
-    item: 'border-rose-500/25 bg-gradient-to-r from-rose-500/10 via-surface to-surface hover:border-rose-400/50',
-    icon: 'border-rose-400/30 bg-rose-500/15 text-rose-300',
-    unread: 'bg-rose-300',
+    item: 'border-danger/25 bg-gradient-to-r from-danger/10 via-surface to-surface hover:border-danger/50',
+    icon: 'border-danger/30 bg-danger/15 text-danger',
+    unread: 'bg-danger',
   },
   TORNEO_INICIADO: {
     item: 'border-accent/25 bg-gradient-to-r from-accent/10 via-surface to-surface hover:border-accent/50',
@@ -265,14 +265,14 @@ const tipoStyle = {
     unread: 'bg-accent',
   },
   SEGUIDOR_NUEVO: {
-    item: 'border-sky-500/25 bg-gradient-to-r from-sky-500/10 via-surface to-surface hover:border-sky-400/50',
-    icon: 'border-sky-400/30 bg-sky-500/15 text-sky-300',
-    unread: 'bg-sky-300',
+    item: 'border-info/25 bg-gradient-to-r from-info/10 via-surface to-surface hover:border-info/50',
+    icon: 'border-info/30 bg-info/15 text-info',
+    unread: 'bg-info',
   },
   SISTEMA: {
-    item: 'border-violet-500/25 bg-gradient-to-r from-violet-500/10 via-surface to-surface hover:border-violet-400/50',
-    icon: 'border-violet-400/30 bg-violet-500/15 text-violet-300',
-    unread: 'bg-violet-300',
+    item: 'border-rarity-epic/25 bg-gradient-to-r from-rarity-epic/10 via-surface to-surface hover:border-rarity-epic/50',
+    icon: 'border-rarity-epic/30 bg-rarity-epic/15 text-rarity-epic',
+    unread: 'bg-rarity-epic',
   },
   DEFAULT: {
     item: 'border-border bg-surface hover:border-accent/30 hover:bg-bg/60',

@@ -102,12 +102,12 @@ function ResetPasswordPage() {
                 },
               })}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.email ? 'border-red-500' : 'border-border'
+                errors.email ? 'border-danger' : 'border-border'
               }`}
               placeholder="tu@correo.com"
             />
             {errors.email && (
-              <p className="text-[12px] text-red-400">{errors.email.message}</p>
+              <p className="text-[12px] text-danger">{errors.email.message}</p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
@@ -131,12 +131,12 @@ function ResetPasswordPage() {
                 },
               })}
               className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-                errors.codigo ? 'border-red-500' : 'border-border'
+                errors.codigo ? 'border-danger' : 'border-border'
               }`}
               placeholder="000000"
             />
             {errors.codigo && (
-              <p className="text-[12px] text-red-400">
+              <p className="text-[12px] text-danger">
                 {errors.codigo.message}
               </p>
             )}
@@ -163,7 +163,7 @@ function ResetPasswordPage() {
               })}
             />
             {errors.newPassword && (
-              <p className="text-[12px] text-red-400">
+              <p className="text-[12px] text-danger">
                 {errors.newPassword.message}
               </p>
             )}
@@ -188,13 +188,13 @@ function ResetPasswordPage() {
               })}
             />
             {errors.confirmPassword && (
-              <p className="text-[12px] text-red-400">
+              <p className="text-[12px] text-danger">
                 {errors.confirmPassword.message}
               </p>
             )}
           </div>
           {errors.root && (
-            <p role="alert" className="text-[12px] text-red-400">{errors.root.message}</p>
+            <p role="alert" className="text-[12px] text-danger">{errors.root.message}</p>
           )}
           <button
             type="submit"

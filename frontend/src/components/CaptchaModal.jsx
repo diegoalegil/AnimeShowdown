@@ -96,7 +96,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
             setStatus('error')
             setErrorMessage('El widget de captcha falló. Reintenta en unos segundos.')
           },
-          'expired-callback': () => {
+          'expidangercallback': () => {
             // El token caducó antes de validarlo. Resetear el widget
             // para que el usuario pueda volver a resolverlo.
             if (widgetIdRef.current && window.turnstile?.reset) {
@@ -157,7 +157,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
       </p>
       <div className="mt-5 flex min-h-[80px] items-center justify-center">
         {sitekeyAusente && (
-          <p className="text-center text-sm text-rose-300">
+          <p className="text-center text-sm text-danger">
             El captcha no está configurado en producción todavía. Vuelve a
             intentar más tarde.
           </p>
@@ -166,7 +166,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
           <p className="text-sm text-fg-muted">Cargando captcha…</p>
         )}
         {!sitekeyAusente && status === 'error' && (
-          <p className="text-center text-sm text-rose-300">
+          <p className="text-center text-sm text-danger">
             {errorMessage ||
               'No se pudo cargar el captcha. Si el problema persiste, recarga la página.'}
           </p>

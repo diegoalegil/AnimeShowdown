@@ -44,14 +44,14 @@ function EmailVerifyBanner() {
 
   return (
     <div
-      className="sticky top-16 z-30 border-b border-amber-500/30 bg-amber-500/10 backdrop-blur"
+      className="sticky top-16 z-30 border-b border-warning/30 bg-warning/10 backdrop-blur"
       role="status"
     >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-5 py-2.5 sm:px-8">
-        <MailWarning className="h-4 w-4 shrink-0 text-amber-400" aria-hidden="true" />
-        <p className="flex-1 text-[13px] text-amber-100">
+        <MailWarning className="h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+        <p className="flex-1 text-[13px] text-warning">
           <span className="font-semibold">Verifica tu email</span>
-          <span className="text-amber-200/80">
+          <span className="text-warning/80">
             {' '}
             para poder votar. Revisa tu bandeja y pincha el enlace que te enviamos.
           </span>
@@ -60,7 +60,7 @@ function EmailVerifyBanner() {
           type="button"
           onClick={handleReenviar}
           disabled={reenviando || yaReenviado}
-          className="shrink-0 rounded-md border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[12px] font-semibold text-amber-100 transition-colors hover:bg-amber-400/20 disabled:opacity-50"
+          className="shrink-0 rounded-md border border-warning/40 bg-warning/10 px-3 py-1 text-[12px] font-semibold text-warning transition-colors hover:bg-warning/20 disabled:opacity-50"
         >
           {yaReenviado ? '✓ Enviado' : reenviando ? 'Enviando…' : 'Reenviar email'}
         </button>

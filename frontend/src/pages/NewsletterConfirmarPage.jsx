@@ -88,10 +88,10 @@ function NewsletterConfirmarPage() {
           </div>
         )}
         {estado.tipo === 'ok' && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-8 text-center">
-            <CheckCircle2 className="h-10 w-10 text-emerald-300" />
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-success/30 bg-success/5 p-8 text-center">
+            <CheckCircle2 className="h-10 w-10 text-success" />
             <h1 className="text-2xl tracking-tight">¡Listo!</h1>
-            <p className="text-[13px] text-emerald-200/80">{estado.mensaje}</p>
+            <p className="text-[13px] text-success/80">{estado.mensaje}</p>
             <Link
               to="/"
               className="mt-2 inline-flex items-center justify-center rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-accent-hover"
@@ -101,10 +101,10 @@ function NewsletterConfirmarPage() {
           </div>
         )}
         {estado.tipo === 'error' && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-500/5 p-8 text-center">
-            <XCircle className="h-10 w-10 text-rose-300" />
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 p-8 text-center">
+            <XCircle className="h-10 w-10 text-danger" />
             <h1 className="text-2xl tracking-tight">No se pudo confirmar</h1>
-            <p className="text-[13px] text-rose-200/80">{estado.mensaje}</p>
+            <p className="text-[13px] text-danger/80">{estado.mensaje}</p>
             <p className="text-[12px] text-fg-muted">
               Puedes volver a suscribirte desde el footer de cualquier página.
             </p>
