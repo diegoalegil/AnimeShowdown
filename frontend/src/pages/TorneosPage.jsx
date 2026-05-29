@@ -104,7 +104,7 @@ function TorneosPage() {
             user && (
               <Link
                 to="/torneos/crear"
-                className="inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_34px_-14px_var(--color-accent)] transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+                className="inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-aura transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
               >
                 <Sparkles className="h-4 w-4" />
                 {t('torneos.crearCta')}

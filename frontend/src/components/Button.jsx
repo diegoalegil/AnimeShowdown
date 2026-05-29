@@ -6,7 +6,7 @@ function cx(...classes) {
 
 const variants = {
   primary:
-    'border border-accent/55 bg-gradient-to-b from-accent-hover to-accent text-white shadow-[0_0_34px_-14px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] hover:-translate-y-0.5 hover:brightness-110',
+    'border border-accent/55 bg-gradient-to-b from-accent-hover to-accent text-white shadow-aura inset-shadow-hairline-strong hover:-translate-y-0.5 hover:brightness-110',
   secondary:
     'border border-white/12 bg-surface/60 text-fg-strong backdrop-blur-md hover:border-gold/55 hover:text-gold',
   ghost:

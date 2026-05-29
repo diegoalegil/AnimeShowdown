@@ -89,7 +89,7 @@ function VerifyPage() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full rounded-xl border border-border bg-surface/85 p-8 text-center backdrop-blur-md shadow-[0_0_60px_-30px_rgba(159,29,44,0.55)]"
+        className="w-full rounded-xl border border-border bg-surface/85 p-8 text-center backdrop-blur-md shadow-aura-lg"
       >
         {estado === 'verificando' && <Verificando />}
         {estado === 'ok' && <Exito />}

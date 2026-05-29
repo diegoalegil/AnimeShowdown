@@ -102,7 +102,7 @@ class ErrorBoundary extends Component {
         />
 
         <div className="relative z-10 flex min-h-[100svh] w-full items-center px-5 py-12 sm:px-10 lg:px-20">
-          <div className="w-full max-w-xl rounded-2xl border border-accent/42 bg-[#0b1018]/76 p-6 shadow-[0_0_88px_rgba(159,29,44,0.20),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-9">
+          <div className="w-full max-w-xl rounded-2xl border border-accent/42 bg-[#0b1018]/76 p-6 shadow-aura-lg inset-shadow-hairline [--aura-color:rgb(159_29_44_/_0.2)] backdrop-blur-xl sm:p-9">
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold shadow-[0_0_32px_rgba(197,161,90,0.18)]">
               <AlertTriangle className="h-6 w-6" />
             </span>
@@ -135,7 +135,7 @@ class ErrorBoundary extends Component {
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-[0_0_34px_-12px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-aura inset-shadow-hairline-strong transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 <RefreshCw className="h-4 w-4" />
                 Recargar página

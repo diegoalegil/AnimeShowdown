@@ -171,7 +171,7 @@ function CompararPage() {
             onClear={() => setSlot('a', '')}
           />
           <div className="flex items-center justify-center pt-0 md:pt-24">
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-accent/50 bg-accent-soft font-black text-gold shadow-[0_0_38px_rgb(159_29_44_/_0.25)]">
+            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-accent/50 bg-accent-soft font-black text-gold shadow-aura">
               VS
             </span>
           </div>

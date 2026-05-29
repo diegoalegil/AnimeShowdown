@@ -227,7 +227,7 @@ function PageLoader({ reserveClassName = '', alignTop = false }) {
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="as-panel relative flex min-w-64 flex-col items-center gap-5 rounded-2xl p-8 shadow-[0_0_80px_-32px_var(--color-accent)]">
+      <div className="as-panel relative flex min-w-64 flex-col items-center gap-5 rounded-2xl p-8 shadow-aura-lg">
         {/* Anillo accent rotando + kanji 勝 (victoria) dorado.
             Usamos motion-safe:* para que prefers-reduced-motion deje
             los layers estaticos sin marear a usuarios sensibles. */}

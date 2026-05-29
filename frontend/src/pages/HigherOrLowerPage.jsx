@@ -289,7 +289,7 @@ function ScoreBar({ score, best }) {
     <div
       className={`as-panel flex items-center justify-between gap-3 rounded-xl px-5 py-3 transition-all duration-300 ${
         cerca
-          ? 'border-accent/60 shadow-[0_0_40px_-12px_rgba(159,29,44,0.65)]'
+          ? 'border-accent/60 shadow-aura'
           : 'border-border'
       }`}
     >
