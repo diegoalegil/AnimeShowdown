@@ -145,7 +145,7 @@ function DueloVersusPage() {
         <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_auto_1fr]">
           <VersusHeroCard personaje={personajeA} stats={statsA} side="left" />
           <div className="flex items-center justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-lg font-black text-gold shadow-[0_0_40px_rgb(255_46_99_/_0.18)]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-lg font-black text-gold shadow-[0_0_40px_rgb(159_29_44_/_0.18)]">
               VS
             </div>
           </div>
@@ -193,7 +193,7 @@ function DueloVersusPage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-accent/30 bg-[linear-gradient(135deg,rgb(255_46_99_/_0.14),rgb(255_199_44_/_0.08),rgb(20_20_30_/_0.92))] p-5">
+          <section className="rounded-xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.14),rgb(255_199_44_/_0.08),rgb(20_20_30_/_0.92))] p-5">
             <div className="flex items-center gap-2 text-gold">
               <Trophy className="h-4 w-4" />
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em]">
@@ -336,7 +336,7 @@ function LocalVotePill({ personaje, count, highlighted }) {
 function VersusHeroCard({ personaje, stats, side }) {
   return (
     <article className="relative overflow-hidden rounded-2xl border border-border bg-surface">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgb(255_46_99_/_0.18),transparent_45%),linear-gradient(180deg,rgb(255_255_255_/_0.04),transparent)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgb(159_29_44_/_0.18),transparent_45%),linear-gradient(180deg,rgb(255_255_255_/_0.04),transparent)]" />
       <div className="relative grid gap-5 p-5 sm:grid-cols-[170px_1fr] sm:p-6">
         <div className={`mx-auto aspect-[2/3] w-full max-w-[210px] overflow-hidden rounded-xl border border-border bg-bg ${side === 'right' ? 'sm:order-2' : ''}`}>
           <PersonajeImg
