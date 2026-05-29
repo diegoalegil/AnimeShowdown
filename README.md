@@ -52,21 +52,17 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 |---|---|
 | [![Catálogo de personajes](docs/screenshots/personajes.webp)](https://animeshowdown.dev/personajes) | [![Catálogo de universos anime](docs/screenshots/animes.webp)](https://animeshowdown.dev/animes) |
 
-| Naruto | One Piece |
+| Universo Naruto | Anime Daily Trials |
 |---|---|
-| [![Detalle del universo Naruto](docs/screenshots/animes_naruto.webp)](https://animeshowdown.dev/animes/naruto) | [![Detalle del universo One Piece](docs/screenshots/animes_one_piece.webp)](https://animeshowdown.dev/animes/one-piece) |
+| [![Detalle del universo Naruto](docs/screenshots/animes_naruto.webp)](https://animeshowdown.dev/animes/naruto) | [![Hub de Anime Daily Trials](docs/screenshots/games.webp)](https://animeshowdown.dev/games) |
 
-| Anime Daily Trials | Torneos en vivo |
+| Torneos en vivo | Ficha de personaje |
 |---|---|
-| [![Hub de Anime Daily Trials](docs/screenshots/games.webp)](https://animeshowdown.dev/games) | [![Detalle de torneo con duelos abiertos](docs/screenshots/bracket.webp)](https://animeshowdown.dev/torneos/mha-heroes-vs-villains) |
+| [![Detalle de torneo con duelos abiertos](docs/screenshots/bracket.webp)](https://animeshowdown.dev/torneos/mha-heroes-vs-villains) | [![Ficha de personaje](docs/screenshots/personaje-detail.webp)](https://animeshowdown.dev/personajes/frieren) |
 
-| Ficha de personaje | API pública |
+| API pública | Modo TV |
 |---|---|
-| [![Ficha de personaje](docs/screenshots/personaje-detail.webp)](https://animeshowdown.dev/personajes/frieren) | [![Swagger UI de AnimeShowdown](docs/screenshots/swagger-overview.webp)](https://api.animeshowdown.dev/swagger-ui/index.html) |
-
-| Perfil privado | Modo TV |
-|---|---|
-| [![Perfil privado con progreso y rango](docs/screenshots/perfil.webp)](https://animeshowdown.dev/perfil) | [![Modo TV fullscreen de AnimeShowdown](docs/screenshots/tv-mode.webp)](https://animeshowdown.dev/tv) |
+| [![Swagger UI de AnimeShowdown](docs/screenshots/swagger-overview.webp)](https://api.animeshowdown.dev/swagger-ui/index.html) | [![Modo TV fullscreen de AnimeShowdown](docs/screenshots/tv-mode.webp)](https://animeshowdown.dev/tv) |
 
 ## Features
 
