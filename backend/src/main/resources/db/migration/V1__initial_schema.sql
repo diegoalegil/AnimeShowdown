@@ -7,7 +7,7 @@
 -- En BBDDs nuevas (dev, tests, instancias frescas): este script crea las
 -- 7 tablas desde cero.
 --
--- En BBDDs existentes (producción): NO se ejecuta. Flyway lo marca como
+-- En BBDDs existentes (Neon en prod): NO se ejecuta. Flyway lo marca como
 -- aplicado vía baseline-on-migrate=true al detectar tablas previas. Las
 -- siguientes migraciones (V2..Vn) sí correrán secuencialmente.
 --
