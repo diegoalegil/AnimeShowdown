@@ -563,7 +563,7 @@ function SectionRetosDiarios() {
                   aria-hidden="true"
                   lang="ja"
                   className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[6rem] leading-none opacity-[0.18] transition-all duration-500 group-hover:opacity-[0.30] group-hover:-translate-y-1 ${textColor}`}
-                  style={{ textShadow: '0 0 45px currentColor' }}
+                  style={{ textShadow: 'var(--text-shadow-glow)' }}
                 >
                   {r.kanji}
                 </span>

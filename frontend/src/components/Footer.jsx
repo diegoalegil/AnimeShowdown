@@ -131,7 +131,7 @@ function Footer() {
         aria-hidden="true"
         lang="ja"
         className="pointer-events-none absolute -right-6 top-1/2 -translate-y-1/2 select-none font-mono text-[13rem] font-black leading-none text-gold/[0.04] sm:text-[18rem]"
-        style={{ textShadow: '0 0 90px rgb(159 29 44 / 0.32)' }}
+        style={{ textShadow: 'var(--text-shadow-aura-lg)' }}
       >
         終
       </span>
