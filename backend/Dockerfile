@@ -19,7 +19,12 @@ WORKDIR /app
 # Copia solo el JAR final (la imagen final es mucho más ligera)
 COPY --from=builder /app/target/animeshowdown-0.0.1-SNAPSHOT.jar app.jar
 
-# Render inyecta la variable PORT; Spring la lee gracias a server.port=${PORT:8080}
+# §DEP-002: no ejecutar como root. Usuario/grupo sin privilegios; chown para que
+# pueda leer el jar y el WORKDIR. La app es stateless (no escribe a disco).
+RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
+USER app
+
+# El host (Railway) inyecta la variable PORT; Spring la lee gracias a server.port=${PORT:8080}
 EXPOSE 8080
 
 # -Xmx400m mantiene la JVM dentro de los 512MB del plan Free
