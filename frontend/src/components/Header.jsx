@@ -236,7 +236,7 @@ function Header() {
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="hidden text-[11px] 2xl:inline">Buscar</span>
-          <kbd className="hidden rounded-lg border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted 2xl:inline-block">
+          <kbd className="hidden rounded-md border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted 2xl:inline-block">
             ⌘K
           </kbd>
         </button>
@@ -504,7 +504,7 @@ function UserBadge({ user, onLogout, t }) {
         <Link
           to="/admin"
           aria-label={t('nav.admin')}
-          className="inline-flex items-center gap-1 rounded-lg bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold transition-colors hover:bg-accent/25"
+          className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold transition-colors hover:bg-accent/25"
         >
           <Shield className="h-3 w-3" />
           {t('nav.admin')}

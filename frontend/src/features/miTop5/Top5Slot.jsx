@@ -20,7 +20,7 @@ function Top5Slot({ slug, personaje, index, onQuitar }) {
         alt={personaje?.nombre ?? slug}
         className="h-full w-full object-cover object-top"
       />
-      <span className="absolute left-1 top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-lg bg-accent px-1 text-[10px] font-extrabold text-bg sm:left-1.5 sm:top-1.5 sm:h-6 sm:min-w-[24px] sm:text-[11px]">
+      <span className="absolute left-1 top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-md bg-accent px-1 text-[10px] font-extrabold text-bg sm:left-1.5 sm:top-1.5 sm:h-6 sm:min-w-[24px] sm:text-[11px]">
         #{index + 1}
       </span>
       <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 sm:block">
