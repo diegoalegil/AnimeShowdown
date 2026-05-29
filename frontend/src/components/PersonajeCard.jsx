@@ -74,7 +74,7 @@ function PersonajeCard({ slug, nombre, anime, rank }) {
       onMouseEnter={puedeTilt ? () => setTiltArmado(true) : undefined}
       className="group block"
     >
-      <article className="as-ssr-card relative overflow-hidden rounded-xl transition-all motion-safe:group-hover:-translate-y-1 group-hover:border-gold/45 group-hover:shadow-lift [--aura-color:rgb(197_161_90_/_0.55)]">
+      <article className="as-ssr-card relative overflow-hidden rounded-2xl transition-all motion-safe:group-hover:-translate-y-1 group-hover:border-gold/45 group-hover:shadow-lift [--aura-color:rgb(197_161_90_/_0.55)]">
         <PersonajeImg
           slug={slug}
           alt={nombre}
@@ -143,7 +143,7 @@ function CardWithTilt({
           rotateY,
           transformPerspective: 800,
         }}
-        className="as-ssr-card relative overflow-hidden rounded-xl transition-all group-hover:border-gold/50 group-hover:shadow-lift [--aura-color:rgb(197_161_90_/_0.58)]"
+        className="as-ssr-card relative overflow-hidden rounded-2xl transition-all group-hover:border-gold/50 group-hover:shadow-lift [--aura-color:rgb(197_161_90_/_0.58)]"
       >
         <PersonajeImg
           slug={slug}

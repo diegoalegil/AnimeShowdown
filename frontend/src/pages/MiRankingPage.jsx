@@ -172,7 +172,7 @@ function MiRankingPage() {
           }
         />
 
-        <section className="mb-5 flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mb-5 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             {PERIODS.map((item) => (
               <button
@@ -293,7 +293,7 @@ function RankingRow({ item, rank }) {
 
 function SummaryPanel({ stats }) {
   return (
-    <section className="rounded-xl border border-border bg-surface p-4">
+    <section className="rounded-2xl border border-border bg-surface p-4">
       <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
         Resumen
       </p>
@@ -318,7 +318,7 @@ function MiniStat({ icon: Icon, value, label }) {
 
 function AnimePanel({ animes }) {
   return (
-    <section className="rounded-xl border border-border bg-surface p-4">
+    <section className="rounded-2xl border border-border bg-surface p-4">
       <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
         Universos que más empujas
       </p>
@@ -336,7 +336,7 @@ function AnimePanel({ animes }) {
 
 function LatestVotes({ votes }) {
   return (
-    <section className="rounded-xl border border-border bg-surface p-4">
+    <section className="rounded-2xl border border-border bg-surface p-4">
       <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
         Últimos votos
       </p>
@@ -358,7 +358,7 @@ function LatestVotes({ votes }) {
 
 function EmptyState() {
   return (
-    <section className="rounded-xl border border-border bg-surface p-6 text-center">
+    <section className="rounded-2xl border border-border bg-surface p-6 text-center">
       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-gold/35 bg-gold-soft text-gold">
         <RefreshCw className="h-6 w-6" />
       </div>

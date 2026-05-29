@@ -112,7 +112,7 @@ function MetodologiaEloPage() {
 
         <section className="mt-8 grid gap-3 md:grid-cols-2">
           {FAQ.map((item) => (
-            <article key={item.pregunta} className="rounded-xl border border-border bg-bg/45 p-4">
+            <article key={item.pregunta} className="rounded-2xl border border-border bg-bg/45 p-4">
               <h2 className="text-base font-bold text-fg-strong">{item.pregunta}</h2>
               <p className="mt-2 text-[13px] leading-6 text-fg-muted">{item.respuesta}</p>
             </article>

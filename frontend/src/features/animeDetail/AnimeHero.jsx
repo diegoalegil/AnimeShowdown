@@ -12,7 +12,7 @@ import { CinematicHero } from '../../components/VisualSystem'
 
 function StatTile({ icon: Icon, label, value, hint, accent }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-surface p-4">
+    <div className="flex flex-col gap-1.5 rounded-2xl border border-border bg-surface p-4">
       <div className="flex items-center gap-2">
         <Icon
           className={`h-3.5 w-3.5 ${accent ? 'text-gold' : 'text-fg-muted'}`}

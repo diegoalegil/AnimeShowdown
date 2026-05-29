@@ -159,7 +159,7 @@ function DueloVersusPage() {
         />
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-          <section className="rounded-xl border border-border bg-surface p-5">
+          <section className="rounded-2xl border border-border bg-surface p-5">
             <div className="mb-5 flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-gold" />
               <h2 className="text-lg font-bold text-fg-strong">Comparativa</h2>
@@ -241,7 +241,7 @@ function DueloVersusPage() {
           </section>
         </div>
 
-        <section className="mt-10 rounded-xl border border-border bg-surface p-5">
+        <section className="mt-10 rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-gold" />
             <h2 className="text-lg font-bold text-fg-strong">Más duelos populares</h2>

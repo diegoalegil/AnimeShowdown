@@ -23,7 +23,7 @@ function EloHistoryChart({ slug }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-border bg-surface p-6">
+      <div className="flex items-center justify-center rounded-2xl border border-border bg-surface p-6">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       </div>
     )
@@ -37,7 +37,7 @@ function EloHistoryChart({ slug }) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <div className="rounded-2xl border border-border bg-surface p-5">
       <div className="mb-3 flex items-baseline justify-between gap-2">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-gold" />

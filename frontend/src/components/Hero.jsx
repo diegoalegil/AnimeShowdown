@@ -175,7 +175,7 @@ function Hero({ catalogoPersonajes = [] }) {
         </motion.div>
         {torneoDestacado && (
           <motion.div
-            className="as-panel flex w-full max-w-2xl flex-col items-center gap-3 rounded-xl border-gold/35 bg-gold/10 p-4 text-center sm:flex-row sm:justify-between sm:text-left"
+            className="as-panel flex w-full max-w-2xl flex-col items-center gap-3 rounded-2xl border-gold/35 bg-gold/10 p-4 text-center sm:flex-row sm:justify-between sm:text-left"
             variants={itemVariants}
           >
             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">

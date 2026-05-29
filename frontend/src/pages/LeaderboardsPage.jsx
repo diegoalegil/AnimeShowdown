@@ -136,7 +136,7 @@ function LeaderboardsPage() {
           </ol>
         )}
 
-        <div className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
             ¿Cómo subo?
           </h2>

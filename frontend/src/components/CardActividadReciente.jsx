@@ -14,7 +14,7 @@ function CardActividadReciente() {
   const { data, isLoading } = usePerfilActividad({ limit: 15 })
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Activity className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Actividad reciente</h2>

@@ -42,8 +42,8 @@ function Card2faSeguridad() {
     <div
       className={
         habilitado
-          ? 'rounded-xl border border-success/20 bg-success/5 p-6'
-          : 'rounded-xl border border-border bg-surface p-6'
+          ? 'rounded-2xl border border-success/20 bg-success/5 p-6'
+          : 'rounded-2xl border border-border bg-surface p-6'
       }
     >
       <div className="mb-3 flex items-center gap-2">

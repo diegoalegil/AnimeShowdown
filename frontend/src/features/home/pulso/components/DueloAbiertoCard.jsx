@@ -21,7 +21,7 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
       return (
         <Link
           to={`/torneos/${torneoEnCurso.slug}`}
-          className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
+          className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
         >
           <EditorialCover
             visual={visual}
@@ -68,7 +68,7 @@ function DueloAbiertoCard({ duelo, torneoEnCurso }) {
   return (
     <Link
       to={destino}
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-accent/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 sm:p-5"
     >
       <CardEyebrow icon={Sparkles} label="Duelo abierto" tono="text-gold" />
       <div className="flex items-center justify-center gap-3">

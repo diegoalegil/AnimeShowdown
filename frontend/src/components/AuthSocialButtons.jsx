@@ -60,7 +60,7 @@ function AuthSocialButtons({ next = '/', action = 'Entrar' }) {
   ]
 
   return (
-    <div className="mb-5 rounded-xl border border-border bg-surface p-4">
+    <div className="mb-5 rounded-2xl border border-border bg-surface p-4">
       <div className="grid gap-2 sm:grid-cols-2">
         {providers.map((provider) => (
           <a

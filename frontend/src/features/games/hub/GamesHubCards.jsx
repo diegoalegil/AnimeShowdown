@@ -67,7 +67,7 @@ export function CardMini({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-elev-2 sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
+      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-2xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-elev-2 sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
     >
       <GameCardBackground visual={visual} opacity={0.92} />
 
@@ -121,7 +121,7 @@ export function OmikujiCard() {
   return (
     <Link
       to="/omikuji"
-      className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:border-accent/60 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-lift sm:min-h-[10rem]"
+      className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-2xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:border-accent/60 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-lift sm:min-h-[10rem]"
     >
       <GameCardBackground visual={visual} opacity={0.90} />
       <div

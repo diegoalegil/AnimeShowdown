@@ -34,7 +34,7 @@ function CardLogros({
   const desbloqueados = logros?.filter((l) => l.desbloqueadoEn).length ?? 0
 
   return (
-    <div className="pattern-overlay pattern-overlay-seigaiha rounded-xl border border-border bg-surface p-6">
+    <div className="pattern-overlay pattern-overlay-seigaiha rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Trophy className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">{titulo}</h2>

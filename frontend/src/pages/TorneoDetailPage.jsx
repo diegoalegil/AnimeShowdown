@@ -333,7 +333,7 @@ function TorneoDetailPage() {
         <PanelProfetas />
 
         {torneo?.slug && (
-          <div className="mt-10 rounded-xl border border-border bg-surface p-5">
+          <div className="mt-10 rounded-2xl border border-border bg-surface p-5">
             <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
               Comparte este torneo
             </p>
@@ -359,7 +359,7 @@ function PanelProfetas() {
   const { data, isLoading, isError } = useLeaderboardPredicciones({ dias: 30, limit: 10 })
 
   return (
-    <div className="mt-10 rounded-xl border border-border bg-surface p-6">
+    <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
       <div className="mb-5 flex items-center gap-2.5">
         <Crown className="h-4 w-4 shrink-0 text-gold" />
         <div>

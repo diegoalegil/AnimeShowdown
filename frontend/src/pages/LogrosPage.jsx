@@ -293,7 +293,7 @@ function LogrosPage() {
         )}
 
         {user && (
-          <div className="mt-10 rounded-xl border border-border bg-surface p-5">
+          <div className="mt-10 rounded-2xl border border-border bg-surface p-5">
             <h2 className="mb-2 flex items-center gap-2 text-base font-bold text-fg-strong">
               <Users className="h-4 w-4 text-gold" />
               Tu progreso público
@@ -323,7 +323,7 @@ function LogrosPage() {
  */
 function StatTile({ icon: Icon, valor, total, label, accentClass, children }) {
   return (
-    <div className={`relative overflow-hidden rounded-xl border bg-surface/40 p-4 backdrop-blur-sm ${accentClass}`}>
+    <div className={`relative overflow-hidden rounded-2xl border bg-surface/40 p-4 backdrop-blur-sm ${accentClass}`}>
       <div className="flex items-center gap-2.5">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg/30">
           <Icon className="h-4 w-4" />

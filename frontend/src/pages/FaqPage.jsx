@@ -213,7 +213,7 @@ function FaqPage() {
           </EmptyState>
         )}
 
-        <div className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
           <h2 className="text-lg font-bold text-fg-strong">
             ¿No has encontrado tu respuesta?
           </h2>

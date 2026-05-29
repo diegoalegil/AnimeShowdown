@@ -4,7 +4,7 @@ import Avatar from '../../../components/Avatar'
 
 function CardDatosCuenta({ user }) {
   return (
-    <div className="pattern-overlay pattern-overlay-asanoha rounded-xl border border-border bg-surface p-6">
+    <div className="pattern-overlay pattern-overlay-asanoha rounded-2xl border border-border bg-surface p-6">
       <div className="flex items-center gap-5">
         <Avatar user={user} size={80} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">

@@ -81,7 +81,7 @@ function BadgeCardCatalogo({ logro, count = 0, totalUsuarios = 0, destacado = fa
   return (
     <article
       id={`logro-${logro.codigo}`}
-      className={`relative flex h-full flex-col gap-4 rounded-xl border ${
+      className={`relative flex h-full flex-col gap-4 rounded-2xl border ${
         desbloqueado ? style.borde : 'border-border'
       } ${
         desbloqueado ? `bg-surface ${style.glow}` : 'bg-surface/60'

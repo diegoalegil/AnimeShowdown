@@ -383,7 +383,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
 
 function ListaIntentosAnime({ intentos }) {
   return (
-    <div className="as-panel rounded-xl p-4">
+    <div className="as-panel rounded-2xl p-4">
       <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
         Tus intentos
       </p>

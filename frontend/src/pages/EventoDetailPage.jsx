@@ -194,7 +194,7 @@ function EventoDetailPage() {
             con métricas propias, no un grid plano. */}
         {participantes.length > 0 && (
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr] sm:gap-4">
-            <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface p-4 sm:p-5">
+            <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 sm:p-5">
               <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
                 <Sparkles className="h-3 w-3" />
                 Misión del evento
@@ -266,7 +266,7 @@ function PodioEvento({ participantes, tono }) {
     <section className={`grid gap-3 rounded-2xl border bg-gradient-to-br via-surface to-bg p-4 sm:grid-cols-[1.25fr_0.85fr] sm:p-5 ${ring}`}>
       <Link
         to={`/personajes/${primero.slug}`}
-        className="group relative grid overflow-hidden rounded-xl border border-gold/35 bg-bg/55 p-4 sm:grid-cols-[minmax(150px,220px)_1fr] sm:items-center"
+        className="group relative grid overflow-hidden rounded-2xl border border-gold/35 bg-bg/55 p-4 sm:grid-cols-[minmax(150px,220px)_1fr] sm:items-center"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_20%,rgb(255_199_44_/_0.24),transparent_40%)]" />
         <PersonajeCutImg

@@ -17,7 +17,7 @@ function CardReferral() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-6">
+      <div className="rounded-2xl border border-border bg-surface p-6">
         <div className="flex items-center justify-center py-4">
           <KanjiSpinner size="sm" />
         </div>
@@ -66,7 +66,7 @@ function CardReferral() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-3 flex items-center gap-2">
         <Users className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Tu código de referral</h2>

@@ -96,7 +96,7 @@ function AssetCoveragePanel() {
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-5">
         <div>
           <h2 className="text-lg font-bold text-fg-strong">
             Cobertura visual
@@ -140,7 +140,7 @@ function AssetCoveragePanel() {
         {totals.map((item) => (
           <div
             key={item.label}
-            className="rounded-xl border border-border bg-surface p-4"
+            className="rounded-2xl border border-border bg-surface p-4"
           >
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-fg-muted">
               {item.label}
@@ -160,7 +160,7 @@ function AssetCoveragePanel() {
           return (
             <div
               key={row.id}
-              className="rounded-xl border border-border bg-surface p-4"
+              className="rounded-2xl border border-border bg-surface p-4"
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-fg-muted">
@@ -183,7 +183,7 @@ function AssetCoveragePanel() {
         })}
       </div>
 
-      <div className="rounded-xl border border-border bg-surface p-5">
+      <div className="rounded-2xl border border-border bg-surface p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-base font-bold text-fg-strong">
@@ -332,7 +332,7 @@ function DiagnosticsCard({
   renderItem,
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <div className="rounded-2xl border border-border bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-base font-bold text-fg-strong">{title}</h3>

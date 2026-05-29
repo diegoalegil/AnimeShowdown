@@ -455,7 +455,7 @@ function GlossaryPage() {
                   id={`term-${tag}`}
                   itemScope
                   itemType="https://schema.org/DefinedTerm"
-                  className="rounded-xl border border-border bg-surface p-5"
+                  className="rounded-2xl border border-border bg-surface p-5"
                 >
                   <dt className="mb-2 flex items-baseline justify-between gap-2">
                     <span itemProp="name" className="text-lg font-bold text-fg-strong">
@@ -571,7 +571,7 @@ function GlossaryPage() {
           )}
         </section>
 
-        <div className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
             Sigue explorando
           </h2>

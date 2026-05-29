@@ -112,7 +112,7 @@ function TorneoCard({ torneo }) {
     <Link
       to={`/torneos/${slug}`}
       onClick={() => play('playWhoosh')}
-      className={`as-panel group flex flex-col overflow-hidden rounded-xl p-0 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-lift [--aura-color:rgb(197_161_90_/_0.6)] ${cardEstadoClass}`}
+      className={`as-panel group flex flex-col overflow-hidden rounded-2xl p-0 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-lift [--aura-color:rgb(197_161_90_/_0.6)] ${cardEstadoClass}`}
     >
       <EditorialCover
         visual={visualParaCard}

@@ -243,7 +243,7 @@ function CrearTorneoPage() {
 
 function CardTamano({ tamano, onCambio }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Users className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Tamaño del torneo</h2>
@@ -277,7 +277,7 @@ function CardTamano({ tamano, onCambio }) {
 
 function CardDatos({ register, errors }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
         <Trophy className="h-4 w-4 text-warning" />
         <h2 className="text-lg font-bold text-fg-strong">Datos del torneo</h2>
@@ -363,7 +363,7 @@ function CardSeleccion({
   cargandoBackend,
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Users className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Participantes</h2>

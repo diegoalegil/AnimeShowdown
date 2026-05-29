@@ -58,7 +58,7 @@ function EventoHeadlineBanner() {
   const eyebrowLabel = estado === ESTADO_EVENTO.ACTIVO ? 'Evento en curso' : 'Próximo evento'
 
   return (
-    <div className={`relative mb-3 overflow-hidden rounded-xl border p-4 sm:mb-4 sm:p-5 ${tonoBg}`}>
+    <div className={`relative mb-3 overflow-hidden rounded-2xl border p-4 sm:mb-4 sm:p-5 ${tonoBg}`}>
       <EditorialCover
         visual={visual}
         className="absolute inset-0 rounded-none border-0 opacity-95"

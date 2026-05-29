@@ -124,7 +124,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent/40"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-accent/40"
     >
       <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-muted">
         <span>{rondaLabel}</span>

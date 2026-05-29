@@ -233,7 +233,7 @@ function misionesSchema() {
 
 function SummaryTile({ icon: Icon, label, value, detail }) {
   return (
-    <div className="rounded-xl border border-border bg-surface/85 p-4">
+    <div className="rounded-2xl border border-border bg-surface/85 p-4">
       <Icon className="h-4 w-4 text-gold" />
       <p className="mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-fg-muted">
         {label}
@@ -322,7 +322,7 @@ function ActionCard({ icon: Icon, title, text, to }) {
   return (
     <Link
       to={to}
-      className="group rounded-xl border border-border bg-surface/85 p-5 transition-colors hover:border-accent/45 hover:bg-surface-alt"
+      className="group rounded-2xl border border-border bg-surface/85 p-5 transition-colors hover:border-accent/45 hover:bg-surface-alt"
     >
       <div className="flex items-start justify-between gap-3">
         <Icon className="h-5 w-5 text-gold" />

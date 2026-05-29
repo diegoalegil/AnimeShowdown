@@ -12,7 +12,7 @@ function RetoCard() {
       to="/games/shadow-guess"
       // Altura estable para que la franja superior tenga aire y el sujeto
       // del cover quepa antes del degradado de oscurecimiento.
-      className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-xl border border-danger/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-danger/60 sm:p-5"
+      className="group relative flex min-h-[13rem] flex-col gap-3 overflow-hidden rounded-2xl border border-danger/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-danger/60 sm:p-5"
     >
       <EditorialCover
         visual={visual}

@@ -896,7 +896,7 @@ function RankingFaq() {
       </h2>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {faqs.map((item) => (
-          <div key={item.q} className="rounded-xl border border-border bg-bg/45 p-4">
+          <div key={item.q} className="rounded-2xl border border-border bg-bg/45 p-4">
             <h3 className="text-base font-bold text-fg-strong">{item.q}</h3>
             <p className="mt-2 text-[13px] leading-6 text-fg-muted">{item.a}</p>
           </div>
