@@ -15,6 +15,7 @@ import {
 import { Link, useSearchParams } from 'react-router-dom'
 import Dialog from '../components/Dialog'
 import PersonajeCard from '../components/PersonajeCard'
+import BrandSelect from '../components/BrandSelect'
 import PersonajeImg from '../components/PersonajeImg'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
 import {
@@ -501,37 +502,32 @@ function PersonajesPage() {
               </div>
             )}
           </div>
-          <select
+          <BrandSelect
             value={tagFilter ?? ''}
-            onChange={(e) => {
-              setTagFilter(e.target.value || null)
+            onChange={(v) => {
+              setTagFilter(v || null)
               play('playClick')
             }}
-            aria-label="Filtrar por rasgo otaku"
-            className="as-control hidden min-h-11 rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
-          >
-            <option value="">Rasgo: todos</option>
-            {RASGOS_OTAKU.map((tag) => (
-              <option key={tag.id} value={tag.id}>
-                Rasgo: {tag.label}
-              </option>
-            ))}
-          </select>
-          <select
+            ariaLabel="Filtrar por rasgo otaku"
+            className="hidden sm:block"
+            options={[
+              { value: '', label: 'Rasgo: todos' },
+              ...RASGOS_OTAKU.map((tag) => ({ value: tag.id, label: `Rasgo: ${tag.label}` })),
+            ]}
+          />
+          <BrandSelect
             value={sort}
-            onChange={(e) => {
-              setSort(e.target.value)
+            onChange={(v) => {
+              setSort(v)
               play('playClick')
             }}
-            aria-label="Ordenar por"
-            className="as-control hidden min-h-11 rounded-lg py-2.5 px-3 text-sm text-fg-strong sm:block"
-          >
-            {Object.entries(sortLabels).map(([k, v]) => (
-              <option key={k} value={k}>
-                Ordenar: {v}
-              </option>
-            ))}
-          </select>
+            ariaLabel="Ordenar por"
+            className="hidden sm:block"
+            options={Object.entries(sortLabels).map(([k, v]) => ({
+              value: k,
+              label: `Ordenar: ${v}`,
+            }))}
+          />
           <div className="as-control hidden items-center gap-1 rounded-lg p-1 sm:flex">
             <button
               type="button"
@@ -686,53 +682,48 @@ function PersonajesPage() {
                   <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
                     Universo
                   </legend>
-                  <select
+                  <BrandSelect
                     value={drawerFilters.animeFilter ?? ''}
-                    onChange={(e) => actualizarDraftFiltros({ animeFilter: e.target.value || null })}
-                    className="as-control min-h-11 w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
-                  >
-                    <option value="">Todos · {catalogoPersonajes.length}</option>
-                    {animes.map(([anime, count]) => (
-                      <option key={anime} value={anime}>
-                        {anime} · {count}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => actualizarDraftFiltros({ animeFilter: v || null })}
+                    ariaLabel="Filtrar por universo"
+                    className="w-full"
+                    options={[
+                      { value: '', label: `Todos · ${catalogoPersonajes.length}` },
+                      ...animes.map(([anime, count]) => ({ value: anime, label: `${anime} · ${count}` })),
+                    ]}
+                  />
                 </fieldset>
 
                 <fieldset className="space-y-2">
                   <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
                     Rasgo otaku
                   </legend>
-                  <select
+                  <BrandSelect
                     value={drawerFilters.tagFilter ?? ''}
-                    onChange={(e) => actualizarDraftFiltros({ tagFilter: e.target.value || null })}
-                    className="as-control min-h-11 w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
-                  >
-                    <option value="">Todos los rasgos</option>
-                    {RASGOS_OTAKU.map((tag) => (
-                      <option key={tag.id} value={tag.id}>
-                        {tag.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => actualizarDraftFiltros({ tagFilter: v || null })}
+                    ariaLabel="Filtrar por rasgo otaku"
+                    className="w-full"
+                    options={[
+                      { value: '', label: 'Todos los rasgos' },
+                      ...RASGOS_OTAKU.map((tag) => ({ value: tag.id, label: tag.label })),
+                    ]}
+                  />
                 </fieldset>
 
                 <fieldset className="space-y-2">
                   <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
                     Orden
                   </legend>
-                  <select
+                  <BrandSelect
                     value={drawerFilters.sort}
-                    onChange={(e) => actualizarDraftFiltros({ sort: e.target.value })}
-                    className="as-control min-h-11 w-full rounded-lg px-3 py-2.5 text-sm text-fg-strong"
-                  >
-                    {Object.entries(sortLabels).map(([k, v]) => (
-                      <option key={k} value={k}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => actualizarDraftFiltros({ sort: v })}
+                    ariaLabel="Ordenar por"
+                    className="w-full"
+                    options={Object.entries(sortLabels).map(([k, v]) => ({
+                      value: k,
+                      label: v,
+                    }))}
+                  />
                 </fieldset>
 
                 <fieldset className="space-y-3">
