@@ -31,7 +31,7 @@ function EmptyState({
           imageClassName="saturate-110 contrast-105"
         />
         {Icon && (
-          <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/35 bg-gold/10 text-gold shadow-[0_0_42px_-18px_rgba(197,161,90,0.8)]">
+          <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/35 bg-gold/10 text-gold shadow-aura [--aura-color:rgb(197_161_90_/_0.8)]">
             <Icon className="h-6 w-6" aria-hidden="true" />
           </span>
         )}

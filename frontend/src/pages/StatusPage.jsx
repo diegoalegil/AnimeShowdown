@@ -52,7 +52,7 @@ function statusTone(status) {
 
 function StatusMetric({ title, window }) {
   return (
-    <article className="rounded-lg border border-border bg-surface/80 p-4 shadow-[0_18px_50px_-34px_var(--color-gold)]">
+    <article className="rounded-lg border border-border bg-surface/80 p-4 shadow-lift [--aura-color:var(--color-gold)]">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-[12px] font-black uppercase tracking-[0.14em] text-fg-muted">
           {title}

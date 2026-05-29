@@ -144,7 +144,7 @@ function MobileBottomNav() {
                 <Icon className="h-5 w-5" aria-hidden="true" />
                 {!mission.completed && mission.to === to && (
                   <span
-                    className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-gold shadow-[0_0_10px_rgb(197_161_90_/_0.9)]"
+                    className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-gold shadow-aura-sm [--aura-color:rgb(197_161_90_/_0.9)]"
                     aria-hidden="true"
                   />
                 )}

@@ -103,7 +103,7 @@ class ErrorBoundary extends Component {
 
         <div className="relative z-10 flex min-h-[100svh] w-full items-center px-5 py-12 sm:px-10 lg:px-20">
           <div className="w-full max-w-xl rounded-2xl border border-accent/42 bg-[#0b1018]/76 p-6 shadow-aura-lg inset-shadow-hairline [--aura-color:rgb(159_29_44_/_0.2)] backdrop-blur-xl sm:p-9">
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold shadow-[0_0_32px_rgba(197,161,90,0.18)]">
+            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold shadow-aura [--aura-color:rgb(197_161_90_/_0.25)]">
               <AlertTriangle className="h-6 w-6" />
             </span>
 
