@@ -29,7 +29,7 @@ function RetoCard() {
           影
         </div>
         <div className="flex flex-col gap-1">
-          <h3 className="text-[15px] font-bold text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+          <h3 className="text-[15px] font-bold text-fg-strong drop-shadow-scrim">
             Adivina la silueta
           </h3>
           <p className="text-[12px] leading-snug text-fg-muted">

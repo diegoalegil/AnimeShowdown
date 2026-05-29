@@ -574,10 +574,10 @@ function SectionRetosDiarios() {
                     {r.kanji}
                   </span>
                 </div>
-                <h3 className="relative z-10 text-base font-bold text-fg-strong drop-shadow-[0_2px_5px_rgba(0,0,0,0.85)] transition-colors group-hover:text-gold sm:text-lg">
+                <h3 className="relative z-10 text-base font-bold text-fg-strong drop-shadow-scrim transition-colors group-hover:text-gold sm:text-lg">
                   {r.titulo}
                 </h3>
-                <p className="relative z-10 text-xs text-fg-muted drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] sm:text-[13px]">
+                <p className="relative z-10 text-xs text-fg-muted drop-shadow-scrim-sm sm:text-[13px]">
                   {r.desc}
                 </p>
                 <span

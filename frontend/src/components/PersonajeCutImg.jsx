@@ -71,7 +71,7 @@ function PersonajeCutImg({
         alt={alt}
         loading={loading ?? 'lazy'}
         decoding={decoding ?? 'async'}
-        className={`relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_18px_22px_rgb(0_0_0_/_0.55)] ${imgClassName}`.trim()}
+        className={`relative z-10 h-full w-full object-contain object-bottom drop-shadow-figure ${imgClassName}`.trim()}
         {...imgProps}
         onLoad={onLoad}
         onError={(event) => {

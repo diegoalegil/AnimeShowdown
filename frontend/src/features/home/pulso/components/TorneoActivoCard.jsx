@@ -34,7 +34,7 @@ function TorneoActivoCard({ torneo }) {
       />
       <CardEyebrow icon={Trophy} label="Torneo activo" tono="relative text-electric" />
       <div className="relative flex flex-col gap-1">
-        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-fg-strong drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-fg-strong drop-shadow-scrim">
           {torneo.nombre}
         </h3>
         <p className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted">
