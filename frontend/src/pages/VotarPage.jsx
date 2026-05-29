@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Share2, SkipForward, Zap } from 'lucide-react'
+import { ArrowRight, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
@@ -19,6 +19,7 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 import DailyMissionPanel from '../components/DailyMissionPanel'
 import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
+import { shareWithToast } from '../lib/shareWithToast'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
 import SessionRecap from '../features/votar/components/SessionRecap'
 import VoteArena from '../features/votar/components/VoteArena'
@@ -562,6 +563,25 @@ function VotarPage() {
     [scheduleAutoNext, trackLocalVote, prefetchSiguientePar],
   )
 
+  // "Reta a un amigo": comparte el duelo ACTUAL (a vs b) sin revelar tu voto,
+  // para que el receptor aterrice votando ese mismo duelo. El middleware OG
+  // pinta la card de duelo (/api/og/duelo/a/vs/b.png) en la preview social.
+  const handleChallenge = useCallback(() => {
+    if (!a?.slug || !b?.slug) return undefined
+    return shareWithToast(
+      {
+        title: `Reto: ${a.nombre} vs ${b.nombre}`,
+        text: `Te reto a este duelo en AnimeShowdown: ${a.nombre} (${a.anime}) vs ${b.nombre} (${b.anime}). ¿A quién subes tú?`,
+        url: `/votar?personaje=${encodeURIComponent(a.slug)}&rival=${encodeURIComponent(b.slug)}`,
+      },
+      {
+        nativeSuccess: 'Reto enviado',
+        clipboardSuccess: 'Enlace de reto copiado',
+        errorTitle: 'No se pudo compartir el reto',
+      },
+    )
+  }, [a, b])
+
   const handleShareVote = useCallback(async () => {
     if (!votedPersonaje) return
     const personalLine = personalVoteImpact?.slug === votedPersonaje.slug
@@ -587,9 +607,9 @@ function VotarPage() {
       })
       if (result === 'cancelled') return
       recordDailyShare()
-      toast.success(result === 'native' ? 'Duelo compartido' : 'Duelo copiado')
+      toast.success(result === 'native' ? 'Reto enviado' : 'Enlace de reto copiado')
     } catch (error) {
-      toast.error('No se pudo compartir', {
+      toast.error('No se pudo compartir el reto', {
         description: error?.message || 'Copia el resultado manualmente.',
       })
     }
@@ -839,6 +859,17 @@ function VotarPage() {
           </span>
 
           <div className="flex items-center gap-2">
+            {!votedFor && a?.slug && b?.slug && (
+              <button
+                type="button"
+                onClick={handleChallenge}
+                title="Comparte este duelo para retar a un amigo a votarlo"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3.5 py-2 text-[12px] font-semibold text-gold transition-all hover:border-accent hover:bg-accent/15"
+              >
+                <Swords className="h-3.5 w-3.5" />
+                Reta a un amigo
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setFastMode((f) => !f)}
@@ -941,8 +972,8 @@ function VotarPage() {
                 onClick={handleShareVote}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-4 py-2 text-[13px] font-black text-white transition-colors hover:bg-accent-hover"
               >
-                <Share2 className="h-3.5 w-3.5" />
-                Compartir duelo
+                <Swords className="h-3.5 w-3.5" />
+                Reta a un amigo
               </button>
               <Link
                 to="/mi-ranking"
