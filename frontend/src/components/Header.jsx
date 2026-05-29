@@ -46,14 +46,14 @@ function readLocalVoteCount() {
 function regularLinkClass({ isActive }) {
   return `${navLinkBase} font-medium ${
     isActive
-      ? 'bg-white/5 font-bold text-fg-strong underline decoration-accent decoration-2 underline-offset-4 shadow-[0_12px_34px_-26px_var(--color-accent)]'
+      ? 'bg-white/5 font-bold text-fg-strong underline decoration-accent decoration-2 underline-offset-4 shadow-aura'
       : 'text-fg hover:bg-white/5 hover:text-fg-strong'
   }`
 }
 
 // CTA principal de torneo: carmesí fijo + brillo dorado muy controlado.
 function ctaVotarClass({ isActive }) {
-  return `${navLinkBase} ml-2 inline-flex items-center gap-1.5 whitespace-nowrap border border-accent/50 bg-gradient-to-b from-accent-hover to-accent font-black text-white shadow-[0_0_34px_-16px_var(--color-accent),inset_0_1px_0_rgb(255_255_255_/_0.18)] ${
+  return `${navLinkBase} ml-2 inline-flex items-center gap-1.5 whitespace-nowrap border border-accent/50 bg-gradient-to-b from-accent-hover to-accent font-black text-white shadow-aura inset-shadow-hairline-strong ${
     isActive ? 'brightness-110' : 'hover:-translate-y-0.5 hover:brightness-110'
   }`
 }
@@ -296,7 +296,7 @@ function Header() {
             to="/votar"
             onPointerDown={ctaVotarMobile.onPointerDown}
             onClick={ctaVotarMobile.onClick}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-accent/50 bg-gradient-to-b from-accent-hover to-accent px-3 text-[13px] font-black text-white shadow-[0_0_24px_-14px_var(--color-accent)]"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-accent/50 bg-gradient-to-b from-accent-hover to-accent px-3 text-[13px] font-black text-white shadow-aura"
           >
             <Swords className="h-3.5 w-3.5" />
             {t('header.ctaVotarCompact')}

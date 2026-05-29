@@ -35,7 +35,7 @@ function ScrollProgress() {
       ref={ref}
       aria-hidden="true"
       className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px] origin-left scale-x-0 bg-accent"
-      style={{ boxShadow: '0 0 12px rgb(159 29 44 / 0.5)' }}
+      style={{ boxShadow: 'var(--shadow-aura-sm)' }}
     />
   )
 }

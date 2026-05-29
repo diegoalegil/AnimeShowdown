@@ -531,7 +531,7 @@ function ChampionSlot({ personaje }) {
   return (
     <div
       className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-accent/40 bg-accent-soft p-3"
-      style={{ boxShadow: '0 0 30px rgb(159 29 44 / 0.25)' }}
+      style={{ boxShadow: 'var(--shadow-aura)' }}
     >
       <PersonajeCutImg
         slug={personaje.slug}

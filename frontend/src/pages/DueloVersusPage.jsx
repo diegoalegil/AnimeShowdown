@@ -145,7 +145,7 @@ function DueloVersusPage() {
         <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_auto_1fr]">
           <VersusHeroCard personaje={personajeA} stats={statsA} side="left" />
           <div className="flex items-center justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-lg font-black text-gold shadow-[0_0_40px_rgb(159_29_44_/_0.18)]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-lg font-black text-gold shadow-aura">
               VS
             </div>
           </div>

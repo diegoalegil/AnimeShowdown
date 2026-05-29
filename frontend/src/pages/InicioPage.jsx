@@ -546,7 +546,7 @@ function SectionRetosDiarios() {
                 as={Link}
                 key={r.to}
                 to={r.to}
-                className={`group relative flex min-h-[13rem] flex-col gap-2 overflow-hidden rounded-xl border bg-surface/85 p-5 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-[0_22px_70px_-22px_rgba(159,29,44,0.65)] backdrop-blur-sm sm:min-h-[14rem] ${colorClasses}`}
+                className={`group relative flex min-h-[13rem] flex-col gap-2 overflow-hidden rounded-xl border bg-surface/85 p-5 transition-all duration-300 hover:-translate-y-1.5 hover:bg-surface hover:shadow-lift backdrop-blur-sm sm:min-h-[14rem] ${colorClasses}`}
               >
                 {coverImage && (
                   <span
