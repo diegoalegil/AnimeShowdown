@@ -51,7 +51,7 @@ function FeaturedAnimeDuel({ anime, a, b, onShare }) {
   const diferencia = Math.abs(a.elo - b.elo)
   const lider = a.elo >= b.elo ? a : b
   return (
-    <section className="mb-12 overflow-hidden rounded-2xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.18),rgb(197_161_90_/_0.08),rgb(7_10_18_/_0.82))] p-5 shadow-[0_24px_90px_-58px_rgb(0_0_0)] sm:p-6">
+    <section className="mb-12 overflow-hidden rounded-2xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.18),rgb(197_161_90_/_0.08),rgb(7_10_18_/_0.82))] p-5 shadow-elev-3 sm:p-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-gold">

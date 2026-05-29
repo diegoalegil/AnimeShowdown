@@ -67,7 +67,7 @@ export function CardMini({ game, estado }) {
   return (
     <Link
       to={game.to}
-      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_20px_55px_-25px_rgba(0,0,0,0.85)] sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
+      className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-elev-2 sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
     >
       <GameCardBackground visual={visual} opacity={0.92} />
 

@@ -201,7 +201,7 @@ export function CinematicHero({
 }) {
   return (
     <div
-      className={`relative isolate mb-8 overflow-hidden rounded-3xl border border-white/10 bg-bg/72 p-5 shadow-[0_28px_110px_-55px_rgb(0_0_0)] backdrop-blur-xl sm:p-7 lg:p-8 ${className}`}
+      className={`relative isolate mb-8 overflow-hidden rounded-3xl border border-white/10 bg-bg/72 p-5 shadow-elev-3 backdrop-blur-xl sm:p-7 lg:p-8 ${className}`}
       style={{
         '--hero-accent': visual?.accentRgb ?? '159 29 44',
         '--hero-glow': visual?.glowRgb ?? '197 161 90',

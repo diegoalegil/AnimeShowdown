@@ -455,7 +455,7 @@ function PersonajesPage() {
               <div
                 id="personajes-search-results"
                 role="listbox"
-                className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-xl border border-white/10 bg-surface/98 shadow-[0_24px_80px_-36px_rgb(0_0_0_/_0.95)] backdrop-blur-xl"
+                className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-xl border border-white/10 bg-surface/98 shadow-elev-2 backdrop-blur-xl"
               >
                 {suggestionsLoading ? (
                   <p className="px-3.5 py-3 text-[12px] font-semibold text-fg-muted">
@@ -611,7 +611,7 @@ function PersonajesPage() {
           <button
             type="button"
             onClick={abrirFiltrosMovil}
-            className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-surface/95 px-4 py-3 text-sm font-black text-fg-strong shadow-[0_16px_48px_-20px_rgb(0_0_0_/_0.95)] backdrop-blur-xl"
+            className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-surface/95 px-4 py-3 text-sm font-black text-fg-strong shadow-elev-1 backdrop-blur-xl"
             aria-haspopup="dialog"
             aria-expanded={filtersOpen}
           >
@@ -659,7 +659,7 @@ function PersonajesPage() {
           label="Filtros de personajes"
           align="bottom"
           className="sm:hidden"
-          panelClassName="max-h-[86vh] p-0 shadow-[0_-24px_80px_rgb(0_0_0_/_0.5)]"
+          panelClassName="max-h-[86vh] p-0 shadow-elev-up"
         >
           <section className="contents">
               <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">

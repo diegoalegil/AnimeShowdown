@@ -102,7 +102,7 @@ function DestacadoAvatar({ personaje }) {
       <PersonajeImg
         slug={personaje.slug}
         alt={personaje.nombre}
-        className="mx-auto h-28 w-20 rounded-xl object-cover object-top shadow-[0_18px_55px_-32px_rgba(0,0,0,0.9)] sm:h-32 sm:w-24"
+        className="mx-auto h-28 w-20 rounded-xl object-cover object-top shadow-elev-1 sm:h-32 sm:w-24"
       />
       <p className="mt-2 line-clamp-1 max-w-24 text-[12px] font-bold text-fg-strong">
         {personaje.nombre}
