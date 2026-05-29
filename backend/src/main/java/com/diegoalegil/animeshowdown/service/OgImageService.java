@@ -38,10 +38,10 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
  * Twitter/Discord/WhatsApp/Slack. 2.
  *
  * Diseño minimalista decidido en planning:
- *   - Fondo dark (#0d0a16) con gradiente magenta sutil arriba-izquierda.
+ *   - Fondo dark (#0d0d12) con gradiente carmesí sutil arriba-izquierda.
  *   - Foto del personaje a la izquierda, recorte 2:3 ocupando ~45% del ancho.
  *   - Texto a la derecha: nombre grande negrita + anime mediano + logo
- *     "AnimeShowdown" abajo en magenta acento.
+ *     "AnimeShowdown" abajo en carmesí acento (oro para eyebrows/medallas).
  *
  * Cache 7 días vía Caffeine (CacheConfig). Como las imágenes pesan
  * ~150-300KB, 500 entradas son ~100MB max — dentro del presupuesto de
@@ -63,10 +63,19 @@ public class OgImageService {
     private static final int FOTO_ANCHO = 540;
     private static final int PADDING = 60;
 
-    private static final Color FONDO = new Color(13, 10, 22);
-    private static final Color ACENTO = new Color(255, 46, 99);
+    // Paleta de marca real: carmesí (#9f1d2c) + oro (#c5a15a) sobre fondo
+    // casi-negro (#0d0d12). Antes el render usaba un magenta heredado
+    // (#ff2e63) que ya no existe en el frontend; estas OG quedaban off-brand.
+    private static final Color FONDO = new Color(13, 13, 18);
+    private static final Color ACENTO = new Color(159, 29, 44);
+    private static final Color ORO = new Color(197, 161, 90);
     private static final Color TEXTO_PRINCIPAL = new Color(245, 245, 250);
     private static final Color TEXTO_SECUNDARIO = new Color(160, 160, 175);
+
+    /** Copia un color base con un alfa concreto (helper para fills translúcidos). */
+    private static Color alpha(Color base, int a) {
+        return new Color(base.getRed(), base.getGreen(), base.getBlue(), a);
+    }
 
     private final PersonajeRepository personajeRepository;
     private final TorneoRepository torneoRepository;
@@ -290,8 +299,8 @@ public class OgImageService {
         // Gradiente radial sutil del acento desde arriba-izquierda (donde está
         // la foto) hacia el centro — da profundidad sin distraer del texto.
         GradientPaint gradient = new GradientPaint(
-                0, 0, new Color(255, 46, 99, 60),
-                ANCHO * 0.6f, ALTO * 0.8f, new Color(13, 10, 22, 0));
+                0, 0, alpha(ACENTO, 60),
+                ANCHO * 0.6f, ALTO * 0.8f, alpha(FONDO, 0));
         g.setPaint(gradient);
         g.fillRect(0, 0, ANCHO, ALTO);
     }
@@ -328,7 +337,7 @@ public class OgImageService {
         int ancho = 360;
         int alto = 430;
 
-        g.setColor(new Color(255, 46, 99, 34));
+        g.setColor(alpha(ACENTO, 40));
         g.fillRoundRect(x, y, ancho, alto, 32, 32);
         g.setColor(new Color(255, 255, 255, 34));
         g.drawRoundRect(x, y, ancho, alto, 32, 32);
@@ -377,7 +386,7 @@ public class OgImageService {
         int centerX = ANCHO / 2;
 
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
-        g.setColor(ACENTO);
+        g.setColor(ORO);
         dibujarTextoCentrado(g, "DUELO ABIERTO", centerX, 116);
 
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 92));
@@ -392,7 +401,7 @@ public class OgImageService {
         g.setColor(TEXTO_SECUNDARIO);
         dibujarTextoCentrado(g, "Vota y cambia el ranking competitivo", centerX, 386);
 
-        g.setColor(new Color(255, 46, 99, 80));
+        g.setColor(alpha(ORO, 120));
         g.drawLine(463, 315, 737, 315);
 
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
@@ -528,7 +537,7 @@ public class OgImageService {
     }
 
     private void dibujarFilaRanking(Graphics2D g, int x, int y, int anchoTexto, int rank, RankingOgEntry entry) {
-        g.setColor(new Color(255, 46, 99, rank == 1 ? 95 : 42));
+        g.setColor(rank == 1 ? alpha(ORO, 120) : alpha(ACENTO, 48));
         g.fillRoundRect(x, y - 31, 46, 40, 14, 14);
 
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
@@ -579,7 +588,7 @@ public class OgImageService {
     }
 
     private void dibujarPanelFallback(Graphics2D g, String kanji) {
-        g.setColor(new Color(255, 46, 99, 35));
+        g.setColor(alpha(ACENTO, 42));
         g.fillRoundRect(PADDING, PADDING, FOTO_ANCHO, ALTO - PADDING * 2, 36, 36);
         g.setColor(new Color(255, 255, 255, 28));
         g.drawRoundRect(PADDING, PADDING, FOTO_ANCHO, ALTO - PADDING * 2, 36, 36);
