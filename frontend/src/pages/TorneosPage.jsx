@@ -211,27 +211,32 @@ function TorneosHeroBanner() {
         className="absolute inset-0 rounded-none border-0"
         imageClassName="saturate-110 contrast-105"
       />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="rounded-full border border-gold/50 bg-gold-soft px-6 py-3 text-5xl font-black uppercase tracking-tighter text-gold shadow-aura-lg [--aura-color:rgb(197_161_90_/_0.85)]">
-          VS
+      {/* Overlay en columna: VS arriba-centro (sobre la imagen) y el bloque de
+          texto + CTA abajo. flex-col justify-between evita que el VS se pise con
+          el contenido (antes el VS iba absolute-centrado sobre todo el banner). */}
+      <div className="absolute inset-0 flex flex-col justify-between gap-3 p-5">
+        <div className="flex justify-center">
+          <div className="rounded-full border border-gold/50 bg-gold-soft px-5 py-2 text-4xl font-black uppercase tracking-tighter text-gold shadow-aura-lg [--aura-color:rgb(197_161_90_/_0.85)]">
+            VS
+          </div>
         </div>
-      </div>
-      <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-electric">
-            Brackets en vivo
-          </p>
-          <p className="mt-1 max-w-sm text-sm text-fg-muted">
-            Héroes, villanos y favoritos del catálogo cara a cara.
-          </p>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-electric">
+              Brackets en vivo
+            </p>
+            <p className="mt-1 max-w-sm text-sm text-fg-muted">
+              Héroes, villanos y favoritos del catálogo cara a cara.
+            </p>
+          </div>
+          <Link
+            to="/votar"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-accent/20"
+          >
+            Votar duelos
+            <Swords className="h-3.5 w-3.5" />
+          </Link>
         </div>
-        <Link
-          to="/votar"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-accent/20"
-        >
-          Votar duelos
-          <Swords className="h-3.5 w-3.5" />
-        </Link>
       </div>
     </div>
   )
