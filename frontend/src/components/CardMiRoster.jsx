@@ -36,7 +36,7 @@ function CardMiRoster() {
       </div>
       {isLoading && <RosterSkeleton />}
       {isError && (
-        <p className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-3 text-[13px] text-rose-200">
+        <p className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-[13px] text-danger">
           No se pudo cargar tu roster. Recarga la página.
         </p>
       )}

@@ -108,14 +108,14 @@ function ActividadReciente({ slug, nombre }) {
   const subio = delta > 0
   const bajo = delta < 0
   const tonoBorde = subio
-    ? 'border-emerald-500/30 bg-emerald-500/5'
+    ? 'border-success/30 bg-success/5'
     : bajo
-      ? 'border-rose-500/30 bg-rose-500/5'
+      ? 'border-danger/30 bg-danger/5'
       : 'border-border bg-surface/60'
   const tonoIcono = subio
-    ? 'bg-emerald-500/15 text-emerald-300'
+    ? 'bg-success/15 text-success'
     : bajo
-      ? 'bg-rose-500/15 text-rose-300'
+      ? 'bg-danger/15 text-danger'
       : 'bg-surface-alt text-fg-muted'
   const DeltaIcon = subio ? TrendingUp : bajo ? TrendingDown : Minus
   const deltaTexto = delta === 0
@@ -137,8 +137,8 @@ function ActividadReciente({ slug, nombre }) {
         </p>
       </div>
       <div className="inline-flex items-center gap-1.5 self-start rounded-md border border-border bg-bg/40 px-2.5 py-1 sm:self-auto">
-        <DeltaIcon className={`h-3.5 w-3.5 ${subio ? 'text-emerald-300' : bajo ? 'text-rose-300' : 'text-fg-muted'}`} />
-        <span className={`font-mono text-[12px] font-bold tabular-nums ${subio ? 'text-emerald-300' : bajo ? 'text-rose-300' : 'text-fg-muted'}`}>
+        <DeltaIcon className={`h-3.5 w-3.5 ${subio ? 'text-success' : bajo ? 'text-danger' : 'text-fg-muted'}`} />
+        <span className={`font-mono text-[12px] font-bold tabular-nums ${subio ? 'text-success' : bajo ? 'text-danger' : 'text-fg-muted'}`}>
           {deltaTexto}
         </span>
       </div>
@@ -197,12 +197,12 @@ function UltimosDuelos({ slug, nombre }) {
 const RESULTADO_STYLE = {
   WIN: {
     label: 'Victoria',
-    chip: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200',
+    chip: 'bg-success/15 border-success/40 text-success',
     Icon: Trophy,
   },
   LOSS: {
     label: 'Derrota',
-    chip: 'bg-rose-500/15 border-rose-500/40 text-rose-200',
+    chip: 'bg-danger/15 border-danger/40 text-danger',
     Icon: TrendingDown,
   },
   PENDING: {
@@ -387,8 +387,8 @@ function ContraQuienBody({ data, nombre }) {
 }
 
 const GROUP_STYLE = {
-  WIN: { Icon: TrendingUp, color: 'text-emerald-300' },
-  LOSS: { Icon: TrendingDown, color: 'text-rose-300' },
+  WIN: { Icon: TrendingUp, color: 'text-success' },
+  LOSS: { Icon: TrendingDown, color: 'text-danger' },
   FREQ: { Icon: Swords, color: 'text-fg-muted' },
 }
 
@@ -435,9 +435,9 @@ function MatchupRow({ item, tipo }) {
         : `${total} duelos`
   const statClase =
     tipo === 'WIN'
-      ? 'text-emerald-300'
+      ? 'text-success'
       : tipo === 'LOSS'
-        ? 'text-rose-300'
+        ? 'text-danger'
         : 'text-fg-strong'
   return (
     <li className="flex items-center gap-2">
