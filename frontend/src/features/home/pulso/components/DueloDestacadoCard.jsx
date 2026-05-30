@@ -23,20 +23,54 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
     : torneoEnCurso
       ? 'Hay un bracket activo esperando votos de la comunidad.'
       : 'Elige favorito, mira el feedback y entra en la liga.'
+  // Sin duelo concreto pero con torneo en curso: el banner del torneo pasa a
+  // ser el FONDO a sangre de toda la tarjeta (no un thumbnail). El texto va
+  // encima sobre un degradado oscuro a la izquierda para mantener legibilidad.
+  const mostrarBanner = !tieneDuelo && Boolean(torneoEnCurso)
 
   return (
     <Link
       to={destino}
       className="group relative flex min-h-[220px] flex-col gap-4 overflow-hidden rounded-2xl border border-gold/30 bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-gold/60 sm:p-5"
     >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-90"
-        style={{
-          background:
-            'radial-gradient(circle at 18% 8%, rgb(197 161 90 / 0.20), transparent 16rem), radial-gradient(circle at 86% 0%, rgb(36 198 220 / 0.14), transparent 18rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 45%)',
-        }}
-      />
+      {mostrarBanner ? (
+        <>
+          {/* Imagen del torneo a sangre de toda la tarjeta */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            style={{
+              backgroundImage: `url("/assets/tournament-banners/${torneoEnCurso.slug}.webp")`,
+            }}
+          />
+          {/* Degradados oscuros: izquierda sólida para el texto, base para el CTA */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bg via-bg/85 to-bg/20"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-transparent"
+          />
+          {/* Kanji de identidad arriba a la derecha */}
+          <span
+            aria-hidden="true"
+            lang="ja"
+            className="pointer-events-none absolute right-4 top-4 font-mono text-3xl font-black text-gold/90 drop-shadow sm:text-4xl"
+          >
+            戦
+          </span>
+        </>
+      ) : (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-90"
+          style={{
+            background:
+              'radial-gradient(circle at 18% 8%, rgb(197 161 90 / 0.20), transparent 16rem), radial-gradient(circle at 86% 0%, rgb(36 198 220 / 0.14), transparent 18rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 45%)',
+          }}
+        />
+      )}
       <CardEyebrow icon={Swords} label="Duelo destacado" tono="relative text-gold" />
       <div className="relative grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
         <div className="min-w-0">
@@ -53,31 +87,10 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
             <span className="font-mono text-2xl font-black text-gold">VS</span>
             <DestacadoAvatar personaje={b} />
           </div>
-        ) : torneoEnCurso ? (
-          // Si no hay duelo concreto pero sí un torneo en curso, mostrar el
-          // banner del torneo (más informativo que el kanji genérico).
-          // Mantenemos el kanji como overlay sutil arriba a la derecha
-          // para conservar identidad visual.
-          <div
-            aria-hidden="true"
-            className="relative h-24 w-40 overflow-hidden rounded-2xl border border-gold/30 bg-gold/5 sm:h-28 sm:w-48"
-            style={{
-              backgroundImage: `url("/assets/tournament-banners/${torneoEnCurso.slug}.webp")`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-bg/85 via-bg/30 to-transparent"
-            />
-            <span
-              lang="ja"
-              className="absolute right-2 top-1 font-mono text-xl font-black text-gold drop-shadow"
-            >
-              戦
-            </span>
-          </div>
+        ) : mostrarBanner ? (
+          // El banner del torneo es ahora el fondo a sangre de la tarjeta
+          // (renderizado arriba), así que la columna derecha queda libre.
+          null
         ) : (
           <div
             aria-hidden="true"
