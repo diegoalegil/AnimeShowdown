@@ -55,7 +55,7 @@ class FeedControllerTest {
     }
 
     private String tokenAdmin() throws Exception {
-        String token = tokenDe("feed_admin", "diegogildam@gmail.com");
+        String token = tokenDe("feed_admin", "feed_admin@example.com");
         usuarioRepository.findByUsername("feed_admin").ifPresent(u -> {
             u.setEstadoVerificacion(com.diegoalegil.animeshowdown.model.EstadoVerificacion.ACTIVO);
             u.setRol(com.diegoalegil.animeshowdown.model.Rol.ADMIN);
