@@ -86,4 +86,66 @@ class VotoControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[?(@.username == 'rankuser_" + suffix + "')]").exists());
     }
+
+    /**
+     * Ranking por intención de voto (feature #15): el filtro {@code categoria}
+     * de /ranking/segmentado, su precedencia frente a {@code anime}, su
+     * tolerancia a categorías inválidas (sin 400) y /categorias-disponibles.
+     */
+    @Test
+    void rankingSegmentadoPorCategoriaPrecedenciaYDisponibles() throws Exception {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        String anime = "Cat QA " + suffix;
+        Personaje a = personajeRepository.save(new Personaje(
+                "cat_seg_a_" + suffix, "Cat Seg A " + suffix, anime,
+                "fixture A", "/img/qa/cat-a.webp"));
+        Personaje b = personajeRepository.save(new Personaje(
+                "cat_seg_b_" + suffix, "Cat Seg B " + suffix, anime,
+                "fixture B", "/img/qa/cat-b.webp"));
+        Usuario u = usuarioRepository.save(new Usuario(
+                "catseg_" + suffix, "hash", "catseg_" + suffix + "@example.com"));
+
+        // A: 2 votos "poder"; B: 1 voto "diseno".
+        Voto va1 = new Voto(a, u);
+        va1.setCategoria("poder");
+        votoRepository.save(va1);
+        Voto va2 = new Voto(a, u);
+        va2.setCategoria("poder");
+        votoRepository.save(va2);
+        Voto vb1 = new Voto(b, u);
+        vb1.setCategoria("diseno");
+        votoRepository.save(vb1);
+
+        // categoria=poder → A presente; B ausente (su único voto es de "diseno").
+        mvc.perform(get("/api/votos/ranking/segmentado")
+                        .param("categoria", "poder")
+                        .param("limit", "200"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[?(@.personaje.slug == 'cat_seg_a_" + suffix + "')]").exists())
+                .andExpect(jsonPath("$[?(@.personaje.slug == 'cat_seg_b_" + suffix + "')]").doesNotExist());
+
+        // Precedencia: anime gana a categoria. Con ambos, devuelve TODOS los
+        // personajes del anime (incluido B, cuyo voto no es "poder").
+        mvc.perform(get("/api/votos/ranking/segmentado")
+                        .param("anime", anime)
+                        .param("categoria", "poder")
+                        .param("limit", "200"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.personaje.slug == 'cat_seg_b_" + suffix + "')]").exists());
+
+        // Categoría inválida → NO 400: se ignora y cae a la rama de periodo.
+        mvc.perform(get("/api/votos/ranking/segmentado")
+                        .param("categoria", "categoria-que-no-existe")
+                        .param("limit", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        // categorias-disponibles lista los ids de wire con votos.
+        mvc.perform(get("/api/votos/ranking/categorias-disponibles"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasItem("poder")))
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasItem("diseno")));
+    }
 }

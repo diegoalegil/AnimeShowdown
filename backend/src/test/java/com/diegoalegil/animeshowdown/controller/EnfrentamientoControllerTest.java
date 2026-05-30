@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -814,6 +815,133 @@ class EnfrentamientoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(voto)))
                 .andExpect(status().isConflict());
+    }
+
+    // ─── Intención de voto (feature #15) ───────────────────────────────────
+
+    @Test
+    void votarConCategoriaPersisteLaIntencion() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_cat_user", "votocat@example.com");
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "cat-ok");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.<String, Object>of(
+                        "personajeGanadorId", ids[0], "categoria", "poder"))))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+        org.junit.jupiter.api.Assertions.assertEquals("poder",
+                votoRepository.findById(votoId).orElseThrow().getCategoria());
+    }
+
+    @Test
+    void votarConCategoriaInvalidaPersisteSinIntencionYDevuelve200() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_cat_bad_user", "votocatbad@example.com");
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "cat-bad");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.<String, Object>of(
+                        "personajeGanadorId", ids[0], "categoria", "basura-no-valida"))))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+        org.junit.jupiter.api.Assertions.assertNull(
+                votoRepository.findById(votoId).orElseThrow().getCategoria(),
+                "Una categoría inválida no debe perder el voto: se guarda sin intención");
+    }
+
+    @Test
+    void fijarCategoriaSetOnceFuncionaYSegundaVezDevuelve409() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_patch_user", "votopatch@example.com");
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "patch");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk())
+                .andReturn();
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+
+        // PATCH set-once → 204 y categoría fijada.
+        mvc.perform(patch("/api/enfrentamientos/" + enfId + "/votar/categoria")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("categoria", "carisma"))))
+                .andExpect(status().isNoContent());
+        org.junit.jupiter.api.Assertions.assertEquals("carisma",
+                votoRepository.findById(votoId).orElseThrow().getCategoria());
+
+        // Segundo PATCH → 409: set-once, el voto es inmutable.
+        mvc.perform(patch("/api/enfrentamientos/" + enfId + "/votar/categoria")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("categoria", "poder"))))
+                .andExpect(status().isConflict());
+        org.junit.jupiter.api.Assertions.assertEquals("carisma",
+                votoRepository.findById(votoId).orElseThrow().getCategoria(),
+                "La categoría no debe cambiar tras el primer set");
+    }
+
+    @Test
+    void fijarCategoriaInvalidaEsNoOp204() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_patch_bad_user", "votopatchbad@example.com");
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "patch-bad");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk())
+                .andReturn();
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+
+        mvc.perform(patch("/api/enfrentamientos/" + enfId + "/votar/categoria")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("categoria", ""))))
+                .andExpect(status().isNoContent());
+        org.junit.jupiter.api.Assertions.assertNull(
+                votoRepository.findById(votoId).orElseThrow().getCategoria(),
+                "Categoría blank es no-op: el voto sigue sin intención");
+    }
+
+    @Test
+    void fijarCategoriaAnonimoFunciona() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "patch-anon");
+        String anonId = "anon-patch-cat-01";
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", anonId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        mvc.perform(patch("/api/enfrentamientos/" + enfId + "/votar/categoria")
+                .header("X-AS-Anonymous-Id", anonId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("categoria", "favorito"))))
+                .andExpect(status().isNoContent());
+
+        var votos = votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(anonId);
+        org.junit.jupiter.api.Assertions.assertEquals(1, votos.size());
+        org.junit.jupiter.api.Assertions.assertEquals("favorito", votos.get(0).getCategoria());
     }
 
     @TestConfiguration
