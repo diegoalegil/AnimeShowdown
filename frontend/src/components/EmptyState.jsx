@@ -83,7 +83,17 @@ function EmptyState({
             <p className="text-sm leading-7 text-fg-muted">{body}</p>
           ))}
       </div>
-      {action && <div className="mt-2 flex flex-wrap justify-center gap-3">{action}</div>}
+      {action?.to && action?.label ? (
+        <Link
+          to={action.to}
+          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent/90 px-5 py-3 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+        >
+          {action.label}
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      ) : (
+        action && <div className="mt-2 flex flex-wrap justify-center gap-3">{action}</div>
+      )}
     </div>
   )
 }

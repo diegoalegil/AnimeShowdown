@@ -10,28 +10,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 const SHOWN_KEY = 'animeshowdown.splash.shown'
 const SHOW_MS = 2000
 
-// Animación del emblema portada del logo de marca. Colores del logo (rojo
-// bermellón propio del sello, distinto del carmesí de la web) declarados como
-// custom properties scopeadas para no esparcir hex por el JSX.
-const SPLASH_CSS = `
-.as-splash{--as-red:#d62b2b;--as-red-br:#f0463a;--as-cream:#f1e7d3}
-.as-splash-emblem{position:relative;width:148px;height:148px;display:grid;place-items:center;animation:asGlow 2.6s ease-in-out infinite}
-.as-splash-ring{stroke-dasharray:240 26;stroke-dashoffset:266;animation:asDraw 1.3s cubic-bezier(.2,.7,.2,1) forwards}
-.as-splash-ring2{stroke-dasharray:186 22;stroke-dashoffset:208;opacity:.72;animation:asDraw2 1.5s cubic-bezier(.2,.7,.2,1) forwards}
-.as-splash-k{position:absolute;inset:0;display:grid;place-items:center;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-weight:800;font-size:76px;color:var(--as-red-br);text-shadow:0 0 16px rgb(214 43 43 / .7);filter:url(#asInk);opacity:0;transform:scale(.8);animation:asInk .8s ease-out .5s forwards}
-.as-splash-petal{position:absolute;width:11px;height:13px;background:var(--as-red);border-radius:100% 8% 100% 8%;opacity:0;animation:asFall .8s ease-out forwards}
-.as-splash-wm span{display:block;font-weight:800;letter-spacing:-.01em;line-height:.92}
-.as-splash-a{font-size:46px;color:var(--as-cream);opacity:0;transform:translateY(12px);animation:asRise .7s ease-out .85s forwards}
-.as-splash-s{font-size:46px;background:linear-gradient(180deg,#e0b25e,#f1e7d3);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;transform:translateY(12px);animation:asRise .7s ease-out 1s forwards}
-.as-splash-jp{font-size:14px;font-weight:500;letter-spacing:.34em;color:var(--as-red-br);margin-top:9px;opacity:0;animation:asRise .7s ease-out 1.15s forwards}
-@keyframes asDraw{to{stroke-dashoffset:26}}
-@keyframes asDraw2{to{stroke-dashoffset:22}}
-@keyframes asInk{to{opacity:1;transform:scale(1)}}
-@keyframes asFall{from{opacity:0;transform:translate(-6px,-10px) rotate(0)}to{opacity:.9;transform:translate(0,0) rotate(40deg)}}
-@keyframes asRise{to{opacity:1;transform:translateY(0)}}
-@keyframes asGlow{0%,100%{filter:drop-shadow(0 0 12px rgb(214 43 43 / .5))}50%{filter:drop-shadow(0 0 22px rgb(214 43 43 / .85))}}
-`
-
 function Splash() {
   const [visible, setVisible] = useState(() => {
     try {
@@ -64,8 +42,8 @@ function Splash() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-          <style>{SPLASH_CSS}</style>
-          {/* Filtro de tinta (displacement) que da el trazo de pincel al 滅. */}
+          {/* Filtro de tinta (displacement) que da el trazo de pincel al 滅.
+              Las clases .as-splash-* viven en index.css (stylesheet global). */}
           <svg width="0" height="0" aria-hidden="true" style={{ position: 'absolute' }}>
             <defs>
               <filter id="asInk">
