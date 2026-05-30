@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import * as Sentry from '../lib/sentry'
 import * as sfx from '../lib/sounds'
 
 const SoundContext = createContext(null)
@@ -55,10 +56,12 @@ export function SoundProvider({ children }) {
       try {
         const result = fn()
         if (result && typeof result.then === 'function') {
-          result.catch(() => { /* audio errors silenced */ })
+          result.catch(() => { /* audio rejection silenced */ })
         }
-      } catch {
-        // ignore audio errors silently
+      } catch (err) {
+        // catch{} síncrono: solo errores reales del generador
+        // (no rechazos async, que van al .catch() de arriba).
+        Sentry.captureException(err, { level: 'warning' })
       }
     },
     [muted],
