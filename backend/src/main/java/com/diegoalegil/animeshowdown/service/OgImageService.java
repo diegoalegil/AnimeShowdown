@@ -570,10 +570,12 @@ public class OgImageService {
         y += 70;
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 64));
         g.setColor(TEXTO_PRINCIPAL);
-        for (String linea : envolver(g, "@" + username, anchoTexto, 2)) {
-            g.drawString(linea, x, y);
-            y += 72;
-        }
+        // El username es un único token sin espacios (regex ^[A-Za-z0-9_-]+$),
+        // así que envolver() nunca puede partirlo en 2 líneas: a 64px un nombre
+        // largo (el límite es 30 chars) desbordaba el lienzo y lo recortaba el
+        // borde sin elipsis. Se pinta en una sola línea, truncada con elipsis.
+        g.drawString(truncar(g, "@" + username, anchoTexto), x, y);
+        y += 72;
 
         y += 28;
         dibujarStatUsuario(g, x, y, formatearNumero(seguidores), "seguidores");
