@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diegoalegil.animeshowdown.dto.UsuarioSitemapDto;
 import com.diegoalegil.animeshowdown.model.EstadoRevision;
 import com.diegoalegil.animeshowdown.model.Torneo;
-import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
@@ -54,14 +54,10 @@ public class SitemapController {
                 .map(this::torneoEntry)
                 .toList();
 
-        // Todos los usuarios — el perfil público es accesible vía username.
-        // Si en el futuro queremos filtrar por usuarios "activos" (que han
-        // votado al menos una vez) se cambia esta lectura por una query
-        // específica. Por ahora la lista entera es manejable (decenas).
-        List<Map<String, Object>> usuarios = usuarioRepository.findAll()
-                .stream()
-                .map(this::usuarioEntry)
-                .toList();
+        // Proyección ligera: solo username + fechaRegistro, sin cargar
+        // password/email/TOTP/avatarUrl. El perfil público es accesible vía
+        // username para crawlers y para cualquier usuario logueado.
+        List<UsuarioSitemapDto> usuarios = usuarioRepository.findAllPublico();
 
         return ResponseEntity
                 .ok()
@@ -82,11 +78,5 @@ public class SitemapController {
                 // Marcamos los UGC para que el script les pueda dar otra
                 // priority (los admin son más estables y autoritativos).
                 "esDeUsuario", t.getEstadoRevision() != EstadoRevision.NO_APLICA);
-    }
-
-    private Map<String, Object> usuarioEntry(Usuario u) {
-        return Map.of(
-                "username", u.getUsername(),
-                "lastmod", u.getFechaRegistro() == null ? "" : u.getFechaRegistro().toString());
     }
 }
