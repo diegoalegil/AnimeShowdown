@@ -15,7 +15,8 @@ function readPersistedCatalogo() {
     const raw = localStorage.getItem(CATALOGO_PERSONAJES_STORAGE_KEY)
     if (!raw) return undefined
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? normalizarCatalogoPersonajes(parsed) : undefined
+    // initialData already normalized by persistCatalogo → direct pass
+    return Array.isArray(parsed) ? parsed : undefined
   } catch {
     return undefined
   }
@@ -41,9 +42,15 @@ export function useCatalogoPersonajes() {
     gcTime: 24 * 60 * 60 * 1000,
     retry: 1,
     networkMode: 'always',
+    // Normalize once at the query level — query.data is always normalized,
+    // so usePersonajesCatalogo() can return query.data directly (no double
+    // normalization on every caller). Both localStorage (initialData) and
+    // fresh API responses go through this select.
+    select: (data) => normalizarCatalogoPersonajes(data),
   })
 
   useEffect(() => {
+    // Persist raw data for next load's initialData; sync also runs normalization.
     persistCatalogo(query.data)
     syncCatalogoPersonajes(query.data)
   }, [query.data])
