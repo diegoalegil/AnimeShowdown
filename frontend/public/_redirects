@@ -44,6 +44,7 @@
 /torneos                  / 200
 /torneos/crear            / 200
 /torneos/:slug            / 200
+/cartas                   / 200
 /eventos                  / 200
 /eventos/:slug            / 200
 /duelos/:par              / 200
@@ -91,3 +92,4 @@
 /tv                       / 200
 /mi-top5                  / 200
 /leaderboards             / 200
+/feed                    / 200
