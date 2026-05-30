@@ -92,7 +92,7 @@
   },
   "torneos": {
     "tituloPagina": "Tournaments",
-    "subtitulo": "Head-to-head brackets between catalog characters. Open any tournament to see the full roster and match status.",
+    "subtitulo": "Each bracket feels like a combat billboard, with status, participants, and a direct path to open duels.",
     "crearCta": "Create your tournament",
     "contadorPlural": "{{count}} tournaments",
     "contadorSingular": "{{count}} tournament",
