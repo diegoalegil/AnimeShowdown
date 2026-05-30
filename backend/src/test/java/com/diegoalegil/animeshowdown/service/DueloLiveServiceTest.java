@@ -2,8 +2,6 @@ package com.diegoalegil.animeshowdown.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 
 import java.time.Clock;
@@ -221,6 +219,56 @@ class DueloLiveServiceTest {
 
     private void avanzarApertura(DueloLiveStateDto state) {
         clock.setInstant(state.ronda().abreEn().toInstant(ZoneOffset.UTC).plusMillis(1));
+    }
+
+    @Test
+    void dobleLlamadaMantenimientoLiveNoDuplicaEloNiDrop() {
+        Personaje p1 = personajeRepository.save(new Personaje("p_doble1", "Dx1", "T", "d", "/img/d1.webp"));
+        Personaje p2 = personajeRepository.save(new Personaje("p_doble2", "Dx2", "T", "d", "/img/d2.webp"));
+        votoRepository.save(new Voto(p1));
+
+        Usuario a = usuario("pvp_doble_w_a", 1000);
+        Usuario b = usuario("pvp_doble_w_b", 1000);
+
+        DueloLive duel = new DueloLive(a, "10::1", LocalDateTime.now(clock));
+        duel.setJugador2(b);
+        duel.setJugador2Ip("10::2");
+        duel.setEstado(DueloLiveEstado.IN_PROGRESS);
+        duel.setMatchedEn(LocalDateTime.now(clock));
+        duel.setStartedEn(LocalDateTime.now(clock));
+        duel.setRondaActual(1);
+        duel = dueloRepository.save(duel);
+
+        LocalDateTime cierra = LocalDateTime.now(clock).minusSeconds(1);
+        LocalDateTime abre = LocalDateTime.now(clock).minusSeconds(13);
+        rondaRepository.save(new DueloLiveRonda(duel, 1, p1, p2, abre, cierra));
+
+        int eloJ1Antes = a.getEloPvp();
+        int eloJ2Antes = b.getEloPvp();
+
+        clock.setInstant(Instant.parse("2026-05-22T10:00:31Z"));
+        dueloLiveService.mantenimientoLive();
+
+        DueloLive duelPost1 = dueloRepository.findById(duel.getId()).orElseThrow();
+        assertThat(duelPost1.getEstado()).isIn(DueloLiveEstado.ABANDONED, DueloLiveEstado.FINISHED);
+
+        int eloJ1Post1 = usuarioRepository.findByUsername("pvp_doble_w_a").orElseThrow().getEloPvp();
+        int eloJ2Post1 = usuarioRepository.findByUsername("pvp_doble_w_b").orElseThrow().getEloPvp();
+        int deltaJ1 = Math.abs(eloJ1Post1 - eloJ1Antes);
+        int deltaJ2 = Math.abs(eloJ2Post1 - eloJ2Antes);
+
+        clock.setInstant(Instant.parse("2026-05-22T10:00:36Z"));
+        dueloLiveService.mantenimientoLive();
+
+        int eloJ1Post2 = usuarioRepository.findByUsername("pvp_doble_w_a").orElseThrow().getEloPvp();
+        int eloJ2Post2 = usuarioRepository.findByUsername("pvp_doble_w_b").orElseThrow().getEloPvp();
+
+        assertThat(eloJ1Post2).describedAs("J1 ELO no debe mudar en segunda llamada").isEqualTo(eloJ1Post1);
+        assertThat(eloJ2Post2).describedAs("J2 ELO no debe mudar en segunda llamada").isEqualTo(eloJ2Post1);
+        assertThat(deltaJ1).describedAs("J1 ELO debio moverse una vez").isGreaterThan(0);
+        assertThat(deltaJ2).describedAs("J2 ELO debio moverse una vez").isGreaterThan(0);
+        assertThat(Math.abs(deltaJ1)).isLessThan(64);
+        assertThat(Math.abs(deltaJ2)).isLessThan(64);
     }
 
     @TestConfiguration
