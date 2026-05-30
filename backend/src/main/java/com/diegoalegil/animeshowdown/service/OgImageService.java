@@ -30,6 +30,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.diegoalegil.animeshowdown.dto.RankingItem;
+import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.SlugUtil;
 import com.diegoalegil.animeshowdown.model.Torneo;
@@ -295,7 +296,7 @@ public class OgImageService {
             Graphics2D g = canvas.createGraphics();
             try {
                 aplicarHints(g);
-                dibujarFondo(g);
+                dibujarFondoUsuario(g, u);
                 dibujarAvatarCirculo(g, u.getAvatarUrl(), u.getUsername());
                 dibujarTextoUsuario(g, u.getUsername(), seguidores, votos);
                 dibujarLogo(g);
@@ -351,6 +352,70 @@ public class OgImageService {
                 ANCHO * 0.6f, ALTO * 0.8f, alpha(FONDO, 0));
         g.setPaint(gradient);
         g.fillRect(0, 0, ANCHO, ALTO);
+    }
+
+    /**
+     * Fondo del OG de perfil con el banner como cabecera/fondo (V35). Si el
+     * usuario tiene banner lo usa; si no, cae al arte del personaje favorito
+     * (regla de identidad: el banner nunca queda genérico). La imagen se dibuja
+     * a sangre (cover, recorte centrado) con un overlay oscuro y un degradado
+     * hacia la derecha para que el avatar y el texto encima sigan legibles. Si
+     * no hay ninguna imagen disponible, cae al fondo de marca por defecto.
+     */
+    private void dibujarFondoUsuario(Graphics2D g, Usuario u) {
+        g.setColor(FONDO);
+        g.fillRect(0, 0, ANCHO, ALTO);
+
+        String fuente = (u.getBannerUrl() != null && !u.getBannerUrl().isBlank())
+                ? u.getBannerUrl()
+                : favoritoImagenUrl(u);
+        BufferedImage fondo = leerAvatar(fuente);
+        if (fondo != null) {
+            dibujarImagenCubriendo(g, fondo);
+            // Velo oscuro uniforme para contraste del avatar/texto.
+            g.setColor(alpha(FONDO, 175));
+            g.fillRect(0, 0, ANCHO, ALTO);
+            // Refuerzo a la derecha (zona de texto) hacia el fondo opaco.
+            GradientPaint velo = new GradientPaint(
+                    ANCHO * 0.35f, 0, alpha(FONDO, 0),
+                    ANCHO, 0, alpha(FONDO, 205));
+            g.setPaint(velo);
+            g.fillRect(0, 0, ANCHO, ALTO);
+        }
+
+        // Acento carmesí de marca (igual que dibujarFondo) por encima del velo.
+        GradientPaint gradient = new GradientPaint(
+                0, 0, alpha(ACENTO, fondo != null ? 45 : 60),
+                ANCHO * 0.6f, ALTO * 0.8f, alpha(FONDO, 0));
+        g.setPaint(gradient);
+        g.fillRect(0, 0, ANCHO, ALTO);
+    }
+
+    /**
+     * imagenUrl del personaje favorito (más votado) del usuario, o null si aún
+     * no ha votado. Sirve de fallback del banner. Defensivo ante fallos del
+     * repo para no tumbar el render del OG.
+     */
+    private String favoritoImagenUrl(Usuario u) {
+        try {
+            List<TopPersonajeItem> top = votoRepository.topPorUsuario(u, PageRequest.of(0, 1));
+            return top.isEmpty() ? null : top.get(0).imagenUrl();
+        } catch (Exception e) {
+            log.warn("OgImageService.favoritoImagenUrl fallo username={}: {}",
+                    u.getUsername(), e.getMessage());
+            return null;
+        }
+    }
+
+    /** Dibuja la imagen a sangre sobre todo el lienzo (cover, recorte centrado). */
+    private void dibujarImagenCubriendo(Graphics2D g, BufferedImage img) {
+        int iw = img.getWidth();
+        int ih = img.getHeight();
+        if (iw <= 0 || ih <= 0) return;
+        double escala = Math.max((double) ANCHO / iw, (double) ALTO / ih);
+        int w = (int) Math.round(iw * escala);
+        int h = (int) Math.round(ih * escala);
+        g.drawImage(img, (ANCHO - w) / 2, (ALTO - h) / 2, w, h, null);
     }
 
     private void dibujarFoto(Graphics2D g, String imagenUrl) {

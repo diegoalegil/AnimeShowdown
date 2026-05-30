@@ -706,6 +706,7 @@ export const endpoints: EndpointMap = {
   status: () => api.get('/api/status', { auth: false }),
   me: () => api.get('/api/auth/me'),
   updateAvatar: (avatarUrl) => api.put('/api/auth/me/avatar', { avatarUrl }),
+  updateBanner: (bannerUrl) => api.put('/api/auth/me/banner', { bannerUrl }),
   changePassword: (currentPassword, newPassword) =>
     api.put('/api/auth/me/password', { currentPassword, newPassword }),
   // V-8 onboarding: cambia el username. Devuelve { token, usuario } con un JWT

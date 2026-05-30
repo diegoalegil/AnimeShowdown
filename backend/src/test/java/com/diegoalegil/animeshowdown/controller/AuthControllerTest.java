@@ -444,6 +444,98 @@ class AuthControllerTest {
                 .andExpect(status().isPayloadTooLarge());
     }
 
+    // === Banner de perfil (V35) — mismo pipeline/validación que el avatar ===
+
+    @Test
+    void putBannerSinTokenRequiereAuth() throws Exception {
+        // /api/auth/me/** está protegido: Spring Security corta al anónimo
+        // (403) antes de llegar a la rama 401 del controller.
+        mvc.perform(put("/api/auth/me/banner")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bannerUrl", "https://example.com/b.png"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void putBannerConTokenValidoActualiza() throws Exception {
+        Sesion sesion = registrarYLoguear("banner_url", "secreta123", "banner_url@example.com");
+
+        mvc.perform(put("/api/auth/me/banner")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "bannerUrl", "https://example.com/banner.png"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bannerUrl").value("https://example.com/banner.png"));
+    }
+
+    @Test
+    void putBannerAceptaDataUriImagenPermitida() throws Exception {
+        Sesion sesion = registrarYLoguear("banner_data_uri", "secreta123", "banner_data_uri@example.com");
+        String banner = dataUri("image/png", pngBytes(64));
+
+        mvc.perform(put("/api/auth/me/banner")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bannerUrl", banner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bannerUrl").value(banner));
+    }
+
+    @Test
+    void putBannerVacioLoBorra() throws Exception {
+        Sesion sesion = registrarYLoguear("banner_clear", "secreta123", "banner_clear@example.com");
+        mvc.perform(put("/api/auth/me/banner")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "bannerUrl", "https://example.com/banner.png"))))
+                .andExpect(status().isOk());
+
+        mvc.perform(put("/api/auth/me/banner")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(java.util.Collections.singletonMap("bannerUrl", ""))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bannerUrl").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    @Test
+    void putBannerRechazaMimeSpoofAunqueDeclarePng() throws Exception {
+        Sesion sesion = registrarYLoguear("banner_mime_spoof", "secreta123", "banner_mime_spoof@example.com");
+        String banner = dataUri("image/png", "not-a-png".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        mvc.perform(put("/api/auth/me/banner")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bannerUrl", banner))))
+                .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void putBannerRechazaDataUriConMimeNoPermitido() throws Exception {
+        Sesion sesion = registrarYLoguear("banner_svg", "secreta123", "banner_svg@example.com");
+
+        mvc.perform(put("/api/auth/me/banner")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "bannerUrl", "data:image/svg+xml;base64,PHN2Zy8+"))))
+                .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void putBannerRechazaDataUriDemasiadoGrande() throws Exception {
+        Sesion sesion = registrarYLoguear("banner_big", "secreta123", "banner_big@example.com");
+        String banner = "data:image/png;base64," + "A".repeat(2_800_000);
+
+        mvc.perform(put("/api/auth/me/banner")
+                .header("Authorization", "Bearer " + sesion.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("bannerUrl", banner))))
+                .andExpect(status().isPayloadTooLarge());
+    }
+
     @Test
     void forgotPasswordLimitaTresSolicitudesEn24HorasSinRevelarEstado() throws Exception {
         String email = "reset_rate_limit@example.com";
