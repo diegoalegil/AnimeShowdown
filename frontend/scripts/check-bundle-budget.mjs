@@ -14,6 +14,7 @@ const maxInitialJsGzipKb = Number(process.env.MAX_INITIAL_JS_GZIP_KB ?? 220)
 const maxImageTotalMb = Number(process.env.MAX_DEPLOY_IMAGE_TOTAL_MB ?? 1100)
 const maxImageFileKb = Number(process.env.MAX_DEPLOY_IMAGE_FILE_KB ?? 900)
 const maxImageFileCount = Number(process.env.MAX_DEPLOY_IMAGE_FILE_COUNT ?? 8500)
+const maxLazyChunkRawKb = Number(process.env.MAX_LAZY_CHUNK_RAW_KB ?? 250)
 const imageCdnBaseUrl = normalizeImageCdnBaseUrl(
   process.env.ANIMESHOWDOWN_IMG_CDN_BASE_URL ||
     process.env.ANIMESHOWDOWN_IMAGE_CDN_BASE_URL,
@@ -176,6 +177,21 @@ for (const chunk of legacy3dChunks) {
   } else {
     console.log(`Personaje3D lazy boundary: ${chunk} (${sizeKb(rawBytes).toFixed(1)}KB, OK)`)
   }
+}
+
+// Per-chunk ceiling: lazy vendor chunks (framer/i18n/lucide/react-vendor) +
+// page route chunks no deben superar el umbral para evitar regresiones
+// silenciosas tras actualizaciones de dependencias.
+const vendorChunks = files.filter((file) => /^(framer|i18n|lucide|react-vendor)-.*\.js$/.test(file))
+const pageChunks = files.filter((file) => /^[A-Z][^.-]+(Page|Page)-\w+\.js$/.test(file) && !/^index-/.test(file))
+for (const chunk of [...vendorChunks, ...pageChunks]) {
+  const rawBytes = statSync(join(assetsDir, chunk)).size
+  if (rawBytes > maxLazyChunkRawKb * 1024) {
+    fail(`lazy chunk ${chunk} raw ${sizeKb(rawBytes).toFixed(1)}KB > ${maxLazyChunkRawKb}KB ceiling`)
+  }
+}
+if (vendorChunks.length > 0) {
+  console.log(`vendor chunks: ${vendorChunks.join(', ')} (ceiling ${maxLazyChunkRawKb}KB)`)
 }
 
 const imageFiles = walkFiles(imageDir)
