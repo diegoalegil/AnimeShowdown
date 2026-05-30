@@ -96,7 +96,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
             setStatus('error')
             setErrorMessage('El widget de captcha falló. Reintenta en unos segundos.')
           },
-          'expidangercallback': () => {
+          'expired-callback': () => {
             // El token caducó antes de validarlo. Resetear el widget
             // para que el usuario pueda volver a resolverlo.
             if (widgetIdRef.current && window.turnstile?.reset) {
