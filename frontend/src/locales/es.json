@@ -92,7 +92,7 @@
   },
   "torneos": {
     "tituloPagina": "Torneos",
-    "subtitulo": "Brackets cara a cara entre los personajes del catálogo. Pulsa cualquier torneo para ver el roster completo y el estado de cada enfrentamiento.",
+    "subtitulo": "Cada bracket se siente como una cartelera de combate, con estado, participantes y ruta directa a los duelos abiertos.",
     "crearCta": "Crea tu torneo",
     "contadorPlural": "{{count}} torneos",
     "contadorSingular": "{{count}} torneo",

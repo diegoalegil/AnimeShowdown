@@ -92,7 +92,7 @@
   },
   "torneos": {
     "tituloPagina": "トーナメント",
-    "subtitulo": "カタログ内のキャラクターが対戦するブラケット。各トーナメントを開くと、参加者と対戦状況を確認できます。",
+    "subtitulo": "各ブラケットは、フォーマット、参加者、直接リンクを備えた闘技カードのように感じられます。",
     "crearCta": "トーナメントを作成",
     "contadorPlural": "{{count}}件のトーナメント",
     "contadorSingular": "{{count}}件のトーナメント",
