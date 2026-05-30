@@ -68,9 +68,12 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private static final String REFRESH_COOKIE = "refresh_token";
-    private static final int MAX_AVATAR_URL_LENGTH = 2_000;
-    private static final long MAX_AVATAR_DATA_BYTES = 2L * 1024L * 1024L;
-    private static final Pattern AVATAR_DATA_URI_PATTERN =
+    // Validación genérica de imágenes de perfil (avatar y banner V35). Mismas
+    // reglas para ambos: PNG/JPEG/WebP, 2 MB, magic bytes que coincidan con el
+    // MIME declarado, URL http(s) o data URI embebida.
+    private static final int MAX_IMAGEN_URL_LENGTH = 2_000;
+    private static final long MAX_IMAGEN_DATA_BYTES = 2L * 1024L * 1024L;
+    private static final Pattern IMAGEN_DATA_URI_PATTERN =
             Pattern.compile("^data:image/(png|jpe?g|webp);base64,", Pattern.CASE_INSENSITIVE);
 
     // V-8: mismas reglas que CambioUsernameRequest/RegistroRequest. Se reusan
@@ -519,11 +522,10 @@ public class AuthController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        String avatarUrl = body.get("avatarUrl");
-        String avatarNormalizado = normalizarAvatarUrl(avatarUrl);
-        ResponseEntity<?> avatarInvalido = validarAvatar(avatarNormalizado);
-        if (avatarInvalido != null) {
-            return avatarInvalido;
+        String avatarNormalizado = normalizarImagenUrl(body.get("avatarUrl"));
+        ResponseEntity<?> invalido = validarImagen(avatarNormalizado);
+        if (invalido != null) {
+            return invalido;
         }
         usuario.setAvatarUrl(avatarNormalizado);
         usuarioRepository.save(usuario);
@@ -531,67 +533,92 @@ public class AuthController {
         return ResponseEntity.ok(new UsuarioRespuesta(usuario));
     }
 
-    private static String normalizarAvatarUrl(String avatarUrl) {
-        if (avatarUrl == null || avatarUrl.isBlank()) {
-            return null;
+    /**
+     * Banner/cabecera del perfil (V35). Mismo contrato y validación que el
+     * avatar (imagen subida en base64 o URL pública, PNG/JPEG/WebP, ≤2 MB) —
+     * reutiliza los validadores genéricos de imagen. {@code bannerUrl} null o
+     * en blanco lo borra (NULL): el frontend/OG vuelven al arte del personaje
+     * favorito.
+     */
+    @PutMapping("/me/banner")
+    public ResponseEntity<?> actualizarBanner(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return avatarUrl.trim();
+        String bannerNormalizado = normalizarImagenUrl(body.get("bannerUrl"));
+        ResponseEntity<?> invalido = validarImagen(bannerNormalizado);
+        if (invalido != null) {
+            return invalido;
+        }
+        usuario.setBannerUrl(bannerNormalizado);
+        usuarioRepository.save(usuario);
+        log.info("Banner actualizado: username={}", usuario.getUsername());
+        return ResponseEntity.ok(new UsuarioRespuesta(usuario));
     }
 
-    private static ResponseEntity<?> validarAvatar(String avatarUrl) {
-        if (avatarUrl == null) {
+    private static String normalizarImagenUrl(String imagenUrl) {
+        if (imagenUrl == null || imagenUrl.isBlank()) {
             return null;
         }
-        if (avatarUrl.regionMatches(true, 0, "data:", 0, "data:".length())) {
-            return validarAvatarDataUri(avatarUrl);
+        return imagenUrl.trim();
+    }
+
+    private static ResponseEntity<?> validarImagen(String imagenUrl) {
+        if (imagenUrl == null) {
+            return null;
         }
-        if (avatarUrl.length() > MAX_AVATAR_URL_LENGTH) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("avatarUrl demasiado largo (máx 2000 caracteres)");
+        if (imagenUrl.regionMatches(true, 0, "data:", 0, "data:".length())) {
+            return validarImagenDataUri(imagenUrl);
         }
-        if (!avatarUrl.startsWith("http://") && !avatarUrl.startsWith("https://")) {
+        if (imagenUrl.length() > MAX_IMAGEN_URL_LENGTH) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("avatarUrl debe ser una URL http(s) o una imagen embebida permitida");
+                    .body("La URL de la imagen es demasiado larga (máx 2000 caracteres)");
+        }
+        if (!imagenUrl.startsWith("http://") && !imagenUrl.startsWith("https://")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("La imagen debe ser una URL http(s) o una imagen embebida permitida");
         }
         return null;
     }
 
-    private static ResponseEntity<?> validarAvatarDataUri(String avatarUrl) {
-        Matcher matcher = AVATAR_DATA_URI_PATTERN.matcher(avatarUrl);
+    private static ResponseEntity<?> validarImagenDataUri(String imagenUrl) {
+        Matcher matcher = IMAGEN_DATA_URI_PATTERN.matcher(imagenUrl);
         if (!matcher.find()) {
             return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                    .body("Formato de avatar no permitido. Usa PNG, JPEG o WebP.");
+                    .body("Formato de imagen no permitido. Usa PNG, JPEG o WebP.");
         }
-        int commaIndex = avatarUrl.indexOf(',');
-        if (commaIndex < 0 || commaIndex == avatarUrl.length() - 1) {
+        int commaIndex = imagenUrl.indexOf(',');
+        if (commaIndex < 0 || commaIndex == imagenUrl.length() - 1) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("avatarUrl data URI inválida");
+                    .body("Data URI de imagen inválida");
         }
-        String base64 = avatarUrl.substring(commaIndex + 1).replaceAll("\\s", "");
-        if (decodedBase64Bytes(base64) > MAX_AVATAR_DATA_BYTES) {
+        String base64 = imagenUrl.substring(commaIndex + 1).replaceAll("\\s", "");
+        if (decodedBase64Bytes(base64) > MAX_IMAGEN_DATA_BYTES) {
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                    .body("Avatar demasiado grande (máx 2 MB)");
+                    .body("Imagen demasiado grande (máx 2 MB)");
         }
         byte[] decoded;
         try {
             decoded = Base64.getDecoder().decode(base64);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("avatarUrl base64 inválido");
+                    .body("Base64 de imagen inválido");
         }
         if (decoded.length == 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("avatarUrl data URI vacia");
+                    .body("Data URI de imagen vacía");
         }
         String mime = matcher.group(1).toLowerCase(Locale.ROOT);
-        if (!avatarBytesCoincidenConMime(mime, decoded)) {
+        if (!imagenBytesCoincidenConMime(mime, decoded)) {
             return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                    .body("El contenido del avatar no coincide con el tipo declarado");
+                    .body("El contenido de la imagen no coincide con el tipo declarado");
         }
         return null;
     }
 
-    private static boolean avatarBytesCoincidenConMime(String mime, byte[] bytes) {
+    private static boolean imagenBytesCoincidenConMime(String mime, byte[] bytes) {
         return switch (mime) {
             case "png" -> bytes.length >= 8
                     && (bytes[0] & 0xFF) == 0x89

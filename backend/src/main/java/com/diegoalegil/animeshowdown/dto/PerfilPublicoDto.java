@@ -24,6 +24,7 @@ public record PerfilPublicoDto(
         Long id,
         String username,
         String avatarUrl,
+        String bannerUrl,
         String bio,
         LocalDateTime fechaRegistro,
         long seguidores,

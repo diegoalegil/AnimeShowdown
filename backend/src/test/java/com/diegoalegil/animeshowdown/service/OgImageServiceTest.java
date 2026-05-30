@@ -6,14 +6,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+
+import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
@@ -97,6 +103,44 @@ class OgImageServiceTest {
         when(seguidorRepository.countByIdSeguidoId(any())).thenReturn(7L);
         when(votoRepository.countByUsuario(any())).thenReturn(42L);
         assertPng(service.renderUsuario("kira"));
+    }
+
+    @Test
+    void renderUsuarioConBannerDevuelvePng() {
+        com.diegoalegil.animeshowdown.model.Usuario u =
+                new com.diegoalegil.animeshowdown.model.Usuario("aira", "x", "aira@example.com");
+        u.setBannerUrl(pngDataUri());
+        when(usuarioRepository.findByUsername("aira")).thenReturn(Optional.of(u));
+        when(seguidorRepository.countByIdSeguidoId(any())).thenReturn(3L);
+        when(votoRepository.countByUsuario(any())).thenReturn(9L);
+        assertPng(service.renderUsuario("aira"));
+    }
+
+    @Test
+    void renderUsuarioUsaFavoritoComoBannerCuandoNoHayBanner() {
+        com.diegoalegil.animeshowdown.model.Usuario u =
+                new com.diegoalegil.animeshowdown.model.Usuario("hina", "x", "hina@example.com");
+        when(usuarioRepository.findByUsername("hina")).thenReturn(Optional.of(u));
+        when(seguidorRepository.countByIdSeguidoId(any())).thenReturn(1L);
+        when(votoRepository.countByUsuario(any())).thenReturn(4L);
+        // Favorito con imagen data URI (sin red) → se dibuja como fondo.
+        when(votoRepository.topPorUsuario(any(), any(Pageable.class)))
+                .thenReturn(List.of(new TopPersonajeItem(
+                        1L, "gojo", "Gojo Satoru", pngDataUri(), "Jujutsu Kaisen", 5L)));
+        assertPng(service.renderUsuario("hina"));
+    }
+
+    /** PNG válido mínimo embebido como data URI (sin tocar la red). */
+    private static String pngDataUri() {
+        try {
+            BufferedImage img = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(img, "png", baos);
+            return "data:image/png;base64,"
+                    + Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static Personaje personaje(String slug, String nombre, String anime) {

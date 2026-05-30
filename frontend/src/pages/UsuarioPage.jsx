@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { AlertTriangle, CalendarDays, UserMinus, UserPlus, Users, UserCheck } from 'lucide-react'
 import Avatar from '../components/Avatar'
+import ProfileBanner from '../components/ProfileBanner'
 import CardStats from '../components/CardStats'
 import CardTop5 from '../components/CardTop5'
 import CardLogros from '../components/CardLogros'
@@ -181,10 +182,21 @@ function HeaderCard({ perfil, onToggle, pending, userLogueado }) {
   const { esMismoUsuario, siguiendo } = perfil
   const desde = mesAlta(perfil.fechaRegistro)
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6">
-      <div className="flex items-start gap-5">
-        <Avatar user={perfil} size={80} />
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
+    <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+      {/* Banner: imagen del usuario o, si no tiene, el arte de su personaje
+          favorito (top[0]) — nunca queda genérico. El avatar solapa el borde
+          inferior, estilo perfil social. */}
+      <ProfileBanner
+        bannerUrl={perfil.bannerUrl}
+        fallbackImagenUrl={perfil.top?.[0]?.imagenUrl}
+        alt={`Banner de ${perfil.username}`}
+        className="h-32 sm:h-44"
+      />
+      <div className="flex items-start gap-5 px-6 pb-6">
+        <div className="-mt-10 shrink-0 sm:-mt-12">
+          <Avatar user={perfil} size={88} className="ring-4 ring-surface" />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2 pt-3">
           <h1 className="truncate text-2xl font-bold tracking-tight text-fg-strong">
             {perfil.username}
           </h1>
@@ -228,8 +240,8 @@ function HeaderCard({ perfil, onToggle, pending, userLogueado }) {
             }
             className={
               siguiendo
-                ? 'inline-flex shrink-0 items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-60'
-                : 'inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60'
+                ? 'mt-3 inline-flex shrink-0 items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-60'
+                : 'mt-3 inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60'
             }
           >
             {siguiendo ? (

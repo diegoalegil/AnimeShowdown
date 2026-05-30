@@ -13,7 +13,10 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
+import { usePerfilTop } from '../hooks/usePerfil'
 import { endpoints, ApiError } from '../lib/api'
+import Avatar from '../components/Avatar'
+import ProfileBanner from '../components/ProfileBanner'
 import Dialog from '../components/Dialog'
 import Card2faSeguridad from '../components/Card2faSeguridad'
 import CardActividadReciente from '../components/CardActividadReciente'
@@ -27,6 +30,7 @@ import PasswordInput from '../components/PasswordInput'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import CardAvatar from '../features/perfil/components/CardAvatar'
+import CardBanner from '../features/perfil/components/CardBanner'
 import CardUsername from '../features/perfil/components/CardUsername'
 import CardBio from '../features/perfil/components/CardBio'
 import CardDatosCuenta from '../features/perfil/components/CardDatosCuenta'
@@ -51,6 +55,11 @@ function PerfilPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = tabValida(searchParams.get('tab'))
+  // Top 1 para el fallback del banner: si el usuario no ha subido banner,
+  // se muestra el arte de su personaje favorito (regla de identidad). El hook
+  // se gatea solo con user, así que es seguro llamarlo antes del guard.
+  const { data: topFav } = usePerfilTop({ limit: 1 })
+  const favoritoImagenUrl = topFav?.[0]?.imagenUrl
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -61,6 +70,34 @@ function PerfilPage() {
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.perfilHero} contentClassName="mx-auto max-w-3xl" density="low" lateralKanji={{left: "我", right: "道"}}>
+      {/* Banner identidad: cabecera con tu banner (o el arte de tu favorito) y
+          el avatar solapando el borde inferior — lo mismo que ve tu perfil
+          público en /u/{username}. */}
+      <motion.div
+        className="mb-6 overflow-hidden rounded-2xl border border-border bg-surface"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <ProfileBanner
+          bannerUrl={user.bannerUrl}
+          fallbackImagenUrl={favoritoImagenUrl}
+          alt="Tu banner"
+          className="h-28 sm:h-36"
+        />
+        <div className="px-6 pb-5">
+          <div className="-mt-10 flex items-end gap-4 sm:-mt-12">
+            <Avatar user={user} size={88} className="ring-4 ring-surface" />
+            <div className="min-w-0 pb-1">
+              <h2 className="truncate text-xl font-bold tracking-tight text-fg-strong">
+                {user.username}
+              </h2>
+              <p className="text-[12px] text-fg-muted">Tu perfil público</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       <motion.header
           className="mb-6 flex flex-col items-start gap-3"
           initial="hidden"
@@ -120,6 +157,11 @@ function PerfilPage() {
               <CardUsername user={user} />
               <CardBio user={user} />
               <CardAvatar user={user} updateUser={updateUser} />
+              <CardBanner
+                user={user}
+                updateUser={updateUser}
+                favoritoImagenUrl={favoritoImagenUrl}
+              />
               <CardPassword />
               <Card2faSeguridad />
               <CardSesion onLogout={handleLogout} />

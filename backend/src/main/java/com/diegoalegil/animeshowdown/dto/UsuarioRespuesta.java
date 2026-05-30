@@ -10,6 +10,7 @@ public class UsuarioRespuesta {
     private String username;
     private String email;
     private String avatarUrl;
+    private String bannerUrl;
     private String bio;
     private Rol rol;
     /**
@@ -37,6 +38,7 @@ public class UsuarioRespuesta {
         this.username = usuario.getUsername();
         this.email = usuario.getEmail();
         this.avatarUrl = usuario.getAvatarUrl();
+        this.bannerUrl = usuario.getBannerUrl();
         this.bio = usuario.getBio();
         this.rol = usuario.getRol();
         this.estadoVerificacion = usuario.getEstadoVerificacion();
@@ -50,6 +52,7 @@ public class UsuarioRespuesta {
     public String getUsername() { return username; }
     public String getEmail() { return email; }
     public String getAvatarUrl() { return avatarUrl; }
+    public String getBannerUrl() { return bannerUrl; }
     public String getBio() { return bio; }
     public Rol getRol() { return rol; }
     public EstadoVerificacion getEstadoVerificacion() { return estadoVerificacion; }

@@ -44,6 +44,15 @@ public class Usuario {
     private String avatarUrl;
 
     /**
+     * Banner/cabecera del perfil (V35). Imagen subida por el usuario —mismo
+     * pipeline que el avatar: data URI base64 o URL pública, sin R2—. NULL =
+     * el usuario no ha configurado uno; en ese caso /perfil, /u/{username} y la
+     * OG hacen fallback al arte del personaje favorito (nunca queda genérico).
+     */
+    @Column(name = "banner_url", columnDefinition = "TEXT")
+    private String bannerUrl;
+
+    /**
      * Bio pública corta (B7 §1a). Texto plano —el backend hace strip de HTML
      * antes de persistir—, máx 240 chars. NULL = el usuario aún no la ha
      * escrito; el frontend pinta el perfil sin romper layout en ese caso.
@@ -216,6 +225,14 @@ public class Usuario {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getBannerUrl() {
+        return bannerUrl;
+    }
+
+    public void setBannerUrl(String bannerUrl) {
+        this.bannerUrl = bannerUrl;
     }
 
     public String getBio() {
