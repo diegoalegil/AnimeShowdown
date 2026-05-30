@@ -113,6 +113,11 @@ public class SecurityConfig {
                         // Lo hacemos público para que el 410 llegue siempre.
                         .requestMatchers(HttpMethod.POST, "/api/personajes/*/votar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/enfrentamientos/*/votar").permitAll()
+                        // Set-once de la intención de voto (feature #15). Público
+                        // igual que el voto: los votantes invitados (anónimos)
+                        // también pueden anotar su categoría; el controller los
+                        // identifica por sesión y solo deja fijarla una vez.
+                        .requestMatchers(HttpMethod.PATCH, "/api/enfrentamientos/*/votar/categoria").permitAll()
                         // Lectura pública para que VotarPage pueda mostrar el match aleatorio
                         // antes de pedir login (el voto sí requiere auth, regla de arriba).
                         .requestMatchers(HttpMethod.GET, "/api/enfrentamientos/**").permitAll()

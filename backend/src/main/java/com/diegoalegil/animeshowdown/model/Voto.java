@@ -77,6 +77,16 @@ public class Voto {
     @JoinColumn(name = "enfrentamiento_id", nullable = true)
     private Enfrentamiento enfrentamiento;
 
+    // Intención de voto (feature #15): el "por qué" OPCIONAL del voto.
+    // NULL = sin intención → el voto sigue contando 1:1 en el ranking global
+    // (los GROUP BY del ranking no filtran por esta columna). Guardamos el id
+    // de wire (kebab) de CategoriaVoto, no el name() del enum, para que
+    // DB ↔ API ↔ URL ↔ frontend sean idénticos. length=24 cubre el id más
+    // largo de la lista cerrada con holgura. La columna la crea V37; declararla
+    // aquí mantiene en sync el esquema con ddl-auto=validate.
+    @Column(name = "categoria", length = 24)
+    private String categoria;
+
     public Voto() {
     }
 
@@ -167,5 +177,13 @@ public class Voto {
 
     public void setEnfrentamiento(Enfrentamiento enfrentamiento) {
         this.enfrentamiento = enfrentamiento;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 }
