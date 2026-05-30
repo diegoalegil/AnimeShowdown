@@ -58,6 +58,7 @@ const routePreloaders = {
   eloDuel: () => import('./pages/HigherOrLowerPage'),
   perfil: () => import('./pages/PerfilPage'),
   logros: () => import('./pages/LogrosPage'),
+  feed: () => import('./pages/FeedPage'),
 }
 
 const InicioPage = lazyRoute(routePreloaders.inicio)
@@ -84,6 +85,7 @@ const ForgotPasswordPage = lazyRoute(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazyRoute(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
 const PerfilPage = lazyRoute(routePreloaders.perfil)
+const FeedPage = lazyRoute(routePreloaders.feed)
 const UsuarioPage = lazyRoute(() => import('./pages/UsuarioPage'))
 const UsuarioLogrosPage = lazyRoute(() => import('./pages/UsuarioLogrosPage'))
 const CrearTorneoPage = lazyRoute(() => import('./pages/CrearTorneoPage'))
@@ -155,6 +157,7 @@ function routePreloaderFor(pathname) {
   if (pathname === '/games/elo-duel') return routePreloaders.eloDuel
   if (pathname === '/higher-or-lower') return routePreloaders.eloDuel
   if (pathname === '/perfil') return routePreloaders.perfil
+  if (pathname === '/feed') return routePreloaders.feed
   if (pathname === '/logros') return routePreloaders.logros
   return null
 }
@@ -459,6 +462,7 @@ function App() {
               <Route path="/admin/comentarios" element={gated(<AdminPage />)} />
               <Route path="/admin/assets" element={gated(<AdminPage />)} />
               <Route path="/perfil" element={gated(<PerfilPage />)} />
+              <Route path="/feed" element={gated(<FeedPage />)} />
               <Route path="/u/:username" element={gated(<UsuarioPage />)} />
               <Route path="/u/:username/logros" element={gated(<UsuarioLogrosPage />)} />
               <Route path="/games" element={gated(<GamesHubPage />)} />

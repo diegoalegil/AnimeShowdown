@@ -663,6 +663,10 @@ export const endpoints: EndpointMap = {
     api.post(`/api/seguidores/${usuarioId}`),
   dejarDeSeguir: (usuarioId) =>
     api.del(`/api/seguidores/${usuarioId}`),
+  // B7 §2: feed de comunidad (actividad de los seguidos). Autenticado y
+  // paginado. Devuelve { items, hasMore, sigueAAlguien }.
+  feed: ({ page = 0, size = 20 } = {}) =>
+    api.get(`/api/feed?page=${page}&size=${size}`),
   // Ranking segmentado.
   //   rankingSegmentado: periodo all|mes|trimestre|anio, anime opcional toma
   //     precedencia, limit max 200.

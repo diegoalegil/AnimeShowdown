@@ -26,6 +26,7 @@ const primaryNavLinks = [
   { to: '/ranking', i18nKey: 'ranking' },
 ]
 const moreNavLinks = [
+  { to: '/feed', i18nKey: 'feed' },
   { to: '/eventos', i18nKey: 'eventos' },
   { to: '/duel-live', i18nKey: 'pvp' },
 ]

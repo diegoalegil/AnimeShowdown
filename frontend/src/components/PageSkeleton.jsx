@@ -49,6 +49,9 @@ function archetypeForPath(pathname) {
   ) {
     return 'perfil'
   }
+  if (pathname === '/feed') {
+    return 'feed'
+  }
   return 'generic'
 }
 
