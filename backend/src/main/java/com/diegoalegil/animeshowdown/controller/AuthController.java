@@ -295,7 +295,7 @@ public class AuthController {
         if (usuarioOpt.isEmpty()) {
             log.warn("Login fallido (usuario/email no existe): {}", LogSanitizer.identifier(identificador));
             auditLogService.registrar(AuditEvento.LOGIN_FAIL, null,
-                    Map.of("identificador", identificador, "razon", "usuario_no_existe"),
+                    Map.of("identificador", LogSanitizer.identifier(identificador), "razon", "usuario_no_existe"),
                     httpRequest);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Credenciales inválidas");
@@ -813,7 +813,7 @@ public class AuthController {
         // y no revela si el email existe en el cuerpo, pero el registro de
         // seguridad sí captura el intento para análisis forense.
         auditLogService.registrar(AuditEvento.PASSWORD_RESET_SOLICITADO, null,
-                Map.of("email", request.getEmail()), httpRequest);
+                Map.of("email", LogSanitizer.email(request.getEmail())), httpRequest);
         return ResponseEntity.ok(Map.of(
                 "message",
                 "Si el email existe, te hemos enviado un código de 6 dígitos."));
@@ -828,7 +828,7 @@ public class AuthController {
                     request.getCodigo(),
                     request.getNewPassword());
             auditLogService.registrar(AuditEvento.PASSWORD_RESET_OK, null,
-                    Map.of("email", request.getEmail()), httpRequest);
+                    Map.of("email", LogSanitizer.email(request.getEmail())), httpRequest);
             return ResponseEntity.ok(Map.of("message", "Contraseña actualizada"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
