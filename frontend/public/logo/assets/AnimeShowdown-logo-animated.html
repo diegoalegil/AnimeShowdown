@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnimeShowdown — Logo animado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800&family=Shippori+Mincho:wght@800&family=Zen+Kaku+Gothic+New:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red: oklch(0.585 0.215 27);
+    --red-br: oklch(0.66 0.215 30);
+    --gold: oklch(0.83 0.10 84);
+    --cream: oklch(0.92 0.045 88);
+  }
+  html,body{ margin:0; height:100%; background:transparent; }
+  /* set a solid bg here if you want to preview on dark: body{background:#15100f} */
+  body{ display:flex; align-items:center; justify-content:center; }
+
+  .lockup{ display:flex; align-items:center; gap:34px; transform-origin:center;
+    /* scale to taste */ }
+
+  .emblem{ position:relative; width:150px; height:150px; display:grid; place-items:center;
+    animation: glowp 2.8s ease-in-out infinite; }
+  .emblem svg{ display:block; }
+  .ring{ stroke-dasharray:240 26; stroke-dashoffset:266; animation: draw 5s ease-out infinite; }
+  .ring2{ stroke-dasharray:186 22; stroke-dashoffset:208; animation: draw2 5s ease-out infinite; opacity:.72; }
+  .k{ position:absolute; inset:0; display:grid; place-items:center;
+    font-family:"Shippori Mincho",serif; font-weight:800; font-size:78px; color:var(--red-br);
+    text-shadow:0 0 16px oklch(0.62 0.21 28 / .7); filter:url(#ink);
+    opacity:0; transform:scale(.8); animation: ink 5s ease-out infinite; }
+  .petal{ position:absolute; width:11px; height:13px; background:var(--red);
+    border-radius:100% 8% 100% 8%; opacity:0; animation: fall 5s ease-out infinite; }
+
+  .wm{ font-family:"Archivo",sans-serif; line-height:.92; }
+  .wm span{ display:block; font-weight:800; letter-spacing:-0.01em; font-size:56px; }
+  .wm .a{ color:var(--cream); opacity:0; transform:translateY(12px); animation: rise 5s ease-out infinite; }
+  .wm .s{ background:linear-gradient(180deg,var(--gold),var(--cream)); -webkit-background-clip:text;
+    background-clip:text; color:transparent; opacity:0; transform:translateY(12px); animation: rise2 5s ease-out infinite; }
+  .jp{ font-family:"Zen Kaku Gothic New",sans-serif; font-weight:500; color:var(--red-br);
+    letter-spacing:.34em; font-size:15px; margin-top:11px; display:block; opacity:0; animation: rise3 5s ease-out infinite; }
+
+  @keyframes draw{ 0%{stroke-dashoffset:266} 24%,100%{stroke-dashoffset:26} }
+  @keyframes draw2{ 0%{stroke-dashoffset:208} 30%,100%{stroke-dashoffset:22} }
+  @keyframes ink{ 0%,20%{opacity:0;transform:scale(.8)} 30%,100%{opacity:1;transform:scale(1)} }
+  @keyframes fall{ 0%,26%{opacity:0;transform:translate(-6px,-10px) rotate(0)} 38%,100%{opacity:.9;transform:translate(0,0) rotate(40deg)} }
+  @keyframes rise{ 0%,30%{opacity:0;transform:translateY(12px)} 42%,100%{opacity:1;transform:translateY(0)} }
+  @keyframes rise2{ 0%,36%{opacity:0;transform:translateY(12px)} 48%,100%{opacity:1;transform:translateY(0)} }
+  @keyframes rise3{ 0%,46%{opacity:0;transform:translateY(8px)} 56%,100%{opacity:1;transform:translateY(0)} }
+  @keyframes glowp{ 0%,100%{filter:drop-shadow(0 0 12px oklch(0.6 0.2 28 / .5))} 50%{filter:drop-shadow(0 0 22px oklch(0.62 0.21 30 / .85))} }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <filter id="ink"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/></filter>
+</defs></svg>
+
+<div class="lockup">
+  <div class="emblem">
+    <svg width="150" height="150" viewBox="0 0 100 100">
+      <circle class="ring" cx="50" cy="50" r="40" fill="none" stroke="var(--red)" stroke-width="4.4"
+        stroke-linecap="round" transform="rotate(46 50 50)" filter="url(#ink)"></circle>
+      <circle class="ring2" cx="50" cy="50" r="33" fill="none" stroke="var(--red)" stroke-width="1.6"
+        stroke-linecap="round" transform="rotate(-150 50 50)" filter="url(#ink)"></circle>
+    </svg>
+    <div class="k">滅</div>
+    <span class="petal" style="top:10px; right:14px;"></span>
+    <span class="petal" style="top:-2px; right:-2px; width:8px; height:10px; animation-delay:.1s;"></span>
+    <span class="petal" style="top:28px; right:0; width:7px; height:9px; animation-delay:.2s;"></span>
+  </div>
+  <div class="wm">
+    <span class="a">Anime</span>
+    <span class="s">Showdown</span>
+    <span class="jp">アニメの戦い</span>
+  </div>
+</div>
+</body>
+</html>
