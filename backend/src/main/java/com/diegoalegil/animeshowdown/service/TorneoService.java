@@ -53,6 +53,7 @@ public class TorneoService {
     private final PrediccionService prediccionService;
     private final NotificacionService notificacionService;
     private final IndexNowService indexNowService;
+    private final SeguidorFanOutService seguidorFanOutService;
 
     public TorneoService(
             TorneoRepository torneoRepository,
@@ -63,7 +64,8 @@ public class TorneoService {
             BracketAdvanceService bracketAdvanceService,
             PrediccionService prediccionService,
             NotificacionService notificacionService,
-            IndexNowService indexNowService) {
+            IndexNowService indexNowService,
+            SeguidorFanOutService seguidorFanOutService) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
@@ -73,6 +75,7 @@ public class TorneoService {
         this.prediccionService = prediccionService;
         this.notificacionService = notificacionService;
         this.indexNowService = indexNowService;
+        this.seguidorFanOutService = seguidorFanOutService;
     }
 
     public Torneo crear(TorneoCrearRequest request) {
@@ -200,6 +203,20 @@ public class TorneoService {
                 "Tu torneo ha sido aprobado",
                 "\"" + guardado.getNombre() + "\" ya está en juego.",
                 payloadDeTorneo(guardado));
+
+        // B7 §3: al aprobarse un torneo PÚBLICO, fan-out a los seguidores del
+        // creador (evento de baja frecuencia y alta señal). Condicionado a
+        // publico==true para ser consistente con el feed, que solo muestra
+        // torneos publicos+APROBADOS. Best-effort y acotado en el service.
+        Usuario creador = guardado.getCreadoPor();
+        if (creador != null && guardado.isPublico()) {
+            seguidorFanOutService.notificarSeguidores(
+                    creador,
+                    NotificacionTipo.SEGUIDO_TORNEO,
+                    creador.getUsername() + " creó un torneo",
+                    "\"" + guardado.getNombre() + "\" ya está en juego.",
+                    payloadDeTorneo(guardado));
+        }
 
         // IndexNow ping a Bing/Yandex/etc. para que el
         // nuevo URL del torneo se indexe en minutos en lugar de horas.

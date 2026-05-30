@@ -185,6 +185,24 @@ public class BadgeService {
         } catch (Exception e) {
             log.warn("Audit BADGE_DESBLOQUEADO falló: {}", e.getMessage());
         }
+        // B7 §3: fan-out a los seguidores del actor (baja frecuencia: cada
+        // logro se desbloquea una vez por usuario). Best-effort y acotado
+        // dentro del service; NUNCA para votos (alta frecuencia → spam). El
+        // username es regex-safe (^[A-Za-z0-9_-]+$) así que no necesita escape.
+        try {
+            String payloadSeguido = String.format(
+                    "{\"actorUsername\":\"%s\",\"codigo\":\"%s\",\"icono\":\"%s\",\"rareza\":%d}",
+                    usuario.getUsername(), logro.getCodigo(), logro.getIcono(), logro.getRareza());
+            seguidorFanOutService.notificarSeguidores(
+                    usuario,
+                    NotificacionTipo.SEGUIDO_LOGRO,
+                    usuario.getUsername() + " desbloqueó un logro",
+                    logro.getNombre(),
+                    payloadSeguido);
+        } catch (Exception e) {
+            log.warn("Fan-out SEGUIDO_LOGRO falló: usuario={} codigo={} err={}",
+                    usuario.getUsername(), logro.getCodigo(), e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
