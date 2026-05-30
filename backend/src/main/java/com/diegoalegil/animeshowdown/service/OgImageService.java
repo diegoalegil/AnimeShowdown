@@ -40,6 +40,7 @@ import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.security.SsrfGuard;
 
 /**
  * Render server-side de OG images (1200×630 PNG) para previews ricos en
@@ -542,9 +543,23 @@ public class OgImageService {
         // disparar OG de varios torneos con URLs externas lentas y
         // agotar el pool de Tomcat. Abrimos la conexión manualmente con
         // timeouts conservadores y leemos el stream con ImageIO.
+        //
+        // Anti-SSRF: el fetch lo dispara un endpoint OG público (permitAll),
+        // así que un usuario podía fijar su avatar/banner a
+        // http://169.254.169.254/... (metadata cloud) o http://127.0.0.1/...
+        // y forzar al backend a pegarle. Solo se permiten http(s) y destinos
+        // cuya IP REALMENTE resuelta es pública (ver SsrfGuard).
+        if (!SsrfGuard.isFetchAllowed(url)) {
+            log.warn("OgImageService bloqueó fetch a destino interno/no permitido (SSRF): {}", url);
+            return null;
+        }
         try {
             URL u = URI.create(url).toURL();
             java.net.URLConnection conn = u.openConnection();
+            // Sin seguir redirects: un 30x a una IP interna evadiría el guard.
+            if (conn instanceof java.net.HttpURLConnection httpConn) {
+                httpConn.setInstanceFollowRedirects(false);
+            }
             conn.setConnectTimeout(3_000);
             conn.setReadTimeout(5_000);
             try (java.io.InputStream is = conn.getInputStream()) {

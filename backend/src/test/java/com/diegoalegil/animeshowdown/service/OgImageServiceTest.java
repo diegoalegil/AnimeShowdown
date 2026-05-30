@@ -130,6 +130,48 @@ class OgImageServiceTest {
         assertPng(service.renderUsuario("hina"));
     }
 
+    /**
+     * R3-SSRF (regresión): el render de OG NO debe hacer fetch server-side a
+     * una URL interna. Un usuario fija su banner a http://127.0.0.1:PORT/...
+     * y el endpoint OG público lo renderiza; antes del guard el backend
+     * pegaba a ese destino (1+ hits → SSRF), ahora SsrfGuard lo bloquea
+     * (0 hits) y el OG cae al fallback. Levantamos un servidor local que
+     * cuenta peticiones para distinguir "bloqueado" de "intentado-y-falló".
+     */
+    @Test
+    void renderUsuarioNoHaceFetchServerSideAUrlInterna() throws Exception {
+        com.sun.net.httpserver.HttpServer server =
+                com.sun.net.httpserver.HttpServer.create(
+                        new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        java.util.concurrent.atomic.AtomicInteger hits = new java.util.concurrent.atomic.AtomicInteger();
+        server.createContext("/", exchange -> {
+            hits.incrementAndGet();
+            byte[] body = "x".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+        try {
+            int port = server.getAddress().getPort();
+            com.diegoalegil.animeshowdown.model.Usuario u =
+                    new com.diegoalegil.animeshowdown.model.Usuario("victima", "x", "victima@example.com");
+            u.setBannerUrl("http://127.0.0.1:" + port + "/evil.png"); // destino interno
+            when(usuarioRepository.findByUsername("victima")).thenReturn(Optional.of(u));
+            when(seguidorRepository.countByIdSeguidoId(any())).thenReturn(0L);
+            when(votoRepository.countByUsuario(any())).thenReturn(0L);
+
+            byte[] png = service.renderUsuario("victima");
+
+            assertPng(png); // sigue devolviendo OG (fallback), sin filtrar nada
+            assertThat(hits.get())
+                    .as("renderUsuario NO debe hacer fetch server-side a 127.0.0.1 (SSRF)")
+                    .isZero();
+        } finally {
+            server.stop(0);
+        }
+    }
+
     /** PNG válido mínimo embebido como data URI (sin tocar la red). */
     private static String pngDataUri() {
         try {
