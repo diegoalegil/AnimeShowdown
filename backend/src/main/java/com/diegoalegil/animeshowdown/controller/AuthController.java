@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
@@ -47,6 +48,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
 import com.diegoalegil.animeshowdown.security.LogSanitizer;
+import com.diegoalegil.animeshowdown.security.SsrfGuard;
 import com.diegoalegil.animeshowdown.service.ReferralService;
 import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.EmailVerificationService;
@@ -579,6 +581,18 @@ public class AuthController {
         if (!imagenUrl.startsWith("http://") && !imagenUrl.startsWith("https://")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("La imagen debe ser una URL http(s) o una imagen embebida permitida");
+        }
+        // SSRF (defensa en input): rechaza ya al guardar las IPs internas
+        // literales. El guard real, con resolución DNS, vive en
+        // OgImageService.leerImagen, que es quien hace el fetch server-side.
+        try {
+            if (SsrfGuard.isBlockedLiteralHost(URI.create(imagenUrl).getHost())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("La URL de la imagen apunta a una dirección interna no permitida");
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("La URL de la imagen no es válida");
         }
         return null;
     }
