@@ -87,6 +87,12 @@ class EnfrentamientoControllerTest {
     void fijarClockUtcPorDefecto() throws Exception {
         esperarAsyncDefaultIdle();
         madrugadorDiaRepository.deleteAll();
+        // Aísla el throttle anti-fraude entre tests. El anon_ip_hash ahora
+        // es IP-real + User-Agent (ya no incluye la sesión), así que todos
+        // los votos anónimos del suite (mismo 127.0.0.1, reloj congelado)
+        // caen en el MISMO bucket; sin esta limpieza se acumularían en la
+        // ventana de 1h y dispararían el captcha en tests posteriores.
+        votoRepository.deleteAll();
         fijarClock("2026-05-22T06:42:00Z");
     }
 
@@ -216,6 +222,55 @@ class EnfrentamientoControllerTest {
                 .andExpect(jsonPath("$.votosAnonimosRestantes").value(0));
 
         org.junit.jupiter.api.Assertions.assertEquals(5, votoRepository.countByAnonSessionId(anonId));
+    }
+
+    /**
+     * R3-1 / SEC-001 (regresión): el anti-fraude de voto anónimo no puede
+     * evadirse rotando X-Forwarded-For. Escenario de vote-stuffing real: un
+     * atacante pega directo al backend y, por petición, rota la cookie de
+     * sesión (para saltarse el tope de 5 votos por sesión) y rota
+     * X-Forwarded-For (para intentar saltarse el throttle por IP).
+     *
+     * <p>ANTES del fix la IP del hash salía de X-Forwarded-For crudo y el
+     * hash incluía sesión + fingerprint, así que cada voto caía en un
+     * bucket distinto y el throttle por IP NUNCA disparaba (los 11 votos
+     * pasaban con 200). AHORA el hash es IP-real (ClientIpExtractor) +
+     * User-Agent, estable frente a esa rotación, y al superar el umbral
+     * soft (10/h) el throttle responde 428 PRECONDITION_REQUIRED.
+     */
+    @Test
+    void votarAnonimoRotandoXForwardedForNoEvadeElThrottlePorIp() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "xff-stuffing");
+        Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
+
+        // 11 votos > umbral soft (app.anon-abuse.soft-per-hour=10) desde la
+        // MISMA conexión (RemoteAddr 127.0.0.1, mismo User-Agent), rotando
+        // sesión y X-Forwarded-For en cada petición.
+        List<Integer> estados = new java.util.ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            int status = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                    .header("X-AS-Anonymous-Id", "anon-xff-stuffing-" + i) // sesión nueva → evade el tope de 5
+                    .header("X-Forwarded-For", "203.0.113." + i)           // IP spoofeada distinta cada vez
+                    .header("User-Agent", "vote-stuffer/1.0")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(body)))
+                    .andReturn()
+                    .getResponse()
+                    .getStatus();
+            estados.add(status);
+        }
+
+        // El primer voto entra (sanity); y pese a rotar X-Forwarded-For el
+        // throttle por IP termina disparando captcha (428). Antes del fix
+        // NINGÚN estado era 428 y el stuffing pasaba sin fricción.
+        org.junit.jupiter.api.Assertions.assertEquals(
+                200, estados.get(0), "El primer voto anónimo debería entrar; estados=" + estados);
+        org.junit.jupiter.api.Assertions.assertTrue(
+                estados.contains(428),
+                "El throttle por IP debe disparar REQUIRE_CAPTCHA (428) pese a rotar "
+                        + "X-Forwarded-For; estados observados=" + estados);
     }
 
     /**
