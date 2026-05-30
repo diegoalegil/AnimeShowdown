@@ -27,6 +27,7 @@ import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.BracketService;
+import com.diegoalegil.animeshowdown.service.CartaCatalogoService;
 import com.diegoalegil.animeshowdown.service.ReferralService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,6 +72,7 @@ public class DataSeeder implements CommandLineRunner {
     private final PrediccionRepository prediccionRepository;
     private final BracketService bracketService;
     private final ReferralService referralService;
+    private final CartaCatalogoService cartaCatalogoService;
     private final ObjectMapper objectMapper;
 
     // Self-injection vía proxy para que @Transactional aplique al llamar
@@ -90,6 +92,7 @@ public class DataSeeder implements CommandLineRunner {
             PrediccionRepository prediccionRepository,
             BracketService bracketService,
             ReferralService referralService,
+            CartaCatalogoService cartaCatalogoService,
             ObjectMapper objectMapper) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
@@ -98,6 +101,7 @@ public class DataSeeder implements CommandLineRunner {
         this.prediccionRepository = prediccionRepository;
         this.bracketService = bracketService;
         this.referralService = referralService;
+        this.cartaCatalogoService = cartaCatalogoService;
         this.objectMapper = objectMapper;
     }
 
@@ -142,6 +146,17 @@ public class DataSeeder implements CommandLineRunner {
             referralService.backfillCodigos();
         } catch (Exception e) {
             log.error("DataSeeder fallo al backfill referral codes (no crítico): {}",
+                    e.getMessage(), e);
+        }
+
+        // Catálogo de cartas (Ola 1 — Fase 1): 1 carta SSR por personaje. Se
+        // hace aquí, tras sincronizar los personajes, porque las cartas derivan
+        // del catálogo de personajes (que se importa en runtime, no en las
+        // migraciones). Idempotente: sólo crea las que faltan.
+        try {
+            cartaCatalogoService.sincronizarDesdePersonajes();
+        } catch (Exception e) {
+            log.error("DataSeeder fallo al sincronizar el catálogo de cartas (no crítico): {}",
                     e.getMessage(), e);
         }
     }
