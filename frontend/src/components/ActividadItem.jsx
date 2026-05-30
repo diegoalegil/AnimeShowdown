@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom'
 import { Swords, Award, Trophy, Target } from 'lucide-react'
 import Avatar from './Avatar'
 
-// configPorTipo NO se exporta a propósito: la regla react-refresh
-// (only-export-components) exige que este archivo solo exporte componentes.
+// Helpers privados (no exportados): la regla react-refresh/only-export-components
+// exige que este módulo solo EXPORTE componentes, así que configPorTipo y
+// fechaRelativa quedan a nivel de módulo sin export.
 function configPorTipo(item) {
   const p = item.payload || {}
   switch (item.tipo) {
@@ -103,6 +104,8 @@ function fechaRelativa(iso) {
  * personal del perfil (CardActividadReciente, sin autor) y el feed de
  * comunidad (FeedPage, con showAuthor): si el payload trae autoría
  * (autorUsername), pinta el avatar + link del autor en vez del icono del tipo.
+ *
+ * Export ÚNICO con nombre (sin default) para no romper react-refresh.
  */
 export function ActividadItem({ item, showAuthor = false }) {
   const config = configPorTipo(item)
@@ -143,5 +146,3 @@ export function ActividadItem({ item, showAuthor = false }) {
     </li>
   )
 }
-
-export default ActividadItem

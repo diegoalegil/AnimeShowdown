@@ -8,12 +8,12 @@ import { useAuth } from '../contexts/AuthContext'
  * empty-state de logueado-sin-seguidos lo decide la flag `sigueAAlguien`
  * de la respuesta; el de no-logueado lo gestiona la página (CTA de captación).
  */
-export function useFeed({ page = 0, size = 20 } = {}) {
+export function useFeed({ page = 0, size = 20, enabled = true } = {}) {
   const { user } = useAuth()
   return useQuery({
     queryKey: ['feed', page, size],
     queryFn: () => endpoints.feed({ page, size }),
-    enabled: Boolean(user),
+    enabled: enabled && Boolean(user),
     staleTime: 15_000,
   })
 }
