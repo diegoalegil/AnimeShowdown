@@ -26,6 +26,11 @@ import com.diegoalegil.animeshowdown.repository.MonederoRepository;
  * + UNIQUE constraint. En la carrera rara, el flush lanza
  * {@link DataIntegrityViolationException} y la transacción del crédito hace
  * rollback — el orquestador (DropService) la captura fuera de la tx.
+ *
+ * <p>Lost-update del saldo: {@code acreditar()} carga el monedero con
+ * {@code findForUpdateByUsuarioId} (PESSIMISTIC_WRITE lock) antes del
+ * read-modify-write. Eso serializa dos acreditaciones concurrentes del
+ * mismo usuario; la segunda espera a que la primera confirme su saldo.
  */
 @Service
 public class MonederoService {
@@ -35,7 +40,8 @@ public class MonederoService {
     private final MonederoRepository monederoRepo;
     private final MonederoMovimientoRepository movimientoRepo;
 
-    public MonederoService(MonederoRepository monederoRepo, MonederoMovimientoRepository movimientoRepo) {
+    public MonederoService(MonederoRepository monederoRepo,
+                           MonederoMovimientoRepository movimientoRepo) {
         this.monederoRepo = monederoRepo;
         this.movimientoRepo = movimientoRepo;
     }
@@ -53,22 +59,27 @@ public class MonederoService {
      * ya se aplicó, no hace nada y devuelve {@code aplicado=false}. La carrera
      * (dos créditos idénticos a la vez) la corta el UNIQUE: el flush lanza
      * {@link DataIntegrityViolationException} y la tx hace rollback.
+     *
+     * <p>El monedero se carga con {@code findForUpdateByUsuarioId}
+     * (PESSIMISTIC_WRITE lock) para evitar lost-update en dos acreditaciones
+     * concurrentes del mismo usuario. El lock asegura que la segunda lectura
+     * espere a que la primera confirme su saldo antes de modificarlo.
      */
     @Transactional
-    public ResultadoCredito acreditar(Usuario usuario, MotivoMovimiento motivo, String referencia, long cantidad) {
+    public ResultadoCredito acreditar(Usuario usuario, MotivoMovimiento motivo,
+            String referencia, long cantidad) {
         if (cantidad <= 0) {
             return new ResultadoCredito(false, saldoActual(usuario));
         }
         if (movimientoRepo.existsByUsuarioAndMotivoAndReferencia(usuario, motivo, referencia)) {
             return new ResultadoCredito(false, saldoActual(usuario));
         }
-        Monedero monedero = obtenerOCrear(usuario);
+        Monedero monedero = obtenerOCrearConLock(usuario);
         long nuevoSaldo = monedero.getSaldo() + cantidad;
         monedero.setSaldo(nuevoSaldo);
-        monederoRepo.save(monedero);
-        // saveAndFlush: si otro proceso aplicó el mismo (motivo, referencia) a la
-        // vez, la violación UNIQUE salta aquí (no en un commit diferido) y la tx
-        // entera —incluido el incremento de saldo— hace rollback.
+        // save + flush: marca el dirty-check en el primer-level cache para que
+        // la lectura del lock se materialice antes de la modificacion.
+        monederoRepo.saveAndFlush(monedero);
         movimientoRepo.saveAndFlush(
                 new MonederoMovimiento(usuario, cantidad, motivo, referencia, nuevoSaldo));
         return new ResultadoCredito(true, nuevoSaldo);
@@ -79,7 +90,8 @@ public class MonederoService {
      * gastos concurrentes del mismo usuario. Lanza 409 si el saldo es insuficiente.
      */
     @Transactional
-    public long debitar(Usuario usuario, MotivoMovimiento motivo, String referencia, long cantidad) {
+    public long debitar(Usuario usuario, MotivoMovimiento motivo,
+            String referencia, long cantidad) {
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad a debitar debe ser positiva");
         }
@@ -96,17 +108,42 @@ public class MonederoService {
         return nuevoSaldo;
     }
 
-    private Monedero obtenerOCrear(Usuario usuario) {
-        Optional<Monedero> existente = monederoRepo.findByUsuarioId(usuario.getId());
+    /**
+     * Obtiene el monedero del usuario (con lock) o lo crea si no existe.
+     * El lock PESSIMISTIC_WRITE serializa dos acreditaciones concurrentes
+     * del mismo usuario para que no haya lost-update en el saldo.
+     */
+    Monedero obtenerOCrearConLock(Usuario usuario) {
+        // findForUpdateByUsuarioId tiene @Lock(PESSIMISTIC_WRITE) — bloquea la
+        // fila monedero en la BD hasta que esta tx confirme/rollback.
+        Optional<Monedero> existente = monederoRepo.findForUpdateByUsuarioId(usuario.getId());
         if (existente.isPresent()) {
             return existente.get();
         }
+        // Nadie tiene monedero — crear uno. Si dos hilos llegan aqui a la vez
+        // (race condition pre-existente), el primero INSERTea y el segundo recibe
+        // DataIntegrityViolationException. En ese caso esperamos a que el primero
+        // confirme y devolvemos su monedero.
         try {
             return monederoRepo.saveAndFlush(new Monedero(usuario));
-        } catch (DataIntegrityViolationException e) {
-            // Carrera en la creación del monedero (otro hilo lo creó primero).
-            return monederoRepo.findByUsuarioId(usuario.getId()).orElseThrow(() -> e);
+        } catch (DataIntegrityViolationException ex) {
+            // El primer hilo gano la creacion; esperar confirmacion y devolver
+            // el existente que creo. El catch NO marca esta tx como rollback porque
+            // Propagation=REQUIRED (la tx del llamador).
+            return monederoRepo.findByUsuarioId(usuario.getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Monedero no encontrado tras unique violation para usuario "
+                                    + usuario.getId(), ex));
         }
+    }
+
+    /**
+     * Crea el monedero directamente en la BD sin pasar por la logica de
+     * acreditar (sin lock, sin idempotencia por referencia). Uso exclusivo
+     * para tests que necesitan un monedero pre-existente.
+     */
+    Monedero crearMonederoParaTest(Usuario usuario) {
+        return monederoRepo.save(new Monedero(usuario));
     }
 
     private long saldoActual(Usuario usuario) {
@@ -119,7 +156,7 @@ public class MonederoService {
         return new ResponseStatusException(HttpStatus.CONFLICT, "Saldo insuficiente");
     }
 
-    /** Resultado de un crédito: si se aplicó y el saldo tras la operación. */
+    /** Resultado de un credito: si se aplico y el saldo tras la operacion. */
     public record ResultadoCredito(boolean aplicado, long saldo) {
     }
 }
