@@ -170,8 +170,16 @@ function UsuarioPage() {
   )
 }
 
+function mesAlta(fechaRegistro) {
+  if (!fechaRegistro) return null
+  const d = new Date(fechaRegistro)
+  if (Number.isNaN(d.getTime())) return null
+  return new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric' }).format(d)
+}
+
 function HeaderCard({ perfil, onToggle, pending, userLogueado }) {
   const { esMismoUsuario, siguiendo } = perfil
+  const desde = mesAlta(perfil.fechaRegistro)
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="flex items-start gap-5">
@@ -195,7 +203,18 @@ function HeaderCard({ perfil, onToggle, pending, userLogueado }) {
               </strong>{' '}
               seguidos
             </span>
+            {desde && (
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="h-3.5 w-3.5" />
+                miembro desde {desde}
+              </span>
+            )}
           </div>
+          {perfil.bio && (
+            <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-fg-muted">
+              {perfil.bio}
+            </p>
+          )}
         </div>
         {!esMismoUsuario && (
           <button
