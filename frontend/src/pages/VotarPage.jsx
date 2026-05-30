@@ -107,7 +107,7 @@ function HeadToHeadBar({ ganadorNombre, perdedorNombre, votosGanador, votosPerde
         />
       </div>
       <div className="mt-1 flex justify-between text-[11px] font-semibold">
-        <span className="text-accent">{pctGanador}%</span>
+        <span className="text-danger">{pctGanador}%</span>
         {esCercano && (
           <span className="text-center text-[10px] font-bold uppercase tracking-[0.1em] text-fg-muted">
             ¡Duelo reñido!
