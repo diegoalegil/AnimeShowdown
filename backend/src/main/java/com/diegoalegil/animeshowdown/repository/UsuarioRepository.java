@@ -32,4 +32,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     /** Backfill V14: usuarios sin código que necesitan uno. */
     List<Usuario> findByReferralCodeIsNull();
+
+    /**
+     * Proyección ligera para sitemap: solo username + fechaRegistro.
+     * Evita cargar password, email, TOTP, avatarUrl y todos los campos
+     * sensibles de la entidad Usuario. El endpoint es público (permitAll).
+     */
+    @Query("SELECT new com.diegoalegil.animeshowdown.dto.UsuarioSitemapDto(u.username, u.fechaRegistro) FROM Usuario u")
+    List<com.diegoalegil.animeshowdown.dto.UsuarioSitemapDto> findAllPublico();
 }
