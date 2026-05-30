@@ -51,6 +51,11 @@ public class CacheConfig {
                 // Se invalida sola por TTL; un cambio de avatar/bio tarda
                 // como mucho una semana en reflejarse en el preview social.
                 buildCache("og-usuario", Duration.ofDays(7), 1000),
+                // Ranking all-time sin paginación. La query más caliente
+                // (SectionPulso en home, staleTime:60s). TTL 30s para que
+                // cambios menores (votos recientes) se reflejen rápido sin
+                // saturar Postgres con cada request.
+                buildCache("votos-ranking", Duration.ofSeconds(30), 8),
                 // El catálogo de personajes apenas cambia (solo cuando admin
                 // importa o el seed corre). TTL 5min ahorra ~95% de hits a
                 // Postgres en horas pico sin que el usuario note staleness.

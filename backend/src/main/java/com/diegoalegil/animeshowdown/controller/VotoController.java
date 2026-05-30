@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,6 +42,7 @@ public class VotoController {
      * Compat: lo consume RankingPage del frontend desde el bloque 1.
      */
     @GetMapping("/ranking")
+    @Cacheable(value = "votos-ranking")
     public List<RankingItem> obtenerRanking() {
         return metrics.recordRanking(votoRepository::obtenerRanking);
     }
