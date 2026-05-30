@@ -12,8 +12,19 @@ import com.diegoalegil.animeshowdown.model.UsuarioLogro;
 
 public interface UsuarioLogroRepository extends JpaRepository<UsuarioLogro, Long> {
 
-    /** Logros desbloqueados de un usuario, ordenados por fecha desc (más reciente primero). */
     List<UsuarioLogro> findByUsuarioOrderByDesbloqueadoEnDesc(Usuario usuario);
+
+    /**
+     * Logros desbloqueados de un usuario con JOIN FETCH de logro.
+     * Versión optimizada para perfil público — evita N+1 ([R3-9]).
+     */
+    @Query("""
+            select ul from UsuarioLogro ul
+            join fetch ul.logro
+            where ul.usuario = :usuario
+            order by ul.desbloqueadoEn desc
+            """)
+    List<UsuarioLogro> findByUsuarioWithLogro(@Param("usuario") Usuario usuario);
 
     /** Check rápido sin cargar la fila — usado por BadgeService antes de intentar insertar. */
     boolean existsByUsuarioAndLogro(Usuario usuario, Logro logro);

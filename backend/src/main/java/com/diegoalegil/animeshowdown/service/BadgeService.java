@@ -210,7 +210,7 @@ public class BadgeService {
 
     @Transactional(readOnly = true)
     public List<UsuarioLogro> listarUsuario(Usuario usuario) {
-        return usuarioLogroRepo.findByUsuarioOrderByDesbloqueadoEnDesc(usuario);
+        return usuarioLogroRepo.findByUsuarioWithLogro(usuario);
     }
 
     @Transactional(readOnly = true)
@@ -226,7 +226,7 @@ public class BadgeService {
      */
     @Transactional(readOnly = true)
     public List<com.diegoalegil.animeshowdown.dto.LogroDto> listarCatalogoConDesbloqueos(Usuario usuario) {
-        List<UsuarioLogro> mios = usuarioLogroRepo.findByUsuarioOrderByDesbloqueadoEnDesc(usuario);
+        List<UsuarioLogro> mios = usuarioLogroRepo.findByUsuarioWithLogro(usuario);
         // Index por logro_id para O(n) en lugar de O(n*m) cuando hay muchos
         // logros y muchos desbloqueos.
         java.util.Map<Long, UsuarioLogro> indexPorLogro = new java.util.HashMap<>();

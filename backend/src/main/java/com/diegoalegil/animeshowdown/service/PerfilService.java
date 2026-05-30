@@ -258,7 +258,7 @@ public class PerfilService {
         // Logros desbloqueados — usa el repo existente; trunca a N.
         int contadorL = 0;
         for (UsuarioLogro ul : usuarioLogroRepository
-                .findByUsuarioOrderByDesbloqueadoEnDesc(usuario)) {
+                .findByUsuarioWithLogro(usuario)) {
             if (contadorL++ >= n) break;
             Map<String, Object> payload = new HashMap<>();
             payload.put("codigo", ul.getLogro().getCodigo());

@@ -384,9 +384,17 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     /**
      * Historial de votos del usuario, ordenados por fecha desc (más recientes
-     * primero). Page para paginación; el frontend pide page=0,size=50 típicamente.
-     * 1.
+     * primero). JOIN FETCH en personajes para evitar N+1 en la respuesta.
      */
+    @Query("""
+            select v from Voto v
+            join fetch v.personaje
+            left join fetch v.enfrentamiento enf
+            left join fetch enf.personaje1
+            left join fetch enf.personaje2
+            where v.usuario = :usuario
+            order by v.fecha desc
+            """)
     org.springframework.data.domain.Page<Voto> findByUsuarioOrderByFechaDesc(
             Usuario usuario, org.springframework.data.domain.Pageable pageable);
 
