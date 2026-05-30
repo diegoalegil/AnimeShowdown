@@ -683,15 +683,22 @@ export const endpoints: EndpointMap = {
     api.get(`/api/votos/ranking/movimientos?limit=${limit}&dias=${dias}`, {
       auth: false,
     }),
-  rankingSegmentado: ({ periodo = 'all', anime, limit = 50 } = {}) => {
+  rankingSegmentado: ({ periodo = 'all', anime, categoria, limit = 50 } = {}) => {
     const params = new URLSearchParams({ periodo, limit: String(limit) })
     if (anime) params.set('anime', anime)
+    // Intención de voto (feature #15). anime tiene precedencia en el backend;
+    // categoria es aditivo y se ignora si es inválida.
+    if (categoria) params.set('categoria', categoria)
     return api.get(`/api/votos/ranking/segmentado?${params}`, {
       auth: false,
     })
   },
   animesConVotos: () =>
     api.get('/api/votos/ranking/animes-disponibles', { auth: false }),
+  // Categorías de intención (feature #15) con al menos un voto, para no pintar
+  // chips vacíos en el sub-selector 'Por intención' de /ranking.
+  categoriasConVotos: () =>
+    api.get('/api/votos/ranking/categorias-disponibles', { auth: false }),
   // Top voters leaderboard. periodo: all|semana|mes.
   topVoters: ({ periodo = 'all', limit = 10 } = {}) =>
     api.get(`/api/votos/top-voters?periodo=${periodo}&limit=${limit}`, { auth: false }),
@@ -790,10 +797,20 @@ export const endpoints: EndpointMap = {
   dueloLiveState: (id) => api.get(`/api/duelo-live/${id}`),
   dueloLiveVote: (id, choice) => api.post(`/api/duelo-live/${id}/vote`, { choice }),
   dueloLiveLeave: (id) => api.post(`/api/duelo-live/${id}/leave`, undefined),
-  votar: (enfrentamientoId, personajeId, { anonymous = false, headers = {} } = {}) =>
+  votar: (enfrentamientoId, personajeId, { anonymous = false, headers = {}, categoria } = {}) =>
     // El backend espera el campo personajeGanadorId (validado con @NotNull en
     // VotoEnfrentamientoRequest); antes mandábamos personajeId y rebotaba con 400.
+    // categoria (intención de voto, feature #15) es opcional: se omite del body
+    // cuando no se eligió → el backend la guarda como null (voto sin intención).
     api.post(`/api/enfrentamientos/${enfrentamientoId}/votar`, {
       personajeGanadorId: personajeId,
+      ...(categoria ? { categoria } : {}),
+    }, { auth: !anonymous, headers }),
+  // Set-once de la intención de un voto YA emitido (feature #15). El arena es
+  // 1 tap al ganador; la categoría llega en un segundo tap opcional desde el
+  // panel de resultado. 204 al fijarla; 409 si ya estaba puesta (inmutable).
+  setCategoriaVoto: (enfrentamientoId, categoria, { anonymous = false, headers = {} } = {}) =>
+    api.patch(`/api/enfrentamientos/${enfrentamientoId}/votar/categoria`, {
+      categoria,
     }, { auth: !anonymous, headers }),
 }
