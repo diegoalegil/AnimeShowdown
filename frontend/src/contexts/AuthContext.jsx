@@ -51,6 +51,8 @@ function buildLocalUser(payload) {
     username: payload.username,
     email: payload.email,
     avatarUrl: payload.avatarUrl,
+    // B7 §1a: bio pública editable. Puede venir null (usuario sin bio).
+    bio: payload.bio ?? null,
     rol: payload.rol || 'USER',
     estadoVerificacion: payload.estadoVerificacion || 'PENDIENTE',
     totpHabilitado: payload.totpHabilitado === true,
@@ -313,6 +315,18 @@ export function AuthProvider({ children }) {
   }, [updateUser])
 
   /**
+   * B7 §1a: actualiza la bio pública. El backend la sanitiza (texto plano,
+   * máx 240) y devuelve el UsuarioRespuesta con la bio ya normalizada;
+   * reflejamos ese valor en el estado local. Devuelve la bio guardada.
+   */
+  const changeBio = useCallback(async (bio) => {
+    const res = await endpoints.changeBio(bio)
+    const nuevaBio = res?.bio ?? null
+    updateUser({ bio: nuevaBio })
+    return nuevaBio
+  }, [updateUser])
+
+  /**
    * V-8: marca el onboarding como visto sin tocar username ni avatar
    * ("Saltar por ahora"). Best-effort: si la red falla cerramos igualmente el
    * modal en local; el flag del backend se reintenta en el siguiente cambio.
@@ -381,6 +395,7 @@ export function AuthProvider({ children }) {
       logout,
       updateUser,
       changeUsername,
+      changeBio,
       skipOnboarding,
     }),
     [
@@ -392,6 +407,7 @@ export function AuthProvider({ children }) {
       logout,
       updateUser,
       changeUsername,
+      changeBio,
       skipOnboarding,
     ],
   )

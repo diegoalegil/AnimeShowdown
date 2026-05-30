@@ -23,6 +23,8 @@ class OgImageServiceTest {
 
     private PersonajeRepository personajeRepository;
     private VotoRepository votoRepository;
+    private com.diegoalegil.animeshowdown.repository.UsuarioRepository usuarioRepository;
+    private com.diegoalegil.animeshowdown.repository.SeguidorRepository seguidorRepository;
     private OgImageService service;
 
     @BeforeEach
@@ -30,10 +32,14 @@ class OgImageServiceTest {
         personajeRepository = mock(PersonajeRepository.class);
         TorneoRepository torneoRepository = mock(TorneoRepository.class);
         votoRepository = mock(VotoRepository.class);
+        usuarioRepository = mock(com.diegoalegil.animeshowdown.repository.UsuarioRepository.class);
+        seguidorRepository = mock(com.diegoalegil.animeshowdown.repository.SeguidorRepository.class);
         service = new OgImageService(
                 personajeRepository,
                 torneoRepository,
                 votoRepository,
+                usuarioRepository,
+                seguidorRepository,
                 "https://animeshowdown.dev");
     }
 
@@ -75,6 +81,22 @@ class OgImageServiceTest {
         byte[] png = service.renderDuelo("naruto_uzumaki", "monkey_d_luffy");
 
         assertPng(png);
+    }
+
+    @Test
+    void renderUsuarioInexistenteDevuelveNull() {
+        when(usuarioRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+        assertThat(service.renderUsuario("ghost")).isNull();
+    }
+
+    @Test
+    void renderUsuarioExistenteDevuelvePng() {
+        com.diegoalegil.animeshowdown.model.Usuario u =
+                new com.diegoalegil.animeshowdown.model.Usuario("kira", "x", "kira@example.com");
+        when(usuarioRepository.findByUsername("kira")).thenReturn(Optional.of(u));
+        when(seguidorRepository.countByIdSeguidoId(any())).thenReturn(7L);
+        when(votoRepository.countByUsuario(any())).thenReturn(42L);
+        assertPng(service.renderUsuario("kira"));
     }
 
     private static Personaje personaje(String slug, String nombre, String anime) {

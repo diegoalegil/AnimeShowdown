@@ -1,18 +1,22 @@
 package com.diegoalegil.animeshowdown.service;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 
@@ -29,8 +33,11 @@ import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.SlugUtil;
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
@@ -80,16 +87,22 @@ public class OgImageService {
     private final PersonajeRepository personajeRepository;
     private final TorneoRepository torneoRepository;
     private final VotoRepository votoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final SeguidorRepository seguidorRepository;
     private final String imagesBaseUrl;
 
     public OgImageService(
             PersonajeRepository personajeRepository,
             TorneoRepository torneoRepository,
             VotoRepository votoRepository,
+            UsuarioRepository usuarioRepository,
+            SeguidorRepository seguidorRepository,
             @Value("${app.images.base-url}") String imagesBaseUrl) {
         this.personajeRepository = personajeRepository;
         this.torneoRepository = torneoRepository;
         this.votoRepository = votoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.seguidorRepository = seguidorRepository;
         this.imagesBaseUrl = imagesBaseUrl.endsWith("/")
                 ? imagesBaseUrl.substring(0, imagesBaseUrl.length() - 1)
                 : imagesBaseUrl;
@@ -258,6 +271,41 @@ public class OgImageService {
         } catch (Exception e) {
             log.error("OgImageService.renderDuelo fallo slugA={} slugB={}: {}", slugA, slugB, e.getMessage(), e);
             return renderFallback(a.getNombre() + " vs " + b.getNombre(), "Duelo abierto en AnimeShowdown");
+        }
+    }
+
+    /**
+     * OG image para `/u/{username}` (B7 §1b). Avatar circular + username +
+     * eyebrow oro "PERFIL" + dos stats (seguidores y votos emitidos).
+     *
+     * <p>Devuelve {@code null} si el usuario no existe —el controller lo
+     * traduce a 404— en vez de un fallback genérico, para no anunciar
+     * perfiles inexistentes a los crawlers. Cache key = username; TTL 7 días.
+     */
+    @Cacheable(value = "og-usuario", key = "#username", unless = "#result == null")
+    public byte[] renderUsuario(String username) {
+        Usuario u = usuarioRepository.findByUsername(username).orElse(null);
+        if (u == null) {
+            return null;
+        }
+        long seguidores = seguidorRepository.countByIdSeguidoId(u.getId());
+        long votos = votoRepository.countByUsuario(u);
+        try {
+            BufferedImage canvas = nuevoLienzo();
+            Graphics2D g = canvas.createGraphics();
+            try {
+                aplicarHints(g);
+                dibujarFondo(g);
+                dibujarAvatarCirculo(g, u.getAvatarUrl(), u.getUsername());
+                dibujarTextoUsuario(g, u.getUsername(), seguidores, votos);
+                dibujarLogo(g);
+            } finally {
+                g.dispose();
+            }
+            return toPng(canvas);
+        } catch (Exception e) {
+            log.error("OgImageService.renderUsuario fallo username={}: {}", username, e.getMessage(), e);
+            return renderFallback("@" + u.getUsername(), "Perfil en AnimeShowdown");
         }
     }
 
@@ -471,6 +519,112 @@ public class OgImageService {
         g.setFont(logoFont);
         g.setColor(ACENTO);
         g.drawString("AnimeShowdown", PADDING * 2 + FOTO_ANCHO, ALTO - PADDING);
+    }
+
+    /**
+     * Avatar circular del usuario en la zona izquierda, con halo carmesí y
+     * anillo oro. Si no hay avatar (o falla la carga) pinta la inicial sobre
+     * un círculo relleno.
+     */
+    private void dibujarAvatarCirculo(Graphics2D g, String avatarUrl, String username) {
+        int d = 380;
+        int cx = PADDING + FOTO_ANCHO / 2;
+        int cy = ALTO / 2;
+        int x = cx - d / 2;
+        int y = cy - d / 2;
+
+        g.setColor(alpha(ACENTO, 70));
+        g.fillOval(x - 18, y - 18, d + 36, d + 36);
+
+        BufferedImage avatar = leerAvatar(avatarUrl);
+        if (avatar != null) {
+            Shape oldClip = g.getClip();
+            g.setClip(new Ellipse2D.Float(x, y, d, d));
+            g.drawImage(avatar, x, y, d, d, null);
+            g.setClip(oldClip);
+        } else {
+            g.setColor(alpha(ACENTO, 150));
+            g.fillOval(x, y, d, d);
+            String inicial = username == null || username.isBlank()
+                    ? "?" : username.substring(0, 1).toUpperCase();
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 180));
+            g.setColor(new Color(245, 245, 250, 220));
+            int tw = g.getFontMetrics().stringWidth(inicial);
+            g.drawString(inicial, cx - tw / 2, cy + 64);
+        }
+
+        g.setColor(ORO);
+        g.setStroke(new BasicStroke(6f));
+        g.drawOval(x, y, d, d);
+    }
+
+    private void dibujarTextoUsuario(Graphics2D g, String username, long seguidores, long votos) {
+        int x = PADDING * 2 + FOTO_ANCHO;
+        int anchoTexto = ANCHO - x - PADDING;
+        int y = 210;
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
+        g.setColor(ORO);
+        g.drawString("PERFIL", x, y);
+
+        y += 70;
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 64));
+        g.setColor(TEXTO_PRINCIPAL);
+        for (String linea : envolver(g, "@" + username, anchoTexto, 2)) {
+            g.drawString(linea, x, y);
+            y += 72;
+        }
+
+        y += 28;
+        dibujarStatUsuario(g, x, y, formatearNumero(seguidores), "seguidores");
+        dibujarStatUsuario(g, x + 260, y, formatearNumero(votos), "votos");
+    }
+
+    private void dibujarStatUsuario(Graphics2D g, int x, int y, String valor, String etiqueta) {
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 52));
+        g.setColor(TEXTO_PRINCIPAL);
+        g.drawString(valor, x, y);
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 24));
+        g.setColor(TEXTO_SECUNDARIO);
+        g.drawString(etiqueta, x, y + 34);
+    }
+
+    /** Formato compacto (1234 → "1.2k") con punto decimal estable (Locale.ROOT). */
+    private static String formatearNumero(long n) {
+        if (n < 1000) return Long.toString(n);
+        if (n < 1_000_000) {
+            double k = n / 1000.0;
+            return k == Math.floor(k)
+                    ? String.format(java.util.Locale.ROOT, "%.0fk", k)
+                    : String.format(java.util.Locale.ROOT, "%.1fk", k);
+        }
+        double m = n / 1_000_000.0;
+        return m == Math.floor(m)
+                ? String.format(java.util.Locale.ROOT, "%.0fM", m)
+                : String.format(java.util.Locale.ROOT, "%.1fM", m);
+    }
+
+    /**
+     * Carga el avatar del usuario. Soporta {@code data:} URIs (avatares
+     * subidos en base64), URLs http(s) externas (OAuth / catálogo) y rutas
+     * relativas a {@code app.images.base-url}. Devuelve null si falla.
+     */
+    private BufferedImage leerAvatar(String avatarUrl) {
+        if (avatarUrl == null || avatarUrl.isBlank()) return null;
+        try {
+            if (avatarUrl.startsWith("data:")) {
+                int comma = avatarUrl.indexOf(',');
+                if (comma < 0 || comma == avatarUrl.length() - 1) return null;
+                String b64 = avatarUrl.substring(comma + 1).replaceAll("\\s", "");
+                byte[] bytes = Base64.getDecoder().decode(b64);
+                return ImageIO.read(new ByteArrayInputStream(bytes));
+            }
+            String url = avatarUrl.startsWith("http") ? avatarUrl : imagesBaseUrl + avatarUrl;
+            return leerImagen(url);
+        } catch (Exception e) {
+            log.warn("OgImageService.leerAvatar fallo: {}", e.getMessage());
+            return null;
+        }
     }
 
     private byte[] renderRankingCard(String titulo, String subtitulo, List<RankingOgEntry> top, String footer) {

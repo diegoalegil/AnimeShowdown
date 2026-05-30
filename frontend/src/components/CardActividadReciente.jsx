@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom'
-import { Activity, Award, Swords, Target, Trophy } from 'lucide-react'
+import { Activity } from 'lucide-react'
 import { usePerfilActividad } from '../hooks/usePerfil'
+import { ActividadItem } from './ActividadItem'
 
 /**
- * Feed de actividad reciente del usuario.
+ * Feed de actividad reciente del usuario en su perfil.
  *
  * <p>Mezcla votos, logros, torneos creados y predicciones acertadas en
- * orden temporal descendente. Si está cargando muestra skeleton; si
- * está vacío invita a votar. Si hay datos, lista hasta 10 items con
- * icono, mensaje y tiempo relativo.
+ * orden temporal descendente. Reusa el renderer compartido ActividadItem
+ * (sin autoría: es la actividad del propio usuario). El feed de comunidad
+ * (/feed) usa el mismo componente con showAuthor para no duplicar el render.
  */
 function CardActividadReciente() {
   const { data, isLoading } = usePerfilActividad({ limit: 15 })
@@ -44,149 +45,6 @@ function CardActividadReciente() {
       )}
     </div>
   )
-}
-
-function ActividadItem({ item }) {
-  const config = configPorTipo(item)
-  if (!config) return null
-  const { icon: Icon, color, contenido } = config
-  return (
-    <li className="flex items-start gap-3 rounded-lg border border-border bg-bg p-3">
-      <span
-        className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${color}`}
-      >
-        <Icon className="h-3.5 w-3.5" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="text-[13px] leading-snug text-fg-strong">{contenido}</div>
-        <p className="mt-0.5 text-[11px] text-fg-muted">
-          {fechaRelativa(item.fecha)}
-        </p>
-      </div>
-    </li>
-  )
-}
-
-function configPorTipo(item) {
-  const p = item.payload || {}
-  switch (item.tipo) {
-    case 'VOTO':
-      return {
-        icon: Swords,
-        color: 'bg-accent-soft text-gold',
-        contenido: (
-          <>
-            Votaste a{' '}
-            {p.personajeSlug ? (
-              <Link
-                to={`/personajes/${p.personajeSlug}`}
-                className="font-semibold text-fg-strong hover:underline"
-              >
-                {p.personajeNombre}
-              </Link>
-            ) : (
-              <strong>{p.personajeNombre || 'un personaje'}</strong>
-            )}
-            {p.oponenteNombre && (
-              <>
-                {' '}
-                <span className="text-fg-muted">contra {p.oponenteNombre}</span>
-              </>
-            )}
-            {p.torneoNombre && p.torneoSlug && (
-              <>
-                {' · '}
-                <Link
-                  to={`/torneos/${p.torneoSlug}`}
-                  className="text-fg-muted hover:underline"
-                >
-                  {p.torneoNombre}
-                </Link>
-              </>
-            )}
-          </>
-        ),
-      }
-    case 'LOGRO':
-      return {
-        icon: Award,
-        color: 'bg-gold/15 text-gold',
-        contenido: (
-          <>
-            Desbloqueaste{' '}
-            <Link to="/logros" className="font-semibold text-fg-strong hover:underline">
-              {p.nombre || 'un logro'}
-            </Link>
-          </>
-        ),
-      }
-    case 'TORNEO_CREADO':
-      return {
-        icon: Trophy,
-        color: 'bg-rarity-epic/15 text-rarity-epic',
-        contenido: (
-          <>
-            Creaste el torneo{' '}
-            {p.torneoSlug ? (
-              <Link
-                to={`/torneos/${p.torneoSlug}`}
-                className="font-semibold text-fg-strong hover:underline"
-              >
-                {p.torneoNombre}
-              </Link>
-            ) : (
-              <strong>{p.torneoNombre || 'sin nombre'}</strong>
-            )}
-            {p.estadoRevision && p.estadoRevision !== 'NO_APLICA' && (
-              <span className="ml-1.5 text-fg-muted">· {p.estadoRevision.toLowerCase()}</span>
-            )}
-          </>
-        ),
-      }
-    case 'PREDICCION_ACERTADA':
-      return {
-        icon: Target,
-        color: 'bg-success/15 text-success',
-        contenido: (
-          <>
-            Acertaste predicción:{' '}
-            <strong className="text-fg-strong">{p.personajeNombre}</strong>
-            {p.torneoNombre && p.torneoSlug && (
-              <>
-                {' '}
-                <Link
-                  to={`/torneos/${p.torneoSlug}`}
-                  className="text-fg-muted hover:underline"
-                >
-                  · {p.torneoNombre}
-                </Link>
-              </>
-            )}
-          </>
-        ),
-      }
-    default:
-      return null
-  }
-}
-
-function fechaRelativa(iso) {
-  if (!iso) return ''
-  const ts = new Date(iso).getTime()
-  if (Number.isNaN(ts)) return ''
-  const diffMin = Math.round((Date.now() - ts) / 60000)
-  if (diffMin < 1) return 'hace un instante'
-  if (diffMin < 60) return `hace ${diffMin} min`
-  const diffH = Math.round(diffMin / 60)
-  if (diffH < 24) return `hace ${diffH} h`
-  const diffD = Math.round(diffH / 24)
-  if (diffD === 1) return 'ayer'
-  if (diffD < 30) return `hace ${diffD} días`
-  return new Date(iso).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
 }
 
 export default CardActividadReciente

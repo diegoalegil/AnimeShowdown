@@ -103,6 +103,8 @@ public class PerfilService {
                 duenyo.getId(),
                 duenyo.getUsername(),
                 duenyo.getAvatarUrl(),
+                duenyo.getBio(),
+                duenyo.getFechaRegistro(),
                 countSeguidores,
                 countSeguidos,
                 siguiendo,
@@ -110,6 +112,37 @@ public class PerfilService {
                 statsDto,
                 topItems,
                 logrosDesbloqueados);
+    }
+
+    /** Caracteres máximos de bio tras sanitizar. Espejo de V34 (VARCHAR 240). */
+    static final int BIO_MAX = 240;
+
+    /**
+     * Edita la bio del usuario autenticado (B7 §1a). Sanitiza a texto plano
+     * (strip de etiquetas HTML/scripts + colapsa espacios) y la trunca a
+     * {@link #BIO_MAX} antes de persistir. Una bio vacía o solo-espacios la
+     * borra (NULL), para que el perfil vuelva a pintarse sin sección de bio.
+     */
+    @Transactional
+    public Usuario actualizarBio(Usuario usuario, String bioRaw, HttpServletRequest request) {
+        String limpia = sanitizarBio(bioRaw);
+        usuario.setBio(limpia.isEmpty() ? null : limpia);
+        usuarioRepository.save(usuario);
+        auditLogService.registrar(AuditEvento.BIO_CAMBIADA, usuario, null, request);
+        return usuario;
+    }
+
+    /**
+     * Convierte la bio recibida en texto plano seguro: elimina cualquier
+     * etiqueta {@code <...>} (defensa anti-HTML/scripts aunque React ya escapa
+     * y el OG la dibuja como texto), colapsa runs de espacios y la trunca al
+     * límite de columna.
+     */
+    static String sanitizarBio(String raw) {
+        if (raw == null) return "";
+        String sinTags = raw.replaceAll("<[^>]*>", "");
+        String colapsado = sinTags.replaceAll("\\s+", " ").trim();
+        return colapsado.length() > BIO_MAX ? colapsado.substring(0, BIO_MAX) : colapsado;
     }
 
     @Transactional(readOnly = true)

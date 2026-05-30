@@ -43,6 +43,14 @@ public class Usuario {
     @Column(columnDefinition = "TEXT")
     private String avatarUrl;
 
+    /**
+     * Bio pública corta (B7 §1a). Texto plano —el backend hace strip de HTML
+     * antes de persistir—, máx 240 chars. NULL = el usuario aún no la ha
+     * escrito; el frontend pinta el perfil sin romper layout en ese caso.
+     */
+    @Column(length = 240)
+    private String bio;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Rol rol;
@@ -208,6 +216,14 @@ public class Usuario {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public Rol getRol() {

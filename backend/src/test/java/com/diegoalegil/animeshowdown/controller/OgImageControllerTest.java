@@ -31,6 +31,9 @@ class OgImageControllerTest {
         when(service.renderRanking()).thenReturn(png);
         when(service.renderPvp()).thenReturn(png);
         when(service.renderDuelo(anyString(), anyString())).thenReturn(png);
+        // Usuario existente -> png; el resto (incl. "no-existe") queda sin
+        // stub y Mockito devuelve null, lo que el controller traduce a 404.
+        when(service.renderUsuario("existe")).thenReturn(png);
         mvc = MockMvcBuilders.standaloneSetup(new OgImageController(service)).build();
     }
 
@@ -42,6 +45,17 @@ class OgImageControllerTest {
         assertOg("/api/og/anime/naruto.png");
         assertOg("/api/og/pvp.png");
         assertOg("/api/og/duelo/naruto_uzumaki/vs/monkey_d_luffy.png");
+    }
+
+    @Test
+    void usuarioExistenteDevuelvePngCacheable() throws Exception {
+        assertOg("/api/og/usuario/existe.png");
+    }
+
+    @Test
+    void usuarioInexistenteDevuelve404() throws Exception {
+        mvc.perform(get("/api/og/usuario/no-existe.png"))
+                .andExpect(status().isNotFound());
     }
 
     private void assertOg(String path) throws Exception {
