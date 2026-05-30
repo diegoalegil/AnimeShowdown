@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 360" width="1140" height="360">
 
   <defs>
     
@@ -19,4 +19,7 @@
       <g transform="translate(302 98) rotate(52)" opacity="0.7"><path d="M0 -9 Q6.3 -1.8 0 9 Q-6.3 -1.8 0 -9 Z" fill="#d62b2b"></path></g>
       <g transform="translate(262 54) rotate(12)" opacity="0.6"><path d="M0 -8 Q5.6 -1.6 0 8 Q-5.6 -1.6 0 -8 Z" fill="#d62b2b"></path></g>
     </g>
+  <text class="a" x="394" y="150" font-size="118" fill="#211a17">Anime</text>
+  <text class="a" x="394" y="278" font-size="118" fill="url(#redg)">Showdown</text>
+  <text class="jp" x="398" y="330" font-size="30" fill="#d62b2b">アニメの戦い</text>
 </svg>
