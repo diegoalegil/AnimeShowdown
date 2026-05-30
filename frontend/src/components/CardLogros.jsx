@@ -22,16 +22,28 @@ function CardLogros({
   mensajeIntro = 'Cada acción importante en AnimeShowdown desbloquea un logro. Vota, predice y completa torneos para coleccionarlos todos.',
 }) {
   const enabled = dataProp === null
-  const { data: dataHook, isLoading: isLoadingHook } = useMisLogros({
+  const { data: dataHook, isLoading: isLoadingHook, isError } = useMisLogros({
     enabled,
   })
   const { user } = useAuth()
-  const logros = dataProp ?? dataHook
+  const logros = (dataProp ?? dataHook) ?? []
   const isLoading = dataProp === null && isLoadingHook
   const mostrarFooter = dataProp === null && Boolean(user?.username)
 
   const total = logros?.length ?? 0
   const desbloqueados = logros?.filter((l) => l.desbloqueadoEn).length ?? 0
+
+  if (isError) {
+    return (
+      <div className="pattern-overlay pattern-overlay-seigaiha rounded-2xl border border-border bg-surface p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <Trophy className="h-4 w-4 text-gold" />
+          <h2 className="text-lg font-bold text-fg-strong">{titulo}</h2>
+        </div>
+        <p className="text-[12px] text-fg-muted">{mensajeIntro}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="pattern-overlay pattern-overlay-seigaiha rounded-2xl border border-border bg-surface p-6">
