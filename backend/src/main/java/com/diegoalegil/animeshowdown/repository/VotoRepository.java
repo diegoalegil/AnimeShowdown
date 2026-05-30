@@ -169,6 +169,24 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             @Param("hasta") java.time.LocalDateTime hasta);
 
     /**
+     * Mapa ligero de {@code personajeId → COUNT} para todos los personajes
+     * que tienen al menos un voto. Devuelve {@code [Long, Long]} (Object[]
+     * 2-elementos) para evitar construir entidades RankItem a nivel repo —
+     * el caller (RecomendacionService) solo necesita el conteo físico.
+     *
+     * <p>Antes el caller hacía {@code votoRepository.obtenerRanking()}
+     * (full ranking con p.descripcion, p.slug, p.nombre, p.anime, p.imagenUrl,
+     * pesoVotos) y luego {@code personajeRepository.findAll()} para filtrar/
+     * ordenar en Java. Ahora usamos esta proyección directa.
+     */
+    @Query("""
+            SELECT v.personaje.id, COUNT(v)
+            FROM Voto v
+            GROUP BY v.personaje.id
+            """)
+    List<Object[]> votosPorPersonajes();
+
+    /**
      * Votos por día del personaje desde la fecha dada.
      * Devuelve {@code [fechaInicio-del-día, count]}.
      *
