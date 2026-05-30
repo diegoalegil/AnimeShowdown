@@ -36,19 +36,18 @@ public class RankingItem {
     }
 
     public RankingItem(Long personajeId, String slug, String nombre, String anime,
-            String descripcion, String imagenUrl, Long votos) {
-        this(personajeId, slug, nombre, anime, descripcion, imagenUrl, votos,
+            String imagenUrl, Long votos) {
+        this(personajeId, slug, nombre, anime, imagenUrl, votos,
                 votos == null ? 0.0 : votos.doubleValue());
     }
 
     public RankingItem(Long personajeId, String slug, String nombre, String anime,
-            String descripcion, String imagenUrl, Long votos, Double pesoVotos) {
+            String imagenUrl, Long votos, Double pesoVotos) {
         Personaje p = new Personaje();
         p.setId(personajeId);
         p.setSlug(slug);
         p.setNombre(nombre);
         p.setAnime(anime);
-        p.setDescripcion(descripcion);
         p.setImagenUrl(imagenUrl);
         this.personaje = p;
         this.votos = votos;
