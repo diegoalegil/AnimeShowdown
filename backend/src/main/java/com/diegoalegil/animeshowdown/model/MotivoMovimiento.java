@@ -1,0 +1,22 @@
+package com.diegoalegil.animeshowdown.model;
+
+/**
+ * Motivo de un movimiento de moneda en el {@code monedero_movimiento}.
+ *
+ * <p>Los {@code DROP_*} son ganancias (delta &gt; 0) que el SERVIDOR decide al
+ * jugar; {@link #COMPRA_SOBRE} es el gasto (delta &lt; 0) al abrir un sobre.
+ * La transparencia anti-casino se apoya en que cada motivo queda registrado
+ * tanto en el ledger como en el audit log.
+ */
+public enum MotivoMovimiento {
+    /** Drop por alcanzar un hito de votos (cada N votos). */
+    DROP_VOTO,
+    /** Drop por completar la misión diaria (primer voto del día UTC). */
+    DROP_MISION_DIARIA,
+    /** Drop por predecir/ganar un torneo (predicciones resueltas a favor). */
+    DROP_TORNEO,
+    /** Drop por ganar una partida de los daily games (duelo live PvP). */
+    DROP_DUELO,
+    /** Gasto al comprar/abrir un sobre. */
+    COMPRA_SOBRE
+}
