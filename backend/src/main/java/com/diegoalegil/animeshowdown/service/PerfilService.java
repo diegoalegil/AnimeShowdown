@@ -103,6 +103,7 @@ public class PerfilService {
                 duenyo.getId(),
                 duenyo.getUsername(),
                 duenyo.getAvatarUrl(),
+                duenyo.getBannerUrl(),
                 duenyo.getBio(),
                 duenyo.getFechaRegistro(),
                 countSeguidores,
