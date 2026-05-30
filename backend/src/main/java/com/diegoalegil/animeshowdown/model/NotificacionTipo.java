@@ -27,6 +27,10 @@ public enum NotificacionTipo {
     TORNEO_APROBADO,
     /** Admin rechazó el torneo creado por el usuario. */
     TORNEO_RECHAZADO,
+    /** Un usuario al que sigues desbloqueó un logro (B7 §3, fan-out). */
+    SEGUIDO_LOGRO,
+    /** Un usuario al que sigues creó un torneo (aprobado) (B7 §3, fan-out). */
+    SEGUIDO_TORNEO,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA
 }

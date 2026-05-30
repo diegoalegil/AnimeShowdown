@@ -47,15 +47,18 @@ public class BadgeService {
     private final UsuarioLogroRepository usuarioLogroRepo;
     private final NotificacionService notificacionService;
     private final AuditLogService auditLogService;
+    private final SeguidorFanOutService seguidorFanOutService;
 
     public BadgeService(LogroRepository logroRepo,
             UsuarioLogroRepository usuarioLogroRepo,
             NotificacionService notificacionService,
-            AuditLogService auditLogService) {
+            AuditLogService auditLogService,
+            SeguidorFanOutService seguidorFanOutService) {
         this.logroRepo = logroRepo;
         this.usuarioLogroRepo = usuarioLogroRepo;
         this.notificacionService = notificacionService;
         this.auditLogService = auditLogService;
+        this.seguidorFanOutService = seguidorFanOutService;
     }
 
     /**
