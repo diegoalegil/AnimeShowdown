@@ -68,5 +68,9 @@ public enum AuditEvento {
     /** El usuario cambió su username (onboarding o ajustes). */
     USERNAME_CAMBIADO,
     /** El usuario editó su bio pública (B7 §1a). */
-    BIO_CAMBIADA
+    BIO_CAMBIADA,
+    /** Moneda blanda ganada por una acción de juego (drop server-authoritative). */
+    MONEDA_GANADA,
+    /** El usuario abrió un sobre: gastó moneda y obtuvo una carta. */
+    SOBRE_ABIERTO
 }

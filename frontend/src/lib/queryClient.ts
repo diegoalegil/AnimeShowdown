@@ -59,4 +59,7 @@ export const queryKeys = {
     normalizeSlugs(slugs),
     dias,
   ],
+  // Cartas coleccionables
+  coleccionCartas: (): QueryKey => ['cartas', 'coleccion'],
+  oddsCartas: (): QueryKey => ['cartas', 'odds'],
 }

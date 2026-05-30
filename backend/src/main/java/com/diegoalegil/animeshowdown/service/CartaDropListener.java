@@ -1,0 +1,117 @@
+package com.diegoalegil.animeshowdown.service;
+
+import java.time.LocalDate;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+import com.diegoalegil.animeshowdown.event.DueloLiveFinalizadoEvent;
+import com.diegoalegil.animeshowdown.event.PrediccionResueltaEvent;
+import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
+import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
+
+/**
+ * Dropea moneda en respuesta a las acciones de juego (mismo patrón que
+ * {@link BadgeEventListener}): {@code @TransactionalEventListener(AFTER_COMMIT)}
+ * para sólo recompensar si la acción se persistió, y {@code @Async} para no
+ * bloquear la respuesta HTTP.
+ *
+ * <p>Fuentes de drop (decisión del owner):
+ * <ul>
+ *   <li><b>Votar</b> — misión diaria (primer voto del día, 1 drop/día) + hito
+ *       cada N votos.</li>
+ *   <li><b>Torneo</b> — predicciones resueltas a favor (aciertos nuevos).</li>
+ *   <li><b>Daily games</b> — ganar un duelo live PvP.</li>
+ * </ul>
+ *
+ * <p>Cada handler envuelve la lógica en try/catch: un drop fallido NUNCA debe
+ * afectar la acción de juego que lo originó.
+ */
+@Component
+public class CartaDropListener {
+
+    private static final Logger log = LoggerFactory.getLogger(CartaDropListener.class);
+
+    private final DropService dropService;
+    private final VotoRepository votoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final int votoCadaN;
+
+    public CartaDropListener(
+            DropService dropService,
+            VotoRepository votoRepository,
+            UsuarioRepository usuarioRepository,
+            @Value("${app.cartas.drop.voto-cada-n:10}") int votoCadaN) {
+        this.dropService = dropService;
+        this.votoRepository = votoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.votoCadaN = Math.max(1, votoCadaN);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onVoto(VotoRegistradoEvent ev) {
+        Usuario usuario = ev.usuario();
+        if (usuario == null) {
+            return;
+        }
+        try {
+            // Misión diaria: votar hoy la completa. Idempotente por fecha UTC del
+            // servidor → un único drop por día por usuario.
+            dropService.otorgar(usuario, MotivoMovimiento.DROP_MISION_DIARIA,
+                    "dia:" + LocalDate.now());
+
+            // Hito de votos: cada N votos. La referencia es el total exacto, así
+            // que cada hito dropea una sola vez.
+            long totalVotos = votoRepository.countByUsuario(usuario);
+            if (totalVotos > 0 && totalVotos % votoCadaN == 0) {
+                dropService.otorgar(usuario, MotivoMovimiento.DROP_VOTO, "voto:" + totalVotos);
+            }
+        } catch (Exception e) {
+            log.warn("Drop por voto falló (no rompe el voto): usuario={} err={}",
+                    usuario.getUsername(), e.getMessage());
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPrediccionResuelta(PrediccionResueltaEvent ev) {
+        try {
+            Usuario usuario = usuarioRepository.findById(ev.usuarioId()).orElse(null);
+            if (usuario == null) {
+                return;
+            }
+            // Referencia = total de aciertos acumulado: si no subió (predijo y
+            // falló), es el mismo ref ⇒ idempotente, no dropea.
+            dropService.otorgar(usuario, MotivoMovimiento.DROP_TORNEO,
+                    "prediccion:" + ev.totalAciertos());
+        } catch (Exception e) {
+            log.warn("Drop por torneo falló: usuarioId={} err={}", ev.usuarioId(), e.getMessage());
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onDueloFinalizado(DueloLiveFinalizadoEvent ev) {
+        try {
+            if (ev.ganadorId() == null) {
+                return;
+            }
+            Usuario usuario = usuarioRepository.findById(ev.ganadorId()).orElse(null);
+            if (usuario == null) {
+                return;
+            }
+            dropService.otorgar(usuario, MotivoMovimiento.DROP_DUELO, "duelo:" + ev.dueloId());
+        } catch (Exception e) {
+            log.warn("Drop por duelo falló: dueloId={} err={}", ev.dueloId(), e.getMessage());
+        }
+    }
+}
