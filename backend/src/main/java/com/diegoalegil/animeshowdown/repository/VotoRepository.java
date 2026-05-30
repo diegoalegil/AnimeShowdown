@@ -226,11 +226,78 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             """)
     List<String> animesConVotos();
 
+    /**
+     * Ranking por intención de voto (feature #15): solo votos de esa categoría
+     * (id de wire: 'poder', 'mejor-villano'…). Mismo shape y ponderación que el
+     * ranking global — agrega {@code sum(v.peso)} para respetar el peso anónimo
+     * (0.30) vs registrado (1.00) idénticamente al global. NO afecta al global:
+     * es un filtro adicional, los votos sin categoría simplemente no entran.
+     */
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
+                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                count(v),
+                cast(coalesce(sum(v.peso), 0) as double))
+            FROM Voto v
+            JOIN v.personaje p
+            WHERE v.categoria = :categoria
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            ORDER BY sum(v.peso) DESC, p.id ASC
+            """)
+    List<RankingItem> rankingPorCategoria(@Param("categoria") String categoria,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Ranking por intención dentro de una ventana temporal (combina categoría +
+     * periodo, p.ej. "Top Poder este mes"). desde inclusivo.
+     */
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
+                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                count(v),
+                cast(coalesce(sum(v.peso), 0) as double))
+            FROM Voto v
+            JOIN v.personaje p
+            WHERE v.categoria = :categoria AND v.fecha >= :desde
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            ORDER BY sum(v.peso) DESC, p.id ASC
+            """)
+    List<RankingItem> rankingPorCategoriaDesde(@Param("categoria") String categoria,
+            @Param("desde") java.time.LocalDateTime desde,
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Lista de categorías de intención con al menos un voto. Útil para no
+     * pintar pestañas/chips vacíos en el sub-selector "Por intención" de
+     * /ranking. Devuelve los ids de wire ('poder', 'mejor-villano'…).
+     */
+    @Query("""
+            SELECT DISTINCT v.categoria
+            FROM Voto v
+            WHERE v.categoria IS NOT NULL
+            ORDER BY v.categoria ASC
+            """)
+    List<String> categoriasConVotos();
+
     boolean existsByPersonajeAndUsuario(Personaje personaje, Usuario usuario);
 
     boolean existsByEnfrentamientoAndUsuario(Enfrentamiento enfrentamiento, Usuario usuario);
 
     boolean existsByEnfrentamientoAndAnonSessionId(Enfrentamiento enfrentamiento, String anonSessionId);
+
+    /**
+     * Voto del usuario registrado en un enfrentamiento (a lo sumo uno, por
+     * uk_voto_enfrentamiento_usuario). Lo usa el PATCH set-once de intención
+     * para localizar el voto a anotar.
+     */
+    java.util.Optional<Voto> findByEnfrentamientoAndUsuario(Enfrentamiento enfrentamiento, Usuario usuario);
+
+    /**
+     * Voto anónimo (por sesión) en un enfrentamiento (a lo sumo uno, por
+     * uk_voto_enfrentamiento_anon_session). Lo usa el PATCH set-once de
+     * intención para votantes invitados.
+     */
+    java.util.Optional<Voto> findByEnfrentamientoAndAnonSessionId(Enfrentamiento enfrentamiento, String anonSessionId);
 
     long countByAnonSessionId(String anonSessionId);
 

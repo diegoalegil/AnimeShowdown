@@ -33,10 +33,12 @@ import JsonLd from '../components/JsonLd'
 import { endpoints } from '../lib/api'
 import {
   useAnimesConVotos,
+  useCategoriasConVotos,
   useRankingDeltaSubscription,
   useRankingMovimientos,
   useRankingSegmentado,
 } from '../hooks/useRanking'
+import { INTENCIONES } from '../data/voto-intenciones'
 import { useQueryState } from '../hooks/useQueryState'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { shareOrCopy } from '../lib/share'
@@ -255,7 +257,7 @@ function RankingPage() {
             />
           )}
           {tab === 'categorias' && (
-            <ListaCategoriasOtaku
+            <CategoriasYIntencionTab
               catalogoPersonajes={catalogoPersonajes}
               isCatalogLoading={isCatalogLoading}
             />
@@ -305,6 +307,144 @@ function RankingPage() {
  * "competiciones temáticas" (Top heroínas, copa villanos, etc).
  * Tags vienen del archivo data/personajes-tags.js, sin backend.
  */
+/**
+ * Pestaña "Categorías" con dos ejes DISTINTOS, rotulados para no confundirlos
+ * (feature #15):
+ *   - "Por arquetipo": qué ES el personaje (héroe, villano, waifu…). Data
+ *     local de personajes-tags.js, ordenado por ELO. Es lo de siempre.
+ *   - "Por intención de voto": POR QUÉ vota la gente (poder, diseño…). Votos
+ *     reales del backend, segmentados por categoría.
+ * El modo intención se refleja en la URL como ?intencion=<id> (deep-linkable,
+ * back-compat: sin el param se muestra arquetipo).
+ */
+function CategoriasYIntencionTab({ catalogoPersonajes, isCatalogLoading }) {
+  const [intencion, setIntencion] = useQueryState('intencion', '')
+  const { data: categoriasDisp } = useCategoriasConVotos()
+  const disponibles = useMemo(
+    () =>
+      INTENCIONES.filter(
+        (i) => Array.isArray(categoriasDisp) && categoriasDisp.includes(i.id),
+      ),
+    [categoriasDisp],
+  )
+  // Modo derivado del deep-link: ?intencion=X entra directo en modo intención.
+  const [modo, setModo] = useState(intencion ? 'intencion' : 'arquetipo')
+
+  const activarArquetipo = () => {
+    setModo('arquetipo')
+    setIntencion('')
+  }
+  const activarIntencion = () => {
+    setModo('intencion')
+    if (!intencion && disponibles.length > 0) setIntencion(disponibles[0].id)
+  }
+
+  const pestañaBase =
+    'flex-1 rounded-lg px-3 py-2 text-[13px] font-bold transition-colors'
+  return (
+    <div className="flex flex-col gap-5">
+      <div
+        role="tablist"
+        aria-label="Tipo de categoría"
+        className="flex gap-1 rounded-xl border border-border bg-surface p-1"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={modo === 'arquetipo'}
+          onClick={activarArquetipo}
+          className={`${pestañaBase} ${
+            modo === 'arquetipo'
+              ? 'bg-accent text-white'
+              : 'text-fg-muted hover:text-fg-strong'
+          }`}
+        >
+          Por arquetipo
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={modo === 'intencion'}
+          onClick={activarIntencion}
+          className={`${pestañaBase} ${
+            modo === 'intencion'
+              ? 'bg-accent text-white'
+              : 'text-fg-muted hover:text-fg-strong'
+          }`}
+        >
+          Por intención de voto
+        </button>
+      </div>
+
+      {modo === 'arquetipo' ? (
+        <ListaCategoriasOtaku
+          catalogoPersonajes={catalogoPersonajes}
+          isCatalogLoading={isCatalogLoading}
+        />
+      ) : (
+        <ListaIntenciones
+          intencion={intencion}
+          setIntencion={setIntencion}
+          disponibles={disponibles}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * Ranking por intención de voto (feature #15): top de personajes según POR QUÉ
+ * los votó la gente. Pills de las intenciones CON votos + lista de votos reales.
+ */
+function ListaIntenciones({ intencion, setIntencion, disponibles }) {
+  const { data, isLoading, isError } = useRankingSegmentado({
+    categoria: intencion,
+    periodo: 'all',
+    limit: 100,
+    enabled: Boolean(intencion),
+  })
+
+  if (disponibles.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-border bg-surface-alt/40 p-6 text-center text-[13px] text-fg-muted">
+        Aún nadie ha votado eligiendo un motivo. Vota un duelo y elige{' '}
+        <strong>por qué</strong> para estrenar estos rankings.
+      </p>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-[13px] text-fg-muted">
+        Rankings según <strong>por qué</strong> vota la gente — distinto del
+        arquetipo del personaje. Cada motivo tiene su propio top.
+      </p>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Intención de voto">
+        {disponibles.map((item) => {
+          const activo = item.id === intencion
+          return (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={activo}
+              onClick={() => setIntencion(item.id)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-bold transition-colors ${
+                activo
+                  ? 'border-accent bg-accent text-white'
+                  : 'border-border bg-surface text-fg-muted hover:text-fg-strong'
+              }`}
+            >
+              <span aria-hidden="true">{item.emoji}</span>
+              {item.label}
+            </button>
+          )
+        })}
+      </div>
+      <ListaVotosCommon items={data} isLoading={isLoading} isError={isError} />
+    </div>
+  )
+}
+
 function ListaCategoriasOtaku({ catalogoPersonajes, isCatalogLoading }) {
   const secciones = useMemo(() => {
     return CATEGORIAS

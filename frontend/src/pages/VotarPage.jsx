@@ -21,6 +21,7 @@ import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import { shareWithToast } from '../lib/shareWithToast'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
+import IntencionSelector from '../features/votar/components/IntencionSelector'
 import SessionRecap from '../features/votar/components/SessionRecap'
 import VoteArena from '../features/votar/components/VoteArena'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
@@ -563,6 +564,26 @@ function VotarPage() {
     [scheduleAutoNext, trackLocalVote, prefetchSiguientePar],
   )
 
+  // Intención de voto (feature #15): el usuario eligió POR QUÉ votó en el panel
+  // de resultado. Set-once contra el voto ya emitido. Best-effort y opcional:
+  // un fallo (incl. 409 si ya estaba puesta) no rompe nada. Solo aplica en modo
+  // backend (matchId real); en casual/sugerido no hay voto persistido que anotar.
+  const handleSelectIntencion = useCallback(
+    (categoriaId) => {
+      if (!matchId || !categoriaId) return
+      const anonymous = !user
+      endpoints
+        .setCategoriaVoto(matchId, categoriaId, {
+          anonymous,
+          headers: anonymous ? getAnonymousVoteHeaders() : {},
+        })
+        .catch(() => {
+          // Silencioso: la intención es opcional, no es un error de cara al usuario.
+        })
+    },
+    [matchId, user],
+  )
+
   // "Reta a un amigo": comparte el duelo ACTUAL (a vs b) sin revelar tu voto,
   // para que el receptor aterrice votando ese mismo duelo. El middleware OG
   // pinta la card de duelo (/api/og/duelo/a/vs/b.png) en la preview social.
@@ -984,6 +1005,13 @@ function VotarPage() {
               </Link>
             </div>
           </div>
+        )}
+
+        {/* Intención de voto (feature #15): 1 tap opcional para decir POR QUÉ.
+            Solo en modo backend (voto persistido con enfrentamiento real).
+            key=matchId remonta el selector limpio en cada duelo. */}
+        {votedPersonaje && matchId && (
+          <IntencionSelector key={matchId} onSelect={handleSelectIntencion} />
         )}
 
         {sessionStats.total > 0 && sessionStats.total % 10 === 0 && (

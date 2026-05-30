@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,9 +32,11 @@ import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeMiniDto;
 import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
+import com.diegoalegil.animeshowdown.dto.CategoriaVotoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoRegistradoDto;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
+import com.diegoalegil.animeshowdown.model.CategoriaVoto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
@@ -250,6 +253,14 @@ public class EnfrentamientoController {
             voto.setAnonSessionId(anon.sessionId());
             voto.setAnonIpHash(anon.ipHash());
         }
+        // Intención de voto (feature #15) si el cliente la mandó ya en el POST.
+        // fromId tolera null/blank/desconocido → null (voto sin intención),
+        // jamás rechaza el voto. Lo normal es que llegue null y se fije luego
+        // con el PATCH set-once tras ver el resultado.
+        CategoriaVoto categoria = CategoriaVoto.fromId(request.getCategoria());
+        if (categoria != null) {
+            voto.setCategoria(categoria.getId());
+        }
         Voto guardado = votoRepository.save(voto);
         metrics.votoRegistrado();
 
@@ -314,6 +325,64 @@ public class EnfrentamientoController {
             ok.header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString());
         }
         return ok.body(dto);
+    }
+
+    /**
+     * Fija la intención (categoría) de un voto YA emitido (feature #15).
+     *
+     * <p>El arena es 1 tap al ganador → el voto se registra al instante. La
+     * categoría llega en un SEGUNDO tap opcional, desde el panel de resultado,
+     * así que necesita su propio endpoint sobre el voto existente del votante
+     * (registrado por usuario, anónimo por sesión).
+     *
+     * <p><b>Set-once</b>: la categoría se fija UNA sola vez y nunca se cambia —
+     * los votos son inmutables. Solo se permite si {@code categoria IS NULL};
+     * si ya estaba fijada devolvemos 409 (no re-set). Una categoría
+     * blank/desconocida es un no-op idempotente 204 (la intención es opcional,
+     * nunca un error duro). Si el votante no tiene voto en este duelo → 404.
+     *
+     * <p>No crea voto ni toca peso/antifraude — solo anota; por eso no pasa por
+     * el throttle anónimo ni el límite de 5 votos invitados.
+     */
+    @PatchMapping("/{id}/votar/categoria")
+    @Transactional
+    public ResponseEntity<?> fijarCategoriaVoto(@PathVariable Long id,
+            @RequestBody CategoriaVotoRequest request,
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
+
+        CategoriaVoto categoria = CategoriaVoto.fromId(request == null ? null : request.getCategoria());
+        if (categoria == null) {
+            // Categoría inválida/blank → no-op idempotente. La intención es
+            // opcional: nunca devolvemos error por una categoría vacía.
+            return ResponseEntity.noContent().build();
+        }
+
+        Optional<Enfrentamiento> enfOpt = enfrentamientoRepository.findById(id);
+        if (enfOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Enfrentamiento enf = enfOpt.get();
+
+        Optional<Voto> votoOpt;
+        if (usuario != null) {
+            votoOpt = votoRepository.findByEnfrentamientoAndUsuario(enf, usuario);
+        } else {
+            AnonymousVoteContext anon = resolverAnonymousContext(httpRequest);
+            votoOpt = votoRepository.findByEnfrentamientoAndAnonSessionId(enf, anon.sessionId());
+        }
+        if (votoOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Voto voto = votoOpt.get();
+        if (voto.getCategoria() != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("La intención de este voto ya estaba fijada");
+        }
+        voto.setCategoria(categoria.getId());
+        votoRepository.save(voto);
+        return ResponseEntity.noContent().build();
     }
 
     /**

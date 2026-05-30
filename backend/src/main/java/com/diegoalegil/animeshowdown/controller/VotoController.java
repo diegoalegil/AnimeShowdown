@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.dto.RankingMovimientoItem;
 import com.diegoalegil.animeshowdown.dto.VotoFeedItem;
+import com.diegoalegil.animeshowdown.model.CategoriaVoto;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
 import com.diegoalegil.animeshowdown.service.RankingMovimientosService;
@@ -86,13 +87,22 @@ public class VotoController {
      *   <li>{@code anime=<nombre>} — filtra por personaje.anime. Si está
      *       presente toma precedencia y devuelve solo personajes de ese
      *       anime.</li>
+     *   <li>{@code categoria=<id>} — intención de voto (feature #15): 'poder',
+     *       'mejor-villano'… Filtra por votos de esa categoría, honrando
+     *       {@code periodo} (p.ej. "Top Poder este mes"). Una categoría
+     *       inválida/blank se IGNORA y cae a la rama de periodo (nunca 400).</li>
      *   <li>{@code limit=N} — máx 200, default 50.</li>
      * </ul>
+     *
+     * <p>Precedencia: {@code anime} &gt; {@code categoria} &gt; {@code periodo}.
+     * {@code anime} mantiene la máxima prioridad (contrato existente, sin
+     * cambios); {@code categoria} es puramente aditivo.
      */
     @GetMapping("/ranking/segmentado")
     public ResponseEntity<List<RankingItem>> rankingSegmentado(
             @RequestParam(defaultValue = "all") String periodo,
             @RequestParam(required = false) String anime,
+            @RequestParam(required = false) String categoria,
             @RequestParam(defaultValue = "50") int limit) {
         int saneLimit = Math.min(MAX_LIMIT, Math.max(1, limit));
         var pageable = PageRequest.of(0, saneLimit);
@@ -109,6 +119,21 @@ public class VotoController {
             default -> null; // all-time
         };
 
+        // Intención de voto (feature #15). fromId tolera blank/desconocido →
+        // null, en cuyo caso ignoramos el filtro y caemos a la rama de periodo
+        // de toda la vida (sin 400). Si es válida, filtra por categoría
+        // honrando la ventana temporal.
+        CategoriaVoto cat = CategoriaVoto.fromId(categoria);
+        if (cat != null) {
+            String catId = cat.getId();
+            if (desde == null) {
+                return metrics.recordRanking(() -> ResponseEntity.ok(
+                        votoRepository.rankingPorCategoria(catId, pageable)));
+            }
+            return metrics.recordRanking(() -> ResponseEntity.ok(
+                    votoRepository.rankingPorCategoriaDesde(catId, desde, pageable)));
+        }
+
         if (desde == null) {
             return metrics.recordRanking(() -> ResponseEntity.ok(
                     votoRepository.rankingAllTime(pageable).getContent()));
@@ -124,6 +149,16 @@ public class VotoController {
     @GetMapping("/ranking/animes-disponibles")
     public List<String> animesConVotos() {
         return votoRepository.animesConVotos();
+    }
+
+    /**
+     * Lista de categorías de intención (feature #15) con al menos un voto, como
+     * ids de wire ('poder', 'mejor-villano'…). Pobla el sub-selector "Por
+     * intención" en /ranking sin pintar categorías vacías.
+     */
+    @GetMapping("/ranking/categorias-disponibles")
+    public List<String> categoriasConVotos() {
+        return votoRepository.categoriasConVotos();
     }
 
     /**

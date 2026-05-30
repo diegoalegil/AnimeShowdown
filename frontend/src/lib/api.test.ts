@@ -588,4 +588,56 @@ describe('endpoints', () => {
     expect(url).toContain('token=tokenXYZ')
     expect(url).toContain('/newsletter/unsubscribe')
   })
+
+  // ─── Intención de voto (feature #15) ─────────────────────────────────────
+  it('votar: incluye categoria en el body cuando se pasa', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.votar('enc-9', 5, { categoria: 'poder' })
+    const body = (fn.mock.calls[0] as [string, RequestInit])[1].body
+    expect(JSON.parse(body as string)).toEqual({ personajeGanadorId: 5, categoria: 'poder' })
+  })
+
+  it('votar: omite categoria del body cuando no se elige', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.votar('enc-10', 5)
+    const body = (fn.mock.calls[0] as [string, RequestInit])[1].body
+    expect(JSON.parse(body as string)).toEqual({ personajeGanadorId: 5 })
+  })
+
+  it('rankingSegmentado: incluye el param categoria', async () => {
+    const fn = mockFetchResolved([])
+    vi.stubGlobal('fetch', fn)
+    await endpoints.rankingSegmentado({ periodo: 'mes', categoria: 'mejor-villano' })
+    const url = (fn.mock.calls[0] as [string, RequestInit])[0]
+    expect(url).toContain('periodo=mes')
+    expect(url).toContain('categoria=mejor-villano')
+  })
+
+  it('setCategoriaVoto: PATCH a /votar/categoria con la categoria en el body', async () => {
+    const fn = mockFetchResolved(null, 204)
+    vi.stubGlobal('fetch', fn)
+    await endpoints.setCategoriaVoto('enc-11', 'carisma')
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/enfrentamientos/enc-11/votar/categoria')
+    expect(opts.method).toBe('PATCH')
+    expect(JSON.parse(opts.body as string)).toEqual({ categoria: 'carisma' })
+  })
+
+  it('setCategoriaVoto: anonymous=true no manda Authorization', async () => {
+    const fn = mockFetchResolved(null, 204)
+    vi.stubGlobal('fetch', fn)
+    await endpoints.setCategoriaVoto('enc-12', 'favorito', { anonymous: true })
+    const headers = (fn.mock.calls[0] as [string, RequestInit])[1].headers as Record<string, string>
+    expect(headers?.Authorization).toBeUndefined()
+  })
+
+  it('categoriasConVotos: GET a /ranking/categorias-disponibles', async () => {
+    const fn = mockFetchResolved([])
+    vi.stubGlobal('fetch', fn)
+    await endpoints.categoriasConVotos()
+    const url = (fn.mock.calls[0] as [string, RequestInit])[0]
+    expect(url).toContain('/api/votos/ranking/categorias-disponibles')
+  })
 })
