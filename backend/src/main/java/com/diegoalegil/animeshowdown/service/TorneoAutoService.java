@@ -2,7 +2,6 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,14 +86,11 @@ public class TorneoAutoService {
             }
         }
 
-        List<Personaje> todos = personajeRepository.findAll();
-        if (todos.size() < tamano) {
+        List<Personaje> seleccionados = personajeRepository.findRandom(tamano);
+        if (seleccionados.size() < tamano) {
             throw new IllegalStateException(
-                    "BBDD tiene " + todos.size() + " personajes, insuficientes para torneo de " + tamano);
+                    "BBDD tiene " + seleccionados.size() + " personajes, insuficientes para torneo de " + tamano);
         }
-
-        Collections.shuffle(todos);
-        List<Personaje> seleccionados = new ArrayList<>(todos.subList(0, tamano));
 
         long autoCount = torneoRepository.countByNombrePrefix(AUTO_NAME_PREFIX) + 1;
         String nombre = AUTO_NAME_PREFIX + autoCount;
