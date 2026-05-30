@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -45,18 +46,22 @@ function Hero({ catalogoPersonajes = [] }) {
   const { t } = useTranslation()
   const hasCatalog = catalogoPersonajes.length > 0
   const totalPersonajes = hasCatalog ? catalogoPersonajes.length : '—'
-  const universos = hasCatalog
-    ? new Set(catalogoPersonajes.map((p) => p.anime)).size
-    : '—'
+  const universos = useMemo(() => (
+    hasCatalog
+      ? new Set(catalogoPersonajes.map((p) => p.anime)).size
+      : '—'
+  ), [hasCatalog, catalogoPersonajes])
   const { data: torneos = [] } = useTorneos()
   const { data: votosRecientes } = useQuery({
     queryKey: ['hero', 'votos-recientes', 4],
     queryFn: () => endpoints.votosRecientes({ limit: 4 }),
     staleTime: 30 * 1000,
   })
-  const eloMax = hasCatalog
-    ? Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))
-    : '—'
+  const eloMax = useMemo(() => (
+    hasCatalog
+      ? Math.max(...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo))
+      : '—'
+  ), [hasCatalog, catalogoPersonajes])
   const torneosVisibles = torneos.length > 0 ? torneos.length : '—'
   const torneoDestacado = torneos
     .filter((t) => Number(t.votosUltimos7Dias ?? 0) > 20)
