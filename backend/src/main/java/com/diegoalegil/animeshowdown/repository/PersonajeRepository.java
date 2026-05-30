@@ -17,6 +17,20 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
     @Query("SELECT p FROM Personaje p ORDER BY p.slug ASC")
     List<Personaje> findAllOrderBySlug();
 
+    /**
+     * Selección aleatoria de N personajes distintos. Delega la ordenación
+     * aleatoria a la BBDD (RANDOM()) evitando cargar ~1000 entidades JPA
+     * para luego descartar ~990 en memoria — el caso de uso de
+     * {@code TorneoAutoService.generar()}.
+     *
+     * <p>Compatible con PostgreSQL (prod) y H2 (tests). En H2 el dialecto
+     * traduce RANDOM() a RAND(); la sintaxis {@code ORDER BY RANDOM()}
+     * funciona en ambos.
+     */
+    @Query(value = "SELECT * FROM personajes ORDER BY RANDOM() LIMIT :tamano",
+            nativeQuery = true)
+    List<Personaje> findRandom(@Param("tamano") int tamano);
+
     @Query("SELECT DISTINCT p.anime FROM Personaje p WHERE p.anime IS NOT NULL ORDER BY p.anime ASC")
     List<String> findDistinctAnimes();
 
