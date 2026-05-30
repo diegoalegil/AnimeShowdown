@@ -14,12 +14,16 @@ import { subscribe } from '../lib/stomp.js'
 export function useRankingSegmentado({
   periodo = 'all',
   anime,
+  categoria,
   limit = 50,
   enabled = true,
 } = {}) {
   return useQuery({
-    queryKey: ['ranking', 'segmentado', periodo, anime ?? '', limit],
-    queryFn: () => endpoints.rankingSegmentado({ periodo, anime, limit }),
+    // categoria (intención de voto, feature #15) entra en el queryKey para que
+    // su caché sea independiente. El orden posicional importa: el delta WS lo
+    // desestructura por posición en useRankingDeltaSubscription.
+    queryKey: ['ranking', 'segmentado', periodo, anime ?? '', categoria ?? '', limit],
+    queryFn: () => endpoints.rankingSegmentado({ periodo, anime, categoria, limit }),
     enabled,
     staleTime: 60 * 1000, // 1 min: el ranking no cambia tan rápido
     refetchInterval: 30 * 1000, // fallback si WebSocket no conecta
@@ -30,6 +34,19 @@ export function useAnimesConVotos({ enabled = true } = {}) {
   return useQuery({
     queryKey: ['ranking', 'animes-disponibles'],
     queryFn: endpoints.animesConVotos,
+    enabled,
+    staleTime: 10 * 60 * 1000, // 10 min: cambia muy lento
+  })
+}
+
+/**
+ * Categorías de intención (feature #15) con al menos un voto. Pobla el
+ * sub-selector 'Por intención' de /ranking sin pintar chips vacíos.
+ */
+export function useCategoriasConVotos({ enabled = true } = {}) {
+  return useQuery({
+    queryKey: ['ranking', 'categorias-disponibles'],
+    queryFn: endpoints.categoriasConVotos,
     enabled,
     staleTime: 10 * 60 * 1000, // 10 min: cambia muy lento
   })
@@ -82,7 +99,12 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
         .getQueriesData({ queryKey: ['ranking', 'segmentado'] })
         .forEach(([queryKey, old]) => {
           if (!Array.isArray(old)) return
-          const [, , periodo = 'all', anime = '', limit = old.length] = queryKey
+          const [, , periodo = 'all', anime = '', categoria = '', limit = old.length] = queryKey
+          // El delta global del WS NO es consciente de la categoría (publica
+          // totales all-time del personaje). Aplicarlo a una caché por
+          // intención la corrompería con totales globales → la saltamos; esas
+          // listas refrescan por su refetchInterval (feature #15).
+          if (categoria) return
           if (anime && anime !== delta.personaje.anime) return
           const isAllTime = periodo === 'all'
           // Para ventanas temporales sin deltaPeso confiable preferimos
