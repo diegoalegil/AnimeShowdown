@@ -21,7 +21,7 @@ public interface MonederoRepository extends JpaRepository<Monedero, Long> {
     /**
      * Lectura con lock para gastar saldo (abrir sobre): serializa aperturas
      * concurrentes del mismo usuario para que dos no lean el mismo saldo y lo
-     * dejen negativo. El CHECK(saldo &gt;= 0) es la red final.
+     * dejen negativo. El CHECK(saldo >= 0) es la red final.
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from Monedero m where m.usuario.id = :usuarioId")
