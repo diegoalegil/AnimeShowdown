@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.repository.DueloLiveRondaRepository;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
@@ -70,6 +71,7 @@ public class DataSeeder implements CommandLineRunner {
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final TorneoRepository torneoRepository;
     private final PrediccionRepository prediccionRepository;
+    private final DueloLiveRondaRepository dueloLiveRondaRepository;
     private final BracketService bracketService;
     private final ReferralService referralService;
     private final CartaCatalogoService cartaCatalogoService;
@@ -90,6 +92,7 @@ public class DataSeeder implements CommandLineRunner {
             EnfrentamientoRepository enfrentamientoRepository,
             TorneoRepository torneoRepository,
             PrediccionRepository prediccionRepository,
+            DueloLiveRondaRepository dueloLiveRondaRepository,
             BracketService bracketService,
             ReferralService referralService,
             CartaCatalogoService cartaCatalogoService,
@@ -99,6 +102,7 @@ public class DataSeeder implements CommandLineRunner {
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.torneoRepository = torneoRepository;
         this.prediccionRepository = prediccionRepository;
+        this.dueloLiveRondaRepository = dueloLiveRondaRepository;
         this.bracketService = bracketService;
         this.referralService = referralService;
         this.cartaCatalogoService = cartaCatalogoService;
@@ -295,11 +299,20 @@ public class DataSeeder implements CommandLineRunner {
         int votosBorrados = votoRepository.deleteByPersonajeId(p.getId());
         int votosEnEnfBorrados = votoRepository.deleteVotosEnEnfrentamientosDelPersonaje(p.getId());
         int enfBorrados = enfrentamientoRepository.deleteByPersonajeId(p.getId());
+        int rondasLiveBorradas = dueloLiveRondaRepository.deleteByPersonajeId(p.getId());
         personajeRepository.delete(p);
         log.info(
-                "DataSeeder DELETE: slug={} (predicciones={}, torneosLimpiados={}, votos={}, votosEnEnfrentamientos={}, enfrentamientos={})",
-                p.getSlug(), prediccionesBorradas, torneosLimpiados, votosBorrados, votosEnEnfBorrados, enfBorrados);
+                "DataSeeder DELETE: slug={} (predicciones={}, torneosLimpiados={}, votos={}, votosEnEnfrentamientos={}, enfrentamientos={}, rondasLive={})",
+                p.getSlug(), prediccionesBorradas, torneosLimpiados, votosBorrados, votosEnEnfBorrados, enfBorrados, rondasLiveBorradas);
         return 1;
+    }
+
+    // package-private para permitir test de integracion en el mismo paquete.
+    // Anotado @Transactional porque deleteByPersonajeId es @Modifying
+    // (no se puede ejecutar fuera de una tx).
+    @org.springframework.transaction.annotation.Transactional
+    int borrarPersonajeConCascadaPublic(Personaje p) {
+        return borrarPersonajeConCascada(p);
     }
 
     /**
