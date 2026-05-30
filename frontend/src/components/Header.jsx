@@ -185,14 +185,15 @@ function Header() {
     >
       <Link to="/" className="flex min-h-11 items-center gap-2.5">
         <img
-          src="/logo.webp"
+          src="/logo.svg"
           alt=""
           width={40}
           height={40}
           className="h-9 w-9 object-contain sm:h-10 sm:w-10"
         />
-        <span className="text-base font-extrabold tracking-tight text-fg-strong sm:text-lg">
-          AnimeShowdown
+        <span className="text-base font-extrabold tracking-tight sm:text-lg">
+          <span className="text-fg-strong">Anime</span>
+          <span className="text-gold">Showdown</span>
         </span>
       </Link>
 
