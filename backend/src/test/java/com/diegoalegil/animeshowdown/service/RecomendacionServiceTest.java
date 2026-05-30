@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
-import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -47,8 +46,8 @@ class RecomendacionServiceTest {
         when(personajeRepository.findBySlug("goku")).thenReturn(java.util.Optional.of(target));
         Personaje mismoAnime = new Personaje("vegeta", "Vegeta", "Dragon Ball", "desc", "url");
         mismoAnime.setId(2L);
-        when(personajeRepository.findAll()).thenReturn(List.of(target, mismoAnime));
-        when(votoRepository.obtenerRanking()).thenReturn(List.of());
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(List.of());
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of());
 
         List<PersonajeSimilarDto> result = sut.similares("goku", 8);
 
@@ -60,8 +59,8 @@ class RecomendacionServiceTest {
         when(personajeRepository.findBySlug("goku")).thenReturn(java.util.Optional.of(target));
         Personaje otro = new Personaje("naruto", "Naruto", "Naruto", "desc", "url");
         otro.setId(2L);
-        when(personajeRepository.findAll()).thenReturn(List.of(target, otro));
-        when(votoRepository.obtenerRanking()).thenReturn(List.of());
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(List.of(otro));
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of());
 
         List<PersonajeSimilarDto> result = sut.similares("goku", 8);
 
@@ -76,10 +75,10 @@ class RecomendacionServiceTest {
         naruto.setId(2L);
         Personaje luffy = new Personaje("luffy", "Luffy", "One Piece", "desc", "url");
         luffy.setId(3L);
-        when(personajeRepository.findAll()).thenReturn(List.of(target, naruto, luffy));
-        when(votoRepository.obtenerRanking()).thenReturn(List.of(
-                rankingItem(luffy, 100),
-                rankingItem(naruto, 50)
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(List.of(naruto, luffy));
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of(
+                new Object[]{3L, 100L},
+                new Object[]{2L, 50L}
         ));
 
         List<PersonajeSimilarDto> result = sut.similares("goku", 8);
@@ -91,15 +90,14 @@ class RecomendacionServiceTest {
     @Test
     void similaresAplicaLimiteCorrectamente() {
         when(personajeRepository.findBySlug("goku")).thenReturn(java.util.Optional.of(target));
-        // Create many personajes with different animes
         java.util.ArrayList<Personaje> many = new java.util.ArrayList<>();
         for (int i = 0; i < 30; i++) {
             Personaje p = new Personaje("p" + i, "P" + i, "Anime" + i, "desc", "url");
             p.setId((long) (i + 10));
             many.add(p);
         }
-        when(personajeRepository.findAll()).thenReturn(many);
-        when(votoRepository.obtenerRanking()).thenReturn(List.of());
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(many);
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of());
 
         List<PersonajeSimilarDto> result = sut.similares("goku", 5);
 
@@ -109,8 +107,8 @@ class RecomendacionServiceTest {
     @Test
     void similaresDevuelveDefaultSiLimitCeroONegativo() {
         when(personajeRepository.findBySlug("goku")).thenReturn(java.util.Optional.of(target));
-        when(personajeRepository.findAll()).thenReturn(List.of(target));
-        when(votoRepository.obtenerRanking()).thenReturn(List.of());
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(List.of(target));
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of());
 
         List<PersonajeSimilarDto> result = sut.similares("goku", 0);
 
@@ -126,15 +124,11 @@ class RecomendacionServiceTest {
             p.setId((long) (i + 10));
             many.add(p);
         }
-        when(personajeRepository.findAll()).thenReturn(many);
-        when(votoRepository.obtenerRanking()).thenReturn(List.of());
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(many);
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of());
 
         List<PersonajeSimilarDto> result = sut.similares("goku", 999);
 
         assertEquals(24, result.size());
-    }
-
-    private static RankingItem rankingItem(Personaje p, long votos) {
-        return new RankingItem(p, votos);
     }
 }
