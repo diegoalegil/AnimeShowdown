@@ -46,6 +46,7 @@ import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.security.AnonymousAbuseThrottleService;
 import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
+import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.TurnstileVerifierService;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
 
@@ -65,7 +66,6 @@ public class EnfrentamientoController {
     private static final Logger log = LoggerFactory.getLogger(EnfrentamientoController.class);
     private static final String ANON_COOKIE = "as_anon_vote_id";
     private static final String ANON_ID_HEADER = "X-AS-Anonymous-Id";
-    private static final String ANON_FINGERPRINT_HEADER = "X-AS-Anonymous-Fingerprint";
     /** Header con el token Turnstile cuando el frontend completó captcha. */
     private static final String CAPTCHA_TOKEN_HEADER = "X-AS-Captcha-Token";
     private static final Pattern ANON_ID_PATTERN = Pattern.compile("^[A-Za-z0-9._:-]{12,64}$");
@@ -80,6 +80,7 @@ public class EnfrentamientoController {
     private final AnonymousIdentityService anonymousIdentityService;
     private final TurnstileVerifierService turnstileVerifier;
     private final AnonymousAbuseThrottleService abuseThrottle;
+    private final ClientIpExtractor clientIpExtractor;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
     private final boolean cookieSecure;
@@ -92,6 +93,7 @@ public class EnfrentamientoController {
             AnonymousIdentityService anonymousIdentityService,
             TurnstileVerifierService turnstileVerifier,
             AnonymousAbuseThrottleService abuseThrottle,
+            ClientIpExtractor clientIpExtractor,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
@@ -102,6 +104,7 @@ public class EnfrentamientoController {
         this.anonymousIdentityService = anonymousIdentityService;
         this.turnstileVerifier = turnstileVerifier;
         this.abuseThrottle = abuseThrottle;
+        this.clientIpExtractor = clientIpExtractor;
         this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
@@ -205,8 +208,7 @@ public class EnfrentamientoController {
             String captchaToken = httpRequest.getHeader(CAPTCHA_TOKEN_HEADER);
             boolean captchaValido = false;
             if (captchaToken != null && !captchaToken.isBlank()) {
-                String ip = primerIp(httpRequest.getHeader("X-Forwarded-For"));
-                if (ip == null || ip.isBlank()) ip = httpRequest.getRemoteAddr();
+                String ip = clientIpExtractor.extract(httpRequest);
                 captchaValido = turnstileVerifier.verify(captchaToken, ip);
             }
             var decision = abuseThrottle.decide(anon.sessionId(), anon.ipHash(), captchaValido);
@@ -456,7 +458,7 @@ public class EnfrentamientoController {
                         String sid = verified.get();
                         // Cookie firmada válida → no reemitir, browser ya
                         // la tiene. signedToken=null evita Set-Cookie extra.
-                        return new AnonymousVoteContext(sid, hashAnonimo(request, sid), null);
+                        return new AnonymousVoteContext(sid, hashAnonimo(request), null);
                     }
                     // Si está manipulada o expirada, caemos al fallback
                     // legacy y eventualmente emitimos una firma nueva.
@@ -482,13 +484,13 @@ public class EnfrentamientoController {
             // pero el throttle por IP+UA sigue aplicando. La cookie
             // firmada se emite cuando el cliente envíe su próximo voto
             // y haya perdido la legacy, o nunca si mantiene la legacy.
-            return new AnonymousVoteContext(legacySessionId, hashAnonimo(request, legacySessionId), null);
+            return new AnonymousVoteContext(legacySessionId, hashAnonimo(request), null);
         }
         // Sin identidad reconocible: emitimos token firmado nuevo.
         String token = anonymousIdentityService.emit();
         var verified = anonymousIdentityService.verify(token);
         String sid = verified.orElseGet(() -> UUID.randomUUID().toString());
-        return new AnonymousVoteContext(sid, hashAnonimo(request, sid), token);
+        return new AnonymousVoteContext(sid, hashAnonimo(request), token);
     }
 
     private String normalizarAnonId(String value) {
@@ -528,26 +530,25 @@ public class EnfrentamientoController {
                 .build();
     }
 
-    private String hashAnonimo(HttpServletRequest request, String sessionId) {
-        String ip = primerIp(request.getHeader("X-Forwarded-For"));
-        if (ip == null || ip.isBlank()) {
-            ip = request.getRemoteAddr();
-        }
-        String fingerprint = Optional.ofNullable(request.getHeader(ANON_FINGERPRINT_HEADER)).orElse("");
+    /**
+     * Clave server-side del throttle anti-fraude: hash de la IP REAL del
+     * cliente + User-Agent. A propósito NO incluye la sesión anónima ni el
+     * header de fingerprint — ambos los controla el cliente, y meterlos en
+     * el hash permitía que rotar la cookie (o el fingerprint) por petición
+     * fragmentara el bucket y evadiera el conteo por IP. La IP sale de
+     * {@link ClientIpExtractor} (respeta la cadena de proxy de confianza),
+     * no de un X-Forwarded-For crudo y spoofeable.
+     */
+    private String hashAnonimo(HttpServletRequest request) {
+        String ip = clientIpExtractor.extract(request);
         String ua = Optional.ofNullable(request.getHeader("User-Agent")).orElse("");
-        String raw = ip + "|" + ua + "|" + fingerprint + "|" + sessionId;
+        String raw = ip + "|" + ua;
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(raw.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
             return Integer.toHexString(raw.hashCode());
         }
-    }
-
-    private String primerIp(String forwardedFor) {
-        if (forwardedFor == null || forwardedFor.isBlank()) return null;
-        int comma = forwardedFor.indexOf(',');
-        return comma >= 0 ? forwardedFor.substring(0, comma).trim() : forwardedFor.trim();
     }
 
     private record AnonymousVoteContext(String sessionId, String ipHash, String signedToken) {}
