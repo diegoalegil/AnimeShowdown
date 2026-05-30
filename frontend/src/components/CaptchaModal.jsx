@@ -24,6 +24,7 @@ import Dialog from './Dialog'
 const TURNSTILE_SCRIPT_SRC =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onAnimeShowdownTurnstileReady&render=explicit'
 const TURNSTILE_READY_FLAG = 'as_turnstile_ready'
+const SCRIPT_LOAD_TIMEOUT_MS = 10_000
 
 let scriptLoadingPromise = null
 
@@ -32,10 +33,20 @@ function loadTurnstileScript() {
   if (window.turnstile) return Promise.resolve(window.turnstile)
   if (scriptLoadingPromise) return scriptLoadingPromise
   scriptLoadingPromise = new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      // Si el callback global no dispara en 10s, rechazar y resetear
+      // para que reintentos futuros no devuelvan la promise colgada.
+      if (scriptLoadingPromise) {
+        scriptLoadingPromise = null
+      }
+      reject(new Error('Timeout cargando script de Turnstile (10s)'))
+    }, SCRIPT_LOAD_TIMEOUT_MS)
+
     // Callback global que Turnstile invoca al cargar el script. Lo
     // exponemos en window con un nombre único para evitar colisiones
     // con otros widgets/captchas del proyecto futuros.
     window.onAnimeShowdownTurnstileReady = () => {
+      clearTimeout(timeoutId)
       window[TURNSTILE_READY_FLAG] = true
       resolve(window.turnstile)
     }
@@ -44,6 +55,7 @@ function loadTurnstileScript() {
     script.async = true
     script.defer = true
     script.onerror = () => {
+      clearTimeout(timeoutId)
       scriptLoadingPromise = null
       reject(new Error('No se pudo cargar el script de Turnstile'))
     }
@@ -96,7 +108,7 @@ function CaptchaModal({ open, sitekey, onSuccess, onClose }) {
             setStatus('error')
             setErrorMessage('El widget de captcha falló. Reintenta en unos segundos.')
           },
-          'expidangercallback': () => {
+          'expired-callback': () => {
             // El token caducó antes de validarlo. Resetear el widget
             // para que el usuario pueda volver a resolverlo.
             if (widgetIdRef.current && window.turnstile?.reset) {
