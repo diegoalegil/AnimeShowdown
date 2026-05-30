@@ -59,6 +59,7 @@ const routePreloaders = {
   perfil: () => import('./pages/PerfilPage'),
   logros: () => import('./pages/LogrosPage'),
   feed: () => import('./pages/FeedPage'),
+  cartas: () => import('./pages/CartasPage'),
 }
 
 const InicioPage = lazyRoute(routePreloaders.inicio)
@@ -86,6 +87,7 @@ const ResetPasswordPage = lazyRoute(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
 const PerfilPage = lazyRoute(routePreloaders.perfil)
 const FeedPage = lazyRoute(routePreloaders.feed)
+const CartasPage = lazyRoute(routePreloaders.cartas)
 const UsuarioPage = lazyRoute(() => import('./pages/UsuarioPage'))
 const UsuarioLogrosPage = lazyRoute(() => import('./pages/UsuarioLogrosPage'))
 const CrearTorneoPage = lazyRoute(() => import('./pages/CrearTorneoPage'))
@@ -463,6 +465,7 @@ function App() {
               <Route path="/admin/assets" element={gated(<AdminPage />)} />
               <Route path="/perfil" element={gated(<PerfilPage />)} />
               <Route path="/feed" element={gated(<FeedPage />)} />
+              <Route path="/cartas" element={gated(<CartasPage />)} />
               <Route path="/u/:username" element={gated(<UsuarioPage />)} />
               <Route path="/u/:username/logros" element={gated(<UsuarioLogrosPage />)} />
               <Route path="/games" element={gated(<GamesHubPage />)} />

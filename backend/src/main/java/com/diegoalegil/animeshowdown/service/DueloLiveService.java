@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.diegoalegil.animeshowdown.dto.DueloLiveRoundDto;
 import com.diegoalegil.animeshowdown.dto.DueloLiveStateDto;
 import com.diegoalegil.animeshowdown.dto.DueloSugeridoDto;
+import com.diegoalegil.animeshowdown.event.DueloLiveFinalizadoEvent;
 import com.diegoalegil.animeshowdown.model.DueloLive;
 import com.diegoalegil.animeshowdown.model.DueloLiveChoice;
 import com.diegoalegil.animeshowdown.model.DueloLiveEstado;
@@ -53,6 +55,7 @@ public class DueloLiveService {
     private final AnimeShowdownMetrics metrics;
     private final SimpMessagingTemplate messaging;
     private final BadgeService badgeService;
+    private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
     private final boolean scheduledMaintenanceEnabled;
     private final int fallbackAfterSeconds;
@@ -67,6 +70,7 @@ public class DueloLiveService {
             AnimeShowdownMetrics metrics,
             SimpMessagingTemplate messaging,
             BadgeService badgeService,
+            ApplicationEventPublisher eventPublisher,
             Clock clock,
             @Value("${app.duelo-live.fallback-after-seconds:10}")
             int fallbackAfterSeconds,
@@ -82,6 +86,7 @@ public class DueloLiveService {
         this.metrics = metrics;
         this.messaging = messaging;
         this.badgeService = badgeService;
+        this.eventPublisher = eventPublisher;
         this.clock = clock;
         this.fallbackAfterSeconds = Math.max(3, fallbackAfterSeconds);
         this.scheduledMaintenanceEnabled = scheduledMaintenanceEnabled;
@@ -393,6 +398,12 @@ public class DueloLiveService {
             usuarioRepository.save(duelo.getJugador2());
         }
         dueloRepository.save(duelo);
+        // Drop de cartas (F1): un único choke-point de cierre. El listener
+        // (AFTER_COMMIT) dropea moneda al ganador humano; ganador null (bot o
+        // empate) no recompensa a nadie.
+        Usuario ganador = duelo.getGanador();
+        eventPublisher.publishEvent(new DueloLiveFinalizadoEvent(
+                duelo.getId(), ganador != null ? ganador.getId() : null));
         String outcome = scoreJugador1 == 0.5 ? "draw" : (walkover ? "walkover" : "win");
         if (!walkover) metrics.dueloLiveCompleted(outcome);
         log.info("duelo_live_complete id={} outcome={} j1={} j2={} score={}-{} elo_delta_j1={} elo_delta_j2={} walkover={}",
