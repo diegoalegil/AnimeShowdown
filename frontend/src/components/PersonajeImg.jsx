@@ -9,6 +9,15 @@ import { trackAssetError } from '../lib/asset-tracking'
 import AssetFallback from './AssetFallback'
 import PersonajePlaceholder from './PersonajePlaceholder'
 
+// Srcs que ya cargaron con éxito en esta sesión. Cuando un <img> se remonta
+// —p.ej. PersonajeCard arma el tilt al primer hover y reemplaza el subárbol—
+// WebKit crea un <img> nuevo cuyo `complete` es false aunque la imagen esté en
+// cache, así que el ref-callback no detecta el cacheo y se re-dispara el fade
+// opacity 0→1: se ve un parpadeo en blanco de la silueta (solo en Safari).
+// Recordando los srcs ya cargados, en el remonte pintamos a opacidad plena sin
+// fade (instant) desde el primer frame y el flash desaparece. V-4.
+const loadedSrcs = new Set()
+
 function encodeImageUrl(url) {
   if (!url || /^(data|blob):/i.test(url)) return url
   return encodeURI(url).replace(/,/g, '%2C')
@@ -76,8 +85,14 @@ function PersonajeImg({
   //   - El slug cambia (caso poco común pero el componente debería
   //     soportarlo: e.g. carousel que reusa la misma instancia).
   // https://react.dev/reference/react/useState#storing-information-from-previous-renders
-  if (status.src !== src && status.src !== null) {
-    setStatus({ src: null, loaded: false, errored: false, instant: false })
+  if (status.src !== src) {
+    if (loadedSrcs.has(src)) {
+      // Ya cargó antes en esta sesión: pinta instantánea a opacidad plena sin
+      // fade, aunque sea un remonte (evita el parpadeo en blanco de WebKit).
+      setStatus({ src, loaded: true, errored: false, instant: true })
+    } else if (status.src !== null) {
+      setStatus({ src: null, loaded: false, errored: false, instant: false })
+    }
   }
   const loaded = status.src === src && status.loaded
   const errored = status.src === src && status.errored
@@ -90,6 +105,7 @@ function PersonajeImg({
     colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
   const altText = alt ?? nombre ?? p?.nombre ?? slug
   const handleImageLoad = useCallback((event) => {
+    loadedSrcs.add(src)
     setStatus({ src, loaded: true, errored: false, instant: false })
     onLoad?.(event)
   }, [onLoad, src])
@@ -107,6 +123,7 @@ function PersonajeImg({
       if (!node || loaded || errored) return
       if (node.complete && node.naturalWidth > 0) {
         // Cacheada: marcar instant para pintar a opacidad plena sin fade.
+        loadedSrcs.add(src)
         setStatus({ src, loaded: true, errored: false, instant: true })
       }
     },
