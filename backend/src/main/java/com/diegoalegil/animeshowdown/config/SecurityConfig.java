@@ -16,6 +16,11 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,6 +40,7 @@ public class SecurityConfig {
     private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final String allowedOriginsCsv;
     private final String allowedOriginPatternsCsv;
+    private final String activeProfile;
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthFilter,
@@ -43,7 +49,8 @@ public class SecurityConfig {
             OAuth2LoginFailureHandler oauth2LoginFailureHandler,
             HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository,
             @Value("${cors.allowed-origins:}") String allowedOriginsCsv,
-            @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv) {
+            @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv,
+            @Value("${spring.profiles.active:}") String activeProfile) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.oauth2LoginSuccessHandler = oauth2LoginSuccessHandler;
@@ -51,6 +58,7 @@ public class SecurityConfig {
         this.authorizationRequestRepository = authorizationRequestRepository;
         this.allowedOriginsCsv = allowedOriginsCsv;
         this.allowedOriginPatternsCsv = allowedOriginPatternsCsv;
+        this.activeProfile = activeProfile;
     }
 
     @Bean
@@ -92,9 +100,12 @@ public class SecurityConfig {
                         // el filtro denega siempre — modo seguro por defecto.
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
+                        // Swagger/OpenAPI: requiere rol ADMIN en producción
+                        // para no exponer la estructura completa de API a público.
+                        // En dev/local funciona sin login; el spec sigue accesible tras auth.
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
                                 "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
-                        .permitAll()
+                        .access(swaggerAuthorizationManager())
                         // Endpoint STOMP/WebSocket. El handshake
                         // HTTP es público; la autenticación se hace en el frame
                         // CONNECT con JWT (ver WebSocketConfig.JwtAuthChannelInterceptor).
@@ -261,6 +272,22 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> swaggerAuthorizationManager() {
+        return (request, ctx) -> {
+            boolean inProd = "production".equalsIgnoreCase(activeProfile);
+            if (!inProd) {
+                return new AuthorizationDecision(true);
+            }
+            Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+            if (currentAuth != null && currentAuth.isAuthenticated()
+                    && currentAuth.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                return new AuthorizationDecision(true);
+            }
+            return new AuthorizationDecision(false);
+        };
     }
 
     /** Parsea una lista CSV ignorando espacios y entradas vacías. */
