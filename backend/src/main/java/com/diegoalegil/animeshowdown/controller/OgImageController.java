@@ -96,4 +96,21 @@ public class OgImageController {
                 .cacheControl(CACHE_7_DIAS)
                 .body(ogImageService.renderDuelo(slugA, slugB));
     }
+
+    /**
+     * OG de perfil de usuario (B7 §1b). A diferencia del resto, devuelve 404
+     * si el usuario no existe (renderUsuario → null) en vez de un fallback,
+     * para no inventar previews de perfiles inexistentes.
+     */
+    @GetMapping(value = "/usuario/{username}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> usuario(@PathVariable String username) {
+        byte[] png = ogImageService.renderUsuario(username);
+        if (png == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(png);
+    }
 }

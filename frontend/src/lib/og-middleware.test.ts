@@ -63,6 +63,23 @@ describe('ogParaRuta', () => {
     expect(og('/ranking/')?.image).toBe(`${API}/api/og/ranking.png`)
   })
 
+  it('mapea perfil de usuario /u/{username} a la OG de usuario', () => {
+    const r = og('/u/diego')
+    expect(r?.image).toBe(`${API}/api/og/usuario/diego.png`)
+    expect(r?.title).toBe('diego · AnimeShowdown')
+    expect(r?.description).toMatch(/síguele/i)
+  })
+
+  it('mapea /u/{username}/logros a la misma OG de usuario', () => {
+    const r = og('/u/diego/logros')
+    expect(r?.image).toBe(`${API}/api/og/usuario/diego.png`)
+    expect(r?.title).toBe('diego · AnimeShowdown')
+  })
+
+  it('no hijackea subrutas desconocidas de /u/{username}', () => {
+    expect(og('/u/diego/otra-cosa')).toBeNull()
+  })
+
   it('devuelve null para rutas no mapeadas', () => {
     expect(og('/apoya')).toBeNull()
     expect(og('/')).toBeNull()

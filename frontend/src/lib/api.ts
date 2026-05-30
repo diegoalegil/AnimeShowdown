@@ -16,7 +16,7 @@ type RequestSignalState = {
   cleanup: () => void
 }
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 type RequestOptions = {
   method?: HttpMethod
@@ -46,6 +46,7 @@ type ApiClient = {
   get: (path: string, opts?: RequestOptions) => Promise<unknown>
   post: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
   put: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
+  patch: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
   del: (path: string, opts?: RequestOptions) => Promise<unknown>
 }
 
@@ -472,6 +473,7 @@ export const api: ApiClient = {
   get: (path, opts) => request(path, { ...opts, method: 'GET' }),
   post: (path, body, opts) => request(path, { ...opts, method: 'POST', body }),
   put: (path, body, opts) => request(path, { ...opts, method: 'PUT', body }),
+  patch: (path, body, opts) => request(path, { ...opts, method: 'PATCH', body }),
   del: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
 }
 
@@ -661,6 +663,10 @@ export const endpoints: EndpointMap = {
     api.post(`/api/seguidores/${usuarioId}`),
   dejarDeSeguir: (usuarioId) =>
     api.del(`/api/seguidores/${usuarioId}`),
+  // B7 §2: feed de comunidad (actividad de los seguidos). Autenticado y
+  // paginado. Devuelve { items, hasMore, sigueAAlguien }.
+  feed: ({ page = 0, size = 20 } = {}) =>
+    api.get(`/api/feed?page=${page}&size=${size}`),
   // Ranking segmentado.
   //   rankingSegmentado: periodo all|mes|trimestre|anio, anime opcional toma
   //     precedencia, limit max 200.

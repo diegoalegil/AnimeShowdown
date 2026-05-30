@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -23,6 +24,8 @@ public record PerfilPublicoDto(
         Long id,
         String username,
         String avatarUrl,
+        String bio,
+        LocalDateTime fechaRegistro,
         long seguidores,
         long seguidos,
         Boolean siguiendo,

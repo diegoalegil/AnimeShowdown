@@ -79,6 +79,18 @@ export function ogParaRuta(url, apiBase) {
       return ogDuelo(par[1], par[2], apiBase, false)
     }
   }
+  // Perfil público de usuario: /u/{username} (y /u/{username}/logros). El gancho
+  // viral del B7: compartir un perfil renderiza su OG (avatar + stats). El
+  // username es literal (no se humaniza como los slugs de personaje/anime).
+  const usuario = pathname.match(/^\/u\/([^/]+)(?:\/logros)?\/?$/)
+  if (usuario) {
+    const username = decodeURIComponent(usuario[1])
+    return {
+      image: `${apiBase}/api/og/usuario/${encodeURIComponent(username)}.png`,
+      title: `${username} · AnimeShowdown`,
+      description: `Top personajes, logros y ranking de ${username}. Síguele en AnimeShowdown.`,
+    }
+  }
   // Reto directo a la arena: /votar?personaje=A[&rival=B] o ?anime=X.
   // Es el deep-link "Reta a un amigo": el receptor aterriza votando ese mismo duelo.
   if (pathname === '/votar' || pathname === '/votar/') {

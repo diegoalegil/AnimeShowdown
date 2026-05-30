@@ -10,6 +10,7 @@ public class UsuarioRespuesta {
     private String username;
     private String email;
     private String avatarUrl;
+    private String bio;
     private Rol rol;
     /**
      * Estado de verificación de email. El frontend lo usa
@@ -36,6 +37,7 @@ public class UsuarioRespuesta {
         this.username = usuario.getUsername();
         this.email = usuario.getEmail();
         this.avatarUrl = usuario.getAvatarUrl();
+        this.bio = usuario.getBio();
         this.rol = usuario.getRol();
         this.estadoVerificacion = usuario.getEstadoVerificacion();
         this.totpHabilitado = usuario.isTotpHabilitado();
@@ -48,6 +50,7 @@ public class UsuarioRespuesta {
     public String getUsername() { return username; }
     public String getEmail() { return email; }
     public String getAvatarUrl() { return avatarUrl; }
+    public String getBio() { return bio; }
     public Rol getRol() { return rol; }
     public EstadoVerificacion getEstadoVerificacion() { return estadoVerificacion; }
     public boolean isTotpHabilitado() { return totpHabilitado; }

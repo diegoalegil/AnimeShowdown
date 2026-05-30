@@ -47,6 +47,10 @@ public class CacheConfig {
                 buildCache("og-anime", Duration.ofDays(7), 256),
                 buildCache("og-pvp", Duration.ofDays(7), 8),
                 buildCache("og-duelo", Duration.ofDays(7), 1000),
+                // OG de perfil de usuario (B7 §1b). Key = username; 7 días.
+                // Se invalida sola por TTL; un cambio de avatar/bio tarda
+                // como mucho una semana en reflejarse en el preview social.
+                buildCache("og-usuario", Duration.ofDays(7), 1000),
                 // El catálogo de personajes apenas cambia (solo cuando admin
                 // importa o el seed corre). TTL 5min ahorra ~95% de hits a
                 // Postgres en horas pico sin que el usuario note staleness.
