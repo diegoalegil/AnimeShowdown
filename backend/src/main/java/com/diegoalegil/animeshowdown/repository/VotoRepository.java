@@ -39,12 +39,12 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
-                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
                 count(v),
                 cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
     List<RankingItem> obtenerRanking();
@@ -56,12 +56,12 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query(value = """
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
-                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
                 count(v),
                 cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """,
             countQuery = "SELECT COUNT(DISTINCT v.personaje.id) FROM Voto v")
@@ -76,13 +76,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
-                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
                 count(v),
                 cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE v.fecha >= :desde
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
     List<RankingItem> rankingDesde(@Param("desde") java.time.LocalDateTime desde,
@@ -97,13 +97,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
-                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
                 count(v),
                 cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE v.fecha < :antesDe
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
     List<RankingItem> rankingHasta(@Param("antesDe") java.time.LocalDateTime antesDe,
@@ -202,13 +202,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
-                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
                 count(v),
                 cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE p.anime = :anime
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
     List<RankingItem> rankingPorAnime(@Param("anime") String anime,
@@ -235,13 +235,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
-                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
                 count(v),
                 cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE v.categoria = :categoria
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
     List<RankingItem> rankingPorCategoria(@Param("categoria") String categoria,
@@ -253,13 +253,13 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
-                p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl,
+                p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
                 count(v),
                 cast(coalesce(sum(v.peso), 0) as double))
             FROM Voto v
             JOIN v.personaje p
             WHERE v.categoria = :categoria AND v.fecha >= :desde
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.descripcion, p.imagenUrl
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
     List<RankingItem> rankingPorCategoriaDesde(@Param("categoria") String categoria,
