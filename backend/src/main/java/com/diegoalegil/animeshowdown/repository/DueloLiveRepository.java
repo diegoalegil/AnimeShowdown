@@ -21,6 +21,16 @@ public interface DueloLiveRepository extends JpaRepository<DueloLive, Long> {
     @Query("SELECT d FROM DueloLive d WHERE d.id = :id")
     Optional<DueloLive> findByIdForUpdate(@Param("id") Long id);
 
+    /**
+     * Carga el duelo con lock pesimista y fetching eagerly de ambos jugadores.
+     * Este metodo es el unico entry-point legitimo a aplicarEloYFinalizar;
+     * garantiza que la entidad esta locked y tiene sus relaciones cargadas
+     * antes de cualquier modificacion al ELO.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT d FROM DueloLive d LEFT JOIN FETCH d.jugador1 LEFT JOIN FETCH d.jugador2 WHERE d.id = :id")
+    Optional<DueloLive> findByIdForFinalize(@Param("id") Long id);
+
     @Query("""
             SELECT d FROM DueloLive d
             LEFT JOIN FETCH d.jugador1
