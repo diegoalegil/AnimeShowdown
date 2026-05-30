@@ -494,8 +494,7 @@ export default defineConfig({
       resolveDependencies(_filename, deps, { hostType }) {
         if (hostType !== 'html') return deps
         return deps.filter((dep) =>
-          !/assets\/personaje3d-[^/]+\.js$/.test(dep) &&
-          !/assets\/framer-[^/]+\.js$/.test(dep)
+          !/assets\/personaje3d-[^/]+\.js$/.test(dep)
         )
       },
     },
@@ -521,8 +520,8 @@ export default defineConfig({
               name: 'app-runtime',
               minSize: 0,
               test: (id) =>
-                id.endsWith('/src/lib/api.js') ||
-                id.endsWith('\\src\\lib\\api.js') ||
+                id.endsWith('/src/lib/api.ts') ||
+                id.endsWith('\\src\\lib\\api.ts') ||
                 id.endsWith('/src/lib/stomp.js') ||
                 id.endsWith('\\src\\lib\\stomp.js') ||
                 id.endsWith('/src/contexts/AuthContext.jsx') ||
