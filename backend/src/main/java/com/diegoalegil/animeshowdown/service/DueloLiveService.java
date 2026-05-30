@@ -354,7 +354,13 @@ public class DueloLiveService {
         } else {
             scoreJ1 = 0.5;
         }
-        aplicarEloYFinalizar(duelo, scoreJ1, false);
+        // Cargar con lock pesimista para garantizar exclusive access antes
+        // de modificar ELO. Sin esto, el scheduler y un voto cerca de la ventana
+        // de cierra podrian finalizar el mismo duelo concurrentemente.
+        DueloLive locked = dueloRepository.findByIdForFinalize(duelo.getId())
+                .orElseThrow(() -> new IllegalStateException("Duelo no encontrado: " + duelo.getId()));
+        locked.setGanador(duelo.getGanador());
+        aplicarEloYFinalizar(locked, scoreJ1, false);
     }
 
     private DueloLiveStateDto resolverWalkoverPorTimeout(DueloLive duelo, DueloLiveRonda ronda, LocalDateTime now, String reason) {
@@ -367,8 +373,12 @@ public class DueloLiveService {
             resolverRonda(duelo, ronda, now);
             return estadoPara(duelo, duelo.getJugador1(), "ROUND_END", "Ronda resuelta");
         }
-        finalizarWalkover(duelo, abandonador, reason);
-        return estadoPara(duelo, duelo.getJugador1(), "OPPONENT_ABANDONED", "Walkover por inactividad");
+        // Recargar duelo con lock antes de finalizar para evitar carrera
+        // entre scheduler y voto cerca de la ventana de cierra.
+        DueloLive locked = dueloRepository.findByIdForFinalize(duelo.getId())
+                .orElseThrow(() -> new IllegalStateException("Duelo no encontrado: " + duelo.getId()));
+        finalizarWalkover(locked, abandonador, reason);
+        return estadoPara(locked, duelo.getJugador1(), "OPPONENT_ABANDONED", "Walkover por inactividad");
     }
 
     private void finalizarWalkover(DueloLive duelo, Usuario abandonador, String reason) {
@@ -382,6 +392,12 @@ public class DueloLiveService {
     }
 
     private void aplicarEloYFinalizar(DueloLive duelo, double scoreJugador1, boolean walkover) {
+        // Idempotencia: si finishedEn ya esta informado, el duelo fue procesado
+        // en una llamada anterior a este metodo (scheduler o voto concurrente).
+        if (duelo.getFinishedEn() != null) {
+            log.debug("aplicarEloYFinalizar: duelo={} ya estaba finalizado, skipping", duelo.getId());
+            return;
+        }
         PvpEloService.PvpEloResult elo = pvpEloService.aplicarResultado(
                 duelo.getJugador1(),
                 duelo.getJugador2(),
@@ -398,9 +414,9 @@ public class DueloLiveService {
             usuarioRepository.save(duelo.getJugador2());
         }
         dueloRepository.save(duelo);
-        // Drop de cartas (F1): un único choke-point de cierre. El listener
-        // (AFTER_COMMIT) dropea moneda al ganador humano; ganador null (bot o
-        // empate) no recompensa a nadie.
+        // Drop de cartas (F1): unico choke-point de cierre. El listener
+        // (AFTER_COMMIT) dropea moneda al ganador humano; ganador null
+        // (bot o empate) no recompensa a nadie.
         Usuario ganador = duelo.getGanador();
         eventPublisher.publishEvent(new DueloLiveFinalizadoEvent(
                 duelo.getId(), ganador != null ? ganador.getId() : null));
