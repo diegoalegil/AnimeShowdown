@@ -32,7 +32,7 @@ while IFS= read -r path; do
   if [ -n "$version" ] && [ "$version" -gt "$base_max" ]; then
     base_max="$version"
   fi
-done < <(git ls-tree -r --name-only "$BASE_REF" -- "$MIGRATIONS_DIR/V*__.sql")
+done < <(git ls-tree -r --name-only "$BASE_REF" -- "$MIGRATIONS_DIR"/V*__*.sql)
 
 violations=()
 while IFS=$'\t' read -r status path rest; do
@@ -50,7 +50,7 @@ while IFS=$'\t' read -r status path rest; do
       violations+=("$status $path (no modificar/borrar migraciones ya versionadas)")
       ;;
   esac
-done < <(git diff --name-status "$BASE_REF" "$HEAD_REF" -- "$MIGRATIONS_DIR/V*__.sql")
+done < <(git diff --name-status "$BASE_REF" "$HEAD_REF" -- "$MIGRATIONS_DIR"/V*__*.sql)
 
 if [ "${#violations[@]}" -gt 0 ]; then
   echo "ERROR: Flyway migrations are immutable once merged/applied." >&2
