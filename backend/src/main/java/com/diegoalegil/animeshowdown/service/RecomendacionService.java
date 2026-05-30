@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.PersonajeSimilarDto;
-import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -74,14 +73,19 @@ public class RecomendacionService {
         if (targetOpt.isEmpty()) return List.of();
         Personaje target = targetOpt.get();
 
-        Map<Long, Long> votosPorPersonaje = cargarVotosPorPersonaje();
+        // 1-query batch: [personajeId, count] — light projection, no RankingItem
+        Map<Long, Long> votosPorPersonaje = new HashMap<>();
+        for (Object[] row : votoRepository.votosPorPersonajes()) {
+            votosPorPersonaje.put((Long) row[0], (Long) row[1]);
+        }
+
         long votosTarget = votosPorPersonaje.getOrDefault(target.getId(), 0L);
 
-        List<Personaje> candidatos = personajeRepository.findAll();
+        // Proyección: solo campos display, sin descripcion/ELO. Excluye el
+        // anime del target para discovery cross-universe.
+        List<Personaje> candidatos = personajeRepository.findByAnimeNot(target.getAnime());
         List<PersonajeSimilarDto> ranked = new ArrayList<>(candidatos.size());
         for (Personaje p : candidatos) {
-            if (p.getId().equals(target.getId())) continue;
-            if (p.getAnime().equals(target.getAnime())) continue; // cross-anime
             long votos = votosPorPersonaje.getOrDefault(p.getId(), 0L);
             double score = similitudPorVotos(votosTarget, votos);
             ranked.add(new PersonajeSimilarDto(
@@ -107,18 +111,6 @@ public class RecomendacionService {
         long maximo = Math.max(Math.max(a, b), 1);
         long delta = Math.abs(a - b);
         return 1.0 - (double) delta / maximo;
-    }
-
-    /**
-     * Mapa {@code personajeId → votos}. Los personajes sin votos NO aparecen
-     * en la respuesta de la query; el caller debe defaultear a 0.
-     */
-    private Map<Long, Long> cargarVotosPorPersonaje() {
-        Map<Long, Long> out = new HashMap<>();
-        for (RankingItem r : votoRepository.obtenerRanking()) {
-            out.put(r.getPersonaje().getId(), r.getVotos());
-        }
-        return out;
     }
 
     private int clampLimit(int limit) {

@@ -31,6 +31,15 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
             nativeQuery = true)
     List<Personaje> findRandom(@Param("tamano") int tamano);
 
+    /**
+     * Proyección lightweight de personajes que NO son de un anime.
+     * Excluye el target de la recomendación y cualquier personaje del
+     * mismo universo. Solo devuelve los campos necesarios para el DTO
+     * (id, slug, nombre, anime, imagenUrl) — sin descripcion, elo, etc.
+     */
+    @Query("SELECT p FROM Personaje p WHERE p.anime <> :anime")
+    List<Personaje> findByAnimeNot(@Param("anime") String anime);
+
     @Query("SELECT DISTINCT p.anime FROM Personaje p WHERE p.anime IS NOT NULL ORDER BY p.anime ASC")
     List<String> findDistinctAnimes();
 
