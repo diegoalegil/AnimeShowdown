@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.AuditEvento;
@@ -64,10 +65,17 @@ public class BadgeService {
     /**
      * Desbloquea el badge dado para el usuario si no lo tenía. Idempotente.
      *
+     * <p>Usa {@code REQUIRES_NEW} para que, si el UNIQUE constraint choca
+     * (dos llamadas concurrentes que esquivan el pre-check), el rollback
+     * quede contenido en esta tx interna y NO envenene la tx del llamador.
+     * El llamador es siempre un bean DISTINTO (EmailVerificationService,
+     * DueloLiveService, BadgeEventListener, MadrugadorService), así que el
+     * proxy de Spring intercepta y la anotación surte efecto.
+     *
      * @return Optional con el UsuarioLogro recién creado si fue la primera
      *         vez; empty si ya estaba desbloqueado o el código no existe.
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<UsuarioLogro> desbloquear(Usuario usuario, String codigoLogro) {
         if (usuario == null || codigoLogro == null) return Optional.empty();
         Optional<Logro> logroOpt = logroRepo.findByCodigo(codigoLogro);
@@ -79,18 +87,13 @@ public class BadgeService {
         return desbloquearLogro(usuario, logro, null);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<UsuarioLogro> desbloquearMadrugador(Usuario usuario, Personaje personaje, LocalDateTime hora) {
         if (usuario == null || personaje == null || personaje.getSlug() == null) {
             return Optional.empty();
         }
         Logro logro = obtenerOCrearLogroMadrugador(personaje, hora);
         return desbloquearLogro(usuario, logro, hora);
-    }
-
-    @Transactional
-    public Optional<UsuarioLogro> desbloquearOtakuCertificado(Usuario usuario) {
-        return desbloquear(usuario, "otaku_certificado");
     }
 
     private Optional<UsuarioLogro> desbloquearLogro(Usuario usuario, Logro logro, LocalDateTime desbloqueadoEn) {

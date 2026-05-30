@@ -67,7 +67,7 @@ public class LogroController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var desbloqueo = badgeService.desbloquearOtakuCertificado(usuario);
+        var desbloqueo = badgeService.desbloquear(usuario, "otaku_certificado");
         return ResponseEntity.ok(java.util.Map.of("desbloqueado", desbloqueo.isPresent()));
     }
 }
