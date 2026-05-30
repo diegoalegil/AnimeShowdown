@@ -489,7 +489,10 @@ export default defineConfig({
     // desplegarlos), pero no se expone el código fuente en producción.
     sourcemap: 'hidden',
     // Personaje3D queda aislado como chunk lazy y lo vigila npm run test:bundle.
-    chunkSizeWarningLimit: 1000,
+    // Baja de 1000 → 500KB: el global warning ahora cubre framer/i18n/lucide
+    // que antes se colaban, y el budget script (test:bundle) hace ceiling
+    // por chunk-type concreto. Persona3d es lazy y no afecta LCP.
+    chunkSizeWarningLimit: 500,
     modulePreload: {
       resolveDependencies(_filename, deps, { hostType }) {
         if (hostType !== 'html') return deps
