@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -51,4 +52,13 @@ public interface DueloLiveRondaRepository extends JpaRepository<DueloLiveRonda, 
               AND r.cierraEn < :limite
             """)
     List<DueloLiveRonda> findExpiradas(@Param("limite") LocalDateTime limite);
+
+    /**
+     * Borra las rondas donde el personaje participa (como personajeA o personajeB).
+     * Lo usa DataSeeder.borrarPersonajeConCascada para limpiar la FK RESTRICT
+     * antes de borrar un personaje que se retira del seed.
+     */
+    @Modifying
+    @Query("DELETE FROM DueloLiveRonda r WHERE r.personajeA.id = :personajeId OR r.personajeB.id = :personajeId")
+    int deleteByPersonajeId(@Param("personajeId") Long personajeId);
 }
