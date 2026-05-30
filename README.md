@@ -74,7 +74,7 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 - **Universos anime** con collages, stats agregadas, top interno y CTA para votar dentro de cada roster.
 - **Torneos y eventos** con estados, participantes, duelos abiertos, avance de bracket, predicciones y temporadas temáticas.
 - **Anime Daily Trials y misiones** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial, ELO Duel, progreso diario local y rachas.
-- **Auth, perfiles y logros** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares, follow, reacciones, actividad pública y 16 logros base.
+- **Auth, perfiles y comunidad** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares y banner de perfil, bio, follow, feed de actividad de tus seguidos, reacciones, perfiles públicos compartibles (con Open Graph propia) y 16 logros base.
 - **Apoya, newsletter y páginas legales** integradas como parte del producto público.
 - **UX avanzada** con command palette `Cmd+K`, notificaciones, Sonner, Web Audio API y PWA con Workbox.
 - **SEO técnico** con sitemap, image sitemap, canonical, JSON-LD, robots, `llms.txt` y OG dinámicas para personajes, animes, torneos, ranking y duelos.
