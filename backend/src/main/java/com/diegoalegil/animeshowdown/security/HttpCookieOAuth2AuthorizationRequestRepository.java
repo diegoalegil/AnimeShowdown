@@ -1,16 +1,14 @@
 package com.diegoalegil.animeshowdown.security;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
@@ -33,11 +31,13 @@ import jakarta.servlet.http.HttpServletResponse;
  * depender del JSESSIONID.
  *
  * Seguridad del payload:
- * - Serialización Java estándar (OAuth2AuthorizationRequest implementa
- *   Serializable) + Base64 URL-safe. No se encripta porque el cookie es
- *   HttpOnly (no accesible a JS) y la auth request en sí no contiene
- *   secretos del backend; el state aleatorio que viaja dentro ya protege
- *   contra CSRF.
+ * - Serialización JSON (Jackson con SecurityJackson2Modules: allowlist de
+ *   tipos para el typing polimórfico) + Base64 URL-safe. NO se usa
+ *   ObjectInputStream: era un sink de deserialización Java insegura sobre una
+ *   cookie controlable por el cliente (RCE/DoS por gadget chains del
+ *   classpath). No se encripta porque el cookie es HttpOnly (no accesible a
+ *   JS) y la auth request en sí no contiene secretos del backend; el state
+ *   aleatorio que viaja dentro ya protege contra CSRF.
  * - TTL 180s (cubre cualquier flow OAuth realista, incluido 2FA del usuario
  *   en Google/Discord; si caduca, el user inicia el flow otra vez).
  * - HttpOnly + Secure + SameSite=Lax: estándar para cookies de flow OAuth.
@@ -51,6 +51,21 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     public static final String COOKIE_NAME = "oauth2_auth_request";
     private static final int COOKIE_TTL_SECONDS = 180;
     private static final String COOKIE_PATH = "/";
+
+    /**
+     * ObjectMapper con los módulos de Spring Security (allowlist de tipos para
+     * el typing polimórfico) + el de OAuth2 client si está en el classpath.
+     * Sustituye la serialización Java nativa por JSON restringido: la cookie
+     * deja de pasar por ObjectInputStream (sink de RCE/DoS por gadget chains).
+     */
+    private static final ObjectMapper MAPPER = construirMapper();
+
+    private static ObjectMapper construirMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        ClassLoader classLoader = HttpCookieOAuth2AuthorizationRequestRepository.class.getClassLoader();
+        mapper.registerModules(SecurityJackson2Modules.getModules(classLoader));
+        return mapper;
+    }
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
@@ -117,23 +132,18 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     }
 
     private static String serialize(OAuth2AuthorizationRequest authRequest) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-            oos.writeObject(authRequest);
-            oos.flush();
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(bos.toByteArray());
-        } catch (IOException e) {
+        try {
+            byte[] json = MAPPER.writeValueAsBytes(authRequest);
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(json);
+        } catch (Exception e) {
             throw new IllegalStateException("Failed to serialize OAuth2AuthorizationRequest", e);
         }
     }
 
     private static OAuth2AuthorizationRequest deserialize(String encoded) {
         try {
-            byte[] bytes = Base64.getUrlDecoder().decode(encoded);
-            try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-                 ObjectInputStream ois = new ObjectInputStream(bis)) {
-                return (OAuth2AuthorizationRequest) ois.readObject();
-            }
+            byte[] json = Base64.getUrlDecoder().decode(encoded);
+            return MAPPER.readValue(json, OAuth2AuthorizationRequest.class);
         } catch (Exception e) {
             log.warn("OAuth2AuthorizationRequest cookie corrupta o no deserializable: {}", e.getMessage());
             return null;
