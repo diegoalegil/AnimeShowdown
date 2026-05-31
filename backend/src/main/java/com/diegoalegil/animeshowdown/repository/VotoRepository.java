@@ -527,7 +527,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             )
               AND v.usuario = :usuario
             GROUP BY p.id, p.slug, p.nombre, p.imagenUrl, p.anime
-            ORDER BY COUNT(v) DESC, p.id ASC
+            ORDER BY sum(case when v.empate = true then 0.5 else 1.0 end) DESC, p.id ASC
             """)
     List<TopPersonajeItem> topPorUsuario(
             @Param("usuario") Usuario usuario,
