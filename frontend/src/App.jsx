@@ -16,6 +16,7 @@ import MobileBottomNav from './components/MobileBottomNav'
 import RequireCatalog from './components/RequireCatalog'
 import PageSkeleton from './components/PageSkeleton'
 import { useCatalogoPersonajes } from './hooks/useCatalogoPersonajes'
+import { shouldGateCatalogRoute } from './lib/catalog-route-policy'
 import { recoverFromStaleAssetError } from './lib/staleAssetRecovery'
 import i18n from './lib/i18n'
 
@@ -250,7 +251,8 @@ function App() {
   // header global, sin bottom nav móvil, sin footer.
   const isFullscreenRoute = location.pathname.startsWith('/tv')
   const routeSkeletonReserve = getRouteSkeletonReserve(location.pathname)
-  // Helper local para no repetir el wrapper en cada Route catalog-gated.
+  // Helper local para no repetir el wrapper en cada ruta que sí necesita
+  // catálogo antes de pintar.
   const gated = (element) => (
     <RequireCatalog
       catalogoQuery={catalogoQuery}
@@ -260,6 +262,8 @@ function App() {
       {element}
     </RequireCatalog>
   )
+  const catalogAware = (element) =>
+    shouldGateCatalogRoute(location.pathname) ? gated(element) : element
 
   // Scroll to top en cada cambio de ruta — antes la página quedaba con el scroll
   // de la página anterior, así que al click en una card del catálogo el detalle
@@ -433,31 +437,29 @@ function App() {
               <Route path="/glosario" element={<Navigate replace to="/glossary" />} />
               <Route path="/glossary" element={<GlossaryPage />} />
 
-              {/* ===== Rutas que DEPENDEN del catálogo ===== */}
-              {/* Cada una pasa por <RequireCatalog>: si el fetch del
-                  catálogo aún está en vuelo muestra el <PageSkeleton> con la
-                  forma de la ruta; si falló muestra CatalogoError con botón
-                  Reintentar. Solo cuando el catálogo está hidratado renderiza
-                  la página. */}
-              <Route path="/" element={gated(<InicioPage />)} />
-              <Route path="/personajes" element={gated(<PersonajesPage />)} />
-              <Route path="/personajes/:slug" element={gated(<PersonajeDetailPage />)} />
-              <Route path="/animes" element={gated(<AnimesPage />)} />
-              <Route path="/animes/:slug/ranking" element={gated(<AnimeRankingPage />)} />
-              <Route path="/animes/:slug" element={gated(<AnimeDetailPage />)} />
-              <Route path="/torneos" element={gated(<TorneosPage />)} />
-              <Route path="/torneos/crear" element={gated(<CrearTorneoPage />)} />
-              <Route path="/torneos/:slug" element={gated(<TorneoDetailPage />)} />
-              <Route path="/eventos" element={gated(<EventosIndexPage />)} />
-              <Route path="/eventos/:slug" element={gated(<EventoDetailPage />)} />
-              <Route path="/duelos/:par" element={gated(<DueloVersusPage />)} />
+              {/* ===== Rutas catalog-aware ===== */}
+              {/* Por defecto pasan por <RequireCatalog>. Las rutas críticas de
+                  navegación caliente se dejan pintar y cargan el catálogo en
+                  background; cada página gestiona su skeleton o fallback local. */}
+              <Route path="/" element={catalogAware(<InicioPage />)} />
+              <Route path="/personajes" element={catalogAware(<PersonajesPage />)} />
+              <Route path="/personajes/:slug" element={catalogAware(<PersonajeDetailPage />)} />
+              <Route path="/animes" element={catalogAware(<AnimesPage />)} />
+              <Route path="/animes/:slug/ranking" element={catalogAware(<AnimeRankingPage />)} />
+              <Route path="/animes/:slug" element={catalogAware(<AnimeDetailPage />)} />
+              <Route path="/torneos" element={catalogAware(<TorneosPage />)} />
+              <Route path="/torneos/crear" element={catalogAware(<CrearTorneoPage />)} />
+              <Route path="/torneos/:slug" element={catalogAware(<TorneoDetailPage />)} />
+              <Route path="/eventos" element={catalogAware(<EventosIndexPage />)} />
+              <Route path="/eventos/:slug" element={catalogAware(<EventoDetailPage />)} />
+              <Route path="/duelos/:par" element={catalogAware(<DueloVersusPage />)} />
               <Route path="/versus" element={<Navigate replace to="/comparar" />} />
               <Route path="/compare" element={<Navigate replace to="/comparar" />} />
-              <Route path="/comparar" element={gated(<CompararPage />)} />
-              <Route path="/ranking" element={gated(<RankingPage />)} />
-              <Route path="/fantasy" element={gated(<FantasyPage />)} />
-              <Route path="/rankings/:slug" element={gated(<EditorialRankingPage />)} />
-              <Route path="/descubre-personaje" element={gated(<DescubrePersonajePage />)} />
+              <Route path="/comparar" element={catalogAware(<CompararPage />)} />
+              <Route path="/ranking" element={catalogAware(<RankingPage />)} />
+              <Route path="/fantasy" element={catalogAware(<FantasyPage />)} />
+              <Route path="/rankings/:slug" element={catalogAware(<EditorialRankingPage />)} />
+              <Route path="/descubre-personaje" element={catalogAware(<DescubrePersonajePage />)} />
               <Route path="/random" element={<Navigate replace to="/descubre-personaje" />} />
               {/* Higher or Lower → ELO Duel. La ruta vieja redirige
                   client-side; _redirects emite 301 a nivel CDN. */}
@@ -465,27 +467,27 @@ function App() {
                 path="/higher-or-lower"
                 element={<Navigate replace to="/games/elo-duel" />}
               />
-              <Route path="/votar" element={gated(<VotarPage />)} />
-              <Route path="/duel-live" element={gated(<DueloLivePage />)} />
-              <Route path="/admin" element={gated(<AdminPage />)} />
-              <Route path="/admin/torneos" element={gated(<AdminPage />)} />
-              <Route path="/admin/comentarios" element={gated(<AdminPage />)} />
-              <Route path="/admin/assets" element={gated(<AdminPage />)} />
-              <Route path="/perfil" element={gated(<PerfilPage />)} />
-              <Route path="/feed" element={gated(<FeedPage />)} />
-              <Route path="/cartas" element={gated(<CartasPage />)} />
-              <Route path="/tier-lists" element={gated(<TierListsPage />)} />
-              <Route path="/tier-lists/:slug" element={gated(<TierListsPage />)} />
-              <Route path="/u/:username" element={gated(<UsuarioPage />)} />
-              <Route path="/u/:username/logros" element={gated(<UsuarioLogrosPage />)} />
-              <Route path="/games" element={gated(<GamesHubPage />)} />
+              <Route path="/votar" element={catalogAware(<VotarPage />)} />
+              <Route path="/duel-live" element={catalogAware(<DueloLivePage />)} />
+              <Route path="/admin" element={catalogAware(<AdminPage />)} />
+              <Route path="/admin/torneos" element={catalogAware(<AdminPage />)} />
+              <Route path="/admin/comentarios" element={catalogAware(<AdminPage />)} />
+              <Route path="/admin/assets" element={catalogAware(<AdminPage />)} />
+              <Route path="/perfil" element={catalogAware(<PerfilPage />)} />
+              <Route path="/feed" element={catalogAware(<FeedPage />)} />
+              <Route path="/cartas" element={catalogAware(<CartasPage />)} />
+              <Route path="/tier-lists" element={catalogAware(<TierListsPage />)} />
+              <Route path="/tier-lists/:slug" element={catalogAware(<TierListsPage />)} />
+              <Route path="/u/:username" element={catalogAware(<UsuarioPage />)} />
+              <Route path="/u/:username/logros" element={catalogAware(<UsuarioLogrosPage />)} />
+              <Route path="/games" element={catalogAware(<GamesHubPage />)} />
               {/* Rutas legacy de juegos → Navigate replace para links
                   existentes; _redirects emite 301 a nivel Cloudflare. */}
-              <Route path="/games/shadow-guess" element={gated(<GuessCharacterPage />)} />
-              <Route path="/games/anime-reveal" element={gated(<GuessAnimePage />)} />
-              <Route path="/games/anigrid" element={gated(<AnidelPage />)} />
-              <Route path="/games/impostor-trial" element={gated(<ImpostorPage />)} />
-              <Route path="/games/elo-duel" element={gated(<HigherOrLowerPage />)} />
+              <Route path="/games/shadow-guess" element={catalogAware(<GuessCharacterPage />)} />
+              <Route path="/games/anime-reveal" element={catalogAware(<GuessAnimePage />)} />
+              <Route path="/games/anigrid" element={catalogAware(<AnidelPage />)} />
+              <Route path="/games/impostor-trial" element={catalogAware(<ImpostorPage />)} />
+              <Route path="/games/elo-duel" element={catalogAware(<HigherOrLowerPage />)} />
               <Route
                 path="/games/guess-character"
                 element={<Navigate replace to="/games/shadow-guess" />}
@@ -502,11 +504,11 @@ function App() {
                 path="/games/impostor"
                 element={<Navigate replace to="/games/impostor-trial" />}
               />
-              <Route path="/omikuji" element={gated(<OmikujiPage />)} />
-              <Route path="/logros" element={gated(<LogrosPage />)} />
-              <Route path="/tv" element={gated(<TvModePage />)} />
-              <Route path="/mi-top5" element={gated(<MiTop5Page />)} />
-              <Route path="/leaderboards" element={gated(<LeaderboardsPage />)} />
+              <Route path="/omikuji" element={catalogAware(<OmikujiPage />)} />
+              <Route path="/logros" element={catalogAware(<LogrosPage />)} />
+              <Route path="/tv" element={catalogAware(<TvModePage />)} />
+              <Route path="/mi-top5" element={catalogAware(<MiTop5Page />)} />
+              <Route path="/leaderboards" element={catalogAware(<LeaderboardsPage />)} />
               {/* 404 a propósito independiente del catálogo: si el usuario
                   cae en una ruta inexistente, queremos ver el NotFoundPage
                   aunque el catálogo esté caído. */}
