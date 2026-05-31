@@ -24,6 +24,7 @@ import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
 import IntencionSelector from '../features/votar/components/IntencionSelector'
 import SessionRecap from '../features/votar/components/SessionRecap'
 import VoteArena from '../features/votar/components/VoteArena'
+import VoteQuoteCard from '../features/votar/components/VoteQuoteCard'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
@@ -34,6 +35,7 @@ import {
   recordRecentPair,
   selectRandomPair,
 } from '../features/votar/vote-pairing'
+import { INTENCIONES_BY_ID } from '../data/voto-intenciones'
 
 // Claves y tiempo de vida para el prefetch del siguiente par.
 // gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
@@ -244,6 +246,7 @@ function VotarPage() {
   // post-voto. Sirve para pintar el overlay "+1 ELO" sobre la card ganadora.
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
+  const [selectedIntencionId, setSelectedIntencionId] = useState(null)
   const [showAnonLimitModal, setShowAnonLimitModal] = useState(false)
   // Cuando el backend devuelve 428, guardamos el voto pendiente (sitekey,
   // ids del enfrentamiento y personaje) y abrimos el captcha modal. Tras
@@ -429,6 +432,7 @@ function VotarPage() {
     setIsAdvancing(true)
     setVotedFor(null)
     setVoteResult(null)
+    setSelectedIntencionId(null)
     setPersonalVoteImpact(null)
     try {
       const previousKey = currentPairKeyRef.current
@@ -605,7 +609,13 @@ function VotarPage() {
   // backend (matchId real); en casual/sugerido no hay voto persistido que anotar.
   const handleSelectIntencion = useCallback(
     (categoriaId) => {
-      if (!matchId || !categoriaId) return
+      if (!categoriaId || !INTENCIONES_BY_ID[categoriaId]) return
+      if (autoNextTimeoutRef.current != null) {
+        clearTimeout(autoNextTimeoutRef.current)
+        autoNextTimeoutRef.current = null
+      }
+      setSelectedIntencionId(categoriaId)
+      if (!matchId) return
       const anonymous = !user
       endpoints
         .setCategoriaVoto(matchId, categoriaId, {
@@ -618,6 +628,7 @@ function VotarPage() {
     },
     [matchId, user],
   )
+  const selectedIntencion = selectedIntencionId ? INTENCIONES_BY_ID[selectedIntencionId] : null
 
   // "Reta a un amigo": comparte el duelo ACTUAL (a vs b) sin revelar tu voto,
   // para que el receptor aterrice votando ese mismo duelo. El middleware OG
@@ -1126,6 +1137,14 @@ function VotarPage() {
             key=matchId remonta el selector limpio en cada duelo. */}
         {votedPersonaje && matchId && !tieSelected && (
           <IntencionSelector key={matchId} onSelect={handleSelectIntencion} />
+        )}
+
+        {votedPersonaje && selectedIntencion && (
+          <VoteQuoteCard
+            personaje={votedPersonaje}
+            rival={losingPersonaje}
+            intencion={selectedIntencion}
+          />
         )}
 
         {sessionStats.total > 0 && sessionStats.total % 10 === 0 && (
