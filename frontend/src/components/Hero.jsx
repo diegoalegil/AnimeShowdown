@@ -3,9 +3,10 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Globe2, Radio, Swords, TrendingUp, Trophy } from 'lucide-react'
+import { ArrowRight, Globe2, Radio, Shuffle, Swords, TrendingUp, Trophy } from 'lucide-react'
 import FloatingCards from './FloatingCards'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
+import { usePersonajeRuleta } from '../hooks/usePersonajeRuleta'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { useTorneos } from '../lib/torneosQueries'
@@ -70,9 +71,15 @@ function Hero({ catalogoPersonajes = [] }) {
   // para feedback inmediato. La nav del Link sigue ocurriendo en click
   // (default del browser); el sonido va por delante.
   const ctaVotar = useInstantSoundPress('playClick')
+  const ctaRuleta = useInstantSoundPress('playClick')
   const ctaRanking = useInstantSoundPress('playClick')
+  const { girarRuleta, isLoading: ruletaLoading } = usePersonajeRuleta()
   const heroVisual = BRAND_VISUALS.homeHero
   const heroImage = heroVisual.image || heroVisual.fallbackImage
+  const handleRuleta = (event) => {
+    ctaRuleta.onClick(event)
+    girarRuleta()
+  }
   return (
     <section
       className="as-stage as-stage-visual as-stage-home relative flex min-h-[calc(100svh-4.5rem)] items-center justify-center overflow-hidden px-5 py-10 sm:px-8 sm:py-16 lg:py-18"
@@ -145,6 +152,17 @@ function Hero({ catalogoPersonajes = [] }) {
             <Swords className="h-4 w-4" />
             {t('hero.ctaTorneos')}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </Button>
+          <Button
+            size="lg"
+            variant="secondary"
+            onPointerDown={ctaRuleta.onPointerDown}
+            onClick={handleRuleta}
+            disabled={ruletaLoading}
+            className="w-full sm:w-auto"
+          >
+            <Shuffle className="h-4 w-4" />
+            {ruletaLoading ? t('hero.ctaRuletaLoading') : t('hero.ctaRuleta')}
           </Button>
           <Button
             as={Link}

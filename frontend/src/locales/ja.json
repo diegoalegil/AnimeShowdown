@@ -10,6 +10,7 @@
     "cartas": "カード",
     "tierLists": "ティア表",
     "fantasy": "Fantasy",
+    "ruleta": "ルーレット",
     "votar": "投票",
     "comparar": "比較",
     "games": "ゲーム",
@@ -37,7 +38,9 @@
     "idioma": "言語",
     "elegirIdioma": "言語を選択",
     "ctaVotar": "今すぐ投票",
-    "ctaVotarCompact": "投票"
+    "ctaVotarCompact": "投票",
+    "ruletaAria": "ランダムなキャラクターを開く",
+    "ruletaLoading": "抽選中"
   },
   "footer": {
     "descripcion": "アニメキャラクター同士の一対一デュエル、ELOランキング、ビジュアルトーナメントを楽しめるプラットフォーム。頂点を決めるのはあなたです。",
@@ -73,6 +76,8 @@
     "tituloDespues": "を決めるのはあなた。",
     "subtitulo": "1対1デュエル、リアルタイムELOランキング、毎週のトーナメント。あなたの一票がランキングを動かします。",
     "ctaTorneos": "投票を始める",
+    "ctaRuleta": "ルーレット",
+    "ctaRuletaLoading": "抽選中",
     "ctaRanking": "ランキングを見る",
     "features": "デュエルに投票 · ランキングを決める · トーナメントで競う",
     "torneoDestacado": "注目トーナメント",

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, LogOut, Menu, Search, Shield, Swords, Volume2, VolumeX, X } from 'lucide-react'
+import { ChevronDown, LogOut, Menu, Search, Shield, Shuffle, Swords, Volume2, VolumeX, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
+import { usePersonajeRuleta } from '../hooks/usePersonajeRuleta'
 import { OPEN_COMMAND_PALETTE_EVENT } from './CommandPaletteLazyMount'
 
 // Nota de producto: /votar sale de los enlaces regulares y pasa a
@@ -85,6 +86,7 @@ function Header() {
   // "instantáneo"). Aplica al "Votar ahora" desktop + "Votar" mobile.
   const ctaVotarDesktop = useInstantSoundPress('playClick')
   const ctaVotarMobile = useInstantSoundPress('playClick')
+  const { girarRuleta, isLoading: ruletaLoading } = usePersonajeRuleta()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [voteCount, setVoteCount] = useState(readLocalVoteCount)
@@ -177,6 +179,11 @@ function Header() {
   }, [mobileOpen])
 
   const closeMobile = () => setMobileOpen(false)
+  const handleRuleta = async ({ close = false } = {}) => {
+    play('playClick')
+    const personaje = await girarRuleta()
+    if (personaje && close) closeMobile()
+  }
 
   return (
     <header
@@ -215,6 +222,16 @@ function Header() {
           </NavLink>
         ))}
         <MoreMenu moreLinks={moreNavLinks} t={t} play={play} />
+        <button
+          type="button"
+          onClick={() => handleRuleta()}
+          disabled={ruletaLoading}
+          aria-label={t('header.ruletaAria')}
+          className={`${navLinkBase} inline-flex items-center gap-1.5 border border-gold/35 bg-gold/10 font-black text-gold shadow-aura transition-transform hover:-translate-y-0.5 hover:bg-gold/15 disabled:translate-y-0`}
+        >
+          <Shuffle className="h-3.5 w-3.5" />
+          {ruletaLoading ? t('header.ruletaLoading') : t('nav.ruleta')}
+        </button>
         {/* CTA principal: votar siempre visible, no requiere login. */}
         <NavLink
           to="/votar"
@@ -375,6 +392,15 @@ function Header() {
               >
                 {t('nav.votar')}
               </NavLink>
+              <button
+                type="button"
+                onClick={() => handleRuleta({ close: true })}
+                disabled={ruletaLoading}
+                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-left text-sm font-black text-gold hover:bg-surface-alt disabled:opacity-55"
+              >
+                <Shuffle className="h-4 w-4" />
+                {ruletaLoading ? t('header.ruletaLoading') : t('nav.ruleta')}
+              </button>
               {!user && (
                 <NavLink
                   to="/login"
