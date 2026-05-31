@@ -139,12 +139,10 @@ jobs:
       # Antes la docu mencionaba que CF corría `npm run build` completo,
       # que disparaba el timeout de 20 min del free tier.
       #
-      # Pasamos VITE_API_BASE_URL y el alias legacy VITE_API_URL mientras main
-      # termina la migración del cliente. El valor público de prod valida que
-      # el bundle no quede apuntando a un origen vacío.
+      # Pasamos la API pública de prod para validar que el bundle no quede
+      # apuntando a un origen vacío.
       - name: Build (sin regenerar variantes de imagen)
         env:
-          VITE_API_BASE_URL: https://api.animeshowdown.dev
           VITE_API_URL: https://api.animeshowdown.dev
           ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
         run: npm run build:no-images
@@ -158,7 +156,7 @@ jobs:
         run: npm run test:bundle
 
       # Verifica que la API base quedó bundleada. api.js inicializa API_BASE
-      # en módulo global con `import.meta.env.VITE_API_BASE_URL`, y vite la inlinea durante el build.
+      # en módulo global con `import.meta.env.VITE_API_URL`, y vite la inlinea durante el build.
       # Si el workflow olvida pasar la env, el valor inlineado es undefined
       # y el throw del fail-fast se dispara en runtime (pantalla blanca).
       # API_BASE vive en el chunk app-runtime-*.js (separado del index
