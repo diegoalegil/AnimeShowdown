@@ -16,6 +16,7 @@ import AnimeHero from '../features/animeDetail/AnimeHero'
 import AnimeRosterSections from '../features/animeDetail/AnimeRosterSections'
 import FeaturedAnimeDuel from '../features/animeDetail/FeaturedAnimeDuel'
 import PersonalAnimeRanking from '../features/animeDetail/PersonalAnimeRanking'
+import AnimeHubModules from '../features/animeDetail/AnimeHubModules'
 import {
   buildTop5AnimeHref,
   getAnimeTotalVotes,
@@ -153,6 +154,14 @@ function AnimeDetailPage() {
           stats={personalAnimeStats}
           personajes={personajes}
           onShare={compartirTopPersonalAnime}
+        />
+
+        <AnimeHubModules
+          anime={anime}
+          personajes={personajes}
+          porElo={porElo}
+          slug={slug}
+          topElo={topElo}
         />
 
         <AnimeRosterSections
