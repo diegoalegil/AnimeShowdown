@@ -37,6 +37,7 @@ import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
 import com.diegoalegil.animeshowdown.repository.SobreAperturaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaPityRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 import jakarta.persistence.EntityManager;
@@ -58,6 +59,7 @@ public class CartaService {
     private final SobreAperturaRepository sobreAperturaRepository;
     private final MonederoMovimientoRepository movimientoRepository;
     private final VotoRepository votoRepository;
+    private final UsuarioRepository usuarioRepository;
     private final MonederoService monederoService;
     private final RarezaService rarezaService;
     private final AuditLogService auditLogService;
@@ -72,6 +74,7 @@ public class CartaService {
             SobreAperturaRepository sobreAperturaRepository,
             MonederoMovimientoRepository movimientoRepository,
             VotoRepository votoRepository,
+            UsuarioRepository usuarioRepository,
             MonederoService monederoService,
             RarezaService rarezaService,
             AuditLogService auditLogService,
@@ -84,6 +87,7 @@ public class CartaService {
         this.sobreAperturaRepository = sobreAperturaRepository;
         this.movimientoRepository = movimientoRepository;
         this.votoRepository = votoRepository;
+        this.usuarioRepository = usuarioRepository;
         this.monederoService = monederoService;
         this.rarezaService = rarezaService;
         this.auditLogService = auditLogService;
@@ -235,8 +239,14 @@ public class CartaService {
 
     private UsuarioCartaPity pityForUpdate(Usuario usuario) {
         return pityRepository.findForUpdateByUsuarioId(usuario.getId())
-                .orElseGet(() -> pityRepository.saveAndFlush(
-                        new UsuarioCartaPity(entityManager.getReference(Usuario.class, usuario.getId()))));
+                .orElseGet(() -> {
+                    usuarioRepository.findForUpdateById(usuario.getId())
+                            .orElseThrow(() -> new IllegalStateException(
+                                    "Usuario no encontrado al crear pity de cartas: " + usuario.getId()));
+                    return pityRepository.findForUpdateByUsuarioId(usuario.getId())
+                            .orElseGet(() -> pityRepository.saveAndFlush(
+                                    new UsuarioCartaPity(entityManager.getReference(Usuario.class, usuario.getId()))));
+                });
     }
 
     private long acreditarDuplicado(Usuario usuario, String idem, Carta carta, int posicion) {
