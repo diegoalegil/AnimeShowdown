@@ -1,6 +1,6 @@
 /**
  * Icono de moneda — PLACEHOLDER simple y sobrio (decisión del owner: el arte
- * real lo generará en Claude Design). Una moneda con una estrella; hereda el
+ * final se sustituirá por un asset curado). Una moneda con una estrella; hereda el
  * color vía `currentColor` (úsalo con `text-gold`). Sin hex literales: el color
  * lo pone la clase Tailwind del contenedor.
  */
