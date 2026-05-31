@@ -7,9 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.Clock;
@@ -37,6 +36,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -46,6 +46,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
+import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -89,6 +90,9 @@ class EnfrentamientoControllerTest {
     private CacheManager cacheManager;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private AnonymousIdentityService anonymousIdentityService;
 
     @MockitoBean
@@ -111,6 +115,10 @@ class EnfrentamientoControllerTest {
         // caen en el MISMO bucket; sin esta limpieza se acumularían en la
         // ventana de 1h y dispararían el captcha en tests posteriores.
         votoRepository.deleteAll();
+        jdbcTemplate.update("DELETE FROM voto_torneo_stats");
+        jdbcTemplate.update("DELETE FROM voto_enfrentamiento_stats");
+        jdbcTemplate.update("DELETE FROM voto_personaje_dia_stats");
+        jdbcTemplate.update("DELETE FROM voto_personaje_stats");
         var rankingCache = cacheManager.getCache("votos-ranking");
         if (rankingCache != null) {
             rankingCache.clear();
@@ -489,7 +497,7 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
-    void votarEmpateNeutralSumaMedioACadaPersonajeSinMoverRankingDelta() throws Exception {
+    void votarEmpateNeutralSumaMedioACadaPersonajeYPublicaDosDeltas() throws Exception {
         reset(messaging);
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_empate_user", "votoempate@example.com");
@@ -528,7 +536,59 @@ class EnfrentamientoControllerTest {
                         votoRepository.findById(votoId).orElseThrow().getEnfrentamiento(),
                         votoRepository.findById(votoId).orElseThrow().getEnfrentamiento().getPersonaje1()),
                 0.001);
-        verify(messaging, never()).convertAndSend(eq("/topic/ranking-delta"), any(RankingDeltaEvent.class));
+        var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
+        verify(messaging, times(2)).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
+        Set<String> slugs = captor.getAllValues().stream()
+                .map(ev -> ev.getPersonaje().getSlug())
+                .collect(Collectors.toSet());
+        org.junit.jupiter.api.Assertions.assertEquals(Set.of("luffy", "zoro"), slugs);
+        captor.getAllValues().forEach(ev -> {
+            org.junit.jupiter.api.Assertions.assertEquals(0.5, ev.getDelta(), 0.001);
+            org.junit.jupiter.api.Assertions.assertEquals(0.5, ev.getDeltaPeso(), 0.001);
+        });
+    }
+
+    @Test
+    void votarEmpateAnonimoPesa015PorPersonajeYPublicaDeltas() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        double votosAntesA = votoRepository.countByPersonajeId(ids[0]);
+        double votosAntesB = votoRepository.countByPersonajeId(ids[1]);
+        Double pesoAntesA = votoRepository.sumaPesoByPersonajeId(ids[0]);
+        Double pesoAntesB = votoRepository.sumaPesoByPersonajeId(ids[1]);
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "empate-anon");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", "anon-empate-peso")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("empate", true))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anonimo").value(true))
+                .andExpect(jsonPath("$.empate").value(true))
+                .andExpect(jsonPath("$.votosGanador").value(0.5))
+                .andExpect(jsonPath("$.votosPerdedor").value(0.5))
+                .andExpect(jsonPath("$.delta").value(0.0))
+                .andReturn();
+
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+        Voto voto = votoRepository.findById(votoId).orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals(0.15, voto.getPeso().doubleValue(), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesA + 0.5,
+                votoRepository.countByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesB + 0.5,
+                votoRepository.countByPersonajeId(ids[1]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesA + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesB + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[1]), 0.001);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
+        verify(messaging, times(2)).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
+        captor.getAllValues().forEach(ev -> {
+            org.junit.jupiter.api.Assertions.assertEquals(0.5, ev.getDelta(), 0.001);
+            org.junit.jupiter.api.Assertions.assertEquals(0.15, ev.getDeltaPeso(), 0.001);
+        });
     }
 
     @Test

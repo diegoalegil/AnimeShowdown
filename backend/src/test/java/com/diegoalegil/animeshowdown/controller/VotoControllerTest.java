@@ -33,6 +33,7 @@ class VotoControllerTest {
     @Autowired private PersonajeRepository personajeRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private VotoRepository votoRepository;
+    @Autowired private com.diegoalegil.animeshowdown.service.VotoStatsService votoStatsService;
 
     @Test
     void rankingsPublicosDevuelvenArraysSinExplotarConVotosReales() throws Exception {
@@ -54,9 +55,9 @@ class VotoControllerTest {
                 "hash",
                 "rankuser_" + suffix + "@example.com"));
 
-        votoRepository.save(new Voto(a, u));
-        votoRepository.save(new Voto(a, u));
-        votoRepository.save(new Voto(b, u));
+        guardarVoto(new Voto(a, u));
+        guardarVoto(new Voto(a, u));
+        guardarVoto(new Voto(b, u));
 
         mvc.perform(get("/api/votos/ranking"))
                 .andExpect(status().isOk())
@@ -65,6 +66,13 @@ class VotoControllerTest {
 
         mvc.perform(get("/api/votos/ranking/segmentado")
                         .param("periodo", "all")
+                        .param("limit", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[?(@.personaje.slug == 'ranking_a_" + suffix + "')]").exists());
+
+        mvc.perform(get("/api/votos/ranking/segmentado")
+                        .param("periodo", "mes")
                         .param("limit", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -108,13 +116,13 @@ class VotoControllerTest {
         // A: 2 votos "poder"; B: 1 voto "diseno".
         Voto va1 = new Voto(a, u);
         va1.setCategoria("poder");
-        votoRepository.save(va1);
+        guardarVoto(va1);
         Voto va2 = new Voto(a, u);
         va2.setCategoria("poder");
-        votoRepository.save(va2);
+        guardarVoto(va2);
         Voto vb1 = new Voto(b, u);
         vb1.setCategoria("diseno");
-        votoRepository.save(vb1);
+        guardarVoto(vb1);
 
         // categoria=poder → A presente; B ausente (su único voto es de "diseno").
         mvc.perform(get("/api/votos/ranking/segmentado")
@@ -147,5 +155,11 @@ class VotoControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasItem("poder")))
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasItem("diseno")));
+    }
+
+    private Voto guardarVoto(Voto voto) {
+        Voto guardado = votoRepository.save(voto);
+        votoStatsService.registrar(guardado);
+        return guardado;
     }
 }
