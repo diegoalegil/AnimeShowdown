@@ -21,7 +21,12 @@ import org.springframework.data.domain.Pageable;
 
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.TierList;
+import com.diegoalegil.animeshowdown.model.TierListItem;
+import com.diegoalegil.animeshowdown.model.TierListTier;
+import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.TierListRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
@@ -31,6 +36,7 @@ class OgImageServiceTest {
     private VotoRepository votoRepository;
     private com.diegoalegil.animeshowdown.repository.UsuarioRepository usuarioRepository;
     private com.diegoalegil.animeshowdown.repository.SeguidorRepository seguidorRepository;
+    private TierListRepository tierListRepository;
     private OgImageService service;
 
     @BeforeEach
@@ -40,12 +46,14 @@ class OgImageServiceTest {
         votoRepository = mock(VotoRepository.class);
         usuarioRepository = mock(com.diegoalegil.animeshowdown.repository.UsuarioRepository.class);
         seguidorRepository = mock(com.diegoalegil.animeshowdown.repository.SeguidorRepository.class);
+        tierListRepository = mock(TierListRepository.class);
         service = new OgImageService(
                 personajeRepository,
                 torneoRepository,
                 votoRepository,
                 usuarioRepository,
                 seguidorRepository,
+                tierListRepository,
                 "https://animeshowdown.dev");
     }
 
@@ -87,6 +95,24 @@ class OgImageServiceTest {
         byte[] png = service.renderDuelo("naruto_uzumaki", "monkey_d_luffy");
 
         assertPng(png);
+    }
+
+    @Test
+    void renderTierListDevuelvePngSoloParaSlugPublico() {
+        Usuario usuario = new Usuario("tier_owner", "x", "tier@example.com");
+        usuario.setId(7L);
+        TierList tierList = new TierList();
+        tierList.setId(11L);
+        tierList.setUsuario(usuario);
+        tierList.setTitulo("Best Naruto");
+        tierList.setPublico(true);
+        Personaje naruto = personaje("naruto", "Naruto Uzumaki", "Naruto");
+        naruto.setId(1L);
+        tierList.getItems().add(new TierListItem(tierList, naruto, TierListTier.S, 0));
+        when(tierListRepository.findBySlugAndPublicoTrue("best-naruto"))
+                .thenReturn(Optional.of(tierList));
+
+        assertPng(service.renderTierList("best-naruto"));
     }
 
     @Test

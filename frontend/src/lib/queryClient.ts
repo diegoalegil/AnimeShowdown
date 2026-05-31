@@ -62,4 +62,6 @@ export const queryKeys = {
   // Cartas coleccionables
   coleccionCartas: (): QueryKey => ['cartas', 'coleccion'],
   oddsCartas: (): QueryKey => ['cartas', 'odds'],
+  tierListsMine: (): QueryKey => ['tier-lists', 'mine'],
+  tierListPublic: (slug: string | undefined): QueryKey => ['tier-lists', 'public', slug],
 }

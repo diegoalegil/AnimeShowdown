@@ -33,10 +33,12 @@ import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.SlugUtil;
+import com.diegoalegil.animeshowdown.model.TierListItem;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
+import com.diegoalegil.animeshowdown.repository.TierListRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -91,6 +93,7 @@ public class OgImageService {
     private final VotoRepository votoRepository;
     private final UsuarioRepository usuarioRepository;
     private final SeguidorRepository seguidorRepository;
+    private final TierListRepository tierListRepository;
     private final String imagesBaseUrl;
 
     public OgImageService(
@@ -99,12 +102,14 @@ public class OgImageService {
             VotoRepository votoRepository,
             UsuarioRepository usuarioRepository,
             SeguidorRepository seguidorRepository,
+            TierListRepository tierListRepository,
             @Value("${app.images.base-url}") String imagesBaseUrl) {
         this.personajeRepository = personajeRepository;
         this.torneoRepository = torneoRepository;
         this.votoRepository = votoRepository;
         this.usuarioRepository = usuarioRepository;
         this.seguidorRepository = seguidorRepository;
+        this.tierListRepository = tierListRepository;
         this.imagesBaseUrl = imagesBaseUrl.endsWith("/")
                 ? imagesBaseUrl.substring(0, imagesBaseUrl.length() - 1)
                 : imagesBaseUrl;
@@ -273,6 +278,37 @@ public class OgImageService {
         } catch (Exception e) {
             log.error("OgImageService.renderDuelo fallo slugA={} slugB={}: {}", slugA, slugB, e.getMessage(), e);
             return renderFallback(a.getNombre() + " vs " + b.getNombre(), "Duelo abierto en AnimeShowdown");
+        }
+    }
+
+    @Cacheable(value = "og-tier-list", key = "#slug", unless = "#result == null")
+    public byte[] renderTierList(String slug) {
+        var tierList = tierListRepository.findBySlugAndPublicoTrue(slug).orElse(null);
+        if (tierList == null) {
+            return renderFallback("Tier list anime", "Crea y comparte tu ranking en AnimeShowdown");
+        }
+        try {
+            List<RankingOgEntry> entries = tierList.getItems()
+                    .stream()
+                    .sorted(Comparator
+                            .comparing((TierListItem item) -> item.getTier().ordinal())
+                            .thenComparingInt(TierListItem::getPosicion)
+                            .thenComparing(item -> item.getPersonaje().getNombre(), String.CASE_INSENSITIVE_ORDER))
+                    .limit(5)
+                    .map(item -> new RankingOgEntry(
+                            item.getPersonaje().getNombre(),
+                            "Tier " + item.getTier().name() + " · " + item.getPersonaje().getAnime(),
+                            item.getPersonaje().getImagenUrl(),
+                            0L))
+                    .toList();
+            return renderRankingCard(
+                    tierList.getTitulo(),
+                    "Tier list de @" + tierList.getUsuario().getUsername(),
+                    entries,
+                    "Haz tu propia tier list");
+        } catch (Exception e) {
+            log.error("OgImageService.renderTierList fallo slug={}: {}", slug, e.getMessage(), e);
+            return renderFallback(tierList.getTitulo(), "Tier list en AnimeShowdown");
         }
     }
 

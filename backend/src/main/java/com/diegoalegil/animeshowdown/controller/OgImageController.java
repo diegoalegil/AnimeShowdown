@@ -97,6 +97,14 @@ public class OgImageController {
                 .body(ogImageService.renderDuelo(slugA, slugB));
     }
 
+    @GetMapping(value = "/tier-list/{slug}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> tierList(@PathVariable String slug) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CACHE_7_DIAS)
+                .body(ogImageService.renderTierList(slug));
+    }
+
     /**
      * OG de perfil de usuario (B7 §1b). A diferencia del resto, devuelve 404
      * si el usuario no existe (renderUsuario → null) en vez de un fallback,
