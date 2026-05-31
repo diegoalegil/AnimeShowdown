@@ -11,5 +11,9 @@ public record ColeccionDto(
         int totalPoseidas,
         int porcentaje,
         long saldo,
+        int pityActual,
+        int pityDuro,
+        boolean cofreDiarioDisponible,
+        List<ColeccionAnimeDto> progresoPorAnime,
         List<CartaDto> cartas) {
 }

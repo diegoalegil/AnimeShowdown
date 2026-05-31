@@ -19,7 +19,8 @@ import jakarta.persistence.Table;
 /**
  * Carta del catálogo coleccionable. Cada carta deriva de un {@link Personaje}
  * (su arte + universo) y tiene una {@link RarezaCarta}. Decisión del owner:
- * 1 carta normal (SSR) por personaje; la ESPECIAL es curada y opcional.
+ * 1 carta normal (SSR) por personaje; la ESPECIAL es curada y opcional. Las
+ * especiales pueden tener variantes por personaje (p.ej. formas alternativas).
  *
  * <p>El catálogo se sincroniza desde los personajes en runtime
  * (CartaCatalogoService) porque los personajes se importan en el arranque, no
@@ -47,6 +48,12 @@ public class Carta {
     @Column(name = "especial_curada", nullable = false)
     private boolean especialCurada = false;
 
+    @Column(nullable = false, length = 64)
+    private String variante = "";
+
+    @Column(name = "arte_url", length = 500)
+    private String arteUrl;
+
     @Column(name = "creado_en", nullable = false)
     private LocalDateTime creadoEn;
 
@@ -63,6 +70,9 @@ public class Carta {
         if (creadoEn == null) {
             creadoEn = LocalDateTime.now();
         }
+        if (variante == null) {
+            variante = "";
+        }
     }
 
     public Long getId() { return id; }
@@ -73,6 +83,10 @@ public class Carta {
     public void setRareza(RarezaCarta rareza) { this.rareza = rareza; }
     public boolean isEspecialCurada() { return especialCurada; }
     public void setEspecialCurada(boolean especialCurada) { this.especialCurada = especialCurada; }
+    public String getVariante() { return variante; }
+    public void setVariante(String variante) { this.variante = variante != null ? variante : ""; }
+    public String getArteUrl() { return arteUrl; }
+    public void setArteUrl(String arteUrl) { this.arteUrl = arteUrl; }
     public LocalDateTime getCreadoEn() { return creadoEn; }
     public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
 }

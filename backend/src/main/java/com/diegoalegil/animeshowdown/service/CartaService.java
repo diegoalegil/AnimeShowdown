@@ -1,53 +1,95 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.AbrirSobreResultadoDto;
 import com.diegoalegil.animeshowdown.dto.CartaDto;
+import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
+import com.diegoalegil.animeshowdown.dto.ColeccionAnimeDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionDto;
+import com.diegoalegil.animeshowdown.dto.SobreCartaDto;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.Carta;
+import com.diegoalegil.animeshowdown.model.CartaClimax;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.SobreApertura;
+import com.diegoalegil.animeshowdown.model.SobreAperturaItem;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCarta;
+import com.diegoalegil.animeshowdown.model.UsuarioCartaPity;
 import com.diegoalegil.animeshowdown.repository.CartaRepository;
+import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
+import com.diegoalegil.animeshowdown.repository.SobreAperturaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioCartaPityRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
+
+import jakarta.persistence.EntityManager;
 
 /**
- * Colección de cartas del usuario y apertura de sobres. La apertura es
- * server-authoritative: gasta moneda (MonederoService) y la carta la elige el
- * servidor (RarezaService) según odds transparentes.
+ * Colección de cartas y apertura de sobres. El servidor decide el contenido
+ * completo del pack (4 normales + 1 clímax), actualiza colección, pity, saldo
+ * y audit log en la misma transacción.
  */
 @Service
 public class CartaService {
 
     private static final Logger log = LoggerFactory.getLogger(CartaService.class);
+    private static final int CARTAS_REVELADAS = 5;
 
     private final CartaRepository cartaRepository;
     private final UsuarioCartaRepository usuarioCartaRepository;
+    private final UsuarioCartaPityRepository pityRepository;
+    private final SobreAperturaRepository sobreAperturaRepository;
+    private final MonederoMovimientoRepository movimientoRepository;
+    private final VotoRepository votoRepository;
     private final MonederoService monederoService;
     private final RarezaService rarezaService;
     private final AuditLogService auditLogService;
+    private final EntityManager entityManager;
+    private final long recompensaDuplicado;
+    private final long cofreDiarioMoneda;
 
     public CartaService(
             CartaRepository cartaRepository,
             UsuarioCartaRepository usuarioCartaRepository,
+            UsuarioCartaPityRepository pityRepository,
+            SobreAperturaRepository sobreAperturaRepository,
+            MonederoMovimientoRepository movimientoRepository,
+            VotoRepository votoRepository,
             MonederoService monederoService,
             RarezaService rarezaService,
-            AuditLogService auditLogService) {
+            AuditLogService auditLogService,
+            EntityManager entityManager,
+            @Value("${app.cartas.duplicado.recompensa:10}") long recompensaDuplicado,
+            @Value("${app.cartas.cofre-diario.moneda:50}") long cofreDiarioMoneda) {
         this.cartaRepository = cartaRepository;
         this.usuarioCartaRepository = usuarioCartaRepository;
+        this.pityRepository = pityRepository;
+        this.sobreAperturaRepository = sobreAperturaRepository;
+        this.movimientoRepository = movimientoRepository;
+        this.votoRepository = votoRepository;
         this.monederoService = monederoService;
         this.rarezaService = rarezaService;
         this.auditLogService = auditLogService;
+        this.entityManager = entityManager;
+        this.recompensaDuplicado = Math.max(0L, recompensaDuplicado);
+        this.cofreDiarioMoneda = Math.max(0L, cofreDiarioMoneda);
     }
 
     /** Catálogo completo + posesión del usuario + progreso + saldo. */
@@ -55,6 +97,7 @@ public class CartaService {
     public ColeccionDto coleccion(Usuario usuario) {
         List<Carta> catalogo = cartaRepository.findAllByOrderByIdAsc();
         List<UsuarioCarta> mias = usuarioCartaRepository.findByUsuarioOrderByObtenidaEnDesc(usuario);
+        Map<Long, Long> eloPorPersonaje = votosPorPersonaje();
 
         Map<Long, UsuarioCarta> porCartaId = new HashMap<>();
         for (UsuarioCarta uc : mias) {
@@ -62,7 +105,8 @@ public class CartaService {
         }
 
         List<CartaDto> cartas = catalogo.stream()
-                .map(c -> CartaDto.from(c, porCartaId.get(c.getId())))
+                .map(c -> CartaDto.from(c, porCartaId.get(c.getId()),
+                        eloPorPersonaje.getOrDefault(c.getPersonaje().getId(), 0L)))
                 .toList();
 
         int totalCatalogo = cartas.size();
@@ -71,48 +115,222 @@ public class CartaService {
                 ? 0
                 : (int) Math.round(100.0 * totalPoseidas / totalCatalogo);
         long saldo = monederoService.saldoDe(usuario);
+        int pityActual = pityRepository.findById(usuario.getId())
+                .map(UsuarioCartaPity::getSobresSinEspecial)
+                .orElse(0);
 
-        return new ColeccionDto(totalCatalogo, totalPoseidas, porcentaje, saldo, cartas);
+        return new ColeccionDto(totalCatalogo, totalPoseidas, porcentaje, saldo,
+                pityActual, rarezaService.pityDuro(), cofreDiarioDisponible(usuario),
+                progresoPorAnime(cartas), cartas);
     }
 
     /**
-     * Abre un sobre: gasta el precio (409 si no alcanza), elige una carta SSR y
-     * la suma a la colección (incrementa duplicados). El lock pesimista de
-     * {@link MonederoService#debitar} serializa aperturas concurrentes del mismo
-     * usuario, así que el upsert de la carta no compite consigo mismo.
+     * Abre un sobre. Si el caller manda idempotencyKey, repetir la misma key
+     * devuelve el mismo resultado ya persistido y no vuelve a debitar moneda.
      */
     @Transactional
-    public AbrirSobreResultadoDto abrirSobre(Usuario usuario) {
+    public AbrirSobreResultadoDto abrirSobre(Usuario usuario, String idempotencyKey) {
+        String idem = normalizarIdempotencyKey(idempotencyKey);
+        SobreApertura existente = sobreAperturaRepository
+                .findByUsuarioAndIdempotencyKey(usuario, idem)
+                .orElse(null);
+        if (existente != null) {
+            return dtoDesdeApertura(usuario, existente);
+        }
+
         long precio = rarezaService.precioSobre();
-        String referencia = "sobre:" + UUID.randomUUID();
+        String referencia = "sobre:" + idem;
+        UsuarioCartaPity pity = pityForUpdate(usuario);
+        existente = sobreAperturaRepository
+                .findByUsuarioAndIdempotencyKey(usuario, idem)
+                .orElse(null);
+        if (existente != null) {
+            return dtoDesdeApertura(usuario, existente);
+        }
+        int pityAntes = pity.getSobresSinEspecial();
+        boolean pedirEspecial = rarezaService.debeSalirEspecial(pityAntes);
+        RarezaService.SobreDraw draw = rarezaService.elegirSobre(pedirEspecial);
+        boolean especial = draw.especial();
+
         long saldoRestante = monederoService.debitar(
                 usuario, MotivoMovimiento.COMPRA_SOBRE, referencia, precio);
 
-        Carta carta = rarezaService.elegirCartaDeSobre();
+        List<Carta> pack = new ArrayList<>(draw.normales());
+        pack.add(draw.climax());
 
-        UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
-        boolean nueva = poseida == null;
-        if (nueva) {
-            poseida = usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
-        } else {
-            poseida.incrementar();
-            poseida = usuarioCartaRepository.save(poseida);
+        SobreApertura apertura = new SobreApertura(usuario, idem);
+        apertura.setPrecio(precio);
+        apertura.setPityAntes(pityAntes);
+        apertura.setEspecial(especial);
+
+        long monedasDuplicados = 0L;
+        for (int i = 0; i < pack.size(); i++) {
+            Carta carta = pack.get(i);
+            UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
+            boolean nueva = poseida == null;
+            long recompensa = 0L;
+            if (nueva) {
+                usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
+            } else {
+                poseida.incrementar();
+                usuarioCartaRepository.save(poseida);
+                recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
+                if (recompensa > 0) {
+                    monedasDuplicados += recompensa;
+                    saldoRestante += recompensa;
+                }
+            }
+            apertura.addItem(new SobreAperturaItem(carta, i + 1, nueva,
+                    recompensa, climaxDe(i, especial)));
         }
+
+        int pityDespues = especial ? 0 : pityAntes + 1;
+        pity.setSobresSinEspecial(pityDespues);
+        pityRepository.save(pity);
+        apertura.setPityDespues(pityDespues);
+        apertura.setSaldoRestante(saldoRestante);
+        apertura.setMonedasDuplicados(monedasDuplicados);
+        apertura = sobreAperturaRepository.save(apertura);
 
         auditLogService.registrar(
                 AuditEvento.SOBRE_ABIERTO,
                 usuario,
                 Map.of(
-                        "cartaId", carta.getId(),
-                        "personajeSlug", carta.getPersonaje().getSlug(),
-                        "rareza", carta.getRareza().name(),
-                        "nueva", nueva,
+                        "cartas", pack.stream()
+                                .map(c -> c.getPersonaje().getSlug() + ":" + c.getRareza().name())
+                                .toList(),
+                        "especial", especial,
+                        "pityAntes", pityAntes,
+                        "pityDespues", pityDespues,
+                        "monedasDuplicados", monedasDuplicados,
                         "precio", precio,
                         "saldo", saldoRestante),
                 null);
-        log.info("Sobre abierto: usuario={} carta={} rareza={} nueva={} saldo={}",
-                usuario.getUsername(), carta.getPersonaje().getSlug(), carta.getRareza(), nueva, saldoRestante);
+        log.info("Sobre abierto: usuario={} cartas={} especial={} pity={}->{} saldo={}",
+                usuario.getUsername(), pack.size(), especial, pityAntes, pityDespues, saldoRestante);
 
-        return new AbrirSobreResultadoDto(CartaDto.from(carta, poseida), nueva, saldoRestante, precio);
+        return dtoDesdeApertura(usuario, apertura);
+    }
+
+    @Transactional
+    public CofreDiarioDto reclamarCofreDiario(Usuario usuario) {
+        LocalDate hoy = LocalDate.now(ZoneOffset.UTC);
+        String referencia = cofreReferencia(hoy);
+        MonederoService.ResultadoCredito credito =
+                monederoService.acreditar(usuario, MotivoMovimiento.COFRE_DIARIO,
+                        referencia, cofreDiarioMoneda);
+        if (credito.aplicado()) {
+            auditLogService.registrar(
+                    AuditEvento.MONEDA_GANADA,
+                    usuario,
+                    Map.of(
+                            "motivo", MotivoMovimiento.COFRE_DIARIO.name(),
+                            "delta", cofreDiarioMoneda,
+                            "referencia", referencia,
+                            "saldo", credito.saldo()),
+                    null);
+        }
+        return new CofreDiarioDto(credito.aplicado(), cofreDiarioMoneda, credito.saldo(), hoy.toString());
+    }
+
+    private UsuarioCartaPity pityForUpdate(Usuario usuario) {
+        return pityRepository.findForUpdateByUsuarioId(usuario.getId())
+                .orElseGet(() -> pityRepository.saveAndFlush(
+                        new UsuarioCartaPity(entityManager.getReference(Usuario.class, usuario.getId()))));
+    }
+
+    private long acreditarDuplicado(Usuario usuario, String idem, Carta carta, int posicion) {
+        if (recompensaDuplicado <= 0) {
+            return 0L;
+        }
+        MonederoService.ResultadoCredito credito = monederoService.acreditar(
+                usuario,
+                MotivoMovimiento.DUPLICADO_CARTA,
+                "duplicado:%s:%d:%d".formatted(idem, carta.getId(), posicion),
+                recompensaDuplicado);
+        return credito.aplicado() ? recompensaDuplicado : 0L;
+    }
+
+    private AbrirSobreResultadoDto dtoDesdeApertura(Usuario usuario, SobreApertura apertura) {
+        Map<Long, Long> eloPorPersonaje = votosPorPersonaje();
+        List<SobreCartaDto> cartas = apertura.getItems().stream()
+                .sorted(Comparator.comparingInt(SobreAperturaItem::getPosicion))
+                .map(item -> {
+                    UsuarioCarta propia = usuarioCartaRepository
+                            .findByUsuarioAndCarta(usuario, item.getCarta())
+                            .orElse(null);
+                    Carta carta = item.getCarta();
+                    long elo = eloPorPersonaje.getOrDefault(carta.getPersonaje().getId(), 0L);
+                    return new SobreCartaDto(item.getPosicion(), CartaDto.from(carta, propia, elo),
+                            item.isNueva(), item.getRecompensaDuplicado(), item.getClimax());
+                })
+                .toList();
+        SobreCartaDto primera = cartas.isEmpty() ? null : cartas.getFirst();
+        return new AbrirSobreResultadoDto(
+                primera != null ? primera.carta() : null,
+                cartas,
+                primera != null && primera.nueva(),
+                apertura.isEspecial(),
+                apertura.getPityAntes(),
+                apertura.getPityDespues(),
+                apertura.getMonedasDuplicados(),
+                apertura.getSaldoRestante(),
+                apertura.getPrecio());
+    }
+
+    private CartaClimax climaxDe(int index, boolean especial) {
+        if (index < CARTAS_REVELADAS - 1) {
+            return CartaClimax.NORMAL;
+        }
+        return especial ? CartaClimax.ESPECIAL : CartaClimax.TOP;
+    }
+
+    private Map<Long, Long> votosPorPersonaje() {
+        Map<Long, Long> votos = new HashMap<>();
+        for (Object[] row : votoRepository.votosPorPersonajes()) {
+            votos.put((Long) row[0], (Long) row[1]);
+        }
+        return votos;
+    }
+
+    private List<ColeccionAnimeDto> progresoPorAnime(List<CartaDto> cartas) {
+        Map<String, int[]> acumulado = new LinkedHashMap<>();
+        for (CartaDto carta : cartas) {
+            String anime = carta.anime() != null ? carta.anime() : "Anime";
+            int[] stats = acumulado.computeIfAbsent(anime, ignored -> new int[2]);
+            stats[0]++;
+            if (carta.poseida()) {
+                stats[1]++;
+            }
+        }
+        return acumulado.entrySet().stream()
+                .map(e -> {
+                    int total = e.getValue()[0];
+                    int poseidas = e.getValue()[1];
+                    int porcentaje = total == 0 ? 0 : (int) Math.round(100.0 * poseidas / total);
+                    return new ColeccionAnimeDto(e.getKey(), total, poseidas, porcentaje);
+                })
+                .sorted(Comparator.comparing(ColeccionAnimeDto::anime))
+                .collect(Collectors.toList());
+    }
+
+    private boolean cofreDiarioDisponible(Usuario usuario) {
+        return !movimientoRepository.existsByUsuarioAndMotivoAndReferencia(
+                usuario,
+                MotivoMovimiento.COFRE_DIARIO,
+                cofreReferencia(LocalDate.now(ZoneOffset.UTC)));
+    }
+
+    private static String cofreReferencia(LocalDate fecha) {
+        return "cofre:" + fecha;
+    }
+
+    private static String normalizarIdempotencyKey(String idempotencyKey) {
+        String raw = idempotencyKey == null ? "" : idempotencyKey.trim();
+        if (raw.isEmpty()) {
+            raw = UUID.randomUUID().toString();
+        }
+        String sane = raw.replaceAll("[^A-Za-z0-9._:-]", "-");
+        return sane.length() <= 80 ? sane : sane.substring(0, 80);
     }
 }

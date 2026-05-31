@@ -18,5 +18,9 @@ public enum MotivoMovimiento {
     /** Drop por ganar una partida de los daily games (duelo live PvP). */
     DROP_DUELO,
     /** Gasto al comprar/abrir un sobre. */
-    COMPRA_SOBRE
+    COMPRA_SOBRE,
+    /** Conversión de carta duplicada a moneda blanda. */
+    DUPLICADO_CARTA,
+    /** Cofre diario reclamado explícitamente por el usuario. */
+    COFRE_DIARIO
 }
