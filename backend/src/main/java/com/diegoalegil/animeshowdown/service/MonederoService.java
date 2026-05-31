@@ -16,6 +16,7 @@ import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
 import com.diegoalegil.animeshowdown.repository.MonederoRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 /**
  * Operaciones atómicas sobre el saldo de moneda. Cada cambio escribe el saldo
@@ -39,11 +40,14 @@ public class MonederoService {
 
     private final MonederoRepository monederoRepo;
     private final MonederoMovimientoRepository movimientoRepo;
+    private final UsuarioRepository usuarioRepo;
 
     public MonederoService(MonederoRepository monederoRepo,
-                           MonederoMovimientoRepository movimientoRepo) {
+                           MonederoMovimientoRepository movimientoRepo,
+                           UsuarioRepository usuarioRepo) {
         this.monederoRepo = monederoRepo;
         this.movimientoRepo = movimientoRepo;
+        this.usuarioRepo = usuarioRepo;
     }
 
     /** Saldo actual del usuario (0 si aún no tiene monedero). */
@@ -111,7 +115,10 @@ public class MonederoService {
     /**
      * Obtiene el monedero del usuario (con lock) o lo crea si no existe.
      * El lock PESSIMISTIC_WRITE serializa dos acreditaciones concurrentes
-     * del mismo usuario para que no haya lost-update en el saldo.
+     * del mismo usuario para que no haya lost-update en el saldo. Si aún no
+     * existe monedero, bloquea primero la fila de usuario: así dos primeros
+     * créditos concurrentes se serializan antes del INSERT y no dependen de
+     * capturar una violación de unique dentro de una transacción ya abortada.
      */
     Monedero obtenerOCrearConLock(Usuario usuario) {
         // findForUpdateByUsuarioId tiene @Lock(PESSIMISTIC_WRITE) — bloquea la
@@ -120,21 +127,17 @@ public class MonederoService {
         if (existente.isPresent()) {
             return existente.get();
         }
-        // Nadie tiene monedero — crear uno. Si dos hilos llegan aqui a la vez
-        // (race condition pre-existente), el primero INSERTea y el segundo recibe
-        // DataIntegrityViolationException. En ese caso esperamos a que el primero
-        // confirme y devolvemos su monedero.
-        try {
-            return monederoRepo.saveAndFlush(new Monedero(usuario));
-        } catch (DataIntegrityViolationException ex) {
-            // El primer hilo gano la creacion; esperar confirmacion y devolver
-            // el existente que creo. El catch NO marca esta tx como rollback porque
-            // Propagation=REQUIRED (la tx del llamador).
-            return monederoRepo.findByUsuarioId(usuario.getId())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Monedero no encontrado tras unique violation para usuario "
-                                    + usuario.getId(), ex));
+
+        usuarioRepo.findForUpdateById(usuario.getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Usuario no encontrado al crear monedero: " + usuario.getId()));
+
+        Optional<Monedero> creadoMientrasEsperaba = monederoRepo.findForUpdateByUsuarioId(usuario.getId());
+        if (creadoMientrasEsperaba.isPresent()) {
+            return creadoMientrasEsperaba.get();
         }
+
+        return monederoRepo.saveAndFlush(new Monedero(usuario));
     }
 
     /**
