@@ -24,6 +24,9 @@ public interface CartaRepository extends JpaRepository<Carta, Long> {
     /** Idempotencia del seed del catálogo: ¿ya existe la carta de este personaje+rareza? */
     boolean existsByPersonajeIdAndRareza(Long personajeId, RarezaCarta rareza);
 
+    /** Idempotencia del seed F2: personaje + rareza + variante. */
+    boolean existsByPersonajeIdAndRarezaAndVariante(Long personajeId, RarezaCarta rareza, String variante);
+
     /** Tamaño del pool de una rareza (odds transparentes). */
     long countByRareza(RarezaCarta rareza);
 
@@ -35,7 +38,13 @@ public interface CartaRepository extends JpaRepository<Carta, Long> {
     @Query("select c.id from Carta c where c.rareza = ?1")
     List<Long> findIdsByRareza(RarezaCarta rareza);
 
+    @Query("select c.id from Carta c where c.rareza = ?1 and c.especialCurada = true")
+    List<Long> findIdsEspecialesCuradas(RarezaCarta rareza);
+
     /** IDs de personaje que ya tienen carta de esta rareza (diff del seed). */
     @Query("select c.personaje.id from Carta c where c.rareza = ?1")
     List<Long> findPersonajeIdsByRareza(RarezaCarta rareza);
+
+    @EntityGraph(attributePaths = "personaje")
+    Optional<Carta> findByPersonajeSlugAndRarezaAndVariante(String slug, RarezaCarta rareza, String variante);
 }

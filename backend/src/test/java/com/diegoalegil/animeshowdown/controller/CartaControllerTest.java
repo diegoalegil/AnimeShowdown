@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.AopTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -21,8 +22,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.diegoalegil.animeshowdown.event.DueloLiveFinalizadoEvent;
 import com.diegoalegil.animeshowdown.event.PrediccionResueltaEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
+import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.model.UsuarioCarta;
+import com.diegoalegil.animeshowdown.repository.CartaRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.service.CartaDropListener;
 import com.diegoalegil.animeshowdown.service.MonederoService;
@@ -37,11 +43,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@TestPropertySource(properties = {
+        "app.cartas.especial.probabilidad-base=0",
+        "app.cartas.especial.pity-duro=10",
+        "app.cartas.duplicado.recompensa=10",
+        "app.cartas.cofre-diario.moneda=50"
+})
 class CartaControllerTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
     @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private CartaRepository cartaRepository;
+    @Autowired private UsuarioCartaRepository usuarioCartaRepository;
     @Autowired private MonederoService monederoService;
     @Autowired private CartaDropListener cartaDropListener;
 
@@ -115,23 +129,127 @@ class CartaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.saldo").value(250));
 
-        // Abrir un sobre: gasta 100 y revela una carta SSR con su personaje.
+        // Abrir un sobre: gasta 100 y revela 4 normales + 1 clímax top.
         mvc.perform(post("/api/me/cartas/sobre").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartas.length()").value(5))
                 .andExpect(jsonPath("$.carta.personajeSlug").isNotEmpty())
                 .andExpect(jsonPath("$.carta.rareza").value("SSR"))
+                .andExpect(jsonPath("$.cartas[4].climax").value("TOP"))
+                .andExpect(jsonPath("$.cartas[4].carta.rareza").value("SSR"))
                 .andExpect(jsonPath("$.carta.poseida").value(true))
                 .andExpect(jsonPath("$.nueva").value(true))
+                .andExpect(jsonPath("$.pityAntes").value(0))
+                .andExpect(jsonPath("$.pityDespues").value(1))
                 .andExpect(jsonPath("$.precio").value(100))
                 .andExpect(jsonPath("$.saldoRestante").value(150));
 
-        // La colección refleja la carta obtenida + el saldo restante.
+        // La colección refleja las 5 cartas obtenidas + el saldo restante.
         mvc.perform(get("/api/me/cartas").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.saldo").value(150))
-                .andExpect(jsonPath("$.totalPoseidas").value(1))
+                .andExpect(jsonPath("$.totalPoseidas").value(5))
+                .andExpect(jsonPath("$.pityActual").value(1))
+                .andExpect(jsonPath("$.pityDuro").value(10))
+                .andExpect(jsonPath("$.cofreDiarioDisponible").value(true))
+                .andExpect(jsonPath("$.progresoPorAnime").isArray())
                 .andExpect(jsonPath("$.totalCatalogo").isNumber())
                 .andExpect(jsonPath("$.cartas[?(@.poseida == true)]").isNotEmpty());
+    }
+
+    @Test
+    void abrirSobreConIdempotencyKeyNoDebitaDosVeces() throws Exception {
+        String token = token("cartas_idem");
+        Usuario u = usuario("cartas_idem");
+        monederoService.acreditar(u, MotivoMovimiento.DROP_VOTO, "seed:idem", 100L);
+
+        MvcResult primera = mvc.perform(post("/api/me/cartas/sobre")
+                .header("Authorization", "Bearer " + token)
+                .header("X-Idempotency-Key", "pack-test-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartas.length()").value(5))
+                .andExpect(jsonPath("$.saldoRestante").value(0))
+                .andReturn();
+
+        MvcResult repetida = mvc.perform(post("/api/me/cartas/sobre")
+                .header("Authorization", "Bearer " + token)
+                .header("X-Idempotency-Key", "pack-test-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.saldoRestante").value(0))
+                .andReturn();
+
+        assertThat(json.readTree(repetida.getResponse().getContentAsString()).get("cartas"))
+                .isEqualTo(json.readTree(primera.getResponse().getContentAsString()).get("cartas"));
+        assertThat(monederoService.saldoDe(u)).isZero();
+    }
+
+    @Test
+    void pityGarantizaEspecialEnElDecimoSobreSecoYResetea() throws Exception {
+        String token = token("cartas_pity");
+        Usuario u = usuario("cartas_pity");
+        monederoService.acreditar(u, MotivoMovimiento.DROP_VOTO, "seed:pity", 1_000L);
+
+        for (int i = 1; i <= 9; i++) {
+            mvc.perform(post("/api/me/cartas/sobre")
+                    .header("Authorization", "Bearer " + token)
+                    .header("X-Idempotency-Key", "pity-" + i))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.especial").value(false))
+                    .andExpect(jsonPath("$.cartas[4].climax").value("TOP"))
+                    .andExpect(jsonPath("$.pityDespues").value(i));
+        }
+
+        mvc.perform(post("/api/me/cartas/sobre")
+                .header("Authorization", "Bearer " + token)
+                .header("X-Idempotency-Key", "pity-10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.especial").value(true))
+                .andExpect(jsonPath("$.cartas.length()").value(5))
+                .andExpect(jsonPath("$.cartas[4].climax").value("ESPECIAL"))
+                .andExpect(jsonPath("$.cartas[4].carta.rareza").value("ESPECIAL"))
+                .andExpect(jsonPath("$.pityAntes").value(9))
+                .andExpect(jsonPath("$.pityDespues").value(0));
+    }
+
+    @Test
+    void duplicadosSeConviertenEnMoneda() throws Exception {
+        String token = token("cartas_duplicados");
+        Usuario u = usuario("cartas_duplicados");
+        monederoService.acreditar(u, MotivoMovimiento.DROP_VOTO, "seed:dupes", 100L);
+        for (Carta carta : cartaRepository.findAll()) {
+            if (carta.getRareza() == RarezaCarta.SSR) {
+                usuarioCartaRepository.save(new UsuarioCarta(u, carta));
+            }
+        }
+
+        mvc.perform(post("/api/me/cartas/sobre")
+                .header("Authorization", "Bearer " + token)
+                .header("X-Idempotency-Key", "dupes-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.monedasDuplicados").value(50))
+                .andExpect(jsonPath("$.saldoRestante").value(50))
+                .andExpect(jsonPath("$.cartas[0].nueva").value(false))
+                .andExpect(jsonPath("$.cartas[0].recompensaDuplicado").value(10));
+    }
+
+    @Test
+    void cofreDiarioAcreditaUnaVezPorDia() throws Exception {
+        String token = token("cartas_cofre");
+        Usuario u = usuario("cartas_cofre");
+
+        mvc.perform(post("/api/me/cartas/cofre-diario").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.aplicado").value(true))
+                .andExpect(jsonPath("$.cantidad").value(50))
+                .andExpect(jsonPath("$.saldo").value(50));
+
+        mvc.perform(post("/api/me/cartas/cofre-diario").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.aplicado").value(false))
+                .andExpect(jsonPath("$.cantidad").value(50))
+                .andExpect(jsonPath("$.saldo").value(50));
+
+        assertThat(monederoService.saldoDe(u)).isEqualTo(50L);
     }
 
     @Test

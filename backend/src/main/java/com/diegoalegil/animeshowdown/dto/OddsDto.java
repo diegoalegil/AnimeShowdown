@@ -12,6 +12,10 @@ import com.diegoalegil.animeshowdown.model.RarezaCarta;
 public record OddsDto(
         long precioSobre,
         int cartasEnPool,
+        int cartasPorSobre,
+        int normalesPorSobre,
+        double probabilidadEspecialBase,
+        int pityDuro,
         List<RarezaOdds> rarezas) {
 
     public record RarezaOdds(RarezaCarta rareza, double probabilidad, String etiqueta) {

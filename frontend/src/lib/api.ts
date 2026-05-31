@@ -538,11 +538,15 @@ export const endpoints: EndpointMap = {
   misLogros: () => api.get('/api/logros/mios'),
   logrosStats: () => api.get('/api/logros/stats', { auth: false }),
   desbloquearOtakuCertificado: () => api.post('/api/logros/otaku-certificado', undefined),
-  // Cartas coleccionables (Fase 1). Todas autenticadas (auth por defecto).
+  // Cartas coleccionables. Todas autenticadas (auth por defecto).
   miColeccion: () => api.get('/api/me/cartas'),
   miMonedero: () => api.get('/api/me/monedero'),
   oddsCartas: () => api.get('/api/cartas/odds'),
-  abrirSobre: () => api.post('/api/me/cartas/sobre', undefined),
+  abrirSobre: (idempotencyKey?: string) =>
+    api.post('/api/me/cartas/sobre', undefined, {
+      headers: idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : undefined,
+    }),
+  cofreDiario: () => api.post('/api/me/cartas/cofre-diario', undefined),
   personajesSimilares: (slug, { limit = 8 } = {}) =>
     api.get(
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,

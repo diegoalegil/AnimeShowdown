@@ -159,6 +159,7 @@ public class DataSeeder implements CommandLineRunner {
         // migraciones). Idempotente: sólo crea las que faltan.
         try {
             cartaCatalogoService.sincronizarDesdePersonajes();
+            cartaCatalogoService.sincronizarEspecialesCuradas();
         } catch (Exception e) {
             log.error("DataSeeder fallo al sincronizar el catálogo de cartas (no crítico): {}",
                     e.getMessage(), e);

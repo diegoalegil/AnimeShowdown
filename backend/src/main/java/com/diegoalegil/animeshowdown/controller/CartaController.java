@@ -4,11 +4,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.AbrirSobreResultadoDto;
+import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionDto;
 import com.diegoalegil.animeshowdown.dto.MonederoDto;
 import com.diegoalegil.animeshowdown.dto.OddsDto;
@@ -18,7 +20,7 @@ import com.diegoalegil.animeshowdown.service.MonederoService;
 import com.diegoalegil.animeshowdown.service.RarezaService;
 
 /**
- * API de cartas coleccionables (Fase 1). Todos los endpoints son autenticados
+ * API de cartas coleccionables. Todos los endpoints son autenticados
  * (caen en {@code anyRequest().authenticated()} de SecurityConfig). El servidor
  * es la única autoridad sobre colección, saldo y aperturas.
  */
@@ -56,10 +58,17 @@ public class CartaController {
         return rarezaService.odds();
     }
 
-    /** Abre un sobre: gasta moneda y revela una carta. 409 si no hay saldo. */
+    /** Abre un sobre: gasta moneda y revela 5 cartas. 409 si no hay saldo. */
     @PostMapping("/me/cartas/sobre")
-    public AbrirSobreResultadoDto abrirSobre(@AuthenticationPrincipal Usuario usuario) {
-        return cartaService.abrirSobre(exigirUsuario(usuario));
+    public AbrirSobreResultadoDto abrirSobre(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestHeader(name = "X-Idempotency-Key", required = false) String idempotencyKey) {
+        return cartaService.abrirSobre(exigirUsuario(usuario), idempotencyKey);
+    }
+
+    @PostMapping("/me/cartas/cofre-diario")
+    public CofreDiarioDto cofreDiario(@AuthenticationPrincipal Usuario usuario) {
+        return cartaService.reclamarCofreDiario(exigirUsuario(usuario));
     }
 
     private static Usuario exigirUsuario(Usuario usuario) {
