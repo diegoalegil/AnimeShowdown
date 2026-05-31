@@ -179,6 +179,8 @@ public class SecurityConfig {
                         // público (top predictores); /mias y POST autenticados.
                         .requestMatchers(HttpMethod.GET, "/api/predicciones/leaderboard").permitAll()
                         .requestMatchers("/api/predicciones/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/fantasy/leaderboard").permitAll()
+                        .requestMatchers("/api/fantasy/**").authenticated()
                         // Newsletter con double opt-in. Todo
                         // público — form en footer y links de confirmación
                         // /unsubscribe llegan al email del user sin auth.

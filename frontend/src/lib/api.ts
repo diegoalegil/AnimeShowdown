@@ -711,6 +711,21 @@ export const endpoints: EndpointMap = {
   // Top voters leaderboard. periodo: all|semana|mes.
   topVoters: ({ periodo = 'all', limit = 10 } = {}) =>
     api.get(`/api/votos/top-voters?periodo=${periodo}&limit=${limit}`, { auth: false }),
+  fantasyMe: () => api.get('/api/fantasy/me'),
+  fantasyCandidatos: ({ q = '', limit = 80 } = {}) => {
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (q) params.set('q', q)
+    return api.get(`/api/fantasy/candidatos?${params}`)
+  },
+  fantasyGuardarEquipo: (personajeIds) =>
+    api.put('/api/fantasy/me/equipo', { personajeIds }),
+  fantasyBloquearEquipo: () =>
+    api.post('/api/fantasy/me/equipo/lock', undefined),
+  fantasyLeaderboard: ({ semanaIso, limit = 50 } = {}) => {
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (semanaIso) params.set('semanaIso', semanaIso)
+    return api.get(`/api/fantasy/leaderboard?${params}`, { auth: false })
+  },
   // Newsletter con double opt-in.
   suscribirNewsletter: (email) =>
     api.post('/api/newsletter', { email }, { auth: false }),

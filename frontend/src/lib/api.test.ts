@@ -725,4 +725,25 @@ describe('endpoints', () => {
     const url = (fn.mock.calls[0] as [string, RequestInit])[0]
     expect(url).toContain('/api/votos/ranking/categorias-disponibles')
   })
+
+  it('fantasyGuardarEquipo: manda los cinco personajes al draft', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.fantasyGuardarEquipo([1, 2, 3, 4, 5])
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/fantasy/me/equipo')
+    expect(opts.method).toBe('PUT')
+    expect(JSON.parse(opts.body as string)).toEqual({ personajeIds: [1, 2, 3, 4, 5] })
+  })
+
+  it('fantasyLeaderboard: usa lectura pública con semana opcional', async () => {
+    const fn = mockFetchResolved([])
+    vi.stubGlobal('fetch', fn)
+    await endpoints.fantasyLeaderboard({ semanaIso: '2026-W22', limit: 20 })
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/fantasy/leaderboard?')
+    expect(url).toContain('semanaIso=2026-W22')
+    expect(url).toContain('limit=20')
+    expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
+  })
 })
