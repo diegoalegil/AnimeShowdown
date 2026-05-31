@@ -129,7 +129,7 @@ const SECCIONES = [
   {
     titulo: 'Logros',
     descripcion:
-      'Catálogo público de 16 logros base con rareza 1-5; los perfiles pueden sumar logros derivados.',
+      'Catálogo público de 17 logros base con rareza 1-5; los perfiles pueden sumar logros derivados.',
     endpoints: [
       {
         metodo: 'GET',

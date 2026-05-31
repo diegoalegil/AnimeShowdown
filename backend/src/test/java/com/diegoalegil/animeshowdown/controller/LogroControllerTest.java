@@ -29,9 +29,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * <p>Cubre catalogo + endpoint personal + flow desbloqueo:
  * <ul>
- *   <li>GET /api/logros sin auth devuelve 16 del catálogo.</li>
+ *   <li>GET /api/logros sin auth devuelve 17 del catálogo.</li>
  *   <li>GET /api/logros/mios sin auth: 403.</li>
- *   <li>Usuario nuevo: 16 entries, todos con desbloqueadoEn null.</li>
+ *   <li>Usuario nuevo: 17 entries, con Fundador desbloqueado si entra en
+ *       el cutoff inicial.</li>
  *   <li>Tras desbloquear "primer_voto" via BadgeService directamente:
  *       endpoint refleja el desbloqueo + se crea notif BADGE_DESBLOQUEADO.</li>
  *   <li>Desbloquear el mismo dos veces: idempotente, solo 1 fila.</li>
@@ -76,12 +77,13 @@ class LogroControllerTest {
     }
 
     @Test
-    void catalogoPublicoDevuelve16Logros() throws Exception {
+    void catalogoPublicoDevuelve17Logros() throws Exception {
         mvc.perform(get("/api/logros"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(16))
+                .andExpect(jsonPath("$.length()").value(17))
                 // Spot-check: primer_voto siempre debe existir.
                 .andExpect(jsonPath("$[?(@.codigo=='primer_voto')]").exists())
+                .andExpect(jsonPath("$[?(@.codigo=='fundador')]").exists())
                 .andExpect(jsonPath("$[?(@.codigo=='primera_victoria_pvp')]").exists())
                 .andExpect(jsonPath("$[?(@.codigo=='otaku_certificado')]").exists());
     }
@@ -93,16 +95,16 @@ class LogroControllerTest {
     }
 
     @Test
-    void miosUsuarioNuevoDevuelveTodosSinDesbloquear() throws Exception {
+    void miosUsuarioNuevoIncluyeFundadorDesbloqueado() throws Exception {
         crearUsuario("badge_alice", "badge_alice@example.com");
         String token = tokenDe("badge_alice");
 
         mvc.perform(get("/api/logros/mios")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(16))
-                // Todos los desbloqueadoEn deben ser null para user nuevo.
-                .andExpect(jsonPath("$[?(@.desbloqueadoEn != null)]").doesNotExist());
+                .andExpect(jsonPath("$.length()").value(17))
+                .andExpect(jsonPath("$[?(@.codigo=='fundador' && @.desbloqueadoEn != null)]").exists())
+                .andExpect(jsonPath("$[?(@.codigo=='primer_voto' && @.desbloqueadoEn == null)]").exists());
     }
 
     @Test
@@ -114,8 +116,8 @@ class LogroControllerTest {
         var resultado = badgeService.desbloquear(u, "primer_voto");
         assert resultado.isPresent() : "Primera vez, debe devolver Optional con UsuarioLogro";
 
-        assert usuarioLogroRepository.countByUsuario(u) == 1
-                : "Debe haber 1 UsuarioLogro tras desbloquear primer_voto";
+        assert usuarioLogroRepository.existsByUsuarioAndLogroCodigo(u, "primer_voto")
+                : "Debe existir UsuarioLogro de primer_voto tras desbloquearlo";
 
         long notifsDespues = notificacionRepository.findAll().stream()
                 .filter(n -> n.getUsuario().getId().equals(u.getId())).count();
@@ -134,18 +136,19 @@ class LogroControllerTest {
         assert primera.isPresent() : "Primer desbloqueo devuelve Optional con valor";
         assert segunda.isEmpty()   : "Segundo desbloqueo del mismo badge devuelve empty";
 
-        assert usuarioLogroRepository.countByUsuario(u) == 1
-                : "Solo debe haber 1 fila tras dos intentos del mismo badge";
+        assert usuarioLogroRepository.existsByUsuarioAndLogroCodigo(u, "primer_voto")
+                : "Debe existir UsuarioLogro de primer_voto";
     }
 
     @Test
     void desbloquearCodigoInexistenteDevuelveEmpty() throws Exception {
         Usuario u = crearUsuario("badge_diana", "badge_diana@example.com");
+        long antes = usuarioLogroRepository.countByUsuario(u);
 
         var resultado = badgeService.desbloquear(u, "codigo_que_no_existe_jamas");
         assert resultado.isEmpty() : "Código inexistente devuelve Optional.empty";
-        assert usuarioLogroRepository.countByUsuario(u) == 0
-                : "No debe crearse ninguna fila";
+        assert usuarioLogroRepository.countByUsuario(u) == antes
+                : "No debe crearse ninguna fila nueva";
     }
 
     @Test
@@ -165,13 +168,14 @@ class LogroControllerTest {
     }
 
     @Test
-    void statsPublicoDevuelve16CodigosConCount() throws Exception {
+    void statsPublicoDevuelve17CodigosConCount() throws Exception {
         // Sin desbloqueos previos, el endpoint debe devolver los codigos
         // del catálogo con count=0 (no se omiten los que tienen 0).
         mvc.perform(get("/api/logros/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primer_voto").exists())
                 .andExpect(jsonPath("$.mil_votos").exists())
+                .andExpect(jsonPath("$.fundador").exists())
                 .andExpect(jsonPath("$.otaku_certificado").exists())
                 .andExpect(jsonPath("$.primer_voto").value(org.hamcrest.Matchers.greaterThanOrEqualTo(0)));
     }

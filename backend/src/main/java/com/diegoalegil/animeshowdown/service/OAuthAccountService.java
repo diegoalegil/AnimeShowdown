@@ -6,10 +6,12 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.diegoalegil.animeshowdown.event.UsuarioRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
@@ -31,16 +33,19 @@ public class OAuthAccountService {
     private final PasswordEncoder passwordEncoder;
     private final ReferralService referralService;
     private final AdminEmails adminEmails;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OAuthAccountService(
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
             ReferralService referralService,
-            AdminEmails adminEmails) {
+            AdminEmails adminEmails,
+            ApplicationEventPublisher eventPublisher) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.referralService = referralService;
         this.adminEmails = adminEmails;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -73,6 +78,7 @@ public class OAuthAccountService {
         }
         referralService.asignarCodigoSiHaceFalta(nuevo);
         Usuario guardado = usuarioRepository.save(nuevo);
+        eventPublisher.publishEvent(new UsuarioRegistradoEvent(guardado.getId()));
         return new ResultadoOAuth(guardado, true);
     }
 

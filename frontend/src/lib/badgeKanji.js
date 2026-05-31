@@ -24,6 +24,7 @@
  */
 export const BADGE_KANJI = {
   primer_voto: '初',
+  fundador: '創',
   cien_votos: '百',
   mil_votos: '千',
   torneo_completo: '王',
