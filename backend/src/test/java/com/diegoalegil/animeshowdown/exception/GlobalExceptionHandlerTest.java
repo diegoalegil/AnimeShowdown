@@ -17,8 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.persistence.EntityNotFoundException;
 
 /**
- * Sprint Auto 07 (Error handling) — blinda el shape estandarizado de
- * {@code GlobalExceptionHandler} contra regresiones.
+ * Blinda el shape estandarizado de {@code GlobalExceptionHandler} contra
+ * regresiones.
  *
  * <p>El handler ya estaba estandarizado en main (todos los errores devuelven
  * {@code {timestamp, status, error, message, path}}); este test fija ese
