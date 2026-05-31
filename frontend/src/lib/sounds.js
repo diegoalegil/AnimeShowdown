@@ -253,3 +253,296 @@ export async function playLevelUp() {
   sparkle.start(now + 0.42)
   sparkle.stop(now + 1.05)
 }
+
+function makeNoise(ctx, duration) {
+  const length = Math.floor(ctx.sampleRate * duration)
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < length; i++) {
+    const t = i / Math.max(1, length - 1)
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 1.25)
+  }
+  return buffer
+}
+
+function scheduleTone(ctx, {
+  freq,
+  duration,
+  type = 'sine',
+  volume = 0.12,
+  when = 0,
+  rampTo = null,
+}) {
+  const now = ctx.currentTime + when
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = type
+  osc.frequency.setValueAtTime(freq, now)
+  if (rampTo) {
+    osc.frequency.exponentialRampToValueAtTime(rampTo, now + duration)
+  }
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(volume, now + 0.015)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start(now)
+  osc.stop(now + duration + 0.03)
+}
+
+export async function playPackCharge() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const duration = 1.25
+  const src = ctx.createBufferSource()
+  src.buffer = makeNoise(ctx, duration)
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'bandpass'
+  filter.Q.value = 1.2
+  filter.frequency.setValueAtTime(280, now)
+  filter.frequency.exponentialRampToValueAtTime(6200, now + duration)
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.2, now + duration * 0.82)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.05)
+  src.connect(filter)
+  filter.connect(gain)
+  gain.connect(ctx.destination)
+  src.start(now)
+  src.stop(now + duration + 0.08)
+
+  ;[0, 4, 7].forEach((semi, index) => {
+    const f0 = 196 * Math.pow(2, semi / 12)
+    scheduleTone(ctx, {
+      freq: f0,
+      rampTo: f0 * 3.8,
+      duration,
+      type: 'sine',
+      volume: 0.045,
+      when: index * 0.015,
+    })
+  })
+}
+
+export async function playPackTear() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+
+  scheduleTone(ctx, {
+    freq: 150,
+    rampTo: 42,
+    duration: 0.48,
+    type: 'sine',
+    volume: 0.34,
+  })
+
+  const burst = ctx.createBufferSource()
+  burst.buffer = makeNoise(ctx, 0.46)
+  const hp = ctx.createBiquadFilter()
+  hp.type = 'highpass'
+  hp.frequency.setValueAtTime(2200, now)
+  const peak = ctx.createBiquadFilter()
+  peak.type = 'peaking'
+  peak.frequency.value = 5400
+  peak.Q.value = 4
+  peak.gain.value = 11
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.26, now + 0.012)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.46)
+  burst.connect(hp)
+  hp.connect(peak)
+  peak.connect(gain)
+  gain.connect(ctx.destination)
+  burst.start(now)
+  burst.stop(now + 0.5)
+
+  const bells = [1568, 2093, 2637, 3136, 3520, 2349, 1760]
+  for (let i = 0; i < 9; i++) {
+    scheduleTone(ctx, {
+      freq: bells[i % bells.length],
+      duration: 0.42,
+      type: 'sine',
+      volume: 0.045,
+      when: 0.06 + i * 0.065,
+    })
+  }
+
+  for (let i = 0; i < 8; i++) {
+    const when = 0.02 + i * 0.055
+    const src = ctx.createBufferSource()
+    src.buffer = makeNoise(ctx, 0.035)
+    const bp = ctx.createBiquadFilter()
+    bp.type = 'bandpass'
+    bp.frequency.value = 2200 + i * 310
+    bp.Q.value = 2.4
+    const cg = ctx.createGain()
+    const t = now + when
+    cg.gain.setValueAtTime(0.0001, t)
+    cg.gain.exponentialRampToValueAtTime(0.045, t + 0.004)
+    cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.035)
+    src.connect(bp)
+    bp.connect(cg)
+    cg.connect(ctx.destination)
+    src.start(t)
+    src.stop(t + 0.055)
+  }
+}
+
+export async function playPackFlip() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  scheduleTone(ctx, {
+    freq: 660,
+    rampTo: 980,
+    duration: 0.075,
+    type: 'square',
+    volume: 0.08,
+  })
+}
+
+export async function playPackCollect() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  scheduleTone(ctx, {
+    freq: 880,
+    rampTo: 1320,
+    duration: 0.08,
+    type: 'sine',
+    volume: 0.1,
+  })
+}
+
+export async function playPackRevealNormal() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  ;[523.25, 659.25, 783.99].forEach((freq, index) => {
+    scheduleTone(ctx, {
+      freq,
+      duration: 0.32,
+      type: 'triangle',
+      volume: 0.07,
+      when: index * 0.055,
+    })
+  })
+}
+
+export async function playPackRevealTop() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5]
+  notes.forEach((freq, index) => {
+    scheduleTone(ctx, {
+      freq,
+      duration: 0.52,
+      type: 'sine',
+      volume: 0.105,
+      when: index * 0.075,
+    })
+    scheduleTone(ctx, {
+      freq: freq * 1.5,
+      duration: 0.42,
+      type: 'sine',
+      volume: 0.026,
+      when: index * 0.075 + 0.01,
+    })
+  })
+
+  const padStart = ctx.currentTime + notes.length * 0.075
+  ;[261.63, 327.03, 392, 523.25].forEach((freq, index) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    osc.detune.value = (index - 1.5) * 4
+    gain.gain.setValueAtTime(0.0001, padStart)
+    gain.gain.exponentialRampToValueAtTime(0.045, padStart + 0.2)
+    gain.gain.exponentialRampToValueAtTime(0.0001, padStart + 1.15)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(padStart)
+    osc.stop(padStart + 1.25)
+  })
+}
+
+export async function playPackRevealSpecial() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  scheduleTone(ctx, {
+    freq: 130,
+    rampTo: 38,
+    duration: 0.62,
+    type: 'sine',
+    volume: 0.24,
+  })
+
+  const duration = 0.9
+  const src = ctx.createBufferSource()
+  src.buffer = makeNoise(ctx, duration)
+  const bp = ctx.createBiquadFilter()
+  bp.type = 'bandpass'
+  bp.Q.value = 1.45
+  bp.frequency.setValueAtTime(680, now)
+  bp.frequency.exponentialRampToValueAtTime(8200, now + duration)
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.14, now + duration - 0.06)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.05)
+  src.connect(bp)
+  bp.connect(gain)
+  gain.connect(ctx.destination)
+  src.start(now)
+  src.stop(now + duration + 0.08)
+
+  const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98, 2093]
+  notes.forEach((freq, index) => {
+    scheduleTone(ctx, {
+      freq,
+      duration: 0.58,
+      type: 'sine',
+      volume: 0.12,
+      when: index * 0.082,
+    })
+    scheduleTone(ctx, {
+      freq: freq * 1.5,
+      duration: 0.48,
+      type: 'sine',
+      volume: 0.035,
+      when: index * 0.082 + 0.012,
+    })
+  })
+
+  const padStart = now + notes.length * 0.082
+  ;[261.63, 327.03, 392, 523.25, 659.25].forEach((freq, index) => {
+    const osc = ctx.createOscillator()
+    const gainNode = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    osc.detune.value = (index - 2) * 5
+    gainNode.gain.setValueAtTime(0.0001, padStart)
+    gainNode.gain.exponentialRampToValueAtTime(0.055, padStart + 0.24)
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, padStart + 1.8)
+    osc.connect(gainNode)
+    gainNode.connect(ctx.destination)
+    osc.start(padStart)
+    osc.stop(padStart + 1.95)
+  })
+
+  scheduleTone(ctx, {
+    freq: 3135.96,
+    duration: 1.35,
+    type: 'sine',
+    volume: 0.08,
+    when: 0.62,
+  })
+  scheduleTone(ctx, {
+    freq: 4186,
+    duration: 1.05,
+    type: 'sine',
+    volume: 0.045,
+    when: 0.7,
+  })
+}

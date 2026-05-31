@@ -1,11 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PackOpening from './PackOpening'
 
 const playMock = vi.fn()
+const warmMock = vi.fn()
 
 vi.mock('../../contexts/SoundContext', () => ({
-  useSound: () => ({ play: playMock }),
+  useSound: () => ({ play: playMock, warm: warmMock }),
 }))
 
 vi.mock('../../components/PersonajeImg', () => ({
@@ -22,13 +23,15 @@ const baseCarta = {
 }
 
 const fastTiming = {
-  charge: 1,
-  tear: 1,
-  firstReveal: 2,
-  normalStep: 2,
-  climaxStep: 2,
-  summaryNormal: 2,
-  summarySpecial: 2,
+  peel: 1,
+  rip: 1,
+  autoFlipNormal: 1,
+  autoCollectNormal: 1,
+  revealDingDelay: 1,
+  collect: 1,
+  nextDelay: 1,
+  flash: 1,
+  flashSpecial: 1,
 }
 
 const revealEspecial = {
@@ -114,9 +117,10 @@ const revealEspecial = {
 describe('PackOpening', () => {
   beforeEach(() => {
     playMock.mockClear()
+    warmMock.mockClear()
   })
 
-  it('revela las cartas del servidor y termina en resumen', async () => {
+  it('rasga el sobre, revela las cartas del servidor y termina en resumen', async () => {
     render(
       <PackOpening
         reveal={revealEspecial}
@@ -128,18 +132,26 @@ describe('PackOpening', () => {
       />,
     )
 
-    expect(screen.getByText('Sobre Premium')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Rasgar sobre' })).toBeInTheDocument()
+    expect(screen.queryByText('Resumen del sobre')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rasgar sobre' }))
 
     await waitFor(() => {
       expect(screen.getAllByText('Naruto Uzumaki').length).toBeGreaterThan(0)
     })
+
+    const climaxButton = await screen.findByRole('button', { name: 'Revelar carta 5' })
+    fireEvent.click(climaxButton)
+    fireEvent.click(await screen.findByRole('button', { name: 'Ver resumen' }))
 
     await waitFor(() => {
       expect(screen.getByText('Resumen del sobre')).toBeInTheDocument()
     })
     expect(screen.getByAltText('Satoru Gojo')).toBeInTheDocument()
     expect(screen.getByText('Duplicada +10')).toBeInTheDocument()
-    expect(playMock).toHaveBeenCalledWith('playWhoosh')
-    expect(playMock).toHaveBeenCalledWith('playLevelUp')
+    expect(playMock).toHaveBeenCalledWith('playPackCharge')
+    expect(playMock).toHaveBeenCalledWith('playPackTear')
+    expect(playMock).toHaveBeenCalledWith('playPackRevealSpecial')
   })
 })
