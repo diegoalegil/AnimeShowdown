@@ -89,13 +89,30 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
                 p.nombre,
                 p.anime,
                 p.imagenUrl,
-                COUNT(v),
-                COALESCE(SUM(CASE WHEN v.fecha >= :desde THEN 1 ELSE 0 END), 0)
+                cast(coalesce(sum(case
+                    when v.id is null then 0.0
+                    when v.empate = true then 0.5
+                    else 1.0
+                end), 0) as double),
+                cast(coalesce(sum(case
+                    when v.id is null then 0.0
+                    when v.fecha >= :desde and v.empate = true then 0.5
+                    when v.fecha >= :desde then 1.0
+                    else 0.0
+                end), 0) as double)
             )
             FROM Personaje p
-            LEFT JOIN Voto v ON v.personaje = p
+            LEFT JOIN Voto v ON (
+                (v.empate = false AND v.personaje = p)
+                OR (v.empate = true AND v.enfrentamiento IS NOT NULL
+                    AND (v.enfrentamiento.personaje1 = p OR v.enfrentamiento.personaje2 = p))
+            )
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
-            ORDER BY COUNT(v) DESC, p.id ASC
+            ORDER BY sum(case
+                when v.id is null then 0.0
+                when v.empate = true then 0.5
+                else 1.0
+            end) DESC, p.id ASC
             """)
     List<PersonajeScoreItem> topConPuntuacionYRecencia(
             @Param("desde") java.time.LocalDateTime desde,
