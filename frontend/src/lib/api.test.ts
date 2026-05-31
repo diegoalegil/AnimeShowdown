@@ -589,6 +589,34 @@ describe('endpoints', () => {
     expect(url).toContain('/newsletter/unsubscribe')
   })
 
+  it('pushSubscribe: POST subscription payload', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.pushSubscribe({
+      endpoint: 'https://push.example/sub/1',
+      keys: { p256dh: 'key-a', auth: 'auth-a' },
+    })
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/me/push/subscribe')
+    expect(opts.method).toBe('POST')
+    expect(JSON.parse(opts.body as string)).toEqual({
+      endpoint: 'https://push.example/sub/1',
+      keys: { p256dh: 'key-a', auth: 'auth-a' },
+    })
+  })
+
+  it('pushUnsubscribe: DELETE endpoint payload', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.pushUnsubscribe('https://push.example/sub/1')
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/me/push/unsubscribe')
+    expect(opts.method).toBe('DELETE')
+    expect(JSON.parse(opts.body as string)).toEqual({
+      endpoint: 'https://push.example/sub/1',
+    })
+  })
+
   // ─── Intención de voto (feature #15) ─────────────────────────────────────
   it('votar: incluye categoria en el body cuando se pasa', async () => {
     const fn = mockFetchResolved({})

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -265,6 +266,7 @@ class TorneoServiceTest {
             assertThat(result.getEstadoRevision()).isEqualTo(EstadoRevision.APROBADO);
             assertThat(result.getFechaInicio()).isNotNull();
             verify(indexNowService).notificarUna("/torneos/pending-test");
+            verify(notificacionService).notificarTorneoDisponibleATodos(any(Torneo.class));
         }
     }
 
@@ -333,6 +335,20 @@ class TorneoServiceTest {
             assertThat(result.getEstado()).isEqualTo(EstadoTorneo.IN_PROGRESS);
             assertThat(result.getFechaInicio()).isNotNull();
             verify(bracketService, org.mockito.Mockito.never()).crearBracket(any(), any());
+            verify(notificacionService).notificarTorneoDisponibleATodos(any(Torneo.class));
+        }
+
+        @Test
+        void iniciaAunqueFanOutPushFalle() {
+            var t = torneo().id(1L).estado(EstadoTorneo.SCHEDULED).build();
+            when(torneoRepository.findById(1L)).thenReturn(Optional.of(t));
+            lenient().when(torneoRepository.save(any(Torneo.class))).thenAnswer(inv -> inv.getArgument(0));
+            doThrow(new RuntimeException("push caido"))
+                    .when(notificacionService).notificarTorneoDisponibleATodos(any(Torneo.class));
+
+            var result = service.iniciar(1L, null);
+
+            assertThat(result.getEstado()).isEqualTo(EstadoTorneo.IN_PROGRESS);
         }
 
         @Test
@@ -526,6 +542,7 @@ class TorneoServiceTest {
             service.finalizar(1L);
 
             verify(prediccionService).resolverParaTorneo(any(Torneo.class));
+            verify(notificacionService).notificarTorneoFinalizadoATodos(any(Torneo.class));
         }
     }
 

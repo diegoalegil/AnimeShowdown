@@ -523,6 +523,11 @@ export const endpoints: EndpointMap = {
     api.post(`/api/notificaciones/${id}/leida`, undefined),
   notificacionesMarcarTodasLeidas: () =>
     api.post('/api/notificaciones/marcar-todas-leidas', undefined),
+  pushPublicKey: () => api.get('/api/me/push/public-key'),
+  pushSubscribe: ({ endpoint, keys }) =>
+    api.post('/api/me/push/subscribe', { endpoint, keys }),
+  pushUnsubscribe: (endpoint) =>
+    api.del('/api/me/push/unsubscribe', { body: endpoint ? { endpoint } : undefined }),
   // Logros / badges.
   //   logros: público, devuelve el catálogo completo de badges.
   //   misLogros: autenticado, catálogo enriquecido con desbloqueadoEn null/timestamp.

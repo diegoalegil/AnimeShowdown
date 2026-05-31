@@ -38,6 +38,7 @@ public class TorneoAutoService {
     private final PersonajeRepository personajeRepository;
     private final BracketService bracketService;
     private final IndexNowService indexNowService;
+    private final NotificacionService notificacionService;
     private final boolean enabled;
 
     public TorneoAutoService(
@@ -45,11 +46,13 @@ public class TorneoAutoService {
             PersonajeRepository personajeRepository,
             BracketService bracketService,
             IndexNowService indexNowService,
+            NotificacionService notificacionService,
             @Value("${app.tournament.auto.enabled:true}") boolean enabled) {
         this.torneoRepository = torneoRepository;
         this.personajeRepository = personajeRepository;
         this.bracketService = bracketService;
         this.indexNowService = indexNowService;
+        this.notificacionService = notificacionService;
         this.enabled = enabled;
         log.info("TorneoAutoService inicializado: enabled={}", enabled);
     }
@@ -126,6 +129,12 @@ public class TorneoAutoService {
         // Bing/Yandex en minutos. Async + best-effort; no afecta al cron
         // si falla.
         indexNowService.notificar(indexNowUrlsParaTorneo(guardado, seleccionados));
+        try {
+            notificacionService.notificarTorneoDisponibleATodos(guardado);
+        } catch (Exception e) {
+            log.warn("Fan-out de torneo auto disponible falló: torneo={} err={}",
+                    guardado.getId(), e.getMessage());
+        }
 
         return guardado;
     }

@@ -225,6 +225,7 @@ public class TorneoService {
         // nuevo URL del torneo se indexe en minutos en lugar de horas.
         // Best-effort async; no afecta al flujo de aprobación si falla.
         indexNowService.notificarUna("/torneos/" + guardado.getSlug());
+        notificarTorneoDisponible(guardado);
 
         log.info("Torneo aprobado: id={} slug={} creador={}",
                 guardado.getId(), guardado.getSlug(),
@@ -362,6 +363,7 @@ public class TorneoService {
             bracketService.crearBracket(guardado, participantes);
         }
 
+        notificarTorneoDisponible(guardado);
         return guardado;
     }
 
@@ -442,7 +444,26 @@ public class TorneoService {
         // Resuelve todas las predicciones del torneo
         // comparando contra los ganadores recién calculados.
         int resueltas = prediccionService.resolverParaTorneo(guardado);
+        notificarTorneoFinalizado(guardado);
         log.info("Torneo {} finalizado en cascada: {} predicciones resueltas", id, resueltas);
         return guardado;
+    }
+
+    private void notificarTorneoDisponible(Torneo torneo) {
+        try {
+            notificacionService.notificarTorneoDisponibleATodos(torneo);
+        } catch (Exception e) {
+            log.warn("Fan-out de torneo disponible falló: torneo={} err={}",
+                    torneo.getId(), e.getMessage());
+        }
+    }
+
+    private void notificarTorneoFinalizado(Torneo torneo) {
+        try {
+            notificacionService.notificarTorneoFinalizadoATodos(torneo);
+        } catch (Exception e) {
+            log.warn("Fan-out de torneo finalizado falló: torneo={} err={}",
+                    torneo.getId(), e.getMessage());
+        }
     }
 }
