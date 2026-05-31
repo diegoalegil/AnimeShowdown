@@ -164,11 +164,12 @@ public class PerfilService {
         double porcentaje = prediccionesResueltas == 0
                 ? 0.0
                 : (100.0 * prediccionesAcertadas) / prediccionesResueltas;
+        long bracketChallengePuntos = prediccionRepository.puntosCampeonAcumulados(usuario);
         long badges = usuarioLogroRepository.countByUsuario(usuario);
         long torneosCreados = torneoRepository.countByCreadoPor(usuario);
         return new PerfilStatsDto(votosTotales, prediccionesTotales,
                 prediccionesAcertadas, prediccionesResueltas,
-                redondear(porcentaje, 1), badges, torneosCreados,
+                redondear(porcentaje, 1), bracketChallengePuntos, badges, torneosCreados,
                 usuario.getEloPvp(), usuario.getPvpPartidos());
     }
 

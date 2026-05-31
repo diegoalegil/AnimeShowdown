@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Prediccion;
+import com.diegoalegil.animeshowdown.model.TipoPrediccion;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 
@@ -18,18 +19,22 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
 
     Optional<Prediccion> findByUsuarioAndEnfrentamiento(Usuario usuario, Enfrentamiento enf);
 
+    Optional<Prediccion> findByUsuarioAndTorneoAndTipo(Usuario usuario, Torneo torneo, TipoPrediccion tipo);
+
     /** Todas las predicciones de un torneo (cualquier usuario). Usada por resolverParaTorneo. */
     @Query("""
             SELECT p FROM Prediccion p
-            WHERE p.enfrentamiento.torneo = :torneo
+            LEFT JOIN p.enfrentamiento e
+            WHERE e.torneo = :torneo OR p.torneo = :torneo
             """)
     List<Prediccion> findByTorneo(@Param("torneo") Torneo torneo);
 
     /** Predicciones del usuario en un torneo concreto, ordenadas por id ASC (ronda implícita). */
     @Query("""
             SELECT p FROM Prediccion p
-            WHERE p.usuario = :usuario AND p.enfrentamiento.torneo = :torneo
-            ORDER BY p.enfrentamiento.ronda ASC, p.enfrentamiento.id ASC
+            LEFT JOIN p.enfrentamiento e
+            WHERE p.usuario = :usuario AND (e.torneo = :torneo OR p.torneo = :torneo)
+            ORDER BY p.tipo DESC, e.ronda ASC, e.id ASC
             """)
     List<Prediccion> findByUsuarioAndTorneo(@Param("usuario") Usuario usuario,
             @Param("torneo") Torneo torneo);
@@ -64,6 +69,27 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
             """)
     List<Object[]> leaderboardDesde(@Param("desde") LocalDateTime desde,
             org.springframework.data.domain.Pageable pageable);
+
+    @Query("""
+            SELECT p.usuario.id, p.usuario.username, COUNT(p), COUNT(p) * 10
+            FROM Prediccion p
+            WHERE p.tipo = com.diegoalegil.animeshowdown.model.TipoPrediccion.CAMPEON
+              AND p.torneo = :torneo
+              AND p.acertada = true
+            GROUP BY p.usuario.id, p.usuario.username
+            ORDER BY COUNT(p) DESC, p.usuario.username ASC
+            """)
+    List<Object[]> leaderboardCampeonPorTorneo(@Param("torneo") Torneo torneo,
+            org.springframework.data.domain.Pageable pageable);
+
+    @Query("""
+            SELECT COUNT(p) * 10
+            FROM Prediccion p
+            WHERE p.usuario = :usuario
+              AND p.tipo = com.diegoalegil.animeshowdown.model.TipoPrediccion.CAMPEON
+              AND p.acertada = true
+            """)
+    long puntosCampeonAcumulados(@Param("usuario") Usuario usuario);
 
     /**
      * borra todas las predicciones cuyo personaje

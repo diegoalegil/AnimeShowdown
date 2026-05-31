@@ -47,10 +47,35 @@ export function useAplicarPrediccion(torneoId) {
   })
 }
 
+export function useAplicarPrediccionCampeon(torneoId) {
+  const { user } = useAuth()
+  const userKey = getUserCacheKey(user)
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ personajePredichoId }) =>
+      endpoints.aplicarPrediccionCampeon({ torneoId, personajePredichoId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: buildMiasKey(torneoId, userKey) })
+      queryClient.invalidateQueries({
+        queryKey: ['predicciones', 'leaderboard', 'torneo', String(torneoId), 10],
+      })
+    },
+  })
+}
+
 export function useLeaderboardPredicciones({ dias = 30, limit = 10 } = {}) {
   return useQuery({
     queryKey: ['predicciones', 'leaderboard', dias, limit],
     queryFn: () => endpoints.leaderboardPredicciones({ dias, limit }),
     staleTime: 5 * 60 * 1000, // 5 min: el top no cambia tan rápido
+  })
+}
+
+export function useLeaderboardPrediccionesTorneo({ torneoId, limit = 10 } = {}) {
+  return useQuery({
+    queryKey: ['predicciones', 'leaderboard', 'torneo', String(torneoId), limit],
+    queryFn: () => endpoints.leaderboardPrediccionesTorneo({ torneoId, limit }),
+    enabled: Boolean(torneoId),
+    staleTime: 5 * 60 * 1000,
   })
 }
