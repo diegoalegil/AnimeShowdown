@@ -288,7 +288,11 @@ public class CartaService {
     private Map<Long, Long> votosPorPersonaje() {
         Map<Long, Long> votos = new HashMap<>();
         for (Object[] row : votoRepository.votosPorPersonajes()) {
-            votos.put((Long) row[0], (Long) row[1]);
+            if (row == null || row.length < 2 || row[0] == null || row[1] == null) {
+                continue;
+            }
+            votos.put(((Number) row[0]).longValue(),
+                    Math.max(0L, Math.round(((Number) row[1]).doubleValue())));
         }
         return votos;
     }
