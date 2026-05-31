@@ -774,6 +774,13 @@ export const endpoints: EndpointMap = {
   crearTorneoMio: ({ nombre, descripcion, publico = true, participantesIds }) =>
     api.post('/api/torneos/mio', { nombre, descripcion, publico, participantesIds }),
   misTorneos: () => api.get('/api/torneos/mios'),
+  tierListsMine: () => api.get('/api/tier-lists/mine'),
+  tierListOwn: (id) => api.get(`/api/tier-lists/${encodeURIComponent(id)}`),
+  tierListCreate: (data) => api.post('/api/tier-lists', data),
+  tierListUpdate: (id, data) => api.put(`/api/tier-lists/${encodeURIComponent(id)}`, data),
+  tierListDelete: (id) => api.del(`/api/tier-lists/${encodeURIComponent(id)}`),
+  tierListPublic: (slug) =>
+    api.get(`/api/tier-lists/public/${encodeURIComponent(slug)}`, { auth: false }),
   torneosPendientes: () => api.get('/api/admin/torneos/pendientes'),
   aprobarTorneo: (id) => api.put(`/api/admin/torneos/${id}/aprobar`),
   rechazarTorneo: (id, motivo) =>

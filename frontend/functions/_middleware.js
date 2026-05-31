@@ -178,6 +178,16 @@ export function ogParaRuta(url, apiBase) {
       description: 'Mi top personal de personajes anime en AnimeShowdown. Crea el tuyo votando duelos.',
     }
   }
+  const tierList = pathname.match(/^\/tier-lists\/([^/]+)\/?$/)
+  if (tierList) {
+    const slug = decodeURIComponent(tierList[1])
+    const nombre = humanizarSlug(slug)
+    return {
+      image: `${apiBase}/api/og/tier-list/${encodeURIComponent(slug)}.png`,
+      title: `${nombre} · AnimeShowdown`,
+      description: `Tier list anime ${nombre}. Crea y comparte la tuya en AnimeShowdown.`,
+    }
+  }
   return null
 }
 

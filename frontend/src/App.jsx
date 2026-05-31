@@ -60,6 +60,7 @@ const routePreloaders = {
   logros: () => import('./pages/LogrosPage'),
   feed: () => import('./pages/FeedPage'),
   cartas: () => import('./pages/CartasPage'),
+  tierLists: () => import('./pages/TierListsPage'),
 }
 
 const InicioPage = lazyRoute(routePreloaders.inicio)
@@ -88,6 +89,7 @@ const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
 const PerfilPage = lazyRoute(routePreloaders.perfil)
 const FeedPage = lazyRoute(routePreloaders.feed)
 const CartasPage = lazyRoute(routePreloaders.cartas)
+const TierListsPage = lazyRoute(routePreloaders.tierLists)
 const UsuarioPage = lazyRoute(() => import('./pages/UsuarioPage'))
 const UsuarioLogrosPage = lazyRoute(() => import('./pages/UsuarioLogrosPage'))
 const CrearTorneoPage = lazyRoute(() => import('./pages/CrearTorneoPage'))
@@ -161,6 +163,7 @@ function routePreloaderFor(pathname) {
   if (pathname === '/perfil') return routePreloaders.perfil
   if (pathname === '/feed') return routePreloaders.feed
   if (pathname === '/logros') return routePreloaders.logros
+  if (pathname === '/tier-lists' || pathname.startsWith('/tier-lists/')) return routePreloaders.tierLists
   return null
 }
 
@@ -466,6 +469,8 @@ function App() {
               <Route path="/perfil" element={gated(<PerfilPage />)} />
               <Route path="/feed" element={gated(<FeedPage />)} />
               <Route path="/cartas" element={gated(<CartasPage />)} />
+              <Route path="/tier-lists" element={gated(<TierListsPage />)} />
+              <Route path="/tier-lists/:slug" element={gated(<TierListsPage />)} />
               <Route path="/u/:username" element={gated(<UsuarioPage />)} />
               <Route path="/u/:username/logros" element={gated(<UsuarioLogrosPage />)} />
               <Route path="/games" element={gated(<GamesHubPage />)} />

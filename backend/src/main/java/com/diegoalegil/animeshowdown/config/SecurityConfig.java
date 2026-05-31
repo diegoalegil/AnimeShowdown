@@ -158,6 +158,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/torneos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/torneos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/tier-lists/public/**").permitAll()
+                        .requestMatchers("/api/tier-lists/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/votar/**").permitAll()
                         .requestMatchers("/api/votos/**").permitAll()
                         // Catálogo de badges público (cacheable
