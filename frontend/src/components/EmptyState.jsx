@@ -1,7 +1,48 @@
+import { isValidElement } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import EditorialCover from './EditorialCover'
 import { BRAND_VISUALS } from '../data/visual-assets'
+
+function isStructuredAction(action) {
+  return (
+    action &&
+    typeof action === 'object' &&
+    !Array.isArray(action) &&
+    !isValidElement(action) &&
+    typeof action.to === 'string' &&
+    action.to.length > 0 &&
+    typeof action.label === 'string' &&
+    action.label.length > 0
+  )
+}
+
+function isRenderableAction(action) {
+  if (action === null || action === undefined || typeof action === 'boolean') {
+    return false
+  }
+  if (typeof action === 'string' || typeof action === 'number') return true
+  if (isValidElement(action)) return true
+  if (Array.isArray(action)) return action.every(isRenderableAction)
+  return false
+}
+
+function EmptyStateAction({ action, linkClassName, wrapperClassName }) {
+  if (isStructuredAction(action)) {
+    return (
+      <Link to={action.to} className={linkClassName}>
+        {action.label}
+        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+      </Link>
+    )
+  }
+
+  if (isRenderableAction(action)) {
+    return <div className={wrapperClassName}>{action}</div>
+  }
+
+  return null
+}
 
 function EmptyState({
   icon: Icon,
@@ -43,19 +84,11 @@ function EmptyState({
         {body && (
           <div className="relative max-w-lg text-sm leading-7 text-fg-muted">{body}</div>
         )}
-        {action?.to && action?.label ? (
-          <Link
-            to={action.to}
-            className="relative inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent/90 px-5 py-3 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-          >
-            {action.label}
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        ) : (
-          action && (
-            <div className="relative mt-2 flex flex-wrap justify-center gap-3">{action}</div>
-          )
-        )}
+        <EmptyStateAction
+          action={action}
+          linkClassName="relative inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent/90 px-5 py-3 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+          wrapperClassName="relative mt-2 flex flex-wrap justify-center gap-3"
+        />
       </div>
     )
   }
@@ -83,17 +116,11 @@ function EmptyState({
             <p className="text-sm leading-7 text-fg-muted">{body}</p>
           ))}
       </div>
-      {action?.to && action?.label ? (
-        <Link
-          to={action.to}
-          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent/90 px-5 py-3 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-        >
-          {action.label}
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      ) : (
-        action && <div className="mt-2 flex flex-wrap justify-center gap-3">{action}</div>
-      )}
+      <EmptyStateAction
+        action={action}
+        linkClassName="mt-2 inline-flex items-center gap-2 rounded-lg border border-accent/50 bg-accent/90 px-5 py-3 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+        wrapperClassName="mt-2 flex flex-wrap justify-center gap-3"
+      />
     </div>
   )
 }
