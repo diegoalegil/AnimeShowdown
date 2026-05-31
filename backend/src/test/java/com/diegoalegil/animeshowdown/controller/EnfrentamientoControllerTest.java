@@ -17,10 +17,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,6 +78,9 @@ class EnfrentamientoControllerTest {
 
     @Autowired
     private com.diegoalegil.animeshowdown.repository.VotoRepository votoRepository;
+
+    @Autowired
+    private com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository enfrentamientoRepository;
 
     @Autowired
     private com.diegoalegil.animeshowdown.repository.MadrugadorDiaRepository madrugadorDiaRepository;
@@ -679,6 +685,56 @@ class EnfrentamientoControllerTest {
                 .andExpect(jsonPath("$.ganador").doesNotExist());
     }
 
+    @Test
+    void siguienteAutenticadoOmiteEnfrentamientosYaVotadosYRespetaExcludeIds() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("siguiente_auth_user", "siguiente-auth@example.com");
+        long[] ids = dosPersonajes();
+        long yaVotado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-auth-1");
+        long esperado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-auth-2");
+
+        mvc.perform(post("/api/enfrentamientos/" + yaVotado + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        var request = get("/api/enfrentamientos/siguiente")
+                .header("Authorization", "Bearer " + userToken);
+        String excludeIds = idsAbiertosExcepto(yaVotado, esperado);
+        if (!excludeIds.isBlank()) {
+            request.param("excludeIds", excludeIds);
+        }
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(esperado));
+    }
+
+    @Test
+    void siguienteAnonimoOmiteEnfrentamientosYaVotadosPorLaMismaSesion() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        String anonId = "anon-siguiente-session";
+        long yaVotado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-1");
+        long esperado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-2");
+
+        mvc.perform(post("/api/enfrentamientos/" + yaVotado + "/votar")
+                .header("X-AS-Anonymous-Id", anonId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        var request = get("/api/enfrentamientos/siguiente")
+                .header("X-AS-Anonymous-Id", anonId);
+        String excludeIds = idsAbiertosExcepto(yaVotado, esperado);
+        if (!excludeIds.isBlank()) {
+            request.param("excludeIds", excludeIds);
+        }
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(esperado));
+    }
+
     /**
      * Regresión: BadgeEventListener escucha
      * VotoRegistradoEvent en AFTER_COMMIT con @Async. Si el endpoint /votar
@@ -718,7 +774,7 @@ class EnfrentamientoControllerTest {
         long deadline = System.currentTimeMillis() + 5_000;
         boolean unlocked = false;
         while (System.currentTimeMillis() < deadline) {
-            if (!usuarioLogroRepository.findByUsuarioOrderByDesbloqueadoEnDesc(u).isEmpty()) {
+            if (usuarioLogroRepository.existsByUsuarioAndLogroCodigo(u, "primer_voto")) {
                 unlocked = true;
                 break;
             }
@@ -887,6 +943,20 @@ class EnfrentamientoControllerTest {
 
     private boolean tieneBadge(com.diegoalegil.animeshowdown.model.Usuario usuario, String codigo) {
         return usuarioLogroRepository.existsByUsuarioAndLogroCodigo(usuario, codigo);
+    }
+
+    private String idsAbiertosExcepto(long... idsPermitidos) {
+        Set<Long> permitidos = Arrays.stream(idsPermitidos).boxed().collect(Collectors.toSet());
+        return enfrentamientoRepository.findAll().stream()
+                .filter(enf -> enf.getTorneo().getEstado()
+                        == com.diegoalegil.animeshowdown.model.EstadoTorneo.IN_PROGRESS)
+                .filter(enf -> enf.getPersonaje1() != null)
+                .filter(enf -> enf.getPersonaje2() != null)
+                .filter(enf -> enf.getGanador() == null)
+                .map(com.diegoalegil.animeshowdown.model.Enfrentamiento::getId)
+                .filter(id -> !permitidos.contains(id))
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
     }
 
     private void esperarSinBadge(com.diegoalegil.animeshowdown.model.Usuario usuario, String codigo) throws Exception {
