@@ -21,6 +21,12 @@ const RAREZAS = ['TODAS', 'SSR', 'ESPECIAL']
 const EMPTY_CARTAS = []
 const EMPTY_PROGRESO = []
 const numberFmt = new Intl.NumberFormat('es-ES')
+const FUENTES_MONEDA = [
+  'Reclama el cofre diario desde esta página.',
+  'Vota cada día: el primer voto completa la misión diaria y los hitos de votos dan extras.',
+  'Gana duelos live y acierta predicciones de torneos.',
+  'Las cartas repetidas devuelven monedas automáticamente.',
+]
 
 function makeIdempotencyKey() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -122,7 +128,7 @@ function CartasPage() {
     <Section
       eyebrow="Cartas"
       title="Tu colección"
-      description="Abre sobres server-authoritative, completa el álbum y persigue las especiales curadas."
+      description="Gana monedas jugando, abre sobres y completa el álbum con cartas normales y especiales curadas."
     >
       <div className="as-panel mb-8 flex flex-col gap-5 rounded-2xl p-5 sm:p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
@@ -165,7 +171,8 @@ function CartasPage() {
           <div className="h-full rounded-full bg-gold transition-all" style={{ width: `${porcentaje}%` }} />
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-[1.1fr_1fr_0.9fr]">
+          <MonedasHelp />
           <div className="rounded-xl border border-white/10 bg-black/20 p-3">
             <p className="text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">
               Probabilidades visibles
@@ -193,8 +200,7 @@ function CartasPage() {
 
         {!coleccionQ.isLoading && faltan != null && faltan > 0 && (
           <p className="text-[12px] text-fg-muted">
-            Te faltan <span className="font-bold text-gold">{faltan}</span> monedas. Gánalas votando,
-            ganando duelos, prediciendo torneos o completando la misión diaria.
+            Te faltan <span className="font-bold text-gold">{faltan}</span> monedas para abrir otro sobre.
           </p>
         )}
         {cofreResultado?.aplicado && (
@@ -304,6 +310,27 @@ function Stat({ label, value, accent, icon }) {
         {accent && <span className="ml-2 text-sm font-black text-gold">{accent}</span>}
       </p>
     </div>
+  )
+}
+
+function MonedasHelp() {
+  return (
+    <section aria-labelledby="monedas-help-title" className="rounded-xl border border-gold/35 bg-gold-soft p-3">
+      <div className="flex items-center gap-2">
+        <MonedaIcon className="h-5 w-5 text-gold" />
+        <h3 id="monedas-help-title" className="text-[11px] font-black uppercase tracking-[0.12em] text-gold">
+          Cómo conseguir monedas
+        </h3>
+      </div>
+      <ul className="mt-2 grid gap-1.5 text-sm leading-6 text-fg">
+        {FUENTES_MONEDA.map((fuente) => (
+          <li key={fuente} className="flex gap-2">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
+            <span>{fuente}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
