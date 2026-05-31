@@ -52,3 +52,26 @@ export function useCofreDiario() {
     },
   })
 }
+
+export function useDescargarCarta() {
+  return useMutation({
+    mutationFn: async (carta) => {
+      const { blob, filename } = await endpoints.descargarCarta(carta.id)
+      const href = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = href
+      a.download = filename || fallbackFilename(carta)
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.setTimeout(() => URL.revokeObjectURL(href), 1000)
+      return { filename: a.download }
+    },
+  })
+}
+
+function fallbackFilename(carta) {
+  const raw = carta?.personajeSlug || carta?.personajeNombre || carta?.id || 'carta'
+  const slug = String(raw).toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '')
+  return `carta-${slug || 'anime'}.png`
+}

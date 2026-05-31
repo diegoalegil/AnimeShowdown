@@ -1,8 +1,16 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +23,12 @@ import com.diegoalegil.animeshowdown.dto.ColeccionDto;
 import com.diegoalegil.animeshowdown.dto.MonederoDto;
 import com.diegoalegil.animeshowdown.dto.OddsDto;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.service.CartaDownloadService;
 import com.diegoalegil.animeshowdown.service.CartaService;
 import com.diegoalegil.animeshowdown.service.MonederoService;
 import com.diegoalegil.animeshowdown.service.RarezaService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * API de cartas coleccionables. Todos los endpoints son autenticados
@@ -29,12 +40,14 @@ import com.diegoalegil.animeshowdown.service.RarezaService;
 public class CartaController {
 
     private final CartaService cartaService;
+    private final CartaDownloadService cartaDownloadService;
     private final MonederoService monederoService;
     private final RarezaService rarezaService;
 
-    public CartaController(CartaService cartaService, MonederoService monederoService,
+    public CartaController(CartaService cartaService, CartaDownloadService cartaDownloadService, MonederoService monederoService,
             RarezaService rarezaService) {
         this.cartaService = cartaService;
+        this.cartaDownloadService = cartaDownloadService;
         this.monederoService = monederoService;
         this.rarezaService = rarezaService;
     }
@@ -69,6 +82,24 @@ public class CartaController {
     @PostMapping("/me/cartas/cofre-diario")
     public CofreDiarioDto cofreDiario(@AuthenticationPrincipal Usuario usuario) {
         return cartaService.reclamarCofreDiario(exigirUsuario(usuario));
+    }
+
+    /** Descarga PNG de una carta poseída. El gate de propiedad vive en backend. */
+    @GetMapping(value = "/me/cartas/{cartaId}/descargar", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> descargarCarta(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable Long cartaId,
+            HttpServletRequest request) {
+        CartaDownloadService.DescargaCarta descarga = cartaDownloadService.descargar(
+                exigirUsuario(usuario), cartaId, request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CacheControl.noStore())
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(descarga.filename(), StandardCharsets.UTF_8)
+                        .build()
+                        .toString())
+                .body(descarga.png());
     }
 
     private static Usuario exigirUsuario(Usuario usuario) {
