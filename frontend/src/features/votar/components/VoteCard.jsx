@@ -2,10 +2,12 @@ import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
 import VoteFeedbackBurst from '../../../components/VoteFeedbackBurst'
 import { useSound } from '../../../contexts/SoundContext'
 import { useInstantSoundPress } from '../../../hooks/useInstantSoundPress'
+import { hasCut } from '../../../lib/cuts'
 import { imagenPersonaje } from '../../../lib/personajes-core'
 
 const FALLBACK_DOMINANT_COLOR = 'var(--color-surface)'
@@ -20,6 +22,7 @@ const VoteCard = memo(function VoteCard({
   showResult,
   side,
   anonymousLimited,
+  blindMode = false,
   voteResult,
 }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
@@ -31,6 +34,17 @@ const VoteCard = memo(function VoteCard({
   const { warm } = useSound()
   const { onPointerDown: onSoundPointerDown, onClick: onSoundClick } = useInstantSoundPress('playVote')
   const reduceMotion = useReducedMotion()
+  const identityHidden = blindMode && !showResult
+  const sideLabel = side === 'right' ? 'derecha' : 'izquierda'
+  const optionLabel = `Opción ${sideLabel}`
+  const canUseCut = identityHidden && hasCut(personaje.slug)
+  const voteAriaLabel = identityHidden
+    ? anonymousLimited
+      ? `Votar como invitado a ciegas por la opción ${sideLabel}`
+      : `Votar a ciegas por la opción ${sideLabel}`
+    : anonymousLimited
+      ? `Votar como invitado por ${personaje.nombre} de ${personaje.anime}`
+      : `Votar por ${personaje.nombre} de ${personaje.anime}`
 
   const handlePointerDown = (disabled || showResult) ? undefined : onSoundPointerDown
   const handleClick = (e) => {
@@ -53,11 +67,7 @@ const VoteCard = memo(function VoteCard({
             : { scale: 1 }
         }
         transition={{ duration: reduceMotion ? 0.18 : 0.32, ease: 'easeOut' }}
-        aria-label={
-          anonymousLimited
-            ? `Votar como invitado por ${personaje.nombre} de ${personaje.anime}`
-            : `Votar por ${personaje.nombre} de ${personaje.anime}`
-        }
+        aria-label={voteAriaLabel}
         className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 transition-[transform,border-color,box-shadow,opacity,filter] ${
           isVoted
             ? 'shadow-aura-lg ring-2 ring-white/25'
@@ -77,20 +87,35 @@ const VoteCard = memo(function VoteCard({
       >
         <div
           className="relative aspect-[2/3] max-h-[min(44svh,28rem)] w-full overflow-hidden sm:max-h-[min(55svh,34rem)]"
-          style={{ backgroundColor: dominantColor }}
+          style={{ backgroundColor: identityHidden ? 'var(--color-bg)' : dominantColor }}
         >
-          <PersonajeImg
-            slug={personaje.slug}
-            src={imgSrc}
-            alt={personaje.nombre}
-            nombre={personaje.nombre}
-            colorDominante={dominantColor}
-            loading="eager"
-            decoding="async"
-            fetchPriority={side === 'left' ? 'high' : 'auto'}
-            sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
-            className="relative h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-[1.03]"
-          />
+          {canUseCut ? (
+            <PersonajeCutImg
+              slug={personaje.slug}
+              alt={`Silueta de la ${optionLabel.toLowerCase()}`}
+              className="h-full w-full"
+              imgClassName="scale-[1.04] brightness-0 blur-[1px] transition-all duration-300"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <PersonajeImg
+              slug={personaje.slug}
+              src={imgSrc}
+              alt={identityHidden ? `Personaje oculto en la ${optionLabel.toLowerCase()}` : personaje.nombre}
+              nombre={identityHidden ? optionLabel : personaje.nombre}
+              colorDominante={dominantColor}
+              loading="eager"
+              decoding="async"
+              fetchPriority={side === 'left' ? 'high' : 'auto'}
+              sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
+              className={`relative h-full w-full object-cover transition-transform duration-300 ${
+                identityHidden
+                  ? 'scale-[1.04] brightness-0 blur-sm'
+                  : 'motion-safe:group-hover:scale-[1.03]'
+              }`}
+            />
+          )}
           {isVoted && (
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
@@ -137,10 +162,10 @@ const VoteCard = memo(function VoteCard({
         }`}
       >
         <h2 className="line-clamp-1 w-full text-base font-bold text-fg-strong sm:text-lg">
-          {personaje.nombre}
+          {identityHidden ? optionLabel : personaje.nombre}
         </h2>
         <p className="line-clamp-1 w-full text-[12px] text-fg-muted">
-          {personaje.anime}
+          {identityHidden ? 'Identidad oculta' : personaje.anime}
         </p>
         {showResult && (
           <Link
