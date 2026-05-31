@@ -104,17 +104,28 @@ public class TotpBackupCodeService {
      */
     @Transactional
     public boolean consumirSiCoincide(Usuario usuario, String codigoPlano) {
-        if (codigoPlano == null) return false;
-        String normalizado = codigoPlano.trim().toUpperCase().replace("-", "").replace(" ", "");
-        if (normalizado.length() != LONGITUD_CODIGO) return false;
+        Optional<Long> codigoId = buscarCodigoCoincidenteNoUsado(usuario, codigoPlano);
+        return codigoId.isPresent() && marcarUsadoSiDisponible(usuario, codigoId.get());
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Long> buscarCodigoCoincidenteNoUsado(Usuario usuario, String codigoPlano) {
+        String normalizado = normalizarCodigo(codigoPlano);
+        if (normalizado == null) return Optional.empty();
         List<TotpBackupCode> noUsados = repo.findByUsuarioAndUsadoEnIsNull(usuario);
-        Optional<TotpBackupCode> match = noUsados.stream()
+        return noUsados.stream()
                 .filter(c -> passwordEncoder.matches(normalizado, c.getCodigoHash()))
+                .map(TotpBackupCode::getId)
                 .findFirst();
-        if (match.isEmpty()) return false;
-        TotpBackupCode codigo = match.get();
-        codigo.setUsadoEn(LocalDateTime.now());
-        repo.save(codigo);
+    }
+
+    @Transactional
+    public boolean marcarUsadoSiDisponible(Usuario usuario, Long codigoId) {
+        if (codigoId == null) return false;
+        int actualizados = repo.marcarUsadoSiDisponible(codigoId, usuario, LocalDateTime.now());
+        if (actualizados != 1) {
+            return false;
+        }
         long restantes = repo.countByUsuarioAndUsadoEnIsNull(usuario);
         log.info("Backup code consumido: usuario={} restantes={}", usuario.getUsername(), restantes);
         return true;
@@ -122,6 +133,12 @@ public class TotpBackupCodeService {
 
     public long contarNoUsados(Usuario usuario) {
         return repo.countByUsuarioAndUsadoEnIsNull(usuario);
+    }
+
+    private String normalizarCodigo(String codigoPlano) {
+        if (codigoPlano == null) return null;
+        String normalizado = codigoPlano.trim().toUpperCase().replace("-", "").replace(" ", "");
+        return normalizado.length() == LONGITUD_CODIGO ? normalizado : null;
     }
 
     private String generarCodigo() {
