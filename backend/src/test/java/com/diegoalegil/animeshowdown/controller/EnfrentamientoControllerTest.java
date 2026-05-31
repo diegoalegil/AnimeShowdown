@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
@@ -79,6 +80,9 @@ class EnfrentamientoControllerTest {
     private com.diegoalegil.animeshowdown.repository.MadrugadorDiaRepository madrugadorDiaRepository;
 
     @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
     private AnonymousIdentityService anonymousIdentityService;
 
     @MockitoBean
@@ -101,6 +105,10 @@ class EnfrentamientoControllerTest {
         // caen en el MISMO bucket; sin esta limpieza se acumularían en la
         // ventana de 1h y dispararían el captcha en tests posteriores.
         votoRepository.deleteAll();
+        var rankingCache = cacheManager.getCache("votos-ranking");
+        if (rankingCache != null) {
+            rankingCache.clear();
+        }
         fijarClock("2026-05-22T06:42:00Z");
     }
 
@@ -515,6 +523,28 @@ class EnfrentamientoControllerTest {
                         votoRepository.findById(votoId).orElseThrow().getEnfrentamiento().getPersonaje1()),
                 0.001);
         verify(messaging, never()).convertAndSend(eq("/topic/ranking-delta"), any(RankingDeltaEvent.class));
+    }
+
+    @Test
+    void votarInvalidaCacheDelRankingAllTime() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_cache_user", "votocache@example.com");
+        long[] ids = dosPersonajes();
+
+        mvc.perform(get("/api/votos/ranking"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.personaje.id == " + ids[0] + ")]").doesNotExist());
+
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "cache-ranking");
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/votos/ranking"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.personaje.id == " + ids[0] + ")]").exists());
     }
 
     @Test

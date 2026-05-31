@@ -137,6 +137,7 @@ public class EnfrentamientoController {
     @PostMapping("/{id}/votar")
     @Transactional
     @Caching(evict = {
+            @CacheEvict(value = "votos-ranking", allEntries = true),
             @CacheEvict(value = "ranking-movimientos", allEntries = true),
             @CacheEvict(value = "personaje-elo-history", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
