@@ -98,6 +98,7 @@ public class PasswordResetService {
             throw new IllegalArgumentException(ERROR_GENERICO);
         }
         u.setPassword(passwordEncoder.encode(newPassword));
+        u.incrementarTokenVersion();
         usuarioRepo.save(u);
         token.setUsado(true);
         tokenRepo.save(token);

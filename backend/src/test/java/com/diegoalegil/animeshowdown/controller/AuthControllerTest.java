@@ -821,6 +821,10 @@ class AuthControllerTest {
     @Test
     void logoutRevocaTodasLasSesionesDelUsuario() throws Exception {
         var s = registrarYLoguear("logout_user", "secreta123", "logout_user@example.com");
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk());
+
         // Genera una SEGUNDA cookie haciendo otro login (simula otra pestaña/dispositivo).
         mvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -829,6 +833,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk());
 
         var usuario = usuarioRepository.findByUsername("logout_user").orElseThrow();
+        int versionAntes = usuario.getTokenVersion();
         long activosAntes = refreshTokenRepository.findAll().stream()
                 .filter(t -> t.getUsuario().getId().equals(usuario.getId()))
                 .filter(t -> t.getRevocadoEn() == null)
@@ -848,6 +853,58 @@ class AuthControllerTest {
                 .count();
         assert activosDespues == 0
                 : "Post-logout: deben quedar 0 sesiones activas, hay " + activosDespues;
+
+        var usuarioDespues = usuarioRepository.findByUsername("logout_user").orElseThrow();
+        assertEquals(versionAntes + 1, usuarioDespues.getTokenVersion());
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isUnauthorized());
+
+        var nuevoLogin = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "logout_user", "password", "secreta123"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        String tokenNuevo = json.readTree(nuevoLogin.getResponse().getContentAsString()).get("token").asText();
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + tokenNuevo))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void cambiarPasswordRevocaAccessTokenAnteriorYNuevoTokenPasa() throws Exception {
+        var s = registrarYLoguear("password_version_user", "secreta123", "password_version_user@example.com");
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk());
+
+        var usuario = usuarioRepository.findByUsername("password_version_user").orElseThrow();
+        int versionAntes = usuario.getTokenVersion();
+        mvc.perform(put("/api/auth/me/password")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "currentPassword", "secreta123",
+                        "newPassword", "nueva1234"))))
+                .andExpect(status().isOk());
+
+        var usuarioDespues = usuarioRepository.findByUsername("password_version_user").orElseThrow();
+        assertEquals(versionAntes + 1, usuarioDespues.getTokenVersion());
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isUnauthorized());
+
+        var loginNuevo = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "password_version_user", "password", "nueva1234"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        String tokenNuevo = json.readTree(loginNuevo.getResponse().getContentAsString()).get("token").asText();
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", "Bearer " + tokenNuevo))
+                .andExpect(status().isOk());
     }
 
     // ====================================================================
