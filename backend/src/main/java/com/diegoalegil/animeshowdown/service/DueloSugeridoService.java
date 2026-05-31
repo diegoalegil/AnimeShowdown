@@ -60,7 +60,7 @@ public class DueloSugeridoService {
                     .filter(b -> Math.abs(b.eloEstimado() - a.eloEstimado()) <= ELO_DIFF_MAX)
                     .filter(b -> !recientes.contains(b.id()))
                     .sorted(Comparator
-                            .comparingLong(PersonajeScoreItem::recientes24h)
+                            .comparingDouble(PersonajeScoreItem::recientes24h)
                             .thenComparing(PersonajeScoreItem::id))
                     .toList();
 
@@ -133,9 +133,9 @@ public class DueloSugeridoService {
     }
 
     private static PersonajeScoreItem randomEntreMenosRecientes(List<PersonajeScoreItem> candidatos) {
-        long menorRecencia = candidatos.get(0).recientes24h();
+        double menorRecencia = candidatos.get(0).recientes24h();
         List<PersonajeScoreItem> mejores = candidatos.stream()
-                .filter(p -> p.recientes24h() == menorRecencia)
+                .filter(p -> Double.compare(p.recientes24h(), menorRecencia) == 0)
                 .toList();
         return randomItem(mejores);
     }

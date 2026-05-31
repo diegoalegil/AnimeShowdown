@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
 import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
@@ -187,6 +188,31 @@ class VotoRepositoryCategoriaTest {
                 "Las stats deben ordenar por score fraccional, no por COUNT físico");
     }
 
+    @Test
+    void topConPuntuacionYRecenciaReparteEmpateComoScoreFraccional() {
+        Personaje a = nuevoPersonaje("score_a");
+        Personaje b = nuevoPersonaje("score_b");
+        votoEmpate(a, b, nuevoUsuario("empate_score"));
+
+        List<PersonajeScoreItem> topScore = personajeRepository.topConPuntuacionYRecencia(
+                LocalDateTime.now().minusDays(1),
+                PageRequest.of(0, 5000));
+
+        PersonajeScoreItem itemA = buscarScore(topScore, a.getId());
+        PersonajeScoreItem itemB = buscarScore(topScore, b.getId());
+
+        assertNotNull(itemA, "El personaje1 del empate debe aparecer en la proyección de score");
+        assertNotNull(itemB, "El personaje2 del empate debe aparecer en la proyección de score");
+        assertEquals(0.5, itemA.votosTotales(), 0.001,
+                "La proyección de score debe sumar 0.5 al personaje1");
+        assertEquals(0.5, itemB.votosTotales(), 0.001,
+                "La proyección de score debe sumar 0.5 al personaje2");
+        assertEquals(0.5, itemA.votosRecientes24h(), 0.001,
+                "La recencia también debe contar medio voto para personaje1");
+        assertEquals(0.5, itemB.votosRecientes24h(), 0.001,
+                "La recencia también debe contar medio voto para personaje2");
+    }
+
     private RankingItem buscar(List<RankingItem> items, Long personajeId) {
         return items.stream()
                 .filter(it -> personajeId.equals(it.getPersonaje().getId()))
@@ -206,6 +232,13 @@ class VotoRepositoryCategoriaTest {
     private TopPersonajeItem buscarTop(List<TopPersonajeItem> items, Long personajeId) {
         return items.stream()
                 .filter(it -> personajeId.equals(it.personajeId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private PersonajeScoreItem buscarScore(List<PersonajeScoreItem> items, Long personajeId) {
+        return items.stream()
+                .filter(it -> personajeId.equals(it.id()))
                 .findFirst()
                 .orElse(null);
     }
