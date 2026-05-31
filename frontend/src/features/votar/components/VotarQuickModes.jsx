@@ -6,7 +6,15 @@ import {
   Zap,
 } from 'lucide-react'
 
-function VotarQuickModes({ a, b, fixedAnime, fixedPersonaje, hasFixedAnime, hasFixedDuel }) {
+function VotarQuickModes({
+  a,
+  b,
+  fixedAnime,
+  fixedPersonaje,
+  hasFixedAnime,
+  hasFixedDuel,
+  blindMode = false,
+}) {
   const animeContext = hasFixedAnime ? fixedAnime : a?.anime || b?.anime || ''
   const animeHref = animeContext
     ? `/votar?anime=${encodeURIComponent(animeContext)}`
@@ -14,6 +22,14 @@ function VotarQuickModes({ a, b, fixedAnime, fixedPersonaje, hasFixedAnime, hasF
   const compareHref = a?.slug && b?.slug
     ? `/comparar?a=${encodeURIComponent(a.slug)}&b=${encodeURIComponent(b.slug)}`
     : '/comparar'
+  const animeDetail = blindMode && animeContext
+    ? 'Identidad oculta'
+    : animeContext || 'Elige universo'
+  const compareDetail = blindMode && a?.nombre && b?.nombre
+    ? 'Duelo oculto'
+    : a?.nombre && b?.nombre
+      ? `${a.nombre} vs ${b.nombre}`
+      : 'Crea un versus'
 
   return (
     <nav
@@ -31,14 +47,14 @@ function VotarQuickModes({ a, b, fixedAnime, fixedPersonaje, hasFixedAnime, hasF
         to={animeHref}
         icon={Zap}
         label="Mismo anime"
-        detail={animeContext || 'Elige universo'}
+        detail={animeDetail}
         active={hasFixedAnime}
       />
       <QuickModeLink
         to={compareHref}
         icon={Share2}
         label="Comparar"
-        detail={a?.nombre && b?.nombre ? `${a.nombre} vs ${b.nombre}` : 'Crea un versus'}
+        detail={compareDetail}
       />
       <QuickModeLink
         to="/misiones"
