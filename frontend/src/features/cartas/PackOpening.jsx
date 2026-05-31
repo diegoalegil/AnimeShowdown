@@ -4,7 +4,7 @@ import { Check, RotateCcw, X } from 'lucide-react'
 import Button from '../../components/Button'
 import MonedaIcon from '../../components/MonedaIcon'
 import { useSound } from '../../contexts/SoundContext'
-import CartaFace from './CartaFace'
+import CartaTile from '../../components/CartaTile'
 import './cartas.css'
 
 const PACK_TIMING = {
@@ -50,6 +50,8 @@ function PackOpening({
   abriendo,
   onAbrirOtro,
   onCerrar,
+  onDownload,
+  descargandoId = null,
   timing = PACK_TIMING,
 }) {
   const { play } = useSound()
@@ -132,7 +134,12 @@ function PackOpening({
               className="pack-opening__reveal-card"
             >
               <RevealKicker item={activeItem} total={cartas.length} />
-              <CartaFace carta={activeItem.carta} eager reveal />
+              <CartaTile
+                carta={activeItem.carta}
+                eager
+                onDownload={onDownload}
+                downloading={descargandoId === activeItem.carta.id}
+              />
               <p className="pack-opening__card-name">{activeItem.carta.personajeNombre}</p>
             </motion.div>
           ) : (
@@ -150,7 +157,12 @@ function PackOpening({
               <div className="pack-opening__summary-grid">
                 {cartas.map((item) => (
                   <div key={`${item.posicion}-${item.carta.id}`} className="pack-opening__summary-item">
-                    <CartaFace carta={item.carta} eager={item.posicion === 1} />
+                    <CartaTile
+                      carta={item.carta}
+                      eager={item.posicion === 1}
+                      onDownload={onDownload}
+                      downloading={descargandoId === item.carta.id}
+                    />
                     <span className="pack-opening__summary-chip">
                       {item.nueva ? 'Nueva' : `Duplicada +${item.recompensaDuplicado}`}
                     </span>

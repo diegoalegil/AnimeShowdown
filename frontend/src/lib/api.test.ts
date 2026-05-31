@@ -55,6 +55,21 @@ function mockResponse(
   } as unknown as Response
 }
 
+function mockBlobResponse(
+  status: number,
+  blobBody: Blob | string,
+  extraHeaders: Record<string, string> = {},
+): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: String(status),
+    headers: new Headers(extraHeaders),
+    text: async () => (typeof blobBody === 'string' ? blobBody : ''),
+    blob: async () => (blobBody instanceof Blob ? blobBody : new Blob([blobBody])),
+  } as unknown as Response
+}
+
 // Mock fetch type that includes vitest's .mock property.
 // globalThis.fetch type does not expose .mock (only the actual fetch fn),
 // so we augment the type locally.
@@ -655,6 +670,51 @@ describe('endpoints', () => {
     const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
     expect(url).toContain('/api/me/cartas/cofre-diario')
     expect(opts.method).toBe('POST')
+  })
+
+  it('descargarCarta: GET devuelve el blob y filename UTF-8 del header', async () => {
+    const png = new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' })
+    const fn = vi.fn().mockResolvedValue(mockBlobResponse(
+      200,
+      png,
+      { 'Content-Disposition': "attachment; filename*=UTF-8''carta-naruto.png" },
+    )) as unknown as MockFetch
+    vi.stubGlobal('fetch', fn)
+
+    const result = await endpoints.descargarCarta(42)
+
+    expect(result).toEqual({ blob: png, filename: 'carta-naruto.png' })
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/me/cartas/42/descargar')
+    expect(opts.method).toBe('GET')
+  })
+
+  it('descargarCarta: refresca 401 y reintenta con token nuevo', async () => {
+    setToken('jwt.old')
+    const png = new Blob(['png'], { type: 'image/png' })
+    let idx = 0
+    vi.stubGlobal('fetch', mockFetchFactory(async () => {
+      idx++
+      if (idx === 1) return mockResponse(401)
+      if (idx === 2) return mockResponse(200, { token: 'jwt.new' })
+      return mockBlobResponse(200, png, { 'Content-Disposition': 'attachment; filename="carta-luffy.png"' })
+    }))
+
+    const result = await endpoints.descargarCarta('luffy')
+
+    expect(result.filename).toBe('carta-luffy.png')
+    expect(getToken()).toBe('jwt.new')
+    setToken(null)
+  })
+
+  it('descargarCarta: propaga errores del endpoint como ApiError', async () => {
+    const fn = vi.fn().mockResolvedValue(mockBlobResponse(403, 'No posees esta carta')) as unknown as MockFetch
+    vi.stubGlobal('fetch', fn)
+
+    await expect(endpoints.descargarCarta(99)).rejects.toMatchObject({
+      status: 403,
+      message: 'No posees esta carta',
+    })
   })
 
   it('unsubscribeNewsletter: POST with token in query', async () => {

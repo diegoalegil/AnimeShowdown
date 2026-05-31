@@ -51,6 +51,10 @@ type ApiClient = {
 }
 
 type EndpointMap = Record<string, (...args: any[]) => any>
+type BlobResult = {
+  blob: Blob
+  filename?: string
+}
 
 function normalizarApiBase(value: unknown): string {
   const raw = typeof value === 'string' ? value.trim() : ''
@@ -468,6 +472,88 @@ async function request(
   return parsed
 }
 
+async function requestBlob(
+  path: string,
+  {
+    method = 'GET',
+    body,
+    auth = true,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal,
+    headers = {},
+  }: RequestOptions = {},
+): Promise<BlobResult> {
+  const requestSignal = createRequestSignal({ signal, timeoutMs })
+  let res
+  try {
+    res = await ejecutarFetch(path, {
+      method,
+      body,
+      headers,
+      signal: requestSignal.signal,
+      includeAuth: auth,
+    })
+
+    const esRutaAuth =
+      path.includes('/api/auth/refresh') ||
+      path.includes('/api/auth/login') ||
+      path.includes('/api/auth/registro')
+    const necesitaRefresh =
+      auth &&
+      !esRutaAuth &&
+      (res.status === 401 ||
+        (res.status === 403 && tokenEnMemoria !== null))
+    if (necesitaRefresh) {
+      const refreshed = await intentarRefresh()
+      if (refreshed?.token) {
+        res = await ejecutarFetch(path, {
+          method,
+          body,
+          headers,
+          signal: requestSignal.signal,
+          includeAuth: true,
+        })
+      }
+    }
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      if (!requestSignal.timedOut()) {
+        throw new ApiError('La petición se canceló', 0, null)
+      }
+      throw new ApiError(
+        `La petición tardó demasiado (más de ${timeoutMs}ms) y se canceló`,
+        0,
+        null,
+      )
+    }
+    throw new ApiError(
+      err instanceof Error ? err.message : 'Error de red al contactar con el servidor',
+      0,
+      null,
+    )
+  } finally {
+    requestSignal.cleanup()
+  }
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new ApiError(text || res.statusText || `Error ${res.status} del servidor`, res.status, text || null)
+  }
+
+  return {
+    blob: await res.blob(),
+    filename: filenameFromDisposition(res.headers.get('Content-Disposition')),
+  }
+}
+
+function filenameFromDisposition(value: string | null): string | undefined {
+  if (!value) return undefined
+  const utf8 = value.match(/filename\*=UTF-8''([^;]+)/i)
+  if (utf8?.[1]) return decodeURIComponent(utf8[1].replace(/^"|"$/g, ''))
+  const ascii = value.match(/filename="?([^";]+)"?/i)
+  return ascii?.[1]
+}
+
 export const api: ApiClient = {
   base: API_BASE,
   get: (path, opts) => request(path, { ...opts, method: 'GET' }),
@@ -547,6 +633,10 @@ export const endpoints: EndpointMap = {
       headers: idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : undefined,
     }),
   cofreDiario: () => api.post('/api/me/cartas/cofre-diario', undefined),
+  descargarCarta: (cartaId) =>
+    requestBlob(`/api/me/cartas/${encodeURIComponent(cartaId)}/descargar`, {
+      timeoutMs: 15000,
+    }),
   personajesSimilares: (slug, { limit = 8 } = {}) =>
     api.get(
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,
