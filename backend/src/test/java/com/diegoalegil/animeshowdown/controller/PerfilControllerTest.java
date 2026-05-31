@@ -1,5 +1,8 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -10,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +26,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.TestAsyncConfig;
+import com.diegoalegil.animeshowdown.model.Enfrentamiento;
+import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.Torneo;
+import com.diegoalegil.animeshowdown.model.Voto;
+import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
+import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.http.Cookie;
 
 /**
  * Tests integración del perfil del usuario.
@@ -40,6 +55,11 @@ class PerfilControllerTest {
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
     @Autowired private com.diegoalegil.animeshowdown.repository.UsuarioRepository usuarioRepository;
+    @Autowired private AnonymousIdentityService anonymousIdentityService;
+    @Autowired private VotoRepository votoRepository;
+    @Autowired private PersonajeRepository personajeRepository;
+    @Autowired private TorneoRepository torneoRepository;
+    @Autowired private EnfrentamientoRepository enfrentamientoRepository;
 
     private String tokenDe(String username, String email) throws Exception {
         mvc.perform(post("/api/auth/registro")
@@ -104,6 +124,47 @@ class PerfilControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void migrarVotosAnonimosIgnoraAnonSessionIdDelBodySinCookieFirmada() throws Exception {
+        SignedAnonCookie anonA = nuevaCookieAnonimaFirmada();
+        Voto votoA = crearVotoAnonimo(anonA.sessionId(), "attack");
+        String tokenB = tokenDe("perfil_migracion_atacante_b",
+                "perfil_migracion_atacante_b@example.com");
+
+        mvc.perform(post("/api/perfil/me/migrar-votos-anonimos")
+                .header("Authorization", "Bearer " + tokenB)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("anonSessionId", anonA.sessionId()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.migrados").value(0));
+
+        Voto recargado = votoRepository.findById(votoA.getId()).orElseThrow();
+        assertNull(recargado.getUsuario());
+        assertEquals(1,
+                votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(
+                        anonA.sessionId()).size());
+    }
+
+    @Test
+    void migrarVotosAnonimosUsaCookieFirmadaValidaSinBody() throws Exception {
+        SignedAnonCookie anon = nuevaCookieAnonimaFirmada();
+        Voto votoAnonimo = crearVotoAnonimo(anon.sessionId(), "legit");
+        String username = "perfil_migracion_legitima";
+        String token = tokenDe(username, "perfil_migracion_legitima@example.com");
+
+        mvc.perform(post("/api/perfil/me/migrar-votos-anonimos")
+                .header("Authorization", "Bearer " + token)
+                .cookie(anon.cookie()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.migrados").value(1));
+
+        Long usuarioId = usuarioRepository.findByUsername(username).orElseThrow().getId();
+        Voto recargado = votoRepository.findById(votoAnonimo.getId()).orElseThrow();
+        assertEquals(usuarioId, recargado.getUsuario().getId());
+        assertTrue(votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(
+                anon.sessionId()).isEmpty());
     }
 
     @Test
@@ -339,4 +400,27 @@ class PerfilControllerTest {
                 .content(json.writeValueAsString(Map.of("bio", "a".repeat(241)))))
                 .andExpect(status().isBadRequest());
     }
+
+    private SignedAnonCookie nuevaCookieAnonimaFirmada() {
+        String token = anonymousIdentityService.emit();
+        String sessionId = anonymousIdentityService.verify(token).orElseThrow();
+        return new SignedAnonCookie(sessionId,
+                new Cookie(anonymousIdentityService.getCookieName(), token));
+    }
+
+    private Voto crearVotoAnonimo(String anonSessionId, String slugSuffix) {
+        List<Personaje> personajes = personajeRepository.findAll();
+        assertTrue(personajes.size() >= 2, "El seed de tests debe traer personajes");
+        Torneo torneo = torneoRepository.save(new Torneo(
+                "migrar-anon-" + slugSuffix + "-" + UUID.randomUUID(),
+                "Migrar anon " + slugSuffix,
+                "test"));
+        Enfrentamiento enfrentamiento = enfrentamientoRepository.save(
+                new Enfrentamiento(torneo, personajes.get(0), personajes.get(1)));
+        Voto voto = new Voto(personajes.get(0), null, enfrentamiento);
+        voto.setAnonSessionId(anonSessionId);
+        return votoRepository.save(voto);
+    }
+
+    private record SignedAnonCookie(String sessionId, Cookie cookie) {}
 }
