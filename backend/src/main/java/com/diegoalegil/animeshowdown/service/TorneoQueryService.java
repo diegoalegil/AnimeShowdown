@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,6 +78,7 @@ public class TorneoQueryService {
      * y el admin en /api/admin/torneos/pendientes.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "torneos-resumen", key = "'publico'")
     public List<TorneoResumenDto> listarResumenes() {
         // antes esto era N+1 — toResumen() llamaba
         // findByTorneoOrderBy... por CADA torneo visible (1 + N queries
