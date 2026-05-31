@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,6 +79,7 @@ public class TorneoService {
         this.seguidorFanOutService = seguidorFanOutService;
     }
 
+    @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo crear(TorneoCrearRequest request) {
         String slug = generarSlugUnico(request.getNombre());
         Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
@@ -182,6 +184,7 @@ public class TorneoService {
      * creador (best-effort).
      */
     @Transactional
+    @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo aprobar(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
@@ -316,6 +319,7 @@ public class TorneoService {
      * legacy mantenido para no romper tests existentes y el admin manual).
      */
     @Transactional
+    @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo iniciar(Long id, TorneoIniciarRequest request) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
@@ -362,6 +366,7 @@ public class TorneoService {
     }
 
     @Transactional
+    @CacheEvict(value = "torneos-resumen", allEntries = true)
     public List<Enfrentamiento> crearEnfrentamientos(Long torneoId, List<EnfrentamientoCrearRequest> requests) {
         Torneo torneo = torneoRepository.findById(torneoId)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + torneoId));
@@ -414,6 +419,7 @@ public class TorneoService {
      * fallar fuerte a dejar el torneo a medias.
      */
     @Transactional
+    @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo finalizar(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
