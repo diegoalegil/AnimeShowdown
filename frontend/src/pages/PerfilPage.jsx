@@ -34,6 +34,7 @@ import CardBanner from '../features/perfil/components/CardBanner'
 import CardUsername from '../features/perfil/components/CardUsername'
 import CardBio from '../features/perfil/components/CardBio'
 import CardDatosCuenta from '../features/perfil/components/CardDatosCuenta'
+import CardPushNotificaciones from '../features/perfil/components/CardPushNotificaciones'
 import PerfilQuickStats from '../features/perfil/components/PerfilQuickStats'
 import PerfilTabs from '../features/perfil/components/PerfilTabs'
 import { tabValida } from '../features/perfil/perfil-tabs'
@@ -162,6 +163,7 @@ function PerfilPage() {
                 updateUser={updateUser}
                 favoritoImagenUrl={favoritoImagenUrl}
               />
+              <CardPushNotificaciones />
               <CardPassword />
               <Card2faSeguridad />
               <CardSesion onLogout={handleLogout} />

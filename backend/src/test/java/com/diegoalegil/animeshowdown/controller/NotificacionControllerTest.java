@@ -1,6 +1,7 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,10 +18,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.diegoalegil.animeshowdown.TestAsyncConfig;
+import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.NotificacionTipo;
+import com.diegoalegil.animeshowdown.model.PushSubscription;
+import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
 import com.diegoalegil.animeshowdown.repository.NotificacionRepository;
+import com.diegoalegil.animeshowdown.repository.PushSubscriptionRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.service.NotificacionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +50,8 @@ class NotificacionControllerTest {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private EmailVerificationRepository emailVerificationRepository;
     @Autowired private NotificacionRepository notificacionRepository;
+    @Autowired private PushSubscriptionRepository pushSubscriptionRepository;
+    @Autowired private TorneoRepository torneoRepository;
     @Autowired private NotificacionService notificacionService;
 
     private record Sesion(String token, Usuario usuario) {}
@@ -205,5 +213,60 @@ class NotificacionControllerTest {
                 .andExpect(status().isForbidden());
         mvc.perform(post("/api/notificaciones/marcar-todas-leidas"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void pushSubscribeYUnsubscribePersistenEndpointDelUsuario() throws Exception {
+        Sesion s = crearUsuarioVerificado("push_alice", "push_alice@example.com");
+
+        mvc.perform(get("/api/me/push/public-key")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(false))
+                .andExpect(jsonPath("$.publicKey").value(""));
+
+        String endpoint = "https://push.example/sub/alice";
+        mvc.perform(post("/api/me/push/subscribe")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "endpoint", endpoint,
+                        "keys", Map.of("p256dh", "key-a", "auth", "auth-a")))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.endpoint").value(endpoint));
+
+        var guardada = pushSubscriptionRepository.findByEndpoint(endpoint).orElseThrow();
+        assert guardada.getUsuario().getId().equals(s.usuario().getId());
+
+        mvc.perform(delete("/api/me/push/unsubscribe")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("endpoint", endpoint))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eliminadas").value(1));
+
+        assert pushSubscriptionRepository.findByEndpoint(endpoint).isEmpty();
+    }
+
+    @Test
+    void fanOutPushRespetaUnaNotificacionPorTipoYDia() throws Exception {
+        Sesion s = crearUsuarioVerificado("push_bob", "push_bob@example.com");
+        pushSubscriptionRepository.save(new PushSubscription(
+                s.usuario(), "https://push.example/sub/bob", "key-b", "auth-b"));
+        Torneo torneo = new Torneo("push-copa", "Push Copa", "Torneo con push");
+        torneo.setEstado(EstadoTorneo.IN_PROGRESS);
+        torneo.setPublico(true);
+        torneo = torneoRepository.save(torneo);
+
+        int primera = notificacionService.notificarTorneoDisponibleATodos(torneo);
+        int segunda = notificacionService.notificarTorneoDisponibleATodos(torneo);
+
+        assert primera == 1 : "Debe crear la primera notificacion push";
+        assert segunda == 0 : "Anti-spam: no repite el mismo tipo en el dia";
+        long total = notificacionRepository.findAll().stream()
+                .filter(n -> n.getUsuario().getId().equals(s.usuario().getId()))
+                .filter(n -> n.getTipo() == NotificacionTipo.TORNEO_INICIADO)
+                .count();
+        assert total == 1 : "Debe existir solo una notificacion TORNEO_INICIADO";
     }
 }
