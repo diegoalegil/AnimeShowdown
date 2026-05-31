@@ -227,6 +227,7 @@ public class PerfilService {
         for (Voto v : votoRepository.findByUsuarioOrderByFechaDesc(usuario,
                 PageRequest.of(0, n)).getContent()) {
             Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("empate", v.isEmpate());
             Personaje p = v.getPersonaje();
             if (p != null) {
                 payload.put("personajeSlug", p.getSlug());

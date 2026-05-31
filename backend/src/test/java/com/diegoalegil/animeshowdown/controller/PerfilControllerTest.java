@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -271,6 +273,38 @@ class PerfilControllerTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].slug").value("luffy"))
                 .andExpect(jsonPath("$[0].votos").value(1));
+    }
+
+    @Test
+    void historialYActividadMarcanEmpateNeutralSinAtribuirVictoria() throws Exception {
+        String token = tokenDe("perfil_empate", "perfil_empate@example.com");
+        var usuario = usuarioRepository.findByUsername("perfil_empate").orElseThrow();
+        Personaje luffy = personajeRepository.findBySlug("luffy").orElseThrow();
+        Personaje zoro = personajeRepository.findBySlug("zoro").orElseThrow();
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        Torneo torneo = torneoRepository.save(new Torneo(
+                "perfil-empate-" + suffix,
+                "Perfil empate " + suffix,
+                "fixture"));
+        Enfrentamiento enf = enfrentamientoRepository.save(new Enfrentamiento(torneo, luffy, zoro));
+        Voto empate = new Voto(luffy, usuario, enf);
+        empate.setEmpate(true);
+        empate.setPeso(new BigDecimal("0.50"));
+        votoRepository.save(empate);
+
+        mvc.perform(get("/api/perfil/me/historial-votos")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].empate").value(true))
+                .andExpect(jsonPath("$.content[0].personajeSlug").value("luffy"))
+                .andExpect(jsonPath("$.content[0].oponenteSlug").value("zoro"));
+
+        mvc.perform(get("/api/perfil/me/actividad")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.tipo=='VOTO')].payload.empate", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.tipo=='VOTO')].payload.personajeSlug", hasItem("luffy")))
+                .andExpect(jsonPath("$[?(@.tipo=='VOTO')].payload.oponenteSlug", hasItem("zoro")));
     }
 
     @Test
