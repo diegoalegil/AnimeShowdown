@@ -399,14 +399,11 @@ public class TorneoService {
     }
 
     /**
-     * Cierra el torneo y resuelve ganadores por conteo de votos en cada
-     * enfrentamiento. Si hay empate exacto el ganador queda null (se gestiona
-     * en frontend con un fallback determinístico por ELO).
-     */
-    /**
      * Finaliza un torneo: cierra cada ronda en cascada (calculando ganadores
      * por count de votos y propagando a la ronda siguiente vía
-     * {@link BracketAdvanceService}) hasta que llega a la final.
+     * {@link BracketAdvanceService}) hasta que llega a la final. Si hay empate
+     * con votos, el desempate es server-side y determinístico para que el
+     * bracket no dependa del cliente.
      *
      * <p>antes este método iteraba todos los
      * enfrentamientos, saltaba los slots vacíos de rondas 2+ (que nunca se
@@ -416,7 +413,7 @@ public class TorneoService {
      * "campeón". Ahora delega en BracketAdvanceService que sí propaga.
      *
      * <p>Si tras cerrar todas las rondas posibles el torneo NO queda
-     * FINISHED (empate sin resolver, slots vacíos por bracket malformado),
+     * FINISHED (votos faltantes, slots vacíos por bracket malformado),
      * se lanza IllegalStateException con mensaje accionable — preferimos
      * fallar fuerte a dejar el torneo a medias.
      */
@@ -434,8 +431,8 @@ public class TorneoService {
 
         if (res != BracketAdvanceService.Resultado.TORNEO_FINALIZADO) {
             throw new IllegalStateException(
-                    "No se pudo finalizar el torneo: alguna ronda intermedia tiene empates o matches sin votos. "
-                            + "Resuelve los empates o espera a tener votos suficientes.");
+                    "No se pudo finalizar el torneo: alguna ronda intermedia tiene matches sin votos. "
+                            + "Espera a tener votos suficientes.");
         }
 
         // Recargar tras los updates del advance service para tener el estado fresco

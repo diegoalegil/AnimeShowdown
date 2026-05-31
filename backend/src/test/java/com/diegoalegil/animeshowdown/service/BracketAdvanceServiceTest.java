@@ -170,7 +170,24 @@ class BracketAdvanceServiceTest {
         }
 
         @Test
-        void retornaSinCambiosCuandoHayEmpate() {
+        void retornaSinCambiosCuandoUnMatchNoTieneVotos() {
+            Torneo t = makeTorneo(1L, "test");
+            Personaje pp1 = p(1L).build();
+            Personaje pp2 = p(2L).build();
+            Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
+            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+                    .thenReturn(List.of(e1));
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(0.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(0.0);
+
+            var result = service.cerrarRondaYAvanzar(t);
+
+            assertThat(result).isEqualTo(BracketAdvanceService.Resultado.SIN_CAMBIOS);
+            verify(enfrentamientoRepository, never()).save(any(Enfrentamiento.class));
+        }
+
+        @Test
+        void desempataEmpateConVotosPorScoreGlobal() {
             Torneo t = makeTorneo(1L, "test");
             Personaje pp1 = p(1L).build();
             Personaje pp2 = p(2L).build();
@@ -179,11 +196,36 @@ class BracketAdvanceServiceTest {
                     .thenReturn(List.of(e1));
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(5.0);
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(5.0);
+            when(votoRepository.sumaPesoByPersonajeId(pp1.getId())).thenReturn(4.0);
+            when(votoRepository.sumaPesoByPersonajeId(pp2.getId())).thenReturn(9.0);
+            lenient().when(torneoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             var result = service.cerrarRondaYAvanzar(t);
 
-            assertThat(result).isEqualTo(BracketAdvanceService.Resultado.SIN_CAMBIOS);
-            verify(enfrentamientoRepository, never()).save(any(Enfrentamiento.class));
+            assertThat(result).isEqualTo(BracketAdvanceService.Resultado.TORNEO_FINALIZADO);
+            assertThat(e1.getGanador()).isEqualTo(pp2);
+            assertThat(t.getGanadorPersonaje()).isEqualTo(pp2);
+        }
+
+        @Test
+        void desempataEmpateConVotosPorOrdenDeBracketSiScoreGlobalTambienEmpata() {
+            Torneo t = makeTorneo(1L, "test");
+            Personaje pp1 = p(1L).build();
+            Personaje pp2 = p(2L).build();
+            Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
+            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+                    .thenReturn(List.of(e1));
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(3.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(3.0);
+            when(votoRepository.sumaPesoByPersonajeId(pp1.getId())).thenReturn(7.0);
+            when(votoRepository.sumaPesoByPersonajeId(pp2.getId())).thenReturn(7.0);
+            lenient().when(torneoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            var result = service.cerrarRondaYAvanzar(t);
+
+            assertThat(result).isEqualTo(BracketAdvanceService.Resultado.TORNEO_FINALIZADO);
+            assertThat(e1.getGanador()).isEqualTo(pp1);
+            assertThat(t.getGanadorPersonaje()).isEqualTo(pp1);
         }
 
         @Test
