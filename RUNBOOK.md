@@ -222,7 +222,7 @@ npm run preview -- --host 127.0.0.1
 npm run test:e2e:local
 ```
 
-`build:e2e` fija `VITE_API_BASE_URL` a `http://127.0.0.1:8080` por defecto. Sin esa variable, el build de producción bloquea el arranque del cliente para evitar fallback silencioso a una API real.
+`build:e2e` fija `VITE_API_URL` a `http://127.0.0.1:8080` por defecto. Sin esa variable, el build de producción bloquea el arranque del cliente para evitar fallback silencioso a una API real.
 El flag `useTestClasspath` mantiene H2 fuera del artefacto productivo y aun así permite usarlo en QA local.
 
 ---
