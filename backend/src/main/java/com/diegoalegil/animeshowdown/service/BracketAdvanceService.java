@@ -98,6 +98,10 @@ public class BracketAdvanceService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Resultado cerrarRondaYAvanzar(Torneo torneo) {
+        return cerrarRondaYAvanzarEnCurso(torneo);
+    }
+
+    private Resultado cerrarRondaYAvanzarEnCurso(Torneo torneo) {
         List<Enfrentamiento> todos = enfrentamientoRepository
                 .findByTorneoOrderByRondaAscIdAsc(torneo);
         if (todos.isEmpty()) {
