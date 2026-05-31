@@ -2,6 +2,8 @@ package com.diegoalegil.animeshowdown.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,6 +28,28 @@ class PersonajeCatalogoBusquedaControllerTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private EntityManagerFactory entityManagerFactory;
+
+    @Test
+    void listarTodosSinPaginacionMantieneArrayBackwardCompatible() throws Exception {
+        mvc.perform(get("/api/personajes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].slug").exists())
+                .andExpect(jsonPath("$.content").doesNotExist());
+    }
+
+    @Test
+    void listarTodosConPaginacionDevuelvePageResponse() throws Exception {
+        mvc.perform(get("/api/personajes")
+                        .param("page", "0")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(5)))
+                .andExpect(jsonPath("$.totalElements", greaterThan(5)))
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.first").value(true));
+    }
 
     @Test
     void catalogoDevuelveCamposCompactosCacheYEtag() throws Exception {
