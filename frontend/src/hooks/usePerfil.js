@@ -69,6 +69,29 @@ export function usePerfilReferral({ enabled = true } = {}) {
   })
 }
 
+export function usePushPublicKey({ enabled = true } = {}) {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: ['perfil', 'push', 'public-key'],
+    queryFn: endpoints.pushPublicKey,
+    enabled: enabled && Boolean(user),
+    staleTime: 10 * 60_000,
+  })
+}
+
+export function usePushSubscribe() {
+  return useMutation({
+    mutationFn: ({ endpoint, keys }) =>
+      endpoints.pushSubscribe({ endpoint, keys }),
+  })
+}
+
+export function usePushUnsubscribe() {
+  return useMutation({
+    mutationFn: (endpoint) => endpoints.pushUnsubscribe(endpoint),
+  })
+}
+
 /**
  * Perfil PÚBLICO de cualquier usuario por username.
  *

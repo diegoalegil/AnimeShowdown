@@ -1,5 +1,10 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -14,8 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.diegoalegil.animeshowdown.dto.NotificacionDto;
 import com.diegoalegil.animeshowdown.model.Notificacion;
 import com.diegoalegil.animeshowdown.model.NotificacionTipo;
+import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.PushSubscription;
+import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.NotificacionRepository;
+import com.diegoalegil.animeshowdown.repository.PushSubscriptionRepository;
+import com.diegoalegil.animeshowdown.service.WebPushService.WebPushPayload;
 
 /**
  * Notificaciones in-app.
@@ -43,6 +53,8 @@ public class NotificacionService {
 
     private final NotificacionRepository repo;
     private final SimpMessagingTemplate messaging;
+    private final PushSubscriptionRepository pushSubscriptionRepository;
+    private final WebPushService webPushService;
 
     /**
      * SimpMessagingTemplate viene de spring-websocket. Lo dejamos
@@ -50,9 +62,13 @@ public class NotificacionService {
      * cambia la persistencia, solo el push.
      */
     public NotificacionService(NotificacionRepository repo,
-            @Autowired(required = false) SimpMessagingTemplate messaging) {
+            @Autowired(required = false) SimpMessagingTemplate messaging,
+            PushSubscriptionRepository pushSubscriptionRepository,
+            WebPushService webPushService) {
         this.repo = repo;
         this.messaging = messaging;
+        this.pushSubscriptionRepository = pushSubscriptionRepository;
+        this.webPushService = webPushService;
     }
 
     @Transactional
@@ -64,6 +80,70 @@ public class NotificacionService {
                 guardada.getId(), usuario.getUsername(), tipo);
         pushUsuario(usuario, NotificacionDto.from(guardada));
         return guardada;
+    }
+
+    @Transactional
+    public int notificarTorneoDisponibleATodos(Torneo torneo) {
+        String titulo = "Nuevo torneo disponible";
+        String mensaje = "\"" + torneo.getNombre() + "\" ya esta listo para votar.";
+        String url = "/torneos/" + torneo.getSlug();
+        return notificarTorneoATodos(
+                torneo,
+                NotificacionTipo.TORNEO_INICIADO,
+                titulo,
+                mensaje,
+                new WebPushPayload(titulo, mensaje, url, "torneo-iniciado-" + torneo.getId()));
+    }
+
+    @Transactional
+    public int notificarTorneoFinalizadoATodos(Torneo torneo) {
+        Personaje ganador = torneo.getGanadorPersonaje();
+        String ganadorTexto = ganador != null ? " Campeon: " + ganador.getNombre() + "." : "";
+        String titulo = "Torneo finalizado";
+        String mensaje = "\"" + torneo.getNombre() + "\" ya tiene resultado." + ganadorTexto;
+        String url = "/torneos/" + torneo.getSlug();
+        return notificarTorneoATodos(
+                torneo,
+                NotificacionTipo.TORNEO_FINALIZADO,
+                titulo,
+                mensaje,
+                new WebPushPayload(titulo, mensaje, url, "torneo-finalizado-" + torneo.getId()));
+    }
+
+    private int notificarTorneoATodos(Torneo torneo, NotificacionTipo tipo, String titulo,
+            String mensaje, WebPushPayload webPayload) {
+        List<PushSubscription> subscriptions = pushSubscriptionRepository.findAllFetchUsuario();
+        if (subscriptions.isEmpty()) return 0;
+
+        Map<Long, List<PushSubscription>> porUsuario = new LinkedHashMap<>();
+        for (PushSubscription sub : subscriptions) {
+            Usuario usuario = sub.getUsuario();
+            if (usuario == null || usuario.getId() == null) continue;
+            porUsuario.computeIfAbsent(usuario.getId(), ignored -> new java.util.ArrayList<>()).add(sub);
+        }
+
+        LocalDateTime inicioDia = LocalDate.now().atStartOfDay();
+        String payload = payloadDeTorneo(torneo);
+        int creadas = 0;
+        for (List<PushSubscription> subsUsuario : porUsuario.values()) {
+            Usuario usuario = subsUsuario.get(0).getUsuario();
+            if (repo.existsByUsuarioAndTipoAndCreadoEnAfter(usuario, tipo, inicioDia)) {
+                continue;
+            }
+
+            Notificacion guardada = repo.save(new Notificacion(usuario, tipo, titulo, mensaje, payload));
+            pushUsuario(usuario, NotificacionDto.from(guardada));
+            creadas++;
+
+            for (PushSubscription sub : subsUsuario) {
+                var result = webPushService.enviar(sub, webPayload);
+                if (result.removeSubscription()) {
+                    pushSubscriptionRepository.delete(sub);
+                }
+            }
+        }
+        log.info("Notificacion {} fan-out: torneo={} usuarios={}", tipo, torneo.getId(), creadas);
+        return creadas;
     }
 
     /**
@@ -120,5 +200,16 @@ public class NotificacionService {
         log.info("Notificaciones marcadas leídas: usuario={} cantidad={}",
                 usuario.getUsername(), actualizadas);
         return actualizadas;
+    }
+
+    private static String payloadDeTorneo(Torneo t) {
+        return "{\"torneoId\":" + t.getId()
+                + ",\"slug\":\"" + t.getSlug() + "\""
+                + ",\"nombre\":\"" + escaparJson(t.getNombre()) + "\"}";
+    }
+
+    private static String escaparJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

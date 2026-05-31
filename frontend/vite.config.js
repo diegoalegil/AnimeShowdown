@@ -353,6 +353,7 @@ const pwaPlugin = VitePWA({
     navigateFallback: null,
     navigateFallbackDenylist: [/^\/api\//],
     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+    importScripts: ['push-sw.js'],
     // Shell minimo sin HTML: CSS, fonts e icons que cambian poco entre deploys.
     // Cuando el HTML cambia, el browser hace fetch nuevo y el SW solo provee
     // assets estaticos compartidos.
