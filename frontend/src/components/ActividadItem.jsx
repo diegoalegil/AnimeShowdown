@@ -12,7 +12,24 @@ function configPorTipo(item) {
       return {
         icon: Swords,
         color: 'bg-accent-soft text-gold',
-        contenido: (
+        contenido: p.empate ? (
+          <>
+            No decidió entre{' '}
+            {p.personajeSlug ? (
+              <Link
+                to={`/personajes/${p.personajeSlug}`}
+                className="font-semibold text-fg-strong hover:underline"
+              >
+                {p.personajeNombre}
+              </Link>
+            ) : (
+              <strong>{p.personajeNombre || 'un personaje'}</strong>
+            )}
+            {p.oponenteNombre && (
+              <span className="text-fg-muted"> y {p.oponenteNombre}</span>
+            )}
+          </>
+        ) : (
           <>
             Votó a{' '}
             {p.personajeSlug ? (

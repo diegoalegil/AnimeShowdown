@@ -8,9 +8,11 @@ import com.diegoalegil.animeshowdown.model.Voto;
  * Entrada del historial de votos del usuario.
  *
  * <p>Para votos de enfrentamientos reales, {@code enfrentamientoId} no es
- * null y se incluye el oponente (el otro personaje del match). Para votos
- * del modo casual, {@code enfrentamientoId} es null y solo
- * se rellena el personaje al que votaste.
+ * null y se incluye el oponente (el otro personaje del match). Si el voto
+ * fue un empate neutral, {@code empate} permite renderizarlo como reparto
+ * entre ambos personajes en vez de como victoria del personaje asociado al
+ * registro. Para votos del modo casual, {@code enfrentamientoId} es null y
+ * solo se rellena el personaje al que votaste.
  */
 public record VotoHistorialDto(
         Long id,
@@ -25,7 +27,8 @@ public record VotoHistorialDto(
         String oponenteNombre,
         Long torneoId,
         String torneoSlug,
-        String torneoNombre) {
+        String torneoNombre,
+        boolean empate) {
 
     public static VotoHistorialDto from(Voto v) {
         var p = v.getPersonaje();
@@ -63,6 +66,7 @@ public record VotoHistorialDto(
                 p.getNombre(),
                 p.getImagenUrl(),
                 enfId, oponenteId, oponenteSlug, oponenteNombre,
-                torneoId, torneoSlug, torneoNombre);
+                torneoId, torneoSlug, torneoNombre,
+                v.isEmpate());
     }
 }
