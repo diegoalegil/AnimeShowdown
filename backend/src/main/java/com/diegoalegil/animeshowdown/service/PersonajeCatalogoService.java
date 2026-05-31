@@ -12,7 +12,6 @@ import java.util.Set;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.diegoalegil.animeshowdown.dto.PersonajeCatalogoDto;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 
 @Service
@@ -47,8 +46,7 @@ public class PersonajeCatalogoService {
     @Cacheable(value = "personajes-catalogo", key = "#fieldsKey")
     public CatalogoPayload catalogo(String fieldsKey) {
         Set<String> fields = new LinkedHashSet<>(Arrays.asList(fieldsKey.split(",")));
-        List<Map<String, Object>> items = personajeRepository.findAllOrderBySlug().stream()
-                .map(PersonajeCatalogoDto::from)
+        List<Map<String, Object>> items = personajeRepository.findAllCatalogoOrderBySlug().stream()
                 .map(dto -> dto.toFieldMap(fields))
                 .toList();
         return new CatalogoPayload(items, etag(fieldsKey, items));

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +30,7 @@ class PersonajeCatalogoBusquedaControllerTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private EntityManagerFactory entityManagerFactory;
+    @Autowired private CacheManager cacheManager;
 
     @Test
     void listarTodosSinPaginacionMantieneArrayBackwardCompatible() throws Exception {
@@ -54,6 +56,14 @@ class PersonajeCatalogoBusquedaControllerTest {
 
     @Test
     void catalogoDevuelveCamposCompactosCacheYEtag() throws Exception {
+        var cache = cacheManager.getCache("personajes-catalogo");
+        if (cache != null) {
+            cache.clear();
+        }
+        var stats = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        stats.clear();
+        stats.setStatisticsEnabled(true);
+
         MvcResult first = mvc.perform(get("/api/personajes/catalogo")
                         .param("fields", "slug,nombre,anime,imagenUrl,imagenColorDominante"))
                 .andExpect(status().isOk())
@@ -66,6 +76,10 @@ class PersonajeCatalogoBusquedaControllerTest {
                 .andExpect(jsonPath("$[0].imagenColorDominante").exists())
                 .andExpect(jsonPath("$[0].descripcion").doesNotExist())
                 .andReturn();
+
+        assertThat(stats.getEntityLoadCount())
+                .as("el catálogo debe usar proyección DTO y no hidratar entidades completas")
+                .isZero();
 
         String etag = first.getResponse().getHeader(HttpHeaders.ETAG);
         mvc.perform(get("/api/personajes/catalogo")
