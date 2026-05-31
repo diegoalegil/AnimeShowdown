@@ -48,6 +48,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 if (usuarioOpt.isPresent()) {
                     Usuario usuario = usuarioOpt.get();
+                    int tokenVersion = jwtUtil.extraerTokenVersion(token);
+                    if (tokenVersion != usuario.getTokenVersion()) {
+                        log.warn("JWT revocado por version: username={}", username);
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        return;
+                    }
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                             usuario,
                             null,
