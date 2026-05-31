@@ -11,15 +11,16 @@ public record PersonajeScoreItem(
         String nombre,
         String anime,
         String imagenUrl,
-        Long votosTotales,
-        Long votosRecientes24h) {
+        Double votosTotales,
+        Double votosRecientes24h) {
 
     public int eloEstimado() {
-        return 1500 + Math.toIntExact(votosTotales == null ? 0L : votosTotales);
+        double elo = 1500 + scoreSane(votosTotales);
+        return elo > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.floor(elo);
     }
 
-    public long recientes24h() {
-        return votosRecientes24h == null ? 0L : votosRecientes24h;
+    public double recientes24h() {
+        return scoreSane(votosRecientes24h);
     }
 
     public PersonajeMiniDto toMiniDto() {
@@ -30,5 +31,9 @@ public record PersonajeScoreItem(
         dto.setAnime(anime);
         dto.setImagenUrl(imagenUrl);
         return dto;
+    }
+
+    private static double scoreSane(Double value) {
+        return value == null ? 0.0 : Math.max(0.0, value);
     }
 }

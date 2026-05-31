@@ -88,7 +88,7 @@ public class FantasyShowdownService {
         int saneLimit = Math.max(1, Math.min(LIMIT_CANDIDATOS_MAX,
                 limit <= 0 ? LIMIT_CANDIDATOS_DEFAULT : limit));
         String q = query == null ? "" : query.trim();
-        Map<Long, Long> votos = votosPorPersonaje();
+        Map<Long, Double> votos = votosPorPersonaje();
         List<Personaje> personajes;
         if (q.isBlank()) {
             personajes = personajeRepository.topConPuntuacionYRecencia(
@@ -100,7 +100,7 @@ public class FantasyShowdownService {
         } else {
             personajes = personajeRepository.buscarTexto(q).stream()
                     .sorted(Comparator
-                            .comparingLong((Personaje p) -> votos.getOrDefault(p.getId(), 0L))
+                            .comparingDouble((Personaje p) -> votos.getOrDefault(p.getId(), 0.0))
                             .reversed()
                             .thenComparing(Personaje::getNombre, String.CASE_INSENSITIVE_ORDER))
                     .limit(saneLimit)
@@ -113,8 +113,8 @@ public class FantasyShowdownService {
         return personajes.stream()
                 .map(p -> FantasyPersonajeDto.from(
                         p,
-                        eloEstimado(votos.getOrDefault(p.getId(), 0L)),
-                        costeDesdeVotos(votos.getOrDefault(p.getId(), 0L)),
+                        eloEstimado(votos.getOrDefault(p.getId(), 0.0)),
+                        costeDesdeVotos(votos.getOrDefault(p.getId(), 0.0)),
                         deltas.getOrDefault(p.getId(), 0)))
                 .toList();
     }
@@ -129,11 +129,11 @@ public class FantasyShowdownService {
         }
 
         Map<Long, Personaje> personajes = personajesPorId(ids);
-        Map<Long, Long> votos = votosPorPersonaje();
+        Map<Long, Double> votos = votosPorPersonaje();
         List<FantasyEquipoItem> items = ids.stream()
                 .map(id -> new FantasyEquipoItem(
                         personajes.get(id),
-                        costeDesdeVotos(votos.getOrDefault(id, 0L))))
+                        costeDesdeVotos(votos.getOrDefault(id, 0.0))))
                 .toList();
         int costeTotal = items.stream()
                 .mapToInt(item -> item.getCoste() == null ? 0 : item.getCoste())
@@ -254,14 +254,14 @@ public class FantasyShowdownService {
         return semanaIso(LocalDate.now(clock));
     }
 
-    public static int costeDesdeVotos(long votos) {
+    public static int costeDesdeVotos(double votos) {
         double votosSane = Math.max(0, votos);
         return Math.max(80, Math.min(420, 80 + (int) Math.round(Math.sqrt(votosSane) * 40.0)));
     }
 
-    public static int eloEstimado(long votos) {
-        long elo = ELO_BASE + Math.max(0, votos);
-        return elo > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) elo;
+    public static int eloEstimado(double votos) {
+        double elo = ELO_BASE + Math.max(0, votos);
+        return elo > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.floor(elo);
     }
 
     private FantasyEquipoDto toDto(FantasyEquipo equipo) {
@@ -345,11 +345,11 @@ public class FantasyShowdownService {
         return personajes;
     }
 
-    private Map<Long, Long> votosPorPersonaje() {
-        Map<Long, Long> votos = new LinkedHashMap<>();
+    private Map<Long, Double> votosPorPersonaje() {
+        Map<Long, Double> votos = new LinkedHashMap<>();
         for (Object[] row : votoRepository.votosPorPersonajes()) {
             if (row == null || row.length < 2 || row[0] == null || row[1] == null) continue;
-            votos.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+            votos.put(((Number) row[0]).longValue(), ((Number) row[1]).doubleValue());
         }
         return votos;
     }
