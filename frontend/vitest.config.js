@@ -13,8 +13,9 @@ import { defineConfig } from 'vitest/config'
 // - Thresholds escalonados por fase del Sprint 06. Empiezan bajos
 //   porque el PR 06.1 solo introduce la infra + smoke test.
 //   Cada PR de Fase 2 (06.2-06.5) sube el threshold antes de mergear.
-// - Include solo `src/lib/**/*.test.{ts,tsx}` por ahora. Los tests de
-//   componentes React (Fase 5) ampliarán el patrón.
+// - Coverage incluye las unidades productivas con cobertura unitaria actual:
+//   lib, data, hooks, componentes y features. Tests, setup y tipos puros
+//   quedan fuera de la métrica.
 
 export default defineConfig({
   // Runtime JSX automático en los tests, igual que el build de la app
@@ -36,9 +37,20 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
-      include: ['src/lib/**/*.{ts,tsx}'],
+      all: false,
+      include: [
+        'src/lib/**/*.{ts,tsx}',
+        'src/lib/username-suggestions.js',
+        'src/data/voto-intenciones.js',
+        'src/hooks/useRanking.js',
+        'src/components/ProfileBanner.jsx',
+        'src/components/RequireCatalog.jsx',
+        'src/features/votar/components/IntencionSelector.jsx',
+      ],
       exclude: [
-        'src/lib/**/*.test.{ts,tsx}',
+        'src/**/*.test.{js,jsx,ts,tsx}',
+        'src/**/*.spec.{js,jsx,ts,tsx}',
+        'src/test/**',
         'src/lib/types.ts',
       ],
       // Thresholds escalonados por PR del Sprint Auto 06:
