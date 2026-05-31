@@ -797,13 +797,13 @@ export const endpoints: EndpointMap = {
   dueloLiveState: (id) => api.get(`/api/duelo-live/${id}`),
   dueloLiveVote: (id, choice) => api.post(`/api/duelo-live/${id}/vote`, { choice }),
   dueloLiveLeave: (id) => api.post(`/api/duelo-live/${id}/leave`, undefined),
-  votar: (enfrentamientoId, personajeId, { anonymous = false, headers = {}, categoria } = {}) =>
-    // El backend espera el campo personajeGanadorId (validado con @NotNull en
-    // VotoEnfrentamientoRequest); antes mandábamos personajeId y rebotaba con 400.
+  votar: (enfrentamientoId, personajeId, { anonymous = false, headers = {}, categoria, empate = false } = {}) =>
+    // Voto normal: personajeGanadorId. Empate neutral: solo empate=true para
+    // que backend reparta medio voto a cada lado sin mover ELO.
     // categoria (intención de voto, feature #15) es opcional: se omite del body
     // cuando no se eligió → el backend la guarda como null (voto sin intención).
     api.post(`/api/enfrentamientos/${enfrentamientoId}/votar`, {
-      personajeGanadorId: personajeId,
+      ...(empate ? { empate: true } : { personajeGanadorId: personajeId }),
       ...(categoria ? { categoria } : {}),
     }, { auth: !anonymous, headers }),
   // Set-once de la intención de un voto YA emitido (feature #15). El arena es

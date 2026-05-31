@@ -64,6 +64,9 @@ public class Voto {
     @Column(name = "anon_ip_hash", length = 64)
     private String anonIpHash;
 
+    @Column(name = "empate", nullable = false)
+    private boolean empate = false;
+
     @ManyToOne
     @JoinColumn(name = "personaje_id", nullable = false)
     private Personaje personaje;
@@ -153,6 +156,14 @@ public class Voto {
 
     public void setAnonIpHash(String anonIpHash) {
         this.anonIpHash = anonIpHash;
+    }
+
+    public boolean isEmpate() {
+        return empate;
+    }
+
+    public void setEmpate(boolean empate) {
+        this.empate = empate;
     }
 
     public Personaje getPersonaje() {

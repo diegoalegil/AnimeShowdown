@@ -320,7 +320,7 @@ public class OgImageService {
                     p.getNombre(),
                     p.getAnime(),
                     p.getImagenUrl(),
-                    item.getVotos() == null ? 0L : item.getVotos());
+                    item.getVotos() == null ? 0L : Math.round(item.getVotos()));
         }
 
         static RankingOgEntry from(Personaje personaje) {

@@ -199,10 +199,11 @@ class DueloLiveServiceTest {
     private void asegurarDecisionA(DueloLiveStateDto state) {
         long aId = state.ronda().personajeA().getId();
         long bId = state.ronda().personajeB().getId();
-        long aCount = votoRepository.countByPersonajeId(aId);
-        long bCount = votoRepository.countByPersonajeId(bId);
+        double aCount = votoRepository.countByPersonajeId(aId);
+        double bCount = votoRepository.countByPersonajeId(bId);
         Personaje a = personajeRepository.findById(aId).orElseThrow();
-        for (long i = aCount; i <= bCount; i++) {
+        int votosNecesarios = Math.max(1, (int) Math.floor(bCount - aCount) + 1);
+        for (int i = 0; i < votosNecesarios; i++) {
             votoRepository.save(new Voto(a));
         }
     }

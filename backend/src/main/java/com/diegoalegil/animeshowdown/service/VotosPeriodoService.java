@@ -50,8 +50,8 @@ public class VotosPeriodoService {
         LocalDateTime ahora = LocalDateTime.now();
         LocalDateTime inicioActual = ahora.minusDays(dias);
         LocalDateTime inicioAnterior = ahora.minusDays(2L * dias);
-        long actual = votoRepository.countByPersonajeIdInRange(p.getId(), inicioActual, ahora);
-        long anterior = votoRepository.countByPersonajeIdInRange(p.getId(), inicioAnterior, inicioActual);
+        double actual = votoRepository.countByPersonajeIdInRange(p.getId(), inicioActual, ahora);
+        double anterior = votoRepository.countByPersonajeIdInRange(p.getId(), inicioAnterior, inicioActual);
         return new VotosPeriodoDto(slug, actual, anterior, actual - anterior, dias, inicioActual, inicioAnterior);
     }
 
@@ -77,24 +77,24 @@ public class VotosPeriodoService {
         LocalDateTime inicioActual = ahora.minusDays(dias);
         LocalDateTime inicioAnterior = ahora.minusDays(2L * dias);
         List<Long> ids = personajes.stream().map(Personaje::getId).toList();
-        Map<Long, Long> actualByPid = aMap(votoRepository.countByPersonajeIdsInRange(ids, inicioActual, ahora));
-        Map<Long, Long> anteriorByPid = aMap(votoRepository.countByPersonajeIdsInRange(ids, inicioAnterior, inicioActual));
+        Map<Long, Double> actualByPid = aMap(votoRepository.countByPersonajeIdsInRange(ids, inicioActual, ahora));
+        Map<Long, Double> anteriorByPid = aMap(votoRepository.countByPersonajeIdsInRange(ids, inicioAnterior, inicioActual));
 
         return slugs.stream()
                 .map((slug) -> {
                     Personaje p = bySlug.get(slug);
                     if (p == null) return null;
-                    long actual = actualByPid.getOrDefault(p.getId(), 0L);
-                    long anterior = anteriorByPid.getOrDefault(p.getId(), 0L);
+                    double actual = actualByPid.getOrDefault(p.getId(), 0.0);
+                    double anterior = anteriorByPid.getOrDefault(p.getId(), 0.0);
                     return new VotosPeriodoDto(slug, actual, anterior, actual - anterior, dias, inicioActual, inicioAnterior);
                 })
                 .filter(java.util.Objects::nonNull)
                 .toList();
     }
 
-    private static Map<Long, Long> aMap(List<Object[]> filas) {
-        Map<Long, Long> m = new HashMap<>();
-        for (Object[] r : filas) m.put((Long) r[0], (Long) r[1]);
+    private static Map<Long, Double> aMap(List<Object[]> filas) {
+        Map<Long, Double> m = new HashMap<>();
+        for (Object[] r : filas) m.put((Long) r[0], ((Number) r[1]).doubleValue());
         return m;
     }
 }

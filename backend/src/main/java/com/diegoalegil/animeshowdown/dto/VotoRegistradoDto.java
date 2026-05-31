@@ -17,21 +17,35 @@ package com.diegoalegil.animeshowdown.dto;
 public record VotoRegistradoDto(
         Long votoId,
         Long personajeGanadorId,
-        long votosGanador,
+        double votosGanador,
         Long personajePerdedorId,
-        long votosPerdedor,
+        double votosPerdedor,
         double delta,
         boolean anonimo,
-        Integer votosAnonimosRestantes) {
+        Integer votosAnonimosRestantes,
+        boolean empate) {
 
     public VotoRegistradoDto(
             Long votoId,
             Long personajeGanadorId,
-            long votosGanador,
+            double votosGanador,
             Long personajePerdedorId,
-            long votosPerdedor,
+            double votosPerdedor,
             double delta) {
         this(votoId, personajeGanadorId, votosGanador, personajePerdedorId, votosPerdedor,
-                delta, false, null);
+                delta, false, null, false);
+    }
+
+    public VotoRegistradoDto(
+            Long votoId,
+            Long personajeGanadorId,
+            double votosGanador,
+            Long personajePerdedorId,
+            double votosPerdedor,
+            double delta,
+            boolean anonimo,
+            Integer votosAnonimosRestantes) {
+        this(votoId, personajeGanadorId, votosGanador, personajePerdedorId, votosPerdedor,
+                delta, anonimo, votosAnonimosRestantes, false);
     }
 }

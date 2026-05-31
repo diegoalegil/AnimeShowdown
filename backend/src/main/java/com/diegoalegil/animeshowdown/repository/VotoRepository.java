@@ -32,7 +32,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * anónimos y 1.00 para registrados, pero el ranking contaba todos
      * por igual. La fase 1 castteaba SUM(peso) a Long y mezclaba ambas
      * métricas en el mismo campo, truncando 0.9 a 0. Ahora devolvemos
-     * AMBOS valores en el DTO: votos (COUNT, físico para UI) y pesoVotos
+     * AMBOS valores en el DTO: votos (score visible para UI) y pesoVotos
      * (SUM, ponderado para ORDER BY y para que el frontend reordene la
      * caché live cuando llega un WS delta). Coalesce protege frente a
      * SUM nulo (grupo vacío, no debería pasar con GROUP BY pero defensivo).
@@ -40,10 +40,14 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
-                count(v),
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double),
                 cast(coalesce(sum(v.peso), 0) as double))
-            FROM Voto v
-            JOIN v.personaje p
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
@@ -52,19 +56,31 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     /**
      * Ranking all-time paginado. Page para que la UI pueda
      * pedir top 50 o top 100 sin volcar todo el catálogo.
-     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, score visible para UI.
      */
     @Query(value = """
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
-                count(v),
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double),
                 cast(coalesce(sum(v.peso), 0) as double))
-            FROM Voto v
-            JOIN v.personaje p
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """,
-            countQuery = "SELECT COUNT(DISTINCT v.personaje.id) FROM Voto v")
+            countQuery = """
+                    SELECT COUNT(DISTINCT p.id)
+                    FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+                    WHERE (
+                        (v.empate = false AND p.id = v.personaje.id)
+                        OR (v.empate = true AND e IS NOT NULL
+                            AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+                    )
+                    """)
     org.springframework.data.domain.Page<RankingItem> rankingAllTime(
             org.springframework.data.domain.Pageable pageable);
 
@@ -72,16 +88,20 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Ranking dentro de una ventana temporal (6 — top mensual,
      * trimestral, etc). desde es inclusivo. Aplica el mismo GROUP BY que
      * el all-time pero filtra por fecha del voto.
-     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, score visible para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
-                count(v),
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double),
                 cast(coalesce(sum(v.peso), 0) as double))
-            FROM Voto v
-            JOIN v.personaje p
-            WHERE v.fecha >= :desde
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND v.fecha >= :desde
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
@@ -93,24 +113,45 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * votos EMITIDOS antes de la fecha dada. Sirve para comparar la
      * posición de hace N días con la posición actual y calcular el
      * movimiento de cada personaje.
-     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, score visible para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
-                count(v),
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double),
                 cast(coalesce(sum(v.peso), 0) as double))
-            FROM Voto v
-            JOIN v.personaje p
-            WHERE v.fecha < :antesDe
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND v.fecha < :antesDe
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
     List<RankingItem> rankingHasta(@Param("antesDe") java.time.LocalDateTime antesDe,
             org.springframework.data.domain.Pageable pageable);
 
-    /** Total de votos de un personaje. */
-    long countByPersonajeId(Long personajeId);
+    /** Total de votos-score de un personaje: normal=1, empate=0.5 por lado. */
+    @Query("""
+            SELECT cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v LEFT JOIN v.enfrentamiento e
+            WHERE (v.empate = false AND v.personaje.id = :personajeId)
+               OR (v.empate = true AND e IS NOT NULL
+                   AND (e.personaje1.id = :personajeId
+                        OR e.personaje2.id = :personajeId))
+            """)
+    double countByPersonajeId(@Param("personajeId") Long personajeId);
+
+    /** Conteo físico de votos normales; excluye empate neutral (no mueve ELO). */
+    @Query("""
+            SELECT COUNT(v)
+            FROM Voto v
+            WHERE v.empate = false
+              AND v.personaje.id = :personajeId
+            """)
+    long countNormalByPersonajeId(@Param("personajeId") Long personajeId);
 
     /**
      * suma ponderada de votos del personaje.
@@ -122,8 +163,11 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT coalesce(sum(v.peso), 0)
-            FROM Voto v
-            WHERE v.personaje.id = :personajeId
+            FROM Voto v LEFT JOIN v.enfrentamiento e
+            WHERE (v.empate = false AND v.personaje.id = :personajeId)
+               OR (v.empate = true AND e IS NOT NULL
+                   AND (e.personaje1.id = :personajeId
+                        OR e.personaje2.id = :personajeId))
             """)
     Double sumaPesoByPersonajeId(@Param("personajeId") Long personajeId);
 
@@ -134,13 +178,18 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * periodo actual y anterior.
      */
     @Query("""
-            SELECT COUNT(v)
-            FROM Voto v
-            WHERE v.personaje.id = :personajeId
-              AND v.fecha >= :desde
+            SELECT cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v LEFT JOIN v.enfrentamiento e
+            WHERE v.fecha >= :desde
               AND v.fecha < :hasta
+              AND (
+                  (v.empate = false AND v.personaje.id = :personajeId)
+                  OR (v.empate = true AND e IS NOT NULL
+                      AND (e.personaje1.id = :personajeId
+                           OR e.personaje2.id = :personajeId))
+              )
             """)
-    long countByPersonajeIdInRange(
+    double countByPersonajeIdInRange(
             @Param("personajeId") Long personajeId,
             @Param("desde") java.time.LocalDateTime desde,
             @Param("hasta") java.time.LocalDateTime hasta);
@@ -156,12 +205,17 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * personajes a la vez (Pulso Movers, FavoritosBanner).
      */
     @Query("""
-            SELECT v.personaje.id, COUNT(v)
-            FROM Voto v
-            WHERE v.personaje.id IN :personajeIds
+            SELECT p.id, cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND p.id IN :personajeIds
               AND v.fecha >= :desde
               AND v.fecha < :hasta
-            GROUP BY v.personaje.id
+            GROUP BY p.id
             """)
     List<Object[]> countByPersonajeIdsInRange(
             @Param("personajeIds") java.util.Collection<Long> personajeIds,
@@ -169,10 +223,10 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             @Param("hasta") java.time.LocalDateTime hasta);
 
     /**
-     * Mapa ligero de {@code personajeId → COUNT} para todos los personajes
-     * que tienen al menos un voto. Devuelve {@code [Long, Long]} (Object[]
+     * Mapa ligero de {@code personajeId → score} para todos los personajes
+     * que tienen al menos un voto. Devuelve {@code [Long, Double]} (Object[]
      * 2-elementos) para evitar construir entidades RankItem a nivel repo —
-     * el caller (RecomendacionService) solo necesita el conteo físico.
+     * el caller (RecomendacionService) solo necesita el score visible.
      *
      * <p>Antes el caller hacía {@code votoRepository.obtenerRanking()}
      * (full ranking con p.descripcion, p.slug, p.nombre, p.anime, p.imagenUrl,
@@ -180,9 +234,14 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * ordenar en Java. Ahora usamos esta proyección directa.
      */
     @Query("""
-            SELECT v.personaje.id, COUNT(v)
-            FROM Voto v
-            GROUP BY v.personaje.id
+            SELECT p.id, cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+            GROUP BY p.id
             """)
     List<Object[]> votosPorPersonajes();
 
@@ -206,6 +265,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             FROM Voto v
             WHERE v.personaje.id = :personajeId
               AND v.fecha >= :desde
+              AND v.empate = false
             GROUP BY CAST(v.fecha AS java.time.LocalDate)
             ORDER BY CAST(v.fecha AS java.time.LocalDate) ASC
             """)
@@ -216,16 +276,20 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * Ranking de personajes de un anime concreto. Filtramos
      * por nombre del anime (string del catálogo) — case-sensitive porque
      * los nombres en BBDD vienen consistentes del seeder.
-     *  + B2.1b: ponderado por peso para ORDER, físico para UI.
+     *  + B2.1b: ponderado por peso para ORDER, score visible para UI.
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
-                count(v),
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double),
                 cast(coalesce(sum(v.peso), 0) as double))
-            FROM Voto v
-            JOIN v.personaje p
-            WHERE p.anime = :anime
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND p.anime = :anime
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
@@ -238,9 +302,14 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * mostrar 200 animes vacíos.
      */
     @Query("""
-            SELECT DISTINCT v.personaje.anime
-            FROM Voto v
-            ORDER BY v.personaje.anime ASC
+            SELECT DISTINCT p.anime
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+            ORDER BY p.anime ASC
             """)
     List<String> animesConVotos();
 
@@ -254,11 +323,15 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
-                count(v),
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double),
                 cast(coalesce(sum(v.peso), 0) as double))
-            FROM Voto v
-            JOIN v.personaje p
-            WHERE v.categoria = :categoria
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND v.categoria = :categoria
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
@@ -272,11 +345,15 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.RankingItem(
                 p.id, p.slug, p.nombre, p.anime, p.imagenUrl,
-                count(v),
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double),
                 cast(coalesce(sum(v.peso), 0) as double))
-            FROM Voto v
-            JOIN v.personaje p
-            WHERE v.categoria = :categoria AND v.fecha >= :desde
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND v.categoria = :categoria AND v.fecha >= :desde
             GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl
             ORDER BY sum(v.peso) DESC, p.id ASC
             """)
@@ -380,6 +457,24 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
     long countByEnfrentamientoAndPersonaje(Enfrentamiento enfrentamiento, Personaje personaje);
 
     /**
+     * Score de un personaje dentro de un match. Voto normal=1; empate=0.5 para
+     * cada participante. Es la métrica que decide bracket y UI post-voto.
+     */
+    @Query("""
+            SELECT cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v
+            WHERE v.enfrentamiento = :enfrentamiento
+              AND (
+                  (v.empate = false AND v.personaje = :personaje)
+                  OR (v.empate = true AND (v.enfrentamiento.personaje1 = :personaje
+                                           OR v.enfrentamiento.personaje2 = :personaje))
+              )
+            """)
+    double scoreByEnfrentamientoAndPersonaje(
+            @Param("enfrentamiento") Enfrentamiento enfrentamiento,
+            @Param("personaje") Personaje personaje);
+
+    /**
      * Feed público de los últimos N votos, con personaje + enfrentamiento +
      * usuario fetcheados eagerly para evitar N+1 al mapear a VotoFeedItem.
      *
@@ -422,10 +517,15 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     @Query("""
             SELECT new com.diegoalegil.animeshowdown.dto.TopPersonajeItem(
-                p.id, p.slug, p.nombre, p.imagenUrl, p.anime, COUNT(v))
-            FROM Voto v
-            JOIN v.personaje p
-            WHERE v.usuario = :usuario
+                p.id, p.slug, p.nombre, p.imagenUrl, p.anime,
+                cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double))
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND v.usuario = :usuario
             GROUP BY p.id, p.slug, p.nombre, p.imagenUrl, p.anime
             ORDER BY COUNT(v) DESC, p.id ASC
             """)
@@ -439,11 +539,11 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * bracket: una sola query bulk en lugar de countByEnfrentamiento(e)
      * llamado 16 veces por torneo de 16 personajes.
      *
-     * Devuelve Object[] {Long enfrentamientoId, Long count} para que el
-     * service lo convierta a Map<Long, Long>.
+     * Devuelve Object[] {Long enfrentamientoId, Double count} para que el
+     * service lo convierta a Map<Long, Double>.
      */
     @Query("""
-            SELECT v.enfrentamiento.id, COUNT(v)
+            SELECT v.enfrentamiento.id, cast(COUNT(v) as double)
             FROM Voto v
             WHERE v.enfrentamiento.torneo.id = :torneoId
             GROUP BY v.enfrentamiento.id
@@ -452,13 +552,19 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
 
     /**
      * Conteo agrupado por enfrentamiento y personaje para spectator live.
-     * Devuelve Object[] {Long enfrentamientoId, Long personajeId, Long count}.
+     * Devuelve Object[] {Long enfrentamientoId, Long personajeId, Double score}.
      */
     @Query("""
-            SELECT v.enfrentamiento.id, v.personaje.id, COUNT(v)
-            FROM Voto v
-            WHERE v.enfrentamiento.torneo.id = :torneoId
-            GROUP BY v.enfrentamiento.id, v.personaje.id
+            SELECT v.enfrentamiento.id, p.id,
+                   cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND v.enfrentamiento.torneo.id = :torneoId
+            GROUP BY v.enfrentamiento.id, p.id
             """)
     List<Object[]> contarVotosPorEnfrentamientoYPersonajeDeTorneo(@Param("torneoId") Long torneoId);
 

@@ -1,11 +1,9 @@
 package com.diegoalegil.animeshowdown.dto;
 
-import jakarta.validation.constraints.NotNull;
-
 public class VotoEnfrentamientoRequest {
 
-    @NotNull(message = "personajeGanadorId es obligatorio")
     private Long personajeGanadorId;
+    private boolean empate;
 
     // Intención de voto (feature #15): el "por qué" OPCIONAL. Deliberadamente
     // SIN @NotNull ni validación de enum — una categoría blank/desconocida
@@ -24,6 +22,14 @@ public class VotoEnfrentamientoRequest {
 
     public void setPersonajeGanadorId(Long personajeGanadorId) {
         this.personajeGanadorId = personajeGanadorId;
+    }
+
+    public boolean isEmpate() {
+        return empate;
+    }
+
+    public void setEmpate(boolean empate) {
+        this.empate = empate;
     }
 
     public String getCategoria() {

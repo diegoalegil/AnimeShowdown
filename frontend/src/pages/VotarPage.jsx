@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, SkipForward, Swords, Zap } from 'lucide-react'
+import { ArrowRight, Scale, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
@@ -68,9 +68,16 @@ const STORAGE_FAST = 'animeshowdown.votar.fast'
 const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
 const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 const ANON_VOTE_LIMIT = 5
+const TIE_VOTE_KEY = '__empate__'
 // Pausa breve entre voto y siguiente duelo. En una pantalla de juego, 1.8s
 // se percibía como bloqueo; ~0.9s conserva feedback y mantiene ritmo.
 const NEXT_DELAY_MS = 900
+
+function formatVoteScore(value) {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return '0'
+  return Number.isInteger(n) ? String(n) : n.toFixed(1)
+}
 
 function incrementarContadorLocalVotos() {
   try {
@@ -271,7 +278,7 @@ function VotarPage() {
   }, [fastMode])
 
   const votarMutation = useMutation({
-    mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous, captchaToken }) => {
+    mutationFn: ({ enfrentamientoId, personajeGanadorId, anonymous, captchaToken, empate }) => {
       // Si tenemos token Turnstile, viajará en el header
       // X-AS-Captcha-Token. El backend lo verifica antes de aplicar el
       // throttle de captcha.
@@ -280,6 +287,7 @@ function VotarPage() {
       return endpoints.votar(enfrentamientoId, personajeGanadorId, {
         anonymous,
         headers,
+        empate,
       })
     },
     onSuccess: () => {
@@ -375,6 +383,7 @@ function VotarPage() {
     recordedPairKeyRef.current = currentPairKey
   }, [a?.slug, b?.slug, currentPairKey])
 
+  const tieSelected = votedFor === TIE_VOTE_KEY
   const votedPersonaje = votedFor === a?.slug ? a : votedFor === b?.slug ? b : null
   const losingPersonaje = votedFor === a?.slug ? b : votedFor === b?.slug ? a : null
   const {
@@ -550,7 +559,7 @@ function VotarPage() {
           description: data?.votosGanador != null
             ? data?.anonimo
               ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}${impact ? ` · #${impact.rank} en tu ranking` : ''}`
-              : `Ahora suma ${data.votosGanador} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+              : `Ahora suma ${formatVoteScore(data.votosGanador)} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
             : impact
               ? formatPersonalVoteImpact(impact)
               : 'Voto registrado · ranking actualizado',
@@ -562,6 +571,32 @@ function VotarPage() {
       scheduleAutoNext()
     },
     [scheduleAutoNext, trackLocalVote, prefetchSiguientePar],
+  )
+
+  const handleTieVoteSuccess = useCallback(
+    (data) => {
+      if (data?.anonimo) {
+        incrementAnonymousVotesCount()
+      }
+      incrementarContadorLocalVotos()
+      setVoteResult({
+        empate: true,
+        ganadorSlug: TIE_VOTE_KEY,
+        delta: 0.5,
+        votosGanador: data?.votosGanador ?? null,
+        votosPerdedor: data?.votosPerdedor ?? null,
+      })
+      if (!fastModeRef.current || data?.anonimo) {
+        toast.success('Empate registrado', {
+          description: data?.votosGanador != null && a && b
+            ? `Medio voto para ${a.nombre} y medio para ${b.nombre}.`
+            : 'No mueve el ELO: reparte medio voto a cada personaje.',
+        })
+      }
+      prefetchSiguientePar()
+      scheduleAutoNext()
+    },
+    [a, b, prefetchSiguientePar, scheduleAutoNext],
   )
 
   // Intención de voto (feature #15): el usuario eligió POR QUÉ votó en el panel
@@ -834,6 +869,56 @@ function VotarPage() {
   const handleVoteRight = useCallback(() => {
     if (b) handleVote(b)
   }, [b, handleVote])
+  const handleTieVote = useCallback(() => {
+    if (
+      !modoBackend ||
+      !matchId ||
+      votedFor ||
+      voteLockedRef.current ||
+      isVotePendingRef.current ||
+      isAdvancingRef.current
+    ) {
+      return
+    }
+    if (!user && getAnonymousVotesCount() >= ANON_VOTE_LIMIT) {
+      setShowAnonLimitModal(true)
+      toast.info('Límite invitado alcanzado', {
+        description: 'Crea cuenta gratis para seguir votando y guardar tu racha.',
+      })
+      return
+    }
+    voteLockedRef.current = true
+    setVotedFor(TIE_VOTE_KEY)
+    votarMutation.mutate(
+      { enfrentamientoId: matchId, anonymous: !user, empate: true },
+      {
+        onSuccess: handleTieVoteSuccess,
+        onError: (err) => {
+          const status = err instanceof ApiError ? err.status : 0
+          if (status === 428 && err?.body?.captchaRequired) {
+            setCaptchaChallenge({
+              enfrentamientoId: matchId,
+              empate: true,
+              sitekey: err.body.sitekey || '',
+              anonymous: !user,
+            })
+            return
+          }
+          voteLockedRef.current = false
+          setVotedFor(null)
+          if (status === 409) {
+            toast.error('Ya votaste este enfrentamiento')
+          } else if (status === 429 && !user) {
+            setShowAnonLimitModal(true)
+          } else {
+            toast.error('No se pudo registrar el empate', {
+              description: err?.message || 'Inténtalo de nuevo.',
+            })
+          }
+        },
+      },
+    )
+  }, [modoBackend, matchId, votedFor, user, votarMutation, handleTieVoteSuccess])
 
   if ((!fixedPersonaje && !hasFixedAnime && isLoading) || needsCasualPair) {
     return (
@@ -927,7 +1012,7 @@ function VotarPage() {
             {modoBackend
               ? votoInvitadoActivo
                 ? 'Puedes votar 5 duelos como invitado; crea cuenta para guardar tu historial'
-                : 'Tu voto cuenta para el bracket en directo · cada duelo mueve el ELO'
+                : 'Tu voto cuenta para el bracket en directo · puedes decidir o repartir medio voto'
               : sinMatchesAbiertos
                 ? 'No hay torneos en juego — te proponemos pares de ELO similar'
                 : exactDuelActive
@@ -959,7 +1044,36 @@ function VotarPage() {
           votoInvitadoActivo={votoInvitadoActivo}
           handleVoteLeft={handleVoteLeft}
           handleVoteRight={handleVoteRight}
+          handleTieVote={handleTieVote}
+          canTie={modoBackend}
         />
+
+        {tieSelected && a && b && (
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-gold/30 bg-gold-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black text-fg-strong">
+                No pudiste decidir entre {a.nombre} y {b.nombre}.
+              </p>
+              <p className="text-[12px] text-fg-muted">
+                {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null
+                  ? `Medio voto para cada lado · ${formatVoteScore(voteResult.votosGanador)} vs ${formatVoteScore(voteResult.votosPerdedor)}`
+                  : 'Empate neutral registrado. No mueve el ELO del duelo.'}
+              </p>
+              {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null && (
+                <HeadToHeadBar
+                  ganadorNombre={a.nombre}
+                  perdedorNombre={b.nombre}
+                  votosGanador={voteResult.votosGanador}
+                  votosPerdedor={voteResult.votosPerdedor}
+                />
+              )}
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-bg/60 px-3 py-2 text-[12px] font-black text-gold">
+              <Scale className="h-3.5 w-3.5" />
+              ½ + ½
+            </span>
+          </div>
+        )}
 
         {votedPersonaje && (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
@@ -969,7 +1083,7 @@ function VotarPage() {
               </p>
               <p className="text-[12px] text-fg-muted">
                 {voteResult?.votosGanador != null
-                  ? `${voteResult.votosGanador} votos para ${votedPersonaje.nombre}${losingPersonaje ? ` · rival: ${losingPersonaje.nombre}` : ''}`
+                  ? `${formatVoteScore(voteResult.votosGanador)} votos para ${votedPersonaje.nombre}${losingPersonaje ? ` · rival: ${losingPersonaje.nombre}` : ''}`
                   : 'Voto registrado en modo casual. Sigue para completar tu misión diaria.'}
               </p>
               {/* Barra split cabeza-a-cabeza — solo cuando el backend devuelve ambos totales */}
@@ -1010,7 +1124,7 @@ function VotarPage() {
         {/* Intención de voto (feature #15): 1 tap opcional para decir POR QUÉ.
             Solo en modo backend (voto persistido con enfrentamiento real).
             key=matchId remonta el selector limpio en cada duelo. */}
-        {votedPersonaje && matchId && (
+        {votedPersonaje && matchId && !tieSelected && (
           <IntencionSelector key={matchId} onSelect={handleSelectIntencion} />
         )}
 
@@ -1092,7 +1206,7 @@ function VotarPage() {
                 setCaptchaChallenge(null)
                 if (!ch) return
                 voteLockedRef.current = true
-                setVotedFor(ch.personajeSlug)
+                setVotedFor(ch.empate ? TIE_VOTE_KEY : ch.personajeSlug)
                 // Re-emitimos el voto con el token. El backend valida
                 // contra Cloudflare y, si OK, registra el voto.
                 votarMutation.mutate(
@@ -1101,9 +1215,14 @@ function VotarPage() {
                     personajeGanadorId: ch.personajeId,
                     anonymous: ch.anonymous,
                     captchaToken: token,
+                    empate: ch.empate,
                   },
                   {
                     onSuccess: (data) => {
+                      if (ch.empate) {
+                        handleTieVoteSuccess(data)
+                        return
+                      }
                       handleVoteSuccess(
                         ch.personaje || { slug: ch.personajeSlug, nombre: ch.personajeNombre },
                         data,

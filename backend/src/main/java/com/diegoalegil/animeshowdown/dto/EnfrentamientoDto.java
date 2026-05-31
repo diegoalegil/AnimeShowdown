@@ -17,18 +17,18 @@ public class EnfrentamientoDto {
     private PersonajeMiniDto personaje1;
     private PersonajeMiniDto personaje2;
     private PersonajeMiniDto ganador;
-    private Long totalVotos;
-    private Long personaje1Votos;
-    private Long personaje2Votos;
+    private Double totalVotos;
+    private Double personaje1Votos;
+    private Double personaje2Votos;
 
     public EnfrentamientoDto() {
     }
 
     public static EnfrentamientoDto from(Enfrentamiento e, Long totalVotos) {
-        return from(e, totalVotos, null, null);
+        return from(e, totalVotos == null ? null : totalVotos.doubleValue(), null, null);
     }
 
-    public static EnfrentamientoDto from(Enfrentamiento e, Long totalVotos, Long personaje1Votos, Long personaje2Votos) {
+    public static EnfrentamientoDto from(Enfrentamiento e, Double totalVotos, Double personaje1Votos, Double personaje2Votos) {
         EnfrentamientoDto dto = new EnfrentamientoDto();
         dto.id = e.getId();
         dto.ronda = e.getRonda();
@@ -81,27 +81,27 @@ public class EnfrentamientoDto {
         this.ganador = ganador;
     }
 
-    public Long getTotalVotos() {
+    public Double getTotalVotos() {
         return totalVotos;
     }
 
-    public void setTotalVotos(Long totalVotos) {
+    public void setTotalVotos(Double totalVotos) {
         this.totalVotos = totalVotos;
     }
 
-    public Long getPersonaje1Votos() {
+    public Double getPersonaje1Votos() {
         return personaje1Votos;
     }
 
-    public void setPersonaje1Votos(Long personaje1Votos) {
+    public void setPersonaje1Votos(Double personaje1Votos) {
         this.personaje1Votos = personaje1Votos;
     }
 
-    public Long getPersonaje2Votos() {
+    public Double getPersonaje2Votos() {
         return personaje2Votos;
     }
 
-    public void setPersonaje2Votos(Long personaje2Votos) {
+    public void setPersonaje2Votos(Double personaje2Votos) {
         this.personaje2Votos = personaje2Votos;
     }
 }

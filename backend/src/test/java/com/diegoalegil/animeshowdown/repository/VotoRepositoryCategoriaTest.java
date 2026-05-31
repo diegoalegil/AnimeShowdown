@@ -70,8 +70,8 @@ class VotoRepositoryCategoriaTest {
         RankingItem itemB = buscar(poder, b.getId());
         assertNotNull(itemA, "A debe aparecer en ranking de poder");
         assertNotNull(itemB, "B debe aparecer en ranking de poder");
-        assertEquals(2L, itemA.getVotos(), "A tiene 2 votos de poder");
-        assertEquals(1L, itemB.getVotos(), "B tiene 1 voto de poder (los 3 de diseno no cuentan)");
+        assertEquals(2.0, itemA.getVotos(), 0.001, "A tiene 2 votos de poder");
+        assertEquals(1.0, itemB.getVotos(), 0.001, "B tiene 1 voto de poder (los 3 de diseno no cuentan)");
         assertTrue(indiceDe(poder, a.getId()) < indiceDe(poder, b.getId()),
                 "A (2 poder) debe ordenarse antes que B (1 poder)");
     }
@@ -87,7 +87,7 @@ class VotoRepositoryCategoriaTest {
                 "carisma", ahora.minusDays(30), top);
         RankingItem itemA = buscar(mes, a.getId());
         assertNotNull(itemA, "A debe aparecer en el ranking mensual de carisma");
-        assertEquals(1L, itemA.getVotos(),
+        assertEquals(1.0, itemA.getVotos(), 0.001,
                 "Solo el voto dentro de los últimos 30 días debe contar");
     }
 
@@ -117,7 +117,7 @@ class VotoRepositoryCategoriaTest {
         List<RankingItem> global = votoRepository.obtenerRanking();
         RankingItem itemA = buscar(global, a.getId());
         assertNotNull(itemA, "A debe aparecer en el ranking global");
-        assertEquals(3L, itemA.getVotos(),
+        assertEquals(3.0, itemA.getVotos(), 0.001,
                 "El global cuenta los 3 votos (2 categorizados + 1 sin categoría)");
         assertEquals(3.0, itemA.getPesoVotos(), 0.001,
                 "El peso global suma los 3 votos registrados (1.0 cada uno)");
