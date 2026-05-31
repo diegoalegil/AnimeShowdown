@@ -98,8 +98,17 @@ public class BracketAdvanceService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Resultado cerrarRondaYAvanzar(Torneo torneo) {
+        return cerrarRondaYAvanzarInternal(torneo, true);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Resultado cerrarRondaIntermediaYAvanzar(Torneo torneo) {
+        return cerrarRondaYAvanzarInternal(torneo, false);
+    }
+
+    private Resultado cerrarRondaYAvanzarInternal(Torneo torneo, boolean permitirFinalizar) {
         List<Enfrentamiento> todos = enfrentamientoRepository
-                .findByTorneoOrderByRondaAscIdAsc(torneo);
+                .findByTorneoForUpdateOrderByRondaAscIdAsc(torneo);
         if (todos.isEmpty()) {
             return Resultado.SIN_CAMBIOS;
         }
@@ -151,12 +160,19 @@ public class BracketAdvanceService {
         for (Enfrentamiento m : matches) {
             double v1 = votoRepository.scoreByEnfrentamientoAndPersonaje(m, m.getPersonaje1());
             double v2 = votoRepository.scoreByEnfrentamientoAndPersonaje(m, m.getPersonaje2());
-            if (Double.compare(v1, v2) == 0) {
-                log.info("Torneo {} ronda {}: match {} empatado ({}-{}); no se cierra ronda",
-                        torneo.getSlug(), rondaACerrar, m.getId(), v1, v2);
+            if (Double.compare(v1 + v2, 0.0) == 0) {
+                log.debug("Torneo {} ronda {}: match {} sin votos; no se cierra ronda",
+                        torneo.getSlug(), rondaACerrar, m.getId());
                 return Resultado.SIN_CAMBIOS;
             }
-            ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
+            if (Double.compare(v1, v2) == 0) {
+                Personaje desempate = resolverEmpate(m);
+                log.info("Torneo {} ronda {}: match {} empatado ({}-{}); desempate={} por ranking/id",
+                        torneo.getSlug(), rondaACerrar, m.getId(), v1, v2, desempate.getSlug());
+                ganadores.add(desempate);
+            } else {
+                ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
+            }
         }
 
         // sanity check del bracket malformado ANTES de
@@ -174,6 +190,9 @@ public class BracketAdvanceService {
                         siguiente == null ? 0 : siguiente.size(), matches.size() / 2);
                 return Resultado.SIN_CAMBIOS;
             }
+        }
+        if (rondaACerrar.equals(maxRonda) && !permitirFinalizar) {
+            return Resultado.SIN_CAMBIOS;
         }
 
         // Validado: ahora sí, persistir ganadores de la ronda.
@@ -239,6 +258,17 @@ public class BracketAdvanceService {
         return ultima;
     }
 
+    public Resultado cerrarRondasIntermedias(Torneo torneo) {
+        final int MAX_RONDAS = 9;
+        Resultado ultima = Resultado.SIN_CAMBIOS;
+        for (int i = 0; i < MAX_RONDAS; i++) {
+            Resultado r = self.cerrarRondaIntermediaYAvanzar(torneo);
+            if (r == Resultado.SIN_CAMBIOS) return ultima == Resultado.AVANZADA ? ultima : r;
+            ultima = r;
+        }
+        return ultima;
+    }
+
     private Resultado finalizarSiCorresponde(Torneo torneo, List<Enfrentamiento> ultimaRonda) {
         if (torneo.getEstado() == EstadoTorneo.FINISHED) {
             return Resultado.SIN_CAMBIOS;
@@ -253,5 +283,16 @@ public class BracketAdvanceService {
             return Resultado.TORNEO_FINALIZADO;
         }
         return Resultado.SIN_CAMBIOS;
+    }
+
+    private Personaje resolverEmpate(Enfrentamiento m) {
+        Personaje p1 = m.getPersonaje1();
+        Personaje p2 = m.getPersonaje2();
+        double global1 = votoRepository.sumaPesoByPersonajeId(p1.getId());
+        double global2 = votoRepository.sumaPesoByPersonajeId(p2.getId());
+        int cmp = Double.compare(global1, global2);
+        if (cmp > 0) return p1;
+        if (cmp < 0) return p2;
+        return p1.getId() <= p2.getId() ? p1 : p2;
     }
 }

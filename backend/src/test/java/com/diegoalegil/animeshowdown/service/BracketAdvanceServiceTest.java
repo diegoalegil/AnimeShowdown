@@ -110,7 +110,7 @@ class BracketAdvanceServiceTest {
         @Test
         void retornaSinCambiosCuandoNoHayEnfrentamientos() {
             Torneo t = makeTorneo(1L, "test");
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of());
 
             var result = service.cerrarRondaYAvanzar(t);
@@ -126,7 +126,7 @@ class BracketAdvanceServiceTest {
             t.setEstado(EstadoTorneo.FINISHED);
             Personaje gan = p(1L).build();
             Enfrentamiento e1 = enfConGanador(1L, 1, p(2L).build(), p(3L).build(), gan, t);
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1));
 
             var result = service.cerrarRondaYAvanzar(t);
@@ -142,7 +142,7 @@ class BracketAdvanceServiceTest {
             // state is already IN_PROGRESS from makeTorneo
             Personaje gan = p(1L).build();
             Enfrentamiento e1 = enfConGanador(1L, 1, p(2L).build(), p(3L).build(), gan, t);
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1));
             lenient().when(torneoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -160,7 +160,7 @@ class BracketAdvanceServiceTest {
             Personaje pp2 = p(2L).build();
             Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t); // completo
             Enfrentamiento e2 = enfVacio(2L, 1, t);                 // vacío
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1, e2));
 
             var result = service.cerrarRondaYAvanzar(t);
@@ -170,20 +170,41 @@ class BracketAdvanceServiceTest {
         }
 
         @Test
-        void retornaSinCambiosCuandoHayEmpate() {
+        void retornaSinCambiosCuandoNoHayVotos() {
             Torneo t = makeTorneo(1L, "test");
             Personaje pp1 = p(1L).build();
             Personaje pp2 = p(2L).build();
             Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1));
-            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(5.0);
-            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(5.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(0.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(0.0);
 
             var result = service.cerrarRondaYAvanzar(t);
 
             assertThat(result).isEqualTo(BracketAdvanceService.Resultado.SIN_CAMBIOS);
             verify(enfrentamientoRepository, never()).save(any(Enfrentamiento.class));
+        }
+
+        @Test
+        void empateExactoConVotosSeResuelvePorScoreGlobal() {
+            Torneo t = makeTorneo(1L, "test");
+            Personaje pp1 = p(1L).build();
+            Personaje pp2 = p(2L).build();
+            Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
+                    .thenReturn(List.of(e1));
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(5.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(5.0);
+            when(votoRepository.sumaPesoByPersonajeId(pp1.getId())).thenReturn(10.0);
+            when(votoRepository.sumaPesoByPersonajeId(pp2.getId())).thenReturn(12.0);
+            lenient().when(torneoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            var result = service.cerrarRondaYAvanzar(t);
+
+            assertThat(result).isEqualTo(BracketAdvanceService.Resultado.TORNEO_FINALIZADO);
+            assertThat(e1.getGanador()).isEqualTo(pp2);
+            assertThat(t.getGanadorPersonaje()).isEqualTo(pp2);
         }
 
         @Test
@@ -195,7 +216,7 @@ class BracketAdvanceServiceTest {
             Personaje pp2 = p(2L).build();
             Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
             Enfrentamiento e2 = enfVacio(2L, 2, t); // size=1 pero e1.size/2=0 esperado
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1, e2));
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(10.0);
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(2.0);
@@ -217,7 +238,7 @@ class BracketAdvanceServiceTest {
             Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t); // i=0
             Enfrentamiento e2 = enfSinGanador(2L, 1, pp3, pp4, t); // i=1
             Enfrentamiento dst = enfVacio(3L, 2, t);               // siguiente ronda
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1, e2, dst));
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(10.0);
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(2.0);
@@ -239,7 +260,7 @@ class BracketAdvanceServiceTest {
             Personaje pp1 = p(1L).build(); // gana
             Personaje pp2 = p(2L).build();
             Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
-            when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
+            when(enfrentamientoRepository.findByTorneoForUpdateOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1));
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(15.0);
             when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(3.0);
