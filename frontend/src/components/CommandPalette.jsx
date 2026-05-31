@@ -64,6 +64,7 @@ const rutas = [
   { to: '/leaderboards', label: 'Pioneros', icon: TrendingUp, searchTerms: 'comunidad usuarios ranking' },
   { to: '/logros', label: 'Logros — Catálogo de badges', icon: Trophy, searchTerms: 'badges achievements rareza' },
   { to: '/mi-top5', label: 'Mi Top 5 — Imagen compartible', icon: Sparkles, searchTerms: 'share top favoritos' },
+  { to: '/tier-lists', label: 'Tier lists — Creator', icon: Sparkles, searchTerms: 'tier list ranking export png' },
   { to: '/tv', label: 'Modo TV', icon: Tv, searchTerms: 'pantalla fullscreen directo' },
   { to: '/apoya', label: 'Apoya AnimeShowdown', icon: Heart, searchTerms: 'donar soporte apoyo' },
   { to: '/como-funciona', label: 'Cómo funciona', icon: HelpCircle, searchTerms: 'guia producto votar daily ranking' },

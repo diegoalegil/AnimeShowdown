@@ -564,6 +564,35 @@ describe('endpoints', () => {
     expect(url).toContain('/torneos/slug/grand-prize')
   })
 
+  it('tierListCreate: POST a /api/tier-lists', async () => {
+    const fn = mockFetchResolved({ id: 1 })
+    vi.stubGlobal('fetch', fn)
+    await endpoints.tierListCreate({ titulo: 'Naruto', publico: false, items: [] })
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/tier-lists')
+    expect(opts.method).toBe('POST')
+    expect(JSON.parse(opts.body as string)).toEqual({ titulo: 'Naruto', publico: false, items: [] })
+  })
+
+  it('tierListUpdate: PUT con id', async () => {
+    const fn = mockFetchResolved({ id: 7 })
+    vi.stubGlobal('fetch', fn)
+    await endpoints.tierListUpdate(7, { titulo: 'Actualizada', items: [] })
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/tier-lists/7')
+    expect(opts.method).toBe('PUT')
+  })
+
+  it('tierListPublic: GET público por slug', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.tierListPublic('best-naruto')
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/tier-lists/public/best-naruto')
+    expect(opts.method).toBe('GET')
+    expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
+  })
+
   it('rankingSegmentado: defaults periodo=all with no anime', async () => {
     const fn = mockFetchResolved([])
     vi.stubGlobal('fetch', fn)

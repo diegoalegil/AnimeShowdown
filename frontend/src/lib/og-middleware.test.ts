@@ -80,6 +80,12 @@ describe('ogParaRuta', () => {
     expect(og('/u/diego/otra-cosa')).toBeNull()
   })
 
+  it('mapea tier list pública a la OG de tier list', () => {
+    const r = og('/tier-lists/best-naruto')
+    expect(r?.image).toBe(`${API}/api/og/tier-list/best-naruto.png`)
+    expect(r?.title).toBe('Best Naruto · AnimeShowdown')
+  })
+
   it('devuelve null para rutas no mapeadas', () => {
     expect(og('/apoya')).toBeNull()
     expect(og('/')).toBeNull()
