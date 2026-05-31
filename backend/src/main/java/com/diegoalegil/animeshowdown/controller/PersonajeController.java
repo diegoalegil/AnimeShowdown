@@ -156,6 +156,30 @@ public class PersonajeController {
     }
 
     /**
+     * Personaje aleatorio para la ruleta pública.
+     *
+     * <p>No se cachea: cada click debe consultar una selección nueva. Si
+     * llega exclude, se evita devolver ese slug siempre que haya alternativas.
+     */
+    @GetMapping("/aleatorio")
+    public ResponseEntity<Personaje> aleatorio(
+            @RequestParam(name = "exclude", required = false) String excludeSlug) {
+        String excluded = normalizeOptionalSlug(excludeSlug);
+        List<Personaje> seleccion = excluded == null
+                ? personajeRepository.findRandom(1)
+                : personajeRepository.findRandomExcluding(excluded, 1);
+        if (seleccion.isEmpty() && excluded != null) {
+            seleccion = personajeRepository.findRandom(1);
+        }
+        if (seleccion.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(seleccion.get(0));
+    }
+
+    /**
      * Batch público para sparklines de ranking. Evita disparar 10 requests
      * independientes desde /ranking cuando solo necesitamos la mini serie de
      * los Top 10 visibles.
@@ -450,5 +474,12 @@ public class PersonajeController {
         String canonical = PersonajeSlugAliases.canonical(slug);
         return personajeRepository.findBySlug(canonical)
                 .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: slug=" + slug));
+    }
+
+    private String normalizeOptionalSlug(String slug) {
+        if (slug == null || slug.isBlank()) {
+            return null;
+        }
+        return PersonajeSlugAliases.canonical(slug.trim());
     }
 }

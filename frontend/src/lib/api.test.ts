@@ -544,6 +544,16 @@ describe('endpoints', () => {
     expect(fn.mock.calls.length).toBeGreaterThan(0)
   })
 
+  it('personajeAleatorio: llama al endpoint publico con exclusion opcional', async () => {
+    const fn = mockFetchResolved({ slug: 'zoro' })
+    vi.stubGlobal('fetch', fn)
+    await endpoints.personajeAleatorio({ exclude: 'luffy' })
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/personajes/aleatorio')
+    expect(url).toContain('exclude=luffy')
+    expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
+  })
+
   it('adminComentarios: uses URLSearchParams correctly', async () => {
     const fn = mockFetchResolved([])
     vi.stubGlobal('fetch', fn)
