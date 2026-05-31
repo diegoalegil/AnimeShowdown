@@ -13,6 +13,10 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 import Avatar from '../components/Avatar'
 import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import PersonajeImg from '../components/PersonajeImg'
+import {
+  getDueloLivePollDelay,
+  shouldPollDueloLiveFallback,
+} from '../lib/dueloLiveRecoveryPolicy'
 
 function toMs(value) {
   if (!value) return null
@@ -116,20 +120,37 @@ function DueloLivePage() {
     }
   }, [lastMessage])
 
+  const estadoActual = state?.estado
+  const dueloId = state?.id
+
   useEffect(() => {
-    const estado = state?.estado
-    const necesitaRecuperacion = estado === 'WAITING' || estado === 'MATCHED' || estado === 'IN_PROGRESS'
-    if (!user || !necesitaRecuperacion) return undefined
-    const id = window.setInterval(() => {
-      const request = state?.id ? endpoints.dueloLiveState(state.id) : endpoints.dueloLiveActive()
+    if (!shouldPollDueloLiveFallback({ user, state: { estado: estadoActual }, connected })) return undefined
+    let cancelled = false
+    let timeoutId
+    let failures = 0
+    const poll = () => {
+      const request = dueloId ? endpoints.dueloLiveState(dueloId) : endpoints.dueloLiveActive()
       request
         .then((data) => {
+          if (cancelled) return
+          failures = 0
           if (data) setState(data)
         })
-        .catch(() => {})
-    }, 1500)
-    return () => window.clearInterval(id)
-  }, [state?.estado, state?.id, user])
+        .catch(() => {
+          failures += 1
+        })
+        .finally(() => {
+          if (!cancelled) {
+            timeoutId = window.setTimeout(poll, getDueloLivePollDelay(failures))
+          }
+        })
+    }
+    timeoutId = window.setTimeout(poll, getDueloLivePollDelay(0))
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeoutId)
+    }
+  }, [connected, dueloId, estadoActual, user])
 
   if (!user) return <Navigate to="/login?next=/duel-live" replace />
 

@@ -45,11 +45,14 @@ import com.diegoalegil.animeshowdown.security.JwtUtil;
  * busca el usuario y setea el {@link java.security.Principal} en la sesión
  * STOMP — eso permite usar <code>convertAndSendToUser(usuario.getUsername(),...)</code>.
  * Si no envía token, el CONNECT queda anónimo y solo sirve para topics
- * públicos como ranking/brackets.
+ * públicos como ranking/brackets. El PvP live usa exclusivamente colas
+ * privadas <code>/user/queue/duelo</code>; no expone estado de ronda en
+ * topics públicos.
  *
  * <p>Los topics <code>/topic/**</code> permiten suscripciones sin auth (son
- * broadcast público). Las colas <code>/user/**</code> solo reciben eventos
- * útiles cuando el CONNECT incluye JWT y hay Principal.
+ * broadcast público), salvo los destinos reservados de PvP live. Las colas
+ * <code>/user/**</code> solo reciben eventos útiles cuando el CONNECT incluye
+ * JWT y hay Principal.
  */
 @Configuration
 @EnableWebSocketMessageBroker
@@ -128,11 +131,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             if (accessor == null) {
                 return message;
             }
+            String destination = accessor.getDestination();
+            if (accessor.getCommand() == StompCommand.SUBSCRIBE
+                    && isDueloLivePublicStateDestination(destination)) {
+                log.warn("WS SUBSCRIBE PvP publico rechazado destination={}", destination);
+                throw new IllegalArgumentException("El estado PvP live se emite por cola privada");
+            }
             if (accessor.getCommand() == StompCommand.SEND
-                    && accessor.getDestination() != null
-                    && accessor.getDestination().startsWith("/app/duelo")
+                    && destination != null
+                    && destination.startsWith("/app/duelo")
                     && accessor.getUser() == null) {
-                log.warn("WS SEND PvP sin Principal — rechazado destination={}", accessor.getDestination());
+                log.warn("WS SEND PvP sin Principal — rechazado destination={}", destination);
                 throw new IllegalArgumentException("Los mensajes PvP requieren JWT válido");
             }
             if (accessor.getCommand() != StompCommand.CONNECT) {
@@ -172,5 +181,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             log.debug("WS CONNECT OK: username={}", username);
             return message;
         }
+    }
+
+    static boolean isDueloLivePublicStateDestination(String destination) {
+        return destination != null && destination.startsWith("/topic/duelo/");
     }
 }

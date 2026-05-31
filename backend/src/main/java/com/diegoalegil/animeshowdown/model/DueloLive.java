@@ -19,6 +19,8 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "duelos_live", indexes = {
         @Index(name = "idx_duelos_live_estado", columnList = "estado"),
+        @Index(name = "idx_duelos_live_estado_creado", columnList = "estado,creado_en"),
+        @Index(name = "idx_duelos_live_estado_elo_creado", columnList = "estado,jugador1_elo_before,creado_en"),
         @Index(name = "idx_duelos_live_jugador1", columnList = "jugador1_id"),
         @Index(name = "idx_duelos_live_jugador2", columnList = "jugador2_id"),
         @Index(name = "idx_duelos_live_creado", columnList = "creado_en"),
