@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.dto.PersonajeCatalogoDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
 
 public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
@@ -20,6 +21,21 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
 
     @Query("SELECT p FROM Personaje p ORDER BY p.slug ASC")
     List<Personaje> findAllOrderBySlug();
+
+    @Query("""
+            SELECT new com.diegoalegil.animeshowdown.dto.PersonajeCatalogoDto(
+                p.id,
+                p.slug,
+                p.nombre,
+                p.anime,
+                p.descripcion,
+                p.imagenUrl,
+                p.imagenColorDominante
+            )
+            FROM Personaje p
+            ORDER BY p.slug ASC
+            """)
+    List<PersonajeCatalogoDto> findAllCatalogoOrderBySlug();
 
     /**
      * Selección aleatoria de N personajes distintos. Delega la ordenación
