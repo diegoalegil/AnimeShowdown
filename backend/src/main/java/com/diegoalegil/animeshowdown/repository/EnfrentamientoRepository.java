@@ -3,7 +3,10 @@ package com.diegoalegil.animeshowdown.repository;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +25,21 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
      * arriba abajo). Resuelto por idx_enf_torneo_ronda sin sort en memoria.
      */
     List<Enfrentamiento> findByTorneoOrderByRondaAscIdAsc(Torneo torneo);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT e FROM Enfrentamiento e
+            WHERE e.id = :id
+            """)
+    Optional<Enfrentamiento> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT e FROM Enfrentamiento e
+            WHERE e.torneo = :torneo
+            ORDER BY e.ronda ASC, e.id ASC
+            """)
+    List<Enfrentamiento> findByTorneoForUpdateOrderByRondaAscIdAsc(@Param("torneo") Torneo torneo);
 
     /**
      * query batch para evitar N+1 en TorneoQueryService

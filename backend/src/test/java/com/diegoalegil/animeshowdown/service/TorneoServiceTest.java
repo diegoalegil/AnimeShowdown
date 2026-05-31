@@ -527,7 +527,7 @@ class TorneoServiceTest {
             IllegalStateException ex = assertThrows(IllegalStateException.class,
                     () -> service.finalizar(1L));
 
-            assertThat(ex.getMessage()).contains("empates");
+            assertThat(ex.getMessage()).contains("matches sin votos");
         }
 
         @Test

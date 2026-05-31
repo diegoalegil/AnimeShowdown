@@ -17,14 +17,17 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,12 +38,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
+import com.diegoalegil.animeshowdown.dto.CategoriaVotoRequest;
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeMiniDto;
 import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
-import com.diegoalegil.animeshowdown.dto.CategoriaVotoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoRegistradoDto;
+import com.diegoalegil.animeshowdown.event.EnfrentamientoVotadoEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.CategoriaVoto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
@@ -55,11 +59,6 @@ import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.TurnstileVerifierService;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.beans.factory.annotation.Value;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -184,7 +183,7 @@ public class EnfrentamientoController {
             @AuthenticationPrincipal Usuario usuario,
             HttpServletRequest httpRequest) {
 
-        Optional<Enfrentamiento> enfOpt = enfrentamientoRepository.findById(id);
+        Optional<Enfrentamiento> enfOpt = enfrentamientoRepository.findByIdForUpdate(id);
         if (enfOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -357,6 +356,7 @@ public class EnfrentamientoController {
         if (usuario != null) {
             eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador));
         }
+        eventPublisher.publishEvent(new EnfrentamientoVotadoEvent(enf.getTorneo().getId(), enf.getId()));
 
         Integer votosAnonimosRestantes = null;
         if (usuario == null) {
