@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join, basename } from 'node:path'
 import {
@@ -213,10 +214,12 @@ function criticalCssPlugin() {
     apply: 'build',
     enforce: 'post',
     async closeBundle() {
-      const distHtml = resolve(__dirname, 'dist', 'index.html')
+      const distDir = resolve(__dirname, 'dist')
+      const distHtml = resolve(distDir, 'index.html')
+      const distHeaders = resolve(distDir, '_headers')
       if (!existsSync(distHtml)) return
       const beasties = new Beasties({
-        path: resolve(__dirname, 'dist'),
+        path: distDir,
         publicPath: '/',
         preload: false,
         pruneSource: false,
@@ -227,6 +230,7 @@ function criticalCssPlugin() {
         const html = readFileSync(distHtml, 'utf8')
         const processed = await beasties.process(html)
         writeFileSync(distHtml, processed)
+        updateCriticalStyleHashes(distHeaders, processed)
         console.log('[critical-css] index.html procesado con beasties')
       } catch (err) {
         // No tumbamos el build si beasties falla — degradación: HTML sin
@@ -235,6 +239,51 @@ function criticalCssPlugin() {
       }
     },
   }
+}
+
+function updateCriticalStyleHashes(headersPath, html) {
+  if (!existsSync(headersPath)) return
+  const hashes = inlineStyleHashes(html)
+  if (hashes.length === 0) return
+
+  const headers = readFileSync(headersPath, 'utf8')
+  const updated = headers.replace(
+    /(Content-Security-Policy:\s*)([^\n]+)/,
+    (_, prefix, csp) => `${prefix}${appendStyleHashesToCsp(csp, hashes)}`,
+  )
+  if (updated !== headers) {
+    writeFileSync(headersPath, updated)
+    console.log(`[critical-css] CSP actualizada con ${hashes.length} hash(es) de style inline`)
+  }
+}
+
+function inlineStyleHashes(html) {
+  const hashes = new Set()
+  for (const match of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)) {
+    const content = match[1]
+    if (content.trim()) {
+      hashes.add(`'sha256-${createHash('sha256').update(content).digest('base64')}'`)
+    }
+  }
+  return [...hashes]
+}
+
+function appendStyleHashesToCsp(csp, hashes) {
+  return csp
+    .split(';')
+    .map((directive) => {
+      const trimmed = directive.trim()
+      if (!trimmed) return trimmed
+      const [name, ...tokens] = trimmed.split(/\s+/)
+      if (name !== 'style-src' && name !== 'style-src-elem') return trimmed
+
+      const tokenSet = new Set(tokens)
+      for (const hash of hashes) {
+        tokenSet.add(hash)
+      }
+      return [name, ...tokenSet].join(' ')
+    })
+    .join('; ')
 }
 
 /**
