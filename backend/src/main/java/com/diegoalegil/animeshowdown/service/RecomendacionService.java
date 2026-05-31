@@ -73,20 +73,20 @@ public class RecomendacionService {
         if (targetOpt.isEmpty()) return List.of();
         Personaje target = targetOpt.get();
 
-        // 1-query batch: [personajeId, count] — light projection, no RankingItem
-        Map<Long, Long> votosPorPersonaje = new HashMap<>();
+        // 1-query batch: [personajeId, score] — light projection, no RankingItem
+        Map<Long, Double> votosPorPersonaje = new HashMap<>();
         for (Object[] row : votoRepository.votosPorPersonajes()) {
-            votosPorPersonaje.put((Long) row[0], (Long) row[1]);
+            votosPorPersonaje.put(((Number) row[0]).longValue(), ((Number) row[1]).doubleValue());
         }
 
-        long votosTarget = votosPorPersonaje.getOrDefault(target.getId(), 0L);
+        double votosTarget = votosPorPersonaje.getOrDefault(target.getId(), 0.0);
 
         // Proyección: solo campos display, sin descripcion/ELO. Excluye el
         // anime del target para discovery cross-universe.
         List<Personaje> candidatos = personajeRepository.findByAnimeNot(target.getAnime());
         List<PersonajeSimilarDto> ranked = new ArrayList<>(candidatos.size());
         for (Personaje p : candidatos) {
-            long votos = votosPorPersonaje.getOrDefault(p.getId(), 0L);
+            double votos = votosPorPersonaje.getOrDefault(p.getId(), 0.0);
             double score = similitudPorVotos(votosTarget, votos);
             ranked.add(new PersonajeSimilarDto(
                     p.getId(), p.getSlug(), p.getNombre(), p.getAnime(),
@@ -96,7 +96,7 @@ public class RecomendacionService {
         ranked.sort(
                 Comparator
                         .comparingDouble(PersonajeSimilarDto::score).reversed()
-                        .thenComparing(Comparator.comparingLong(PersonajeSimilarDto::votos).reversed())
+                        .thenComparing(Comparator.comparingDouble(PersonajeSimilarDto::votos).reversed())
                         .thenComparing(PersonajeSimilarDto::id));
         return ranked.subList(0, Math.min(n, ranked.size()));
     }
@@ -107,10 +107,10 @@ public class RecomendacionService {
      * (similitud 1) — en ese caso el tiebreaker por votos absolutos
      * desempata por popularidad real.
      */
-    private static double similitudPorVotos(long a, long b) {
-        long maximo = Math.max(Math.max(a, b), 1);
-        long delta = Math.abs(a - b);
-        return 1.0 - (double) delta / maximo;
+    private static double similitudPorVotos(double a, double b) {
+        double maximo = Math.max(Math.max(a, b), 1.0);
+        double delta = Math.abs(a - b);
+        return 1.0 - delta / maximo;
     }
 
     private int clampLimit(int limit) {
