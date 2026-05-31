@@ -28,6 +28,7 @@ const primaryNavLinks = [
 const moreNavLinks = [
   { to: '/cartas', i18nKey: 'cartas' },
   { to: '/tier-lists', i18nKey: 'tierLists' },
+  { to: '/fantasy', i18nKey: 'fantasy' },
   { to: '/feed', i18nKey: 'feed' },
   { to: '/eventos', i18nKey: 'eventos' },
   { to: '/duel-live', i18nKey: 'pvp' },

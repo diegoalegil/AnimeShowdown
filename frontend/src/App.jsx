@@ -49,6 +49,7 @@ const routePreloaders = {
   torneos: () => import('./pages/TorneosPage'),
   torneoDetail: () => import('./pages/TorneoDetailPage'),
   ranking: () => import('./pages/RankingPage'),
+  fantasy: () => import('./pages/FantasyPage'),
   votar: () => import('./pages/VotarPage'),
   games: () => import('./pages/GamesHubPage'),
   shadowGuess: () => import('./pages/GuessCharacterPage'),
@@ -77,6 +78,7 @@ const EventoDetailPage = lazyRoute(() => import('./pages/EventoDetailPage'))
 const DueloVersusPage = lazyRoute(() => import('./pages/DueloVersusPage'))
 const CompararPage = lazyRoute(() => import('./pages/CompararPage'))
 const RankingPage = lazyRoute(routePreloaders.ranking)
+const FantasyPage = lazyRoute(routePreloaders.fantasy)
 const HigherOrLowerPage = lazyRoute(routePreloaders.eloDuel)
 const VotarPage = lazyRoute(routePreloaders.votar)
 const DueloLivePage = lazyRoute(() => import('./pages/DueloLivePage'))
@@ -151,6 +153,7 @@ function routePreloaderFor(pathname) {
   if (pathname === '/torneos') return routePreloaders.torneos
   if (pathname.startsWith('/torneos/')) return routePreloaders.torneoDetail
   if (pathname === '/ranking') return routePreloaders.ranking
+  if (pathname === '/fantasy') return routePreloaders.fantasy
   if (pathname.startsWith('/rankings/')) return routePreloaders.editorialRanking
   if (pathname === '/votar') return routePreloaders.votar
   if (pathname === '/games') return routePreloaders.games
@@ -231,6 +234,7 @@ function getRouteSkeletonReserve(pathname) {
   if (pathname === '/') return 'min-h-[5818px]'
   if (pathname === '/votar') return 'min-h-[1256px]'
   if (pathname === '/ranking') return 'min-h-[12233px]'
+  if (pathname === '/fantasy') return 'min-h-[2100px]'
   if (pathname.startsWith('/personajes/')) return 'min-h-[4244px]'
   if (pathname.startsWith('/torneos/')) return 'min-h-[3404px]'
   if (pathname === '/games') return 'min-h-[2167px]'
@@ -451,6 +455,7 @@ function App() {
               <Route path="/compare" element={<Navigate replace to="/comparar" />} />
               <Route path="/comparar" element={gated(<CompararPage />)} />
               <Route path="/ranking" element={gated(<RankingPage />)} />
+              <Route path="/fantasy" element={gated(<FantasyPage />)} />
               <Route path="/rankings/:slug" element={gated(<EditorialRankingPage />)} />
               <Route path="/descubre-personaje" element={gated(<DescubrePersonajePage />)} />
               <Route path="/random" element={<Navigate replace to="/descubre-personaje" />} />
