@@ -95,7 +95,7 @@ class PerfilControllerTest {
     }
 
     @Test
-    void statsUsuarioNuevoDevuelveCeros() throws Exception {
+    void statsUsuarioNuevoIncluyeBadgeFundador() throws Exception {
         String token = tokenDe("perfil_alice", "perfil_alice@example.com");
         mvc.perform(get("/api/perfil/me/stats")
                 .header("Authorization", "Bearer " + token))
@@ -103,7 +103,7 @@ class PerfilControllerTest {
                 .andExpect(jsonPath("$.votosTotales").value(0))
                 .andExpect(jsonPath("$.prediccionesAcertadas").value(0))
                 .andExpect(jsonPath("$.porcentajeAciertos").value(0.0))
-                .andExpect(jsonPath("$.badgesDesbloqueados").value(0));
+                .andExpect(jsonPath("$.badgesDesbloqueados").value(1));
     }
 
     @Test
@@ -329,13 +329,15 @@ class PerfilControllerTest {
     }
 
     @Test
-    void actividadUsuarioNuevoDevuelveListaVacia() throws Exception {
+    void actividadUsuarioNuevoIncluyeBadgeFundador() throws Exception {
         String token = tokenDe("activ_alice", "activ_alice@example.com");
         mvc.perform(get("/api/perfil/me/actividad")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].tipo").value("LOGRO"))
+                .andExpect(jsonPath("$[0].payload.codigo").value("fundador"));
     }
 
     @Test

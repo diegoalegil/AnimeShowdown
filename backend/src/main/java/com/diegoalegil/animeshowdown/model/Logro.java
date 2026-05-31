@@ -8,9 +8,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Catálogo de logros/badges. Inmutable — los registros vienen
- * del seed en V7 y nunca se modifican desde el código de aplicación. Para
- * añadir uno nuevo, una migración Flyway con un INSERT.
+ * Catálogo de logros/badges. Los registros base vienen del seed inicial y de
+ * semillas controladas de la aplicación; el código de cada badge es estable y
+ * no se renombra.
  *
  * <p>El campo {@link #codigo} es el identificador estable que usa el código
  * Java para desbloquear ({@code badgeService.desbloquear(usuario, "primer_voto")}).

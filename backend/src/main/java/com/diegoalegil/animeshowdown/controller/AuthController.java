@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,7 @@ import com.diegoalegil.animeshowdown.dto.Totp2faDisableRequest;
 import com.diegoalegil.animeshowdown.dto.Totp2faEnableRequest;
 import com.diegoalegil.animeshowdown.dto.Totp2faVerifyLoginRequest;
 import com.diegoalegil.animeshowdown.dto.UsuarioRespuesta;
+import com.diegoalegil.animeshowdown.event.UsuarioRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
@@ -97,6 +99,7 @@ public class AuthController {
     private final TotpBackupCodeService totpBackupCodeService;
     private final ReferralService referralService;
     private final ClientIpExtractor clientIpExtractor;
+    private final ApplicationEventPublisher eventPublisher;
     private final boolean cookieSecure;
 
     public AuthController(
@@ -113,6 +116,7 @@ public class AuthController {
             TotpBackupCodeService totpBackupCodeService,
             ReferralService referralService,
             ClientIpExtractor clientIpExtractor,
+            ApplicationEventPublisher eventPublisher,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
@@ -127,6 +131,7 @@ public class AuthController {
         this.totpBackupCodeService = totpBackupCodeService;
         this.referralService = referralService;
         this.clientIpExtractor = clientIpExtractor;
+        this.eventPublisher = eventPublisher;
         this.cookieSecure = cookieSecure;
         log.info("AuthController arrancado con cookieSecure={}", cookieSecure);
     }
@@ -220,6 +225,7 @@ public class AuthController {
         referralService.asignarCodigoSiHaceFalta(nuevoUsuario);
 
         Usuario guardado = usuarioRepository.save(nuevoUsuario);
+        eventPublisher.publishEvent(new UsuarioRegistradoEvent(guardado.getId()));
 
         // Emite token de verificación + dispara email asíncrono. Si el envío
         // falla, el log queda en EmailService; el usuario verá el banner en
