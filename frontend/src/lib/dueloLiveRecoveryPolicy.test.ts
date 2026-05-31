@@ -2,17 +2,39 @@ import { describe, expect, it } from 'vitest'
 import {
   DUEL_LIVE_POLL_BASE_MS,
   DUEL_LIVE_POLL_MAX_MS,
+  DUEL_LIVE_PUSH_FRESH_MS,
   getDueloLivePollDelay,
   shouldPollDueloLiveFallback,
 } from './dueloLiveRecoveryPolicy'
 
 describe('dueloLiveRecoveryPolicy', () => {
-  it('mantiene el polling REST apagado cuando el WebSocket privado esta conectado', () => {
+  it('mantiene el polling REST apagado cuando el WebSocket privado esta fresco', () => {
+    const now = 20_000
     expect(shouldPollDueloLiveFallback({
       user: { username: 'diego' },
       connected: true,
       state: { estado: 'IN_PROGRESS' },
+      lastPushAt: now - DUEL_LIVE_PUSH_FRESH_MS + 1,
+      now,
     })).toBe(false)
+  })
+
+  it('activa fallback con conexion directa si el push privado no llega o queda viejo', () => {
+    const now = 20_000
+    expect(shouldPollDueloLiveFallback({
+      user: { username: 'diego' },
+      connected: true,
+      state: { estado: 'MATCHED' },
+      lastPushAt: 0,
+      now,
+    })).toBe(true)
+    expect(shouldPollDueloLiveFallback({
+      user: { username: 'diego' },
+      connected: true,
+      state: { estado: 'MATCHED' },
+      lastPushAt: now - DUEL_LIVE_PUSH_FRESH_MS,
+      now,
+    })).toBe(true)
   })
 
   it('activa fallback solo para duelos recuperables sin conexion directa', () => {

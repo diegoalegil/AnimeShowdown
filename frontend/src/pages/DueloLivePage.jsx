@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Activity, Loader2, LogOut, Radio, Share2, ShieldCheck, Swords, Zap } from 'lucide-react'
@@ -15,6 +15,7 @@ import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import PersonajeImg from '../components/PersonajeImg'
 import {
   getDueloLivePollDelay,
+  isRecoverableDueloLiveState,
   shouldPollDueloLiveFallback,
 } from '../lib/dueloLiveRecoveryPolicy'
 
@@ -85,6 +86,7 @@ function DueloLivePage() {
   const [loading, setLoading] = useState(true)
   const [joining, setJoining] = useState(false)
   const [voting, setVoting] = useState(false)
+  const lastDueloLivePushAtRef = useRef(0)
   const { lastMessage, connected } = useStompSubscription('/user/queue/duelo', {
     enabled: Boolean(user),
   })
@@ -111,6 +113,7 @@ function DueloLivePage() {
 
   useEffect(() => {
     if (!lastMessage) return
+    lastDueloLivePushAtRef.current = Date.now()
     queueMicrotask(() => setState(lastMessage))
     if (lastMessage.event === 'MATCH_FOUND') {
       toast.success('Rival encontrado', { description: 'Duelo listo' })
@@ -124,11 +127,28 @@ function DueloLivePage() {
   const dueloId = state?.id
 
   useEffect(() => {
-    if (!shouldPollDueloLiveFallback({ user, state: { estado: estadoActual }, connected })) return undefined
+    if (!user || !isRecoverableDueloLiveState(estadoActual)) return undefined
     let cancelled = false
     let timeoutId
     let failures = 0
-    const poll = () => {
+
+    function schedule() {
+      if (!cancelled) {
+        timeoutId = window.setTimeout(poll, getDueloLivePollDelay(failures))
+      }
+    }
+
+    function poll() {
+      if (!shouldPollDueloLiveFallback({
+        user,
+        state: { estado: estadoActual },
+        connected,
+        lastPushAt: lastDueloLivePushAtRef.current,
+      })) {
+        failures = 0
+        schedule()
+        return
+      }
       const request = dueloId ? endpoints.dueloLiveState(dueloId) : endpoints.dueloLiveActive()
       request
         .then((data) => {
@@ -139,13 +159,10 @@ function DueloLivePage() {
         .catch(() => {
           failures += 1
         })
-        .finally(() => {
-          if (!cancelled) {
-            timeoutId = window.setTimeout(poll, getDueloLivePollDelay(failures))
-          }
-        })
+        .finally(schedule)
     }
-    timeoutId = window.setTimeout(poll, getDueloLivePollDelay(0))
+
+    schedule()
     return () => {
       cancelled = true
       window.clearTimeout(timeoutId)
