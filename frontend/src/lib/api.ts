@@ -861,6 +861,15 @@ export const endpoints: EndpointMap = {
       auth: false,
       timeoutMs: 8000,
     }),
+  personajeAleatorio: ({ exclude } = {}) => {
+    const params = new URLSearchParams()
+    if (exclude) params.set('exclude', exclude)
+    const query = params.toString()
+    return api.get(
+      `/api/personajes/aleatorio${query ? `?${query}` : ''}`,
+      { auth: false, timeoutMs: 4000 },
+    )
+  },
   buscarPersonajes: ({ q, limit = 10, signal } = {}) =>
     api.get(
       `/api/personajes/buscar?q=${encodeURIComponent(q || '')}&limit=${limit}`,

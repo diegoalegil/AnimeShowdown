@@ -10,6 +10,7 @@
     "cartas": "Cards",
     "tierLists": "Tier lists",
     "fantasy": "Fantasy",
+    "ruleta": "Roulette",
     "votar": "Vote",
     "comparar": "Compare",
     "games": "Games",
@@ -37,7 +38,9 @@
     "idioma": "Language",
     "elegirIdioma": "Choose language",
     "ctaVotar": "Vote now",
-    "ctaVotarCompact": "Vote"
+    "ctaVotarCompact": "Vote",
+    "ruletaAria": "Open a random character",
+    "ruletaLoading": "Rolling"
   },
   "footer": {
     "descripcion": "A platform for head-to-head duels, ELO ranking and visual tournaments between the most iconic anime characters. You decide who rules.",
@@ -73,6 +76,8 @@
     "tituloDespues": "is decided by you.",
     "subtitulo": "1v1 duels, live ELO ranking and new tournaments every week. Your vote moves the ranking.",
     "ctaTorneos": "Start voting",
+    "ctaRuleta": "Roulette",
+    "ctaRuletaLoading": "Rolling",
     "ctaRanking": "View ranking",
     "features": "Vote duels · Decide rankings · Compete in tournaments",
     "torneoDestacado": "Featured tournament",
