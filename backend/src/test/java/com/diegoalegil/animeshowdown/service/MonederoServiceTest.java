@@ -35,7 +35,7 @@ class MonederoServiceTest {
     @Autowired private MonederoService monederoService;
     @SpyBean private MonederoRepository monederoRepo;
     @Autowired private MonederoMovimientoRepository movimientoRepo;
-    @Autowired private UsuarioRepository usuarioRepo;
+    @SpyBean private UsuarioRepository usuarioRepo;
 
     @BeforeEach
     void limpiar() {
@@ -67,6 +67,7 @@ class MonederoServiceTest {
 
         verify(monederoRepo).findForUpdateByUsuarioId(usuario.getId());
         verify(monederoRepo, never()).findByUsuarioId(usuario.getId());
+        verify(usuarioRepo, never()).findForUpdateById(usuario.getId());
         assertThat(monederoService.saldoDe(usuario)).isEqualTo(10L);
     }
 
@@ -89,6 +90,7 @@ class MonederoServiceTest {
         assertThat(resultado.aplicado()).isTrue();
         assertThat(resultado.saldo()).isEqualTo(25L);
         assertThat(monederoService.saldoDe(usuario)).isEqualTo(25L);
+        verify(usuarioRepo).findForUpdateById(usuario.getId());
     }
 
     /**
