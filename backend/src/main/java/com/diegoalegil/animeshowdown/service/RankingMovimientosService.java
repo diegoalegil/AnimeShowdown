@@ -2,9 +2,12 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +42,7 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 public class RankingMovimientosService {
 
     private static final int LIMITE_MAX = 100;
+    private static final int LIMITE_HISTORICO_FANTASY = 5000;
 
     private final VotoRepository votoRepository;
 
@@ -86,5 +90,42 @@ public class RankingMovimientosService {
                     esNuevo));
         }
         return out;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> calcularDeltasPosicion(
+            Collection<Long> personajeIds,
+            LocalDateTime inicio,
+            LocalDateTime fin) {
+        if (personajeIds == null || personajeIds.isEmpty()) return Map.of();
+        Set<Long> ids = personajeIds.stream()
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        if (ids.isEmpty()) return Map.of();
+
+        Map<Long, Integer> posicionesInicio = posicionesHasta(inicio);
+        Map<Long, Integer> posicionesFin = posicionesHasta(fin);
+        Map<Long, Integer> deltas = new HashMap<>();
+        for (Long id : ids) {
+            Integer inicioPos = posicionesInicio.get(id);
+            Integer finPos = posicionesFin.get(id);
+            int delta = inicioPos != null && finPos != null ? inicioPos - finPos : 0;
+            deltas.put(id, delta);
+        }
+        return deltas;
+    }
+
+    private Map<Long, Integer> posicionesHasta(LocalDateTime corte) {
+        List<RankingItem> ranking = votoRepository.rankingHasta(
+                corte,
+                PageRequest.of(0, LIMITE_HISTORICO_FANTASY));
+        Map<Long, Integer> posiciones = new HashMap<>();
+        for (int i = 0; i < ranking.size(); i++) {
+            Personaje p = ranking.get(i).getPersonaje();
+            if (p != null && p.getId() != null) {
+                posiciones.put(p.getId(), i + 1);
+            }
+        }
+        return posiciones;
     }
 }
