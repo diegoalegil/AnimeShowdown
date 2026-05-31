@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Scale, SkipForward, Swords, Zap } from 'lucide-react'
+import { ArrowRight, EyeOff, Scale, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
@@ -67,6 +67,7 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
  */
 
 const STORAGE_FAST = 'animeshowdown.votar.fast'
+const STORAGE_BLIND = 'animeshowdown.votar.blind'
 const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
 const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 const ANON_VOTE_LIMIT = 5
@@ -139,7 +140,15 @@ function formatPersonalVoteImpact(impact) {
  * Muestra un botón compacto que expande/contrae VotarQuickModes y
  * DailyMissionPanel para que la arena + resultado quepan sin scroll.
  */
-function MobileExtrasToggle({ a, b, fixedAnime, fixedPersonaje, exactDuelActive, hasFixedAnime }) {
+function MobileExtrasToggle({
+  a,
+  b,
+  fixedAnime,
+  fixedPersonaje,
+  exactDuelActive,
+  hasFixedAnime,
+  blindMode,
+}) {
   const [open, setOpen] = useState(false)
   return (
     <div className="sm:hidden">
@@ -161,6 +170,7 @@ function MobileExtrasToggle({ a, b, fixedAnime, fixedPersonaje, exactDuelActive,
             fixedPersonaje={fixedPersonaje}
             hasFixedDuel={exactDuelActive}
             hasFixedAnime={hasFixedAnime}
+            blindMode={blindMode}
           />
           <DailyMissionPanel compact />
         </div>
@@ -233,6 +243,13 @@ function VotarPage() {
       return true
     }
   })
+  const [blindMode, setBlindMode] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_BLIND) === 'true'
+    } catch {
+      return false
+    }
+  })
 
   useEffect(() => {
     try {
@@ -241,6 +258,14 @@ function VotarPage() {
       // ignore
     }
   }, [fastMode])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_BLIND, String(blindMode))
+    } catch {
+      // ignore
+    }
+  }, [blindMode])
 
   // Resultado del último voto registrado: el backend devuelve delta + votos
   // post-voto. Sirve para pintar el overlay "+1 ELO" sobre la card ganadora.
@@ -874,6 +899,7 @@ function VotarPage() {
 
   const needsCasualPair = !modoBackend && !modoSugerido && (!a || !b)
   const controlsDisabled = isVotePending || isAdvancing || isFetching || isFetchingDueloSugerido
+  const identitiesHidden = blindMode && !votedFor
   const handleVoteLeft = useCallback(() => {
     if (a) handleVote(a)
   }, [a, handleVote])
@@ -931,6 +957,45 @@ function VotarPage() {
     )
   }, [modoBackend, matchId, votedFor, user, votarMutation, handleTieVoteSuccess])
 
+  const arenaStatusLabel = modoBackend
+    ? 'Match en juego · En vivo'
+    : exactDuelActive
+      ? identitiesHidden
+        ? 'Duelo a ciegas'
+        : `${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
+      : fixedPersonaje
+        ? identitiesHidden
+          ? 'Reto a ciegas'
+          : `Retando a ${fixedPersonaje.nombre}`
+        : hasFixedAnime
+          ? identitiesHidden
+            ? 'Duelo interno a ciegas'
+            : `Duelo interno · ${fixedAnime}`
+          : modoSugerido
+            ? `Duelo ELO equilibrado · Δ ${dueloSugerido.eloDiff}`
+            : 'Enfrentamiento aleatorio'
+  const arenaDescription = modoBackend
+    ? votoInvitadoActivo
+      ? 'Puedes votar 5 duelos como invitado; crea cuenta para guardar tu historial'
+      : identitiesHidden
+        ? 'Voto a ciegas activo: decide sin ver identidades o reparte medio voto'
+        : 'Tu voto cuenta para el bracket en directo · puedes decidir o repartir medio voto'
+    : sinMatchesAbiertos
+      ? 'No hay torneos en juego — te proponemos pares de ELO similar'
+      : exactDuelActive
+        ? identitiesHidden
+          ? 'Duelo fijado con identidades ocultas hasta votar'
+          : `Duelo fijado desde una comparación: ${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
+        : fixedPersonaje
+          ? identitiesHidden
+            ? 'Duelo fijado desde ficha con identidad oculta'
+            : `Duelo fijado desde la ficha de ${fixedPersonaje.nombre}`
+          : hasFixedAnime
+            ? identitiesHidden
+              ? 'Solo personajes del mismo anime, ocultos hasta votar'
+              : `Solo personajes de ${fixedAnime} en este duelo`
+            : 'Elige quién gana este duelo y ayuda a mover el ranking competitivo'
+
   if ((!fixedPersonaje && !hasFixedAnime && isLoading) || needsCasualPair) {
     return (
       <VisualPageShell
@@ -962,21 +1027,11 @@ function VotarPage() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
             </span>
-            {modoBackend
-              ? 'Match en juego · En vivo'
-              : exactDuelActive
-                ? `${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
-                : fixedPersonaje
-                ? `Retando a ${fixedPersonaje.nombre}`
-                : hasFixedAnime
-                  ? `Duelo interno · ${fixedAnime}`
-              : modoSugerido
-                ? `Duelo ELO equilibrado · Δ ${dueloSugerido.eloDiff}`
-                : 'Enfrentamiento aleatorio'}
+            {arenaStatusLabel}
           </span>
 
           <div className="flex items-center gap-2">
-            {!votedFor && a?.slug && b?.slug && (
+            {!identitiesHidden && !votedFor && a?.slug && b?.slug && (
               <button
                 type="button"
                 onClick={handleChallenge}
@@ -1003,6 +1058,20 @@ function VotarPage() {
             </button>
             <button
               type="button"
+              onClick={() => setBlindMode((value) => !value)}
+              aria-pressed={blindMode}
+              title={blindMode ? 'Voto a ciegas activo · clic para desactivar' : 'Voto a ciegas desactivado · clic para activar'}
+              className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[12px] font-semibold transition-all ${
+                blindMode
+                  ? 'border-accent/60 bg-accent-soft text-gold'
+                  : 'border-border bg-surface text-fg-muted hover:border-accent/40 hover:text-gold'
+              }`}
+            >
+              <EyeOff className="h-3.5 w-3.5" />
+              Voto a ciegas
+            </button>
+            <button
+              type="button"
               onClick={handleNext}
               disabled={controlsDisabled}
               className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
@@ -1020,19 +1089,7 @@ function VotarPage() {
             ¿A quién prefieres?
           </h1>
           <p className="max-w-xl text-[13px] text-fg-muted">
-            {modoBackend
-              ? votoInvitadoActivo
-                ? 'Puedes votar 5 duelos como invitado; crea cuenta para guardar tu historial'
-                : 'Tu voto cuenta para el bracket en directo · puedes decidir o repartir medio voto'
-              : sinMatchesAbiertos
-                ? 'No hay torneos en juego — te proponemos pares de ELO similar'
-                : exactDuelActive
-                  ? `Duelo fijado desde una comparación: ${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
-                : fixedPersonaje
-                  ? `Duelo fijado desde la ficha de ${fixedPersonaje.nombre}`
-                  : hasFixedAnime
-                    ? `Solo personajes de ${fixedAnime} en este duelo`
-                  : 'Elige quién gana este duelo y ayuda a mover el ranking competitivo'}
+            {arenaDescription}
           </p>
         </header>
 
@@ -1053,6 +1110,7 @@ function VotarPage() {
           voteResult={voteResult}
           controlsDisabled={controlsDisabled}
           votoInvitadoActivo={votoInvitadoActivo}
+          blindMode={identitiesHidden}
           handleVoteLeft={handleVoteLeft}
           handleVoteRight={handleVoteRight}
           handleTieVote={handleTieVote}
@@ -1161,6 +1219,7 @@ function VotarPage() {
             fixedPersonaje={fixedPersonaje}
             hasFixedDuel={exactDuelActive}
             hasFixedAnime={hasFixedAnime}
+            blindMode={identitiesHidden}
           />
           <DailyMissionPanel compact />
         </div>
@@ -1171,6 +1230,7 @@ function VotarPage() {
           fixedPersonaje={fixedPersonaje}
           exactDuelActive={exactDuelActive}
           hasFixedAnime={hasFixedAnime}
+          blindMode={identitiesHidden}
         />
 
         {/* Atajos + (en sin matches) link a torneos */}

@@ -22,6 +22,7 @@ const VoteArena = memo(function VoteArena({
   voteResult,
   controlsDisabled,
   votoInvitadoActivo,
+  blindMode,
   handleVoteLeft,
   handleVoteRight,
   handleTieVote,
@@ -65,6 +66,7 @@ const VoteArena = memo(function VoteArena({
           showResult={Boolean(votedFor)}
           side="left"
           anonymousLimited={votoInvitadoActivo}
+          blindMode={blindMode}
           voteResult={leftVoteResult}
         />
         <div className="hidden self-center justify-self-center sm:flex sm:flex-col sm:items-center sm:gap-3">
@@ -91,6 +93,7 @@ const VoteArena = memo(function VoteArena({
           showResult={Boolean(votedFor)}
           side="right"
           anonymousLimited={votoInvitadoActivo}
+          blindMode={blindMode}
           voteResult={rightVoteResult}
         />
         {canTie && !votedFor && (
