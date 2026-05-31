@@ -4,13 +4,14 @@ import { queryKeys } from '../lib/queryClient'
 import { useAuth } from '../contexts/AuthContext'
 
 /**
- * Hooks de cartas coleccionables (Fase 1).
+ * Hooks de cartas coleccionables.
  *
  * - useColeccion: catálogo + obtenidas + % + saldo. Disabled sin user (la API
  *   es autenticada; evita el 403 ruidoso en consola).
  * - useOddsCartas: probabilidades transparentes del sobre.
- * - useAbrirSobre: mutation que gasta moneda y revela una carta; al terminar
+ * - useAbrirSobre: mutation que gasta moneda y revela un sobre; al terminar
  *   invalida la colección para refrescar saldo y progreso.
+ * - useCofreDiario: reclama la recompensa diaria idempotente del servidor.
  */
 export function useColeccion() {
   const { user } = useAuth()
@@ -36,6 +37,16 @@ export function useAbrirSobre() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: endpoints.abrirSobre,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+    },
+  })
+}
+
+export function useCofreDiario() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: endpoints.cofreDiario,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
     },

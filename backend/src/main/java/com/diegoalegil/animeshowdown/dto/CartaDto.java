@@ -20,11 +20,18 @@ public record CartaDto(
         String colorDominante,
         RarezaCarta rareza,
         boolean especialCurada,
+        String variante,
+        String arteUrl,
+        long elo,
         boolean poseida,
         int cantidad) {
 
     /** Carta del catálogo con (o sin) posesión del usuario. {@code propia} puede ser null. */
     public static CartaDto from(Carta carta, UsuarioCarta propia) {
+        return from(carta, propia, 0L);
+    }
+
+    public static CartaDto from(Carta carta, UsuarioCarta propia, long elo) {
         Personaje p = carta.getPersonaje();
         return new CartaDto(
                 carta.getId(),
@@ -35,6 +42,9 @@ public record CartaDto(
                 p.getImagenColorDominante(),
                 carta.getRareza(),
                 carta.isEspecialCurada(),
+                carta.getVariante(),
+                carta.getArteUrl(),
+                Math.max(0L, elo),
                 propia != null,
                 propia != null ? propia.getCantidad() : 0);
     }

@@ -36,37 +36,70 @@ function reportAndFail(files) {
 }
 
 const args = process.argv.slice(2)
-let changed = ''
+let base = null
+let diffArgs = []
 
 if (args[0] === '--staged') {
-  changed = git(['diff', '--cached', '--diff-filter=MDR', '--name-only', '--', MIG_DIR])
+  try {
+    base = git(['merge-base', 'HEAD', 'origin/main'])
+  } catch {
+    base = 'HEAD'
+  }
+  diffArgs = ['diff', '--cached', '--diff-filter=MDR', '--name-status', '--', MIG_DIR]
 } else if (args[0] === '--range') {
-  const base = args[1]
+  const requestedBase = args[1]
   const head = args[2]
-  if (!base || !head) {
+  if (!requestedBase || !head) {
     console.error('Usage: check-migrations-immutable.mjs --range <base> <head>')
     process.exit(2)
   }
   // La base puede no existir (p.ej. push inicial con before=000...): si no es
   // un commit verificable, no hay nada con qué comparar → se omite el check.
   try {
-    git(['rev-parse', '--verify', `${base}^{commit}`])
+    git(['rev-parse', '--verify', `${requestedBase}^{commit}`])
   } catch {
-    console.log(`Base no comparable (${base}); check omitido.`)
+    console.log(`Base no comparable (${requestedBase}); check omitido.`)
     process.exit(0)
   }
-  let from = base
+  base = requestedBase
   try {
-    from = git(['merge-base', base, head])
+    base = git(['merge-base', requestedBase, head])
   } catch {
-    from = base
+    base = requestedBase
   }
-  changed = git(['diff', '--diff-filter=MDR', '--name-only', from, head, '--', MIG_DIR])
+  diffArgs = ['diff', '--diff-filter=MDR', '--name-status', base, head, '--', MIG_DIR]
 } else {
   console.error('Usage: check-migrations-immutable.mjs --staged | --range <base> <head>')
   process.exit(2)
 }
 
-const files = changed.split(/\r?\n/).filter(Boolean).filter(isMigration)
+function existsAt(ref, path) {
+  if (!ref) return true
+  try {
+    execFileSync('git', ['cat-file', '-e', `${ref}:${path}`], {
+      stdio: ['ignore', 'ignore', 'ignore'],
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function protectedPathFromStatus(line) {
+  const parts = line.split(/\t/)
+  const status = parts[0] || ''
+  if (status.startsWith('R') || status.startsWith('C')) return parts[1]
+  return parts[1]
+}
+
+const changed = git(diffArgs)
+const files = changed
+  .split(/\r?\n/)
+  .filter(Boolean)
+  .map(protectedPathFromStatus)
+  .filter(Boolean)
+  .filter(isMigration)
+  .filter((file) => existsAt(base, file))
+
 if (files.length > 0) reportAndFail(files)
 console.log('✓ Ninguna migración existente fue modificada.')

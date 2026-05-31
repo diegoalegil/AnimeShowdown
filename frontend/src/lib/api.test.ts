@@ -617,6 +617,26 @@ describe('endpoints', () => {
     expect((fn.mock.calls[0] as [string, RequestInit])[1].method).toBe('POST')
   })
 
+  it('abrirSobre: pasa X-Idempotency-Key cuando existe', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.abrirSobre('pack-abc')
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    const headers = opts.headers as Record<string, string>
+    expect(url).toContain('/api/me/cartas/sobre')
+    expect(opts.method).toBe('POST')
+    expect(headers?.['X-Idempotency-Key']).toBe('pack-abc')
+  })
+
+  it('cofreDiario: POST a /api/me/cartas/cofre-diario', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.cofreDiario()
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/me/cartas/cofre-diario')
+    expect(opts.method).toBe('POST')
+  })
+
   it('unsubscribeNewsletter: POST with token in query', async () => {
     const fn = mockFetchResolved({})
     vi.stubGlobal('fetch', fn)

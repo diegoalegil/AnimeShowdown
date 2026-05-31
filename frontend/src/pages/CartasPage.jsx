@@ -1,25 +1,96 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Sparkles, PackageOpen } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Filter, Gift, PackageOpen, Sparkles } from 'lucide-react'
 import Section from '../components/Section'
 import Button from '../components/Button'
 import EmptyState from '../components/EmptyState'
 import Dialog from '../components/Dialog'
 import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
+import PackOpening from '../features/cartas/PackOpening'
 import { useAuth } from '../contexts/AuthContext'
-import { useColeccion, useOddsCartas, useAbrirSobre } from '../hooks/useCartas'
+import { useColeccion, useOddsCartas, useAbrirSobre, useCofreDiario } from '../hooks/useCartas'
 
 const PAGE_SIZE = 60
+const RAREZAS = ['TODAS', 'SSR', 'ESPECIAL']
+const EMPTY_CARTAS = []
+const EMPTY_PROGRESO = []
+const numberFmt = new Intl.NumberFormat('es-ES')
+
+function makeIdempotencyKey() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `pack-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
 
 function CartasPage() {
   const { user } = useAuth()
   const coleccionQ = useColeccion()
   const oddsQ = useOddsCartas()
   const abrirSobre = useAbrirSobre()
+  const cofreDiario = useCofreDiario()
 
   const [visibles, setVisibles] = useState(PAGE_SIZE)
   const [reveal, setReveal] = useState(null)
+  const [rarezaFiltro, setRarezaFiltro] = useState('TODAS')
+  const [animeFiltro, setAnimeFiltro] = useState('TODOS')
+  const [cofreResultado, setCofreResultado] = useState(null)
+
+  const data = coleccionQ.data
+  const odds = oddsQ.data
+  const precio = odds?.precioSobre ?? null
+  const saldo = data?.saldo ?? 0
+  const totalCatalogo = data?.totalCatalogo ?? 0
+  const totalPoseidas = data?.totalPoseidas ?? 0
+  const porcentaje = data?.porcentaje ?? 0
+  const cartas = data?.cartas ?? EMPTY_CARTAS
+  const progresoPorAnime = data?.progresoPorAnime ?? EMPTY_PROGRESO
+  const pityActual = data?.pityActual ?? 0
+  const pityDuro = data?.pityDuro ?? odds?.pityDuro ?? 10
+  const probEspecial = odds?.probabilidadEspecialBase ?? 0.05
+  const puedeAbrir = precio != null && saldo >= precio && !abrirSobre.isPending
+  const faltan = precio != null ? Math.max(0, precio - saldo) : null
+  const cofreDisponible = Boolean(data?.cofreDiarioDisponible)
+
+  const cartasFiltradas = useMemo(() => {
+    return cartas.filter((carta) => {
+      const pasaRareza = rarezaFiltro === 'TODAS' || carta.rareza === rarezaFiltro
+      const pasaAnime = animeFiltro === 'TODOS' || carta.anime === animeFiltro
+      return pasaRareza && pasaAnime
+    })
+  }, [animeFiltro, cartas, rarezaFiltro])
+
+  const resumenRarezas = useMemo(() => {
+    return RAREZAS.filter((rareza) => rareza !== 'TODAS').map((rareza) => {
+      const total = cartas.filter((carta) => carta.rareza === rareza).length
+      const poseidas = cartas.filter((carta) => carta.rareza === rareza && carta.poseida).length
+      return { rareza, total, poseidas }
+    })
+  }, [cartas])
+
+  const animesDestacados = useMemo(() => {
+    return [...progresoPorAnime]
+      .sort((a, b) => b.total - a.total || a.anime.localeCompare(b.anime))
+      .slice(0, 10)
+  }, [progresoPorAnime])
+
+  async function abrir() {
+    try {
+      const res = await abrirSobre.mutateAsync(makeIdempotencyKey())
+      setReveal(res)
+    } catch {
+      // El error se muestra vía abrirSobre.isError abajo.
+    }
+  }
+
+  async function reclamarCofre() {
+    try {
+      const res = await cofreDiario.mutateAsync()
+      setCofreResultado(res)
+    } catch {
+      // El error se muestra vía cofreDiario.isError abajo.
+    }
+  }
 
   if (!user) {
     return (
@@ -34,48 +105,40 @@ function CartasPage() {
     )
   }
 
-  const data = coleccionQ.data
-  const precio = oddsQ.data?.precioSobre ?? null
-  const saldo = data?.saldo ?? 0
-  const totalCatalogo = data?.totalCatalogo ?? 0
-  const totalPoseidas = data?.totalPoseidas ?? 0
-  const porcentaje = data?.porcentaje ?? 0
-  const cartas = data?.cartas ?? []
-  const puedeAbrir = precio != null && saldo >= precio && !abrirSobre.isPending
-  const faltan = precio != null ? Math.max(0, precio - saldo) : null
-
-  async function abrir() {
-    try {
-      const res = await abrirSobre.mutateAsync()
-      setReveal(res)
-    } catch {
-      // El error se muestra vía abrirSobre.isError abajo.
-    }
-  }
-
   return (
     <Section
       eyebrow="Cartas"
       title="Tu colección"
-      description="Gana moneda jugando y ábrela en sobres. Cada carta es un personaje con su universo."
+      description="Abre sobres server-authoritative, completa el álbum y persigue las especiales curadas."
     >
-      {/* Monedero + sobre + probabilidades transparentes (anti-casino) */}
       <div className="as-panel mb-8 flex flex-col gap-5 rounded-2xl p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <MonedaIcon className="h-7 w-7 text-gold" />
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.12em] text-fg-muted">Tu saldo</p>
-              <p className="text-2xl font-black leading-none text-fg-strong">{saldo}</p>
-            </div>
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Stat label="Saldo" value={numberFmt.format(saldo)} icon={<MonedaIcon className="h-6 w-6 text-gold" />} />
+            <Stat label="Colección" value={`${totalPoseidas} / ${totalCatalogo}`} accent={`${porcentaje}%`} />
+            <Stat label="Pity especial" value={`${pityActual} / ${pityDuro}`} accent={`${Math.round(probEspecial * 100)}% base`} />
           </div>
-          <div className="text-right">
-            <p className="text-[11px] uppercase tracking-[0.12em] text-fg-muted">Colección</p>
-            <p className="text-2xl font-black leading-none text-fg-strong">
-              {totalPoseidas}
-              <span className="text-base font-bold text-fg-muted"> / {totalCatalogo}</span>
-              <span className="ml-2 text-base font-bold text-gold">{porcentaje}%</span>
-            </p>
+
+          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+            <Button onClick={abrir} disabled={!puedeAbrir} size="lg">
+              <PackageOpen className="h-5 w-5" aria-hidden="true" />
+              {abrirSobre.isPending ? 'Abriendo...' : 'Abrir sobre'}
+              {precio != null && (
+                <span className="inline-flex items-center gap-1 font-mono">
+                  {precio}
+                  <MonedaIcon className="h-4 w-4" />
+                </span>
+              )}
+            </Button>
+            <Button
+              variant={cofreDisponible ? 'secondary' : 'ghost'}
+              onClick={reclamarCofre}
+              disabled={!cofreDisponible || cofreDiario.isPending}
+              size="lg"
+            >
+              <Gift className="h-5 w-5" aria-hidden="true" />
+              {cofreDiario.isPending ? 'Reclamando...' : cofreDisponible ? 'Cofre diario' : 'Cofre reclamado'}
+            </Button>
           </div>
         </div>
 
@@ -89,37 +152,59 @@ function CartasPage() {
           <div className="h-full rounded-full bg-gold transition-all" style={{ width: `${porcentaje}%` }} />
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button onClick={abrir} disabled={!puedeAbrir} size="lg">
-            <PackageOpen className="h-5 w-5" aria-hidden="true" />
-            {abrirSobre.isPending ? 'Abriendo…' : 'Abrir sobre'}
-            {precio != null && (
-              <span className="inline-flex items-center gap-1 font-mono">
-                · {precio}
-                <MonedaIcon className="h-4 w-4" />
-              </span>
-            )}
-          </Button>
-          <p className="text-[12px] leading-5 text-fg-muted">
-            Probabilidades:{' '}
-            {(oddsQ.data?.rarezas ?? []).map((r) => `${r.rareza} ${Math.round(r.probabilidad * 100)}%`).join(' · ') ||
-              'SSR 100%'}
-            . Se gana jugando, nunca con dinero real.
-          </p>
+        <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">
+              Probabilidades visibles
+            </p>
+            <p className="mt-1 text-sm leading-6 text-fg">
+              Cada sobre trae {odds?.normalesPorSobre ?? 4} normales y 1 clímax. Especial curada:
+              {' '}
+              <span className="font-black text-electric">{Math.round(probEspecial * 100)}%</span>
+              {' '}base, garantizada al sobre {pityDuro} sin especial. Se gana jugando, nunca con dinero real.
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">
+              Rarezas del álbum
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {resumenRarezas.map((item) => (
+                <span key={item.rareza} className="rounded-lg border border-white/10 bg-surface/70 px-2.5 py-1 text-[12px] font-bold text-fg">
+                  {item.rareza}: {item.poseidas}/{item.total}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {!coleccionQ.isLoading && faltan != null && faltan > 0 && (
           <p className="text-[12px] text-fg-muted">
-            Te faltan <span className="font-bold text-gold">{faltan}</span> monedas. Gánalas votando, ganando
-            duelos, prediciendo torneos o completando la misión diaria.
+            Te faltan <span className="font-bold text-gold">{faltan}</span> monedas. Gánalas votando,
+            ganando duelos, prediciendo torneos o completando la misión diaria.
+          </p>
+        )}
+        {cofreResultado?.aplicado && (
+          <p className="text-[12px] font-bold text-success">
+            Cofre reclamado: +{cofreResultado.cantidad} monedas.
           </p>
         )}
         {abrirSobre.isError && (
           <p className="text-[12px] text-danger">No se pudo abrir el sobre. Inténtalo de nuevo.</p>
         )}
+        {cofreDiario.isError && (
+          <p className="text-[12px] text-danger">No se pudo reclamar el cofre diario.</p>
+        )}
       </div>
 
-      {/* Grid de la colección */}
+      <AlbumFilters
+        rarezaFiltro={rarezaFiltro}
+        setRarezaFiltro={setRarezaFiltro}
+        animeFiltro={animeFiltro}
+        setAnimeFiltro={setAnimeFiltro}
+        animes={animesDestacados}
+      />
+
       {coleccionQ.isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -132,17 +217,23 @@ function CartasPage() {
           title="No pudimos cargar tu colección"
           description="Recarga la página en unos segundos."
         />
+      ) : cartasFiltradas.length === 0 ? (
+        <EmptyState
+          icon={Filter}
+          title="No hay cartas con este filtro"
+          description="Prueba con otra rareza o anime del álbum."
+        />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {cartas.slice(0, visibles).map((carta) => (
+            {cartasFiltradas.slice(0, visibles).map((carta) => (
               <CartaTile key={carta.id} carta={carta} />
             ))}
           </div>
-          {visibles < cartas.length && (
+          {visibles < cartasFiltradas.length && (
             <div className="mt-8 flex justify-center">
               <Button variant="secondary" onClick={() => setVisibles((v) => v + PAGE_SIZE)}>
-                Cargar más ({cartas.length - visibles})
+                Cargar más ({cartasFiltradas.length - visibles})
               </Button>
             </div>
           )}
@@ -153,10 +244,11 @@ function CartasPage() {
         open={Boolean(reveal)}
         onClose={() => setReveal(null)}
         titleId="reveal-cartas-title"
-        panelClassName="max-w-xs text-center"
+        panelClassName="max-w-[56rem] p-2 sm:p-3"
       >
         {reveal && (
-          <RevealSobre
+          <PackOpening
+            key={packRevealKey(reveal)}
             reveal={reveal}
             puedeAbrirOtro={precio != null && reveal.saldoRestante >= precio && !abrirSobre.isPending}
             abriendo={abrirSobre.isPending}
@@ -169,38 +261,83 @@ function CartasPage() {
   )
 }
 
-/** Reveal simple (F1): la carta aparece con un fade+scale corto. */
-function RevealSobre({ reveal, puedeAbrirOtro, abriendo, onAbrirOtro, onCerrar }) {
-  const { carta, nueva, saldoRestante } = reveal
+function packRevealKey(reveal) {
+  const cartas = Array.isArray(reveal?.cartas) ? reveal.cartas : []
+  if (cartas.length > 0) {
+    return cartas.map((item) => `${item.posicion}:${item.carta?.id}`).join('|')
+  }
+  return reveal?.carta?.id ?? 'pack'
+}
+
+function Stat({ label, value, accent, icon }) {
   return (
-    <div className="flex flex-col items-center gap-4">
-      <h2 id="reveal-cartas-title" className="text-sm font-black uppercase tracking-[0.16em] text-gold">
-        {nueva ? '¡Carta nueva!' : 'Repetida'}
-      </h2>
-      <motion.div
-        key={carta.id}
-        initial={{ opacity: 0, scale: 0.9, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-        className="w-44"
-      >
-        <CartaTile carta={carta} eager />
-      </motion.div>
-      <p className="text-sm font-bold text-fg-strong">{carta.personajeNombre}</p>
-      <p className="-mt-3 text-[12px] text-fg-muted">{carta.anime}</p>
-      <p className="flex items-center justify-center gap-1.5 text-[12px] text-fg-muted">
-        Saldo restante:
-        <span className="inline-flex items-center gap-1 font-bold text-gold">
-          <MonedaIcon className="h-4 w-4" /> {saldoRestante}
-        </span>
+    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">{label}</p>
+      </div>
+      <p className="mt-1 text-2xl font-black leading-none text-fg-strong">
+        {value}
+        {accent && <span className="ml-2 text-sm font-black text-gold">{accent}</span>}
       </p>
-      <div className="mt-1 flex w-full flex-col gap-2">
-        <Button onClick={onAbrirOtro} disabled={!puedeAbrirOtro}>
-          {abriendo ? 'Abriendo…' : 'Abrir otro'}
-        </Button>
-        <Button variant="secondary" onClick={onCerrar}>
-          Cerrar
-        </Button>
+    </div>
+  )
+}
+
+function AlbumFilters({
+  rarezaFiltro,
+  setRarezaFiltro,
+  animeFiltro,
+  setAnimeFiltro,
+  animes,
+}) {
+  return (
+    <div className="mb-5 flex flex-col gap-3">
+      <div className="flex flex-wrap gap-2">
+        {RAREZAS.map((rareza) => (
+          <button
+            key={rareza}
+            type="button"
+            onClick={() => setRarezaFiltro(rareza)}
+            className={`rounded-lg border px-3 py-2 text-[12px] font-black uppercase tracking-wide transition ${
+              rarezaFiltro === rareza
+                ? 'border-gold/60 bg-gold-soft text-gold'
+                : 'border-white/10 bg-surface/50 text-fg-muted hover:border-gold/50 hover:text-gold'
+            }`}
+          >
+            {rareza === 'TODAS' ? 'Todas' : rareza}
+          </button>
+        ))}
+      </div>
+      <div className="scroll-x-fade flex gap-2 overflow-x-auto pb-1">
+        <button
+          type="button"
+          onClick={() => setAnimeFiltro('TODOS')}
+          className={`shrink-0 rounded-lg border px-3 py-2 text-[12px] font-black transition ${
+            animeFiltro === 'TODOS'
+              ? 'border-gold/60 bg-gold-soft text-gold'
+              : 'border-white/10 bg-surface/50 text-fg-muted hover:border-gold/50 hover:text-gold'
+          }`}
+        >
+          Todos los animes
+        </button>
+        {animes.map((anime) => (
+          <button
+            key={anime.anime}
+            type="button"
+            onClick={() => setAnimeFiltro(anime.anime)}
+            className={`shrink-0 rounded-lg border px-3 py-2 text-left text-[12px] font-black transition ${
+              animeFiltro === anime.anime
+                ? 'border-gold/60 bg-gold-soft text-gold'
+                : 'border-white/10 bg-surface/50 text-fg-muted hover:border-gold/50 hover:text-gold'
+            }`}
+          >
+            {anime.anime}
+            <span className="ml-2 font-mono text-[11px] opacity-75">
+              {anime.poseidas}/{anime.total}
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   )
