@@ -718,7 +718,7 @@ class EnfrentamientoControllerTest {
         long deadline = System.currentTimeMillis() + 5_000;
         boolean unlocked = false;
         while (System.currentTimeMillis() < deadline) {
-            if (!usuarioLogroRepository.findByUsuarioOrderByDesbloqueadoEnDesc(u).isEmpty()) {
+            if (usuarioLogroRepository.existsByUsuarioAndLogroCodigo(u, "primer_voto")) {
                 unlocked = true;
                 break;
             }
