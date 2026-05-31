@@ -115,6 +115,25 @@ class PrediccionControllerTest {
         return new Setup(torneoId, enfId, ids[0], ids[1]);
     }
 
+    /** Crea torneo SCHEDULED con un enfrentamiento ya asignado para predecir campeón. */
+    private Setup crearTorneoProgramadoConMatch(String adminToken, String suffix) throws Exception {
+        long[] ids = dosPersonajes();
+        MvcResult resT = mvc.perform(post("/api/torneos")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("nombre", "Bracket " + suffix, "descripcion", "test"))))
+                .andExpect(status().isOk()).andReturn();
+        long torneoId = json.readTree(resT.getResponse().getContentAsString()).get("id").asLong();
+        MvcResult resE = mvc.perform(post("/api/torneos/" + torneoId + "/enfrentamientos")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(
+                        List.of(Map.of("personaje1Id", ids[0], "personaje2Id", ids[1])))))
+                .andExpect(status().isCreated()).andReturn();
+        long enfId = json.readTree(resE.getResponse().getContentAsString()).get(0).get("id").asLong();
+        return new Setup(torneoId, enfId, ids[0], ids[1]);
+    }
+
     @Test
     void crearPrediccionSinAuthDevuelveForbidden() throws Exception {
         mvc.perform(post("/api/predicciones")
@@ -197,6 +216,52 @@ class PrediccionControllerTest {
         mvc.perform(get("/api/predicciones/leaderboard?dias=30&limit=5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void prediccionCampeonSumaDiezPuntosEnLeaderboardDelTorneo() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenDe("pred_eva", "pred_eva@example.com");
+        Setup s = crearTorneoProgramadoConMatch(adminToken, "eva");
+
+        mvc.perform(post("/api/predicciones/campeon")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "torneoId", s.torneoId(),
+                        "personajePredichoId", s.p1()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tipo").value("CAMPEON"))
+                .andExpect(jsonPath("$.torneoId").value(s.torneoId()))
+                .andExpect(jsonPath("$.personajePredichoId").value(s.p1()))
+                .andExpect(jsonPath("$.puntos").value(0));
+
+        mvc.perform(put("/api/torneos/" + s.torneoId() + "/iniciar")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        String votanteToken = tokenDe("pred_votante_campeon", "pred_votante_campeon@example.com");
+        mvc.perform(post("/api/enfrentamientos/" + s.enfId() + "/votar")
+                .header("Authorization", "Bearer " + votanteToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", s.p1()))))
+                .andExpect(status().isOk());
+
+        mvc.perform(put("/api/torneos/" + s.torneoId() + "/finalizar")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/predicciones/mias/torneo/" + s.torneoId())
+                .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tipo").value("CAMPEON"))
+                .andExpect(jsonPath("$[0].acertada").value(true))
+                .andExpect(jsonPath("$[0].puntos").value(10));
+
+        mvc.perform(get("/api/predicciones/leaderboard/torneo/" + s.torneoId() + "?limit=5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].username").value("pred_eva"))
+                .andExpect(jsonPath("$[0].puntos").value(10));
     }
 
     @Test

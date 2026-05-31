@@ -22,11 +22,13 @@ import com.diegoalegil.animeshowdown.model.EstadoRevision;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Prediccion;
+import com.diegoalegil.animeshowdown.model.TipoPrediccion;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
 /**
  * Predicciones de bracket.
@@ -54,15 +56,18 @@ public class PrediccionService {
     private final PrediccionRepository repo;
     private final EnfrentamientoRepository enfRepo;
     private final PersonajeRepository personajeRepo;
+    private final TorneoRepository torneoRepo;
     private final ApplicationEventPublisher eventPublisher;
 
     public PrediccionService(PrediccionRepository repo,
             EnfrentamientoRepository enfRepo,
             PersonajeRepository personajeRepo,
+            TorneoRepository torneoRepo,
             ApplicationEventPublisher eventPublisher) {
         this.repo = repo;
         this.enfRepo = enfRepo;
         this.personajeRepo = personajeRepo;
+        this.torneoRepo = torneoRepo;
         this.eventPublisher = eventPublisher;
     }
 
@@ -110,6 +115,39 @@ public class PrediccionService {
         return repo.save(new Prediccion(usuario, enf, predicho));
     }
 
+    /**
+     * Predicción v1 de Bracket Challenge: un único campeón por torneo antes
+     * de que arranque. Reusa la tabla {@code predicciones} con tipo CAMPEON.
+     */
+    @Transactional
+    public Prediccion aplicarCampeon(Usuario usuario, Long torneoId, Long personajePredichoId) {
+        Torneo torneo = torneoRepo.findById(torneoId)
+                .orElseThrow(() -> new IllegalArgumentException("Torneo no encontrado"));
+        validarTorneoVisible(torneo);
+        if (torneo.getEstado() != EstadoTorneo.SCHEDULED) {
+            throw new IllegalArgumentException("Solo puedes predecir campeón antes de que arranque el torneo");
+        }
+
+        Personaje predicho = personajeRepo.findById(personajePredichoId)
+                .orElseThrow(() -> new IllegalArgumentException("Personaje no encontrado"));
+        List<Enfrentamiento> matches = enfRepo.findByTorneoOrderedFetch(torneo);
+        if (matches.isEmpty()) {
+            throw new IllegalArgumentException("El torneo todavía no tiene participantes asignados");
+        }
+        if (!participaEnRondaInicial(matches, predicho.getId())) {
+            throw new IllegalArgumentException("El personaje predicho no participa en este torneo");
+        }
+
+        Optional<Prediccion> existente = repo.findByUsuarioAndTorneoAndTipo(
+                usuario, torneo, TipoPrediccion.CAMPEON);
+        if (existente.isPresent()) {
+            Prediccion p = existente.get();
+            p.setPersonajePredicho(predicho);
+            return repo.save(p);
+        }
+        return repo.save(new Prediccion(usuario, torneo, predicho));
+    }
+
     @Transactional(readOnly = true)
     public List<Prediccion> listarPorUsuarioYTorneo(Usuario usuario, Torneo torneo) {
         return repo.findByUsuarioAndTorneo(usuario, torneo);
@@ -146,7 +184,7 @@ public class PrediccionService {
             // Saltar las ya resueltas (idempotencia si por algún motivo se
             // llamara dos veces).
             if (p.estaResuelta()) continue;
-            Personaje ganador = p.getEnfrentamiento().getGanador();
+            Personaje ganador = ganadorParaPrediccion(p, torneo);
             if (ganador == null) {
                 // Match sin ganador definitivo (empate exacto en votos) →
                 // dejamos la predicción como pendiente. Caso raro pero posible.
@@ -166,6 +204,13 @@ public class PrediccionService {
         emitirEventosPorUsuario(usuariosAfectados);
 
         return (int) predicciones.stream().filter(Prediccion::estaResuelta).count();
+    }
+
+    private Personaje ganadorParaPrediccion(Prediccion p, Torneo torneo) {
+        if (p.getTipo() == TipoPrediccion.CAMPEON) {
+            return torneo.getGanadorPersonaje();
+        }
+        return p.getEnfrentamiento() == null ? null : p.getEnfrentamiento().getGanador();
     }
 
     private void emitirEventosPorUsuario(Set<Long> usuariosAfectados) {
@@ -224,5 +269,41 @@ public class PrediccionService {
             resultado.add(entrada);
         }
         return resultado;
+    }
+
+    /** Leaderboard de Bracket Challenge por torneo. Acierto de campeón = 10 puntos. */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> leaderboardCampeonPorTorneo(Long torneoId, int limit) {
+        Torneo torneo = torneoRepo.findById(torneoId)
+                .orElseThrow(() -> new IllegalArgumentException("Torneo no encontrado"));
+        validarTorneoVisible(torneo);
+        List<Object[]> filas = repo.leaderboardCampeonPorTorneo(
+                torneo, PageRequest.of(0, Math.min(limit, 100)));
+        List<Map<String, Object>> resultado = new ArrayList<>(filas.size());
+        for (Object[] fila : filas) {
+            Map<String, Object> entrada = new HashMap<>();
+            entrada.put("usuarioId", fila[0]);
+            entrada.put("username", fila[1]);
+            entrada.put("aciertos", fila[2]);
+            entrada.put("puntos", fila[3]);
+            resultado.add(entrada);
+        }
+        return resultado;
+    }
+
+    private void validarTorneoVisible(Torneo torneo) {
+        EstadoRevision rev = torneo.getEstadoRevision();
+        if (rev == EstadoRevision.PENDIENTE || rev == EstadoRevision.RECHAZADO || !torneo.isPublico()) {
+            throw new IllegalArgumentException("Torneo no encontrado");
+        }
+    }
+
+    private boolean participaEnRondaInicial(List<Enfrentamiento> matches, Long personajeId) {
+        for (Enfrentamiento match : matches) {
+            if (!Integer.valueOf(1).equals(match.getRonda())) continue;
+            if (match.getPersonaje1() != null && personajeId.equals(match.getPersonaje1().getId())) return true;
+            if (match.getPersonaje2() != null && personajeId.equals(match.getPersonaje2().getId())) return true;
+        }
+        return false;
     }
 }

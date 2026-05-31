@@ -24,6 +24,7 @@ import com.diegoalegil.animeshowdown.model.*;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
+import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 
 @ExtendWith(MockitoExtension.class)
 class PrediccionServiceTest {
@@ -31,6 +32,7 @@ class PrediccionServiceTest {
     @Mock private PrediccionRepository prediccionRepository;
     @Mock private EnfrentamientoRepository enfRepo;
     @Mock private PersonajeRepository personajeRepo;
+    @Mock private TorneoRepository torneoRepo;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     private PrediccionService sut;
@@ -43,7 +45,7 @@ class PrediccionServiceTest {
 
     @BeforeEach
     void setUp() {
-        sut = new PrediccionService(prediccionRepository, enfRepo, personajeRepo, eventPublisher);
+        sut = new PrediccionService(prediccionRepository, enfRepo, personajeRepo, torneoRepo, eventPublisher);
         usuario = new Usuario("testuser", "hash", "test@example.com");
         usuario.setId(1L);
         personaje1 = new Personaje("p1", "Personaje 1", "Anime A", "desc", "url1");
@@ -177,6 +179,34 @@ class PrediccionServiceTest {
         assertEquals("Personaje no encontrado", ex.getMessage());
     }
 
+    @Test
+    void aplicarCampeonCreaPrediccionDeTorneoAntesDelInicio() {
+        torneo.setEstado(EstadoTorneo.SCHEDULED);
+        when(torneoRepo.findById(100L)).thenReturn(Optional.of(torneo));
+        when(personajeRepo.findById(10L)).thenReturn(Optional.of(personaje1));
+        when(enfRepo.findByTorneoOrderedFetch(torneo)).thenReturn(List.of(enf()));
+        when(prediccionRepository.findByUsuarioAndTorneoAndTipo(usuario, torneo, TipoPrediccion.CAMPEON))
+                .thenReturn(Optional.empty());
+        when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
+
+        Prediccion result = sut.aplicarCampeon(usuario, 100L, 10L);
+
+        assertEquals(TipoPrediccion.CAMPEON, result.getTipo());
+        assertEquals(torneo, result.getTorneo());
+        assertNull(result.getEnfrentamiento());
+        assertEquals(personaje1, result.getPersonajePredicho());
+    }
+
+    @Test
+    void aplicarCampeonLanzaSiTorneoYaArranco() {
+        when(torneoRepo.findById(100L)).thenReturn(Optional.of(torneo));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> sut.aplicarCampeon(usuario, 100L, 10L));
+
+        assertEquals("Solo puedes predecir campeón antes de que arranque el torneo", ex.getMessage());
+    }
+
     // --- listarPorUsuarioYTorneo() ---
 
     @Test
@@ -266,6 +296,21 @@ class PrediccionServiceTest {
 
         assertEquals(0, result);
         assertNull(p.getAcertada());
+    }
+
+    @Test
+    void resolverParaTorneoMarcaCampeonAcertadoContraGanadorFinal() {
+        torneo.setGanadorPersonaje(personaje1);
+        Prediccion p = new Prediccion(usuario, torneo, personaje1);
+        when(prediccionRepository.findByTorneo(torneo)).thenReturn(List.of(p));
+        when(prediccionRepository.findResueltasDelUsuarioDesc(any(), any(Pageable.class)))
+                .thenReturn(List.of());
+        when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
+
+        int result = sut.resolverParaTorneo(torneo);
+
+        assertEquals(1, result);
+        assertTrue(p.getAcertada());
     }
 
     @Test

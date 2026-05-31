@@ -178,6 +178,7 @@ public class SecurityConfig {
                         // Predicciones de bracket. Leaderboard
                         // público (top predictores); /mias y POST autenticados.
                         .requestMatchers(HttpMethod.GET, "/api/predicciones/leaderboard").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/predicciones/leaderboard/torneo/**").permitAll()
                         .requestMatchers("/api/predicciones/**").authenticated()
                         // Newsletter con double opt-in. Todo
                         // público — form en footer y links de confirmación
