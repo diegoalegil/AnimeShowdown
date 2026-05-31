@@ -8,7 +8,13 @@ import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
 import PackOpening from '../features/cartas/PackOpening'
 import { useAuth } from '../contexts/AuthContext'
-import { useColeccion, useOddsCartas, useAbrirSobre, useCofreDiario } from '../hooks/useCartas'
+import {
+  useAbrirSobre,
+  useCofreDiario,
+  useColeccion,
+  useDescargarCarta,
+  useOddsCartas,
+} from '../hooks/useCartas'
 
 const PAGE_SIZE = 60
 const RAREZAS = ['TODAS', 'SSR', 'ESPECIAL']
@@ -29,6 +35,7 @@ function CartasPage() {
   const oddsQ = useOddsCartas()
   const abrirSobre = useAbrirSobre()
   const cofreDiario = useCofreDiario()
+  const descargarCarta = useDescargarCarta()
 
   const [visibles, setVisibles] = useState(PAGE_SIZE)
   const [reveal, setReveal] = useState(null)
@@ -51,6 +58,7 @@ function CartasPage() {
   const puedeAbrir = precio != null && saldo >= precio && !abrirSobre.isPending
   const faltan = precio != null ? Math.max(0, precio - saldo) : null
   const cofreDisponible = Boolean(data?.cofreDiarioDisponible)
+  const descargandoId = descargarCarta.isPending ? descargarCarta.variables?.id : null
 
   const cartasFiltradas = useMemo(() => {
     return cartas.filter((carta) => {
@@ -90,6 +98,11 @@ function CartasPage() {
     } catch {
       // El error se muestra vía cofreDiario.isError abajo.
     }
+  }
+
+  function descargar(carta) {
+    if (!carta?.poseida) return
+    descargarCarta.mutate(carta)
   }
 
   if (!user) {
@@ -195,6 +208,9 @@ function CartasPage() {
         {cofreDiario.isError && (
           <p className="text-[12px] text-danger">No se pudo reclamar el cofre diario.</p>
         )}
+        {descargarCarta.isError && (
+          <p className="text-[12px] text-danger">No se pudo descargar la carta. Inténtalo de nuevo.</p>
+        )}
       </div>
 
       <AlbumFilters
@@ -227,7 +243,12 @@ function CartasPage() {
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {cartasFiltradas.slice(0, visibles).map((carta) => (
-              <CartaTile key={carta.id} carta={carta} />
+              <CartaTile
+                key={carta.id}
+                carta={carta}
+                onDownload={descargar}
+                downloading={descargandoId === carta.id}
+              />
             ))}
           </div>
           {visibles < cartasFiltradas.length && (
@@ -254,6 +275,8 @@ function CartasPage() {
             abriendo={abrirSobre.isPending}
             onAbrirOtro={abrir}
             onCerrar={() => setReveal(null)}
+            onDownload={descargar}
+            descargandoId={descargandoId}
           />
         )}
       </Dialog>

@@ -19,6 +19,9 @@ public interface UsuarioCartaRepository extends JpaRepository<UsuarioCarta, Long
     /** Fila concreta usuario+carta para incrementar duplicados. */
     Optional<UsuarioCarta> findByUsuarioAndCarta(Usuario usuario, Carta carta);
 
+    /** Gate de propiedad para endpoints que no deben filtrar cartas no poseídas. */
+    boolean existsByUsuarioIdAndCartaId(Long usuarioId, Long cartaId);
+
     /** Cuántas cartas distintas posee el usuario (para el % de colección). */
     long countByUsuario(Usuario usuario);
 }

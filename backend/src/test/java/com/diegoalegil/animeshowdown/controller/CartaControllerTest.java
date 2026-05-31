@@ -3,10 +3,16 @@ package com.diegoalegil.animeshowdown.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +30,12 @@ import com.diegoalegil.animeshowdown.event.PrediccionResueltaEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCarta;
 import com.diegoalegil.animeshowdown.repository.CartaRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.service.CartaDropListener;
@@ -54,6 +62,7 @@ class CartaControllerTest {
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
     @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private PersonajeRepository personajeRepository;
     @Autowired private CartaRepository cartaRepository;
     @Autowired private UsuarioCartaRepository usuarioCartaRepository;
     @Autowired private MonederoService monederoService;
@@ -253,6 +262,37 @@ class CartaControllerTest {
     }
 
     @Test
+    void descargarCartaPoseidaDevuelvePngConWatermark() throws Exception {
+        String token = token("cartas_descarga_ok");
+        Usuario u = usuario("cartas_descarga_ok");
+        Carta carta = crearCartaManual("carta_descarga_ok_slug", "Carta Descarga");
+        usuarioCartaRepository.save(new UsuarioCarta(u, carta));
+
+        MvcResult res = mvc.perform(get("/api/me/cartas/{id}/descargar", carta.getId())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/png"))
+                .andExpect(header().string("Content-Disposition",
+                        org.hamcrest.Matchers.containsString("carta-carta_descarga_ok_slug.png")))
+                .andReturn();
+
+        BufferedImage png = ImageIO.read(new ByteArrayInputStream(res.getResponse().getContentAsByteArray()));
+        assertThat(png.getWidth()).isEqualTo(1024);
+        assertThat(png.getHeight()).isEqualTo(1536);
+        assertThat(tieneWatermarkEnBandaInferior(png)).isTrue();
+    }
+
+    @Test
+    void descargarCartaNoPoseidaDevuelve403() throws Exception {
+        String token = token("cartas_descarga_403");
+        Carta carta = crearCartaManual("carta_descarga_403_slug", "Carta Ajena");
+
+        mvc.perform(get("/api/me/cartas/{id}/descargar", carta.getId())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void dropPorVotoEsMisionDiariaIdempotente() throws Exception {
         token("cartas_voto");
         Usuario u = usuario("cartas_voto");
@@ -286,5 +326,29 @@ class CartaControllerTest {
         listener.onPrediccionResuelta(
                 new PrediccionResueltaEvent(99999999L, "fantasma", 5, 1));
         assertThat(monederoService.saldoDe(u)).isEqualTo(45L);
+    }
+
+    private Carta crearCartaManual(String slug, String nombre) {
+        Personaje p = new Personaje(slug, nombre, "Anime Test", "Personaje test para cartas.", null);
+        p.setImagenColorDominante("#9f1d2c");
+        p = personajeRepository.save(p);
+        return cartaRepository.save(new Carta(p, RarezaCarta.SSR));
+    }
+
+    private boolean tieneWatermarkEnBandaInferior(BufferedImage img) {
+        int pixelsGrisTenue = 0;
+        for (int y = 1460; y < 1500; y++) {
+            for (int x = 250; x < 780; x++) {
+                int rgb = img.getRGB(x, y);
+                int r = (rgb >> 16) & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int b = rgb & 0xff;
+                boolean gris = Math.abs(r - g) <= 10 && Math.abs(g - b) <= 10;
+                if (gris && r >= 55 && r <= 190) {
+                    pixelsGrisTenue++;
+                }
+            }
+        }
+        return pixelsGrisTenue > 180;
     }
 }

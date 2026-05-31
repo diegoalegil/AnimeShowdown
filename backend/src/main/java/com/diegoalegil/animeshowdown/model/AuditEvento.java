@@ -72,5 +72,7 @@ public enum AuditEvento {
     /** Moneda blanda ganada por una acción de juego (drop server-authoritative). */
     MONEDA_GANADA,
     /** El usuario abrió un sobre: gastó moneda y obtuvo una carta. */
-    SOBRE_ABIERTO
+    SOBRE_ABIERTO,
+    /** El usuario descargó una carta que posee. */
+    CARTA_DESCARGADA
 }
