@@ -597,6 +597,20 @@ describe('endpoints', () => {
     expect(url).toContain('/torneos/slug/grand-prize')
   })
 
+  it('torneos públicos: no envía Authorization para permitir cache HTTP/CDN', async () => {
+    setToken('jwt-token')
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+
+    await endpoints.torneos()
+    await endpoints.torneoBySlug('grand-prize')
+
+    const firstHeaders = (fn.mock.calls[0] as [string, RequestInit])[1].headers as Record<string, string>
+    const secondHeaders = (fn.mock.calls[1] as [string, RequestInit])[1].headers as Record<string, string>
+    expect(firstHeaders.Authorization).toBeUndefined()
+    expect(secondHeaders.Authorization).toBeUndefined()
+  })
+
   it('tierListCreate: POST a /api/tier-lists', async () => {
     const fn = mockFetchResolved({ id: 1 })
     vi.stubGlobal('fetch', fn)

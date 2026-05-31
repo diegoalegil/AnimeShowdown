@@ -1,8 +1,11 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,12 +16,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
@@ -101,6 +106,31 @@ class TorneoControllerTest {
         mvc.perform(get("/api/torneos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void getTorneosEmiteCachePublicoCorto() throws Exception {
+        mvc.perform(get("/api/torneos"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("public")))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=30")))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("s-maxage=120")))
+                .andExpect(header().stringValues(HttpHeaders.VARY, hasItem(HttpHeaders.ACCEPT_ENCODING)));
+    }
+
+    @Test
+    void detalleTorneoEnCursoEmiteCacheLiveMuyCorto() throws Exception {
+        String slug = "cache-live-torneo-" + System.nanoTime();
+        Torneo torneo = new Torneo(slug, "Cache Live Torneo", "Test cache live");
+        torneo.setEstado(EstadoTorneo.IN_PROGRESS);
+        torneoRepository.saveAndFlush(torneo);
+
+        mvc.perform(get("/api/torneos/slug/" + slug))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("public")))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=5")))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("s-maxage=10")))
+                .andExpect(header().stringValues(HttpHeaders.VARY, hasItem(HttpHeaders.ACCEPT_ENCODING)));
     }
 
     @Test
