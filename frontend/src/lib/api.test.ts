@@ -474,6 +474,14 @@ describe('endpoints', () => {
     expect(JSON.parse(body as string)).toEqual({ personajeGanadorId: 42 })
   })
 
+  it('votar: envia empate neutral sin personajeGanadorId', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.votar('enc-empate', null, { empate: true })
+    const body = (fn.mock.calls[0] as [string, RequestInit])[1].body
+    expect(JSON.parse(body as string)).toEqual({ empate: true })
+  })
+
   it('votar: anonymous=true sets auth=false', async () => {
     const fn = mockFetchResolved({})
     vi.stubGlobal('fetch', fn)

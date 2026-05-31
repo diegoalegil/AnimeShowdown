@@ -149,9 +149,9 @@ public class BracketAdvanceService {
         // que toda la ronda se puede cerrar atómicamente dentro de esta tx.
         List<Personaje> ganadores = new ArrayList<>(matches.size());
         for (Enfrentamiento m : matches) {
-            long v1 = votoRepository.countByEnfrentamientoAndPersonaje(m, m.getPersonaje1());
-            long v2 = votoRepository.countByEnfrentamientoAndPersonaje(m, m.getPersonaje2());
-            if (v1 == v2) {
+            double v1 = votoRepository.scoreByEnfrentamientoAndPersonaje(m, m.getPersonaje1());
+            double v2 = votoRepository.scoreByEnfrentamientoAndPersonaje(m, m.getPersonaje2());
+            if (Double.compare(v1, v2) == 0) {
                 log.info("Torneo {} ronda {}: match {} empatado ({}-{}); no se cierra ronda",
                         torneo.getSlug(), rondaACerrar, m.getId(), v1, v2);
                 return Resultado.SIN_CAMBIOS;

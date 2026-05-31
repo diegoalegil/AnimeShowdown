@@ -46,7 +46,7 @@ function UltimosVotosCard({ votos }) {
 }
 
 function VotoRow({ voto }) {
-  const { ganador, rival, username, fecha } = voto
+  const { ganador, rival, username, fecha, empate } = voto
   if (!ganador) return null
 
   return (
@@ -66,7 +66,7 @@ function VotoRow({ voto }) {
           <span className="font-semibold text-fg-strong">
             {username ?? 'alguien'}
           </span>{' '}
-          <span className="text-fg-muted">votó por</span>{' '}
+          <span className="text-fg-muted">{empate ? 'no decidió entre' : 'votó por'}</span>{' '}
           <Link
             to={`/personajes/${ganador.slug}`}
             className="font-semibold text-fg-strong hover:text-gold"
@@ -76,7 +76,7 @@ function VotoRow({ voto }) {
           {rival && (
             <>
               {' '}
-              <span className="text-fg-muted">vs</span>{' '}
+              <span className="text-fg-muted">{empate ? 'y' : 'vs'}</span>{' '}
               <Link
                 to={`/personajes/${rival.slug}`}
                 className="text-fg-muted hover:text-gold"

@@ -3,6 +3,11 @@ import { motion, useReducedMotion } from 'framer-motion'
 
 const PARTICLES = Array.from({ length: 10 }, (_, index) => index)
 
+function formatNumber(value) {
+  if (!Number.isFinite(value)) return ''
+  return Number.isInteger(value) ? String(value) : value.toFixed(1)
+}
+
 function AnimatedNumber({ value, delta, animate = true }) {
   const reduceMotion = useReducedMotion()
   const [display, setDisplay] = useState(value)
@@ -17,7 +22,7 @@ function AnimatedNumber({ value, delta, animate = true }) {
     const tick = (now) => {
       const t = Math.min(1, (now - start) / duration)
       const eased = 1 - Math.pow(1 - t, 3)
-      setDisplay(Math.round(from + (value - from) * eased))
+      setDisplay(from + (value - from) * eased)
       if (t < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
@@ -26,7 +31,7 @@ function AnimatedNumber({ value, delta, animate = true }) {
 
   if (!Number.isFinite(value)) return null
   const shown = !animate || reduceMotion || !Number.isFinite(delta) ? value : display
-  return <span className="tabular-nums">{shown}</span>
+  return <span className="tabular-nums">{formatNumber(shown)}</span>
 }
 
 function VoteFeedbackBurst({
@@ -60,7 +65,7 @@ function VoteFeedbackBurst({
         </span>
         <span className="text-lg">
           {Number.isFinite(delta) && delta >= 0 ? '+' : ''}
-          {Number.isFinite(delta) ? delta : ''}
+          {Number.isFinite(delta) ? formatNumber(delta) : ''}
           {Number.isFinite(value) && (
             <>
               {' · '}

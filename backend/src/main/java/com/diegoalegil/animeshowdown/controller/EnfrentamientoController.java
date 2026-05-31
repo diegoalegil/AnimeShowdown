@@ -71,6 +71,7 @@ public class EnfrentamientoController {
     private static final Pattern ANON_ID_PATTERN = Pattern.compile("^[A-Za-z0-9._:-]{12,64}$");
     private static final int ANON_VOTE_LIMIT = 5;
     private static final BigDecimal ANON_VOTE_WEIGHT = new BigDecimal("0.30");
+    private static final BigDecimal HALF_VOTE_WEIGHT = new BigDecimal("0.50");
 
     private final EnfrentamientoRepository enfrentamientoRepository;
     private final VotoRepository votoRepository;
@@ -184,15 +185,22 @@ public class EnfrentamientoController {
                     .body("Necesitas verificar tu email antes de votar. Revisa tu bandeja de entrada.");
         }
 
+        boolean empate = request.isEmpate();
         Long ganadorId = request.getPersonajeGanadorId();
-        Personaje ganador;
-        if (enf.getPersonaje1().getId().equals(ganadorId)) {
-            ganador = enf.getPersonaje1();
-        } else if (enf.getPersonaje2().getId().equals(ganadorId)) {
-            ganador = enf.getPersonaje2();
-        } else {
-            return ResponseEntity.badRequest()
-                    .body("El personaje no pertenece a este enfrentamiento");
+        Personaje ganador = null;
+        if (!empate) {
+            if (ganadorId == null) {
+                return ResponseEntity.badRequest()
+                        .body("personajeGanadorId es obligatorio");
+            }
+            if (enf.getPersonaje1().getId().equals(ganadorId)) {
+                ganador = enf.getPersonaje1();
+            } else if (enf.getPersonaje2().getId().equals(ganadorId)) {
+                ganador = enf.getPersonaje2();
+            } else {
+                return ResponseEntity.badRequest()
+                        .body("El personaje no pertenece a este enfrentamiento");
+            }
         }
 
         if (usuario != null) {
@@ -249,11 +257,14 @@ public class EnfrentamientoController {
             }
         }
 
-        Voto voto = new Voto(ganador, usuario, enf);
+        Voto voto = new Voto(empate ? enf.getPersonaje1() : ganador, usuario, enf);
+        voto.setEmpate(empate);
         if (usuario == null) {
-            voto.setPeso(ANON_VOTE_WEIGHT);
+            voto.setPeso(empate ? ANON_VOTE_WEIGHT.multiply(HALF_VOTE_WEIGHT) : ANON_VOTE_WEIGHT);
             voto.setAnonSessionId(anon.sessionId());
             voto.setAnonIpHash(anon.ipHash());
+        } else if (empate) {
+            voto.setPeso(HALF_VOTE_WEIGHT);
         }
         // Intención de voto (feature #15) si el cliente la mandó ya en el POST.
         // fromId tolera null/blank/desconocido → null (voto sin intención),
@@ -271,17 +282,17 @@ public class EnfrentamientoController {
         // Counts post-voto. Para el ganador es el total real; para el
         // perdedor es el mismo que pre-voto. Los reutilizamos para el push
         // WS para no hacer dos rondas a la BBDD.
-        long votosP1 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p1);
-        long votosP2 = votoRepository.countByEnfrentamientoAndPersonaje(enf, p2);
-        long votosTotalesGanador = votoRepository.countByPersonajeId(ganador.getId());
+        double votosP1 = votoRepository.scoreByEnfrentamientoAndPersonaje(enf, p1);
+        double votosP2 = votoRepository.scoreByEnfrentamientoAndPersonaje(enf, p2);
         // además del conteo físico
         // publicamos la suma ponderada (peso 0.3 anónimo / 1.0 registrado)
         // para que el frontend reordene la caché live por la misma métrica
         // que el ORDER BY del ranking REST.
-        Double pesoTotalesGanador = votoRepository.sumaPesoByPersonajeId(ganador.getId());
-        Personaje perdedor = ganador.getId().equals(p1.getId()) ? p2 : p1;
-        long votosGanador = ganador.getId().equals(p1.getId()) ? votosP1 : votosP2;
-        long votosPerdedor = perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2;
+        Double pesoTotalesGanador = empate ? null : votoRepository.sumaPesoByPersonajeId(ganador.getId());
+        double votosTotalesGanador = empate ? 0.0 : votoRepository.countByPersonajeId(ganador.getId());
+        Personaje perdedor = empate ? null : (ganador.getId().equals(p1.getId()) ? p2 : p1);
+        double votosGanador = empate ? votosP1 : (ganador.getId().equals(p1.getId()) ? votosP1 : votosP2);
+        double votosPerdedor = empate ? votosP2 : (perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2);
 
         // Push del estado actualizado del match al topic del
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
@@ -297,8 +308,10 @@ public class EnfrentamientoController {
         double pesoVotoRegistrado = guardado.getPeso() == null
                 ? 1.0
                 : guardado.getPeso().doubleValue();
-        publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador,
-                pesoVotoRegistrado);
+        if (!empate) {
+            publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador,
+                    pesoVotoRegistrado);
+        }
 
         // Evento de dominio. BadgeEventListener escucha tras
         // commit y desbloquea badges de umbral (primer_voto/cien/mil).
@@ -315,13 +328,14 @@ public class EnfrentamientoController {
 
         VotoRegistradoDto dto = new VotoRegistradoDto(
                 guardado.getId(),
-                ganador.getId(),
+                ganador == null ? null : ganador.getId(),
                 votosGanador,
-                perdedor.getId(),
+                perdedor == null ? null : perdedor.getId(),
                 votosPerdedor,
-                usuario == null ? ANON_VOTE_WEIGHT.doubleValue() : 1.0,
+                empate ? 0.0 : (usuario == null ? ANON_VOTE_WEIGHT.doubleValue() : 1.0),
                 usuario == null,
-                votosAnonimosRestantes);
+                votosAnonimosRestantes,
+                empate);
         ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
         if (usuario == null) {
             ok.header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString());
@@ -392,7 +406,7 @@ public class EnfrentamientoController {
      * con los counts ya calculados por el caller (evitamos doble round-trip).
      */
     private void publicarBracketUpdate(Enfrentamiento enf,
-            Personaje p1, long v1, Personaje p2, long v2) {
+            Personaje p1, double v1, Personaje p2, double v2) {
         if (messaging == null) return;
         try {
             BracketUpdateEvent ev = new BracketUpdateEvent(
@@ -416,7 +430,7 @@ public class EnfrentamientoController {
         }
     }
 
-    private void publicarRankingDelta(Personaje ganador, long votosTotalesGanador,
+    private void publicarRankingDelta(Personaje ganador, double votosTotalesGanador,
             Double pesoTotalesGanador, double pesoVotoRegistrado) {
         if (messaging == null || ganador == null) return;
         try {

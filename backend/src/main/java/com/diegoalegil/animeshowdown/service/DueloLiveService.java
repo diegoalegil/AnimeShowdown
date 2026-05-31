@@ -435,14 +435,14 @@ public class DueloLiveService {
     }
 
     private DueloLiveChoice decisionComunidad(DueloLiveRonda ronda) {
-        long a = votoRepository.countByPersonajeId(ronda.getPersonajeA().getId());
-        long b = votoRepository.countByPersonajeId(ronda.getPersonajeB().getId());
-        if (a == 0 && b == 0) {
+        double a = votoRepository.countByPersonajeId(ronda.getPersonajeA().getId());
+        double b = votoRepository.countByPersonajeId(ronda.getPersonajeB().getId());
+        if (Double.compare(a, 0.0) == 0 && Double.compare(b, 0.0) == 0) {
             return ronda.getPersonajeA().getId() <= ronda.getPersonajeB().getId()
                     ? DueloLiveChoice.A
                     : DueloLiveChoice.B;
         }
-        if (a == b) return DueloLiveChoice.EMPATE;
+        if (Double.compare(a, b) == 0) return DueloLiveChoice.EMPATE;
         return a > b ? DueloLiveChoice.A : DueloLiveChoice.B;
     }
 

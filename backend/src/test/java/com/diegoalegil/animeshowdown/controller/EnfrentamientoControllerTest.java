@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
@@ -347,8 +349,8 @@ class EnfrentamientoControllerTest {
         // exacto. Así el test es robusto al orden de ejecución.
         Double pesoAntesA = votoRepository.sumaPesoByPersonajeId(persoA);
         Double pesoAntesB = votoRepository.sumaPesoByPersonajeId(persoB);
-        long votosAntesA = votoRepository.countByPersonajeId(persoA);
-        long votosAntesB = votoRepository.countByPersonajeId(persoB);
+        double votosAntesA = votoRepository.countByPersonajeId(persoA);
+        double votosAntesB = votoRepository.countByPersonajeId(persoB);
 
         // 1 voto registrado a A (incrementa peso en 1.0, votos en 1)
         String userTok = tokenUserRegistrado("ranking_peso_user", "rankingpeso@example.com");
@@ -392,14 +394,14 @@ class EnfrentamientoControllerTest {
         // - pesoVotos: A +1.0, B +0.9 (3 anónimos × 0.30).
         // Antes de ponderar por peso ambos contaban igual (+1 cada uno), así
         // que B siempre vencía a A — bug de ranking falseado.
-        long deltaVotosA = entryA.get("votos").asLong() - votosAntesA;
-        long deltaVotosB = entryB.get("votos").asLong() - votosAntesB;
+        double deltaVotosA = entryA.get("votos").asDouble() - votosAntesA;
+        double deltaVotosB = entryB.get("votos").asDouble() - votosAntesB;
         double deltaPesoA = entryA.get("pesoVotos").asDouble() - pesoAntesA;
         double deltaPesoB = entryB.get("pesoVotos").asDouble() - pesoAntesB;
 
-        org.junit.jupiter.api.Assertions.assertEquals(1, deltaVotosA,
+        org.junit.jupiter.api.Assertions.assertEquals(1.0, deltaVotosA, 0.001,
                 "Delta votos físicos de A debe ser exactamente +1");
-        org.junit.jupiter.api.Assertions.assertEquals(3, deltaVotosB,
+        org.junit.jupiter.api.Assertions.assertEquals(3.0, deltaVotosB, 0.001,
                 "Delta votos físicos de B debe ser exactamente +3");
         org.junit.jupiter.api.Assertions.assertEquals(1.0, deltaPesoA, 0.001,
                 "Delta peso de A debe ser +1.0 (voto registrado)");
@@ -473,12 +475,55 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
+    void votarEmpateNeutralSumaMedioACadaPersonajeSinMoverRankingDelta() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_empate_user", "votoempate@example.com");
+        long[] ids = dosPersonajes();
+        double votosAntesA = votoRepository.countByPersonajeId(ids[0]);
+        double votosAntesB = votoRepository.countByPersonajeId(ids[1]);
+        Double pesoAntesA = votoRepository.sumaPesoByPersonajeId(ids[0]);
+        Double pesoAntesB = votoRepository.sumaPesoByPersonajeId(ids[1]);
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "empate-neutral");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("empate", true))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.empate").value(true))
+                .andExpect(jsonPath("$.personajeGanadorId").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.personajePerdedorId").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.votosGanador").value(0.5))
+                .andExpect(jsonPath("$.votosPerdedor").value(0.5))
+                .andExpect(jsonPath("$.delta").value(0.0))
+                .andReturn();
+
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+        org.junit.jupiter.api.Assertions.assertTrue(votoRepository.findById(votoId).orElseThrow().isEmpate());
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesA + 0.5,
+                votoRepository.countByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesB + 0.5,
+                votoRepository.countByPersonajeId(ids[1]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesA + 0.5,
+                votoRepository.sumaPesoByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesB + 0.5,
+                votoRepository.sumaPesoByPersonajeId(ids[1]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(0.5,
+                votoRepository.scoreByEnfrentamientoAndPersonaje(
+                        votoRepository.findById(votoId).orElseThrow().getEnfrentamiento(),
+                        votoRepository.findById(votoId).orElseThrow().getEnfrentamiento().getPersonaje1()),
+                0.001);
+        verify(messaging, never()).convertAndSend(eq("/topic/ranking-delta"), any(RankingDeltaEvent.class));
+    }
+
+    @Test
     void votarPublicaDeltaRankingPorWebSocket() throws Exception {
         reset(messaging);
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_ws_user", "votows@example.com");
         long[] ids = dosPersonajes();
-        long antes = votoRepository.countByPersonajeId(ids[0]);
+        double antes = votoRepository.countByPersonajeId(ids[0]);
         Double pesoAntes = votoRepository.sumaPesoByPersonajeId(ids[0]);
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "ws");
 
@@ -492,8 +537,8 @@ class EnfrentamientoControllerTest {
         verify(messaging).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
         RankingDeltaEvent ev = captor.getValue();
         org.junit.jupiter.api.Assertions.assertEquals("luffy", ev.getPersonaje().getSlug());
-        org.junit.jupiter.api.Assertions.assertEquals(antes + 1, ev.getVotos());
-        org.junit.jupiter.api.Assertions.assertEquals(1, ev.getDelta());
+        org.junit.jupiter.api.Assertions.assertEquals(antes + 1, ev.getVotos(), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(1, ev.getDelta(), 0.001);
         // el WS publica pesoVotos
         // ponderado y deltaPeso del voto recién registrado. Para un voto
         // registrado (no anónimo) deltaPeso = 1.0; pesoVotos = pesoAntes + 1.

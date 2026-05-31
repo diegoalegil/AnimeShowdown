@@ -177,8 +177,8 @@ class BracketAdvanceServiceTest {
             Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
             when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1));
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(5L);
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(5L);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(5.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(5.0);
 
             var result = service.cerrarRondaYAvanzar(t);
 
@@ -197,8 +197,8 @@ class BracketAdvanceServiceTest {
             Enfrentamiento e2 = enfVacio(2L, 2, t); // size=1 pero e1.size/2=0 esperado
             when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1, e2));
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(10L);
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(2L);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(10.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(2.0);
 
             var result = service.cerrarRondaYAvanzar(t);
 
@@ -219,10 +219,10 @@ class BracketAdvanceServiceTest {
             Enfrentamiento dst = enfVacio(3L, 2, t);               // siguiente ronda
             when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1, e2, dst));
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(10L);
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(2L);
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e2, pp3)).thenReturn(7L);
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e2, pp4)).thenReturn(3L);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(10.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(2.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e2, pp3)).thenReturn(7.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e2, pp4)).thenReturn(3.0);
 
             var result = service.cerrarRondaYAvanzar(t);
 
@@ -241,8 +241,8 @@ class BracketAdvanceServiceTest {
             Enfrentamiento e1 = enfSinGanador(1L, 1, pp1, pp2, t);
             when(enfrentamientoRepository.findByTorneoOrderByRondaAscIdAsc(t))
                     .thenReturn(List.of(e1));
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(15L);
-            when(votoRepository.countByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(3L);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp1)).thenReturn(15.0);
+            when(votoRepository.scoreByEnfrentamientoAndPersonaje(e1, pp2)).thenReturn(3.0);
             lenient().when(torneoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             var result = service.cerrarRondaYAvanzar(t);

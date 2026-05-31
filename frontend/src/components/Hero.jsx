@@ -230,7 +230,7 @@ function HeroVoteTicker({ votos }) {
               className="text-xs font-medium text-fg-muted"
             >
               <strong className="text-fg-strong">{voto.username ?? t('hero.votesFallbackUser')}</strong>{' '}
-              {t('hero.votesAction')}{' '}
+              {voto.empate ? 'no decidió entre' : t('hero.votesAction')}{' '}
               <Link
                 to={`/personajes/${voto.ganador.slug}`}
                 className="font-semibold text-gold hover:underline"
@@ -239,7 +239,7 @@ function HeroVoteTicker({ votos }) {
               </Link>
               {voto.rival && (
                 <>
-                  {' '}vs {voto.rival.nombre}
+                  {' '}{voto.empate ? 'y' : 'vs'} {voto.rival.nombre}
                 </>
               )}
               {voto.fecha && (

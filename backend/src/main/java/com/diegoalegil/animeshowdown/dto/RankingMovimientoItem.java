@@ -15,7 +15,7 @@ public record RankingMovimientoItem(
         String nombre,
         String anime,
         String imagenUrl,
-        long votos,
+        double votos,
         int posicionActual,
         Integer posicionAnterior,
         Integer delta,

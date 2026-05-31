@@ -9,9 +9,8 @@ import com.diegoalegil.animeshowdown.model.Personaje;
  * para evitar truncar la ponderación de votos:
  *
  * <ul>
- *   <li>{@code votos}: cuenta física (COUNT(v)). Es el número que la UI
- *       muestra al usuario — "cuántas personas votaron". No miente:
- *       3 anónimos = 3 votos visibles, no 0 ni 0.9.</li>
+ *   <li>{@code votos}: score visible. Voto normal suma 1; empate neutral
+ *       suma 0.5 a cada personaje.</li>
  *   <li>{@code pesoVotos}: ponderado real (SUM(v.peso), 0.30 anónimos,
  *       1.00 registrados). Lo usa el backend para ORDER BY y lo
  *       expone en el JSON para que el frontend pueda reordenar la caché
@@ -26,12 +25,12 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 public class RankingItem {
 
     private Personaje personaje;
-    private Long votos;
+    private Double votos;
     private Double pesoVotos;
 
     public RankingItem(Personaje personaje, Long votos) {
         this.personaje = personaje;
-        this.votos = votos;
+        this.votos = votos == null ? 0.0 : votos.doubleValue();
         this.pesoVotos = votos == null ? 0.0 : votos.doubleValue();
     }
 
@@ -43,6 +42,12 @@ public class RankingItem {
 
     public RankingItem(Long personajeId, String slug, String nombre, String anime,
             String imagenUrl, Long votos, Double pesoVotos) {
+        this(personajeId, slug, nombre, anime, imagenUrl,
+                votos == null ? 0.0 : votos.doubleValue(), pesoVotos);
+    }
+
+    public RankingItem(Long personajeId, String slug, String nombre, String anime,
+            String imagenUrl, Double votos, Double pesoVotos) {
         Personaje p = new Personaje();
         p.setId(personajeId);
         p.setSlug(slug);
@@ -50,7 +55,7 @@ public class RankingItem {
         p.setAnime(anime);
         p.setImagenUrl(imagenUrl);
         this.personaje = p;
-        this.votos = votos;
+        this.votos = votos == null ? 0.0 : votos;
         this.pesoVotos = pesoVotos == null ? 0.0 : pesoVotos;
     }
 
@@ -58,7 +63,7 @@ public class RankingItem {
         return personaje;
     }
 
-    public Long getVotos() {
+    public Double getVotos() {
         return votos;
     }
 

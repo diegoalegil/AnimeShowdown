@@ -152,15 +152,15 @@ public class TorneoQueryService {
         rellenarResumen(dto, t, matches);
 
         // Bulk count de votos por match (evita N+1).
-        Map<Long, Long> votosPorMatch = new HashMap<>();
+        Map<Long, Double> votosPorMatch = new HashMap<>();
         for (Object[] row : votoRepository.contarVotosPorEnfrentamientoDeTorneo(t.getId())) {
-            votosPorMatch.put((Long) row[0], (Long) row[1]);
+            votosPorMatch.put((Long) row[0], ((Number) row[1]).doubleValue());
         }
-        Map<Long, Map<Long, Long>> votosPorMatchPersonaje = new HashMap<>();
+        Map<Long, Map<Long, Double>> votosPorMatchPersonaje = new HashMap<>();
         for (Object[] row : votoRepository.contarVotosPorEnfrentamientoYPersonajeDeTorneo(t.getId())) {
             Long enfrentamientoId = (Long) row[0];
             Long personajeId = (Long) row[1];
-            Long votos = (Long) row[2];
+            Double votos = ((Number) row[2]).doubleValue();
             votosPorMatchPersonaje
                     .computeIfAbsent(enfrentamientoId, ignored -> new HashMap<>())
                     .put(personajeId, votos);
@@ -169,7 +169,7 @@ public class TorneoQueryService {
         List<EnfrentamientoDto> enfDtos = matches.stream()
                 .map(e -> EnfrentamientoDto.from(
                         e,
-                        votosPorMatch.getOrDefault(e.getId(), 0L),
+                        votosPorMatch.getOrDefault(e.getId(), 0.0),
                         votosDe(e, e.getPersonaje1(), votosPorMatchPersonaje),
                         votosDe(e, e.getPersonaje2(), votosPorMatchPersonaje)))
                 .toList();
@@ -181,7 +181,7 @@ public class TorneoQueryService {
         if (current != null) {
             dto.setCurrentMatch(EnfrentamientoDto.from(
                     current,
-                    votosPorMatch.getOrDefault(current.getId(), 0L),
+                    votosPorMatch.getOrDefault(current.getId(), 0.0),
                     votosDe(current, current.getPersonaje1(), votosPorMatchPersonaje),
                     votosDe(current, current.getPersonaje2(), votosPorMatchPersonaje)));
             dto.setLiveEndsAt(calcularLiveEndsAt(t, serverNow));
@@ -303,13 +303,13 @@ public class TorneoQueryService {
                 .orElse(null);
     }
 
-    private Long votosDe(Enfrentamiento e, Personaje p, Map<Long, Map<Long, Long>> votosPorMatchPersonaje) {
+    private Double votosDe(Enfrentamiento e, Personaje p, Map<Long, Map<Long, Double>> votosPorMatchPersonaje) {
         if (e == null || p == null || e.getId() == null || p.getId() == null) {
             return null;
         }
         return votosPorMatchPersonaje
                 .getOrDefault(e.getId(), Map.of())
-                .getOrDefault(p.getId(), 0L);
+                .getOrDefault(p.getId(), 0.0);
     }
 
     private LocalDateTime calcularLiveEndsAt(Torneo torneo, LocalDateTime serverNow) {

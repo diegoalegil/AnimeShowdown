@@ -65,7 +65,7 @@ public class EloHistoryService {
         }
 
         // Total actual al cierre de hoy.
-        long totalActual = votoRepository.countByPersonajeId(p.getId());
+        long totalActual = votoRepository.countNormalByPersonajeId(p.getId());
 
         // Reconstruimos hacia atrás: cierre de hoy = total. Cierre de ayer =
         // total - votos_de_hoy. Cierre de hace 2 días = anterior - votos_ayer.
