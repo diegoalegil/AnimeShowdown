@@ -31,6 +31,7 @@ public class JwtUtil {
                 .withSubject(usuario.getUsername())
                 .withClaim("id", usuario.getId())
                 .withClaim("rol", usuario.getRol().name())
+                .withClaim("token_version", usuario.getTokenVersion())
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + expiration))
                 .sign(Algorithm.HMAC256(secret));
@@ -51,5 +52,11 @@ public class JwtUtil {
     public String extraerUsername(String token) {
         DecodedJWT decoded = JWT.require(Algorithm.HMAC256(secret)).build().verify(token);
         return decoded.getSubject();
+    }
+
+    public int extraerTokenVersion(String token) {
+        DecodedJWT decoded = JWT.require(Algorithm.HMAC256(secret)).build().verify(token);
+        Integer version = decoded.getClaim("token_version").asInt();
+        return version == null ? 0 : version;
     }
 }

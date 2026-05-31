@@ -451,9 +451,9 @@ public class AuthController {
     }
 
     /**
-     * Revoca el refresh token de la cookie actual y la limpia. El access
-     * JWT en memoria del cliente sigue siendo válido hasta que expire (15
-     * min máx), pero sin refresh ya no se puede renovar.
+     * Revoca el refresh token de la cookie actual y la limpia. Si llega un
+     * JWT válido, también invalida los access tokens emitidos previamente
+     * mediante token_version.
      *
      * <p>si el cliente envía JWT válido
      * (usuario != null), revocamos TODAS las sesiones activas del usuario
@@ -470,9 +470,11 @@ public class AuthController {
     public ResponseEntity<?> logout(
             @CookieValue(name = REFRESH_COOKIE, required = false) String refreshCookie,
             @AuthenticationPrincipal Usuario usuario,
-            HttpServletRequest httpRequest) {
+        HttpServletRequest httpRequest) {
         if (usuario != null) {
             int n = refreshTokenService.revocarTodos(usuario);
+            usuario.incrementarTokenVersion();
+            usuarioRepository.save(usuario);
             log.info("Logout: revocadas {} sesiones del usuario={}", n, usuario.getUsername());
         } else if (refreshCookie != null && !refreshCookie.isBlank()) {
             refreshTokenService.revocar(refreshCookie);
@@ -498,6 +500,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         int n = refreshTokenService.revocarTodos(usuario);
+        usuario.incrementarTokenVersion();
+        usuarioRepository.save(usuario);
         auditLogService.registrar(AuditEvento.SESIONES_REVOCADAS_TODAS, usuario,
                 Map.of("sesionesCerradas", n), httpRequest);
         return ResponseEntity.ok()
@@ -788,13 +792,11 @@ public class AuthController {
                     .body(Map.of("message", "La nueva contraseña debe ser distinta a la actual"));
         }
         usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usuario.incrementarTokenVersion();
         usuarioRepository.save(usuario);
         // Invalidar todas las sesiones previas tras cambio de
         // password. Si alguien tenía robada la sesión, el cambio de pass la
-        // cierra. El usuario actual también pierde su refresh pero el JWT
-        // del access sigue activo hasta los 15min, así que la pantalla no
-        // se cae inmediatamente — al siguiente refresh fallará y forzará
-        // re-login con la pass nueva.
+        // cierra, incluido cualquier access token emitido antes del cambio.
         int sesionesCerradas = refreshTokenService.revocarTodos(usuario);
         log.info("Password cambiada: username={} (cerradas {} sesiones)",
                 usuario.getUsername(), sesionesCerradas);

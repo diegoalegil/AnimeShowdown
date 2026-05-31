@@ -159,6 +159,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 throw new IllegalArgumentException("Usuario no encontrado");
             }
             Usuario usuario = usuarioOpt.get();
+            if (jwtUtil.extraerTokenVersion(token) != usuario.getTokenVersion()) {
+                log.warn("WS CONNECT con JWT revocado: username={}", username);
+                throw new IllegalArgumentException("Token JWT revocado");
+            }
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
                             usuario,

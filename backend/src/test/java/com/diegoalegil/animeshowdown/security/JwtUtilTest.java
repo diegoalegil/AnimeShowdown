@@ -4,11 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.diegoalegil.animeshowdown.model.Usuario;
 
 /**
@@ -37,6 +40,28 @@ class JwtUtilTest {
         String token = jwtUtil.generarToken(usuario);
         assertThat(jwtUtil.validarToken(token)).isTrue();
         assertThat(jwtUtil.extraerUsername(token)).isEqualTo("alice");
+    }
+
+    @Test
+    void generaTokenConVersionActualDelUsuario() {
+        usuario.setTokenVersion(7);
+
+        String token = jwtUtil.generarToken(usuario);
+
+        assertThat(jwtUtil.extraerTokenVersion(token)).isEqualTo(7);
+    }
+
+    @Test
+    void tokenSinVersionCuentaComoVersionCero() {
+        String tokenViejo = JWT.create()
+                .withSubject("alice")
+                .withClaim("id", usuario.getId())
+                .withClaim("rol", usuario.getRol().name())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 900_000L))
+                .sign(Algorithm.HMAC256(SECRET));
+
+        assertThat(jwtUtil.validarToken(tokenViejo)).isTrue();
+        assertThat(jwtUtil.extraerTokenVersion(tokenViejo)).isZero();
     }
 
     @Test

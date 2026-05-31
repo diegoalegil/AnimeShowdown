@@ -75,6 +75,10 @@ public class Usuario {
     @Column(name = "intentos_fallidos", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
     private Integer intentosFallidos = 0;
 
+    @JsonIgnore
+    @Column(name = "token_version", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer tokenVersion = 0;
+
     /**
      * Si está seteado y es futuro, los logins responden 423 Locked sin
      * comprobar password. null = cuenta normal. Lo desactivamos automático
@@ -185,6 +189,9 @@ public class Usuario {
         if (this.rol == null) {
             this.rol = Rol.USER;
         }
+        if (this.tokenVersion == null) {
+            this.tokenVersion = 0;
+        }
     }
 
     public Long getId() {
@@ -265,6 +272,18 @@ public class Usuario {
 
     public void setIntentosFallidos(Integer intentosFallidos) {
         this.intentosFallidos = intentosFallidos == null ? 0 : intentosFallidos;
+    }
+
+    public int getTokenVersion() {
+        return tokenVersion == null ? 0 : tokenVersion;
+    }
+
+    public void setTokenVersion(Integer tokenVersion) {
+        this.tokenVersion = tokenVersion == null ? 0 : tokenVersion;
+    }
+
+    public void incrementarTokenVersion() {
+        this.tokenVersion = getTokenVersion() + 1;
     }
 
     public LocalDateTime getBloqueadoHasta() {
