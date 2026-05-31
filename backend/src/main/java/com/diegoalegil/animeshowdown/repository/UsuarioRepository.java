@@ -6,16 +6,23 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.model.Usuario;
+
+import jakarta.persistence.LockModeType;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByUsername(String username);
 
     Optional<Usuario> findByEmail(String email);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.id = :id")
+    Optional<Usuario> findForUpdateById(@Param("id") Long id);
 
     /**
      * V-8: cuenta usuarios con el mismo username (case-insensitive) que NO sean
