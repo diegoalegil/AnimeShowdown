@@ -1,5 +1,5 @@
 -- ===========================================================================
--- V40__cartas_fase_2.sql
+-- V44__cartas_fase_2.sql
 -- Cartas Fase 2: sobres de 5 cartas, especiales curadas, pity e idempotencia.
 -- Portable Postgres + H2.
 -- ===========================================================================
