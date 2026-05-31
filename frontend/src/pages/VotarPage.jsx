@@ -39,6 +39,7 @@ import { INTENCIONES_BY_ID } from '../data/voto-intenciones'
 
 // Claves y tiempo de vida para el prefetch del siguiente par.
 // gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
+const BACKEND_QUERY_KEY = ['enfrentamientos', 'siguiente']
 const PREFETCH_BACKEND_KEY = ['enfrentamientos', 'prefetch-siguiente']
 const PREFETCH_SUGERIDO_KEY = ['votar', 'duelo-sugerido-prefetch']
 const PREFETCH_GC_TIME = 8_000
@@ -212,6 +213,18 @@ function VotarPage() {
     [catalogoPersonajes, fixedAnime, fixedPersonaje],
   )
   const casualContextKey = `${fixedSlug || ''}::${fixedRivalSlug || ''}::${fixedAnime || ''}`
+  const authenticatedUserId = user?.id ?? null
+  const seenBackendPairsRef = useRef(new Set())
+  const seenBackendMatchIdsRef = useRef(new Set())
+  const fetchSiguienteBackend = useCallback(() => {
+    const excludeIds = Array.from(seenBackendMatchIdsRef.current).slice(-100)
+    const anonymous = authenticatedUserId == null
+    return endpoints.enfrentamientoSiguiente({
+      excludeIds,
+      anonymous,
+      headers: anonymous ? getAnonymousVoteHeaders() : {},
+    })
+  }, [authenticatedUserId])
 
   const {
     data: enfrentamiento,
@@ -221,8 +234,8 @@ function VotarPage() {
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: ['enfrentamientos', 'aleatorio'],
-    queryFn: endpoints.enfrentamientoAleatorio,
+    queryKey: BACKEND_QUERY_KEY,
+    queryFn: fetchSiguienteBackend,
     staleTime: 0,
     gcTime: 0,
     retry: false,
@@ -294,10 +307,6 @@ function VotarPage() {
   const isAdvancingRef = useRef(false)
   const currentPairKeyRef = useRef('')
   const recordedPairKeyRef = useRef('')
-  // Set de pairKey ya vistos en la sesión — dedup real para modo backend.
-  // Se acumula durante toda la sesión sin límite; en torneos normales no
-  // supera los pocos cientos de pares disponibles.
-  const seenBackendPairsRef = useRef(new Set())
 
   useEffect(() => {
     if (fastMode || autoNextTimeoutRef.current == null) return
@@ -406,10 +415,13 @@ function VotarPage() {
     if (!a?.slug || !b?.slug || !currentPairKey) return
     if (recordedPairKeyRef.current === currentPairKey) return
     recordRecentPair(a.slug, b.slug)
-    // Registrar en el Set de dedup de sesión para modo backend
+    if (matchId != null) {
+      seenBackendMatchIdsRef.current.add(Number(matchId))
+    }
+    // Registrar en el Set de dedup de sesión para modo backend.
     seenBackendPairsRef.current.add(currentPairKey)
     recordedPairKeyRef.current = currentPairKey
-  }, [a?.slug, b?.slug, currentPairKey])
+  }, [a?.slug, b?.slug, currentPairKey, matchId])
 
   const tieSelected = votedFor === TIE_VOTE_KEY
   const votedPersonaje = votedFor === a?.slug ? a : votedFor === b?.slug ? b : null
@@ -428,7 +440,7 @@ function VotarPage() {
     if (modoBackend) {
       queryClient.prefetchQuery({
         queryKey: PREFETCH_BACKEND_KEY,
-        queryFn: endpoints.enfrentamientoAleatorio,
+        queryFn: fetchSiguienteBackend,
         staleTime: 0,
         gcTime: PREFETCH_GC_TIME,
       })
@@ -441,7 +453,7 @@ function VotarPage() {
       })
     }
     // Modo casual es instantáneo (solo estado local), no necesita prefetch.
-  }, [modoBackend, modoSugerido, queryClient])
+  }, [fetchSiguienteBackend, modoBackend, modoSugerido, queryClient])
 
   const handleNext = useCallback(async (options = {}) => {
     const force = options?.force === true
@@ -469,33 +481,18 @@ function VotarPage() {
           prefetchedData?.personaje1?.slug && prefetchedData?.personaje2?.slug
             ? pairKey(prefetchedData.personaje1.slug, prefetchedData.personaje2.slug)
             : ''
-        // Usar prefetch solo si el par es nuevo (no visto en esta sesión)
-        const prefetchIsNew = prefetchedKey && !seenBackendPairsRef.current.has(prefetchedKey)
+        // Usar prefetch solo si el match es nuevo (no visto en esta sesión).
+        const prefetchedId = Number(prefetchedData?.id)
+        const prefetchIsNew =
+          prefetchedKey &&
+          Number.isInteger(prefetchedId) &&
+          !seenBackendMatchIdsRef.current.has(prefetchedId) &&
+          !seenBackendPairsRef.current.has(prefetchedKey)
         if (prefetchedData && prefetchIsNew) {
-          queryClient.setQueryData(['enfrentamientos', 'aleatorio'], prefetchedData)
+          queryClient.setQueryData(BACKEND_QUERY_KEY, prefetchedData)
           queryClient.removeQueries({ queryKey: PREFETCH_BACKEND_KEY })
         } else {
-          // Reintentar hasta MAX_BACKEND_RETRIES para encontrar un par no visto.
-          // Si el torneo tiene pocos pares disponibles, aceptamos duplicados
-          // tras agotar los intentos para no bloquear la sesión.
-          const MAX_BACKEND_RETRIES = 3
-          let found = false
-          for (let attempt = 0; attempt < MAX_BACKEND_RETRIES; attempt += 1) {
-            const result = await refetch()
-            const nextKey =
-              result?.data?.personaje1?.slug && result?.data?.personaje2?.slug
-                ? pairKey(result.data.personaje1.slug, result.data.personaje2.slug)
-                : ''
-            if (nextKey && !seenBackendPairsRef.current.has(nextKey)) {
-              found = true
-              break
-            }
-          }
-          if (!found) {
-            // Todos los intentos devolvieron pares ya vistos. Aceptamos el último
-            // para no bloquear — puede pasar en torneos con muy pocos matches.
-            await refetch()
-          }
+          await refetch()
         }
       } else if (modoSugerido) {
         const prefetchedData = queryClient.getQueryData(PREFETCH_SUGERIDO_KEY)

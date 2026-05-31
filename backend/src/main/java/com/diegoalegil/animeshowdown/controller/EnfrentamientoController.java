@@ -3,10 +3,15 @@ package com.diegoalegil.animeshowdown.controller;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.time.Duration;
 import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -25,6 +30,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -113,17 +119,48 @@ public class EnfrentamientoController {
     }
 
     /**
-     * Devuelve un enfrentamiento "abierto" aleatorio (de un torneo
-     * IN_PROGRESS, con ambos personajes y sin ganador) para que VotarPage
-     * pueda mostrarlo en modo backend. 404 si ahora mismo no hay matches
-     * abiertos — el frontend hace fallback a modo casual con pares random
-     * locales.
+     * Devuelve el siguiente enfrentamiento abierto para el visitante actual.
+     *
+     * <p>Contrato hot-path de VotarPage: el servidor excluye matches ya votados
+     * por el usuario autenticado o por la identidad anónima, y el cliente puede
+     * añadir ids vistos en esta sesión. El muestreo usa cursor por id con
+     * fallback circular; evita el coste de ordenar aleatoriamente la tabla y que
+     * el frontend haga varios refetches hasta esquivar duplicados.
+     */
+    @GetMapping("/siguiente")
+    public ResponseEntity<EnfrentamientoDto> siguiente(
+            @RequestParam(name = "excludeIds", required = false) List<String> rawExcludeIds,
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
+        AnonymousVoteContext anon = usuario == null ? resolverAnonymousContext(httpRequest) : null;
+        List<Long> excludeIds = parseExcludeIds(rawExcludeIds);
+        Optional<Enfrentamiento> siguiente = buscarSiguienteDisponible(
+                usuario == null ? null : usuario.getId(),
+                anon == null ? null : anon.sessionId(),
+                excludeIds);
+        if (siguiente.isEmpty()) {
+            ResponseEntity.BodyBuilder notFound = ResponseEntity.status(HttpStatus.NOT_FOUND);
+            if (anon != null && anon.signedToken() != null) {
+                notFound.header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString());
+            }
+            return notFound.build();
+        }
+        ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
+        if (anon != null && anon.signedToken() != null) {
+            ok.header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString());
+        }
+        return ok.body(EnfrentamientoDto.from(siguiente.get(), null));
+    }
+
+    /**
+     * Alias legacy para consumidores que aún llaman /aleatorio. Mantiene la
+     * respuesta pero delega en el contrato server-authoritative nuevo.
      */
     @GetMapping("/aleatorio")
-    public ResponseEntity<EnfrentamientoDto> aleatorio() {
-        return enfrentamientoRepository.findEnfrentamientoAbiertoAleatorio()
-                .map(e -> ResponseEntity.ok(EnfrentamientoDto.from(e, null)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<EnfrentamientoDto> aleatorio(
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
+        return siguiente(null, usuario, httpRequest);
     }
 
     // @Transactional es OBLIGATORIO aquí, no estético.
@@ -543,6 +580,45 @@ public class EnfrentamientoController {
                 .secure(cookieSecure)
                 .httpOnly(false)
                 .build();
+    }
+
+    private Optional<Enfrentamiento> buscarSiguienteDisponible(
+            Long usuarioId,
+            String anonSessionId,
+            List<Long> excludeIds) {
+        long maxOpenId = enfrentamientoRepository.maxIdEnfrentamientoAbierto();
+        if (maxOpenId <= 0) return Optional.empty();
+
+        long cursor = ThreadLocalRandom.current().nextLong(1, maxOpenId + 1);
+        List<Long> safeExcludeIds = excludeIds.isEmpty() ? Collections.singletonList(-1L) : excludeIds;
+        int excludeIdsSize = excludeIds.size();
+        return enfrentamientoRepository.findSiguienteAbiertoDesde(
+                cursor, usuarioId, anonSessionId, safeExcludeIds, excludeIdsSize)
+                .or(() -> enfrentamientoRepository.findSiguienteAbiertoAntes(
+                        cursor, usuarioId, anonSessionId, safeExcludeIds, excludeIdsSize));
+    }
+
+    private List<Long> parseExcludeIds(List<String> rawValues) {
+        if (rawValues == null || rawValues.isEmpty()) return List.of();
+        return rawValues.stream()
+                .filter(Objects::nonNull)
+                .flatMap(value -> Arrays.stream(value.split(",")))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .map(this::tryParsePositiveLong)
+                .flatMap(Optional::stream)
+                .distinct()
+                .limit(100)
+                .toList();
+    }
+
+    private Optional<Long> tryParsePositiveLong(String raw) {
+        try {
+            long value = Long.parseLong(raw);
+            return value > 0 ? Optional.of(value) : Optional.empty();
+        } catch (NumberFormatException ignored) {
+            return Optional.empty();
+        }
     }
 
     /**

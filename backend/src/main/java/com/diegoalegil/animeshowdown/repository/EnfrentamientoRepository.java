@@ -1,13 +1,12 @@
 package com.diegoalegil.animeshowdown.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.Optional;
 
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Torneo;
@@ -56,18 +55,16 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
             """)
     List<Enfrentamiento> findByTorneoOrderedFetch(@Param("torneo") Torneo torneo);
 
-    /**
-     * Devuelve un enfrentamiento aleatorio "abierto" (ambos personajes
-     * presentes y sin ganador) de cualquier torneo en estado IN_PROGRESS.
-     * Usado por VotarPage modo backend: el usuario vota un match real
-     * sin tener que elegir torneo manualmente.
-     *
-     * ORDER BY RANDOM() es O(n log n) sobre n filas. Para los tamaños
-     * realistas del proyecto (cientos de matches abiertos como máximo)
-     * es perfectamente aceptable — Postgres lo resuelve <5ms. Cuando
-     * llegue capa correspondiente (Battle Royale) con miles de matches/min, se
-     * puede cambiar a una estrategia con OFFSET aleatorio.
-     */
+    @Query(value = """
+            SELECT COALESCE(MAX(e.id), 0) FROM enfrentamientos e
+            JOIN torneos t ON e.torneo_id = t.id
+            WHERE t.estado = 'IN_PROGRESS'
+              AND e.personaje1_id IS NOT NULL
+              AND e.personaje2_id IS NOT NULL
+              AND e.ganador_id IS NULL
+            """, nativeQuery = true)
+    long maxIdEnfrentamientoAbierto();
+
     @Query(value = """
             SELECT e.* FROM enfrentamientos e
             JOIN torneos t ON e.torneo_id = t.id
@@ -75,10 +72,56 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
               AND e.personaje1_id IS NOT NULL
               AND e.personaje2_id IS NOT NULL
               AND e.ganador_id IS NULL
-            ORDER BY RANDOM()
+              AND e.id >= :cursorId
+              AND (:excludeIdsSize = 0 OR e.id NOT IN (:excludeIds))
+              AND (:usuarioId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id
+                      AND v.usuario_id = :usuarioId
+              ))
+              AND (:anonSessionId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id
+                      AND v.anon_session_id = :anonSessionId
+              ))
+            ORDER BY e.id ASC
             LIMIT 1
             """, nativeQuery = true)
-    Optional<Enfrentamiento> findEnfrentamientoAbiertoAleatorio();
+    Optional<Enfrentamiento> findSiguienteAbiertoDesde(
+            @Param("cursorId") long cursorId,
+            @Param("usuarioId") Long usuarioId,
+            @Param("anonSessionId") String anonSessionId,
+            @Param("excludeIds") List<Long> excludeIds,
+            @Param("excludeIdsSize") int excludeIdsSize);
+
+    @Query(value = """
+            SELECT e.* FROM enfrentamientos e
+            JOIN torneos t ON e.torneo_id = t.id
+            WHERE t.estado = 'IN_PROGRESS'
+              AND e.personaje1_id IS NOT NULL
+              AND e.personaje2_id IS NOT NULL
+              AND e.ganador_id IS NULL
+              AND e.id < :cursorId
+              AND (:excludeIdsSize = 0 OR e.id NOT IN (:excludeIds))
+              AND (:usuarioId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id
+                      AND v.usuario_id = :usuarioId
+              ))
+              AND (:anonSessionId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id
+                      AND v.anon_session_id = :anonSessionId
+              ))
+            ORDER BY e.id ASC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Enfrentamiento> findSiguienteAbiertoAntes(
+            @Param("cursorId") long cursorId,
+            @Param("usuarioId") Long usuarioId,
+            @Param("anonSessionId") String anonSessionId,
+            @Param("excludeIds") List<Long> excludeIds,
+            @Param("excludeIdsSize") int excludeIdsSize);
 
     /**
      * Borra todos los enfrentamientos donde el personaje participe como
