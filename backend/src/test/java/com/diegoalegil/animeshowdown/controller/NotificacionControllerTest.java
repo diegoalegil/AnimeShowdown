@@ -34,8 +34,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Tests integración de notificaciones in-app.
  *
- * <p>Cubre el flujo REST completo + el trigger BIENVENIDA tras verificar
- * email. Los tests no cubren el push WebSocket en vivo — eso requiere
+ * <p>Cubre el flujo REST completo + los triggers de Fundador y BIENVENIDA.
+ * Los tests no cubren el push WebSocket en vivo — eso requiere
  * arrancar el broker STOMP y conectar un cliente real; queda como
  * verificación manual en producción.
  */
@@ -87,9 +87,18 @@ class NotificacionControllerTest {
         var notifs = notificacionRepository.findAll().stream()
                 .filter(n -> n.getUsuario().getId().equals(s.usuario().getId()))
                 .toList();
-        assert notifs.size() == 1 : "Debe haber 1 notif BIENVENIDA tras verificar; size=" + notifs.size();
-        assert notifs.get(0).getTipo() == NotificacionTipo.BIENVENIDA;
-        assert !notifs.get(0).isLeida() : "La notificación recién creada debe estar no leída";
+        long bienvenida = notifs.stream()
+                .filter(n -> n.getTipo() == NotificacionTipo.BIENVENIDA)
+                .count();
+        long fundador = notifs.stream()
+                .filter(n -> n.getTipo() == NotificacionTipo.BADGE_DESBLOQUEADO
+                        && n.getPayload() != null
+                        && n.getPayload().contains("\"codigo\":\"fundador\""))
+                .count();
+        assert bienvenida == 1 : "Debe haber 1 notif BIENVENIDA tras verificar; size=" + notifs.size();
+        assert fundador == 1 : "Debe haber 1 notif BADGE_DESBLOQUEADO de Fundador; size=" + notifs.size();
+        assert notifs.stream().allMatch(n -> !n.isLeida())
+                : "Las notificaciones recién creadas deben estar no leídas";
     }
 
     @Test
@@ -102,7 +111,8 @@ class NotificacionControllerTest {
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].tipo").value("BIENVENIDA"))
                 .andExpect(jsonPath("$.content[0].leida").value(false))
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andExpect(jsonPath("$.content[?(@.tipo=='BADGE_DESBLOQUEADO')]").exists())
+                .andExpect(jsonPath("$.totalElements").value(2));
     }
 
     @Test
@@ -112,9 +122,9 @@ class NotificacionControllerTest {
         mvc.perform(get("/api/notificaciones/unread-count")
                 .header("Authorization", "Bearer " + s.token()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.count").value(1));
+                .andExpect(jsonPath("$.count").value(2));
 
-        // Marcamos como leída y el count baja a 0.
+        // Marcamos una como leída y el count baja a 1.
         var notif = notificacionRepository.findAll().stream()
                 .filter(n -> n.getUsuario().getId().equals(s.usuario().getId()))
                 .findFirst().orElseThrow();
@@ -125,7 +135,7 @@ class NotificacionControllerTest {
         mvc.perform(get("/api/notificaciones/unread-count")
                 .header("Authorization", "Bearer " + s.token()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.count").value(0));
+                .andExpect(jsonPath("$.count").value(1));
     }
 
     @Test
@@ -155,16 +165,16 @@ class NotificacionControllerTest {
         // Creamos algunas notificaciones extra para tener variedad.
         notificacionService.crear(s.usuario(), NotificacionTipo.SISTEMA, "Aviso 1", "msg", null);
         notificacionService.crear(s.usuario(), NotificacionTipo.SISTEMA, "Aviso 2", "msg", null);
-        // Tenemos 3 no leídas (1 BIENVENIDA + 2 SISTEMA).
+        // Tenemos 4 no leídas (Fundador + BIENVENIDA + 2 SISTEMA).
 
         mvc.perform(get("/api/notificaciones/unread-count")
                 .header("Authorization", "Bearer " + s.token()))
-                .andExpect(jsonPath("$.count").value(3));
+                .andExpect(jsonPath("$.count").value(4));
 
         mvc.perform(post("/api/notificaciones/marcar-todas-leidas")
                 .header("Authorization", "Bearer " + s.token()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.actualizadas").value(3));
+                .andExpect(jsonPath("$.actualizadas").value(4));
 
         mvc.perform(get("/api/notificaciones/unread-count")
                 .header("Authorization", "Bearer " + s.token()))
@@ -176,12 +186,12 @@ class NotificacionControllerTest {
         Sesion s = crearUsuarioVerificado("notif_eva", "notif_eva@example.com");
         notificacionService.crear(s.usuario(), NotificacionTipo.SISTEMA, "Pendiente", "m", null);
 
-        // 2 totales (BIENVENIDA + SISTEMA), 2 no leídas.
+        // 3 totales (Fundador + BIENVENIDA + SISTEMA), 3 no leídas.
         mvc.perform(get("/api/notificaciones?soloNoLeidas=true")
                 .header("Authorization", "Bearer " + s.token()))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.totalElements").value(3));
 
-        // Marcamos la BIENVENIDA como leída — soloNoLeidas debe devolver solo 1.
+        // Marcamos la BIENVENIDA como leída; quedan Fundador + SISTEMA.
         var bienvenida = notificacionRepository.findAll().stream()
                 .filter(n -> n.getUsuario().getId().equals(s.usuario().getId())
                         && n.getTipo() == NotificacionTipo.BIENVENIDA)
@@ -191,13 +201,14 @@ class NotificacionControllerTest {
 
         mvc.perform(get("/api/notificaciones?soloNoLeidas=true")
                 .header("Authorization", "Bearer " + s.token()))
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].tipo").value("SISTEMA"));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[?(@.tipo=='SISTEMA')]").exists())
+                .andExpect(jsonPath("$.content[?(@.tipo=='BADGE_DESBLOQUEADO')]").exists());
 
-        // Sin filtro siguen siendo 2.
+        // Sin filtro siguen siendo 3.
         mvc.perform(get("/api/notificaciones")
                 .header("Authorization", "Bearer " + s.token()))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.totalElements").value(3));
     }
 
     @Test

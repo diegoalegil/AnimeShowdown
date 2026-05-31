@@ -17,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 @SpringBootTest
@@ -25,6 +26,7 @@ class OAuthAccountServiceTest {
 
     @Autowired private OAuthAccountService oauthAccountService;
     @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private UsuarioLogroRepository usuarioLogroRepository;
 
     @Test
     void googleNuevoUsuarioNaceActivoConUsernameDerivado() {
@@ -41,6 +43,7 @@ class OAuthAccountServiceTest {
         assertEquals(Rol.USER, result.usuario().getRol());
         assertEquals("https://example.com/avatar.png", result.usuario().getAvatarUrl());
         assertNotNull(result.usuario().getReferralCode());
+        assertTrue(usuarioLogroRepository.existsByUsuarioAndLogroCodigo(result.usuario(), "fundador"));
         // V-8: el username es autogenerado, así que la cuenta nace pendiente
         // de onboarding (el frontend mostrará el modal una vez).
         assertFalse(result.usuario().isOnboardingCompletado());
