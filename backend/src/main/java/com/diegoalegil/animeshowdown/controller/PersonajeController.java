@@ -6,6 +6,9 @@ import java.util.Map;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.diegoalegil.animeshowdown.dto.DueloRecienteDto;
 import com.diegoalegil.animeshowdown.dto.EloHistoryPoint;
 import com.diegoalegil.animeshowdown.dto.MatchupResumenDto;
+import com.diegoalegil.animeshowdown.dto.PageResponse;
 import com.diegoalegil.animeshowdown.dto.PersonajeActualizarRequest;
 import com.diegoalegil.animeshowdown.dto.PersonajeBusquedaDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeCrearRequest;
@@ -48,6 +52,9 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/personajes")
 public class PersonajeController {
+
+    private static final int DEFAULT_PAGE_SIZE = 50;
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final PersonajeRepository personajeRepository;
     private final RecomendacionService recomendacionService;
@@ -84,13 +91,28 @@ public class PersonajeController {
      * cuando no hay filtro. El catálogo es casi inmutable — las invalidaciones
      * vienen de crear/actualizar/eliminar/batch que hacen evict global.
      */
-    @Cacheable(value = "personajes-listado", key = "#anime ?: 'all'")
+    @Cacheable(value = "personajes-listado",
+            key = "(#anime ?: 'all') + ':' + (#page == null ? 'all' : #page) + ':' + (#size == null ? 'all' : #size)")
     @GetMapping
-    public List<Personaje> listarTodos(@RequestParam(required = false) String anime) {
-        if (anime != null) {
-            return personajeRepository.findByAnime(anime);
+    public Object listarTodos(
+            @RequestParam(required = false) String anime,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        if (page == null && size == null) {
+            if (anime != null) {
+                return personajeRepository.findByAnime(anime);
+            }
+            return personajeRepository.findAll();
         }
-        return personajeRepository.findAll();
+
+        Pageable pageable = PageRequest.of(
+                Math.max(0, page == null ? 0 : page),
+                Math.min(MAX_PAGE_SIZE, Math.max(1, size == null ? DEFAULT_PAGE_SIZE : size)),
+                Sort.by("id").ascending());
+        if (anime != null) {
+            return PageResponse.from(personajeRepository.findByAnime(anime, pageable));
+        }
+        return PageResponse.from(personajeRepository.findAll(pageable));
     }
 
     /**
