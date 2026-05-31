@@ -944,6 +944,9 @@ export const endpoints: EndpointMap = {
   // Alias legacy: mantenido para consumidores antiguos.
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/siguiente', { auth: false }),
   dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),
+  eloDuelRound: () => api.get('/api/games/elo-duel/round', { auth: false }),
+  eloDuelGuess: ({ roundToken, choice }) =>
+    api.post('/api/games/elo-duel/guess', { roundToken, choice }, { auth: false }),
   dueloLiveActive: () => api.get('/api/duelo-live/active'),
   dueloLiveJoin: () => api.post('/api/duelo-live/queue', undefined),
   dueloLiveState: (id) => api.get(`/api/duelo-live/${id}`),
