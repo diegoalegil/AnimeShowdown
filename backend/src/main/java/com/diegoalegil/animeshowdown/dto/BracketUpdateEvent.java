@@ -15,8 +15,8 @@ public record BracketUpdateEvent(
         Long torneoId,
         Long enfrentamientoId,
         Long personaje1Id,
-        long personaje1Votos,
+        double personaje1Votos,
         Long personaje2Id,
-        long personaje2Votos,
-        long totalVotos) {
+        double personaje2Votos,
+        double totalVotos) {
 }

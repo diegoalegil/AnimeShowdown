@@ -8,10 +8,9 @@ package com.diegoalegil.animeshowdown.dto;
  * REST sin contaminar ventanas temporales con totales históricos:
  *
  * <ul>
- *   <li>{@code votos}: total all-time físico del personaje (COUNT(v))
- *       tras el voto. Útil como número "humano" en la card.</li>
- *   <li>{@code delta}: número de votos físicos añadidos (siempre 1 hoy,
- *       reservado para futuros casos como rollback o bulk).</li>
+ *   <li>{@code votos}: total all-time visible del personaje. Voto normal
+ *       suma 1; empate neutral suma 0.5 a cada lado.</li>
+ *   <li>{@code delta}: votos visibles añadidos por este evento.</li>
  *   <li>{@code pesoVotos}: total all-time PONDERADO del personaje
  *       (SUM(v.peso)). El frontend lo usa para reemplazar el valor en
  *       la caché del periodo='all'.</li>
@@ -30,23 +29,23 @@ package com.diegoalegil.animeshowdown.dto;
 public class RankingDeltaEvent {
 
     private PersonajeMiniDto personaje;
-    private long votos;
-    private long delta;
+    private double votos;
+    private double delta;
     private Double pesoVotos;
     private Double deltaPeso;
 
     public RankingDeltaEvent() {
     }
 
-    public RankingDeltaEvent(PersonajeMiniDto personaje, long votos, long delta) {
+    public RankingDeltaEvent(PersonajeMiniDto personaje, double votos, double delta) {
         this(personaje, votos, delta, (double) votos, (double) delta);
     }
 
-    public RankingDeltaEvent(PersonajeMiniDto personaje, long votos, long delta, Double pesoVotos) {
+    public RankingDeltaEvent(PersonajeMiniDto personaje, double votos, double delta, Double pesoVotos) {
         this(personaje, votos, delta, pesoVotos, (double) delta);
     }
 
-    public RankingDeltaEvent(PersonajeMiniDto personaje, long votos, long delta,
+    public RankingDeltaEvent(PersonajeMiniDto personaje, double votos, double delta,
             Double pesoVotos, Double deltaPeso) {
         this.personaje = personaje;
         this.votos = votos;
@@ -59,11 +58,11 @@ public class RankingDeltaEvent {
         return personaje;
     }
 
-    public long getVotos() {
+    public double getVotos() {
         return votos;
     }
 
-    public long getDelta() {
+    public double getDelta() {
         return delta;
     }
 

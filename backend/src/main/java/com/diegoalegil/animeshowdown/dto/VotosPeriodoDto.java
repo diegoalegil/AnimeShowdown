@@ -16,14 +16,14 @@ import java.time.LocalDateTime;
  */
 public record VotosPeriodoDto(
         String slug,
-        long votosPeriodoActual,
-        long votosPeriodoAnterior,
-        long delta,
+        double votosPeriodoActual,
+        double votosPeriodoAnterior,
+        double delta,
         int dias,
         LocalDateTime fechaInicioActual,
         LocalDateTime fechaInicioAnterior) {
 
     public static VotosPeriodoDto vacio(String slug, int dias, LocalDateTime fechaInicioActual, LocalDateTime fechaInicioAnterior) {
-        return new VotosPeriodoDto(slug, 0L, 0L, 0L, dias, fechaInicioActual, fechaInicioAnterior);
+        return new VotosPeriodoDto(slug, 0.0, 0.0, 0.0, dias, fechaInicioActual, fechaInicioAnterior);
     }
 }

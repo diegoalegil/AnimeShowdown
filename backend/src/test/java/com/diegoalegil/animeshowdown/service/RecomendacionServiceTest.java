@@ -88,6 +88,24 @@ class RecomendacionServiceTest {
     }
 
     @Test
+    void similaresAceptaScoresDecimalesPorEmpateNeutral() {
+        when(personajeRepository.findBySlug("goku")).thenReturn(java.util.Optional.of(target));
+        Personaje naruto = new Personaje("naruto", "Naruto", "Naruto", "desc", "url");
+        naruto.setId(2L);
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(List.of(naruto));
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of(
+                new Object[]{1L, 0.5},
+                new Object[]{2L, 0.5}
+        ));
+
+        List<PersonajeSimilarDto> result = sut.similares("goku", 8);
+
+        assertEquals(1, result.size());
+        assertEquals(0.5, result.get(0).votos());
+        assertEquals(1.0, result.get(0).score());
+    }
+
+    @Test
     void similaresAplicaLimiteCorrectamente() {
         when(personajeRepository.findBySlug("goku")).thenReturn(java.util.Optional.of(target));
         java.util.ArrayList<Personaje> many = new java.util.ArrayList<>();

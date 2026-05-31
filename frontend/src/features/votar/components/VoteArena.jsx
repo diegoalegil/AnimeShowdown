@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { Scale } from 'lucide-react'
 import VoteCard from './VoteCard'
 import VsBadge from './VsBadge'
 
@@ -23,9 +24,22 @@ const VoteArena = memo(function VoteArena({
   votoInvitadoActivo,
   handleVoteLeft,
   handleVoteRight,
+  handleTieVote,
+  canTie = false,
 }) {
   const reduceMotion = useReducedMotion()
   const arenaKey = a && b ? `${a.slug}-${b.slug}` : 'empty'
+  const isTie = Boolean(voteResult?.empate)
+  const leftVoteResult = isTie
+    ? { ...voteResult, delta: 0.5, votosGanador: voteResult?.votosGanador }
+    : voteResult?.ganadorSlug === a.slug
+      ? voteResult
+      : null
+  const rightVoteResult = isTie
+    ? { ...voteResult, delta: 0.5, votosGanador: voteResult?.votosPerdedor, votosPerdedor: voteResult?.votosGanador }
+    : voteResult?.ganadorSlug === b.slug
+      ? voteResult
+      : null
 
   return (
     <AnimatePresence mode="popLayout">
@@ -46,26 +60,50 @@ const VoteArena = memo(function VoteArena({
           onClick={handleVoteLeft}
           disabled={controlsDisabled}
           isVoted={votedFor === a.slug}
-          isLoser={Boolean(votedFor && votedFor !== a.slug)}
+          isLoser={Boolean(votedFor && votedFor !== a.slug && !isTie)}
+          isTie={isTie}
           showResult={Boolean(votedFor)}
           side="left"
           anonymousLimited={votoInvitadoActivo}
-          voteResult={voteResult?.ganadorSlug === a.slug ? voteResult : null}
+          voteResult={leftVoteResult}
         />
-        <div className="hidden self-center justify-self-center sm:flex">
+        <div className="hidden self-center justify-self-center sm:flex sm:flex-col sm:items-center sm:gap-3">
           <VsBadge votedFor={votedFor} />
+          {canTie && !votedFor && (
+            <button
+              type="button"
+              onClick={handleTieVote}
+              disabled={controlsDisabled}
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[11px] font-black text-gold transition-colors hover:border-gold disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Scale className="h-3.5 w-3.5" />
+              No puedo decidir
+            </button>
+          )}
         </div>
         <VoteCard
           personaje={b}
           onClick={handleVoteRight}
           disabled={controlsDisabled}
           isVoted={votedFor === b.slug}
-          isLoser={Boolean(votedFor && votedFor !== b.slug)}
+          isLoser={Boolean(votedFor && votedFor !== b.slug && !isTie)}
+          isTie={isTie}
           showResult={Boolean(votedFor)}
           side="right"
           anonymousLimited={votoInvitadoActivo}
-          voteResult={voteResult?.ganadorSlug === b.slug ? voteResult : null}
+          voteResult={rightVoteResult}
         />
+        {canTie && !votedFor && (
+          <button
+            type="button"
+            onClick={handleTieVote}
+            disabled={controlsDisabled}
+            className="col-span-2 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[12px] font-black text-gold transition-colors hover:border-gold disabled:cursor-not-allowed disabled:opacity-60 sm:hidden"
+          >
+            <Scale className="h-3.5 w-3.5" />
+            No puedo decidir
+          </button>
+        )}
       </motion.div>
     </AnimatePresence>
   )

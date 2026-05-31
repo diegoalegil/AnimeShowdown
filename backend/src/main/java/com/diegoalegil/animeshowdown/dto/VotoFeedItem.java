@@ -24,7 +24,8 @@ public record VotoFeedItem(
         LocalDateTime fecha,
         PersonajeMini ganador,
         PersonajeMini rival,
-        String username) {
+        String username,
+        boolean empate) {
 
     public record PersonajeMini(String slug, String nombre, String anime, String imagenUrl) {
         public static PersonajeMini from(Personaje p) {
@@ -42,7 +43,10 @@ public record VotoFeedItem(
             // queda null.
             Personaje a = v.getEnfrentamiento().getPersonaje1();
             Personaje b = v.getEnfrentamiento().getPersonaje2();
-            if (a != null && ganador != null && !a.getId().equals(ganador.getId())) {
+            if (v.isEmpate()) {
+                ganador = a;
+                rival = b;
+            } else if (a != null && ganador != null && !a.getId().equals(ganador.getId())) {
                 rival = a;
             } else if (b != null && ganador != null && !b.getId().equals(ganador.getId())) {
                 rival = b;
@@ -52,6 +56,7 @@ public record VotoFeedItem(
                 v.getFecha(),
                 ganador != null ? PersonajeMini.from(ganador) : null,
                 rival != null ? PersonajeMini.from(rival) : null,
-                v.getUsuario() != null ? v.getUsuario().getUsername() : null);
+                v.getUsuario() != null ? v.getUsuario().getUsername() : null,
+                v.isEmpate());
     }
 }

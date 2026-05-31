@@ -9,5 +9,5 @@ public record TopPersonajeItem(
         String nombre,
         String imagenUrl,
         String anime,
-        long votos) {
+        double votos) {
 }

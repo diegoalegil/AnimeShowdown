@@ -16,6 +16,7 @@ const VoteCard = memo(function VoteCard({
   disabled,
   isVoted,
   isLoser,
+  isTie,
   showResult,
   side,
   anonymousLimited,
@@ -60,6 +61,8 @@ const VoteCard = memo(function VoteCard({
         className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 transition-[transform,border-color,box-shadow,opacity,filter] ${
           isVoted
             ? 'shadow-aura-lg ring-2 ring-white/25'
+            : isTie
+              ? 'border-gold/60 shadow-aura'
             : isLoser
               ? 'border-transparent opacity-40 grayscale'
               : 'border-transparent shadow-aura motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-aura-lg'
@@ -100,6 +103,18 @@ const VoteCard = memo(function VoteCard({
               </span>
             </motion.div>
           )}
+          {isTie && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+              className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4"
+            >
+              <span className="rounded-full border-2 border-gold bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.18em] text-gold backdrop-blur-sm">
+                ½ voto
+              </span>
+            </motion.div>
+          )}
           <VoteFeedbackBurst
             active={Boolean(voteResult)}
             delta={voteResult?.delta}
@@ -107,7 +122,7 @@ const VoteCard = memo(function VoteCard({
             votosPerdedor={voteResult?.votosPerdedor}
             animateValue={false}
             particles={false}
-            label="Voto registrado"
+            label={isTie ? 'Medio voto' : 'Voto registrado'}
           />
           {anonymousLimited && !showResult && (
             <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-gold backdrop-blur-sm">

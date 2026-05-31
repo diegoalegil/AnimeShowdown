@@ -13,6 +13,6 @@ public record PersonajeSimilarDto(
         String nombre,
         String anime,
         String imagenUrl,
-        long votos,
+        double votos,
         double score) {
 }
