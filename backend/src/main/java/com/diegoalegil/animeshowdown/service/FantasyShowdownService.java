@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.FantasyEquipoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 @Service
@@ -49,6 +51,7 @@ public class FantasyShowdownService {
 
     private final FantasyEquipoRepository equipoRepository;
     private final PersonajeRepository personajeRepository;
+    private final UsuarioRepository usuarioRepository;
     private final VotoRepository votoRepository;
     private final RankingMovimientosService rankingMovimientosService;
     private final Clock clock;
@@ -57,12 +60,14 @@ public class FantasyShowdownService {
     public FantasyShowdownService(
             FantasyEquipoRepository equipoRepository,
             PersonajeRepository personajeRepository,
+            UsuarioRepository usuarioRepository,
             VotoRepository votoRepository,
             RankingMovimientosService rankingMovimientosService,
             Clock clock,
             @Value("${app.fantasy.presupuesto:" + PRESUPUESTO_DEFAULT + "}") int presupuesto) {
         this.equipoRepository = equipoRepository;
         this.personajeRepository = personajeRepository;
+        this.usuarioRepository = usuarioRepository;
         this.votoRepository = votoRepository;
         this.rankingMovimientosService = rankingMovimientosService;
         this.clock = clock;
@@ -118,8 +123,7 @@ public class FantasyShowdownService {
     public FantasyEquipoDto guardarDraft(Usuario usuario, FantasyDraftRequest request) {
         List<Long> ids = sanePersonajeIds(request);
         String semanaIso = semanaIsoActual();
-        FantasyEquipo equipo = equipoRepository.findByUsuarioAndSemanaIsoForUpdate(usuario, semanaIso)
-                .orElseGet(() -> new FantasyEquipo(usuario, semanaIso));
+        FantasyEquipo equipo = obtenerOCrearEquipoDraft(usuario, semanaIso);
         if (equipo.isLocked()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El equipo de esta semana ya está bloqueado");
         }
@@ -143,6 +147,19 @@ public class FantasyShowdownService {
         equipo.setPuntos(0);
         equipo.setPuntosCalculadosAt(null);
         return toDto(equipoRepository.save(equipo));
+    }
+
+    private FantasyEquipo obtenerOCrearEquipoDraft(Usuario usuario, String semanaIso) {
+        Optional<FantasyEquipo> existente = equipoRepository.findByUsuarioAndSemanaIsoForUpdate(usuario, semanaIso);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        Usuario usuarioBloqueado = usuarioRepository.findForUpdateById(usuario.getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Usuario no encontrado al crear equipo fantasy: " + usuario.getId()));
+        return equipoRepository.findByUsuarioAndSemanaIsoForUpdate(usuarioBloqueado, semanaIso)
+                .orElseGet(() -> new FantasyEquipo(usuarioBloqueado, semanaIso));
     }
 
     @Transactional

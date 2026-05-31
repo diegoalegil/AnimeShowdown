@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,7 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.FantasyEquipoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +42,7 @@ class FantasyShowdownServiceTest {
 
     @Mock private FantasyEquipoRepository equipoRepository;
     @Mock private PersonajeRepository personajeRepository;
+    @Mock private UsuarioRepository usuarioRepository;
     @Mock private VotoRepository votoRepository;
     @Mock private RankingMovimientosService rankingMovimientosService;
 
@@ -51,6 +55,7 @@ class FantasyShowdownServiceTest {
         sut = new FantasyShowdownService(
                 equipoRepository,
                 personajeRepository,
+                usuarioRepository,
                 votoRepository,
                 rankingMovimientosService,
                 clock,
@@ -64,6 +69,7 @@ class FantasyShowdownServiceTest {
         List<Long> ids = List.of(1L, 2L, 3L, 4L, 5L);
         when(equipoRepository.findByUsuarioAndSemanaIsoForUpdate(usuario, "2026-W22"))
                 .thenReturn(Optional.empty());
+        when(usuarioRepository.findForUpdateById(usuario.getId())).thenReturn(Optional.of(usuario));
         when(personajeRepository.findAllById(ids)).thenReturn(ids.stream().map(this::personaje).toList());
         when(votoRepository.votosPorPersonajes()).thenReturn(ids.stream()
                 .map(id -> new Object[]{id, 100L})
@@ -74,6 +80,28 @@ class FantasyShowdownServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
         verify(equipoRepository, never()).save(any());
+    }
+
+    @Test
+    void guardarDraftInicialBloqueaUsuarioAntesDeCrearEquipo() {
+        List<Long> ids = List.of(1L, 2L, 3L, 4L, 5L);
+        when(equipoRepository.findByUsuarioAndSemanaIsoForUpdate(usuario, "2026-W22"))
+                .thenReturn(Optional.empty());
+        when(usuarioRepository.findForUpdateById(usuario.getId())).thenReturn(Optional.of(usuario));
+        when(personajeRepository.findAllById(ids)).thenReturn(ids.stream().map(this::personaje).toList());
+        when(votoRepository.votosPorPersonajes()).thenReturn(ids.stream()
+                .map(id -> new Object[]{id, 0L})
+                .toList());
+        when(equipoRepository.save(any(FantasyEquipo.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        sut.guardarDraft(usuario, new FantasyDraftRequest(ids));
+
+        InOrder inOrder = inOrder(equipoRepository, usuarioRepository);
+        inOrder.verify(equipoRepository).findByUsuarioAndSemanaIsoForUpdate(usuario, "2026-W22");
+        inOrder.verify(usuarioRepository).findForUpdateById(usuario.getId());
+        inOrder.verify(equipoRepository).findByUsuarioAndSemanaIsoForUpdate(usuario, "2026-W22");
+        inOrder.verify(equipoRepository).save(any(FantasyEquipo.class));
     }
 
     @Test
