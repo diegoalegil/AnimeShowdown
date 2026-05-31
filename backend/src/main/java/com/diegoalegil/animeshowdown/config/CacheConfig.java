@@ -74,6 +74,10 @@ public class CacheConfig {
                 // Ranking actual con deltas vs hace N días. Pesado (dos
                 // queries de COUNT con GROUP BY); cache 1min.
                 buildCache("ranking-movimientos", Duration.ofMinutes(1), 64),
+                // Listado público de torneos. El frontend/SW ya lo trata como
+                // dato cacheable; cache corto para absorber hits repetidos sin
+                // ocultar cambios de estado más de unos segundos.
+                buildCache("torneos-resumen", Duration.ofSeconds(30), 4),
                 // Time machine ELO por personaje. La curva del pasado no
                 // cambia (solo extiende al cierre del día); cache largo 1h.
                 buildCache("personaje-elo-history", Duration.ofHours(1), 1500),

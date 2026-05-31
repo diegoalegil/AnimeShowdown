@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +70,7 @@ public class TorneoAutoService {
      * @return el torneo guardado y con enfrentamientos persistidos.
      */
     @Transactional
+    @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo generar(int tamano, boolean force) {
         if (!enabled) {
             throw new IllegalStateException("Auto-generación de torneos deshabilitada (app.tournament.auto.enabled=false)");
