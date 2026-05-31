@@ -601,6 +601,26 @@ describe('endpoints', () => {
     expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
   })
 
+  it('aplicarPrediccionCampeon: sends tournament champion prediction', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+    await endpoints.aplicarPrediccionCampeon({ torneoId: 7, personajePredichoId: 42 })
+    const [url, init] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/predicciones/campeon')
+    expect(JSON.parse(init.body as string)).toEqual({
+      torneoId: 7,
+      personajePredichoId: 42,
+    })
+  })
+
+  it('leaderboardPrediccionesTorneo: GET public tournament leaderboard', async () => {
+    const fn = mockFetchResolved([])
+    vi.stubGlobal('fetch', fn)
+    await endpoints.leaderboardPrediccionesTorneo({ torneoId: 7, limit: 5 })
+    const url = (fn.mock.calls[0] as [string, RequestInit])[0]
+    expect(url).toContain('/predicciones/leaderboard/torneo/7?limit=5')
+  })
+
   it('rankingSegmentado: defaults periodo=all with no anime', async () => {
     const fn = mockFetchResolved([])
     vi.stubGlobal('fetch', fn)

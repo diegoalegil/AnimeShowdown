@@ -108,6 +108,7 @@ class PerfilServiceTest {
                             makePrediccion(true),
                             makePrediccion(false),
                             makePrediccion(true)));
+            when(prediccionRepository.puntosCampeonAcumulados(u)).thenReturn(20L);
             when(usuarioLogroRepository.countByUsuario(u)).thenReturn(3L);
             when(torneoRepository.countByCreadoPor(u)).thenReturn(2L);
 
@@ -118,6 +119,7 @@ class PerfilServiceTest {
             assertThat(stats.prediccionesAcertadas()).isEqualTo(2);
             assertThat(stats.prediccionesResueltas()).isEqualTo(3);
             assertThat(stats.porcentajeAciertos()).isEqualTo(66.7);
+            assertThat(stats.bracketChallengePuntos()).isEqualTo(20);
             assertThat(stats.badgesDesbloqueados()).isEqualTo(3);
             assertThat(stats.torneosCreados()).isEqualTo(2);
         }

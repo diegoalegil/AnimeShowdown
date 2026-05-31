@@ -637,6 +637,8 @@ export const endpoints: EndpointMap = {
   //   leaderboardPredicciones: público. Top predictores últimos N días.
   aplicarPrediccion: ({ enfrentamientoId, personajePredichoId }) =>
     api.post('/api/predicciones', { enfrentamientoId, personajePredichoId }),
+  aplicarPrediccionCampeon: ({ torneoId, personajePredichoId }) =>
+    api.post('/api/predicciones/campeon', { torneoId, personajePredichoId }),
   misPredicciones: (torneoId) =>
     api.get(`/api/predicciones/mias/torneo/${torneoId}`),
   leaderboardPredicciones: ({ dias = 30, limit = 10 } = {}) =>
@@ -644,6 +646,10 @@ export const endpoints: EndpointMap = {
       `/api/predicciones/leaderboard?dias=${dias}&limit=${limit}`,
       { auth: false },
     ),
+  leaderboardPrediccionesTorneo: ({ torneoId, limit = 10 }) =>
+    api.get(`/api/predicciones/leaderboard/torneo/${torneoId}?limit=${limit}`, {
+      auth: false,
+    }),
   // Perfil del usuario autenticado.
   perfilStats: () => api.get('/api/perfil/me/stats'),
   perfilHistorialVotos: ({ page = 0, size = 50 } = {}) =>

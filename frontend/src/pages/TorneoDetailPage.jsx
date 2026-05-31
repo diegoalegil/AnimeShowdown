@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowLeft, Crown, Users } from 'lucide-react'
+import { toast } from 'sonner'
+import { AlertTriangle, ArrowLeft, CheckCircle2, Crown, Lock, Target, Trophy, Users } from 'lucide-react'
 import PersonajeCard from '../components/PersonajeCard'
 import Bracket from '../components/Bracket'
 import DuelosAbiertosStrip from '../components/DuelosAbiertosStrip'
@@ -12,9 +13,15 @@ import ShareButtons from '../components/ShareButtons'
 import KanjiSpinner from '../components/KanjiSpinner'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
+import { useAuth } from '../contexts/AuthContext'
+import { ApiError } from '../lib/api'
 import { formatDateSafe, parseDateSafe } from '../lib/dateUtils'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
-import { useLeaderboardPredicciones } from '../hooks/usePredicciones'
+import {
+  useAplicarPrediccionCampeon,
+  useLeaderboardPrediccionesTorneo,
+  useMisPredicciones,
+} from '../hooks/usePredicciones'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, torneoSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -266,6 +273,13 @@ function TorneoDetailPage() {
         {estado === 'IN_PROGRESS' && torneo.currentMatch && (
           <LiveMatchSpectator torneo={torneo} />
         )}
+        <ChampionPredictionPanel
+          torneoId={torneo.id}
+          torneoSlug={torneo.slug}
+          estado={estado}
+          roster={rosterRonda1}
+          torneoNombre={nombre}
+        />
         {/* "Duelos abiertos" arriba del bracket
             para que el usuario que aterriza en un torneo IN_PROGRESS no
             tenga que cazar a mano qué match está abierto en el bracket.
@@ -330,7 +344,7 @@ function TorneoDetailPage() {
           </>
         )}
 
-        <PanelProfetas />
+        <PanelProfetas torneoId={torneo.id} />
 
         {torneo?.slug && (
           <div className="mt-10 rounded-2xl border border-border bg-surface p-5">
@@ -349,14 +363,127 @@ function TorneoDetailPage() {
   )
 }
 
-/**
- * Panel "Ranking de profetas" — top 10 predictores globales (últimos 30 días).
- * Consume useLeaderboardPredicciones, el mismo hook de LeaderboardsPage.
- * No está filtrado por torneo concreto porque el endpoint no lo soporta aún;
- * si el torneo no tiene predicciones activas el estado vacío lo deja claro.
- */
-function PanelProfetas() {
-  const { data, isLoading, isError } = useLeaderboardPredicciones({ dias: 30, limit: 10 })
+function ChampionPredictionPanel({ torneoId, torneoSlug, estado, roster, torneoNombre }) {
+  const { user } = useAuth()
+  const { data: misPredicciones, isLoading } = useMisPredicciones(torneoId)
+  const mutation = useAplicarPrediccionCampeon(torneoId)
+  const prediccion = (misPredicciones ?? []).find((p) => p.tipo === 'CAMPEON')
+  const selectedId = prediccion?.personajePredichoId
+  const puedePredecir = estado === 'SCHEDULED'
+  const next = `/torneos/${torneoSlug}`
+
+  if (!Array.isArray(roster) || roster.length === 0) return null
+
+  const onPick = (personaje) => {
+    if (!user || !puedePredecir || mutation.isPending) return
+    mutation.mutate(
+      { personajePredichoId: personaje.id },
+      {
+        onSuccess: () => {
+          toast.success(`Campeón predicho: ${personaje.nombre}`)
+        },
+        onError: (err) => {
+          toast.error(err instanceof ApiError ? err.message : 'No se pudo guardar la predicción')
+        },
+      },
+    )
+  }
+
+  return (
+    <section className="mb-10 rounded-2xl border border-border bg-surface p-5">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
+            <Target className="h-3.5 w-3.5" />
+            Bracket Challenge
+          </div>
+          <h2 className="text-xl font-bold text-fg-strong">
+            Predice el campeón de {torneoNombre}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-fg-muted">
+            {puedePredecir
+              ? 'Una apuesta limpia antes del inicio: acertar el campeón suma 10 puntos.'
+              : 'La ventana de predicción ya está cerrada para este torneo.'}
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-2 self-start rounded-lg border border-border bg-bg px-3 py-2 text-[12px] font-semibold text-fg-muted">
+          {puedePredecir ? <Trophy className="h-4 w-4 text-gold" /> : <Lock className="h-4 w-4" />}
+          {puedePredecir ? '10 pts por acierto' : 'Predicciones cerradas'}
+        </div>
+      </div>
+
+      {!user && puedePredecir && (
+        <Link
+          to={`/login?next=${encodeURIComponent(next)}`}
+          className="mb-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-bold text-gold transition-colors hover:bg-accent/20"
+        >
+          Entrar para predecir
+        </Link>
+      )}
+
+      {prediccion && (
+        <div className={`mb-5 flex items-center gap-3 rounded-lg border p-3 ${
+          prediccion.acertada === true
+            ? 'border-success/40 bg-success/10'
+            : prediccion.acertada === false
+              ? 'border-danger/40 bg-danger/10'
+              : 'border-accent/30 bg-accent-soft'
+        }`}>
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-gold" />
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-fg-strong">
+              Tu campeón: {prediccion.personajePredichoNombre}
+            </p>
+            <p className="text-[12px] text-fg-muted">
+              {prediccion.acertada === true
+                ? 'Acierto confirmado: +10 pts'
+                : prediccion.acertada === false
+                  ? 'Esta vez no acertó.'
+                  : puedePredecir
+                    ? 'Puedes cambiarlo hasta que arranque el torneo.'
+                    : 'Pendiente de resolución.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        {roster.map((personaje) => {
+          const active = String(selectedId ?? '') === String(personaje.id)
+          return (
+            <button
+              key={personaje.slug}
+              type="button"
+              onClick={() => onPick(personaje)}
+              disabled={!user || !puedePredecir || mutation.isPending || isLoading}
+              className={`group min-h-44 rounded-xl border p-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-75 ${
+                active
+                  ? 'border-accent bg-accent-soft'
+                  : 'border-border bg-bg hover:border-accent/40 hover:bg-surface-alt'
+              }`}
+            >
+              <PersonajeImg
+                slug={personaje.slug}
+                alt={personaje.nombre}
+                className="aspect-[4/5] w-full rounded-lg object-cover"
+              />
+              <span className="mt-2 block truncate text-sm font-bold text-fg-strong group-hover:text-gold">
+                {personaje.nombre}
+              </span>
+              <span className="block truncate text-[11px] text-fg-muted">
+                {personaje.anime}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+/** Panel de Bracket Challenge con aciertos de campeón para este torneo. */
+function PanelProfetas({ torneoId }) {
+  const { data, isLoading, isError } = useLeaderboardPrediccionesTorneo({ torneoId, limit: 10 })
 
   return (
     <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
@@ -364,10 +491,10 @@ function PanelProfetas() {
         <Crown className="h-4 w-4 shrink-0 text-gold" />
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-fg-strong">
-            Ranking de profetas
+            Profetas del campeón
           </h2>
           <p className="mt-0.5 text-[11px] text-fg-muted">
-            Top 10 predictores más acertados (últimos 30 días)
+            Leaderboard de aciertos de campeón en este torneo
           </p>
         </div>
       </div>
@@ -393,8 +520,7 @@ function PanelProfetas() {
             Sin predicciones en este torneo todavía
           </p>
           <p className="max-w-xs text-[11px] text-fg-muted/70">
-            Cuando los participantes hagan predicciones en los enfrentamientos,
-            aquí aparecerán los más acertados.
+            Al finalizar el torneo aparecerán aquí quienes clavaron el campeón.
           </p>
         </div>
       )}
@@ -407,7 +533,7 @@ function PanelProfetas() {
               <li key={predictor.username}>
                 <Link
                   to={`/u/${encodeURIComponent(predictor.username)}`}
-                  aria-label={`Rank #${i + 1} — ${predictor.username}, ${predictor.aciertos} aciertos`}
+                  aria-label={`Rank #${i + 1} — ${predictor.username}, ${predictor.puntos ?? predictor.aciertos} puntos`}
                   className="group flex items-center gap-3 rounded-lg border border-border bg-bg px-3 py-2.5 transition-all hover:border-accent/40 hover:bg-surface-alt"
                 >
                   <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface font-mono text-sm font-bold text-fg-muted">
@@ -418,11 +544,11 @@ function PanelProfetas() {
                   </span>
                   <div className="text-right">
                     <p className="font-mono text-sm font-bold text-gold">
-                      {predictor.aciertos}
+                      {predictor.puntos ?? predictor.aciertos}
                     </p>
-                    <p className="text-[10px] uppercase tracking-wider text-fg-muted">
-                      aciertos
-                    </p>
+                  <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+                      puntos
+                  </p>
                   </div>
                 </Link>
               </li>

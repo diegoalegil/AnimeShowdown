@@ -1,4 +1,4 @@
-import { Activity, Award, Swords, Target, Vote } from 'lucide-react'
+import { Activity, Award, Swords, Target, Trophy, Vote } from 'lucide-react'
 import { usePerfilStats } from '../hooks/usePerfil'
 import KanjiSpinner from './KanjiSpinner'
 
@@ -30,6 +30,7 @@ function CardStats({ data: dataProp = null }) {
     prediccionesAcertadas: 0,
     prediccionesResueltas: 0,
     porcentajeAciertos: 0,
+    bracketChallengePuntos: 0,
     badgesDesbloqueados: 0,
     torneosCreados: 0,
   }
@@ -45,7 +46,7 @@ function CardStats({ data: dataProp = null }) {
           <KanjiSpinner size="sm" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Kpi
             icon={Vote}
             label="Votos totales"
@@ -61,6 +62,11 @@ function CardStats({ data: dataProp = null }) {
             label="% Aciertos"
             value={`${stats.porcentajeAciertos}%`}
             accent
+          />
+          <Kpi
+            icon={Trophy}
+            label="Bracket pts"
+            value={stats.bracketChallengePuntos ?? 0}
           />
           <Kpi
             icon={Award}

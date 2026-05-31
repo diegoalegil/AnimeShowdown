@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diegoalegil.animeshowdown.dto.PrediccionCampeonRequest;
 import com.diegoalegil.animeshowdown.dto.PrediccionDto;
 import com.diegoalegil.animeshowdown.dto.PrediccionRequest;
 import com.diegoalegil.animeshowdown.model.Prediccion;
@@ -68,6 +69,22 @@ public class PrediccionController {
         }
     }
 
+    @PostMapping("/campeon")
+    public ResponseEntity<?> aplicarCampeon(@Valid @RequestBody PrediccionCampeonRequest req,
+            @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            Prediccion p = prediccionService.aplicarCampeon(usuario,
+                    req.getTorneoId(), req.getPersonajePredichoId());
+            return ResponseEntity.ok(PrediccionDto.from(p));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/mias/torneo/{torneoId}")
     public ResponseEntity<?> miasDelTorneo(@PathVariable Long torneoId,
             @AuthenticationPrincipal Usuario usuario) {
@@ -97,5 +114,18 @@ public class PrediccionController {
         int saneDias = Math.max(1, Math.min(dias, 365));
         int saneLimit = Math.max(1, Math.min(limit, 100));
         return ResponseEntity.ok(prediccionService.leaderboard(saneDias, saneLimit));
+    }
+
+    @GetMapping("/leaderboard/torneo/{torneoId}")
+    public ResponseEntity<?> leaderboardTorneo(
+            @PathVariable Long torneoId,
+            @RequestParam(defaultValue = "10") int limit) {
+        int saneLimit = Math.max(1, Math.min(limit, 100));
+        try {
+            return ResponseEntity.ok(prediccionService.leaderboardCampeonPorTorneo(torneoId, saneLimit));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 }
