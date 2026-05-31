@@ -10,6 +10,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -287,6 +288,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Transactional
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
 
@@ -295,8 +297,8 @@ public class AuthController {
         // Para el lookup por email normalizamos a lowercase porque la BBDD lo guarda así
         // desde el fix de email-case-sensitivity. Username sigue case-sensitive (es identidad).
         String identificadorLower = identificador == null ? null : identificador.trim().toLowerCase();
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(identificador)
-                .or(() -> usuarioRepository.findByEmail(identificadorLower));
+        Optional<Usuario> usuarioOpt = usuarioRepository.findForUpdateByUsername(identificador)
+                .or(() -> usuarioRepository.findForUpdateByEmail(identificadorLower));
 
         if (usuarioOpt.isEmpty()) {
             log.warn("Login fallido (usuario/email no existe): {}", LogSanitizer.identifier(identificador));
