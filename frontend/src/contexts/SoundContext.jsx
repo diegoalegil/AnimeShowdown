@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import * as Sentry from '../lib/sentry'
+import { Sentry } from '../lib/sentry'
 import * as sfx from '../lib/sounds'
 
 const SoundContext = createContext(null)
