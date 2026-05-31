@@ -924,9 +924,25 @@ export const endpoints: EndpointMap = {
   // hace 2 min"). Limit acotado server-side a [1, 20].
   votosRecientes: ({ limit = 10 } = {}) =>
     api.get(`/api/votos/recientes?limit=${limit}`, { auth: false }),
-  // Match aleatorio abierto. Devuelve EnfrentamientoDto o
-  // 404 (modo casual del frontend toma el control). No requiere auth.
-  enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/aleatorio', { auth: false }),
+  // Siguiente match abierto. El backend excluye ids vistos y duelos ya
+  // votados por el usuario/cookie anónima. Devuelve 404 si no quedan matches.
+  enfrentamientoSiguiente: ({ excludeIds = [], anonymous = false, headers = {} } = {}) => {
+    const params = new URLSearchParams()
+    const ids = Array.isArray(excludeIds)
+      ? excludeIds
+          .map((id) => Number(id))
+          .filter((id) => Number.isInteger(id) && id > 0)
+          .slice(-100)
+      : []
+    if (ids.length > 0) params.set('excludeIds', ids.join(','))
+    const query = params.toString()
+    return api.get(`/api/enfrentamientos/siguiente${query ? `?${query}` : ''}`, {
+      auth: !anonymous,
+      headers,
+    })
+  },
+  // Alias legacy: mantenido para consumidores antiguos.
+  enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/siguiente', { auth: false }),
   dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),
   dueloLiveActive: () => api.get('/api/duelo-live/active'),
   dueloLiveJoin: () => api.post('/api/duelo-live/queue', undefined),
