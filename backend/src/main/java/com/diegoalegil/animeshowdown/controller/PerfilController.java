@@ -24,9 +24,11 @@ import com.diegoalegil.animeshowdown.dto.UsuarioRespuesta;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
+import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.diegoalegil.animeshowdown.service.PerfilService;
 import com.diegoalegil.animeshowdown.service.ReferralService;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -49,6 +51,7 @@ public class PerfilController {
     private final PerfilService perfilService;
     private final UsuarioRepository usuarioRepository;
     private final ReferralService referralService;
+    private final AnonymousIdentityService anonymousIdentityService;
     // Mismo flag que usa AuthController para que la cookie de borrado
     // coincida en attributes con la cookie original; algunos navegadores
     // requieren matching de Secure + SameSite para considerar la cookie
@@ -58,10 +61,12 @@ public class PerfilController {
     public PerfilController(PerfilService perfilService,
             UsuarioRepository usuarioRepository,
             ReferralService referralService,
+            AnonymousIdentityService anonymousIdentityService,
             @org.springframework.beans.factory.annotation.Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.perfilService = perfilService;
         this.usuarioRepository = usuarioRepository;
         this.referralService = referralService;
+        this.anonymousIdentityService = anonymousIdentityService;
         this.cookieSecure = cookieSecure;
     }
 
@@ -103,11 +108,28 @@ public class PerfilController {
     @PostMapping("/me/migrar-votos-anonimos")
     public ResponseEntity<?> migrarVotosAnonimos(
             @AuthenticationPrincipal Usuario usuario,
-            @RequestBody MigrarVotosAnonimosRequest body) {
+            @RequestBody(required = false) MigrarVotosAnonimosRequest body,
+            HttpServletRequest request) {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         int migrados = perfilService.migrarVotosAnonimos(usuario,
-                body == null ? null : body.anonSessionId());
+                anonSessionIdDesdeCookieFirmada(request));
         return ResponseEntity.ok(Map.of("migrados", migrados));
+    }
+
+    private String anonSessionIdDesdeCookieFirmada(HttpServletRequest request) {
+        if (request == null || request.getCookies() == null) {
+            return null;
+        }
+        String cookieName = anonymousIdentityService.getCookieName();
+        for (Cookie cookie : request.getCookies()) {
+            if (cookieName.equals(cookie.getName())) {
+                var verified = anonymousIdentityService.verify(cookie.getValue());
+                if (verified.isPresent()) {
+                    return verified.get();
+                }
+            }
+        }
+        return null;
     }
 
     @GetMapping("/me/top")

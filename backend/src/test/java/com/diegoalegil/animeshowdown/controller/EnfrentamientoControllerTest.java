@@ -40,8 +40,11 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
+import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.http.Cookie;
 
 /**
  * Tests del flujo completo de votación en enfrentamientos:
@@ -72,6 +75,9 @@ class EnfrentamientoControllerTest {
 
     @Autowired
     private com.diegoalegil.animeshowdown.repository.MadrugadorDiaRepository madrugadorDiaRepository;
+
+    @Autowired
+    private AnonymousIdentityService anonymousIdentityService;
 
     @MockitoBean
     private SimpMessagingTemplate messaging;
@@ -405,11 +411,12 @@ class EnfrentamientoControllerTest {
     void migrarVotosAnonimosAsociaHistorialAlLogin() throws Exception {
         String adminToken = tokenAdmin();
         long[] ids = dosPersonajes();
-        String anonId = "anon-migrate-session";
+        String anonToken = anonymousIdentityService.emit();
+        Cookie anonCookie = new Cookie(anonymousIdentityService.getCookieName(), anonToken);
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-migrate");
 
         mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
-                .header("X-AS-Anonymous-Id", anonId)
+                .cookie(anonCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
                 .andExpect(status().isOk())
@@ -418,8 +425,7 @@ class EnfrentamientoControllerTest {
         String token = tokenUserRegistrado("anon_migrate_user", "anon-migrate@example.com");
         mvc.perform(post("/api/perfil/me/migrar-votos-anonimos")
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(Map.of("anonSessionId", anonId))))
+                .cookie(anonCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.migrados").value(1));
 
