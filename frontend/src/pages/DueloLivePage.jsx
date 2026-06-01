@@ -486,8 +486,10 @@ function CharacterChoice({ label, personaje, disabled, onClick }) {
             src={personaje.imagenUrl}
             alt={personaje.nombre}
             loading="eager"
-            fetchPriority="high"
+            fetchPriority={label === 'A' ? 'high' : 'auto'}
             sizes="(min-width: 1024px) 420px, 90vw"
+            fit="contain"
+            position="center"
             className="h-full w-full object-cover"
           />
         ) : (

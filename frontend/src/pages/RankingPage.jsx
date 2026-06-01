@@ -564,6 +564,9 @@ function CategoriaCard({ rank, personaje, tono }) {
             nombre={personaje.nombre}
             colorDominante={personaje.imagenColorDominante}
             alt={personaje.nombre}
+            sizes="(min-width: 1024px) 190px, (min-width: 640px) 30vw, 42vw"
+            fit="contain"
+            position="center"
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
           <span
