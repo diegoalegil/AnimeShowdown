@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 import PersonajeImg from '../../../components/PersonajeImg'
 import { getStatsPersonaje } from '../../../lib/personajes-core'
 
-function PersonajeListRow({ slug, nombre, anime, rank }) {
+function PersonajeListRow({ slug, nombre, anime, rank, elo: eloProp }) {
   // Solo ELO base (estimado por popularidad). Las W/L y el win rate de
   // getStatsPersonaje son sintéticos y se ocultan, igual que en la card,
   // para mantener paridad y no exhibir métricas de combate falsas.
-  const { elo } = getStatsPersonaje(slug)
+  const elo = eloProp ?? getStatsPersonaje(slug).elo
 
   return (
     <li>

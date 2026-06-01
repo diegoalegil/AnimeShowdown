@@ -13,11 +13,9 @@ import {
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { getStatsPersonaje } from '../lib/personajes-core'
 import {
   CATEGORIAS,
   MIN_PARA_SECCION,
-  getPersonajesPorCategoria,
 } from '../data/personajes-tags'
 import PersonajeImg from '../components/PersonajeImg'
 import BrandSelect from '../components/BrandSelect'
@@ -51,6 +49,10 @@ import { RankRowElo, RankRowVotos } from '../features/ranking/components/Ranking
 import RankingTabs from '../features/ranking/components/RankingTabs'
 import RankingTechnicalTable from '../features/ranking/components/RankingTechnicalTable'
 import { RANKING_TABS } from '../features/ranking/ranking-tabs'
+import {
+  crearCatalogoIndex,
+  filtrarRankingElo,
+} from '../features/personajes/CatalogoPersonajes/catalogo-index'
 
 /**
  * RankingPage rebranded.
@@ -71,17 +73,6 @@ import { RANKING_TABS } from '../features/ranking/ranking-tabs'
  *   - Tabla extraíble plegable (datos técnicos)
  */
 
-function crearRankingElo(catalogoPersonajes) {
-  return [...catalogoPersonajes]
-    .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
-    .sort((a, b) => b.elo - a.elo)
-}
-
-function crearAnimeFilterOptions(catalogoPersonajes) {
-  const set = new Set(catalogoPersonajes.map((p) => p.anime).filter(Boolean))
-  return ['', ...Array.from(set).sort()]
-}
-
 function RankingPage() {
   useRankingDeltaSubscription()
   const [searchParams] = useSearchParams()
@@ -89,14 +80,11 @@ function RankingPage() {
     personajes: catalogoPersonajes,
     isLoading: isCatalogLoading,
   } = usePersonajesCatalogo()
-  const rankedElo = useMemo(
-    () => crearRankingElo(catalogoPersonajes),
+  const catalogoIndex = useMemo(
+    () => crearCatalogoIndex(catalogoPersonajes),
     [catalogoPersonajes],
   )
-  const animeFilterOptions = useMemo(
-    () => crearAnimeFilterOptions(catalogoPersonajes),
-    [catalogoPersonajes],
-  )
+  const { rankedElo, animeFilterOptions } = catalogoIndex
   useSeo({
     title: 'Ranking competitivo',
     description: `Top ${catalogoPersonajes.length} personajes de anime ordenados por señales competitivas de la comunidad. Quién domina AnimeShowdown — cada voto mueve la tabla.`,
@@ -258,7 +246,7 @@ function RankingPage() {
           )}
           {tab === 'categorias' && (
             <CategoriasYIntencionTab
-              catalogoPersonajes={catalogoPersonajes}
+              catalogoIndex={catalogoIndex}
               isCatalogLoading={isCatalogLoading}
             />
           )}
@@ -317,7 +305,7 @@ function RankingPage() {
  * El modo intención se refleja en la URL como ?intencion=<id> (deep-linkable,
  * back-compat: sin el param se muestra arquetipo).
  */
-function CategoriasYIntencionTab({ catalogoPersonajes, isCatalogLoading }) {
+function CategoriasYIntencionTab({ catalogoIndex, isCatalogLoading }) {
   const [intencion, setIntencion] = useQueryState('intencion', '')
   const { data: categoriasDisp } = useCategoriasConVotos()
   const disponibles = useMemo(
@@ -378,7 +366,7 @@ function CategoriasYIntencionTab({ catalogoPersonajes, isCatalogLoading }) {
 
       {modo === 'arquetipo' ? (
         <ListaCategoriasOtaku
-          catalogoPersonajes={catalogoPersonajes}
+          catalogoIndex={catalogoIndex}
           isCatalogLoading={isCatalogLoading}
         />
       ) : (
@@ -445,20 +433,20 @@ function ListaIntenciones({ intencion, setIntencion, disponibles }) {
   )
 }
 
-function ListaCategoriasOtaku({ catalogoPersonajes, isCatalogLoading }) {
+function ListaCategoriasOtaku({ catalogoIndex, isCatalogLoading }) {
   const secciones = useMemo(() => {
     return CATEGORIAS
       .map((cat) => {
-        const personajesCat = getPersonajesPorCategoria(cat.id, catalogoPersonajes)
-          .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
+        const personajesCat = catalogoIndex.items
+          .filter((p) => p.categorias.includes(cat.id))
           .sort((a, b) => b.elo - a.elo)
           .slice(0, 10)
         return { ...cat, personajes: personajesCat }
       })
       .filter((s) => s.personajes.length >= MIN_PARA_SECCION)
-  }, [catalogoPersonajes])
+  }, [catalogoIndex])
 
-  if (isCatalogLoading && catalogoPersonajes.length === 0) {
+  if (isCatalogLoading && catalogoIndex.items.length === 0) {
     return <RankingSkeletonGrid />
   }
 
@@ -604,16 +592,7 @@ function ListaEloLocal({
   )
 
   const filtered = useMemo(() => {
-    let list = rankedElo
-    if (animeFilter) list = list.filter((p) => p.anime === animeFilter)
-    if (normalizedSearch) {
-      list = list.filter(
-        (p) =>
-          p.nombre.toLowerCase().includes(normalizedSearch) ||
-          p.anime.toLowerCase().includes(normalizedSearch),
-      )
-    }
-    return list
+    return filtrarRankingElo(rankedElo, { normalizedSearch, animeFilter })
   }, [rankedElo, normalizedSearch, animeFilter])
 
   const podio = filtered.slice(0, 3)
