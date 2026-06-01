@@ -203,6 +203,16 @@ function HigherOrLowerGame() {
   const challenger = round.challenger
   const revealed = result ? (result.correct ? 'correct' : 'wrong') : null
   const scoreLabel = round.scoreLabel || 'ELO competitivo'
+  const roundStatus = buildRoundStatus({
+    challenger,
+    reference,
+    revealed,
+    score,
+    scoreLabel,
+    referenceElo: result?.referenceElo ?? round.referenceElo,
+    challengerElo: result?.challengerElo ?? round.challengerElo,
+    correctChoice: result?.correctChoice,
+  })
 
   return (
     <section className="as-stage as-stage-visual as-stage-duel relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-10">
@@ -252,6 +262,10 @@ function HigherOrLowerGame() {
         </header>
 
         <ScoreBar score={score} best={best} />
+        <RoundStatusBanner
+          message={roundStatus}
+          tone={revealed}
+        />
 
         {loadError && (
           <div
@@ -310,6 +324,81 @@ function HigherOrLowerGame() {
         </p>
       </div>
     </section>
+  )
+}
+
+function buildRoundStatus({
+  challenger,
+  reference,
+  revealed,
+  score,
+  scoreLabel,
+  referenceElo,
+  challengerElo,
+  correctChoice,
+}) {
+  if (!challenger || !reference) return 'Preparando el siguiente duelo.'
+  if (revealed === 'correct') {
+    const comparison = buildComparisonText({
+      challengerElo,
+      referenceElo,
+      correctChoice,
+      referenceName: reference.nombre,
+      scoreLabel,
+    })
+    return `Correcto: ${challenger.nombre} tiene ${comparison}. Racha actual: ${score}.`
+  }
+  if (revealed === 'wrong') {
+    const comparison = buildComparisonText({
+      challengerElo,
+      referenceElo,
+      correctChoice,
+      referenceName: reference.nombre,
+      scoreLabel,
+    })
+    return `Fallaste: ${challenger.nombre} tiene ${comparison}. La ronda termina con racha ${score}.`
+  }
+  return `Ronda lista: decide si ${challenger.nombre} tiene más o menos ${scoreLabel} que ${reference.nombre}.`
+}
+
+function buildComparisonText({
+  challengerElo,
+  referenceElo,
+  correctChoice,
+  referenceName,
+  scoreLabel,
+}) {
+  if (correctChoice === CHOICE_HIGHER) {
+    return `más ${scoreLabel} que ${referenceName}`
+  }
+  if (correctChoice === CHOICE_LOWER) {
+    return `menos ${scoreLabel} que ${referenceName}`
+  }
+  if (Number.isFinite(challengerElo) && Number.isFinite(referenceElo)) {
+    if (challengerElo > referenceElo) return `más ${scoreLabel} que ${referenceName}`
+    if (challengerElo < referenceElo) return `menos ${scoreLabel} que ${referenceName}`
+    return `el mismo ${scoreLabel} que ${referenceName}`
+  }
+  return `un resultado revelado frente a ${referenceName}`
+}
+
+function RoundStatusBanner({ message, tone }) {
+  const toneClass = tone === 'correct'
+    ? 'border-success/45 bg-success/10 text-success'
+    : tone === 'wrong'
+      ? 'border-danger/45 bg-danger/10 text-danger'
+      : 'border-border bg-surface text-fg-muted'
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Resultado del ELO Duel"
+      className={`rounded-xl border px-4 py-3 text-center text-sm font-semibold ${toneClass}`}
+    >
+      {message}
+    </div>
   )
 }
 
