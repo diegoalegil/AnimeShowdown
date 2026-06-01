@@ -31,9 +31,10 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
  *   <li>Calculamos similitud por proximidad de votos:
  *       {@code 1 - |votos_target - votos_otro| / max(votos_target, votos_otro, 1)}.
  *       Va de 0 (extremos opuestos) a 1 (mismos votos).</li>
- *   <li>Tiebreaker estable: más votos primero. Garantiza que cuando
- *       target tiene 0 votos (catálogo grande sin engagement aún) salgan
- *       los más populares cross-anime, no random.</li>
+ *   <li>Si ambos personajes tienen 0 votos, la similitud publicada es 0:
+ *       no hay señal suficiente para hablar de afinidad.</li>
+ *   <li>Tiebreaker estable: más votos primero para que los resultados
+ *       sin señal no dependan del orden de la base de datos.</li>
  *   <li>Top N por (similitud desc, votos_otro desc, id asc).</li>
  * </ol>
  *
@@ -103,11 +104,11 @@ public class RecomendacionService {
 
     /**
      * Similitud por proximidad de votos. Va de 0 (extremos) a 1 (mismos
-     * votos). Si ambos personajes tienen 0 votos se consideran "iguales"
-     * (similitud 1) — en ese caso el tiebreaker por votos absolutos
-     * desempata por popularidad real.
+     * votos). Si ambos personajes tienen 0 votos devuelve 0: matemáticamente
+     * empatan, pero producto no debe presentar eso como "100% afinidad".
      */
     private static double similitudPorVotos(double a, double b) {
+        if (a <= 0.0 && b <= 0.0) return 0.0;
         double maximo = Math.max(Math.max(a, b), 1.0);
         double delta = Math.abs(a - b);
         return 1.0 - delta / maximo;

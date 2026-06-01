@@ -58,8 +58,16 @@
   display: block;
   height: 100%;
   width: 100%;
+}
+
+.as-card-face__personaje img {
+  object-fit: contain;
+  object-position: center;
+}
+
+.as-card-face__baked-art {
   object-fit: cover;
-  object-position: top;
+  object-position: center;
 }
 
 .as-card-face__baked-art {

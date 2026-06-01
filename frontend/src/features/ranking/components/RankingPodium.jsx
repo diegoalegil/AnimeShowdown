@@ -93,6 +93,9 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
           colorDominante={personaje.imagenColorDominante}
           alt={personaje.nombre}
           loading="eager"
+          sizes={highlighted ? '(min-width: 640px) 190px, 136px' : '128px'}
+          fit="contain"
+          position="center"
           className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
         />
       </div>

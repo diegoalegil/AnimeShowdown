@@ -33,6 +33,7 @@ class PrediccionServiceTest {
     @Mock private EnfrentamientoRepository enfRepo;
     @Mock private PersonajeRepository personajeRepo;
     @Mock private TorneoRepository torneoRepo;
+    @Mock private TorneoOperacionLockService torneoOperacionLockService;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     private PrediccionService sut;
@@ -45,7 +46,13 @@ class PrediccionServiceTest {
 
     @BeforeEach
     void setUp() {
-        sut = new PrediccionService(prediccionRepository, enfRepo, personajeRepo, torneoRepo, eventPublisher);
+        sut = new PrediccionService(
+                prediccionRepository,
+                enfRepo,
+                personajeRepo,
+                torneoRepo,
+                torneoOperacionLockService,
+                eventPublisher);
         usuario = new Usuario("testuser", "hash", "test@example.com");
         usuario.setId(1L);
         personaje1 = new Personaje("p1", "Personaje 1", "Anime A", "desc", "url1");
@@ -67,13 +74,19 @@ class PrediccionServiceTest {
         return e;
     }
 
+    private void stubLockTorneoDeEnfrentamiento() {
+        when(enfRepo.findTorneoIdById(50L)).thenReturn(Optional.of(100L));
+        when(torneoRepo.findForUpdateById(100L)).thenReturn(Optional.of(torneo));
+    }
+
     // --- aplicar() ---
 
     @Test
     void aplicarCreaNuevaPrediccionSiNoExiste() {
+        stubLockTorneoDeEnfrentamiento();
         when(enfRepo.findById(50L)).thenReturn(Optional.of(enf()));
         when(personajeRepo.findById(10L)).thenReturn(Optional.of(personaje1));
-        when(prediccionRepository.findByUsuarioAndEnfrentamiento(eq(usuario), any()))
+        when(prediccionRepository.findByUsuarioAndEnfrentamientoForUpdate(eq(usuario), any()))
                 .thenReturn(Optional.empty());
         when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -87,9 +100,10 @@ class PrediccionServiceTest {
     void aplicarActualizaPrediccionExistente() {
         Enfrentamiento e = enf();
         Prediccion existente = new Prediccion(usuario, e, personaje2);
+        stubLockTorneoDeEnfrentamiento();
         when(enfRepo.findById(50L)).thenReturn(Optional.of(e));
         when(personajeRepo.findById(10L)).thenReturn(Optional.of(personaje1));
-        when(prediccionRepository.findByUsuarioAndEnfrentamiento(eq(usuario), any()))
+        when(prediccionRepository.findByUsuarioAndEnfrentamientoForUpdate(eq(usuario), any()))
                 .thenReturn(Optional.of(existente));
         when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -100,7 +114,7 @@ class PrediccionServiceTest {
 
     @Test
     void aplicarLanzaSiEnfrentamientoNoExiste() {
-        when(enfRepo.findById(999L)).thenReturn(Optional.empty());
+        when(enfRepo.findTorneoIdById(999L)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> sut.aplicar(usuario, 999L, 10L));
@@ -110,7 +124,7 @@ class PrediccionServiceTest {
     @Test
     void aplicarLanzaSiTorneoPendienteRevision() {
         torneo.setEstadoRevision(EstadoRevision.PENDIENTE);
-        when(enfRepo.findById(50L)).thenReturn(Optional.of(enf()));
+        stubLockTorneoDeEnfrentamiento();
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> sut.aplicar(usuario, 50L, 10L));
@@ -120,7 +134,7 @@ class PrediccionServiceTest {
     @Test
     void aplicarLanzaSiTorneoRechazado() {
         torneo.setEstadoRevision(EstadoRevision.RECHAZADO);
-        when(enfRepo.findById(50L)).thenReturn(Optional.of(enf()));
+        stubLockTorneoDeEnfrentamiento();
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> sut.aplicar(usuario, 50L, 10L));
@@ -130,7 +144,7 @@ class PrediccionServiceTest {
     @Test
     void aplicarLanzaSiTorneoFinalizado() {
         torneo.setEstado(EstadoTorneo.FINISHED);
-        when(enfRepo.findById(50L)).thenReturn(Optional.of(enf()));
+        stubLockTorneoDeEnfrentamiento();
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> sut.aplicar(usuario, 50L, 10L));
@@ -141,6 +155,7 @@ class PrediccionServiceTest {
     void aplicarLanzaSiEnfrentamientoYaTieneGanador() {
         Enfrentamiento e = enf();
         e.setGanador(personaje1);
+        stubLockTorneoDeEnfrentamiento();
         when(enfRepo.findById(50L)).thenReturn(Optional.of(e));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -152,6 +167,7 @@ class PrediccionServiceTest {
     void aplicarLanzaSiEnfrentamientoSinRivales() {
         Enfrentamiento e = new Enfrentamiento(torneo, null, personaje2);
         e.setId(50L);
+        stubLockTorneoDeEnfrentamiento();
         when(enfRepo.findById(50L)).thenReturn(Optional.of(e));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -161,6 +177,7 @@ class PrediccionServiceTest {
 
     @Test
     void aplicarLanzaSiPersonajeNoPerteneceAlEnfrentamiento() {
+        stubLockTorneoDeEnfrentamiento();
         when(enfRepo.findById(50L)).thenReturn(Optional.of(enf()));
         // 99L is neither 10L nor 20L
 
@@ -171,6 +188,7 @@ class PrediccionServiceTest {
 
     @Test
     void aplicarLanzaSiPersonajeNoExiste() {
+        stubLockTorneoDeEnfrentamiento();
         when(enfRepo.findById(50L)).thenReturn(Optional.of(enf()));
         when(personajeRepo.findById(10L)).thenReturn(Optional.empty());
 
@@ -182,10 +200,11 @@ class PrediccionServiceTest {
     @Test
     void aplicarCampeonCreaPrediccionDeTorneoAntesDelInicio() {
         torneo.setEstado(EstadoTorneo.SCHEDULED);
-        when(torneoRepo.findById(100L)).thenReturn(Optional.of(torneo));
+        when(torneoRepo.existsById(100L)).thenReturn(true);
+        when(torneoRepo.findForUpdateById(100L)).thenReturn(Optional.of(torneo));
         when(personajeRepo.findById(10L)).thenReturn(Optional.of(personaje1));
         when(enfRepo.findByTorneoOrderedFetch(torneo)).thenReturn(List.of(enf()));
-        when(prediccionRepository.findByUsuarioAndTorneoAndTipo(usuario, torneo, TipoPrediccion.CAMPEON))
+        when(prediccionRepository.findByUsuarioAndTorneoAndTipoForUpdate(usuario, torneo, TipoPrediccion.CAMPEON))
                 .thenReturn(Optional.empty());
         when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -199,7 +218,8 @@ class PrediccionServiceTest {
 
     @Test
     void aplicarCampeonLanzaSiTorneoYaArranco() {
-        when(torneoRepo.findById(100L)).thenReturn(Optional.of(torneo));
+        when(torneoRepo.existsById(100L)).thenReturn(true);
+        when(torneoRepo.findForUpdateById(100L)).thenReturn(Optional.of(torneo));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> sut.aplicarCampeon(usuario, 100L, 10L));
@@ -243,7 +263,7 @@ class PrediccionServiceTest {
         e.setId(1L);
         e.setGanador(personaje1);
         Prediccion p = new Prediccion(usuario, e, personaje1); // predicted winner
-        when(prediccionRepository.findByTorneo(torneo)).thenReturn(List.of(p));
+        when(prediccionRepository.findPendientesByTorneoForUpdate(torneo)).thenReturn(List.of(p));
         when(prediccionRepository.findResueltasDelUsuarioDesc(any(), any(Pageable.class)))
                 .thenReturn(List.of());
         when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
@@ -260,7 +280,7 @@ class PrediccionServiceTest {
         e.setId(1L);
         e.setGanador(personaje1); // winner = p1
         Prediccion p = new Prediccion(usuario, e, personaje2); // predicted p2 (wrong)
-        when(prediccionRepository.findByTorneo(torneo)).thenReturn(List.of(p));
+        when(prediccionRepository.findPendientesByTorneoForUpdate(torneo)).thenReturn(List.of(p));
         when(prediccionRepository.findResueltasDelUsuarioDesc(any(), any(Pageable.class)))
                 .thenReturn(List.of());
         when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
@@ -277,11 +297,11 @@ class PrediccionServiceTest {
         e.setGanador(personaje1);
         Prediccion p = new Prediccion(usuario, e, personaje1);
         p.setAcertada(true);
-        when(prediccionRepository.findByTorneo(torneo)).thenReturn(List.of(p));
+        when(prediccionRepository.findPendientesByTorneoForUpdate(torneo)).thenReturn(List.of());
 
         int result = sut.resolverParaTorneo(torneo);
 
-        assertEquals(1, result);
+        assertEquals(0, result);
         verify(prediccionRepository, never()).save(any());
     }
 
@@ -290,7 +310,7 @@ class PrediccionServiceTest {
         Enfrentamiento e = enf();
         e.setGanador(null);
         Prediccion p = new Prediccion(usuario, e, personaje1);
-        when(prediccionRepository.findByTorneo(torneo)).thenReturn(List.of(p));
+        when(prediccionRepository.findPendientesByTorneoForUpdate(torneo)).thenReturn(List.of(p));
 
         int result = sut.resolverParaTorneo(torneo);
 
@@ -302,7 +322,7 @@ class PrediccionServiceTest {
     void resolverParaTorneoMarcaCampeonAcertadoContraGanadorFinal() {
         torneo.setGanadorPersonaje(personaje1);
         Prediccion p = new Prediccion(usuario, torneo, personaje1);
-        when(prediccionRepository.findByTorneo(torneo)).thenReturn(List.of(p));
+        when(prediccionRepository.findPendientesByTorneoForUpdate(torneo)).thenReturn(List.of(p));
         when(prediccionRepository.findResueltasDelUsuarioDesc(any(), any(Pageable.class)))
                 .thenReturn(List.of());
         when(prediccionRepository.save(any(Prediccion.class))).thenAnswer(i -> i.getArgument(0));
@@ -319,7 +339,7 @@ class PrediccionServiceTest {
         e.setId(1L);
         e.setGanador(personaje1);
         Prediccion p = new Prediccion(usuario, e, personaje1);
-        when(prediccionRepository.findByTorneo(torneo)).thenReturn(List.of(p));
+        when(prediccionRepository.findPendientesByTorneoForUpdate(torneo)).thenReturn(List.of(p));
         when(prediccionRepository.findResueltasDelUsuarioDesc(any(), any(Pageable.class)))
                 .thenReturn(List.of(p));
         when(prediccionRepository.countByUsuarioAndAcertadaTrue(any())).thenReturn(1L);

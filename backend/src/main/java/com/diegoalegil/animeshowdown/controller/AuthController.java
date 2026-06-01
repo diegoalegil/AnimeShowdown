@@ -10,6 +10,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -287,6 +288,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Transactional
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
 
@@ -295,8 +297,8 @@ public class AuthController {
         // Para el lookup por email normalizamos a lowercase porque la BBDD lo guarda así
         // desde el fix de email-case-sensitivity. Username sigue case-sensitive (es identidad).
         String identificadorLower = identificador == null ? null : identificador.trim().toLowerCase();
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(identificador)
-                .or(() -> usuarioRepository.findByEmail(identificadorLower));
+        Optional<Usuario> usuarioOpt = usuarioRepository.findForUpdateByUsername(identificador)
+                .or(() -> usuarioRepository.findForUpdateByEmail(identificadorLower));
 
         if (usuarioOpt.isEmpty()) {
             log.warn("Login fallido (usuario/email no existe): {}", LogSanitizer.identifier(identificador));
@@ -986,11 +988,11 @@ public class AuthController {
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
         String codigoBruto = request.getCodigo();
         boolean totpOk = totpService.validarCodigo(secretPlano, codigoBruto);
-        boolean backupOk = false;
+        Optional<Long> backupCodeId = Optional.empty();
         if (!totpOk) {
-            backupOk = totpBackupCodeService.consumirSiCoincide(usuario, codigoBruto);
+            backupCodeId = totpBackupCodeService.buscarCodigoCoincidenteNoUsado(usuario, codigoBruto);
         }
-        if (!totpOk && !backupOk) {
+        if (!totpOk && backupCodeId.isEmpty()) {
             int restantes = twoFactorChallengeService.registrarFallo(request.getChallengeToken());
             log.warn("2FA login falló: username={} intentosRestantes={}",
                     usuario.getUsername(), restantes);
@@ -1002,7 +1004,25 @@ public class AuthController {
                             : "Código incorrecto.",
                     "intentosRestantes", restantes));
         }
-        twoFactorChallengeService.consumir(request.getChallengeToken());
+        Optional<Long> consumido = twoFactorChallengeService.consumir(request.getChallengeToken());
+        if (consumido.isEmpty() || !consumido.get().equals(usuario.getId())) {
+            log.warn("2FA login rechazado por challenge ya consumido: username={}", usuario.getUsername());
+            auditLogService.registrar(AuditEvento.TOTP_LOGIN_FAIL, usuario,
+                    Map.of("razon", "challenge_consumido"), httpRequest);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "El reto de 2FA ha expirado o no existe. Inicia sesión otra vez."));
+        }
+        boolean backupOk = false;
+        if (!totpOk) {
+            backupOk = totpBackupCodeService.marcarUsadoSiDisponible(usuario, backupCodeId.orElseThrow());
+            if (!backupOk) {
+                log.warn("2FA login falló por backup code ya consumido: username={}", usuario.getUsername());
+                auditLogService.registrar(AuditEvento.TOTP_LOGIN_FAIL, usuario,
+                        Map.of("razon", "backup_code_consumido"), httpRequest);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "message", "Código incorrecto."));
+            }
+        }
         AuditEvento eventoAudit = backupOk ? AuditEvento.TOTP_BACKUP_CODE_USADO : AuditEvento.TOTP_LOGIN_OK;
         return emitirSesionExitosa(usuario, httpRequest, eventoAudit);
     }

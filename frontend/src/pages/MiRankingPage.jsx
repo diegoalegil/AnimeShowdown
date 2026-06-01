@@ -43,6 +43,7 @@ function MiRankingPage() {
     description:
       'Ranking personal local de AnimeShowdown basado en los personajes que más votas. Comparte tu top y reta a tus favoritos.',
     canonical: 'https://animeshowdown.dev/mi-ranking',
+    noindex: true,
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()

@@ -43,10 +43,30 @@ public interface DueloLiveRepository extends JpaRepository<DueloLive, Long> {
 
     @Query("""
             SELECT d FROM DueloLive d
+            LEFT JOIN FETCH d.jugador1
             WHERE d.estado = com.diegoalegil.animeshowdown.model.DueloLiveEstado.WAITING
             ORDER BY d.creadoEn ASC
             """)
     List<DueloLive> findWaitingOrderByCreadoEn();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT d FROM DueloLive d
+            LEFT JOIN FETCH d.jugador1
+            WHERE d.estado = com.diegoalegil.animeshowdown.model.DueloLiveEstado.WAITING
+            ORDER BY d.creadoEn ASC
+            """)
+    List<DueloLive> findWaitingOrderByCreadoEnForUpdate();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT d FROM DueloLive d
+            LEFT JOIN FETCH d.jugador1
+            WHERE d.estado = com.diegoalegil.animeshowdown.model.DueloLiveEstado.WAITING
+              AND d.creadoEn <= :limite
+            ORDER BY d.creadoEn ASC
+            """)
+    List<DueloLive> findWaitingDueForUpdate(@Param("limite") LocalDateTime limite);
 
     @Query("""
             SELECT d FROM DueloLive d

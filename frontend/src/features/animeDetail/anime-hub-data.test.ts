@@ -68,12 +68,22 @@ describe('anime-hub-data', () => {
 
   it('keeps recommendations cross-anime and sorted by score', () => {
     const recs = buildCrossAnimeRecommendations([
-      { ...zoro, score: 0.95 },
-      { ...naruto, score: 0.88 },
-      { ...goku, score: 0.93 },
+      { ...zoro, score: 0.95, votos: 12 },
+      { ...naruto, score: 0.88, votos: 7 },
+      { ...goku, score: 0.93, votos: 9 },
     ], 'One Piece')
 
     expect(recs.map((item) => item.slug)).toEqual(['goku', 'naruto'])
+  })
+
+  it('drops recommendations without vote signal', () => {
+    const recs = buildCrossAnimeRecommendations([
+      { ...goku, score: 1, votos: 0 },
+      { ...naruto, score: 0, votos: 20 },
+      { slug: 'saitama', nombre: 'Saitama', anime: 'One Punch Man', score: 0.72, votos: 5 },
+    ], 'One Piece')
+
+    expect(recs.map((item) => item.slug)).toEqual(['saitama'])
   })
 
   it('finds the closest ELO duel inside the anime', () => {

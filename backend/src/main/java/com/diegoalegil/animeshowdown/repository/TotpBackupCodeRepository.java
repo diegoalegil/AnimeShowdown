@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,4 +28,17 @@ public interface TotpBackupCodeRepository extends JpaRepository<TotpBackupCode, 
     @Modifying
     @Query("DELETE FROM TotpBackupCode b WHERE b.usuario = :usuario")
     int deleteByUsuario(@Param("usuario") Usuario usuario);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            UPDATE TotpBackupCode b
+            SET b.usadoEn = :usadoEn
+            WHERE b.id = :id
+              AND b.usuario = :usuario
+              AND b.usadoEn IS NULL
+            """)
+    int marcarUsadoSiDisponible(
+            @Param("id") Long id,
+            @Param("usuario") Usuario usuario,
+            @Param("usadoEn") LocalDateTime usadoEn);
 }
