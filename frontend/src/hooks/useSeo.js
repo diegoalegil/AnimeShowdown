@@ -15,9 +15,8 @@ import { useEffect } from 'react'
  * <p>Implementación sin react-helmet-async: mutación directa de
  * {@code document.head} en un useEffect. Al unmount restaura los valores
  * originales del HTML inicial. Sin context, sin deps externas, sin
- * SSR (la SPA renderiza tras JS, los crawlers de Google ejecutan JS
- * desde 2018 — para previews social usamos OG image dinámica server-side
- * de la capa correspondiente).
+ * SSR (las rutas SEO clave se materializan en build con `prerender-seo.mjs`;
+ * este hook mantiene los metadatos correctos durante la navegación cliente).
  *
  * <p>Para JSON-LD usa {@code <JsonLd>} component (también gestiona limpieza).
  *
@@ -27,13 +26,15 @@ import { useEffect } from 'react'
  * @param {string} [opts.canonical]   URL canónica completa (default: location actual)
  * @param {string} [opts.image]   URL absoluta o relativa de la imagen OG (default: /logo.webp)
  * @param {string} [opts.type]    og:type (default 'website'; 'profile', 'article'...)
+ * @param {boolean|string[]} [opts.hreflang] alternates solo para rutas traducidas de verdad
  * @param {boolean} [opts.noindex] añade meta robots noindex (login, perfil, admin)
  */
 const BASE = 'AnimeShowdown'
 const SITIO = 'https://animeshowdown.dev'
-// Idiomas que tenemos al menos parcialmente traducidos.
-// Cada uno produce un <link rel="alternate" hreflang="X" href="URL?lang=X">
-// más un x-default que apunta al ES (idioma original y catálogo completo).
+// Idiomas que se pueden activar por ruta si el contenido visible está
+// traducido de verdad. Por defecto NO emitimos hreflang: muchas páginas core
+// siguen teniendo copy español hardcodeado y prometer alternates sería ruido
+// para crawlers.
 const LANGS = ['es', 'en', 'ja']
 
 export function useSeo({
@@ -42,6 +43,7 @@ export function useSeo({
   canonical,
   image,
   type = 'website',
+  hreflang = false,
   noindex = false,
 } = {}) {
   useEffect(() => {
@@ -53,6 +55,11 @@ export function useSeo({
 
     const url = canonical ?? `${SITIO}${window.location.pathname}`
     const img = absolutizar(image ?? '/logo.webp')
+    const hreflangLangs = hreflang === true
+      ? LANGS
+      : Array.isArray(hreflang)
+        ? hreflang.filter((lang) => LANGS.includes(lang))
+        : []
 
     const restoradores = [
       setMetaName('description', description),
@@ -72,22 +79,20 @@ export function useSeo({
       noindex
         ? setMetaName('robots', 'noindex,nofollow')
         : setMetaName('robots', null),
-      // Hreflang: un link por idioma soportado más
-      // x-default → ES. Si la página tiene noindex no los emitimos
-      // porque hreflang en páginas no indexables es contradicción.
-      ...(noindex
+      // Hreflang: solo si la ruta lo pide explícitamente y no es noindex.
+      ...(noindex || hreflangLangs.length === 0
         ? []
-        : LANGS.map((lang) =>
+        : hreflangLangs.map((lang) =>
             setLinkAlternate(lang, withLangParam(url, lang)),
           )),
-      ...(noindex ? [] : [setLinkAlternate('x-default', withLangParam(url, 'es'))]),
+      ...(noindex || hreflangLangs.length === 0 ? [] : [setLinkAlternate('x-default', withLangParam(url, 'es'))]),
     ]
 
     return () => {
       document.title = tituloOriginal
       for (const restore of restoradores) restore()
     }
-  }, [title, description, canonical, image, type, noindex])
+  }, [title, description, canonical, image, type, hreflang, noindex])
 }
 
 function absolutizar(src) {
