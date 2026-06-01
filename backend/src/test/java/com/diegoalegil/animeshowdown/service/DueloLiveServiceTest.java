@@ -2,7 +2,12 @@ package com.diegoalegil.animeshowdown.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -86,6 +91,35 @@ class DueloLiveServiceTest {
         assertThat(matched.estado()).isEqualTo(DueloLiveEstado.IN_PROGRESS);
         assertThat(matched.rival().username()).isEqualTo("pvp_match_a");
         assertThat(Math.abs(matched.miEloBefore() - matched.rivalEloBefore())).isLessThanOrEqualTo(100);
+    }
+
+    @Test
+    void eventosLiveSoloVanAColasPrivadasDeParticipantes() {
+        Usuario a = usuario("pvp_private_a", 1010);
+        Usuario b = usuario("pvp_private_b", 1060);
+
+        dueloLiveService.entrarCola(a, "10.0.0.10");
+        reset(messaging);
+        dueloLiveService.entrarCola(b, "10.0.0.20");
+
+        verify(messaging).convertAndSendToUser(eq("pvp_private_a"), eq("/queue/duelo"), any(DueloLiveStateDto.class));
+        verify(messaging).convertAndSendToUser(eq("pvp_private_b"), eq("/queue/duelo"), any(DueloLiveStateDto.class));
+        verify(messaging, never()).convertAndSend(startsWith("/topic/duelo/"), any(DueloLiveStateDto.class));
+    }
+
+    @Test
+    void estadoNoExponeEleccionDelRivalAntesDeResolverRonda() {
+        Usuario a = usuario("pvp_vote_secret_a", 1000);
+        Usuario b = usuario("pvp_vote_secret_b", 1000);
+        dueloLiveService.entrarCola(a, "10.0.0.11");
+        DueloLiveStateDto state = dueloLiveService.entrarCola(b, "10.0.0.21");
+        avanzarApertura(state);
+
+        dueloLiveService.votar(state.id(), a, DueloLiveChoice.A);
+        DueloLiveStateDto vistoPorB = dueloLiveService.estado(state.id(), b);
+
+        assertThat(vistoPorB.ronda().rivalVotoRecibido()).isTrue();
+        assertThat(vistoPorB.ronda().rivalVoto()).isNull();
     }
 
     @Test
