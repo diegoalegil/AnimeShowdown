@@ -22,7 +22,7 @@ public class StatusController {
     @GetMapping
     public ResponseEntity<StatusResponseDto> status() {
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore())
+                .cacheControl(CacheControl.maxAge(StatusService.PUBLIC_CACHE_TTL).cachePublic())
                 .body(statusService.resumenPublico());
     }
 }
