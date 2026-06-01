@@ -9,7 +9,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,12 +29,21 @@ import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
  */
 class DropServiceTest {
 
+    private static final Clock UTC_CLOCK = Clock.fixed(
+            Instant.parse("2026-06-01T12:00:00Z"), ZoneOffset.UTC);
+
     private final Usuario usuario = new Usuario("dropper", "{noop}secreta123", "dropper@example.com");
 
     private DropService dropService(MonederoService monederoService,
             MonederoMovimientoRepository movimientoRepo, AuditLogService auditLogService, int topeDiario) {
+        return dropService(monederoService, movimientoRepo, auditLogService, topeDiario, UTC_CLOCK);
+    }
+
+    private DropService dropService(MonederoService monederoService,
+            MonederoMovimientoRepository movimientoRepo, AuditLogService auditLogService,
+            int topeDiario, Clock clock) {
         return new DropService(monederoService, movimientoRepo, auditLogService,
-                5, 15, 25, 20, topeDiario);
+                clock, 5, 15, 25, 20, topeDiario);
     }
 
     @Test
@@ -61,6 +74,25 @@ class DropServiceTest {
         DropService service = dropService(monederoService, movimientoRepo, mock(AuditLogService.class), 2);
 
         assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_VOTO, "voto:10"))
+                .isEqualTo(DropService.DropResultado.TOPE_DIARIO);
+        verify(monederoService, never()).acreditar(any(), any(), any(), anyLong());
+    }
+
+    @Test
+    void topeDiarioCuentaDesdeInicioDelDiaDeProducto() {
+        Clock madrid = Clock.fixed(
+                Instant.parse("2026-06-01T22:30:00Z"),
+                ZoneId.of("Europe/Madrid"));
+        MonederoService monederoService = mock(MonederoService.class);
+        MonederoMovimientoRepository movimientoRepo = mock(MonederoMovimientoRepository.class);
+        DropService service = dropService(monederoService, movimientoRepo,
+                mock(AuditLogService.class), 2, madrid);
+
+        when(movimientoRepo.countByUsuarioAndDeltaGreaterThanAndCreadoEnAfter(
+                usuario, 0L, LocalDateTime.parse("2026-06-01T22:00:00")))
+                .thenReturn(2L);
+
+        assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_VOTO, "voto:20"))
                 .isEqualTo(DropService.DropResultado.TOPE_DIARIO);
         verify(monederoService, never()).acreditar(any(), any(), any(), anyLong());
     }

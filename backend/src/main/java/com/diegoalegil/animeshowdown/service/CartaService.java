@@ -1,7 +1,7 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -64,6 +64,7 @@ public class CartaService {
     private final RarezaService rarezaService;
     private final AuditLogService auditLogService;
     private final EntityManager entityManager;
+    private final Clock clock;
     private final long recompensaDuplicado;
     private final long cofreDiarioMoneda;
 
@@ -79,6 +80,7 @@ public class CartaService {
             RarezaService rarezaService,
             AuditLogService auditLogService,
             EntityManager entityManager,
+            Clock clock,
             @Value("${app.cartas.duplicado.recompensa:10}") long recompensaDuplicado,
             @Value("${app.cartas.cofre-diario.moneda:50}") long cofreDiarioMoneda) {
         this.cartaRepository = cartaRepository;
@@ -92,6 +94,7 @@ public class CartaService {
         this.rarezaService = rarezaService;
         this.auditLogService = auditLogService;
         this.entityManager = entityManager;
+        this.clock = clock;
         this.recompensaDuplicado = Math.max(0L, recompensaDuplicado);
         this.cofreDiarioMoneda = Math.max(0L, cofreDiarioMoneda);
     }
@@ -218,7 +221,7 @@ public class CartaService {
 
     @Transactional
     public CofreDiarioDto reclamarCofreDiario(Usuario usuario) {
-        LocalDate hoy = LocalDate.now(ZoneOffset.UTC);
+        LocalDate hoy = LocalDate.now(clock);
         String referencia = cofreReferencia(hoy);
         MonederoService.ResultadoCredito credito =
                 monederoService.acreditar(usuario, MotivoMovimiento.COFRE_DIARIO,
@@ -332,7 +335,7 @@ public class CartaService {
         return !movimientoRepository.existsByUsuarioAndMotivoAndReferencia(
                 usuario,
                 MotivoMovimiento.COFRE_DIARIO,
-                cofreReferencia(LocalDate.now(ZoneOffset.UTC)));
+                cofreReferencia(LocalDate.now(clock)));
     }
 
     private static String cofreReferencia(LocalDate fecha) {

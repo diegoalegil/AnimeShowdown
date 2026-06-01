@@ -10,14 +10,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -35,6 +44,7 @@ import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCarta;
 import com.diegoalegil.animeshowdown.repository.CartaRepository;
+import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -51,6 +61,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(CartaControllerTest.ClockTestConfig.class)
 @TestPropertySource(properties = {
         "app.cartas.especial.probabilidad-base=0",
         "app.cartas.especial.pity-duro=10",
@@ -65,8 +76,15 @@ class CartaControllerTest {
     @Autowired private PersonajeRepository personajeRepository;
     @Autowired private CartaRepository cartaRepository;
     @Autowired private UsuarioCartaRepository usuarioCartaRepository;
+    @Autowired private MonederoMovimientoRepository movimientoRepository;
     @Autowired private MonederoService monederoService;
     @Autowired private CartaDropListener cartaDropListener;
+    @Autowired private MutableTestClock clock;
+
+    @BeforeEach
+    void fijarClockUtcPorDefecto() {
+        clock.set(Instant.parse("2026-06-01T12:00:00Z"), ZoneOffset.UTC);
+    }
 
     private String token(String username) throws Exception {
         String email = username + "@example.com";
@@ -262,6 +280,27 @@ class CartaControllerTest {
     }
 
     @Test
+    void cofreYMisionDiariaUsanMismaFechaDeProducto() throws Exception {
+        clock.set(Instant.parse("2026-06-01T22:30:00Z"), ZoneId.of("Europe/Madrid"));
+        String token = token("cartas_fecha_producto");
+        Usuario u = usuario("cartas_fecha_producto");
+
+        mvc.perform(post("/api/me/cartas/cofre-diario").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fecha").value("2026-06-02"))
+                .andExpect(jsonPath("$.aplicado").value(true));
+
+        listenerSincrono().onVoto(new VotoRegistradoEvent(u, null));
+
+        assertThat(movimientoRepository.existsByUsuarioAndMotivoAndReferencia(
+                u, MotivoMovimiento.COFRE_DIARIO, "cofre:2026-06-02"))
+                .isTrue();
+        assertThat(movimientoRepository.existsByUsuarioAndMotivoAndReferencia(
+                u, MotivoMovimiento.DROP_MISION_DIARIA, "dia:2026-06-02"))
+                .isTrue();
+    }
+
+    @Test
     void descargarCartaPoseidaDevuelvePngConWatermark() throws Exception {
         String token = token("cartas_descarga_ok");
         Usuario u = usuario("cartas_descarga_ok");
@@ -350,5 +389,41 @@ class CartaControllerTest {
             }
         }
         return pixelsGrisTenue > 180;
+    }
+
+    @TestConfiguration
+    static class ClockTestConfig {
+        @Bean
+        @Primary
+        MutableTestClock mutableTestClock() {
+            return new MutableTestClock();
+        }
+    }
+
+    static class MutableTestClock extends Clock {
+        private Instant instant = Instant.parse("2026-06-01T12:00:00Z");
+        private ZoneId zone = ZoneOffset.UTC;
+
+        void set(Instant instant, ZoneId zone) {
+            this.instant = instant;
+            this.zone = zone;
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return zone;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            MutableTestClock copy = new MutableTestClock();
+            copy.set(instant, zone);
+            return copy;
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
     }
 }

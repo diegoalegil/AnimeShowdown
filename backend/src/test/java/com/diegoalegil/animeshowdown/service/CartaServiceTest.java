@@ -6,6 +6,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +67,7 @@ class CartaServiceTest {
                 rarezaService,
                 auditLogService,
                 entityManager,
+                Clock.fixed(Instant.parse("2026-06-01T12:00:00Z"), ZoneOffset.UTC),
                 10L,
                 50L);
     }
