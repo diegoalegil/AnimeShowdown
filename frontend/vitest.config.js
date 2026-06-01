@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
 
-// Configuración Vitest del Sprint Auto 06 (Test coverage 70%).
+// Configuración Vitest para tests unitarios, coverage y entorno frontend.
 //
 // Reglas que persisten más allá del sprint:
 // - happy-dom es el environment por defecto (más rápido que jsdom y
@@ -10,9 +10,8 @@ import { defineConfig } from 'vitest/config'
 //   stack TS estricto y no requiere tocar tsconfig.types.
 // - Coverage v8 (no istanbul): aprovecha la instrumentación nativa de
 //   V8, requiere cero plugins de babel.
-// - Thresholds escalonados por fase del Sprint 06. Empiezan bajos
-//   porque el PR 06.1 solo introduce la infra + smoke test.
-//   Cada PR de Fase 2 (06.2-06.5) sube el threshold antes de mergear.
+// - Thresholds calibrados con la cobertura real medida en las unidades
+//   productivas incluidas en este gate.
 // - Coverage incluye las unidades productivas con cobertura unitaria actual:
 //   lib, data, hooks, componentes y features. Tests, setup y tipos puros
 //   quedan fuera de la métrica.
@@ -53,19 +52,11 @@ export default defineConfig({
         'src/test/**',
         'src/lib/types.ts',
       ],
-      // Thresholds escalonados por PR del Sprint Auto 06:
-      //   PR 06.1 (infra + smoke):           0% baseline
-      //   PR 06.2 (share/queryClient):       lines 5%, branches 85%
-      //   PR 06.3 (localVoteRanking/games):  lines 25, branches 20  ← aquí
-      //   PR 06.4 (personajes-core/torneos): lines 45, branches 35
-      //   PR 06.5 (api.ts):                  lines 70, branches 60  ← meta
-      // Cada PR sube estos valores ANTES de mergear. Si CI falla por
-      // threshold, el PR no llegó a la meta de su fase.
-      // PR 06.5 thresholds (calibrated to real measured coverage after api.ts tests):
-// Global real: lines 85.76% / statements 85.76% / branches 88.25% / functions 49.71%.
-// api.ts: lines 78.59% / branches 84.74% / functions 30.83% (many small endpoint-factory
-// functions that need a full React context tree to exercise).
-// Thresholds = real minus 5-point defensive margin.
+      // Thresholds calibrados con la cobertura real medida tras cubrir api.ts:
+      // Global real: lines 85.76% / statements 85.76% / branches 88.25% / functions 49.71%.
+      // api.ts: lines 78.59% / branches 84.74% / functions 30.83% (many small endpoint-factory
+      // functions that need a full React context tree to exercise).
+      // Thresholds = real minus 5-point defensive margin.
       thresholds: {
         lines: 80,
         statements: 80,

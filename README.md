@@ -39,6 +39,7 @@ El catálogo actual contiene **1086 personajes únicos** distribuidos en **105 u
 | Status monitor | https://animeshowdown.dev/status |
 
 El tour de producto con los flujos clave está en [docs/DEMO.md](docs/DEMO.md).
+La guía de marca y el contrato de assets de logo viven en [docs/BRANDING.md](docs/BRANDING.md).
 
 ## Screenshots
 

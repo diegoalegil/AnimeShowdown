@@ -24,8 +24,8 @@ import com.diegoalegil.animeshowdown.service.TorneoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Sprint Auto 06 PR 06.9 — cobertura de los endpoints admin que no toca
- * {@code AdminAuditControllerTest} (que cubre las mutaciones con audit).
+ * Cobertura de los endpoints admin que no toca {@code AdminAuditControllerTest}
+ * (que cubre las mutaciones con audit).
  * Aquí van los GET de solo lectura: dead-letter de emails, cola pendiente
  * de torneos y el dashboard de cobertura de assets.
  *

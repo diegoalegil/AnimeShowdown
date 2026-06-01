@@ -31,7 +31,6 @@ function reportAndFail(files) {
   console.error('Las migraciones aplicadas son INMUTABLES: cambiar su contenido (aunque sea')
   console.error('un comentario) rompe el checksum y Flyway no arranca en prod.')
   console.error('→ Crea una migración NUEVA V{n}__descripcion.sql en lugar de editar una existente.')
-  console.error('  (Override consciente y bajo tu riesgo: git commit --no-verify)')
   process.exit(1)
 }
 

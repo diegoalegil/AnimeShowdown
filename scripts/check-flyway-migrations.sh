@@ -8,6 +8,7 @@ set -euo pipefail
 BASE_REF="${1:-}"
 HEAD_REF="${2:-HEAD}"
 MIGRATIONS_DIR="backend/src/main/resources/db/migration"
+ALLOWED_EXISTING_GAPS="43"
 
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
@@ -26,13 +27,44 @@ version_from_path() {
   basename "$1" | sed -nE 's/^V([0-9]+)__.*/\1/p'
 }
 
+is_allowed_existing_gap() {
+  local candidate="$1"
+  for allowed in $ALLOWED_EXISTING_GAPS; do
+    if [ "$candidate" = "$allowed" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 base_max=0
+base_versions="$(mktemp)"
+trap 'rm -f "$base_versions"' EXIT
 while IFS= read -r path; do
   version="$(version_from_path "$path")"
   if [ -n "$version" ] && [ "$version" -gt "$base_max" ]; then
     base_max="$version"
   fi
+  if [ -n "$version" ]; then
+    printf '%s\n' "$version" >> "$base_versions"
+  fi
 done < <(git ls-tree -r --name-only "$BASE_REF" -- "$MIGRATIONS_DIR"/V*__*.sql)
+
+base_gap_violations=()
+if [ "$base_max" -gt 0 ]; then
+  for expected in $(seq 1 "$base_max"); do
+    if ! grep -qx "$expected" "$base_versions" && ! is_allowed_existing_gap "$expected"; then
+      base_gap_violations+=("V$expected")
+    fi
+  done
+fi
+
+if [ "${#base_gap_violations[@]}" -gt 0 ]; then
+  echo "ERROR: unexpected Flyway version gaps in base history." >&2
+  echo "Only V43 is intentionally reserved and must remain unused." >&2
+  printf ' - %s\n' "${base_gap_violations[@]}" >&2
+  exit 1
+fi
 
 violations=()
 while IFS=$'\t' read -r status path rest; do

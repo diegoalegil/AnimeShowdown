@@ -15,7 +15,8 @@ function shouldSkip(header) {
 }
 
 function validateMessage(message, label = 'commit') {
-  const header = String(message || '').split(/\r?\n/)[0].trim()
+  const text = String(message || '')
+  const header = text.split(/\r?\n/)[0].trim()
   const errors = []
 
   if (!header) {
@@ -28,6 +29,10 @@ function validateMessage(message, label = 'commit') {
 
   if (header.length > config.maxHeaderLength) {
     errors.push(`header > ${config.maxHeaderLength} caracteres`)
+  }
+
+  if (/^Co-Authored-By:/im.test(text)) {
+    errors.push('no uses trailers Co-Authored-By')
   }
 
   if (errors.length > 0 && !shouldSkip(header)) {
@@ -84,4 +89,3 @@ if (failures.length > 0) {
 }
 
 console.log('Commit messages OK')
-

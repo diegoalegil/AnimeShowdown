@@ -293,11 +293,9 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<!-- Sprint Auto 06 PR 06.10: hard gate activado. Coverage
-							     real de service.* tras 06.6-06.10: LINE 76.1% / BRANCH
-							     55.1%. Umbrales con margen defensivo (LINE 65, BRANCH
-							     50) para no romper por fluctuaciones y dejar techo
-							     para futuras refactors sin penalizar PRs no relacionados. -->
+							<!-- Gate de cobertura de service.*. Los umbrales tienen
+							     margen defensivo sobre la cobertura real medida para
+							     no penalizar PRs no relacionados por pequeñas variaciones. -->
 							<haltOnFailure>true</haltOnFailure>
 							<rules>
 								<rule>
