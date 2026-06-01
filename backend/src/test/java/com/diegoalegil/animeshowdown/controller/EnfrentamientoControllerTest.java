@@ -889,6 +889,7 @@ class EnfrentamientoControllerTest {
         String tokenB = tokenUserRegistrado("madrugador_b", "madrugador-b@example.com");
         long[] ids = dosPersonajes();
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "madrugador");
+        long enfIdB = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "madrugador-b");
         LocalDate fecha = LocalDate.of(2026, 5, 22);
 
         mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
@@ -901,7 +902,7 @@ class EnfrentamientoControllerTest {
         var userB = usuarioRepository.findByUsername("madrugador_b").orElseThrow();
         esperarMadrugador("luffy", fecha, userA.getId());
 
-        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+        mvc.perform(post("/api/enfrentamientos/" + enfIdB + "/votar")
                 .header("Authorization", "Bearer " + tokenB)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
