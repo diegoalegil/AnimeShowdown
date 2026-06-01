@@ -115,14 +115,14 @@ function AnimesPage() {
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Buscar animes"
               placeholder="Busca anime, saga o universo… (ej: kimetsu, snk, mha)"
-              className="as-control min-h-11 w-full rounded-lg py-2.5 pl-10 pr-9 text-sm text-fg-strong placeholder:text-fg-muted"
+              className="as-control min-h-11 w-full rounded-lg py-2.5 pl-10 pr-12 text-sm text-fg-strong placeholder:text-fg-muted"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch('')}
                 aria-label="Limpiar búsqueda"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-muted transition-colors hover:text-fg-strong"
+                className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center text-fg-muted transition-colors hover:text-fg-strong"
               >
                 <X className="h-4 w-4" />
               </button>
