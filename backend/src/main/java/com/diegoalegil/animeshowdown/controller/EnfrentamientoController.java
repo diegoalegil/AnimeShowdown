@@ -418,25 +418,27 @@ public class EnfrentamientoController {
         }
         Enfrentamiento enf = enfOpt.get();
 
-        Optional<Voto> votoOpt;
+        int filasActualizadas;
+        boolean votoExiste;
         if (usuario != null) {
-            votoOpt = votoRepository.findByEnfrentamientoAndUsuario(enf, usuario);
+            filasActualizadas = votoRepository.fijarCategoriaRegistradoSiPendiente(
+                    enf, usuario, categoria.getId());
+            votoExiste = votoRepository.existsByEnfrentamientoAndUsuario(enf, usuario);
         } else {
             AnonymousVoteContext anon = resolverAnonymousContext(httpRequest);
-            votoOpt = votoRepository.findByEnfrentamientoAndAnonSessionId(enf, anon.sessionId());
-        }
-        if (votoOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            filasActualizadas = votoRepository.fijarCategoriaAnonimaSiPendiente(
+                    enf, anon.sessionId(), categoria.getId());
+            votoExiste = votoRepository.existsByEnfrentamientoAndAnonSessionId(enf, anon.sessionId());
         }
 
-        Voto voto = votoOpt.get();
-        if (voto.getCategoria() != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("La intención de este voto ya estaba fijada");
+        if (filasActualizadas == 1) {
+            return ResponseEntity.noContent().build();
         }
-        voto.setCategoria(categoria.getId());
-        votoRepository.save(voto);
-        return ResponseEntity.noContent().build();
+        if (!votoExiste) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("La intención de este voto ya estaba fijada");
     }
 
     /**

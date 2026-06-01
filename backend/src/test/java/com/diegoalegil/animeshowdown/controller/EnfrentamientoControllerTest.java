@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -21,7 +22,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -40,6 +46,7 @@ import org.springframework.http.MediaType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -76,7 +83,7 @@ class EnfrentamientoControllerTest {
     @Autowired
     private com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository usuarioLogroRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private com.diegoalegil.animeshowdown.repository.VotoRepository votoRepository;
 
     @Autowired
@@ -1102,6 +1109,56 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
+    void fijarCategoriaConcurrenteSoloAceptaUnaPeticion() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_patch_race_user", "votopatchrace@example.com");
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "patch-race");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk())
+                .andReturn();
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+
+        CountDownLatch lecturasDelCodigoAnterior = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            Object resultado = invocation.callRealMethod();
+            lecturasDelCodigoAnterior.countDown();
+            if (!lecturasDelCodigoAnterior.await(5, TimeUnit.SECONDS)) {
+                throw new AssertionError("No llegaron los dos PATCH al read previo del voto");
+            }
+            return resultado;
+        }).when(votoRepository).findByEnfrentamientoAndUsuario(any(), any());
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> carisma = executor.submit(() -> patchCategoria(enfId, userToken, "carisma"));
+            Future<Integer> poder = executor.submit(() -> patchCategoria(enfId, userToken, "poder"));
+
+            List<Integer> statuses = List.of(
+                    carisma.get(10, TimeUnit.SECONDS),
+                    poder.get(10, TimeUnit.SECONDS));
+            org.junit.jupiter.api.Assertions.assertEquals(1,
+                    statuses.stream().filter(status -> status == 204).count(),
+                    "Solo un PATCH concurrente debe fijar la intención");
+            org.junit.jupiter.api.Assertions.assertEquals(1,
+                    statuses.stream().filter(status -> status == 409).count(),
+                    "El segundo PATCH concurrente debe observar set-once");
+
+            String categoriaPersistida = votoRepository.findById(votoId).orElseThrow().getCategoria();
+            org.junit.jupiter.api.Assertions.assertTrue(
+                    Set.of("carisma", "poder").contains(categoriaPersistida),
+                    "La intención persistida debe ser una de las dos solicitudes concurrentes");
+        } finally {
+            executor.shutdownNow();
+            reset(votoRepository);
+        }
+    }
+
+    @Test
     void fijarCategoriaInvalidaEsNoOp204() throws Exception {
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_patch_bad_user", "votopatchbad@example.com");
@@ -1148,6 +1205,16 @@ class EnfrentamientoControllerTest {
         var votos = votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(anonId);
         org.junit.jupiter.api.Assertions.assertEquals(1, votos.size());
         org.junit.jupiter.api.Assertions.assertEquals("favorito", votos.get(0).getCategoria());
+    }
+
+    private int patchCategoria(long enfId, String userToken, String categoria) throws Exception {
+        return mvc.perform(patch("/api/enfrentamientos/" + enfId + "/votar/categoria")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("categoria", categoria))))
+                .andReturn()
+                .getResponse()
+                .getStatus();
     }
 
     @TestConfiguration

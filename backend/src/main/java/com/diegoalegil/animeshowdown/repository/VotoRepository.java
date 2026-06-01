@@ -394,6 +394,33 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      */
     java.util.Optional<Voto> findByEnfrentamientoAndAnonSessionId(Enfrentamiento enfrentamiento, String anonSessionId);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Voto v
+            SET v.categoria = :categoria
+            WHERE v.enfrentamiento = :enfrentamiento
+              AND v.usuario = :usuario
+              AND v.categoria IS NULL
+            """)
+    int fijarCategoriaRegistradoSiPendiente(
+            @Param("enfrentamiento") Enfrentamiento enfrentamiento,
+            @Param("usuario") Usuario usuario,
+            @Param("categoria") String categoria);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Voto v
+            SET v.categoria = :categoria
+            WHERE v.enfrentamiento = :enfrentamiento
+              AND v.usuario IS NULL
+              AND v.anonSessionId = :anonSessionId
+              AND v.categoria IS NULL
+            """)
+    int fijarCategoriaAnonimaSiPendiente(
+            @Param("enfrentamiento") Enfrentamiento enfrentamiento,
+            @Param("anonSessionId") String anonSessionId,
+            @Param("categoria") String categoria);
+
     long countByAnonSessionId(String anonSessionId);
 
     /**
