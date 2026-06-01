@@ -31,11 +31,14 @@ public class PersonajeFavoritoService {
 
     private final PersonajeFavoritoRepository favoritoRepository;
     private final PersonajeRepository personajeRepository;
+    private final SocialOperationLock socialOperationLock;
 
     public PersonajeFavoritoService(PersonajeFavoritoRepository favoritoRepository,
-            PersonajeRepository personajeRepository) {
+            PersonajeRepository personajeRepository,
+            SocialOperationLock socialOperationLock) {
         this.favoritoRepository = favoritoRepository;
         this.personajeRepository = personajeRepository;
+        this.socialOperationLock = socialOperationLock;
     }
 
     /** Roster del usuario. Vacío si aún no sigue a nadie. */
@@ -57,10 +60,11 @@ public class PersonajeFavoritoService {
     @Transactional
     public boolean seguir(Usuario usuario, String slug) {
         Personaje personaje = personajeBySlug(slug);
+        socialOperationLock.favoritos();
         if (favoritoRepository.existsByUsuarioAndPersonaje(usuario, personaje)) {
             return false;
         }
-        favoritoRepository.save(new PersonajeFavorito(usuario, personaje));
+        favoritoRepository.saveAndFlush(new PersonajeFavorito(usuario, personaje));
         return true;
     }
 
@@ -74,6 +78,7 @@ public class PersonajeFavoritoService {
     @Transactional
     public boolean dejarDeSeguir(Usuario usuario, String slug) {
         Personaje personaje = personajeBySlug(slug);
+        socialOperationLock.favoritos();
         int borradas = favoritoRepository.deleteByUsuarioAndPersonaje(usuario, personaje);
         return borradas > 0;
     }
