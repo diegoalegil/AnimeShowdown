@@ -584,6 +584,52 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
+    void votarEmpateAnonimoPondera015YPersisteSesionFirmada() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        double votosAntesA = votoRepository.countByPersonajeId(ids[0]);
+        double votosAntesB = votoRepository.countByPersonajeId(ids[1]);
+        Double pesoAntesA = votoRepository.sumaPesoByPersonajeId(ids[0]);
+        Double pesoAntesB = votoRepository.sumaPesoByPersonajeId(ids[1]);
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "empate-anon");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("empate", true))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anonimo").value(true))
+                .andExpect(jsonPath("$.empate").value(true))
+                .andExpect(jsonPath("$.personajeGanadorId").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.personajePerdedorId").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.votosGanador").value(0.5))
+                .andExpect(jsonPath("$.votosPerdedor").value(0.5))
+                .andExpect(jsonPath("$.delta").value(0.0))
+                .andExpect(jsonPath("$.votosAnonimosRestantes").value(4))
+                .andReturn();
+
+        Cookie anonCookie = anonCookieDesde(res);
+        String anonSessionId = anonSessionDesde(anonCookie);
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+        var voto = votoRepository.findById(votoId).orElseThrow();
+
+        org.junit.jupiter.api.Assertions.assertTrue(voto.isEmpate());
+        org.junit.jupiter.api.Assertions.assertNull(voto.getUsuario());
+        org.junit.jupiter.api.Assertions.assertEquals(anonSessionId, voto.getAnonSessionId());
+        org.junit.jupiter.api.Assertions.assertEquals(0.15, voto.getPeso().doubleValue(), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(1, votoRepository.countByAnonSessionId(anonSessionId));
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesA + 0.5,
+                votoRepository.countByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesB + 0.5,
+                votoRepository.countByPersonajeId(ids[1]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesA + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesB + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[1]), 0.001);
+        verify(messaging, never()).convertAndSend(eq("/topic/ranking-delta"), any(RankingDeltaEvent.class));
+    }
+
+    @Test
     void votarInvalidaCacheDelRankingAllTime() throws Exception {
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_cache_user", "votocache@example.com");
