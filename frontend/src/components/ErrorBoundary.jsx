@@ -32,6 +32,12 @@ class ErrorBoundary extends Component {
     return { hasError: true, error, staleAsset: isStaleAssetError(error) }
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.reset()
+    }
+  }
+
   componentDidCatch(error, info) {
     const recoveringStaleAsset = recoverFromStaleAssetError(error)
 

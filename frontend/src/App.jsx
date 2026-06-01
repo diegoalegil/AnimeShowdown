@@ -390,14 +390,13 @@ function App() {
       <OnboardingGate />
       <EmailVerifyBanner />
       <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
-        <div key={location.pathname} className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col">
           {/* Boundary a nivel de ruta. Un error de render en una página se
               contiene aquí y el shell (Header, Footer, nav) sigue vivo, en
               vez de tumbar toda la app contra el boundary raíz de main.jsx.
-              El div padre lleva key={location.pathname}: al navegar a otra
-              ruta este subárbol se remonta y el boundary se resetea solo, sin
-              estado de error pegajoso entre páginas. */}
-          <ErrorBoundary>
+              resetKey limpia el fallback solo si hubo error; la navegación
+              normal no remonta el subárbol ni borra estado local de página. */}
+          <ErrorBoundary resetKey={location.pathname}>
           <Suspense
             fallback={(
               <PageSkeleton
