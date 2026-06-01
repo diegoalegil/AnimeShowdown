@@ -76,6 +76,10 @@ function PanelResultadoAnime({
 
   return (
     <motion.div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label={`Resultado del juego: ${titulo}${tier ? `. ${tier}` : ''}`}
       initial={{ opacity: 0, y: 12, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 180, damping: 18 }}
