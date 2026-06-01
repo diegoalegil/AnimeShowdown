@@ -986,11 +986,11 @@ public class AuthController {
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
         String codigoBruto = request.getCodigo();
         boolean totpOk = totpService.validarCodigo(secretPlano, codigoBruto);
-        boolean backupOk = false;
+        Optional<Long> backupCodeId = Optional.empty();
         if (!totpOk) {
-            backupOk = totpBackupCodeService.consumirSiCoincide(usuario, codigoBruto);
+            backupCodeId = totpBackupCodeService.buscarCodigoCoincidenteNoUsado(usuario, codigoBruto);
         }
-        if (!totpOk && !backupOk) {
+        if (!totpOk && backupCodeId.isEmpty()) {
             int restantes = twoFactorChallengeService.registrarFallo(request.getChallengeToken());
             log.warn("2FA login falló: username={} intentosRestantes={}",
                     usuario.getUsername(), restantes);
@@ -1002,7 +1002,25 @@ public class AuthController {
                             : "Código incorrecto.",
                     "intentosRestantes", restantes));
         }
-        twoFactorChallengeService.consumir(request.getChallengeToken());
+        Optional<Long> consumido = twoFactorChallengeService.consumir(request.getChallengeToken());
+        if (consumido.isEmpty() || !consumido.get().equals(usuario.getId())) {
+            log.warn("2FA login rechazado por challenge ya consumido: username={}", usuario.getUsername());
+            auditLogService.registrar(AuditEvento.TOTP_LOGIN_FAIL, usuario,
+                    Map.of("razon", "challenge_consumido"), httpRequest);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "El reto de 2FA ha expirado o no existe. Inicia sesión otra vez."));
+        }
+        boolean backupOk = false;
+        if (!totpOk) {
+            backupOk = totpBackupCodeService.marcarUsadoSiDisponible(usuario, backupCodeId.orElseThrow());
+            if (!backupOk) {
+                log.warn("2FA login falló por backup code ya consumido: username={}", usuario.getUsername());
+                auditLogService.registrar(AuditEvento.TOTP_LOGIN_FAIL, usuario,
+                        Map.of("razon", "backup_code_consumido"), httpRequest);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "message", "Código incorrecto."));
+            }
+        }
         AuditEvento eventoAudit = backupOk ? AuditEvento.TOTP_BACKUP_CODE_USADO : AuditEvento.TOTP_LOGIN_OK;
         return emitirSesionExitosa(usuario, httpRequest, eventoAudit);
     }
