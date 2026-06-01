@@ -263,7 +263,7 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(parseCsv(allowedOriginPatternsCsv));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin",
-                "X-AS-Anonymous-Id", "X-AS-Anonymous-Fingerprint"));
+                "X-AS-Captcha-Token", "X-Idempotency-Key"));
         // expose Retry-After. El cliente lo lee en
         // intentarRefresh() para respetar el backoff que indica el backend
         // tras un 503 cross-tab. Sin esto, en producción (cross-origin

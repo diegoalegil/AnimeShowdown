@@ -108,7 +108,6 @@ public class PerfilController {
     @PostMapping("/me/migrar-votos-anonimos")
     public ResponseEntity<?> migrarVotosAnonimos(
             @AuthenticationPrincipal Usuario usuario,
-            @RequestBody(required = false) MigrarVotosAnonimosRequest body,
             HttpServletRequest request) {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         int migrados = perfilService.migrarVotosAnonimos(usuario,
@@ -241,6 +240,4 @@ public class PerfilController {
                 .header(HttpHeaders.SET_COOKIE, clear.toString())
                 .build();
     }
-
-    public record MigrarVotosAnonimosRequest(String anonSessionId) {}
 }

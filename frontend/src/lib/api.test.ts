@@ -662,6 +662,16 @@ describe('endpoints', () => {
     expect((fn.mock.calls[0] as [string, RequestInit])[1].method).toBe('POST')
   })
 
+  it('migrarVotosAnonimos: usa solo cookie firmada, sin body', async () => {
+    const fn = mockFetchResolved({ migrados: 0 })
+    vi.stubGlobal('fetch', fn)
+    await endpoints.migrarVotosAnonimos()
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/perfil/me/migrar-votos-anonimos')
+    expect(opts.method).toBe('POST')
+    expect(opts.body).toBeUndefined()
+  })
+
   it('abrirSobre: pasa X-Idempotency-Key cuando existe', async () => {
     const fn = mockFetchResolved({})
     vi.stubGlobal('fetch', fn)

@@ -7,12 +7,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.time.Duration;
 import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,11 +68,8 @@ import jakarta.validation.Valid;
 public class EnfrentamientoController {
 
     private static final Logger log = LoggerFactory.getLogger(EnfrentamientoController.class);
-    private static final String ANON_COOKIE = "as_anon_vote_id";
-    private static final String ANON_ID_HEADER = "X-AS-Anonymous-Id";
     /** Header con el token Turnstile cuando el frontend completó captcha. */
     private static final String CAPTCHA_TOKEN_HEADER = "X-AS-Captcha-Token";
-    private static final Pattern ANON_ID_PATTERN = Pattern.compile("^[A-Za-z0-9._:-]{12,64}$");
     private static final int ANON_VOTE_LIMIT = 5;
     private static final BigDecimal ANON_VOTE_WEIGHT = new BigDecimal("0.30");
     private static final BigDecimal HALF_VOTE_WEIGHT = new BigDecimal("0.50");
@@ -90,7 +85,6 @@ public class EnfrentamientoController {
     private final ClientIpExtractor clientIpExtractor;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
-    private final boolean cookieSecure;
 
     public EnfrentamientoController(EnfrentamientoRepository enfrentamientoRepository,
             VotoRepository votoRepository,
@@ -102,8 +96,7 @@ public class EnfrentamientoController {
             AnonymousAbuseThrottleService abuseThrottle,
             ClientIpExtractor clientIpExtractor,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
-            @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado,
-            @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
+            @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.votoRepository = votoRepository;
         this.messaging = messaging;
@@ -115,7 +108,6 @@ public class EnfrentamientoController {
         this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
-        this.cookieSecure = cookieSecure;
     }
 
     /**
@@ -259,10 +251,9 @@ public class EnfrentamientoController {
             }
             var decision = abuseThrottle.decide(anon.sessionId(), anon.ipHash(), captchaValido);
             if (decision == AnonymousAbuseThrottleService.Decision.BLOCKED_24H) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .header(HttpHeaders.RETRY_AFTER, "86400")
-                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
-                        .body(java.util.Map.of(
+                ResponseEntity.BodyBuilder blocked = ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .header(HttpHeaders.RETRY_AFTER, "86400");
+                return withAnonCookie(blocked, anon).body(java.util.Map.of(
                                 "message", "Demasiados votos anónimos en las últimas 24h desde tu red. Vuelve mañana o crea cuenta gratis.",
                                 "retryAfterSeconds", 86400));
             }
@@ -271,8 +262,7 @@ public class EnfrentamientoController {
                 // captcha antes de reintentar. sitekey en el body para que
                 // el frontend monte el widget Turnstile sin saber a priori
                 // el provider.
-                return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED)
-                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
+                return withAnonCookie(ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED), anon)
                         .body(java.util.Map.of(
                                 "message", "Verifica que no eres un bot antes de seguir votando.",
                                 "captchaRequired", true,
@@ -281,16 +271,14 @@ public class EnfrentamientoController {
             }
             long votosAnonimosUsados = votoRepository.countByAnonSessionId(anon.sessionId());
             if (votosAnonimosUsados >= ANON_VOTE_LIMIT) {
-                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
+                return withAnonCookie(ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS), anon)
                         .body(java.util.Map.of(
                                 "message", "Has agotado tus 5 votos invitados. Crea cuenta gratis para seguir votando.",
                                 "limite", ANON_VOTE_LIMIT,
                                 "votosAnonimosRestantes", 0));
             }
             if (votoRepository.existsByEnfrentamientoAndAnonSessionId(enf, anon.sessionId())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
+                return withAnonCookie(ResponseEntity.status(HttpStatus.CONFLICT), anon)
                         .body("Ya has votado este enfrentamiento como invitado");
             }
         }
@@ -375,9 +363,7 @@ public class EnfrentamientoController {
                 votosAnonimosRestantes,
                 empate);
         ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
-        if (usuario == null) {
-            ok.header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString());
-        }
+        if (usuario == null) ok = withAnonCookie(ok, anon);
         return ok.body(dto);
     }
 
@@ -487,21 +473,17 @@ public class EnfrentamientoController {
     }
 
     /**
-     * cookie-first con fallback legacy.
+     * cookie firmada server-side.
      * Orden de resolución de la identidad anónima:
      *   1. Cookie firmada {@code as_anon} con HMAC verificable.
-     *   2. Cookie legacy {@code as_anon_vote_id} (no firmada, mantenida 1
-     *      release para no perder el cupo de votos invitados de usuarios
-     *      ya activos).
-     *   3. Header legacy {@code X-AS-Anonymous-Id}.
-     *   4. Emitir nuevo token firmado y devolverlo en la respuesta.
+     *   2. Emitir nuevo token firmado y devolverlo en la respuesta.
      *
      * El campo {@code signedToken} del contexto, si no es null, manda al
-     * controller a settear la cookie firmada en la respuesta (override del
-     * legacy). Eso fuerza la migración progresiva sin invalidar sesiones.
+     * controller a settear la cookie firmada en la respuesta. No aceptamos
+     * identificadores enviados por JS: rotarlos permitía fragmentar el cupo
+     * invitado y saltarse la identidad estable del servidor.
      */
     private AnonymousVoteContext resolverAnonymousContext(HttpServletRequest request) {
-        // Cookie firmada (nueva): identidad estable server-side.
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (anonymousIdentityService.getCookieName().equals(cookie.getName())) {
@@ -513,30 +495,9 @@ public class EnfrentamientoController {
                         return new AnonymousVoteContext(sid, hashAnonimo(request), null);
                     }
                     // Si está manipulada o expirada, caemos al fallback
-                    // legacy y eventualmente emitimos una firma nueva.
+                    // de emisión nueva.
                 }
             }
-        }
-        // Cookie legacy (no firmada).
-        String legacySessionId = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (ANON_COOKIE.equals(cookie.getName())) {
-                    legacySessionId = normalizarAnonId(cookie.getValue());
-                    break;
-                }
-            }
-        }
-        // Header legacy (último fallback aceptado).
-        if (legacySessionId == null) {
-            legacySessionId = normalizarAnonId(request.getHeader(ANON_ID_HEADER));
-        }
-        if (legacySessionId != null) {
-            // Identidad legacy aceptada: preservamos el cupo histórico,
-            // pero el throttle por IP+UA sigue aplicando. La cookie
-            // firmada se emite cuando el cliente envíe su próximo voto
-            // y haya perdido la legacy, o nunca si mantiene la legacy.
-            return new AnonymousVoteContext(legacySessionId, hashAnonimo(request), null);
         }
         // Sin identidad reconocible: emitimos token firmado nuevo.
         String token = anonymousIdentityService.emit();
@@ -545,41 +506,22 @@ public class EnfrentamientoController {
         return new AnonymousVoteContext(sid, hashAnonimo(request), token);
     }
 
-    private String normalizarAnonId(String value) {
-        if (value == null) return null;
-        String trimmed = value.trim();
-        return ANON_ID_PATTERN.matcher(trimmed).matches() ? trimmed : null;
-    }
-
     /**
-     * Cookie de respuesta para la identidad anónima. Si el contexto trae
-     * {@code signedToken} (identidad recién emitida), devolvemos la cookie
-     * firmada httpOnly + Secure + SameSite=Lax con TTL 30d via
-     * {@link AnonymousIdentityService#buildCookie(String)}. Si no, fallback
-     * a la cookie legacy no firmada para mantener compatibilidad con
-     * usuarios cuya identidad sigue llegando via header o cookie vieja.
+     * Cookie de respuesta para la identidad anónima. Solo se emite cuando el
+     * contexto acaba de crear una identidad firmada nueva; si el navegador ya
+     * mandó una cookie válida, no añadimos Set-Cookie extra.
      */
     private ResponseCookie anonCookieFor(AnonymousVoteContext context) {
-        if (context.signedToken() != null) {
-            return anonymousIdentityService.buildCookie(context.signedToken());
+        return anonymousIdentityService.buildCookie(context.signedToken());
+    }
+
+    private ResponseEntity.BodyBuilder withAnonCookie(
+            ResponseEntity.BodyBuilder builder,
+            AnonymousVoteContext context) {
+        if (context != null && context.signedToken() != null) {
+            builder.header(HttpHeaders.SET_COOKIE, anonCookieFor(context).toString());
         }
-        return anonCookieLegacy(context.sessionId());
-    }
-
-    private ResponseCookie anonCookie(String sessionId) {
-        // Wrapper retro-compat con call sites que sólo pasan sessionId.
-        // Para identidades firmadas, usar anonCookieFor(context) directamente.
-        return anonCookieLegacy(sessionId);
-    }
-
-    private ResponseCookie anonCookieLegacy(String sessionId) {
-        return ResponseCookie.from(ANON_COOKIE, sessionId)
-                .path("/")
-                .maxAge(Duration.ofDays(180))
-                .sameSite("Lax")
-                .secure(cookieSecure)
-                .httpOnly(false)
-                .build();
+        return builder;
     }
 
     private Optional<Enfrentamiento> buscarSiguienteDisponible(
