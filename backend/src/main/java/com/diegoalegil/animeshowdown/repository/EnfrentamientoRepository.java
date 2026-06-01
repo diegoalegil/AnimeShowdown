@@ -18,6 +18,9 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
 
     List<Enfrentamiento> findByTorneo(Torneo torneo);
 
+    @Query("SELECT e.torneo.id FROM Enfrentamiento e WHERE e.id = :id")
+    Optional<Long> findTorneoIdById(@Param("id") Long id);
+
     /**
      * Bracket completo del torneo en orden de presentación: primero ronda 1
      * (octavos), luego ronda 2 (cuartos), etc. Dentro de cada ronda el orden

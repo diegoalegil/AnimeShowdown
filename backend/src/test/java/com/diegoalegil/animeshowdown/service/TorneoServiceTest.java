@@ -50,6 +50,7 @@ class TorneoServiceTest {
     @Mock private NotificacionService notificacionService;
     @Mock private IndexNowService indexNowService;
     @Mock private SeguidorFanOutService seguidorFanOutService;
+    @Mock private TorneoOperacionLockService torneoOperacionLockService;
 
     private TorneoService service;
 
@@ -65,7 +66,8 @@ class TorneoServiceTest {
                 prediccionService,
                 notificacionService,
                 indexNowService,
-                seguidorFanOutService);
+                seguidorFanOutService,
+                torneoOperacionLockService);
     }
 
     // ─── Fixtures ──────────────────────────────────────────────────────────────

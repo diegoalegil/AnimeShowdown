@@ -236,13 +236,13 @@ class NotificacionControllerTest {
                 .andExpect(jsonPath("$.enabled").value(false))
                 .andExpect(jsonPath("$.publicKey").value(""));
 
-        String endpoint = "https://push.example/sub/alice";
+        String endpoint = "https://fcm.googleapis.com/fcm/send/alice";
         mvc.perform(post("/api/me/push/subscribe")
                 .header("Authorization", "Bearer " + s.token())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of(
                         "endpoint", endpoint,
-                        "keys", Map.of("p256dh", "key-a", "auth", "auth-a")))))
+                        "keys", Map.of("p256dh", "key-alice-0123456789", "auth", "auth-alice-012345")))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.endpoint").value(endpoint));
 
@@ -263,7 +263,7 @@ class NotificacionControllerTest {
     void fanOutPushRespetaUnaNotificacionPorTipoYDia() throws Exception {
         Sesion s = crearUsuarioVerificado("push_bob", "push_bob@example.com");
         pushSubscriptionRepository.save(new PushSubscription(
-                s.usuario(), "https://push.example/sub/bob", "key-b", "auth-b"));
+                s.usuario(), "https://fcm.googleapis.com/fcm/send/bob", "key-bob-0123456789", "auth-bob-012345"));
         Torneo torneo = new Torneo("push-copa", "Push Copa", "Torneo con push");
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setPublico(true);

@@ -10,8 +10,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -700,6 +706,62 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isString())
                 .andExpect(jsonPath("$.usuario.totpHabilitado").value(true));
+    }
+
+    @Test
+    void verifyLoginConMismoChallengeConcurrenteSoloEmiteUnaSesion() throws Exception {
+        Sesion s = registrarYLoguear("totp_race", "secreta123", "totp_race@example.com");
+        var setupRes = mvc.perform(post("/api/auth/2fa/setup")
+                .header("Authorization", "Bearer " + s.token()))
+                .andExpect(status().isOk()).andReturn();
+        String secret = json.readTree(setupRes.getResponse().getContentAsString()).get("secret").asText();
+        mvc.perform(post("/api/auth/2fa/enable")
+                .header("Authorization", "Bearer " + s.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("codigo", generarCodigoActual(secret)))))
+                .andExpect(status().isOk());
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("username", "totp_race", "password", "secreta123"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        String challengeToken = json.readTree(loginRes.getResponse().getContentAsString())
+                .get("challengeToken").asText();
+        Map<String, String> verify = Map.of(
+                "challengeToken", challengeToken,
+                "codigo", generarCodigoActual(secret));
+        int intentos = 8;
+        CountDownLatch salida = new CountDownLatch(1);
+        var pool = Executors.newFixedThreadPool(intentos);
+        try {
+            List<Future<Integer>> resultados = new ArrayList<>();
+            Callable<Integer> request = () -> {
+                salida.await();
+                return mvc.perform(post("/api/auth/2fa/verify-login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(verify)))
+                        .andReturn()
+                        .getResponse()
+                        .getStatus();
+            };
+            for (int i = 0; i < intentos; i++) {
+                resultados.add(pool.submit(request));
+            }
+
+            salida.countDown();
+
+            long ok = 0;
+            long rechazados = 0;
+            for (Future<Integer> resultado : resultados) {
+                int status = resultado.get();
+                if (status == 200) ok++;
+                if (status == 401) rechazados++;
+            }
+            assertEquals(1, ok);
+            assertEquals(intentos - 1, rechazados);
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test

@@ -55,6 +55,7 @@ public class TorneoService {
     private final NotificacionService notificacionService;
     private final IndexNowService indexNowService;
     private final SeguidorFanOutService seguidorFanOutService;
+    private final TorneoOperacionLockService torneoOperacionLockService;
 
     public TorneoService(
             TorneoRepository torneoRepository,
@@ -66,7 +67,8 @@ public class TorneoService {
             PrediccionService prediccionService,
             NotificacionService notificacionService,
             IndexNowService indexNowService,
-            SeguidorFanOutService seguidorFanOutService) {
+            SeguidorFanOutService seguidorFanOutService,
+            TorneoOperacionLockService torneoOperacionLockService) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
@@ -77,6 +79,7 @@ public class TorneoService {
         this.notificacionService = notificacionService;
         this.indexNowService = indexNowService;
         this.seguidorFanOutService = seguidorFanOutService;
+        this.torneoOperacionLockService = torneoOperacionLockService;
     }
 
     @CacheEvict(value = "torneos-resumen", allEntries = true)
@@ -422,6 +425,7 @@ public class TorneoService {
     public Torneo finalizar(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Torneo no encontrado: id=" + id));
+        torneoOperacionLockService.lock(id);
 
         if (torneo.getEstado() != EstadoTorneo.IN_PROGRESS) {
             throw new IllegalStateException("Solo se pueden finalizar torneos en estado IN_PROGRESS");
