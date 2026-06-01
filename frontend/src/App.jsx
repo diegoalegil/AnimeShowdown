@@ -55,7 +55,9 @@ const routePreloaders = {
   games: () => import('./pages/GamesHubPage'),
   shadowGuess: () => import('./pages/GuessCharacterPage'),
   animeReveal: () => import('./pages/GuessAnimePage'),
+  oraculo: () => import('./pages/OraculoPage'),
   anigrid: () => import('./pages/AnidelPage'),
+  nexoAnime: () => import('./pages/NexoAnimePage'),
   impostor: () => import('./pages/ImpostorPage'),
   eloDuel: () => import('./pages/HigherOrLowerPage'),
   perfil: () => import('./pages/PerfilPage'),
@@ -108,7 +110,9 @@ const MiRankingPage = lazyRoute(() => import('./pages/MiRankingPage'))
 const GamesHubPage = lazyRoute(routePreloaders.games)
 const GuessCharacterPage = lazyRoute(routePreloaders.shadowGuess)
 const GuessAnimePage = lazyRoute(routePreloaders.animeReveal)
+const OraculoPage = lazyRoute(routePreloaders.oraculo)
 const AnidelPage = lazyRoute(routePreloaders.anigrid)
+const NexoAnimePage = lazyRoute(routePreloaders.nexoAnime)
 const ImpostorPage = lazyRoute(routePreloaders.impostor)
 const OmikujiPage = lazyRoute(() => import('./pages/OmikujiPage'))
 const GlossaryPage = lazyRoute(() => import('./pages/GlossaryPage'))
@@ -160,7 +164,9 @@ function routePreloaderFor(pathname) {
   if (pathname === '/games') return routePreloaders.games
   if (pathname === '/games/shadow-guess') return routePreloaders.shadowGuess
   if (pathname === '/games/anime-reveal') return routePreloaders.animeReveal
+  if (pathname === '/games/oraculo') return routePreloaders.oraculo
   if (pathname === '/games/anigrid') return routePreloaders.anigrid
+  if (pathname === '/games/nexo-anime') return routePreloaders.nexoAnime
   if (pathname === '/games/impostor-trial') return routePreloaders.impostor
   if (pathname === '/games/elo-duel') return routePreloaders.eloDuel
   if (pathname === '/higher-or-lower') return routePreloaders.eloDuel
@@ -485,7 +491,9 @@ function App() {
                   existentes; _redirects emite 301 a nivel Cloudflare. */}
               <Route path="/games/shadow-guess" element={catalogAware(<GuessCharacterPage />)} />
               <Route path="/games/anime-reveal" element={catalogAware(<GuessAnimePage />)} />
+              <Route path="/games/oraculo" element={catalogAware(<OraculoPage />)} />
               <Route path="/games/anigrid" element={catalogAware(<AnidelPage />)} />
+              <Route path="/games/nexo-anime" element={catalogAware(<NexoAnimePage />)} />
               <Route path="/games/impostor-trial" element={catalogAware(<ImpostorPage />)} />
               <Route path="/games/elo-duel" element={catalogAware(<HigherOrLowerPage />)} />
               <Route

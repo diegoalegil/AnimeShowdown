@@ -1,5 +1,9 @@
-import { Eye, Grid3X3, Sparkles, TrendingUp, Type } from 'lucide-react'
-import { ELO_DUEL_BEST_KEY } from '../../../lib/games'
+import { Brain, Eye, Grid3X3, Network, Sparkles, TrendingUp, Type } from 'lucide-react'
+import {
+  ELO_DUEL_BEST_KEY,
+  NEXO_ANIME_STORAGE_KEY,
+  ORACULO_STORAGE_KEY,
+} from '../../../lib/games'
 
 export const GAMES = [
   {
@@ -28,6 +32,19 @@ export const GAMES = [
     rarity: 'SR',
   },
   {
+    to: '/games/oraculo',
+    icon: Brain,
+    color: 'cyan',
+    kanji: '心',
+    titulo: 'Oráculo Anime',
+    sub: 'Akinator por reglas',
+    desc: 'Piensa un personaje y responde sí/no. El motor cruza anime, arquetipos y ELO base para apostar.',
+    cadencia: 'Endless',
+    storageKey: ORACULO_STORAGE_KEY,
+    rarity: 'SSR',
+    endless: true,
+  },
+  {
     to: '/games/anigrid',
     icon: Grid3X3,
     color: 'emerald',
@@ -37,6 +54,18 @@ export const GAMES = [
     desc: 'Wordle de personajes anime. 6 intentos. Pistas opcionales gastan un intento.',
     cadencia: 'Estilo Wordle',
     storageKey: 'animeshowdown.anidel.v1',
+    rarity: 'SR',
+  },
+  {
+    to: '/games/nexo-anime',
+    icon: Network,
+    color: 'emerald',
+    kanji: '結',
+    titulo: 'Nexo Anime',
+    sub: 'Conexiones',
+    desc: 'Empareja 8 cartas en 4 parejas del mismo anime. Visual, rápido y con puzzle diario estable.',
+    cadencia: '1 tablero al día',
+    storageKey: NEXO_ANIME_STORAGE_KEY,
     rarity: 'SR',
   },
   {
