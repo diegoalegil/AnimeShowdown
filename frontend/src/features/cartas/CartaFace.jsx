@@ -68,6 +68,9 @@ function CartaFace({ carta, className = '', eager = false, reveal = false }) {
           nombre={carta.personajeNombre}
           colorDominante={carta.colorDominante}
           loading={eager ? 'eager' : 'lazy'}
+          sizes="(min-width: 768px) 220px, 58vw"
+          fit="contain"
+          position="center"
           className="as-card-face__personaje"
         />
         <div className="as-card-face__holo" />

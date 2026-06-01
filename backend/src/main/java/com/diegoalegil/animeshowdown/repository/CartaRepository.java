@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.diegoalegil.animeshowdown.dto.CartaCatalogoItem;
 import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.RarezaCarta;
 
@@ -15,6 +16,25 @@ public interface CartaRepository extends JpaRepository<Carta, Long> {
     /** Catálogo completo con el personaje cargado (para pintar la colección). */
     @EntityGraph(attributePaths = "personaje")
     List<Carta> findAllByOrderByIdAsc();
+
+    /** Proyección estable del catálogo para cachear sin hidratar entidades. */
+    @Query("""
+            select new com.diegoalegil.animeshowdown.dto.CartaCatalogoItem(
+                c.id,
+                p.id,
+                p.slug,
+                p.nombre,
+                p.anime,
+                p.imagenUrl,
+                p.imagenColorDominante,
+                c.rareza,
+                c.especialCurada,
+                c.variante,
+                c.arteUrl)
+            from Carta c join c.personaje p
+            order by c.id asc
+            """)
+    List<CartaCatalogoItem> findCatalogoItems();
 
     /** Una carta por id con el personaje cargado (reveal del sobre). */
     @Override

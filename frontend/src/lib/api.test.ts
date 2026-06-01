@@ -513,6 +513,30 @@ describe('endpoints', () => {
     expect(headers?.['X-Idempotency-Key']).toBe('xyz')
   })
 
+  it('eloDuelRound: GET publico de ronda server-authoritative', async () => {
+    const fn = mockFetchResolved({ roundToken: 'v1.token' })
+    vi.stubGlobal('fetch', fn)
+    await endpoints.eloDuelRound()
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/games/elo-duel/round')
+    expect(opts.method).toBe('GET')
+    expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
+  })
+
+  it('eloDuelGuess: POST publico con token y eleccion, sin ELO cliente', async () => {
+    const fn = mockFetchResolved({ correct: true })
+    vi.stubGlobal('fetch', fn)
+    await endpoints.eloDuelGuess({ roundToken: 'v1.token', choice: 'HIGHER' })
+    const [url, opts] = fn.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/games/elo-duel/guess')
+    expect(opts.method).toBe('POST')
+    expect(JSON.parse(opts.body as string)).toEqual({
+      roundToken: 'v1.token',
+      choice: 'HIGHER',
+    })
+    expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
+  })
+
   it('rankingMovimientos: constructs query params limit+dias', async () => {
     const fn = mockFetchResolved([])
     vi.stubGlobal('fetch', fn)
@@ -595,6 +619,20 @@ describe('endpoints', () => {
     await endpoints.torneoBySlug('grand-prize')
     const url = (fn.mock.calls[0] as [string, RequestInit])[0]
     expect(url).toContain('/torneos/slug/grand-prize')
+  })
+
+  it('torneos públicos: no envía Authorization para permitir cache HTTP/CDN', async () => {
+    setToken('jwt-token')
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+
+    await endpoints.torneos()
+    await endpoints.torneoBySlug('grand-prize')
+
+    const firstHeaders = (fn.mock.calls[0] as [string, RequestInit])[1].headers as Record<string, string>
+    const secondHeaders = (fn.mock.calls[1] as [string, RequestInit])[1].headers as Record<string, string>
+    expect(firstHeaders.Authorization).toBeUndefined()
+    expect(secondHeaders.Authorization).toBeUndefined()
   })
 
   it('tierListCreate: POST a /api/tier-lists', async () => {

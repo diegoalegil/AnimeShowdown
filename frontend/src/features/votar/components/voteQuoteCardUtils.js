@@ -46,23 +46,23 @@ export async function drawVoteQuoteCard(ctx, { personaje, intencion }) {
   }
 
   ctx.fillStyle = TOP5_CANVAS_THEME.muted
-  ctx.font = 'bold 26px Geist, system-ui, sans-serif'
+  ctx.font = 'bold 26px system-ui, sans-serif'
   ctx.fillText('AnimeShowdown', 520, 118)
 
   ctx.fillStyle = TOP5_CANVAS_THEME.text
-  ctx.font = 'bold 62px Geist, system-ui, sans-serif'
+  ctx.font = 'bold 62px system-ui, sans-serif'
   wrapText(ctx, `Voté a ${nombre}`, 520, 210, 590, 72)
 
   ctx.fillStyle = TOP5_CANVAS_THEME.accent
-  ctx.font = 'bold 48px Geist, system-ui, sans-serif'
+  ctx.font = 'bold 48px system-ui, sans-serif'
   wrapText(ctx, `por: ${motivo}`, 520, 384, 590, 58)
 
   ctx.fillStyle = TOP5_CANVAS_THEME.muted
-  ctx.font = '24px Geist, system-ui, sans-serif'
+  ctx.font = '24px system-ui, sans-serif'
   ctx.fillText(anime, 520, 520)
 
   ctx.fillStyle = TOP5_CANVAS_THEME.watermark
-  ctx.font = '20px Geist, system-ui, sans-serif'
+  ctx.font = '20px system-ui, sans-serif'
   ctx.fillText('animeshowdown.dev', 520, 558)
 }
 

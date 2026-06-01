@@ -24,6 +24,8 @@ import {
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
 import { getGameVisual } from '../data/visual-assets'
+import { getAnimeIdentity } from '../data/anime-identities'
+import { slugifyAnime } from '../lib/animes'
 
 const RONDAS_POR_DIA = 3
 const STORAGE_KEY = 'animeshowdown.impostor.v1'
@@ -434,12 +436,16 @@ function tierImpostorPara(aciertos, total) {
   return 'Engaño total'
 }
 
-function PanelResultado({ resultados, esExtra }) {
+function PanelResultado({ resultados, rondas, esExtra }) {
   const aciertos = resultados.filter(Boolean).length
   const total = resultados.length
   const acertado = aciertos > 0
   const perfecto = aciertos === total && total >= 3
   const squaresShare = resultados.map((r) => (r ? '🟩' : '🟥')).join('')
+  const baseAnime = rondas?.[0]?.anime
+  const identity = baseAnime
+    ? getAnimeIdentity(slugifyAnime(baseAnime), baseAnime)
+    : null
 
   const texto = buildGameShareText({
     game: 'Impostor Trial',
@@ -462,6 +468,7 @@ function PanelResultado({ resultados, esExtra }) {
       shareTitle="Impostor Trial — AnimeShowdown"
       shareUrl="/games/impostor-trial"
       shareText={texto}
+      identity={identity}
     >
       <p className="text-[12px] text-fg-muted">
         <Link to="/games" className="text-gold hover:underline">

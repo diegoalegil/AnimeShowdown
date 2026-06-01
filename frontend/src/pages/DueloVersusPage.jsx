@@ -38,7 +38,7 @@ function DueloVersusPage() {
   const personajeA = slugA ? getPersonajeBySlug(slugA) : null
   const personajeB = slugB ? getPersonajeBySlug(slugB) : null
   const valido = Boolean(personajeA && personajeB && personajeA.slug !== personajeB.slug)
-  const canonical = valido ? `${SITE}/duelos/${personajeA.slug}-vs-${personajeB.slug}` : undefined
+  const canonical = valido ? `${SITE}/versus/${personajeA.slug}-vs-${personajeB.slug}` : undefined
   const ogImage = valido
     ? `/api/og/duelo/${encodeURIComponent(personajeA.slug)}/vs/${encodeURIComponent(personajeB.slug)}.png`
     : undefined
@@ -102,7 +102,7 @@ function DueloVersusPage() {
         ]
           .filter(Boolean)
           .join('\n'),
-        url: `/duelos/${personajeA.slug}-vs-${personajeB.slug}`,
+        url: `/versus/${personajeA.slug}-vs-${personajeB.slug}`,
       })
       if (result === 'cancelled') return
       recordDailyShare()

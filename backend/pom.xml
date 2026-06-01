@@ -147,6 +147,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
@@ -293,11 +298,10 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<!-- Sprint Auto 06 PR 06.10: hard gate activado. Coverage
-							     real de service.* tras 06.6-06.10: LINE 76.1% / BRANCH
-							     55.1%. Umbrales con margen defensivo (LINE 65, BRANCH
-							     50) para no romper por fluctuaciones y dejar techo
-							     para futuras refactors sin penalizar PRs no relacionados. -->
+							<!-- Hard gate de coverage para service.*. Umbrales con margen
+							     defensivo (LINE 65, BRANCH 50) para no romper por
+							     fluctuaciones y dejar techo para futuras refactors sin
+							     penalizar PRs no relacionados. -->
 							<haltOnFailure>true</haltOnFailure>
 							<rules>
 								<rule>

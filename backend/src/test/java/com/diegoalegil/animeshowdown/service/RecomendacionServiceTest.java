@@ -84,7 +84,21 @@ class RecomendacionServiceTest {
         List<PersonajeSimilarDto> result = sut.similares("goku", 8);
 
         assertEquals(2, result.size());
-        assertEquals("luffy", result.get(0).slug()); // más votos primero (same similarity since all 0 votes for target)
+        assertEquals("luffy", result.get(0).slug()); // más votos primero si la similitud empata
+    }
+
+    @Test
+    void similaresNoPublicaAfinidadPerfectaSiAmbosNoTienenVotos() {
+        when(personajeRepository.findBySlug("goku")).thenReturn(java.util.Optional.of(target));
+        Personaje naruto = new Personaje("naruto", "Naruto", "Naruto", "desc", "url");
+        naruto.setId(2L);
+        when(personajeRepository.findByAnimeNot("Dragon Ball")).thenReturn(List.of(naruto));
+        when(votoRepository.votosPorPersonajes()).thenReturn(List.of());
+
+        List<PersonajeSimilarDto> result = sut.similares("goku", 8);
+
+        assertEquals(1, result.size());
+        assertEquals(0.0, result.get(0).score());
     }
 
     @Test

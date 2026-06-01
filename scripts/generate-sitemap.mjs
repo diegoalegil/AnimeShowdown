@@ -79,6 +79,15 @@ const personajesCatalogo = loadPersonajesFromSeed(
   join(ROOT, 'backend/src/main/resources/personajes-seed.json'),
 )
 const personajesPorSlug = new Map(personajesCatalogo.map((p) => [p.slug, p]))
+const versusCurados = [
+  ['luffy', 'naruto'],
+  ['goku', 'saitama'],
+  ['light_yagami', 'l'],
+  ['zoro', 'itachi'],
+  ['kaneki', 'eren_yeager'],
+]
+  .map(([a, b]) => [personajesPorSlug.get(a), personajesPorSlug.get(b)])
+  .filter(([a, b]) => a && b)
 
 // Derivamos la lista de animes únicos del catálogo para emitir una URL
 // /animes/{slug} por cada uno. Antes faltaban — el
@@ -156,7 +165,6 @@ const staticRoutes = [
   { path: '/leaderboards', priority: '0.7', changefreq: 'daily' },
   { path: '/votar', priority: '0.7', changefreq: 'daily' },
   { path: '/comparar', priority: '0.7', changefreq: 'weekly' },
-  { path: '/mi-ranking', priority: '0.5', changefreq: 'weekly' },
   { path: '/descubre-personaje', priority: '0.7', changefreq: 'daily' },
   { path: '/misiones', priority: '0.7', changefreq: 'daily' },
   { path: '/como-funciona', priority: '0.7', changefreq: 'monthly' },
@@ -172,7 +180,6 @@ const staticRoutes = [
   { path: '/games/anigrid', priority: '0.7', changefreq: 'daily' },
   { path: '/games/impostor-trial', priority: '0.7', changefreq: 'daily' },
   { path: '/games/elo-duel', priority: '0.7', changefreq: 'monthly' },
-  { path: '/mi-top5', priority: '0.6', changefreq: 'weekly' },
   { path: '/omikuji', priority: '0.6', changefreq: 'daily' },
   { path: '/glossary', priority: '0.7', changefreq: 'monthly' },
   { path: '/logros', priority: '0.7', changefreq: 'weekly' },
@@ -313,6 +320,23 @@ ${animesUnicos
       ),
     )
     .join('\n')}
+${versusCurados
+    .map(([a, b]) =>
+      urlBlock(
+        `/versus/${a.slug}-vs-${b.slug}`,
+        '0.55',
+        'monthly',
+        today,
+        [a, b]
+          .filter((p) => p.imagen)
+          .map((p) => ({
+            loc: `${BASE_URL}${p.imagen}`,
+            title: p.nombre,
+            caption: `${p.nombre} — personaje de ${p.anime} en AnimeShowdown`,
+          })),
+      ),
+    )
+    .join('\n')}
 ${torneos
     .map((t) => {
       const priority = t.esDeUsuario ? '0.4' : '0.5'
@@ -346,10 +370,11 @@ console.log(`   - ${staticRoutes.length} rutas estáticas`)
 console.log(`   - ${personajesCatalogo.length} personajes (con image extension)`)
 console.log(`   - ${animesUnicos.length} fichas de anime`)
 console.log(`   - ${animesUnicos.length} rankings por anime`)
+console.log(`   - ${versusCurados.length} versus curados`)
 console.log(
   `   - ${torneos.length} torneos (${apiData ? 'backend live' : 'seed fallback'})`,
 )
 console.log(`   - ${usuarios.length} usuarios públicos`)
 console.log(
-  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length * 2 + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length + animesUnicos.length * 2 + torneos.length} imágenes`,
+  `   - Total: ${staticRoutes.length + personajesCatalogo.length + animesUnicos.length * 2 + versusCurados.length + torneos.length + usuarios.length} URLs · ${personajesCatalogo.length + animesUnicos.length * 2 + versusCurados.length * 2 + torneos.length} imágenes`,
 )

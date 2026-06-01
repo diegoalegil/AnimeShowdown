@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   ESTADO_BADGE,
+  applyBracketUpdateToTorneoDetalle,
+  bumpTorneoResumenVotos,
   getEstadoBadge,
 } from './torneosQueries'
 
@@ -69,5 +71,113 @@ describe('getEstadoBadge', () => {
   it('returns IN_PROGRESS fallback for any unmatched string', () => {
     expect(getEstadoBadge('PENDING')).toEqual(ESTADO_BADGE.SCHEDULED)
     expect(getEstadoBadge('ARCHIVED')).toEqual(ESTADO_BADGE.SCHEDULED)
+  })
+})
+
+// ─── applyBracketUpdateToTorneoDetalle ────────────────────────────────────────
+
+describe('applyBracketUpdateToTorneoDetalle', () => {
+  it('patches only the affected match counts without rebuilding the bracket', () => {
+    const torneo = {
+      id: 10,
+      estado: 'IN_PROGRESS',
+      enfrentamientos: [
+        {
+          id: 1,
+          personaje1: { id: 101, nombre: 'A' },
+          personaje2: { id: 102, nombre: 'B' },
+          personaje1Votos: 2,
+          personaje2Votos: 1,
+          totalVotos: 3,
+        },
+        {
+          id: 2,
+          personaje1: { id: 103, nombre: 'C' },
+          personaje2: { id: 104, nombre: 'D' },
+          personaje1Votos: 0,
+          personaje2Votos: 0,
+          totalVotos: 0,
+        },
+      ],
+      currentMatch: {
+        id: 1,
+        personaje1: { id: 101, nombre: 'A' },
+        personaje2: { id: 102, nombre: 'B' },
+        personaje1Votos: 2,
+        personaje2Votos: 1,
+        totalVotos: 3,
+      },
+    }
+
+    const next = applyBracketUpdateToTorneoDetalle(torneo, {
+      enfrentamientoId: 1,
+      personaje1Id: 101,
+      personaje1Votos: 3,
+      personaje2Id: 102,
+      personaje2Votos: 1,
+      totalVotos: 4,
+    })
+
+    expect(next).not.toBe(torneo)
+    expect(next.enfrentamientos?.[0]).toMatchObject({
+      personaje1Votos: 3,
+      personaje2Votos: 1,
+      totalVotos: 4,
+    })
+    expect(next.currentMatch).toMatchObject({
+      personaje1Votos: 3,
+      personaje2Votos: 1,
+      totalVotos: 4,
+    })
+    expect(next.enfrentamientos?.[1]).toBe(torneo.enfrentamientos[1])
+  })
+
+  it('keeps the current cache when the event does not match cached structure', () => {
+    const torneo = {
+      id: 10,
+      estado: 'IN_PROGRESS',
+      enfrentamientos: [
+        {
+          id: 1,
+          personaje1: { id: 101 },
+          personaje2: { id: 102 },
+          personaje1Votos: 2,
+          personaje2Votos: 1,
+          totalVotos: 3,
+        },
+      ],
+      currentMatch: null,
+    }
+
+    expect(applyBracketUpdateToTorneoDetalle(torneo, { enfrentamientoId: 999 })).toBe(torneo)
+    expect(applyBracketUpdateToTorneoDetalle(torneo, {
+      enfrentamientoId: 1,
+      personaje1Id: 999,
+      personaje1Votos: 10,
+    })).toBe(torneo)
+  })
+})
+
+// ─── bumpTorneoResumenVotos ───────────────────────────────────────────────────
+
+describe('bumpTorneoResumenVotos', () => {
+  it('increments recent vote count for the affected tournament card only', () => {
+    const torneos = [
+      { slug: 'arena-a', votosUltimos7Dias: 4 },
+      { slug: 'arena-b', votosUltimos7Dias: 9 },
+    ]
+
+    const next = bumpTorneoResumenVotos(torneos, 'arena-a')
+
+    expect(next).toEqual([
+      { slug: 'arena-a', votosUltimos7Dias: 5 },
+      { slug: 'arena-b', votosUltimos7Dias: 9 },
+    ])
+    expect(next?.[1]).toBe(torneos[1])
+  })
+
+  it('does not create cache churn when the slug is not present', () => {
+    const torneos = [{ slug: 'arena-a', votosUltimos7Dias: 4 }]
+    expect(bumpTorneoResumenVotos(torneos, 'missing')).toBe(torneos)
   })
 })

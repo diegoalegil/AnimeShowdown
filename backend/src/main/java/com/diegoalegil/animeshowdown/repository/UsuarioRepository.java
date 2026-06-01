@@ -21,6 +21,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.username = :username")
+    Optional<Usuario> findForUpdateByUsername(@Param("username") String username);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.email = :email")
+    Optional<Usuario> findForUpdateByEmail(@Param("email") String email);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from Usuario u where u.id = :id")
     Optional<Usuario> findForUpdateById(@Param("id") Long id);
 

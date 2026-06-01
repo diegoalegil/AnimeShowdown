@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,11 +16,31 @@ import com.diegoalegil.animeshowdown.model.TipoPrediccion;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 
+import jakarta.persistence.LockModeType;
+
 public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
 
     Optional<Prediccion> findByUsuarioAndEnfrentamiento(Usuario usuario, Enfrentamiento enf);
 
     Optional<Prediccion> findByUsuarioAndTorneoAndTipo(Usuario usuario, Torneo torneo, TipoPrediccion tipo);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Prediccion p WHERE p.usuario = :usuario AND p.enfrentamiento = :enfrentamiento")
+    Optional<Prediccion> findByUsuarioAndEnfrentamientoForUpdate(
+            @Param("usuario") Usuario usuario,
+            @Param("enfrentamiento") Enfrentamiento enfrentamiento);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT p FROM Prediccion p
+            WHERE p.usuario = :usuario
+              AND p.torneo = :torneo
+              AND p.tipo = :tipo
+            """)
+    Optional<Prediccion> findByUsuarioAndTorneoAndTipoForUpdate(
+            @Param("usuario") Usuario usuario,
+            @Param("torneo") Torneo torneo,
+            @Param("tipo") TipoPrediccion tipo);
 
     /** Todas las predicciones de un torneo (cualquier usuario). Usada por resolverParaTorneo. */
     @Query("""
@@ -28,6 +49,15 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
             WHERE e.torneo = :torneo OR p.torneo = :torneo
             """)
     List<Prediccion> findByTorneo(@Param("torneo") Torneo torneo);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT p FROM Prediccion p
+            LEFT JOIN p.enfrentamiento e
+            WHERE p.acertada IS NULL
+              AND (e.torneo = :torneo OR p.torneo = :torneo)
+            """)
+    List<Prediccion> findPendientesByTorneoForUpdate(@Param("torneo") Torneo torneo);
 
     /** Predicciones del usuario en un torneo concreto, ordenadas por id ASC (ronda implícita). */
     @Query("""

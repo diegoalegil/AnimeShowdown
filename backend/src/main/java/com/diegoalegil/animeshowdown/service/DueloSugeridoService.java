@@ -1,5 +1,8 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -25,20 +28,23 @@ public class DueloSugeridoService {
     private static final int ELO_DIFF_MAX = 100;
     private static final int RECENT_EXCLUSION_SIZE = 50;
     private static final int MAX_ATTEMPTS = 200;
+    private static final Duration POOL_TTL = Duration.ofSeconds(20);
 
     private final PersonajeRepository personajeRepository;
     private final AnimeShowdownMetrics metrics;
+    private final Clock clock;
     private final ArrayDeque<Long> ultimosPersonajes = new ArrayDeque<>();
+    private final Object poolCacheLock = new Object();
+    private volatile CachedPool cachedPool;
 
-    public DueloSugeridoService(PersonajeRepository personajeRepository, AnimeShowdownMetrics metrics) {
+    public DueloSugeridoService(PersonajeRepository personajeRepository, AnimeShowdownMetrics metrics, Clock clock) {
         this.personajeRepository = personajeRepository;
         this.metrics = metrics;
+        this.clock = clock;
     }
 
     public DueloSugeridoDto sugerir() {
-        List<PersonajeScoreItem> pool = personajeRepository.topConPuntuacionYRecencia(
-                LocalDateTime.now().minusHours(24),
-                PageRequest.of(0, TOP_POOL));
+        List<PersonajeScoreItem> pool = poolReciente();
 
         if (pool.size() < 2) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay suficientes personajes para sugerir duelo");
@@ -47,6 +53,25 @@ public class DueloSugeridoService {
         DueloSugeridoDto dto = sugerirDesde(pool);
         metrics.dueloSugerido(dto.eloDiff());
         return dto;
+    }
+
+    private List<PersonajeScoreItem> poolReciente() {
+        Instant now = clock.instant();
+        CachedPool snapshot = cachedPool;
+        if (snapshot != null && now.isBefore(snapshot.expiresAt())) {
+            return snapshot.items();
+        }
+        synchronized (poolCacheLock) {
+            snapshot = cachedPool;
+            if (snapshot != null && now.isBefore(snapshot.expiresAt())) {
+                return snapshot.items();
+            }
+            List<PersonajeScoreItem> fresh = List.copyOf(personajeRepository.topConPuntuacionYRecencia(
+                    LocalDateTime.now(clock).minusHours(24),
+                    PageRequest.of(0, TOP_POOL)));
+            cachedPool = new CachedPool(fresh, now.plus(POOL_TTL));
+            return fresh;
+        }
     }
 
     private DueloSugeridoDto sugerirDesde(List<PersonajeScoreItem> pool) {
@@ -139,4 +164,6 @@ public class DueloSugeridoService {
                 .toList();
         return randomItem(mejores);
     }
+
+    private record CachedPool(List<PersonajeScoreItem> items, Instant expiresAt) {}
 }
