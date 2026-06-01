@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.zip.CRC32;
 
 import javax.imageio.ImageIO;
 
@@ -198,6 +199,20 @@ class OgImageServiceTest {
         }
     }
 
+    @Test
+    void decodificarImagenSeguraRechazaStreamsConDemasiadosBytes() throws Exception {
+        byte[] bytes = new byte[OgImageService.REMOTE_IMAGE_MAX_BYTES + 1];
+
+        assertThat(OgImageService.decodificarImagenSegura(bytes)).isNull();
+    }
+
+    @Test
+    void decodificarImagenSeguraRechazaImagenesConDemasiadosPixeles() throws Exception {
+        byte[] pngGrande = pngHeaderConDimensiones(2_100, 2_100);
+
+        assertThat(OgImageService.decodificarImagenSegura(pngGrande)).isNull();
+    }
+
     /** PNG válido mínimo embebido como data URI (sin tocar la red). */
     private static String pngDataUri() {
         try {
@@ -209,6 +224,38 @@ class OgImageServiceTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static byte[] pngHeaderConDimensiones(int width, int height) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A});
+        ByteArrayOutputStream ihdr = new ByteArrayOutputStream();
+        ihdr.write(intBytes(width));
+        ihdr.write(intBytes(height));
+        ihdr.write(new byte[] {8, 2, 0, 0, 0});
+        escribirChunk(out, "IHDR", ihdr.toByteArray());
+        escribirChunk(out, "IEND", new byte[0]);
+        return out.toByteArray();
+    }
+
+    private static void escribirChunk(ByteArrayOutputStream out, String type, byte[] data) throws Exception {
+        byte[] typeBytes = type.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        out.write(intBytes(data.length));
+        out.write(typeBytes);
+        out.write(data);
+        CRC32 crc = new CRC32();
+        crc.update(typeBytes);
+        crc.update(data);
+        out.write(intBytes((int) crc.getValue()));
+    }
+
+    private static byte[] intBytes(int value) {
+        return new byte[] {
+                (byte) (value >>> 24),
+                (byte) (value >>> 16),
+                (byte) (value >>> 8),
+                (byte) value
+        };
     }
 
     private static Personaje personaje(String slug, String nombre, String anime) {
