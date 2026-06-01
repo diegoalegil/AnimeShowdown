@@ -12,6 +12,7 @@ import com.diegoalegil.animeshowdown.repository.DueloLiveRondaRepository;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.FantasyEquipoItemRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeVotoScoreRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -27,6 +28,7 @@ class DataSeederFantasyCleanupUnitTest {
         PersonajeRepository personajeRepository = mock(PersonajeRepository.class);
         VotoRepository votoRepository = mock(VotoRepository.class);
         EnfrentamientoRepository enfrentamientoRepository = mock(EnfrentamientoRepository.class);
+        PersonajeVotoScoreRepository personajeVotoScoreRepository = mock(PersonajeVotoScoreRepository.class);
         TorneoRepository torneoRepository = mock(TorneoRepository.class);
         PrediccionRepository prediccionRepository = mock(PrediccionRepository.class);
         DueloLiveRondaRepository dueloLiveRondaRepository = mock(DueloLiveRondaRepository.class);
@@ -41,6 +43,7 @@ class DataSeederFantasyCleanupUnitTest {
                 personajeRepository,
                 votoRepository,
                 enfrentamientoRepository,
+                personajeVotoScoreRepository,
                 torneoRepository,
                 prediccionRepository,
                 dueloLiveRondaRepository,
