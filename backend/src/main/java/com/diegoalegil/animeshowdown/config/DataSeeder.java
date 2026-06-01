@@ -24,6 +24,7 @@ import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.DueloLiveRondaRepository;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeVotoScoreRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -69,6 +70,7 @@ public class DataSeeder implements CommandLineRunner {
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
+    private final PersonajeVotoScoreRepository personajeVotoScoreRepository;
     private final TorneoRepository torneoRepository;
     private final PrediccionRepository prediccionRepository;
     private final DueloLiveRondaRepository dueloLiveRondaRepository;
@@ -90,6 +92,7 @@ public class DataSeeder implements CommandLineRunner {
             PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
+            PersonajeVotoScoreRepository personajeVotoScoreRepository,
             TorneoRepository torneoRepository,
             PrediccionRepository prediccionRepository,
             DueloLiveRondaRepository dueloLiveRondaRepository,
@@ -100,6 +103,7 @@ public class DataSeeder implements CommandLineRunner {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
+        this.personajeVotoScoreRepository = personajeVotoScoreRepository;
         this.torneoRepository = torneoRepository;
         this.prediccionRepository = prediccionRepository;
         this.dueloLiveRondaRepository = dueloLiveRondaRepository;
@@ -264,10 +268,11 @@ public class DataSeeder implements CommandLineRunner {
         if (!nuevos.isEmpty()) {
             personajeRepository.saveAll(nuevos);
         }
+        int scoresCreados = personajeVotoScoreRepository.insertarFaltantesDesdePersonajes();
 
         log.info(
-                "DataSeeder: sincronizado — insertados={}, actualizados={}, borrados={} (seed={}, BBDD antes={})",
-                nuevos.size(), actualizados, borrados,
+                "DataSeeder: sincronizado — insertados={}, actualizados={}, borrados={}, scoresCreados={} (seed={}, BBDD antes={})",
+                nuevos.size(), actualizados, borrados, scoresCreados,
                 entradas.size(), existentes.size());
     }
 

@@ -55,6 +55,7 @@ import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.TurnstileVerifierService;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
+import com.diegoalegil.animeshowdown.service.PersonajeVotoScoreService;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,6 +89,7 @@ public class EnfrentamientoController {
     private final TurnstileVerifierService turnstileVerifier;
     private final AnonymousAbuseThrottleService abuseThrottle;
     private final ClientIpExtractor clientIpExtractor;
+    private final PersonajeVotoScoreService personajeVotoScoreService;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
     private final boolean cookieSecure;
@@ -101,6 +103,7 @@ public class EnfrentamientoController {
             TurnstileVerifierService turnstileVerifier,
             AnonymousAbuseThrottleService abuseThrottle,
             ClientIpExtractor clientIpExtractor,
+            PersonajeVotoScoreService personajeVotoScoreService,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
@@ -112,6 +115,7 @@ public class EnfrentamientoController {
         this.turnstileVerifier = turnstileVerifier;
         this.abuseThrottle = abuseThrottle;
         this.clientIpExtractor = clientIpExtractor;
+        this.personajeVotoScoreService = personajeVotoScoreService;
         this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
@@ -175,6 +179,7 @@ public class EnfrentamientoController {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "votos-ranking", allEntries = true),
+            @CacheEvict(value = "cartas-votos-score", allEntries = true),
             @CacheEvict(value = "ranking-movimientos", allEntries = true),
             @CacheEvict(value = "personaje-elo-history", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
@@ -313,6 +318,7 @@ public class EnfrentamientoController {
             voto.setCategoria(categoria.getId());
         }
         Voto guardado = votoRepository.save(voto);
+        personajeVotoScoreService.registrar(guardado);
         metrics.votoRegistrado();
 
         Personaje p1 = enf.getPersonaje1();
