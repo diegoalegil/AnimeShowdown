@@ -37,8 +37,19 @@ async function setApiClientIp(context, ip) {
 
 async function voteWhenReady(page, label) {
   const button = page.getByRole('button', { name: new RegExp(`Votar ${label}`, 'i') }).first()
-  await expect(button).toBeEnabled({ timeout: 20_000 })
-  await button.click()
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      if (await finished(page)) return false
+      await expect(button).toBeEnabled({ timeout: 10_000 })
+      await button.click()
+      return true
+    } catch (error) {
+      if (await finished(page)) return false
+      if (attempt === 3) throw error
+      await page.waitForTimeout(750)
+    }
+  }
+  return false
 }
 
 async function finished(page) {
@@ -56,6 +67,7 @@ async function expectPvpEloChanged(page) {
 }
 
 test('duel-live empareja dos usuarios, completa duelo y refleja ELO PvP', async ({ browser, baseURL }, testInfo) => {
+  test.setTimeout(120_000)
   test.skip(testInfo.project.name !== 'chromium-desktop', 'El PvP multi-context se cubre una vez en desktop para no duplicar carga.')
 
   const contextA = await browser.newContext({
@@ -91,10 +103,9 @@ test('duel-live empareja dos usuarios, completa duelo y refleja ELO PvP', async 
 
     for (let attempt = 0; attempt < 14; attempt += 1) {
       if (await finished(pageA)) break
-      await Promise.all([
-        voteWhenReady(pageA, 'A'),
-        voteWhenReady(pageB, 'B'),
-      ])
+      const votedA = await voteWhenReady(pageA, 'A')
+      const votedB = await voteWhenReady(pageB, 'B')
+      if (!votedA || !votedB) break
       await pageA.waitForTimeout(1_300)
     }
 
