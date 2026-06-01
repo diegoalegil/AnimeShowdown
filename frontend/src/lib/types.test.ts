@@ -2,12 +2,12 @@ import { describe, it, expectTypeOf } from 'vitest'
 
 import type { LocalVote, Nullable, PersonajeLite, ShareResult } from './types'
 
-// Smoke test del Sprint Auto 06 PR 06.1: confirma que el módulo de tipos
+// Smoke test del contrato público: confirma que el módulo de tipos
 // exporta los aliases públicos y que la infra Vitest está conectada.
 //
 // expectTypeOf falla en tiempo de typecheck si una de las shapes deja de
 // existir. NO valida valores runtime — para eso ya están los tests de
-// los consumers en PRs siguientes (06.2-06.5).
+// los consumers.
 
 describe('lib/types — public type contract', () => {
   it('Nullable<T> admite valor o null', () => {

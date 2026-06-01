@@ -26,7 +26,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
  * <p>Idempotencia de los créditos: pre-check por (usuario, motivo, referencia)
  * + UNIQUE constraint. En la carrera rara, el flush lanza
  * {@link DataIntegrityViolationException} y la transacción del crédito hace
- * rollback — el orquestador (DropService) la captura fuera de la tx.
+ * rollback — el servicio llamador (DropService) la captura fuera de la tx.
  *
  * <p>Lost-update del saldo: {@code acreditar()} carga el monedero con
  * {@code findForUpdateByUsuarioId} (PESSIMISTIC_WRITE lock) antes del
