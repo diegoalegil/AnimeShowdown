@@ -57,17 +57,20 @@ public class PrediccionService {
     private final EnfrentamientoRepository enfRepo;
     private final PersonajeRepository personajeRepo;
     private final TorneoRepository torneoRepo;
+    private final TorneoOperacionLockService torneoOperacionLockService;
     private final ApplicationEventPublisher eventPublisher;
 
     public PrediccionService(PrediccionRepository repo,
             EnfrentamientoRepository enfRepo,
             PersonajeRepository personajeRepo,
             TorneoRepository torneoRepo,
+            TorneoOperacionLockService torneoOperacionLockService,
             ApplicationEventPublisher eventPublisher) {
         this.repo = repo;
         this.enfRepo = enfRepo;
         this.personajeRepo = personajeRepo;
         this.torneoRepo = torneoRepo;
+        this.torneoOperacionLockService = torneoOperacionLockService;
         this.eventPublisher = eventPublisher;
     }
 
@@ -78,20 +81,25 @@ public class PrediccionService {
      */
     @Transactional
     public Prediccion aplicar(Usuario usuario, Long enfrentamientoId, Long personajePredichoId) {
-        Enfrentamiento enf = enfRepo.findById(enfrentamientoId)
+        Long torneoId = enfRepo.findTorneoIdById(enfrentamientoId)
                 .orElseThrow(() -> new IllegalArgumentException("Enfrentamiento no encontrado"));
-
+        torneoOperacionLockService.lock(torneoId);
+        Torneo torneo = torneoRepo.findForUpdateById(torneoId)
+                .orElseThrow(() -> new IllegalArgumentException("Enfrentamiento no encontrado"));
         // si el torneo está PENDIENTE o RECHAZADO,
         // las predicciones no aplican — el torneo no es público. Antes
         // permitía crear una predicción sobre un torneo en cola de
         // moderación, filtrando su existencia por id directo.
-        EstadoRevision rev = enf.getTorneo().getEstadoRevision();
+        EstadoRevision rev = torneo.getEstadoRevision();
         if (rev == EstadoRevision.PENDIENTE || rev == EstadoRevision.RECHAZADO) {
             throw new IllegalArgumentException("Enfrentamiento no encontrado");
         }
-        if (enf.getTorneo().getEstado() == EstadoTorneo.FINISHED) {
+        if (torneo.getEstado() == EstadoTorneo.FINISHED) {
             throw new IllegalArgumentException("No puedes predecir en un torneo ya finalizado");
         }
+
+        Enfrentamiento enf = enfRepo.findById(enfrentamientoId)
+                .orElseThrow(() -> new IllegalArgumentException("Enfrentamiento no encontrado"));
         if (enf.getGanador() != null) {
             throw new IllegalArgumentException("Este enfrentamiento ya está resuelto");
         }
@@ -106,9 +114,12 @@ public class PrediccionService {
         Personaje predicho = personajeRepo.findById(personajePredichoId)
                 .orElseThrow(() -> new IllegalArgumentException("Personaje no encontrado"));
 
-        Optional<Prediccion> existente = repo.findByUsuarioAndEnfrentamiento(usuario, enf);
+        Optional<Prediccion> existente = repo.findByUsuarioAndEnfrentamientoForUpdate(usuario, enf);
         if (existente.isPresent()) {
             Prediccion p = existente.get();
+            if (p.estaResuelta()) {
+                throw new IllegalArgumentException("No puedes cambiar una predicción ya resuelta");
+            }
             p.setPersonajePredicho(predicho);
             return repo.save(p);
         }
@@ -121,7 +132,11 @@ public class PrediccionService {
      */
     @Transactional
     public Prediccion aplicarCampeon(Usuario usuario, Long torneoId, Long personajePredichoId) {
-        Torneo torneo = torneoRepo.findById(torneoId)
+        if (!torneoRepo.existsById(torneoId)) {
+            throw new IllegalArgumentException("Torneo no encontrado");
+        }
+        torneoOperacionLockService.lock(torneoId);
+        Torneo torneo = torneoRepo.findForUpdateById(torneoId)
                 .orElseThrow(() -> new IllegalArgumentException("Torneo no encontrado"));
         validarTorneoVisible(torneo);
         if (torneo.getEstado() != EstadoTorneo.SCHEDULED) {
@@ -138,10 +153,13 @@ public class PrediccionService {
             throw new IllegalArgumentException("El personaje predicho no participa en este torneo");
         }
 
-        Optional<Prediccion> existente = repo.findByUsuarioAndTorneoAndTipo(
+        Optional<Prediccion> existente = repo.findByUsuarioAndTorneoAndTipoForUpdate(
                 usuario, torneo, TipoPrediccion.CAMPEON);
         if (existente.isPresent()) {
             Prediccion p = existente.get();
+            if (p.estaResuelta()) {
+                throw new IllegalArgumentException("No puedes cambiar una predicción ya resuelta");
+            }
             p.setPersonajePredicho(predicho);
             return repo.save(p);
         }
@@ -177,13 +195,12 @@ public class PrediccionService {
      */
     @Transactional
     public int resolverParaTorneo(Torneo torneo) {
-        List<Prediccion> predicciones = repo.findByTorneo(torneo);
+        torneoOperacionLockService.lock(torneo.getId());
+        List<Prediccion> predicciones = repo.findPendientesByTorneoForUpdate(torneo);
         Set<Long> usuariosAfectados = new HashSet<>();
+        int resueltas = 0;
 
         for (Prediccion p : predicciones) {
-            // Saltar las ya resueltas (idempotencia si por algún motivo se
-            // llamara dos veces).
-            if (p.estaResuelta()) continue;
             Personaje ganador = ganadorParaPrediccion(p, torneo);
             if (ganador == null) {
                 // Match sin ganador definitivo (empate exacto en votos) →
@@ -193,17 +210,18 @@ public class PrediccionService {
             boolean acerto = ganador.getId().equals(p.getPersonajePredicho().getId());
             p.setAcertada(acerto);
             repo.save(p);
+            resueltas++;
             usuariosAfectados.add(p.getUsuario().getId());
         }
 
         log.info("Predicciones resueltas: torneo={} total={} usuariosAfectados={}",
-                torneo.getId(), predicciones.size(), usuariosAfectados.size());
+                torneo.getId(), resueltas, usuariosAfectados.size());
 
         // Publicar un evento por usuario afectado. BadgeEventListener
         // escucha y comprueba 3-seguidas / 10-seguidas / profeta(20).
         emitirEventosPorUsuario(usuariosAfectados);
 
-        return (int) predicciones.stream().filter(Prediccion::estaResuelta).count();
+        return resueltas;
     }
 
     private Personaje ganadorParaPrediccion(Prediccion p, Torneo torneo) {
