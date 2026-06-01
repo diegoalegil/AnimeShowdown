@@ -183,6 +183,14 @@ function AnimeDetailPage() {
           visual={visual}
         />
 
+        <AnimeRosterSections
+          anime={anime}
+          destacados={destacados}
+          personajes={personajes}
+          top10={top10}
+          total={total}
+        />
+
         {dueloDestacado && (
           <FeaturedAnimeDuel
             anime={anime}
@@ -205,14 +213,6 @@ function AnimeDetailPage() {
           porElo={porElo}
           slug={slug}
           topElo={topElo}
-        />
-
-        <AnimeRosterSections
-          anime={anime}
-          destacados={destacados}
-          personajes={personajes}
-          top10={top10}
-          total={total}
         />
       </div>
     </VisualPageShell>
