@@ -1,10 +1,15 @@
 package com.diegoalegil.animeshowdown.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -34,7 +39,7 @@ class MonederoServiceTest {
 
     @Autowired private MonederoService monederoService;
     @SpyBean private MonederoRepository monederoRepo;
-    @Autowired private MonederoMovimientoRepository movimientoRepo;
+    @SpyBean private MonederoMovimientoRepository movimientoRepo;
     @SpyBean private UsuarioRepository usuarioRepo;
 
     @BeforeEach
@@ -130,6 +135,40 @@ class MonederoServiceTest {
         assertThat(r1.aplicado()).isTrue();
         assertThat(r2.aplicado()).isTrue();
         assertThat(monederoService.saldoDe(usuario)).isEqualTo(20L);
+    }
+
+    @Test
+    void topeDiarioSoloCuentaMotivosDrop() {
+        Usuario usuario = crearUsuario("drop_motivos_test");
+        LocalDateTime desde = LocalDateTime.now().minusDays(1);
+
+        monederoService.acreditar(usuario, MotivoMovimiento.COFRE_DIARIO, "cofre:drop-motivos", 50L);
+        monederoService.acreditar(usuario, MotivoMovimiento.DUPLICADO_CARTA, "duplicado:drop-motivos", 10L);
+
+        MonederoService.ResultadoDrop primerDrop = monederoService.acreditarDropConTopeDiario(
+                usuario, MotivoMovimiento.DROP_VOTO, "drop:motivos:1", 5L, 1, desde);
+        MonederoService.ResultadoDrop segundoDrop = monederoService.acreditarDropConTopeDiario(
+                usuario, MotivoMovimiento.DROP_DUELO, "drop:motivos:2", 20L, 1, desde);
+
+        assertThat(primerDrop.estado()).isEqualTo(MonederoService.ResultadoDrop.Estado.APLICADO);
+        assertThat(segundoDrop.estado()).isEqualTo(MonederoService.ResultadoDrop.Estado.TOPE_DIARIO);
+        assertThat(monederoService.saldoDe(usuario)).isEqualTo(65L);
+    }
+
+    @Test
+    void topeDiarioSeCuentaDentroDelLockDeMonedero() {
+        Usuario usuario = crearUsuario("drop_lock_order");
+        monederoService.crearMonederoParaTest(usuario);
+        clearInvocations(monederoRepo, movimientoRepo);
+        LocalDateTime desde = LocalDateTime.now().minusDays(1);
+
+        MonederoService.ResultadoDrop resultado = monederoService.acreditarDropConTopeDiario(
+                usuario, MotivoMovimiento.DROP_VOTO, "drop:lock-order:1", 5L, 5, desde);
+
+        assertThat(resultado.estado()).isEqualTo(MonederoService.ResultadoDrop.Estado.APLICADO);
+        InOrder inOrder = inOrder(monederoRepo, movimientoRepo);
+        inOrder.verify(monederoRepo).findForUpdateByUsuarioId(usuario.getId());
+        inOrder.verify(movimientoRepo).countDropsDesde(eq(usuario), any(), eq(desde));
     }
 
     private Usuario crearUsuario(String username) {
