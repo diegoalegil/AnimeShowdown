@@ -14,9 +14,9 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-**Plataforma full-stack de duelos, rankings y torneos de personajes de anime.**
+**Plataforma full-stack de duelos, rankings, torneos, cartas y fantasy de personajes de anime.**
 
-AnimeShowdown es una aplicación desplegada en producción para votar duelos 1v1, explorar rankings comunitarios, jugar pruebas diarias, seguir perfiles públicos y consultar una API REST abierta. La experiencia combina producto visual y base técnica seria: catálogo versionado, brackets en vivo, leaderboards, misiones, command palette, Open Graph dinámicas, PWA y observabilidad.
+AnimeShowdown es una aplicación desplegada en producción para votar duelos 1v1, explorar rankings comunitarios, coleccionar cartas, jugar ligas fantasy, completar pruebas diarias, seguir perfiles públicos y consultar una API REST abierta. La experiencia combina producto visual y base técnica seria: catálogo versionado, brackets en vivo, leaderboards, misiones, command palette, Open Graph dinámicas, PWA y observabilidad.
 
 El catálogo actual contiene **1086 personajes únicos** distribuidos en **105 universos anime**, sincronizados desde imágenes locales hacia frontend, backend y datos seed.
 
@@ -73,6 +73,8 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 - **Catálogo visual** de 1086 personajes con filtros, buscador, modo grid/list y fichas individuales.
 - **Universos anime** con collages, stats agregadas, top interno y CTA para votar dentro de cada roster.
 - **Torneos y eventos** con estados, participantes, duelos abiertos, avance de bracket, predicciones y temporadas temáticas.
+- **Cartas coleccionables** con colección por usuario, monedero server-authoritative, cofre diario, sobres de 5 cartas, probabilidades visibles, pity de especial y descarga PNG de cartas poseídas.
+- **Fantasy Showdown** con draft semanal de 5 personajes, presupuesto configurable, bloqueo de equipo y leaderboard público por semana ISO.
 - **Anime Daily Trials y misiones** con Shadow Guess, Anime Reveal, AniGrid, Impostor Trial, ELO Duel, progreso diario local y rachas.
 - **Auth, perfiles y comunidad** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares y banner de perfil, bio, follow, feed de actividad de tus seguidos, reacciones, perfiles públicos compartibles (con Open Graph propia) y 16 logros base.
 - **Apoya, newsletter y páginas legales** integradas como parte del producto público.
@@ -275,19 +277,30 @@ La documentación interactiva está disponible en:
 https://api.animeshowdown.dev/swagger-ui/index.html
 ```
 
-Endpoints públicos destacados:
+Endpoints destacados:
 
 - `GET /api/personajes`
 - `GET /api/personajes/{slug}`
 - `GET /api/votos/ranking`
 - `GET /api/torneos`
 - `GET /api/torneos/slug/{slug}`
+- `GET /api/fantasy/me`
+- `GET /api/fantasy/candidatos`
+- `PUT /api/fantasy/me/equipo`
+- `POST /api/fantasy/me/equipo/lock`
+- `GET /api/fantasy/leaderboard`
+- `GET /api/me/cartas`
+- `GET /api/me/monedero`
+- `GET /api/cartas/odds`
+- `POST /api/me/cartas/sobre`
+- `POST /api/me/cartas/cofre-diario`
+- `GET /api/me/cartas/{cartaId}/descargar`
 - `GET /api/logros`
 - `GET /api/status`
 - `GET /api/og/personaje/{slug}.png`
 - `GET /actuator/health`
 
-La API completa incluye auth, perfiles públicos, logros, reacciones, follow, torneos, votos, predicciones, newsletter, observabilidad, Open Graph dinámicas y WebSocket.
+La API completa incluye auth, perfiles públicos, logros, reacciones, follow, torneos, votos, predicciones, cartas, fantasy, newsletter, observabilidad, Open Graph dinámicas y WebSocket.
 
 ## Estado
 
@@ -295,6 +308,8 @@ La API completa incluye auth, perfiles públicos, logros, reacciones, follow, to
 - Universos anime: **105**.
 - Torneos visibles en producción: **15**; seed base versionado: **13**.
 - Logros base publicados por API: **16**.
+- Cartas: 1 SSR normal por personaje, especiales curadas fuera del drop normal, cofre diario, idempotencia de apertura y descarga PNG con validación de propiedad.
+- Fantasy Showdown: draft semanal de 5 slots, presupuesto server-side y leaderboard por semana ISO.
 - Sitemap con rutas estáticas, personajes, animes, torneos públicos y perfiles públicos cuando el backend aporta datos; las landings masivas de duelos no se indexan.
 - Fallback visual para imágenes de personaje y placeholders de carga/error.
 - Ranking personal local, comparador, eventos, misiones, status, glosario, juegos diarios y descubrimiento enlazados en navegación, sitemap y command palette.

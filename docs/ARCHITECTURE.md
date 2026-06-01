@@ -1,10 +1,11 @@
 # AnimeShowdown - Architecture
 
 AnimeShowdown es una plataforma full-stack para duelos 1v1, ranking competitivo,
-torneos, juegos diarios, perfiles publicos y contenido SEO alrededor del
-catalogo anime. La arquitectura prioriza una experiencia frontend rapida,
-visual y resiliente, con una API Spring Boot que centraliza datos persistentes,
-auth, votos, torneos y observabilidad.
+torneos, cartas coleccionables, fantasy semanal, juegos diarios, perfiles
+publicos y contenido SEO alrededor del catalogo anime. La arquitectura prioriza
+una experiencia frontend rapida, visual y resiliente, con una API Spring Boot
+que centraliza datos persistentes, auth, votos, torneos, economia interna y
+observabilidad.
 
 ## 1. Stack
 
@@ -107,10 +108,10 @@ persistencia.
 
 ### Services
 
-La logica de votos, torneos, auth, logros, notificaciones, OG images y
-observabilidad vive en services. Esta capa es el sitio correcto para reglas de
-negocio, deduplicacion, auditoria y validaciones que no pertenecen a un solo
-controller.
+La logica de votos, torneos, cartas, monedero, fantasy, auth, logros,
+notificaciones, OG images y observabilidad vive en services. Esta capa es el
+sitio correcto para reglas de negocio, deduplicacion, auditoria y validaciones
+que no pertenecen a un solo controller.
 
 ### Persistencia
 
@@ -161,6 +162,45 @@ se ejecuta con scripts y secretos `R2_IMG_*`.
 Las referencias a assets deben apuntar a archivos existentes o pasar por
 fallbacks controlados como `AssetFallback` y `PersonajeImg`.
 
+### Cartas y monedero
+
+El modulo de cartas es server-authoritative: el cliente nunca decide saldo,
+drop, duplicados, pity ni propiedad. Cada personaje tiene una carta SSR normal;
+las cartas ESPECIAL son curadas y opcionales, fuera del drop normal salvo regla
+de servidor.
+
+Endpoints principales:
+
+- `GET /api/me/cartas`
+- `GET /api/me/monedero`
+- `GET /api/cartas/odds`
+- `POST /api/me/cartas/sobre`
+- `POST /api/me/cartas/cofre-diario`
+- `GET /api/me/cartas/{cartaId}/descargar`
+
+Persistencia principal: `carta`, `usuario_carta`, `usuario_carta_pity`,
+`sobre_apertura`, `sobre_apertura_item`, `monedero` y `monedero_movimiento`.
+La apertura de sobre usa idempotencia con `X-Idempotency-Key`, registra los
+items revelados y actualiza monedero/pity dentro de la transaccion.
+
+### Fantasy Showdown
+
+Fantasy permite construir un equipo semanal de 5 personajes con presupuesto
+server-side (`app.fantasy.presupuesto`, default 100). El draft puede guardarse
+mientras no este bloqueado; una vez bloqueado, entra en leaderboard de la semana
+ISO correspondiente.
+
+Endpoints principales:
+
+- `GET /api/fantasy/me`
+- `GET /api/fantasy/candidatos`
+- `PUT /api/fantasy/me/equipo`
+- `POST /api/fantasy/me/equipo/lock`
+- `GET /api/fantasy/leaderboard`
+
+Persistencia principal: `fantasy_equipo` y `fantasy_equipo_item`. El leaderboard
+publico solo usa equipos bloqueados para evitar estados parciales.
+
 ### SEO y OG
 
 La app sigue siendo SPA, pero mantiene sitemap, robots, canonical, JSON-LD y OG
@@ -202,6 +242,23 @@ reducir riesgo de datos sensibles.
 4. La propagacion asigna ganadores a rondas siguientes.
 5. El detalle de torneo pinta bracket, participantes, estado y duelos abiertos.
 6. WebSocket puede empujar actualizaciones del bracket a clientes conectados.
+
+### Cartas
+
+1. El usuario autenticado consulta coleccion, saldo, odds y cofre diario.
+2. La UI solicita abrir sobre con una key idempotente.
+3. El backend debita moneda, elige cartas, calcula duplicados, actualiza pity y
+   persiste la apertura.
+4. El frontend reproduce la apertura usando el resultado del servidor.
+5. Las descargas PNG validan propiedad antes de componer la imagen.
+
+### Fantasy semanal
+
+1. El usuario consulta resumen y candidatos de la semana ISO activa.
+2. La UI propone 5 personajes dentro del presupuesto.
+3. El backend valida slots, duplicados y coste antes de guardar el draft.
+4. Al bloquear, el equipo queda inmutable y visible para leaderboard.
+5. El ranking semanal se ordena desde equipos bloqueados y puntuacion derivada.
 
 ### Juegos diarios
 
@@ -301,6 +358,10 @@ Checks complementarios:
   callback, refresh, logout y perfil.
 - Brackets: cambios en torneo pueden romper propagacion de rondas si no cubren
   matches futuros sin participantes.
+- Cartas: cambios en drops, saldo o pity deben probar idempotencia, duplicados,
+  cofre diario, odds y descarga con validacion de propiedad.
+- Fantasy: cambios en presupuesto, coste o lock deben probar draft invalido,
+  equipo bloqueado y leaderboard por semana.
 
 ## 9. Principios de evolucion
 

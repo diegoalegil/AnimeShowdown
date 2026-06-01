@@ -65,7 +65,7 @@
 2. Crea una instancia/proyecto Supabase nuevo (no restaures sobre el de producción).
 3. Restaura: `pg_restore --format=custom --dbname=$NEW_DB_URL backup.dump`.
 4. Apunta `NEON_DATABASE_URL` (secret legacy) a la instancia nueva en Railway.
-5. Validar con smoke test (`/actuator/health` + `/api/personajes` cuenta=1052).
+5. Validar con smoke test (`/actuator/health` + `/api/personajes` cuenta=1086).
 
 ---
 
@@ -108,7 +108,11 @@ node scripts/sync-personajes.mjs --check
 node scripts/qa/catalog-quality.mjs
 ```
 
-Si el `--check` falla, revisa los slugs indicados y corrige seed/imagen de forma explícita. No elimines variantes responsive ni imágenes de personajes por ausencia de imports directos: se resuelven por ruta dinámica. El catálogo esperado es 1052 personajes.
+Si el `--check` falla, revisa los slugs indicados y corrige seed/imagen de forma explícita. No elimines variantes responsive ni imágenes de personajes por ausencia de imports directos: se resuelven por ruta dinámica. El catálogo esperado es 1086 personajes. Para comprobar el conteo canónico del seed:
+
+```bash
+jq 'length' backend/src/main/resources/personajes-seed.json
+```
 
 Para producción, `frontend/img/` no viaja dentro del artefacto de Cloudflare Pages. El build `npm run build:no-images` exige:
 
@@ -195,16 +199,54 @@ Si un usuario pide ejercer derecho de eliminación (art. 17 GDPR) por email:
 
 ---
 
+### 10. Cartas, monedero y sobres
+
+**Síntoma**: `/cartas` no carga colección, el usuario no puede abrir sobre o el saldo no cuadra.
+
+**Diagnóstico**:
+- Endpoints autenticados principales: `GET /api/me/cartas`, `GET /api/me/monedero`, `GET /api/cartas/odds`, `POST /api/me/cartas/sobre`, `POST /api/me/cartas/cofre-diario`, `GET /api/me/cartas/{cartaId}/descargar`.
+- La apertura de sobre debe enviar `X-Idempotency-Key`; si se reintenta la misma key, el backend devuelve la misma apertura persistida.
+- El backend es autoridad única de saldo, pity, duplicados y propiedad. No ajustes saldo ni colección desde el cliente.
+- Tablas relevantes: `carta`, `usuario_carta`, `usuario_carta_pity`, `sobre_apertura`, `sobre_apertura_item`, `monedero`, `monedero_movimiento`.
+
+**Respuesta**:
+- Revisa logs de `CartaService`, `MonederoService` y `CartaDownloadService`.
+- Si hay 409 al abrir sobre, confirma saldo con `GET /api/me/monedero` y movimientos recientes.
+- Si una descarga falla con 403, comprobar que existe relación en `usuario_carta`.
+- Si falla el catálogo de cartas tras importar personajes, ejecutar `node scripts/sync-personajes.mjs --check` y reiniciar backend para resembrar catálogo derivado.
+
+---
+
+### 11. Fantasy Showdown
+
+**Síntoma**: `/fantasy` no permite guardar equipo, no bloquea draft o el leaderboard sale vacío.
+
+**Diagnóstico**:
+- Endpoints: `GET /api/fantasy/me`, `GET /api/fantasy/candidatos`, `PUT /api/fantasy/me/equipo`, `POST /api/fantasy/me/equipo/lock`, `GET /api/fantasy/leaderboard`.
+- El draft semanal usa 5 slots y presupuesto server-side (`app.fantasy.presupuesto`, default 100). Los candidatos se filtran por búsqueda y limit.
+- Solo los equipos bloqueados entran en leaderboard. La semana se identifica en formato ISO (`YYYY-Www`).
+- Tablas relevantes: `fantasy_equipo`, `fantasy_equipo_item`.
+
+**Respuesta**:
+- Si `PUT /api/fantasy/me/equipo` devuelve 400, revisar número de personajes, duplicados y coste total.
+- Si `POST /api/fantasy/me/equipo/lock` devuelve 404, el usuario no guardó draft para la semana activa.
+- Si devuelve 409, el equipo ya estaba bloqueado y debe tratarse como estado final.
+- Para inspección operativa, comparar `GET /api/fantasy/me` autenticado con `GET /api/fantasy/leaderboard?semanaIso=<semana>&limit=50`.
+
+---
+
 ## Smoke test post-deploy
 
 Tras cada deploy a `main` (frontend + backend), ejecutar mentalmente:
 
 1. `https://animeshowdown.dev` carga el Hero.
 2. `https://api.animeshowdown.dev/actuator/health` → `{"status":"UP"}`.
-3. `https://api.animeshowdown.dev/api/personajes` devuelve 1052 entries.
+3. `https://api.animeshowdown.dev/api/personajes` devuelve 1086 entries.
 4. `https://api.animeshowdown.dev/api/votos/ranking` no vacío.
 5. Login con cuenta admin → ver `/perfil` cargado.
-6. Hard refresh (Cmd+Shift+R) para invalidar SW.
+6. Con la misma sesión, `/cartas` muestra colección/saldo y `GET /api/cartas/odds` responde 200.
+7. `/fantasy` carga resumen semanal y `GET /api/fantasy/leaderboard` responde JSON.
+8. Hard refresh (Cmd+Shift+R) para invalidar SW.
 
 Si alguno falla: rollback inmediato desde dashboard provider (CF Pages / Railway).
 
