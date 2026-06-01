@@ -24,6 +24,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @Query("select u from Usuario u where u.id = :id")
     Optional<Usuario> findForUpdateById(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.email = :email")
+    Optional<Usuario> findForUpdateByEmail(@Param("email") String email);
+
     /**
      * V-8: cuenta usuarios con el mismo username (case-insensitive) que NO sean
      * el indicado. Sirve para la unicidad del cambio de username sin chocar con
