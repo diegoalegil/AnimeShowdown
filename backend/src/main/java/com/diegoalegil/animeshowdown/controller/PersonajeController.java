@@ -54,6 +54,7 @@ import jakarta.validation.Valid;
 public class PersonajeController {
 
     private static final int DEFAULT_PAGE_SIZE = 50;
+    private static final String DEFAULT_PAGE_SIZE_PARAM = "50";
     private static final int MAX_PAGE_SIZE = 100;
 
     private final PersonajeRepository personajeRepository;
@@ -87,30 +88,23 @@ public class PersonajeController {
     }
 
     /**
-     * 10: cache 5min del listado. Key por filtro (anime), o 'all'
-     * cuando no hay filtro. El catálogo es casi inmutable — las invalidaciones
-     * vienen de crear/actualizar/eliminar/batch que hacen evict global.
+     * Listado público paginado. El catálogo completo vive en /catalogo para
+     * evitar respuestas masivas desde este endpoint.
      */
     @Cacheable(value = "personajes-listado",
-            key = "(#anime ?: 'all') + ':' + (#page == null ? 'all' : #page) + ':' + (#size == null ? 'all' : #size)")
+            key = "(#anime ?: 'all') + ':' + #page + ':' + #size")
     @GetMapping
-    public Object listarTodos(
+    public PageResponse<Personaje> listarTodos(
             @RequestParam(required = false) String anime,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
-        if (page == null && size == null) {
-            if (anime != null) {
-                return personajeRepository.findByAnime(anime);
-            }
-            return personajeRepository.findAll();
-        }
-
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = DEFAULT_PAGE_SIZE_PARAM) int size) {
+        String animeNormalizado = anime == null || anime.isBlank() ? null : anime.trim();
         Pageable pageable = PageRequest.of(
-                Math.max(0, page == null ? 0 : page),
-                Math.min(MAX_PAGE_SIZE, Math.max(1, size == null ? DEFAULT_PAGE_SIZE : size)),
+                Math.max(0, page),
+                Math.min(MAX_PAGE_SIZE, Math.max(1, size)),
                 Sort.by("id").ascending());
-        if (anime != null) {
-            return PageResponse.from(personajeRepository.findByAnime(anime, pageable));
+        if (animeNormalizado != null) {
+            return PageResponse.from(personajeRepository.findByAnime(animeNormalizado, pageable));
         }
         return PageResponse.from(personajeRepository.findAll(pageable));
     }

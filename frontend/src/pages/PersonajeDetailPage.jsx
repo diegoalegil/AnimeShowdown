@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,7 +26,6 @@ import {
 import { useSeo } from '../hooks/useSeo'
 import { buscarPersonajeJikan } from '../lib/jikan'
 import { citaPersonaje } from '../lib/animechan'
-import { endpoints } from '../lib/api'
 import { personajeSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import EloHistoryChart from '../components/EloHistoryChart'
@@ -153,16 +151,8 @@ function PersonajeDetailPage() {
     }
   }, [personaje])
 
-  // Lista cacheada (10 min stale) para mapear slug → id del backend. La
-  // necesitamos porque las reactions usan targetId=long del backend, no
-  // el slug del catálogo client-side. 3.
-  const { data: listaBackend } = useQuery({
-    queryKey: ['personajes', 'lista'],
-    queryFn: endpoints.personajes,
-    staleTime: 10 * 60 * 1000,
-  })
-  const personajeBackendId = personaje && listaBackend
-    ? listaBackend.find((p) => p.slug === personaje.slug)?.id
+  const personajeBackendId = personaje && Number.isFinite(Number(personaje.id))
+    ? Number(personaje.id)
     : null
 
   const [localVotes, setLocalVotes] = useState(() => readLocalVotes())

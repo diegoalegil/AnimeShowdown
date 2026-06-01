@@ -38,7 +38,13 @@ const SECCIONES = [
       {
         metodo: 'GET',
         path: '/api/personajes',
-        desc: 'Lista todos los personajes con id, slug, nombre, anime, descripción, imagenUrl.',
+        desc: 'Lista personajes paginados por defecto. Usa page, size y anime; size se limita para evitar respuestas masivas.',
+        ejemplo: '{ "content": [{ "id": 1, "slug": "akame", "nombre": "Akame" }], "size": 50, "number": 0, "totalElements": 1086 }',
+      },
+      {
+        metodo: 'GET',
+        path: '/api/personajes/catalogo',
+        desc: 'Catálogo compacto para clientes que necesitan todos los slugs/campos ligeros con ETag y CDN cache.',
         ejemplo: '[{ "id": 1, "slug": "akame", "nombre": "Akame", "anime": "Akame ga Kill!", "imagenUrl": "/img/Akame_ga_Kill/akame.webp" }, ...]',
       },
       {

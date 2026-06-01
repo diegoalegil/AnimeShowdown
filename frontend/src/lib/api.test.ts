@@ -554,6 +554,17 @@ describe('endpoints', () => {
     expect((opts.headers as Record<string, string>)?.Authorization).toBeUndefined()
   })
 
+  it('personajes: pide pagina y size explicitos', async () => {
+    const fn = mockFetchResolved({ content: [] })
+    vi.stubGlobal('fetch', fn)
+    await endpoints.personajes({ page: 2, size: 25, anime: 'One Piece' })
+    const url = (fn.mock.calls[0] as [string, RequestInit])[0]
+    expect(url).toContain('/api/personajes?')
+    expect(url).toContain('page=2')
+    expect(url).toContain('size=25')
+    expect(url).toContain('anime=One+Piece')
+  })
+
   it('adminComentarios: uses URLSearchParams correctly', async () => {
     const fn = mockFetchResolved([])
     vi.stubGlobal('fetch', fn)

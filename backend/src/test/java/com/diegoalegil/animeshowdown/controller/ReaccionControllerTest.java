@@ -68,7 +68,8 @@ class ReaccionControllerTest {
      * siempre está en el seed.
      */
     private long idPersonajeReal(String slug) throws Exception {
-        var res = mvc.perform(get("/api/personajes"))
+        var res = mvc.perform(get("/api/personajes/catalogo")
+                        .param("fields", "id,slug"))
                 .andExpect(status().isOk())
                 .andReturn();
         var arr = json.readTree(res.getResponse().getContentAsString());

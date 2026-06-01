@@ -80,7 +80,8 @@ class PrediccionControllerTest {
     }
 
     private long[] dosPersonajes() throws Exception {
-        MvcResult res = mvc.perform(get("/api/personajes"))
+        MvcResult res = mvc.perform(get("/api/personajes/catalogo")
+                        .param("fields", "id,slug"))
                 .andExpect(status().isOk()).andReturn();
         JsonNode arr = json.readTree(res.getResponse().getContentAsString());
         long luffy = -1, zoro = -1;

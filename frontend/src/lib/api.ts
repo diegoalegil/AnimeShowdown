@@ -855,7 +855,13 @@ export const endpoints: EndpointMap = {
     }),
   // Marca el onboarding como visto ("Saltar por ahora" o cerrar el modal).
   skipOnboarding: () => api.post('/api/auth/me/onboarding/skip'),
-  personajes: () => api.get('/api/personajes'),
+  personajes: ({ page = 0, size = 50, anime } = {}) => {
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    params.set('size', String(size))
+    if (anime) params.set('anime', anime)
+    return api.get(`/api/personajes?${params.toString()}`)
+  },
   personajesCatalogo: ({ fields = 'slug,nombre,anime,imagenUrl' } = {}) =>
     api.get(`/api/personajes/catalogo?fields=${encodeURIComponent(fields)}`, {
       auth: false,
