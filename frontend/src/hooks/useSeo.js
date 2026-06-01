@@ -27,13 +27,15 @@ import { useEffect } from 'react'
  * @param {string} [opts.canonical]   URL canónica completa (default: location actual)
  * @param {string} [opts.image]   URL absoluta o relativa de la imagen OG (default: /logo.webp)
  * @param {string} [opts.type]    og:type (default 'website'; 'profile', 'article'...)
+ * @param {boolean|string[]} [opts.hreflang] emite alternates solo en rutas
+ *     realmente localizadas; true usa todos los idiomas soportados.
  * @param {boolean} [opts.noindex] añade meta robots noindex (login, perfil, admin)
  */
 const BASE = 'AnimeShowdown'
 const SITIO = 'https://animeshowdown.dev'
-// Idiomas que tenemos al menos parcialmente traducidos.
-// Cada uno produce un <link rel="alternate" hreflang="X" href="URL?lang=X">
-// más un x-default que apunta al ES (idioma original y catálogo completo).
+// Idiomas soportados por el selector. Hreflang NO se emite por defecto:
+// muchas rutas tienen shell traducido pero contenido principal en ES, así que
+// cada página debe declararse localizada antes de prometer alternates SEO.
 const LANGS = ['es', 'en', 'ja']
 
 export function useSeo({
@@ -42,6 +44,7 @@ export function useSeo({
   canonical,
   image,
   type = 'website',
+  hreflang = false,
   noindex = false,
 } = {}) {
   useEffect(() => {
@@ -53,6 +56,7 @@ export function useSeo({
 
     const url = canonical ?? `${SITIO}${window.location.pathname}`
     const img = absolutizar(image ?? '/logo.webp')
+    const alternateLangs = noindex ? [] : normalizeHreflangLangs(hreflang)
 
     const restoradores = [
       setMetaName('description', description),
@@ -72,22 +76,27 @@ export function useSeo({
       noindex
         ? setMetaName('robots', 'noindex,nofollow')
         : setMetaName('robots', null),
-      // Hreflang: un link por idioma soportado más
-      // x-default → ES. Si la página tiene noindex no los emitimos
-      // porque hreflang en páginas no indexables es contradicción.
-      ...(noindex
-        ? []
-        : LANGS.map((lang) =>
-            setLinkAlternate(lang, withLangParam(url, lang)),
-          )),
-      ...(noindex ? [] : [setLinkAlternate('x-default', withLangParam(url, 'es'))]),
+      // Hreflang: opt-in por página. Si una ruta mezcla copy ES con shell
+      // traducido, emitir alternates engaña a crawlers y usuarios.
+      ...alternateLangs.map((lang) =>
+        setLinkAlternate(lang, withLangParam(url, lang)),
+      ),
+      ...(alternateLangs.length > 0
+        ? [setLinkAlternate('x-default', withLangParam(url, 'es'))]
+        : []),
     ]
 
     return () => {
       document.title = tituloOriginal
       for (const restore of restoradores) restore()
     }
-  }, [title, description, canonical, image, type, noindex])
+  }, [title, description, canonical, image, type, hreflang, noindex])
+}
+
+function normalizeHreflangLangs(hreflang) {
+  if (hreflang === true) return LANGS
+  if (!Array.isArray(hreflang)) return []
+  return hreflang.filter((lang) => LANGS.includes(lang))
 }
 
 function absolutizar(src) {
