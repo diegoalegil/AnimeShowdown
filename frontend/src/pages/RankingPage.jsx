@@ -52,6 +52,8 @@ import RankingTabs from '../features/ranking/components/RankingTabs'
 import RankingTechnicalTable from '../features/ranking/components/RankingTechnicalTable'
 import { RANKING_TABS } from '../features/ranking/ranking-tabs'
 
+const RANKING_BACKEND_LIMIT = 100
+
 /**
  * RankingPage rebranded.
  *
@@ -111,7 +113,15 @@ function RankingPage() {
   const initialAnimeFilter = searchParams.get('anime') ?? ''
   // La tabla técnica (extraíble por crawlers/LLMs) debe exponer SOLO datos
   // reales: top por votos del backend, nunca el ELO base sintético.
-  const { data: rankingRealTop } = useRankingSegmentado({ periodo: 'all', limit: 10 })
+  const rankingAllQuery = useRankingSegmentado({
+    periodo: 'all',
+    limit: RANKING_BACKEND_LIMIT,
+  })
+  const movimientosSemanaQuery = useRankingMovimientos({
+    limit: RANKING_BACKEND_LIMIT,
+    dias: 7,
+  })
+  const { data: rankingRealTop } = rankingAllQuery
   // Default inteligente: sin pestaña elegida a mano, lideramos con "ELO base"
   // (siempre lleno, 1086) mientras el Histórico de votos reales esté escaso, para
   // no recibir al usuario con una tabla casi vacía. Cuando el Histórico acumule
@@ -262,7 +272,13 @@ function RankingPage() {
               isCatalogLoading={isCatalogLoading}
             />
           )}
-          {tab === 'all' && <ListaBackend periodo="all" />}
+          {tab === 'all' && (
+            <ListaBackend
+              periodo="all"
+              preloadedRankingQuery={rankingAllQuery}
+              preloadedMovimientosQuery={movimientosSemanaQuery}
+            />
+          )}
           {tab === 'mes' && <ListaBackend periodo="mes" />}
           {tab === 'anime' && (
             <PorAnime key={`anime:${initialAnimeFilter}`} initialAnime={initialAnimeFilter} />
@@ -275,10 +291,13 @@ function RankingPage() {
 
         {/* Meta report narrativo: lee los endpoints que ya carga la página y
             React Query deduplica las requests. */}
-        <RankingMetaReport />
+        <RankingMetaReport
+          rankingQuery={rankingAllQuery}
+          movimientosQuery={movimientosSemanaQuery}
+        />
         {/* MoversStrip: los 3 personajes con más movimiento de la semana.
             Solo aparece si hay movimientos. */}
-        <MoversStrip />
+        <MoversStrip movimientosQuery={movimientosSemanaQuery} />
 
         <PersonalRankingTeaser className="mt-6" />
 
@@ -807,19 +826,32 @@ function RankingSkeletonList() {
   )
 }
 
-function ListaBackend({ periodo }) {
-  const { data, isLoading, isError } = useRankingSegmentado({
+function ListaBackend({
+  periodo,
+  preloadedRankingQuery,
+  preloadedMovimientosQuery,
+}) {
+  const usaRankingPrecargado = periodo === 'all' && Boolean(preloadedRankingQuery)
+  const rankingQuery = useRankingSegmentado({
     periodo,
-    limit: 100,
+    limit: RANKING_BACKEND_LIMIT,
+    enabled: !usaRankingPrecargado,
   })
+  const data = usaRankingPrecargado ? preloadedRankingQuery.data : rankingQuery.data
+  const isLoading = usaRankingPrecargado ? preloadedRankingQuery.isLoading : rankingQuery.isLoading
+  const isError = usaRankingPrecargado ? preloadedRankingQuery.isError : rankingQuery.isError
   // Solo cargamos movimientos en el tab "ELO actual" (periodo=all): es
   // el único donde "subir/bajar vs hace 7d" tiene sentido. En mes ya
   // tienes la ventana corta como contexto.
-  const { data: movimientos } = useRankingMovimientos({
-    limit: 100,
+  const usaMovimientosPrecargados = periodo === 'all' && Boolean(preloadedMovimientosQuery)
+  const movimientosQuery = useRankingMovimientos({
+    limit: RANKING_BACKEND_LIMIT,
     dias: 7,
-    enabled: periodo === 'all',
+    enabled: periodo === 'all' && !usaMovimientosPrecargados,
   })
+  const movimientos = usaMovimientosPrecargados
+    ? preloadedMovimientosQuery.data
+    : movimientosQuery.data
   const movimientosPorSlug = useMemo(
     () => Array.isArray(movimientos) ? new Map(movimientos.map((m) => [m.slug, m])) : null,
     [movimientos],
