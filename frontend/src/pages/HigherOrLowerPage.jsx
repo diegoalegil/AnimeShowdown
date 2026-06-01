@@ -191,6 +191,13 @@ function HigherOrLowerGame({
     setGameOver(false)
   }
 
+  const roundStatus = buildRoundStatus({
+    challenger,
+    reference,
+    revealed,
+    score,
+  })
+
   return (
     <section className="as-stage as-stage-visual as-stage-duel relative flex flex-1 flex-col px-3 py-5 sm:px-8 sm:py-10">
       <JsonLd
@@ -239,6 +246,10 @@ function HigherOrLowerGame({
         </header>
 
         <ScoreBar score={score} best={best} />
+        <RoundStatusBanner
+          message={roundStatus}
+          tone={revealed}
+        />
 
         <AnimatePresence mode="wait">
           {gameOver ? (
@@ -277,6 +288,39 @@ function HigherOrLowerGame({
         </p>
       </div>
     </section>
+  )
+}
+
+function buildRoundStatus({ challenger, reference, revealed, score }) {
+  if (!challenger || !reference) return 'Preparando el siguiente duelo.'
+  if (revealed === 'correct') {
+    const relation = challenger.elo > reference.elo ? 'más' : 'menos'
+    return `Correcto: ${challenger.nombre} tiene ${relation} ELO que ${reference.nombre}. Racha actual: ${score}.`
+  }
+  if (revealed === 'wrong') {
+    const relation = challenger.elo > reference.elo ? 'más' : 'menos'
+    return `Fallaste: ${challenger.nombre} tiene ${relation} ELO que ${reference.nombre}. La ronda termina con racha ${score}.`
+  }
+  return `Ronda lista: decide si ${challenger.nombre} tiene más o menos ELO que ${reference.nombre}.`
+}
+
+function RoundStatusBanner({ message, tone }) {
+  const toneClass = tone === 'correct'
+    ? 'border-success/45 bg-success/10 text-success'
+    : tone === 'wrong'
+      ? 'border-danger/45 bg-danger/10 text-danger'
+      : 'border-border bg-surface text-fg-muted'
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Resultado del ELO Duel"
+      className={`rounded-xl border px-4 py-3 text-center text-sm font-semibold ${toneClass}`}
+    >
+      {message}
+    </div>
   )
 }
 
