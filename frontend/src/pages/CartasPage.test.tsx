@@ -54,6 +54,10 @@ vi.mock('../features/cartas/PackOpening', () => ({
   default: () => <div>Pack opening</div>,
 }))
 
+vi.mock('../features/cartas/CartasSocialPanel', () => ({
+  default: () => <div data-testid="cartas-social-panel" />,
+}))
+
 afterEach(() => cleanup())
 
 describe('CartasPage', () => {

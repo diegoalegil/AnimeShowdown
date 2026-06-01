@@ -182,6 +182,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/predicciones/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/fantasy/leaderboard").permitAll()
                         .requestMatchers("/api/fantasy/**").authenticated()
+                        // Cartas sociales F3: solo se exponen showcases y cartas
+                        // especiales compartibles. Colección, trading y odds siguen
+                        // bajo /api/me/** o authenticated.
+                        .requestMatchers(HttpMethod.GET, "/api/cartas/showcase/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cartas/salon-legendario").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cartas/personaje/*/especial").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cartas/*/publica").permitAll()
                         // Newsletter con double opt-in. Todo
                         // público — form en footer y links de confirmación
                         // /unsubscribe llegan al email del user sin auth.

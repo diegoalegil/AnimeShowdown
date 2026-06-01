@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
 import VoteFeedbackBurst from '../../../components/VoteFeedbackBurst'
@@ -24,6 +24,7 @@ const VoteCard = memo(function VoteCard({
   anonymousLimited,
   blindMode = false,
   voteResult,
+  duelSkin = null,
 }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   const dominantColor = personaje.imagenColorDominante ?? FALLBACK_DOMINANT_COLOR
@@ -76,7 +77,7 @@ const VoteCard = memo(function VoteCard({
             : isLoser
               ? 'border-transparent opacity-40 grayscale'
               : 'border-transparent shadow-aura motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-aura-lg'
-        } disabled:cursor-default`}
+        } ${duelSkin ? 'ring-1 ring-gold/35' : ''} disabled:cursor-default`}
         style={{
           // Glow y borde de selección personalizados con el color dominante de
           // cada carta (ranura --aura-color de la escala de sombras). La carta
@@ -152,6 +153,12 @@ const VoteCard = memo(function VoteCard({
           {anonymousLimited && !showResult && (
             <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-gold backdrop-blur-sm">
               Voto invitado
+            </div>
+          )}
+          {duelSkin && !identityHidden && (
+            <div className="pointer-events-none absolute left-3 top-3 inline-flex max-w-[calc(100%-1.5rem)] items-center gap-1 rounded-full border border-gold/50 bg-black/70 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-gold backdrop-blur-sm">
+              <Sparkles className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span className="truncate">{duelSkin.personajeNombre}</span>
             </div>
           )}
         </div>

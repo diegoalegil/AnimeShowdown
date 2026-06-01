@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react'
+import { Download, Share2 } from 'lucide-react'
 import CartaFace from '../features/cartas/CartaFace'
 
 /**
@@ -11,9 +11,12 @@ import CartaFace from '../features/cartas/CartaFace'
  * - Sin descubrir: silueta atenuada con "?" — incentiva coleccionar y evita
  *   cargar cientos de imágenes que el usuario aún no tiene.
  */
-function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
+function CartaTile({ carta, eager = false, onDownload, onShare, downloading = false }) {
   const { poseida, personajeNombre } = carta
   const puedeDescargar = poseida && typeof onDownload === 'function'
+  const puedeCompartir = poseida
+    && (carta.rareza === 'ESPECIAL' || carta.especialCurada)
+    && typeof onShare === 'function'
 
   if (!poseida) {
     return (
@@ -41,6 +44,17 @@ function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
           className="absolute left-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-black/70 text-fg-strong backdrop-blur-sm transition-colors hover:border-gold/55 hover:text-gold disabled:cursor-wait disabled:opacity-60"
         >
           <Download className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+      {puedeCompartir && (
+        <button
+          type="button"
+          onClick={() => onShare(carta)}
+          aria-label={`Compartir carta de ${personajeNombre}`}
+          title="Compartir"
+          className="absolute right-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-black/70 text-fg-strong backdrop-blur-sm transition-colors hover:border-gold/55 hover:text-gold"
+        >
+          <Share2 className="h-4 w-4" aria-hidden="true" />
         </button>
       )}
     </div>

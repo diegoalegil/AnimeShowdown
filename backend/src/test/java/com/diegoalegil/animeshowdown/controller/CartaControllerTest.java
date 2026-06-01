@@ -1,8 +1,10 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -262,6 +264,144 @@ class CartaControllerTest {
     }
 
     @Test
+    void tradingAceptaOfertaYTransfiereCopiasServerAuthoritative() throws Exception {
+        String tokenA = token("cartas_trade_a");
+        String tokenB = token("cartas_trade_b");
+        Usuario a = usuario("cartas_trade_a");
+        Usuario b = usuario("cartas_trade_b");
+        Carta cartaA = crearCartaManual("cartas_trade_a_slug", "Trade A");
+        Carta cartaB = crearCartaManual("cartas_trade_b_slug", "Trade B");
+        usuarioCartaRepository.save(new UsuarioCarta(a, cartaA));
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        mvc.perform(put("/api/me/cartas/showcase/PERFIL")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("cartaId", cartaA.getId()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slot").value("PERFIL"));
+
+        MvcResult creada = mvc.perform(post("/api/me/cartas/trades")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "destinatarioUsername", b.getUsername(),
+                                "cartaOfrecidaId", cartaA.getId(),
+                                "cartaSolicitadaId", cartaB.getId(),
+                                "idempotencyKey", "trade-ok-1"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("PENDING"))
+                .andExpect(jsonPath("$.rol").value("SOLICITANTE"))
+                .andReturn();
+
+        long tradeId = json.readTree(creada.getResponse().getContentAsString()).get("id").asLong();
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/accept", tradeId)
+                        .header("Authorization", "Bearer " + tokenB))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("ACCEPTED"))
+                .andExpect(jsonPath("$.rol").value("DESTINATARIO"));
+
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaA.getId())).isEmpty();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaB.getId())).isPresent();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(b.getId(), cartaA.getId())).isPresent();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(b.getId(), cartaB.getId())).isEmpty();
+
+        mvc.perform(get("/api/cartas/showcase/{username}", a.getUsername()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.carta.id == " + cartaA.getId() + ")]").isEmpty());
+    }
+
+    @Test
+    void tradingBloqueaAceptacionSiLaColeccionCambio() throws Exception {
+        String tokenA = token("cartas_trade_cambio_a");
+        String tokenB = token("cartas_trade_cambio_b");
+        Usuario a = usuario("cartas_trade_cambio_a");
+        Usuario b = usuario("cartas_trade_cambio_b");
+        Carta cartaA = crearCartaManual("cartas_trade_cambio_a_slug", "Trade Cambio A");
+        Carta cartaB = crearCartaManual("cartas_trade_cambio_b_slug", "Trade Cambio B");
+        usuarioCartaRepository.save(new UsuarioCarta(a, cartaA));
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        MvcResult creada = mvc.perform(post("/api/me/cartas/trades")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "destinatarioUsername", b.getUsername(),
+                                "cartaOfrecidaId", cartaA.getId(),
+                                "cartaSolicitadaId", cartaB.getId(),
+                                "idempotencyKey", "trade-conflict-1"))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        long tradeId = json.readTree(creada.getResponse().getContentAsString()).get("id").asLong();
+
+        UsuarioCarta perdida = usuarioCartaRepository
+                .findByUsuarioIdAndCartaId(b.getId(), cartaB.getId())
+                .orElseThrow();
+        usuarioCartaRepository.delete(perdida);
+
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/accept", tradeId)
+                        .header("Authorization", "Bearer " + tokenB))
+                .andExpect(status().isConflict());
+
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaA.getId())).isPresent();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaB.getId())).isEmpty();
+    }
+
+    @Test
+    void showcaseExigeEspecialParaSkinYExponeSuperficiesPublicas() throws Exception {
+        String token = token("cartas_showcase");
+        Usuario u = usuario("cartas_showcase");
+        Carta normal = crearCartaManual("cartas_showcase_normal_slug", "Showcase Normal");
+        Carta especial = crearCartaEspecialManual("cartas_showcase_especial_slug", "Showcase Especial");
+        usuarioCartaRepository.save(new UsuarioCarta(u, normal));
+        usuarioCartaRepository.save(new UsuarioCarta(u, especial));
+
+        mvc.perform(put("/api/me/cartas/showcase/DUEL_SKIN")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("cartaId", normal.getId()))))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(put("/api/me/cartas/showcase/DUEL_SKIN")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("cartaId", especial.getId()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slot").value("DUEL_SKIN"))
+                .andExpect(jsonPath("$.carta.id").value(especial.getId()));
+
+        mvc.perform(put("/api/me/cartas/showcase/SALON_1")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("cartaId", especial.getId()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slot").value("SALON_1"));
+
+        mvc.perform(get("/api/cartas/showcase/{username}", u.getUsername()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.slot == 'DUEL_SKIN')]").isNotEmpty())
+                .andExpect(jsonPath("$[?(@.slot == 'SALON_1')]").isNotEmpty());
+
+        mvc.perform(get("/api/cartas/salon-legendario"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.carta.id == " + especial.getId() + ")]").isNotEmpty());
+
+        mvc.perform(get("/api/cartas/personaje/{slug}/especial", especial.getPersonaje().getSlug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(especial.getId()));
+
+        mvc.perform(get("/api/cartas/{cartaId}/publica", especial.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(especial.getId()));
+        mvc.perform(get("/api/cartas/{cartaId}/publica", normal.getId()))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(delete("/api/me/cartas/showcase/DUEL_SKIN")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
     void descargarCartaPoseidaDevuelvePngConWatermark() throws Exception {
         String token = token("cartas_descarga_ok");
         Usuario u = usuario("cartas_descarga_ok");
@@ -333,6 +473,16 @@ class CartaControllerTest {
         p.setImagenColorDominante("#9f1d2c");
         p = personajeRepository.save(p);
         return cartaRepository.save(new Carta(p, RarezaCarta.SSR));
+    }
+
+    private Carta crearCartaEspecialManual(String slug, String nombre) {
+        Personaje p = new Personaje(slug, nombre, "Anime Test", "Personaje test para cartas.", null);
+        p.setImagenColorDominante("#24c6dc");
+        p = personajeRepository.save(p);
+        Carta carta = new Carta(p, RarezaCarta.ESPECIAL);
+        carta.setEspecialCurada(true);
+        carta.setVariante("legendaria-test");
+        return cartaRepository.save(carta);
     }
 
     private boolean tieneWatermarkEnBandaInferior(BufferedImage img) {

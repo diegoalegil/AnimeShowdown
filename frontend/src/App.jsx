@@ -62,6 +62,7 @@ const routePreloaders = {
   logros: () => import('./pages/LogrosPage'),
   feed: () => import('./pages/FeedPage'),
   cartas: () => import('./pages/CartasPage'),
+  cartaPublica: () => import('./pages/CartaPublicaPage'),
   tierLists: () => import('./pages/TierListsPage'),
 }
 
@@ -92,6 +93,7 @@ const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
 const PerfilPage = lazyRoute(routePreloaders.perfil)
 const FeedPage = lazyRoute(routePreloaders.feed)
 const CartasPage = lazyRoute(routePreloaders.cartas)
+const CartaPublicaPage = lazyRoute(routePreloaders.cartaPublica)
 const TierListsPage = lazyRoute(routePreloaders.tierLists)
 const UsuarioPage = lazyRoute(() => import('./pages/UsuarioPage'))
 const UsuarioLogrosPage = lazyRoute(() => import('./pages/UsuarioLogrosPage'))
@@ -166,6 +168,7 @@ function routePreloaderFor(pathname) {
   if (pathname === '/higher-or-lower') return routePreloaders.eloDuel
   if (pathname === '/perfil') return routePreloaders.perfil
   if (pathname === '/feed') return routePreloaders.feed
+  if (pathname.startsWith('/cartas/')) return routePreloaders.cartaPublica
   if (pathname === '/logros') return routePreloaders.logros
   if (pathname === '/tier-lists' || pathname.startsWith('/tier-lists/')) return routePreloaders.tierLists
   return null
@@ -476,6 +479,7 @@ function App() {
               <Route path="/perfil" element={catalogAware(<PerfilPage />)} />
               <Route path="/feed" element={catalogAware(<FeedPage />)} />
               <Route path="/cartas" element={catalogAware(<CartasPage />)} />
+              <Route path="/cartas/:cartaId" element={catalogAware(<CartaPublicaPage />)} />
               <Route path="/tier-lists" element={catalogAware(<TierListsPage />)} />
               <Route path="/tier-lists/:slug" element={catalogAware(<TierListsPage />)} />
               <Route path="/u/:username" element={catalogAware(<UsuarioPage />)} />

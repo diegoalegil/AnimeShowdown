@@ -70,6 +70,111 @@ export function useDescargarCarta() {
   })
 }
 
+export function useCartaTrades() {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.cartasTrades(),
+    queryFn: endpoints.cartasTrades,
+    enabled: Boolean(user),
+    staleTime: 20 * 1000,
+  })
+}
+
+export function useCrearCartaTrade() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: endpoints.crearCartaTrade,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.cartasTrades() })
+    },
+  })
+}
+
+export function useResolverCartaTrade() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ tradeId, action }) => {
+      if (action === 'accept') return endpoints.aceptarCartaTrade(tradeId)
+      if (action === 'reject') return endpoints.rechazarCartaTrade(tradeId)
+      return endpoints.cancelarCartaTrade(tradeId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.cartasTrades() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cartasShowcase() })
+    },
+  })
+}
+
+export function useCartaShowcase({ enabled = true } = {}) {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.cartasShowcase(),
+    queryFn: endpoints.cartasShowcase,
+    enabled: enabled && Boolean(user),
+    staleTime: 30 * 1000,
+  })
+}
+
+export function useSetCartaShowcase() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: endpoints.fijarCartaShowcase,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.cartasShowcase() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.salonLegendarioCartas() })
+    },
+  })
+}
+
+export function useLimpiarCartaShowcase() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: endpoints.limpiarCartaShowcase,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.cartasShowcase() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.salonLegendarioCartas() })
+    },
+  })
+}
+
+export function useCartasShowcasePublico(username) {
+  return useQuery({
+    queryKey: queryKeys.cartasShowcasePublico(username),
+    queryFn: () => endpoints.cartasShowcasePublico(username),
+    enabled: Boolean(username),
+    staleTime: 60 * 1000,
+  })
+}
+
+export function useSalonLegendario() {
+  return useQuery({
+    queryKey: queryKeys.salonLegendarioCartas(),
+    queryFn: endpoints.salonLegendarioCartas,
+    staleTime: 60 * 1000,
+  })
+}
+
+export function useCartaEspecialPersonaje(slug, { enabled = true } = {}) {
+  return useQuery({
+    queryKey: queryKeys.cartaEspecialPersonaje(slug),
+    queryFn: () => endpoints.cartaEspecialPersonaje(slug),
+    enabled: enabled && Boolean(slug),
+    staleTime: 10 * 60 * 1000,
+    retry: (count, err) => err?.status !== 404 && count < 1,
+  })
+}
+
+export function useCartaPublica(cartaId) {
+  return useQuery({
+    queryKey: queryKeys.cartaPublica(cartaId),
+    queryFn: () => endpoints.cartaPublica(cartaId),
+    enabled: Boolean(cartaId),
+    staleTime: 10 * 60 * 1000,
+    retry: (count, err) => err?.status !== 404 && count < 1,
+  })
+}
+
 function fallbackFilename(carta) {
   const raw = carta?.personajeSlug || carta?.personajeNombre || carta?.id || 'carta'
   const slug = String(raw).toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '')

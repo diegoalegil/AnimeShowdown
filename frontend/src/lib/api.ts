@@ -637,6 +637,26 @@ export const endpoints: EndpointMap = {
     requestBlob(`/api/me/cartas/${encodeURIComponent(cartaId)}/descargar`, {
       timeoutMs: 15000,
     }),
+  cartasTrades: () => api.get('/api/me/cartas/trades'),
+  crearCartaTrade: (data) => api.post('/api/me/cartas/trades', data),
+  aceptarCartaTrade: (tradeId) =>
+    api.post(`/api/me/cartas/trades/${encodeURIComponent(tradeId)}/accept`, undefined),
+  rechazarCartaTrade: (tradeId) =>
+    api.post(`/api/me/cartas/trades/${encodeURIComponent(tradeId)}/reject`, undefined),
+  cancelarCartaTrade: (tradeId) =>
+    api.post(`/api/me/cartas/trades/${encodeURIComponent(tradeId)}/cancel`, undefined),
+  cartasShowcase: () => api.get('/api/me/cartas/showcase'),
+  fijarCartaShowcase: ({ slot, cartaId }) =>
+    api.put(`/api/me/cartas/showcase/${encodeURIComponent(slot)}`, { cartaId }),
+  limpiarCartaShowcase: (slot) =>
+    api.del(`/api/me/cartas/showcase/${encodeURIComponent(slot)}`),
+  cartasShowcasePublico: (username) =>
+    api.get(`/api/cartas/showcase/${encodeURIComponent(username)}`, { auth: false }),
+  salonLegendarioCartas: () => api.get('/api/cartas/salon-legendario', { auth: false }),
+  cartaEspecialPersonaje: (slug) =>
+    api.get(`/api/cartas/personaje/${encodeURIComponent(slug)}/especial`, { auth: false }),
+  cartaPublica: (cartaId) =>
+    api.get(`/api/cartas/${encodeURIComponent(cartaId)}/publica`, { auth: false }),
   personajesSimilares: (slug, { limit = 8 } = {}) =>
     api.get(
       `/api/personajes/${encodeURIComponent(slug)}/similares?limit=${limit}`,

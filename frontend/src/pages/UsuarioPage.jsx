@@ -8,6 +8,7 @@ import CardStats from '../components/CardStats'
 import CardTop5 from '../components/CardTop5'
 import CardLogros from '../components/CardLogros'
 import CardDanKyu from '../components/CardDanKyu'
+import CartaShowcaseRail from '../features/cartas/CartaShowcaseRail'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { useAuth } from '../contexts/AuthContext'
@@ -153,6 +154,10 @@ function UsuarioPage() {
             onToggle={handleToggle}
             pending={toggleSeguir.isPending}
             userLogueado={Boolean(user)}
+          />
+          <CartaShowcaseRail
+            showcases={perfil.showcases}
+            title={`Cartas de ${perfil.username}`}
           />
           <CardStats data={perfil.stats} />
           <CardDanKyu data={perfil.stats} />

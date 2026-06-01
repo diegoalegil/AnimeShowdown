@@ -27,6 +27,7 @@ const VoteArena = memo(function VoteArena({
   handleVoteRight,
   handleTieVote,
   canTie = false,
+  duelSkin = null,
 }) {
   const reduceMotion = useReducedMotion()
   const arenaKey = a && b ? `${a.slug}-${b.slug}` : 'empty'
@@ -68,6 +69,7 @@ const VoteArena = memo(function VoteArena({
           anonymousLimited={votoInvitadoActivo}
           blindMode={blindMode}
           voteResult={leftVoteResult}
+          duelSkin={duelSkin}
         />
         <div className="hidden self-center justify-self-center sm:flex sm:flex-col sm:items-center sm:gap-3">
           <VsBadge votedFor={votedFor} />
@@ -95,6 +97,7 @@ const VoteArena = memo(function VoteArena({
           anonymousLimited={votoInvitadoActivo}
           blindMode={blindMode}
           voteResult={rightVoteResult}
+          duelSkin={duelSkin}
         />
         {canTie && !votedFor && (
           <button

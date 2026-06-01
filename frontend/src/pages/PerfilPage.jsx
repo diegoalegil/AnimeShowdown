@@ -38,6 +38,8 @@ import CardPushNotificaciones from '../features/perfil/components/CardPushNotifi
 import PerfilQuickStats from '../features/perfil/components/PerfilQuickStats'
 import PerfilTabs from '../features/perfil/components/PerfilTabs'
 import { tabValida } from '../features/perfil/perfil-tabs'
+import CartaShowcaseRail from '../features/cartas/CartaShowcaseRail'
+import { useCartaShowcase } from '../hooks/useCartas'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -61,6 +63,7 @@ function PerfilPage() {
   // se gatea solo con user, así que es seguro llamarlo antes del guard.
   const { data: topFav } = usePerfilTop({ limit: 1 })
   const favoritoImagenUrl = topFav?.[0]?.imagenUrl
+  const { data: showcases } = useCartaShowcase({ enabled: Boolean(user) })
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -145,6 +148,13 @@ function PerfilPage() {
           {tab === 'resumen' && (
             <>
               <CardDatosCuenta user={user} />
+              <CartaShowcaseRail
+                showcases={showcases}
+                title="Tus cartas destacadas"
+                actionTo="/cartas"
+                actionLabel="Gestionar"
+                showEmpty
+              />
               <CardDanKyu />
               <CardReferral />
               <CardActividadReciente />

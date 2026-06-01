@@ -62,6 +62,12 @@ export const queryKeys = {
   // Cartas coleccionables
   coleccionCartas: (): QueryKey => ['cartas', 'coleccion'],
   oddsCartas: (): QueryKey => ['cartas', 'odds'],
+  cartasTrades: (): QueryKey => ['cartas', 'trades'],
+  cartasShowcase: (): QueryKey => ['cartas', 'showcase', 'me'],
+  cartasShowcasePublico: (username: string | undefined): QueryKey => ['cartas', 'showcase', 'public', username],
+  salonLegendarioCartas: (): QueryKey => ['cartas', 'salon-legendario'],
+  cartaEspecialPersonaje: (slug: string | undefined): QueryKey => ['cartas', 'especial-personaje', slug],
+  cartaPublica: (cartaId: string | number | undefined): QueryKey => ['cartas', 'publica', cartaId],
   tierListsMine: (): QueryKey => ['tier-lists', 'mine'],
   tierListPublic: (slug: string | undefined): QueryKey => ['tier-lists', 'public', slug],
 }

@@ -55,6 +55,7 @@ public class PerfilService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final BadgeService badgeService;
+    private final CartaShowcaseService cartaShowcaseService;
     private final AuditLogService auditLogService;
 
     public PerfilService(VotoRepository votoRepository,
@@ -65,6 +66,7 @@ public class PerfilService {
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
             BadgeService badgeService,
+            CartaShowcaseService cartaShowcaseService,
             AuditLogService auditLogService) {
         this.votoRepository = votoRepository;
         this.prediccionRepository = prediccionRepository;
@@ -74,6 +76,7 @@ public class PerfilService {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.badgeService = badgeService;
+        this.cartaShowcaseService = cartaShowcaseService;
         this.auditLogService = auditLogService;
     }
 
@@ -112,7 +115,8 @@ public class PerfilService {
                 esMismo,
                 statsDto,
                 topItems,
-                logrosDesbloqueados);
+                logrosDesbloqueados,
+                cartaShowcaseService.publicosDe(duenyo.getUsername()));
     }
 
     /** Caracteres máximos de bio tras sanitizar. Espejo de V34 (VARCHAR 240). */

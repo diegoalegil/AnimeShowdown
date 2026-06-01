@@ -682,6 +682,57 @@ describe('endpoints', () => {
     expect(opts.method).toBe('POST')
   })
 
+  it('cartas F3: construye rutas de trading y showcase autenticadas', async () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+
+    await endpoints.crearCartaTrade({
+      destinatarioUsername: 'diego',
+      cartaOfrecidaId: 1,
+      cartaSolicitadaId: 2,
+      idempotencyKey: 'trade-1',
+    })
+    await endpoints.aceptarCartaTrade(7)
+    await endpoints.rechazarCartaTrade(8)
+    await endpoints.cancelarCartaTrade(9)
+    await endpoints.fijarCartaShowcase({ slot: 'DUEL_SKIN', cartaId: 42 })
+    await endpoints.limpiarCartaShowcase('SALON_1')
+
+    const calls = fn.mock.calls as Array<[string, RequestInit]>
+    expect(calls[0][0]).toContain('/api/me/cartas/trades')
+    expect(calls[0][1].method).toBe('POST')
+    expect(JSON.parse(String(calls[0][1].body))).toMatchObject({ idempotencyKey: 'trade-1' })
+    expect(calls[1][0]).toContain('/api/me/cartas/trades/7/accept')
+    expect(calls[2][0]).toContain('/api/me/cartas/trades/8/reject')
+    expect(calls[3][0]).toContain('/api/me/cartas/trades/9/cancel')
+    expect(calls[4][0]).toContain('/api/me/cartas/showcase/DUEL_SKIN')
+    expect(calls[4][1].method).toBe('PUT')
+    expect(JSON.parse(String(calls[4][1].body))).toEqual({ cartaId: 42 })
+    expect(calls[5][0]).toContain('/api/me/cartas/showcase/SALON_1')
+    expect(calls[5][1].method).toBe('DELETE')
+  })
+
+  it('cartas F3: endpoints publicos no envian Authorization', async () => {
+    setToken('jwt.public-check')
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+
+    await endpoints.cartasShowcasePublico('diegofutbolista1')
+    await endpoints.salonLegendarioCartas()
+    await endpoints.cartaEspecialPersonaje('luffy')
+    await endpoints.cartaPublica(42)
+
+    const calls = fn.mock.calls as Array<[string, RequestInit]>
+    expect(calls[0][0]).toContain('/api/cartas/showcase/diegofutbolista1')
+    expect(calls[1][0]).toContain('/api/cartas/salon-legendario')
+    expect(calls[2][0]).toContain('/api/cartas/personaje/luffy/especial')
+    expect(calls[3][0]).toContain('/api/cartas/42/publica')
+    for (const [, opts] of calls) {
+      const headers = opts.headers as Record<string, string>
+      expect(headers?.Authorization).toBeUndefined()
+    }
+  })
+
   it('descargarCarta: GET devuelve el blob y filename UTF-8 del header', async () => {
     const png = new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' })
     const fn = vi.fn().mockResolvedValue(mockBlobResponse(

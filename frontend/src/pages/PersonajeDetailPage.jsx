@@ -42,6 +42,7 @@ import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
 import ShareButtons from '../components/ShareButtons'
 import ComentariosPersonaje from '../components/ComentariosPersonaje'
 import { usePersonajesSimilares } from '../hooks/usePersonajesSimilares'
+import { useCartaEspecialPersonaje } from '../hooks/useCartas'
 import NotFoundPage from './NotFoundPage'
 import { VisualPageShell } from '../components/VisualSystem'
 import { hexToRgbChannels } from '../lib/color'
@@ -56,6 +57,7 @@ import {
 } from '../lib/localVoteRanking'
 import RetoRecomendado from '../features/personajes/components/RetoRecomendado'
 import { getRetoRecomendado } from '../features/personajes/reto-recomendado'
+import CartaFace from '../features/cartas/CartaFace'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -164,6 +166,9 @@ function PersonajeDetailPage() {
   const personajeBackendId = personaje && listaBackend
     ? listaBackend.find((p) => p.slug === personaje.slug)?.id
     : null
+  const { data: cartaEspecial } = useCartaEspecialPersonaje(slug, {
+    enabled: Boolean(personaje),
+  })
 
   const [localVotes, setLocalVotes] = useState(() => readLocalVotes())
   useEffect(
@@ -226,6 +231,23 @@ function PersonajeDetailPage() {
     } catch (e) {
       toast.error('No se pudo compartir', {
         description: e?.message || 'Copia el enlace manualmente.',
+      })
+    }
+  }
+  const compartirCartaEspecial = async () => {
+    if (!cartaEspecial) return
+    try {
+      const result = await shareOrCopy({
+        title: `Carta especial de ${personaje.nombre}`,
+        text: `${personaje.nombre} de ${personaje.anime} en carta especial de AnimeShowdown.`,
+        url: `/cartas/${cartaEspecial.id}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Carta compartida' : 'Carta copiada')
+    } catch (error) {
+      toast.error('No se pudo compartir la carta', {
+        description: error?.message || 'Copia el enlace manualmente.',
       })
     }
   }
@@ -476,6 +498,43 @@ function PersonajeDetailPage() {
               signal={personalSignal}
               totalVotes={personalLocalStats.total}
             />
+            {cartaEspecial && (
+              <motion.div
+                className="grid w-full gap-4 rounded-xl border border-gold/35 bg-gold-soft p-4 sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-center"
+                variants={itemVariants}
+              >
+                <CartaFace carta={cartaEspecial} className="mx-auto w-full max-w-28" />
+                <div className="min-w-0">
+                  <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Carta especial
+                  </p>
+                  <h2 className="mt-1 text-lg font-black text-fg-strong">
+                    {cartaEspecial.personajeNombre}
+                  </h2>
+                  <p className="mt-1 text-[12px] text-fg-muted">
+                    {cartaEspecial.variante || cartaEspecial.anime}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={compartirCartaEspecial}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-gold/40 bg-surface px-3 py-2 text-[12px] font-black text-gold transition-colors hover:border-gold"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      Compartir
+                    </button>
+                    <Link
+                      to={`/cartas/${cartaEspecial.id}`}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+                    >
+                      Ver carta
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            )}
             {personajeBackendId && (
               <motion.div variants={itemVariants}>
                 <ReactionsBar

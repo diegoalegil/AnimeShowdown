@@ -28,6 +28,7 @@ import VoteQuoteCard from '../features/votar/components/VoteQuoteCard'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
+import { useCartaShowcase } from '../hooks/useCartas'
 import {
   getPairFromAnime,
   getPairWithFixed,
@@ -192,6 +193,7 @@ function VotarPage() {
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const { data: cartaShowcase } = useCartaShowcase({ enabled: Boolean(user) })
   const fixedSlug = searchParams.get('personaje')
   const fixedRivalSlug = searchParams.get('rival')
   const fixedAnime = searchParams.get('anime')
@@ -214,6 +216,12 @@ function VotarPage() {
   )
   const casualContextKey = `${fixedSlug || ''}::${fixedRivalSlug || ''}::${fixedAnime || ''}`
   const authenticatedUserId = user?.id ?? null
+  const duelSkin = useMemo(
+    () => (Array.isArray(cartaShowcase)
+      ? cartaShowcase.find((item) => item.slot === 'DUEL_SKIN')?.carta ?? null
+      : null),
+    [cartaShowcase],
+  )
   const seenBackendPairsRef = useRef(new Set())
   const seenBackendMatchIdsRef = useRef(new Set())
   const fetchSiguienteBackend = useCallback(() => {
@@ -1112,6 +1120,7 @@ function VotarPage() {
           handleVoteRight={handleVoteRight}
           handleTieVote={handleTieVote}
           canTie={modoBackend}
+          duelSkin={duelSkin}
         />
 
         {tieSelected && a && b && (

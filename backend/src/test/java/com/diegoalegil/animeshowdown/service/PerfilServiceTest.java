@@ -50,6 +50,7 @@ class PerfilServiceTest {
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private BadgeService badgeService;
+    @Mock private CartaShowcaseService cartaShowcaseService;
     @Mock private AuditLogService auditLogService;
     @Mock private HttpServletRequest request;
 
@@ -66,6 +67,7 @@ class PerfilServiceTest {
                 usuarioRepository,
                 passwordEncoder,
                 badgeService,
+                cartaShowcaseService,
                 auditLogService);
     }
 

@@ -47,4 +47,7 @@ public interface CartaRepository extends JpaRepository<Carta, Long> {
 
     @EntityGraph(attributePaths = "personaje")
     Optional<Carta> findByPersonajeSlugAndRarezaAndVariante(String slug, RarezaCarta rareza, String variante);
+
+    @EntityGraph(attributePaths = "personaje")
+    Optional<Carta> findFirstByPersonajeSlugAndRarezaAndEspecialCuradaTrueOrderByIdAsc(String slug, RarezaCarta rareza);
 }

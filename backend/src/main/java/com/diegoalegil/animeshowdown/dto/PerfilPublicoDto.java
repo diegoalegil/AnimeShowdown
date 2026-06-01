@@ -33,5 +33,6 @@ public record PerfilPublicoDto(
         boolean esMismoUsuario,
         PerfilStatsDto stats,
         List<TopPersonajeItem> top,
-        List<LogroDto> logros) {
+        List<LogroDto> logros,
+        List<CartaShowcaseDto> showcases) {
 }

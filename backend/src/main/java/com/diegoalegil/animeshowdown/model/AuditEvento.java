@@ -74,5 +74,11 @@ public enum AuditEvento {
     /** El usuario abrió un sobre: gastó moneda y obtuvo una carta. */
     SOBRE_ABIERTO,
     /** El usuario descargó una carta que posee. */
-    CARTA_DESCARGADA
+    CARTA_DESCARGADA,
+    /** El usuario creó o cambió un escaparate social de cartas. */
+    CARTA_SHOWCASE_CAMBIADA,
+    /** El usuario creó una propuesta de intercambio de cartas. */
+    CARTA_TRADE_CREADO,
+    /** Un intercambio de cartas terminó aceptado/rechazado/cancelado. */
+    CARTA_TRADE_RESUELTO
 }

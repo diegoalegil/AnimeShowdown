@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Filter, Gift, PackageOpen, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 import Section from '../components/Section'
 import Button from '../components/Button'
 import EmptyState from '../components/EmptyState'
@@ -7,7 +8,10 @@ import Dialog from '../components/Dialog'
 import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
 import PackOpening from '../features/cartas/PackOpening'
+import CartasSocialPanel from '../features/cartas/CartasSocialPanel'
 import { useAuth } from '../contexts/AuthContext'
+import { shareOrCopy } from '../lib/share'
+import { recordDailyShare } from '../lib/dailyProgress'
 import {
   useAbrirSobre,
   useCofreDiario,
@@ -109,6 +113,24 @@ function CartasPage() {
   function descargar(carta) {
     if (!carta?.poseida) return
     descargarCarta.mutate(carta)
+  }
+
+  async function compartirCarta(carta) {
+    if (!carta?.id) return
+    try {
+      const result = await shareOrCopy({
+        title: `Carta especial de ${carta.personajeNombre}`,
+        text: `${carta.personajeNombre} de ${carta.anime} en carta especial de AnimeShowdown.`,
+        url: `/cartas/${carta.id}`,
+      })
+      if (result === 'cancelled') return
+      recordDailyShare()
+      toast.success(result === 'native' ? 'Carta compartida' : 'Carta copiada')
+    } catch (error) {
+      toast.error('No se pudo compartir', {
+        description: error?.message || 'Copia el enlace manualmente.',
+      })
+    }
   }
 
   if (!user) {
@@ -219,6 +241,8 @@ function CartasPage() {
         )}
       </div>
 
+      <CartasSocialPanel cartas={cartas} />
+
       <AlbumFilters
         rarezaFiltro={rarezaFiltro}
         setRarezaFiltro={setRarezaFiltro}
@@ -253,6 +277,7 @@ function CartasPage() {
                 key={carta.id}
                 carta={carta}
                 onDownload={descargar}
+                onShare={compartirCarta}
                 downloading={descargandoId === carta.id}
               />
             ))}
