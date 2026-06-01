@@ -55,6 +55,7 @@ public class TorneoService {
     private final NotificacionService notificacionService;
     private final IndexNowService indexNowService;
     private final SeguidorFanOutService seguidorFanOutService;
+    private final TorneoCreationLock torneoCreationLock;
 
     public TorneoService(
             TorneoRepository torneoRepository,
@@ -66,7 +67,8 @@ public class TorneoService {
             PrediccionService prediccionService,
             NotificacionService notificacionService,
             IndexNowService indexNowService,
-            SeguidorFanOutService seguidorFanOutService) {
+            SeguidorFanOutService seguidorFanOutService,
+            TorneoCreationLock torneoCreationLock) {
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
         this.personajeRepository = personajeRepository;
@@ -77,14 +79,17 @@ public class TorneoService {
         this.notificacionService = notificacionService;
         this.indexNowService = indexNowService;
         this.seguidorFanOutService = seguidorFanOutService;
+        this.torneoCreationLock = torneoCreationLock;
     }
 
+    @Transactional
     @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo crear(TorneoCrearRequest request) {
+        torneoCreationLock.bloquearCreacionTorneos();
         String slug = generarSlugUnico(request.getNombre());
         Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
         torneo.setPublico(true);
-        return torneoRepository.save(torneo);
+        return torneoRepository.saveAndFlush(torneo);
     }
 
     /**
@@ -142,12 +147,13 @@ public class TorneoService {
             participantes.add(p);
         }
 
+        torneoCreationLock.bloquearCreacionTorneos();
         String slug = generarSlugUnico(request.getNombre());
         Torneo torneo = new Torneo(slug, request.getNombre(), request.getDescripcion());
         torneo.setCreadoPor(creador);
         torneo.setEstadoRevision(EstadoRevision.PENDIENTE);
         torneo.setPublico(request.esPublico());
-        Torneo guardado = torneoRepository.save(torneo);
+        Torneo guardado = torneoRepository.saveAndFlush(torneo);
 
         // Precomputa el bracket pero NO lo arranca — la aprobación admin
         // hará el switch a IN_PROGRESS. Mantenemos los matches como SCHEDULED
