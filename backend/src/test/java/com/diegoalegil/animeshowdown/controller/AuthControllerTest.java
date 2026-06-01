@@ -45,6 +45,8 @@ import org.springframework.context.annotation.Import;
 @Import(TestAsyncConfig.class)
 class AuthControllerTest {
 
+    private static final String APP_ORIGIN = "http://localhost:5173";
+
     @Autowired
     private MockMvc mvc;
 
@@ -790,6 +792,7 @@ class AuthControllerTest {
 
         // Primera rotación: 200 + nueva cookie.
         mvc.perform(post("/api/auth/refresh")
+                .header("Origin", APP_ORIGIN)
                 .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("refresh_token"));
@@ -798,12 +801,56 @@ class AuthControllerTest {
         // 503 + Retry-After. CRITICAL: la respuesta NO debe contener
         // Set-Cookie para refresh_token — pisaría la cookie nueva.
         var graceRes = mvc.perform(post("/api/auth/refresh")
+                .header("Origin", APP_ORIGIN)
                 .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(header().exists("Retry-After"))
                 .andReturn();
         assert graceRes.getResponse().getCookie("refresh_token") == null
                 : "GraceCrossTab no debe emitir Set-Cookie (pisaría la cookie nueva de la otra tab)";
+    }
+
+    @Test
+    void refreshConCookieRequiereOriginPermitido() throws Exception {
+        registrarYLoguear("csrf_refresh_user", "secreta123", "csrf_refresh@example.com");
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "csrf_refresh_user", "password", "secreta123"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        String refreshCookie = loginRes.getResponse().getCookie("refresh_token").getValue();
+
+        mvc.perform(post("/api/auth/refresh")
+                .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(post("/api/auth/refresh")
+                .header("Origin", APP_ORIGIN)
+                .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("refresh_token"));
+    }
+
+    @Test
+    void logoutConCookieRequiereOriginPermitidoYNoRevocaSiFalla() throws Exception {
+        registrarYLoguear("csrf_logout_user", "secreta123", "csrf_logout@example.com");
+        var loginRes = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "username", "csrf_logout_user", "password", "secreta123"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        String refreshCookie = loginRes.getResponse().getCookie("refresh_token").getValue();
+
+        mvc.perform(post("/api/auth/logout")
+                .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(post("/api/auth/refresh")
+                .header("Origin", APP_ORIGIN)
+                .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
+                .andExpect(status().isOk());
     }
 
     /**
