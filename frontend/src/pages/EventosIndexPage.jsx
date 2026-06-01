@@ -18,6 +18,8 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
+import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
+import { useEventosRuntime } from '../hooks/useEventosRuntime'
 import EditorialCover from '../components/EditorialCover'
 import EmptyState from '../components/EmptyState'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
@@ -36,14 +38,16 @@ function EventosIndexPage() {
     image: BRAND_VISUALS.eventos.image,
   })
   const [now, setNow] = useState(() => new Date())
+  const { eventos } = useEventosRuntime()
+  const { data: catalogoPersonajes = [] } = useCatalogoPersonajes()
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000)
     return () => clearInterval(id)
   }, [])
 
-  const activos = getEventosActivos(now)
-  const proximos = getEventosProximos(now)
-  const pasados = getEventosPasados(now).slice(0, 6)
+  const activos = getEventosActivos(now, eventos)
+  const proximos = getEventosProximos(now, eventos)
+  const pasados = getEventosPasados(now, eventos).slice(0, 6)
 
   const total = activos.length + proximos.length + pasados.length
 
@@ -75,6 +79,7 @@ function EventosIndexPage() {
             titulo="En curso"
             count={activos.length}
             eventos={activos}
+            catalogoPersonajes={catalogoPersonajes}
             now={now}
             etiqueta="ACTIVO"
           />
@@ -87,6 +92,7 @@ function EventosIndexPage() {
             titulo="Próximamente"
             count={proximos.length}
             eventos={proximos}
+            catalogoPersonajes={catalogoPersonajes}
             now={now}
             etiqueta="PROXIMO"
             className="mt-12"
@@ -100,6 +106,7 @@ function EventosIndexPage() {
             titulo="Pasados"
             count={pasados.length}
             eventos={pasados}
+            catalogoPersonajes={catalogoPersonajes}
             now={now}
             etiqueta="PASADO"
             className="mt-12"
@@ -110,7 +117,7 @@ function EventosIndexPage() {
   )
 }
 
-function Seccion({ icon: Icon, tono, dotColor, titulo, count, eventos, now, etiqueta, className = '' }) {
+function Seccion({ icon: Icon, tono, dotColor, titulo, count, eventos, catalogoPersonajes, now, etiqueta, className = '' }) {
   return (
     <div className={`flex flex-col gap-4 ${className}`}>
       <div className="flex items-center gap-2 border-b border-border pb-3">
@@ -127,17 +134,17 @@ function Seccion({ icon: Icon, tono, dotColor, titulo, count, eventos, now, etiq
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {eventos.map((e) => (
-          <EventoCard key={e.slug} evento={e} now={now} etiqueta={etiqueta} />
+          <EventoCard key={e.slug} evento={e} catalogoPersonajes={catalogoPersonajes} now={now} etiqueta={etiqueta} />
         ))}
       </div>
     </div>
   )
 }
 
-function EventoCard({ evento, now, etiqueta }) {
+function EventoCard({ evento, catalogoPersonajes, now, etiqueta }) {
   const ms = getMsRestantes(evento, now)
   const restante = formatRestante(ms)
-  const participantes = getPersonajesEvento(evento)
+  const participantes = getPersonajesEvento(evento, catalogoPersonajes)
   const visual = getEventVisual(evento.slug, evento.titulo)
 
   const TONOS = {

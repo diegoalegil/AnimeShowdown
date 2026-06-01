@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
+import com.diegoalegil.animeshowdown.model.EventoTematico;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.SlugUtil;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
@@ -39,6 +41,7 @@ public class TorneoAutoService {
     private final BracketService bracketService;
     private final IndexNowService indexNowService;
     private final NotificacionService notificacionService;
+    private final EventoTematicoService eventoTematicoService;
     private final boolean enabled;
 
     public TorneoAutoService(
@@ -47,12 +50,14 @@ public class TorneoAutoService {
             BracketService bracketService,
             IndexNowService indexNowService,
             NotificacionService notificacionService,
+            EventoTematicoService eventoTematicoService,
             @Value("${app.tournament.auto.enabled:true}") boolean enabled) {
         this.torneoRepository = torneoRepository;
         this.personajeRepository = personajeRepository;
         this.bracketService = bracketService;
         this.indexNowService = indexNowService;
         this.notificacionService = notificacionService;
+        this.eventoTematicoService = eventoTematicoService;
         this.enabled = enabled;
         log.info("TorneoAutoService inicializado: enabled={}", enabled);
     }
@@ -63,7 +68,8 @@ public class TorneoAutoService {
 
     public Optional<Torneo> torneoAutoReciente() {
         LocalDateTime ventana = LocalDateTime.now().minusHours(VENTANA_HORAS);
-        return torneoRepository.findTorneoMasRecientePorNombrePrefixDesde(AUTO_NAME_PREFIX, ventana);
+        return torneoRepository.findTorneoAutoMasRecienteDesde(ventana)
+                .or(() -> torneoRepository.findTorneoMasRecientePorNombrePrefixDesde(AUTO_NAME_PREFIX, ventana));
     }
 
     /**
@@ -75,6 +81,12 @@ public class TorneoAutoService {
     @Transactional
     @CacheEvict(value = "torneos-resumen", allEntries = true)
     public Torneo generar(int tamano, boolean force) {
+        return generar(tamano, force, null);
+    }
+
+    @Transactional
+    @CacheEvict(value = "torneos-resumen", allEntries = true)
+    public Torneo generar(int tamano, boolean force, String eventoSlug) {
         if (!enabled) {
             throw new IllegalStateException("Auto-generación de torneos deshabilitada (app.tournament.auto.enabled=false)");
         }
@@ -91,22 +103,19 @@ public class TorneoAutoService {
             }
         }
 
-        List<Personaje> seleccionados = personajeRepository.findRandom(tamano);
+        Optional<EventoTematico> evento = resolverEventoParaCopa(eventoSlug);
+        List<Personaje> seleccionados = evento
+                .map(e -> eventoTematicoService.seleccionarParticipantes(e, tamano))
+                .orElseGet(() -> personajeRepository.findRandom(tamano));
         if (seleccionados.size() < tamano) {
             throw new IllegalStateException(
-                    "BBDD tiene " + seleccionados.size() + " personajes, insuficientes para torneo de " + tamano);
+                    "El filtro del evento tiene " + seleccionados.size()
+                            + " personajes, insuficientes para torneo de " + tamano);
         }
 
-        long autoCount = torneoRepository.countByNombrePrefix(AUTO_NAME_PREFIX) + 1;
-        String nombre = AUTO_NAME_PREFIX + autoCount;
-        // Slug determinista por contador (siempre incrementa con countByNombrePrefix),
-        // así no necesitamos iterar para garantizar unicidad como TorneoService.crear.
-        String slug = "random-showdown-" + autoCount;
-        Torneo torneo = new Torneo(
-                slug,
-                nombre,
-                "Torneo automático de la comunidad con " + tamano
-                        + " personajes seleccionados al azar para mantener la arena activa.");
+        Torneo torneo = evento
+                .map(e -> torneoTematico(e, tamano))
+                .orElseGet(() -> torneoRandom(tamano));
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setFechaInicio(LocalDateTime.now());
         Torneo guardado = torneoRepository.save(torneo);
@@ -117,10 +126,11 @@ public class TorneoAutoService {
         // scheduler de avance (commit 4.5) o el admin cierren las rondas.
         List<Enfrentamiento> enfs = bracketService.crearBracket(guardado, seleccionados);
 
-        log.info("Auto-torneo {} creado (id={}, tamaño={}, matches_totales={}, slugs={})",
+        log.info("Auto-torneo {} creado (id={}, tamaño={}, evento={}, matches_totales={}, slugs={})",
                 guardado.getNombre(),
                 guardado.getId(),
                 tamano,
+                guardado.getEventoSlug(),
                 enfs.size(),
                 seleccionados.stream().map(Personaje::getSlug).toList());
 
@@ -137,6 +147,54 @@ public class TorneoAutoService {
         }
 
         return guardado;
+    }
+
+    private Optional<EventoTematico> resolverEventoParaCopa(String eventoSlug) {
+        if (eventoSlug != null && !eventoSlug.isBlank()) {
+            return Optional.of(eventoTematicoService.buscarActivoParaCopa(eventoSlug)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Evento no encontrado o sin cup activa: " + eventoSlug)));
+        }
+        return eventoTematicoService.eventoActivoParaCopa(LocalDateTime.now());
+    }
+
+    private Torneo torneoTematico(EventoTematico evento, int tamano) {
+        long autoCount = torneoRepository.countAutoGeneradosByEventoSlug(evento.getSlug()) + 1;
+        String nombreBase = evento.getCupNombre() == null || evento.getCupNombre().isBlank()
+                ? evento.getTitulo()
+                : evento.getCupNombre().trim();
+        String nombre = nombreBase + " #" + autoCount;
+        String slugBase = SlugUtil.slugify(nombreBase) + "-" + autoCount;
+        Torneo torneo = new Torneo(slugDisponible(slugBase), nombre,
+                "Copa temática generada desde el evento " + evento.getTitulo()
+                        + " con " + tamano + " participantes filtrados por campaña.");
+        torneo.setAutoGenerado(true);
+        torneo.setEventoSlug(evento.getSlug());
+        torneo.setAutoOrigen("EVENTO");
+        return torneo;
+    }
+
+    private Torneo torneoRandom(int tamano) {
+        long autoCount = torneoRepository.countByNombrePrefix(AUTO_NAME_PREFIX) + 1;
+        String nombre = AUTO_NAME_PREFIX + autoCount;
+        Torneo torneo = new Torneo(
+                slugDisponible("random-showdown-" + autoCount),
+                nombre,
+                "Torneo automático de la comunidad con " + tamano
+                        + " personajes seleccionados al azar para mantener la arena activa.");
+        torneo.setAutoGenerado(true);
+        torneo.setAutoOrigen("RANDOM");
+        return torneo;
+    }
+
+    private String slugDisponible(String base) {
+        String slug = base;
+        int suffix = 2;
+        while (torneoRepository.existsBySlug(slug)) {
+            slug = base + "-" + suffix;
+            suffix++;
+        }
+        return slug;
     }
 
     private static List<String> indexNowUrlsParaTorneo(Torneo torneo, List<Personaje> participantes) {

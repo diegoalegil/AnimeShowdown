@@ -150,6 +150,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/torneos/mios").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/eventos/**").permitAll()
                         // Torneos creados por usuario verificado.
                         // POST /mio es autenticado normal; el service valida
                         // la verificación de email. El resto de POST/PUT/DELETE

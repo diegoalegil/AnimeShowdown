@@ -20,6 +20,8 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
+import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
+import { useEventosRuntime } from '../hooks/useEventosRuntime'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeImg from '../components/PersonajeImg'
@@ -47,7 +49,12 @@ import NotFoundPage from './NotFoundPage'
  */
 function EventoDetailPage() {
   const { slug } = useParams()
-  const evento = useMemo(() => getEventoPorSlug(slug), [slug])
+  const eventosQuery = useEventosRuntime()
+  const { data: catalogoPersonajes = [] } = useCatalogoPersonajes()
+  const evento = useMemo(
+    () => getEventoPorSlug(slug, eventosQuery.eventos),
+    [slug, eventosQuery.eventos],
+  )
 
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
@@ -66,13 +73,14 @@ function EventoDetailPage() {
       : { title: 'Evento no encontrado', noindex: true },
   )
 
+  if (!evento && eventosQuery.isFetching) return null
   if (!evento) return <NotFoundPage />
 
   const estado = getEstadoEvento(evento, now)
   const msRestantes = getMsRestantes(evento, now)
   const restante = formatRestante(msRestantes)
 
-  const participantes = getPersonajesEvento(evento)
+  const participantes = getPersonajesEvento(evento, catalogoPersonajes)
     .map((p) => ({ ...p, ...getStatsPersonaje(p.slug) }))
     .sort((a, b) => b.elo - a.elo)
 

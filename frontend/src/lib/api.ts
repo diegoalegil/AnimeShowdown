@@ -822,6 +822,7 @@ export const endpoints: EndpointMap = {
     if (semanaIso) params.set('semanaIso', semanaIso)
     return api.get(`/api/fantasy/leaderboard?${params}`, { auth: false })
   },
+  eventos: () => api.get('/api/eventos', { auth: false, timeoutMs: 5000 }),
   // Newsletter con double opt-in.
   suscribirNewsletter: (email) =>
     api.post('/api/newsletter', { email }, { auth: false }),

@@ -11,6 +11,8 @@ import {
   getPersonajesEvento,
 } from '../../../../data/eventos'
 import { getEventVisual } from '../../../../data/visual-assets'
+import { useCatalogoPersonajes } from '../../../../hooks/useCatalogoPersonajes'
+import { useEventosRuntime } from '../../../../hooks/useEventosRuntime'
 
 /**
  * Banner del evento "headline". Muestra el
@@ -20,18 +22,20 @@ import { getEventVisual } from '../../../../data/visual-assets'
  */
 function EventoHeadlineBanner() {
   const [now, setNow] = useState(() => new Date())
+  const { eventos } = useEventosRuntime()
+  const { data: catalogoPersonajes = [] } = useCatalogoPersonajes()
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000)
     return () => clearInterval(id)
   }, [])
 
-  const evento = getEventoHeadline(now)
+  const evento = getEventoHeadline(now, eventos)
   if (!evento) return null
 
   const estado = getEstadoEvento(evento, now)
   const ms = getMsRestantes(evento, now)
   const restante = formatRestante(ms)
-  const participantes = getPersonajesEvento(evento).length
+  const participantes = getPersonajesEvento(evento, catalogoPersonajes).length
   const visual = getEventVisual(evento.slug, evento.titulo)
 
   const tonosBg = {

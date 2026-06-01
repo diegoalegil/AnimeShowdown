@@ -17,6 +17,8 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
 
     List<Personaje> findByAnime(String anime);
 
+    List<Personaje> findByAnimeIn(java.util.Collection<String> animes);
+
     Page<Personaje> findByAnime(String anime, Pageable pageable);
 
     @Query("SELECT p FROM Personaje p ORDER BY p.slug ASC")

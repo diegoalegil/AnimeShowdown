@@ -94,8 +94,8 @@ export function getEstadoEvento(evento, now = new Date()) {
 }
 
 /** Todos los activos en el momento del cálculo. Puede ser >1 simultáneo. */
-export function getEventosActivos(now = new Date()) {
-  return EVENTOS.filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.ACTIVO)
+export function getEventosActivos(now = new Date(), eventos = EVENTOS) {
+  return eventos.filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.ACTIVO)
 }
 
 /**
@@ -103,29 +103,29 @@ export function getEventosActivos(now = new Date()) {
  * o el PROXIMO más cercano si no. Null si no hay ni activo ni próximo
  * (el caller esconde la card en ese caso).
  */
-export function getEventoHeadline(now = new Date()) {
-  const activos = getEventosActivos(now)
+export function getEventoHeadline(now = new Date(), eventos = EVENTOS) {
+  const activos = getEventosActivos(now, eventos)
   if (activos.length > 0) return activos[0]
-  const proximos = EVENTOS
+  const proximos = eventos
     .filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.PROXIMO)
     .sort((a, b) => new Date(a.inicioISO) - new Date(b.inicioISO))
   return proximos[0] ?? null
 }
 
-export function getEventosProximos(now = new Date()) {
-  return EVENTOS
+export function getEventosProximos(now = new Date(), eventos = EVENTOS) {
+  return eventos
     .filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.PROXIMO)
     .sort((a, b) => new Date(a.inicioISO) - new Date(b.inicioISO))
 }
 
-export function getEventosPasados(now = new Date()) {
-  return EVENTOS
+export function getEventosPasados(now = new Date(), eventos = EVENTOS) {
+  return eventos
     .filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.PASADO)
     .sort((a, b) => new Date(b.finISO) - new Date(a.finISO))
 }
 
-export function getEventoPorSlug(slug) {
-  return EVENTOS.find((e) => e.slug === slug) ?? null
+export function getEventoPorSlug(slug, eventos = EVENTOS) {
+  return eventos.find((e) => e.slug === slug) ?? null
 }
 
 /**
@@ -142,7 +142,9 @@ export function getPersonajesEvento(evento, lista = personajes) {
     case 'animes':
       return lista.filter((p) => valor.includes(p.anime))
     case 'slugs':
-      return lista.filter((p) => valor.includes(p.slug))
+      return lista
+        .filter((p) => valor.includes(p.slug))
+        .sort((a, b) => valor.indexOf(a.slug) - valor.indexOf(b.slug))
     case 'categoria':
       return lista.filter((p) => getCategoriasPersonaje(p.slug).includes(valor))
     default:
