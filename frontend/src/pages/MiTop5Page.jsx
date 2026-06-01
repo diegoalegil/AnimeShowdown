@@ -62,6 +62,7 @@ function MiTop5Page() {
     description:
       'Elige tus 5 personajes anime favoritos o rellénalos desde tu ranking personal y exporta una imagen 1200×630 para compartir.',
     canonical: 'https://animeshowdown.dev/mi-top5',
+    noindex: true,
   })
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const [searchParams] = useSearchParams()

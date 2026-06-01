@@ -424,6 +424,7 @@ function App() {
               <Route path="/torneos/:slug" element={catalogAware(<TorneoDetailPage />)} />
               <Route path="/eventos" element={catalogAware(<EventosIndexPage />)} />
               <Route path="/eventos/:slug" element={catalogAware(<EventoDetailPage />)} />
+              <Route path="/versus/:par" element={catalogAware(<DueloVersusPage />)} />
               <Route path="/duelos/:par" element={catalogAware(<DueloVersusPage />)} />
               <Route path="/versus" element={<Navigate replace to="/comparar" />} />
               <Route path="/compare" element={<Navigate replace to="/comparar" />} />
