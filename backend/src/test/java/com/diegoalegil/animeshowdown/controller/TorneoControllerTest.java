@@ -101,6 +101,12 @@ class TorneoControllerTest {
         return token;
     }
 
+    private long personajeId(String slug) {
+        return personajeRepository.findBySlug(slug)
+                .orElseThrow(() -> new IllegalStateException("Personaje seedeado no encontrado: " + slug))
+                .getId();
+    }
+
     @Test
     void getTorneosEsPublico() throws Exception {
         mvc.perform(get("/api/torneos"))
@@ -654,6 +660,81 @@ class TorneoControllerTest {
         mvc.perform(put("/api/torneos/" + id + "/finalizar")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void votarUltimoMatchDeRondaPropagaFinalAutomaticamente() throws Exception {
+        String adminToken = tokenAdmin();
+        long luffy = personajeId("luffy");
+        long zoro = personajeId("zoro");
+        long naruto = personajeId("naruto");
+        long sasuke = personajeId("sasuke");
+
+        MvcResult resT = mvc.perform(post("/api/torneos")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "nombre", "Torneo Auto Advance",
+                        "descripcion", "Test avance automatico"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        Long torneoId = json.readTree(resT.getResponse().getContentAsString()).get("id").asLong();
+
+        mvc.perform(put("/api/torneos/" + torneoId + "/iniciar")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of(
+                        "participantesIds", List.of(luffy, zoro, naruto, sasuke)))))
+                .andExpect(status().isOk());
+
+        JsonNode detalle = json.readTree(mvc.perform(get("/api/torneos/" + torneoId))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+        List<JsonNode> ronda1 = new java.util.ArrayList<>();
+        for (JsonNode e : detalle.get("enfrentamientos")) {
+            if (e.get("ronda").asInt() == 1) {
+                ronda1.add(e);
+            }
+        }
+        org.junit.jupiter.api.Assertions.assertEquals(2, ronda1.size());
+
+        long unique = Math.abs(System.nanoTime() % 1_000_000_000L);
+        String userToken = tokenUserRegistrado(
+                "auto_adv_" + unique,
+                "auto_advance_" + unique + "@example.com");
+        for (JsonNode match : ronda1) {
+            mvc.perform(post("/api/enfrentamientos/" + match.get("id").asLong() + "/votar")
+                    .header("Authorization", "Bearer " + userToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(Map.of(
+                            "personajeGanadorId", match.get("personaje1").get("id").asLong()))))
+                    .andExpect(status().isOk());
+        }
+
+        JsonNode detallePostVoto = json.readTree(mvc.perform(get("/api/torneos/" + torneoId))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+        JsonNode finalMatch = null;
+        for (JsonNode e : detallePostVoto.get("enfrentamientos")) {
+            if (e.get("ronda").asInt() == 2) {
+                finalMatch = e;
+                break;
+            }
+        }
+        org.junit.jupiter.api.Assertions.assertNotNull(finalMatch, "El bracket de 4 debe tener final en ronda 2");
+        org.junit.jupiter.api.Assertions.assertFalse(finalMatch.get("personaje1").isNull());
+        org.junit.jupiter.api.Assertions.assertFalse(finalMatch.get("personaje2").isNull());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                ronda1.get(0).get("personaje1").get("id").asLong(),
+                finalMatch.get("personaje1").get("id").asLong());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                ronda1.get(1).get("personaje1").get("id").asLong(),
+                finalMatch.get("personaje2").get("id").asLong());
+        org.junit.jupiter.api.Assertions.assertEquals("IN_PROGRESS", detallePostVoto.get("estado").asText());
     }
 
     /**
