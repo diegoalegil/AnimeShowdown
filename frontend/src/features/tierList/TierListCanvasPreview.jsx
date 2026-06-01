@@ -176,10 +176,10 @@ async function renderTierListCanvas(ctx, { titulo, rows }) {
   ctx.fillRect(0, 0, 1200, 630)
 
   ctx.fillStyle = TOP5_CANVAS_THEME.text
-  ctx.font = 'bold 54px Geist, system-ui, sans-serif'
+  ctx.font = 'bold 54px system-ui, sans-serif'
   ctx.fillText(truncate(ctx, titulo || 'Tier list anime', 820), 60, 78)
   ctx.fillStyle = TOP5_CANVAS_THEME.muted
-  ctx.font = '22px Geist, system-ui, sans-serif'
+  ctx.font = '22px system-ui, sans-serif'
   ctx.fillText('AnimeShowdown · animeshowdown.dev', 60, 116)
 
   const startY = 150
@@ -203,7 +203,7 @@ async function renderTierListCanvas(ctx, { titulo, rows }) {
     ctx.fillStyle = tier === 'S' ? TOP5_CANVAS_THEME.accent : TOP5_CANVAS_THEME.watermark
     ctx.fillRect(60, y, labelW, rowH)
     ctx.fillStyle = TOP5_CANVAS_THEME.text
-    ctx.font = tier === 'BANCA' ? 'bold 24px Geist, system-ui, sans-serif' : 'bold 34px Geist, system-ui, sans-serif'
+    ctx.font = tier === 'BANCA' ? 'bold 24px system-ui, sans-serif' : 'bold 34px system-ui, sans-serif'
     ctx.fillText(TIER_LABEL[tier], 82, y + 46)
 
     const personajes = rows[tier] ?? []
@@ -222,13 +222,13 @@ async function renderTierListCanvas(ctx, { titulo, rows }) {
     }
     if (personajes.length > maxCards) {
       ctx.fillStyle = TOP5_CANVAS_THEME.text
-      ctx.font = 'bold 24px Geist, system-ui, sans-serif'
+      ctx.font = 'bold 24px system-ui, sans-serif'
       ctx.fillText(`+${personajes.length - maxCards}`, 176 + maxCards * (cardW + cardGap), y + 46)
     }
   }
 
   ctx.fillStyle = TOP5_CANVAS_THEME.watermark
-  ctx.font = '18px Geist, system-ui, sans-serif'
+  ctx.font = '18px system-ui, sans-serif'
   ctx.fillText('animeshowdown.dev', 60, 600)
 }
 
