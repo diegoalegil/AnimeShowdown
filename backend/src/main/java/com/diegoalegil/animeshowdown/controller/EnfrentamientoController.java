@@ -17,14 +17,17 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,12 +38,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
+import com.diegoalegil.animeshowdown.dto.CategoriaVotoRequest;
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeMiniDto;
 import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
-import com.diegoalegil.animeshowdown.dto.CategoriaVotoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoRegistradoDto;
+import com.diegoalegil.animeshowdown.event.EnfrentamientoVotadoEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.model.CategoriaVoto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
@@ -55,11 +59,9 @@ import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.TurnstileVerifierService;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.beans.factory.annotation.Value;
+import com.diegoalegil.animeshowdown.service.PersonajeVotoScoreService;
+import com.diegoalegil.animeshowdown.service.VotoStatsService;
+import com.diegoalegil.animeshowdown.service.VotoStatsService.VotoStatsSnapshot;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,10 +86,12 @@ public class EnfrentamientoController {
     private final SimpMessagingTemplate messaging;
     private final ApplicationEventPublisher eventPublisher;
     private final AnimeShowdownMetrics metrics;
+    private final VotoStatsService votoStatsService;
     private final AnonymousIdentityService anonymousIdentityService;
     private final TurnstileVerifierService turnstileVerifier;
     private final AnonymousAbuseThrottleService abuseThrottle;
     private final ClientIpExtractor clientIpExtractor;
+    private final PersonajeVotoScoreService personajeVotoScoreService;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
     private final boolean cookieSecure;
@@ -97,10 +101,12 @@ public class EnfrentamientoController {
             @Autowired(required = false) SimpMessagingTemplate messaging,
             ApplicationEventPublisher eventPublisher,
             AnimeShowdownMetrics metrics,
+            VotoStatsService votoStatsService,
             AnonymousIdentityService anonymousIdentityService,
             TurnstileVerifierService turnstileVerifier,
             AnonymousAbuseThrottleService abuseThrottle,
             ClientIpExtractor clientIpExtractor,
+            PersonajeVotoScoreService personajeVotoScoreService,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
@@ -108,10 +114,12 @@ public class EnfrentamientoController {
         this.votoRepository = votoRepository;
         this.messaging = messaging;
         this.eventPublisher = eventPublisher;
+        this.votoStatsService = votoStatsService;
         this.anonymousIdentityService = anonymousIdentityService;
         this.turnstileVerifier = turnstileVerifier;
         this.abuseThrottle = abuseThrottle;
         this.clientIpExtractor = clientIpExtractor;
+        this.personajeVotoScoreService = personajeVotoScoreService;
         this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
@@ -175,6 +183,7 @@ public class EnfrentamientoController {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "votos-ranking", allEntries = true),
+            @CacheEvict(value = "cartas-votos-score", allEntries = true),
             @CacheEvict(value = "ranking-movimientos", allEntries = true),
             @CacheEvict(value = "personaje-elo-history", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
@@ -184,7 +193,7 @@ public class EnfrentamientoController {
             @AuthenticationPrincipal Usuario usuario,
             HttpServletRequest httpRequest) {
 
-        Optional<Enfrentamiento> enfOpt = enfrentamientoRepository.findById(id);
+        Optional<Enfrentamiento> enfOpt = enfrentamientoRepository.findByIdForUpdate(id);
         if (enfOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -241,6 +250,7 @@ public class EnfrentamientoController {
             }
         }
 
+        long votosAnonimosUsados = 0;
         if (usuario != null) {
             if (votoRepository.existsByEnfrentamientoAndUsuario(enf, usuario)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -279,7 +289,7 @@ public class EnfrentamientoController {
                                 "provider", "turnstile",
                                 "sitekey", turnstileSitekey));
             }
-            long votosAnonimosUsados = votoRepository.countByAnonSessionId(anon.sessionId());
+            votosAnonimosUsados = votoRepository.countByAnonSessionId(anon.sessionId());
             if (votosAnonimosUsados >= ANON_VOTE_LIMIT) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                         .header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString())
@@ -313,21 +323,14 @@ public class EnfrentamientoController {
             voto.setCategoria(categoria.getId());
         }
         Voto guardado = votoRepository.save(voto);
+        personajeVotoScoreService.registrar(guardado);
         metrics.votoRegistrado();
+        VotoStatsSnapshot stats = votoStatsService.registrar(guardado);
 
         Personaje p1 = enf.getPersonaje1();
         Personaje p2 = enf.getPersonaje2();
-        // Counts post-voto. Para el ganador es el total real; para el
-        // perdedor es el mismo que pre-voto. Los reutilizamos para el push
-        // WS para no hacer dos rondas a la BBDD.
-        double votosP1 = votoRepository.scoreByEnfrentamientoAndPersonaje(enf, p1);
-        double votosP2 = votoRepository.scoreByEnfrentamientoAndPersonaje(enf, p2);
-        // además del conteo físico
-        // publicamos la suma ponderada (peso 0.3 anónimo / 1.0 registrado)
-        // para que el frontend reordene la caché live por la misma métrica
-        // que el ORDER BY del ranking REST.
-        Double pesoTotalesGanador = empate ? null : votoRepository.sumaPesoByPersonajeId(ganador.getId());
-        double votosTotalesGanador = empate ? 0.0 : votoRepository.countByPersonajeId(ganador.getId());
+        double votosP1 = stats.scoreDe(p1);
+        double votosP2 = stats.scoreDe(p2);
         Personaje perdedor = empate ? null : (ganador.getId().equals(p1.getId()) ? p2 : p1);
         double votosGanador = empate ? votosP1 : (ganador.getId().equals(p1.getId()) ? votosP1 : votosP2);
         double votosPerdedor = empate ? votosP2 : (perdedor.getId().equals(p1.getId()) ? votosP1 : votosP2);
@@ -336,19 +339,23 @@ public class EnfrentamientoController {
         // torneo. Los clientes viendo /torneos/{slug} actualizan el bracket
         // sin esperar al polling. Best-effort: si falla no afecta al voto.
         publicarBracketUpdate(enf, p1, votosP1, p2, votosP2);
-        // además del total ponderado pasamos
-        // el peso del voto RECIÉN registrado (0.30 anónimo / 1.00 registrado).
-        // El frontend lo SUMA al pesoVotos de las cachés temporales (mes,
-        // trimestre, año). Sin esto, el hook restaba pesoVotos absoluto
-        // contra el de la caché temporal y contaminaba la ventana con el
-        // histórico — un personaje con 150 pesoVotos all-time y 2 mensuales
-        // saltaba a 151 en la caché mensual hasta el siguiente refetch.
+        // Además del total ponderado pasamos el peso del voto recién registrado.
+        // En empates se emite un delta por participante (0.5 visible por lado
+        // y peso 0.5 registrado / 0.15 anónimo), así ranking, historial y WS
+        // comparten la misma semántica.
         double pesoVotoRegistrado = guardado.getPeso() == null
                 ? 1.0
                 : guardado.getPeso().doubleValue();
-        if (!empate) {
-            publicarRankingDelta(ganador, votosTotalesGanador, pesoTotalesGanador,
-                    pesoVotoRegistrado);
+        if (empate) {
+            for (var delta : stats.deltas()) {
+                var totales = stats.statsDe(delta.personaje());
+                publicarRankingDelta(delta.personaje(), totales.votosScore(), totales.pesoVotos(),
+                        delta.votosScoreDouble(), delta.pesoVotosDouble());
+            }
+        } else {
+            var totalesGanador = stats.statsDe(ganador);
+            publicarRankingDelta(ganador, totalesGanador.votosScore(), totalesGanador.pesoVotos(),
+                    1.0, pesoVotoRegistrado);
         }
 
         // Evento de dominio. BadgeEventListener escucha tras
@@ -357,11 +364,12 @@ public class EnfrentamientoController {
         if (usuario != null) {
             eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador));
         }
+        eventPublisher.publishEvent(new EnfrentamientoVotadoEvent(enf.getTorneo().getId(), enf.getId()));
 
         Integer votosAnonimosRestantes = null;
         if (usuario == null) {
             votosAnonimosRestantes = Math.max(0,
-                    ANON_VOTE_LIMIT - (int) votoRepository.countByAnonSessionId(anon.sessionId()));
+                    ANON_VOTE_LIMIT - (int) (votosAnonimosUsados + 1));
         }
 
         VotoRegistradoDto dto = new VotoRegistradoDto(
@@ -470,21 +478,21 @@ public class EnfrentamientoController {
         }
     }
 
-    private void publicarRankingDelta(Personaje ganador, double votosTotalesGanador,
-            Double pesoTotalesGanador, double pesoVotoRegistrado) {
-        if (messaging == null || ganador == null) return;
+    private void publicarRankingDelta(Personaje personaje, double votosTotales,
+            Double pesoTotales, double deltaScore, double deltaPeso) {
+        if (messaging == null || personaje == null) return;
         try {
             // payload incluye:
             //   - pesoVotos: total ponderado all-time (para periodo='all').
-            //   - deltaPeso: peso del voto recién emitido (0.3 / 1.0). El
+            //   - deltaPeso: peso del voto recién emitido. El
             //     frontend lo suma a las cachés temporales, evitando
             //     contaminarlas con el total absoluto.
-            var ev = new RankingDeltaEvent(PersonajeMiniDto.from(ganador),
-                    votosTotalesGanador, 1, pesoTotalesGanador, pesoVotoRegistrado);
+            var ev = new RankingDeltaEvent(PersonajeMiniDto.from(personaje),
+                    votosTotales, deltaScore, pesoTotales, deltaPeso);
             messaging.convertAndSend("/topic/ranking-delta", ev);
         } catch (Exception e) {
             log.warn("Push WS ranking delta falló: personaje={} err={}",
-                    ganador.getSlug(), e.getMessage());
+                    personaje.getSlug(), e.getMessage());
         }
     }
 

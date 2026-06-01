@@ -1,17 +1,18 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import com.diegoalegil.animeshowdown.dto.ActividadItemDto;
 import com.diegoalegil.animeshowdown.dto.LogroDto;
@@ -20,6 +21,7 @@ import com.diegoalegil.animeshowdown.dto.PerfilStatsDto;
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.dto.VotoHistorialDto;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
+import com.diegoalegil.animeshowdown.model.DueloLiveEstado;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Prediccion;
@@ -27,14 +29,15 @@ import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioLogro;
 import com.diegoalegil.animeshowdown.model.Voto;
+import com.diegoalegil.animeshowdown.repository.DueloLiveRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
+
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Stats agregadas del usuario para el perfil.
@@ -53,6 +56,7 @@ public class PerfilService {
     private final SeguidorRepository seguidorRepository;
     private final TorneoRepository torneoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final DueloLiveRepository dueloLiveRepository;
     private final PasswordEncoder passwordEncoder;
     private final BadgeService badgeService;
     private final AuditLogService auditLogService;
@@ -63,6 +67,7 @@ public class PerfilService {
             SeguidorRepository seguidorRepository,
             TorneoRepository torneoRepository,
             UsuarioRepository usuarioRepository,
+            DueloLiveRepository dueloLiveRepository,
             PasswordEncoder passwordEncoder,
             BadgeService badgeService,
             AuditLogService auditLogService) {
@@ -72,6 +77,7 @@ public class PerfilService {
         this.seguidorRepository = seguidorRepository;
         this.torneoRepository = torneoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.dueloLiveRepository = dueloLiveRepository;
         this.passwordEncoder = passwordEncoder;
         this.badgeService = badgeService;
         this.auditLogService = auditLogService;
@@ -317,11 +323,11 @@ public class PerfilService {
      * Borra la cuenta del usuario.
      *
      * <p>Verifica password antes de proceder. La cascada del schema
-     * (V13) elimina datos derivados: refresh tokens, email verifications,
+     * (V13/V49) elimina datos derivados: refresh tokens, email verifications,
      * predicciones, logros, reacciones, notificaciones, follows, backup
-     * codes 2FA. Los votos se anonimizan (SET NULL) para preservar el
-     * agregado del ranking. Los torneos creados quedan con
-     * created_by_user_id=NULL (preservar el bracket público).
+     * codes 2FA. Los votos y referencias PvP se anonimizan (SET NULL) para
+     * preservar agregados/historial. Los torneos creados quedan con
+     * created_by_user_id=NULL (preservar el bracket publico).
      *
      * <p>Lanza {@link IllegalArgumentException} si la password no
      * coincide — el caller (controller) la traduce a 400.
@@ -334,6 +340,10 @@ public class PerfilService {
         if (!passwordEncoder.matches(passwordPlano, usuario.getPassword())) {
             throw new IllegalArgumentException("Password incorrecta");
         }
+        dueloLiveRepository.abandonarActivosDeUsuario(
+                usuario,
+                List.of(DueloLiveEstado.WAITING, DueloLiveEstado.MATCHED, DueloLiveEstado.IN_PROGRESS),
+                LocalDateTime.now());
         // registrar DESPUÉS de verificar password (sin
         // password válido no hay borrado y no debe haber audit), pero ANTES
         // del delete (el FK audit_log.usuario_id necesita una fila viva; la

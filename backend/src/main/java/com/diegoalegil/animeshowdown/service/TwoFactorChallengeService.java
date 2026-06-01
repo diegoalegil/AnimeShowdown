@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public class TwoFactorChallengeService {
         byte[] bytes = new byte[32];
         random.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        challenges.put(token, new Challenge(usuarioId, Instant.now().plus(TTL), new AtomicInteger(0)));
+        challenges.put(token, new Challenge(usuarioId, Instant.now().plus(TTL), 0));
         log.debug("2FA challenge emitido usuario={} ttl={}s", usuarioId, TTL.getSeconds());
         return new Resultado(token, TTL.getSeconds());
     }
@@ -78,10 +79,8 @@ public class TwoFactorChallengeService {
      */
     public Optional<Long> consumir(String token) {
         if (token == null || token.isBlank()) return Optional.empty();
-        Challenge c = challenges.getIfPresent(token);
+        Challenge c = challenges.asMap().remove(token);
         if (c == null) return Optional.empty();
-        // El consumo es one-shot — borramos siempre.
-        challenges.invalidate(token);
         return Optional.of(c.usuarioId());
     }
 
@@ -91,13 +90,24 @@ public class TwoFactorChallengeService {
      */
     public int registrarFallo(String token) {
         if (token == null || token.isBlank()) return 0;
-        Challenge c = challenges.getIfPresent(token);
-        if (c == null) return 0;
-        int intentos = c.intentos().incrementAndGet();
-        int restantes = Math.max(0, MAX_INTENTOS - intentos);
+        AtomicInteger restantesRef = new AtomicInteger(0);
+        AtomicReference<Long> usuarioIdRef = new AtomicReference<>();
+        challenges.asMap().computeIfPresent(token, (key, challenge) -> {
+            int intentos = challenge.intentos() + 1;
+            int restantes = Math.max(0, MAX_INTENTOS - intentos);
+            restantesRef.set(restantes);
+            usuarioIdRef.set(challenge.usuarioId());
+            if (restantes == 0) {
+                return null;
+            }
+            return new Challenge(challenge.usuarioId(), challenge.expiraEn(), intentos);
+        });
+        int restantes = restantesRef.get();
         if (restantes == 0) {
-            log.warn("2FA challenge invalidado por {} intentos fallidos usuario={}", MAX_INTENTOS, c.usuarioId());
-            challenges.invalidate(token);
+            Long usuarioId = usuarioIdRef.get();
+            if (usuarioId != null) {
+                log.warn("2FA challenge invalidado por {} intentos fallidos usuario={}", MAX_INTENTOS, usuarioId);
+            }
         }
         return restantes;
     }
@@ -109,5 +119,5 @@ public class TwoFactorChallengeService {
         return Optional.ofNullable(c).map(Challenge::usuarioId);
     }
 
-    private record Challenge(Long usuarioId, Instant expiraEn, AtomicInteger intentos) {}
+    private record Challenge(Long usuarioId, Instant expiraEn, int intentos) {}
 }

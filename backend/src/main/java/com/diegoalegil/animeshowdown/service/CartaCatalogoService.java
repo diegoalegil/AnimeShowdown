@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,7 @@ public class CartaCatalogoService {
      * exists por personaje en catálogos de cientos.
      */
     @Transactional
+    @CacheEvict(value = "cartas-catalogo", allEntries = true)
     public int sincronizarDesdePersonajes() {
         List<Personaje> personajes = personajeRepository.findAll();
         Set<Long> conCartaSsr = new HashSet<>(
@@ -79,6 +81,7 @@ public class CartaCatalogoService {
      * suben; el manifiesto apunta al WebP optimizado que sirve el frontend.
      */
     @Transactional
+    @CacheEvict(value = "cartas-catalogo", allEntries = true)
     public int sincronizarEspecialesCuradas() {
         List<CartaEspecialSeed> seeds = leerEspeciales();
         int tocadas = 0;

@@ -108,11 +108,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # Vitest unit tests + coverage. Sprint Auto 06 introduce el target
-      # 70% lines / 60% branches sobre src/lib/*. Los thresholds van
-      # escalonados por PR (06.1 entra con umbral mínimo 5% como
-      # smoke). Cada PR posterior sube el umbral en vitest.config.js
-      # antes de mergear.
+      # Vitest unit tests + coverage. Los thresholds viven en
+      # vitest.config.js y bloquean regresiones de cobertura en unidades
+      # productivas clave.
       #
       # --run fuerza modo no-watch (Vitest defaults a watch en TTY).
       - name: Unit tests + coverage

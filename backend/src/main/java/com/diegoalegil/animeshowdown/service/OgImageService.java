@@ -21,6 +21,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.dto.TopPersonajeItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
@@ -71,6 +75,8 @@ public class OgImageService {
 
     static final int ANCHO = 1200;
     static final int ALTO = 630;
+    static final int REMOTE_IMAGE_MAX_BYTES = 2_000_000;
+    static final long IMAGE_MAX_PIXELS = 4_000_000L;
     private static final int FOTO_ANCHO = 540;
     private static final int PADDING = 60;
 
@@ -95,6 +101,10 @@ public class OgImageService {
     private final SeguidorRepository seguidorRepository;
     private final TierListRepository tierListRepository;
     private final String imagesBaseUrl;
+    private final Cache<String, Boolean> imagenesFallidas = Caffeine.newBuilder()
+            .maximumSize(2048)
+            .expireAfterWrite(java.time.Duration.ofMinutes(10))
+            .build();
 
     public OgImageService(
             PersonajeRepository personajeRepository,
@@ -585,26 +595,64 @@ public class OgImageService {
         // http://169.254.169.254/... (metadata cloud) o http://127.0.0.1/...
         // y forzar al backend a pegarle. Solo se permiten http(s) y destinos
         // cuya IP REALMENTE resuelta es pública (ver SsrfGuard).
-        if (!SsrfGuard.isFetchAllowed(url)) {
-            log.warn("OgImageService bloqueó fetch a destino interno/no permitido (SSRF): {}", url);
+        String urlNormalizada = url == null ? "" : url.trim();
+        if (imagenesFallidas.getIfPresent(urlNormalizada) != null) {
+            return null;
+        }
+        if (!SsrfGuard.isFetchAllowed(urlNormalizada)) {
+            registrarFalloImagen(urlNormalizada,
+                    "destino interno/no permitido (SSRF)");
             return null;
         }
         try {
-            URL u = URI.create(url).toURL();
+            URL u = URI.create(urlNormalizada).toURL();
             java.net.URLConnection conn = u.openConnection();
+            conn.setConnectTimeout(3_000);
+            conn.setReadTimeout(5_000);
             // Sin seguir redirects: un 30x a una IP interna evadiría el guard.
             if (conn instanceof java.net.HttpURLConnection httpConn) {
                 httpConn.setInstanceFollowRedirects(false);
+                int status = httpConn.getResponseCode();
+                if (status < 200 || status >= 300) {
+                    registrarFalloImagen(urlNormalizada, "status HTTP " + status);
+                    return null;
+                }
             }
-            conn.setConnectTimeout(3_000);
-            conn.setReadTimeout(5_000);
+            long contentLength = conn.getContentLengthLong();
+            if (contentLength > REMOTE_IMAGE_MAX_BYTES) {
+                registrarFalloImagen(urlNormalizada, "Content-Length excede presupuesto");
+                return null;
+            }
+            String contentType = conn.getContentType();
+            if (contentType != null && !contentType.isBlank()
+                    && !contentType.toLowerCase(java.util.Locale.ROOT).startsWith("image/")) {
+                registrarFalloImagen(urlNormalizada, "Content-Type no es imagen");
+                return null;
+            }
             try (java.io.InputStream is = conn.getInputStream()) {
-                return ImageIO.read(is);
+                byte[] bytes = is.readNBytes(REMOTE_IMAGE_MAX_BYTES + 1);
+                if (bytes.length > REMOTE_IMAGE_MAX_BYTES) {
+                    registrarFalloImagen(urlNormalizada, "stream excede presupuesto");
+                    return null;
+                }
+                BufferedImage imagen = decodificarImagenSegura(bytes);
+                if (imagen == null) {
+                    registrarFalloImagen(urlNormalizada, "decode rechazado");
+                }
+                return imagen;
             }
         } catch (IOException e) {
-            log.warn("OgImageService no pudo leer imagen url={}: {}", url, e.getMessage());
+            registrarFalloImagen(urlNormalizada, e.getMessage());
             return null;
         }
+    }
+
+    private void registrarFalloImagen(String url, String motivo) {
+        if (url == null || url.isBlank()) {
+            return;
+        }
+        imagenesFallidas.put(url, Boolean.TRUE);
+        log.warn("OgImageService no leera imagen url={} motivo={}", url, motivo);
     }
 
     private void dibujarTexto(Graphics2D g, String tituloRaw, String subtitulo) {
@@ -735,13 +783,40 @@ public class OgImageService {
                 if (comma < 0 || comma == avatarUrl.length() - 1) return null;
                 String b64 = avatarUrl.substring(comma + 1).replaceAll("\\s", "");
                 byte[] bytes = Base64.getDecoder().decode(b64);
-                return ImageIO.read(new ByteArrayInputStream(bytes));
+                return decodificarImagenSegura(bytes);
             }
             String url = avatarUrl.startsWith("http") ? avatarUrl : imagesBaseUrl + avatarUrl;
             return leerImagen(url);
         } catch (Exception e) {
             log.warn("OgImageService.leerAvatar fallo: {}", e.getMessage());
             return null;
+        }
+    }
+
+    static BufferedImage decodificarImagenSegura(byte[] bytes) throws IOException {
+        if (bytes == null || bytes.length == 0 || bytes.length > REMOTE_IMAGE_MAX_BYTES) {
+            return null;
+        }
+        try (ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            if (iis == null) {
+                return null;
+            }
+            java.util.Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+            if (!readers.hasNext()) {
+                return null;
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(iis, true, true);
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+                if (width <= 0 || height <= 0 || (long) width * height > IMAGE_MAX_PIXELS) {
+                    return null;
+                }
+                return reader.read(0);
+            } finally {
+                reader.dispose();
+            }
         }
     }
 

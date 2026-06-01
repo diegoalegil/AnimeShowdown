@@ -144,6 +144,23 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             """)
     double countByPersonajeId(@Param("personajeId") Long personajeId);
 
+    /**
+     * Batch del score visible para decisiones PvP live. Evita dos agregados
+     * globales por ronda cuando solo necesitamos comparar A contra B.
+     */
+    @Query("""
+            SELECT p.id, cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND p.id IN :personajeIds
+            GROUP BY p.id
+            """)
+    List<Object[]> countByPersonajeIds(@Param("personajeIds") java.util.Collection<Long> personajeIds);
+
     /** Conteo físico de votos normales; excluye empate neutral (no mueve ELO). */
     @Query("""
             SELECT COUNT(v)
