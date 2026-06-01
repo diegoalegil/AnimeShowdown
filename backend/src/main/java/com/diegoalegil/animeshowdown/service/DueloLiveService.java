@@ -4,8 +4,11 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +108,7 @@ public class DueloLiveService {
                     "Cooldown PvP: máximo 10 duelos completados por hora");
         }
 
-        List<DueloLive> esperando = dueloRepository.findWaitingOrderByCreadoEn();
+        List<DueloLive> esperando = dueloRepository.findWaitingOrderByCreadoEnForUpdate();
         if (esperando.stream().anyMatch(d -> ip != null && ip.equals(d.getJugador1Ip())
                 && !d.getJugador1().getId().equals(jugador.getId()))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -243,12 +246,12 @@ public class DueloLiveService {
 
     private void mantenimientoLiveInternal() {
         LocalDateTime now = now();
-        for (DueloLive duelo : dueloRepository.findByEstadoIn(List.of(DueloLiveEstado.WAITING))) {
-            if (Duration.between(duelo.getCreadoEn(), now).getSeconds() >= fallbackAfterSeconds) {
-                prepararMatch(duelo, true);
-                dueloRepository.save(duelo);
-                emitirEstado(duelo, "MATCH_FOUND", "Rival encontrado");
-            }
+        LocalDateTime limiteFallback = now.minusSeconds(fallbackAfterSeconds);
+        for (DueloLive duelo : dueloRepository.findWaitingDueForUpdate(limiteFallback)) {
+            if (duelo.getEstado() != DueloLiveEstado.WAITING) continue;
+            prepararMatch(duelo, true);
+            dueloRepository.save(duelo);
+            emitirEstado(duelo, "MATCH_FOUND", "Rival encontrado");
         }
         for (DueloLiveRonda ronda : rondaRepository.findExpiradas(now.minusSeconds(WALKOVER_GRACE_SECONDS))) {
             if (ronda.getDuelo().getEstado() == DueloLiveEstado.IN_PROGRESS) {
@@ -298,7 +301,8 @@ public class DueloLiveService {
 
     private void resolverRonda(DueloLive duelo, DueloLiveRonda ronda, LocalDateTime now) {
         long started = System.nanoTime();
-        DueloLiveChoice correcta = decisionComunidad(ronda);
+        VoteScores scores = scoresComunidad(ronda);
+        DueloLiveChoice correcta = decisionComunidad(ronda, scores);
         ronda.setEleccionCorrecta(correcta);
         ronda.setCerradaEn(now);
         if (correcta == DueloLiveChoice.EMPATE) {
@@ -434,9 +438,25 @@ public class DueloLiveService {
                 walkover);
     }
 
-    private DueloLiveChoice decisionComunidad(DueloLiveRonda ronda) {
-        double a = votoRepository.countByPersonajeId(ronda.getPersonajeA().getId());
-        double b = votoRepository.countByPersonajeId(ronda.getPersonajeB().getId());
+    private VoteScores scoresComunidad(DueloLiveRonda ronda) {
+        Map<Long, Double> scores = votosPorPersonajeIds(List.of(
+                ronda.getPersonajeA().getId(),
+                ronda.getPersonajeB().getId()));
+        return new VoteScores(
+                scores.getOrDefault(ronda.getPersonajeA().getId(), 0.0),
+                scores.getOrDefault(ronda.getPersonajeB().getId(), 0.0));
+    }
+
+    private Map<Long, Double> votosPorPersonajeIds(Collection<Long> personajeIds) {
+        return votoRepository.countByPersonajeIds(personajeIds).stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> ((Number) row[1]).doubleValue()));
+    }
+
+    private DueloLiveChoice decisionComunidad(DueloLiveRonda ronda, VoteScores scores) {
+        double a = scores.a();
+        double b = scores.b();
         if (Double.compare(a, 0.0) == 0 && Double.compare(b, 0.0) == 0) {
             return ronda.getPersonajeA().getId() <= ronda.getPersonajeB().getId()
                     ? DueloLiveChoice.A
@@ -447,12 +467,10 @@ public class DueloLiveService {
     }
 
     private DueloLiveChoice votoBot(DueloLiveRonda ronda) {
-        DueloLiveChoice correcta = decisionComunidad(ronda);
+        VoteScores scores = scoresComunidad(ronda);
+        DueloLiveChoice correcta = decisionComunidad(ronda, scores);
         if (correcta == DueloLiveChoice.EMPATE) {
-            return votoRepository.countByPersonajeId(ronda.getPersonajeA().getId()) >=
-                    votoRepository.countByPersonajeId(ronda.getPersonajeB().getId())
-                    ? DueloLiveChoice.A
-                    : DueloLiveChoice.B;
+            return scores.a() >= scores.b() ? DueloLiveChoice.A : DueloLiveChoice.B;
         }
         if (botFallaRonda(ronda)) {
             return correcta == DueloLiveChoice.A ? DueloLiveChoice.B : DueloLiveChoice.A;
@@ -525,8 +543,6 @@ public class DueloLiveService {
             messaging.convertAndSendToUser(duelo.getJugador2().getUsername(), "/queue/duelo",
                     estadoPara(duelo, duelo.getJugador2(), event, message));
         }
-        messaging.convertAndSend("/topic/duelo/" + duelo.getId() + "/state",
-                estadoPara(duelo, duelo.getJugador1(), event, message));
     }
 
     private LocalDateTime now() {
@@ -536,4 +552,6 @@ public class DueloLiveService {
     private static long elapsedMs(long startedNano) {
         return Math.max(0, (System.nanoTime() - startedNano) / 1_000_000);
     }
+
+    private record VoteScores(double a, double b) {}
 }
