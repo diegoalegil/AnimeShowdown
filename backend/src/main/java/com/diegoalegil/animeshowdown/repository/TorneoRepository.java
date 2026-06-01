@@ -74,6 +74,13 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     /** Cola admin: pendientes en orden de llegada (FIFO). */
     List<Torneo> findByEstadoRevisionOrderByFechaCreacionAsc(EstadoRevision estado);
 
+    @Query("""
+            SELECT t.id FROM Torneo t
+            WHERE t.estado = com.diegoalegil.animeshowdown.model.EstadoTorneo.IN_PROGRESS
+            ORDER BY t.id ASC
+            """)
+    List<Long> findIdsEnCurso();
+
     /** Listado del propio creador, todos los estados, más recientes primero. */
     List<Torneo> findByCreadoPorOrderByFechaCreacionDesc(Usuario creador);
 
