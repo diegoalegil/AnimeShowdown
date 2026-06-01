@@ -49,6 +49,7 @@ import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
+import com.diegoalegil.animeshowdown.security.CookieCsrfOriginGuard;
 import com.diegoalegil.animeshowdown.security.JwtUtil;
 import com.diegoalegil.animeshowdown.security.LogSanitizer;
 import com.diegoalegil.animeshowdown.security.SsrfGuard;
@@ -100,6 +101,7 @@ public class AuthController {
     private final TotpBackupCodeService totpBackupCodeService;
     private final ReferralService referralService;
     private final ClientIpExtractor clientIpExtractor;
+    private final CookieCsrfOriginGuard cookieCsrfOriginGuard;
     private final ApplicationEventPublisher eventPublisher;
     private final boolean cookieSecure;
 
@@ -117,6 +119,7 @@ public class AuthController {
             TotpBackupCodeService totpBackupCodeService,
             ReferralService referralService,
             ClientIpExtractor clientIpExtractor,
+            CookieCsrfOriginGuard cookieCsrfOriginGuard,
             ApplicationEventPublisher eventPublisher,
             @Value("${app.refresh-token.cookie-secure:true}") boolean cookieSecure) {
         this.usuarioRepository = usuarioRepository;
@@ -132,6 +135,7 @@ public class AuthController {
         this.totpBackupCodeService = totpBackupCodeService;
         this.referralService = referralService;
         this.clientIpExtractor = clientIpExtractor;
+        this.cookieCsrfOriginGuard = cookieCsrfOriginGuard;
         this.eventPublisher = eventPublisher;
         this.cookieSecure = cookieSecure;
         log.info("AuthController arrancado con cookieSecure={}", cookieSecure);
@@ -176,6 +180,14 @@ public class AuthController {
         String ua = req.getHeader("User-Agent");
         if (ua == null) return null;
         return ua.length() > 500 ? ua.substring(0, 500) : ua;
+    }
+
+    private ResponseEntity<?> rechazarCookieCrossSite(HttpServletRequest request) {
+        log.warn(
+                "Petición con refresh cookie rechazada por origen no permitido: sourceOrigin={}",
+                cookieCsrfOriginGuard.sourceOrigin(request));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", "Origen no permitido para esta operación de sesión"));
     }
 
     @PostMapping("/registro")
@@ -431,6 +443,9 @@ public class AuthController {
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
                     .build();
         }
+        if (!cookieCsrfOriginGuard.isAllowed(httpRequest)) {
+            return rechazarCookieCrossSite(httpRequest);
+        }
         RefreshTokenService.ResultadoRotacion r = refreshTokenService.rotar(
                 refreshCookie, extraerUserAgent(httpRequest), clientIpExtractor.extract(httpRequest));
         return switch (r) {
@@ -478,7 +493,11 @@ public class AuthController {
     public ResponseEntity<?> logout(
             @CookieValue(name = REFRESH_COOKIE, required = false) String refreshCookie,
             @AuthenticationPrincipal Usuario usuario,
-        HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest) {
+        if (refreshCookie != null && !refreshCookie.isBlank()
+                && !cookieCsrfOriginGuard.isAllowed(httpRequest)) {
+            return rechazarCookieCrossSite(httpRequest);
+        }
         if (usuario != null) {
             int n = refreshTokenService.revocarTodos(usuario);
             usuario.incrementarTokenVersion();
