@@ -37,7 +37,7 @@ public class DueloLive {
     private DueloLiveEstado estado = DueloLiveEstado.WAITING;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "jugador1_id", nullable = false)
+    @JoinColumn(name = "jugador1_id")
     private Usuario jugador1;
 
     @ManyToOne(fetch = FetchType.LAZY)
