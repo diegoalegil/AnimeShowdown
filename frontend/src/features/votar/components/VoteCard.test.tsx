@@ -36,17 +36,29 @@ vi.mock('../../../components/PersonajeImg', () => ({
   default: ({
     alt,
     className,
+    fetchPriority,
+    fit,
     nombre,
+    position,
+    sizes,
   }: {
     alt?: string
     className?: string
+    fetchPriority?: string
+    fit?: string
     nombre?: string
+    position?: string
+    sizes?: string
   }) => (
     <span
       role="img"
       aria-label={alt}
       data-testid="personaje-img"
+      data-fetch-priority={fetchPriority}
+      data-fit={fit}
       data-nombre={nombre}
+      data-position={position}
+      data-sizes={sizes}
       className={className}
     />
   ),
@@ -154,5 +166,24 @@ describe('VoteCard blind mode', () => {
       'Opción izquierda',
     )
     expect(screen.getByTestId('personaje-img').className).toContain('brightness-0')
+  })
+})
+
+describe('VoteCard image policy', () => {
+  it('usa variantes acotadas y encuadre sin recorte en la carta visible', () => {
+    renderVoteCard({
+      personaje: {
+        ...personaje,
+        slug: 'sin-recorte',
+      },
+    })
+
+    expect(screen.getByTestId('personaje-img')).toHaveAttribute('data-fit', 'contain')
+    expect(screen.getByTestId('personaje-img')).toHaveAttribute('data-position', 'center')
+    expect(screen.getByTestId('personaje-img')).toHaveAttribute(
+      'data-sizes',
+      '(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px',
+    )
+    expect(screen.getByTestId('personaje-img')).toHaveAttribute('data-fetch-priority', 'high')
   })
 })

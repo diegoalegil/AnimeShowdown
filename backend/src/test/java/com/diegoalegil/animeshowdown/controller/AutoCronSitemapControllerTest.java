@@ -23,8 +23,8 @@ import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.TorneoAutoService;
 
 /**
- * Sprint Auto 06 PR 06.10 — cobertura de los controllers de auto-generación
- * de torneos (admin + cron) y del endpoint de datos del sitemap.
+ * Cobertura de los controllers de auto-generación de torneos (admin + cron) y
+ * del endpoint de datos del sitemap.
  *
  * <p>El happy-path con audit de {@code AutoTorneoController.autoGenerar} ya lo
  * cubre {@code AdminAuditControllerTest}; aquí cubrimos las ramas restantes

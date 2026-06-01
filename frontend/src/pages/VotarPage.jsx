@@ -1116,7 +1116,12 @@ function VotarPage() {
 
         {tieSelected && a && b && (
           <div className="flex flex-col items-center gap-3 rounded-lg border border-gold/30 bg-gold-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div className="min-w-0 flex-1">
+            <div
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              className="min-w-0 flex-1"
+            >
               <p className="text-sm font-black text-fg-strong">
                 No pudiste decidir entre {a.nombre} y {b.nombre}.
               </p>
@@ -1143,7 +1148,12 @@ function VotarPage() {
 
         {votedPersonaje && (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div className="min-w-0 flex-1">
+            <div
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              className="min-w-0 flex-1"
+            >
               <p className="text-sm font-black text-fg-strong">
                 {votedPersonaje.nombre} ganó tu duelo.
               </p>

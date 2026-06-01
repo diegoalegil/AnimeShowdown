@@ -14,9 +14,10 @@ package com.diegoalegil.animeshowdown.dto;
  *   <li>{@code pesoVotos}: total all-time PONDERADO del personaje
  *       (SUM(v.peso)). El frontend lo usa para reemplazar el valor en
  *       la caché del periodo='all'.</li>
- *   <li>{@code deltaPeso}: peso del voto RECIÉN registrado (0.30 anónimo,
- *       1.00 registrado). El frontend lo SUMA al pesoVotos de la caché
- *       en ventanas temporales (mes, trimestre, año). Antes el hook
+ *   <li>{@code deltaPeso}: peso del voto RECIÉN registrado (1.00 registrado,
+ *       0.30 anónimo; en empate se reparte como 0.50/0.15 por participante).
+ *       El frontend lo SUMA al pesoVotos de la caché en ventanas temporales
+ *       (mes, trimestre, año). Antes el hook
  *       restaba pesoVotos absoluto contra el de la caché temporal y
  *       contaminaba el ranking mensual con totales históricos.</li>
  * </ul>

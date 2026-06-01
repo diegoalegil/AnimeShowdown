@@ -8,6 +8,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,11 +25,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.diegoalegil.animeshowdown.dto.PerfilStatsDto;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
+import com.diegoalegil.animeshowdown.model.DueloLiveEstado;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Prediccion;
 import com.diegoalegil.animeshowdown.model.Rol;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.Voto;
+import com.diegoalegil.animeshowdown.repository.DueloLiveRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.SeguidorRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
@@ -48,6 +51,7 @@ class PerfilServiceTest {
     @Mock private SeguidorRepository seguidorRepository;
     @Mock private TorneoRepository torneoRepository;
     @Mock private UsuarioRepository usuarioRepository;
+    @Mock private DueloLiveRepository dueloLiveRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private BadgeService badgeService;
     @Mock private AuditLogService auditLogService;
@@ -64,6 +68,7 @@ class PerfilServiceTest {
                 seguidorRepository,
                 torneoRepository,
                 usuarioRepository,
+                dueloLiveRepository,
                 passwordEncoder,
                 badgeService,
                 auditLogService);
@@ -248,6 +253,8 @@ class PerfilServiceTest {
             Usuario u = makeUsuario(1L, "u");
             assertThrows(IllegalArgumentException.class,
                     () -> service.eliminarCuenta(u, null, request));
+
+            Mockito.verifyNoInteractions(dueloLiveRepository);
         }
 
         @Test
@@ -255,6 +262,8 @@ class PerfilServiceTest {
             Usuario u = makeUsuario(1L, "u");
             assertThrows(IllegalArgumentException.class,
                     () -> service.eliminarCuenta(u, "  ", request));
+
+            Mockito.verifyNoInteractions(dueloLiveRepository);
         }
 
         @Test
@@ -267,6 +276,7 @@ class PerfilServiceTest {
                     () -> service.eliminarCuenta(u, "wrongpw", request));
 
             assertThat(ex.getMessage()).contains("incorrecta");
+            Mockito.verifyNoInteractions(dueloLiveRepository);
         }
 
         @Test
@@ -284,6 +294,12 @@ class PerfilServiceTest {
                             map.containsKey("username") &&
                             "todelete".equals(map.get("username"))),
                     eq(request));
+            verify(dueloLiveRepository).abandonarActivosDeUsuario(
+                    eq(u),
+                    eq(List.of(DueloLiveEstado.WAITING,
+                            DueloLiveEstado.MATCHED,
+                            DueloLiveEstado.IN_PROGRESS)),
+                    any(LocalDateTime.class));
             verify(usuarioRepository).delete(u);
         }
 

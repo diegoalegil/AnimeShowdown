@@ -80,9 +80,10 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
       // El backend manda cuatro métricas para mantener la caché live alineada
       // con el ORDER BY del REST sin contaminar ventanas temporales:
       //   - votos: total físico all-time (COUNT). Para mostrar al usuario.
-      //   - delta: votos físicos añadidos (siempre 1 hoy).
+      //   - delta: score visible añadido (1 normal, 0.5 por lado en empate).
       //   - pesoVotos: total ponderado all-time (SUM(peso)).
-      //   - deltaPeso: peso del voto recién emitido (0.3 anon / 1.0 reg).
+      //   - deltaPeso: peso del voto recién emitido (0.3/1.0 normal;
+      //     0.15/0.5 por lado en empate).
       // Para periodo='all' usamos los TOTALES absolutos del backend.
       // Para ventanas temporales (mes/trimestre/año) usamos los INCREMENTOS
       // (delta y deltaPeso) sobre el valor actual de la caché — antes

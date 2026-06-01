@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.diegoalegil.animeshowdown.model.PushSubscription;
+import com.diegoalegil.animeshowdown.security.WebPushEndpointGuard;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import nl.martijndwars.webpush.Notification;
@@ -26,13 +27,16 @@ public class WebPushService {
     private final String publicKey;
     private final PushService pushService;
     private final boolean enabled;
+    private final WebPushEndpointGuard endpointGuard;
 
     public WebPushService(
             ObjectMapper objectMapper,
             @Value("${app.push.vapid.public-key:}") String publicKey,
             @Value("${app.push.vapid.private-key:}") String privateKey,
-            @Value("${app.push.vapid.subject:mailto:diegogildam@gmail.com}") String subject) {
+            @Value("${app.push.vapid.subject:mailto:diegogildam@gmail.com}") String subject,
+            WebPushEndpointGuard endpointGuard) {
         this.objectMapper = objectMapper;
+        this.endpointGuard = endpointGuard;
         this.publicKey = sanitize(publicKey);
         String privateKeyClean = sanitize(privateKey);
         if (this.publicKey.isBlank() || privateKeyClean.isBlank()) {
@@ -63,6 +67,9 @@ public class WebPushService {
     }
 
     public WebPushResult enviar(PushSubscription subscription, WebPushPayload payload) {
+        if (subscription == null || !endpointGuard.isAllowed(subscription.getEndpoint())) {
+            return WebPushResult.blocked();
+        }
         if (!enabled || pushService == null) {
             return WebPushResult.disabled();
         }
@@ -99,6 +106,10 @@ public class WebPushService {
     public record WebPushResult(boolean attempted, int statusCode, boolean removeSubscription) {
         static WebPushResult disabled() {
             return new WebPushResult(false, 0, false);
+        }
+
+        static WebPushResult blocked() {
+            return new WebPushResult(false, 0, true);
         }
 
         static WebPushResult failed() {

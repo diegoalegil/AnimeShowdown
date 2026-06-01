@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import { Toaster } from 'sonner'
@@ -17,24 +17,10 @@ import RequireCatalog from './components/RequireCatalog'
 import PageSkeleton from './components/PageSkeleton'
 import { useCatalogoPersonajes } from './hooks/useCatalogoPersonajes'
 import { shouldGateCatalogRoute } from './lib/catalog-route-policy'
+import { lazyRoute } from './lib/lazyRoute'
+import { getRouteSkeletonReserve } from './lib/routeSkeletonPolicy'
 import { recoverFromStaleAssetError } from './lib/staleAssetRecovery'
 import i18n from './lib/i18n'
-
-function lazyRoute(importer) {
-  return lazy(() =>
-    importer()
-        .then((module) => {
-          if (module?.default) return module
-          const error = new TypeError("Cannot read properties of undefined (reading 'default')")
-          if (recoverFromStaleAssetError(error)) return new Promise(() => {})
-          throw error
-        })
-        .catch((error) => {
-          if (recoverFromStaleAssetError(error)) return new Promise(() => {})
-          throw error
-        }),
-  )
-}
 
 // Todas las rutas, incluida home, van detrás de React.lazy. InicioPage
 // importa el catálogo estático y varias secciones visuales pesadas; si se
@@ -226,20 +212,6 @@ function useQueryLanguageSync(search) {
 
     i18n.changeLanguage(requestedLang).catch(() => {})
   }, [search])
-}
-
-// Reserva de altura por ruta (anti-CLS): el esqueleto y, después, la página
-// real arrancan con esta min-height para que el swap no provoque saltos de
-// layout. Medidas tomadas sobre la altura real de cada página larga.
-function getRouteSkeletonReserve(pathname) {
-  if (pathname === '/') return 'min-h-[5818px]'
-  if (pathname === '/votar') return 'min-h-[1256px]'
-  if (pathname === '/ranking') return 'min-h-[12233px]'
-  if (pathname === '/fantasy') return 'min-h-[2100px]'
-  if (pathname.startsWith('/personajes/')) return 'min-h-[4244px]'
-  if (pathname.startsWith('/torneos/')) return 'min-h-[3404px]'
-  if (pathname === '/games') return 'min-h-[2167px]'
-  return ''
 }
 
 function App() {
@@ -452,6 +424,7 @@ function App() {
               <Route path="/torneos/:slug" element={catalogAware(<TorneoDetailPage />)} />
               <Route path="/eventos" element={catalogAware(<EventosIndexPage />)} />
               <Route path="/eventos/:slug" element={catalogAware(<EventoDetailPage />)} />
+              <Route path="/versus/:par" element={catalogAware(<DueloVersusPage />)} />
               <Route path="/duelos/:par" element={catalogAware(<DueloVersusPage />)} />
               <Route path="/versus" element={<Navigate replace to="/comparar" />} />
               <Route path="/compare" element={<Navigate replace to="/comparar" />} />

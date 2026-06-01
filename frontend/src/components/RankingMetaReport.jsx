@@ -22,9 +22,19 @@ import {
  * útil (top vacío o cargando). Empty state amistoso si hay top pero
  * cero movimientos.
  */
-function RankingMetaReport() {
-  const { data: rankingTop } = useRankingSegmentado({ periodo: 'all', limit: 5 })
-  const { data: movs } = useRankingMovimientos({ dias: 7, limit: 50 })
+function RankingMetaReport({ rankingQuery, movimientosQuery } = {}) {
+  const fallbackRanking = useRankingSegmentado({
+    periodo: 'all',
+    limit: 100,
+    enabled: !rankingQuery,
+  })
+  const fallbackMovimientos = useRankingMovimientos({
+    dias: 7,
+    limit: 100,
+    enabled: !movimientosQuery,
+  })
+  const rankingTop = rankingQuery ? rankingQuery.data : fallbackRanking.data
+  const movs = movimientosQuery ? movimientosQuery.data : fallbackMovimientos.data
 
   const insight = useMemo(() => {
     if (!Array.isArray(rankingTop) || rankingTop.length === 0) return null
