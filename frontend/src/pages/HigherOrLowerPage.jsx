@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   Trophy,
   Sparkles,
@@ -12,57 +13,39 @@ import {
   Share2,
 } from 'lucide-react'
 import {
-  getStatsPersonaje,
-} from '../lib/personajes-core'
-import {
   buildGameShareText,
   ELO_DUEL_BEST_KEY,
   ELO_DUEL_LEGACY_BEST_KEY,
   safeStorage,
 } from '../lib/games'
+import { endpoints } from '../lib/api'
 import PersonajeImg from '../components/PersonajeImg'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
-import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { shareWithToast } from '../lib/shareWithToast'
 import JsonLd from '../components/JsonLd'
 import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import { getGameVisual } from '../data/visual-assets'
 
 const SEO_IMAGE = getGameVisual('/games/elo-duel').image
+const CHOICE_HIGHER = 'HIGHER'
+const CHOICE_LOWER = 'LOWER'
 
-function pickRandom(catalogoPersonajes, exclude = null) {
-  const pool = exclude
-    ? catalogoPersonajes.filter((p) => p.slug !== exclude.slug)
-    : catalogoPersonajes
-  const p = pool[Math.floor(Math.random() * pool.length)]
-  if (!p) return null
-  return { ...p, ...getStatsPersonaje(p.slug) }
+function choiceFromGuess(esMayor) {
+  return esMayor ? CHOICE_HIGHER : CHOICE_LOWER
 }
 
-// El ELO base es sintético (deriva de la popularidad) y hace que >85% del
-// catálogo empate en una franja estrecha. Sin un delta mínimo, muchos duelos
-// eran cara-o-cruz: dos personajes con ELO casi idéntico y respuesta ambigua.
-// Exigimos una diferencia mínima para que "más o menos" siempre tenga una
-// respuesta defendible. Si tras varios intentos no la hallamos (catálogo
-// diminuto), devolvemos el de mayor diferencia encontrada.
-const MIN_ELO_DELTA = 40
+function isHigherChoice(choice) {
+  return choice === CHOICE_HIGHER
+}
 
-function pickDistinctElo(catalogoPersonajes, reference) {
-  let best = null
-  let bestDelta = -1
-  for (let i = 0; i < 24; i++) {
-    const p = pickRandom(catalogoPersonajes, reference)
-    if (!p) break
-    const delta = Math.abs(p.elo - reference.elo)
-    if (delta >= MIN_ELO_DELTA) return p
-    if (delta > bestDelta) {
-      best = p
-      bestDelta = delta
-    }
+function describeLoadError(error) {
+  if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
+    return 'ELO Duel necesita más votos comunitarios para abrir una ronda equilibrada.'
   }
-  return best
+  if (error instanceof Error && error.message) return error.message
+  return 'No se pudo cargar una ronda de ELO Duel.'
 }
 
 function parseBestStreak(value) {
@@ -82,73 +65,92 @@ function HigherOrLowerPage() {
   useSeo({
     title: 'ELO Duel · Higher or Lower',
     description:
-      'Mini-juego de adivinar quién tiene más ELO base entre dos personajes anime. Sube tu mejor racha personal.',
+      'Mini-juego de adivinar quién tiene más ELO competitivo entre dos personajes anime. Sube tu mejor racha personal.',
     canonical: 'https://animeshowdown.dev/games/elo-duel',
     image: SEO_IMAGE,
   })
 
-  const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const parejaInicial = useMemo(() => {
-    const reference = pickRandom(catalogoPersonajes)
-    if (!reference) return null
-    const challenger = pickDistinctElo(catalogoPersonajes, reference)
-    if (!challenger) return null
-    return { reference, challenger }
-  }, [catalogoPersonajes])
-
-  if (!parejaInicial) {
-    return (
-      <GameCatalogLoading
-        kanji="戦"
-        title="Preparando ELO Duel"
-        description="Cargando ranking de personajes para iniciar el duelo."
-      />
-    )
-  }
-
-  return (
-    <HigherOrLowerGame
-      catalogoPersonajes={catalogoPersonajes}
-      initialChallenger={parejaInicial.challenger}
-      initialReference={parejaInicial.reference}
-    />
-  )
+  return <HigherOrLowerGame />
 }
 
-function HigherOrLowerGame({
-  catalogoPersonajes,
-  initialChallenger,
-  initialReference,
-}) {
+function HigherOrLowerGame() {
   const { play } = useSound()
-
-  // Mecánica clásica de Higher or Lower:
-  //   - reference = personaje conocido en la izquierda (su ELO se ve)
-  //   - challenger = personaje misterio en la derecha (ELO oculto hasta acertar)
-  //   - User predice: ¿el challenger tiene MÁS o MENOS ELO que reference?
-  //   - Si acierta: challenger se convierte en el nuevo reference, aparece nuevo challenger
-  //   - Esto rota la cadena así no hay racha infinita con un top-tier en izquierda
-  const [reference, setReference] = useState(initialReference)
-  const [challenger, setChallenger] = useState(initialChallenger)
-  const [revealed, setRevealed] = useState(null) // null | 'correct' | 'wrong'
+  const initialRoundQuery = useQuery({
+    queryKey: ['elo-duel', 'round'],
+    queryFn: () => endpoints.eloDuelRound(),
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+  const [roundOverride, setRoundOverride] = useState(null)
+  const [result, setResult] = useState(null)
+  const [isManualLoading, setIsManualLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [manualError, setManualError] = useState('')
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(readBestStreak)
   const [gameOver, setGameOver] = useState(false)
-  // los setTimeout de reveal (1100ms) no se
-  // cancelan en unmount — si el user navega tras el guess pero antes
-  // del reveal, el callback dispara setState en componente desmontado.
+  const mountedRef = useRef(false)
   const revealTimerRef = useRef(null)
-  useEffect(() => () => {
-    if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+  const round = roundOverride ?? initialRoundQuery.data ?? null
+  const loadError = manualError || (initialRoundQuery.isError ? describeLoadError(initialRoundQuery.error) : '')
+  const isLoading = isManualLoading || (!round && initialRoundQuery.isLoading)
+
+  const fetchRound = useCallback(async ({ resetScore = false } = {}) => {
+    try {
+      const nextRound = await endpoints.eloDuelRound()
+      if (!mountedRef.current) return
+      setRoundOverride(nextRound)
+      setResult(null)
+      setGameOver(false)
+      if (resetScore) setScore(0)
+    } catch (error) {
+      if (!mountedRef.current) return
+      setManualError(describeLoadError(error))
+    } finally {
+      if (mountedRef.current) setIsManualLoading(false)
+    }
   }, [])
 
-  const handleGuess = (esMayor) => {
-    if (revealed !== null) return
-    const challengerEsMayor = challenger.elo > reference.elo
-    const acierto = esMayor === challengerEsMayor
-    setRevealed(acierto ? 'correct' : 'wrong')
+  const loadRound = useCallback(async ({ resetScore = false } = {}) => {
+    if (revealTimerRef.current) {
+      clearTimeout(revealTimerRef.current)
+      revealTimerRef.current = null
+    }
+    if (mountedRef.current) {
+      setIsManualLoading(true)
+      setManualError('')
+    }
+    await fetchRound({ resetScore })
+  }, [fetchRound])
 
-    if (acierto) {
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+    }
+  }, [])
+
+  const handleGuess = async (esMayor) => {
+    if (!round || result !== null || isSubmitting) return
+    setIsSubmitting(true)
+    setManualError('')
+    let guessResult
+    try {
+      guessResult = await endpoints.eloDuelGuess({
+        roundToken: round.roundToken,
+        choice: choiceFromGuess(esMayor),
+      })
+    } catch (error) {
+      setManualError(describeLoadError(error))
+      setIsSubmitting(false)
+      return
+    }
+
+    setResult(guessResult)
+    setIsSubmitting(false)
+
+    if (guessResult.correct) {
       play('playMagic')
       const newScore = score + 1
       setScore(newScore)
@@ -156,23 +158,23 @@ function HigherOrLowerGame({
         setBest(newScore)
         safeStorage.set(ELO_DUEL_BEST_KEY, String(newScore))
       }
-      // Después de 1100ms (suficiente para ver el reveal):
-      // challenger se convierte en el nuevo reference (rota a la izquierda)
-      // y aparece un nuevo challenger en la derecha
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
       revealTimerRef.current = setTimeout(() => {
         revealTimerRef.current = null
-        const nuevoChallenger = pickDistinctElo(catalogoPersonajes, challenger)
-        if (!nuevoChallenger) return
-        setReference(challenger)
-        setChallenger(nuevoChallenger)
-        setRevealed(null)
+        if (!mountedRef.current) return
+        if (guessResult.nextRound) {
+          setRoundOverride(guessResult.nextRound)
+          setResult(null)
+        } else {
+          loadRound()
+        }
       }, 1100)
     } else {
       play('playImpact')
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
       revealTimerRef.current = setTimeout(() => {
         revealTimerRef.current = null
+        if (!mountedRef.current) return
         setGameOver(true)
       }, 1100)
     }
@@ -180,22 +182,36 @@ function HigherOrLowerGame({
 
   const restart = () => {
     play('playClick')
-    const nuevoRef = pickRandom(catalogoPersonajes)
-    if (!nuevoRef) return
-    const nuevoChallenger = pickDistinctElo(catalogoPersonajes, nuevoRef)
-    if (!nuevoChallenger) return
-    setReference(nuevoRef)
-    setChallenger(nuevoChallenger)
-    setScore(0)
-    setRevealed(null)
-    setGameOver(false)
+    loadRound({ resetScore: true })
   }
 
+  if (isLoading && !round) {
+    return (
+      <GameCatalogLoading
+        kanji="戦"
+        title="Preparando ELO Duel"
+        description="Conectando con el ranking competitivo del servidor."
+      />
+    )
+  }
+
+  if (!round) {
+    return <EloDuelUnavailable message={loadError} onRetry={restart} />
+  }
+
+  const reference = round.reference
+  const challenger = round.challenger
+  const revealed = result ? (result.correct ? 'correct' : 'wrong') : null
+  const scoreLabel = round.scoreLabel || 'ELO competitivo'
   const roundStatus = buildRoundStatus({
     challenger,
     reference,
     revealed,
     score,
+    scoreLabel,
+    referenceElo: result?.referenceElo ?? round.referenceElo,
+    challengerElo: result?.challengerElo ?? round.challengerElo,
+    correctChoice: result?.correctChoice,
   })
 
   return (
@@ -215,10 +231,10 @@ function HigherOrLowerGame({
           alternateName: 'Anime Higher or Lower',
           path: '/games/elo-duel',
           description:
-            'Juego endless de anime higher or lower para adivinar qué personaje tiene más ELO base y construir una racha personal.',
+            'Juego endless de anime higher or lower para adivinar qué personaje tiene más ELO competitivo y construir una racha personal.',
           featureList: [
             'Duelos de personajes anime',
-            'Pregunta higher or lower por ELO base',
+            'Pregunta higher or lower por ELO competitivo',
             'Racha personal guardada en el navegador',
             'Resultado compartible',
           ],
@@ -240,7 +256,7 @@ function HigherOrLowerGame({
             <span className="as-title-gradient">ELO</span> Duel
           </h1>
           <p className="max-w-2xl text-[13px] text-fg-muted sm:text-base">
-            ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO base que el de la izquierda?
+            ¿El personaje misterio tiene <strong className="text-fg-strong">más</strong> o <strong className="text-fg-strong">menos</strong> ELO competitivo que el de la izquierda?
             Cada acierto el misterio se desvela y se convierte en el nuevo punto de comparación.
           </p>
         </header>
@@ -251,6 +267,15 @@ function HigherOrLowerGame({
           tone={revealed}
         />
 
+        {loadError && (
+          <div
+            role="alert"
+            className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-semibold text-danger"
+          >
+            {loadError}
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {gameOver ? (
             <GameOver
@@ -259,6 +284,10 @@ function HigherOrLowerGame({
               best={best}
               reference={reference}
               challenger={challenger}
+              referenceElo={result?.referenceElo ?? round.referenceElo}
+              challengerElo={result?.challengerElo}
+              correctChoice={result?.correctChoice}
+              scoreLabel={scoreLabel}
               onRestart={restart}
             />
           ) : (
@@ -271,11 +300,18 @@ function HigherOrLowerGame({
                  dentro del primer viewport. */
               className="mx-auto grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 md:items-center md:gap-6"
             >
-              <ReferenceCard personaje={reference} />
+              <ReferenceCard
+                personaje={reference}
+                elo={round.referenceElo}
+                scoreLabel={scoreLabel}
+              />
               <VsBadge revealed={revealed} />
               <ChallengerCard
                 personaje={challenger}
                 revealedState={revealed}
+                revealedElo={result?.challengerElo}
+                scoreLabel={scoreLabel}
+                isSubmitting={isSubmitting}
                 onMayor={() => handleGuess(true)}
                 onMenor={() => handleGuess(false)}
               />
@@ -291,17 +327,59 @@ function HigherOrLowerGame({
   )
 }
 
-function buildRoundStatus({ challenger, reference, revealed, score }) {
+function buildRoundStatus({
+  challenger,
+  reference,
+  revealed,
+  score,
+  scoreLabel,
+  referenceElo,
+  challengerElo,
+  correctChoice,
+}) {
   if (!challenger || !reference) return 'Preparando el siguiente duelo.'
   if (revealed === 'correct') {
-    const relation = challenger.elo > reference.elo ? 'más' : 'menos'
-    return `Correcto: ${challenger.nombre} tiene ${relation} ELO que ${reference.nombre}. Racha actual: ${score}.`
+    const comparison = buildComparisonText({
+      challengerElo,
+      referenceElo,
+      correctChoice,
+      referenceName: reference.nombre,
+      scoreLabel,
+    })
+    return `Correcto: ${challenger.nombre} tiene ${comparison}. Racha actual: ${score}.`
   }
   if (revealed === 'wrong') {
-    const relation = challenger.elo > reference.elo ? 'más' : 'menos'
-    return `Fallaste: ${challenger.nombre} tiene ${relation} ELO que ${reference.nombre}. La ronda termina con racha ${score}.`
+    const comparison = buildComparisonText({
+      challengerElo,
+      referenceElo,
+      correctChoice,
+      referenceName: reference.nombre,
+      scoreLabel,
+    })
+    return `Fallaste: ${challenger.nombre} tiene ${comparison}. La ronda termina con racha ${score}.`
   }
-  return `Ronda lista: decide si ${challenger.nombre} tiene más o menos ELO que ${reference.nombre}.`
+  return `Ronda lista: decide si ${challenger.nombre} tiene más o menos ${scoreLabel} que ${reference.nombre}.`
+}
+
+function buildComparisonText({
+  challengerElo,
+  referenceElo,
+  correctChoice,
+  referenceName,
+  scoreLabel,
+}) {
+  if (correctChoice === CHOICE_HIGHER) {
+    return `más ${scoreLabel} que ${referenceName}`
+  }
+  if (correctChoice === CHOICE_LOWER) {
+    return `menos ${scoreLabel} que ${referenceName}`
+  }
+  if (Number.isFinite(challengerElo) && Number.isFinite(referenceElo)) {
+    if (challengerElo > referenceElo) return `más ${scoreLabel} que ${referenceName}`
+    if (challengerElo < referenceElo) return `menos ${scoreLabel} que ${referenceName}`
+    return `el mismo ${scoreLabel} que ${referenceName}`
+  }
+  return `un resultado revelado frente a ${referenceName}`
 }
 
 function RoundStatusBanner({ message, tone }) {
@@ -321,6 +399,41 @@ function RoundStatusBanner({ message, tone }) {
     >
       {message}
     </div>
+  )
+}
+
+function EloDuelUnavailable({ message, onRetry }) {
+  return (
+    <section className="as-stage as-stage-visual as-stage-duel relative flex flex-1 flex-col items-center justify-center px-3 py-8 sm:px-8">
+      <div className="as-panel flex w-full max-w-xl flex-col items-center gap-4 rounded-2xl border-danger/30 bg-danger/5 p-8 text-center">
+        <span className="as-kicker border-danger/35 bg-danger/10 text-danger">
+          <span lang="ja">戦</span> · ELO Duel
+        </span>
+        <h1 className="text-3xl font-extrabold tracking-tight text-fg-strong">
+          Ronda no disponible
+        </h1>
+        <p role="alert" className="text-sm text-fg-muted">
+          {message || 'No se pudo cargar una ronda de ELO Duel.'}
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reintentar
+          </button>
+          <Link
+            to="/ranking"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold text-fg-strong transition-colors hover:border-accent hover:text-gold"
+          >
+            <Trophy className="h-4 w-4" />
+            Ver ranking
+          </Link>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -397,7 +510,7 @@ function VsBadge({ revealed }) {
   )
 }
 
-function ReferenceCard({ personaje }) {
+function ReferenceCard({ personaje, elo, scoreLabel }) {
   return (
     <motion.div
       key={personaje.slug}
@@ -414,10 +527,10 @@ function ReferenceCard({ personaje }) {
         />
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
           <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-            ELO base
+            {scoreLabel}
           </span>
           <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
-            {personaje.elo}
+            {elo}
           </span>
         </div>
       </div>
@@ -429,10 +542,19 @@ function ReferenceCard({ personaje }) {
   )
 }
 
-function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
+function ChallengerCard({
+  personaje,
+  revealedState,
+  revealedElo,
+  scoreLabel,
+  isSubmitting,
+  onMayor,
+  onMenor,
+}) {
   const isCorrect = revealedState === 'correct'
   const isWrong = revealedState === 'wrong'
   const isRevealed = revealedState !== null
+  const isDisabled = isRevealed || isSubmitting
 
   const borderClass = isCorrect
     ? 'border-success'
@@ -463,7 +585,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4"
             >
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-                ELO base oculto
+                {scoreLabel} oculto
               </span>
               <HelpCircle className="h-6 w-6 text-white/90 sm:h-9 sm:w-9" />
             </motion.div>
@@ -478,10 +600,10 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
               }`}
             >
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
-                ELO base
+                {scoreLabel}
               </span>
               <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
-                {personaje.elo}
+                {revealedElo ?? '—'}
               </span>
             </motion.div>
           )}
@@ -496,7 +618,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
           <button
             type="button"
             onClick={onMayor}
-            disabled={isRevealed}
+            disabled={isDisabled}
             className="group inline-flex items-center justify-center gap-1 rounded-lg border border-success/40 bg-success/10 px-2 py-2 text-[12px] font-semibold text-success transition-all hover:-translate-y-0.5 hover:bg-success/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
           >
             <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -505,7 +627,7 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
           <button
             type="button"
             onClick={onMenor}
-            disabled={isRevealed}
+            disabled={isDisabled}
             className="group inline-flex items-center justify-center gap-1 rounded-lg border border-danger/40 bg-danger/10 px-2 py-2 text-[12px] font-semibold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
           >
             <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -517,8 +639,18 @@ function ChallengerCard({ personaje, revealedState, onMayor, onMenor }) {
   )
 }
 
-function GameOver({ score, best, reference, challenger, onRestart }) {
-  const challengerEsMayor = challenger.elo > reference.elo
+function GameOver({
+  score,
+  best,
+  reference,
+  challenger,
+  referenceElo,
+  challengerElo,
+  correctChoice,
+  scoreLabel,
+  onRestart,
+}) {
+  const challengerEsMayor = isHigherChoice(correctChoice)
   const compartir = async () => {
     await shareWithToast(
       {
@@ -556,14 +688,14 @@ function GameOver({ score, best, reference, challenger, onRestart }) {
         seguidos. Tu récord es <span className="font-mono font-bold text-gold">{best}</span>.
       </p>
       <div className="text-sm text-fg-muted">
-        <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene ELO base{' '}
-        <span className="font-mono text-fg-strong">{challenger.elo}</span> →{' '}
+        <span className="font-bold text-fg-strong">{challenger.nombre}</span> tiene {scoreLabel}{' '}
+        <span className="font-mono text-fg-strong">{challengerElo}</span> →{' '}
         {challengerEsMayor ? (
           <span className="text-success">era MAYOR</span>
         ) : (
           <span className="text-danger">era MENOR</span>
         )}{' '}
-        que <span className="font-bold text-fg-strong">{reference.nombre}</span> ({reference.elo}).
+        que <span className="font-bold text-fg-strong">{reference.nombre}</span> ({referenceElo}).
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button

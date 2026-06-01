@@ -22,6 +22,7 @@ import { shareOrCopy } from '../lib/share'
  * - shareText: texto que se copia al portapapeles
  * - bonusBadge: { emoji, label } opcional (ej "💡 pista usada")
  * - kanji: opcional override (default 結 win, 残 lose)
+ * - identity: contrato visual del anime objetivo
  * - showDailyActions: muestra CTAs hacia misión diaria y votos
  * - children: contenido extra al final (links de navegación)
  */
@@ -35,6 +36,7 @@ function PanelResultadoAnime({
   shareUrl = '/games',
   bonusBadge,
   kanji,
+  identity,
   showDailyActions = true,
   children,
 }) {
@@ -67,7 +69,10 @@ function PanelResultadoAnime({
     }
   }
 
-  const kanjiFinal = kanji ?? (acertado ? '結' : '残')
+  const resultIdentity = identity && !identity.isFallback ? identity : null
+  const resultAccent = resultIdentity?.accentRgb ?? (acertado ? '52 211 153' : '244 63 94')
+  const resultGlow = resultIdentity?.glowRgb ?? (acertado ? '34 211 238' : '168 85 247')
+  const kanjiFinal = kanji ?? resultIdentity?.kanji ?? (acertado ? '結' : '残')
 
   return (
     <motion.div
@@ -83,7 +88,19 @@ function PanelResultadoAnime({
           ? 'border-success/40 bg-gradient-to-br from-success/15 via-electric/5 to-rarity-epic/10'
           : 'border-danger/40 bg-gradient-to-br from-danger/15 via-rarity-epic/5 to-bg/20'
       }`}
+      style={{
+        '--result-accent': resultAccent,
+        '--result-glow': resultGlow,
+      }}
     >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-80"
+        style={{
+          background:
+            'radial-gradient(circle at 18% 0%, rgb(var(--result-accent) / 0.20), transparent 34%), radial-gradient(circle at 90% 28%, rgb(var(--result-glow) / 0.16), transparent 30%)',
+        }}
+      />
       <span
         aria-hidden="true"
         lang="ja"
@@ -121,6 +138,27 @@ function PanelResultadoAnime({
             {acertado ? ' · Victoria' : ' · Sin intentos'}
           </p>
         </div>
+        {resultIdentity && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-fg-muted"
+              title={resultIdentity.copy}
+            >
+              <span lang="ja" className="font-mono text-gold">
+                {resultIdentity.kanji}
+              </span>
+              {resultIdentity.title} · {resultIdentity.emblem}
+            </span>
+            {resultIdentity.motifs?.slice(0, 2).map((motif) => (
+              <span
+                key={motif}
+                className="rounded-full border border-white/10 bg-bg/35 px-2.5 py-1 text-[11px] font-semibold text-fg-muted"
+              >
+                {motif}
+              </span>
+            ))}
+          </div>
+        )}
         <p className="mb-1 text-2xl font-extrabold leading-tight tracking-tight text-fg-strong">
           {titulo}
         </p>

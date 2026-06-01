@@ -109,6 +109,8 @@ const VoteCard = memo(function VoteCard({
               decoding="async"
               fetchPriority={side === 'left' ? 'high' : 'auto'}
               sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
+              fit="contain"
+              position="center"
               className={`relative h-full w-full object-cover transition-transform duration-300 ${
                 identityHidden
                   ? 'scale-[1.04] brightness-0 blur-sm'

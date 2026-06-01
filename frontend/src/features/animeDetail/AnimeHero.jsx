@@ -44,6 +44,10 @@ function AnimeHero({
   totalVotos,
   visual,
 }) {
+  const identity = visual?.identity
+  const dossierCopy = identity?.copy || visual.mood || 'Atmosfera cinematografica de marca.'
+  const motifs = identity?.motifs?.slice(0, 3) ?? []
+
   return (
     <CinematicHero
       visual={visual}
@@ -87,18 +91,44 @@ function AnimeHero({
       }
       aside={
         <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 inset-shadow-hairline backdrop-blur-md">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
-            Dossier del universo
-          </p>
-          <p className="mt-3 text-sm leading-7 text-fg-muted">
-            Portada editorial propia: {visual.mood || 'atmósfera cinematográfica de marca'}.
-          </p>
-          <p className="mt-4 font-mono text-4xl font-black text-fg-strong">
-            {total}
-          </p>
-          <p className="text-[11px] uppercase tracking-[0.16em] text-fg-muted">
-            personajes listos para competir
-          </p>
+          <div className="flex items-start gap-3">
+            <span
+              aria-hidden="true"
+              lang="ja"
+              className="font-mono text-4xl font-black leading-none text-gold"
+              style={{ textShadow: 'var(--text-shadow-glow-sm)' }}
+            >
+              {identity?.kanji ?? visual.kanji}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                {identity?.emblem ?? 'Dossier del universo'}
+              </p>
+              <p className="mt-2 text-sm leading-7 text-fg-muted">
+                {dossierCopy}
+              </p>
+            </div>
+          </div>
+          {motifs.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {motifs.map((motif) => (
+                <span
+                  key={motif}
+                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-fg-muted"
+                >
+                  {motif}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="mt-4 grid grid-cols-[auto_1fr] items-end gap-x-3">
+            <p className="font-mono text-4xl font-black text-fg-strong">
+              {total}
+            </p>
+            <p className="pb-1 text-[11px] uppercase tracking-[0.16em] text-fg-muted">
+              personajes listos para competir
+            </p>
+          </div>
         </div>
       }
     >

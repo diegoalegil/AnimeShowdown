@@ -162,6 +162,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/tier-lists/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/votar/**").permitAll()
                         .requestMatchers("/api/votos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/games/elo-duel/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/games/elo-duel/**").permitAll()
                         // Catálogo de badges público (cacheable
                         // long-term en frontend); /mios requiere auth para
                         // saber a qué usuario pertenecen los desbloqueos.
