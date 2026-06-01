@@ -628,10 +628,15 @@ export const endpoints: EndpointMap = {
   miColeccion: () => api.get('/api/me/cartas'),
   miMonedero: () => api.get('/api/me/monedero'),
   oddsCartas: () => api.get('/api/cartas/odds'),
-  abrirSobre: (idempotencyKey?: string) =>
-    api.post('/api/me/cartas/sobre', undefined, {
-      headers: idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : undefined,
-    }),
+  abrirSobre: (idempotencyKey: string) => {
+    const key = typeof idempotencyKey === 'string' ? idempotencyKey.trim() : ''
+    if (!key) {
+      throw new Error('X-Idempotency-Key es obligatorio para abrir sobres')
+    }
+    return api.post('/api/me/cartas/sobre', undefined, {
+      headers: { 'X-Idempotency-Key': key },
+    })
+  },
   cofreDiario: () => api.post('/api/me/cartas/cofre-diario', undefined),
   descargarCarta: (cartaId) =>
     requestBlob(`/api/me/cartas/${encodeURIComponent(cartaId)}/descargar`, {

@@ -122,8 +122,25 @@ class CartaControllerTest {
     @Test
     void abrirSobreSinSaldoDevuelve409() throws Exception {
         String token = token("cartas_sinsaldo");
-        mvc.perform(post("/api/me/cartas/sobre").header("Authorization", "Bearer " + token))
+        mvc.perform(post("/api/me/cartas/sobre")
+                .header("Authorization", "Bearer " + token)
+                .header("X-Idempotency-Key", "sin-saldo-1"))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void abrirSobreSinIdempotencyKeyDevuelve400YNoDebita() throws Exception {
+        String token = token("cartas_sin_idem");
+        Usuario u = usuario("cartas_sin_idem");
+        monederoService.acreditar(u, MotivoMovimiento.DROP_VOTO, "seed:sin-idem", 250L);
+
+        mvc.perform(post("/api/me/cartas/sobre")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "X-Idempotency-Key es obligatorio para abrir sobres"));
+
+        assertThat(monederoService.saldoDe(u)).isEqualTo(250L);
     }
 
     @Test
@@ -139,7 +156,9 @@ class CartaControllerTest {
                 .andExpect(jsonPath("$.saldo").value(250));
 
         // Abrir un sobre: gasta 100 y revela 4 normales + 1 clímax top.
-        mvc.perform(post("/api/me/cartas/sobre").header("Authorization", "Bearer " + token))
+        mvc.perform(post("/api/me/cartas/sobre")
+                .header("Authorization", "Bearer " + token)
+                .header("X-Idempotency-Key", "flujo-1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cartas.length()").value(5))
                 .andExpect(jsonPath("$.carta.personajeSlug").isNotEmpty())

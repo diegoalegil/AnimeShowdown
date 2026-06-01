@@ -673,6 +673,16 @@ describe('endpoints', () => {
     expect(headers?.['X-Idempotency-Key']).toBe('pack-abc')
   })
 
+  it('abrirSobre: no llama al backend sin X-Idempotency-Key', () => {
+    const fn = mockFetchResolved({})
+    vi.stubGlobal('fetch', fn)
+
+    expect(() => endpoints.abrirSobre(' ')).toThrow(
+      'X-Idempotency-Key es obligatorio para abrir sobres',
+    )
+    expect(fn).not.toHaveBeenCalled()
+  })
+
   it('cofreDiario: POST a /api/me/cartas/cofre-diario', async () => {
     const fn = mockFetchResolved({})
     vi.stubGlobal('fetch', fn)
