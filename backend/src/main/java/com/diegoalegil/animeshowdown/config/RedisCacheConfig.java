@@ -29,7 +29,6 @@ public class RedisCacheConfig {
                         Map.entry("ranking-movimientos", config(Duration.ofMinutes(1))),
                         Map.entry("personajes-catalogo", config(Duration.ofHours(1))),
                         Map.entry("personajes-listado", config(Duration.ofHours(1))),
-                        Map.entry("personajes-busqueda", config(Duration.ofMinutes(10))),
                         Map.entry("personajes-individual", config(Duration.ofMinutes(5))),
                         Map.entry("personajes-similares", config(Duration.ofMinutes(5))),
                         Map.entry("personaje-elo-history", config(Duration.ofHours(1))),
