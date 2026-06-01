@@ -259,6 +259,14 @@
   --pack-accent: #c5a15a;
   --pack-accent-2: #fff0b5;
   --pack-red: #9f1d2c;
+  --pack-flash: color-mix(in srgb, var(--color-gold-pale) 58%, transparent);
+  --pack-flash-special: color-mix(in srgb, var(--color-fg-strong) 92%, transparent);
+  --pack-burst-special-primary: var(--color-electric);
+  --pack-burst-special-secondary: var(--color-fg-strong);
+  --pack-burst-top-primary: var(--color-gold);
+  --pack-burst-top-secondary: var(--color-gold-pale);
+  --pack-burst-base-primary: var(--color-fg-muted);
+  --pack-burst-base-secondary: var(--color-fg-strong);
   position: relative;
   width: min(100%, 56rem);
   margin-inline: auto;
@@ -1099,6 +1107,10 @@
   position: absolute;
   left: 0;
   top: 0;
+  width: var(--burst-size);
+  height: var(--burst-size);
+  background: var(--burst-color);
+  box-shadow: 0 0 var(--burst-shadow-size) var(--burst-color);
   opacity: 0;
   animation: pack-opening-burst both;
 }
@@ -1115,6 +1127,7 @@
   position: absolute;
   top: -9%;
   border-radius: 0.2rem;
+  background: hsl(var(--confetti-hue) 90% 65%);
   opacity: 0;
   animation: pack-opening-confetti linear both;
 }
@@ -1215,11 +1228,13 @@
   position: absolute;
   inset: 0;
   z-index: 20;
+  background: var(--pack-flash);
   pointer-events: none;
   animation: pack-opening-flash 0.62s ease-out both;
 }
 
 .pack-opening__flash.is-special {
+  background: var(--pack-flash-special);
   animation-duration: 0.9s;
 }
 

@@ -20,6 +20,12 @@ const PACK_TIMING = {
   flashSpecial: 920,
 }
 
+const BURST_COLOR_TOKENS = {
+  special: ['var(--pack-burst-special-primary)', 'var(--pack-burst-special-secondary)'],
+  top: ['var(--pack-burst-top-primary)', 'var(--pack-burst-top-secondary)'],
+  base: ['var(--pack-burst-base-primary)', 'var(--pack-burst-base-secondary)'],
+}
+
 function cx(...classes) {
   return classes.filter(Boolean).join(' ')
 }
@@ -130,10 +136,7 @@ function PackOpening({
   }, [])
 
   const triggerFlash = useCallback((kind = 'top') => {
-    const color = kind === 'special'
-      ? 'rgb(255 255 255 / 0.92)'
-      : 'rgb(255 236 176 / 0.58)'
-    setFlash({ key: Date.now(), kind, color })
+    setFlash({ key: Date.now(), kind })
     after(kind === 'special' ? timing.flashSpecial : timing.flash, () => setFlash(null))
   }, [after, timing.flash, timing.flashSpecial])
 
@@ -381,7 +384,6 @@ function PackOpening({
           <div
             key={flash.key}
             className={cx('pack-opening__flash', flash.kind === 'special' && 'is-special')}
-            style={{ background: flash.color }}
           />
         )}
       </div>
@@ -669,17 +671,18 @@ function Burst({ count, special = false, top = false }) {
   const bits = useMemo(() => Array.from({ length: count }, (_, i) => {
     const angle = (i / count) * Math.PI * 2 + ((i * 17) % 21) / 40
     const radius = (special ? 190 : top ? 140 : 96) + ((i * 29) % (special ? 210 : 120))
+    const palette = special
+      ? BURST_COLOR_TOKENS.special
+      : top
+        ? BURST_COLOR_TOKENS.top
+        : BURST_COLOR_TOKENS.base
     return {
       x: Math.cos(angle) * radius,
       y: Math.sin(angle) * radius,
       size: (special ? 5 : 3) + (i % (special ? 9 : 6)),
       delay: ((i * 13) % 12) / 100,
       dur: 0.62 + ((i * 7) % 9) / 10,
-      color: special
-        ? (i % 2 ? '#24c6dc' : '#ffffff')
-        : top
-          ? (i % 2 ? '#c5a15a' : '#fff0b5')
-          : (i % 2 ? '#9aa4b8' : '#ffffff'),
+      colorToken: palette[i % palette.length],
       round: i % 4 === 0 ? '0' : '999px',
     }
   }), [count, special, top])
@@ -693,11 +696,10 @@ function Burst({ count, special = false, top = false }) {
           style={{
             '--burst-x': `${bit.x}px`,
             '--burst-y': `${bit.y}px`,
-            width: `${bit.size}px`,
-            height: `${bit.size}px`,
-            background: bit.color,
+            '--burst-size': `${bit.size}px`,
+            '--burst-shadow-size': `${bit.size * 2}px`,
+            '--burst-color': bit.colorToken,
             borderRadius: bit.round,
-            boxShadow: `0 0 ${bit.size * 2}px ${bit.color}`,
             animationDelay: `${bit.delay}s`,
             animationDuration: `${bit.dur}s`,
           }}
@@ -736,7 +738,7 @@ function Confetti({ count }) {
             left: `${piece.left}%`,
             width: `${piece.size}px`,
             height: `${piece.size * 1.75}px`,
-            background: `hsl(${piece.hue} 90% 65%)`,
+            '--confetti-hue': String(piece.hue),
             transform: `rotate(${piece.rot}deg)`,
             animationDelay: `${piece.delay}s`,
             animationDuration: `${piece.dur}s`,
