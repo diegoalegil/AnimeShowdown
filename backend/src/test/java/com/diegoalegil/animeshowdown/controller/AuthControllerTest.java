@@ -1,6 +1,9 @@
 package com.diegoalegil.animeshowdown.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -14,17 +17,22 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.diegoalegil.animeshowdown.TestAsyncConfig;
@@ -32,8 +40,11 @@ import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.AuditLog;
 import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
+import com.diegoalegil.animeshowdown.model.NotificacionTipo;
+import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.AuditLogRepository;
 import com.diegoalegil.animeshowdown.repository.EmailVerificationRepository;
+import com.diegoalegil.animeshowdown.repository.NotificacionRepository;
 import com.diegoalegil.animeshowdown.repository.PasswordResetTokenRepository;
 import com.diegoalegil.animeshowdown.repository.RefreshTokenRepository;
 import com.diegoalegil.animeshowdown.repository.TotpBackupCodeRepository;
@@ -43,7 +54,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 
-import org.springframework.context.annotation.Import;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -62,8 +74,11 @@ class AuthControllerTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private EmailVerificationRepository emailVerificationRepository;
+
+    @Autowired
+    private NotificacionRepository notificacionRepository;
 
     @Autowired
     private AuditLogRepository auditLogRepository;
@@ -76,6 +91,9 @@ class AuthControllerTest {
 
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     /** Genera el código TOTP actual para un secret dado, usando la misma lib que el backend. */
     private String generarCodigoActual(String secretPlano) throws Exception {
@@ -100,6 +118,43 @@ class AuthControllerTest {
                 .andReturn();
         String token = json.readTree(loginRes.getResponse().getContentAsString()).get("token").asText();
         return new Sesion(token, username, password);
+    }
+
+    private int verifyStatus(String token) throws Exception {
+        return mvc.perform(get("/api/auth/verify").param("token", token))
+                .andReturn()
+                .getResponse()
+                .getStatus();
+    }
+
+    private int resendStatus(String token) throws Exception {
+        return mvc.perform(post("/api/auth/resend-verification")
+                .header("Authorization", "Bearer " + token))
+                .andReturn()
+                .getResponse()
+                .getStatus();
+    }
+
+    private Optional<EmailVerification> findVerificationByTokenReal(String token) {
+        return entityManager.createQuery("""
+                        SELECT v
+                        FROM EmailVerification v
+                        WHERE v.token = :token
+                        """, EmailVerification.class)
+                .setParameter("token", token)
+                .getResultStream()
+                .findFirst();
+    }
+
+    private int invalidarActivasDelUsuarioReal(Usuario usuario, LocalDateTime ahora) {
+        return entityManager.createQuery("""
+                        UPDATE EmailVerification v
+                        SET v.usadoEn = :ahora
+                        WHERE v.usuario = :usuario AND v.usadoEn IS NULL
+                        """)
+                .setParameter("usuario", usuario)
+                .setParameter("ahora", ahora)
+                .executeUpdate();
     }
 
     private static String dataUri(String mime, byte[] bytes) {
@@ -175,6 +230,60 @@ class AuthControllerTest {
     }
 
     @Test
+    void verifyConcurrenteConsumeTokenUnaVezYNoDuplicaBienvenida() throws Exception {
+        Map<String, String> body = Map.of(
+                "username", "victor_race",
+                "password", "secreta123",
+                "email", "victor_race@example.com");
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(body)))
+                .andExpect(status().isCreated());
+
+        var usuario = usuarioRepository.findByUsername("victor_race").orElseThrow();
+        var verification = emailVerificationRepository.findAll().stream()
+                .filter(v -> v.getUsuario().getId().equals(usuario.getId()))
+                .findFirst().orElseThrow();
+        String token = verification.getToken();
+
+        CountDownLatch lecturasDelToken = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            String tokenLeido = invocation.getArgument(0);
+            Object resultado = findVerificationByTokenReal(tokenLeido);
+            lecturasDelToken.countDown();
+            if (!lecturasDelToken.await(5, TimeUnit.SECONDS)) {
+                throw new AssertionError("No llegaron las dos verificaciones al read del token");
+            }
+            return resultado;
+        }).when(emailVerificationRepository).findByToken(token);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> primera = executor.submit(() -> verifyStatus(token));
+            Future<Integer> segunda = executor.submit(() -> verifyStatus(token));
+            List<Integer> statuses = List.of(
+                    primera.get(10, TimeUnit.SECONDS),
+                    segunda.get(10, TimeUnit.SECONDS));
+
+            assertEquals(2, statuses.stream().filter(status -> status == 200).count(),
+                    "Doble click del link debe ser idempotente para el usuario");
+            var usuarioVerificado = usuarioRepository.findById(usuario.getId()).orElseThrow();
+            assert usuarioVerificado.getEstadoVerificacion() == EstadoVerificacion.ACTIVO
+                    : "El usuario debe quedar ACTIVO";
+
+            long bienvenidas = notificacionRepository.findAll().stream()
+                    .filter(n -> n.getUsuario().getId().equals(usuario.getId()))
+                    .filter(n -> n.getTipo() == NotificacionTipo.BIENVENIDA)
+                    .count();
+            assertEquals(1, bienvenidas,
+                    "El token concurrente solo debe disparar una bienvenida");
+        } finally {
+            executor.shutdownNow();
+            reset(emailVerificationRepository);
+        }
+    }
+
+    @Test
     void verifyConTokenInvalidoDevuelve400() throws Exception {
         mvc.perform(get("/api/auth/verify?token=token-inventado-que-no-existe"))
                 .andExpect(status().isBadRequest())
@@ -220,6 +329,41 @@ class AuthControllerTest {
 
         long activas = verificaciones.stream().filter(EmailVerification::estaActivo).count();
         assert activas == 1 : "Solo debe haber 1 verification activa tras el reenvio";
+    }
+
+    @Test
+    void resendVerificationConcurrenteDejaUnSoloTokenActivo() throws Exception {
+        Sesion sesion = registrarYLoguear("rita_race", "secreta123", "rita_race@example.com");
+        var usuario = usuarioRepository.findByUsername("rita_race").orElseThrow();
+
+        doAnswer(invocation -> {
+            Usuario usuarioArg = invocation.getArgument(0);
+            LocalDateTime ahoraArg = invocation.getArgument(1);
+            int resultado = invalidarActivasDelUsuarioReal(usuarioArg, ahoraArg);
+            TimeUnit.MILLISECONDS.sleep(150);
+            return resultado;
+        }).when(emailVerificationRepository).invalidarActivasDelUsuario(any(), any());
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> primera = executor.submit(() -> resendStatus(sesion.token()));
+            Future<Integer> segunda = executor.submit(() -> resendStatus(sesion.token()));
+            List<Integer> statuses = List.of(
+                    primera.get(10, TimeUnit.SECONDS),
+                    segunda.get(10, TimeUnit.SECONDS));
+
+            assertEquals(2, statuses.stream().filter(status -> status == 200).count(),
+                    "Ambos reenvíos concurrentes deben responder OK sin duplicar estado activo");
+            long activas = emailVerificationRepository.findAll().stream()
+                    .filter(v -> v.getUsuario().getId().equals(usuario.getId()))
+                    .filter(EmailVerification::estaActivo)
+                    .count();
+            assertEquals(1, activas,
+                    "Dos reenvíos concurrentes deben dejar exactamente un token activo");
+        } finally {
+            executor.shutdownNow();
+            reset(emailVerificationRepository);
+        }
     }
 
     @Test
