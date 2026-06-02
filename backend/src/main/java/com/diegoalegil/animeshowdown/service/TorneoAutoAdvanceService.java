@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.TorneoBracketChangedEvent;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
@@ -20,6 +21,7 @@ public class TorneoAutoAdvanceService {
     private final BracketAdvanceService bracketAdvanceService;
     private final PrediccionService prediccionService;
     private final NotificacionService notificacionService;
+    private final TorneoOperacionLockService torneoOperacionLockService;
     private final SimpMessagingTemplate messaging;
 
     public TorneoAutoAdvanceService(
@@ -27,15 +29,32 @@ public class TorneoAutoAdvanceService {
             BracketAdvanceService bracketAdvanceService,
             PrediccionService prediccionService,
             NotificacionService notificacionService,
+            TorneoOperacionLockService torneoOperacionLockService,
             @Autowired(required = false) SimpMessagingTemplate messaging) {
         this.torneoRepository = torneoRepository;
         this.bracketAdvanceService = bracketAdvanceService;
         this.prediccionService = prediccionService;
         this.notificacionService = notificacionService;
+        this.torneoOperacionLockService = torneoOperacionLockService;
         this.messaging = messaging;
     }
 
+    /**
+     * Cierra/avanza rondas elegibles de un torneo en curso.
+     *
+     * <p>Toma el lock de operación por torneo ANTES de leer el estado, de modo
+     * que el chequeo "¿hay ronda cerrable?" y el avance sean atómicos frente a
+     * {@code PrediccionService.aplicar} y {@code resolverParaTorneo}, que usan
+     * el mismo lock. Sin esto, una predicción podía leer el enfrentamiento sin
+     * cerrojo justo mientras el auto-avance le fijaba el ganador (TOCTOU).
+     */
+    @Transactional
     public BracketAdvanceService.Resultado avanzarSiProcede(Long torneoId, String reason) {
+        if (!torneoRepository.existsById(torneoId)) {
+            return BracketAdvanceService.Resultado.SIN_CAMBIOS;
+        }
+        torneoOperacionLockService.lock(torneoId);
+
         Torneo torneo = torneoRepository.findById(torneoId).orElse(null);
         if (torneo == null || torneo.getEstado() != EstadoTorneo.IN_PROGRESS) {
             return BracketAdvanceService.Resultado.SIN_CAMBIOS;

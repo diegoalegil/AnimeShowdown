@@ -33,6 +33,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 class PrediccionConcurrencyTest {
 
     @Autowired private PrediccionService prediccionService;
+    @Autowired private TorneoAutoAdvanceService torneoAutoAdvanceService;
     @Autowired private TransactionTemplate tx;
     @Autowired private TorneoRepository torneoRepository;
     @Autowired private EnfrentamientoRepository enfrentamientoRepository;
@@ -88,6 +89,46 @@ class PrediccionConcurrencyTest {
             assertThat(finalizada.getAcertada()).isTrue();
         } finally {
             puedeCerrar.countDown();
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void avanzarSiProcedeEsperaElLockDeOperacionDelTorneo() throws Exception {
+        Setup setup = crearSetup();
+        CountDownLatch lockTomado = new CountDownLatch(1);
+        CountDownLatch puedeLiberar = new CountDownLatch(1);
+        var pool = Executors.newFixedThreadPool(2);
+
+        try {
+            // Hilo A: mantiene abierto el lock de operación del torneo, simulando
+            // una predicción/finalize en vuelo que aún no ha commiteado.
+            Future<Void> tenedor = pool.submit(() -> {
+                tx.executeWithoutResult(status -> {
+                    torneoOperacionLockService.lock(setup.torneoId());
+                    lockTomado.countDown();
+                    await(puedeLiberar);
+                });
+                return null;
+            });
+
+            assertThat(lockTomado.await(5, TimeUnit.SECONDS)).isTrue();
+
+            // Hilo B: el auto-avance debe BLOQUEARSE en el mismo lock. Antes del
+            // fix no lo tomaba y completaba de inmediato, dejando viva la carrera
+            // M-DATA-02 (predicción leyendo el enfrentamiento sin cerrojo mientras
+            // el avance le fijaba el ganador).
+            Future<?> avance = pool.submit(() ->
+                    torneoAutoAdvanceService.avanzarSiProcede(setup.torneoId(), "vote"));
+
+            Thread.sleep(300);
+            assertThat(avance).isNotDone();
+
+            puedeLiberar.countDown();
+            avance.get(5, TimeUnit.SECONDS);
+            tenedor.get(5, TimeUnit.SECONDS);
+        } finally {
+            puedeLiberar.countDown();
             pool.shutdownNow();
         }
     }
