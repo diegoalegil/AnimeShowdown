@@ -6,10 +6,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -696,7 +695,17 @@ class EnfrentamientoControllerTest {
                 votoRepository.sumaPesoByPersonajeId(ids[0]), 0.001);
         org.junit.jupiter.api.Assertions.assertEquals(pesoAntesB + 0.15,
                 votoRepository.sumaPesoByPersonajeId(ids[1]), 0.001);
-        verify(messaging, never()).convertAndSend(eq("/topic/ranking-delta"), any(RankingDeltaEvent.class));
+
+        var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
+        verify(messaging, times(2)).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
+        Set<String> slugs = captor.getAllValues().stream()
+                .map(ev -> ev.getPersonaje().getSlug())
+                .collect(Collectors.toSet());
+        org.junit.jupiter.api.Assertions.assertEquals(Set.of("luffy", "zoro"), slugs);
+        captor.getAllValues().forEach(ev -> {
+            org.junit.jupiter.api.Assertions.assertEquals(0.5, ev.getDelta(), 0.001);
+            org.junit.jupiter.api.Assertions.assertEquals(0.15, ev.getDeltaPeso(), 0.001);
+        });
     }
 
     @Test
