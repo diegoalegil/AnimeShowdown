@@ -17,6 +17,9 @@ public interface ReaccionRepository extends JpaRepository<Reaccion, Long> {
     Optional<Reaccion> findByUsuarioAndTargetTypeAndTargetId(
             Usuario usuario, ReaccionTargetType targetType, Long targetId);
 
+    long countByUsuarioAndTargetTypeAndTargetId(
+            Usuario usuario, ReaccionTargetType targetType, Long targetId);
+
     /**
      * Conteo agrupado por tipo para un target. Devuelve {tipo, count} para
      * cada tipo que tiene al menos una reaction. Tipos con cero no salen —
