@@ -18,11 +18,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.AbrirSobreResultadoDto;
+import com.diegoalegil.animeshowdown.dto.CartaCatalogoItem;
 import com.diegoalegil.animeshowdown.dto.CartaDto;
 import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionAnimeDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionDto;
 import com.diegoalegil.animeshowdown.dto.SobreCartaDto;
+import com.diegoalegil.animeshowdown.dto.UsuarioCartaPosesionItem;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.CartaClimax;
@@ -32,13 +34,11 @@ import com.diegoalegil.animeshowdown.model.SobreAperturaItem;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCarta;
 import com.diegoalegil.animeshowdown.model.UsuarioCartaPity;
-import com.diegoalegil.animeshowdown.repository.CartaRepository;
 import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
 import com.diegoalegil.animeshowdown.repository.SobreAperturaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaPityRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
-import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 import jakarta.persistence.EntityManager;
 
@@ -53,44 +53,41 @@ public class CartaService {
     private static final Logger log = LoggerFactory.getLogger(CartaService.class);
     private static final int CARTAS_REVELADAS = 5;
 
-    private final CartaRepository cartaRepository;
     private final UsuarioCartaRepository usuarioCartaRepository;
     private final UsuarioCartaPityRepository pityRepository;
     private final SobreAperturaRepository sobreAperturaRepository;
     private final MonederoMovimientoRepository movimientoRepository;
-    private final VotoRepository votoRepository;
     private final UsuarioRepository usuarioRepository;
     private final MonederoService monederoService;
     private final RarezaService rarezaService;
     private final AuditLogService auditLogService;
+    private final CartaLecturaCacheService cartaLecturaCacheService;
     private final EntityManager entityManager;
     private final long recompensaDuplicado;
     private final long cofreDiarioMoneda;
 
     public CartaService(
-            CartaRepository cartaRepository,
             UsuarioCartaRepository usuarioCartaRepository,
             UsuarioCartaPityRepository pityRepository,
             SobreAperturaRepository sobreAperturaRepository,
             MonederoMovimientoRepository movimientoRepository,
-            VotoRepository votoRepository,
             UsuarioRepository usuarioRepository,
             MonederoService monederoService,
             RarezaService rarezaService,
             AuditLogService auditLogService,
+            CartaLecturaCacheService cartaLecturaCacheService,
             EntityManager entityManager,
             @Value("${app.cartas.duplicado.recompensa:10}") long recompensaDuplicado,
             @Value("${app.cartas.cofre-diario.moneda:50}") long cofreDiarioMoneda) {
-        this.cartaRepository = cartaRepository;
         this.usuarioCartaRepository = usuarioCartaRepository;
         this.pityRepository = pityRepository;
         this.sobreAperturaRepository = sobreAperturaRepository;
         this.movimientoRepository = movimientoRepository;
-        this.votoRepository = votoRepository;
         this.usuarioRepository = usuarioRepository;
         this.monederoService = monederoService;
         this.rarezaService = rarezaService;
         this.auditLogService = auditLogService;
+        this.cartaLecturaCacheService = cartaLecturaCacheService;
         this.entityManager = entityManager;
         this.recompensaDuplicado = Math.max(0L, recompensaDuplicado);
         this.cofreDiarioMoneda = Math.max(0L, cofreDiarioMoneda);
@@ -99,18 +96,18 @@ public class CartaService {
     /** Catálogo completo + posesión del usuario + progreso + saldo. */
     @Transactional(readOnly = true)
     public ColeccionDto coleccion(Usuario usuario) {
-        List<Carta> catalogo = cartaRepository.findAllByOrderByIdAsc();
-        List<UsuarioCarta> mias = usuarioCartaRepository.findByUsuarioOrderByObtenidaEnDesc(usuario);
-        Map<Long, Long> eloPorPersonaje = votosPorPersonaje();
+        List<CartaCatalogoItem> catalogo = cartaLecturaCacheService.catalogo();
+        List<UsuarioCartaPosesionItem> mias = usuarioCartaRepository.findPosesionesByUsuario(usuario);
+        Map<Long, Long> eloPorPersonaje = cartaLecturaCacheService.votosPorPersonaje();
 
-        Map<Long, UsuarioCarta> porCartaId = new HashMap<>();
-        for (UsuarioCarta uc : mias) {
-            porCartaId.put(uc.getCarta().getId(), uc);
+        Map<Long, UsuarioCartaPosesionItem> porCartaId = new HashMap<>();
+        for (UsuarioCartaPosesionItem uc : mias) {
+            porCartaId.put(uc.cartaId(), uc);
         }
 
         List<CartaDto> cartas = catalogo.stream()
-                .map(c -> CartaDto.from(c, porCartaId.get(c.getId()),
-                        eloPorPersonaje.getOrDefault(c.getPersonaje().getId(), 0L)))
+                .map(c -> CartaDto.from(c, porCartaId.get(c.id()),
+                        eloPorPersonaje.getOrDefault(c.personajeId(), 0L)))
                 .toList();
 
         int totalCatalogo = cartas.size();
@@ -262,7 +259,7 @@ public class CartaService {
     }
 
     private AbrirSobreResultadoDto dtoDesdeApertura(Usuario usuario, SobreApertura apertura) {
-        Map<Long, Long> eloPorPersonaje = votosPorPersonaje();
+        Map<Long, Long> eloPorPersonaje = cartaLecturaCacheService.votosPorPersonaje();
         List<SobreCartaDto> cartas = apertura.getItems().stream()
                 .sorted(Comparator.comparingInt(SobreAperturaItem::getPosicion))
                 .map(item -> {
@@ -293,18 +290,6 @@ public class CartaService {
             return CartaClimax.NORMAL;
         }
         return especial ? CartaClimax.ESPECIAL : CartaClimax.TOP;
-    }
-
-    private Map<Long, Long> votosPorPersonaje() {
-        Map<Long, Long> votos = new HashMap<>();
-        for (Object[] row : votoRepository.votosPorPersonajes()) {
-            if (row == null || row.length < 2 || row[0] == null || row[1] == null) {
-                continue;
-            }
-            votos.put(((Number) row[0]).longValue(),
-                    Math.max(0L, Math.round(((Number) row[1]).doubleValue())));
-        }
-        return votos;
     }
 
     private List<ColeccionAnimeDto> progresoPorAnime(List<CartaDto> cartas) {

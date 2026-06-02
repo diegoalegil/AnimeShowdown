@@ -30,6 +30,8 @@ import {
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import PersonajeImg from '../components/PersonajeImg'
 import { getGameVisual } from '../data/visual-assets'
+import { getAnimeIdentity } from '../data/anime-identities'
+import { slugifyAnime } from '../lib/animes'
 
 const MAX_INTENTOS = 6
 const STORAGE_KEY = 'animeshowdown.anidel.v1'
@@ -476,6 +478,7 @@ function tierAnidelPara(intentos, pistaUsada) {
 }
 
 function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
+  const identity = getAnimeIdentity(slugifyAnime(objetivo.anime), objetivo.anime)
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
   const perfecto = acertado && totalIntentos === 1 && !pistaUsada
 
@@ -534,6 +537,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       shareTitle="AniGrid — AnimeShowdown"
       shareUrl="/games/anigrid"
       shareText={texto}
+      identity={identity}
     >
       <p className="text-[12px] text-fg-muted">
         <Link to="/games" className="text-gold hover:underline">

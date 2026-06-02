@@ -7,8 +7,13 @@ import {
 import PersonajeImg from '../../../components/PersonajeImg'
 import { useRankingMovimientos } from '../../../hooks/useRanking'
 
-function MoversStrip() {
-  const { data: movs } = useRankingMovimientos({ dias: 7, limit: 30 })
+function MoversStrip({ movimientosQuery } = {}) {
+  const fallbackMovimientos = useRankingMovimientos({
+    dias: 7,
+    limit: 100,
+    enabled: !movimientosQuery,
+  })
+  const movs = movimientosQuery ? movimientosQuery.data : fallbackMovimientos.data
   const top3 = useMemo(() => {
     if (!Array.isArray(movs)) return []
     return movs

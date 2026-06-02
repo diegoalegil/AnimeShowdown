@@ -20,6 +20,29 @@ class SsrfGuardTest {
     }
 
     @Test
+    void rechazaRangosEspecialesIanaNoPublicos() {
+        assertThat(SsrfGuard.isFetchAllowed("http://100.64.0.1/x")).isFalse(); // CGNAT
+        assertThat(SsrfGuard.isFetchAllowed("http://192.0.0.10/x")).isFalse(); // IETF
+        assertThat(SsrfGuard.isFetchAllowed("http://192.0.2.10/x")).isFalse(); // TEST-NET-1
+        assertThat(SsrfGuard.isFetchAllowed("http://192.31.196.10/x")).isFalse(); // AS112-v4
+        assertThat(SsrfGuard.isFetchAllowed("http://192.52.193.10/x")).isFalse(); // AMT
+        assertThat(SsrfGuard.isFetchAllowed("http://192.175.48.10/x")).isFalse(); // AS112-v4
+        assertThat(SsrfGuard.isFetchAllowed("http://198.18.0.1/x")).isFalse(); // benchmark
+        assertThat(SsrfGuard.isFetchAllowed("http://198.51.100.2/x")).isFalse(); // TEST-NET-2
+        assertThat(SsrfGuard.isFetchAllowed("http://203.0.113.5/x")).isFalse(); // TEST-NET-3
+        assertThat(SsrfGuard.isFetchAllowed("http://240.0.0.1/x")).isFalse(); // reservado
+        assertThat(SsrfGuard.isFetchAllowed("https://[64:ff9b::808:808]/x")).isFalse(); // NAT64
+        assertThat(SsrfGuard.isFetchAllowed("https://[64:ff9b:1::808:808]/x")).isFalse(); // NAT64 local-use
+        assertThat(SsrfGuard.isFetchAllowed("https://[100::1]/x")).isFalse(); // discard-only
+        assertThat(SsrfGuard.isFetchAllowed("https://[100:0:0:1::1]/x")).isFalse(); // dummy prefix
+        assertThat(SsrfGuard.isFetchAllowed("https://[2001:db8::1]/x")).isFalse(); // doc
+        assertThat(SsrfGuard.isFetchAllowed("https://[2002:c000:0201::]/x")).isFalse(); // 6to4
+        assertThat(SsrfGuard.isFetchAllowed("https://[2620:4f:8000::1]/x")).isFalse(); // AS112-v6
+        assertThat(SsrfGuard.isFetchAllowed("https://[3fff::1]/x")).isFalse(); // doc
+        assertThat(SsrfGuard.isFetchAllowed("https://[5f00::1]/x")).isFalse(); // SRv6
+    }
+
+    @Test
     void rechazaEsquemasNoHttpYBasura() {
         assertThat(SsrfGuard.isFetchAllowed("ftp://1.1.1.1/x")).isFalse();
         assertThat(SsrfGuard.isFetchAllowed("file:///etc/passwd")).isFalse();

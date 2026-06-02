@@ -58,13 +58,14 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 public class BracketAdvanceService {
 
     private static final Logger log = LoggerFactory.getLogger(BracketAdvanceService.class);
+    private static final String TIE_BREAK_POLICY = "GLOBAL_WEIGHTED_SCORE_THEN_BRACKET_SEED";
 
     public enum Resultado {
         /** Una ronda se cerró y se propagaron los ganadores a la siguiente. */
         AVANZADA,
         /** Era la última ronda; el torneo queda FINISHED con ganador asignado. */
         TORNEO_FINALIZADO,
-        /** No hay ronda completa que cerrar (faltan votos, hay empates, o rondas previas sin avanzar). */
+        /** No hay ronda completa que cerrar (faltan votos o rondas previas sin avanzar). */
         SIN_CAMBIOS
     }
 
@@ -92,14 +93,23 @@ public class BracketAdvanceService {
 
     /**
      * Identifica la primera ronda "lista para cerrarse" (todos sus matches
-     * tienen ambos personajes asignados y al menos un voto que permita
-     * decidir ganador no empatado) y la cierra. Si la cierra, propaga los
-     * ganadores a la ronda siguiente o, si era la última, finaliza el torneo.
+     * tienen ambos personajes asignados y votos suficientes para decidir o
+     * desempatar) y la cierra. Si la cierra, propaga los ganadores a la ronda
+     * siguiente o, si era la última, finaliza el torneo.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Resultado cerrarRondaYAvanzar(Torneo torneo) {
+        return cerrarRondaYAvanzarInternal(torneo, true);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Resultado cerrarRondaIntermediaYAvanzar(Torneo torneo) {
+        return cerrarRondaYAvanzarInternal(torneo, false);
+    }
+
+    private Resultado cerrarRondaYAvanzarInternal(Torneo torneo, boolean permitirFinalizar) {
         List<Enfrentamiento> todos = enfrentamientoRepository
-                .findByTorneoOrderByRondaAscIdAsc(torneo);
+                .findByTorneoForUpdateOrderByRondaAscIdAsc(torneo);
         if (todos.isEmpty()) {
             return Resultado.SIN_CAMBIOS;
         }
@@ -128,8 +138,9 @@ public class BracketAdvanceService {
 
         List<Enfrentamiento> matches = porRonda.get(rondaACerrar);
 
-        // Pre-checks: todos con ambos personajes, todos con votos suficientes
-        // para decidir (no empates).
+        // Pre-checks: todos con ambos personajes. Un empate 0-0 sigue siendo
+        // "sin votos"; un empate con votos se resuelve por desempate
+        // determinístico server-side.
         for (Enfrentamiento m : matches) {
             if (m.getPersonaje1() == null || m.getPersonaje2() == null) {
                 log.debug("Torneo {} ronda {}: match {} sin personajes — no se puede cerrar",
@@ -138,25 +149,24 @@ public class BracketAdvanceService {
             }
         }
 
-        // two-phase commit lógico. Antes este loop
-        // hacía setGanador + save match a match; si un match POSTERIOR
-        // empataba y retornaba SIN_CAMBIOS, los matches previos ya quedaban
-        // mutados en BBDD (la tx REQUIRES_NEW commitea cada paso). Resultado:
-        // ronda 1/2 cerrada y ronda 1/2 abierta, estado inconsistente que
-        // el siguiente cerrarRondaYAvanzar interpretaba mal. Fase 1: calcula
-        // todos los ganadores sin tocar entidades. Si algún empate, return
-        // SIN_CAMBIOS sin escribir nada. Fase 2: persistir ahora que sabemos
-        // que toda la ronda se puede cerrar atómicamente dentro de esta tx.
+        // two-phase commit lógico. Fase 1: calcula todos los ganadores sin
+        // tocar entidades. Si algún match no tiene votos, return SIN_CAMBIOS
+        // sin escribir nada. Fase 2: persistir ahora que sabemos que toda la
+        // ronda se puede cerrar atómicamente dentro de esta tx.
         List<Personaje> ganadores = new ArrayList<>(matches.size());
         for (Enfrentamiento m : matches) {
             double v1 = votoRepository.scoreByEnfrentamientoAndPersonaje(m, m.getPersonaje1());
             double v2 = votoRepository.scoreByEnfrentamientoAndPersonaje(m, m.getPersonaje2());
             if (Double.compare(v1, v2) == 0) {
-                log.info("Torneo {} ronda {}: match {} empatado ({}-{}); no se cierra ronda",
-                        torneo.getSlug(), rondaACerrar, m.getId(), v1, v2);
-                return Resultado.SIN_CAMBIOS;
+                if (Double.compare(v1 + v2, 0.0) == 0) {
+                    log.info("Torneo {} ronda {}: match {} sin votos ({}-{}); no se cierra ronda",
+                            torneo.getSlug(), rondaACerrar, m.getId(), v1, v2);
+                    return Resultado.SIN_CAMBIOS;
+                }
+                ganadores.add(desempatar(m, torneo, rondaACerrar, v1, v2));
+            } else {
+                ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
             }
-            ganadores.add(v1 > v2 ? m.getPersonaje1() : m.getPersonaje2());
         }
 
         // sanity check del bracket malformado ANTES de
@@ -174,6 +184,9 @@ public class BracketAdvanceService {
                         siguiente == null ? 0 : siguiente.size(), matches.size() / 2);
                 return Resultado.SIN_CAMBIOS;
             }
+        }
+        if (rondaACerrar.equals(maxRonda) && !permitirFinalizar) {
+            return Resultado.SIN_CAMBIOS;
         }
 
         // Validado: ahora sí, persistir ganadores de la ronda.
@@ -218,8 +231,8 @@ public class BracketAdvanceService {
      * <p>Sin {@code @Transactional} a propósito: invoca {@link #cerrarRondaYAvanzar}
      * vía el proxy ({@code self.}) para que CADA cierre de ronda commitee en
      * su propia tx REQUIRES_NEW. Si una ronda intermedia avanza con éxito
-     * pero la última no puede cerrarse (empate/votos faltantes), el progreso
-     * realizado queda persistido en BBDD en lugar de rolear todo.
+     * pero la última no puede cerrarse (votos faltantes), el progreso realizado
+     * queda persistido en BBDD en lugar de rolear todo.
      *
      * <p>El límite cubre hasta 256 participantes (log2(256)+1 de margen). Sigue
      * siendo un safeguard contra bucles infinitos. No derivamos del
@@ -239,6 +252,40 @@ public class BracketAdvanceService {
         return ultima;
     }
 
+    public Resultado cerrarRondasIntermedias(Torneo torneo) {
+        final int MAX_RONDAS = 9;
+        Resultado ultima = Resultado.SIN_CAMBIOS;
+        for (int i = 0; i < MAX_RONDAS; i++) {
+            Resultado r = self.cerrarRondaIntermediaYAvanzar(torneo);
+            if (r == Resultado.SIN_CAMBIOS) return ultima == Resultado.AVANZADA ? ultima : r;
+            ultima = r;
+        }
+        return ultima;
+    }
+
+    private Personaje desempatar(Enfrentamiento match, Torneo torneo, int ronda, double v1, double v2) {
+        Personaje p1 = match.getPersonaje1();
+        Personaje p2 = match.getPersonaje2();
+        double global1 = scoreGlobalPonderado(p1);
+        double global2 = scoreGlobalPonderado(p2);
+        Personaje ganador = Double.compare(global1, global2) > 0 ? p1
+                : Double.compare(global1, global2) < 0 ? p2
+                : p1;
+        log.info(
+                "Torneo {} ronda {}: match {} empatado ({}-{}); desempate policy={} globalScore={}-{} ganador={}",
+                torneo.getSlug(), ronda, match.getId(), v1, v2, TIE_BREAK_POLICY,
+                global1, global2, ganador.getSlug());
+        return ganador;
+    }
+
+    private double scoreGlobalPonderado(Personaje personaje) {
+        if (personaje == null || personaje.getId() == null) {
+            return 0.0;
+        }
+        Double score = votoRepository.sumaPesoByPersonajeId(personaje.getId());
+        return score == null ? 0.0 : score;
+    }
+
     private Resultado finalizarSiCorresponde(Torneo torneo, List<Enfrentamiento> ultimaRonda) {
         if (torneo.getEstado() == EstadoTorneo.FINISHED) {
             return Resultado.SIN_CAMBIOS;
@@ -254,4 +301,5 @@ public class BracketAdvanceService {
         }
         return Resultado.SIN_CAMBIOS;
     }
+
 }

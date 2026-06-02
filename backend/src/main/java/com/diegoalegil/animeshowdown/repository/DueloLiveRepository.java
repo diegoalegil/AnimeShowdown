@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -43,10 +44,30 @@ public interface DueloLiveRepository extends JpaRepository<DueloLive, Long> {
 
     @Query("""
             SELECT d FROM DueloLive d
+            LEFT JOIN FETCH d.jugador1
             WHERE d.estado = com.diegoalegil.animeshowdown.model.DueloLiveEstado.WAITING
             ORDER BY d.creadoEn ASC
             """)
     List<DueloLive> findWaitingOrderByCreadoEn();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT d FROM DueloLive d
+            LEFT JOIN FETCH d.jugador1
+            WHERE d.estado = com.diegoalegil.animeshowdown.model.DueloLiveEstado.WAITING
+            ORDER BY d.creadoEn ASC
+            """)
+    List<DueloLive> findWaitingOrderByCreadoEnForUpdate();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT d FROM DueloLive d
+            LEFT JOIN FETCH d.jugador1
+            WHERE d.estado = com.diegoalegil.animeshowdown.model.DueloLiveEstado.WAITING
+              AND d.creadoEn <= :limite
+            ORDER BY d.creadoEn ASC
+            """)
+    List<DueloLive> findWaitingDueForUpdate(@Param("limite") LocalDateTime limite);
 
     @Query("""
             SELECT d FROM DueloLive d
@@ -77,4 +98,18 @@ public interface DueloLiveRepository extends JpaRepository<DueloLive, Long> {
     long countByEstadoIn(List<DueloLiveEstado> estados);
 
     List<DueloLive> findByEstadoIn(List<DueloLiveEstado> estados);
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            UPDATE DueloLive d
+            SET d.estado = com.diegoalegil.animeshowdown.model.DueloLiveEstado.ABANDONED,
+                d.abandonedEn = :ahora,
+                d.finishedEn = :ahora
+            WHERE d.estado IN :estados
+              AND (d.jugador1 = :usuario OR d.jugador2 = :usuario)
+            """)
+    int abandonarActivosDeUsuario(
+            @Param("usuario") Usuario usuario,
+            @Param("estados") List<DueloLiveEstado> estados,
+            @Param("ahora") LocalDateTime ahora);
 }

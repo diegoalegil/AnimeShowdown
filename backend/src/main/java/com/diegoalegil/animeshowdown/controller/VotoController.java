@@ -17,6 +17,7 @@ import com.diegoalegil.animeshowdown.dto.VotoFeedItem;
 import com.diegoalegil.animeshowdown.model.CategoriaVoto;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
+import com.diegoalegil.animeshowdown.service.RankingMaterializadoService;
 import com.diegoalegil.animeshowdown.service.RankingMovimientosService;
 
 @RestController
@@ -24,15 +25,19 @@ import com.diegoalegil.animeshowdown.service.RankingMovimientosService;
 public class VotoController {
 
     private static final int MAX_LIMIT = 200;
+    private static final int FULL_RANKING_LIMIT = 5000;
 
     private final VotoRepository votoRepository;
+    private final RankingMaterializadoService rankingMaterializadoService;
     private final RankingMovimientosService rankingMovimientosService;
     private final AnimeShowdownMetrics metrics;
 
     public VotoController(VotoRepository votoRepository,
+            RankingMaterializadoService rankingMaterializadoService,
             RankingMovimientosService rankingMovimientosService,
             AnimeShowdownMetrics metrics) {
         this.votoRepository = votoRepository;
+        this.rankingMaterializadoService = rankingMaterializadoService;
         this.rankingMovimientosService = rankingMovimientosService;
         this.metrics = metrics;
     }
@@ -44,7 +49,7 @@ public class VotoController {
     @GetMapping("/ranking")
     @Cacheable(value = "votos-ranking")
     public List<RankingItem> obtenerRanking() {
-        return metrics.recordRanking(votoRepository::obtenerRanking);
+        return metrics.recordRanking(() -> rankingMaterializadoService.rankingAllTime(FULL_RANKING_LIMIT));
     }
 
     /**
@@ -111,7 +116,7 @@ public class VotoController {
 
         if (anime != null && !anime.isBlank()) {
             return metrics.recordRanking(() ->
-                    ResponseEntity.ok(votoRepository.rankingPorAnime(anime, pageable)));
+                    ResponseEntity.ok(rankingMaterializadoService.rankingPorAnime(anime, saneLimit)));
         }
 
         LocalDateTime desde = switch (periodo == null ? "all" : periodo.toLowerCase()) {
@@ -138,10 +143,10 @@ public class VotoController {
 
         if (desde == null) {
             return metrics.recordRanking(() -> ResponseEntity.ok(
-                    votoRepository.rankingAllTime(pageable).getContent()));
+                    rankingMaterializadoService.rankingAllTime(saneLimit)));
         }
         return metrics.recordRanking(() ->
-                ResponseEntity.ok(votoRepository.rankingDesde(desde, pageable)));
+                ResponseEntity.ok(rankingMaterializadoService.rankingDesde(desde, saneLimit)));
     }
 
     /**
@@ -150,7 +155,7 @@ public class VotoController {
      */
     @GetMapping("/ranking/animes-disponibles")
     public List<String> animesConVotos() {
-        return votoRepository.animesConVotos();
+        return rankingMaterializadoService.animesConVotos();
     }
 
     /**

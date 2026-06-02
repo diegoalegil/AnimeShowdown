@@ -50,5 +50,8 @@ class RedisCacheConfigTest {
         Long ttl = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
         assertThat(ttl).isNotNull();
         assertThat(ttl).isGreaterThan(3_000);
+
+        assertThat(cacheManager.getCache("cartas-catalogo")).isNotNull();
+        assertThat(cacheManager.getCache("cartas-votos-score")).isNotNull();
     }
 }

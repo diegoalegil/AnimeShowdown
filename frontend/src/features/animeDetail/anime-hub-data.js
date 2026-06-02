@@ -79,6 +79,7 @@ export function buildCrossAnimeRecommendations(similares = [], anime, limit = 6)
   if (!anime) return []
   return [...similares]
     .filter((item) => item?.slug && item.anime !== anime)
+    .filter((item) => (item.votos ?? 0) > 0 && (item.score ?? 0) > 0)
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
     .slice(0, limit)
 }

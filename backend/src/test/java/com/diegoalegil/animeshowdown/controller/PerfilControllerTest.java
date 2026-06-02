@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,10 +29,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.TestAsyncConfig;
+import com.diegoalegil.animeshowdown.model.DueloLive;
+import com.diegoalegil.animeshowdown.model.DueloLiveEstado;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Voto;
+import com.diegoalegil.animeshowdown.repository.DueloLiveRepository;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
@@ -62,6 +66,7 @@ class PerfilControllerTest {
     @Autowired private PersonajeRepository personajeRepository;
     @Autowired private TorneoRepository torneoRepository;
     @Autowired private EnfrentamientoRepository enfrentamientoRepository;
+    @Autowired private DueloLiveRepository dueloLiveRepository;
 
     private String tokenDe(String username, String email) throws Exception {
         mvc.perform(post("/api/auth/registro")
@@ -344,6 +349,38 @@ class PerfilControllerTest {
         mvc.perform(get("/api/perfil/me/stats")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void eliminarCuentaAnonimizaReferenciasDeDuelosLive() throws Exception {
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String usernameA = "del_duelo_a_" + suffix;
+        String usernameB = "del_duelo_b_" + suffix;
+        String tokenA = tokenDe(usernameA, usernameA + "@example.com");
+        tokenDe(usernameB, usernameB + "@example.com");
+        var usuarioA = usuarioRepository.findByUsername(usernameA).orElseThrow();
+        var usuarioB = usuarioRepository.findByUsername(usernameB).orElseThrow();
+
+        DueloLive duelo = new DueloLive(usuarioA, "127.0.0.1", LocalDateTime.now());
+        duelo.setJugador2(usuarioB);
+        duelo.setEstado(DueloLiveEstado.IN_PROGRESS);
+        duelo.setGanador(usuarioA);
+        duelo.setAbandonador(usuarioA);
+        Long dueloId = dueloLiveRepository.saveAndFlush(duelo).getId();
+
+        mvc.perform(delete("/api/perfil/me")
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("password", "secreta123"))))
+                .andExpect(status().isNoContent());
+
+        assertTrue(usuarioRepository.findByUsername(usernameA).isEmpty());
+        DueloLive persistido = dueloLiveRepository.findDetalleById(dueloId).orElseThrow();
+        assertEquals(DueloLiveEstado.ABANDONED, persistido.getEstado());
+        assertNull(persistido.getJugador1());
+        assertEquals(usuarioB.getId(), persistido.getJugador2().getId());
+        assertNull(persistido.getGanador());
+        assertNull(persistido.getAbandonador());
     }
 
     @Test
