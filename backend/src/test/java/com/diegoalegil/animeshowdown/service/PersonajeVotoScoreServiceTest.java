@@ -1,24 +1,19 @@
 package com.diegoalegil.animeshowdown.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.diegoalegil.animeshowdown.model.Enfrentamiento;
-import com.diegoalegil.animeshowdown.model.Personaje;
-import com.diegoalegil.animeshowdown.model.PersonajeVotoScore;
-import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PersonajeVotoScoreRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,45 +22,40 @@ class PersonajeVotoScoreServiceTest {
     @Mock private PersonajeVotoScoreRepository repository;
 
     @Test
-    void registraVotoNormalComoUnPuntoMaterializado() {
-        Personaje personaje = personaje(10L);
+    void votoNormalIncrementaUnPuntoDeFormaAtomica() {
+        when(repository.incrementarScore(10L, 1.0d)).thenReturn(1);
         PersonajeVotoScoreService sut = new PersonajeVotoScoreService(repository);
-        when(repository.findByPersonajeIdForUpdate(10L)).thenReturn(Optional.empty());
 
-        sut.registrar(new Voto(personaje));
+        sut.registrar(false, 10L, null, null);
 
-        ArgumentCaptor<PersonajeVotoScore> captor = ArgumentCaptor.forClass(PersonajeVotoScore.class);
-        verify(repository).save(captor.capture());
-        assertThat(captor.getValue().getPersonajeId()).isEqualTo(10L);
-        assertThat(captor.getValue().getVotosScore()).isEqualTo(1.0d);
+        verify(repository).incrementarScore(10L, 1.0d);
+        verify(repository, never()).insertarSiFalta(anyLong());
     }
 
     @Test
-    void registraEmpateComoMedioPuntoParaCadaParticipante() {
-        Personaje p1 = personaje(10L);
-        Personaje p2 = personaje(20L);
-        Enfrentamiento enfrentamiento = new Enfrentamiento();
-        enfrentamiento.setPersonaje1(p1);
-        enfrentamiento.setPersonaje2(p2);
-        Voto empate = new Voto(p1, null, enfrentamiento);
-        empate.setEmpate(true);
+    void empateIncrementaMedioPuntoACadaParticipante() {
+        when(repository.incrementarScore(anyLong(), eq(0.5d))).thenReturn(1);
         PersonajeVotoScoreService sut = new PersonajeVotoScoreService(repository);
-        when(repository.findByPersonajeIdForUpdate(any())).thenReturn(Optional.empty());
 
-        sut.registrar(empate);
+        sut.registrar(true, 10L, 10L, 20L);
 
-        ArgumentCaptor<PersonajeVotoScore> captor = ArgumentCaptor.forClass(PersonajeVotoScore.class);
-        verify(repository, times(2)).save(captor.capture());
-        assertThat(captor.getAllValues())
-                .extracting(PersonajeVotoScore::getPersonajeId, PersonajeVotoScore::getVotosScore)
-                .containsExactlyInAnyOrder(
-                        tuple(10L, 0.5d),
-                        tuple(20L, 0.5d));
+        verify(repository).incrementarScore(10L, 0.5d);
+        verify(repository).incrementarScore(20L, 0.5d);
+        verify(repository, times(2)).incrementarScore(anyLong(), eq(0.5d));
+        verify(repository, never()).insertarSiFalta(anyLong());
     }
 
-    private static Personaje personaje(Long id) {
-        Personaje personaje = new Personaje("p" + id, "P" + id, "Anime", "fixture", "/img/p" + id + ".webp");
-        personaje.setId(id);
-        return personaje;
+    @Test
+    void siLaFilaAunNoExisteLaCreaYReintentaElIncremento() {
+        // 0 filas afectadas la 1ª vez (no existe) → crea idempotente → 1 al reintentar.
+        when(repository.incrementarScore(10L, 1.0d)).thenReturn(0, 1);
+        PersonajeVotoScoreService sut = new PersonajeVotoScoreService(repository);
+
+        sut.registrar(false, 10L, null, null);
+
+        InOrder inOrder = inOrder(repository);
+        inOrder.verify(repository).incrementarScore(10L, 1.0d);
+        inOrder.verify(repository).insertarSiFalta(10L);
+        inOrder.verify(repository).incrementarScore(10L, 1.0d);
     }
 }

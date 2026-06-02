@@ -1,13 +1,8 @@
 package com.diegoalegil.animeshowdown.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.diegoalegil.animeshowdown.model.Enfrentamiento;
-import com.diegoalegil.animeshowdown.model.Personaje;
-import com.diegoalegil.animeshowdown.model.PersonajeVotoScore;
-import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.repository.PersonajeVotoScoreRepository;
 
 @Service
@@ -22,31 +17,41 @@ public class PersonajeVotoScoreService {
         this.repository = repository;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void registrar(Voto voto) {
-        if (voto == null) {
+    /**
+     * Materializa el score de un voto. Se invoca desde {@link VotoScoreListener}
+     * en AFTER_COMMIT (async), fuera de la transacción del POST /votar.
+     *
+     * <p>El incremento es ATÓMICO ({@code UPDATE ... SET votos_score =
+     * votos_score + :delta}), sin {@code SELECT ... FOR UPDATE}: no retiene el
+     * lock de la fila a través de la petición y converge sin lost-update bajo
+     * votos concurrentes al mismo personaje. Idempotente por voto (un evento por
+     * voto). En empate incrementa medio punto a cada participante.
+     */
+    @Transactional
+    public void registrar(boolean empate, Long votoPersonajeId, Long personaje1Id, Long personaje2Id) {
+        if (!empate) {
+            incrementar(votoPersonajeId, VOTO_NORMAL);
             return;
         }
-        if (!voto.isEmpate()) {
-            incrementar(voto.getPersonaje(), VOTO_NORMAL);
+        if (personaje1Id == null || personaje2Id == null) {
+            incrementar(votoPersonajeId, VOTO_EMPATE);
             return;
         }
-        Enfrentamiento enfrentamiento = voto.getEnfrentamiento();
-        if (enfrentamiento == null) {
-            incrementar(voto.getPersonaje(), VOTO_EMPATE);
-            return;
-        }
-        incrementar(enfrentamiento.getPersonaje1(), VOTO_EMPATE);
-        incrementar(enfrentamiento.getPersonaje2(), VOTO_EMPATE);
+        incrementar(personaje1Id, VOTO_EMPATE);
+        incrementar(personaje2Id, VOTO_EMPATE);
     }
 
-    private void incrementar(Personaje personaje, double delta) {
-        if (personaje == null || personaje.getId() == null) {
+    private void incrementar(Long personajeId, double delta) {
+        if (personajeId == null) {
             return;
         }
-        PersonajeVotoScore score = repository.findByPersonajeIdForUpdate(personaje.getId())
-                .orElseGet(() -> new PersonajeVotoScore(personaje.getId()));
-        score.incrementar(delta);
-        repository.save(score);
+        if (repository.incrementarScore(personajeId, delta) == 0) {
+            // Fila aún no materializada (personaje añadido tras el backfill V53):
+            // la creamos de forma idempotente (INSERT ... ON CONFLICT DO NOTHING,
+            // sin excepción que envenene la transacción) y reintentamos el
+            // incremento atómico, que ahora sí encuentra la fila.
+            repository.insertarSiFalta(personajeId);
+            repository.incrementarScore(personajeId, delta);
+        }
     }
 }

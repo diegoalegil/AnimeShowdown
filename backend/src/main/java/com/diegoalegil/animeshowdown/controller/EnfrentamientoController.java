@@ -44,6 +44,7 @@ import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoRegistradoDto;
 import com.diegoalegil.animeshowdown.event.EnfrentamientoVotadoEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
+import com.diegoalegil.animeshowdown.event.VotoScoreEvent;
 import com.diegoalegil.animeshowdown.model.CategoriaVoto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
@@ -57,7 +58,6 @@ import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.TurnstileVerifierService;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
-import com.diegoalegil.animeshowdown.service.PersonajeVotoScoreService;
 import com.diegoalegil.animeshowdown.service.VotoStatsService;
 import com.diegoalegil.animeshowdown.service.VotoStatsService.VotoStatsSnapshot;
 
@@ -86,7 +86,6 @@ public class EnfrentamientoController {
     private final TurnstileVerifierService turnstileVerifier;
     private final AnonymousAbuseThrottleService abuseThrottle;
     private final ClientIpExtractor clientIpExtractor;
-    private final PersonajeVotoScoreService personajeVotoScoreService;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
 
@@ -100,7 +99,6 @@ public class EnfrentamientoController {
             TurnstileVerifierService turnstileVerifier,
             AnonymousAbuseThrottleService abuseThrottle,
             ClientIpExtractor clientIpExtractor,
-            PersonajeVotoScoreService personajeVotoScoreService,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
         this.enfrentamientoRepository = enfrentamientoRepository;
@@ -112,7 +110,6 @@ public class EnfrentamientoController {
         this.turnstileVerifier = turnstileVerifier;
         this.abuseThrottle = abuseThrottle;
         this.clientIpExtractor = clientIpExtractor;
-        this.personajeVotoScoreService = personajeVotoScoreService;
         this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
@@ -311,7 +308,6 @@ public class EnfrentamientoController {
             voto.setCategoria(categoria.getId());
         }
         Voto guardado = votoRepository.save(voto);
-        personajeVotoScoreService.registrar(guardado);
         metrics.votoRegistrado();
         VotoStatsSnapshot stats = votoStatsService.registrar(guardado);
 
@@ -353,6 +349,11 @@ public class EnfrentamientoController {
             eventPublisher.publishEvent(new VotoRegistradoEvent(usuario, enf, ganador));
         }
         eventPublisher.publishEvent(new EnfrentamientoVotadoEvent(enf.getTorneo().getId(), enf.getId()));
+        // Materialización del score de personaje (V53) fuera de esta transacción:
+        // VotoScoreListener la aplica async en AFTER_COMMIT con incremento atómico,
+        // así el POST no retiene el lock de la fila del personaje (hot path viral).
+        eventPublisher.publishEvent(new VotoScoreEvent(
+                empate, guardado.getPersonaje().getId(), p1.getId(), p2.getId()));
 
         Integer votosAnonimosRestantes = null;
         if (usuario == null) {
