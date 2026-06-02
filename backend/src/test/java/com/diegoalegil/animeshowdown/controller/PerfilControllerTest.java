@@ -226,7 +226,8 @@ class PerfilControllerTest {
         String userToken = tokenDe("perfil_diana", "perfil_diana@example.com");
 
         // Setup: torneo + enfrentamiento
-        MvcResult resPers = mvc.perform(get("/api/personajes")).andReturn();
+        MvcResult resPers = mvc.perform(get("/api/personajes/catalogo")
+                .param("fields", "id,slug")).andReturn();
         JsonNode personajes = json.readTree(resPers.getResponse().getContentAsString());
         long luffy = -1, zoro = -1;
         for (JsonNode p : personajes) {
