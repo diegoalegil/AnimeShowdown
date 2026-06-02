@@ -5,7 +5,6 @@ import { ArrowRight, EyeOff, Scale, SkipForward, Swords, Zap } from 'lucide-reac
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
-  getAnonymousVoteHeaders,
   getAnonymousVotesCount,
   incrementAnonymousVotesCount,
 } from '../lib/anonymousVoting'
@@ -222,7 +221,6 @@ function VotarPage() {
     return endpoints.enfrentamientoSiguiente({
       excludeIds,
       anonymous,
-      headers: anonymous ? getAnonymousVoteHeaders() : {},
     })
   }, [authenticatedUserId])
 
@@ -319,7 +317,7 @@ function VotarPage() {
       // Si tenemos token Turnstile, viajará en el header
       // X-AS-Captcha-Token. El backend lo verifica antes de aplicar el
       // throttle de captcha.
-      const headers = anonymous ? { ...getAnonymousVoteHeaders() } : {}
+      const headers = {}
       if (captchaToken) headers['X-AS-Captcha-Token'] = captchaToken
       return endpoints.votar(enfrentamientoId, personajeGanadorId, {
         anonymous,
@@ -642,7 +640,6 @@ function VotarPage() {
       endpoints
         .setCategoriaVoto(matchId, categoriaId, {
           anonymous,
-          headers: anonymous ? getAnonymousVoteHeaders() : {},
         })
         .catch(() => {
           // Silencioso: la intención es opcional, no es un error de cara al usuario.

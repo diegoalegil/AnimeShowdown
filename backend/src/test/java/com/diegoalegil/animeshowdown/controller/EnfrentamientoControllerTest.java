@@ -43,6 +43,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -51,6 +52,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
@@ -232,49 +234,102 @@ class EnfrentamientoControllerTest {
 
     private record MatchFixture(long torneoId, String slug, long enfrentamientoId) {}
 
+    private MockHttpServletRequestBuilder conAnonCookie(
+            MockHttpServletRequestBuilder request,
+            Cookie cookie) {
+        return cookie == null ? request : request.cookie(cookie);
+    }
+
+    private Cookie anonCookieDesde(MvcResult result) {
+        String setCookie = result.getResponse().getHeader(HttpHeaders.SET_COOKIE);
+        org.junit.jupiter.api.Assertions.assertNotNull(setCookie,
+                "El voto anónimo inicial debe emitir cookie firmada");
+        String prefix = anonymousIdentityService.getCookieName() + "=";
+        String value = Arrays.stream(setCookie.split(";"))
+                .map(String::trim)
+                .filter(part -> part.startsWith(prefix))
+                .map(part -> part.substring(prefix.length()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Set-Cookie no contiene "
+                        + anonymousIdentityService.getCookieName() + ": " + setCookie));
+        Cookie cookie = new Cookie(anonymousIdentityService.getCookieName(), value);
+        cookie.setPath("/");
+        return cookie;
+    }
+
+    private String anonSessionDesde(Cookie cookie) {
+        return anonymousIdentityService.verify(cookie.getValue())
+                .orElseThrow(() -> new AssertionError("Cookie anónima firmada inválida"));
+    }
+
     @Test
     void votarAnonimoPermiteCincoVotosYSextoDevuelve429() throws Exception {
         String adminToken = tokenAdmin();
         long[] ids = dosPersonajes();
-        String anonId = "anon-session-test-123";
         Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
+        Cookie anonCookie = null;
 
         for (int i = 0; i < 5; i++) {
             long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-" + i);
-            mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
-                    .header("X-AS-Anonymous-Id", anonId)
-                    .header("X-AS-Anonymous-Fingerprint", "fp-test")
+            MvcResult res = mvc.perform(conAnonCookie(post("/api/enfrentamientos/" + enfId + "/votar"), anonCookie)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(json.writeValueAsString(body)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.anonimo").value(true))
                     .andExpect(jsonPath("$.delta").value(org.hamcrest.Matchers.closeTo(0.3, 0.001)))
-                    .andExpect(jsonPath("$.votosAnonimosRestantes").value(4 - i));
+                    .andExpect(jsonPath("$.votosAnonimosRestantes").value(4 - i))
+                    .andReturn();
+            if (anonCookie == null) {
+                anonCookie = anonCookieDesde(res);
+            }
         }
 
         long sexto = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-6");
-        mvc.perform(post("/api/enfrentamientos/" + sexto + "/votar")
-                .header("X-AS-Anonymous-Id", anonId)
-                .header("X-AS-Anonymous-Fingerprint", "fp-test")
+        mvc.perform(conAnonCookie(post("/api/enfrentamientos/" + sexto + "/votar"), anonCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.votosAnonimosRestantes").value(0));
 
-        org.junit.jupiter.api.Assertions.assertEquals(5, votoRepository.countByAnonSessionId(anonId));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                5,
+                votoRepository.countByAnonSessionId(anonSessionDesde(anonCookie)));
+    }
+
+    @Test
+    void votarAnonimoIgnoraIdentidadLegacyYEmiteCookieFirmada() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        String legacyId = "anon-legacy-client-id";
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-legacy");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", legacyId)
+                .cookie(new Cookie("as_anon_vote_id", legacyId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anonimo").value(true))
+                .andReturn();
+
+        Cookie signedCookie = anonCookieDesde(res);
+        String signedSessionId = anonSessionDesde(signedCookie);
+        org.junit.jupiter.api.Assertions.assertNotEquals(legacyId, signedSessionId);
+        org.junit.jupiter.api.Assertions.assertEquals(0, votoRepository.countByAnonSessionId(legacyId));
+        org.junit.jupiter.api.Assertions.assertEquals(1, votoRepository.countByAnonSessionId(signedSessionId));
     }
 
     /**
      * R3-1 / SEC-001 (regresión): el anti-fraude de voto anónimo no puede
      * evadirse rotando X-Forwarded-For. Escenario de vote-stuffing real: un
-     * atacante pega directo al backend y, por petición, rota la cookie de
-     * sesión (para saltarse el tope de 5 votos por sesión) y rota
+     * atacante pega directo al backend y, por petición, descarta la cookie
+     * firmada (para saltarse el tope de 5 votos por sesión) y rota
      * X-Forwarded-For (para intentar saltarse el throttle por IP).
      *
      * <p>ANTES del fix la IP del hash salía de X-Forwarded-For crudo y el
-     * hash incluía sesión + fingerprint, así que cada voto caía en un
-     * bucket distinto y el throttle por IP NUNCA disparaba (los 11 votos
-     * pasaban con 200). AHORA el hash es IP-real (ClientIpExtractor) +
+     * hash incluía valores controlados por cliente, así que cada voto caía
+     * en un bucket distinto y el throttle por IP NUNCA disparaba (los 11
+     * votos pasaban con 200). AHORA el hash es IP-real (ClientIpExtractor) +
      * User-Agent, estable frente a esa rotación, y al superar el umbral
      * soft (10/h) el throttle responde 428 PRECONDITION_REQUIRED.
      */
@@ -286,12 +341,11 @@ class EnfrentamientoControllerTest {
         Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
 
         // 11 votos > umbral soft (app.anon-abuse.soft-per-hour=10) desde la
-        // MISMA conexión (RemoteAddr 127.0.0.1, mismo User-Agent), rotando
-        // sesión y X-Forwarded-For en cada petición.
+        // MISMA conexión (RemoteAddr 127.0.0.1, mismo User-Agent), sin
+        // conservar cookie y rotando X-Forwarded-For en cada petición.
         List<Integer> estados = new java.util.ArrayList<>();
         for (int i = 0; i < 11; i++) {
             int status = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
-                    .header("X-AS-Anonymous-Id", "anon-xff-stuffing-" + i) // sesión nueva → evade el tope de 5
                     .header("X-Forwarded-For", "203.0.113." + i)           // IP spoofeada distinta cada vez
                     .header("User-Agent", "vote-stuffer/1.0")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -328,22 +382,21 @@ class EnfrentamientoControllerTest {
     void votarAnonimoDosVecesElMismoMatchDevuelve409YNoDuplica() throws Exception {
         String adminToken = tokenAdmin();
         long[] ids = dosPersonajes();
-        String anonId = "anon-dup-session";
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "anon-dup");
         Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
 
         // Primer voto OK
-        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
-                .header("X-AS-Anonymous-Id", anonId)
+        MvcResult primerVoto = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.anonimo").value(true));
+                .andExpect(jsonPath("$.anonimo").value(true))
+                .andReturn();
+        Cookie anonCookie = anonCookieDesde(primerVoto);
 
         // Segundo voto MISMA sesión + MISMO match: 409 Conflict.
         // El check de aplicación lo intercepta antes de llegar al constraint.
-        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
-                .header("X-AS-Anonymous-Id", anonId)
+        mvc.perform(conAnonCookie(post("/api/enfrentamientos/" + enfId + "/votar"), anonCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isConflict());
@@ -351,7 +404,7 @@ class EnfrentamientoControllerTest {
         // Solo un voto debe quedar en la BBDD, no dos.
         org.junit.jupiter.api.Assertions.assertEquals(
                 1,
-                votoRepository.countByAnonSessionId(anonId),
+                votoRepository.countByAnonSessionId(anonSessionDesde(anonCookie)),
                 "El constraint uk_voto_enfrentamiento_anon_session debería garantizar"
                         + " un único voto anónimo por sesión y match");
     }
@@ -400,7 +453,6 @@ class EnfrentamientoControllerTest {
         for (int i = 0; i < 3; i++) {
             long enfB = crearEnfrentamientoListoParaVotar(adminToken, persoA, persoB, "peso-B" + i);
             mvc.perform(post("/api/enfrentamientos/" + enfB + "/votar")
-                    .header("X-AS-Anonymous-Id", "anon-peso-" + i)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(json.writeValueAsString(Map.of("personajeGanadorId", persoB))))
                     .andExpect(status().isOk());
@@ -602,6 +654,52 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
+    void votarEmpateAnonimoPondera015YPersisteSesionFirmada() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        double votosAntesA = votoRepository.countByPersonajeId(ids[0]);
+        double votosAntesB = votoRepository.countByPersonajeId(ids[1]);
+        Double pesoAntesA = votoRepository.sumaPesoByPersonajeId(ids[0]);
+        Double pesoAntesB = votoRepository.sumaPesoByPersonajeId(ids[1]);
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "empate-anon");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("empate", true))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anonimo").value(true))
+                .andExpect(jsonPath("$.empate").value(true))
+                .andExpect(jsonPath("$.personajeGanadorId").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.personajePerdedorId").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.votosGanador").value(0.5))
+                .andExpect(jsonPath("$.votosPerdedor").value(0.5))
+                .andExpect(jsonPath("$.delta").value(0.0))
+                .andExpect(jsonPath("$.votosAnonimosRestantes").value(4))
+                .andReturn();
+
+        Cookie anonCookie = anonCookieDesde(res);
+        String anonSessionId = anonSessionDesde(anonCookie);
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+        var voto = votoRepository.findById(votoId).orElseThrow();
+
+        org.junit.jupiter.api.Assertions.assertTrue(voto.isEmpate());
+        org.junit.jupiter.api.Assertions.assertNull(voto.getUsuario());
+        org.junit.jupiter.api.Assertions.assertEquals(anonSessionId, voto.getAnonSessionId());
+        org.junit.jupiter.api.Assertions.assertEquals(0.15, voto.getPeso().doubleValue(), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(1, votoRepository.countByAnonSessionId(anonSessionId));
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesA + 0.5,
+                votoRepository.countByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesB + 0.5,
+                votoRepository.countByPersonajeId(ids[1]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesA + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesB + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[1]), 0.001);
+        verify(messaging, never()).convertAndSend(eq("/topic/ranking-delta"), any(RankingDeltaEvent.class));
+    }
+
+    @Test
     void votarInvalidaCacheDelRankingAllTime() throws Exception {
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_cache_user", "votocache@example.com");
@@ -670,7 +768,6 @@ class EnfrentamientoControllerTest {
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "ws-anon");
 
         mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
-                .header("X-AS-Anonymous-Id", "anon-ws-peso")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
                 .andExpect(status().isOk());
@@ -784,18 +881,17 @@ class EnfrentamientoControllerTest {
     void siguienteAnonimoOmiteEnfrentamientosYaVotadosPorLaMismaSesion() throws Exception {
         String adminToken = tokenAdmin();
         long[] ids = dosPersonajes();
-        String anonId = "anon-siguiente-session";
         long yaVotado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-1");
         long esperado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-2");
 
-        mvc.perform(post("/api/enfrentamientos/" + yaVotado + "/votar")
-                .header("X-AS-Anonymous-Id", anonId)
+        MvcResult voto = mvc.perform(post("/api/enfrentamientos/" + yaVotado + "/votar")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andReturn();
+        Cookie anonCookie = anonCookieDesde(voto);
 
-        var request = get("/api/enfrentamientos/siguiente")
-                .header("X-AS-Anonymous-Id", anonId);
+        var request = conAnonCookie(get("/api/enfrentamientos/siguiente"), anonCookie);
         String excludeIds = idsAbiertosExcepto(yaVotado, esperado);
         if (!excludeIds.isBlank()) {
             request.param("excludeIds", excludeIds);
@@ -1252,21 +1348,21 @@ class EnfrentamientoControllerTest {
         String adminToken = tokenAdmin();
         long[] ids = dosPersonajes();
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "patch-anon");
-        String anonId = "anon-patch-cat-01";
 
-        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
-                .header("X-AS-Anonymous-Id", anonId)
+        MvcResult voto = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andReturn();
+        Cookie anonCookie = anonCookieDesde(voto);
 
-        mvc.perform(patch("/api/enfrentamientos/" + enfId + "/votar/categoria")
-                .header("X-AS-Anonymous-Id", anonId)
+        mvc.perform(conAnonCookie(patch("/api/enfrentamientos/" + enfId + "/votar/categoria"), anonCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("categoria", "favorito"))))
                 .andExpect(status().isNoContent());
 
-        var votos = votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(anonId);
+        var votos = votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(
+                anonSessionDesde(anonCookie));
         org.junit.jupiter.api.Assertions.assertEquals(1, votos.size());
         org.junit.jupiter.api.Assertions.assertEquals("favorito", votos.get(0).getCategoria());
     }

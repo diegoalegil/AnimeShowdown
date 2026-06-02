@@ -749,8 +749,8 @@ export const endpoints: EndpointMap = {
   perfilStats: () => api.get('/api/perfil/me/stats'),
   perfilHistorialVotos: ({ page = 0, size = 50 } = {}) =>
     api.get(`/api/perfil/me/historial-votos?page=${page}&size=${size}`),
-  migrarVotosAnonimos: (anonSessionId) =>
-    api.post('/api/perfil/me/migrar-votos-anonimos', { anonSessionId }),
+  migrarVotosAnonimos: () =>
+    api.post('/api/perfil/me/migrar-votos-anonimos', undefined),
   perfilTop: ({ limit = 5 } = {}) =>
     api.get(`/api/perfil/me/top?limit=${limit}`),
   // Feed combinado de actividad: votos, logros, torneos creados,
