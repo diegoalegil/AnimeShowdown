@@ -75,7 +75,7 @@ class SocialIdempotencyConcurrencyTest {
     @Test
     void pushSubscribeConcurrenteConservaUnEndpoint() throws Exception {
         Usuario usuario = usuario("social_push");
-        String endpoint = "https://push.example/sub/social-" + System.nanoTime();
+        String endpoint = "https://fcm.googleapis.com/fcm/send/social-" + System.nanoTime();
         PushSubscribeRequest request = new PushSubscribeRequest(
                 endpoint,
                 new PushSubscribeRequest.Keys("key-social", "auth-social"));
