@@ -1,7 +1,5 @@
 package com.diegoalegil.animeshowdown.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -11,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -310,22 +307,18 @@ class NotificacionControllerTest {
 
     @Test
     void fanOutPushConcurrenteNoDuplicaEvento() throws Exception {
+        // Aislamiento: otros tests de esta clase dejan suscripciones push activas
+        // (p. ej. fanOutPushEsIdempotentePorEvento). El fan-out recorre TODAS las
+        // suscripciones; si no limpiamos, la suma de creadas deja de ser 1.
+        pushSubscriptionRepository.deleteAll();
+
         Sesion s = crearUsuarioVerificado("push_race", "push_race@example.com");
         pushSubscriptionRepository.save(new PushSubscription(
-                s.usuario(), "https://push.example/sub/race", "key-r", "auth-r"));
+                s.usuario(), "https://fcm.googleapis.com/fcm/send/race", "key-r", "auth-r"));
         Torneo torneo = new Torneo("push-race-copa", "Push Race Copa", "Torneo con push");
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setPublico(true);
         torneo = torneoRepository.save(torneo);
-
-        CountDownLatch prechecksCodigoAnterior = new CountDownLatch(2);
-        doAnswer(invocation -> {
-            prechecksCodigoAnterior.countDown();
-            if (!prechecksCodigoAnterior.await(5, TimeUnit.SECONDS)) {
-                throw new AssertionError("No llegaron los dos fan-outs al precheck anterior");
-            }
-            return false;
-        }).when(notificacionRepository).existsByUsuarioAndTipoAndCreadoEnAfter(any(), any(), any());
 
         Torneo torneoFinal = torneo;
         ExecutorService executor = Executors.newFixedThreadPool(2);

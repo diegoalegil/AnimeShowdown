@@ -41,15 +41,18 @@ public class ReaccionService {
     private final PersonajeRepository personajeRepository;
     private final TorneoRepository torneoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
+    private final SocialOperationLock socialOperationLock;
 
     public ReaccionService(ReaccionRepository repo,
             PersonajeRepository personajeRepository,
             TorneoRepository torneoRepository,
-            EnfrentamientoRepository enfrentamientoRepository) {
+            EnfrentamientoRepository enfrentamientoRepository,
+            SocialOperationLock socialOperationLock) {
         this.repo = repo;
         this.personajeRepository = personajeRepository;
         this.torneoRepository = torneoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
+        this.socialOperationLock = socialOperationLock;
     }
 
     @Transactional
@@ -69,6 +72,7 @@ public class ReaccionService {
             throw new IllegalArgumentException(
                     "Target inexistente: " + targetType + ":" + targetId);
         }
+        socialOperationLock.reacciones();
         Optional<Reaccion> existente = repo.findByUsuarioAndTargetTypeAndTargetId(
                 usuario, targetType, targetId);
 
@@ -77,20 +81,21 @@ public class ReaccionService {
             if (r.getTipo() == tipo) {
                 // Toggle off: clica el mismo emoji que ya tiene → borra.
                 repo.delete(r);
+                repo.flush();
                 log.debug("Reaccion toggle-off: usuario={} target={}:{} tipo={}",
                         usuario.getUsername(), targetType, targetId, tipo);
                 return Optional.empty();
             }
             // Cambia el tipo. setTipo actualiza también la fecha.
             r.setTipo(tipo);
-            Reaccion guardada = repo.save(r);
+            Reaccion guardada = repo.saveAndFlush(r);
             log.debug("Reaccion swap: usuario={} target={}:{} tipo={}",
                     usuario.getUsername(), targetType, targetId, tipo);
             return Optional.of(guardada);
         }
 
         Reaccion nueva = new Reaccion(usuario, tipo, targetType, targetId);
-        Reaccion guardada = repo.save(nueva);
+        Reaccion guardada = repo.saveAndFlush(nueva);
         log.debug("Reaccion nueva: usuario={} target={}:{} tipo={}",
                 usuario.getUsername(), targetType, targetId, tipo);
         return Optional.of(guardada);

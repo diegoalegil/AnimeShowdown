@@ -18,13 +18,16 @@ public class PushSubscriptionService {
 
     private final PushSubscriptionRepository repository;
     private final WebPushService webPushService;
+    private final SocialOperationLock socialOperationLock;
     private final WebPushEndpointGuard endpointGuard;
 
     public PushSubscriptionService(PushSubscriptionRepository repository,
             WebPushService webPushService,
+            SocialOperationLock socialOperationLock,
             WebPushEndpointGuard endpointGuard) {
         this.repository = repository;
         this.webPushService = webPushService;
+        this.socialOperationLock = socialOperationLock;
         this.endpointGuard = endpointGuard;
     }
 
@@ -37,6 +40,7 @@ public class PushSubscriptionService {
 
     @Transactional
     public PushSubscriptionDto subscribe(Usuario usuario, PushSubscribeRequest request) {
+        socialOperationLock.pushSubscriptions();
         String endpoint = endpointGuard.requireAllowed(request.endpoint());
         PushSubscription sub = repository.findByEndpoint(endpoint)
                 .orElseGet(PushSubscription::new);
@@ -47,11 +51,12 @@ public class PushSubscriptionService {
         if (sub.getCreatedAt() == null) {
             sub.setCreatedAt(LocalDateTime.now());
         }
-        return PushSubscriptionDto.from(repository.save(sub));
+        return PushSubscriptionDto.from(repository.saveAndFlush(sub));
     }
 
     @Transactional
     public int unsubscribe(Usuario usuario, String endpoint) {
+        socialOperationLock.pushSubscriptions();
         if (endpoint == null || endpoint.isBlank()) {
             return repository.deleteByUsuario(usuario);
         }

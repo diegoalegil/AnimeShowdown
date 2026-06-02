@@ -34,13 +34,16 @@ public class SeguidorService {
     private final SeguidorRepository repo;
     private final UsuarioRepository usuarioRepository;
     private final NotificacionService notificacionService;
+    private final SocialOperationLock socialOperationLock;
 
     public SeguidorService(SeguidorRepository repo,
             UsuarioRepository usuarioRepository,
-            NotificacionService notificacionService) {
+            NotificacionService notificacionService,
+            SocialOperationLock socialOperationLock) {
         this.repo = repo;
         this.usuarioRepository = usuarioRepository;
         this.notificacionService = notificacionService;
+        this.socialOperationLock = socialOperationLock;
     }
 
     @Transactional
@@ -53,11 +56,12 @@ public class SeguidorService {
         if (seguidoOpt.isEmpty()) {
             throw new IllegalArgumentException("Usuario a seguir no encontrado");
         }
+        socialOperationLock.seguidores();
         if (repo.existsByIdSeguidorIdAndIdSeguidoId(seguidor.getId(), seguidoId)) {
             return false; // Ya lo sigue
         }
         Usuario seguido = seguidoOpt.get();
-        repo.save(new Seguidor(seguidor, seguido));
+        repo.saveAndFlush(new Seguidor(seguidor, seguido));
         log.info("Follow: {} → {}", seguidor.getUsername(), seguido.getUsername());
 
         // 13 + §4.5: notifica al seguido. Best-effort.
@@ -77,6 +81,7 @@ public class SeguidorService {
     @Transactional
     public boolean dejarDeSeguir(Usuario seguidor, Long seguidoId) {
         if (seguidor == null || seguidoId == null) return false;
+        socialOperationLock.seguidores();
         int n = repo.deleteRelacion(seguidor.getId(), seguidoId);
         return n > 0;
     }
