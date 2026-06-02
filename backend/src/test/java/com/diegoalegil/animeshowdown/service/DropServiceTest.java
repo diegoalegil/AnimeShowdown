@@ -10,9 +10,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
@@ -27,9 +32,16 @@ class DropServiceTest {
 
     private final Usuario usuario = new Usuario("dropper", "{noop}secreta123", "dropper@example.com");
 
+    private static final Clock UTC_CLOCK = Clock.fixed(Instant.parse("2026-06-02T12:00:00Z"), ZoneOffset.UTC);
+
     private DropService dropService(MonederoService monederoService,
             AuditLogService auditLogService, int topeDiario) {
-        return new DropService(monederoService, auditLogService,
+        return dropService(monederoService, auditLogService, topeDiario, UTC_CLOCK);
+    }
+
+    private DropService dropService(MonederoService monederoService,
+            AuditLogService auditLogService, int topeDiario, Clock clock) {
+        return new DropService(monederoService, auditLogService, clock,
                 5, 15, 25, 20, topeDiario);
     }
 
@@ -98,5 +110,27 @@ class DropServiceTest {
         assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_DUELO, "duelo:7"))
                 .isEqualTo(DropService.DropResultado.IDEMPOTENTE);
         verify(auditLogService, never()).registrar(any(), any(), any(), any());
+    }
+
+    @Test
+    void inicioDelDiaSeCalculaEnLaZonaDeProducto() {
+        // 03:30 UTC todavía es el día anterior en una zona UTC-6: el inicio del
+        // día de producto debe ser la medianoche local convertida a UTC, no la
+        // medianoche UTC. Garantiza que el tope diario respeta la zona del producto.
+        MonederoService monederoService = mock(MonederoService.class);
+        when(monederoService.acreditarDropConTopeDiario(
+                any(), any(), any(), anyLong(), anyInt(), any(LocalDateTime.class)))
+                .thenReturn(new MonederoService.ResultadoDrop(
+                        MonederoService.ResultadoDrop.Estado.APLICADO, 5L));
+        Clock clock = Clock.fixed(Instant.parse("2026-06-02T03:30:00Z"), ZoneId.of("America/Mexico_City"));
+        DropService service = dropService(monederoService, mock(AuditLogService.class), 50, clock);
+
+        service.otorgar(usuario, MotivoMovimiento.DROP_VOTO, "voto:10");
+
+        ArgumentCaptor<LocalDateTime> desde = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(monederoService).acreditarDropConTopeDiario(
+                eq(usuario), eq(MotivoMovimiento.DROP_VOTO), eq("voto:10"), eq(5L),
+                eq(50), desde.capture());
+        assertThat(desde.getValue()).isEqualTo(LocalDateTime.of(2026, 6, 1, 6, 0));
     }
 }

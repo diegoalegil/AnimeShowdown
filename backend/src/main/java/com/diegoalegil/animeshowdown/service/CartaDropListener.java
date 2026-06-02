@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 import org.slf4j.Logger;
@@ -43,16 +44,19 @@ public class CartaDropListener {
     private final DropService dropService;
     private final VotoRepository votoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final Clock clock;
     private final int votoCadaN;
 
     public CartaDropListener(
             DropService dropService,
             VotoRepository votoRepository,
             UsuarioRepository usuarioRepository,
+            Clock clock,
             @Value("${app.cartas.drop.voto-cada-n:10}") int votoCadaN) {
         this.dropService = dropService;
         this.votoRepository = votoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.clock = clock;
         this.votoCadaN = Math.max(1, votoCadaN);
     }
 
@@ -64,10 +68,10 @@ public class CartaDropListener {
             return;
         }
         try {
-            // Misión diaria: votar hoy la completa. Idempotente por fecha UTC del
-            // servidor → un único drop por día por usuario.
+            // Misión diaria: votar hoy la completa. Idempotente por fecha del
+            // producto → un único drop por día por usuario.
             dropService.otorgar(usuario, MotivoMovimiento.DROP_MISION_DIARIA,
-                    "dia:" + LocalDate.now());
+                    "dia:" + LocalDate.now(clock));
 
             // Hito de votos: cada N votos. La referencia es el total exacto, así
             // que cada hito dropea una sola vez.
