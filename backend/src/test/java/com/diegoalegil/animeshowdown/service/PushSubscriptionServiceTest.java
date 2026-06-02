@@ -20,6 +20,7 @@ class PushSubscriptionServiceTest {
 
     @Mock private PushSubscriptionRepository repository;
     @Mock private WebPushService webPushService;
+    @Mock private SocialOperationLock socialOperationLock;
 
     private PushSubscriptionService sut;
     private Usuario usuario;
@@ -27,6 +28,7 @@ class PushSubscriptionServiceTest {
     @BeforeEach
     void setUp() {
         sut = new PushSubscriptionService(repository, webPushService,
+                socialOperationLock,
                 new WebPushEndpointGuard(WebPushEndpointGuard.DEFAULT_ALLOWED_HOSTS));
         usuario = new Usuario("push_user", "hash", "push@example.com");
     }
