@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
 import com.diegoalegil.animeshowdown.model.Usuario;
-import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
 
 /**
  * El SERVIDOR decide qué/cuándo dropea moneda al jugar. Reglas:
@@ -42,14 +41,12 @@ public class DropService {
     private static final Logger log = LoggerFactory.getLogger(DropService.class);
 
     private final MonederoService monederoService;
-    private final MonederoMovimientoRepository movimientoRepo;
     private final AuditLogService auditLogService;
     private final int topeDiario;
     private final Map<MotivoMovimiento, Long> recompensas;
 
     public DropService(
             MonederoService monederoService,
-            MonederoMovimientoRepository movimientoRepo,
             AuditLogService auditLogService,
             @Value("${app.cartas.drop.voto:5}") long voto,
             @Value("${app.cartas.drop.mision-diaria:15}") long misionDiaria,
@@ -57,7 +54,6 @@ public class DropService {
             @Value("${app.cartas.drop.duelo:20}") long duelo,
             @Value("${app.cartas.drop.tope-diario:50}") int topeDiario) {
         this.monederoService = monederoService;
-        this.movimientoRepo = movimientoRepo;
         this.auditLogService = auditLogService;
         this.topeDiario = Math.max(1, topeDiario);
         this.recompensas = new EnumMap<>(MotivoMovimiento.class);
@@ -80,17 +76,16 @@ public class DropService {
         if (cantidad == null || cantidad <= 0) {
             return DropResultado.OMITIDO;
         }
-        long dropsHoy = movimientoRepo.countByUsuarioAndDeltaGreaterThanAndCreadoEnAfter(
-                usuario, 0L, inicioDelDia());
-        if (dropsHoy >= topeDiario) {
-            log.debug("Drop omitido por tope diario ({}): usuario={} motivo={}",
-                    topeDiario, usuario.getUsername(), motivo);
-            return DropResultado.TOPE_DIARIO;
-        }
         try {
-            MonederoService.ResultadoCredito credito =
-                    monederoService.acreditar(usuario, motivo, referencia, cantidad);
-            if (!credito.aplicado()) {
+            MonederoService.ResultadoDrop credito =
+                    monederoService.acreditarDropConTopeDiario(
+                            usuario, motivo, referencia, cantidad, topeDiario, inicioDelDia());
+            if (credito.estado() == MonederoService.ResultadoDrop.Estado.TOPE_DIARIO) {
+                log.debug("Drop omitido por tope diario ({}): usuario={} motivo={}",
+                        topeDiario, usuario.getUsername(), motivo);
+                return DropResultado.TOPE_DIARIO;
+            }
+            if (credito.estado() == MonederoService.ResultadoDrop.Estado.IDEMPOTENTE) {
                 return DropResultado.IDEMPOTENTE;
             }
             auditLogService.registrar(

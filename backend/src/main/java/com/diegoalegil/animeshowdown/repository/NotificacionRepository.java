@@ -25,6 +25,8 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
     boolean existsByUsuarioAndTipoAndCreadoEnAfter(Usuario usuario, NotificacionTipo tipo,
             java.time.LocalDateTime desde);
 
+    boolean existsByUsuarioAndTipoAndEventoKey(Usuario usuario, NotificacionTipo tipo, String eventoKey);
+
     /** Marca todas las del usuario como leídas. Una sola escritura. */
     @Modifying
     @Query("UPDATE Notificacion n SET n.leida = true WHERE n.usuario = :usuario AND n.leida = false")

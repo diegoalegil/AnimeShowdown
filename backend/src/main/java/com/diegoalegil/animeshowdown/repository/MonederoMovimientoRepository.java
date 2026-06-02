@@ -1,8 +1,11 @@
 package com.diegoalegil.animeshowdown.repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.model.MonederoMovimiento;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
@@ -14,10 +17,16 @@ public interface MonederoMovimientoRepository extends JpaRepository<MonederoMovi
     boolean existsByUsuarioAndMotivoAndReferencia(
             Usuario usuario, MotivoMovimiento motivo, String referencia);
 
-    /**
-     * Cuántos drops (ganancias, delta &gt; 0) ha recibido el usuario desde
-     * {@code desde} — soporta el tope diario de drops (anti-farmeo suave).
-     */
-    long countByUsuarioAndDeltaGreaterThanAndCreadoEnAfter(
-            Usuario usuario, long delta, LocalDateTime desde);
+    @Query("""
+            SELECT COUNT(m)
+            FROM MonederoMovimiento m
+            WHERE m.usuario = :usuario
+              AND m.delta > 0
+              AND m.motivo IN :motivos
+              AND m.creadoEn >= :desde
+            """)
+    long countDropsDesde(
+            @Param("usuario") Usuario usuario,
+            @Param("motivos") Collection<MotivoMovimiento> motivos,
+            @Param("desde") LocalDateTime desde);
 }

@@ -30,6 +30,8 @@ public record DueloLiveRoundDto(
         DueloLiveChoice rivalVoto = soyJugador1 ? ronda.getVotoJugador2() : ronda.getVotoJugador1();
         Boolean yoAcerte = soyJugador1 ? ronda.getJugador1Acerto() : ronda.getJugador2Acerto();
         Boolean rivalAcerto = soyJugador1 ? ronda.getJugador2Acerto() : ronda.getJugador1Acerto();
+        boolean resuelta = ronda.getEstado() != DueloLiveRondaEstado.IN_PROGRESS
+                || ronda.getEleccionCorrecta() != null;
         return new DueloLiveRoundDto(
                 ronda.getId(),
                 ronda.getNumero(),
@@ -40,12 +42,12 @@ public record DueloLiveRoundDto(
                 ronda.getAbreEn(),
                 ronda.getCierraEn(),
                 miVoto,
-                rivalVoto,
+                resuelta ? rivalVoto : null,
                 miVoto != null,
                 rivalVoto != null,
                 ronda.getEleccionCorrecta(),
                 yoAcerte,
-                rivalAcerto,
+                resuelta ? rivalAcerto : null,
                 ronda.getDecisionMs());
     }
 }

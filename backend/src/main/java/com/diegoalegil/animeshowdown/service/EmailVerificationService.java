@@ -85,13 +85,21 @@ public class EmailVerificationService {
      */
     @Transactional
     public void emitir(Usuario usuario) {
-        repository.invalidarActivasDelUsuario(usuario, LocalDateTime.now());
+        Usuario usuarioBloqueado = usuarioRepository.findForUpdateById(usuario.getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Usuario no encontrado al emitir verificación: " + usuario.getId()));
+        if (usuarioBloqueado.estaVerificado()) {
+            return;
+        }
+
+        LocalDateTime ahora = LocalDateTime.now();
+        repository.invalidarActivasDelUsuario(usuarioBloqueado, ahora);
         String token = generarTokenPlano();
-        LocalDateTime expira = LocalDateTime.now().plusHours(ttlHoras);
-        repository.save(new EmailVerification(usuario, token, expira));
+        LocalDateTime expira = ahora.plusHours(ttlHoras);
+        repository.save(new EmailVerification(usuarioBloqueado, token, expira));
         String link = frontendBaseUrl + "/verify?token=" + token;
-        emailService.enviarVerificacion(usuario.getEmail(), usuario.getUsername(), link);
-        log.info("EmailVerification emitida: usuario={} expira={}", usuario.getUsername(), expira);
+        emailService.enviarVerificacion(usuarioBloqueado.getEmail(), usuarioBloqueado.getUsername(), link);
+        log.info("EmailVerification emitida: usuario={} expira={}", usuarioBloqueado.getUsername(), expira);
     }
 
     /**
@@ -102,24 +110,31 @@ public class EmailVerificationService {
     @Transactional
     public boolean verificar(String token) {
         if (token == null || token.isBlank()) return false;
+        LocalDateTime ahora = LocalDateTime.now();
         Optional<EmailVerification> opt = repository.findByToken(token);
         if (opt.isEmpty()) {
             log.warn("EmailVerification verificar: token no encontrado");
             return false;
         }
         EmailVerification ev = opt.get();
-        if (ev.getUsadoEn() != null) {
-            // Reutilización del link: si el usuario ya está ACTIVO lo dejamos
-            // pasar (idempotente). Si por algún motivo no, ignoramos.
-            return ev.getUsuario().estaVerificado();
-        }
-        if (ev.getExpiraEn().isBefore(LocalDateTime.now())) {
+
+        Usuario u = usuarioRepository.findForUpdateById(ev.getUsuario().getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Usuario no encontrado al verificar email: " + ev.getUsuario().getId()));
+        if (ev.getExpiraEn().isBefore(ahora)) {
             log.info("EmailVerification expirada para usuario={}", ev.getUsuario().getUsername());
             return false;
         }
-        ev.marcarComoUsado();
-        repository.save(ev);
-        Usuario u = ev.getUsuario();
+        int consumidos = repository.consumirActivaPorToken(token, ahora);
+        if (consumidos == 0) {
+            // Reutilización del link o token invalidado por reenvío. Si el
+            // usuario ya está ACTIVO lo dejamos pasar como idempotente; si no,
+            // el token ya no es válido para activar la cuenta.
+            return usuarioRepository.findById(u.getId())
+                    .map(Usuario::estaVerificado)
+                    .orElse(false);
+        }
+
         u.setEstadoVerificacion(EstadoVerificacion.ACTIVO);
         // la auto-promoción a ADMIN se hace AQUÍ (no en
         // registro). Requiere que el dueño del email haya verificado

@@ -11,17 +11,21 @@ import com.diegoalegil.animeshowdown.dto.PushSubscriptionDto;
 import com.diegoalegil.animeshowdown.model.PushSubscription;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PushSubscriptionRepository;
+import com.diegoalegil.animeshowdown.security.WebPushEndpointGuard;
 
 @Service
 public class PushSubscriptionService {
 
     private final PushSubscriptionRepository repository;
     private final WebPushService webPushService;
+    private final WebPushEndpointGuard endpointGuard;
 
     public PushSubscriptionService(PushSubscriptionRepository repository,
-            WebPushService webPushService) {
+            WebPushService webPushService,
+            WebPushEndpointGuard endpointGuard) {
         this.repository = repository;
         this.webPushService = webPushService;
+        this.endpointGuard = endpointGuard;
     }
 
     @Transactional(readOnly = true)
@@ -33,10 +37,11 @@ public class PushSubscriptionService {
 
     @Transactional
     public PushSubscriptionDto subscribe(Usuario usuario, PushSubscribeRequest request) {
-        PushSubscription sub = repository.findByEndpoint(request.endpoint())
+        String endpoint = endpointGuard.requireAllowed(request.endpoint());
+        PushSubscription sub = repository.findByEndpoint(endpoint)
                 .orElseGet(PushSubscription::new);
         sub.setUsuario(usuario);
-        sub.setEndpoint(request.endpoint());
+        sub.setEndpoint(endpoint);
         sub.setP256dh(request.keys().p256dh());
         sub.setAuth(request.keys().auth());
         if (sub.getCreatedAt() == null) {

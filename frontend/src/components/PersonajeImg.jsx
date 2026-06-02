@@ -17,6 +17,15 @@ import PersonajePlaceholder from './PersonajePlaceholder'
 // Recordando los srcs ya cargados, en el remonte pintamos a opacidad plena sin
 // fade (instant) desde el primer frame y el flash desaparece. V-4.
 const loadedSrcs = new Set()
+const FIT_CLASSES = {
+  contain: 'object-contain',
+  cover: 'object-cover',
+}
+const POSITION_CLASSES = {
+  bottom: 'object-bottom',
+  center: 'object-center',
+  top: 'object-top',
+}
 
 function encodeImageUrl(url) {
   if (!url || /^(data|blob):/i.test(url)) return url
@@ -31,9 +40,9 @@ function encodeImageUrl(url) {
  * decorativo. Nunca se muestra el icono de imagen rota del navegador.
  *
  * <p>Performance: usa {@code <picture>} con srcset WebP. Las variantes
- * 300/600 se sirven desde assets generados y el WebP original actúa como
- * candidato grande. AVIF se genera localmente pero no se sube, así que no
- * se referencia desde producción.
+ * 300/600 se sirven desde assets generados. El original pesado queda fuera
+ * del srcset por defecto para que cartas y duelos no descarguen 1024w salvo
+ * que un caller grande suba explícitamente `maxSourceWidth`.
  *
  * <p>Lazy loading y async decoding por default. El caller puede override
  * (p.ej. {@code loading="eager" fetchPriority="high"} para LCP).
@@ -42,6 +51,9 @@ function PersonajeImg({
   slug,
   alt,
   sizes,
+  fit,
+  position,
+  maxSourceWidth = 600,
   className = '',
   loading,
   decoding,
@@ -102,7 +114,7 @@ function PersonajeImg({
   // parpadeo de la silueta (la imagen desaparece y reaparece). V-3.
   const instant = status.src === src && status.instant
   const dominantColor =
-    colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? '#151923'
+    colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? 'var(--color-surface)'
   const altText = alt ?? nombre ?? p?.nombre ?? slug
   const handleImageLoad = useCallback((event) => {
     loadedSrcs.add(src)
@@ -168,22 +180,33 @@ function PersonajeImg({
   const queryIndex = src.indexOf('?')
   const srcPath = queryIndex === -1 ? src : src.slice(0, queryIndex)
   const srcQuery = queryIndex === -1 ? '' : src.slice(queryIndex)
-  const base = srcPath.replace(/\.webp$/i, '')
+  const base = srcPath.replace(/(?:-(?:300|600|1024))?\.webp$/i, '')
   const isWebp = /\.webp$/i.test(srcPath)
   const imgSrc = encodeImageUrl(src)
+  const sourceWidthLimit = Number(maxSourceWidth)
+  const safeSourceWidthLimit = Number.isFinite(sourceWidthLimit)
+    ? Math.max(300, Math.round(sourceWidthLimit))
+    : 600
+  const variantWidths = [300, 600].filter((width) => width <= safeSourceWidthLimit)
+  const includeOriginalCandidate = safeSourceWidthLimit > 600
   const srcsetWebp = isWebp
     ? [
-        `${encodeImageUrl(`${base}-300.webp${srcQuery}`)} 300w`,
-        `${encodeImageUrl(`${base}-600.webp${srcQuery}`)} 600w`,
-        `${imgSrc} 1024w`,
+        ...variantWidths.map((width) => `${encodeImageUrl(`${base}-${width}.webp${srcQuery}`)} ${width}w`),
+        ...(includeOriginalCandidate ? [`${imgSrc} ${Math.max(1024, safeSourceWidthLimit)}w`] : []),
       ].join(', ')
     : undefined
   // sizes default: estimación conservadora para que el browser no
   // sobre-descargue en mobile. El caller puede pasar sizes específico
   // (e.g. la imagen grande de la ficha de personaje usaría algo mayor).
   const sizesAttr = sizes ?? '(min-width: 1024px) 200px, (min-width: 640px) 160px, 140px'
-  const fitClass = className.includes('object-contain') ? 'object-contain' : 'object-cover'
-  const positionClass = className.includes('object-center') ? 'object-center' : 'object-top'
+  const fitClass = FIT_CLASSES[fit]
+    ?? (className.includes('object-contain') ? 'object-contain' : 'object-cover')
+  const positionClass = POSITION_CLASSES[position]
+    ?? (className.includes('object-center')
+      ? 'object-center'
+      : className.includes('object-bottom')
+        ? 'object-bottom'
+        : 'object-top')
 
   return (
     <span

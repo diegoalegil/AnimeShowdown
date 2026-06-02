@@ -51,6 +51,7 @@ class TorneoServiceTest {
     @Mock private IndexNowService indexNowService;
     @Mock private SeguidorFanOutService seguidorFanOutService;
     @Mock private TorneoCreationLock torneoCreationLock;
+    @Mock private TorneoOperacionLockService torneoOperacionLockService;
 
     private TorneoService service;
 
@@ -67,7 +68,8 @@ class TorneoServiceTest {
                 notificacionService,
                 indexNowService,
                 seguidorFanOutService,
-                torneoCreationLock);
+                torneoCreationLock,
+                torneoOperacionLockService);
     }
 
     // ─── Fixtures ──────────────────────────────────────────────────────────────
@@ -556,7 +558,7 @@ class TorneoServiceTest {
             IllegalStateException ex = assertThrows(IllegalStateException.class,
                     () -> service.finalizar(1L));
 
-            assertThat(ex.getMessage()).contains("empates");
+            assertThat(ex.getMessage()).contains("matches sin votos");
         }
 
         @Test

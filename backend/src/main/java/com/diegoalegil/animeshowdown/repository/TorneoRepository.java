@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,10 +14,16 @@ import com.diegoalegil.animeshowdown.model.EstadoRevision;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 
+import jakarta.persistence.LockModeType;
+
 public interface TorneoRepository extends JpaRepository<Torneo, Long> {
 
     /** Lookup por slug URL-safe — usado por el endpoint público GET /api/torneos/slug/{slug}. */
     Optional<Torneo> findBySlug(String slug);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM Torneo t WHERE t.id = :id")
+    Optional<Torneo> findForUpdateById(@Param("id") Long id);
 
     /** Existencia rápida sin cargar la entidad. Útil para el sufijo numérico de unicidad. */
     boolean existsBySlug(String slug);
@@ -66,6 +73,13 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
 
     /** Cola admin: pendientes en orden de llegada (FIFO). */
     List<Torneo> findByEstadoRevisionOrderByFechaCreacionAsc(EstadoRevision estado);
+
+    @Query("""
+            SELECT t.id FROM Torneo t
+            WHERE t.estado = com.diegoalegil.animeshowdown.model.EstadoTorneo.IN_PROGRESS
+            ORDER BY t.id ASC
+            """)
+    List<Long> findIdsEnCurso();
 
     /** Listado del propio creador, todos los estados, más recientes primero. */
     List<Torneo> findByCreadoPorOrderByFechaCreacionDesc(Usuario creador);

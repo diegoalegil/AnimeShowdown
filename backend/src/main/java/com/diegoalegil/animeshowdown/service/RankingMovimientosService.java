@@ -10,14 +10,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.dto.RankingItem;
 import com.diegoalegil.animeshowdown.dto.RankingMovimientoItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
-import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
  * Ranking actual con indicadores de movimiento ↑/↓/=/Nuevo
@@ -44,10 +42,10 @@ public class RankingMovimientosService {
     private static final int LIMITE_MAX = 100;
     private static final int LIMITE_HISTORICO_FANTASY = 5000;
 
-    private final VotoRepository votoRepository;
+    private final RankingMaterializadoService rankingMaterializadoService;
 
-    public RankingMovimientosService(VotoRepository votoRepository) {
-        this.votoRepository = votoRepository;
+    public RankingMovimientosService(RankingMaterializadoService rankingMaterializadoService) {
+        this.rankingMaterializadoService = rankingMaterializadoService;
     }
 
     @Cacheable(value = "ranking-movimientos", key = "#limit + ':' + #dias")
@@ -56,12 +54,10 @@ public class RankingMovimientosService {
         int n = Math.min(LIMITE_MAX, Math.max(1, limit));
         int diasSane = Math.max(1, dias);
 
-        List<RankingItem> actuales = votoRepository.rankingAllTime(
-                PageRequest.of(0, n)).getContent();
+        List<RankingItem> actuales = rankingMaterializadoService.rankingAllTime(n);
         LocalDateTime corte = LocalDateTime.now().minusDays(diasSane);
         // Pedimos 2N del histórico para tener margen al detectar nuevos.
-        List<RankingItem> historico = votoRepository.rankingHasta(
-                corte, PageRequest.of(0, n * 2));
+        List<RankingItem> historico = rankingMaterializadoService.rankingHasta(corte, n * 2);
 
         Map<Long, Integer> posicionHistorica = new HashMap<>();
         for (int i = 0; i < historico.size(); i++) {
@@ -116,9 +112,9 @@ public class RankingMovimientosService {
     }
 
     private Map<Long, Integer> posicionesHasta(LocalDateTime corte) {
-        List<RankingItem> ranking = votoRepository.rankingHasta(
+        List<RankingItem> ranking = rankingMaterializadoService.rankingHasta(
                 corte,
-                PageRequest.of(0, LIMITE_HISTORICO_FANTASY));
+                LIMITE_HISTORICO_FANTASY);
         Map<Long, Integer> posiciones = new HashMap<>();
         for (int i = 0; i < ranking.size(); i++) {
             Personaje p = ranking.get(i).getPersonaje();
