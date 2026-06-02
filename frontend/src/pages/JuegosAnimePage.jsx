@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
+  Brain,
   CalendarDays,
   Eye,
   Gamepad2,
   Grid3X3,
+  Network,
   Share2,
   Sparkles,
   Swords,
@@ -36,12 +38,28 @@ const JUEGOS = [
     icon: Type,
   },
   {
+    title: 'Oráculo Anime',
+    intent: 'akinator anime',
+    text: 'Piensa un personaje y responde preguntas para que el motor lo adivine.',
+    cadence: 'Infinito',
+    to: '/games/oraculo',
+    icon: Brain,
+  },
+  {
     title: 'AniGrid',
     intent: 'wordle anime',
     text: 'Un puzzle tipo Wordle con pistas de anime, género, rol y universo.',
     cadence: 'Daily',
     to: '/games/anigrid',
     icon: Grid3X3,
+  },
+  {
+    title: 'Nexo Anime',
+    intent: 'conexiones anime',
+    text: 'Empareja personajes que comparten anime en un tablero diario de conexiones.',
+    cadence: 'Daily',
+    to: '/games/nexo-anime',
+    icon: Network,
   },
   {
     title: 'Impostor Trial',
@@ -109,7 +127,7 @@ function JuegosAnimePage() {
   useSeo({
     title: 'Juegos anime online gratis',
     description:
-      'Juegos anime online diarios en AnimeShowdown: Shadow Guess, Anime Reveal, AniGrid, Impostor Trial y ELO Duel. Juega gratis, protege tu racha y comparte resultado.',
+      'Juegos anime online diarios en AnimeShowdown: Shadow Guess, Anime Reveal, Oráculo Anime, Nexo Anime, AniGrid, Impostor Trial y ELO Duel. Juega gratis, protege tu racha y comparte resultado.',
     canonical: 'https://animeshowdown.dev/juegos/anime',
     image: BRAND_VISUALS.games.image,
   })
@@ -128,7 +146,7 @@ function JuegosAnimePage() {
           icon={Gamepad2}
           eyebrow="Juegos anime online"
           title="Juegos anime online diarios"
-          subtitle="Adivina personajes, detecta impostores, juega anime higher or lower y comparte tu resultado diario sin instalar nada."
+          subtitle="Adivina personajes, resuelve conexiones, detecta impostores, juega anime higher or lower y comparte tu resultado diario sin instalar nada."
           actions={
             <>
               <Link to="/games" className="as-button-primary inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-black">

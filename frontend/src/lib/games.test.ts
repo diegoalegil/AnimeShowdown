@@ -4,12 +4,18 @@ import {
   getDailyResetCountdown,
   personajeDelDia,
   impostorDelDia,
+  crearBancoPreguntasOraculo,
+  rankOraculoCandidates,
+  seleccionarPreguntaOraculo,
+  nexoAnimeDelDia,
   normalizar,
   buildShareSquares,
   buildGameShareText,
   safeStorage,
   ELO_DUEL_BEST_KEY,
   ELO_DUEL_LEGACY_BEST_KEY,
+  ORACULO_STORAGE_KEY,
+  NEXO_ANIME_STORAGE_KEY,
 } from './games'
 import type { PersonajeLite } from './types'
 
@@ -35,6 +41,8 @@ describe('ELO keys', () => {
   it('exports the correct storage keys', () => {
     expect(ELO_DUEL_BEST_KEY).toBe('animeshowdown.higherOrLower.best')
     expect(ELO_DUEL_LEGACY_BEST_KEY).toBe('animeshowdown.higher-or-lower.best')
+    expect(ORACULO_STORAGE_KEY).toBe('animeshowdown.oraculo.v1')
+    expect(NEXO_ANIME_STORAGE_KEY).toBe('animeshowdown.nexo-anime.v1')
   })
 })
 
@@ -237,6 +245,108 @@ describe('impostorDelDia', () => {
     const r2 = impostorDelDia(d, 'salt1', fixtures)
     expect(r1).not.toBeNull()
     expect(r2).not.toBeNull()
+  })
+})
+
+// ─── Oráculo Anime ─────────────────────────────────────────────────────────────
+
+describe('Oráculo Anime rules engine', () => {
+  const fixtures = [
+    { slug: 'a1', nombre: 'A1', anime: 'AnimeA' },
+    { slug: 'a2', nombre: 'A2', anime: 'AnimeA' },
+    { slug: 'a3', nombre: 'A3', anime: 'AnimeA' },
+    { slug: 'b1', nombre: 'B1', anime: 'AnimeB' },
+    { slug: 'b2', nombre: 'B2', anime: 'AnimeB' },
+    { slug: 'b3', nombre: 'B3', anime: 'AnimeB' },
+    { slug: 'c1', nombre: 'C1', anime: 'AnimeC' },
+    { slug: 'c2', nombre: 'C2', anime: 'AnimeC' },
+  ] as Array<PersonajeLite & { anime: string }>
+  const tagMap: Record<string, string[]> = {
+    a1: ['protagonist', 'shounen'],
+    a2: ['protagonist'],
+    b1: ['villain'],
+    b2: ['villain'],
+  }
+  const tags = (personaje: PersonajeLite & { anime: string }) => tagMap[personaje.slug] ?? []
+
+  it('builds questions from anime groups and curated tags', () => {
+    const questions = crearBancoPreguntasOraculo(fixtures, tags)
+    expect(questions.some((q) => q.id === 'anime:animea')).toBe(true)
+    expect(questions.some((q) => q.id === 'tag:protagonist')).toBe(true)
+    expect(questions.some((q) => q.id === 'tag:villain')).toBe(true)
+  })
+
+  it('ranks candidates by answered rules without calling external services', () => {
+    const ranking = rankOraculoCandidates(
+      fixtures,
+      {
+        'anime:animea': 'si',
+        'tag:protagonist': 'si',
+        'tag:villain': 'no',
+      },
+      tags,
+    )
+
+    expect(ranking[0].anime).toBe('AnimeA')
+    expect(ranking[0].matches).toBeGreaterThanOrEqual(2)
+    expect(ranking[0].contradicciones).toBe(0)
+  })
+
+  it('selects the next best unanswered split question', () => {
+    const question = seleccionarPreguntaOraculo(
+      fixtures,
+      { 'anime:animea': 'si' },
+      tags,
+    )
+
+    expect(question).not.toBeNull()
+    expect(question!.id).not.toBe('anime:animea')
+  })
+})
+
+// ─── Nexo Anime ────────────────────────────────────────────────────────────────
+
+describe('nexoAnimeDelDia', () => {
+  const fixtures = [
+    { slug: 'a1', nombre: 'A1', anime: 'AnimeA' },
+    { slug: 'a2', nombre: 'A2', anime: 'AnimeA' },
+    { slug: 'b1', nombre: 'B1', anime: 'AnimeB' },
+    { slug: 'b2', nombre: 'B2', anime: 'AnimeB' },
+    { slug: 'c1', nombre: 'C1', anime: 'AnimeC' },
+    { slug: 'c2', nombre: 'C2', anime: 'AnimeC' },
+    { slug: 'd1', nombre: 'D1', anime: 'AnimeD' },
+    { slug: 'd2', nombre: 'D2', anime: 'AnimeD' },
+    { slug: 'e1', nombre: 'E1', anime: 'AnimeE' },
+    { slug: 'e2', nombre: 'E2', anime: 'AnimeE' },
+  ] as Array<PersonajeLite & { anime: string }>
+
+  it('returns four anime pairs and eight shuffled cards', () => {
+    const round = nexoAnimeDelDia(new Date('2026-05-28'), '', fixtures)
+    expect(round).not.toBeNull()
+    expect(round!.groups.length).toBe(4)
+    expect(round!.cards.length).toBe(8)
+    round!.groups.forEach((group) => {
+      expect(group.items.length).toBe(2)
+      expect(group.items[0].anime).toBe(group.anime)
+      expect(group.items[1].anime).toBe(group.anime)
+    })
+  })
+
+  it('is deterministic for same date and salt', () => {
+    const d = new Date('2026-05-28')
+    const r1 = nexoAnimeDelDia(d, 'same', fixtures)
+    const r2 = nexoAnimeDelDia(d, 'same', fixtures)
+    expect(r1!.cards.map((card) => card.slug)).toEqual(r2!.cards.map((card) => card.slug))
+    expect(r1!.groups.map((group) => group.id)).toEqual(r2!.groups.map((group) => group.id))
+  })
+
+  it('returns null when there are not enough anime pairs', () => {
+    const round = nexoAnimeDelDia(new Date('2026-05-28'), '', [
+      { slug: 'a1', nombre: 'A1', anime: 'AnimeA' },
+      { slug: 'a2', nombre: 'A2', anime: 'AnimeA' },
+      { slug: 'b1', nombre: 'B1', anime: 'AnimeB' },
+    ])
+    expect(round).toBeNull()
   })
 })
 
