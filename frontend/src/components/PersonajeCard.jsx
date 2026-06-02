@@ -3,13 +3,13 @@ import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
 import { getStatsPersonaje } from '../lib/personajes-core'
 
-function PersonajeCard({ slug, nombre, anime, rank }) {
+function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp }) {
   const { play } = useSound()
 
   // Solo usamos el ELO base (estimado por popularidad). Las W/L y el win rate
   // de getStatsPersonaje son sintéticos y se ocultan para no mostrar métricas
   // de combate falsas (ver decisión "ocultar W/L sintéticos").
-  const { elo } = getStatsPersonaje(slug)
+  const elo = eloProp ?? getStatsPersonaje(slug).elo
   const priorityImage = Boolean(rank && rank <= 12)
   const imageLoading = priorityImage ? 'eager' : 'lazy'
   const imageFetchPriority = priorityImage ? 'high' : 'auto'

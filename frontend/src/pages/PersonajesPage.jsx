@@ -18,11 +18,7 @@ import PersonajeCard from '../components/PersonajeCard'
 import BrandSelect from '../components/BrandSelect'
 import PersonajeImg from '../components/PersonajeImg'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
-import {
-  personajes,
-  getStatsPersonaje,
-  getPopularidad,
-} from '../lib/personajes-core'
+import { personajes } from '../lib/personajes-core'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -33,10 +29,7 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 import { endpoints } from '../lib/api'
 import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
 import { useQueryState } from '../hooks/useQueryState'
-import {
-  RASGOS_OTAKU,
-  getCategoriasPersonaje,
-} from '../data/personajes-tags'
+import { RASGOS_OTAKU } from '../data/personajes-tags'
 import CatalogoSkeletonGrid from '../features/personajes/CatalogoPersonajes/CatalogoSkeletonGrid'
 import HighlightMatch from '../features/personajes/CatalogoPersonajes/HighlightMatch'
 import MiniHeroStat from '../features/personajes/CatalogoPersonajes/MiniHeroStat'
@@ -47,6 +40,10 @@ import {
   parseOptionalInt,
   sortLabels,
 } from '../features/personajes/CatalogoPersonajes/catalogo-config'
+import {
+  crearCatalogoIndex,
+  filtrarCatalogo,
+} from '../features/personajes/CatalogoPersonajes/catalogo-index'
 
 const headerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -75,36 +72,11 @@ function PersonajesPage() {
   }, [catalogoRemoto])
   const shouldShowCatalogLoading = isCatalogLoading && catalogoPersonajes.length === 0
   const shouldShowCatalogError = isCatalogError && catalogoPersonajes.length === 0
-
-  const animes = useMemo(() => {
-    const counts = {}
-    catalogoPersonajes.forEach((p) => {
-      counts[p.anime] = (counts[p.anime] || 0) + 1
-    })
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])
-  }, [catalogoPersonajes])
-
-  const eloBounds = useMemo(() => {
-    if (catalogoPersonajes.length === 0) return { min: 1000, max: 2300, top: 0 }
-    const elos = catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo)
-    const rawMax = Math.max(...elos)
-    return {
-      min: Math.floor(Math.min(...elos) / 25) * 25,
-      max: Math.ceil(rawMax / 25) * 25,
-      // `top` (max real) lo consume el hero; antes se recalculaba inline en
-      // render sobre los ~1052 personajes en cada pintura (E4).
-      top: rawMax,
-    }
-  }, [catalogoPersonajes])
-
-  const rankPorSlug = useMemo(() => {
-    const map = new Map()
-    const ordenado = [...catalogoPersonajes]
-      .map((p) => ({ slug: p.slug, elo: getStatsPersonaje(p.slug).elo }))
-      .sort((a, b) => b.elo - a.elo)
-    ordenado.forEach((p, i) => map.set(p.slug, i + 1))
-    return map
-  }, [catalogoPersonajes])
+  const catalogoIndex = useMemo(
+    () => crearCatalogoIndex(catalogoPersonajes),
+    [catalogoPersonajes],
+  )
+  const { animes, eloBounds, rankPorSlug } = catalogoIndex
 
   const { play } = useSound()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -173,49 +145,15 @@ function PersonajesPage() {
   }, [animeFilter, tagFilter, sort, view, eloMin, eloMax, searchParams, setSearchParams])
 
   const filtered = useMemo(() => {
-    let list = catalogoPersonajes
-    if (animeFilter) list = list.filter((p) => p.anime === animeFilter)
-    if (tagFilter) {
-      list = list.filter((p) =>
-        getCategoriasPersonaje(p.slug).includes(tagFilter),
-      )
-    }
-    if (eloMin != null || eloMax != null) {
-      list = list.filter((p) => {
-        const elo = getStatsPersonaje(p.slug).elo
-        if (eloMin != null && elo < eloMin) return false
-        if (eloMax != null && elo > eloMax) return false
-        return true
-      })
-    }
-    if (normalizedSearch) {
-      list = list.filter(
-        (p) =>
-          p.nombre.toLowerCase().includes(normalizedSearch) ||
-          p.anime.toLowerCase().includes(normalizedSearch),
-      )
-    }
-    if (sort === 'popularidad') {
-      list = [...list].sort(
-        (a, b) => getPopularidad(b.slug) - getPopularidad(a.slug),
-      )
-    } else if (sort === 'elo_desc') {
-      list = [...list].sort(
-        (a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo,
-      )
-    } else if (sort === 'elo_asc') {
-      list = [...list].sort(
-        (a, b) => getStatsPersonaje(a.slug).elo - getStatsPersonaje(b.slug).elo,
-      )
-    } else if (sort === 'nombre_az') {
-      list = [...list].sort((a, b) => a.nombre.localeCompare(b.nombre))
-    } else if (sort === 'nombre_za') {
-      list = [...list].sort((a, b) => b.nombre.localeCompare(a.nombre))
-    } else if (sort === 'anime') {
-      list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
-    }
-    return list
-  }, [catalogoPersonajes, normalizedSearch, animeFilter, tagFilter, sort, eloMin, eloMax])
+    return filtrarCatalogo(catalogoIndex, {
+      normalizedSearch,
+      animeFilter,
+      tagFilter,
+      sort,
+      eloMin,
+      eloMax,
+    })
+  }, [catalogoIndex, normalizedSearch, animeFilter, tagFilter, sort, eloMin, eloMax])
 
   useEffect(() => {
     if (autocompleteQuery.length < 2) {
