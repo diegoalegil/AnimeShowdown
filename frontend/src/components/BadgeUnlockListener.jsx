@@ -16,6 +16,28 @@ function loadConfetti() {
   return confettiPromise
 }
 
+const BADGE_CONFETTI_TOKEN_PALETTES = {
+  legendary: ['--color-gold', '--color-gold-bright', '--color-gold-pale'],
+  epic: ['--color-electric', '--color-electric-soft', '--color-electric-pale'],
+  default: ['--color-accent', '--color-accent-hover', '--color-gold'],
+}
+
+function confettiPaletteFor(rareza) {
+  const root = globalThis.document?.documentElement
+  if (!root || typeof globalThis.getComputedStyle !== 'function') return []
+
+  const tokenNames = rareza === 5
+    ? BADGE_CONFETTI_TOKEN_PALETTES.legendary
+    : rareza === 4
+      ? BADGE_CONFETTI_TOKEN_PALETTES.epic
+      : BADGE_CONFETTI_TOKEN_PALETTES.default
+  const styles = globalThis.getComputedStyle(root)
+
+  return tokenNames
+    .map((tokenName) => styles.getPropertyValue(tokenName).trim())
+    .filter(Boolean)
+}
+
 /**
  * Side-effect global: escucha el user-queue WS y dispara toast + sound +
  * confetti cuando llega una notificación BADGE_DESBLOQUEADO.
@@ -58,16 +80,12 @@ function BadgeUnlockListener() {
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       void loadConfetti()
         .then((confetti) => {
+          const colors = confettiPaletteFor(payload.rareza)
           confetti({
             particleCount: payload.rareza >= 4 ? 90 : 50,
             spread: 70,
             origin: { y: 0.7 },
-            colors:
-              payload.rareza === 5
-                ? ['#c5a15a', '#e4c36f', '#f7e6a2'] // dorado para legendarios
-                : payload.rareza === 4
-                  ? ['#24c6dc', '#8ddfed', '#c4f4fb'] // eléctrico para épicos
-                  : ['#9f1d2c', '#be2b38', '#c5a15a'], // carmesí + oro general
+            ...(colors.length > 0 ? { colors } : {}),
           })
         })
         .catch(() => {

@@ -94,7 +94,7 @@ class ErrorBoundary extends Component {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(circle_at_30%_48%,rgba(159,29,44,0.18),transparent_32%),radial-gradient(circle_at_18%_18%,rgba(197,161,90,0.10),transparent_28%),linear-gradient(90deg,rgba(8,11,18,0.94)_0%,rgba(8,11,18,0.76)_36%,rgba(8,11,18,0.30)_70%,rgba(8,11,18,0.08)_100%)]"
+          className="as-error-boundary-scrim absolute inset-0"
         />
         <div
           aria-hidden="true"
@@ -102,8 +102,8 @@ class ErrorBoundary extends Component {
         />
 
         <div className="relative z-10 flex min-h-[100svh] w-full items-center px-5 py-12 sm:px-10 lg:px-20">
-          <div className="w-full max-w-xl rounded-2xl border border-accent/42 bg-[#0b1018]/76 p-6 shadow-aura-lg inset-shadow-hairline [--aura-color:rgb(159_29_44_/_0.2)] backdrop-blur-xl sm:p-9">
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold shadow-aura [--aura-color:rgb(197_161_90_/_0.25)]">
+          <div className="as-error-boundary-panel w-full max-w-xl rounded-2xl border border-accent/42 p-6 shadow-aura-lg inset-shadow-hairline backdrop-blur-xl sm:p-9">
+            <span className="as-error-boundary-icon inline-flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold shadow-aura">
               <AlertTriangle className="h-6 w-6" />
             </span>
 
