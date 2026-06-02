@@ -2,14 +2,18 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,16 +30,19 @@ public class ComentarioService {
 
     private final ComentarioRepository comentarioRepository;
     private final PersonajeRepository personajeRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final List<String> profanityStems;
     private final int rateLimitPorHora;
 
     public ComentarioService(
             ComentarioRepository comentarioRepository,
             PersonajeRepository personajeRepository,
+            JdbcTemplate jdbcTemplate,
             @Value("${app.comentarios.profanity-stems:puta,puto,mierd,joder,cabron,imbecil,pendej,cojon,fuck,shit,bitch,asshole,bastard,cunt,dick}") String profanityCsv,
             @Value("${app.comentarios.rate-limit-per-hour:5}") int rateLimitPorHora) {
         this.comentarioRepository = comentarioRepository;
         this.personajeRepository = personajeRepository;
+        this.jdbcTemplate = jdbcTemplate;
         this.profanityStems = Arrays.stream(profanityCsv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
@@ -58,10 +65,11 @@ public class ComentarioService {
         if (personajeRepository.findBySlug(slug).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Personaje no encontrado");
         }
-        LocalDateTime desde = LocalDateTime.now().minusHours(1);
-        long recientes = comentarioRepository.countByAutorAndCreadoEnAfter(autor, desde);
-        if (recientes >= rateLimitPorHora) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Máximo 5 comentarios por hora");
+        LocalDateTime ahora = LocalDateTime.now();
+        if (!consumirCupoComentario(autor, ahora)) {
+            throw new ResponseStatusException(
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    "Máximo " + rateLimitPorHora + " comentarios por hora");
         }
 
         String limpio = limpiarContenido(contenido);
@@ -107,9 +115,14 @@ public class ComentarioService {
         if (comentario.getEstado() == ComentarioEstado.ELIMINADO) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El comentario ya fue eliminado");
         }
-        comentario.incrementarReportes();
-        comentario.setEstado(ComentarioEstado.PENDIENTE_REVISION);
-        return comentario;
+        int actualizados = comentarioRepository.incrementarReporte(
+                id,
+                ComentarioEstado.PENDIENTE_REVISION,
+                ComentarioEstado.ELIMINADO);
+        if (actualizados == 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El comentario ya fue eliminado");
+        }
+        return buscar(id);
     }
 
     @Transactional(readOnly = true)
@@ -163,6 +176,51 @@ public class ComentarioService {
     private boolean contieneProfanidad(String contenido) {
         String normalizado = normalizar(contenido);
         return profanityStems.stream().anyMatch(normalizado::contains);
+    }
+
+    private boolean consumirCupoComentario(Usuario autor, LocalDateTime ahora) {
+        LocalDateTime ventana = ahora.truncatedTo(ChronoUnit.HOURS);
+        if (incrementarCupo(autor.getId(), ventana, ahora)) {
+            return true;
+        }
+        Integer usados = usadosEnVentana(autor.getId(), ventana);
+        if (usados != null) {
+            return false;
+        }
+        try {
+            jdbcTemplate.update("""
+                    INSERT INTO comentario_rate_limit (usuario_id, ventana_inicio, usados, actualizado_en)
+                    VALUES (?, ?, 1, ?)
+                    """, autor.getId(), ventana, ahora);
+            return true;
+        } catch (DuplicateKeyException ignored) {
+            return incrementarCupo(autor.getId(), ventana, ahora);
+        }
+    }
+
+    private boolean incrementarCupo(Long usuarioId, LocalDateTime ventana, LocalDateTime ahora) {
+        int actualizados = jdbcTemplate.update("""
+                UPDATE comentario_rate_limit
+                SET usados = usados + 1,
+                    actualizado_en = ?
+                WHERE usuario_id = ?
+                  AND ventana_inicio = ?
+                  AND usados < ?
+                """, ahora, usuarioId, ventana, rateLimitPorHora);
+        return actualizados == 1;
+    }
+
+    private Integer usadosEnVentana(Long usuarioId, LocalDateTime ventana) {
+        try {
+            return jdbcTemplate.queryForObject("""
+                    SELECT usados
+                    FROM comentario_rate_limit
+                    WHERE usuario_id = ?
+                      AND ventana_inicio = ?
+                    """, Integer.class, usuarioId, ventana);
+        } catch (EmptyResultDataAccessException ignored) {
+            return null;
+        }
     }
 
     private static String normalizar(String value) {
