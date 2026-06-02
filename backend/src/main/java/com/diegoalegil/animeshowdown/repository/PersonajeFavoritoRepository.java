@@ -3,6 +3,7 @@ package com.diegoalegil.animeshowdown.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -55,4 +56,24 @@ public interface PersonajeFavoritoRepository
      * necesitas el bool, usa existsByUsuarioAndPersonaje.
      */
     Optional<PersonajeFavorito> findByUsuarioAndPersonaje(Usuario usuario, Personaje personaje);
+
+    /**
+     * IDs de personajes que tiene al menos un usuario como favorito. Lo usa
+     * el scheduler de alertas de movimiento para acotar el cálculo de deltas
+     * a personajes con audiencia (en vez de todo el catálogo).
+     */
+    @Query("SELECT DISTINCT pf.personaje.id FROM PersonajeFavorito pf")
+    List<Long> findPersonajeIdsConSeguidores();
+
+    /**
+     * Usuarios que tienen un personaje como favorito, ordenados por antigüedad
+     * del favorito. Paginado para acotar el fan-out de alertas a un tope por
+     * personaje (un personaje muy seguido no debe generar un pico de escrituras).
+     */
+    @Query("""
+            SELECT pf.usuario FROM PersonajeFavorito pf
+            WHERE pf.personaje.id = :personajeId
+            ORDER BY pf.createdAt ASC
+            """)
+    List<Usuario> findUsuariosByPersonajeId(@Param("personajeId") Long personajeId, Pageable pageable);
 }

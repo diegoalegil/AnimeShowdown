@@ -85,6 +85,32 @@ public class NotificacionService {
         return guardada;
     }
 
+    /**
+     * Crea una notificación idempotente por {@code eventoKey}: si ya existe una
+     * del mismo usuario+tipo+eventoKey no hace nada y devuelve {@code false}. La
+     * unicidad la respalda el índice {@code uk_notif_usuario_tipo_evento}; el
+     * pre-check evita el insert en el caso normal (un único scheduler secuencial).
+     *
+     * <p>Pensado para fan-outs periódicos donde la misma alerta no debe repetirse
+     * (p.ej. "tu favorito se movió", una vez por personaje/día/dirección).
+     *
+     * @return {@code true} si se creó una notificación nueva, {@code false} si ya existía.
+     */
+    @Transactional
+    public boolean crearSiNoExiste(Usuario usuario, NotificacionTipo tipo,
+            String titulo, String mensaje, String payload, String eventoKey) {
+        if (usuario == null || eventoKey == null
+                || repo.existsByUsuarioAndTipoAndEventoKey(usuario, tipo, eventoKey)) {
+            return false;
+        }
+        Notificacion guardada = repo.saveAndFlush(
+                new Notificacion(usuario, tipo, titulo, mensaje, payload, eventoKey));
+        log.info("Notificación idempotente creada: id={} usuario={} tipo={} eventoKey={}",
+                guardada.getId(), usuario.getUsername(), tipo, eventoKey);
+        pushUsuario(usuario, NotificacionDto.from(guardada));
+        return true;
+    }
+
     @Transactional
     public int notificarTorneoDisponibleATodos(Torneo torneo) {
         String titulo = "Nuevo torneo disponible";
