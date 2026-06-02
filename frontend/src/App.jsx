@@ -19,6 +19,7 @@ import { useCatalogoPersonajes } from './hooks/useCatalogoPersonajes'
 import { shouldGateCatalogRoute } from './lib/catalog-route-policy'
 import { lazyRoute } from './lib/lazyRoute'
 import { getRouteSkeletonReserve } from './lib/routeSkeletonPolicy'
+import { canWarmupRoutes, idleWarmupRoutesFor } from './lib/route-warmup-policy'
 import { recoverFromStaleAssetError } from './lib/staleAssetRecovery'
 import i18n from './lib/i18n'
 
@@ -116,23 +117,9 @@ const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage'))
 const Splash = lazyRoute(() => import('./components/Splash'))
 
 const preloadedImporters = new Set()
-const ROUTE_WARMUP_DELAY_MS = 1800
-const ROUTE_WARMUP_GAP_MS = 420
+const ROUTE_WARMUP_DELAY_MS = 4000
+const ROUTE_WARMUP_GAP_MS = 900
 const SUPPORTED_ROUTE_LANGS = new Set(['es', 'en', 'ja'])
-const idleRoutePreloads = [
-  '/',
-  '/personajes',
-  '/animes',
-  '/ranking',
-  '/votar',
-  '/torneos',
-  '/games',
-  '/games/shadow-guess',
-  '/games/anime-reveal',
-  '/games/anigrid',
-  '/games/impostor-trial',
-  '/games/elo-duel',
-]
 
 function routePreloaderFor(pathname) {
   if (pathname === '/') return routePreloaders.inicio
@@ -171,13 +158,6 @@ function preloadRoute(pathname) {
     preloadedImporters.delete(importer)
     recoverFromStaleAssetError(error)
   })
-}
-
-function canWarmupRoutes() {
-  const connection = window.navigator?.connection
-  if (!connection) return true
-  if (connection.saveData) return false
-  return !['slow-2g', '2g'].includes(connection.effectiveType)
 }
 
 function scheduleIdle(callback, timeout = 3000) {
@@ -289,6 +269,8 @@ function App() {
 
   useEffect(() => {
     if (!canWarmupRoutes()) return undefined
+    const warmupRoutes = idleWarmupRoutesFor(location.pathname)
+    if (warmupRoutes.length === 0) return undefined
 
     let cancelled = false
     let routeIndex = 0
@@ -296,8 +278,8 @@ function App() {
     let cancelIdle = () => {}
 
     const queueNextRoute = () => {
-      if (cancelled || routeIndex >= idleRoutePreloads.length) return
-      preloadRoute(idleRoutePreloads[routeIndex])
+      if (cancelled || routeIndex >= warmupRoutes.length) return
+      preloadRoute(warmupRoutes[routeIndex])
       routeIndex += 1
 
       delayId = window.setTimeout(() => {
@@ -323,7 +305,7 @@ function App() {
       window.clearTimeout(delayId)
       cancelIdle()
     }
-  }, [])
+  }, [location.pathname])
 
   return (
     <MotionConfig reducedMotion="user">
