@@ -29,7 +29,7 @@ class StatusControllerTest {
     @Autowired private UptimeLogRepository uptimeLogRepository;
 
     @Test
-    void statusPublicoAgregaVentanasYNoSeCachea() throws Exception {
+    void statusPublicoAgregaVentanasYUsaCachePublicoCorto() throws Exception {
         uptimeLogRepository.deleteAll();
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
@@ -39,7 +39,7 @@ class StatusControllerTest {
 
         mvc.perform(get("/api/status"))
                 .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=30")))
                 .andExpect(jsonPath("$.currentStatus").value("UP"))
                 .andExpect(jsonPath("$.last24h.checks").value(3))
                 .andExpect(jsonPath("$.last24h.uptimePercent").value(66.67))
