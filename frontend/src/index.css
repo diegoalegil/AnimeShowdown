@@ -13,8 +13,12 @@
   --color-accent-soft: rgb(159 29 44 / 0.16);
   --color-gold: #c5a15a;
   --color-gold-soft: rgb(197 161 90 / 0.15);
+  --color-gold-bright: #e4c36f;
+  --color-gold-pale: #f7e6a2;
   --color-elo-number: #c5a15a;
   --color-electric: #24c6dc;
+  --color-electric-soft: #8ddfed;
+  --color-electric-pale: #c4f4fb;
 
   /* Semánticos — generan text-/bg-/border-success|warning|danger|info.
      Hues estándar (emerald/amber/rose/sky-500) con contraste AA en oscuro. */
@@ -435,6 +439,28 @@
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.06),
       0 0 65px -36px rgb(159 29 44 / 0.92);
+  }
+
+  .as-error-boundary-scrim {
+    background:
+      radial-gradient(circle at 30% 48%, rgb(159 29 44 / 0.18), transparent 32%),
+      radial-gradient(circle at 18% 18%, rgb(197 161 90 / 0.10), transparent 28%),
+      linear-gradient(
+        90deg,
+        rgb(8 11 18 / 0.94) 0%,
+        rgb(8 11 18 / 0.76) 36%,
+        rgb(8 11 18 / 0.30) 70%,
+        rgb(8 11 18 / 0.08) 100%
+      );
+  }
+
+  .as-error-boundary-panel {
+    --aura-color: rgb(159 29 44 / 0.2);
+    background: rgb(11 16 24 / 0.76);
+  }
+
+  .as-error-boundary-icon {
+    --aura-color: rgb(197 161 90 / 0.25);
   }
 
   .as-lazy-placeholder {
