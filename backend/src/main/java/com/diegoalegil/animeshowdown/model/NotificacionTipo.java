@@ -31,6 +31,10 @@ public enum NotificacionTipo {
     SEGUIDO_LOGRO,
     /** Un usuario al que sigues creó un torneo (aprobado) (B7 §3, fan-out). */
     SEGUIDO_TORNEO,
+    /** Un admin aprobó la sugerencia de personaje del usuario. */
+    SUGERENCIA_APROBADA,
+    /** Un admin rechazó la sugerencia de personaje del usuario (con motivo). */
+    SUGERENCIA_RECHAZADA,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA
 }
