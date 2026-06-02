@@ -64,9 +64,6 @@ public class CacheConfig {
                 // Catálogo público mínimo para frontend y sitemap. TTL 1h
                 // porque solo cambia con seed/admin; además emite ETag.
                 buildCache("personajes-catalogo", Duration.ofHours(1), 16),
-                // Autocomplete server-side. Key q+limit; TTL corto para no
-                // retener demasiadas combinaciones raras.
-                buildCache("personajes-busqueda", Duration.ofMinutes(10), 512),
                 buildCache("personajes-individual", Duration.ofMinutes(5), 2000),
                 // Similares cross-anime por slug. Estable entre votos (la
                 // similitud por votos casi no se mueve a escala minuto). Key

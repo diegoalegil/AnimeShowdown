@@ -222,7 +222,6 @@ public class PersonajeController {
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
@@ -235,13 +234,13 @@ public class PersonajeController {
                 request.getDescripcion(),
                 request.getImagenUrl());
         Personaje guardado = personajeRepository.save(p);
+        personajeBusquedaService.invalidateIndex();
         return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
     }
 
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
@@ -251,6 +250,7 @@ public class PersonajeController {
             return ResponseEntity.notFound().build();
         }
         personajeRepository.deleteById(id);
+        personajeBusquedaService.invalidateIndex();
         return ResponseEntity.noContent().build();
     }
 
@@ -262,7 +262,6 @@ public class PersonajeController {
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
@@ -277,23 +276,26 @@ public class PersonajeController {
         if (datos.getAnime() != null) p.setAnime(datos.getAnime());
         if (datos.getDescripcion() != null) p.setDescripcion(datos.getDescripcion());
         if (datos.getImagenUrl() != null) p.setImagenUrl(datos.getImagenUrl());
-        return personajeRepository.save(p);
+        Personaje guardado = personajeRepository.save(p);
+        personajeBusquedaService.invalidateIndex();
+        return guardado;
     }
 
     @Caching(evict = {
             @CacheEvict(value = "personajes-listado", allEntries = true),
             @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-busqueda", allEntries = true),
             @CacheEvict(value = "personajes-individual", allEntries = true),
             @CacheEvict(value = "personajes-similares", allEntries = true)
     })
     @PostMapping("/batch")
     public List<Personaje> crearBatch(@RequestBody List<@Valid PersonajeCrearRequest> personajes) {
-        return personajes.stream()
+        List<Personaje> guardados = personajes.stream()
                 .map(r -> personajeRepository.save(new Personaje(
                         r.getSlug(), r.getNombre(), r.getAnime(),
                         r.getDescripcion(), r.getImagenUrl())))
                 .toList();
+        personajeBusquedaService.invalidateIndex();
+        return guardados;
     }
 
     /**
