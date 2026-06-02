@@ -757,7 +757,8 @@ class TorneoControllerTest {
         // existe, el test fallará en el setUp con mensaje explícito.
         long[] ids = new long[4];
         java.util.List<String> slugs = java.util.List.of("luffy", "zoro", "naruto", "sasuke");
-        MvcResult resPers = mvc.perform(get("/api/personajes"))
+        MvcResult resPers = mvc.perform(get("/api/personajes/catalogo")
+                        .param("fields", "id,slug"))
                 .andExpect(status().isOk())
                 .andReturn();
         com.fasterxml.jackson.databind.JsonNode arr = json.readTree(resPers.getResponse().getContentAsString());

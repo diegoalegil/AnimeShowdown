@@ -3,7 +3,6 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { useQuery } from '@tanstack/react-query'
 import {
   CheckCircle2,
   Search,
@@ -15,7 +14,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
 import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
-import { endpoints, ApiError } from '../lib/api'
+import { ApiError } from '../lib/api'
 import PersonajeImg from '../components/PersonajeImg'
 
 const containerVariants = {
@@ -38,8 +37,7 @@ const TAMANOS = [8, 16]
  *   2. Nombre + descripción opcional (react-hook-form).
  *   3. Grid de avatares con búsqueda local diferida para no pedir al
  *      backend en cada tecla.
- *   4. Submit con conversión slug → id del backend (lista cacheada via
- *      useQuery) antes de POST.
+ *   4. Submit con conversión slug → id usando el catálogo compacto antes de POST.
  *
  * Tras éxito redirige a /perfil — el torneo queda PENDIENTE y aparece
  * en la card "Mis torneos" con pill amarillo.
@@ -52,14 +50,6 @@ function CrearTorneoPage() {
     personajes: catalogoPersonajes,
     isLoading: cargandoCatalogoPersonajes,
   } = usePersonajesCatalogo()
-
-  // Lista del backend con IDs reales. La cachea 10 min porque el catálogo
-  // no cambia entre peticiones (admin import-jikan es esporádico).
-  const { data: listaBackend, isLoading: cargandoBackend } = useQuery({
-    queryKey: ['personajes', 'lista'],
-    queryFn: endpoints.personajes,
-    staleTime: 10 * 60 * 1000,
-  })
 
   const crearMutation = useCrearTorneoMio()
 
@@ -76,15 +66,17 @@ function CrearTorneoPage() {
   } = useForm({ defaultValues: { publico: true } })
 
   const slugToBackendId = useMemo(() => {
-    if (!listaBackend) return new Map()
     const m = new Map()
-    for (const p of listaBackend) m.set(p.slug, p.id)
+    for (const p of catalogoPersonajes) {
+      const id = Number(p.id)
+      if (Number.isFinite(id)) m.set(p.slug, id)
+    }
     return m
-  }, [listaBackend])
+  }, [catalogoPersonajes])
 
   // Catálogo filtrado: trabajamos sobre el cliente-side porque trae
-  // descripciones + imágenes y queremos render rápido. El backend solo
-  // sirve para mapear a IDs en el submit.
+  // ids + imágenes y queremos render rápido sin llamar a /api/personajes
+  // completo.
   const filtrados = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase()
     if (!q) return catalogoPersonajes
@@ -208,7 +200,7 @@ function CrearTorneoPage() {
             query={query}
             onQuery={setQuery}
             filtrados={filtrados}
-            cargandoBackend={cargandoBackend || cargandoCatalogoPersonajes}
+            cargandoBackend={cargandoCatalogoPersonajes}
           />
 
           {errors.root && (

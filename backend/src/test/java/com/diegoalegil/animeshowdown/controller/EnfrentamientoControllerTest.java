@@ -181,7 +181,8 @@ class EnfrentamientoControllerTest {
 
     /** Devuelve los ids reales de dos personajes seedeados (luffy y zoro por convención). */
     private long[] dosPersonajes() throws Exception {
-        MvcResult res = mvc.perform(get("/api/personajes"))
+        MvcResult res = mvc.perform(get("/api/personajes/catalogo")
+                        .param("fields", "id,slug"))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode arr = json.readTree(res.getResponse().getContentAsString());

@@ -33,12 +33,15 @@ class PersonajeCatalogoBusquedaControllerTest {
     @Autowired private CacheManager cacheManager;
 
     @Test
-    void listarTodosSinPaginacionMantieneArrayBackwardCompatible() throws Exception {
+    void listarTodosSinPaginacionDevuelvePageResponseDefaultLimitado() throws Exception {
         mvc.perform(get("/api/personajes"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].slug").exists())
-                .andExpect(jsonPath("$.content").doesNotExist());
+                .andExpect(jsonPath("$.content", hasSize(50)))
+                .andExpect(jsonPath("$.content[0].slug").exists())
+                .andExpect(jsonPath("$.totalElements", greaterThan(50)))
+                .andExpect(jsonPath("$.size").value(50))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.first").value(true));
     }
 
     @Test
@@ -52,6 +55,15 @@ class PersonajeCatalogoBusquedaControllerTest {
                 .andExpect(jsonPath("$.size").value(5))
                 .andExpect(jsonPath("$.number").value(0))
                 .andExpect(jsonPath("$.first").value(true));
+    }
+
+    @Test
+    void listarTodosClampaSizeAlMaximoPermitido() throws Exception {
+        mvc.perform(get("/api/personajes")
+                        .param("size", "999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(100)))
+                .andExpect(jsonPath("$.size").value(100));
     }
 
     @Test
