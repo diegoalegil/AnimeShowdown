@@ -37,10 +37,10 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
 
       // Título
       ctx.fillStyle = TOP5_CANVAS_THEME.text
-      ctx.font = 'bold 60px Geist, system-ui, sans-serif'
+      ctx.font = 'bold 60px system-ui, sans-serif'
       ctx.fillText('Mi Top 5 anime', 60, 90)
       ctx.fillStyle = TOP5_CANVAS_THEME.muted
-      ctx.font = '24px Geist, system-ui, sans-serif'
+      ctx.font = '24px system-ui, sans-serif'
       ctx.fillText('AnimeShowdown · animeshowdown.dev', 60, 130)
 
       const cardW = 200
@@ -69,20 +69,20 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
         }
 
         ctx.fillStyle = TOP5_CANVAS_THEME.accent
-        ctx.font = 'bold 24px Geist, system-ui, sans-serif'
+        ctx.font = 'bold 24px system-ui, sans-serif'
         ctx.fillText(`#${i + 1}`, x + 12, startY + 290)
 
         ctx.fillStyle = TOP5_CANVAS_THEME.text
-        ctx.font = 'bold 20px Geist, system-ui, sans-serif'
+        ctx.font = 'bold 20px system-ui, sans-serif'
         ctx.fillText(truncate(ctx, personaje?.nombre ?? slug, cardW - 24), x + 12, startY + 320)
 
         ctx.fillStyle = TOP5_CANVAS_THEME.muted
-        ctx.font = '14px Geist, system-ui, sans-serif'
+        ctx.font = '14px system-ui, sans-serif'
         ctx.fillText(truncate(ctx, personaje?.anime ?? '', cardW - 24), x + 12, startY + 345)
       }
 
       ctx.fillStyle = TOP5_CANVAS_THEME.watermark
-      ctx.font = '18px Geist, system-ui, sans-serif'
+      ctx.font = '18px system-ui, sans-serif'
       ctx.fillText('🔥 animeshowdown.dev', 60, 600)
 
       const blob = await canvasToPngBlob(canvas)

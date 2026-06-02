@@ -72,6 +72,10 @@ public class CacheConfig {
                 // similitud por votos casi no se mueve a escala minuto). Key
                 // compuesta slug+limit, max ~3000.
                 buildCache("personajes-similares", Duration.ofMinutes(5), 3000),
+                // Colección de cartas: catálogo global raro de cambiar y score
+                // global de votos corto. El estado de usuario se compone aparte.
+                buildCache("cartas-catalogo", Duration.ofMinutes(10), 4),
+                buildCache("cartas-votos-score", Duration.ofSeconds(30), 4),
                 // Ranking actual con deltas vs hace N días. Pesado (dos
                 // queries de COUNT con GROUP BY); cache 1min.
                 buildCache("ranking-movimientos", Duration.ofMinutes(1), 64),

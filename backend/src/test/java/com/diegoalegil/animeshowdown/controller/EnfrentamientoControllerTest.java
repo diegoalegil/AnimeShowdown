@@ -8,8 +8,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.Clock;
@@ -21,7 +23,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -37,15 +44,18 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
+import com.diegoalegil.animeshowdown.model.Voto;
 import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,7 +86,7 @@ class EnfrentamientoControllerTest {
     @Autowired
     private com.diegoalegil.animeshowdown.repository.UsuarioLogroRepository usuarioLogroRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private com.diegoalegil.animeshowdown.repository.VotoRepository votoRepository;
 
     @Autowired
@@ -87,6 +97,9 @@ class EnfrentamientoControllerTest {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private AnonymousIdentityService anonymousIdentityService;
@@ -111,6 +124,10 @@ class EnfrentamientoControllerTest {
         // caen en el MISMO bucket; sin esta limpieza se acumularían en la
         // ventana de 1h y dispararían el captcha en tests posteriores.
         votoRepository.deleteAll();
+        jdbcTemplate.update("DELETE FROM voto_torneo_stats");
+        jdbcTemplate.update("DELETE FROM voto_enfrentamiento_stats");
+        jdbcTemplate.update("DELETE FROM voto_personaje_dia_stats");
+        jdbcTemplate.update("DELETE FROM voto_personaje_stats");
         var rankingCache = cacheManager.getCache("votos-ranking");
         if (rankingCache != null) {
             rankingCache.clear();
@@ -489,7 +506,7 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
-    void votarEmpateNeutralSumaMedioACadaPersonajeSinMoverRankingDelta() throws Exception {
+    void votarEmpateNeutralSumaMedioACadaPersonajeYPublicaDosDeltas() throws Exception {
         reset(messaging);
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_empate_user", "votoempate@example.com");
@@ -528,7 +545,59 @@ class EnfrentamientoControllerTest {
                         votoRepository.findById(votoId).orElseThrow().getEnfrentamiento(),
                         votoRepository.findById(votoId).orElseThrow().getEnfrentamiento().getPersonaje1()),
                 0.001);
-        verify(messaging, never()).convertAndSend(eq("/topic/ranking-delta"), any(RankingDeltaEvent.class));
+        var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
+        verify(messaging, times(2)).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
+        Set<String> slugs = captor.getAllValues().stream()
+                .map(ev -> ev.getPersonaje().getSlug())
+                .collect(Collectors.toSet());
+        org.junit.jupiter.api.Assertions.assertEquals(Set.of("luffy", "zoro"), slugs);
+        captor.getAllValues().forEach(ev -> {
+            org.junit.jupiter.api.Assertions.assertEquals(0.5, ev.getDelta(), 0.001);
+            org.junit.jupiter.api.Assertions.assertEquals(0.5, ev.getDeltaPeso(), 0.001);
+        });
+    }
+
+    @Test
+    void votarEmpateAnonimoPesa015PorPersonajeYPublicaDeltas() throws Exception {
+        reset(messaging);
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        double votosAntesA = votoRepository.countByPersonajeId(ids[0]);
+        double votosAntesB = votoRepository.countByPersonajeId(ids[1]);
+        Double pesoAntesA = votoRepository.sumaPesoByPersonajeId(ids[0]);
+        Double pesoAntesB = votoRepository.sumaPesoByPersonajeId(ids[1]);
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "empate-anon");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("X-AS-Anonymous-Id", "anon-empate-peso")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("empate", true))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anonimo").value(true))
+                .andExpect(jsonPath("$.empate").value(true))
+                .andExpect(jsonPath("$.votosGanador").value(0.5))
+                .andExpect(jsonPath("$.votosPerdedor").value(0.5))
+                .andExpect(jsonPath("$.delta").value(0.0))
+                .andReturn();
+
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+        Voto voto = votoRepository.findById(votoId).orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals(0.15, voto.getPeso().doubleValue(), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesA + 0.5,
+                votoRepository.countByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntesB + 0.5,
+                votoRepository.countByPersonajeId(ids[1]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesA + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[0]), 0.001);
+        org.junit.jupiter.api.Assertions.assertEquals(pesoAntesB + 0.15,
+                votoRepository.sumaPesoByPersonajeId(ids[1]), 0.001);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(RankingDeltaEvent.class);
+        verify(messaging, times(2)).convertAndSend(eq("/topic/ranking-delta"), captor.capture());
+        captor.getAllValues().forEach(ev -> {
+            org.junit.jupiter.api.Assertions.assertEquals(0.5, ev.getDelta(), 0.001);
+            org.junit.jupiter.api.Assertions.assertEquals(0.15, ev.getDeltaPeso(), 0.001);
+        });
     }
 
     @Test
@@ -829,6 +898,7 @@ class EnfrentamientoControllerTest {
         String tokenB = tokenUserRegistrado("madrugador_b", "madrugador-b@example.com");
         long[] ids = dosPersonajes();
         long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "madrugador");
+        long enfIdB = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "madrugador-b");
         LocalDate fecha = LocalDate.of(2026, 5, 22);
 
         mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
@@ -841,7 +911,7 @@ class EnfrentamientoControllerTest {
         var userB = usuarioRepository.findByUsername("madrugador_b").orElseThrow();
         esperarMadrugador("luffy", fecha, userA.getId());
 
-        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+        mvc.perform(post("/api/enfrentamientos/" + enfIdB + "/votar")
                 .header("Authorization", "Bearer " + tokenB)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
@@ -1102,6 +1172,56 @@ class EnfrentamientoControllerTest {
     }
 
     @Test
+    void fijarCategoriaConcurrenteSoloAceptaUnaPeticion() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_patch_race_user", "votopatchrace@example.com");
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "patch-race");
+
+        MvcResult res = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isOk())
+                .andReturn();
+        long votoId = json.readTree(res.getResponse().getContentAsString()).get("votoId").asLong();
+
+        CountDownLatch lecturasDelCodigoAnterior = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            Object resultado = invocation.callRealMethod();
+            lecturasDelCodigoAnterior.countDown();
+            if (!lecturasDelCodigoAnterior.await(5, TimeUnit.SECONDS)) {
+                throw new AssertionError("No llegaron los dos PATCH al read previo del voto");
+            }
+            return resultado;
+        }).when(votoRepository).findByEnfrentamientoAndUsuario(any(), any());
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> carisma = executor.submit(() -> patchCategoria(enfId, userToken, "carisma"));
+            Future<Integer> poder = executor.submit(() -> patchCategoria(enfId, userToken, "poder"));
+
+            List<Integer> statuses = List.of(
+                    carisma.get(10, TimeUnit.SECONDS),
+                    poder.get(10, TimeUnit.SECONDS));
+            org.junit.jupiter.api.Assertions.assertEquals(1,
+                    statuses.stream().filter(status -> status == 204).count(),
+                    "Solo un PATCH concurrente debe fijar la intención");
+            org.junit.jupiter.api.Assertions.assertEquals(1,
+                    statuses.stream().filter(status -> status == 409).count(),
+                    "El segundo PATCH concurrente debe observar set-once");
+
+            String categoriaPersistida = votoRepository.findById(votoId).orElseThrow().getCategoria();
+            org.junit.jupiter.api.Assertions.assertTrue(
+                    Set.of("carisma", "poder").contains(categoriaPersistida),
+                    "La intención persistida debe ser una de las dos solicitudes concurrentes");
+        } finally {
+            executor.shutdownNow();
+            reset(votoRepository);
+        }
+    }
+
+    @Test
     void fijarCategoriaInvalidaEsNoOp204() throws Exception {
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_patch_bad_user", "votopatchbad@example.com");
@@ -1148,6 +1268,16 @@ class EnfrentamientoControllerTest {
         var votos = votoRepository.findByAnonSessionIdAndUsuarioIsNullOrderByFechaAsc(anonId);
         org.junit.jupiter.api.Assertions.assertEquals(1, votos.size());
         org.junit.jupiter.api.Assertions.assertEquals("favorito", votos.get(0).getCategoria());
+    }
+
+    private int patchCategoria(long enfId, String userToken, String categoria) throws Exception {
+        return mvc.perform(patch("/api/enfrentamientos/" + enfId + "/votar/categoria")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("categoria", categoria))))
+                .andReturn()
+                .getResponse()
+                .getStatus();
     }
 
     @TestConfiguration

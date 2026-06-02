@@ -13,6 +13,33 @@ type EstadoBadge = {
 type TorneoDetalleMinimo = {
   id?: string | number
   estado?: string
+  enfrentamientos?: EnfrentamientoVivo[]
+  currentMatch?: EnfrentamientoVivo | null
+  [key: string]: unknown
+}
+
+type PersonajeMiniVivo = {
+  id?: string | number | null
+  [key: string]: unknown
+}
+
+type EnfrentamientoVivo = {
+  id?: string | number | null
+  personaje1?: PersonajeMiniVivo | null
+  personaje2?: PersonajeMiniVivo | null
+  personaje1Votos?: number | null
+  personaje2Votos?: number | null
+  totalVotos?: number | null
+  [key: string]: unknown
+}
+
+type BracketUpdateEvent = {
+  enfrentamientoId?: string | number | null
+  personaje1Id?: string | number | null
+  personaje1Votos?: unknown
+  personaje2Id?: string | number | null
+  personaje2Votos?: unknown
+  totalVotos?: unknown
 }
 
 type VotoEnfrentamientoPayload = {
@@ -48,6 +75,93 @@ export function getEstadoBadge(estado?: string): EstadoBadge {
   return estado ? ESTADO_BADGE[estado] ?? ESTADO_BADGE.SCHEDULED : ESTADO_BADGE.SCHEDULED
 }
 
+function idsEqual(a: unknown, b: unknown): boolean {
+  return a != null && b != null && String(a) === String(b)
+}
+
+function numberFrom(value: unknown, fallback: number): number {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function canPatchParticipants(match: EnfrentamientoVivo, event: BracketUpdateEvent): boolean {
+  const p1Ok =
+    event.personaje1Id == null ||
+    match.personaje1?.id == null ||
+    idsEqual(event.personaje1Id, match.personaje1.id)
+  const p2Ok =
+    event.personaje2Id == null ||
+    match.personaje2?.id == null ||
+    idsEqual(event.personaje2Id, match.personaje2.id)
+  return p1Ok && p2Ok
+}
+
+function patchEnfrentamiento(
+  match: EnfrentamientoVivo | null | undefined,
+  event: BracketUpdateEvent,
+): { match: EnfrentamientoVivo | null | undefined; matched: boolean } {
+  if (!match || !idsEqual(match.id, event.enfrentamientoId) || !canPatchParticipants(match, event)) {
+    return { match, matched: false }
+  }
+
+  const personaje1Votos = numberFrom(event.personaje1Votos, Number(match.personaje1Votos ?? 0))
+  const personaje2Votos = numberFrom(event.personaje2Votos, Number(match.personaje2Votos ?? 0))
+  const totalVotos = numberFrom(event.totalVotos, personaje1Votos + personaje2Votos)
+
+  return {
+    matched: true,
+    match: {
+      ...match,
+      personaje1Votos,
+      personaje2Votos,
+      totalVotos,
+    },
+  }
+}
+
+export function applyBracketUpdateToTorneoDetalle<T extends TorneoDetalleMinimo | null | undefined>(
+  torneo: T,
+  event: BracketUpdateEvent | null | undefined,
+): T {
+  if (!torneo || !event || event.enfrentamientoId == null) return torneo
+
+  let matched = false
+  const nextEnfrentamientos = Array.isArray(torneo.enfrentamientos)
+    ? torneo.enfrentamientos.map((match) => {
+        const patched = patchEnfrentamiento(match, event)
+        matched = matched || patched.matched
+        return patched.match as EnfrentamientoVivo
+      })
+    : torneo.enfrentamientos
+
+  const patchedCurrent = patchEnfrentamiento(torneo.currentMatch, event)
+  matched = matched || patchedCurrent.matched
+
+  if (!matched) return torneo
+  return {
+    ...torneo,
+    enfrentamientos: nextEnfrentamientos,
+    currentMatch: patchedCurrent.match ?? torneo.currentMatch,
+  } as T
+}
+
+export function bumpTorneoResumenVotos<T extends Array<Record<string, unknown>> | null | undefined>(
+  torneos: T,
+  slug: string | undefined,
+): T {
+  if (!Array.isArray(torneos) || !slug) return torneos
+  let matched = false
+  const next = torneos.map((torneo) => {
+    if (torneo?.slug !== slug) return torneo
+    matched = true
+    return {
+      ...torneo,
+      votosUltimos7Dias: Number(torneo.votosUltimos7Dias ?? 0) + 1,
+    }
+  })
+  return matched ? (next as T) : torneos
+}
+
 /**
  * Hooks react-query para todas las lecturas/escrituras de torneos.
  * Aislados aquí para que las páginas no sepan ni de queryKeys ni de
@@ -59,6 +173,8 @@ export function useTorneos() {
   return useQuery({
     queryKey: queryKeys.torneos(),
     queryFn: endpoints.torneos,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -69,9 +185,8 @@ export function useTorneos() {
  *   1. Polling 30s mientras el torneo está IN_PROGRESS (fallback si el WS
  *      no conecta — proxies corporativos, mobile en red mala, etc).
  *   2. WebSocket STOMP suscrito a /topic/torneo.{id}.bracket: cuando alguien
- *      vota, el server pushea un BracketUpdateEvent y aquí invalidamos la
- *      query para refetch instantáneo. Sin esperar a la siguiente vuelta
- *      del polling.
+ *      vota, el server pushea un BracketUpdateEvent y aquí actualizamos solo
+ *      los conteos del match afectado en cache local.
  *
  * El refetchInterval se ajusta solo viendo data.estado, así que un torneo
  * pasa automáticamente de "no polling" a "polling 30s" cuando admin lo
@@ -83,6 +198,8 @@ export function useTorneoBySlug(slug?: string) {
     queryKey: queryKeys.torneoBySlug(slug),
     queryFn: () => endpoints.torneoBySlug(slug),
     enabled: Boolean(slug),
+    staleTime: 15_000,
+    refetchOnWindowFocus: false,
     refetchInterval: (q) => {
       const data = q.state.data
       return data?.estado === 'IN_PROGRESS' ? 30_000 : false
@@ -99,12 +216,18 @@ export function useTorneoBySlug(slug?: string) {
 
   useEffect(() => {
     if (!lastMessage || !slug) return
-    // Recibimos { torneoId, enfrentamientoId, conteos... }. Invalidamos la
-    // query: el cache se marcará stale y se refetch automáticamente — más
-    // simple y robusto que reconciliar conteos manualmente con setQueryData,
-    // porque el refetch trae también ganador/ronda actualizados si el match
-    // se cerró por el voto.
-    queryClient.invalidateQueries({ queryKey: queryKeys.torneoBySlug(slug) })
+    let patched = false
+    queryClient.setQueryData<TorneoDetalleMinimo | null>(
+      queryKeys.torneoBySlug(slug),
+      (old) => {
+        const next = applyBracketUpdateToTorneoDetalle(old, lastMessage)
+        patched = next !== old
+        return next
+      },
+    )
+    if (!patched) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.torneoBySlug(slug) })
+    }
   }, [lastMessage, queryClient, slug])
 
   return query
@@ -126,10 +249,9 @@ export function useVotarEnfrentamiento(torneoSlug?: string) {
     mutationFn: ({ enfrentamientoId, personajeGanadorId }: VotoEnfrentamientoPayload) =>
       endpoints.votar(enfrentamientoId, personajeGanadorId),
     onSuccess: () => {
-      if (torneoSlug) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.torneoBySlug(torneoSlug) })
-      }
-      queryClient.invalidateQueries({ queryKey: queryKeys.torneos() })
+      queryClient.setQueryData(queryKeys.torneos(), (old) =>
+        bumpTorneoResumenVotos(old as Array<Record<string, unknown>> | undefined, torneoSlug),
+      )
     },
   })
 }

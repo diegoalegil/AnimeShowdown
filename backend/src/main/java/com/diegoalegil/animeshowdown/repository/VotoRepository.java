@@ -144,6 +144,23 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             """)
     double countByPersonajeId(@Param("personajeId") Long personajeId);
 
+    /**
+     * Batch del score visible para decisiones PvP live. Evita dos agregados
+     * globales por ronda cuando solo necesitamos comparar A contra B.
+     */
+    @Query("""
+            SELECT p.id, cast(coalesce(sum(case when v.empate = true then 0.5 else 1.0 end), 0) as double)
+            FROM Voto v LEFT JOIN v.enfrentamiento e, Personaje p
+            WHERE (
+                (v.empate = false AND p.id = v.personaje.id)
+                OR (v.empate = true AND e IS NOT NULL
+                    AND (p.id = e.personaje1.id OR p.id = e.personaje2.id))
+            )
+              AND p.id IN :personajeIds
+            GROUP BY p.id
+            """)
+    List<Object[]> countByPersonajeIds(@Param("personajeIds") java.util.Collection<Long> personajeIds);
+
     /** Conteo físico de votos normales; excluye empate neutral (no mueve ELO). */
     @Query("""
             SELECT COUNT(v)
@@ -393,6 +410,33 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
      * intención para votantes invitados.
      */
     java.util.Optional<Voto> findByEnfrentamientoAndAnonSessionId(Enfrentamiento enfrentamiento, String anonSessionId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Voto v
+            SET v.categoria = :categoria
+            WHERE v.enfrentamiento = :enfrentamiento
+              AND v.usuario = :usuario
+              AND v.categoria IS NULL
+            """)
+    int fijarCategoriaRegistradoSiPendiente(
+            @Param("enfrentamiento") Enfrentamiento enfrentamiento,
+            @Param("usuario") Usuario usuario,
+            @Param("categoria") String categoria);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Voto v
+            SET v.categoria = :categoria
+            WHERE v.enfrentamiento = :enfrentamiento
+              AND v.usuario IS NULL
+              AND v.anonSessionId = :anonSessionId
+              AND v.categoria IS NULL
+            """)
+    int fijarCategoriaAnonimaSiPendiente(
+            @Param("enfrentamiento") Enfrentamiento enfrentamiento,
+            @Param("anonSessionId") String anonSessionId,
+            @Param("categoria") String categoria);
 
     long countByAnonSessionId(String anonSessionId);
 

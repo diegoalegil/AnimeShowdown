@@ -1,4 +1,5 @@
 import { VISUAL_ASSET_PATHS } from './visual-assets-manifest'
+import { getAnimeIdentity } from './anime-identities'
 
 /**
  * Registro visual de AnimeShowdown.
@@ -111,6 +112,22 @@ function makeVisual({
     glow: glow ?? p.glow,
     glowRgb: glowRgb ?? p.glowRgb,
     atmosphere,
+  }
+}
+
+function withAnimeIdentity(visual, identity) {
+  return {
+    ...visual,
+    kanji: identity.kanji,
+    title: identity.title || visual.title,
+    mood: visual.mood || identity.copy,
+    description: visual.description || identity.copy,
+    accentRgb: identity.accentRgb ?? visual.accentRgb,
+    glowRgb: identity.glowRgb ?? visual.glowRgb,
+    atmosphere: visual.atmosphere ?? identity.atmosphere,
+    identity,
+    identityFallback: Boolean(identity.isFallback),
+    identitySlot: identity.imageSlot,
   }
 }
 
@@ -1218,16 +1235,22 @@ export const BRAND_VISUALS = {
 }
 
 export function getAnimeVisual(slug, anime = slug) {
-  if (ANIME_VISUALS[slug]) return ANIME_VISUALS[slug]
-  return makeVisual({
+  const identity = getAnimeIdentity(slug, anime)
+  if (ANIME_VISUALS[slug]) return withAnimeIdentity(ANIME_VISUALS[slug], identity)
+  const assetSlug = identity.assetSlug || slug
+  return withAnimeIdentity(makeVisual({
     slug,
-    title: anime,
+    title: identity.title || anime,
     type: 'anime',
-    kanji: '界',
+    kanji: identity.kanji,
     fallbackImage: STAGE.animes,
-    expectedPath: `/assets/anime-banners/${slug}.webp`,
+    expectedPath: `/assets/anime-banners/${assetSlug}.webp`,
     paletteSeed: slug,
-  })
+    accentRgb: identity.accentRgb,
+    glowRgb: identity.glowRgb,
+    atmosphere: identity.atmosphere,
+    mood: identity.copy,
+  }), identity)
 }
 
 export function getTournamentVisual(slug, title = slug) {

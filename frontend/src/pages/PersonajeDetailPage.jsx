@@ -950,6 +950,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
       alt={nombre}
       loading="eager"
       sizes="(min-width: 1024px) 520px, 90vw"
+      maxSourceWidth={1024}
       className="h-full w-full object-cover"
     />
   )
