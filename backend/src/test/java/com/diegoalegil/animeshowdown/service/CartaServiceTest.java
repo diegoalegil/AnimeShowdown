@@ -1,9 +1,11 @@
 package com.diegoalegil.animeshowdown.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -88,6 +90,18 @@ class CartaServiceTest {
 
         assertEquals(1, coleccion.totalPoseidas());
         assertEquals(1L, coleccion.cartas().getFirst().elo());
+    }
+
+    @Test
+    void abrirSobreSinIdempotencyKeyRechazaAntesDeTocarEconomia() {
+        Usuario usuario = new Usuario("cartas_sin_key", "hash", "cartas_sin_key@example.com");
+        usuario.setId(9L);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> sut.abrirSobre(usuario, " "));
+
+        assertEquals("X-Idempotency-Key es obligatorio para abrir sobres", ex.getMessage());
+        verifyNoInteractions(sobreAperturaRepository, pityRepository, monederoService);
     }
 
     @Test

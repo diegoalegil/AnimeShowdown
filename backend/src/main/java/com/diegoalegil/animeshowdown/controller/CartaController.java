@@ -76,7 +76,7 @@ public class CartaController {
     public AbrirSobreResultadoDto abrirSobre(
             @AuthenticationPrincipal Usuario usuario,
             @RequestHeader(name = "X-Idempotency-Key", required = false) String idempotencyKey) {
-        return cartaService.abrirSobre(exigirUsuario(usuario), idempotencyKey);
+        return cartaService.abrirSobre(exigirUsuario(usuario), exigirIdempotencyKey(idempotencyKey));
     }
 
     @PostMapping("/me/cartas/cofre-diario")
@@ -107,5 +107,14 @@ public class CartaController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Necesitas iniciar sesión");
         }
         return usuario;
+    }
+
+    private static String exigirIdempotencyKey(String idempotencyKey) {
+        String key = idempotencyKey == null ? "" : idempotencyKey.trim();
+        if (key.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "X-Idempotency-Key es obligatorio para abrir sobres");
+        }
+        return key;
     }
 }

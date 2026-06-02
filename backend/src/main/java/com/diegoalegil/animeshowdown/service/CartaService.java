@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -126,8 +125,8 @@ public class CartaService {
     }
 
     /**
-     * Abre un sobre. Si el caller manda idempotencyKey, repetir la misma key
-     * devuelve el mismo resultado ya persistido y no vuelve a debitar moneda.
+     * Abre un sobre. Repetir la misma idempotencyKey devuelve el mismo
+     * resultado ya persistido y no vuelve a debitar moneda.
      */
     @Transactional
     public AbrirSobreResultadoDto abrirSobre(Usuario usuario, String idempotencyKey) {
@@ -327,7 +326,8 @@ public class CartaService {
     private static String normalizarIdempotencyKey(String idempotencyKey) {
         String raw = idempotencyKey == null ? "" : idempotencyKey.trim();
         if (raw.isEmpty()) {
-            raw = UUID.randomUUID().toString();
+            throw new IllegalArgumentException(
+                    "X-Idempotency-Key es obligatorio para abrir sobres");
         }
         String sane = raw.replaceAll("[^A-Za-z0-9._:-]", "-");
         return sane.length() <= 80 ? sane : sane.substring(0, 80);
