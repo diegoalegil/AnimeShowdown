@@ -30,17 +30,26 @@
 /rankings                 /ranking                   301
 /rankings/                /ranking                   301
 
+# Rutas SEO prerenderizadas. Deben servir su propio HTML inicial para que
+# title/canonical/JSON-LD existan antes del bootstrap de React.
+/personajes               /personajes/index.html 200
+/animes                   /animes/index.html 200
+/animes/:slug/ranking     /animes/:slug/ranking/index.html 200
+/animes/:slug             /animes/:slug/index.html 200
+/versus/:par              /versus/:par/index.html 200
+/comparar                 /comparar/index.html 200
+/ranking                  /ranking/index.html 200
+/votar                    /votar/index.html 200
+/games                    /games/index.html 200
+/juegos/anime             /juegos/anime/index.html 200
+
 # Rutas reales de la SPA. Las enumeramos para que una URL inventada no
 # devuelva 200 con la shell de React: Cloudflare servirá 404.html al final.
 #
 # Importante: reescribimos a "/" y no a "/index.html". Cloudflare Pages
 # normaliza las páginas HTML a su ruta sin extensión; con destino
 # "/index.html" estas rutas acababan respondiendo 308 Location: /.
-/personajes               / 200
 /personajes/:slug         / 200
-/animes                   / 200
-/animes/:slug/ranking     / 200
-/animes/:slug             / 200
 /torneos                  / 200
 /torneos/crear            / 200
 /torneos/:slug            / 200
@@ -48,12 +57,9 @@
 /eventos                  / 200
 /eventos/:slug            / 200
 /duelos/:par              / 200
-/comparar                 / 200
-/ranking                  / 200
 /rankings/:slug           / 200
 /mi-ranking               / 200
 /descubre-personaje       / 200
-/votar                    / 200
 /duel-live                / 200
 /login                    / 200
 /register                 / 200
@@ -75,8 +81,6 @@
 /misiones                 / 200
 /api-docs                 / 200
 /status                   / 200
-/games                    / 200
-/juegos/anime             / 200
 /games/shadow-guess       / 200
 /games/anime-reveal       / 200
 /games/anigrid            / 200

@@ -23,7 +23,9 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.repository.DueloLiveRondaRepository;
 import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
+import com.diegoalegil.animeshowdown.repository.FantasyEquipoItemRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeVotoScoreRepository;
 import com.diegoalegil.animeshowdown.repository.PrediccionRepository;
 import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
@@ -69,9 +71,11 @@ public class DataSeeder implements CommandLineRunner {
     private final PersonajeRepository personajeRepository;
     private final VotoRepository votoRepository;
     private final EnfrentamientoRepository enfrentamientoRepository;
+    private final PersonajeVotoScoreRepository personajeVotoScoreRepository;
     private final TorneoRepository torneoRepository;
     private final PrediccionRepository prediccionRepository;
     private final DueloLiveRondaRepository dueloLiveRondaRepository;
+    private final FantasyEquipoItemRepository fantasyEquipoItemRepository;
     private final BracketService bracketService;
     private final ReferralService referralService;
     private final CartaCatalogoService cartaCatalogoService;
@@ -90,9 +94,11 @@ public class DataSeeder implements CommandLineRunner {
             PersonajeRepository personajeRepository,
             VotoRepository votoRepository,
             EnfrentamientoRepository enfrentamientoRepository,
+            PersonajeVotoScoreRepository personajeVotoScoreRepository,
             TorneoRepository torneoRepository,
             PrediccionRepository prediccionRepository,
             DueloLiveRondaRepository dueloLiveRondaRepository,
+            FantasyEquipoItemRepository fantasyEquipoItemRepository,
             BracketService bracketService,
             ReferralService referralService,
             CartaCatalogoService cartaCatalogoService,
@@ -100,9 +106,11 @@ public class DataSeeder implements CommandLineRunner {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
         this.enfrentamientoRepository = enfrentamientoRepository;
+        this.personajeVotoScoreRepository = personajeVotoScoreRepository;
         this.torneoRepository = torneoRepository;
         this.prediccionRepository = prediccionRepository;
         this.dueloLiveRondaRepository = dueloLiveRondaRepository;
+        this.fantasyEquipoItemRepository = fantasyEquipoItemRepository;
         this.bracketService = bracketService;
         this.referralService = referralService;
         this.cartaCatalogoService = cartaCatalogoService;
@@ -264,10 +272,11 @@ public class DataSeeder implements CommandLineRunner {
         if (!nuevos.isEmpty()) {
             personajeRepository.saveAll(nuevos);
         }
+        int scoresCreados = personajeVotoScoreRepository.insertarFaltantesDesdePersonajes();
 
         log.info(
-                "DataSeeder: sincronizado — insertados={}, actualizados={}, borrados={} (seed={}, BBDD antes={})",
-                nuevos.size(), actualizados, borrados,
+                "DataSeeder: sincronizado — insertados={}, actualizados={}, borrados={}, scoresCreados={} (seed={}, BBDD antes={})",
+                nuevos.size(), actualizados, borrados, scoresCreados,
                 entradas.size(), existentes.size());
     }
 
@@ -278,11 +287,12 @@ public class DataSeeder implements CommandLineRunner {
      * 2. Limpia torneos.ganador_personaje_id = NULL para los torneos que lo
      *    tenían marcado como ganador. Preserva torneo + bracket + votos
      *    históricos; solo pierde la asignación (que es metadata recomputable).
-     * 3. Votos cuyo personaje sea este (Voto.personaje FK).
-     * 4. Votos de enfrentamientos donde participe (Voto.enfrentamiento FK
+     * 3. Items fantasy que tienen al personaje en equipos de usuarios.
+     * 4. Votos cuyo personaje sea este (Voto.personaje FK).
+     * 5. Votos de enfrentamientos donde participe (Voto.enfrentamiento FK
      *    apunta a un enfrentamiento que tiene FK al personaje).
-     * 5. Enfrentamientos donde aparezca como personaje1/2/ganador.
-     * 6. El personaje en sí.
+     * 6. Enfrentamientos donde aparezca como personaje1/2/ganador.
+     * 7. El personaje en sí.
      *
      * El orden es crítico: si intentamos borrar el personaje antes que sus
      * referenciadores, falla con constraint violation.
@@ -297,14 +307,15 @@ public class DataSeeder implements CommandLineRunner {
     private int borrarPersonajeConCascada(Personaje p) {
         int prediccionesBorradas = prediccionRepository.deleteByPersonajePredichoId(p.getId());
         int torneosLimpiados = torneoRepository.clearGanadorByPersonajeId(p.getId());
+        int fantasyItemsBorrados = fantasyEquipoItemRepository.deleteByPersonajeId(p.getId());
         int votosBorrados = votoRepository.deleteByPersonajeId(p.getId());
         int votosEnEnfBorrados = votoRepository.deleteVotosEnEnfrentamientosDelPersonaje(p.getId());
         int enfBorrados = enfrentamientoRepository.deleteByPersonajeId(p.getId());
         int rondasLiveBorradas = dueloLiveRondaRepository.deleteByPersonajeId(p.getId());
         personajeRepository.delete(p);
         log.info(
-                "DataSeeder DELETE: slug={} (predicciones={}, torneosLimpiados={}, votos={}, votosEnEnfrentamientos={}, enfrentamientos={}, rondasLive={})",
-                p.getSlug(), prediccionesBorradas, torneosLimpiados, votosBorrados, votosEnEnfBorrados, enfBorrados, rondasLiveBorradas);
+                "DataSeeder DELETE: slug={} (predicciones={}, torneosLimpiados={}, fantasyItems={}, votos={}, votosEnEnfrentamientos={}, enfrentamientos={}, rondasLive={})",
+                p.getSlug(), prediccionesBorradas, torneosLimpiados, fantasyItemsBorrados, votosBorrados, votosEnEnfBorrados, enfBorrados, rondasLiveBorradas);
         return 1;
     }
 

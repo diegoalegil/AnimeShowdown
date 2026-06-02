@@ -50,6 +50,8 @@ class TorneoServiceTest {
     @Mock private NotificacionService notificacionService;
     @Mock private IndexNowService indexNowService;
     @Mock private SeguidorFanOutService seguidorFanOutService;
+    @Mock private TorneoCreationLock torneoCreationLock;
+    @Mock private TorneoOperacionLockService torneoOperacionLockService;
 
     private TorneoService service;
 
@@ -65,7 +67,9 @@ class TorneoServiceTest {
                 prediccionService,
                 notificacionService,
                 indexNowService,
-                seguidorFanOutService);
+                seguidorFanOutService,
+                torneoCreationLock,
+                torneoOperacionLockService);
     }
 
     // ─── Fixtures ──────────────────────────────────────────────────────────────
@@ -112,6 +116,11 @@ class TorneoServiceTest {
             if (t.getId() == null || t.getId() == 0) t.setId(99L);
             return t;
         });
+        lenient().when(repo.saveAndFlush(any(Torneo.class))).thenAnswer(inv -> {
+            Torneo t = inv.getArgument(0);
+            if (t.getId() == null || t.getId() == 0) t.setId(99L);
+            return t;
+        });
     }
 
     private static List<Long> list(Long... vals) { return java.util.Arrays.asList(vals); }
@@ -134,7 +143,22 @@ class TorneoServiceTest {
             assertThat(result.getNombre()).isEqualTo("Naruto Best Girl");
             assertThat(result.getDescripcion()).isEqualTo("Who is the best?");
             assertThat(result.isPublico()).isTrue();
-            verify(torneoRepository).save(any(Torneo.class));
+            verify(torneoRepository).saveAndFlush(any(Torneo.class));
+        }
+
+        @Test
+        void serializaAntesDeElegirSlug() {
+            var req = new TorneoCrearRequest();
+            req.setNombre("Slug Race");
+            when(torneoRepository.existsBySlug("slug-race")).thenReturn(false);
+            stubSave(torneoRepository);
+
+            service.crear(req);
+
+            var orden = org.mockito.Mockito.inOrder(torneoCreationLock, torneoRepository);
+            orden.verify(torneoCreationLock).bloquearCreacionTorneos();
+            orden.verify(torneoRepository).existsBySlug("slug-race");
+            orden.verify(torneoRepository).saveAndFlush(any(Torneo.class));
         }
     }
 
@@ -194,6 +218,9 @@ class TorneoServiceTest {
             lenient().when(torneoRepository.save(any(Torneo.class))).thenAnswer(inv -> {
                 Torneo r = inv.<Torneo>getArgument(0); r.setId(99L); return r;
             });
+            lenient().when(torneoRepository.saveAndFlush(any(Torneo.class))).thenAnswer(inv -> {
+                Torneo r = inv.<Torneo>getArgument(0); r.setId(99L); return r;
+            });
 
             EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
                     () -> service.crearPorUsuario(u, makeCrearMioRequest("T", list(1L,2L,3L,4L,5L,6L,7L,8L))));
@@ -209,6 +236,9 @@ class TorneoServiceTest {
             lenient().when(torneoRepository.save(any(Torneo.class))).thenAnswer(inv -> {
                 Torneo r = inv.<Torneo>getArgument(0); r.setId(99L); return r;
             });
+            lenient().when(torneoRepository.saveAndFlush(any(Torneo.class))).thenAnswer(inv -> {
+                Torneo r = inv.<Torneo>getArgument(0); r.setId(99L); return r;
+            });
 
             var req = makeCrearMioRequest("Test 8", list(1L,2L,3L,4L,5L,6L,7L,8L));
             req.setDescripcion("Desc");
@@ -217,6 +247,7 @@ class TorneoServiceTest {
             assertThat(result.getCreadoPor()).isEqualTo(u);
             assertThat(result.getEstadoRevision()).isEqualTo(EstadoRevision.PENDIENTE);
             assertThat(result.getEstado()).isEqualTo(EstadoTorneo.SCHEDULED);
+            verify(torneoCreationLock).bloquearCreacionTorneos();
             verify(bracketService).crearBracket(any(Torneo.class), any());
         }
     }
@@ -527,7 +558,7 @@ class TorneoServiceTest {
             IllegalStateException ex = assertThrows(IllegalStateException.class,
                     () -> service.finalizar(1L));
 
-            assertThat(ex.getMessage()).contains("empates");
+            assertThat(ex.getMessage()).contains("matches sin votos");
         }
 
         @Test

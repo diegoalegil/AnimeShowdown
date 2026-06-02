@@ -39,6 +39,7 @@ public class TorneoAutoService {
     private final BracketService bracketService;
     private final IndexNowService indexNowService;
     private final NotificacionService notificacionService;
+    private final TorneoCreationLock torneoCreationLock;
     private final boolean enabled;
 
     public TorneoAutoService(
@@ -47,12 +48,14 @@ public class TorneoAutoService {
             BracketService bracketService,
             IndexNowService indexNowService,
             NotificacionService notificacionService,
+            TorneoCreationLock torneoCreationLock,
             @Value("${app.tournament.auto.enabled:true}") boolean enabled) {
         this.torneoRepository = torneoRepository;
         this.personajeRepository = personajeRepository;
         this.bracketService = bracketService;
         this.indexNowService = indexNowService;
         this.notificacionService = notificacionService;
+        this.torneoCreationLock = torneoCreationLock;
         this.enabled = enabled;
         log.info("TorneoAutoService inicializado: enabled={}", enabled);
     }
@@ -82,6 +85,8 @@ public class TorneoAutoService {
             throw new IllegalArgumentException("Tamaño debe ser 8 o 16, recibido: " + tamano);
         }
 
+        torneoCreationLock.bloquearCreacionTorneos();
+
         if (!force) {
             Optional<Torneo> reciente = torneoAutoReciente();
             if (reciente.isPresent()) {
@@ -109,7 +114,7 @@ public class TorneoAutoService {
                         + " personajes seleccionados al azar para mantener la arena activa.");
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setFechaInicio(LocalDateTime.now());
-        Torneo guardado = torneoRepository.save(torneo);
+        Torneo guardado = torneoRepository.saveAndFlush(torneo);
 
         // Antes solo creaba la 1ª ronda (8 enfrentamientos para tamaño 16).
         // Ahora BracketService crea las rondas en cascada: octavos con

@@ -362,6 +362,9 @@ function PodiumCard({ personaje, rank, featured = false, className = '' }) {
           nombre={personaje.nombre}
           colorDominante={personaje.imagenColorDominante}
           alt={personaje.nombre}
+          sizes={featured ? '(min-width: 768px) 280px, 90vw' : '(min-width: 768px) 180px, 44vw'}
+          fit="contain"
+          position="center"
           className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           loading="eager"
         />

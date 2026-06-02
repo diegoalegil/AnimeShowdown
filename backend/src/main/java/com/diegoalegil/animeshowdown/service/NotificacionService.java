@@ -1,6 +1,5 @@
 package com.diegoalegil.animeshowdown.service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +24,7 @@ import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.NotificacionRepository;
 import com.diegoalegil.animeshowdown.repository.PushSubscriptionRepository;
+import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.service.WebPushService.WebPushPayload;
 
 /**
@@ -55,6 +55,7 @@ public class NotificacionService {
     private final SimpMessagingTemplate messaging;
     private final PushSubscriptionRepository pushSubscriptionRepository;
     private final WebPushService webPushService;
+    private final UsuarioRepository usuarioRepository;
 
     /**
      * SimpMessagingTemplate viene de spring-websocket. Lo dejamos
@@ -64,11 +65,13 @@ public class NotificacionService {
     public NotificacionService(NotificacionRepository repo,
             @Autowired(required = false) SimpMessagingTemplate messaging,
             PushSubscriptionRepository pushSubscriptionRepository,
-            WebPushService webPushService) {
+            WebPushService webPushService,
+            UsuarioRepository usuarioRepository) {
         this.repo = repo;
         this.messaging = messaging;
         this.pushSubscriptionRepository = pushSubscriptionRepository;
         this.webPushService = webPushService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
@@ -122,17 +125,21 @@ public class NotificacionService {
             porUsuario.computeIfAbsent(usuario.getId(), ignored -> new java.util.ArrayList<>()).add(sub);
         }
 
-        LocalDateTime inicioDia = LocalDate.now().atStartOfDay();
         String payload = payloadDeTorneo(torneo);
+        String eventoKey = payload;
         int creadas = 0;
         for (List<PushSubscription> subsUsuario : porUsuario.values()) {
             Usuario usuario = subsUsuario.get(0).getUsuario();
-            if (repo.existsByUsuarioAndTipoAndCreadoEnAfter(usuario, tipo, inicioDia)) {
+            Usuario usuarioBloqueado = usuarioRepository.findForUpdateById(usuario.getId())
+                    .orElse(null);
+            if (usuarioBloqueado == null
+                    || repo.existsByUsuarioAndTipoAndEventoKey(usuarioBloqueado, tipo, eventoKey)) {
                 continue;
             }
 
-            Notificacion guardada = repo.save(new Notificacion(usuario, tipo, titulo, mensaje, payload));
-            pushUsuario(usuario, NotificacionDto.from(guardada));
+            Notificacion guardada = repo.saveAndFlush(
+                    new Notificacion(usuarioBloqueado, tipo, titulo, mensaje, payload, eventoKey));
+            pushUsuario(usuarioBloqueado, NotificacionDto.from(guardada));
             creadas++;
 
             for (PushSubscription sub : subsUsuario) {
