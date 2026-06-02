@@ -35,6 +35,10 @@ public enum NotificacionTipo {
      *  notable en el ranking. Lo dispara el scheduler diario de alertas.
      *  Payload con slug+delta para enlazar a la ficha del personaje. */
     FAVORITO_MOVIMIENTO,
+    /** Un admin aprobó la sugerencia de personaje del usuario. */
+    SUGERENCIA_APROBADA,
+    /** Un admin rechazó la sugerencia de personaje del usuario (con motivo). */
+    SUGERENCIA_RECHAZADA,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA
 }
