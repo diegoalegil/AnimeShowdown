@@ -8,6 +8,7 @@ import {
   Check,
   ChevronRight,
   Inbox,
+  TrendingUp,
   Trophy,
   UserPlus,
   X,
@@ -189,6 +190,7 @@ const tipoIcono = {
   TORNEO_RECHAZADO: X,
   BADGE_DESBLOQUEADO: Award,
   SEGUIDOR_NUEVO: UserPlus,
+  FAVORITO_MOVIMIENTO: TrendingUp,
   SISTEMA: Bell,
 }
 
@@ -218,6 +220,8 @@ function enlaceDeNotif(notif) {
       return datos?.seguidorUsername
         ? `/u/${encodeURIComponent(datos.seguidorUsername)}`
         : '/perfil'
+    case 'FAVORITO_MOVIMIENTO':
+      return datos?.slug ? `/personajes/${encodeURIComponent(datos.slug)}` : '/ranking'
     case 'TORNEO_APROBADO':
     case 'TORNEO_INICIADO':
     case 'TORNEO_FINALIZADO':

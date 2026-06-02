@@ -31,6 +31,10 @@ public enum NotificacionTipo {
     SEGUIDO_LOGRO,
     /** Un usuario al que sigues creó un torneo (aprobado) (B7 §3, fan-out). */
     SEGUIDO_TORNEO,
+    /** Un personaje que el usuario tiene como favorito subió/bajó de forma
+     *  notable en el ranking. Lo dispara el scheduler diario de alertas.
+     *  Payload con slug+delta para enlazar a la ficha del personaje. */
+    FAVORITO_MOVIMIENTO,
     /** Genérica del sistema (anuncios admin, mantenimiento, etc). */
     SISTEMA
 }
