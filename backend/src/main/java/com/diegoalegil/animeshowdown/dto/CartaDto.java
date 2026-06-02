@@ -48,4 +48,21 @@ public record CartaDto(
                 propia != null,
                 propia != null ? propia.getCantidad() : 0);
     }
+
+    public static CartaDto from(CartaCatalogoItem carta, UsuarioCartaPosesionItem propia, long elo) {
+        return new CartaDto(
+                carta.id(),
+                carta.personajeSlug(),
+                carta.personajeNombre(),
+                carta.anime(),
+                carta.imagenUrl(),
+                carta.colorDominante(),
+                carta.rareza(),
+                carta.especialCurada(),
+                carta.variante(),
+                carta.arteUrl(),
+                Math.max(0L, elo),
+                propia != null,
+                propia != null ? propia.cantidad() : 0);
+    }
 }

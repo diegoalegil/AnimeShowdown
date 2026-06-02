@@ -32,6 +32,8 @@ public class RedisCacheConfig {
                         Map.entry("personajes-busqueda", config(Duration.ofMinutes(10))),
                         Map.entry("personajes-individual", config(Duration.ofMinutes(5))),
                         Map.entry("personajes-similares", config(Duration.ofMinutes(5))),
+                        Map.entry("cartas-catalogo", config(Duration.ofMinutes(10))),
+                        Map.entry("cartas-votos-score", config(Duration.ofSeconds(30))),
                         Map.entry("personaje-elo-history", config(Duration.ofHours(1))),
                         Map.entry("torneos-resumen", config(Duration.ofSeconds(30))),
                         Map.entry("og-personaje", config(Duration.ofDays(7))),

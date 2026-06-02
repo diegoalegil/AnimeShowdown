@@ -193,15 +193,15 @@ function Header() {
           : 'border-b border-white/8 bg-bg/52 backdrop-blur-xl'
       }`}
     >
-      <Link to="/" className="flex min-h-11 items-center gap-2.5">
+      <Link to="/" className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 min-[1120px]:flex-none">
         <img
           src="/logo.svg"
           alt=""
           width={40}
           height={40}
-          className="h-9 w-9 object-contain sm:h-10 sm:w-10"
+          className="h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10"
         />
-        <span className="text-base font-extrabold tracking-tight sm:text-lg">
+        <span className="truncate text-base font-extrabold tracking-tight sm:text-lg">
           <span className="text-fg-strong">Anime</span>
           <span className="text-gold">Showdown</span>
         </span>

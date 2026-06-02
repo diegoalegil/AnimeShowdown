@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ShieldAlert } from 'lucide-react'
 import { getAnimePorSlug } from '../lib/animes'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useSeo } from '../hooks/useSeo'
@@ -65,8 +65,15 @@ function AnimeDetailPage() {
   )
 
   if (!data && isLoading) {
+    const loadingVisual = getAnimeVisual(slug, slug)
     return (
-      <VisualPageShell visual={getAnimeVisual(slug, slug)} lateralKanji={{ left: '界', right: '界' }}>
+      <VisualPageShell
+        visual={loadingVisual}
+        lateralKanji={{
+          left: loadingVisual?.kanji ?? '界',
+          right: loadingVisual?.identity?.sideKanji ?? loadingVisual?.kanji ?? '界',
+        }}
+      >
         <div className="mx-auto max-w-6xl py-16 text-center text-sm text-fg-muted">
           <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -96,6 +103,42 @@ function AnimeDetailPage() {
     sharePersonalAnimeTop({ anime, slug, stats: personalAnimeStats })
   const compartirDueloDestacado = () =>
     shareFeaturedAnimeDuel({ anime, dueloDestacado })
+  const lateralKanji = {
+    left: visual?.kanji ?? '界',
+    right: visual?.identity?.sideKanji ?? visual?.kanji ?? '界',
+  }
+
+  if (visual?.identityFallback) {
+    return (
+      <VisualPageShell visual={visual} lateralKanji={lateralKanji}>
+        <div className="mx-auto flex min-h-[55vh] max-w-3xl items-center justify-center py-16">
+          <div className="rounded-2xl border border-danger/35 bg-surface/90 p-6 text-center shadow-elev-2 backdrop-blur-md">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-danger/35 bg-danger/10 text-danger">
+              <ShieldAlert className="h-6 w-6" />
+            </div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-danger">
+              Identity-pack requerido
+            </p>
+            <h1 className="mt-2 text-2xl font-extrabold text-fg-strong">
+              {anime} esta pendiente de identidad visual
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-fg-muted">
+              El hub de este universo queda cerrado hasta que tenga kanji,
+              emblema, motivos y slots propios. Asi evitamos publicar una ficha
+              con fallback generico.
+            </p>
+            <Link
+              to="/animes"
+              className="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/60 px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent/45 hover:text-gold"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver a animes
+            </Link>
+          </div>
+        </div>
+      </VisualPageShell>
+    )
+  }
 
   return (
     <VisualPageShell
@@ -105,7 +148,7 @@ function AnimeDetailPage() {
         // personaje más popular del anime; fallback al accent del visual.
         accentRgb: hexToRgbChannels(porPopularidad?.[0]?.imagenColorDominante) ?? visual?.accentRgb,
       }}
-      lateralKanji={{ left: visual?.kanji ?? '界', right: '界' }}
+      lateralKanji={lateralKanji}
     >
       <JsonLd
         id="anime-series"
@@ -140,6 +183,14 @@ function AnimeDetailPage() {
           visual={visual}
         />
 
+        <AnimeRosterSections
+          anime={anime}
+          destacados={destacados}
+          personajes={personajes}
+          top10={top10}
+          total={total}
+        />
+
         {dueloDestacado && (
           <FeaturedAnimeDuel
             anime={anime}
@@ -162,14 +213,6 @@ function AnimeDetailPage() {
           porElo={porElo}
           slug={slug}
           topElo={topElo}
-        />
-
-        <AnimeRosterSections
-          anime={anime}
-          destacados={destacados}
-          personajes={personajes}
-          top10={top10}
-          total={total}
         />
       </div>
     </VisualPageShell>

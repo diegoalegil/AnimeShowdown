@@ -25,7 +25,7 @@ import {
 
 function HubCard({ eyebrow, title, icon: Icon, children, action }) {
   return (
-    <section className="as-panel flex min-h-full flex-col rounded-2xl p-5 sm:p-6">
+    <section className="as-panel flex flex-col rounded-2xl p-5 sm:p-6">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
@@ -43,7 +43,7 @@ function HubCard({ eyebrow, title, icon: Icon, children, action }) {
 
 function EmptyMicro({ children }) {
   return (
-    <div className="flex min-h-28 items-center rounded-lg border border-dashed border-border bg-surface-alt/40 p-4 text-sm leading-6 text-fg-muted">
+    <div className="flex items-center rounded-lg border border-dashed border-border bg-surface-alt/40 p-4 text-sm leading-6 text-fg-muted">
       {children}
     </div>
   )
@@ -82,6 +82,7 @@ function MiniPersonajeRow({ personaje, meta, rank, tone = 'default' }) {
 
 function RealRankingCard({ anime, ranking, isLoading, slug }) {
   const top = Array.isArray(ranking) ? ranking.slice(0, 5) : []
+  if (!isLoading && top.length === 0) return null
   return (
     <HubCard
       eyebrow="Ranking vivo"
@@ -98,11 +99,6 @@ function RealRankingCard({ anime, ranking, isLoading, slug }) {
     >
       {isLoading ? (
         <EmptyMicro>Cargando votos del universo...</EmptyMicro>
-      ) : top.length === 0 ? (
-        <EmptyMicro>
-          Este universo todavía no tiene votos suficientes para publicar un top
-          competitivo.
-        </EmptyMicro>
       ) : (
         <ol className="flex flex-col gap-2">
           {top.map((item, index) => (
@@ -122,6 +118,7 @@ function RealRankingCard({ anime, ranking, isLoading, slug }) {
 }
 
 function MomentumCard({ anime, monthlyHero, movers, revelation }) {
+  if (!monthlyHero && movers.length === 0 && !revelation) return null
   return (
     <HubCard eyebrow="Pulso" title="Racha del universo" icon={Flame}>
       <div className="grid gap-3">
@@ -175,68 +172,59 @@ function MomentumCard({ anime, monthlyHero, movers, revelation }) {
 }
 
 function HallOfFameCard({ hall }) {
+  if (hall.length === 0) return null
   return (
     <HubCard eyebrow="Hall of Fame" title="Copas conquistadas" icon={Trophy}>
-      {hall.length === 0 ? (
-        <EmptyMicro>
-          Este universo todavía no tiene campeones en torneos finalizados.
-        </EmptyMicro>
-      ) : (
-        <div className="grid gap-3">
-          {hall.map(({ torneo, ganador }) => (
-            <Link
-              key={torneo.slug}
-              to={`/torneos/${torneo.slug}`}
-              className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-3 transition-all hover:-translate-y-0.5 hover:border-gold/45"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-soft text-gold">
-                <Medal className="h-4 w-4" />
-              </span>
-              <PersonajeImg
-                slug={ganador.slug}
-                alt={ganador.nombre}
-                loading="lazy"
-                className="h-12 w-9 rounded-lg object-cover object-top"
-              />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black text-fg-strong group-hover:text-gold">
-                  {torneo.nombre}
-                </p>
-                <p className="truncate text-[12px] text-fg-muted">
-                  Campeón: {ganador.nombre}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <div className="grid gap-3">
+        {hall.map(({ torneo, ganador }) => (
+          <Link
+            key={torneo.slug}
+            to={`/torneos/${torneo.slug}`}
+            className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-3 transition-all hover:-translate-y-0.5 hover:border-gold/45"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-soft text-gold">
+              <Medal className="h-4 w-4" />
+            </span>
+            <PersonajeImg
+              slug={ganador.slug}
+              alt={ganador.nombre}
+              loading="lazy"
+              className="h-12 w-9 rounded-lg object-cover object-top"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-fg-strong group-hover:text-gold">
+                {torneo.nombre}
+              </p>
+              <p className="truncate text-[12px] text-fg-muted">
+                Campeón: {ganador.nombre}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
     </HubCard>
   )
 }
 
 function RecommendationsCard({ source, recomendaciones }) {
+  if (!source?.slug || recomendaciones.length === 0) return null
   return (
     <HubCard eyebrow="También votan" title="Rutas desde este fandom" icon={Sparkles}>
-      {!source?.slug || recomendaciones.length === 0 ? (
-        <EmptyMicro>
-          Las recomendaciones aparecerán cuando haya más co-votos conectados.
-        </EmptyMicro>
-      ) : (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {recomendaciones.map((item) => (
-            <MiniPersonajeRow
-              key={item.slug}
-              personaje={item}
-              meta={`${item.anime} · ${Math.round((item.score ?? 0) * 100)}% afinidad`}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {recomendaciones.map((item) => (
+          <MiniPersonajeRow
+            key={item.slug}
+            personaje={item}
+            meta={`${item.anime} · ${Math.round((item.score ?? 0) * 100)}% proximidad de votos`}
+          />
+        ))}
+      </div>
     </HubCard>
   )
 }
 
 function TierListCard({ tierList }) {
+  if (tierList.length === 0) return null
   return (
     <HubCard eyebrow="Tier-list ELO" title="Mapa competitivo" icon={Swords}>
       <div className="flex flex-col gap-2">
@@ -278,28 +266,25 @@ function TierListCard({ tierList }) {
 }
 
 function CloseDuelCard({ duel }) {
+  if (!duel) return null
   return (
     <HubCard eyebrow="Controversia" title="Duelo más reñido" icon={Swords}>
-      {!duel ? (
-        <EmptyMicro>Faltan rivales para medir un duelo cerrado.</EmptyMicro>
-      ) : (
-        <div className="grid gap-3">
-          <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-            <MiniPersonajeRow personaje={duel.a} meta={`${duel.a.elo} ELO`} tone="gold" />
-            <span className="justify-self-center rounded-full border border-accent/45 bg-accent-soft px-3 py-2 text-[12px] font-black text-gold">
-              {duel.diff} pts
-            </span>
-            <MiniPersonajeRow personaje={duel.b} meta={`${duel.b.elo} ELO`} tone="gold" />
-          </div>
-          <Link
-            to={`/duelos/${duel.a.slug}-vs-${duel.b.slug}`}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-          >
-            <Swords className="h-4 w-4" />
-            Comparar duelo
-          </Link>
+      <div className="grid gap-3">
+        <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+          <MiniPersonajeRow personaje={duel.a} meta={`${duel.a.elo} ELO`} tone="gold" />
+          <span className="justify-self-center rounded-full border border-accent/45 bg-accent-soft px-3 py-2 text-[12px] font-black text-gold">
+            {duel.diff} pts
+          </span>
+          <MiniPersonajeRow personaje={duel.b} meta={`${duel.b.elo} ELO`} tone="gold" />
         </div>
-      )}
+        <Link
+          to={`/duelos/${duel.a.slug}-vs-${duel.b.slug}`}
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-black text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+        >
+          <Swords className="h-4 w-4" />
+          Comparar duelo
+        </Link>
+      </div>
     </HubCard>
   )
 }
@@ -353,7 +338,7 @@ function AnimeHubModules({ anime, personajes, porElo, slug, topElo }) {
           Lo que se mueve en este universo
         </h2>
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <RealRankingCard
           anime={anime}
           ranking={rankingAnime}

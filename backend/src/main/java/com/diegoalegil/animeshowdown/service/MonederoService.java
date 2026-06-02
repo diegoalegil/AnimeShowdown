@@ -1,5 +1,7 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -26,7 +28,7 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
  * <p>Idempotencia de los créditos: pre-check por (usuario, motivo, referencia)
  * + UNIQUE constraint. En la carrera rara, el flush lanza
  * {@link DataIntegrityViolationException} y la transacción del crédito hace
- * rollback — el orquestador (DropService) la captura fuera de la tx.
+ * rollback — el llamador de dominio (DropService) la captura fuera de la tx.
  *
  * <p>Lost-update del saldo: {@code acreditar()} carga el monedero con
  * {@code findForUpdateByUsuarioId} (PESSIMISTIC_WRITE lock) antes del
@@ -37,6 +39,11 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 public class MonederoService {
 
     private static final Logger log = LoggerFactory.getLogger(MonederoService.class);
+    private static final List<MotivoMovimiento> MOTIVOS_DROP = List.of(
+            MotivoMovimiento.DROP_VOTO,
+            MotivoMovimiento.DROP_MISION_DIARIA,
+            MotivoMovimiento.DROP_TORNEO,
+            MotivoMovimiento.DROP_DUELO);
 
     private final MonederoRepository monederoRepo;
     private final MonederoMovimientoRepository movimientoRepo;
@@ -87,6 +94,36 @@ public class MonederoService {
         movimientoRepo.saveAndFlush(
                 new MonederoMovimiento(usuario, cantidad, motivo, referencia, nuevoSaldo));
         return new ResultadoCredito(true, nuevoSaldo);
+    }
+
+    /**
+     * Acredita un drop aplicando el tope diario dentro del mismo lock de
+     * monedero que serializa el saldo. Así dos drops concurrentes del mismo
+     * usuario no pueden leer el mismo contador diario antes de acreditar.
+     */
+    @Transactional
+    public ResultadoDrop acreditarDropConTopeDiario(Usuario usuario, MotivoMovimiento motivo,
+            String referencia, long cantidad, int topeDiario, LocalDateTime desde) {
+        if (cantidad <= 0) {
+            return new ResultadoDrop(ResultadoDrop.Estado.IDEMPOTENTE, saldoActual(usuario));
+        }
+
+        Monedero monedero = obtenerOCrearConLock(usuario);
+        if (movimientoRepo.existsByUsuarioAndMotivoAndReferencia(usuario, motivo, referencia)) {
+            return new ResultadoDrop(ResultadoDrop.Estado.IDEMPOTENTE, monedero.getSaldo());
+        }
+
+        long dropsHoy = movimientoRepo.countDropsDesde(usuario, MOTIVOS_DROP, desde);
+        if (dropsHoy >= Math.max(1, topeDiario)) {
+            return new ResultadoDrop(ResultadoDrop.Estado.TOPE_DIARIO, monedero.getSaldo());
+        }
+
+        long nuevoSaldo = monedero.getSaldo() + cantidad;
+        monedero.setSaldo(nuevoSaldo);
+        monederoRepo.saveAndFlush(monedero);
+        movimientoRepo.saveAndFlush(
+                new MonederoMovimiento(usuario, cantidad, motivo, referencia, nuevoSaldo));
+        return new ResultadoDrop(ResultadoDrop.Estado.APLICADO, nuevoSaldo);
     }
 
     /**
@@ -161,5 +198,13 @@ public class MonederoService {
 
     /** Resultado de un credito: si se aplico y el saldo tras la operacion. */
     public record ResultadoCredito(boolean aplicado, long saldo) {
+    }
+
+    public record ResultadoDrop(Estado estado, long saldo) {
+        public enum Estado {
+            APLICADO,
+            IDEMPOTENTE,
+            TOPE_DIARIO
+        }
     }
 }

@@ -9,6 +9,12 @@ export function CardDestacado({ game, estado }) {
   const theme = COLOR_THEMES[game.color]
   const done = estado?.completadoHoy
   const visual = getGameVisual(game.to, game.titulo)
+  const identity = game.identity ?? {
+    kanji: game.kanji,
+    emblem: game.sub,
+    motifs: [],
+    copy: game.desc,
+  }
   // La imagen es protagonista (min-h-44); el kanji queda como badge inferior
   // con glow y el texto descansa sobre un panel translúcido para legibilidad.
   return (
@@ -24,7 +30,7 @@ export function CardDestacado({ game, estado }) {
         className={`pointer-events-none absolute -right-6 -top-8 select-none font-mono text-[7rem] font-black leading-none opacity-15 sm:text-[10rem] ${theme.text}`}
         style={{ textShadow: 'var(--text-shadow-glow)' }}
       >
-        {game.kanji}
+        {identity.kanji}
       </span>
 
       <div className="relative flex flex-col gap-3">
@@ -45,8 +51,21 @@ export function CardDestacado({ game, estado }) {
           {game.titulo}
         </h3>
         <p className="max-w-lg text-[13px] text-fg-muted drop-shadow-scrim-sm sm:text-sm">
-          {game.desc}
+          {identity.copy}
         </p>
+        <div className="flex flex-wrap gap-1.5">
+          <span className={`inline-flex rounded-full border bg-bg/45 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] backdrop-blur-md ${theme.border} ${theme.text}`}>
+            {identity.emblem}
+          </span>
+          {identity.motifs.slice(0, 2).map((motif) => (
+            <span
+              key={motif}
+              className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-fg-muted backdrop-blur-md"
+            >
+              {motif}
+            </span>
+          ))}
+        </div>
         <p className={`inline-flex items-center gap-1 text-[12px] font-semibold ${theme.text}`}>
           {done ? 'Ver resultado' : 'Jugar ahora'}
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
@@ -62,6 +81,12 @@ export function CardMini({ game, estado }) {
   const done = estado?.completadoHoy
   const best = estado?.best
   const visual = getGameVisual(game.to, game.titulo)
+  const identity = game.identity ?? {
+    kanji: game.kanji,
+    emblem: game.sub,
+    motifs: [],
+    copy: game.desc,
+  }
   // Card mini de juego con portada cinematográfica visible antes del degradado,
   // para que cada juego se identifique por su arte y no solo por el kanji.
   return (
@@ -77,7 +102,7 @@ export function CardMini({ game, estado }) {
         className={`pointer-events-none absolute -right-3 -top-5 select-none font-mono text-[5rem] font-extrabold leading-none opacity-20 sm:text-[6rem] ${theme.text}`}
         style={{ textShadow: 'var(--text-shadow-glow)' }}
       >
-        {game.kanji}
+        {identity.kanji}
       </span>
 
       <div className="relative min-w-0 flex-1">
@@ -104,10 +129,10 @@ export function CardMini({ game, estado }) {
           {game.titulo}
         </h3>
         <p className="line-clamp-2 text-[12px] text-fg-muted drop-shadow-scrim-sm">
-          {game.desc}
+          {identity.copy}
         </p>
-        <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-fg-muted/90">
-          {game.cadencia}
+        <p className="mt-1 line-clamp-1 text-[10px] font-semibold uppercase tracking-wider text-fg-muted/90">
+          {identity.emblem} · {game.cadencia}
         </p>
       </div>
     </Link>

@@ -1,7 +1,10 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import java.time.Duration;
 import java.util.List;
 
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +24,7 @@ import com.diegoalegil.animeshowdown.dto.TorneoIniciarRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoMioDto;
 import com.diegoalegil.animeshowdown.dto.TorneoResumenDto;
 import com.diegoalegil.animeshowdown.model.Enfrentamiento;
+import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.TorneoQueryService;
@@ -39,6 +43,23 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/torneos")
 public class TorneoController {
 
+    private static final CacheControl LISTA_PUBLICA_CACHE = CacheControl
+            .maxAge(Duration.ofSeconds(30))
+            .cachePublic()
+            .sMaxAge(Duration.ofMinutes(2));
+    private static final CacheControl DETALLE_LIVE_CACHE = CacheControl
+            .maxAge(Duration.ofSeconds(5))
+            .cachePublic()
+            .sMaxAge(Duration.ofSeconds(10));
+    private static final CacheControl DETALLE_MUTABLE_CACHE = CacheControl
+            .maxAge(Duration.ofSeconds(30))
+            .cachePublic()
+            .sMaxAge(Duration.ofMinutes(1));
+    private static final CacheControl DETALLE_FINALIZADO_CACHE = CacheControl
+            .maxAge(Duration.ofMinutes(5))
+            .cachePublic()
+            .sMaxAge(Duration.ofMinutes(10));
+
     private final TorneoService torneoService;
     private final TorneoQueryService torneoQueryService;
 
@@ -53,8 +74,11 @@ public class TorneoController {
      * internos). 1: el frontend lo consume con react-query.
      */
     @GetMapping
-    public List<TorneoResumenDto> listarTodos() {
-        return torneoQueryService.listarResumenes();
+    public ResponseEntity<List<TorneoResumenDto>> listarTodos() {
+        return ResponseEntity.ok()
+                .cacheControl(LISTA_PUBLICA_CACHE)
+                .header(HttpHeaders.VARY, HttpHeaders.ACCEPT_ENCODING)
+                .body(torneoQueryService.listarResumenes());
     }
 
     /**
@@ -62,8 +86,8 @@ public class TorneoController {
      * con polling cada 30s durante torneos IN_PROGRESS.
      */
     @GetMapping("/{id}")
-    public TorneoDetalleDto detallePorId(@PathVariable Long id) {
-        return torneoQueryService.findById(id);
+    public ResponseEntity<TorneoDetalleDto> detallePorId(@PathVariable Long id) {
+        return cachearDetalle(torneoQueryService.findById(id));
     }
 
     /**
@@ -72,8 +96,25 @@ public class TorneoController {
      * y permite caching CDN agresivo.
      */
     @GetMapping("/slug/{slug}")
-    public TorneoDetalleDto detallePorSlug(@PathVariable String slug) {
-        return torneoQueryService.findBySlug(slug);
+    public ResponseEntity<TorneoDetalleDto> detallePorSlug(@PathVariable String slug) {
+        return cachearDetalle(torneoQueryService.findBySlug(slug));
+    }
+
+    private ResponseEntity<TorneoDetalleDto> cachearDetalle(TorneoDetalleDto dto) {
+        return ResponseEntity.ok()
+                .cacheControl(cacheDetalle(dto))
+                .header(HttpHeaders.VARY, HttpHeaders.ACCEPT_ENCODING)
+                .body(dto);
+    }
+
+    private CacheControl cacheDetalle(TorneoDetalleDto dto) {
+        if (dto.getEstado() == EstadoTorneo.IN_PROGRESS) {
+            return DETALLE_LIVE_CACHE;
+        }
+        if (dto.getEstado() == EstadoTorneo.FINISHED) {
+            return DETALLE_FINALIZADO_CACHE;
+        }
+        return DETALLE_MUTABLE_CACHE;
     }
 
     @PostMapping

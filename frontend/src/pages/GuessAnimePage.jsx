@@ -26,6 +26,8 @@ import {
 } from '../lib/games'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { getGameVisual } from '../data/visual-assets'
+import { getAnimeIdentity } from '../data/anime-identities'
+import { slugifyAnime } from '../lib/animes'
 
 const MAX_INTENTOS = 5
 const STORAGE_KEY = 'animeshowdown.guess-anime.v1'
@@ -327,6 +329,7 @@ function tierAnimePara(intentos, pistaUsada) {
 }
 
 function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
+  const identity = getAnimeIdentity(slugifyAnime(objetivo.anime), objetivo.anime)
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
   const perfecto = acertado && totalIntentos === 1 && !pistaUsada
   const squaresRaw = buildShareSquares(
@@ -363,6 +366,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
       shareTitle="Anime Reveal — AnimeShowdown"
       shareUrl="/games/anime-reveal"
       shareText={texto}
+      identity={identity}
     >
       <p className="text-[12px] text-fg-muted">
         Próxima partida a medianoche local.{' '}

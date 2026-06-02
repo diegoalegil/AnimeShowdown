@@ -4,22 +4,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.diegoalegil.animeshowdown.model.DueloLive;
 import com.diegoalegil.animeshowdown.model.DueloLiveChoice;
 import com.diegoalegil.animeshowdown.model.DueloLiveRonda;
 import com.diegoalegil.animeshowdown.model.DueloLiveRondaEstado;
+import com.diegoalegil.animeshowdown.model.FantasyEquipo;
+import com.diegoalegil.animeshowdown.model.FantasyEquipoItem;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.DueloLiveRepository;
 import com.diegoalegil.animeshowdown.repository.DueloLiveRondaRepository;
+import com.diegoalegil.animeshowdown.repository.FantasyEquipoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
@@ -43,7 +48,9 @@ class DataSeederCascadaDuelosLiveTest {
     @Autowired private PersonajeRepository personajeRepo;
     @Autowired private DueloLiveRepository dueloRepo;
     @Autowired private DueloLiveRondaRepository rondaRepo;
+    @Autowired private FantasyEquipoRepository fantasyEquipoRepo;
     @Autowired private UsuarioRepository usuarioRepo;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
     private String unique;
 
@@ -125,6 +132,42 @@ class DataSeederCascadaDuelosLiveTest {
         assertThat(rondaRepo.findById(ronda.getId())).isEmpty();
     }
 
+    @Test
+    void personajeEnEquipoFantasySeLimpiaAntesDeBorrar() {
+        Personaje personaje = crearPersonaje("fantasy_char_" + unique);
+        Usuario usuario = crearUsuario("fantasy_" + unique);
+        FantasyEquipo equipo = new FantasyEquipo(usuario, "2026W22");
+        equipo.reemplazarItems(List.of(new FantasyEquipoItem(personaje, 42)));
+        equipo = fantasyEquipoRepo.saveAndFlush(equipo);
+
+        Long personajeId = personaje.getId();
+        Long equipoId = equipo.getId();
+
+        assertThatNoException().isThrownBy(
+                () -> dataSeeder.borrarPersonajeConCascadaPublic(personaje));
+
+        assertThat(personajeRepo.findById(personajeId)).isEmpty();
+        assertThat(fantasyEquipoRepo.findById(equipoId)).isPresent();
+        assertThat(contarFantasyItems(personajeId)).isZero();
+    }
+
+    @Test
+    void fkFantasyItemPersonajeTieneCascadeEnBaseDeDatos() {
+        Personaje personaje = crearPersonaje("fantasy_fk_" + unique);
+        Usuario usuario = crearUsuario("fantasy_fk_" + unique);
+        FantasyEquipo equipo = new FantasyEquipo(usuario, "2026W23");
+        equipo.reemplazarItems(List.of(new FantasyEquipoItem(personaje, 10)));
+        fantasyEquipoRepo.saveAndFlush(equipo);
+
+        Long personajeId = personaje.getId();
+
+        assertThat(contarFantasyItems(personajeId)).isOne();
+        jdbcTemplate.update("DELETE FROM personajes WHERE id = ?", personajeId);
+
+        assertThat(contarFantasyItems(personajeId)).isZero();
+        assertThat(personajeRepo.findById(personajeId)).isEmpty();
+    }
+
     // ─── Helpers ───────────────────────────────────────────────────────────
 
     private Personaje crearPersonaje(String slug) {
@@ -142,5 +185,12 @@ class DataSeederCascadaDuelosLiveTest {
                 username.replace("_", "") + "@test.com");
         u.setEloPvp(1000);
         return usuarioRepo.save(u);
+    }
+
+    private long contarFantasyItems(Long personajeId) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM fantasy_equipo_item WHERE personaje_id = ?",
+                Long.class,
+                personajeId);
     }
 }

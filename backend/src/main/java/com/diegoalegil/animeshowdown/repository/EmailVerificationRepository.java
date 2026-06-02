@@ -41,4 +41,14 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
             WHERE v.usuario = :usuario AND v.usadoEn IS NULL
             """)
     int invalidarActivasDelUsuario(@Param("usuario") Usuario usuario, @Param("ahora") LocalDateTime ahora);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE EmailVerification v
+            SET v.usadoEn = :ahora
+            WHERE v.token = :token
+              AND v.usadoEn IS NULL
+              AND v.expiraEn >= :ahora
+            """)
+    int consumirActivaPorToken(@Param("token") String token, @Param("ahora") LocalDateTime ahora);
 }

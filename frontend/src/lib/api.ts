@@ -882,12 +882,12 @@ export const endpoints: EndpointMap = {
   // id, slug, nombre, estado, fechas, numParticipantes, totalRondas,
   // rondaActual, ganadorSlug. Sin enfrentamientos — para eso usar
   // torneoBySlug.
-  torneos: () => api.get('/api/torneos'),
-  torneo: (id) => api.get(`/api/torneos/${id}`),
+  torneos: () => api.get('/api/torneos', { auth: false }),
+  torneo: (id) => api.get(`/api/torneos/${id}`, { auth: false }),
   // Detalle por slug con bracket completo: TorneoDetalleDto. Es la ruta
   // canonical que consume TorneoDetailPage (/torneos/[slug]) — coincide
   // con la URL del frontend para que el polling y el cache sean limpios.
-  torneoBySlug: (slug) => api.get(`/api/torneos/slug/${slug}`),
+  torneoBySlug: (slug) => api.get(`/api/torneos/slug/${slug}`, { auth: false }),
   createTorneo: (data) => api.post('/api/torneos', data),
   // Torneos creados por usuario verificado.
   //   crearTorneoMio: body { nombre, descripcion?, publico?, participantesIds[8|16] }
@@ -944,6 +944,9 @@ export const endpoints: EndpointMap = {
   // Alias legacy: mantenido para consumidores antiguos.
   enfrentamientoAleatorio: () => api.get('/api/enfrentamientos/siguiente', { auth: false }),
   dueloSugerido: () => api.get('/api/votar/sugerir-duelo', { auth: false }),
+  eloDuelRound: () => api.get('/api/games/elo-duel/round', { auth: false }),
+  eloDuelGuess: ({ roundToken, choice }) =>
+    api.post('/api/games/elo-duel/guess', { roundToken, choice }, { auth: false }),
   dueloLiveActive: () => api.get('/api/duelo-live/active'),
   dueloLiveJoin: () => api.post('/api/duelo-live/queue', undefined),
   dueloLiveState: (id) => api.get(`/api/duelo-live/${id}`),
