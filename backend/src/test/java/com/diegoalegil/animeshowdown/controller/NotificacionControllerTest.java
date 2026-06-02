@@ -1,12 +1,21 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.diegoalegil.animeshowdown.TestAsyncConfig;
@@ -49,7 +59,7 @@ class NotificacionControllerTest {
     @Autowired private ObjectMapper json;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private EmailVerificationRepository emailVerificationRepository;
-    @Autowired private NotificacionRepository notificacionRepository;
+    @MockitoSpyBean private NotificacionRepository notificacionRepository;
     @Autowired private PushSubscriptionRepository pushSubscriptionRepository;
     @Autowired private TorneoRepository torneoRepository;
     @Autowired private NotificacionService notificacionService;
@@ -260,7 +270,7 @@ class NotificacionControllerTest {
     }
 
     @Test
-    void fanOutPushRespetaUnaNotificacionPorTipoYDia() throws Exception {
+    void fanOutPushEsIdempotentePorEvento() throws Exception {
         Sesion s = crearUsuarioVerificado("push_bob", "push_bob@example.com");
         pushSubscriptionRepository.save(new PushSubscription(
                 s.usuario(), "https://fcm.googleapis.com/fcm/send/bob", "key-bob-0123456789", "auth-bob-012345"));
@@ -268,16 +278,78 @@ class NotificacionControllerTest {
         torneo.setEstado(EstadoTorneo.IN_PROGRESS);
         torneo.setPublico(true);
         torneo = torneoRepository.save(torneo);
+        Long torneoId = torneo.getId();
 
         int primera = notificacionService.notificarTorneoDisponibleATodos(torneo);
         int segunda = notificacionService.notificarTorneoDisponibleATodos(torneo);
 
-        assert primera == 1 : "Debe crear la primera notificacion push";
-        assert segunda == 0 : "Anti-spam: no repite el mismo tipo en el dia";
+        assert primera >= 1 : "Debe crear al menos la notificacion push del usuario del test";
+        assert segunda == 0 : "Idempotencia: no repite el mismo evento";
         long total = notificacionRepository.findAll().stream()
                 .filter(n -> n.getUsuario().getId().equals(s.usuario().getId()))
                 .filter(n -> n.getTipo() == NotificacionTipo.TORNEO_INICIADO)
+                .filter(n -> n.getEventoKey() != null && n.getEventoKey().contains("\"torneoId\":" + torneoId))
                 .count();
-        assert total == 1 : "Debe existir solo una notificacion TORNEO_INICIADO";
+        assert total == 1 : "Debe existir solo una notificacion TORNEO_INICIADO para el evento";
+
+        Torneo otro = new Torneo("push-copa-2", "Push Copa 2", "Otro torneo con push");
+        otro.setEstado(EstadoTorneo.IN_PROGRESS);
+        otro.setPublico(true);
+        otro = torneoRepository.save(otro);
+        Long otroId = otro.getId();
+
+        int tercera = notificacionService.notificarTorneoDisponibleATodos(otro);
+        assert tercera >= 1 : "Otro torneo el mismo dia debe crear su propia notificacion";
+        long totalOtro = notificacionRepository.findAll().stream()
+                .filter(n -> n.getUsuario().getId().equals(s.usuario().getId()))
+                .filter(n -> n.getTipo() == NotificacionTipo.TORNEO_INICIADO)
+                .filter(n -> n.getEventoKey() != null && n.getEventoKey().contains("\"torneoId\":" + otroId))
+                .count();
+        assert totalOtro == 1 : "Debe existir una notificacion independiente para el segundo evento";
+    }
+
+    @Test
+    void fanOutPushConcurrenteNoDuplicaEvento() throws Exception {
+        Sesion s = crearUsuarioVerificado("push_race", "push_race@example.com");
+        pushSubscriptionRepository.save(new PushSubscription(
+                s.usuario(), "https://push.example/sub/race", "key-r", "auth-r"));
+        Torneo torneo = new Torneo("push-race-copa", "Push Race Copa", "Torneo con push");
+        torneo.setEstado(EstadoTorneo.IN_PROGRESS);
+        torneo.setPublico(true);
+        torneo = torneoRepository.save(torneo);
+
+        CountDownLatch prechecksCodigoAnterior = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            prechecksCodigoAnterior.countDown();
+            if (!prechecksCodigoAnterior.await(5, TimeUnit.SECONDS)) {
+                throw new AssertionError("No llegaron los dos fan-outs al precheck anterior");
+            }
+            return false;
+        }).when(notificacionRepository).existsByUsuarioAndTipoAndCreadoEnAfter(any(), any(), any());
+
+        Torneo torneoFinal = torneo;
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> primera = executor.submit(
+                    () -> notificacionService.notificarTorneoDisponibleATodos(torneoFinal));
+            Future<Integer> segunda = executor.submit(
+                    () -> notificacionService.notificarTorneoDisponibleATodos(torneoFinal));
+            List<Integer> creadas = List.of(
+                    primera.get(10, TimeUnit.SECONDS),
+                    segunda.get(10, TimeUnit.SECONDS));
+
+            assert creadas.stream().mapToInt(Integer::intValue).sum() == 1
+                    : "Dos fan-outs concurrentes del mismo evento deben crear solo una notificacion";
+            long total = notificacionRepository.findAll().stream()
+                    .filter(n -> n.getUsuario().getId().equals(s.usuario().getId()))
+                    .filter(n -> n.getTipo() == NotificacionTipo.TORNEO_INICIADO)
+                    .filter(n -> n.getEventoKey() != null
+                            && n.getEventoKey().contains("\"torneoId\":" + torneoFinal.getId()))
+                    .count();
+            assert total == 1 : "Debe persistirse una sola notificacion para el evento";
+        } finally {
+            executor.shutdownNow();
+            reset(notificacionRepository);
+        }
     }
 }

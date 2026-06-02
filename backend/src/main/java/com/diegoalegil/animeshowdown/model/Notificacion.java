@@ -24,7 +24,8 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "notificaciones", indexes = {
         @Index(name = "idx_notif_usuario_leida_fecha", columnList = "usuario_id, leida, creado_en DESC"),
-        @Index(name = "idx_notif_usuario_fecha", columnList = "usuario_id, creado_en DESC")
+        @Index(name = "idx_notif_usuario_fecha", columnList = "usuario_id, creado_en DESC"),
+        @Index(name = "uk_notif_usuario_tipo_evento", columnList = "usuario_id, tipo, evento_key", unique = true)
 })
 public class Notificacion {
 
@@ -54,6 +55,9 @@ public class Notificacion {
     @Column(columnDefinition = "TEXT")
     private String payload;
 
+    @Column(name = "evento_key", length = 768)
+    private String eventoKey;
+
     @Column(nullable = false)
     private Boolean leida = false;
 
@@ -74,6 +78,12 @@ public class Notificacion {
         this.creadoEn = LocalDateTime.now();
     }
 
+    public Notificacion(Usuario usuario, NotificacionTipo tipo, String titulo,
+            String mensaje, String payload, String eventoKey) {
+        this(usuario, tipo, titulo, mensaje, payload);
+        this.eventoKey = eventoKey;
+    }
+
     public Long getId() { return id; }
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
@@ -85,6 +95,8 @@ public class Notificacion {
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }
     public String getPayload() { return payload; }
     public void setPayload(String payload) { this.payload = payload; }
+    public String getEventoKey() { return eventoKey; }
+    public void setEventoKey(String eventoKey) { this.eventoKey = eventoKey; }
     public boolean isLeida() { return leida != null && leida; }
     public void setLeida(boolean leida) { this.leida = leida; }
     public LocalDateTime getCreadoEn() { return creadoEn; }
