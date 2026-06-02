@@ -38,7 +38,7 @@ function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
           disabled={downloading}
           aria-label={`Descargar carta de ${personajeNombre}`}
           title="Descargar"
-          className="absolute left-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-black/70 text-fg-strong backdrop-blur-sm transition-colors hover:border-gold/55 hover:text-gold disabled:cursor-wait disabled:opacity-60"
+          className="absolute left-2 top-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/15 bg-black/70 text-fg-strong backdrop-blur-sm transition-colors hover:border-gold/55 hover:text-gold disabled:cursor-wait disabled:opacity-60"
         >
           <Download className="h-4 w-4" aria-hidden="true" />
         </button>

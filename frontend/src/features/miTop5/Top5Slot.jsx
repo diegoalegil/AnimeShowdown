@@ -35,9 +35,11 @@ function Top5Slot({ slug, personaje, index, onQuitar }) {
         type="button"
         onClick={onQuitar}
         aria-label={`Quitar ${personaje?.nombre ?? 'personaje'} del top`}
-        className="absolute right-0.5 top-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-bg/80 text-fg-muted backdrop-blur-md transition-opacity hover:text-danger sm:right-1 sm:top-1 sm:h-6 sm:w-6 sm:opacity-0 sm:group-hover:opacity-100"
+        className="group/remove absolute right-0 top-0 z-10 inline-flex h-11 w-11 items-start justify-end p-1 text-fg-muted transition-opacity hover:text-danger focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
       >
-        <X className="h-3 w-3" />
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-bg/80 backdrop-blur-md">
+          <X className="h-3 w-3" />
+        </span>
       </button>
     </div>
   )

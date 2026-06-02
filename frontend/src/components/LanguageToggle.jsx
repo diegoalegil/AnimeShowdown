@@ -25,12 +25,16 @@ function LanguageToggle() {
   const { i18n, t } = useTranslation()
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
+  const triggerRef = useRef(null)
+  const itemRefs = useRef([])
+  const pendingFocusIndexRef = useRef(null)
 
   const codigoActivo = (i18n.resolvedLanguage || i18n.language || 'es')
       .toLowerCase()
       .slice(0, 2)
   const activo =
       IDIOMAS.find((l) => l.code === codigoActivo) ?? IDIOMAS[0]
+  const activoIndex = Math.max(0, IDIOMAS.findIndex((l) => l.code === activo.code))
 
   useEffect(() => {
     if (!open) return
@@ -50,19 +54,87 @@ function LanguageToggle() {
     }
   }, [open])
 
+  useEffect(() => {
+    if (!open) return
+    const index = pendingFocusIndexRef.current ?? activoIndex
+    pendingFocusIndexRef.current = null
+    itemRefs.current[index]?.focus()
+  }, [activoIndex, open])
+
   const elegir = (code) => {
     i18n.changeLanguage(code)
     setOpen(false)
   }
 
+  const cerrarYEnfocarTrigger = () => {
+    setOpen(false)
+    triggerRef.current?.focus()
+  }
+
+  const abrirYEnfocar = (index) => {
+    pendingFocusIndexRef.current = index
+    setOpen(true)
+  }
+
+  const enfocarItem = (index) => {
+    const siguiente = (index + IDIOMAS.length) % IDIOMAS.length
+    itemRefs.current[siguiente]?.focus()
+  }
+
+  const onTriggerKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      abrirYEnfocar(activoIndex)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      abrirYEnfocar(IDIOMAS.length - 1)
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      abrirYEnfocar(activoIndex)
+    } else if (open && e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      cerrarYEnfocarTrigger()
+    }
+  }
+
+  const onItemKeyDown = (e, index, code) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      enfocarItem(index + 1)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      enfocarItem(index - 1)
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      enfocarItem(0)
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      enfocarItem(IDIOMAS.length - 1)
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      cerrarYEnfocarTrigger()
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      elegir(code)
+      triggerRef.current?.focus()
+    } else if (e.key === 'Tab') {
+      setOpen(false)
+    }
+  }
+
   return (
     <div ref={wrapperRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={t('header.elegirIdioma')}
         aria-expanded={open}
-        className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong xl:h-8 xl:min-h-0 xl:px-1.5"
+        aria-haspopup="menu"
+        onKeyDown={onTriggerKeyDown}
+        className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Languages className="h-4 w-4" />
         <span className="text-[11px] font-bold tracking-wider tabular-nums">
@@ -81,16 +153,21 @@ function LanguageToggle() {
             visual revelaba el idioma activo. menuitemradio + aria-checked
             hace que SR diga "Español, seleccionado" sin depender del icono.
           */}
-          {IDIOMAS.map((l) => {
+          {IDIOMAS.map((l, index) => {
             const elegido = l.code === activo.code
             return (
               <button
                 key={l.code}
+                ref={(node) => {
+                  itemRefs.current[index] = node
+                }}
                 type="button"
                 role="menuitemradio"
                 aria-checked={elegido}
+                tabIndex={-1}
                 onClick={() => elegir(l.code)}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-bg ${
+                onKeyDown={(e) => onItemKeyDown(e, index, l.code)}
+                className={`flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-bg ${
                   elegido
                     ? 'font-semibold text-fg-strong'
                     : 'text-fg-muted'
