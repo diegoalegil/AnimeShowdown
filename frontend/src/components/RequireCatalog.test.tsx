@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render } from '@testing-library/react'
+import { afterEach, describe, it, expect, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import RequireCatalog from './RequireCatalog'
 
 // Gate anti-regresión de V-2 ("blanco al navegar"): mientras el catálogo está
@@ -28,6 +28,8 @@ function pendingQuery(overrides: Partial<FakeQuery> = {}): FakeQuery {
 }
 
 describe('RequireCatalog — gate de catálogo (V-2 anti-blanco)', () => {
+  afterEach(cleanup)
+
   it('con el catálogo pendiente pinta un skeleton con forma de página, no blanco ni spinner', () => {
     const { container, queryByText } = render(
       <RequireCatalog catalogoQuery={pendingQuery()} loadingPathname="/personajes">
@@ -82,5 +84,56 @@ describe('RequireCatalog — gate de catálogo (V-2 anti-blanco)', () => {
     )
     expect(queryByText('contenido real de la página')).not.toBeNull()
     expect(container.querySelector('[data-page-skeleton]')).toBeNull()
+  })
+
+  it('anuncia el error de catálogo como alert y usa tokens de botón existentes', () => {
+    const refetch = vi.fn()
+    render(
+      <RequireCatalog
+        catalogoQuery={pendingQuery({
+          data: undefined,
+          isPending: false,
+          isFetching: false,
+          isError: true,
+          refetch,
+        })}
+      >
+        <div>contenido real de la página</div>
+      </RequireCatalog>,
+    )
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/No pudimos cargar los personajes/i)
+
+    const boton = screen.getByRole('button', { name: /Reintentar/i })
+    expect(boton).toHaveClass('as-button-primary')
+    expect(boton.className).not.toMatch(/bg-primary|primary-600/)
+
+    fireEvent.click(boton)
+    expect(refetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('anuncia el catálogo vacío como status y usa tokens de botón existentes', () => {
+    const refetch = vi.fn()
+    render(
+      <RequireCatalog
+        catalogoQuery={pendingQuery({
+          data: [],
+          isPending: false,
+          isFetching: false,
+          refetch,
+        })}
+      >
+        <div>contenido real de la página</div>
+      </RequireCatalog>,
+    )
+
+    expect(screen.getByRole('status')).toHaveTextContent(/Aún no hay personajes/i)
+
+    const boton = screen.getByRole('button', { name: /Volver a comprobar/i })
+    expect(boton).toHaveClass('as-button-primary')
+    expect(boton.className).not.toMatch(/bg-primary|primary-600/)
+
+    fireEvent.click(boton)
+    expect(refetch).toHaveBeenCalledTimes(1)
   })
 })

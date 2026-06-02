@@ -12,7 +12,12 @@ import PageSkeleton from './PageSkeleton'
 function CatalogoError({ onRetry }) {
   return (
     <div className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20">
-      <div className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center">
+      <div
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center"
+      >
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
           Catálogo no disponible
         </p>
@@ -25,7 +30,7 @@ function CatalogoError({ onRetry }) {
         <button
           type="button"
           onClick={onRetry}
-          className="mt-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-600"
+          className="as-button-primary mt-2 inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2 text-sm font-bold transition"
         >
           Reintentar
         </button>
@@ -37,7 +42,12 @@ function CatalogoError({ onRetry }) {
 function CatalogoVacio({ onRetry }) {
   return (
     <div className="as-stage as-stage-visual as-stage-home flex flex-1 items-center justify-center px-5 py-20">
-      <div className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center">
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center"
+      >
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
           Catálogo vacío
         </p>
@@ -52,7 +62,7 @@ function CatalogoVacio({ onRetry }) {
         <button
           type="button"
           onClick={onRetry}
-          className="mt-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-600"
+          className="as-button-primary mt-2 inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2 text-sm font-bold transition"
         >
           Volver a comprobar
         </button>
