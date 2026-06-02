@@ -1,5 +1,6 @@
 package com.diegoalegil.animeshowdown.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -7,7 +8,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +26,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.diegoalegil.animeshowdown.model.ComentarioEstado;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Rol;
+import com.diegoalegil.animeshowdown.repository.ComentarioRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,6 +41,7 @@ class ComentarioControllerTest {
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
     @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private ComentarioRepository comentarioRepository;
 
     private String token(String username) throws Exception {
         String email = username + "@example.com";
@@ -69,6 +80,24 @@ class ComentarioControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         return json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+    }
+
+    private int crearComentarioStatus(String token, String contenido) throws Exception {
+        return mvc.perform(post("/api/personajes/luffy/comentarios")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("contenido", contenido))))
+                .andReturn()
+                .getResponse()
+                .getStatus();
+    }
+
+    private int reportarStatus(String token, long comentarioId) throws Exception {
+        return mvc.perform(post("/api/comentarios/" + comentarioId + "/reportar")
+                .header("Authorization", "Bearer " + token))
+                .andReturn()
+                .getResponse()
+                .getStatus();
     }
 
     @Test
@@ -145,5 +174,75 @@ class ComentarioControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("contenido", "Sexto comentario"))))
                 .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    void rateLimitConcurrenteConsumeSoloUnCupoFinal() throws Exception {
+        String username = "coment_rate_race";
+        String token = token(username);
+
+        for (int i = 0; i < 4; i++) {
+            crearComentario(token, "Comentario previo de rate limit " + i);
+        }
+
+        CountDownLatch inicio = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> primera = executor.submit(() -> {
+                assertThat(inicio.await(5, TimeUnit.SECONDS)).isTrue();
+                return crearComentarioStatus(token, "Comentario concurrente A");
+            });
+            Future<Integer> segunda = executor.submit(() -> {
+                assertThat(inicio.await(5, TimeUnit.SECONDS)).isTrue();
+                return crearComentarioStatus(token, "Comentario concurrente B");
+            });
+
+            inicio.countDown();
+            List<Integer> statuses = List.of(
+                    primera.get(10, TimeUnit.SECONDS),
+                    segunda.get(10, TimeUnit.SECONDS));
+
+            assertThat(statuses).containsExactlyInAnyOrder(201, 429);
+            var usuario = usuarioRepository.findByUsername(username).orElseThrow();
+            long recientes = comentarioRepository.countByAutorAndCreadoEnAfter(
+                    usuario,
+                    LocalDateTime.now().minusHours(1));
+            assertThat(recientes).isEqualTo(5);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void reportesConcurrentesNoPierdenIncrementos() throws Exception {
+        String autor = token("coment_report_race_autor");
+        String reporteroA = token("coment_report_race_a");
+        String reporteroB = token("coment_report_race_b");
+        long id = crearComentario(autor, "Comentario visible para reportar en carrera.");
+
+        CountDownLatch inicio = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> primera = executor.submit(() -> {
+                assertThat(inicio.await(5, TimeUnit.SECONDS)).isTrue();
+                return reportarStatus(reporteroA, id);
+            });
+            Future<Integer> segunda = executor.submit(() -> {
+                assertThat(inicio.await(5, TimeUnit.SECONDS)).isTrue();
+                return reportarStatus(reporteroB, id);
+            });
+
+            inicio.countDown();
+            List<Integer> statuses = List.of(
+                    primera.get(10, TimeUnit.SECONDS),
+                    segunda.get(10, TimeUnit.SECONDS));
+
+            assertThat(statuses).containsExactly(200, 200);
+            var comentario = comentarioRepository.findById(id).orElseThrow();
+            assertThat(comentario.getReportes()).isEqualTo(2);
+            assertThat(comentario.getEstado()).isEqualTo(ComentarioEstado.PENDIENTE_REVISION);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 }
