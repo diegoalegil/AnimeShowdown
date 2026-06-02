@@ -47,6 +47,14 @@ public class UsuarioCarta {
     @Column(name = "actualizada_en", nullable = false)
     private LocalDateTime actualizadaEn;
 
+    /**
+     * Si esta carta es la "destacada" del usuario en su perfil público. Solo
+     * una por usuario a la vez (lo garantiza el service: set-once que limpia la
+     * anterior en la misma transacción).
+     */
+    @Column(nullable = false)
+    private boolean destacada = false;
+
     public UsuarioCarta() {
     }
 
@@ -90,4 +98,6 @@ public class UsuarioCarta {
     public void setObtenidaEn(LocalDateTime obtenidaEn) { this.obtenidaEn = obtenidaEn; }
     public LocalDateTime getActualizadaEn() { return actualizadaEn; }
     public void setActualizadaEn(LocalDateTime actualizadaEn) { this.actualizadaEn = actualizadaEn; }
+    public boolean isDestacada() { return destacada; }
+    public void setDestacada(boolean destacada) { this.destacada = destacada; }
 }

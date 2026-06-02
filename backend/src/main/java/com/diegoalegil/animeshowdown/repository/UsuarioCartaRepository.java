@@ -38,4 +38,12 @@ public interface UsuarioCartaRepository extends JpaRepository<UsuarioCarta, Long
 
     /** Cuántas cartas distintas posee el usuario (para el % de colección). */
     long countByUsuario(Usuario usuario);
+
+    /** Fila usuario+carta por id de carta (gate de propiedad al destacar). */
+    @EntityGraph(attributePaths = {"carta", "carta.personaje"})
+    Optional<UsuarioCarta> findByUsuarioAndCartaId(Usuario usuario, Long cartaId);
+
+    /** La carta destacada actual del usuario (a lo sumo una). */
+    @EntityGraph(attributePaths = {"carta", "carta.personaje"})
+    Optional<UsuarioCarta> findByUsuarioAndDestacadaTrue(Usuario usuario);
 }
