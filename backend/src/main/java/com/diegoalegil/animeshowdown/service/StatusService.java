@@ -1,10 +1,16 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.diegoalegil.animeshowdown.dto.StatusResponseDto;
@@ -16,79 +22,102 @@ import com.diegoalegil.animeshowdown.repository.UptimeLogRepository;
 @Service
 public class StatusService {
 
-    private static final String STATUS_UP = "UP";
+    public static final Duration PUBLIC_CACHE_TTL = Duration.ofSeconds(30);
 
     private final UptimeLogRepository uptimeLogRepository;
+    private final Clock clock;
+    private volatile CachedStatus cachedStatus;
 
+    @Autowired
     public StatusService(UptimeLogRepository uptimeLogRepository) {
+        this(uptimeLogRepository, Clock.systemUTC());
+    }
+
+    StatusService(UptimeLogRepository uptimeLogRepository, Clock clock) {
         this.uptimeLogRepository = uptimeLogRepository;
+        this.clock = clock;
     }
 
     public StatusResponseDto resumenPublico() {
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        List<UptimeLog> logs = uptimeLogRepository.findByCheckedAtAfterOrderByCheckedAtAsc(now.minusDays(90));
-        UptimeLog latest = logs.isEmpty() ? null : logs.get(logs.size() - 1);
+        Instant nowInstant = clock.instant();
+        CachedStatus current = cachedStatus;
+        if (current != null && nowInstant.isBefore(current.expiresAt())) {
+            return current.response();
+        }
+
+        synchronized (this) {
+            current = cachedStatus;
+            if (current != null && nowInstant.isBefore(current.expiresAt())) {
+                return current.response();
+            }
+
+            StatusResponseDto response = buildResponse(nowInstant);
+            cachedStatus = new CachedStatus(response, nowInstant.plus(PUBLIC_CACHE_TTL));
+            return response;
+        }
+    }
+
+    private StatusResponseDto buildResponse(Instant nowInstant) {
+        LocalDateTime now = LocalDateTime.ofInstant(nowInstant, ZoneOffset.UTC);
+        UptimeLog latest = uptimeLogRepository.findTopByOrderByCheckedAtDesc();
 
         return new StatusResponseDto(
                 latest == null ? "UNKNOWN" : latest.getStatus(),
                 latest == null ? null : latest.getCheckedAt(),
-                ventana("24h", logs, now.minusHours(24)),
-                ventana("7d", logs, now.minusDays(7)),
-                ventana("30d", logs, now.minusDays(30)),
-                ventana("90d", logs, now.minusDays(90)),
-                samples(logs));
+                ventana("24h", now.minusHours(24)),
+                ventana("7d", now.minusDays(7)),
+                ventana("30d", now.minusDays(30)),
+                ventana("90d", now.minusDays(90)),
+                samples());
     }
 
-    private static StatusWindowDto ventana(String label, List<UptimeLog> logs, LocalDateTime desde) {
-        List<UptimeLog> window = logs.stream()
-                .filter(log -> !log.getCheckedAt().isBefore(desde))
-                .toList();
+    private StatusWindowDto ventana(String label, LocalDateTime desde) {
+        UptimeLogRepository.UptimeWindowSummary summary = uptimeLogRepository.summarizeSince(desde);
+        long checks = summary == null ? 0 : numberOrZero(summary.getChecks());
 
-        if (window.isEmpty()) {
+        if (checks == 0) {
             return new StatusWindowDto(label, 0, 0.0, 0, 0, 0);
         }
 
-        long up = window.stream().filter(StatusService::isUp).count();
-        long down = window.size() - up;
-        long avg = Math.round(window.stream()
-                .mapToLong(UptimeLog::getLatencyMs)
-                .average()
-                .orElse(0));
-        long p50 = percentile(window.stream()
-                .map(UptimeLog::getLatencyMs)
-                .sorted()
-                .toList(), 0.50);
+        long up = numberOrZero(summary.getUpChecks());
+        long down = checks - up;
+        long avg = Math.round(summary.getAvgLatencyMs() == null ? 0.0 : summary.getAvgLatencyMs());
+        long p50 = p50Latency(desde, checks);
 
         return new StatusWindowDto(
                 label,
-                window.size(),
-                round2((up * 100.0) / window.size()),
+                checks,
+                round2((up * 100.0) / checks),
                 avg,
                 p50,
                 down);
     }
 
-    private static List<StatusSampleDto> samples(List<UptimeLog> logs) {
-        int from = Math.max(0, logs.size() - 180);
-        return logs.subList(from, logs.size()).stream()
-                .sorted(Comparator.comparing(UptimeLog::getCheckedAt))
+    private List<StatusSampleDto> samples() {
+        List<UptimeLog> latestSamples = new ArrayList<>(uptimeLogRepository.findTop180ByOrderByCheckedAtDesc());
+        latestSamples.sort(Comparator.comparing(UptimeLog::getCheckedAt));
+        return latestSamples.stream()
                 .map(log -> new StatusSampleDto(log.getCheckedAt(), log.getStatus(), log.getLatencyMs()))
                 .toList();
     }
 
-    private static boolean isUp(UptimeLog log) {
-        return STATUS_UP.equalsIgnoreCase(log.getStatus());
-    }
-
-    private static long percentile(List<Long> sortedValues, double percentile) {
-        if (sortedValues.isEmpty()) {
+    private long p50Latency(LocalDateTime desde, long checks) {
+        int index = (int) Math.ceil(0.50 * checks) - 1;
+        List<Long> values = uptimeLogRepository.findLatenciesSince(desde, PageRequest.of(Math.max(0, index), 1));
+        if (values.isEmpty()) {
             return 0;
         }
-        int index = (int) Math.ceil(percentile * sortedValues.size()) - 1;
-        return sortedValues.get(Math.max(0, Math.min(index, sortedValues.size() - 1)));
+        return values.get(0);
     }
 
     private static double round2(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    private static long numberOrZero(Number value) {
+        return value == null ? 0 : value.longValue();
+    }
+
+    private record CachedStatus(StatusResponseDto response, Instant expiresAt) {
     }
 }
