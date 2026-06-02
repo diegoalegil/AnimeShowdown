@@ -451,10 +451,24 @@ const RETOS_DIARIOS = [
     color: 'amber',
   },
   {
+    to: '/games/oraculo',
+    kanji: '心',
+    titulo: 'Oráculo Anime',
+    desc: 'Akinator por reglas · endless',
+    color: 'cyan',
+  },
+  {
     to: '/games/anigrid',
     kanji: '格',
     titulo: 'AniGrid',
     desc: 'Wordle de personajes · 6 intentos',
+    color: 'emerald',
+  },
+  {
+    to: '/games/nexo-anime',
+    kanji: '結',
+    titulo: 'Nexo Anime',
+    desc: 'Conexiones · 4 parejas',
     color: 'emerald',
   },
   {

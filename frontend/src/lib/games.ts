@@ -1,4 +1,7 @@
-import { readCatalogoPersonajesSnapshot } from './personajes-core'
+import {
+  getStatsPersonajeEstimado,
+  readCatalogoPersonajesSnapshot,
+} from './personajes-core'
 import type { PersonajeLite } from './types'
 
 type GamePersonaje = PersonajeLite & { anime: string }
@@ -17,6 +20,46 @@ type ImpostorRound = {
   items: ImpostorItem[]
 }
 
+export type OraculoRespuesta = 'si' | 'no' | 'nose'
+
+export type OraculoQuestionKind = 'anime' | 'tag' | 'elo'
+
+export type OraculoQuestion = {
+  id: string
+  label: string
+  texto: string
+  kind: OraculoQuestionKind
+  value: string
+  weight: number
+}
+
+export type OraculoAnswerRecord = Record<string, OraculoRespuesta>
+
+export type OraculoTagProvider = (personaje: GamePersonaje) => string[]
+
+export type OraculoCandidate = GamePersonaje & {
+  score: number
+  confianza: number
+  matches: number
+  contradicciones: number
+}
+
+export type NexoAnimeCard = GamePersonaje & {
+  groupId: string
+}
+
+export type NexoAnimeGroup = {
+  id: string
+  anime: string
+  items: [GamePersonaje, GamePersonaje]
+}
+
+export type NexoAnimeRound = {
+  fecha: string
+  groups: NexoAnimeGroup[]
+  cards: NexoAnimeCard[]
+}
+
 type GameShareInput = {
   game: string
   date?: string
@@ -33,6 +76,61 @@ type SafeStorage = {
 
 export const ELO_DUEL_BEST_KEY = 'animeshowdown.higherOrLower.best'
 export const ELO_DUEL_LEGACY_BEST_KEY = 'animeshowdown.higher-or-lower.best'
+export const ORACULO_STORAGE_KEY = 'animeshowdown.oraculo.v1'
+export const NEXO_ANIME_STORAGE_KEY = 'animeshowdown.nexo-anime.v1'
+
+const ORACULO_TAG_QUESTIONS = [
+  {
+    tag: 'protagonist',
+    label: 'Protagonista',
+    texto: '¿Es protagonista o cara principal de su historia?',
+  },
+  {
+    tag: 'villain',
+    label: 'Villanía',
+    texto: '¿Funciona como villano o amenaza principal?',
+  },
+  {
+    tag: 'mentor',
+    label: 'Mentor',
+    texto: '¿Tiene rol de mentor, maestro o figura guía?',
+  },
+  {
+    tag: 'rival',
+    label: 'Rival',
+    texto: '¿Es rival directo de otro personaje central?',
+  },
+  {
+    tag: 'waifu',
+    label: 'Waifu',
+    texto: '¿Suele entrar en debates de waifu?',
+  },
+  {
+    tag: 'husbando',
+    label: 'Husbando',
+    texto: '¿Suele entrar en debates de husbando?',
+  },
+  {
+    tag: 'shounen',
+    label: 'Shounen',
+    texto: '¿Viene de una obra con energía shounen marcada?',
+  },
+  {
+    tag: 'isekai',
+    label: 'Isekai',
+    texto: '¿Pertenece a un isekai?',
+  },
+  {
+    tag: 'mecha',
+    label: 'Mecha',
+    texto: '¿Su universo está ligado a mechas?',
+  },
+  {
+    tag: 'sports-anime',
+    label: 'Deportivo',
+    texto: '¿Su anime gira alrededor de un deporte?',
+  },
+] as const
 
 /**
  * Utilities compartidas por los modos de juego.
@@ -53,6 +151,37 @@ function djb2(str: string): number {
     h = (h * 33) ^ str.charCodeAt(i)
   }
   return h >>> 0 // unsigned
+}
+
+function isGamePersonaje(personaje: unknown): personaje is GamePersonaje {
+  if (!personaje || typeof personaje !== 'object') return false
+  const p = personaje as Partial<GamePersonaje>
+  return Boolean(p.slug && p.nombre && p.anime)
+}
+
+function readGameCatalog(catalogo: unknown): GamePersonaje[] {
+  return Array.isArray(catalogo)
+    ? catalogo.filter(isGamePersonaje)
+    : []
+}
+
+function shuffleDeterministic<T>(items: T[], rand: () => number): T[] {
+  const out = [...items]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    const tmp = out[i]
+    out[i] = out[j]
+    out[j] = tmp
+  }
+  return out
+}
+
+function stableId(value: string): string {
+  return normalizar(value).replace(/\s+/g, '-')
+}
+
+function defaultTagProvider(): string[] {
+  return []
 }
 
 /**
@@ -95,7 +224,7 @@ export function personajeDelDia(
   date = new Date(),
   catalogo: unknown = readCatalogoPersonajesSnapshot(),
 ): GamePersonaje | null {
-  const personajes = Array.isArray(catalogo) ? catalogo as GamePersonaje[] : []
+  const personajes = readGameCatalog(catalogo)
   if (personajes.length === 0) return null
   const seed = `${prefix}:${fechaDelDia(date)}`
   const idx = djb2(seed) % personajes.length
@@ -120,7 +249,7 @@ export function impostorDelDia(
   salt = '',
   catalogo: unknown = readCatalogoPersonajesSnapshot(),
 ): ImpostorRound | null {
-  const personajes = Array.isArray(catalogo) ? catalogo as GamePersonaje[] : []
+  const personajes = readGameCatalog(catalogo)
   if (personajes.length === 0) return null
   const seed = `impostor:${fechaDelDia(date)}:${salt}`
   const rand = mulberry32(djb2(seed))
@@ -149,6 +278,222 @@ export function impostorDelDia(
       .sort(() => rand() - 0.5)
 
   return { anime: animeElegido, items }
+}
+
+export function crearBancoPreguntasOraculo(
+  catalogo: unknown = readCatalogoPersonajesSnapshot(),
+  tagProvider: OraculoTagProvider = defaultTagProvider,
+): OraculoQuestion[] {
+  const personajes = readGameCatalog(catalogo)
+  if (personajes.length === 0) return []
+
+  const porAnime = new Map<string, number>()
+  for (const personaje of personajes) {
+    porAnime.set(personaje.anime, (porAnime.get(personaje.anime) ?? 0) + 1)
+  }
+
+  const animeQuestions = [...porAnime.entries()]
+    .filter(([, count]) => count >= 3)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'es'))
+    .slice(0, 18)
+    .map(([anime]) => ({
+      id: `anime:${stableId(anime)}`,
+      label: anime,
+      texto: `¿Pertenece a ${anime}?`,
+      kind: 'anime' as const,
+      value: anime,
+      weight: 1.4,
+    }))
+
+  const tagQuestions = ORACULO_TAG_QUESTIONS
+    .map((question) => {
+      const count = personajes.filter((p) => tagProvider(p).includes(question.tag)).length
+      return { ...question, count }
+    })
+    .filter((question) => question.count >= 2)
+    .map((question) => ({
+      id: `tag:${question.tag}`,
+      label: question.label,
+      texto: question.texto,
+      kind: 'tag' as const,
+      value: question.tag,
+      weight: 1.1,
+    }))
+
+  const eloQuestions = personajes.length >= 8
+    ? [
+        {
+          id: 'elo:alto',
+          label: 'ELO base alto',
+          texto: '¿Lo imaginas en zona alta del catálogo por ELO base?',
+          kind: 'elo' as const,
+          value: 'alto',
+          weight: 0.85,
+        },
+        {
+          id: 'elo:underdog',
+          label: 'Underdog',
+          texto: '¿Es más bien un underdog del catálogo?',
+          kind: 'elo' as const,
+          value: 'underdog',
+          weight: 0.75,
+        },
+      ]
+    : []
+
+  return [...animeQuestions, ...tagQuestions, ...eloQuestions]
+}
+
+export function cumplePreguntaOraculo(
+  pregunta: OraculoQuestion,
+  personaje: GamePersonaje,
+  tagProvider: OraculoTagProvider = defaultTagProvider,
+): boolean {
+  if (pregunta.kind === 'anime') return personaje.anime === pregunta.value
+  if (pregunta.kind === 'tag') return tagProvider(personaje).includes(pregunta.value)
+  const elo = getStatsPersonajeEstimado(personaje.slug).elo
+  if (pregunta.value === 'alto') return elo >= 1875
+  if (pregunta.value === 'underdog') return elo <= 1735
+  return false
+}
+
+export function rankOraculoCandidates(
+  catalogo: unknown = readCatalogoPersonajesSnapshot(),
+  respuestas: OraculoAnswerRecord = {},
+  tagProvider: OraculoTagProvider = defaultTagProvider,
+): OraculoCandidate[] {
+  const personajes = readGameCatalog(catalogo)
+  const preguntas = new Map(
+    crearBancoPreguntasOraculo(personajes, tagProvider).map((pregunta) => [
+      pregunta.id,
+      pregunta,
+    ]),
+  )
+  const entradas = Object.entries(respuestas).filter(([, respuesta]) => respuesta !== 'nose')
+  const maxScore = Math.max(
+    1,
+    entradas.reduce((acc, [id]) => acc + (preguntas.get(id)?.weight ?? 1), 0),
+  )
+
+  return personajes
+    .map((personaje) => {
+      let score = getStatsPersonajeEstimado(personaje.slug).elo / 10_000
+      let matches = 0
+      let contradicciones = 0
+
+      for (const [id, respuesta] of entradas) {
+        const pregunta = preguntas.get(id)
+        if (!pregunta) continue
+        const cumple = cumplePreguntaOraculo(pregunta, personaje, tagProvider)
+        const coincide =
+          (respuesta === 'si' && cumple) ||
+          (respuesta === 'no' && !cumple)
+        if (coincide) {
+          matches += 1
+          score += pregunta.weight
+        } else {
+          contradicciones += 1
+          score -= pregunta.weight * 1.35
+        }
+      }
+
+      const rawConfidence = entradas.length === 0
+        ? 0
+        : ((score + maxScore) / (maxScore * 2)) * 82 +
+          Math.min(12, entradas.length * 2) -
+          contradicciones * 9
+      const confianza = Math.max(0, Math.min(99, Math.round(rawConfidence)))
+
+      return {
+        ...personaje,
+        score,
+        confianza,
+        matches,
+        contradicciones,
+      }
+    })
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return getStatsPersonajeEstimado(b.slug).elo - getStatsPersonajeEstimado(a.slug).elo
+    })
+}
+
+export function seleccionarPreguntaOraculo(
+  catalogo: unknown = readCatalogoPersonajesSnapshot(),
+  respuestas: OraculoAnswerRecord = {},
+  tagProvider: OraculoTagProvider = defaultTagProvider,
+): OraculoQuestion | null {
+  const preguntas = crearBancoPreguntasOraculo(catalogo, tagProvider)
+  const yaRespondidas = new Set(Object.keys(respuestas))
+  const candidates = rankOraculoCandidates(catalogo, respuestas, tagProvider)
+    .filter((candidate) => candidate.contradicciones <= 1)
+    .slice(0, 28)
+  const universo = candidates.length >= 4 ? candidates : rankOraculoCandidates(catalogo, {}, tagProvider).slice(0, 40)
+
+  let mejor: { pregunta: OraculoQuestion; score: number } | null = null
+  for (const pregunta of preguntas) {
+    if (yaRespondidas.has(pregunta.id)) continue
+    let si = 0
+    let no = 0
+    for (const personaje of universo) {
+      if (cumplePreguntaOraculo(pregunta, personaje, tagProvider)) si += 1
+      else no += 1
+    }
+    const total = si + no
+    if (total < 4 || si === 0 || no === 0) continue
+    const balance = Math.min(si, no) / total
+    const score = balance * 100 + pregunta.weight * 4
+    if (!mejor || score > mejor.score) mejor = { pregunta, score }
+  }
+
+  return mejor?.pregunta ?? null
+}
+
+export function nexoAnimeDelDia(
+  date = new Date(),
+  salt = '',
+  catalogo: unknown = readCatalogoPersonajesSnapshot(),
+): NexoAnimeRound | null {
+  const personajes = readGameCatalog(catalogo)
+  if (personajes.length === 0) return null
+  const seed = `nexo-anime:${fechaDelDia(date)}:${salt}`
+  const rand = mulberry32(djb2(seed))
+
+  const porAnime: Record<string, GamePersonaje[]> = {}
+  for (const personaje of personajes) {
+    if (!porAnime[personaje.anime]) porAnime[personaje.anime] = []
+    porAnime[personaje.anime].push(personaje)
+  }
+
+  const elegibles = Object.entries(porAnime).filter(([, lista]) => lista.length >= 2)
+  if (elegibles.length < 4) return null
+
+  const groups = shuffleDeterministic(elegibles, rand)
+    .slice(0, 4)
+    .map(([anime, lista]) => {
+      const seleccion = shuffleDeterministic(lista, rand).slice(0, 2)
+      return {
+        id: `anime:${stableId(anime)}`,
+        anime,
+        items: [seleccion[0], seleccion[1]] as [GamePersonaje, GamePersonaje],
+      }
+    })
+
+  const cards = shuffleDeterministic(
+    groups.flatMap((group) =>
+      group.items.map((item) => ({
+        ...item,
+        groupId: group.id,
+      })),
+    ),
+    rand,
+  )
+
+  return {
+    fecha: fechaDelDia(date),
+    groups,
+    cards,
+  }
 }
 
 /** PRNG determinístico simple inicializado por seed entero. */
