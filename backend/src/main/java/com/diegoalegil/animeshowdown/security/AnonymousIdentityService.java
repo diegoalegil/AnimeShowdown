@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
  * identidad anónima server-side.
  *
  * <p>Antes el voto invitado se ataba a un identifier en localStorage +
- * header {@code X-AS-Anonymous-Id} controlable desde el cliente. Borrar
- * el storage o rotar el header reseteaba el cupo de 5 votos invitados.
+ * header controlable desde el cliente. Borrar el storage o rotar el header
+ * reseteaba el cupo de 5 votos invitados.
  * Para mitigar el abuso:
  *
  * <ol>
