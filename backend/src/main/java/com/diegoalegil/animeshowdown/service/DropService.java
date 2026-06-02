@@ -1,7 +1,9 @@
 package com.diegoalegil.animeshowdown.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -42,12 +44,14 @@ public class DropService {
 
     private final MonederoService monederoService;
     private final AuditLogService auditLogService;
+    private final Clock clock;
     private final int topeDiario;
     private final Map<MotivoMovimiento, Long> recompensas;
 
     public DropService(
             MonederoService monederoService,
             AuditLogService auditLogService,
+            Clock clock,
             @Value("${app.cartas.drop.voto:5}") long voto,
             @Value("${app.cartas.drop.mision-diaria:15}") long misionDiaria,
             @Value("${app.cartas.drop.torneo:25}") long torneo,
@@ -55,6 +59,7 @@ public class DropService {
             @Value("${app.cartas.drop.tope-diario:50}") int topeDiario) {
         this.monederoService = monederoService;
         this.auditLogService = auditLogService;
+        this.clock = clock;
         this.topeDiario = Math.max(1, topeDiario);
         this.recompensas = new EnumMap<>(MotivoMovimiento.class);
         this.recompensas.put(MotivoMovimiento.DROP_VOTO, Math.max(0, voto));
@@ -108,8 +113,11 @@ public class DropService {
         }
     }
 
-    private static LocalDateTime inicioDelDia() {
-        return LocalDate.now().atStartOfDay();
+    private LocalDateTime inicioDelDia() {
+        return LocalDate.now(clock)
+                .atStartOfDay(clock.getZone())
+                .withZoneSameInstant(ZoneOffset.UTC)
+                .toLocalDateTime();
     }
 
     /** Desenlace de un intento de drop (para logging/tests; la acción no se rompe). */
