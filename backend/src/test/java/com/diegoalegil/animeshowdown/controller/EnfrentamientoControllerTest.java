@@ -115,6 +115,12 @@ class EnfrentamientoControllerTest {
     @Qualifier("taskExecutor")
     private Executor taskExecutor;
 
+    @Autowired
+    private com.diegoalegil.animeshowdown.repository.PersonajeVotoScoreRepository personajeVotoScoreRepository;
+
+    @Autowired
+    private org.springframework.transaction.support.TransactionTemplate tx;
+
     @BeforeEach
     void fijarClockUtcPorDefecto() throws Exception {
         esperarAsyncDefaultIdle();
@@ -259,6 +265,58 @@ class EnfrentamientoControllerTest {
     private String anonSessionDesde(Cookie cookie) {
         return anonymousIdentityService.verify(cookie.getValue())
                 .orElseThrow(() -> new AssertionError("Cookie anónima firmada inválida"));
+    }
+
+    /**
+     * Hot path: la materialización del score de personaje (V53) salió de la
+     * transacción del POST /votar a un listener @Async (AFTER_COMMIT) con
+     * incremento atómico. Por tanto el POST ya no retiene el lock de la fila de
+     * score del personaje y NO debe bloquearse aunque otro proceso la tenga
+     * tomada.
+     */
+    @Test
+    void elPostDeVotoNoSeBloqueaPorElLockDeScoreDelPersonajeRetenido() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "hotrow");
+        String token = tokenUserRegistrado("hotrow_voter", "hotrow_voter@example.com");
+        tx.executeWithoutResult(s -> personajeVotoScoreRepository.insertarSiFalta(ids[0]));
+
+        CountDownLatch lockTomado = new CountDownLatch(1);
+        CountDownLatch liberar = new CountDownLatch(1);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            Future<?> tenedor = pool.submit(() -> {
+                tx.executeWithoutResult(s -> {
+                    personajeVotoScoreRepository.incrementarScore(ids[0], 0.0d);
+                    lockTomado.countDown();
+                    try {
+                        liberar.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
+                return null;
+            });
+            org.junit.jupiter.api.Assertions.assertTrue(
+                    lockTomado.await(5, TimeUnit.SECONDS), "El hilo A no tomó el lock de la fila de score");
+
+            Future<Integer> post = pool.submit(() -> mvc.perform(
+                    post("/api/enfrentamientos/" + enfId + "/votar")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                    .andReturn().getResponse().getStatus());
+
+            int status = post.get(5, TimeUnit.SECONDS);
+            org.junit.jupiter.api.Assertions.assertEquals(200, status,
+                    "El POST de voto no debe bloquearse por el lock de la fila de score del personaje");
+            tenedor.cancel(true);
+        } finally {
+            liberar.countDown();
+            pool.shutdownNow();
+        }
+        esperarAsyncDefaultIdle();
     }
 
     @Test
