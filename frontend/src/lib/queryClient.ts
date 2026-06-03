@@ -61,6 +61,13 @@ export const queryKeys = {
   ],
   // Cartas coleccionables
   coleccionCartas: (): QueryKey => ['cartas', 'coleccion'],
+  coleccionResumen: (): QueryKey => ['cartas', 'resumen'],
+  coleccionPagina: (rareza?: string, anime?: string): QueryKey => [
+    'cartas',
+    'pagina',
+    rareza ?? 'TODAS',
+    anime ?? 'TODOS',
+  ],
   oddsCartas: (): QueryKey => ['cartas', 'odds'],
   sobresGratis: (): QueryKey => ['cartas', 'sobres-gratis'],
   tierListsMine: (): QueryKey => ['tier-lists', 'mine'],

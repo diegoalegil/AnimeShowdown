@@ -6,7 +6,7 @@ import Dialog from '../../components/Dialog'
 import PackOpening from './PackOpening'
 import { useAuth } from '../../contexts/AuthContext'
 import {
-  useColeccion,
+  useColeccionResumen,
   useDescargarCarta,
   useSobreBienvenida,
 } from '../../hooks/useCartas'
@@ -30,7 +30,7 @@ const HOOK_VOTAR = {
  */
 function SobreBienvenidaBanner() {
   const { user } = useAuth()
-  const coleccionQ = useColeccion()
+  const coleccionQ = useColeccionResumen()
   const reclamar = useSobreBienvenida()
   const descargarCarta = useDescargarCarta()
   const [reveal, setReveal] = useState(null)
