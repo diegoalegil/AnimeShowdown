@@ -1,7 +1,24 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { endpoints } from '../lib/api'
 import { queryKeys } from '../lib/queryClient'
 import { useAuth } from '../contexts/AuthContext'
+
+const PAGINA_LIMIT = 60
+
+/**
+ * Invalida las queries de colección (cabecera + páginas + el endpoint legacy)
+ * tras una mutación que cambia saldo/cartas. No toca odds (estáticas).
+ */
+function invalidarColeccion(queryClient) {
+  queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+  queryClient.invalidateQueries({ queryKey: queryKeys.coleccionResumen() })
+  queryClient.invalidateQueries({ queryKey: ['cartas', 'pagina'] })
+}
 
 /**
  * Hooks de cartas coleccionables.
@@ -23,6 +40,40 @@ export function useColeccion() {
   })
 }
 
+/**
+ * Cabecera de la colección: totales, saldo, pity, flags y progreso por anime y
+ * rareza. Sin el array de cartas (ese se pagina con useColeccionPagina). Es la
+ * fuente ligera que sustituye a useColeccion en la página y el banner.
+ */
+export function useColeccionResumen() {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.coleccionResumen(),
+    queryFn: endpoints.coleccionResumen,
+    enabled: Boolean(user),
+    staleTime: 30 * 1000,
+  })
+}
+
+/**
+ * Grid de colección paginado y filtrado en servidor por rareza/anime. Cada
+ * "Cargar más" pide la siguiente página (offset += limit) en vez de cargar el
+ * catálogo entero de golpe.
+ */
+export function useColeccionPagina({ rareza, anime } = {}) {
+  const { user } = useAuth()
+  return useInfiniteQuery({
+    queryKey: queryKeys.coleccionPagina(rareza, anime),
+    queryFn: ({ pageParam = 0 }) =>
+      endpoints.coleccionPagina({ rareza, anime, offset: pageParam, limit: PAGINA_LIMIT }),
+    enabled: Boolean(user),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage?.hayMas ? lastPage.offset + lastPage.limit : undefined,
+    staleTime: 30 * 1000,
+  })
+}
+
 export function useOddsCartas() {
   const { user } = useAuth()
   return useQuery({
@@ -38,7 +89,7 @@ export function useAbrirSobre() {
   return useMutation({
     mutationFn: endpoints.abrirSobre,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+      invalidarColeccion(queryClient)
     },
   })
 }
@@ -48,7 +99,7 @@ export function useCofreDiario() {
   return useMutation({
     mutationFn: endpoints.cofreDiario,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+      invalidarColeccion(queryClient)
     },
   })
 }
@@ -62,7 +113,7 @@ export function useSobreBienvenida() {
   return useMutation({
     mutationFn: endpoints.sobreBienvenida,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+      invalidarColeccion(queryClient)
     },
   })
 }
@@ -87,7 +138,7 @@ export function useAbrirSobreGratis() {
   return useMutation({
     mutationFn: endpoints.abrirSobreGratis,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+      invalidarColeccion(queryClient)
       queryClient.invalidateQueries({ queryKey: queryKeys.sobresGratis() })
     },
   })
