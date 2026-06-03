@@ -555,7 +555,8 @@ export default defineConfig({
         if (hostType !== 'html') return deps
         return deps.filter((dep) =>
           !/assets\/personaje3d-[^/]+\.js$/.test(dep) &&
-          !/assets\/framer-[^/]+\.js$/.test(dep)
+          !/assets\/framer-[^/]+\.js$/.test(dep) &&
+          !/assets\/sentry-[^/]+\.js$/.test(dep)
         )
       },
     },
@@ -623,6 +624,14 @@ export default defineConfig({
               test: (id) =>
                 id.includes('i18next') ||
                 id.includes('react-i18next'),
+            },
+            {
+              // Sentry (~80-100KB gzip): solo se alcanza vía import() dinámico
+              // (lib/sentry.js → initSentry en idle), así que este chunk es
+              // async y NO entra en el bundle de entrada. Excluido también del
+              // modulePreload arriba para no preloadear en el path crítico.
+              name: 'sentry',
+              test: (id) => id.includes('@sentry'),
             },
           ],
         },

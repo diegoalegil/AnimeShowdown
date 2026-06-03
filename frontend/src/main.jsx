@@ -59,9 +59,23 @@ if ('serviceWorker' in navigator) {
   })
 }
 
-// Bootstrap Sentry antes de montar React. No-op si VITE_SENTRY_DSN no está
-// definida (dev local sin env).
-initSentry()
+// Observabilidad (Sentry) tras el primer paint, en idle: el SDK de Sentry
+// (~80-100KB gzip) se trae con import() DIFERIDO para no inflar el bundle de
+// entrada ni competir con el render inicial. No-op si no hay DSN. Los errores
+// anteriores a su carga NO se pierden: la fachada Sentry.captureException
+// (lib/sentry.js) dispara la carga bajo demanda.
+function startSentry() {
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(() => initSentry(), { timeout: 3500 })
+  } else {
+    window.setTimeout(() => initSentry(), 0)
+  }
+}
+if (document.readyState === 'complete') {
+  startSentry()
+} else {
+  window.addEventListener('load', startSentry, { once: true })
+}
 
 // Web Vitals → Sentry measurements. Se carga tras load/idle para que la
 // observabilidad no compita con el render inicial.
