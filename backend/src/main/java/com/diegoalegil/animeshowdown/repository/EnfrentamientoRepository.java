@@ -18,6 +18,11 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
 
     List<Enfrentamiento> findByTorneo(Torneo torneo);
 
+    /** Arena (V66): duelos abiertos del pool (ganador IS NULL) y su conteo. */
+    long countByTorneoAndGanadorIsNull(Torneo torneo);
+
+    List<Enfrentamiento> findByTorneoAndGanadorIsNull(Torneo torneo);
+
     @Query("SELECT e.torneo.id FROM Enfrentamiento e WHERE e.id = :id")
     Optional<Long> findTorneoIdById(@Param("id") Long id);
 

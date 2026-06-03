@@ -95,6 +95,10 @@ public class Torneo {
     @Column(name = "auto_generado", nullable = false)
     private boolean autoGenerado = false;
 
+    /** V66: torneo-sistema "Arena" sin bracket (pool de duelos del roster). */
+    @Column(name = "es_arena", nullable = false)
+    private boolean esArena = false;
+
     @Column(name = "evento_slug", length = 80)
     private String eventoSlug;
 
@@ -268,6 +272,14 @@ public class Torneo {
 
     public void setAutoGenerado(boolean autoGenerado) {
         this.autoGenerado = autoGenerado;
+    }
+
+    public boolean isEsArena() {
+        return esArena;
+    }
+
+    public void setEsArena(boolean esArena) {
+        this.esArena = esArena;
     }
 
     public String getEventoSlug() {
