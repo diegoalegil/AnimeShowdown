@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.diegoalegil.animeshowdown.dto.CartaCatalogoItem;
 import com.diegoalegil.animeshowdown.model.Carta;
@@ -51,15 +52,21 @@ public interface CartaRepository extends JpaRepository<Carta, Long> {
     long countByRareza(RarezaCarta rareza);
 
     /**
-     * IDs de las cartas de una rareza. El dropper carga sólo los ids (pool de
-     * ~700 SSR), elige uno al azar y materializa la carta con findById — evita
-     * traer cientos de entidades para abrir un sobre.
+     * IDs de {@code limit} cartas de una rareza elegidas AL AZAR en la BBDD
+     * ({@code ORDER BY RANDOM() LIMIT}). Evita cargar el pool completo en
+     * memoria y barajarlo: el catálogo crece a miles de cartas, así que el
+     * muestreo debe ser O(limit), no O(N). H2 (MODE=PostgreSQL) traduce
+     * {@code RANDOM()} a {@code RAND()}. La rareza se pasa como String (la
+     * columna es VARCHAR por {@code @Enumerated(STRING)}).
      */
-    @Query("select c.id from Carta c where c.rareza = ?1")
-    List<Long> findIdsByRareza(RarezaCarta rareza);
+    @Query(value = "SELECT id FROM carta WHERE rareza = :rareza ORDER BY RANDOM() LIMIT :limit",
+            nativeQuery = true)
+    List<Long> findRandomIdsByRareza(@Param("rareza") String rareza, @Param("limit") int limit);
 
-    @Query("select c.id from Carta c where c.rareza = ?1 and c.especialCurada = true")
-    List<Long> findIdsEspecialesCuradas(RarezaCarta rareza);
+    /** ID de una carta ESPECIAL curada al azar (clímax), o null si no hay ninguna. */
+    @Query(value = "SELECT id FROM carta WHERE rareza = :rareza AND especial_curada = TRUE "
+            + "ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
+    Long findRandomEspecialCuradaId(@Param("rareza") String rareza);
 
     /** IDs de personaje que ya tienen carta de esta rareza (diff del seed). */
     @Query("select c.personaje.id from Carta c where c.rareza = ?1")

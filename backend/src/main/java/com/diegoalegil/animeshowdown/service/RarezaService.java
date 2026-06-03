@@ -70,28 +70,28 @@ public class RarezaService {
      */
     @Transactional(readOnly = true)
     public SobreDraw elegirSobre(boolean especial) {
-        List<Long> ssrIds = cartaRepo.findIdsByRareza(RarezaCarta.SSR);
+        // 5 SSR DISTINTAS al azar en una sola query (4 normales + 1 clímax
+        // fallback). El muestreo lo hace la BBDD (ORDER BY RANDOM() LIMIT), no
+        // cargamos ni barajamos el pool entero — escala a miles de cartas.
+        List<Long> ssrIds = cartaRepo.findRandomIdsByRareza(RarezaCarta.SSR.name(), CARTAS_POR_SOBRE);
         if (ssrIds.size() < CARTAS_POR_SOBRE) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "El catálogo de cartas aún no está disponible");
         }
-        List<Carta> normales = elegirDistintas(ssrIds, NORMALES_POR_SOBRE);
+        List<Carta> normales = ssrIds.subList(0, NORMALES_POR_SOBRE).stream()
+                .map(this::materializar).toList();
         Carta climax;
         boolean especialReal = false;
         if (especial) {
-            List<Long> especiales = cartaRepo.findIdsEspecialesCuradas(RarezaCarta.ESPECIAL);
-            if (!especiales.isEmpty()) {
-                climax = materializar(especiales.get(ThreadLocalRandom.current().nextInt(especiales.size())));
+            Long especialId = cartaRepo.findRandomEspecialCuradaId(RarezaCarta.ESPECIAL.name());
+            if (especialId != null) {
+                climax = materializar(especialId);
                 especialReal = true;
             } else {
-                climax = elegirDistintas(ssrIds.stream()
-                        .filter(id -> normales.stream().noneMatch(c -> c.getId().equals(id)))
-                        .toList(), 1).getFirst();
+                climax = materializar(ssrIds.get(NORMALES_POR_SOBRE)); // 5ª SSR distinta
             }
         } else {
-            climax = elegirDistintas(ssrIds.stream()
-                    .filter(id -> normales.stream().noneMatch(c -> c.getId().equals(id)))
-                    .toList(), 1).getFirst();
+            climax = materializar(ssrIds.get(NORMALES_POR_SOBRE)); // 5ª SSR distinta
         }
         return new SobreDraw(normales, climax, especialReal);
     }
@@ -104,16 +104,6 @@ public class RarezaService {
             return true;
         }
         return ThreadLocalRandom.current().nextDouble() < probabilidadEspecialBase;
-    }
-
-    private List<Carta> elegirDistintas(List<Long> ids, int cantidad) {
-        if (ids.size() < cantidad) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                    "No hay suficientes cartas disponibles");
-        }
-        java.util.ArrayList<Long> copia = new java.util.ArrayList<>(ids);
-        java.util.Collections.shuffle(copia);
-        return copia.stream().limit(cantidad).map(this::materializar).toList();
     }
 
     private Carta materializar(Long elegido) {
