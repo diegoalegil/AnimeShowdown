@@ -971,7 +971,10 @@ class EnfrentamientoControllerTest {
         String userToken = tokenUserRegistrado("siguiente_auth_user", "siguiente-auth@example.com");
         long[] ids = dosPersonajes();
         long yaVotado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-auth-1");
-        long esperado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-auth-2");
+        long excluido = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-auth-2");
+        // Tercer matchup libre: garantiza que /siguiente siempre tenga un candidato
+        // válido aunque el test corra en aislamiento (DB sin matchups de otros tests).
+        crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-auth-3");
 
         mvc.perform(post("/api/enfrentamientos/" + yaVotado + "/votar")
                 .header("Authorization", "Bearer " + userToken)
@@ -979,15 +982,23 @@ class EnfrentamientoControllerTest {
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
                 .andExpect(status().isOk());
 
-        var request = get("/api/enfrentamientos/siguiente")
-                .header("Authorization", "Bearer " + userToken);
-        String excludeIds = idsAbiertosExcepto(yaVotado, esperado);
-        if (!excludeIds.isBlank()) {
-            request.param("excludeIds", excludeIds);
-        }
-        mvc.perform(request)
+        // /siguiente elige aleatoriamente entre los matchups abiertos y sólo honra
+        // los primeros 100 excludeIds, así que no se puede forzar un id exacto de
+        // forma determinista (era flaky en CI por el orden de ejecución). Verificamos
+        // el CONTRATO documentado: omite el ya-votado y respeta el excludeId explícito,
+        // devolviendo un matchup abierto.
+        MvcResult res = mvc.perform(get("/api/enfrentamientos/siguiente")
+                .header("Authorization", "Bearer " + userToken)
+                .param("excludeIds", String.valueOf(excluido)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(esperado));
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.ganador").doesNotExist())
+                .andReturn();
+        long devuelto = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+        org.junit.jupiter.api.Assertions.assertNotEquals(yaVotado, devuelto,
+                "siguiente no debe devolver un enfrentamiento ya votado por el usuario");
+        org.junit.jupiter.api.Assertions.assertNotEquals(excluido, devuelto,
+                "siguiente debe respetar el excludeId explícito");
     }
 
     @Test
@@ -995,7 +1006,9 @@ class EnfrentamientoControllerTest {
         String adminToken = tokenAdmin();
         long[] ids = dosPersonajes();
         long yaVotado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-1");
-        long esperado = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-2");
+        long excluido = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-2");
+        // Tercer matchup libre: garantiza candidato para /siguiente en aislamiento.
+        crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "sig-anon-3");
 
         MvcResult voto = mvc.perform(post("/api/enfrentamientos/" + yaVotado + "/votar")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -1004,14 +1017,20 @@ class EnfrentamientoControllerTest {
                 .andReturn();
         Cookie anonCookie = anonCookieDesde(voto);
 
-        var request = conAnonCookie(get("/api/enfrentamientos/siguiente"), anonCookie);
-        String excludeIds = idsAbiertosExcepto(yaVotado, esperado);
-        if (!excludeIds.isBlank()) {
-            request.param("excludeIds", excludeIds);
-        }
-        mvc.perform(request)
+        // Mismo contrato que el caso autenticado: omite el ya-votado por la sesión y
+        // respeta el excludeId. No se asevera un id exacto por el cap de 100 excludeIds +
+        // selección aleatoria del endpoint (eso hacía el test flaky según el orden de CI).
+        MvcResult res = mvc.perform(conAnonCookie(get("/api/enfrentamientos/siguiente"), anonCookie)
+                .param("excludeIds", String.valueOf(excluido)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(esperado));
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.ganador").doesNotExist())
+                .andReturn();
+        long devuelto = json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+        org.junit.jupiter.api.Assertions.assertNotEquals(yaVotado, devuelto,
+                "siguiente no debe devolver un enfrentamiento ya votado por la sesión anónima");
+        org.junit.jupiter.api.Assertions.assertNotEquals(excluido, devuelto,
+                "siguiente debe respetar el excludeId explícito");
     }
 
     /**
@@ -1225,19 +1244,6 @@ class EnfrentamientoControllerTest {
         return usuarioLogroRepository.existsByUsuarioAndLogroCodigo(usuario, codigo);
     }
 
-    private String idsAbiertosExcepto(long... idsPermitidos) {
-        Set<Long> permitidos = Arrays.stream(idsPermitidos).boxed().collect(Collectors.toSet());
-        return enfrentamientoRepository.findAll().stream()
-                .filter(enf -> enf.getTorneo().getEstado()
-                        == com.diegoalegil.animeshowdown.model.EstadoTorneo.IN_PROGRESS)
-                .filter(enf -> enf.getPersonaje1() != null)
-                .filter(enf -> enf.getPersonaje2() != null)
-                .filter(enf -> enf.getGanador() == null)
-                .map(com.diegoalegil.animeshowdown.model.Enfrentamiento::getId)
-                .filter(id -> !permitidos.contains(id))
-                .map(String::valueOf)
-                .collect(Collectors.joining(","));
-    }
 
     private void esperarSinBadge(com.diegoalegil.animeshowdown.model.Usuario usuario, String codigo) throws Exception {
         long deadline = System.currentTimeMillis() + 1_000;
