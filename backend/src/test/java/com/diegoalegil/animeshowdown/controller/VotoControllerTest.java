@@ -159,7 +159,21 @@ class VotoControllerTest {
 
     private Voto guardarVoto(Voto voto) {
         Voto guardado = votoRepository.save(voto);
-        votoStatsService.registrar(guardado);
+        var snapshot = votoStatsService.registrar(guardado);
+        // En prod las agregaciones diaria/torneo se materializan async (ver
+        // VotoAgregadoStatsListener); aquí las aplicamos inline para que los
+        // rankings por ventana (mes/semana) las vean en el smoke test.
+        var dia = (guardado.getFecha() != null
+                ? guardado.getFecha() : java.time.LocalDateTime.now()).toLocalDate();
+        Long torneoId = guardado.getEnfrentamiento() != null
+                && guardado.getEnfrentamiento().getTorneo() != null
+                ? guardado.getEnfrentamiento().getTorneo().getId() : null;
+        votoStatsService.registrarAgregadosDiarios(
+                snapshot.deltas().stream()
+                        .map(d -> new com.diegoalegil.animeshowdown.event.VotoAgregadoEvent.DiaDelta(
+                                d.personaje().getId(), d.votosScore(), d.pesoVotos()))
+                        .toList(),
+                dia, torneoId);
         return guardado;
     }
 }

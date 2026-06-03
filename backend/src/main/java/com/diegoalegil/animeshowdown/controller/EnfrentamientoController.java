@@ -41,6 +41,7 @@ import com.diegoalegil.animeshowdown.dto.RankingDeltaEvent;
 import com.diegoalegil.animeshowdown.dto.VotoEnfrentamientoRequest;
 import com.diegoalegil.animeshowdown.dto.VotoRegistradoDto;
 import com.diegoalegil.animeshowdown.event.EnfrentamientoVotadoEvent;
+import com.diegoalegil.animeshowdown.event.VotoAgregadoEvent;
 import com.diegoalegil.animeshowdown.event.VotoRegistradoEvent;
 import com.diegoalegil.animeshowdown.event.VotoScoreEvent;
 import com.diegoalegil.animeshowdown.model.CategoriaVoto;
@@ -352,6 +353,17 @@ public class EnfrentamientoController {
         // así el POST no retiene el lock de la fila del personaje (hot path viral).
         eventPublisher.publishEvent(new VotoScoreEvent(
                 empate, guardado.getPersonaje().getId(), p1.getId(), p2.getId()));
+        // Agregaciones diaria/por-torneo materializadas async (no las lee el DTO
+        // ni el delta WS, solo rankings por ventana cacheados).
+        java.time.LocalDate diaVoto = (guardado.getFecha() != null
+                ? guardado.getFecha() : java.time.LocalDateTime.now()).toLocalDate();
+        eventPublisher.publishEvent(new VotoAgregadoEvent(
+                stats.deltas().stream()
+                        .map(d -> new VotoAgregadoEvent.DiaDelta(
+                                d.personaje().getId(), d.votosScore(), d.pesoVotos()))
+                        .toList(),
+                diaVoto,
+                enf.getTorneo().getId()));
 
         Integer votosAnonimosRestantes = null;
         if (usuario == null) {
