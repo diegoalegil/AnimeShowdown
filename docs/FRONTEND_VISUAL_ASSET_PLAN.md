@@ -300,29 +300,29 @@ Plan:
 3. Usar banner por anime o personaje solo cuando tenga composicion propia y optimizada.
 4. Eliminar dependencia visual de galerias externas en pantallas clave.
 
-## 13. Plan de produccion por tandas
+## 13. Plan de produccion por bloques
 
-Tanda 1 - Alto impacto inmediato:
+Bloque 1 - Alto impacto inmediato:
 
 - `vote-arena.webp`
 - `catalog-offline.webp`
 - portraits/cuts prioritarios de top 30.
 - banners revisados de Jujutsu Kaisen, One Piece, Naruto, My Hero Academia, Demon Slayer.
 
-Tanda 2 - Competitivo:
+Bloque 2 - Competitivo:
 
 - ranking podium.
 - PvP live arena.
 - portraits para top 100.
 - banners de torneos principales.
 
-Tanda 3 - Juegos:
+Bloque 3 - Juegos:
 
 - portadas especificas por juego.
 - result cards compartibles por juego.
 - empty states de daily completed y perfect clear.
 
-Tanda 4 - Universo:
+Bloque 4 - Universo:
 
 - banners de todos los animes con mas de 10 personajes.
 - collages por universo solo si tienen composicion limpia y reconocible.
