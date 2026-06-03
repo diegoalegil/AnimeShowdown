@@ -164,6 +164,7 @@ public class VotoController {
      * intención" en /ranking sin pintar categorías vacías.
      */
     @GetMapping("/ranking/categorias-disponibles")
+    @Cacheable(value = "votos-categorias-disponibles")
     public List<String> categoriasConVotos() {
         return votoRepository.categoriasConVotos();
     }
@@ -177,6 +178,8 @@ public class VotoController {
      * exponer email u otros campos privados.
      */
     @GetMapping("/top-voters")
+    @Cacheable(value = "votos-top-voters",
+            key = "#periodo + ':' + T(java.lang.Math).max(1, T(java.lang.Math).min(50, #limit))")
     public List<java.util.Map<String, Object>> topVoters(
             @org.springframework.web.bind.annotation.RequestParam(defaultValue = "all") String periodo,
             @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int limit) {

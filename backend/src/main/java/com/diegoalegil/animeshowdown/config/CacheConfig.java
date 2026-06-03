@@ -76,6 +76,16 @@ public class CacheConfig {
                 // Ranking actual con deltas vs hace N días. Pesado (dos
                 // queries de COUNT con GROUP BY); cache 1min.
                 buildCache("ranking-movimientos", Duration.ofMinutes(1), 64),
+                // Top voters (leaderboard de engagement). GROUP BY full-table
+                // sobre `votos` (la tabla más grande); sin caché pegaba a
+                // Postgres en cada carga de /ranking. Key = periodo+limit (la
+                // home usa unos pocos combos). TTL 1min: el leaderboard se
+                // mueve lento y 60s de staleness es invisible.
+                buildCache("votos-top-voters", Duration.ofMinutes(1), 64),
+                // Categorías de intención con al menos un voto. Cambia muy
+                // raramente (solo cuando una categoría nueva recibe su primer
+                // voto); escaneaba `votos` en cada request del selector. TTL 5m.
+                buildCache("votos-categorias-disponibles", Duration.ofMinutes(5), 4),
                 // Listado público de torneos. El frontend/SW ya lo trata como
                 // dato cacheable; cache corto para absorber hits repetidos sin
                 // ocultar cambios de estado más de unos segundos.
