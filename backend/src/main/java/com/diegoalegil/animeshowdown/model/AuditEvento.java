@@ -80,5 +80,9 @@ public enum AuditEvento {
     /** Una oferta de intercambio cambió a aceptada, rechazada o cancelada. */
     CARTA_TRADE_RESUELTO,
     /** El usuario reclamó su sobre de bienvenida (especial garantizada, gratis). */
-    SOBRE_BIENVENIDA_RECLAMADO
+    SOBRE_BIENVENIDA_RECLAMADO,
+    /** Recompensa de copa de evento entregada a un usuario que predijo en ella. */
+    EVENTO_RECOMPENSA_ENTREGADA,
+    /** El usuario abrió un crédito de sobre gratis (recompensa de evento). */
+    SOBRE_GRATIS_ABIERTO
 }

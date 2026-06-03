@@ -24,5 +24,7 @@ public enum MotivoMovimiento {
     /** Cofre diario reclamado explícitamente por el usuario. */
     COFRE_DIARIO,
     /** Sobre de bienvenida gratuito para nuevos usuarios (especial garantizada). */
-    SOBRE_BIENVENIDA
+    SOBRE_BIENVENIDA,
+    /** Moneda extra repartida al cerrar una copa de evento a quien predijo en ella. */
+    RECOMPENSA_EVENTO
 }

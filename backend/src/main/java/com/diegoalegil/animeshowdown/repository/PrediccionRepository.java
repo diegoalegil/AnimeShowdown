@@ -50,6 +50,14 @@ public interface PrediccionRepository extends JpaRepository<Prediccion, Long> {
             """)
     List<Prediccion> findByTorneo(@Param("torneo") Torneo torneo);
 
+    /** IDs distintos de los usuarios que predijeron en el torneo (cohorte premiable). */
+    @Query("""
+            SELECT DISTINCT p.usuario.id FROM Prediccion p
+            LEFT JOIN p.enfrentamiento e
+            WHERE e.torneo = :torneo OR p.torneo = :torneo
+            """)
+    List<Long> findDistinctUsuarioIdsByTorneo(@Param("torneo") Torneo torneo);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT p FROM Prediccion p
