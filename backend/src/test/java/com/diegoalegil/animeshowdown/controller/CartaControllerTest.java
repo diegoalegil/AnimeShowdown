@@ -11,6 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.imageio.ImageIO;
 
@@ -35,6 +39,7 @@ import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCarta;
 import com.diegoalegil.animeshowdown.repository.CartaRepository;
+import com.diegoalegil.animeshowdown.repository.CartaTradeRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -64,6 +69,7 @@ class CartaControllerTest {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private PersonajeRepository personajeRepository;
     @Autowired private CartaRepository cartaRepository;
+    @Autowired private CartaTradeRepository cartaTradeRepository;
     @Autowired private UsuarioCartaRepository usuarioCartaRepository;
     @Autowired private MonederoService monederoService;
     @Autowired private CartaDropListener cartaDropListener;
@@ -281,6 +287,219 @@ class CartaControllerTest {
     }
 
     @Test
+    void tradingRequiereIdempotencyKeyYEvitaDuplicados() throws Exception {
+        String tokenA = token("cartas_trade_idem_a");
+        token("cartas_trade_idem_b");
+        Usuario a = usuario("cartas_trade_idem_a");
+        Usuario b = usuario("cartas_trade_idem_b");
+        Carta cartaA = crearCartaManual("cartas_trade_idem_a_slug", "Trade Idem A");
+        Carta cartaB = crearCartaManual("cartas_trade_idem_b_slug", "Trade Idem B");
+        usuarioCartaRepository.save(new UsuarioCarta(a, cartaA));
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        Map<String, Object> sinKey = Map.of(
+                "destinatarioUsername", b.getUsername(),
+                "cartaOfrecidaId", cartaA.getId(),
+                "cartaSolicitadaId", cartaB.getId());
+        mvc.perform(post("/api/me/cartas/trades")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(sinKey)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "idempotencyKey es obligatorio para crear intercambios"));
+
+        Map<String, Object> body = Map.of(
+                "destinatarioUsername", b.getUsername(),
+                "cartaOfrecidaId", cartaA.getId(),
+                "cartaSolicitadaId", cartaB.getId(),
+                "idempotencyKey", "trade-idem-1");
+        long primero = crearTrade(tokenA, body);
+        long repetido = crearTrade(tokenA, body);
+
+        assertThat(repetido).isEqualTo(primero);
+        assertThat(cartaTradeRepository.findByParticipante(a))
+                .filteredOn(t -> "trade-idem-1".equals(t.getIdempotencyKey()))
+                .hasSize(1);
+    }
+
+    @Test
+    void tradingBloqueaSelfTradeYCartaNoPoseida() throws Exception {
+        String tokenA = token("cartas_trade_block_a");
+        token("cartas_trade_block_b");
+        Usuario a = usuario("cartas_trade_block_a");
+        Usuario b = usuario("cartas_trade_block_b");
+        Carta cartaA = crearCartaManual("cartas_trade_block_a_slug", "Trade Block A");
+        Carta cartaB = crearCartaManual("cartas_trade_block_b_slug", "Trade Block B");
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        mvc.perform(post("/api/me/cartas/trades")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "destinatarioUsername", a.getUsername(),
+                                "cartaOfrecidaId", cartaA.getId(),
+                                "cartaSolicitadaId", cartaB.getId(),
+                                "idempotencyKey", "trade-self-1"))))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/me/cartas/trades")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "destinatarioUsername", b.getUsername(),
+                                "cartaOfrecidaId", cartaA.getId(),
+                                "cartaSolicitadaId", cartaB.getId(),
+                                "idempotencyKey", "trade-no-own-1"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void tradingAceptaOfertaYTransfiereCopiasServerAuthoritative() throws Exception {
+        String tokenA = token("cartas_trade_ok_a");
+        String tokenB = token("cartas_trade_ok_b");
+        Usuario a = usuario("cartas_trade_ok_a");
+        Usuario b = usuario("cartas_trade_ok_b");
+        Carta cartaA = crearCartaManual("cartas_trade_ok_a_slug", "Trade OK A");
+        Carta cartaB = crearCartaManual("cartas_trade_ok_b_slug", "Trade OK B");
+        usuarioCartaRepository.save(new UsuarioCarta(a, cartaA));
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        long tradeId = crearTrade(tokenA, Map.of(
+                "destinatarioUsername", b.getUsername(),
+                "cartaOfrecidaId", cartaA.getId(),
+                "cartaSolicitadaId", cartaB.getId(),
+                "idempotencyKey", "trade-ok-1"));
+
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/accept", tradeId)
+                        .header("Authorization", "Bearer " + tokenB))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("ACCEPTED"))
+                .andExpect(jsonPath("$.rol").value("DESTINATARIO"));
+
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaA.getId())).isEmpty();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaB.getId())).isPresent();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(b.getId(), cartaA.getId())).isPresent();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(b.getId(), cartaB.getId())).isEmpty();
+    }
+
+    @Test
+    void tradingBloqueaActoresNoAutorizadosYPermiteResolverPorActorCorrecto() throws Exception {
+        String tokenA = token("cartas_trade_auth_a");
+        String tokenB = token("cartas_trade_auth_b");
+        String tokenC = token("cartas_trade_auth_c");
+        Usuario a = usuario("cartas_trade_auth_a");
+        Usuario b = usuario("cartas_trade_auth_b");
+        Carta cartaA = crearCartaManual("cartas_trade_auth_a_slug", "Trade Auth A");
+        Carta cartaB = crearCartaManual("cartas_trade_auth_b_slug", "Trade Auth B");
+        usuarioCartaRepository.save(new UsuarioCarta(a, cartaA));
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        long tradeId = crearTrade(tokenA, Map.of(
+                "destinatarioUsername", b.getUsername(),
+                "cartaOfrecidaId", cartaA.getId(),
+                "cartaSolicitadaId", cartaB.getId(),
+                "idempotencyKey", "trade-auth-1"));
+
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/accept", tradeId)
+                        .header("Authorization", "Bearer " + tokenC))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/reject", tradeId)
+                        .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/cancel", tradeId)
+                        .header("Authorization", "Bearer " + tokenB))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/cancel", tradeId)
+                        .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELLED"));
+    }
+
+    @Test
+    void tradingBloqueaAceptacionSiLaColeccionCambio() throws Exception {
+        String tokenA = token("cartas_trade_cambio_a");
+        String tokenB = token("cartas_trade_cambio_b");
+        Usuario a = usuario("cartas_trade_cambio_a");
+        Usuario b = usuario("cartas_trade_cambio_b");
+        Carta cartaA = crearCartaManual("cartas_trade_cambio_a_slug", "Trade Cambio A");
+        Carta cartaB = crearCartaManual("cartas_trade_cambio_b_slug", "Trade Cambio B");
+        usuarioCartaRepository.save(new UsuarioCarta(a, cartaA));
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        long tradeId = crearTrade(tokenA, Map.of(
+                "destinatarioUsername", b.getUsername(),
+                "cartaOfrecidaId", cartaA.getId(),
+                "cartaSolicitadaId", cartaB.getId(),
+                "idempotencyKey", "trade-conflict-1"));
+
+        UsuarioCarta perdida = usuarioCartaRepository
+                .findByUsuarioIdAndCartaId(b.getId(), cartaB.getId())
+                .orElseThrow();
+        usuarioCartaRepository.delete(perdida);
+        usuarioCartaRepository.flush();
+
+        mvc.perform(post("/api/me/cartas/trades/{tradeId}/accept", tradeId)
+                        .header("Authorization", "Bearer " + tokenB))
+                .andExpect(status().isConflict());
+
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaA.getId())).isPresent();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaB.getId())).isEmpty();
+    }
+
+    @Test
+    void tradingDobleAceptacionConcurrenteSoloPermiteUna() throws Exception {
+        String tokenA = token("cartas_trade_race_a");
+        String tokenB = token("cartas_trade_race_b");
+        Usuario a = usuario("cartas_trade_race_a");
+        Usuario b = usuario("cartas_trade_race_b");
+        Carta cartaA = crearCartaManual("cartas_trade_race_a_slug", "Trade Race A");
+        Carta cartaB = crearCartaManual("cartas_trade_race_b_slug", "Trade Race B");
+        usuarioCartaRepository.save(new UsuarioCarta(a, cartaA));
+        usuarioCartaRepository.save(new UsuarioCarta(b, cartaB));
+
+        long tradeId = crearTrade(tokenA, Map.of(
+                "destinatarioUsername", b.getUsername(),
+                "cartaOfrecidaId", cartaA.getId(),
+                "cartaSolicitadaId", cartaB.getId(),
+                "idempotencyKey", "trade-race-1"));
+
+        CountDownLatch salida = new CountDownLatch(1);
+        AtomicInteger ok = new AtomicInteger();
+        AtomicInteger conflict = new AtomicInteger();
+        try (var pool = Executors.newFixedThreadPool(2)) {
+            for (int i = 0; i < 2; i++) {
+                pool.submit(() -> {
+                    try {
+                        salida.await(5, TimeUnit.SECONDS);
+                        int statusCode = mvc.perform(post("/api/me/cartas/trades/{tradeId}/accept", tradeId)
+                                        .header("Authorization", "Bearer " + tokenB))
+                                .andReturn()
+                                .getResponse()
+                                .getStatus();
+                        if (statusCode == 200) {
+                            ok.incrementAndGet();
+                        } else if (statusCode == 409) {
+                            conflict.incrementAndGet();
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+            salida.countDown();
+            pool.shutdown();
+            assertThat(pool.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+        }
+
+        assertThat(ok.get()).isEqualTo(1);
+        assertThat(conflict.get()).isEqualTo(1);
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(a.getId(), cartaB.getId())).isPresent();
+        assertThat(usuarioCartaRepository.findByUsuarioIdAndCartaId(b.getId(), cartaA.getId())).isPresent();
+    }
+
+    @Test
     void descargarCartaPoseidaDevuelvePngConWatermark() throws Exception {
         String token = token("cartas_descarga_ok");
         Usuario u = usuario("cartas_descarga_ok");
@@ -352,6 +571,17 @@ class CartaControllerTest {
         p.setImagenColorDominante("#9f1d2c");
         p = personajeRepository.save(p);
         return cartaRepository.save(new Carta(p, RarezaCarta.SSR));
+    }
+
+    private long crearTrade(String token, Map<String, Object> body) throws Exception {
+        MvcResult res = mvc.perform(post("/api/me/cartas/trades")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("PENDING"))
+                .andReturn();
+        return json.readTree(res.getResponse().getContentAsString()).get("id").asLong();
     }
 
     private boolean tieneWatermarkEnBandaInferior(BufferedImage img) {

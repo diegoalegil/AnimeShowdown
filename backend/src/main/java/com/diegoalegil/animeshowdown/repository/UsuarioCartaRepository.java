@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +13,8 @@ import com.diegoalegil.animeshowdown.dto.UsuarioCartaPosesionItem;
 import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCarta;
+
+import jakarta.persistence.LockModeType;
 
 public interface UsuarioCartaRepository extends JpaRepository<UsuarioCarta, Long> {
 
@@ -35,6 +38,21 @@ public interface UsuarioCartaRepository extends JpaRepository<UsuarioCarta, Long
 
     /** Gate de propiedad para endpoints que no deben filtrar cartas no poseídas. */
     boolean existsByUsuarioIdAndCartaId(Long usuarioId, Long cartaId);
+
+    /** Fila usuario+carta por ids, útil para asserts y flujos server-authoritative. */
+    Optional<UsuarioCarta> findByUsuarioIdAndCartaId(Long usuarioId, Long cartaId);
+
+    /** Fila usuario+carta bloqueada para transferencias atómicas de trading. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"carta", "carta.personaje"})
+    @Query("""
+            select uc
+            from UsuarioCarta uc
+            where uc.usuario.id = :usuarioId and uc.carta.id = :cartaId
+            """)
+    Optional<UsuarioCarta> findForUpdateByUsuarioIdAndCartaId(
+            @Param("usuarioId") Long usuarioId,
+            @Param("cartaId") Long cartaId);
 
     /** Cuántas cartas distintas posee el usuario (para el % de colección). */
     long countByUsuario(Usuario usuario);
