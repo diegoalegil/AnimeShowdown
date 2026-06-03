@@ -17,11 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.diegoalegil.animeshowdown.TestAsyncConfig;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
 import com.diegoalegil.animeshowdown.model.Torneo;
@@ -40,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestAsyncConfig.class) // auto-avance @Async corre inline (SyncTaskExecutor) → propagacion determinista
 class TorneoControllerTest {
 
     @Autowired
@@ -713,17 +716,30 @@ class TorneoControllerTest {
                     .andExpect(status().isOk());
         }
 
-        JsonNode detallePostVoto = json.readTree(mvc.perform(get("/api/torneos/" + torneoId))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString());
+        // El auto-avance que propaga ganadores a la final es @Async (AFTER_COMMIT),
+        // asi que tras el ultimo voto puede no haberse ejecutado todavia. Sondeamos
+        // el detalle del torneo hasta que la final (ronda 2) tenga sus participantes
+        // propagados, con un timeout defensivo (independiente de carga/timing).
+        JsonNode detallePostVoto = null;
         JsonNode finalMatch = null;
-        for (JsonNode e : detallePostVoto.get("enfrentamientos")) {
-            if (e.get("ronda").asInt() == 2) {
-                finalMatch = e;
+        for (int intento = 0; intento < 50; intento++) {
+            detallePostVoto = json.readTree(mvc.perform(get("/api/torneos/" + torneoId))
+                    .andExpect(status().isOk())
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString());
+            finalMatch = null;
+            for (JsonNode e : detallePostVoto.get("enfrentamientos")) {
+                if (e.get("ronda").asInt() == 2) {
+                    finalMatch = e;
+                    break;
+                }
+            }
+            if (finalMatch != null && !finalMatch.get("personaje1").isNull()
+                    && !finalMatch.get("personaje2").isNull()) {
                 break;
             }
+            Thread.sleep(100);
         }
         org.junit.jupiter.api.Assertions.assertNotNull(finalMatch, "El bracket de 4 debe tener final en ronda 2");
         org.junit.jupiter.api.Assertions.assertFalse(finalMatch.get("personaje1").isNull());
