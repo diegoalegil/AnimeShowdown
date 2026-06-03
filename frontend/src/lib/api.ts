@@ -638,6 +638,8 @@ export const endpoints: EndpointMap = {
     })
   },
   cofreDiario: () => api.post('/api/me/cartas/cofre-diario', undefined),
+  // Sobre de bienvenida: gratis, una sola vez, con especial garantizada.
+  sobreBienvenida: () => api.post('/api/me/cartas/sobre-bienvenida', undefined),
   descargarCarta: (cartaId) =>
     requestBlob(`/api/me/cartas/${encodeURIComponent(cartaId)}/descargar`, {
       timeoutMs: 15000,
