@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
@@ -21,7 +22,7 @@ function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp }) {
       className="group block"
     >
       <article
-        className="as-ssr-card relative overflow-hidden rounded-2xl transition-[border-color,box-shadow] group-hover:border-gold/45 group-hover:shadow-lift [--aura-color:rgb(197_161_90_/_0.55)]"
+        className="as-ssr-card relative overflow-hidden rounded-2xl transition-[border-color,box-shadow] group-hover:border-gold/45 group-hover:shadow-lift [--aura-color:var(--color-gold-aura)]"
       >
         <PersonajeImg
           slug={slug}
@@ -69,4 +70,8 @@ function CardBadges({ rank, elo, nombre, anime }) {
   )
 }
 
-export default PersonajeCard
+// memo: las props son primitivas (slug/nombre/anime/rank/elo), así que la
+// comparación shallow por defecto corta el re-render cuando el padre
+// (PersonajesPage) se re-renderiza por motivos ajenos a esta card (filtros,
+// orden, búsqueda) — hasta 60 cards reconciliadas por interacción.
+export default memo(PersonajeCard)
