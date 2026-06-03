@@ -766,12 +766,21 @@ class EnfrentamientoControllerTest {
         });
     }
 
+    /**
+     * El voto NO hace @CacheEvict del ranking (se quitó el evict por-voto que
+     * causaba estampida bajo carga). El endpoint REST /api/votos/ranking es
+     * eventualmente consistente: cacheado por TTL (30s) y puede no reflejar el
+     * voto recién emitido dentro de esa ventana. El voto SÍ se persiste de
+     * inmediato (la señal en vivo viaja por RankingDeltaEvent — ver
+     * votarPublicaDeltaRankingPorWebSocket).
+     */
     @Test
-    void votarInvalidaCacheDelRankingAllTime() throws Exception {
+    void votarNoEvictaCacheRankingDependeDelTtl() throws Exception {
         String adminToken = tokenAdmin();
         String userToken = tokenUserRegistrado("voto_cache_user", "votocache@example.com");
         long[] ids = dosPersonajes();
 
+        // Primer GET cachea el ranking SIN ids[0] (aún sin votos).
         mvc.perform(get("/api/votos/ranking"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.personaje.id == " + ids[0] + ")]").doesNotExist());
@@ -783,9 +792,15 @@ class EnfrentamientoControllerTest {
                 .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
                 .andExpect(status().isOk());
 
+        // El voto se persistió de inmediato (fuente de verdad).
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1.0, votoRepository.countByPersonajeId(ids[0]), 0.001);
+
+        // Pero el ranking REST sigue sirviendo la versión cacheada (sin evict
+        // por-voto): ids[0] todavía no aparece hasta que expire el TTL.
         mvc.perform(get("/api/votos/ranking"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.personaje.id == " + ids[0] + ")]").exists());
+                .andExpect(jsonPath("$[?(@.personaje.id == " + ids[0] + ")]").doesNotExist());
     }
 
     @Test
