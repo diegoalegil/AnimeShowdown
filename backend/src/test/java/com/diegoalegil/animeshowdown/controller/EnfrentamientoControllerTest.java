@@ -1227,11 +1227,16 @@ class EnfrentamientoControllerTest {
 
     private String idsAbiertosExcepto(long... idsPermitidos) {
         Set<Long> permitidos = Arrays.stream(idsPermitidos).boxed().collect(Collectors.toSet());
+        // Excluye TODOS los matchups sin ganador de torneos IN_PROGRESS, incluidos
+        // los de ronda-2 todavía con personajes null. El BracketAdvanceService corre
+        // @Async y puede poblar esos matchups (volviéndolos votables) DESPUÉS de este
+        // snapshot; si no los excluyéramos, /siguiente podría devolver uno de ellos en
+        // lugar del esperado y el test se volvería dependiente del orden de ejecución
+        // (era flaky en CI). El superconjunto de exclusión es seguro: /siguiente solo
+        // devuelve matchups votables, y el esperado nunca está en `permitidos`.
         return enfrentamientoRepository.findAll().stream()
                 .filter(enf -> enf.getTorneo().getEstado()
                         == com.diegoalegil.animeshowdown.model.EstadoTorneo.IN_PROGRESS)
-                .filter(enf -> enf.getPersonaje1() != null)
-                .filter(enf -> enf.getPersonaje2() != null)
                 .filter(enf -> enf.getGanador() == null)
                 .map(com.diegoalegil.animeshowdown.model.Enfrentamiento::getId)
                 .filter(id -> !permitidos.contains(id))
