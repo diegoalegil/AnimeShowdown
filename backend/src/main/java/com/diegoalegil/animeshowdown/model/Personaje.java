@@ -36,6 +36,13 @@ public class Personaje {
     @Column(length = 16)
     private String imagenColorDominante;
 
+    // ELO semilla investigado (V68). Todos nullable: NULL = sin dato → fallback
+    // explícito a 1500 (la app se comporta idéntica a hoy mientras no haya seed).
+    @Column(length = 16)
+    private String genero;                 // 'F','M','O', NULL = sin dato
+    private Integer eloSemilla;            // NULL = sin semilla → fallback 1500
+    private Integer popularidadFuente;     // favourites crudos (auditar/recalcular)
+
     public Personaje() {
     }
 
@@ -108,6 +115,30 @@ public class Personaje {
 
     public void setImagenColorDominante(String imagenColorDominante) {
         this.imagenColorDominante = imagenColorDominante;
+    }
+
+    public String getGenero() {
+        return genero;
+    }
+
+    public void setGenero(String genero) {
+        this.genero = genero;
+    }
+
+    public Integer getEloSemilla() {
+        return eloSemilla;
+    }
+
+    public void setEloSemilla(Integer eloSemilla) {
+        this.eloSemilla = eloSemilla;
+    }
+
+    public Integer getPopularidadFuente() {
+        return popularidadFuente;
+    }
+
+    public void setPopularidadFuente(Integer popularidadFuente) {
+        this.popularidadFuente = popularidadFuente;
     }
 
 }
