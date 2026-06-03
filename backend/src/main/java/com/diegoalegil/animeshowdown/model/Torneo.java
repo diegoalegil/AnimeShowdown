@@ -92,6 +92,15 @@ public class Torneo {
     @Column(nullable = false)
     private boolean publico = true;
 
+    @Column(name = "auto_generado", nullable = false)
+    private boolean autoGenerado = false;
+
+    @Column(name = "evento_slug", length = 80)
+    private String eventoSlug;
+
+    @Column(name = "auto_origen", length = 80)
+    private String autoOrigen;
+
     public Torneo() {
     }
 
@@ -251,6 +260,30 @@ public class Torneo {
 
     public void setPublico(boolean publico) {
         this.publico = publico;
+    }
+
+    public boolean isAutoGenerado() {
+        return autoGenerado;
+    }
+
+    public void setAutoGenerado(boolean autoGenerado) {
+        this.autoGenerado = autoGenerado;
+    }
+
+    public String getEventoSlug() {
+        return eventoSlug;
+    }
+
+    public void setEventoSlug(String eventoSlug) {
+        this.eventoSlug = eventoSlug;
+    }
+
+    public String getAutoOrigen() {
+        return autoOrigen;
+    }
+
+    public void setAutoOrigen(String autoOrigen) {
+        this.autoOrigen = autoOrigen;
     }
 
 }

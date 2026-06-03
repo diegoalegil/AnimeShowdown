@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Collection;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,8 @@ import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
 public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
 
     List<Personaje> findByAnime(String anime);
+
+    List<Personaje> findByAnimeIn(Collection<String> animes);
 
     Page<Personaje> findByAnime(String anime, Pageable pageable);
 

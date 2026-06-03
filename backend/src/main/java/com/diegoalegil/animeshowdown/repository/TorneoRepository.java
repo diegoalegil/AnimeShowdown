@@ -48,9 +48,29 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     @Query("SELECT COUNT(t) FROM Torneo t WHERE t.nombre LIKE CONCAT(:prefix, '%')")
     long countByNombrePrefix(@Param("prefix") String prefix);
 
+    @Query("""
+            SELECT t FROM Torneo t
+            WHERE t.autoGenerado = true
+              AND t.fechaCreacion > :desde
+            ORDER BY t.fechaCreacion DESC
+            """)
+    List<Torneo> findTorneosAutoGeneradosDesde(@Param("desde") LocalDateTime desde);
+
+    @Query("""
+            SELECT COUNT(t) FROM Torneo t
+            WHERE t.autoGenerado = true
+              AND t.eventoSlug = :eventoSlug
+            """)
+    long countAutoGeneradosByEventoSlug(@Param("eventoSlug") String eventoSlug);
+
     /** Atajo a findTorneosPorNombrePrefixDesde con LIMIT lógico 1. */
     default Optional<Torneo> findTorneoMasRecientePorNombrePrefixDesde(String prefix, LocalDateTime desde) {
         List<Torneo> resultados = findTorneosPorNombrePrefixDesde(prefix, desde);
+        return resultados.isEmpty() ? Optional.empty() : Optional.of(resultados.get(0));
+    }
+
+    default Optional<Torneo> findTorneoAutoMasRecienteDesde(LocalDateTime desde) {
+        List<Torneo> resultados = findTorneosAutoGeneradosDesde(desde);
         return resultados.isEmpty() ? Optional.empty() : Optional.of(resultados.get(0));
     }
 
