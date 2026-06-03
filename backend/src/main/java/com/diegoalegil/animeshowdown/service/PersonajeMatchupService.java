@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.diegoalegil.animeshowdown.dto.DueloRecienteDto;
@@ -39,6 +40,7 @@ public class PersonajeMatchupService {
         this.enfrentamientoRepository = enfrentamientoRepository;
     }
 
+    @Cacheable(value = "personaje-matchups", key = "#slug")
     public MatchupResumenDto calcular(String slug) {
         Personaje yo = personajeRepository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException(

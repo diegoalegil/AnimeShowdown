@@ -65,6 +65,15 @@ public class CacheConfig {
                 // porque solo cambia con seed/admin; además emite ETag.
                 buildCache("personajes-catalogo", Duration.ofHours(1), 16),
                 buildCache("personajes-individual", Duration.ofMinutes(5), 2000),
+                // Resumen "contra quién" del detalle de personaje. Agrega TODOS
+                // los enfrentamientos decididos del personaje en memoria — caro
+                // y recalculaba en cada visita. Cambia lento (solo con duelos
+                // nuevos resueltos); TTL 5min. Key = slug, max ~2000.
+                buildCache("personaje-matchups", Duration.ofMinutes(5), 2000),
+                // Votos por periodo (ventana actual vs anterior + delta) del
+                // detalle de personaje. Recalculaba dos COUNT por visita. Key =
+                // slug+dias; TTL 1min (la ventana se mueve poco en 60s).
+                buildCache("personaje-votos-periodo", Duration.ofMinutes(1), 3000),
                 // Similares cross-anime por slug. Estable entre votos (la
                 // similitud por votos casi no se mueve a escala minuto). Key
                 // compuesta slug+limit, max ~3000.
