@@ -12,13 +12,13 @@ import {
   useAbrirSobre,
   useAbrirSobreGratis,
   useCofreDiario,
-  useColeccion,
+  useColeccionPagina,
+  useColeccionResumen,
   useDescargarCarta,
   useOddsCartas,
   useSobresGratis,
 } from '../hooks/useCartas'
 
-const PAGE_SIZE = 60
 const RAREZAS = ['TODAS', 'SSR', 'ESPECIAL']
 const EMPTY_CARTAS = []
 const EMPTY_PROGRESO = []
@@ -39,7 +39,7 @@ function makeIdempotencyKey() {
 
 function CartasPage() {
   const { user } = useAuth()
-  const coleccionQ = useColeccion()
+  const resumenQ = useColeccionResumen()
   const oddsQ = useOddsCartas()
   const sobresGratisQ = useSobresGratis()
   const abrirSobre = useAbrirSobre()
@@ -47,21 +47,23 @@ function CartasPage() {
   const cofreDiario = useCofreDiario()
   const descargarCarta = useDescargarCarta()
 
-  const [visibles, setVisibles] = useState(PAGE_SIZE)
   const [reveal, setReveal] = useState(null)
   const [revealEsGratis, setRevealEsGratis] = useState(false)
   const [rarezaFiltro, setRarezaFiltro] = useState('TODAS')
   const [animeFiltro, setAnimeFiltro] = useState('TODOS')
   const [cofreResultado, setCofreResultado] = useState(null)
 
-  const data = coleccionQ.data
+  // Grid paginado y filtrado en servidor. Cambiar rareza/anime crea una query
+  // nueva (otra key) que arranca en offset 0 automáticamente.
+  const paginaQ = useColeccionPagina({ rareza: rarezaFiltro, anime: animeFiltro })
+
+  const data = resumenQ.data
   const odds = oddsQ.data
   const precio = odds?.precioSobre ?? null
   const saldo = data?.saldo ?? 0
   const totalCatalogo = data?.totalCatalogo ?? 0
   const totalPoseidas = data?.totalPoseidas ?? 0
   const porcentaje = data?.porcentaje ?? 0
-  const cartas = data?.cartas ?? EMPTY_CARTAS
   const progresoPorAnime = data?.progresoPorAnime ?? EMPTY_PROGRESO
   const pityActual = data?.pityActual ?? 0
   const pityDuro = data?.pityDuro ?? odds?.pityDuro ?? 10
@@ -73,21 +75,15 @@ function CartasPage() {
   const primerSobreGratis = sobresGratis[0] ?? null
   const descargandoId = descargarCarta.isPending ? descargarCarta.variables?.id : null
 
-  const cartasFiltradas = useMemo(() => {
-    return cartas.filter((carta) => {
-      const pasaRareza = rarezaFiltro === 'TODAS' || carta.rareza === rarezaFiltro
-      const pasaAnime = animeFiltro === 'TODOS' || carta.anime === animeFiltro
-      return pasaRareza && pasaAnime
-    })
-  }, [animeFiltro, cartas, rarezaFiltro])
-
-  const resumenRarezas = useMemo(() => {
-    return RAREZAS.filter((rareza) => rareza !== 'TODAS').map((rareza) => {
-      const total = cartas.filter((carta) => carta.rareza === rareza).length
-      const poseidas = cartas.filter((carta) => carta.rareza === rareza && carta.poseida).length
-      return { rareza, total, poseidas }
-    })
-  }, [cartas])
+  // Cartas del grid: páginas del servidor (ya filtradas por rareza/anime) aplanadas.
+  const cartas = useMemo(
+    () => paginaQ.data?.pages.flatMap((p) => p.cartas) ?? EMPTY_CARTAS,
+    [paginaQ.data],
+  )
+  // Total de cartas que cumplen el filtro actual (para "Cargar más (N)").
+  const totalFiltrado = paginaQ.data?.pages.at(-1)?.totalFiltrado ?? cartas.length
+  // Progreso por rareza: agregado del servidor (no se recalcula sobre el array).
+  const resumenRarezas = data?.progresoPorRareza ?? EMPTY_PROGRESO
 
   const animesDestacados = useMemo(() => {
     return [...progresoPorAnime]
@@ -230,7 +226,7 @@ function CartasPage() {
           </div>
         </div>
 
-        {!coleccionQ.isLoading && faltan != null && faltan > 0 && (
+        {!resumenQ.isLoading && faltan != null && faltan > 0 && (
           <p className="text-[12px] text-fg-muted">
             Te faltan <span className="font-bold text-gold">{faltan}</span> monedas para abrir otro sobre.
           </p>
@@ -262,19 +258,19 @@ function CartasPage() {
         animes={animesDestacados}
       />
 
-      {coleccionQ.isLoading ? (
+      {paginaQ.isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="aspect-[2/3] animate-pulse rounded-2xl bg-surface-alt" />
           ))}
         </div>
-      ) : coleccionQ.isError ? (
+      ) : paginaQ.isError ? (
         <EmptyState
           icon={Sparkles}
           title="No pudimos cargar tu colección"
           description="Recarga la página en unos segundos."
         />
-      ) : cartasFiltradas.length === 0 ? (
+      ) : cartas.length === 0 ? (
         <EmptyState
           icon={Filter}
           title="No hay cartas con este filtro"
@@ -283,7 +279,7 @@ function CartasPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {cartasFiltradas.slice(0, visibles).map((carta) => (
+            {cartas.map((carta) => (
               <CartaTile
                 key={carta.id}
                 carta={carta}
@@ -292,10 +288,16 @@ function CartasPage() {
               />
             ))}
           </div>
-          {visibles < cartasFiltradas.length && (
+          {paginaQ.hasNextPage && (
             <div className="mt-8 flex justify-center">
-              <Button variant="secondary" onClick={() => setVisibles((v) => v + PAGE_SIZE)}>
-                Cargar más ({cartasFiltradas.length - visibles})
+              <Button
+                variant="secondary"
+                onClick={() => paginaQ.fetchNextPage()}
+                disabled={paginaQ.isFetchingNextPage}
+              >
+                {paginaQ.isFetchingNextPage
+                  ? 'Cargando...'
+                  : `Cargar más (${Math.max(0, totalFiltrado - cartas.length)})`}
               </Button>
             </div>
           )}

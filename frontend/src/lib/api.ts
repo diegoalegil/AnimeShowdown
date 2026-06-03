@@ -626,6 +626,17 @@ export const endpoints: EndpointMap = {
   desbloquearOtakuCertificado: () => api.post('/api/logros/otaku-certificado', undefined),
   // Cartas coleccionables. Todas autenticadas (auth por defecto).
   miColeccion: () => api.get('/api/me/cartas'),
+  // Cabecera de la colección (totales, saldo, pity, progreso) sin el array de cartas.
+  coleccionResumen: () => api.get('/api/me/cartas/resumen'),
+  // Página del grid filtrada por rareza/anime. 'TODAS'/'TODOS' = sin filtro.
+  coleccionPagina: ({ rareza, anime, offset = 0, limit = 60 }) => {
+    const params = new URLSearchParams()
+    if (rareza && rareza !== 'TODAS') params.set('rareza', rareza)
+    if (anime && anime !== 'TODOS') params.set('anime', anime)
+    params.set('offset', String(offset))
+    params.set('limit', String(limit))
+    return api.get(`/api/me/cartas/pagina?${params.toString()}`)
+  },
   miMonedero: () => api.get('/api/me/monedero'),
   oddsCartas: () => api.get('/api/cartas/odds'),
   abrirSobre: (idempotencyKey: string) => {

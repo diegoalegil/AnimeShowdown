@@ -12,7 +12,7 @@ vi.mock('../../contexts/AuthContext', () => ({
 }))
 
 vi.mock('../../hooks/useCartas', () => ({
-  useColeccion: () => ({ data: h.coleccion.current }),
+  useColeccionResumen: () => ({ data: h.coleccion.current }),
   useSobreBienvenida: () => ({ mutateAsync: h.mutateAsync, isPending: false }),
   useDescargarCarta: () => ({ isPending: false, mutate: vi.fn(), variables: undefined }),
 }))
