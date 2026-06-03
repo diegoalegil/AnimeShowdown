@@ -61,6 +61,22 @@ public class EventoTematico {
     @Column(name = "cup_nombre", length = 120)
     private String cupNombre;
 
+    /** V65: moneda extra para quien predijo al cerrar la copa del evento. */
+    @Column(name = "recompensa_moneda", nullable = false)
+    private int recompensaMoneda = 0;
+
+    /** Slug del personaje cuya carta ESPECIAL se concede como premio (null = ninguna). */
+    @Column(name = "recompensa_carta_especial_slug", length = 120)
+    private String recompensaCartaEspecialSlug;
+
+    /** Código de logro a desbloquear como insignia/título del evento (null = ninguno). */
+    @Column(name = "recompensa_badge_codigo", length = 80)
+    private String recompensaBadgeCodigo;
+
+    /** Si true, se concede un crédito de sobre gratis para abrir más tarde. */
+    @Column(name = "recompensa_sobre_gratis", nullable = false)
+    private boolean recompensaSobreGratis = false;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -189,6 +205,38 @@ public class EventoTematico {
 
     public void setCupNombre(String cupNombre) {
         this.cupNombre = cupNombre;
+    }
+
+    public int getRecompensaMoneda() {
+        return recompensaMoneda;
+    }
+
+    public void setRecompensaMoneda(int recompensaMoneda) {
+        this.recompensaMoneda = recompensaMoneda;
+    }
+
+    public String getRecompensaCartaEspecialSlug() {
+        return recompensaCartaEspecialSlug;
+    }
+
+    public void setRecompensaCartaEspecialSlug(String recompensaCartaEspecialSlug) {
+        this.recompensaCartaEspecialSlug = recompensaCartaEspecialSlug;
+    }
+
+    public String getRecompensaBadgeCodigo() {
+        return recompensaBadgeCodigo;
+    }
+
+    public void setRecompensaBadgeCodigo(String recompensaBadgeCodigo) {
+        this.recompensaBadgeCodigo = recompensaBadgeCodigo;
+    }
+
+    public boolean isRecompensaSobreGratis() {
+        return recompensaSobreGratis;
+    }
+
+    public void setRecompensaSobreGratis(boolean recompensaSobreGratis) {
+        this.recompensaSobreGratis = recompensaSobreGratis;
     }
 
     public LocalDateTime getCreatedAt() {

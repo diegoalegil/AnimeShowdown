@@ -26,6 +26,7 @@ import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionDto;
 import com.diegoalegil.animeshowdown.dto.MonederoDto;
 import com.diegoalegil.animeshowdown.dto.OddsDto;
+import com.diegoalegil.animeshowdown.dto.SobreGratisDto;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.CartaDownloadService;
 import com.diegoalegil.animeshowdown.service.CartaService;
@@ -96,6 +97,20 @@ public class CartaController {
     @PostMapping("/me/cartas/sobre-bienvenida")
     public AbrirSobreResultadoDto sobreBienvenida(@AuthenticationPrincipal Usuario usuario) {
         return cartaService.reclamarSobreBienvenida(exigirUsuario(usuario));
+    }
+
+    /** Créditos de sobre gratis pendientes (recompensas de evento por abrir). */
+    @GetMapping("/me/cartas/sobres-gratis")
+    public List<SobreGratisDto> sobresGratis(@AuthenticationPrincipal Usuario usuario) {
+        return cartaService.sobresGratisPendientes(exigirUsuario(usuario));
+    }
+
+    /** Abre un crédito de sobre gratis del usuario. 404 si no es suyo, 409 si ya se abrió. */
+    @PostMapping("/me/cartas/sobres-gratis/{creditoId}/abrir")
+    public AbrirSobreResultadoDto abrirSobreGratis(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable Long creditoId) {
+        return cartaService.abrirSobreGratis(exigirUsuario(usuario), creditoId);
     }
 
     @GetMapping("/me/cartas/trades")

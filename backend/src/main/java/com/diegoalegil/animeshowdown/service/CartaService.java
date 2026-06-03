@@ -27,14 +27,19 @@ import com.diegoalegil.animeshowdown.dto.UsuarioCartaPosesionItem;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.CartaClimax;
+import com.diegoalegil.animeshowdown.dto.SobreGratisDto;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.SobreApertura;
 import com.diegoalegil.animeshowdown.model.SobreAperturaItem;
+import com.diegoalegil.animeshowdown.model.SobreGratisCredito;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCarta;
 import com.diegoalegil.animeshowdown.model.UsuarioCartaPity;
+import com.diegoalegil.animeshowdown.repository.CartaRepository;
 import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
 import com.diegoalegil.animeshowdown.repository.SobreAperturaRepository;
+import com.diegoalegil.animeshowdown.repository.SobreGratisCreditoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaPityRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -57,6 +62,8 @@ public class CartaService {
     private final SobreAperturaRepository sobreAperturaRepository;
     private final MonederoMovimientoRepository movimientoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CartaRepository cartaRepository;
+    private final SobreGratisCreditoRepository sobreGratisCreditoRepository;
     private final MonederoService monederoService;
     private final RarezaService rarezaService;
     private final AuditLogService auditLogService;
@@ -72,6 +79,8 @@ public class CartaService {
             SobreAperturaRepository sobreAperturaRepository,
             MonederoMovimientoRepository movimientoRepository,
             UsuarioRepository usuarioRepository,
+            CartaRepository cartaRepository,
+            SobreGratisCreditoRepository sobreGratisCreditoRepository,
             MonederoService monederoService,
             RarezaService rarezaService,
             AuditLogService auditLogService,
@@ -85,6 +94,8 @@ public class CartaService {
         this.sobreAperturaRepository = sobreAperturaRepository;
         this.movimientoRepository = movimientoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.cartaRepository = cartaRepository;
+        this.sobreGratisCreditoRepository = sobreGratisCreditoRepository;
         this.monederoService = monederoService;
         this.rarezaService = rarezaService;
         this.auditLogService = auditLogService;
@@ -122,9 +133,12 @@ public class CartaService {
                 .map(UsuarioCartaPity::getSobresSinEspecial)
                 .orElse(0);
 
+        int sobresGratisPendientes = (int) sobreGratisCreditoRepository
+                .countByUsuarioIdAndConsumidoEnIsNull(usuario.getId());
+
         return new ColeccionDto(totalCatalogo, totalPoseidas, porcentaje, saldo,
                 pityActual, rarezaService.pityDuro(), cofreDiarioDisponible(usuario),
-                usuario.getSobreBienvenidaReclamadoEn() == null,
+                usuario.getSobreBienvenidaReclamadoEn() == null, sobresGratisPendientes,
                 progresoPorAnime(cartas), cartas);
     }
 
@@ -302,6 +316,141 @@ public class CartaService {
                         .toList()),
                 null);
         log.info("Sobre bienvenida reclamado: usuario={} cartas={}", usuario.getUsername(), pack.size());
+        return dtoDesdeApertura(usuario, apertura);
+    }
+
+    /**
+     * Concede la carta ESPECIAL de un personaje (por slug) a un usuario, como
+     * premio de evento. Si ya la tiene, incrementa el contador. Devuelve la
+     * carta concedida o {@code null} si el slug no tiene carta especial.
+     */
+    @Transactional
+    public Carta concederCartaEspecialPorSlug(Usuario usuario, String personajeSlug) {
+        if (personajeSlug == null || personajeSlug.isBlank()) {
+            return null;
+        }
+        Carta carta = cartaRepository
+                .findByPersonajeSlugAndRarezaAndVariante(personajeSlug, RarezaCarta.ESPECIAL, "")
+                .orElse(null);
+        if (carta == null) {
+            log.warn("Recompensa de evento: no existe carta ESPECIAL para slug={}", personajeSlug);
+            return null;
+        }
+        UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
+        if (poseida == null) {
+            usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
+        } else {
+            poseida.incrementar();
+            usuarioCartaRepository.save(poseida);
+        }
+        return carta;
+    }
+
+    /**
+     * Otorga un crédito de sobre gratis (idempotente por {@code referencia}).
+     * Devuelve true si lo creó, false si ya existía.
+     */
+    @Transactional
+    public boolean otorgarCreditoSobre(Long usuarioId, String origen, String referencia, String etiqueta) {
+        if (sobreGratisCreditoRepository.existsByReferencia(referencia)) {
+            return false;
+        }
+        try {
+            sobreGratisCreditoRepository.saveAndFlush(
+                    new SobreGratisCredito(usuarioId, origen, referencia, etiqueta));
+            return true;
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Carrera con otra entrega del mismo crédito: el UNIQUE lo blinda.
+            return false;
+        }
+    }
+
+    /** Créditos de sobre gratis pendientes de abrir del usuario. */
+    @Transactional(readOnly = true)
+    public List<SobreGratisDto> sobresGratisPendientes(Usuario usuario) {
+        return sobreGratisCreditoRepository
+                .findByUsuarioIdAndConsumidoEnIsNullOrderByCreatedAtDesc(usuario.getId())
+                .stream()
+                .map(SobreGratisDto::from)
+                .toList();
+    }
+
+    /**
+     * Abre un crédito de sobre gratis: revela 5 cartas sin coste y sin tocar el
+     * pity normal. Idempotente — reabrir el mismo crédito devuelve la apertura ya
+     * persistida. 404 si el crédito no es del usuario; 409 si ya estaba consumido.
+     */
+    @Transactional
+    public AbrirSobreResultadoDto abrirSobreGratis(Usuario usuario, Long creditoId) {
+        String idem = "sobregratis:" + creditoId;
+        SobreApertura existente = sobreAperturaRepository
+                .findByUsuarioAndIdempotencyKey(usuario, idem)
+                .orElse(null);
+        if (existente != null) {
+            return dtoDesdeApertura(usuario, existente);
+        }
+
+        SobreGratisCredito credito = sobreGratisCreditoRepository.findForUpdateById(creditoId).orElse(null);
+        if (credito == null || !credito.getUsuarioId().equals(usuario.getId())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "Crédito de sobre no encontrado");
+        }
+        if (credito.getConsumidoEn() != null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "Este sobre gratis ya fue abierto");
+        }
+        credito.setConsumidoEn(java.time.LocalDateTime.now(clock));
+        sobreGratisCreditoRepository.save(credito);
+
+        RarezaService.SobreDraw draw = rarezaService.elegirSobre(false);
+        boolean especial = draw.especial();
+        long saldo = monederoService.saldoDe(usuario);
+
+        List<Carta> pack = new ArrayList<>(draw.normales());
+        pack.add(draw.climax());
+
+        SobreApertura apertura = new SobreApertura(usuario, idem);
+        apertura.setPrecio(0L);
+        apertura.setPityAntes(0);
+        apertura.setEspecial(especial);
+
+        long monedasDuplicados = 0L;
+        for (int i = 0; i < pack.size(); i++) {
+            Carta carta = pack.get(i);
+            UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
+            boolean nueva = poseida == null;
+            long recompensa = 0L;
+            if (nueva) {
+                usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
+            } else {
+                poseida.incrementar();
+                usuarioCartaRepository.save(poseida);
+                recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
+                if (recompensa > 0) {
+                    monedasDuplicados += recompensa;
+                    saldo += recompensa;
+                }
+            }
+            apertura.addItem(new SobreAperturaItem(carta, i + 1, nueva, recompensa, climaxDe(i, especial)));
+        }
+
+        apertura.setPityDespues(0);
+        apertura.setSaldoRestante(saldo);
+        apertura.setMonedasDuplicados(monedasDuplicados);
+        apertura = sobreAperturaRepository.save(apertura);
+
+        auditLogService.registrar(
+                AuditEvento.SOBRE_GRATIS_ABIERTO,
+                usuario,
+                Map.of(
+                        "credito", creditoId,
+                        "origen", credito.getOrigen(),
+                        "cartas", pack.stream()
+                                .map(c -> c.getPersonaje().getSlug() + ":" + c.getRareza().name())
+                                .toList()),
+                null);
+        log.info("Sobre gratis abierto: usuario={} credito={} origen={} cartas={}",
+                usuario.getUsername(), creditoId, credito.getOrigen(), pack.size());
         return dtoDesdeApertura(usuario, apertura);
     }
 

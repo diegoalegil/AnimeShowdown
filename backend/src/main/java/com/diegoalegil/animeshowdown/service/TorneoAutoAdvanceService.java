@@ -21,6 +21,7 @@ public class TorneoAutoAdvanceService {
     private final BracketAdvanceService bracketAdvanceService;
     private final PrediccionService prediccionService;
     private final NotificacionService notificacionService;
+    private final EventoRecompensaService eventoRecompensaService;
     private final TorneoOperacionLockService torneoOperacionLockService;
     private final SimpMessagingTemplate messaging;
 
@@ -29,12 +30,14 @@ public class TorneoAutoAdvanceService {
             BracketAdvanceService bracketAdvanceService,
             PrediccionService prediccionService,
             NotificacionService notificacionService,
+            EventoRecompensaService eventoRecompensaService,
             TorneoOperacionLockService torneoOperacionLockService,
             @Autowired(required = false) SimpMessagingTemplate messaging) {
         this.torneoRepository = torneoRepository;
         this.bracketAdvanceService = bracketAdvanceService;
         this.prediccionService = prediccionService;
         this.notificacionService = notificacionService;
+        this.eventoRecompensaService = eventoRecompensaService;
         this.torneoOperacionLockService = torneoOperacionLockService;
         this.messaging = messaging;
     }
@@ -72,6 +75,7 @@ public class TorneoAutoAdvanceService {
 
         if (resultado == BracketAdvanceService.Resultado.TORNEO_FINALIZADO) {
             int resueltas = prediccionService.resolverParaTorneo(actualizado);
+            repartirRecompensasEvento(actualizado);
             notificarTorneoFinalizado(actualizado);
             log.info("Torneo {} auto-finalizado por {}: {} predicciones resueltas",
                     torneoId, reason, resueltas);
@@ -95,6 +99,15 @@ public class TorneoAutoAdvanceService {
             }
         } catch (Exception e) {
             log.warn("Push WS auto-advance falló: torneo={} err={}",
+                    torneo.getId(), e.getMessage());
+        }
+    }
+
+    private void repartirRecompensasEvento(Torneo torneo) {
+        try {
+            eventoRecompensaService.repartirPorTorneoFinalizado(torneo);
+        } catch (Exception e) {
+            log.warn("Reparto de recompensas de evento falló: torneo={} err={}",
                     torneo.getId(), e.getMessage());
         }
     }

@@ -70,6 +70,33 @@ class EventoTematicoServiceTest {
                 .hasMessageContaining("copa-heroes");
     }
 
+    @Test
+    void crearMapeaLasRecompensasDelRequest() {
+        EventoTematicoService service = service();
+        when(eventoRepository.existsBySlug("copa-heroes")).thenReturn(false);
+        when(eventoRepository.save(org.mockito.ArgumentMatchers.any(EventoTematico.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        var req = new com.diegoalegil.animeshowdown.dto.EventoTematicoRequest(
+                "copa-heroes", "Copa Heroes", "Heroes en runtime",
+                new com.diegoalegil.animeshowdown.dto.EventoTematicoRequest.Tipo(
+                        "slugs", List.of("luffy", "naruto", "goku")),
+                "2026-06-01T00:00:00Z", "2026-06-07T23:59:00Z", "amber", "*", true,
+                new com.diegoalegil.animeshowdown.dto.EventoTematicoRequest.Cup(true, 8, "Copa Heroes"),
+                new com.diegoalegil.animeshowdown.dto.EventoTematicoRequest.Recompensa(
+                        150, "makima", "campeon_evento", true));
+
+        service.crear(req);
+
+        var capt = org.mockito.ArgumentCaptor.forClass(EventoTematico.class);
+        org.mockito.Mockito.verify(eventoRepository).save(capt.capture());
+        EventoTematico guardado = capt.getValue();
+        assertThat(guardado.getRecompensaMoneda()).isEqualTo(150);
+        assertThat(guardado.getRecompensaCartaEspecialSlug()).isEqualTo("makima");
+        assertThat(guardado.getRecompensaBadgeCodigo()).isEqualTo("campeon_evento");
+        assertThat(guardado.isRecompensaSobreGratis()).isTrue();
+    }
+
     private EventoTematicoService service() {
         return new EventoTematicoService(eventoRepository, personajeRepository, clock);
     }
@@ -112,6 +139,7 @@ class EventoTematicoServiceTest {
                 "amber",
                 "*",
                 true,
-                new com.diegoalegil.animeshowdown.dto.EventoTematicoRequest.Cup(true, 8, "Copa Heroes"));
+                new com.diegoalegil.animeshowdown.dto.EventoTematicoRequest.Cup(true, 8, "Copa Heroes"),
+                null);
     }
 }

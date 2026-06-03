@@ -30,8 +30,10 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.UsuarioCartaPity;
+import com.diegoalegil.animeshowdown.repository.CartaRepository;
 import com.diegoalegil.animeshowdown.repository.MonederoMovimientoRepository;
 import com.diegoalegil.animeshowdown.repository.SobreAperturaRepository;
+import com.diegoalegil.animeshowdown.repository.SobreGratisCreditoRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaPityRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
@@ -46,6 +48,8 @@ class CartaServiceTest {
     @Mock private SobreAperturaRepository sobreAperturaRepository;
     @Mock private MonederoMovimientoRepository movimientoRepository;
     @Mock private UsuarioRepository usuarioRepository;
+    @Mock private CartaRepository cartaRepository;
+    @Mock private SobreGratisCreditoRepository sobreGratisCreditoRepository;
     @Mock private MonederoService monederoService;
     @Mock private RarezaService rarezaService;
     @Mock private AuditLogService auditLogService;
@@ -62,6 +66,8 @@ class CartaServiceTest {
                 sobreAperturaRepository,
                 movimientoRepository,
                 usuarioRepository,
+                cartaRepository,
+                sobreGratisCreditoRepository,
                 monederoService,
                 rarezaService,
                 auditLogService,

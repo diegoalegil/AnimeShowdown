@@ -188,6 +188,35 @@ public class EventoTematicoService {
         }
         evento.setCupSize(tamano);
         evento.setCupNombre(cup == null ? null : cup.nombre());
+        aplicarRecompensa(evento, request.recompensa());
+    }
+
+    /**
+     * Aplica la config de recompensas si viene en el request. En update, omitir
+     * el bloque deja intactas las recompensas ya guardadas (no las borra).
+     */
+    private void aplicarRecompensa(EventoTematico evento, EventoTematicoRequest.Recompensa recompensa) {
+        if (recompensa == null) {
+            return;
+        }
+        if (recompensa.moneda() != null) {
+            evento.setRecompensaMoneda(Math.max(0, recompensa.moneda()));
+        }
+        if (recompensa.cartaEspecialSlug() != null) {
+            evento.setRecompensaCartaEspecialSlug(normalizarOpcional(recompensa.cartaEspecialSlug()));
+        }
+        if (recompensa.badgeCodigo() != null) {
+            evento.setRecompensaBadgeCodigo(normalizarOpcional(recompensa.badgeCodigo()));
+        }
+        if (recompensa.sobreGratis() != null) {
+            evento.setRecompensaSobreGratis(recompensa.sobreGratis());
+        }
+    }
+
+    /** Trim; cadena vacía ⇒ null (borra la config de ese campo). */
+    private static String normalizarOpcional(String valor) {
+        String limpio = valor.trim();
+        return limpio.isEmpty() ? null : limpio;
     }
 
     private static EventoFiltroKind normalizarKind(EventoTematicoRequest.Tipo tipo) {
