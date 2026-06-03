@@ -474,6 +474,16 @@ describe('api.get / api.post / api.put / api.del', () => {
 // ─── endpoints ───────────────────────────────────────────────────────────────────────
 
 describe('endpoints', () => {
+  it('accede a una clave inexistente falla en compilación (satisfies EndpointMap)', () => {
+    // @ts-expect-error - 'endpointInexistente' no es una clave de endpoints.
+    // Gracias a `satisfies EndpointMap`, esto es un error de tipos en tsc —
+    // exactamente la clase de bug que dejó pasar `changeBio` con Record<string,any>.
+    // Si alguien quitara `satisfies`, este @ts-expect-error quedaría sin usar y
+    // el typecheck fallaría, avisando de la regresión.
+    const noExiste = endpoints.endpointInexistente
+    expect(noExiste).toBeUndefined()
+  })
+
   it('login: POST /api/auth/login without auth', async () => {
     const fn = mockFetchResolved({ token: 't' })
     vi.stubGlobal('fetch', fn)

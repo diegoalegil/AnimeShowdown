@@ -43,11 +43,16 @@ type RefreshPayload = {
 
 type ApiClient = {
   base: string
-  get: (path: string, opts?: RequestOptions) => Promise<unknown>
-  post: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
-  put: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
-  patch: (path: string, body?: unknown, opts?: RequestOptions) => Promise<unknown>
-  del: (path: string, opts?: RequestOptions) => Promise<unknown>
+  // Devuelven `any` (no `unknown`) a propósito: los ~130 consumidores de
+  // `endpoints` acceden a campos de la respuesta sin narrowing. Tiparlos por
+  // endpoint (desde los DTOs del backend) es el follow-up; por ahora esto
+  // mantiene la ergonomía actual mientras `satisfies EndpointMap` añade el
+  // chequeo de existencia de claves (lo que habría cazado el bug `changeBio`).
+  get: (path: string, opts?: RequestOptions) => Promise<any>
+  post: (path: string, body?: unknown, opts?: RequestOptions) => Promise<any>
+  put: (path: string, body?: unknown, opts?: RequestOptions) => Promise<any>
+  patch: (path: string, body?: unknown, opts?: RequestOptions) => Promise<any>
+  del: (path: string, opts?: RequestOptions) => Promise<any>
 }
 
 type EndpointMap = Record<string, (...args: any[]) => any>
@@ -563,7 +568,7 @@ export const api: ApiClient = {
   del: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
 }
 
-export const endpoints: EndpointMap = {
+export const endpoints = {
   login: (credentials) => api.post('/api/auth/login', credentials, { auth: false }),
   register: (data) => api.post('/api/auth/registro', data, { auth: false }),
   // /refresh y /logout viven sin Authorization Bearer — el backend lee la
@@ -942,7 +947,7 @@ export const endpoints: EndpointMap = {
     api.put(`/api/admin/torneos/${id}/rechazar`, { motivo }),
   // Inicia el torneo y opcionalmente precomputa el bracket si pasas
   // participantesIds. Sin ese array, solo cambia estado a IN_PROGRESS.
-  iniciarTorneo: (id, participantesIds) =>
+  iniciarTorneo: (id, participantesIds = undefined) =>
     api.put(
       `/api/torneos/${id}/iniciar`,
       participantesIds ? { participantesIds } : undefined,
@@ -999,4 +1004,8 @@ export const endpoints: EndpointMap = {
     api.patch(`/api/enfrentamientos/${enfrentamientoId}/votar/categoria`, {
       categoria,
     }, { auth: !anonymous, headers }),
-}
+  // satisfies (no anotación): preserva el tipo literal de `endpoints`, así que
+  // acceder a una clave inexistente (p.ej. un endpoint mal escrito o borrado)
+  // falla en compilación, mientras el constraint da tipado contextual a los
+  // params de los métodos.
+} satisfies EndpointMap
