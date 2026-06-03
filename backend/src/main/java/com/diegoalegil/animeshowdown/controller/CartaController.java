@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,9 +25,12 @@ import com.diegoalegil.animeshowdown.dto.CartaTradeCreateRequest;
 import com.diegoalegil.animeshowdown.dto.CartaTradeDto;
 import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionDto;
+import com.diegoalegil.animeshowdown.dto.ColeccionPaginaDto;
+import com.diegoalegil.animeshowdown.dto.ColeccionResumenDto;
 import com.diegoalegil.animeshowdown.dto.MonederoDto;
 import com.diegoalegil.animeshowdown.dto.OddsDto;
 import com.diegoalegil.animeshowdown.dto.SobreGratisDto;
+import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.service.CartaDownloadService;
 import com.diegoalegil.animeshowdown.service.CartaService;
@@ -61,10 +65,48 @@ public class CartaController {
         this.rarezaService = rarezaService;
     }
 
-    /** Colección del usuario: catálogo + obtenidas + % + saldo. */
+    /**
+     * Colección completa (catálogo + obtenidas + % + saldo). Se mantiene por
+     * compatibilidad; el frontend nuevo usa /resumen + /pagina para no cargar el
+     * catálogo entero de golpe. */
     @GetMapping("/me/cartas")
     public ColeccionDto miColeccion(@AuthenticationPrincipal Usuario usuario) {
         return cartaService.coleccion(exigirUsuario(usuario));
+    }
+
+    /** Cabecera de la colección sin el array de cartas: totales, saldo, pity,
+     *  flags y agregados por anime y rareza. */
+    @GetMapping("/me/cartas/resumen")
+    public ColeccionResumenDto miColeccionResumen(@AuthenticationPrincipal Usuario usuario) {
+        return cartaService.resumen(exigirUsuario(usuario));
+    }
+
+    /**
+     * Página del grid de colección, filtrada por rareza y/o anime. {@code rareza}
+     * tolera valores desconocidos/"TODAS" → sin filtro de rareza. {@code limit}
+     * se acota a [1, 120]. */
+    @GetMapping("/me/cartas/pagina")
+    public ColeccionPaginaDto miColeccionPagina(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam(required = false) String rareza,
+            @RequestParam(required = false) String anime,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "60") int limit) {
+        int saneLimit = Math.min(120, Math.max(1, limit));
+        int saneOffset = Math.max(0, offset);
+        return cartaService.pagina(exigirUsuario(usuario), parseRareza(rareza), anime, saneOffset, saneLimit);
+    }
+
+    /** Parseo tolerante de rareza: null/blank/"TODAS"/desconocida → null (sin filtro). */
+    private static RarezaCarta parseRareza(String rareza) {
+        if (rareza == null || rareza.isBlank() || "TODAS".equalsIgnoreCase(rareza)) {
+            return null;
+        }
+        try {
+            return RarezaCarta.valueOf(rareza.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /** Saldo de moneda del usuario. */

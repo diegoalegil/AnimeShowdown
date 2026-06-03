@@ -126,6 +126,61 @@ class CartaControllerTest {
     }
 
     @Test
+    void resumenDevuelveAgregadosSinElArrayDeCartas() throws Exception {
+        String token = token("cartas_resumen");
+        mvc.perform(get("/api/me/cartas/resumen").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCatalogo").isNumber())
+                .andExpect(jsonPath("$.totalPoseidas").value(0))
+                .andExpect(jsonPath("$.saldo").value(0))
+                .andExpect(jsonPath("$.progresoPorAnime").isArray())
+                .andExpect(jsonPath("$.progresoPorRareza").isArray())
+                .andExpect(jsonPath("$.progresoPorRareza[0].rareza").exists())
+                // El resumen NO debe incluir el array completo de cartas.
+                .andExpect(jsonPath("$.cartas").doesNotExist());
+    }
+
+    @Test
+    void resumenRequiereAuth() throws Exception {
+        mvc.perform(get("/api/me/cartas/resumen")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void paginaTroceaElCatalogoYReportaHayMas() throws Exception {
+        String token = token("cartas_pagina");
+        // Total del catálogo desde el resumen para comparar con totalFiltrado.
+        var resumen = mvc.perform(get("/api/me/cartas/resumen")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+        int totalCatalogo = json.readTree(resumen.getResponse().getContentAsString())
+                .get("totalCatalogo").asInt();
+
+        mvc.perform(get("/api/me/cartas/pagina?offset=0&limit=5")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.offset").value(0))
+                .andExpect(jsonPath("$.limit").value(5))
+                .andExpect(jsonPath("$.totalFiltrado").value(totalCatalogo))
+                .andExpect(jsonPath("$.cartas.length()").value(Math.min(5, totalCatalogo)))
+                .andExpect(jsonPath("$.hayMas").value(totalCatalogo > 5));
+    }
+
+    @Test
+    void paginaFiltraPorRarezaEspecial() throws Exception {
+        String token = token("cartas_pagina_especial");
+        var res = mvc.perform(get("/api/me/cartas/pagina?rareza=ESPECIAL&limit=50")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        var cartas = json.readTree(res.getResponse().getContentAsString()).get("cartas");
+        // Todas las cartas devueltas son de la rareza pedida.
+        for (var carta : cartas) {
+            org.junit.jupiter.api.Assertions.assertEquals(
+                    "ESPECIAL", carta.get("rareza").asText());
+        }
+    }
+
+    @Test
     void abrirSobreSinSaldoDevuelve409() throws Exception {
         String token = token("cartas_sinsaldo");
         mvc.perform(post("/api/me/cartas/sobre")
