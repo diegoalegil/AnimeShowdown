@@ -16,6 +16,7 @@ import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
 import DailyMissionPanel from '../components/DailyMissionPanel'
+import SobreBienvenidaBanner from '../features/cartas/SobreBienvenidaBanner'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Section from '../components/Section'
@@ -108,6 +109,7 @@ function InicioPage() {
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
       <Hero catalogoPersonajes={catalogoPersonajes} />
+      <SobreBienvenidaBanner />
       <HomeCatalogGuard
         isLoading={isCatalogLoading}
         isError={isCatalogError}

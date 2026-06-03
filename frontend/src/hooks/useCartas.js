@@ -53,6 +53,20 @@ export function useCofreDiario() {
   })
 }
 
+/**
+ * Reclama el sobre de bienvenida (gratis, una sola vez, especial garantizada).
+ * Al terminar invalida la colección para refrescar saldo y ocultar el banner.
+ */
+export function useSobreBienvenida() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: endpoints.sobreBienvenida,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+    },
+  })
+}
+
 export function useDescargarCarta() {
   return useMutation({
     mutationFn: async (carta) => {

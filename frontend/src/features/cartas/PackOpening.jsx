@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { Check, FastForward, RotateCcw, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, Check, FastForward, RotateCcw, X } from 'lucide-react'
 import Button from '../../components/Button'
 import MonedaIcon from '../../components/MonedaIcon'
 import { useSound } from '../../contexts/SoundContext'
@@ -98,6 +99,8 @@ function PackOpening({
   onCerrar,
   onDownload,
   descargandoId = null,
+  permitirAbrirOtro = true,
+  hook = null,
   timing = PACK_TIMING,
 }) {
   const { play, warm } = useSound()
@@ -354,6 +357,8 @@ function PackOpening({
               onCerrar={onCerrar}
               onDownload={onDownload}
               descargandoId={descargandoId}
+              permitirAbrirOtro={permitirAbrirOtro}
+              hook={hook}
             />
           )}
         </AnimatePresence>
@@ -759,6 +764,8 @@ function SummaryStage({
   onCerrar,
   onDownload,
   descargandoId,
+  permitirAbrirOtro,
+  hook,
 }) {
   return (
     <motion.div
@@ -794,6 +801,8 @@ function SummaryStage({
         abriendo={abriendo}
         onAbrirOtro={onAbrirOtro}
         onCerrar={onCerrar}
+        permitirAbrirOtro={permitirAbrirOtro}
+        hook={hook}
       />
     </motion.div>
   )
@@ -806,6 +815,8 @@ function PackOpeningFooter({
   abriendo,
   onAbrirOtro,
   onCerrar,
+  permitirAbrirOtro,
+  hook,
 }) {
   return (
     <div className="pack-opening__footer">
@@ -822,15 +833,27 @@ function PackOpeningFooter({
         )}
       </div>
       <div className="flex w-full flex-col gap-2 sm:flex-row">
-        <Button onClick={onAbrirOtro} disabled={!puedeAbrirOtro} className="flex-1">
-          <RotateCcw className="h-4 w-4" aria-hidden="true" />
-          {abriendo ? 'Abriendo...' : 'Abrir otro'}
-        </Button>
+        {permitirAbrirOtro && (
+          <Button onClick={onAbrirOtro} disabled={!puedeAbrirOtro} className="flex-1">
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            {abriendo ? 'Abriendo...' : 'Abrir otro'}
+          </Button>
+        )}
         <Button variant="secondary" onClick={onCerrar} className="flex-1">
           <X className="h-4 w-4" aria-hidden="true" />
           Cerrar
         </Button>
       </div>
+      {hook?.to && (
+        <Link
+          to={hook.to}
+          onClick={onCerrar}
+          className="inline-flex items-center justify-center gap-1.5 text-[13px] font-bold text-electric transition hover:text-gold"
+        >
+          {hook.label}
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      )}
     </div>
   )
 }
