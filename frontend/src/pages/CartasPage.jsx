@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Filter, Gift, PackageOpen, Sparkles } from 'lucide-react'
+import { Filter, Gift, PackageOpen, Sparkles, Ticket } from 'lucide-react'
 import Section from '../components/Section'
 import Button from '../components/Button'
 import EmptyState from '../components/EmptyState'
@@ -10,10 +10,12 @@ import PackOpening from '../features/cartas/PackOpening'
 import { useAuth } from '../contexts/AuthContext'
 import {
   useAbrirSobre,
+  useAbrirSobreGratis,
   useCofreDiario,
   useColeccion,
   useDescargarCarta,
   useOddsCartas,
+  useSobresGratis,
 } from '../hooks/useCartas'
 
 const PAGE_SIZE = 60
@@ -39,12 +41,15 @@ function CartasPage() {
   const { user } = useAuth()
   const coleccionQ = useColeccion()
   const oddsQ = useOddsCartas()
+  const sobresGratisQ = useSobresGratis()
   const abrirSobre = useAbrirSobre()
+  const abrirGratis = useAbrirSobreGratis()
   const cofreDiario = useCofreDiario()
   const descargarCarta = useDescargarCarta()
 
   const [visibles, setVisibles] = useState(PAGE_SIZE)
   const [reveal, setReveal] = useState(null)
+  const [revealEsGratis, setRevealEsGratis] = useState(false)
   const [rarezaFiltro, setRarezaFiltro] = useState('TODAS')
   const [animeFiltro, setAnimeFiltro] = useState('TODOS')
   const [cofreResultado, setCofreResultado] = useState(null)
@@ -64,6 +69,8 @@ function CartasPage() {
   const puedeAbrir = precio != null && saldo >= precio && !abrirSobre.isPending
   const faltan = precio != null ? Math.max(0, precio - saldo) : null
   const cofreDisponible = Boolean(data?.cofreDiarioDisponible)
+  const sobresGratis = sobresGratisQ.data ?? EMPTY_CARTAS
+  const primerSobreGratis = sobresGratis[0] ?? null
   const descargandoId = descargarCarta.isPending ? descargarCarta.variables?.id : null
 
   const cartasFiltradas = useMemo(() => {
@@ -91,9 +98,21 @@ function CartasPage() {
   async function abrir() {
     try {
       const res = await abrirSobre.mutateAsync(makeIdempotencyKey())
+      setRevealEsGratis(false)
       setReveal(res)
     } catch {
       // El error se muestra vía abrirSobre.isError abajo.
+    }
+  }
+
+  async function abrirEventoGratis() {
+    if (!primerSobreGratis) return
+    try {
+      const res = await abrirGratis.mutateAsync(primerSobreGratis.id)
+      setRevealEsGratis(true)
+      setReveal(res)
+    } catch {
+      // El error se muestra vía abrirGratis.isError abajo.
     }
   }
 
@@ -139,6 +158,19 @@ function CartasPage() {
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+            {primerSobreGratis && (
+              <Button
+                onClick={abrirEventoGratis}
+                disabled={abrirGratis.isPending}
+                size="lg"
+                className="border-gold/70 shadow-aura"
+              >
+                <Ticket className="h-5 w-5" aria-hidden="true" />
+                {abrirGratis.isPending
+                  ? 'Abriendo...'
+                  : `Sobre del evento${sobresGratis.length > 1 ? ` (${sobresGratis.length})` : ''}`}
+              </Button>
+            )}
             <Button onClick={abrir} disabled={!puedeAbrir} size="lg">
               <PackageOpen className="h-5 w-5" aria-hidden="true" />
               {abrirSobre.isPending ? 'Abriendo...' : 'Abrir sobre'}
@@ -211,6 +243,9 @@ function CartasPage() {
         {abrirSobre.isError && (
           <p className="text-[12px] text-danger">No se pudo abrir el sobre. Inténtalo de nuevo.</p>
         )}
+        {abrirGratis.isError && (
+          <p className="text-[12px] text-danger">No se pudo abrir el sobre del evento. Recarga e inténtalo de nuevo.</p>
+        )}
         {cofreDiario.isError && (
           <p className="text-[12px] text-danger">No se pudo reclamar el cofre diario.</p>
         )}
@@ -277,7 +312,13 @@ function CartasPage() {
           <PackOpening
             key={packRevealKey(reveal)}
             reveal={reveal}
-            puedeAbrirOtro={precio != null && reveal.saldoRestante >= precio && !abrirSobre.isPending}
+            puedeAbrirOtro={
+              !revealEsGratis &&
+              precio != null &&
+              reveal.saldoRestante >= precio &&
+              !abrirSobre.isPending
+            }
+            permitirAbrirOtro={!revealEsGratis}
             abriendo={abrirSobre.isPending}
             onAbrirOtro={abrir}
             onCerrar={() => setReveal(null)}

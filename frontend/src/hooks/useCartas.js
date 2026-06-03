@@ -67,6 +67,32 @@ export function useSobreBienvenida() {
   })
 }
 
+/** Sobres gratis pendientes (recompensas de evento por abrir). */
+export function useSobresGratis() {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.sobresGratis(),
+    queryFn: endpoints.sobresGratis,
+    enabled: Boolean(user),
+    staleTime: 30 * 1000,
+  })
+}
+
+/**
+ * Abre un crédito de sobre gratis. Invalida la colección (saldo/cartas) y la
+ * lista de sobres gratis para que el CTA desaparezca al agotar el crédito.
+ */
+export function useAbrirSobreGratis() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: endpoints.abrirSobreGratis,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.coleccionCartas() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.sobresGratis() })
+    },
+  })
+}
+
 export function useDescargarCarta() {
   return useMutation({
     mutationFn: async (carta) => {

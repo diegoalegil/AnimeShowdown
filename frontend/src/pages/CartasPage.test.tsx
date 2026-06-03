@@ -32,7 +32,13 @@ vi.mock('../hooks/useCartas', () => ({
       probabilidadEspecialBase: 0.05,
     },
   }),
+  useSobresGratis: () => ({ data: [], isLoading: false, isError: false }),
   useAbrirSobre: () => ({
+    isPending: false,
+    isError: false,
+    mutateAsync: () => Promise.resolve({}),
+  }),
+  useAbrirSobreGratis: () => ({
     isPending: false,
     isError: false,
     mutateAsync: () => Promise.resolve({}),

@@ -640,6 +640,10 @@ export const endpoints: EndpointMap = {
   cofreDiario: () => api.post('/api/me/cartas/cofre-diario', undefined),
   // Sobre de bienvenida: gratis, una sola vez, con especial garantizada.
   sobreBienvenida: () => api.post('/api/me/cartas/sobre-bienvenida', undefined),
+  // Sobres gratis pendientes (recompensas de evento) + canje de un credito.
+  sobresGratis: () => api.get('/api/me/cartas/sobres-gratis'),
+  abrirSobreGratis: (creditoId) =>
+    api.post(`/api/me/cartas/sobres-gratis/${encodeURIComponent(creditoId)}/abrir`, undefined),
   descargarCarta: (cartaId) =>
     requestBlob(`/api/me/cartas/${encodeURIComponent(cartaId)}/descargar`, {
       timeoutMs: 15000,
