@@ -62,6 +62,11 @@ public class TorneoAutoAdvanceService {
         if (torneo == null || torneo.getEstado() != EstadoTorneo.IN_PROGRESS) {
             return BracketAdvanceService.Resultado.SIN_CAMBIOS;
         }
+        // La Arena (V66) es un torneo-sistema sin bracket: sus duelos se resuelven
+        // por umbral de votos en ArenaService, no por rondas. Nunca se "avanza".
+        if (torneo.isEsArena()) {
+            return BracketAdvanceService.Resultado.SIN_CAMBIOS;
+        }
 
         BracketAdvanceService.Resultado resultado = "vote".equals(reason)
                 ? bracketAdvanceService.cerrarRondasIntermedias(torneo)
