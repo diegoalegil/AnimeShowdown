@@ -2,6 +2,8 @@ package com.diegoalegil.animeshowdown.config;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +43,12 @@ public class SecurityConfig {
     private final String allowedOriginsCsv;
     private final String allowedOriginPatternsCsv;
     private final String activeProfile;
+    private final boolean swaggerPublicOverride;
+
+    // Perfiles de desarrollo donde Swagger/OpenAPI se expone sin auth. Cualquier
+    // otro perfil (production, prod, railway, staging, vacio, o un CSV sin un
+    // perfil dev) exige ROLE_ADMIN — fail-closed.
+    private static final Set<String> PERFILES_DEV = Set.of("dev", "local", "test");
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthFilter,
@@ -50,7 +58,8 @@ public class SecurityConfig {
             HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository,
             @Value("${cors.allowed-origins:}") String allowedOriginsCsv,
             @Value("${cors.allowed-origin-patterns:}") String allowedOriginPatternsCsv,
-            @Value("${spring.profiles.active:}") String activeProfile) {
+            @Value("${spring.profiles.active:}") String activeProfile,
+            @Value("${app.swagger.public:false}") boolean swaggerPublicOverride) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.oauth2LoginSuccessHandler = oauth2LoginSuccessHandler;
@@ -59,6 +68,7 @@ public class SecurityConfig {
         this.allowedOriginsCsv = allowedOriginsCsv;
         this.allowedOriginPatternsCsv = allowedOriginPatternsCsv;
         this.activeProfile = activeProfile;
+        this.swaggerPublicOverride = swaggerPublicOverride;
     }
 
     @Bean
@@ -284,8 +294,7 @@ public class SecurityConfig {
 
     private AuthorizationManager<RequestAuthorizationContext> swaggerAuthorizationManager() {
         return (request, ctx) -> {
-            boolean inProd = "production".equalsIgnoreCase(activeProfile);
-            if (!inProd) {
+            if (swaggerExpuestoSinAuth()) {
                 return new AuthorizationDecision(true);
             }
             Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
@@ -296,6 +305,37 @@ public class SecurityConfig {
             }
             return new AuthorizationDecision(false);
         };
+    }
+
+    /**
+     * ¿Se expone Swagger/OpenAPI sin autenticación? Fail-closed: solo en perfiles
+     * de desarrollo conocidos ({@link #PERFILES_DEV}) o con el override explícito
+     * {@code app.swagger.public=true}. En cualquier otro caso —producción, un
+     * perfil renombrado (prod/railway/staging), un CSV sin perfil dev, o perfil
+     * vacío— exige ROLE_ADMIN.
+     *
+     * <p>Antes la comprobación era fail-OPEN: solo el string exacto
+     * {@code "production"} protegía, así que un rename del perfil o un deploy sin
+     * perfil dejaba todo el spec del API público. Nota: en local (perfil vacío)
+     * Swagger queda protegido; para abrirlo, arrancar con
+     * {@code SPRING_PROFILES_ACTIVE=dev} o {@code APP_SWAGGER_PUBLIC=true}.
+     */
+    private boolean swaggerExpuestoSinAuth() {
+        return perfilExponeSwagger(activeProfile, swaggerPublicOverride);
+    }
+
+    /** Lógica pura de {@link #swaggerExpuestoSinAuth()}, extraída para tests. */
+    static boolean perfilExponeSwagger(String activeProfile, boolean override) {
+        if (override) {
+            return true;
+        }
+        if (activeProfile == null) {
+            return false;
+        }
+        return Arrays.stream(activeProfile.split(","))
+                .map(String::trim)
+                .map(p -> p.toLowerCase(Locale.ROOT))
+                .anyMatch(PERFILES_DEV::contains);
     }
 
     /** Parsea una lista CSV ignorando espacios y entradas vacías. */
