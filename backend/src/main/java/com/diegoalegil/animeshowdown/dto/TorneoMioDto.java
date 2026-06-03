@@ -28,7 +28,8 @@ public record TorneoMioDto(
         EstadoRevision estadoRevision,
         String motivoRechazo,
         LocalDateTime fechaCreacion,
-        LocalDateTime fechaRevisado) {
+        LocalDateTime fechaRevisado,
+        boolean publico) {
 
     public static TorneoMioDto from(Torneo t) {
         return new TorneoMioDto(
@@ -40,6 +41,7 @@ public record TorneoMioDto(
                 t.getEstadoRevision(),
                 t.getMotivoRechazo(),
                 t.getFechaCreacion(),
-                t.getFechaRevisado());
+                t.getFechaRevisado(),
+                t.isPublico());
     }
 }
