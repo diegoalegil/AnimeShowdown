@@ -72,6 +72,7 @@ public class EnfrentamientoController {
     /** Header con el token Turnstile cuando el frontend completó captcha. */
     private static final String CAPTCHA_TOKEN_HEADER = "X-AS-Captcha-Token";
     private static final int ANON_VOTE_LIMIT = 5;
+    private static final int SIGUIENTES_MAX = 10;
     private static final BigDecimal ANON_VOTE_WEIGHT = new BigDecimal("0.30");
     private static final BigDecimal HALF_VOTE_WEIGHT = new BigDecimal("0.50");
 
@@ -157,6 +158,63 @@ public class EnfrentamientoController {
             @AuthenticationPrincipal Usuario usuario,
             HttpServletRequest httpRequest) {
         return siguiente(null, usuario, httpRequest);
+    }
+
+    /**
+     * Versión EN LOTE de /siguiente: devuelve hasta {@code count} enfrentamientos
+     * abiertos distintos en UNA llamada para que VotarPage mantenga una cola en
+     * cliente y no haga un round-trip a la DB por cada voto (el /siguiente medía
+     * ~1s por llamada). Mismo contrato de exclusión que /siguiente (excluye los
+     * ya votados por el usuario/sesión + los excludeIds del cliente). Devuelve
+     * lista vacía (200, no 404) cuando el pool está agotado.
+     */
+    @GetMapping("/siguientes")
+    public ResponseEntity<List<EnfrentamientoDto>> siguientes(
+            @RequestParam(name = "count", required = false, defaultValue = "5") int count,
+            @RequestParam(name = "excludeIds", required = false) List<String> rawExcludeIds,
+            @AuthenticationPrincipal Usuario usuario,
+            HttpServletRequest httpRequest) {
+        AnonymousVoteContext anon = usuario == null ? resolverAnonymousContext(httpRequest) : null;
+        int n = Math.max(1, Math.min(SIGUIENTES_MAX, count));
+        List<Long> excludeIds = parseExcludeIds(rawExcludeIds);
+        List<EnfrentamientoDto> lote = buscarSiguientesDisponibles(
+                usuario == null ? null : usuario.getId(),
+                anon == null ? null : anon.sessionId(),
+                excludeIds, n);
+        ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
+        if (anon != null && anon.signedToken() != null) {
+            ok.header(HttpHeaders.SET_COOKIE, anonCookieFor(anon).toString());
+        }
+        return ok.body(lote);
+    }
+
+    private List<EnfrentamientoDto> buscarSiguientesDisponibles(
+            Long usuarioId, String anonSessionId, List<Long> excludeIds, int count) {
+        long maxOpenId = enfrentamientoRepository.maxIdEnfrentamientoAbierto();
+        if (maxOpenId <= 0) return List.of();
+        long cursor = ThreadLocalRandom.current().nextLong(1, maxOpenId + 1);
+        List<Long> safeExcludeIds = excludeIds.isEmpty() ? Collections.singletonList(-1L) : excludeIds;
+        int excludeIdsSize = excludeIds.size();
+
+        // Cursor aleatorio + wrap-around (igual que /siguiente) para variedad sin
+        // ORDER BY RANDOM(). LinkedHashSet preserva orden y deduplica.
+        java.util.LinkedHashSet<Long> ids = new java.util.LinkedHashSet<>(
+                enfrentamientoRepository.findIdsSiguientesAbiertosDesde(
+                        cursor, usuarioId, anonSessionId, safeExcludeIds, excludeIdsSize, count));
+        if (ids.size() < count) {
+            ids.addAll(enfrentamientoRepository.findIdsSiguientesAbiertosAntes(
+                    cursor, usuarioId, anonSessionId, safeExcludeIds, excludeIdsSize, count - ids.size()));
+        }
+        if (ids.isEmpty()) return List.of();
+
+        java.util.Map<Long, Enfrentamiento> porId = enfrentamientoRepository
+                .findByIdInFetch(new java.util.ArrayList<>(ids)).stream()
+                .collect(java.util.stream.Collectors.toMap(Enfrentamiento::getId, e -> e));
+        return ids.stream()
+                .map(porId::get)
+                .filter(Objects::nonNull)
+                .map(e -> EnfrentamientoDto.from(e, null))
+                .toList();
     }
 
     // @Transactional es OBLIGATORIO aquí, no estético.

@@ -144,6 +144,73 @@ public interface EnfrentamientoRepository extends JpaRepository<Enfrentamiento, 
             @Param("excludeIds") List<Long> excludeIds,
             @Param("excludeIdsSize") int excludeIdsSize);
 
+    // Variantes en LOTE de las dos anteriores: devuelven hasta :count ids (no
+    // entidades) para que VotarPage pida N enfrentamientos en UNA llamada y no
+    // haga un round-trip por voto. Solo ids → la hidratación va aparte con
+    // findByIdInFetch (JOIN FETCH) y así se evita el N+1 de personajes.
+    @Query(value = """
+            SELECT e.id FROM enfrentamientos e
+            JOIN torneos t ON e.torneo_id = t.id
+            WHERE t.estado = 'IN_PROGRESS'
+              AND e.personaje1_id IS NOT NULL
+              AND e.personaje2_id IS NOT NULL
+              AND e.ganador_id IS NULL
+              AND e.id >= :cursorId
+              AND (:excludeIdsSize = 0 OR e.id NOT IN (:excludeIds))
+              AND (:usuarioId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id AND v.usuario_id = :usuarioId))
+              AND (:anonSessionId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id AND v.anon_session_id = :anonSessionId))
+            ORDER BY e.id ASC
+            LIMIT :count
+            """, nativeQuery = true)
+    List<Long> findIdsSiguientesAbiertosDesde(
+            @Param("cursorId") long cursorId,
+            @Param("usuarioId") Long usuarioId,
+            @Param("anonSessionId") String anonSessionId,
+            @Param("excludeIds") List<Long> excludeIds,
+            @Param("excludeIdsSize") int excludeIdsSize,
+            @Param("count") int count);
+
+    @Query(value = """
+            SELECT e.id FROM enfrentamientos e
+            JOIN torneos t ON e.torneo_id = t.id
+            WHERE t.estado = 'IN_PROGRESS'
+              AND e.personaje1_id IS NOT NULL
+              AND e.personaje2_id IS NOT NULL
+              AND e.ganador_id IS NULL
+              AND e.id < :cursorId
+              AND (:excludeIdsSize = 0 OR e.id NOT IN (:excludeIds))
+              AND (:usuarioId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id AND v.usuario_id = :usuarioId))
+              AND (:anonSessionId IS NULL OR NOT EXISTS (
+                    SELECT 1 FROM votos v
+                    WHERE v.enfrentamiento_id = e.id AND v.anon_session_id = :anonSessionId))
+            ORDER BY e.id ASC
+            LIMIT :count
+            """, nativeQuery = true)
+    List<Long> findIdsSiguientesAbiertosAntes(
+            @Param("cursorId") long cursorId,
+            @Param("usuarioId") Long usuarioId,
+            @Param("anonSessionId") String anonSessionId,
+            @Param("excludeIds") List<Long> excludeIds,
+            @Param("excludeIdsSize") int excludeIdsSize,
+            @Param("count") int count);
+
+    /** Hidrata enfrentamientos por id con personajes/torneo (sin N+1). Orden libre. */
+    @Query("""
+            SELECT e FROM Enfrentamiento e
+            LEFT JOIN FETCH e.personaje1
+            LEFT JOIN FETCH e.personaje2
+            LEFT JOIN FETCH e.ganador
+            LEFT JOIN FETCH e.torneo
+            WHERE e.id IN :ids
+            """)
+    List<Enfrentamiento> findByIdInFetch(@Param("ids") List<Long> ids);
+
     /**
      * Borra todos los enfrentamientos donde el personaje participe como
      * personaje1, personaje2 o ganador. Devuelve cuántos se borraron.
