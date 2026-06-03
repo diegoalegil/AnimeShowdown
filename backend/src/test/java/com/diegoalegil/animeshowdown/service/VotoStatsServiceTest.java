@@ -57,6 +57,16 @@ class VotoStatsServiceTest {
         empate = votoRepository.save(empate);
 
         var snapshot = votoStatsService.registrar(empate);
+        // registrar ya no materializa la agregación diaria/torneo (eso lo hace
+        // VotoAgregadoStatsListener async en prod); la aplicamos inline para
+        // poder verificar el ranking por ventana ('periodo').
+        votoStatsService.registrarAgregadosDiarios(
+                snapshot.deltas().stream()
+                        .map(d -> new com.diegoalegil.animeshowdown.event.VotoAgregadoEvent.DiaDelta(
+                                d.personaje().getId(), d.votosScore(), d.pesoVotos()))
+                        .toList(),
+                empate.getFecha().toLocalDate(),
+                enfrentamiento.getTorneo().getId());
 
         assertThat(snapshot.scoreDe(a)).isEqualTo(0.5);
         assertThat(snapshot.scoreDe(b)).isEqualTo(0.5);

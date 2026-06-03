@@ -3,7 +3,6 @@ package com.diegoalegil.animeshowdown.service;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,23 +33,41 @@ public class VotoStatsService {
     @Transactional
     public VotoStatsSnapshot registrar(Voto voto) {
         List<PersonajeDelta> deltas = deltasDe(voto);
-        LocalDate dia = diaDe(voto);
         Enfrentamiento enfrentamiento = voto.getEnfrentamiento();
 
+        // Solo lo que alimenta la respuesta del POST (score por-match → DTO) y
+        // el delta de ranking en vivo (totales all-time del personaje → WS).
+        // Las agregaciones diaria/por-torneo se materializan async (ver
+        // registrarAgregadosDiarios) porque solo las leen rankings por ventana
+        // cacheados, no el hot path del voto.
         for (PersonajeDelta delta : deltas) {
             upsertPersonaje(delta.personaje().getId(), delta.votosScore(), delta.pesoVotos());
-            upsertPersonajeDia(delta.personaje().getId(), dia, delta.votosScore(), delta.pesoVotos());
             if (enfrentamiento != null && enfrentamiento.getId() != null) {
                 upsertEnfrentamiento(enfrentamiento.getId(), delta.personaje().getId(), delta.votosScore());
             }
         }
-        if (enfrentamiento != null
-                && enfrentamiento.getTorneo() != null
-                && enfrentamiento.getTorneo().getId() != null) {
-            upsertTorneo(enfrentamiento.getTorneo().getId());
-        }
 
         return snapshot(enfrentamiento, deltas);
+    }
+
+    /**
+     * Materializa las agregaciones diaria ({@code voto_personaje_dia_stats}) y
+     * por-torneo ({@code voto_torneo_stats}) FUERA de la transacción del POST.
+     * La invoca {@code VotoAgregadoStatsListener} en AFTER_COMMIT @Async: estas
+     * tablas solo las leen rankings por ventana (cacheados), nunca el DTO del
+     * voto ni el delta WS, así que aceptan consistencia eventual de unos ms.
+     */
+    @Transactional
+    public void registrarAgregadosDiarios(
+            List<com.diegoalegil.animeshowdown.event.VotoAgregadoEvent.DiaDelta> deltas,
+            LocalDate dia,
+            Long torneoId) {
+        for (var delta : deltas) {
+            upsertPersonajeDia(delta.personajeId(), dia, delta.votosScore(), delta.pesoVotos());
+        }
+        if (torneoId != null) {
+            upsertTorneo(torneoId);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -84,11 +101,6 @@ public class VotoStatsService {
             return List.of();
         }
         return List.of(new PersonajeDelta(personaje, VOTO_NORMAL, peso));
-    }
-
-    private LocalDate diaDe(Voto voto) {
-        LocalDateTime fecha = voto.getFecha() == null ? LocalDateTime.now() : voto.getFecha();
-        return fecha.toLocalDate();
     }
 
     private void upsertPersonaje(Long personajeId, BigDecimal scoreDelta, BigDecimal pesoDelta) {
