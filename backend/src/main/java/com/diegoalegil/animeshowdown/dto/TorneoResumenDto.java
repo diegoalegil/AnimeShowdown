@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.diegoalegil.animeshowdown.model.EstadoTorneo;
+import com.diegoalegil.animeshowdown.model.Torneo;
 
 /**
  * Cabecera de torneo para listados (`GET /api/torneos`). Sin enfrentamientos:
@@ -42,6 +43,29 @@ public class TorneoResumenDto {
     private List<PersonajeMiniDto> avataresPrincipales;
 
     public TorneoResumenDto() {
+    }
+
+    /**
+     * Proyección escalar de la entidad para respuestas de mutación admin
+     * (crear/iniciar/finalizar). Solo copia columnas planas ya cargadas — NO
+     * accede a relaciones lazy (creadoPor/ganadorPersonaje) ni recalcula los
+     * agregados de bracket (numParticipantes/rondas/votos), que quedan null.
+     * El cliente que necesite el bracket completo pide GET /api/torneos/{id}.
+     * Sirve para no exponer la entidad cruda (y su email de creador) en la
+     * respuesta de las mutaciones.
+     */
+    public static TorneoResumenDto fromEntity(Torneo t) {
+        TorneoResumenDto dto = new TorneoResumenDto();
+        dto.setId(t.getId());
+        dto.setSlug(t.getSlug());
+        dto.setNombre(t.getNombre());
+        dto.setDescripcion(t.getDescripcion());
+        dto.setEstado(t.getEstado());
+        dto.setFechaCreacion(t.getFechaCreacion());
+        dto.setFechaInicio(t.getFechaInicio());
+        dto.setFechaFinalizacion(t.getFechaFinalizacion());
+        dto.setPublico(t.isPublico());
+        return dto;
     }
 
     public Long getId() {

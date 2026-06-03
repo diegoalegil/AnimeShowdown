@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.diegoalegil.animeshowdown.dto.EnfrentamientoCrearRequest;
+import com.diegoalegil.animeshowdown.dto.EnfrentamientoDto;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearMioRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoCrearRequest;
 import com.diegoalegil.animeshowdown.dto.TorneoDetalleDto;
@@ -118,8 +119,10 @@ public class TorneoController {
     }
 
     @PostMapping
-    public Torneo crear(@Valid @RequestBody TorneoCrearRequest request) {
-        return torneoService.crear(request);
+    public TorneoResumenDto crear(@Valid @RequestBody TorneoCrearRequest request) {
+        // DTO en vez de la entidad Torneo cruda: evita exponer relaciones
+        // internas (creadoPor/ganadorPersonaje) y acoplar el contrato a la entidad.
+        return TorneoResumenDto.fromEntity(torneoService.crear(request));
     }
 
     /**
@@ -129,14 +132,14 @@ public class TorneoController {
      * solo en /api/torneos/mios del creador y /api/admin/torneos/pendientes.
      */
     @PostMapping("/mio")
-    public ResponseEntity<Torneo> crearMio(
+    public ResponseEntity<TorneoMioDto> crearMio(
             @AuthenticationPrincipal Usuario creador,
             @Valid @RequestBody TorneoCrearMioRequest request) {
         if (creador == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Torneo guardado = torneoService.crearPorUsuario(creador, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(TorneoMioDto.from(guardado));
     }
 
     /**
@@ -165,22 +168,25 @@ public class TorneoController {
      * enfrentamientos al endpoint /enfrentamientos.
      */
     @PutMapping("/{id}/iniciar")
-    public ResponseEntity<Torneo> iniciar(
+    public ResponseEntity<TorneoResumenDto> iniciar(
             @PathVariable Long id,
             @RequestBody(required = false) TorneoIniciarRequest request) {
-        return ResponseEntity.ok(torneoService.iniciar(id, request));
+        return ResponseEntity.ok(TorneoResumenDto.fromEntity(torneoService.iniciar(id, request)));
     }
 
     @PostMapping("/{id}/enfrentamientos")
-    public ResponseEntity<List<Enfrentamiento>> crearEnfrentamientos(
+    public ResponseEntity<List<EnfrentamientoDto>> crearEnfrentamientos(
             @PathVariable Long id,
             @Valid @RequestBody List<@Valid EnfrentamientoCrearRequest> requests) {
         List<Enfrentamiento> creados = torneoService.crearEnfrentamientos(id, requests);
-        return ResponseEntity.status(HttpStatus.CREATED).body(creados);
+        List<EnfrentamientoDto> dtos = creados.stream()
+                .map(e -> EnfrentamientoDto.from(e, 0L))
+                .toList();
+        return ResponseEntity.status(HttpStatus.CREATED).body(dtos);
     }
 
     @PutMapping("/{id}/finalizar")
-    public ResponseEntity<Torneo> finalizar(@PathVariable Long id) {
-        return ResponseEntity.ok(torneoService.finalizar(id));
+    public ResponseEntity<TorneoResumenDto> finalizar(@PathVariable Long id) {
+        return ResponseEntity.ok(TorneoResumenDto.fromEntity(torneoService.finalizar(id)));
     }
 }
