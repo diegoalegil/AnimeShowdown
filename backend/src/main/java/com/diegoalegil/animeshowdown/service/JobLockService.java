@@ -47,6 +47,11 @@ public class JobLockService {
      */
     @Transactional
     public boolean intentarAdquirir(String clave, Duration ttl) {
+        // Auto-seed: una clave nueva no necesita fila pre-sembrada en migración.
+        // ON CONFLICT DO NOTHING = idempotente y sin excepción que envenene la tx.
+        jdbcTemplate.update(
+                "INSERT INTO job_lock (clave, ejecutado_en) VALUES (?, NULL) ON CONFLICT DO NOTHING",
+                clave);
         LocalDateTime ahora = LocalDateTime.now(clock);
         LocalDateTime umbral = ahora.minus(ttl);
         int filas = jdbcTemplate.update("""

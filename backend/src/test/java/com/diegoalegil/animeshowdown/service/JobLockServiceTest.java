@@ -52,6 +52,16 @@ class JobLockServiceTest {
     }
 
     @Test
+    void claveNoSembradaSeAutoCreaEnElPrimerIntento() {
+        // Una clave que no existe en job_lock (no sembrada por migración) debe
+        // poder reclamarse igual: intentarAdquirir hace auto-seed idempotente.
+        String clave = "test_job_nuevo_" + UUID.randomUUID().toString().substring(0, 8);
+        JobLockService svc = conReloj(Instant.parse("2026-06-03T00:00:00Z"));
+        assertThat(svc.intentarAdquirir(clave, Duration.ofMinutes(10))).isTrue();
+        assertThat(svc.intentarAdquirir(clave, Duration.ofMinutes(10))).isFalse();
+    }
+
+    @Test
     void clavesDistintasSonIndependientes() {
         String a = "test_job_a_" + UUID.randomUUID().toString().substring(0, 8);
         String b = "test_job_b_" + UUID.randomUUID().toString().substring(0, 8);
