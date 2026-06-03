@@ -108,6 +108,43 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void economiaPermiteSesentaPostDeCartasPorMinuto() throws Exception {
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, post("/api/me/cartas/sobre").getStatus());
+        }
+        assertEquals(429, post("/api/me/cartas/sobre").getStatus());
+    }
+
+    @Test
+    void economiaComparteBucketEntreAccionesDeCartas() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            assertEquals(200, post("/api/me/cartas/sobre").getStatus());
+        }
+        for (int i = 0; i < 30; i++) {
+            assertEquals(200, post("/api/me/cartas/cofre-diario").getStatus());
+        }
+        // El bucket "economia" es compartido por IP: ya consumido, el siguiente POST 429.
+        assertEquals(429, post("/api/me/cartas/sobre-bienvenida").getStatus());
+    }
+
+    @Test
+    void economiaNoConsumeElBucketDeVotos() throws Exception {
+        for (int i = 0; i < 60; i++) {
+            post("/api/me/cartas/sobre");
+        }
+        // Buckets independientes por policyId: agotar economía no afecta a votos.
+        assertEquals(200, post("/api/personajes/1/votar").getStatus());
+    }
+
+    @Test
+    void socialPermiteSesentaReaccionesPorMinuto() throws Exception {
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, post("/api/reacciones").getStatus());
+        }
+        assertEquals(429, post("/api/reacciones").getStatus());
+    }
+
+    @Test
     void tokenAdminValidoSaltaElRateLimit() throws Exception {
         Usuario admin = new Usuario("admin", "password", "admin@example.com");
         admin.setRol(Rol.ADMIN);
