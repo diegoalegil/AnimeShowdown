@@ -148,6 +148,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/personajes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/personajes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/eventos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/torneos/mios").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").permitAll()
                         // Torneos creados por usuario verificado.

@@ -82,11 +82,14 @@ public class CronTorneoController {
             Object f = body.get("force");
             if (f instanceof Boolean) force = (Boolean) f;
         }
+        String eventoSlug = extraerEventoSlug(body);
 
         try {
-            Torneo creado = autoService.generar(tamano, force);
-            log.info("CronTorneoController: torneo auto-generado id={} nombre={}",
-                    creado.getId(), creado.getNombre());
+            Torneo creado = eventoSlug == null
+                    ? autoService.generar(tamano, force)
+                    : autoService.generar(tamano, force, eventoSlug);
+            log.info("CronTorneoController: torneo auto-generado id={} nombre={} evento={}",
+                    creado.getId(), creado.getNombre(), creado.getEventoSlug());
             return ResponseEntity.status(HttpStatus.CREATED).body(creado);
         } catch (TorneoAutoService.IdempotenciaException e) {
             Map<String, Object> resp = new HashMap<>();
@@ -118,5 +121,12 @@ public class CronTorneoController {
         // null vs null pasa como match — el caller debe verificar non-blank antes.
         if (ab.length == 0 && bb.length == 0) return false;
         return java.security.MessageDigest.isEqual(ab, bb);
+    }
+
+    private static String extraerEventoSlug(Map<String, Object> body) {
+        if (body == null) return null;
+        Object raw = body.get("eventoSlug");
+        if (!(raw instanceof String slug) || slug.isBlank()) return null;
+        return slug.trim();
     }
 }
