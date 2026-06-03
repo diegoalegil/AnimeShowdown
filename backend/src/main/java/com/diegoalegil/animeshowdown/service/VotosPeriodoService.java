@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class VotosPeriodoService {
      * Si el personaje no tiene votos, devuelve ceros (no error).
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "personaje-votos-periodo", key = "#slug + ':' + #dias")
     public VotosPeriodoDto calcularSlug(String slug, int dias) {
         Personaje p = personajeRepository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException(
