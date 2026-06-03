@@ -82,6 +82,32 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void ogImagePermiteSesentaPeticionesPorMinuto() throws Exception {
+        for (int i = 0; i < 60; i++) {
+            assertEquals(200, get("/api/og/duelo/naruto/vs/luffy.png").getStatus());
+        }
+
+        assertEquals(429, get("/api/og/personaje/goku.png").getStatus());
+    }
+
+    @Test
+    void descargaCartaPermiteTreintaPeticionesPorMinuto() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            assertEquals(200, get("/api/me/cartas/" + i + "/descargar").getStatus());
+        }
+
+        assertEquals(429, get("/api/me/cartas/999/descargar").getStatus());
+    }
+
+    @Test
+    void getNoCostosoNoSeLimita() throws Exception {
+        // Un GET corriente (no OG ni descarga) no consume bucket: ilimitado.
+        for (int i = 0; i < 100; i++) {
+            assertEquals(200, get("/api/me/cartas").getStatus());
+        }
+    }
+
+    @Test
     void tokenAdminValidoSaltaElRateLimit() throws Exception {
         Usuario admin = new Usuario("admin", "password", "admin@example.com");
         admin.setRol(Rol.ADMIN);
@@ -95,6 +121,14 @@ class RateLimitFilterTest {
         assertEquals(429, post("/api/auth/login").getStatus());
 
         assertEquals(200, post("/api/auth/login", "Bearer admin-token").getStatus());
+    }
+
+    private MockHttpServletResponse get(String path) throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
+        request.setServletPath(path);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(request, response, new MockFilterChain());
+        return response;
     }
 
     private MockHttpServletResponse post(String path) throws Exception {

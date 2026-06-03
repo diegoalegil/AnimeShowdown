@@ -52,10 +52,21 @@ public class RateLimitFilter extends OncePerRequestFilter {
             "votos", 60, Duration.ofMinutes(1));
     private static final RateLimitPolicy NEWSLETTER = new RateLimitPolicy(
             "newsletter", 5, Duration.ofHours(1));
+    // GET costosos: render server-side de imagenes. Cloudflare cachea OG aguas
+    // arriba (7d), asi que el grueso del trafico legitimo no llega al origen;
+    // este limite protege de combinaciones NO cacheadas a alto ritmo desde una
+    // misma IP (DoS por coste: Graphics2D + fetch remoto por request).
+    private static final RateLimitPolicy OG_IMAGE = new RateLimitPolicy(
+            "og-image", 60, Duration.ofMinutes(1));
+    private static final RateLimitPolicy CARD_DOWNLOAD = new RateLimitPolicy(
+            "card-download", 30, Duration.ofMinutes(1));
 
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
     private static final String RUTA_VOTAR_PERSONAJE_PREFIJO = "/api/personajes/";
+    private static final String RUTA_OG_PREFIJO = "/api/og/";
+    private static final String RUTA_CARTAS_PREFIJO = "/api/me/cartas/";
+    private static final String RUTA_DESCARGA_SUFIJO = "/descargar";
 
     private final boolean enabled;
     private final Cache<String, Bucket> buckets;
@@ -110,12 +121,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private RateLimitPolicy resolverPolicy(HttpServletRequest req) {
-        if (!"POST".equalsIgnoreCase(req.getMethod())) {
+        String uri = req.getServletPath();
+        if (uri == null) {
+            return null;
+        }
+        String method = req.getMethod();
+
+        // GET costosos (render server-side de PNG): se limitan aparte porque no
+        // son POST. El bypass de admin y los buckets por IP se reutilizan igual.
+        if ("GET".equalsIgnoreCase(method)) {
+            if (uri.startsWith(RUTA_OG_PREFIJO)) {
+                return OG_IMAGE;
+            }
+            if (uri.startsWith(RUTA_CARTAS_PREFIJO) && uri.endsWith(RUTA_DESCARGA_SUFIJO)) {
+                return CARD_DOWNLOAD;
+            }
             return null;
         }
 
-        String uri = req.getServletPath();
-        if (uri == null) {
+        if (!"POST".equalsIgnoreCase(method)) {
             return null;
         }
         if (coincide(uri, "/api/auth/login")) {
