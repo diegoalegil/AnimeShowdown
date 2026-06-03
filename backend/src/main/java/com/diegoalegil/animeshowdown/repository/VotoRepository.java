@@ -535,13 +535,17 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             LEFT JOIN FETCH v.enfrentamiento e
             LEFT JOIN FETCH e.personaje1
             LEFT JOIN FETCH e.personaje2
+            LEFT JOIN FETCH e.torneo
             ORDER BY v.fecha DESC
             """)
     List<Voto> findRecentesParaFeed(org.springframework.data.domain.Pageable pageable);
 
     /**
      * Historial de votos del usuario, ordenados por fecha desc (más recientes
-     * primero). JOIN FETCH en personajes para evitar N+1 en la respuesta.
+     * primero). JOIN FETCH en personajes + torneo del enfrentamiento para
+     * evitar N+1: Enfrentamiento.torneo es @ManyToOne EAGER, así que sin
+     * fetcharlo Hibernate emitía un SELECT por cada torneo distinto al que el
+     * usuario votó (PerfilService.actividadReciente lee torneoId/slug/nombre).
      */
     @Query("""
             select v from Voto v
@@ -549,6 +553,7 @@ public interface VotoRepository extends JpaRepository<Voto, Long> {
             left join fetch v.enfrentamiento enf
             left join fetch enf.personaje1
             left join fetch enf.personaje2
+            left join fetch enf.torneo
             where v.usuario = :usuario
             order by v.fecha desc
             """)
