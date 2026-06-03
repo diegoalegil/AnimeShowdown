@@ -52,17 +52,17 @@ public class AdminTorneoController {
     }
 
     @PutMapping("/{id}/aprobar")
-    public ResponseEntity<Torneo> aprobar(
+    public ResponseEntity<TorneoMioDto> aprobar(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario admin,
             HttpServletRequest request) {
         Torneo torneo = torneoService.aprobar(id);
         auditLogService.registrarAdmin(admin, "admin.torneos.aprobar", detallesTorneo(id, torneo), request);
-        return ResponseEntity.ok(torneo);
+        return ResponseEntity.ok(TorneoMioDto.from(torneo));
     }
 
     @PutMapping("/{id}/rechazar")
-    public ResponseEntity<Torneo> rechazar(
+    public ResponseEntity<TorneoMioDto> rechazar(
             @PathVariable Long id,
             @Valid @RequestBody RechazoRequest body,
             @AuthenticationPrincipal Usuario admin,
@@ -71,7 +71,7 @@ public class AdminTorneoController {
         Map<String, Object> detalles = detallesTorneo(id, torneo);
         detalles.put("motivoLength", body.getMotivo().length());
         auditLogService.registrarAdmin(admin, "admin.torneos.rechazar", detalles, request);
-        return ResponseEntity.ok(torneo);
+        return ResponseEntity.ok(TorneoMioDto.from(torneo));
     }
 
     private static Map<String, Object> detallesTorneo(Long requestId, Torneo torneo) {

@@ -2,6 +2,8 @@ package com.diegoalegil.animeshowdown.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -56,6 +58,10 @@ public class Torneo {
      * Para torneos legacy seedados sin bracket detallado (1
      * commit 6), este campo es la única fuente de verdad del ganador.
      */
+    // @JsonIgnore: defensa en profundidad. Las respuestas de torneo usan DTOs
+    // (TorneoMioDto/Resumen/Detalle con ganadorSlug ya proyectado); la relación
+    // cruda nunca debe serializarse aunque algún endpoint devuelva la entidad.
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "ganador_personaje_id")
     private Personaje ganadorPersonaje;
@@ -64,6 +70,10 @@ public class Torneo {
      * User que creó el torneo. NULL en torneos legacy creados por admin
      * antes del 9, o si el creador se borra (ON DELETE SET NULL).
      */
+    // @JsonIgnore: evita filtrar el Usuario creador (incluido su email) si la
+    // entidad se serializa por accidente. El owner se proyecta en DTOs cuando
+    // hace falta; nunca debe viajar el Usuario completo en una respuesta pública.
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "created_by_user_id")
     private Usuario creadoPor;

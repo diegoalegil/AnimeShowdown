@@ -481,6 +481,20 @@ describe('endpoints', () => {
     expect((fn.mock.calls[0] as [string, RequestInit])[1].method).toBe('POST')
   })
 
+  it('changeBio: PATCH /api/perfil/me/bio con la bio en el body y devuelve la bio', async () => {
+    // Regresión: endpoints.changeBio existía como llamada en AuthContext pero
+    // NO estaba definido en el map (Record<string,any> lo ocultaba) → TypeError
+    // en runtime. Este test falla en compilación/ejecución si el método se borra.
+    const fn = mockFetchResolved({ bio: 'hola mundo' })
+    vi.stubGlobal('fetch', fn)
+    const res = await endpoints.changeBio('hola mundo')
+    const call = fn.mock.calls[0] as [string, RequestInit]
+    expect(call[0]).toContain('/api/perfil/me/bio')
+    expect(call[1].method).toBe('PATCH')
+    expect(JSON.parse(call[1].body as string)).toEqual({ bio: 'hola mundo' })
+    expect((res as { bio: string }).bio).toBe('hola mundo')
+  })
+
   it('votar: sends personajeGanadorId in body', async () => {
     const fn = mockFetchResolved({})
     vi.stubGlobal('fetch', fn)
