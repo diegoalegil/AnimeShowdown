@@ -766,6 +766,9 @@ export const endpoints: EndpointMap = {
   // Referral del usuario: código único + count
   // verificados + tier badge.
   perfilReferral: () => api.get('/api/perfil/me/referral'),
+  // Actualiza la bio pública. El backend la sanitiza (texto plano, máx 240)
+  // y devuelve el UsuarioRespuesta con la bio normalizada (campo `bio`).
+  changeBio: (bio: string) => api.patch('/api/perfil/me/bio', { bio }),
   // GDPR right to erasure. Requiere password de nuevo
   // en el body como reconfirmación; 400 si la password no coincide.
   // Tras éxito el backend limpia la cookie de refresh; el cliente debe
