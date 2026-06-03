@@ -205,6 +205,37 @@ class EnfrentamientoControllerTest {
     }
 
     /** Crea torneo + lo inicia + crea enfrentamiento entre p1 y p2. Devuelve el id del enfrentamiento. */
+    @Test
+    void siguientesDevuelveLoteHidratadoDistintoYRespetaExcludeIds() throws Exception {
+        String adminToken = tokenAdmin();
+        long[] ids = dosPersonajes();
+        crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "lote-1");
+        crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "lote-2");
+
+        MvcResult res = mvc.perform(get("/api/enfrentamientos/siguientes?count=5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                // Hidratación de ambos personajes en la misma respuesta (sin N+1).
+                .andExpect(jsonPath("$[0].personaje1.slug").exists())
+                .andExpect(jsonPath("$[0].personaje2.slug").exists())
+                .andReturn();
+
+        var arr = json.readTree(res.getResponse().getContentAsString());
+        org.junit.jupiter.api.Assertions.assertTrue(arr.size() >= 1 && arr.size() <= 5,
+                "el lote respeta el cap count");
+        Set<Long> vistos = new java.util.HashSet<>();
+        for (var node : arr) {
+            org.junit.jupiter.api.Assertions.assertTrue(vistos.add(node.get("id").asLong()),
+                    "los enfrentamientos del lote deben ser distintos");
+        }
+        long alguno = arr.get(0).get("id").asLong();
+
+        // excludeIds excluye el id pedido (mismo contrato que /siguiente).
+        mvc.perform(get("/api/enfrentamientos/siguientes?count=10&excludeIds=" + alguno))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + alguno + ")]").doesNotExist());
+    }
+
     private long crearEnfrentamientoListoParaVotar(String adminToken, long p1, long p2, String suffix) throws Exception {
         return crearFixtureListoParaVotar(adminToken, p1, p2, suffix).enfrentamientoId();
     }
