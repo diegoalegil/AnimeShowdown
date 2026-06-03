@@ -407,15 +407,22 @@ const pwaPlugin = VitePWA({
         },
       },
       {
-        // Mismo problema que con JS: el cache poison de Cloudflare puede
-        // servir HTML 200 immutable para una
-        // URL .webp cuyo archivo aun no estaba en el deploy. Workbox cachea
-        // ese HTML, marcandolo como imagen valida, y el <img> falla siempre.
-        // El plugin requireContentType rechaza cualquier respuesta que no sea
-        // image/* — sin esto, una vez poisoned, el SW perpetua el bug aun
-        // despues de purgar la edge de Cloudflare.
-        urlPattern: ({ url }) =>
-          url.pathname.startsWith('/img/') || url.pathname.startsWith('/assets/'),
+        // OJO: /img/* NO se intercepta aqui. En produccion /img/* hace un
+        // redirect 302 cross-origin al CDN de imagenes (assets.animeshowdown.dev).
+        // Workbox no puede cachear una respuesta redirigida (cache.put lanza
+        // sobre response.redirected) → la estrategia NetworkFirst rechazaba, no
+        // habia cache de fallback y TODAS las imagenes de personaje caian a
+        // net::ERR_FAILED → PersonajePlaceholder ("Sombra en camino") para
+        // cualquier visitante con el SW instalado. Dejamos que el navegador
+        // cargue /img/ nativamente: sigue el 302 sin problema (img-src permite
+        // el CDN) y el caching lo dan el CDN + la HTTP cache del navegador.
+        //
+        // Solo cacheamos /assets/* (mismo origen, sin redirect): banners de
+        // anime, brand, covers de juegos/torneos/eventos, empty-states. El
+        // plugin requireContentType (image/*) protege contra el cache poison de
+        // Cloudflare (HTML 200 servido para un .webp que aun no estaba en el
+        // deploy), que si no perpetuaria el SW aun tras purgar la edge.
+        urlPattern: ({ url }) => url.pathname.startsWith('/assets/'),
         handler: 'NetworkFirst',
         options: {
           cacheName: 'imagenes-personajes-v3',
