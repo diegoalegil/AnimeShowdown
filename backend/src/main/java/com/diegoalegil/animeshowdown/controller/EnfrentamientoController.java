@@ -16,8 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -170,13 +168,13 @@ public class EnfrentamientoController {
     // está off, así que el filtro web tampoco abre una tx implícita.
     @PostMapping("/{id}/votar")
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "votos-ranking", allEntries = true),
-            @CacheEvict(value = "cartas-votos-score", allEntries = true),
-            @CacheEvict(value = "ranking-movimientos", allEntries = true),
-            @CacheEvict(value = "personaje-elo-history", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
-    })
+    // Sin @CacheEvict por voto: antes 5x @CacheEvict(allEntries=true) vaciaban
+    // los rankings en CADA voto → bajo carga la caché quedaba siempre fría y el
+    // siguiente /ranking recomputaba todo (estampida). Esas cachés ya se
+    // auto-refrescan por TTL (votos-ranking/cartas-votos-score 30s,
+    // ranking-movimientos 1min, similares 5min, elo-history 1h) y el ranking en
+    // vivo se mueve por RankingDeltaEvent (WS), no por refetch del REST. La
+    // staleness máxima (≤TTL) es el presupuesto de coherencia ya elegido.
     public ResponseEntity<?> votar(@PathVariable Long id,
             @Valid @RequestBody VotoEnfrentamientoRequest request,
             @AuthenticationPrincipal Usuario usuario,
