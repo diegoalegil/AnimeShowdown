@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -19,6 +20,12 @@ public class TorneoAutoAdvanceListener {
         this.torneoAutoAdvanceService = torneoAutoAdvanceService;
     }
 
+    // @Async: el auto-avance corre fuera del hilo de la request. Antes era
+    // síncrono en AFTER_COMMIT → cada voto pagaba el lock de torneo +
+    // cerrarRondasIntermedias en la propia request (latencia nº1 del POST).
+    // Ya corre tras commit y captura sus excepciones, así que moverlo a otro
+    // hilo no cambia la consistencia, solo descarga la respuesta HTTP.
+    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onVoto(EnfrentamientoVotadoEvent event) {
         try {
