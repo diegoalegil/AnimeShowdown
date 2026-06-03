@@ -4,10 +4,12 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -22,6 +24,9 @@ import com.diegoalegil.animeshowdown.dto.CartaDto;
 import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionAnimeDto;
 import com.diegoalegil.animeshowdown.dto.ColeccionDto;
+import com.diegoalegil.animeshowdown.dto.ColeccionPaginaDto;
+import com.diegoalegil.animeshowdown.dto.ColeccionResumenDto;
+import com.diegoalegil.animeshowdown.dto.RarezaResumenDto;
 import com.diegoalegil.animeshowdown.dto.SobreCartaDto;
 import com.diegoalegil.animeshowdown.dto.UsuarioCartaPosesionItem;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
@@ -140,6 +145,106 @@ public class CartaService {
                 pityActual, rarezaService.pityDuro(), cofreDiarioDisponible(usuario),
                 usuario.getSobreBienvenidaReclamadoEn() == null, sobresGratisPendientes,
                 progresoPorAnime(cartas), cartas);
+    }
+
+    /**
+     * Resumen de la colección SIN el array de cartas: totales, saldo, pity, flags
+     * y agregados por anime y por rareza. Lo consume la cabecera de la página; el
+     * grid se pide aparte y paginado con {@link #pagina}. Así una colección de
+     * miles de cartas no serializa el catálogo entero en cada visita.
+     */
+    @Transactional(readOnly = true)
+    public ColeccionResumenDto resumen(Usuario usuario) {
+        List<CartaCatalogoItem> catalogo = cartaLecturaCacheService.catalogo();
+        Set<Long> poseidas = usuarioCartaRepository.findPosesionesByUsuario(usuario).stream()
+                .map(UsuarioCartaPosesionItem::cartaId)
+                .collect(Collectors.toSet());
+
+        int totalCatalogo = catalogo.size();
+        int totalPoseidas = (int) catalogo.stream().filter(c -> poseidas.contains(c.id())).count();
+        int porcentaje = totalCatalogo == 0 ? 0 : (int) Math.round(100.0 * totalPoseidas / totalCatalogo);
+        long saldo = monederoService.saldoDe(usuario);
+        int pityActual = pityRepository.findById(usuario.getId())
+                .map(UsuarioCartaPity::getSobresSinEspecial)
+                .orElse(0);
+        int sobresGratisPendientes = (int) sobreGratisCreditoRepository
+                .countByUsuarioIdAndConsumidoEnIsNull(usuario.getId());
+
+        return new ColeccionResumenDto(totalCatalogo, totalPoseidas, porcentaje, saldo,
+                pityActual, rarezaService.pityDuro(), cofreDiarioDisponible(usuario),
+                usuario.getSobreBienvenidaReclamadoEn() == null, sobresGratisPendientes,
+                progresoPorAnimeDeCatalogo(catalogo, poseidas),
+                progresoPorRarezaDeCatalogo(catalogo, poseidas));
+    }
+
+    /**
+     * Una página del grid de colección, filtrada por rareza y/o anime y troceada
+     * por offset/limit sobre el catálogo cacheado (sin tocar BBDD más allá de la
+     * posesión del usuario). Reemplaza el filtrado y la paginación que el frontend
+     * hacía en cliente sobre el array completo.
+     */
+    @Transactional(readOnly = true)
+    public ColeccionPaginaDto pagina(Usuario usuario, RarezaCarta rareza, String anime,
+            int offset, int limit) {
+        List<CartaCatalogoItem> catalogo = cartaLecturaCacheService.catalogo();
+        Map<Long, Long> eloPorPersonaje = cartaLecturaCacheService.votosPorPersonaje();
+        Map<Long, UsuarioCartaPosesionItem> porCartaId = new HashMap<>();
+        for (UsuarioCartaPosesionItem uc : usuarioCartaRepository.findPosesionesByUsuario(usuario)) {
+            porCartaId.put(uc.cartaId(), uc);
+        }
+
+        String animeFiltro = (anime == null || anime.isBlank()) ? null : anime;
+        List<CartaCatalogoItem> filtrado = catalogo.stream()
+                .filter(c -> rareza == null || c.rareza() == rareza)
+                .filter(c -> animeFiltro == null || animeFiltro.equals(c.anime()))
+                .toList();
+
+        int totalFiltrado = filtrado.size();
+        int saneLimit = Math.max(1, limit);
+        int from = Math.min(Math.max(0, offset), totalFiltrado);
+        int to = Math.min(from + saneLimit, totalFiltrado);
+        List<CartaDto> cartas = filtrado.subList(from, to).stream()
+                .map(c -> CartaDto.from(c, porCartaId.get(c.id()),
+                        eloPorPersonaje.getOrDefault(c.personajeId(), 0L)))
+                .toList();
+        return new ColeccionPaginaDto(cartas, from, saneLimit, totalFiltrado, to < totalFiltrado);
+    }
+
+    private List<ColeccionAnimeDto> progresoPorAnimeDeCatalogo(
+            List<CartaCatalogoItem> catalogo, Set<Long> poseidas) {
+        Map<String, int[]> acumulado = new LinkedHashMap<>();
+        for (CartaCatalogoItem carta : catalogo) {
+            String anime = carta.anime() != null ? carta.anime() : "Anime";
+            int[] stats = acumulado.computeIfAbsent(anime, ignored -> new int[2]);
+            stats[0]++;
+            if (poseidas.contains(carta.id())) {
+                stats[1]++;
+            }
+        }
+        return acumulado.entrySet().stream()
+                .map(e -> {
+                    int total = e.getValue()[0];
+                    int poseidasAnime = e.getValue()[1];
+                    int porcentaje = total == 0 ? 0 : (int) Math.round(100.0 * poseidasAnime / total);
+                    return new ColeccionAnimeDto(e.getKey(), total, poseidasAnime, porcentaje);
+                })
+                .sorted(Comparator.comparing(ColeccionAnimeDto::anime))
+                .collect(Collectors.toList());
+    }
+
+    private List<RarezaResumenDto> progresoPorRarezaDeCatalogo(
+            List<CartaCatalogoItem> catalogo, Set<Long> poseidas) {
+        Map<RarezaCarta, int[]> acumulado = new EnumMap<>(RarezaCarta.class);
+        for (CartaCatalogoItem carta : catalogo) {
+            int[] stats = acumulado.computeIfAbsent(carta.rareza(), ignored -> new int[2]);
+            stats[0]++;
+            if (poseidas.contains(carta.id())) {
+                stats[1]++;
+            }
+        }
+        return acumulado.entrySet().stream()
+                .map(e -> new RarezaResumenDto(e.getKey(), e.getValue()[0], e.getValue()[1]))
+                .toList();
     }
 
     /**
