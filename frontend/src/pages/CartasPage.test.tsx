@@ -9,20 +9,28 @@ vi.mock('../contexts/AuthContext', () => ({
 }))
 
 vi.mock('../hooks/useCartas', () => ({
-  useColeccion: () => ({
+  useColeccionResumen: () => ({
     data: {
       saldo: 70,
       totalCatalogo: 1138,
       totalPoseidas: 0,
       porcentaje: 0,
-      cartas: [],
       progresoPorAnime: [],
+      progresoPorRareza: [],
       pityActual: 0,
       pityDuro: 10,
       cofreDiarioDisponible: true,
     },
     isLoading: false,
     isError: false,
+  }),
+  useColeccionPagina: () => ({
+    data: { pages: [{ cartas: [], offset: 0, limit: 60, totalFiltrado: 0, hayMas: false }] },
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: () => {},
   }),
   useOddsCartas: () => ({
     data: {
