@@ -60,6 +60,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
             "og-image", 60, Duration.ofMinutes(1));
     private static final RateLimitPolicy CARD_DOWNLOAD = new RateLimitPolicy(
             "card-download", 30, Duration.ofMinutes(1));
+    // Economía: POST /api/me/cartas/** (abrir sobre, cofre diario, bienvenida,
+    // sobres gratis, trades). Cada uno toma locks pesimistas de fila + escribe
+    // ledger; 60/min por IP corta el martilleo (DoS de contención de locks) sin
+    // molestar a un usuario real (jamás necesita >60 acciones de economía/min).
+    private static final RateLimitPolicy ECONOMIA = new RateLimitPolicy(
+            "economia", 60, Duration.ofMinutes(1));
+    // Social: POST de reacciones, comentarios y seguir. 60/min por IP.
+    private static final RateLimitPolicy SOCIAL = new RateLimitPolicy(
+            "social", 60, Duration.ofMinutes(1));
 
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
@@ -67,6 +76,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final String RUTA_OG_PREFIJO = "/api/og/";
     private static final String RUTA_CARTAS_PREFIJO = "/api/me/cartas/";
     private static final String RUTA_DESCARGA_SUFIJO = "/descargar";
+    private static final String RUTA_REACCIONES = "/api/reacciones";
+    private static final String RUTA_COMENTARIOS_SUFIJO = "/comentarios";
+    private static final String RUTA_SEGUIDORES_PREFIJO = "/api/seguidores/";
 
     private final boolean enabled;
     private final Cache<String, Bucket> buckets;
@@ -162,6 +174,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
         if (uri.startsWith(RUTA_VOTAR_PERSONAJE_PREFIJO) && uri.endsWith(RUTA_VOTAR_SUFIJO)) {
             return VOTOS;
+        }
+        // POST de economía: todo bajo /api/me/cartas/ (sobre, cofre, bienvenida,
+        // sobres-gratis abrir, trades). Comparten un bucket "economia" por IP.
+        if (uri.startsWith(RUTA_CARTAS_PREFIJO)) {
+            return ECONOMIA;
+        }
+        // POST sociales: reacciones, crear comentario (.../comentarios) y seguir.
+        if (coincide(uri, RUTA_REACCIONES)
+                || uri.endsWith(RUTA_COMENTARIOS_SUFIJO)
+                || uri.startsWith(RUTA_SEGUIDORES_PREFIJO)) {
+            return SOCIAL;
         }
         return null;
     }
