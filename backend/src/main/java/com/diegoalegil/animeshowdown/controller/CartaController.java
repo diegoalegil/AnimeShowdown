@@ -92,6 +92,12 @@ public class CartaController {
         return cartaService.reclamarCofreDiario(exigirUsuario(usuario));
     }
 
+    /** Sobre de bienvenida gratuito — 4 SSR + 1 especial garantizada, una sola vez. */
+    @PostMapping("/me/cartas/sobre-bienvenida")
+    public AbrirSobreResultadoDto sobreBienvenida(@AuthenticationPrincipal Usuario usuario) {
+        return cartaService.reclamarSobreBienvenida(exigirUsuario(usuario));
+    }
+
     @GetMapping("/me/cartas/trades")
     public List<CartaTradeDto> misIntercambios(@AuthenticationPrincipal Usuario usuario) {
         return cartaTradingService.listar(exigirUsuario(usuario));

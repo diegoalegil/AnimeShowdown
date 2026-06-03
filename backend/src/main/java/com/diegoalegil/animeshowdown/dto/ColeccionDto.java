@@ -14,6 +14,7 @@ public record ColeccionDto(
         int pityActual,
         int pityDuro,
         boolean cofreDiarioDisponible,
+        boolean sobreBienvenidaDisponible,
         List<ColeccionAnimeDto> progresoPorAnime,
         List<CartaDto> cartas) {
 }

@@ -78,5 +78,7 @@ public enum AuditEvento {
     /** El usuario creó una oferta de intercambio de cartas. */
     CARTA_TRADE_CREADO,
     /** Una oferta de intercambio cambió a aceptada, rechazada o cancelada. */
-    CARTA_TRADE_RESUELTO
+    CARTA_TRADE_RESUELTO,
+    /** El usuario reclamó su sobre de bienvenida (especial garantizada, gratis). */
+    SOBRE_BIENVENIDA_RECLAMADO
 }

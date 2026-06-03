@@ -22,5 +22,7 @@ public enum MotivoMovimiento {
     /** Conversión de carta duplicada a moneda blanda. */
     DUPLICADO_CARTA,
     /** Cofre diario reclamado explícitamente por el usuario. */
-    COFRE_DIARIO
+    COFRE_DIARIO,
+    /** Sobre de bienvenida gratuito para nuevos usuarios (especial garantizada). */
+    SOBRE_BIENVENIDA
 }
