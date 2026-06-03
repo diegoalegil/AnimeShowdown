@@ -325,9 +325,9 @@ function VotarPage() {
         empate,
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['torneos'] })
-    },
+    // Sin invalidateQueries(['torneos']) por voto: refetcheaba toda la lista de
+    // torneos en CADA voto sin necesidad. El bracket y el ranking en vivo se
+    // mueven por WebSocket (BracketUpdate/RankingDelta), no por refetch del REST.
   })
   const isVotePending = votarMutation.isPending
   useEffect(() => {
