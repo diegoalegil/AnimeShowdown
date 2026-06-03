@@ -26,7 +26,10 @@ export function useRankingSegmentado({
     queryFn: () => endpoints.rankingSegmentado({ periodo, anime, categoria, limit }),
     enabled,
     staleTime: 60 * 1000, // 1 min: el ranking no cambia tan rápido
-    refetchInterval: 30 * 1000, // fallback si WebSocket no conecta
+    // El ranking se actualiza en vivo por delta WS (useRankingDeltaSubscription);
+    // este poll es solo el fallback si el WS no conecta. Alineado a 60s con el
+    // staleTime y el TTL de caché del backend para no refetchear redundante.
+    refetchInterval: 60 * 1000,
   })
 }
 
@@ -66,7 +69,9 @@ export function useRankingMovimientos({
     queryFn: () => endpoints.rankingMovimientos({ limit, dias }),
     enabled,
     staleTime: 60 * 1000,
-    refetchInterval: 30 * 1000,
+    // Fallback por si el WS no conecta; alineado a 60s con el TTL de caché
+    // del backend (ranking-movimientos 1min) para no refetchear redundante.
+    refetchInterval: 60 * 1000,
   })
 }
 
