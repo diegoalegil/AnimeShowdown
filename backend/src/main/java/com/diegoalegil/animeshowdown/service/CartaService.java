@@ -124,6 +124,7 @@ public class CartaService {
 
         return new ColeccionDto(totalCatalogo, totalPoseidas, porcentaje, saldo,
                 pityActual, rarezaService.pityDuro(), cofreDiarioDisponible(usuario),
+                usuario.getSobreBienvenidaReclamadoEn() == null,
                 progresoPorAnime(cartas), cartas);
     }
 
@@ -234,6 +235,74 @@ public class CartaService {
                     null);
         }
         return new CofreDiarioDto(credito.aplicado(), cofreDiarioMoneda, credito.saldo(), hoy.toString());
+    }
+
+    /**
+     * Abre el sobre de bienvenida gratuito (una única vez por cuenta).
+     * Garantiza 4 cartas SSR + 1 ESPECIAL sin coste de moneda ni afectar al pity normal.
+     */
+    @Transactional
+    public AbrirSobreResultadoDto reclamarSobreBienvenida(Usuario usuario) {
+        String idem = "bienvenida:" + usuario.getId();
+        SobreApertura existente = sobreAperturaRepository
+                .findByUsuarioAndIdempotencyKey(usuario, idem)
+                .orElse(null);
+        if (existente != null) {
+            return dtoDesdeApertura(usuario, existente);
+        }
+        if (usuario.getSobreBienvenidaReclamadoEn() != null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "El sobre de bienvenida ya fue reclamado");
+        }
+
+        RarezaService.SobreDraw draw = rarezaService.elegirSobre(true);
+        long saldo = monederoService.saldoDe(usuario);
+
+        List<Carta> pack = new ArrayList<>(draw.normales());
+        pack.add(draw.climax());
+
+        SobreApertura apertura = new SobreApertura(usuario, idem);
+        apertura.setPrecio(0L);
+        apertura.setPityAntes(0);
+        apertura.setEspecial(true);
+
+        long monedasDuplicados = 0L;
+        for (int i = 0; i < pack.size(); i++) {
+            Carta carta = pack.get(i);
+            UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
+            boolean nueva = poseida == null;
+            long recompensa = 0L;
+            if (nueva) {
+                usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
+            } else {
+                poseida.incrementar();
+                usuarioCartaRepository.save(poseida);
+                recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
+                if (recompensa > 0) {
+                    monedasDuplicados += recompensa;
+                    saldo += recompensa;
+                }
+            }
+            apertura.addItem(new SobreAperturaItem(carta, i + 1, nueva, recompensa, climaxDe(i, true)));
+        }
+
+        apertura.setPityDespues(0);
+        apertura.setSaldoRestante(saldo);
+        apertura.setMonedasDuplicados(monedasDuplicados);
+        apertura = sobreAperturaRepository.save(apertura);
+
+        usuario.setSobreBienvenidaReclamadoEn(java.time.LocalDateTime.now(clock));
+        usuarioRepository.save(usuario);
+
+        auditLogService.registrar(
+                AuditEvento.SOBRE_BIENVENIDA_RECLAMADO,
+                usuario,
+                Map.of("cartas", pack.stream()
+                        .map(c -> c.getPersonaje().getSlug() + ":" + c.getRareza().name())
+                        .toList()),
+                null);
+        log.info("Sobre bienvenida reclamado: usuario={} cartas={}", usuario.getUsername(), pack.size());
+        return dtoDesdeApertura(usuario, apertura);
     }
 
     private UsuarioCartaPity pityForUpdate(Usuario usuario) {

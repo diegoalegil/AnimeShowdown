@@ -147,6 +147,55 @@ class CartaServiceTest {
         order.verify(pityRepository).saveAndFlush(org.mockito.ArgumentMatchers.any(UsuarioCartaPity.class));
     }
 
+    @Test
+    void sobreBienvenidaGarantizaEspecialYGratisYMarcaUsuario() {
+        Usuario usuario = new Usuario("nuevo", "hash", "nuevo@example.com");
+        usuario.setId(5L);
+        Personaje personaje = new Personaje("naruto", "Naruto", "Naruto", "desc", "/img/naruto.webp");
+        personaje.setId(50L);
+        Carta normal = carta(personaje, 1L, RarezaCarta.SSR);
+        Carta especial = carta(personaje, 2L, RarezaCarta.ESPECIAL);
+
+        when(sobreAperturaRepository.findByUsuarioAndIdempotencyKey(usuario, "bienvenida:5"))
+                .thenReturn(Optional.empty());
+        when(rarezaService.elegirSobre(true))
+                .thenReturn(new RarezaService.SobreDraw(
+                        List.of(normal, normal, normal, normal), especial, true));
+        when(monederoService.saldoDe(usuario)).thenReturn(0L);
+        when(usuarioCartaRepository.findByUsuarioAndCarta(eq(usuario), org.mockito.ArgumentMatchers.any(Carta.class)))
+                .thenReturn(Optional.empty());
+        when(sobreAperturaRepository.save(org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        sut.reclamarSobreBienvenida(usuario);
+
+        // No debita moneda; pide un sobre con especial garantizada; marca al usuario.
+        verifyNoInteractions(pityRepository);
+        org.mockito.Mockito.verify(monederoService, org.mockito.Mockito.never())
+                .debitar(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                        anyString(), org.mockito.ArgumentMatchers.anyLong());
+        org.mockito.Mockito.verify(usuarioRepository).save(usuario);
+        assertEquals(java.time.LocalDateTime.now(
+                        Clock.fixed(Instant.parse("2026-06-02T12:00:00Z"), ZoneOffset.UTC)),
+                usuario.getSobreBienvenidaReclamadoEn());
+    }
+
+    @Test
+    void sobreBienvenidaEsIdempotentePorAperturaExistente() {
+        Usuario usuario = new Usuario("repetido", "hash", "repetido@example.com");
+        usuario.setId(8L);
+        com.diegoalegil.animeshowdown.model.SobreApertura previa =
+                new com.diegoalegil.animeshowdown.model.SobreApertura(usuario, "bienvenida:8");
+
+        when(sobreAperturaRepository.findByUsuarioAndIdempotencyKey(usuario, "bienvenida:8"))
+                .thenReturn(Optional.of(previa));
+
+        sut.reclamarSobreBienvenida(usuario);
+
+        // Devuelve la apertura ya hecha sin volver a sortear ni marcar nada.
+        verifyNoInteractions(rarezaService, usuarioRepository);
+    }
+
     private static Carta carta(Personaje personaje, Long id, RarezaCarta rareza) {
         Carta carta = new Carta(personaje, rareza);
         carta.setId(id);

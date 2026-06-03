@@ -170,6 +170,18 @@ public class Usuario {
     @Column(name = "onboarding_completado", nullable = false)
     private Boolean onboardingCompletado = false;
 
+    /** V64: fecha en que el usuario abrió su sobre de bienvenida. Null = no reclamado. */
+    @Column(name = "sobre_bienvenida_reclamado_en")
+    private java.time.LocalDateTime sobreBienvenidaReclamadoEn;
+
+    public java.time.LocalDateTime getSobreBienvenidaReclamadoEn() {
+        return sobreBienvenidaReclamadoEn;
+    }
+
+    public void setSobreBienvenidaReclamadoEn(java.time.LocalDateTime sobreBienvenidaReclamadoEn) {
+        this.sobreBienvenidaReclamadoEn = sobreBienvenidaReclamadoEn;
+    }
+
     public Usuario() {
     }
 
