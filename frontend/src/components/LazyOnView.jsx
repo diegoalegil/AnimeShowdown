@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from 'react'
 // react-hooks/set-state-in-effect).
 const supportsIO = typeof window !== 'undefined' && typeof IntersectionObserver !== 'undefined'
 
-export default function LazyOnView({ minHeight = 600, rootMargin = '900px 0px', children }) {
+export default function LazyOnView({ minHeight = 600, rootMargin = '1600px 0px', children }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(!supportsIO)
   // rootMargin en deps causaba disconnect/recreate
@@ -45,13 +45,17 @@ export default function LazyOnView({ minHeight = 600, rootMargin = '900px 0px', 
   }, [visible])
 
   if (visible) return <>{children}</>
+  // content-visibility:auto + contain-intrinsic-size: el navegador no paga
+  // layout/paint del placeholder mientras está lejos del viewport, pero reserva
+  // su alto, así el scroll va más fluido y no aparece el hueco en blanco.
+  const intrinsic = typeof minHeight === 'number' ? `${minHeight}px` : minHeight
   return (
     <div
       ref={ref}
       aria-hidden="true"
       data-lazy-on-view-placeholder="true"
       className="as-lazy-placeholder"
-      style={{ minHeight }}
+      style={{ minHeight, contentVisibility: 'auto', containIntrinsicSize: `auto ${intrinsic}` }}
     >
       <div className="as-lazy-placeholder__surface">
         <span className="as-lazy-placeholder__media" />
