@@ -1,6 +1,7 @@
 import { ArrowRight, Swords } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import PersonajeImg from '../../../../components/PersonajeImg'
+import ResponsivePicture from '../../../../components/ResponsivePicture'
 import { getTournamentVisual } from '../../../../data/visual-assets'
 import { buildDuelVoteUrl } from '../pulso-utils'
 import CardEyebrow from './CardEyebrow'
@@ -32,7 +33,7 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
   // (random-showdown-1, -2…) no tienen webp propia, su banner vive bajo el slug
   // base. Construir la URL a mano con el slug numerado daba 404. El visual
   // siempre resuelve a una imagen (base o fallback STAGE.torneos), nunca undefined.
-  const bannerUrl = mostrarBanner ? getTournamentVisual(torneoEnCurso.slug).image : null
+  const torneoVisual = mostrarBanner ? getTournamentVisual(torneoEnCurso.slug) : null
 
   return (
     <Link
@@ -41,13 +42,11 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
     >
       {mostrarBanner ? (
         <>
-          {/* Imagen del torneo a sangre de toda la tarjeta */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-            style={{
-              backgroundImage: `url("${bannerUrl}")`,
-            }}
+          {/* Imagen del torneo a sangre de toda la tarjeta (AVIF/WebP responsive) */}
+          <ResponsivePicture
+            visual={torneoVisual}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="pointer-events-none absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
           {/* Degradados oscuros: izquierda sólida para el texto, base para el CTA */}
           <span

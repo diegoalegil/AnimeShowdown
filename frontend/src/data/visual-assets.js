@@ -50,6 +50,26 @@ function resolveAsset(path) {
   return null
 }
 
+// Anchos de las variantes responsive de portadas/banners generadas por
+// scripts/generate-cover-variants.mjs (<stem>-480/-768/-1280.{webp,avif}).
+const COVER_VARIANT_WIDTHS = [480, 768, 1280]
+
+/**
+ * Construye un srcset a partir de las variantes responsive registradas en el
+ * manifest para un asset dado. Devuelve null si no hay variantes (p.ej. shells,
+ * fallbacks o assets sin pipeline) → el consumidor cae al <img> original.
+ */
+function buildVariantSrcset(originalPath, formato) {
+  if (!originalPath) return null
+  const base = originalPath.replace(/\.(webp|avif|png|jpe?g|svg)$/i, '')
+  const parts = []
+  for (const ancho of COVER_VARIANT_WIDTHS) {
+    const candidate = `${base}-${ancho}.${formato}`
+    if (VISUAL_ASSET_PATHS.has(candidate)) parts.push(`${candidate} ${ancho}w`)
+  }
+  return parts.length > 0 ? parts.join(', ') : null
+}
+
 function palette(seed = '') {
   let hash = 0
   for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
@@ -98,6 +118,11 @@ function makeVisual({
     type,
     kanji,
     image: resolvedImage,
+    // Srcset responsive (AVIF preferido, WebP fallback) para que <picture>
+    // sirva 480/768/1280 según viewport en vez del original 1600. null si el
+    // asset no tiene variantes (shells, fallbacks) → se usa solo `image`.
+    imageAvifSrcset: buildVariantSrcset(resolvedImage, 'avif'),
+    imageWebpSrcset: buildVariantSrcset(resolvedImage, 'webp'),
     shellImage: resolvedShellImage,
     shellObjectPosition,
     shellOpacity,
