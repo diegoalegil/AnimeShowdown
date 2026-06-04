@@ -4,6 +4,7 @@ import { MotionConfig } from 'framer-motion'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import FooterSlim from './components/FooterSlim'
 import ErrorBoundary from './components/ErrorBoundary'
 import ScrollProgress from './components/ScrollProgress'
 import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
@@ -481,9 +482,12 @@ function App() {
         </div>
       </main>
       {!isFullscreenRoute && <MobileBottomNav />}
+      {/* Footer completo solo en la home (cierre de landing). El resto de
+          páginas llevan un footer minimal con marca + legal + copyright, para
+          no arrastrar el footer enorme por toda la web (auditoría). */}
       {!isFullscreenRoute && (
         <div className="pb-[calc(7rem_+_env(safe-area-inset-bottom))] md:pb-0">
-          <Footer />
+          {location.pathname === '/' ? <Footer /> : <FooterSlim />}
         </div>
       )}
       </div>
