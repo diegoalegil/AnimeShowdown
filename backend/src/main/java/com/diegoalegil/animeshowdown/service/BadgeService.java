@@ -114,7 +114,15 @@ public class BadgeService {
                     desbloqueadoEn == null ? LocalDateTime.now() : desbloqueadoEn));
             log.info("Badge desbloqueado: usuario={} codigo={} rareza={}",
                     usuario.getUsername(), logro.getCodigo(), logro.getRareza());
-            notificarYAuditar(usuario, logro);
+            if (logro.getCodigo().startsWith("madrugador_")) {
+                // Madrugador: hay ~106 personajes/día, así que notificar cada
+                // desbloqueo (y hacer fan-out a seguidores por cada uno) inunda
+                // la campana. Persistimos y auditamos igual, pero la notif in-app
+                // la consolida MadrugadorService en UNA sola por día.
+                auditar(usuario, logro);
+            } else {
+                notificarYAuditar(usuario, logro);
+            }
             return Optional.of(guardado);
         } catch (DataIntegrityViolationException e) {
             // Race condition: dos eventos paralelos intentaron desbloquear
@@ -176,18 +184,7 @@ public class BadgeService {
             // pierda el toast en vivo.
             log.warn("Notificación BADGE_DESBLOQUEADO falló: {}", e.getMessage());
         }
-        try {
-            // request=null porque los desbloqueos los disparan EventListeners
-            // que no tienen acceso al HttpServletRequest original. El audit
-            // queda con ip/user_agent null, que es esperado para estos eventos.
-            auditLogService.registrar(
-                    AuditEvento.BADGE_DESBLOQUEADO,
-                    usuario,
-                    java.util.Map.of("codigo", logro.getCodigo()),
-                    null);
-        } catch (Exception e) {
-            log.warn("Audit BADGE_DESBLOQUEADO falló: {}", e.getMessage());
-        }
+        auditar(usuario, logro);
         // B7 §3: fan-out a los seguidores del actor (baja frecuencia: cada
         // logro se desbloquea una vez por usuario). Best-effort y acotado
         // dentro del service; NUNCA para votos (alta frecuencia → spam). El
@@ -205,6 +202,21 @@ public class BadgeService {
         } catch (Exception e) {
             log.warn("Fan-out SEGUIDO_LOGRO falló: usuario={} codigo={} err={}",
                     usuario.getUsername(), logro.getCodigo(), e.getMessage());
+        }
+    }
+
+    private void auditar(Usuario usuario, Logro logro) {
+        try {
+            // request=null porque los desbloqueos los disparan EventListeners
+            // que no tienen acceso al HttpServletRequest original. El audit
+            // queda con ip/user_agent null, que es esperado para estos eventos.
+            auditLogService.registrar(
+                    AuditEvento.BADGE_DESBLOQUEADO,
+                    usuario,
+                    java.util.Map.of("codigo", logro.getCodigo()),
+                    null);
+        } catch (Exception e) {
+            log.warn("Audit BADGE_DESBLOQUEADO falló: {}", e.getMessage());
         }
     }
 

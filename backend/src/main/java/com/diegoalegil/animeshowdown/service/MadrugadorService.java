@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.diegoalegil.animeshowdown.model.MadrugadorDia;
+import com.diegoalegil.animeshowdown.model.NotificacionTipo;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.MadrugadorDiaRepository;
@@ -20,13 +21,16 @@ public class MadrugadorService {
 
     private final MadrugadorDiaRepository madrugadorDiaRepository;
     private final BadgeService badgeService;
+    private final NotificacionService notificacionService;
     private final Clock clock;
 
     public MadrugadorService(MadrugadorDiaRepository madrugadorDiaRepository,
             BadgeService badgeService,
+            NotificacionService notificacionService,
             Clock clock) {
         this.madrugadorDiaRepository = madrugadorDiaRepository;
         this.badgeService = badgeService;
+        this.notificacionService = notificacionService;
         this.clock = clock;
     }
 
@@ -48,6 +52,17 @@ public class MadrugadorService {
             MadrugadorDia guardado = madrugadorDiaRepository.saveAndFlush(
                     new MadrugadorDia(slug, fechaUtc, usuario, horaUtc));
             badgeService.desbloquearMadrugador(usuario, personaje, horaUtc);
+            // UNA sola notificación "madrugador" al día, sea cuantos personajes
+            // sea. crearSiNoExiste es idempotente por eventoKey, así que la 1ª
+            // del día la crea y las ~105 siguientes son no-op. Evita inundar la
+            // campana con una notif por personaje (la queja de "46 notificaciones").
+            notificacionService.crearSiNoExiste(
+                    usuario,
+                    NotificacionTipo.BADGE_DESBLOQUEADO,
+                    "Madrugador del día",
+                    "Has sido de los primeros en votar hoy. ¡Gracias por mover el ranking!",
+                    "{\"codigo\":\"madrugador\",\"icono\":\"Sunrise\",\"rareza\":3}",
+                    "madrugador:" + fechaUtc);
             return Optional.of(guardado);
         } catch (DataIntegrityViolationException e) {
             return Optional.empty();
