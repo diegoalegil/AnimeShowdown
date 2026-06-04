@@ -289,14 +289,9 @@ public class CartaService {
         long monedasDuplicados = 0L;
         for (int i = 0; i < pack.size(); i++) {
             Carta carta = pack.get(i);
-            UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
-            boolean nueva = poseida == null;
+            boolean nueva = registrarPosesion(usuario, carta);
             long recompensa = 0L;
-            if (nueva) {
-                usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
-            } else {
-                poseida.incrementar();
-                usuarioCartaRepository.save(poseida);
+            if (!nueva) {
                 recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
                 if (recompensa > 0) {
                     monedasDuplicados += recompensa;
@@ -388,14 +383,9 @@ public class CartaService {
         long monedasDuplicados = 0L;
         for (int i = 0; i < pack.size(); i++) {
             Carta carta = pack.get(i);
-            UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
-            boolean nueva = poseida == null;
+            boolean nueva = registrarPosesion(usuario, carta);
             long recompensa = 0L;
-            if (nueva) {
-                usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
-            } else {
-                poseida.incrementar();
-                usuarioCartaRepository.save(poseida);
+            if (!nueva) {
                 recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
                 if (recompensa > 0) {
                     monedasDuplicados += recompensa;
@@ -441,13 +431,7 @@ public class CartaService {
             log.warn("Recompensa de evento: no existe carta ESPECIAL para slug={}", personajeSlug);
             return null;
         }
-        UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
-        if (poseida == null) {
-            usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
-        } else {
-            poseida.incrementar();
-            usuarioCartaRepository.save(poseida);
-        }
+        registrarPosesion(usuario, carta);
         return carta;
     }
 
@@ -522,14 +506,9 @@ public class CartaService {
         long monedasDuplicados = 0L;
         for (int i = 0; i < pack.size(); i++) {
             Carta carta = pack.get(i);
-            UsuarioCarta poseida = usuarioCartaRepository.findByUsuarioAndCarta(usuario, carta).orElse(null);
-            boolean nueva = poseida == null;
+            boolean nueva = registrarPosesion(usuario, carta);
             long recompensa = 0L;
-            if (nueva) {
-                usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
-            } else {
-                poseida.incrementar();
-                usuarioCartaRepository.save(poseida);
+            if (!nueva) {
                 recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
                 if (recompensa > 0) {
                     monedasDuplicados += recompensa;
@@ -569,6 +548,24 @@ public class CartaService {
                             .orElseGet(() -> pityRepository.saveAndFlush(
                                     new UsuarioCartaPity(entityManager.getReference(Usuario.class, usuario.getId()))));
                 });
+    }
+
+    /**
+     * Registra que el usuario posee la carta. Si ya la tenía, incrementa la
+     * cantidad con un UPDATE atómico en BD; si es nueva, crea la fila. Devuelve
+     * {@code true} si la carta es nueva para el usuario, {@code false} si ya la
+     * poseía. Al ser el incremento atómico (y no un read-modify-write), dos
+     * concesiones concurrentes de la misma carta sobre el mismo usuario no pierden
+     * incrementos. La carrera de la PRIMERA copia concurrente (ambas crean la
+     * fila) sigue resolviéndose por el UNIQUE {@code uk_usuario_carta}: una gana y
+     * la otra recibe el conflicto, igual que antes.
+     */
+    private boolean registrarPosesion(Usuario usuario, Carta carta) {
+        if (usuarioCartaRepository.incrementarCantidad(usuario, carta) > 0) {
+            return false;
+        }
+        usuarioCartaRepository.save(new UsuarioCarta(usuario, carta));
+        return true;
     }
 
     private long acreditarDuplicado(Usuario usuario, String idem, Carta carta, int posicion) {

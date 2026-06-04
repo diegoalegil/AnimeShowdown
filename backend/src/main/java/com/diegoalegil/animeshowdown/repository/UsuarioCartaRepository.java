@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -35,6 +36,19 @@ public interface UsuarioCartaRepository extends JpaRepository<UsuarioCarta, Long
 
     /** Fila concreta usuario+carta para incrementar duplicados. */
     Optional<UsuarioCarta> findByUsuarioAndCarta(Usuario usuario, Carta carta);
+
+    /**
+     * Incrementa atómicamente la cantidad de la fila usuario+carta en BD
+     * ({@code UPDATE ... SET cantidad = cantidad + 1}). Devuelve el número de
+     * filas afectadas: 1 si la posesión ya existía (incrementada sin lost-update),
+     * 0 si todavía no existe. Evita el read-modify-write que pierde incrementos
+     * cuando dos concesiones de la misma carta corren a la vez sobre el mismo
+     * usuario.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query("update UsuarioCarta uc set uc.cantidad = uc.cantidad + 1 "
+            + "where uc.usuario = :usuario and uc.carta = :carta")
+    int incrementarCantidad(@Param("usuario") Usuario usuario, @Param("carta") Carta carta);
 
     /** Gate de propiedad para endpoints que no deben filtrar cartas no poseídas. */
     boolean existsByUsuarioIdAndCartaId(Long usuarioId, Long cartaId);

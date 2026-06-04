@@ -16,9 +16,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.diegoalegil.animeshowdown.dto.AbrirSobreResultadoDto;
+import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
+import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.CartaRepository;
 import com.diegoalegil.animeshowdown.repository.MonederoRepository;
+import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaPityRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 import com.diegoalegil.animeshowdown.support.PostgresIntegrationTestBase;
@@ -37,6 +42,8 @@ class CartaEconomiaPostgresConcurrencyTest extends PostgresIntegrationTestBase {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private MonederoRepository monederoRepository;
     @Autowired private UsuarioCartaPityRepository pityRepository;
+    @Autowired private PersonajeRepository personajeRepository;
+    @Autowired private CartaRepository cartaRepository;
     @Autowired private EntityManager entityManager;
 
     @Test
@@ -79,6 +86,30 @@ class CartaEconomiaPostgresConcurrencyTest extends PostgresIntegrationTestBase {
         assertThat(movimientos(usuario, MotivoMovimiento.COMPRA_SOBRE)).isEqualTo(2L);
         assertThat(monederoRepository.findByUsuarioId(usuario.getId()).orElseThrow().getSaldo()).isZero();
         assertThat(pityRepository.findById(usuario.getId()).orElseThrow().getSobresSinEspecial()).isEqualTo(2);
+    }
+
+    @Test
+    void concesionesConcurrentesDeMismaCartaNoPierdenIncrementos() throws Exception {
+        Usuario usuario = crearUsuario("cartas_pg_concesion");
+        String slug = "pg-concesion-heroe";
+        Carta carta = crearCartaEspecial(slug);
+
+        // Pre-concesión: la fila usuario+carta ya existe con cantidad=1. Así el
+        // test aísla el lost-update del INCREMENTO (no la carrera del primer
+        // INSERT, que el UNIQUE resuelve dando conflicto a una de las copias).
+        Carta pre = cartaService.concederCartaEspecialPorSlug(usuario, slug);
+        assertThat(pre).isNotNull();
+        assertThat(cantidadDe(usuario, carta)).isEqualTo(1);
+
+        int concurrentes = 16;
+        List<Carta> resultados = concederConcurrente(usuario.getId(), slug, concurrentes);
+
+        assertThat(resultados).hasSize(concurrentes);
+        assertThat(resultados).allSatisfy(c -> assertThat(c).isNotNull());
+        // Una sola fila de posesión y TODOS los incrementos contabilizados: con el
+        // read-modify-write previo se perdían incrementos (cantidad < 1+N).
+        assertThat(filasDePosesion(usuario, carta)).isEqualTo(1L);
+        assertThat(cantidadDe(usuario, carta)).isEqualTo(1 + concurrentes);
     }
 
     private Usuario crearUsuario(String username) {
@@ -146,6 +177,58 @@ class CartaEconomiaPostgresConcurrencyTest extends PostgresIntegrationTestBase {
                 """, Long.class)
                 .setParameter("usuarioId", usuario.getId())
                 .setParameter("motivo", motivo)
+                .getSingleResult();
+    }
+
+    private Carta crearCartaEspecial(String slug) {
+        Personaje personaje = new Personaje(slug, "Heroe " + slug, "Anime Test", "desc", null);
+        personajeRepository.saveAndFlush(personaje);
+        return cartaRepository.saveAndFlush(new Carta(personaje, RarezaCarta.ESPECIAL));
+    }
+
+    private List<Carta> concederConcurrente(Long usuarioId, String slug, int veces) throws Exception {
+        CountDownLatch start = new CountDownLatch(1);
+        var executor = Executors.newFixedThreadPool(veces);
+        try {
+            List<Future<Carta>> futures = new ArrayList<>();
+            for (int i = 0; i < veces; i++) {
+                futures.add(executor.submit(() -> {
+                    assertThat(start.await(3, TimeUnit.SECONDS)).isTrue();
+                    Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow();
+                    return cartaService.concederCartaEspecialPorSlug(usuario, slug);
+                }));
+            }
+            start.countDown();
+
+            List<Carta> resultados = new ArrayList<>();
+            for (Future<Carta> future : futures) {
+                resultados.add(future.get(15, TimeUnit.SECONDS));
+            }
+            return resultados;
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private long filasDePosesion(Usuario usuario, Carta carta) {
+        return entityManager.createQuery("""
+                select count(uc)
+                from UsuarioCarta uc
+                where uc.usuario.id = :usuarioId and uc.carta.id = :cartaId
+                """, Long.class)
+                .setParameter("usuarioId", usuario.getId())
+                .setParameter("cartaId", carta.getId())
+                .getSingleResult();
+    }
+
+    private int cantidadDe(Usuario usuario, Carta carta) {
+        return entityManager.createQuery("""
+                select uc.cantidad
+                from UsuarioCarta uc
+                where uc.usuario.id = :usuarioId and uc.carta.id = :cartaId
+                """, Integer.class)
+                .setParameter("usuarioId", usuario.getId())
+                .setParameter("cartaId", carta.getId())
                 .getSingleResult();
     }
 }
