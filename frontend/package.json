@@ -15,6 +15,8 @@
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
     "build:images": "node scripts/generate-image-variants.mjs",
     "build:images:check": "node scripts/generate-image-variants.mjs --check",
+    "build:optimize-assets": "node scripts/optimize-source-assets.mjs",
+    "build:optimize-assets:check": "node scripts/optimize-source-assets.mjs --check",
     "build:colors": "node scripts/generate-dominant-colors.mjs",
     "build:stage-assets": "node scripts/generate-stage-assets.mjs",
     "assets:cdn:plan": "node ../scripts/sync-img-cdn.mjs --plan",
