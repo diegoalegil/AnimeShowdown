@@ -17,6 +17,7 @@ public class PersonajeMiniDto {
     private String nombre;
     private String anime;
     private String imagenUrl;
+    private String imagenColorDominante;
 
     public PersonajeMiniDto() {
     }
@@ -31,6 +32,10 @@ public class PersonajeMiniDto {
         dto.nombre = p.getNombre();
         dto.anime = p.getAnime();
         dto.imagenUrl = p.getImagenUrl();
+        // Color dominante del arte: el frontend lo usa de fondo de la carta
+        // (VoteCard/VoteQuoteCard, brackets) para que el recorte transparente
+        // no quede sobre un cuadro gris. Ya estaba en BD; faltaba exponerlo aquí.
+        dto.imagenColorDominante = p.getImagenColorDominante();
         return dto;
     }
 
@@ -72,5 +77,13 @@ public class PersonajeMiniDto {
 
     public void setImagenUrl(String imagenUrl) {
         this.imagenUrl = imagenUrl;
+    }
+
+    public String getImagenColorDominante() {
+        return imagenColorDominante;
+    }
+
+    public void setImagenColorDominante(String imagenColorDominante) {
+        this.imagenColorDominante = imagenColorDominante;
     }
 }
