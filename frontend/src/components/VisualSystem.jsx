@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import EditorialCover from './EditorialCover'
+import ResponsivePicture from './ResponsivePicture'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { AtmospherePreset } from './AtmosphereEffects'
 import { isVisualDebugActive } from '../lib/visualDebug'
@@ -230,13 +231,13 @@ export function CinematicHero({
         '--hero-glow': visual?.glowRgb ?? '197 161 90',
       }}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center opacity-85"
-        style={{
-          backgroundImage: `url("${visualImage(visual)}")`,
-          backgroundPosition: visual?.objectPosition ?? 'center',
-        }}
+      <ResponsivePicture
+        visual={visual}
+        src={visualImage(visual)}
+        className="absolute inset-0 opacity-85"
+        sizes="100vw"
+        loading="eager"
+        fetchPriority="high"
       />
       {/* Gradiente vertical con oscurecido lateral izquierdo para que el título
           sea legible y la imagen respire en centro/derecha. */}
