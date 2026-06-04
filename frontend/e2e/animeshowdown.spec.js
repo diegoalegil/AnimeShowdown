@@ -79,7 +79,11 @@ test('registro deja sesión activa y perfil accesible', async ({ page }) => {
   expect(consoleErrors).toEqual([])
 })
 
-test('votar 5 veces actualiza contador local del header', async ({ page }, testInfo) => {
+test('votar 5 veces incrementa el contador local de sesión', async ({ page }, testInfo) => {
+  // El badge numérico del botón Votar se retiró del header (UX: acumulaba un
+  // número incómodo). El contador localStorage 'animeshowdown.votos_count' se
+  // mantiene como instrumentación invisible: es el ground-truth determinista
+  // de que el voto se registró (el texto del botón es optimista/transitorio).
   const consoleErrors = await preparePage(page)
   await registerThroughUi(page, `vote_${Date.now()}`)
   await page.goto('/votar')
