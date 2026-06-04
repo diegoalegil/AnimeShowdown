@@ -592,13 +592,13 @@ class CartaControllerTest {
         CartaDropListener listener = listenerSincrono();
         assertThat(monederoService.saldoDe(u)).isZero();
 
-        // Primer voto del día = misión diaria completada (drop de 15).
+        // Primer voto del día = misión diaria completada (drop de 23).
         listener.onVoto(new VotoRegistradoEvent(u, null));
-        assertThat(monederoService.saldoDe(u)).isEqualTo(15L);
+        assertThat(monederoService.saldoDe(u)).isEqualTo(23L);
 
         // Votar otra vez el mismo día NO vuelve a dropear la misión diaria.
         listener.onVoto(new VotoRegistradoEvent(u, null));
-        assertThat(monederoService.saldoDe(u)).isEqualTo(15L);
+        assertThat(monederoService.saldoDe(u)).isEqualTo(23L);
     }
 
     @Test
@@ -609,16 +609,16 @@ class CartaControllerTest {
 
         listener.onPrediccionResuelta(
                 new PrediccionResueltaEvent(u.getId(), u.getUsername(), 3, 1));
-        assertThat(monederoService.saldoDe(u)).isEqualTo(25L);
+        assertThat(monederoService.saldoDe(u)).isEqualTo(38L);
 
         listener.onDueloFinalizado(new DueloLiveFinalizadoEvent(101L, u.getId()));
-        assertThat(monederoService.saldoDe(u)).isEqualTo(45L);
+        assertThat(monederoService.saldoDe(u)).isEqualTo(68L);
 
         // Ganó el bot (ganador null) o usuario inexistente → no acredita a nadie.
         listener.onDueloFinalizado(new DueloLiveFinalizadoEvent(102L, null));
         listener.onPrediccionResuelta(
                 new PrediccionResueltaEvent(99999999L, "fantasma", 5, 1));
-        assertThat(monederoService.saldoDe(u)).isEqualTo(45L);
+        assertThat(monederoService.saldoDe(u)).isEqualTo(68L);
     }
 
     private Carta crearCartaManual(String slug, String nombre) {
