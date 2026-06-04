@@ -485,6 +485,7 @@ function CharacterChoice({ label, personaje, disabled, onClick }) {
             slug={personaje.slug}
             src={personaje.imagenUrl}
             alt={personaje.nombre}
+            colorDominante={personaje.imagenColorDominante}
             loading="eager"
             fetchPriority={label === 'A' ? 'high' : 'auto'}
             sizes="(min-width: 1024px) 420px, 90vw"
