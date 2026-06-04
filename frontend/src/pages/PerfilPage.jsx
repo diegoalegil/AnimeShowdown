@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Key,
   LogOut,
+  Pencil,
   Trash2,
   User,
 } from 'lucide-react'
@@ -62,11 +63,34 @@ function PerfilPage() {
   const { data: topFav } = usePerfilTop({ limit: 1 })
   const favoritoImagenUrl = topFav?.[0]?.imagenUrl
 
+  // Click en la foto/banner del header → abrir Ajustes y hacer scroll a la card
+  // de edición. Las cards solo montan con tab==='ajustes', así que el scroll se
+  // difiere a un efecto que corre tras cambiar de tab (sin setState en efecto).
+  const pendingScrollRef = useRef(null)
+  useEffect(() => {
+    if (tab !== 'ajustes' || !pendingScrollRef.current) return undefined
+    const id = pendingScrollRef.current
+    pendingScrollRef.current = null
+    const t = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 80)
+    return () => window.clearTimeout(t)
+  }, [tab])
+
   if (!user) return <Navigate to="/login" replace />
 
   const handleLogout = () => {
     logout()
     navigate('/')
+  }
+
+  const irAEditar = (cardId) => {
+    if (tab === 'ajustes') {
+      document.getElementById(cardId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      pendingScrollRef.current = cardId
+      setSearchParams({ tab: 'ajustes' }, { replace: true })
+    }
   }
 
   return (
@@ -80,15 +104,40 @@ function PerfilPage() {
         animate="visible"
         variants={containerVariants}
       >
-        <ProfileBanner
-          bannerUrl={user.bannerUrl}
-          fallbackImagenUrl={favoritoImagenUrl}
-          alt="Tu banner"
-          className="h-28 sm:h-36"
-        />
+        <button
+          type="button"
+          onClick={() => irAEditar('card-banner')}
+          aria-label="Editar tu banner"
+          className="group relative block w-full"
+        >
+          <ProfileBanner
+            bannerUrl={user.bannerUrl}
+            fallbackImagenUrl={favoritoImagenUrl}
+            alt="Tu banner"
+            className="h-28 sm:h-36"
+          />
+          <span className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-bg/70 px-3 py-1.5 text-[11px] font-bold text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+            <Pencil className="h-3 w-3" />
+            Editar banner
+          </span>
+        </button>
         <div className="px-6 pb-5">
           <div className="-mt-10 flex items-end gap-4 sm:-mt-12">
-            <Avatar user={user} size={88} className="ring-4 ring-surface" />
+            <button
+              type="button"
+              onClick={() => irAEditar('card-avatar')}
+              aria-label="Editar tu avatar"
+              className="group relative shrink-0 rounded-full"
+            >
+              <Avatar
+                user={user}
+                size={88}
+                className="ring-4 ring-surface transition group-hover:ring-gold/50"
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-gold text-bg shadow-aura-sm">
+                <Pencil className="h-3.5 w-3.5" />
+              </span>
+            </button>
             <div className="min-w-0 pb-1">
               <h2 className="truncate text-xl font-bold tracking-tight text-fg-strong">
                 {user.username}
@@ -157,12 +206,16 @@ function PerfilPage() {
             <>
               <CardUsername user={user} />
               <CardBio user={user} />
-              <CardAvatar user={user} updateUser={updateUser} />
-              <CardBanner
-                user={user}
-                updateUser={updateUser}
-                favoritoImagenUrl={favoritoImagenUrl}
-              />
+              <div id="card-avatar" className="scroll-mt-24">
+                <CardAvatar user={user} updateUser={updateUser} />
+              </div>
+              <div id="card-banner" className="scroll-mt-24">
+                <CardBanner
+                  user={user}
+                  updateUser={updateUser}
+                  favoritoImagenUrl={favoritoImagenUrl}
+                />
+              </div>
               <CardPushNotificaciones />
               <CardPassword />
               <Card2faSeguridad />
