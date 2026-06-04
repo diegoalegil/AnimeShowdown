@@ -37,7 +37,12 @@ export function useCatalogoPersonajes({ enabled = true } = {}) {
     queryKey: ['personajes', 'catalogo', FIELDS],
     queryFn: () => endpoints.personajesCatalogo({ fields: FIELDS }),
     enabled,
-    initialData: enabled ? readPersistedCatalogo : undefined,
+    // initialData SIEMPRE (no gateada por enabled): leer localStorage es barato y
+    // sin red, y enabled:false ya evita el FETCH. Si App monta esta query disabled
+    // en una ruta bypass (/votar) como PRIMER observer, NO sembrar initialData
+    // dejaba la query sin datos para consumidores enabled del mismo key (VotarPage
+    // resuelve el duelo fijado ?personaje=&rival= via usePersonajesCatalogo) -> e2e roto.
+    initialData: readPersistedCatalogo,
     initialDataUpdatedAt: 0,
     staleTime: CATALOG_STALE_MS,
     gcTime: 24 * 60 * 60 * 1000,
