@@ -52,11 +52,11 @@ public class DropService {
             MonederoService monederoService,
             AuditLogService auditLogService,
             Clock clock,
-            @Value("${app.cartas.drop.voto:5}") long voto,
-            @Value("${app.cartas.drop.mision-diaria:15}") long misionDiaria,
-            @Value("${app.cartas.drop.torneo:25}") long torneo,
-            @Value("${app.cartas.drop.duelo:20}") long duelo,
-            @Value("${app.cartas.drop.tope-diario:50}") int topeDiario) {
+            @Value("${app.cartas.drop.voto:8}") long voto,
+            @Value("${app.cartas.drop.mision-diaria:23}") long misionDiaria,
+            @Value("${app.cartas.drop.torneo:38}") long torneo,
+            @Value("${app.cartas.drop.duelo:30}") long duelo,
+            @Value("${app.cartas.drop.tope-diario:100}") int topeDiario) {
         this.monederoService = monederoService;
         this.auditLogService = auditLogService;
         this.clock = clock;
