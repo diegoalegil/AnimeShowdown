@@ -42,7 +42,7 @@ class DropServiceTest {
     private DropService dropService(MonederoService monederoService,
             AuditLogService auditLogService, int topeDiario, Clock clock) {
         return new DropService(monederoService, auditLogService, clock,
-                5, 15, 25, 20, topeDiario);
+                8, 23, 38, 30, topeDiario);
     }
 
     @Test
@@ -68,7 +68,7 @@ class DropServiceTest {
     void superarTopeDiarioNoAcredita() {
         MonederoService monederoService = mock(MonederoService.class);
         when(monederoService.acreditarDropConTopeDiario(
-                eq(usuario), eq(MotivoMovimiento.DROP_VOTO), eq("voto:10"), eq(5L),
+                eq(usuario), eq(MotivoMovimiento.DROP_VOTO), eq("voto:10"), eq(8L),
                 eq(2), any(LocalDateTime.class)))
                 .thenReturn(new MonederoService.ResultadoDrop(
                         MonederoService.ResultadoDrop.Estado.TOPE_DIARIO, 0L));
@@ -84,16 +84,16 @@ class DropServiceTest {
         MonederoService monederoService = mock(MonederoService.class);
         AuditLogService auditLogService = mock(AuditLogService.class);
         when(monederoService.acreditarDropConTopeDiario(
-                eq(usuario), eq(MotivoMovimiento.DROP_TORNEO), eq("prediccion:3"), eq(25L),
+                eq(usuario), eq(MotivoMovimiento.DROP_TORNEO), eq("prediccion:3"), eq(38L),
                 eq(50), any(LocalDateTime.class)))
                 .thenReturn(new MonederoService.ResultadoDrop(
-                        MonederoService.ResultadoDrop.Estado.APLICADO, 25L));
+                        MonederoService.ResultadoDrop.Estado.APLICADO, 38L));
         DropService service = dropService(monederoService, auditLogService, 50);
 
         assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_TORNEO, "prediccion:3"))
                 .isEqualTo(DropService.DropResultado.APLICADO);
         verify(monederoService).acreditarDropConTopeDiario(
-                eq(usuario), eq(MotivoMovimiento.DROP_TORNEO), eq("prediccion:3"), eq(25L),
+                eq(usuario), eq(MotivoMovimiento.DROP_TORNEO), eq("prediccion:3"), eq(38L),
                 eq(50), any(LocalDateTime.class));
         verify(auditLogService).registrar(eq(AuditEvento.MONEDA_GANADA), eq(usuario), any(), eq(null));
     }
@@ -129,7 +129,7 @@ class DropServiceTest {
 
         ArgumentCaptor<LocalDateTime> desde = ArgumentCaptor.forClass(LocalDateTime.class);
         verify(monederoService).acreditarDropConTopeDiario(
-                eq(usuario), eq(MotivoMovimiento.DROP_VOTO), eq("voto:10"), eq(5L),
+                eq(usuario), eq(MotivoMovimiento.DROP_VOTO), eq("voto:10"), eq(8L),
                 eq(50), desde.capture());
         assertThat(desde.getValue()).isEqualTo(LocalDateTime.of(2026, 6, 1, 6, 0));
     }

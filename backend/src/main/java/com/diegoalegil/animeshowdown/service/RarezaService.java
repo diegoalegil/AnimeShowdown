@@ -34,8 +34,8 @@ public class RarezaService {
 
     public RarezaService(CartaRepository cartaRepo,
             @Value("${app.cartas.sobre.precio:100}") long precioSobre,
-            @Value("${app.cartas.especial.probabilidad-base:0.05}") double probabilidadEspecialBase,
-            @Value("${app.cartas.especial.pity-duro:10}") int pityDuro) {
+            @Value("${app.cartas.especial.probabilidad-base:0.20}") double probabilidadEspecialBase,
+            @Value("${app.cartas.especial.pity-duro:7}") int pityDuro) {
         this.cartaRepo = cartaRepo;
         this.precioSobre = Math.max(1, precioSobre);
         this.probabilidadEspecialBase = Math.max(0.0, Math.min(1.0, probabilidadEspecialBase));
@@ -59,7 +59,7 @@ public class RarezaService {
                 new OddsDto.RarezaOdds(RarezaCarta.SSR, 1.0,
                         "4 cartas normales + clímax top si no sale especial"),
                 new OddsDto.RarezaOdds(RarezaCarta.ESPECIAL, probabilidadEspecialBase,
-                        "Slot clímax: 5% base y pity duro al sobre 10 sin especial"));
+                        "Slot clímax: 20% base y pity duro al sobre 7 sin especial"));
         return new OddsDto(precioSobre, poolSsr + poolEspecial, CARTAS_POR_SOBRE,
                 NORMALES_POR_SOBRE, probabilidadEspecialBase, pityDuro, rarezas);
     }
