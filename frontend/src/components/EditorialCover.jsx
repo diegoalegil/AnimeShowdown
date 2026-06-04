@@ -1,4 +1,5 @@
 import { isVisualDebugActive } from '../lib/visualDebug'
+import ResponsivePicture from './ResponsivePicture'
 import VisualDebugBadge from './VisualDebugBadge'
 
 function EditorialCover({
@@ -36,13 +37,14 @@ function EditorialCover({
         '--cover-glow': glowRgb,
       }}
     >
-      <div
-        className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/cover:scale-[1.04] ${imageClassName}`}
-        style={{
-          backgroundImage: `url("${image}")`,
-          backgroundPosition: objectPosition,
-        }}
-        aria-hidden="true"
+      <ResponsivePicture
+        // Con imageOverride la imagen es otra (p.ej. carta de personaje /img/*),
+        // cuyas variantes NO son las del banner del visual → sin srcsets ahí.
+        visual={imageOverride ? undefined : visual}
+        src={image}
+        objectPosition={objectPosition}
+        sizes="(min-width: 1024px) 33vw, 100vw"
+        className={`absolute inset-0 transition-transform duration-700 group-hover/cover:scale-[1.04] ${imageClassName}`}
       />
       {/* Vignette solo en el bottom, donde va el texto, más glow accent sutil
           en esquinas para identidad sin tintar la imagen. */}

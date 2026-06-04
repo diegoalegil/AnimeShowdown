@@ -5,6 +5,7 @@ import { endpoints, ApiError } from '../lib/api'
 import { useTorneos } from '../lib/torneosQueries'
 import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { personajeDelDia } from '../lib/games'
+import ResponsivePicture from './ResponsivePicture'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
 import CampeonCard from '../features/home/pulso/components/CampeonCard'
 import DueloAbiertoCard from '../features/home/pulso/components/DueloAbiertoCard'
@@ -187,13 +188,11 @@ function SectionPulso() {
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center opacity-65"
-        style={{
-          backgroundImage: `url("${pulseImage}")`,
-          backgroundPosition: pulseVisual.objectPosition ?? 'center',
-        }}
+      <ResponsivePicture
+        visual={pulseVisual}
+        src={pulseImage}
+        sizes="100vw"
+        className="absolute inset-0 opacity-65"
       />
       <div
         aria-hidden="true"
