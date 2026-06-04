@@ -205,6 +205,30 @@ class CartaControllerTest {
     }
 
     @Test
+    void reclamarSobreBienvenidaGratisPersisteAperturaConPrecioCero() throws Exception {
+        // P0: el sobre de bienvenida persiste un SobreApertura con precio=0. Si el
+        // schema exige precio>0 (V44 CHECK), el INSERT falla en Postgres real y un
+        // usuario NUEVO no puede reclamar su sobre (el gancho de activación). Este
+        // test corre el save de verdad contra el schema (H2+Flyway, sin mocks), así
+        // que un constraint mal modelado lo rompe — lo que CartaServiceTest (repos
+        // mockeados) no detectaba.
+        String token = token("cartas_bienvenida");
+
+        mvc.perform(post("/api/me/cartas/sobre-bienvenida")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartas.length()").value(5))
+                .andExpect(jsonPath("$.precio").value(0));
+
+        // Segunda llamada: idempotente (devuelve la misma apertura, 200, no doble).
+        mvc.perform(post("/api/me/cartas/sobre-bienvenida")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartas.length()").value(5))
+                .andExpect(jsonPath("$.precio").value(0));
+    }
+
+    @Test
     void ganarMonedaAbrirSobreYVerColeccion() throws Exception {
         String token = token("cartas_flujo");
         Usuario u = usuario("cartas_flujo");
