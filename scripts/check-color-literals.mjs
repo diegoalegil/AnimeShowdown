@@ -15,6 +15,17 @@ const cssAllowlist = new Map([
     'stylesheet de animaciones de cartas; los colores deben quedarse como variables CSS locales',
   ],
 ])
+// Componentes del SISTEMA VISUAL PROCEDURAL: pintan auroras/god-rays/vignettes
+// con rgb() token-driven (rgb(var(--visual-accent)/α)) y canales runtime
+// (rgb(${visual.accentRgb}/α)) por diseño. El guard es un regex que no distingue
+// esos tokens de un literal hardcoded, así que se excluyen (acordado con el owner).
+// OJO: dentro de estos archivos un color hardcoded nuevo NO se detecta.
+const jsxAllowlist = new Map([
+  ['frontend/src/components/VisualSystem.jsx', 'motor visual procedural (auroras/god-rays/vignette) con rgb() token-driven'],
+  ['frontend/src/components/EditorialCover.jsx', 'portada editorial con overlays gradient token-driven'],
+  ['frontend/src/components/SectionPulso.jsx', 'sección pulso del home con fondo+overlays token-driven'],
+  ['frontend/src/features/games/hub/GameCardBackground.jsx', 'fondo de game card con overlays token-driven'],
+])
 
 function git(args) {
   try {
@@ -38,7 +49,8 @@ function changedFiles() {
 
 function isScannable(file) {
   const ext = extname(file)
-  return jsxExtensions.has(ext) || (ext === '.css' && !cssAllowlist.has(file))
+  if (jsxExtensions.has(ext)) return !jsxAllowlist.has(file)
+  return ext === '.css' && !cssAllowlist.has(file)
 }
 
 function findViolations(file) {
