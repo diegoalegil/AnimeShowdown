@@ -45,6 +45,6 @@ class DueloSugeridoServiceTest {
     }
 
     private static PersonajeScoreItem item(Long id, String slug, double votos) {
-        return new PersonajeScoreItem(id, slug, slug, "Test", "/img/" + slug + ".webp", votos, 0.0);
+        return new PersonajeScoreItem(id, slug, slug, "Test", "/img/" + slug + ".webp", null, votos, 0.0);
     }
 }

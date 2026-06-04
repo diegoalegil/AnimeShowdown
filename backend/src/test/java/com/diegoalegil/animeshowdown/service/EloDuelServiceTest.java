@@ -56,6 +56,10 @@ class EloDuelServiceTest {
         assertTrue(round.roundToken().startsWith("v1."));
         assertNotNull(round.reference());
         assertNotNull(round.challenger());
+        // El color dominante debe propagarse al mini-DTO para que la carta del
+        // ELO duel pinte el fondo real y no caiga al gris var(--color-surface).
+        assertEquals(colorBySlug(round.reference().getSlug()), round.reference().getImagenColorDominante());
+        assertEquals(colorBySlug(round.challenger().getSlug()), round.challenger().getImagenColorDominante());
         assertTrue(round.referenceElo() >= 1500);
         assertEquals("ELO competitivo", round.scoreLabel());
         assertFalse(Arrays.stream(EloDuelRoundDto.class.getRecordComponents())
@@ -132,6 +136,15 @@ class EloDuelServiceTest {
     private static PersonajeScoreItem item(Long id, String slug, String nombre, String anime,
             Double votosTotales, Double votosRecientes24h) {
         return new PersonajeScoreItem(id, slug, nombre, anime, "/img/" + slug + ".webp",
+                "#%06x".formatted((id * 0x112233L) & 0xFFFFFFL),
                 votosTotales, votosRecientes24h);
+    }
+
+    private String colorBySlug(String slug) {
+        return pool.stream()
+                .filter(item -> item.slug().equals(slug))
+                .findFirst()
+                .map(PersonajeScoreItem::imagenColorDominante)
+                .orElseThrow();
     }
 }
