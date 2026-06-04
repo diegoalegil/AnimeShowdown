@@ -5,6 +5,7 @@ import Button from '../../components/Button'
 import Dialog from '../../components/Dialog'
 import PackOpening from './PackOpening'
 import { useAuth } from '../../contexts/AuthContext'
+import { ApiError } from '../../lib/api'
 import {
   useColeccionResumen,
   useDescargarCarta,
@@ -80,7 +81,18 @@ function SobreBienvenidaBanner() {
     try {
       const res = await reclamar.mutateAsync()
       setReveal(res)
-    } catch {
+    } catch (err) {
+      // 409 = el backend ya tenía el sobre reclamado (idempotencia correcta);
+      // el cliente tenía estado obsoleto y mostraba la oferta igualmente. En
+      // vez de un error crudo, informamos y refrescamos la colección: el flag
+      // sobreBienvenidaDisponible pasa a false y el banner/modal se ocultan
+      // solos (el guard `if (!disponible) return null`).
+      if (err instanceof ApiError && err.status === 409) {
+        toast.info('Ya habías reclamado tu sobre de bienvenida.')
+        setIntroDismissed(true)
+        coleccionQ.refetch()
+        return
+      }
       toast.error('No se pudo abrir tu sobre de bienvenida', {
         description: 'Inténtalo de nuevo en unos segundos.',
       })
