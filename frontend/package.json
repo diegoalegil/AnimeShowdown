@@ -17,6 +17,8 @@
     "build:images:check": "node scripts/generate-image-variants.mjs --check",
     "build:optimize-assets": "node scripts/optimize-source-assets.mjs",
     "build:optimize-assets:check": "node scripts/optimize-source-assets.mjs --check",
+    "build:cover-variants": "node scripts/generate-cover-variants.mjs",
+    "build:cover-variants:check": "node scripts/generate-cover-variants.mjs --check",
     "build:colors": "node scripts/generate-dominant-colors.mjs",
     "build:stage-assets": "node scripts/generate-stage-assets.mjs",
     "assets:cdn:plan": "node ../scripts/sync-img-cdn.mjs --plan",
