@@ -1,18 +1,19 @@
 import { BRAND_VISUALS } from '../../../data/visual-assets'
+import ResponsivePicture from '../../../components/ResponsivePicture'
 
-function GameCardBackground({ visual, opacity = 0.92 }) {
+function GameCardBackground({ visual, opacity = 0.92, priority = false }) {
   const image =
     visual?.image || visual?.fallbackImage || BRAND_VISUALS.games.image
   return (
     <>
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-[1.03]"
-        style={{
-          backgroundImage: `url("${image}")`,
-          backgroundPosition: visual?.objectPosition ?? 'center center',
-          opacity,
-        }}
+      <ResponsivePicture
+        visual={visual}
+        src={image}
+        sizes="(min-width: 1024px) 33vw, 100vw"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : undefined}
+        className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.03]"
+        style={{ opacity }}
       />
       <div
         aria-hidden="true"
