@@ -91,6 +91,18 @@ export const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
 // el usuario sigue logueado; si fallo aparece como invitado.
 let tokenEnMemoria: string | null = null
 
+// AuthContext marca esto a true cuando hay una sesión ESPERADA (usuario
+// optimista restaurado de localStorage o tras login), y a false cuando se
+// confirma invitado (bootstrap sin sesión / logout). Permite que, en carga
+// fría, una petición autenticada SIN token todavía espere al /refresh del
+// bootstrap antes de disparar — sin refrescar para usuarios genuinamente
+// anónimos (donde un 403 es "forbidden" real, no "token aún no hidratado").
+let sesionEsperada = false
+
+export function setSesionEsperada(esperada: boolean): void {
+  sesionEsperada = Boolean(esperada)
+}
+
 export function getToken(): string | null {
   return tokenEnMemoria
 }
@@ -379,8 +391,29 @@ async function request(
   // colgadas si el caller no abortaba manualmente.
   const requestSignal = createRequestSignal({ signal, timeoutMs })
 
+  // Excluimos los endpoints de auth para no entrar en bucle de refresh.
+  const esRutaAuth =
+    path.includes('/api/auth/refresh') ||
+    path.includes('/api/auth/login') ||
+    path.includes('/api/auth/registro')
+
   let res
   try {
+    // Carga fría: si es una petición autenticada y AÚN no hay token en memoria
+    // (el bootstrap de /refresh puede estar en vuelo), esperamos a que el
+    // refresh resuelva ANTES de disparar. Si no, en el primer paint las queries
+    // /me salen sin token y el backend responde 403 (entry point FORBIDDEN),
+    // que el cliente NO reintenta sin token previo → la UI se queda con datos
+    // viejos (p.ej. el banner del sobre de bienvenida sigue ofreciéndose tras
+    // reclamarlo). intentarRefresh está dedup-eado (refreshPromise, el MISMO
+    // que usa refreshSession del bootstrap), así que todas las /me iniciales
+    // comparten UN refresh; si el user es anónimo (sin cookie) falla rápido y
+    // la petición sigue sin token (comportamiento previo). Solo cuando hay
+    // sesión ESPERADA (sesionEsperada): un 403 sin token ni sesión esperada es
+    // "forbidden" genuino (anónimo) y NO debe disparar refresh (contrato).
+    if (auth && !esRutaAuth && tokenEnMemoria === null && sesionEsperada) {
+      await intentarRefresh()
+    }
     res = await ejecutarFetch(path, {
       method,
       body,
@@ -405,11 +438,6 @@ async function request(
     // Ahora reaccionamos a AMBOS, pero solo cuando hay tokenEnMemoria
     // (indica JWT expirado, no "user nunca logueado") — asi un 403
     // genuino "no tienes permiso para esto" no entra en bucle de refresh.
-    // Excluimos los propios endpoints auth para no entrar en bucle.
-    const esRutaAuth =
-      path.includes('/api/auth/refresh') ||
-      path.includes('/api/auth/login') ||
-      path.includes('/api/auth/registro')
     const necesitaRefresh =
       auth &&
       !esRutaAuth &&
