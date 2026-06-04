@@ -79,7 +79,11 @@ test('registro deja sesión activa y perfil accesible', async ({ page }) => {
   expect(consoleErrors).toEqual([])
 })
 
-test('votar 5 veces actualiza contador local del header', async ({ page }, testInfo) => {
+test('votar 5 veces incrementa el contador local de sesión', async ({ page }) => {
+  // El badge numérico del botón Votar se retiró del header (UX: acumulaba un
+  // número incómodo). El contador localStorage 'animeshowdown.votos_count' se
+  // mantiene como instrumentación invisible: es el ground-truth determinista
+  // de que el voto se registró (el texto del botón es optimista/transitorio).
   const consoleErrors = await preparePage(page)
   await registerThroughUi(page, `vote_${Date.now()}`)
   await page.goto('/votar')
@@ -121,11 +125,9 @@ test('votar 5 veces actualiza contador local del header', async ({ page }, testI
     }
   }
 
+  // El ground-truth es el contador localStorage (loop arriba). El badge
+  // numérico del header se retiró (UX), así que ya no se asercia su DOM.
   expect(acceptedVotes).toBe(5)
-  if (testInfo.project.name === 'chromium-desktop') {
-    const headerVoteLink = page.locator('header nav a[href="/votar"]').first()
-    await expect(headerVoteLink).toContainText('5')
-  }
   await attachVisualSmoke(page, 'votar-5-votos')
   // Durante el retry loop podemos tocar un enfrentamiento ya votado.
   // El producto lo maneja con toast + skip, pero Chromium registra el
