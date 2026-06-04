@@ -4,10 +4,8 @@ import { describe, expect, it } from 'vitest'
 
 import DueloDestacadoCard from './DueloDestacadoCard'
 
-function bannerSpan(container: HTMLElement) {
-  return Array.from(container.querySelectorAll('span')).find((el) =>
-    (el as HTMLElement).style.backgroundImage.includes('tournament-banners'),
-  ) as HTMLElement | undefined
+function bannerImg(container: HTMLElement) {
+  return container.querySelector('picture img') as HTMLImageElement | null
 }
 
 describe('DueloDestacadoCard', () => {
@@ -19,15 +17,15 @@ describe('DueloDestacadoCard', () => {
         />
       </MemoryRouter>,
     )
-    const bg = bannerSpan(container)
-    expect(bg).toBeTruthy()
-    // El slug auto-generado no tiene webp propia: debe heredar la del slug base.
-    expect(bg!.style.backgroundImage).toContain('/assets/tournament-banners/random-showdown.webp')
+    const img = bannerImg(container)
+    expect(img).toBeTruthy()
+    // El slug auto-generado no tiene webp propia: hereda la del slug base.
+    expect(img!.getAttribute('src')).toContain('/assets/tournament-banners/random-showdown.webp')
     // El slug numerado NUNCA debe aparecer en la URL (era la causa del 404).
-    expect(bg!.style.backgroundImage).not.toContain('random-showdown-2.webp')
+    expect(img!.getAttribute('src')).not.toContain('random-showdown-2')
   })
 
-  it('usa el banner directo para un torneo con webp propia', () => {
+  it('emite <source> AVIF y WebP responsive para el banner', () => {
     const { container } = render(
       <MemoryRouter>
         <DueloDestacadoCard
@@ -35,8 +33,14 @@ describe('DueloDestacadoCard', () => {
         />
       </MemoryRouter>,
     )
-    const bg = bannerSpan(container)
-    expect(bg).toBeTruthy()
-    expect(bg!.style.backgroundImage).toContain('/assets/tournament-banners/shonen-showdown.webp')
+    const img = bannerImg(container)
+    expect(img!.getAttribute('src')).toContain('/assets/tournament-banners/shonen-showdown.webp')
+    const sources = container.querySelectorAll('picture source')
+    const types = Array.from(sources).map((s) => s.getAttribute('type'))
+    expect(types).toContain('image/avif')
+    expect(types).toContain('image/webp')
+    expect(container.querySelector('source[type="image/avif"]')!.getAttribute('srcset')).toContain(
+      'shonen-showdown-768.avif',
+    )
   })
 })
