@@ -1,18 +1,24 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { ApiError } from '../../lib/api'
 
 // Refs mutables disponibles dentro de las factories hoisted de vi.mock.
 const h = vi.hoisted(() => ({
   coleccion: { current: { sobreBienvenidaDisponible: true } as Record<string, unknown> },
   mutateAsync: vi.fn(),
+  refetch: vi.fn(),
+  toast: { info: vi.fn(), error: vi.fn(), success: vi.fn(), message: vi.fn() },
 }))
+
+vi.mock('sonner', () => ({ toast: h.toast }))
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 1, username: 'goku' } }),
 }))
 
 vi.mock('../../hooks/useCartas', () => ({
-  useColeccionResumen: () => ({ data: h.coleccion.current }),
+  useColeccionResumen: () => ({ data: h.coleccion.current, refetch: h.refetch }),
   useSobreBienvenida: () => ({ mutateAsync: h.mutateAsync, isPending: false }),
   useDescargarCarta: () => ({ isPending: false, mutate: vi.fn(), variables: undefined }),
 }))
@@ -27,6 +33,9 @@ describe('SobreBienvenidaBanner', () => {
     localStorage.clear()
     h.coleccion.current = { sobreBienvenidaDisponible: true }
     h.mutateAsync.mockReset()
+    h.refetch.mockReset()
+    h.toast.info.mockReset()
+    h.toast.error.mockReset()
   })
 
   // El Dialog del intro se renderiza en un portal a document.body; sin cleanup
@@ -51,5 +60,30 @@ describe('SobreBienvenidaBanner', () => {
     h.coleccion.current = { sobreBienvenidaDisponible: false }
     const { container } = render(<SobreBienvenidaBanner />)
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('ante un 409 (ya reclamado) informa y refresca la colección, sin error crudo', async () => {
+    // Estado obsoleto: el cliente cree que el sobre está disponible, pero el
+    // backend ya lo tenía reclamado y responde 409. No debe salir toast.error.
+    localStorage.setItem('as_welcome_pack_prompted:1', '1')
+    h.mutateAsync.mockRejectedValueOnce(new ApiError('conflict', 409, null))
+    render(<SobreBienvenidaBanner />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Ábrelo gratis/i }))
+
+    await waitFor(() => expect(h.toast.info).toHaveBeenCalledTimes(1))
+    expect(h.refetch).toHaveBeenCalledTimes(1)
+    expect(h.toast.error).not.toHaveBeenCalled()
+  })
+
+  it('ante un error genérico (no 409) sí muestra toast.error', async () => {
+    localStorage.setItem('as_welcome_pack_prompted:1', '1')
+    h.mutateAsync.mockRejectedValueOnce(new ApiError('boom', 500, null))
+    render(<SobreBienvenidaBanner />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Ábrelo gratis/i }))
+
+    await waitFor(() => expect(h.toast.error).toHaveBeenCalledTimes(1))
+    expect(h.refetch).not.toHaveBeenCalled()
   })
 })
