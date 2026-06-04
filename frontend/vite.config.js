@@ -241,9 +241,23 @@ function criticalCssPlugin() {
   }
 }
 
+// Hashes de <style> inyectados en RUNTIME por librerías de terceros. No están
+// en dist/index.html, así que inlineStyleHashes() no puede detectarlos: hay que
+// listarlos a mano para que la CSP (style-src-elem) los permita.
+//   - Sonner monta su propio <style> para los toasts. Sin este hash, la CSP lo
+//     bloquea ("Refused to apply stylesheet") en TODAS las rutas y los toasts
+//     pueden perder estilos.
+// OJO: atado a la versión de Sonner. Si se actualiza y cambia su CSS, el hash
+// cambia y hay que regenerarlo (el navegador lo reporta en la violación CSP).
+const RUNTIME_STYLE_HASHES = [
+  "'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY='",
+]
+
 function updateCriticalStyleHashes(headersPath, html) {
   if (!existsSync(headersPath)) return
-  const hashes = inlineStyleHashes(html)
+  // Hashes del CSS crítico inline (beasties) + los de estilos de runtime que el
+  // HTML no contiene (Sonner). Set para deduplicar si beasties repite alguno.
+  const hashes = [...new Set([...inlineStyleHashes(html), ...RUNTIME_STYLE_HASHES])]
   if (hashes.length === 0) return
 
   const headers = readFileSync(headersPath, 'utf8')
