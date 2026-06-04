@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import {
   endpoints,
   setToken,
+  setSesionEsperada,
   refreshSession,
   setLoggingOut,
   bumpSessionEpoch,
@@ -105,6 +106,14 @@ export function AuthProvider({ children }) {
       return null
     }
   })
+
+  // Mantiene en sync el cliente API: si hay usuario (optimista o confirmado),
+  // se ESPERA una sesión, así una petición /me en carga fría sin token todavía
+  // espera al /refresh del bootstrap antes de disparar (evita el 403 de carrera
+  // que dejaba datos viejos, p.ej. el banner del sobre de bienvenida). Va en el
+  // cuerpo del render (antes que los efectos de los hijos que disparan queries)
+  // a propósito; es un set idempotente de un flag de módulo, no estado React.
+  setSesionEsperada(Boolean(user))
 
   // Bootstrap del refresh al montar.
   //

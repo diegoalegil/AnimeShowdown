@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
   getToken,
   setToken,
+  setSesionEsperada,
   onTokenChange,
   setLoggingOut,
   bumpSessionEpoch,
@@ -21,6 +22,7 @@ import {
 
 beforeEach(() => {
   setToken(null)
+  setSesionEsperada(false)
   setLoggingOut(false)
   bumpSessionEpoch()
   vi.useFakeTimers()
@@ -459,6 +461,31 @@ describe('api.get / api.post / api.put / api.del', () => {
     vi.stubGlobal('fetch', fn)
     await expect(api.get('/api/perfil/me/stats')).rejects.toMatchObject({ status: 403 })
     expect(fn.mock.calls.length).toBe(1)
+  })
+
+  it('refresca proactivamente sin token cuando hay sesión esperada (carga fría)', async () => {
+    // sesionEsperada=true lo pone AuthContext al haber usuario optimista. Sin
+    // token en memoria, el cliente espera el /refresh ANTES de disparar la
+    // petición → evita el 403 de carrera en carga fría que dejaba datos viejos.
+    setSesionEsperada(true)
+    let call = 0
+    const fn = mockFetchFactory(async () => {
+      call += 1
+      // 1ª llamada = /refresh → devuelve token; 2ª = la petición real.
+      const body = call === 1 ? { token: 'jwt.fresh', usuario: { id: 1 } } : { ok: true }
+      return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
+    vi.stubGlobal('fetch', fn)
+
+    const res = await api.get('/api/me/cartas/resumen')
+
+    expect(res).toEqual({ ok: true })
+    expect(fn.mock.calls.length).toBe(2)
+    expect(fn.mock.calls[0][0]).toContain('/api/auth/refresh')
+    expect(fn.mock.calls[1][0]).toContain('/api/me/cartas/resumen')
   })
 
   it('does NOT auto-refresh on auth routes', async () => {
