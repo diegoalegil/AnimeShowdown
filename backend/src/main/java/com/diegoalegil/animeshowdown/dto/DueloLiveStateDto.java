@@ -46,7 +46,7 @@ public record DueloLiveStateDto(
                 ? DueloLivePlayerDto.from(duelo.getJugador1())
                 : DueloLivePlayerDto.from(duelo.getJugador2());
         DueloLivePlayerDto rival = soyJugador1
-                ? (duelo.isJugador2Bot() ? DueloLivePlayerDto.botPlayer() : DueloLivePlayerDto.from(duelo.getJugador2()))
+                ? (duelo.isJugador2Bot() ? DueloLivePlayerDto.botPlayer(duelo.getId()) : DueloLivePlayerDto.from(duelo.getJugador2()))
                 : DueloLivePlayerDto.from(duelo.getJugador1());
         return new DueloLiveStateDto(
                 duelo.getId(),

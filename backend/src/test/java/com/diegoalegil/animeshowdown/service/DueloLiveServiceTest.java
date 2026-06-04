@@ -31,6 +31,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.diegoalegil.animeshowdown.dto.BotNames;
 import com.diegoalegil.animeshowdown.dto.DueloLiveStateDto;
 import com.diegoalegil.animeshowdown.model.DueloLive;
 import com.diegoalegil.animeshowdown.model.DueloLiveChoice;
@@ -87,7 +88,7 @@ class DueloLiveServiceTest {
         DueloLiveStateDto matched = dueloLiveService.entrarCola(b, "10.0.0.2");
 
         assertThat(waiting.estado()).isEqualTo(DueloLiveEstado.WAITING);
-        assertThat(waiting.fallbackAfterSeconds()).isEqualTo(10);
+        assertThat(waiting.fallbackAfterSeconds()).isEqualTo(5);
         assertThat(matched.estado()).isEqualTo(DueloLiveEstado.IN_PROGRESS);
         assertThat(matched.rival().username()).isEqualTo("pvp_match_a");
         assertThat(Math.abs(matched.miEloBefore() - matched.rivalEloBefore())).isLessThanOrEqualTo(100);
@@ -218,7 +219,7 @@ class DueloLiveServiceTest {
     void activaFallbackRapidoSiNoHayRival() {
         Usuario a = usuario("pvp_bot_a", 1000);
         DueloLiveStateDto waiting = dueloLiveService.entrarCola(a, "10.0.5.1");
-        assertThat(waiting.fallbackAfterSeconds()).isEqualTo(10);
+        assertThat(waiting.fallbackAfterSeconds()).isEqualTo(5);
 
         clock.setInstant(Instant.parse("2026-05-22T10:00:11Z"));
         dueloLiveService.mantenimientoLive();
@@ -227,7 +228,8 @@ class DueloLiveServiceTest {
         assertThat(state.estado()).isEqualTo(DueloLiveEstado.IN_PROGRESS);
         assertThat(state.botMatch()).isTrue();
         assertThat(state.rival().bot()).isTrue();
-        assertThat(state.rival().username()).isEqualTo("Rival PvP");
+        // El bot toma un username creíble del pool, estable por id de duelo.
+        assertThat(state.rival().username()).isEqualTo(BotNames.pick(state.id()));
     }
 
     private void asegurarDecisionA(DueloLiveStateDto state) {

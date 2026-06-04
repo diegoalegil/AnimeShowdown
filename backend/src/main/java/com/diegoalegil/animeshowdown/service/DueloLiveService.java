@@ -75,7 +75,7 @@ public class DueloLiveService {
             BadgeService badgeService,
             ApplicationEventPublisher eventPublisher,
             Clock clock,
-            @Value("${app.duelo-live.fallback-after-seconds:10}")
+            @Value("${app.duelo-live.fallback-after-seconds:5}")
             int fallbackAfterSeconds,
             @Value("${app.duelo-live.scheduled-maintenance.enabled:true}")
             boolean scheduledMaintenanceEnabled) {
@@ -232,7 +232,7 @@ public class DueloLiveService {
         return estadoPara(duelo, usuario, "MATCH_END", "Duelo abandonado");
     }
 
-    @Scheduled(fixedRate = 5_000)
+    @Scheduled(fixedRate = 3_000)
     @Transactional
     public void mantenimientoLiveProgramado() {
         if (!scheduledMaintenanceEnabled) return;
@@ -485,7 +485,10 @@ public class DueloLiveService {
         seed = seed * 31 + ronda.getNumero();
         seed = seed * 31 + nullSafeId(ronda.getPersonajeA() == null ? null : ronda.getPersonajeA().getId());
         seed = seed * 31 + nullSafeId(ronda.getPersonajeB() == null ? null : ronda.getPersonajeB().getId());
-        return Math.floorMod(seed, 4) == 0;
+        // El bot falla ~1 de cada 2 rondas (antes 1 de cada 4 → acertaba 75% y
+        // era casi imposible ganarle, reportado en auditoría). Sigue siendo
+        // determinista por ronda (mismo seed → mismo resultado).
+        return Math.floorMod(seed, 2) == 0;
     }
 
     private static long nullSafeId(Long id) {
