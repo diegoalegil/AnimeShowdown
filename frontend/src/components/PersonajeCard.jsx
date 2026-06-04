@@ -4,7 +4,7 @@ import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
 import { getStatsPersonaje } from '../lib/personajes-core'
 
-function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp }) {
+function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp, imagenColorDominante }) {
   const { play } = useSound()
 
   // Solo usamos el ELO base (estimado por popularidad). Las W/L y el win rate
@@ -27,7 +27,7 @@ function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp }) {
         <PersonajeImg
           slug={slug}
           alt={nombre}
-          colorDominante="var(--color-surface)"
+          colorDominante={imagenColorDominante ?? 'var(--color-surface)'}
           loading={imageLoading}
           fetchPriority={imageFetchPriority}
           className="aspect-[2/3] w-full object-cover"
@@ -70,8 +70,10 @@ function CardBadges({ rank, elo, nombre, anime }) {
   )
 }
 
-// memo: las props son primitivas (slug/nombre/anime/rank/elo), así que la
-// comparación shallow por defecto corta el re-render cuando el padre
-// (PersonajesPage) se re-renderiza por motivos ajenos a esta card (filtros,
-// orden, búsqueda) — hasta 60 cards reconciliadas por interacción.
+// memo: las props son primitivas (slug/nombre/anime/rank/elo/
+// imagenColorDominante), así que la comparación shallow por defecto corta el
+// re-render cuando el padre (PersonajesPage) se re-renderiza por motivos
+// ajenos a esta card (filtros, orden, búsqueda) — hasta 60 cards
+// reconciliadas por interacción. El color dominante ya viajaba en el spread
+// {...p}; antes se ignoraba (se forzaba surface), ahora se usa de fondo.
 export default memo(PersonajeCard)

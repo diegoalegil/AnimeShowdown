@@ -67,7 +67,27 @@ describe('PersonajeCard', () => {
     ).toBe(articleBefore)
   })
 
-  it('no muestra el color dominante ni escala la imagen en hover', () => {
+  it('usa el color dominante del personaje como fondo de la imagen', () => {
+    // El auditor reportó "cuadro gris sin personalidad": muchos artes son
+    // recortes transparentes, así que el fondo se ve. Pasamos el color real
+    // del catálogo (viaja en el spread {...p}) en vez de forzar surface.
+    render(
+      <MemoryRouter>
+        <PersonajeCard
+          slug="naruto-uzumaki"
+          nombre="Naruto Uzumaki"
+          anime="Naruto"
+          rank={1}
+          imagenColorDominante="var(--demo-color-dominante)"
+        />
+      </MemoryRouter>,
+    )
+
+    const media = screen.getByTestId('personaje-img')
+    expect(media).toHaveAttribute('data-color-dominante', 'var(--demo-color-dominante)')
+  })
+
+  it('cae a surface cuando el personaje no trae color dominante', () => {
     render(
       <MemoryRouter>
         <PersonajeCard
@@ -81,6 +101,21 @@ describe('PersonajeCard', () => {
 
     const media = screen.getByTestId('personaje-img')
     expect(media).toHaveAttribute('data-color-dominante', 'var(--color-surface)')
+  })
+
+  it('no escala la imagen en hover (sin flash de color en hover)', () => {
+    render(
+      <MemoryRouter>
+        <PersonajeCard
+          slug="naruto-uzumaki"
+          nombre="Naruto Uzumaki"
+          anime="Naruto"
+          rank={1}
+        />
+      </MemoryRouter>,
+    )
+
+    const media = screen.getByTestId('personaje-img')
     expect(media.className).not.toContain('group-hover:scale')
   })
 
