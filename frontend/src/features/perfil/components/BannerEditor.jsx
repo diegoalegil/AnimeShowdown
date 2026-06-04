@@ -1,17 +1,27 @@
 import { useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { ImagePlus, Layers, Link as LinkIcon, Search, Upload } from 'lucide-react'
+import { ImagePlus, Layers, Link as LinkIcon, Search, Swords, Tv, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import ProfileBanner from '../../../components/ProfileBanner'
 import PersonajeImg from '../../../components/PersonajeImg'
 import { endpoints, ApiError } from '../../../lib/api'
 import { usePersonajesCatalogo } from '../../../hooks/usePersonajesCatalogo'
+import { ANIME_VISUALS, TOURNAMENT_VISUALS } from '../../../data/visual-assets'
 
 const TAB_META = {
-  archivo: { label: 'Subir imagen', icon: Upload },
-  catalogo: { label: 'Del catálogo', icon: Layers },
-  url: { label: 'Pegar URL', icon: LinkIcon },
+  archivo: { label: 'Subir', icon: Upload },
+  catalogo: { label: 'Cartas', icon: Layers },
+  animes: { label: 'Animes', icon: Tv },
+  torneos: { label: 'Torneos', icon: Swords },
+  url: { label: 'URL', icon: LinkIcon },
 }
+
+// Banners horizontales (16:9) del catálogo: key visuals de animes y de torneos.
+// A diferencia de las cards de personaje (verticales 2:3), encajan en la
+// cabecera sin recorte raro. Es el fix de la auditoría al "banner horizontal
+// con arte vertical es ilógico".
+const ANIME_BANNERS = Object.values(ANIME_VISUALS)
+const TORNEO_BANNERS = Object.values(TOURNAMENT_VISUALS)
 
 const CATALOGO_VISIBLE_MAX = 48
 
@@ -50,7 +60,7 @@ async function fileToBannerBase64(file, targetW = BANNER_W, targetH = BANNER_H, 
  * primero, card del catálogo, URL avanzada) pero recorta a ratio banner y
  * persiste vía PUT /me/banner. El caller decide qué tabs mostrar.
  */
-function BannerEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'url'] }) {
+function BannerEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'animes', 'torneos', 'url'] }) {
   const [tab, setTab] = useState(tabs[0])
 
   return (
@@ -70,8 +80,7 @@ function BannerEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'url'] 
         )}
       </div>
       <div
-        className="grid gap-1 rounded-lg border border-border bg-bg p-1"
-        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        className="flex flex-wrap gap-1 rounded-lg border border-border bg-bg p-1"
         role="tablist"
       >
         {tabs.map((id) => {
@@ -84,7 +93,7 @@ function BannerEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'url'] 
               role="tab"
               aria-selected={tab === id}
               onClick={() => setTab(id)}
-              className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${
+              className={`inline-flex min-w-[84px] flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${
                 tab === id
                   ? 'bg-surface-alt text-fg-strong'
                   : 'text-fg-muted hover:text-fg-strong'
@@ -98,6 +107,12 @@ function BannerEditor({ user, updateUser, tabs = ['archivo', 'catalogo', 'url'] 
       </div>
       {tab === 'archivo' && <UploadForm user={user} updateUser={updateUser} />}
       {tab === 'catalogo' && <CatalogoForm updateUser={updateUser} />}
+      {tab === 'animes' && (
+        <VisualesForm items={ANIME_BANNERS} updateUser={updateUser} etiqueta="anime" />
+      )}
+      {tab === 'torneos' && (
+        <VisualesForm items={TORNEO_BANNERS} updateUser={updateUser} etiqueta="torneo" />
+      )}
       {tab === 'url' && <UrlForm user={user} updateUser={updateUser} />}
     </div>
   )
@@ -356,6 +371,86 @@ function CatalogoForm({ updateUser }) {
       <p className="text-[11px] text-fg-muted">
         Elige una card del catálogo como cabecera. Busca para ver más allá de
         los primeros {CATALOGO_VISIBLE_MAX}.
+      </p>
+    </div>
+  )
+}
+
+function VisualesForm({ items, updateUser, etiqueta }) {
+  const [q, setQ] = useState('')
+  const [busy, setBusy] = useState(null)
+
+  const filtrados = useMemo(() => {
+    const term = q.trim().toLowerCase()
+    const base = term
+      ? items.filter((v) => v.title?.toLowerCase().includes(term))
+      : items
+    return base.slice(0, CATALOGO_VISIBLE_MAX)
+  }, [items, q])
+
+  const elegir = async (v) => {
+    if (!v?.image) return
+    const absoluta = new URL(v.image, window.location.origin).href
+    setBusy(v.slug)
+    try {
+      await endpoints.updateBanner(absoluta)
+      updateUser({ bannerUrl: absoluta })
+      toast.success('Banner actualizado', {
+        description: `Tu cabecera ahora luce ${v.title}.`,
+      })
+    } catch (err) {
+      const msg =
+        err instanceof ApiError
+          ? err.message || `Error ${err.status}`
+          : 'No se pudo conectar al servidor.'
+      toast.error('No se pudo usar ese banner', { description: msg })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+        <input
+          type="text"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={`Busca un ${etiqueta}…`}
+          className="w-full rounded-lg border border-border bg-bg py-2.5 pl-9 pr-3 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+        />
+      </div>
+      {filtrados.length === 0 ? (
+        <p className="px-1 py-6 text-center text-[12px] text-fg-muted">
+          Sin resultados. Prueba con otro nombre.
+        </p>
+      ) : (
+        <div className="grid max-h-72 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
+          {filtrados.map((v) => (
+            <button
+              key={v.slug}
+              type="button"
+              onClick={() => elegir(v)}
+              disabled={busy === v.slug}
+              title={v.title}
+              className="group relative aspect-[16/9] overflow-hidden rounded-lg border border-border bg-surface-alt transition-colors hover:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50"
+            >
+              <img
+                src={v.image}
+                alt={v.title}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              />
+              <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/80 to-transparent px-2 pb-1 pt-4 text-left text-[10px] font-bold text-white">
+                {v.title}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+      <p className="text-[11px] text-fg-muted">
+        Banners horizontales (16:9) del catálogo, pensados para la cabecera.
       </p>
     </div>
   )
