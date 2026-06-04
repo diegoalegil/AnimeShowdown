@@ -461,7 +461,7 @@ function PlayerBlock({ player, score, align }) {
       <div className="min-w-0">
         <p className="truncate text-lg font-black text-fg-strong">{player?.username}</p>
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-fg-muted">
-          {player?.bot ? 'Rival PvP' : `${player?.eloPvp ?? 1000} ELO PvP`}
+          {`${player?.eloPvp ?? 1000} ELO PvP`}
         </p>
       </div>
       <div className="ml-auto rounded-xl border border-gold/30 bg-gold/10 px-4 py-2 text-3xl font-black tabular-nums text-gold md:ml-0">

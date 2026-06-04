@@ -19,7 +19,9 @@ public record DueloLivePlayerDto(
                 false);
     }
 
-    public static DueloLivePlayerDto botPlayer() {
-        return new DueloLivePlayerDto(null, "Rival PvP", null, 1000, true);
+    public static DueloLivePlayerDto botPlayer(Long dueloId) {
+        // Nombre creíble y estable por duelo (en vez del antiguo "Rival PvP"
+        // que delataba al bot). bot=true permite a la UI marcar el rol.
+        return new DueloLivePlayerDto(null, BotNames.pick(dueloId), null, 1000, true);
     }
 }
