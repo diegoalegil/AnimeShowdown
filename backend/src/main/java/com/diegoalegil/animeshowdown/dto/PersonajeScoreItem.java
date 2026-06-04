@@ -11,6 +11,7 @@ public record PersonajeScoreItem(
         String nombre,
         String anime,
         String imagenUrl,
+        String imagenColorDominante,
         Double votosTotales,
         Double votosRecientes24h) {
 
@@ -30,6 +31,11 @@ public record PersonajeScoreItem(
         dto.setNombre(nombre);
         dto.setAnime(anime);
         dto.setImagenUrl(imagenUrl);
+        // Color dominante del arte: sin él, la carta del ELO duel (HigherOrLower)
+        // caía al gris var(--color-surface) en PersonajeImg salvo que el catálogo
+        // global estuviese hidratado. Server-authoritative = robusto aunque el
+        // catálogo deje de cebarse globalmente.
+        dto.setImagenColorDominante(imagenColorDominante);
         return dto;
     }
 
