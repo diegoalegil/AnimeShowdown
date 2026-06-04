@@ -1,6 +1,7 @@
 import { ArrowRight, Swords } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import PersonajeImg from '../../../../components/PersonajeImg'
+import { getTournamentVisual } from '../../../../data/visual-assets'
 import { buildDuelVoteUrl } from '../pulso-utils'
 import CardEyebrow from './CardEyebrow'
 
@@ -27,6 +28,11 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
   // ser el FONDO a sangre de toda la tarjeta (no un thumbnail). El texto va
   // encima sobre un degradado oscuro a la izquierda para mantener legibilidad.
   const mostrarBanner = !tieneDuelo && Boolean(torneoEnCurso)
+  // Resuelve el banner vía getTournamentVisual: los torneos auto-generados
+  // (random-showdown-1, -2…) no tienen webp propia, su banner vive bajo el slug
+  // base. Construir la URL a mano con el slug numerado daba 404. El visual
+  // siempre resuelve a una imagen (base o fallback STAGE.torneos), nunca undefined.
+  const bannerUrl = mostrarBanner ? getTournamentVisual(torneoEnCurso.slug).image : null
 
   return (
     <Link
@@ -40,7 +46,7 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
             style={{
-              backgroundImage: `url("/assets/tournament-banners/${torneoEnCurso.slug}.webp")`,
+              backgroundImage: `url("${bannerUrl}")`,
             }}
           />
           {/* Degradados oscuros: izquierda sólida para el texto, base para el CTA */}
@@ -66,8 +72,10 @@ function DueloDestacadoCard({ duelo, torneoEnCurso }) {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-90"
           style={{
+            // Tokens del sistema vía color-mix: equivalente exacto a un canal
+            // de color con alpha, sin meter literales de color en JSX (guard).
             background:
-              'radial-gradient(circle at 18% 8%, rgb(197 161 90 / 0.20), transparent 16rem), radial-gradient(circle at 86% 0%, rgb(36 198 220 / 0.14), transparent 18rem), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 45%)',
+              'radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--color-gold) 20%, transparent), transparent 16rem), radial-gradient(circle at 86% 0%, color-mix(in srgb, var(--color-electric) 14%, transparent), transparent 18rem), linear-gradient(180deg, color-mix(in srgb, white 3.5%, transparent), transparent 45%)',
           }}
         />
       )}
