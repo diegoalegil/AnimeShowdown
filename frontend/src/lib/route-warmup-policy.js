@@ -28,10 +28,17 @@ export function canWarmupRoutes({
   connection = globalThis.navigator?.connection,
   deviceMemory = globalThis.navigator?.deviceMemory,
   hardwareConcurrency = globalThis.navigator?.hardwareConcurrency,
+  matchMedia = globalThis.matchMedia,
   visibilityState = globalThis.document?.visibilityState,
 } = {}) {
   if (visibilityState === 'hidden') return false
   if (connection?.saveData) return false
+  if (
+    typeof matchMedia === 'function' &&
+    matchMedia('(max-width: 767px), (hover: none), (pointer: coarse)').matches
+  ) {
+    return false
+  }
 
   const effectiveType = String(connection?.effectiveType ?? '').toLowerCase()
   if (SLOW_CONNECTION_TYPES.has(effectiveType)) return false

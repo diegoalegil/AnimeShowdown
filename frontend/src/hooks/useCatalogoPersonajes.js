@@ -32,11 +32,12 @@ function persistCatalogo(data) {
   }
 }
 
-export function useCatalogoPersonajes() {
+export function useCatalogoPersonajes({ enabled = true } = {}) {
   const query = useQuery({
     queryKey: ['personajes', 'catalogo', FIELDS],
     queryFn: () => endpoints.personajesCatalogo({ fields: FIELDS }),
-    initialData: readPersistedCatalogo,
+    enabled,
+    initialData: enabled ? readPersistedCatalogo : undefined,
     initialDataUpdatedAt: 0,
     staleTime: CATALOG_STALE_MS,
     gcTime: 24 * 60 * 60 * 1000,
@@ -50,10 +51,11 @@ export function useCatalogoPersonajes() {
   })
 
   useEffect(() => {
+    if (!enabled) return
     // Persist raw data for next load's initialData; sync also runs normalization.
     persistCatalogo(query.data)
     syncCatalogoPersonajes(query.data)
-  }, [query.data])
+  }, [enabled, query.data])
 
   return query
 }

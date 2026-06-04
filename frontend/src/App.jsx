@@ -17,7 +17,7 @@ import MobileBottomNav from './components/MobileBottomNav'
 import RequireCatalog from './components/RequireCatalog'
 import PageSkeleton from './components/PageSkeleton'
 import { useCatalogoPersonajes } from './hooks/useCatalogoPersonajes'
-import { shouldGateCatalogRoute } from './lib/catalog-route-policy'
+import { shouldGateCatalogRoute, shouldPrimeCatalogFromApp } from './lib/catalog-route-policy'
 import { lazyRoute } from './lib/lazyRoute'
 import { getRouteSkeletonReserve } from './lib/routeSkeletonPolicy'
 import { canWarmupRoutes, idleWarmupRoutesFor } from './lib/route-warmup-policy'
@@ -203,7 +203,10 @@ function useQueryLanguageSync(search) {
 
 function App() {
   const location = useLocation()
-  const catalogoQuery = useCatalogoPersonajes()
+  const shouldGateCatalog = shouldGateCatalogRoute(location.pathname)
+  const catalogoQuery = useCatalogoPersonajes({
+    enabled: shouldPrimeCatalogFromApp(location.pathname),
+  })
   useQueryLanguageSync(location.search)
   // Rutas fullscreen sin chrome global (TV mode, etc.). Si el usuario
   // navega aquí queremos que el viewport sea solo del contenido — sin
@@ -222,7 +225,7 @@ function App() {
     </RequireCatalog>
   )
   const catalogAware = (element) =>
-    shouldGateCatalogRoute(location.pathname) ? gated(element) : element
+    shouldGateCatalog ? gated(element) : element
 
   // Scroll to top en cada cambio de ruta — antes la página quedaba con el scroll
   // de la página anterior, así que al click en una card del catálogo el detalle

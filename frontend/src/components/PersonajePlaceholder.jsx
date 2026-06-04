@@ -11,8 +11,6 @@
  * directamente cuando sabemos que no hay imagen aún.
  */
 
-import KanjiStroke from './KanjiStroke'
-
 // Genera iniciales del nombre — "Monkey D. Luffy" → "ML", "Akame" → "AK".
 function iniciales(nombre) {
   const palabras = nombre.trim().split(/\s+/).filter((w) => w.length > 1)
@@ -54,15 +52,9 @@ function PersonajePlaceholder({ nombre, anime, className = '' }) {
           tiene — es de los 77 que generamos). */}
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute opacity-[0.08] ${tono.text}`}
+        className={`pointer-events-none absolute font-mono text-[10rem] font-black leading-none opacity-[0.08] ${tono.text}`}
       >
-        <KanjiStroke
-          kanji="影"
-          size="10rem"
-          strokeMs={600}
-          gapMs={150}
-          strokeWidth={3}
-        />
+        影
       </span>
       <div className="relative z-10 flex flex-col items-center gap-1 px-3 text-center">
         <span

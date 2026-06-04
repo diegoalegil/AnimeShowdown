@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { canWarmupRoutes, idleWarmupRoutesFor } from './route-warmup-policy'
 
+function matchMediaMock(matches: boolean): typeof globalThis.matchMedia {
+  return (() => ({ matches }) as MediaQueryList) as typeof globalThis.matchMedia
+}
+
 describe('route warmup policy', () => {
   it('bloquea warmup automático en redes lentas o con ahorro de datos', () => {
     expect(canWarmupRoutes({ connection: { effectiveType: '3g' } })).toBe(false)
@@ -13,6 +17,11 @@ describe('route warmup policy', () => {
     expect(canWarmupRoutes({ visibilityState: 'hidden' })).toBe(false)
     expect(canWarmupRoutes({ deviceMemory: 2 })).toBe(false)
     expect(canWarmupRoutes({ hardwareConcurrency: 2 })).toBe(false)
+    expect(
+      canWarmupRoutes({
+        matchMedia: matchMediaMock(true),
+      }),
+    ).toBe(false)
   })
 
   it('permite warmup con condiciones holgadas', () => {
@@ -21,6 +30,7 @@ describe('route warmup policy', () => {
         connection: { effectiveType: '4g', downlink: 10 },
         deviceMemory: 8,
         hardwareConcurrency: 8,
+        matchMedia: matchMediaMock(false),
         visibilityState: 'visible',
       }),
     ).toBe(true)
