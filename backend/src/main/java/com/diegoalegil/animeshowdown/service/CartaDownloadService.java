@@ -31,6 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.Carta;
 import com.diegoalegil.animeshowdown.model.Personaje;
+import com.diegoalegil.animeshowdown.model.RarezaCarta;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.CartaRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioCartaRepository;
@@ -58,20 +59,27 @@ public class CartaDownloadService {
     private final VotoRepository votoRepository;
     private final AuditLogService auditLogService;
     private final String imagesBaseUrl;
+    private final String frontendBaseUrl;
 
     public CartaDownloadService(
             CartaRepository cartaRepository,
             UsuarioCartaRepository usuarioCartaRepository,
             VotoRepository votoRepository,
             AuditLogService auditLogService,
-            @Value("${app.images.base-url}") String imagesBaseUrl) {
+            @Value("${app.images.base-url}") String imagesBaseUrl,
+            @Value("${app.frontend-base-url}") String frontendBaseUrl) {
         this.cartaRepository = cartaRepository;
         this.usuarioCartaRepository = usuarioCartaRepository;
         this.votoRepository = votoRepository;
         this.auditLogService = auditLogService;
-        this.imagesBaseUrl = imagesBaseUrl.endsWith("/")
-                ? imagesBaseUrl.substring(0, imagesBaseUrl.length() - 1)
-                : imagesBaseUrl;
+        this.imagesBaseUrl = sinBarraFinal(imagesBaseUrl);
+        // El arte ESPECIAL (webp ya compuesto) vive en /assets del CDN del
+        // frontend, no en el CDN de imágenes; se resuelve contra este host.
+        this.frontendBaseUrl = sinBarraFinal(frontendBaseUrl);
+    }
+
+    private static String sinBarraFinal(String url) {
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 
     @Transactional(readOnly = true)
@@ -101,11 +109,19 @@ public class CartaDownloadService {
             Graphics2D g = canvas.createGraphics();
             try {
                 aplicarHints(g);
-                dibujarFondo(g, carta.getPersonaje());
-                dibujarArte(g, carta.getPersonaje());
-                dibujarMarco(g, carta);
-                dibujarTexto(g, carta);
-                dibujarWatermark(g);
+                BufferedImage arteEspecial = leerArteEspecial(carta);
+                if (arteEspecial != null) {
+                    // La carta ESPECIAL ya viene compuesta (arte + marco + nombre +
+                    // ELO horneados): se pinta a sangre y solo se añade el watermark.
+                    dibujarCover(g, arteEspecial, 0, 0, ANCHO, ALTO);
+                    dibujarWatermark(g);
+                } else {
+                    dibujarFondo(g, carta.getPersonaje());
+                    dibujarArte(g, carta.getPersonaje());
+                    dibujarMarco(g, carta);
+                    dibujarTexto(g, carta);
+                    dibujarWatermark(g);
+                }
             } finally {
                 g.dispose();
             }
@@ -220,6 +236,23 @@ public class CartaDownloadService {
         g.setColor(new Color(245, 245, 250));
         g.drawString(wordmark, x, y);
         g.setComposite(AlphaComposite.SrcOver);
+    }
+
+    /**
+     * Arte de la carta ESPECIAL (webp ya compuesto) leído del CDN del frontend, o
+     * null si no es especial / no tiene arte / no se pudo leer (entonces el render
+     * cae a la composición normal: degradación segura).
+     */
+    private BufferedImage leerArteEspecial(Carta carta) {
+        if (carta.getRareza() != RarezaCarta.ESPECIAL) {
+            return null;
+        }
+        String arteUrl = carta.getArteUrl();
+        if (arteUrl == null || arteUrl.isBlank()) {
+            return null;
+        }
+        String url = arteUrl.startsWith("http") ? arteUrl : frontendBaseUrl + arteUrl;
+        return leerArte(url);
     }
 
     private BufferedImage leerArte(String imagenUrl) {
