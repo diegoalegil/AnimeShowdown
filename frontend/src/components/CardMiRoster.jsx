@@ -20,7 +20,7 @@ function CardMiRoster() {
     <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
       <div className="mb-5 flex items-end justify-between gap-3 border-b border-border pb-3">
         <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold">
             <Heart className="h-3 w-3 fill-current" />
             Mi roster
           </span>

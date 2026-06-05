@@ -35,7 +35,7 @@ function EloExplainer() {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-gold">
+          <p className="text-[12px] font-bold text-gold">
             Cómo se mueve la tabla
           </p>
           <h2 id="elo-explicacion" className="mt-1 text-2xl">

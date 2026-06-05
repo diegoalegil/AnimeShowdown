@@ -85,7 +85,7 @@ function EditorialCover({
       >
         {eyebrow && (
           <p
-            className="mb-2 w-fit rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em]"
+            className="mb-2 w-fit rounded-full border px-2.5 py-1 text-[10px] font-black"
             style={{
               borderColor: `rgb(${accentRgb} / 0.46)`,
               background: `rgb(${accentRgb} / 0.16)`,

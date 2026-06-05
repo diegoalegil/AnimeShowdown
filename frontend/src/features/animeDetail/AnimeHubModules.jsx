@@ -28,7 +28,7 @@ function HubCard({ eyebrow, title, icon: Icon, children, action }) {
     <section className="as-panel flex flex-col rounded-2xl p-5 sm:p-6">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold">
             <Icon className="h-3.5 w-3.5" />
             {eyebrow}
           </p>
@@ -136,7 +136,7 @@ function MomentumCard({ anime, monthlyHero, movers, revelation }) {
 
         {revelation && (
           <div className="rounded-lg border border-success/25 bg-success/5 p-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-success">
+            <p className="text-[10px] font-black text-success">
               Revelación
             </p>
             <p className="mt-1 text-sm font-bold text-fg-strong">
@@ -331,7 +331,7 @@ function AnimeHubModules({ anime, personajes, porElo, slug, topElo }) {
   return (
     <div className="mb-12">
       <div className="mb-5 flex flex-col gap-2">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+        <p className="text-[11px] font-black text-gold">
           Hub de {anime}
         </p>
         <h2 className="text-2xl font-black text-fg-strong">

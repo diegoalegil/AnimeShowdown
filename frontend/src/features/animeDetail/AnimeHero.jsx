@@ -17,7 +17,7 @@ function StatTile({ icon: Icon, label, value, hint, accent }) {
         <Icon
           className={`h-3.5 w-3.5 ${accent ? 'text-gold' : 'text-fg-muted'}`}
         />
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+        <span className="text-[10px] font-semibold text-fg-muted">
           {label}
         </span>
       </div>
@@ -101,7 +101,7 @@ function AnimeHero({
               {identity?.kanji ?? visual.kanji}
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 {identity?.emblem ?? 'Dossier del universo'}
               </p>
               <p className="mt-2 text-sm leading-7 text-fg-muted">
@@ -125,7 +125,7 @@ function AnimeHero({
             <p className="font-mono text-4xl font-black text-fg-strong">
               {total}
             </p>
-            <p className="pb-1 text-[11px] uppercase tracking-[0.16em] text-fg-muted">
+            <p className="pb-1 text-[11px] text-fg-muted">
               personajes listos para competir
             </p>
           </div>
