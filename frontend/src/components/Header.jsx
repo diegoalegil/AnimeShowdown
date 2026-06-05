@@ -7,6 +7,7 @@ import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
 import LanguageToggle from './LanguageToggle'
 import NotifBell from './NotifBell'
+import SaldoChip from './SaldoChip'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { usePersonajeRuleta } from '../hooks/usePersonajeRuleta'
 import { OPEN_COMMAND_PALETTE_EVENT } from './CommandPaletteLazyMount'
@@ -251,6 +252,7 @@ function Header() {
         </button>
         {user ? (
           <>
+            <SaldoChip />
             <NotifBell />
             <UserBadge user={user} onLogout={logout} t={t} />
           </>
@@ -272,6 +274,7 @@ function Header() {
       <div className="flex items-center gap-1.5 min-[1120px]:hidden">
         {user ? (
           <>
+            <SaldoChip className="px-1.5 py-0.5 text-xs" />
             <NotifBell />
             <Link
               to="/perfil"
