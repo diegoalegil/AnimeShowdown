@@ -152,55 +152,38 @@ export function VisualPageShell({
         '--visual-glow': visual?.glowRgb ?? '197 161 90',
       }}
     >
-      {/* Fondo procedural (motor del Home), teñido por --visual-accent/--visual-glow:
-          acento de color por sección y, en /animes y fichas, por universo. Capas
-          elegantes y sutiles: base + aurora + malla geométrica + god-rays +
-          vignette. Nítido a cualquier resolución, peso ~0. */}
+      {/* de-ai (DESIGN.md + referencias del owner: Crunchyroll / AniList /
+          Discord = imagen real + superficie plana, NO glows procedurales). El
+          fondo de página deja de ser el show: base plana + UNA aurora muy sutil y
+          descentrada (asimétrica, no 3 simétricas), malla tenue de textura y
+          vignette lineal. Fuera los god-rays y los blobs radiales de acento (los
+          tells de IA). El contenido y el arte real mandan. */}
       <div aria-hidden="true" className="absolute inset-0 bg-bg" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute -left-[15%] -top-[18%] h-[42rem] w-[42rem] rounded-full opacity-30 blur-3xl motion-safe:animate-aurora-1"
-          style={{ background: 'rgb(var(--visual-accent) / 1)' }}
-        />
-        <div
-          className="absolute -right-[12%] top-[4%] h-[36rem] w-[36rem] rounded-full opacity-20 blur-3xl motion-safe:animate-aurora-2"
-          style={{ background: 'rgb(var(--visual-glow) / 1)' }}
-        />
-        <div
-          className="absolute -bottom-[22%] left-[26%] h-[40rem] w-[40rem] rounded-full opacity-[0.14] blur-3xl motion-safe:animate-aurora-1"
+          className="absolute -right-[20%] -top-[14%] h-[44rem] w-[44rem] rounded-full opacity-[0.10] blur-3xl motion-safe:animate-aurora-2"
           style={{ background: 'rgb(var(--visual-accent) / 1)' }}
         />
       </div>
-      {/* Malla geométrica sutil — aire competitivo, encaja con brackets. */}
+      {/* Malla geométrica tenue — textura sutil, no decorado. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            'linear-gradient(rgb(255 255 255 / 0.028) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.028) 1px, transparent 1px)',
+            'linear-gradient(rgb(255 255 255 / 0.016) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.016) 1px, transparent 1px)',
           backgroundSize: '46px 46px',
-          maskImage: 'radial-gradient(ellipse 95% 65% at 50% 0%, black, transparent 78%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 95% 65% at 50% 0%, black, transparent 78%)',
+          maskImage: 'radial-gradient(ellipse 95% 65% at 50% 0%, black, transparent 82%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 95% 65% at 50% 0%, black, transparent 82%)',
         }}
       />
-      {/* God-rays — haces de luz diagonales suaves desde arriba. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(102deg, transparent 33%, rgb(var(--visual-glow) / 0.07) 45%, transparent 54%), linear-gradient(97deg, transparent 60%, rgb(255 255 255 / 0.04) 70%, transparent 76%)',
-          maskImage: 'linear-gradient(to bottom, black, transparent 72%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black, transparent 72%)',
-        }}
-      />
-      {/* Vignette progresiva + acentos radiales: legibilidad del contenido. */}
+      {/* Vignette lineal para legibilidad del contenido (sin acentos radiales). */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgb(7 10 18 / 0.26) 0%, rgb(7 10 18 / 0.68) 58%, rgb(7 10 18 / 0.92) 100%), radial-gradient(circle at 20% 10%, rgb(var(--visual-accent) / 0.18), transparent 30rem), radial-gradient(circle at 82% 0%, rgb(var(--visual-glow) / 0.12), transparent 26rem)',
+            'linear-gradient(180deg, rgb(7 10 18 / 0.22) 0%, rgb(7 10 18 / 0.62) 58%, rgb(7 10 18 / 0.90) 100%)',
         }}
       />
       <ParticleLayer density={density} />
