@@ -288,7 +288,7 @@ function Stat({ target, label, animate = true }) {
 
 function StatBadge({ label, hint }) {
   return (
-    <div className="flex flex-col gap-2 border-l-2 border-success/50 pl-4">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <span className="relative inline-flex h-2.5 w-2.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
