@@ -30,6 +30,43 @@
 
 const DEFAULT_API_BASE = 'https://api.animeshowdown.dev'
 
+// ===========================================================================
+// CSP consciente del entorno (preview vs produccion)
+// ===========================================================================
+// La CSP estatica de _headers solo permite el API canonico en connect-src, asi
+// que los deploys de PREVIEW (que apuntan VITE_API_URL al backend de preview en
+// Railway) no podian cargar catalogo/auth/WS. Aqui se amplia connect-src con el
+// origen de preview SOLO cuando el host NO es el de produccion. Produccion queda
+// EXACTAMENTE igual (no se toca su CSP) y, ante cualquier anomalia, se degrada a
+// no-op (devuelve la respuesta original sin modificar).
+const PROD_HOSTS = new Set(['animeshowdown.dev', 'www.animeshowdown.dev'])
+const PREVIEW_API_ORIGINS =
+  'https://animeshowdown-production-a9f4.up.railway.app wss://animeshowdown-production-a9f4.up.railway.app'
+
+function esHostDePreview(hostname) {
+  return !PROD_HOSTS.has(hostname)
+}
+
+// Devuelve una Response con connect-src ampliado para incluir el API de preview.
+// No-op seguro si no hay CSP, no hay connect-src, o ya esta ampliada.
+function conCspDePreview(response) {
+  const csp = response.headers.get('content-security-policy')
+  if (!csp || !/connect-src/.test(csp) || csp.includes('up.railway.app')) {
+    return response
+  }
+  const nuevoCsp = csp.replace(
+    /connect-src ([^;]*)/,
+    (_match, fuentes) => `connect-src ${fuentes.trim()} ${PREVIEW_API_ORIGINS}`,
+  )
+  const headers = new Headers(response.headers)
+  headers.set('content-security-policy', nuevoCsp)
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
+
 function humanizarSlug(slug) {
   return slug
     .replace(/[_-]+/g, ' ')
@@ -216,9 +253,14 @@ export async function onRequest(context) {
     if (!contentType.includes('text/html')) return response
 
     const url = new URL(context.request.url)
+
+    // En deploys de preview se amplia connect-src para el API de preview;
+    // produccion (host canonico) queda intacta.
+    const base = esHostDePreview(url.hostname) ? conCspDePreview(response) : response
+
     const apiBase = (context.env && context.env.OG_API_BASE) || DEFAULT_API_BASE
     const og = ogParaRuta(url, apiBase)
-    if (!og) return response
+    if (!og) return base
 
     return new HTMLRewriter()
       .on('meta[property="og:image"]', new SetContent(og.image))
@@ -226,7 +268,7 @@ export async function onRequest(context) {
       .on('meta[property="og:description"]', new SetContent(og.description))
       .on('meta[name="description"]', new SetContent(og.description))
       .on('title', new SetText(og.title))
-      .transform(response)
+      .transform(base)
   } catch {
     // Fail-safe: ante cualquier error, servir el HTML original sin modificar.
     return response
