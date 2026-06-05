@@ -2,8 +2,10 @@ function cx(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
+// de-ai (DESIGN.md): el stack pierde la barra de acento vertical (el "AI stripe"
+// de la captura del owner); el stat se sostiene con tipografía/jerarquía.
 const layouts = {
-  stack: 'flex flex-col gap-2 border-l-2 border-accent/30 pl-4',
+  stack: 'flex flex-col gap-2',
   inline: 'flex items-center justify-center gap-3',
 }
 
