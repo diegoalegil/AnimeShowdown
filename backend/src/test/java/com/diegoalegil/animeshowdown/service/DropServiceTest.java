@@ -22,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import com.diegoalegil.animeshowdown.model.AuditEvento;
 import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
 import com.diegoalegil.animeshowdown.model.Usuario;
+import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 /**
  * Tests unitarios de la lógica de decisión del dropper (cap diario, motivos,
@@ -36,13 +37,18 @@ class DropServiceTest {
 
     private DropService dropService(MonederoService monederoService,
             AuditLogService auditLogService, int topeDiario) {
-        return dropService(monederoService, auditLogService, topeDiario, UTC_CLOCK);
+        return dropService(monederoService, auditLogService, mock(VotoRepository.class), topeDiario, UTC_CLOCK);
     }
 
     private DropService dropService(MonederoService monederoService,
             AuditLogService auditLogService, int topeDiario, Clock clock) {
-        return new DropService(monederoService, auditLogService, clock,
-                8, 23, 38, 30, topeDiario);
+        return dropService(monederoService, auditLogService, mock(VotoRepository.class), topeDiario, clock);
+    }
+
+    private DropService dropService(MonederoService monederoService,
+            AuditLogService auditLogService, VotoRepository votoRepository, int topeDiario, Clock clock) {
+        return new DropService(monederoService, auditLogService, votoRepository, clock,
+                8, 23, 38, 30, topeDiario, 10);
     }
 
     @Test
@@ -110,6 +116,65 @@ class DropServiceTest {
         assertThat(service.otorgar(usuario, MotivoMovimiento.DROP_DUELO, "duelo:7"))
                 .isEqualTo(DropService.DropResultado.IDEMPOTENTE);
         verify(auditLogService, never()).registrar(any(), any(), any(), any());
+    }
+
+    @Test
+    void candidatosVotoIncluyeMisionSiempreYHitoSoloEnMultiplos() {
+        // 5 votos: solo misión diaria. 10 votos: misión + hito "voto:10".
+        assertThat(DropService.candidatosVoto(5, 10, java.time.LocalDate.of(2026, 6, 5)))
+                .extracting(DropService.DropCandidato::motivo)
+                .containsExactly(MotivoMovimiento.DROP_MISION_DIARIA);
+        assertThat(DropService.candidatosVoto(10, 10, java.time.LocalDate.of(2026, 6, 5)))
+                .extracting(DropService.DropCandidato::referencia)
+                .containsExactly("dia:2026-06-05", "voto:10");
+    }
+
+    @Test
+    void previsualizarSumaMisionMasHitoCuandoNingunoSeAcreditoAun() {
+        MonederoService monederoService = mock(MonederoService.class);
+        VotoRepository votoRepo = mock(VotoRepository.class);
+        // 9 votos confirmados + el que se está emitiendo = 10 → misión + hito.
+        when(votoRepo.countByUsuario(usuario)).thenReturn(9L);
+        when(monederoService.contarDropsHoy(eq(usuario), any(LocalDateTime.class))).thenReturn(0L);
+        when(monederoService.yaAcreditado(any(), any(), any())).thenReturn(false);
+        DropService service = dropService(monederoService, mock(AuditLogService.class), votoRepo, 100, UTC_CLOCK);
+
+        // Voto nº 10 → misión (23) + hito (8) = 31.
+        assertThat(service.previsualizarMonedasVoto(usuario)).isEqualTo(31L);
+    }
+
+    @Test
+    void previsualizarNoCuentaLoYaAcreditado() {
+        MonederoService monederoService = mock(MonederoService.class);
+        VotoRepository votoRepo = mock(VotoRepository.class);
+        when(votoRepo.countByUsuario(usuario)).thenReturn(9L);
+        when(monederoService.contarDropsHoy(eq(usuario), any(LocalDateTime.class))).thenReturn(0L);
+        // La misión del día ya se acreditó; el hito no.
+        when(monederoService.yaAcreditado(usuario, MotivoMovimiento.DROP_MISION_DIARIA, "dia:2026-06-02"))
+                .thenReturn(true);
+        when(monederoService.yaAcreditado(usuario, MotivoMovimiento.DROP_VOTO, "voto:10"))
+                .thenReturn(false);
+        DropService service = dropService(monederoService, mock(AuditLogService.class), votoRepo, 100, UTC_CLOCK);
+
+        assertThat(service.previsualizarMonedasVoto(usuario)).isEqualTo(8L);
+    }
+
+    @Test
+    void previsualizarRespetaElTopeDiario() {
+        MonederoService monederoService = mock(MonederoService.class);
+        VotoRepository votoRepo = mock(VotoRepository.class);
+        when(votoRepo.countByUsuario(usuario)).thenReturn(9L);
+        // Ya alcanzó el tope: ningún candidato suma aunque no esté acreditado.
+        when(monederoService.contarDropsHoy(eq(usuario), any(LocalDateTime.class))).thenReturn(100L);
+        DropService service = dropService(monederoService, mock(AuditLogService.class), votoRepo, 100, UTC_CLOCK);
+
+        assertThat(service.previsualizarMonedasVoto(usuario)).isEqualTo(0L);
+    }
+
+    @Test
+    void previsualizarParaUsuarioNuloEsCero() {
+        DropService service = dropService(mock(MonederoService.class), mock(AuditLogService.class), 100);
+        assertThat(service.previsualizarMonedasVoto(null)).isEqualTo(0L);
     }
 
     @Test

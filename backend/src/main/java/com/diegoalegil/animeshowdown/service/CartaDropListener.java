@@ -68,16 +68,13 @@ public class CartaDropListener {
             return;
         }
         try {
-            // Misión diaria: votar hoy la completa. Idempotente por fecha del
-            // producto → un único drop por día por usuario.
-            dropService.otorgar(usuario, MotivoMovimiento.DROP_MISION_DIARIA,
-                    "dia:" + LocalDate.now(clock));
-
-            // Hito de votos: cada N votos. La referencia es el total exacto, así
-            // que cada hito dropea una sola vez.
+            // Misión diaria (idempotente por día) + hito cada N votos. La regla
+            // vive en DropService.candidatosVoto (fuente única que comparten este
+            // listener y la previsualización del endpoint); aquí se APLICAN.
             long totalVotos = votoRepository.countByUsuario(usuario);
-            if (totalVotos > 0 && totalVotos % votoCadaN == 0) {
-                dropService.otorgar(usuario, MotivoMovimiento.DROP_VOTO, "voto:" + totalVotos);
+            for (DropService.DropCandidato c :
+                    DropService.candidatosVoto(totalVotos, votoCadaN, LocalDate.now(clock))) {
+                dropService.otorgar(usuario, c.motivo(), c.referencia());
             }
         } catch (Exception e) {
             log.warn("Drop por voto falló (no rompe el voto): usuario={} err={}",
