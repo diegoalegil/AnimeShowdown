@@ -296,11 +296,9 @@
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    background:
-      radial-gradient(circle at 50% 0%, rgb(159 29 44 / 0.18), transparent 34rem),
-      radial-gradient(circle at 86% 18%, rgb(36 198 220 / 0.09), transparent 24rem),
-      radial-gradient(circle at 12% 38%, rgb(197 161 90 / 0.08), transparent 24rem),
-      linear-gradient(180deg, rgb(8 11 18 / 0.99), rgb(4 7 12 / 1) 70%);
+    /* de-ai (referencias del owner): fuera los 3 blobs radiales de acento
+       (el tell H4); base plana. La identidad la dan el contenido y la imagen. */
+    background: linear-gradient(180deg, rgb(8 11 18 / 0.99), rgb(4 7 12 / 1) 70%);
   }
 
   .as-stage::before {
@@ -339,11 +337,11 @@
        dejándolo apagado y "inapreciable". Ahora bajamos el oscurecimiento
        superior (de 86% → 55%) y el inferior queda en 80% para legibilidad,
        y la imagen ocupa el viewport completo. */
+    /* de-ai: la identidad la da la IMAGEN real del stage; fuera el blob radial de
+       acento y el punteado, solo el oscurecimiento lineal para legibilidad. */
     background:
       linear-gradient(180deg, rgb(5 6 12 / 0.55), rgb(5 6 12 / 0.12) 34%, rgb(5 6 12 / 0.80) 100%),
-      radial-gradient(circle at 50% 34%, rgb(159 29 44 / 0.18), transparent 40rem),
-      var(--as-stage-image),
-      radial-gradient(circle at 12% 20%, rgb(197 161 90 / 0.14) 0 1px, transparent 2px);
+      var(--as-stage-image);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -390,18 +388,14 @@
     --as-stage-kanji: "裏";
   }
 
+  /* de-ai (referencias del owner): bases planas, sin los blobs radiales de
+     acento (el morado de .as-stage-purple era literalmente el tell de la foto). */
   .as-stage-cyan {
-    background:
-      radial-gradient(circle at 70% 10%, rgb(36 198 220 / 0.14), transparent 30rem),
-      radial-gradient(circle at 16% 24%, rgb(159 29 44 / 0.12), transparent 24rem),
-      linear-gradient(180deg, rgb(8 10 18 / 0.99), rgb(4 8 14 / 1) 72%);
+    background: linear-gradient(180deg, rgb(8 10 18 / 0.99), rgb(4 8 14 / 1) 72%);
   }
 
   .as-stage-purple {
-    background:
-      radial-gradient(circle at 78% 18%, rgb(82 67 130 / 0.18), transparent 30rem),
-      radial-gradient(circle at 22% 22%, rgb(159 29 44 / 0.12), transparent 24rem),
-      linear-gradient(180deg, rgb(10 8 18 / 0.99), rgb(7 6 13 / 1) 72%);
+    background: linear-gradient(180deg, rgb(10 8 18 / 0.99), rgb(7 6 13 / 1) 72%);
   }
 
   /* de-ai (DESIGN.md): el kicker del hero deja de ser un pill dorado con
