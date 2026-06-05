@@ -1,5 +1,6 @@
-import { Download } from 'lucide-react'
+import { Download, Lock } from 'lucide-react'
 import CartaFace from '../features/cartas/CartaFace'
+import PersonajeImg from './PersonajeImg'
 
 /**
  * Una carta en el grid de la colección. Reutiliza el lenguaje visual de la
@@ -8,8 +9,10 @@ import CartaFace from '../features/cartas/CartaFace'
  * genérico).
  *
  * - Poseída: carta a todo color con su arte, anime y, si hay duplicados, ×N.
- * - Sin descubrir: silueta atenuada con "?" — incentiva coleccionar y evita
- *   cargar cientos de imágenes que el usuario aún no tiene.
+ * - Sin descubrir: teaser difuminado del personaje (imagen real con blur +
+ *   opacidad baja) con candado — genera deseo sin revelar el arte especial
+ *   finito (usa la imagen del personaje, no el arteUrl). `loading="lazy"`
+ *   acota el coste: solo cargan las cartas que entran en viewport.
  */
 function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
   const { poseida, personajeNombre } = carta
@@ -17,12 +20,24 @@ function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
 
   if (!poseida) {
     return (
-      <div className="relative flex aspect-[2/3] items-center justify-center overflow-hidden rounded-2xl border border-white/8 bg-surface/40">
-        <span className="text-4xl font-black text-fg-muted/30" aria-hidden="true">
-          ?
-        </span>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2.5 pt-8">
-          <p className="line-clamp-1 text-[11px] text-fg-muted/60">Sin descubrir</p>
+      <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/8 bg-surface/40">
+        <PersonajeImg
+          slug={carta.personajeSlug}
+          nombre={personajeNombre}
+          colorDominante={carta.colorDominante}
+          alt=""
+          aria-hidden="true"
+          fit="cover"
+          position="center"
+          loading="lazy"
+          sizes="(min-width: 1024px) 200px, 40vw"
+          className="h-full w-full scale-110 opacity-40 blur-md saturate-50"
+        />
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <Lock className="h-7 w-7 text-fg-strong/55" aria-hidden="true" />
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-2.5 pt-8">
+          <p className="line-clamp-1 text-[11px] font-medium text-fg-muted/70">Sin descubrir</p>
         </div>
       </div>
     )
