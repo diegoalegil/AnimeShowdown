@@ -32,6 +32,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.BracketService;
 import com.diegoalegil.animeshowdown.service.CartaCatalogoService;
+import com.diegoalegil.animeshowdown.service.EloSemillaInitializeService;
 import com.diegoalegil.animeshowdown.service.ReferralService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,6 +81,7 @@ public class DataSeeder implements CommandLineRunner {
     private final BracketService bracketService;
     private final ReferralService referralService;
     private final CartaCatalogoService cartaCatalogoService;
+    private final EloSemillaInitializeService eloSemillaInitializeService;
     private final ObjectMapper objectMapper;
 
     // Self-injection vía proxy para que @Transactional aplique al llamar
@@ -111,6 +113,7 @@ public class DataSeeder implements CommandLineRunner {
             BracketService bracketService,
             ReferralService referralService,
             CartaCatalogoService cartaCatalogoService,
+            EloSemillaInitializeService eloSemillaInitializeService,
             ObjectMapper objectMapper) {
         this.personajeRepository = personajeRepository;
         this.votoRepository = votoRepository;
@@ -123,6 +126,7 @@ public class DataSeeder implements CommandLineRunner {
         this.bracketService = bracketService;
         this.referralService = referralService;
         this.cartaCatalogoService = cartaCatalogoService;
+        this.eloSemillaInitializeService = eloSemillaInitializeService;
         this.objectMapper = objectMapper;
     }
 
@@ -148,6 +152,15 @@ public class DataSeeder implements CommandLineRunner {
         // Si falla, dejar burbujear → Spring no arranca y el alerting de
         // Railway lo detecta. Mejor "down" visible que "up" con BBDD a medias.
         self.sincronizar(entradas);
+
+        // ELO-semilla desde AniList (género + favourites). Best-effort: no es
+        // crítico para servir el API (hasta activar el ranking canónico nada lee
+        // la semilla para ordenar), así que un fallo no debe romper el arranque.
+        try {
+            eloSemillaInitializeService.inicializar();
+        } catch (Exception e) {
+            log.error("DataSeeder: fallo al sembrar ELO-semilla (no crítico): {}", e.getMessage(), e);
+        }
 
         // Torneos seed: best-effort. No es crítico para servir el API
         // (los torneos UGC y el cron auto pueden regenerar el bracket).
