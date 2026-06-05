@@ -206,11 +206,10 @@ function SectionPulso() {
       <LateralKanjiPair kanji={{ left: '今', right: '動' }} visual={pulseVisual} intensity="soft" />
       <div className="relative mx-auto max-w-6xl">
         <div className="mb-6 flex flex-col gap-2">
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-success">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
-            </span>
+          {/* de-ai (DESIGN.md): estado inline, dot sólido + texto normal; sin
+              pill tintado, sin uppercase/tracking, sin ping (el "●Live" tell). */}
+          <span className="inline-flex w-fit items-center gap-2 text-sm font-medium text-fg-muted">
+            <span className="h-1.5 w-1.5 rounded-full bg-success" />
             En vivo
           </span>
           <h2 className="text-[clamp(1.5rem,3.5vw,2.25rem)] tracking-tight">
