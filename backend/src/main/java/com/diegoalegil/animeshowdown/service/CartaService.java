@@ -185,7 +185,7 @@ public class CartaService {
      */
     @Transactional(readOnly = true)
     public ColeccionPaginaDto pagina(Usuario usuario, RarezaCarta rareza, String anime,
-            int offset, int limit) {
+            String orden, int offset, int limit) {
         List<CartaCatalogoItem> catalogo = cartaLecturaCacheService.catalogo();
         Map<Long, Long> eloPorPersonaje = cartaLecturaCacheService.votosPorPersonaje();
         Map<Long, UsuarioCartaPosesionItem> porCartaId = new HashMap<>();
@@ -194,10 +194,14 @@ public class CartaService {
         }
 
         String animeFiltro = (anime == null || anime.isBlank()) ? null : anime;
-        List<CartaCatalogoItem> filtrado = catalogo.stream()
+        List<CartaCatalogoItem> filtrado = new java.util.ArrayList<>(catalogo.stream()
                 .filter(c -> rareza == null || c.rareza() == rareza)
                 .filter(c -> animeFiltro == null || animeFiltro.equals(c.anime()))
-                .toList();
+                .toList());
+        // Orden server-side (la paginación lo es): por defecto POSEIDAS primero
+        // (estilo colección "las que ya tienes" arriba, el resto en gris), o por
+        // anime / rareza / ELO / nombre según el parámetro.
+        filtrado.sort(comparadorColeccion(orden, porCartaId, eloPorPersonaje));
 
         int totalFiltrado = filtrado.size();
         int saneLimit = Math.max(1, limit);
@@ -208,6 +212,33 @@ public class CartaService {
                         eloPorPersonaje.getOrDefault(c.personajeId(), 0L)))
                 .toList();
         return new ColeccionPaginaDto(cartas, from, saneLimit, totalFiltrado, to < totalFiltrado);
+    }
+
+    /** Comparador del grid de colección según el parámetro `orden`. */
+    private static java.util.Comparator<CartaCatalogoItem> comparadorColeccion(
+            String orden,
+            Map<Long, UsuarioCartaPosesionItem> porCartaId,
+            Map<Long, Long> eloPorPersonaje) {
+        java.util.Comparator<CartaCatalogoItem> porAnime = java.util.Comparator.comparing(
+                c -> c.anime() == null ? "" : c.anime(), String.CASE_INSENSITIVE_ORDER);
+        java.util.Comparator<CartaCatalogoItem> porNombre = java.util.Comparator.comparing(
+                c -> c.personajeNombre() == null ? "" : c.personajeNombre(), String.CASE_INSENSITIVE_ORDER);
+        java.util.Comparator<CartaCatalogoItem> porId = java.util.Comparator.comparing(CartaCatalogoItem::id);
+        String o = orden == null ? "" : orden.trim().toUpperCase(java.util.Locale.ROOT);
+        return switch (o) {
+            case "ANIME" -> porAnime.thenComparing(porNombre).thenComparing(porId);
+            case "NOMBRE" -> porNombre.thenComparing(porId);
+            case "RAREZA" -> java.util.Comparator
+                    .comparingInt((CartaCatalogoItem c) -> c.rareza() == RarezaCarta.ESPECIAL ? 0 : 1)
+                    .thenComparing(porAnime).thenComparing(porNombre).thenComparing(porId);
+            case "ELO" -> java.util.Comparator
+                    .comparingLong((CartaCatalogoItem c) -> -eloPorPersonaje.getOrDefault(c.personajeId(), 0L))
+                    .thenComparing(porNombre).thenComparing(porId);
+            // POSEIDAS (default): las que YA TIENES primero, luego anime y nombre.
+            default -> java.util.Comparator
+                    .comparingInt((CartaCatalogoItem c) -> porCartaId.containsKey(c.id()) ? 0 : 1)
+                    .thenComparing(porAnime).thenComparing(porNombre).thenComparing(porId);
+        };
     }
 
     private List<ColeccionAnimeDto> progresoPorAnimeDeCatalogo(
