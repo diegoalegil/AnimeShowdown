@@ -218,6 +218,9 @@ public class SecurityConfig {
                         // crawlers anónimos de Twitter/Discord/Slack/etc, sin auth.
                         .requestMatchers(HttpMethod.GET, "/api/og/**").permitAll()
                         .requestMatchers(HttpMethod.HEAD, "/api/og/**").permitAll()
+                        // Salón Legendario: galería pública de cartas especiales
+                        // (cualquiera ve los teasers; el dueño las tiene/usa).
+                        .requestMatchers(HttpMethod.GET, "/api/cartas/especiales").permitAll()
                         // Datos para sitemap dinámico. Consumido por
                         // el script generate-sitemap.mjs en build de Cloudflare
                         // Pages; público porque sitemaps son públicos por definición.

@@ -148,6 +148,19 @@ public class CartaService {
     }
 
     /**
+     * Galería pública del Salón Legendario: todas las cartas ESPECIAL curadas
+     * (arte de autor). Reusa el catálogo cacheado y NO expone posesión — el
+     * frontend marca cuáles tiene el usuario con su colección. "Distinguir VER de
+     * TENER": cualquiera ve los teasers, el dueño las tiene completas.
+     */
+    @Transactional(readOnly = true)
+    public List<CartaCatalogoItem> especialesCuradas() {
+        return cartaLecturaCacheService.catalogo().stream()
+                .filter(c -> c.rareza() == RarezaCarta.ESPECIAL && c.especialCurada())
+                .toList();
+    }
+
+    /**
      * Resumen de la colección SIN el array de cartas: totales, saldo, pity, flags
      * y agregados por anime y por rareza. Lo consume la cabecera de la página; el
      * grid se pide aparte y paginado con {@link #pagina}. Así una colección de
