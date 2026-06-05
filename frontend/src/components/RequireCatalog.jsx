@@ -18,7 +18,7 @@ function CatalogoError({ onRetry }) {
         aria-atomic="true"
         className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center"
       >
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
+        <p className="text-sm font-semibold text-gold">
           Catálogo no disponible
         </p>
         <h1 className="text-2xl font-black text-fg-strong">
@@ -48,7 +48,7 @@ function CatalogoVacio({ onRetry }) {
         aria-atomic="true"
         className="as-panel flex max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center"
       >
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">
+        <p className="text-sm font-semibold text-gold">
           Catálogo vacío
         </p>
         <h1 className="text-2xl font-black text-fg-strong">

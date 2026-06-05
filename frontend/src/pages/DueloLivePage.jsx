@@ -212,7 +212,7 @@ function DueloLivePage() {
     >
       <section className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">PvP live</p>
+          <p className="text-xs font-black text-gold">PvP live</p>
           <h1 className="mt-2 text-4xl font-black tracking-tight text-fg-strong sm:text-5xl">
             Duelo 1v1 en directo
           </h1>
@@ -275,7 +275,7 @@ function StartArena({ state, joining, onJoin }) {
             value={state?.yo?.eloPvp}
             label="ELO PvP"
           />
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">Resultado final</p>
+          <p className="text-xs font-black text-gold">Resultado final</p>
           {resultado && (
             <p className={`mt-2 text-4xl font-black ${
               resultado === 'Victoria'
@@ -345,7 +345,7 @@ function WaitingArena({ state, onLeave }) {
       </p>
       <div className="mx-auto mt-5 max-w-md rounded-xl border border-gold/25 bg-bg/45 p-3 text-left">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+          <span className="text-[11px] font-black text-gold">
             Partida rápida
           </span>
           <span className="font-mono text-sm font-black tabular-nums text-fg-strong">
@@ -400,7 +400,7 @@ function BattleArena({ state, voting, onVote, onLeave }) {
       <div className="as-panel rounded-2xl border border-border bg-surface/80 p-4 shadow-xl shadow-black/25 sm:p-6">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">Ronda {state.ronda?.numero}</p>
+            <p className="text-xs font-black text-gold">Ronda {state.ronda?.numero}</p>
             <p className="mt-1 text-sm text-fg-muted">
               {state.ronda?.miVotoRecibido
                 ? state.ronda?.rivalVotoRecibido
@@ -460,7 +460,7 @@ function PlayerBlock({ player, score, align }) {
       <Avatar src={player?.avatarUrl} username={player?.username} size="lg" />
       <div className="min-w-0">
         <p className="truncate text-lg font-black text-fg-strong">{player?.username}</p>
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-fg-muted">
+        <p className="text-xs font-bold text-fg-muted">
           {`${player?.eloPvp ?? 1000} ELO PvP`}
         </p>
       </div>
@@ -502,7 +502,7 @@ function CharacterChoice({ label, personaje, disabled, onClick }) {
       </div>
       <div className="p-4">
         <h3 className="text-2xl font-black text-fg-strong">{personaje?.nombre}</h3>
-        <p className="mt-1 text-sm font-bold uppercase tracking-[0.14em] text-fg-muted">{personaje?.anime}</p>
+        <p className="mt-1 text-sm font-bold text-fg-muted">{personaje?.anime}</p>
         <span className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-black text-white">
           <Zap className="h-4 w-4" />
           Votar {label}
@@ -516,7 +516,7 @@ function RoundResult({ state }) {
   const ok = state.ronda?.yoAcerte
   return (
     <div className={`mt-5 rounded-xl border p-4 ${ok ? 'border-success/30 bg-success/10' : 'border-danger/30 bg-danger/10'}`}>
-      <div className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em]">
+      <div className="flex items-center gap-2 text-sm font-black">
         {ok ? <ShieldCheck className="h-4 w-4 text-success" /> : <Activity className="h-4 w-4 text-danger" />}
         <span className={ok ? 'text-success' : 'text-danger'}>
           {ok ? 'Acertaste la comunidad' : 'La comunidad eligió otra cosa'}

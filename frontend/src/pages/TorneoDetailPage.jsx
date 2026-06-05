@@ -93,7 +93,7 @@ function TorneoDetailPage() {
         lateralKanji={null}
       >
         <KanjiSpinner kanji="戦" size="lg" tone="accent" />
-        <p className="text-[12px] uppercase tracking-[0.18em] text-fg-muted">
+        <p className="text-[12px] text-fg-muted">
           Preparando bracket…
         </p>
       </VisualPageShell>
@@ -222,7 +222,7 @@ function TorneoDetailPage() {
           <meta itemProp="url" content={`https://animeshowdown.dev/torneos/${torneo.slug}`} />
           {fechaInicioDate && <meta itemProp="startDate" content={fechaInicio} />}
           {fechaFinDate && <meta itemProp="endDate" content={fechaFinalizacion} />}
-          <span className="relative inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted backdrop-blur">
+          <span className="relative inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted backdrop-blur">
             <span className={`h-2 w-2 rounded-full ${badge.dot}`} />
             {badge.label}
           </span>
@@ -260,7 +260,7 @@ function TorneoDetailPage() {
               className="h-16 w-12 rounded-lg object-cover"
             />
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-wider text-fg-muted">
+              <p className="text-[11px] text-fg-muted">
                 Campeón del torneo
               </p>
               <p className="text-xl font-bold text-fg-strong">
@@ -292,7 +292,7 @@ function TorneoDetailPage() {
             torneoSlug={torneo.slug}
           />
         )}
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+        <h2 className="mb-4 text-sm font-semibold text-fg-muted">
           Bracket
         </h2>
         <div className="mb-12">
@@ -308,7 +308,7 @@ function TorneoDetailPage() {
         {rosterRonda1.length > 0 && (
           <>
             <div className="mb-4 flex flex-col gap-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              <span className="text-[11px] font-semibold text-fg-muted">
                 Participantes
               </span>
               <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -348,7 +348,7 @@ function TorneoDetailPage() {
 
         {torneo?.slug && (
           <div className="mt-10 rounded-2xl border border-border bg-surface p-5">
-            <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <p className="mb-3 text-[12px] font-semibold text-fg-muted">
               Comparte este torneo
             </p>
             <ShareButtons
@@ -393,7 +393,7 @@ function ChampionPredictionPanel({ torneoId, torneoSlug, estado, roster, torneoN
     <section className="mb-10 rounded-2xl border border-border bg-surface p-5">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[11px] font-semibold text-gold">
             <Target className="h-3.5 w-3.5" />
             Bracket Challenge
           </div>
@@ -490,7 +490,7 @@ function PanelProfetas({ torneoId }) {
       <div className="mb-5 flex items-center gap-2.5">
         <Crown className="h-4 w-4 shrink-0 text-gold" />
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-fg-strong">
+          <h2 className="text-sm font-bold text-fg-strong">
             Profetas del campeón
           </h2>
           <p className="mt-0.5 text-[11px] text-fg-muted">
@@ -546,7 +546,7 @@ function PanelProfetas({ torneoId }) {
                     <p className="font-mono text-sm font-bold text-gold">
                       {predictor.puntos ?? predictor.aciertos}
                     </p>
-                  <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+                  <p className="text-[10px] text-fg-muted">
                       puntos
                   </p>
                   </div>

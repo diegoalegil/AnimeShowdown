@@ -73,7 +73,7 @@ function PersonajePlaceholder({ nombre, anime, className = '' }) {
         <p className="line-clamp-2 text-[11px] font-bold text-fg-strong">
           {nombre}
         </p>
-        <p className="line-clamp-1 text-[11px] uppercase tracking-wider text-fg-muted">
+        <p className="line-clamp-1 text-[11px] text-fg-muted">
           {anime}
         </p>
         <p className="mt-1 text-[11px] italic text-fg-muted/75">
