@@ -23,6 +23,7 @@ import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
 import IntencionSelector from '../features/votar/components/IntencionSelector'
 import SessionRecap from '../features/votar/components/SessionRecap'
 import VoteArena from '../features/votar/components/VoteArena'
+import { useMisEspeciales } from '../hooks/useCartas'
 import VoteQuoteCard from '../features/votar/components/VoteQuoteCard'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
@@ -187,6 +188,7 @@ function VotarPage() {
   })
   const { play } = useSound()
   const { user } = useAuth()
+  const { data: misEspeciales } = useMisEspeciales()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
@@ -1109,6 +1111,8 @@ function VotarPage() {
           handleVoteRight={handleVoteRight}
           handleTieVote={handleTieVote}
           canTie={modoBackend}
+          ownsEspecialA={Boolean(a?.slug && misEspeciales?.has(a.slug))}
+          ownsEspecialB={Boolean(b?.slug && misEspeciales?.has(b.slug))}
         />
 
         {tieSelected && a && b && (
