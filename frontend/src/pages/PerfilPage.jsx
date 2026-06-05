@@ -154,7 +154,7 @@ function PerfilPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold text-gold">
             <User className="h-3 w-3" />
             Mi cuenta · Tu espacio personal
           </span>
@@ -509,7 +509,7 @@ function CardEliminarCuenta({ onEliminada }) {
 
         <label
           htmlFor="modal-eliminar-password"
-          className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+          className="mb-1 block text-[11px] font-semibold text-fg-muted"
         >
           Confirma tu contraseña
         </label>

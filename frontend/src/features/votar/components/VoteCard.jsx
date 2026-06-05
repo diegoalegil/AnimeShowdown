@@ -125,7 +125,7 @@ const VoteCard = memo(function VoteCard({
               transition={{ type: 'spring', stiffness: 220, damping: 14 }}
               className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4"
             >
-              <span className="rounded-full border-2 border-accent bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.18em] text-gold backdrop-blur-sm">
+              <span className="rounded-full border-2 border-accent bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold text-gold backdrop-blur-sm">
                 ✓ Tu voto
               </span>
             </motion.div>
@@ -137,7 +137,7 @@ const VoteCard = memo(function VoteCard({
               transition={{ type: 'spring', stiffness: 220, damping: 14 }}
               className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4"
             >
-              <span className="rounded-full border-2 border-gold bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold uppercase tracking-[0.18em] text-gold backdrop-blur-sm">
+              <span className="rounded-full border-2 border-gold bg-black/70 px-3 py-1 font-mono text-[11px] font-extrabold text-gold backdrop-blur-sm">
                 ½ voto
               </span>
             </motion.div>
@@ -152,7 +152,7 @@ const VoteCard = memo(function VoteCard({
             label={isTie ? 'Medio voto' : 'Voto registrado'}
           />
           {anonymousLimited && !showResult && (
-            <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-gold backdrop-blur-sm">
+            <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold text-gold backdrop-blur-sm">
               Voto invitado
             </div>
           )}
