@@ -65,10 +65,24 @@ if ('serviceWorker' in navigator) {
 // anteriores a su carga NO se pierden: la fachada Sentry.captureException
 // (lib/sentry.js) dispara la carga bajo demanda.
 function startSentry() {
+  let started = false
+  // Interacciones intencionales (no mousemove, que dispararía casi al instante).
+  const events = ['pointerdown', 'keydown', 'touchstart', 'scroll']
+  const run = () => {
+    if (started) return
+    started = true
+    events.forEach((evt) => window.removeEventListener(evt, run))
+    initSentry()
+  }
+  // Carga en la PRIMERA interacción real del usuario (cuando la observabilidad
+  // empieza a importar), o tras un idle LARGO si no interactúa — lo que ocurra
+  // antes. Así Sentry no compite con el paint/LCP inicial. Antes cargaba en
+  // idle a ~700ms (o inmediato vía setTimeout(0) en navegadores sin idle).
+  events.forEach((evt) => window.addEventListener(evt, run, { once: true, passive: true }))
   if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(() => initSentry(), { timeout: 3500 })
+    window.requestIdleCallback(run, { timeout: 10000 })
   } else {
-    window.setTimeout(() => initSentry(), 0)
+    window.setTimeout(run, 5000)
   }
 }
 if (document.readyState === 'complete') {
