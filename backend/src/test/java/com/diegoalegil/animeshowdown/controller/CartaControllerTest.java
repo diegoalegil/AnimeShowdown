@@ -679,4 +679,12 @@ class CartaControllerTest {
         }
         return pixelsGrisTenue > 180;
     }
+
+    @Test
+    void salonEspecialesEsPublicoYDevuelveArray() throws Exception {
+        // Galería del Salón Legendario: pública (sin auth) y siempre un array JSON.
+        mvc.perform(get("/api/cartas/especiales"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
 }

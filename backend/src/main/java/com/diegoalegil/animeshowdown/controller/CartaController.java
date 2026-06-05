@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.AbrirSobreResultadoDto;
+import com.diegoalegil.animeshowdown.dto.CartaCatalogoItem;
 import com.diegoalegil.animeshowdown.dto.CartaTradeCreateRequest;
 import com.diegoalegil.animeshowdown.dto.CartaTradeDto;
 import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
@@ -121,6 +122,12 @@ public class CartaController {
     public OddsDto odds(@AuthenticationPrincipal Usuario usuario) {
         exigirUsuario(usuario);
         return rarezaService.odds();
+    }
+
+    /** Salón Legendario: galería pública de todas las cartas ESPECIAL curadas. */
+    @GetMapping("/cartas/especiales")
+    public List<CartaCatalogoItem> especiales() {
+        return cartaService.especialesCuradas();
     }
 
     /** Abre un sobre: gasta moneda y revela 5 cartas. 409 si no hay saldo. */
