@@ -10,6 +10,7 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../../../../data/eventos'
+import { useEventos } from '../../../../hooks/useEventos'
 import { getEventVisual } from '../../../../data/visual-assets'
 
 /**
@@ -25,7 +26,8 @@ function EventoHeadlineBanner() {
     return () => clearInterval(id)
   }, [])
 
-  const evento = getEventoHeadline(now)
+  const eventos = useEventos()
+  const evento = getEventoHeadline(now, eventos)
   if (!evento) return null
 
   const estado = getEstadoEvento(evento, now)
