@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { bypassCatalogGateForPath, shouldGateCatalogRoute } from './catalog-route-policy'
+import {
+  bypassCatalogGateForPath,
+  shouldGateCatalogRoute,
+  shouldPrimeCatalog,
+} from './catalog-route-policy'
 
 describe('catalog-route-policy', () => {
   it('deja pasar rutas críticas sin esperar al catálogo global', () => {
@@ -16,5 +20,20 @@ describe('catalog-route-policy', () => {
     expect(shouldGateCatalogRoute('/animes/one-piece')).toBe(true)
     expect(shouldGateCatalogRoute('/torneos/crear')).toBe(true)
     expect(shouldGateCatalogRoute('/games/elo-duel')).toBe(true)
+  })
+
+  it('NO ceba el catálogo en rutas sin personajes (auth/legal)', () => {
+    expect(shouldPrimeCatalog('/login')).toBe(false)
+    expect(shouldPrimeCatalog('/register')).toBe(false)
+    expect(shouldPrimeCatalog('/forgot-password')).toBe(false)
+    expect(shouldPrimeCatalog('/terminos')).toBe(false)
+    expect(shouldPrimeCatalog('/faq/')).toBe(false) // normaliza trailing slash
+  })
+
+  it('SÍ ceba el catálogo en rutas de contenido', () => {
+    expect(shouldPrimeCatalog('/')).toBe(true)
+    expect(shouldPrimeCatalog('/votar')).toBe(true)
+    expect(shouldPrimeCatalog('/personajes')).toBe(true)
+    expect(shouldPrimeCatalog('/animes/one-piece')).toBe(true)
   })
 })
