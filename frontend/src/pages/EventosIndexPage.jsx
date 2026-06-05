@@ -18,6 +18,7 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
+import { useEventos } from '../hooks/useEventos'
 import EditorialCover from '../components/EditorialCover'
 import EmptyState from '../components/EmptyState'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
@@ -41,9 +42,10 @@ function EventosIndexPage() {
     return () => clearInterval(id)
   }, [])
 
-  const activos = getEventosActivos(now)
-  const proximos = getEventosProximos(now)
-  const pasados = getEventosPasados(now).slice(0, 6)
+  const eventos = useEventos()
+  const activos = getEventosActivos(now, eventos)
+  const proximos = getEventosProximos(now, eventos)
+  const pasados = getEventosPasados(now, eventos).slice(0, 6)
 
   const total = activos.length + proximos.length + pasados.length
 

@@ -20,6 +20,7 @@ import {
   getMsRestantes,
   getPersonajesEvento,
 } from '../data/eventos'
+import { useEventos } from '../hooks/useEventos'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import PersonajeImg from '../components/PersonajeImg'
@@ -47,7 +48,8 @@ import NotFoundPage from './NotFoundPage'
  */
 function EventoDetailPage() {
   const { slug } = useParams()
-  const evento = useMemo(() => getEventoPorSlug(slug), [slug])
+  const eventos = useEventos()
+  const evento = useMemo(() => getEventoPorSlug(slug, eventos), [slug, eventos])
 
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
