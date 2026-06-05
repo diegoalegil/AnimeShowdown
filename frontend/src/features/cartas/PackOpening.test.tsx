@@ -16,7 +16,7 @@ vi.mock('../../components/PersonajeImg', () => ({
 }))
 
 const baseCarta = {
-  colorDominante: 'rgb(10 14 21)',
+  colorDominante: 'var(--color-surface)',
   poseida: true,
   cantidad: 1,
   elo: 1200,
@@ -137,17 +137,32 @@ describe('PackOpening', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Rasgar sobre' }))
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Naruto Uzumaki').length).toBeGreaterThan(0)
-    })
+    // Timeouts holgados: bajo cobertura en CI la instrumentación ralentiza el
+    // render de la secuencia de reveal y el default de 1000ms daba falsos
+    // negativos (flaky). El `timing` rápido ya hace la animación instantánea.
+    await waitFor(
+      () => {
+        expect(screen.getAllByText('Naruto Uzumaki').length).toBeGreaterThan(0)
+      },
+      { timeout: 4000 },
+    )
 
-    const climaxButton = await screen.findByRole('button', { name: 'Revelar carta 5' })
+    const climaxButton = await screen.findByRole(
+      'button',
+      { name: 'Revelar carta 5' },
+      { timeout: 4000 },
+    )
     fireEvent.click(climaxButton)
-    fireEvent.click(await screen.findByRole('button', { name: 'Ver resumen' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Ver resumen' }, { timeout: 4000 }),
+    )
 
-    await waitFor(() => {
-      expect(screen.getByText('Resumen del sobre')).toBeInTheDocument()
-    })
+    await waitFor(
+      () => {
+        expect(screen.getByText('Resumen del sobre')).toBeInTheDocument()
+      },
+      { timeout: 4000 },
+    )
     expect(screen.getByAltText('Satoru Gojo')).toBeInTheDocument()
     expect(screen.getByText('Duplicada +10')).toBeInTheDocument()
     expect(playMock).toHaveBeenCalledWith('playPackCharge')
