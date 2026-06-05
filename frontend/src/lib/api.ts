@@ -657,6 +657,9 @@ export const endpoints = {
   misLogros: () => api.get('/api/logros/mios'),
   logrosStats: () => api.get('/api/logros/stats', { auth: false }),
   desbloquearOtakuCertificado: () => api.post('/api/logros/otaku-certificado', undefined),
+  // Eventos temáticos publicados (semanas/copas). Público; el front cae al
+  // hardcode de data/eventos.js si la lista viene vacía o la llamada falla.
+  eventos: () => api.get('/api/eventos', { auth: false }),
   // Cartas coleccionables. Todas autenticadas (auth por defecto).
   miColeccion: () => api.get('/api/me/cartas'),
   // Salón Legendario: galería pública de cartas especiales curadas.
