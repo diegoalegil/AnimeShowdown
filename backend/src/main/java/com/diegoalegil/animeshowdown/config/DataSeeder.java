@@ -12,6 +12,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
@@ -89,6 +90,14 @@ public class DataSeeder implements CommandLineRunner {
     @Autowired
     @Lazy
     private DataSeeder self;
+
+    // Modo "borrar de la BBDD los personajes que ya no están en el seed" (con
+    // cascada a votos, predicciones, enfrentamientos, fantasy…). DESACTIVADO por
+    // defecto: un seed incompleto o un error de carga NO debe borrar datos reales
+    // en prod de forma automática en cada arranque. Para una limpieza intencional,
+    // set APP_SEED_ALLOW_DELETE=true en ese despliegue concreto.
+    @Value("${app.seed.allow-delete:false}")
+    private boolean allowDelete;
 
     public DataSeeder(
             PersonajeRepository personajeRepository,
@@ -240,8 +249,18 @@ public class DataSeeder implements CommandLineRunner {
             if (!slugsEnSeed.contains(p.getSlug())) aBorrar.add(p);
         }
         int borrados = 0;
-        for (Personaje p : aBorrar) {
-            borrados += borrarPersonajeConCascada(p);
+        if (allowDelete) {
+            for (Personaje p : aBorrar) {
+                borrados += borrarPersonajeConCascada(p);
+            }
+        } else if (!aBorrar.isEmpty()) {
+            // Drift detectado pero NO borramos (prod-safety). Avisamos para que
+            // un operador decida una limpieza explícita con APP_SEED_ALLOW_DELETE=true.
+            log.warn("DataSeeder: {} personaje(s) en BBDD no están en el seed; NO se borran "
+                    + "(app.seed.allow-delete=false). Slugs (máx 20): {}. Para limpiar de forma "
+                    + "intencional, set APP_SEED_ALLOW_DELETE=true en ese despliegue.",
+                    aBorrar.size(),
+                    aBorrar.stream().map(Personaje::getSlug).limit(20).toList());
         }
 
         // ─── UPDATE: en ambos pero con campos distintos ────────────────────
