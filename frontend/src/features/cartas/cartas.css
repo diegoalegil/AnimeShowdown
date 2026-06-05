@@ -949,8 +949,12 @@
 
 .pack-opening__card-shell.is-special {
   filter:
-    drop-shadow(0 32px 38px rgb(0 0 0 / 0.64))
-    drop-shadow(0 0 44px rgb(36 198 220 / 0.66));
+    drop-shadow(0 26px 32px rgb(0 0 0 / 0.6))
+    drop-shadow(0 0 26px rgb(36 198 220 / 0.42));
+}
+
+.pack-opening__card-shell.is-special.is-revealed {
+  animation: pack-opening-special-aura 2.6s ease-in-out infinite;
 }
 
 .pack-opening__flip {
@@ -1529,6 +1533,21 @@
   }
 }
 
+@keyframes pack-opening-special-aura {
+  0%,
+  100% {
+    filter:
+      drop-shadow(0 28px 34px rgb(0 0 0 / 0.6))
+      drop-shadow(0 0 30px rgb(36 198 220 / 0.5));
+  }
+  50% {
+    filter:
+      drop-shadow(0 32px 42px rgb(0 0 0 / 0.66))
+      drop-shadow(0 0 66px rgb(36 198 220 / 0.92))
+      drop-shadow(0 0 26px rgb(255 255 255 / 0.32));
+  }
+}
+
 @keyframes pack-opening-flash {
   0% {
     opacity: 0;
@@ -1683,6 +1702,7 @@
   .pack-opening__fall-bit,
   .pack-opening__open-glow,
   .pack-opening__slot.is-filled,
+  .pack-opening__card-shell.is-special.is-revealed,
   .pack-opening__burst-bit,
   .pack-opening__confetti-bit,
   .pack-opening__flash,
