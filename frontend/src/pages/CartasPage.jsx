@@ -205,7 +205,7 @@ function CartasPage() {
         <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-[1.1fr_1fr_0.9fr]">
           <MonedasHelp />
           <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">
+            <p className="text-[11px] font-black text-fg-muted">
               Probabilidades visibles
             </p>
             <p className="mt-1 text-sm leading-6 text-fg">
@@ -216,7 +216,7 @@ function CartasPage() {
             </p>
           </div>
           <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">
+            <p className="text-[11px] font-black text-fg-muted">
               Rarezas del álbum
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -351,7 +351,7 @@ function Stat({ label, value, accent, icon }) {
     <div className="rounded-xl border border-white/10 bg-black/20 p-3">
       <div className="flex items-center gap-2">
         {icon}
-        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">{label}</p>
+        <p className="text-[11px] font-black text-fg-muted">{label}</p>
       </div>
       <p className="mt-1 text-2xl font-black leading-none text-fg-strong">
         {value}
@@ -366,7 +366,7 @@ function MonedasHelp() {
     <section aria-labelledby="monedas-help-title" className="rounded-xl border border-gold/35 bg-gold-soft p-3">
       <div className="flex items-center gap-2">
         <MonedaIcon className="h-5 w-5 text-gold" />
-        <h3 id="monedas-help-title" className="text-[11px] font-black uppercase tracking-[0.12em] text-gold">
+        <h3 id="monedas-help-title" className="text-[11px] font-black text-gold">
           Cómo conseguir monedas
         </h3>
       </div>
@@ -397,7 +397,7 @@ function AlbumFilters({
             key={rareza}
             type="button"
             onClick={() => setRarezaFiltro(rareza)}
-            className={`rounded-lg border px-3 py-2 text-[12px] font-black uppercase tracking-wide transition ${
+            className={`rounded-lg border px-3 py-2 text-[12px] font-black transition ${
               rarezaFiltro === rareza
                 ? 'border-gold/60 bg-gold-soft text-gold'
                 : 'border-white/10 bg-surface/50 text-fg-muted hover:border-gold/50 hover:text-gold'

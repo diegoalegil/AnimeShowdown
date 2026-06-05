@@ -110,7 +110,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
       {totalMatches > 0 && matchesResueltos < totalMatches && (
         <div className="mb-5 rounded-lg border border-border bg-surface p-3">
           <div className="mb-1.5 flex items-baseline justify-between gap-2 text-[11px]">
-            <span className="font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <span className="font-semibold text-fg-muted">
               Progreso
             </span>
             <span className="font-mono tabular-nums text-fg-muted">
@@ -132,7 +132,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
         </div>
       )}
       <div className="mb-2 flex justify-end sm:hidden">
-        <span className="rounded-full border border-border bg-surface/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+        <span className="rounded-full border border-border bg-surface/80 px-3 py-1 text-[10px] font-semibold text-fg-muted">
           Desliza el bracket
         </span>
       </div>
@@ -147,7 +147,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
               className="flex min-w-[16rem] snap-start flex-col justify-around gap-3 sm:min-w-[180px]"
             >
               <div className="flex flex-col items-center gap-0.5">
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                <h3 className="text-[11px] font-semibold text-fg-muted">
                   {titulos[i] || `Ronda ${ronda}`}
                 </h3>
                 {kanjis[i] && (
@@ -182,7 +182,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
           ))}
           <div className="flex min-w-[16rem] snap-start flex-col items-stretch justify-around sm:min-w-[180px]">
             <div className="flex flex-col items-center gap-0.5">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
+              <h3 className="text-[11px] font-semibold text-gold">
                 Campeón
               </h3>
               <span
@@ -236,7 +236,7 @@ function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion }) {
     return (
       <div className="flex min-h-16 items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/30 px-3 py-3 opacity-60">
         <Lock className="h-3 w-3 text-fg-muted" aria-hidden="true" />
-        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+        <span className="text-[11px] font-medium text-fg-muted">
           Por decidir
         </span>
       </div>
@@ -332,7 +332,7 @@ function VotoRow({ match, torneoSlug }) {
 
   return (
     <div className="mt-2 rounded-lg border border-accent/25 bg-accent/5 p-2">
-      <div className="mb-1 flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-muted">
+      <div className="mb-1 flex items-center justify-between gap-2 text-[10px] font-semibold text-fg-muted">
         <span>Vota este duelo</span>
         <span className="font-mono tabular-nums">{totalVotos} votos</span>
       </div>
@@ -550,7 +550,7 @@ function ChampionPlaceholder() {
   return (
     <div className="mt-3 flex aspect-[2/3] max-w-[130px] flex-col items-center justify-center gap-2 self-center rounded-xl border-2 border-dashed border-border bg-surface-alt/40 p-3 text-center">
       <Lock className="h-5 w-5 text-fg-muted" />
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+      <p className="text-[11px] font-semibold text-fg-muted">
         Por decidir
       </p>
       <p className="text-[10px] text-fg-muted">El torneo aún no ha terminado</p>

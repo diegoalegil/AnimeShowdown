@@ -78,10 +78,10 @@ function CardReferral() {
 
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-stretch">
         <div className="flex-1 rounded-lg border border-border bg-bg px-3 py-2.5 font-mono text-sm">
-          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+          <p className="mb-0.5 text-[10px] font-semibold text-fg-muted">
             Código
           </p>
-          <p className="text-base font-extrabold tracking-[0.18em] text-gold">
+          <p className="text-base font-extrabold text-gold">
             {data.codigo}
           </p>
         </div>
@@ -107,7 +107,7 @@ function CardReferral() {
 
       <div>
         <div className="mb-1.5 flex items-baseline justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+          <p className="text-[11px] font-semibold text-fg-muted">
             Progreso hacia Reclutador
           </p>
           <p className="font-mono text-[12px] tabular-nums text-fg-muted">

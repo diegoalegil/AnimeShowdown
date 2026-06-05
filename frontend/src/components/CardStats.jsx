@@ -87,7 +87,7 @@ function CardStats({ data: dataProp = null }) {
 function Kpi({ icon: Icon, label, value, accent = false }) {
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-border bg-bg p-3">
-      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-fg-muted">
         <Icon className="h-3 w-3" />
         {label}
       </span>

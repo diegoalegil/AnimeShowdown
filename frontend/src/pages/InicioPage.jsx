@@ -220,7 +220,7 @@ function SectionPorAnime({ carousels }) {
     >
       <div className="mx-auto max-w-7xl px-5 pb-2 pt-12 sm:px-8 sm:pt-16">
         <div className="flex flex-col items-start gap-2">
-          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="text-[12px] font-semibold text-fg-muted">
             Por anime
           </span>
           <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight">
@@ -298,7 +298,7 @@ function StatBadge({ label, hint }) {
           {label}
         </p>
       </div>
-      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted">
+      <p className="text-xs font-semibold text-fg-muted">
         {hint}
       </p>
     </div>
@@ -323,7 +323,7 @@ function SectionTorneosActivos() {
       eyebrow="Torneos"
       title="Brackets en marcha"
       titleClassName="text-[clamp(1.75rem,4vw,2.5rem)] tracking-tight"
-      eyebrowClassName="text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted"
+      eyebrowClassName="text-[12px] font-semibold text-fg-muted"
       headerClassName="mb-8 flex items-end justify-between gap-4"
       headerAction={
         <Link

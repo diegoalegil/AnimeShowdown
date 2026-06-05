@@ -145,7 +145,7 @@ function FantasyPage() {
 
       <header className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.08em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-fg-muted">
             <Sparkles className="h-3.5 w-3.5 text-gold" />
             Semana {resumen?.semanaIso ?? 'activa'}
           </span>
@@ -339,7 +339,7 @@ function Kpi({ icon: Icon, label, value, tone = 'default' }) {
   const valueClass = tone === 'danger' ? 'text-danger' : tone === 'gold' ? 'text-gold' : 'text-fg-strong'
   return (
     <div className="rounded-lg border border-border bg-surface px-3 py-3">
-      <div className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+      <div className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-fg-muted">
         <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
@@ -351,7 +351,7 @@ function Kpi({ icon: Icon, label, value, tone = 'default' }) {
 function DraftSlot({ item, index, locked, onRemove }) {
   if (!item) {
     return (
-      <div className="flex aspect-[2/3] items-center justify-center rounded-lg border border-dashed border-border bg-surface-alt text-[12px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+      <div className="flex aspect-[2/3] items-center justify-center rounded-lg border border-dashed border-border bg-surface-alt text-[12px] font-bold text-fg-muted">
         Slot {index + 1}
       </div>
     )
@@ -441,7 +441,7 @@ function MiniRosterRow({ item }) {
       </div>
       <div className="text-right">
         <p className="font-mono text-sm font-black text-gold">{item.deltaSemanal}</p>
-        <p className="text-[10px] uppercase text-fg-muted">delta</p>
+        <p className="text-[10px] text-fg-muted">delta</p>
       </div>
     </div>
   )

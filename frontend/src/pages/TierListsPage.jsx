@@ -228,7 +228,7 @@ function TierListEditor() {
         </Link>
         <header className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <span className="mb-2 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-1 text-[12px] font-black uppercase tracking-[0.05em] text-gold">
+            <span className="mb-2 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-1 text-[12px] font-black text-gold">
               <Layers className="h-3.5 w-3.5" aria-hidden="true" />
               Tier lists
             </span>
@@ -263,7 +263,7 @@ function TierListEditor() {
           <div className="flex min-w-0 flex-col gap-4">
             <section className="grid gap-3 border border-border bg-surface p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-5">
               <label className="min-w-0">
-                <span className="mb-1 block text-[12px] font-black uppercase tracking-[0.05em] text-fg-muted">
+                <span className="mb-1 block text-[12px] font-black text-fg-muted">
                   Título
                 </span>
                 <input
@@ -314,7 +314,7 @@ function TierListEditor() {
 
           <aside className="flex min-w-0 flex-col gap-4">
             <section className="border border-border bg-surface p-4 sm:p-5">
-              <h2 className="mb-3 text-sm font-black uppercase tracking-[0.05em] text-fg-muted">
+              <h2 className="mb-3 text-sm font-black text-fg-muted">
                 Añadir personaje
               </h2>
               <AutocompletePersonaje
@@ -325,7 +325,7 @@ function TierListEditor() {
             </section>
 
             <section className="border border-border bg-surface p-4 sm:p-5">
-              <h2 className="mb-3 text-sm font-black uppercase tracking-[0.05em] text-fg-muted">
+              <h2 className="mb-3 text-sm font-black text-fg-muted">
                 Plantilla
               </h2>
               <div className="flex gap-2">
@@ -354,7 +354,7 @@ function TierListEditor() {
 
             {sharePath && (
               <section className="border border-gold/35 bg-gold-soft p-4 sm:p-5">
-                <h2 className="mb-2 text-sm font-black uppercase tracking-[0.05em] text-gold">
+                <h2 className="mb-2 text-sm font-black text-gold">
                   Pública
                 </h2>
                 <Link
@@ -367,7 +367,7 @@ function TierListEditor() {
             )}
 
             <section className="border border-border bg-surface p-4 sm:p-5">
-              <h2 className="mb-3 text-sm font-black uppercase tracking-[0.05em] text-fg-muted">
+              <h2 className="mb-3 text-sm font-black text-fg-muted">
                 Guardadas
               </h2>
               {mineQuery.isLoading ? (
@@ -463,7 +463,7 @@ function TierListPublicView({ slug }) {
           Tier lists
         </Link>
         <header className="border-b border-border pb-5">
-          <span className="mb-2 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-1 text-[12px] font-black uppercase tracking-[0.05em] text-gold">
+          <span className="mb-2 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-1 text-[12px] font-black text-gold">
             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
             @{tierList.username}
           </span>
