@@ -15,6 +15,12 @@ const maxImageTotalMb = Number(process.env.MAX_DEPLOY_IMAGE_TOTAL_MB ?? 1100)
 const maxImageFileKb = Number(process.env.MAX_DEPLOY_IMAGE_FILE_KB ?? 900)
 const maxImageFileCount = Number(process.env.MAX_DEPLOY_IMAGE_FILE_COUNT ?? 8500)
 const maxLazyChunkRawKb = Number(process.env.MAX_LAZY_CHUNK_RAW_KB ?? 250)
+// Presupuesto de las PORTADAS/BANNERS de /assets (heroes, catalogs, banners de
+// anime/torneo, covers de juegos/eventos). Son las imágenes que cargan las
+// rutas pesadas (/torneos, /animes, /games). Se excluyen cartas-especiales
+// (arte de carta a tamaño completo, otro caso de uso).
+const maxCoverFileKb = Number(process.env.MAX_COVER_IMAGE_FILE_KB ?? 560)
+const maxCoverTotalMb = Number(process.env.MAX_COVER_IMAGE_TOTAL_MB ?? 100)
 const imageCdnBaseUrl = normalizeImageCdnBaseUrl(
   process.env.ANIMESHOWDOWN_IMG_CDN_BASE_URL ||
     process.env.ANIMESHOWDOWN_IMAGE_CDN_BASE_URL,
@@ -228,6 +234,39 @@ if (imageFiles.length > 0) {
     console.log(`deploy images: external CDN ${imageCdnBaseUrl}/:splat`)
   } else {
     console.log('deploy images: dist/img no existe o no tiene imagenes')
+  }
+}
+
+// Covers/banners de /assets: el bloque dist/img de arriba solo mide personajes
+// (y se salta entero cuando /img va por CDN), así que estos covers eran un punto
+// ciego — justo lo que la auditoría de performance detectó ("no presupuestó las
+// imágenes que matan /torneos, /animes, /games").
+const coverImageExt = /\.(webp|avif|png|jpe?g)$/i
+const coverFiles = walkFiles(assetsDir).filter(
+  (file) => coverImageExt.test(file) && !file.includes('/cartas-especiales/'),
+)
+if (coverFiles.length > 0) {
+  let coverBytes = 0
+  let largestCover = { path: null, bytes: 0 }
+  for (const coverPath of coverFiles) {
+    const bytes = statSync(coverPath).size
+    coverBytes += bytes
+    if (bytes > largestCover.bytes) largestCover = { path: coverPath, bytes }
+  }
+  const largestCoverRel = largestCover.path
+    ? largestCover.path.replace(`${root}/dist/`, '')
+    : 'n/a'
+  console.log(
+    `cover images (/assets): files=${coverFiles.length} total=${sizeMb(coverBytes).toFixed(1)}MB largest=${largestCoverRel} (${sizeKb(largestCover.bytes).toFixed(1)}KB)`,
+  )
+  if (largestCover.bytes > maxCoverFileKb * 1024) {
+    fail(
+      `cover mas pesado ${sizeKb(largestCover.bytes).toFixed(1)}KB > ${maxCoverFileKb}KB (${largestCoverRel}). ` +
+        'Recomprime/redimensiona con: npm run build:optimize-assets',
+    )
+  }
+  if (coverBytes > maxCoverTotalMb * 1024 * 1024) {
+    fail(`cover images total ${sizeMb(coverBytes).toFixed(1)}MB > ${maxCoverTotalMb}MB`)
   }
 }
 
