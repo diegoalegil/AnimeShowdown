@@ -56,6 +56,22 @@ export function useColeccionResumen() {
 }
 
 /**
+ * Saldo de monedas del usuario para el indicador global de la cabecera. Ligero
+ * (solo el saldo) y disabled sin user. Se invalida con la colección al votar /
+ * abrir sobres (invalidarColeccion no lo toca; el wallet se refresca por su
+ * staleTime y al navegar a /cartas).
+ */
+export function useSaldo() {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: ['monedero'],
+    queryFn: endpoints.miMonedero,
+    enabled: Boolean(user),
+    staleTime: 30 * 1000,
+  })
+}
+
+/**
  * Grid de colección paginado y filtrado en servidor por rareza/anime. Cada
  * "Cargar más" pide la siguiente página (offset += limit) en vez de cargar el
  * catálogo entero de golpe.
