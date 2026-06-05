@@ -20,3 +20,22 @@ export function bypassCatalogGateForPath(pathname: string | null | undefined): b
 export function shouldGateCatalogRoute(pathname: string | null | undefined): boolean {
   return !bypassCatalogGateForPath(pathname)
 }
+
+// Rutas que NO muestran imágenes/datos de personaje (auth/legal) y cuyo chrome
+// global (Header + FooterSlim) es catalog-independent. En ellas NO cebamos el
+// catálogo global (~170KB) para no competir con la carga inicial — el fetch
+// ocurre al entrar en la primera ruta que sí lo necesita. Conservador a
+// propósito: cualquier ruta de contenido sigue cebándolo.
+const CATALOG_FREE_EXACT = new Set([
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/privacidad',
+  '/terminos',
+  '/faq',
+])
+
+export function shouldPrimeCatalog(pathname: string | null | undefined): boolean {
+  return !CATALOG_FREE_EXACT.has(normalizePathname(pathname))
+}
