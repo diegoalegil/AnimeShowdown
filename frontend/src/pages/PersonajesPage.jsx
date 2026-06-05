@@ -348,7 +348,7 @@ function PersonajesPage() {
             }
             aside={
               <div className="grid gap-3 rounded-2xl border border-white/10 bg-bg/62 p-5 backdrop-blur-xl">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                <p className="text-[11px] font-black text-gold">
                   Estado del archivo
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -598,7 +598,7 @@ function PersonajesPage() {
           <section className="contents">
               <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
                 <div className="min-w-0">
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+                  <p className="text-[11px] font-black text-gold">
                     Filtros
                   </p>
                   <p className="truncate text-sm font-bold text-fg-strong">
@@ -617,7 +617,7 @@ function PersonajesPage() {
               </div>
               <div className="max-h-[calc(86vh-150px)] space-y-5 overflow-y-auto px-5 py-5">
                 <fieldset className="space-y-2">
-                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                  <legend className="text-[11px] font-black text-fg-muted">
                     Universo
                   </legend>
                   <BrandSelect
@@ -633,7 +633,7 @@ function PersonajesPage() {
                 </fieldset>
 
                 <fieldset className="space-y-2">
-                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                  <legend className="text-[11px] font-black text-fg-muted">
                     Rasgo otaku
                   </legend>
                   <BrandSelect
@@ -649,7 +649,7 @@ function PersonajesPage() {
                 </fieldset>
 
                 <fieldset className="space-y-2">
-                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                  <legend className="text-[11px] font-black text-fg-muted">
                     Orden
                   </legend>
                   <BrandSelect
@@ -665,7 +665,7 @@ function PersonajesPage() {
                 </fieldset>
 
                 <fieldset className="space-y-3">
-                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                  <legend className="text-[11px] font-black text-fg-muted">
                     Rango ELO base
                   </legend>
                   <div className="flex items-center justify-between rounded-lg border border-border bg-bg px-3 py-2 font-mono text-[12px] font-bold text-gold tabular-nums">
@@ -709,7 +709,7 @@ function PersonajesPage() {
                 </fieldset>
 
                 <fieldset className="space-y-2">
-                  <legend className="text-[11px] font-black uppercase tracking-[0.14em] text-fg-muted">
+                  <legend className="text-[11px] font-black text-fg-muted">
                     Vista
                   </legend>
                   <div className="grid grid-cols-2 gap-2">

@@ -14,7 +14,7 @@ function StaleRouteRecovery() {
     >
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-gold/30 bg-surface/88 p-6 shadow-aura backdrop-blur-xl sm:p-8">
         <div className="flex flex-col gap-3">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-gold">
+          <p className="text-xs font-black text-gold">
             Nueva versión disponible
           </p>
           <h1 className="text-3xl font-black text-fg-strong sm:text-4xl">

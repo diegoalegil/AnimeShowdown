@@ -137,7 +137,7 @@ function LanguageToggle() {
         className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Languages className="h-4 w-4" />
-        <span className="text-[11px] font-bold tracking-wider tabular-nums">
+        <span className="text-[11px] font-bold tabular-nums">
           {activo.short}
         </span>
       </button>
@@ -173,7 +173,7 @@ function LanguageToggle() {
                     : 'text-fg-muted'
                 }`}
               >
-                <span className="inline-flex w-7 font-mono text-[11px] font-bold uppercase">
+                <span className="inline-flex w-7 font-mono text-[11px] font-bold">
                   {l.short}
                 </span>
                 <span lang={l.code === 'ja' ? 'ja' : undefined} className="flex-1">

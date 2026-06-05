@@ -71,7 +71,7 @@ function ResetPasswordPage() {
         variants={containerVariants}
       >
         <div className="mb-6 flex flex-col items-start gap-2">
-          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             Recuperar acceso
           </span>
           <h1 className="text-3xl tracking-tight">Define tu nueva contraseña</h1>
@@ -130,7 +130,7 @@ function ResetPasswordPage() {
                   message: 'Tienen que ser 6 dígitos',
                 },
               })}
-              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+              className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
                 errors.codigo ? 'border-danger' : 'border-border'
               }`}
               placeholder="000000"

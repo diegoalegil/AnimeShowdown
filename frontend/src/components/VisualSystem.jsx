@@ -255,7 +255,7 @@ export function CinematicHero({
         <div className="flex min-w-0 flex-col items-start gap-4">
           {eyebrow && (
             // de-ai (DESIGN.md): el eyebrow deja de ser un pill de acento con
-            // uppercase+tracking; texto de marca limpio en sentence-case.
+            //+tracking; texto de marca limpio en sentence-case.
             <span
               className="inline-flex items-center gap-2 text-xs font-semibold"
               style={{ color: `rgb(${visual?.glowRgb ?? '197 161 90'} / 1)` }}

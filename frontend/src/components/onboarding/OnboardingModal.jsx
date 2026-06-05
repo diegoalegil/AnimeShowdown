@@ -59,7 +59,7 @@ function OnboardingModal({ open, onClose }) {
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
+          <p className="text-[11px] font-semibold text-gold">
             Paso {step === 'username' ? '1' : '2'} de 2
           </p>
           <h2

@@ -71,7 +71,7 @@ function RankingMetaReport({ rankingQuery, movimientosQuery } = {}) {
         <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold/20 text-gold">
           <Sparkles className="h-3.5 w-3.5" />
         </span>
-        <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-gold">
+        <h2 className="text-[12px] font-semibold text-gold">
           Meta report · esta semana
         </h2>
       </div>

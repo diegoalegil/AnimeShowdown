@@ -377,7 +377,7 @@ function GlossaryPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             <BookOpen className="h-3 w-3" />
             <span lang="ja">用語集</span> · Glosario
           </span>
@@ -474,12 +474,12 @@ function GlossaryPage() {
                     {t.definicion}
                   </dd>
                   {t.ejemplo && (
-                    <dd className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted/80">
+                    <dd className="mt-3 text-[11px] font-semibold text-fg-muted/80">
                       Ej.: <span className="font-normal normal-case">{t.ejemplo}</span>
                     </dd>
                   )}
                   <dd className="mt-3 flex flex-col items-start gap-3">
-                    <span className="inline-flex rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+                    <span className="inline-flex rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold text-fg-muted">
                       {t.categoria}
                     </span>
                     {tienePersonajes && (
@@ -572,7 +572,7 @@ function GlossaryPage() {
         </section>
 
         <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+          <h2 className="mb-2 text-sm font-semibold text-fg-muted">
             Sigue explorando
           </h2>
           <p className="text-[13px] leading-relaxed text-fg-muted">

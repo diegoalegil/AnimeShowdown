@@ -40,7 +40,7 @@ function DuelosAbiertosStrip({ enfrentamientos, torneoId, torneoSlug }) {
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-gold">
             <Swords className="h-3.5 w-3.5" />
           </span>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-strong">
+          <h2 className="text-sm font-semibold text-fg-strong">
             Duelos abiertos
           </h2>
           <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[11px] font-bold text-gold">
@@ -126,7 +126,7 @@ function DueloAbiertoCard({ match, torneoSlug }) {
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-accent/40"
     >
-      <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-muted">
+      <div className="flex items-center justify-between text-[11px] font-semibold text-fg-muted">
         <span>{rondaLabel}</span>
         <span className="font-mono tabular-nums">
           {totalVotos} {totalVotos === 1 ? 'voto' : 'votos'}

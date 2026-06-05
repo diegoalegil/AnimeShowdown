@@ -119,7 +119,7 @@ function HeadToHeadBar({ ganadorNombre, perdedorNombre, votosGanador, votosPerde
       <div className="mt-1 flex justify-between text-[11px] font-semibold">
         <span className="text-danger">{pctGanador}%</span>
         {esCercano && (
-          <span className="text-center text-[10px] font-bold uppercase tracking-[0.1em] text-fg-muted">
+          <span className="text-center text-[10px] font-bold text-fg-muted">
             ¡Duelo reñido!
           </span>
         )}
@@ -999,7 +999,7 @@ function VotarPage() {
         lateralKanji={null}
       >
         <KanjiSpinner kanji="闘" size="lg" tone="accent" />
-        <p className="text-[12px] uppercase tracking-[0.18em] text-fg-muted">
+        <p className="text-[12px] text-fg-muted">
           Preparando duelo…
         </p>
       </VisualPageShell>
@@ -1016,7 +1016,7 @@ function VotarPage() {
     >
         {/* Top bar: badge + modo rápido + skip */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold text-fg-muted">
             <span className="relative inline-flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
@@ -1239,7 +1239,7 @@ function VotarPage() {
 
         {/* Atajos + (en sin matches) link a torneos */}
         <div className="flex flex-col items-center gap-2">
-          <p className="hidden text-[11px] uppercase tracking-[0.15em] text-fg-muted sm:block">
+          <p className="hidden text-[11px] text-fg-muted sm:block">
             Atajos:{' '}
             <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
               ←
