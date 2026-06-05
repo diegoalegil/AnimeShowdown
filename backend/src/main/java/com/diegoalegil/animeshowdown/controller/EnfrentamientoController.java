@@ -57,6 +57,7 @@ import com.diegoalegil.animeshowdown.security.AnonymousIdentityService;
 import com.diegoalegil.animeshowdown.security.ClientIpExtractor;
 import com.diegoalegil.animeshowdown.security.TurnstileVerifierService;
 import com.diegoalegil.animeshowdown.service.AnimeShowdownMetrics;
+import com.diegoalegil.animeshowdown.service.DropService;
 import com.diegoalegil.animeshowdown.service.VotoStatsService;
 import com.diegoalegil.animeshowdown.service.VotoStatsService.VotoStatsSnapshot;
 
@@ -86,6 +87,7 @@ public class EnfrentamientoController {
     private final TurnstileVerifierService turnstileVerifier;
     private final AnonymousAbuseThrottleService abuseThrottle;
     private final ClientIpExtractor clientIpExtractor;
+    private final DropService dropService;
     private final String turnstileSitekey;
     private final boolean requiereEmailVerificado;
 
@@ -99,6 +101,7 @@ public class EnfrentamientoController {
             TurnstileVerifierService turnstileVerifier,
             AnonymousAbuseThrottleService abuseThrottle,
             ClientIpExtractor clientIpExtractor,
+            DropService dropService,
             @Value("${app.turnstile.sitekey:}") String turnstileSitekey,
             @Value("${app.email-verification.required-to-vote:true}") boolean requiereEmailVerificado) {
         this.enfrentamientoRepository = enfrentamientoRepository;
@@ -110,6 +113,7 @@ public class EnfrentamientoController {
         this.turnstileVerifier = turnstileVerifier;
         this.abuseThrottle = abuseThrottle;
         this.clientIpExtractor = clientIpExtractor;
+        this.dropService = dropService;
         this.turnstileSitekey = turnstileSitekey == null ? "" : turnstileSitekey.trim();
         this.metrics = metrics;
         this.requiereEmailVerificado = requiereEmailVerificado;
@@ -429,6 +433,20 @@ public class EnfrentamientoController {
                     ANON_VOTE_LIMIT - (int) (votosAnonimosUsados + 1));
         }
 
+        // Monedas que este voto va a acreditar (previsualización exacta del drop
+        // async, misma regla que CartaDropListener). Solo para usuarios: los
+        // invitados no generan drop. La previsualización corre en su propia tx
+        // (REQUIRES_NEW), así un fallo de sus lecturas no envenena la tx del voto;
+        // el try/catch es una red secundaria que solo oculta el toast.
+        long monedasGanadas = 0L;
+        if (usuario != null) {
+            try {
+                monedasGanadas = dropService.previsualizarMonedasVoto(usuario);
+            } catch (RuntimeException e) {
+                monedasGanadas = 0L;
+            }
+        }
+
         VotoRegistradoDto dto = new VotoRegistradoDto(
                 guardado.getId(),
                 ganador == null ? null : ganador.getId(),
@@ -438,7 +456,8 @@ public class EnfrentamientoController {
                 empate ? 0.0 : (usuario == null ? ANON_VOTE_WEIGHT.doubleValue() : 1.0),
                 usuario == null,
                 votosAnonimosRestantes,
-                empate);
+                empate,
+                monedasGanadas);
         ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
         if (usuario == null) ok = withAnonCookie(ok, anon);
         return ok.body(dto);

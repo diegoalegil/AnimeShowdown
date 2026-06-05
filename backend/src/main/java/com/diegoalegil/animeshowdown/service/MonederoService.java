@@ -66,6 +66,22 @@ public class MonederoService {
     }
 
     /**
+     * ¿Ya se acreditó este (motivo, referencia) al usuario? Solo lectura — lo usa
+     * la previsualización del drop de voto para devolver un "+N monedas" exacto
+     * sin escribir (la acreditación real la hace el listener async idempotente).
+     */
+    @Transactional(readOnly = true)
+    public boolean yaAcreditado(Usuario usuario, MotivoMovimiento motivo, String referencia) {
+        return movimientoRepo.existsByUsuarioAndMotivoAndReferencia(usuario, motivo, referencia);
+    }
+
+    /** Nº de drops acreditados al usuario desde {@code desde} (para el tope diario). */
+    @Transactional(readOnly = true)
+    public long contarDropsHoy(Usuario usuario, LocalDateTime desde) {
+        return movimientoRepo.countDropsDesde(usuario, MOTIVOS_DROP, desde);
+    }
+
+    /**
      * Acredita moneda de forma idempotente por (motivo, referencia). Si ese par
      * ya se aplicó, no hace nada y devuelve {@code aplicado=false}. La carrera
      * (dos créditos idénticos a la vez) la corta el UNIQUE: el flush lanza

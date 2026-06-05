@@ -13,6 +13,11 @@ package com.diegoalegil.animeshowdown.dto;
  * (no es un ELO matemático con K-factor). El delta es siempre +1 para el
  * ganador y 0 para el perdedor; lo dejamos explícito en el payload para
  * que el cliente no asuma el valor.
+ *
+ * <p>{@code monedasGanadas}: monedas que el voto va a acreditar (misión diaria
+ * + hito), calculadas server-side para el toast "+N monedas". 0 para invitados
+ * y cuando el voto no genera drop. La acreditación real la hace el listener
+ * async idempotente; este número es la previsualización exacta de ese drop.
  */
 public record VotoRegistradoDto(
         Long votoId,
@@ -23,7 +28,8 @@ public record VotoRegistradoDto(
         double delta,
         boolean anonimo,
         Integer votosAnonimosRestantes,
-        boolean empate) {
+        boolean empate,
+        long monedasGanadas) {
 
     public VotoRegistradoDto(
             Long votoId,
@@ -33,7 +39,7 @@ public record VotoRegistradoDto(
             double votosPerdedor,
             double delta) {
         this(votoId, personajeGanadorId, votosGanador, personajePerdedorId, votosPerdedor,
-                delta, false, null, false);
+                delta, false, null, false, 0L);
     }
 
     public VotoRegistradoDto(
@@ -46,6 +52,6 @@ public record VotoRegistradoDto(
             boolean anonimo,
             Integer votosAnonimosRestantes) {
         this(votoId, personajeGanadorId, votosGanador, personajePerdedorId, votosPerdedor,
-                delta, anonimo, votosAnonimosRestantes, false);
+                delta, anonimo, votosAnonimosRestantes, false, 0L);
     }
 }
