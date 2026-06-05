@@ -956,6 +956,7 @@
 .pack-opening__flip {
   position: absolute;
   inset: 0;
+  -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
   transition: transform 0.72s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -968,8 +969,8 @@
 .pack-opening__flip-back {
   position: absolute;
   inset: 0;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  transform-style: preserve-3d;
 }
 
 .pack-opening__flip-back {
