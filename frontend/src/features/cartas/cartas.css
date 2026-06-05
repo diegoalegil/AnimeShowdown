@@ -992,19 +992,6 @@
     inset 0 0 0 1px rgb(0 0 0 / 0.62);
 }
 
-.pack-opening__card-back-rays {
-  position: absolute;
-  inset: -12%;
-  background:
-    repeating-conic-gradient(
-      from 0deg at 50% 50%,
-      rgb(255 255 255 / 0.08) 0deg 5deg,
-      transparent 5deg 12deg
-    );
-  opacity: 0.48;
-  animation: pack-opening-card-rays 14s linear infinite;
-}
-
 .pack-opening__card-back-mark {
   position: absolute;
   left: 50%;
@@ -1067,39 +1054,6 @@
   bottom: 0.42rem;
   border-right: 2px solid;
   border-bottom: 2px solid;
-}
-
-.pack-opening__rays {
-  position: absolute;
-  left: 50%;
-  top: 42%;
-  z-index: 0;
-  width: min(95vw, 43rem);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgb(197 161 90 / 0.2) 0deg 6deg,
-      transparent 6deg 16deg
-    );
-  filter: blur(0.6px);
-  opacity: 0.65;
-  animation: pack-opening-reveal-rays 10s linear infinite;
-  pointer-events: none;
-}
-
-.pack-opening__rays--special {
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgb(36 198 220 / 0.28) 0deg 6deg,
-      transparent 6deg 14deg,
-      rgb(255 255 255 / 0.14) 14deg 17deg,
-      transparent 17deg 25deg
-    );
-  opacity: 0.86;
-  animation-duration: 6s;
 }
 
 .pack-opening__burst {
@@ -1546,18 +1500,6 @@
   }
 }
 
-@keyframes pack-opening-card-rays {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-@keyframes pack-opening-reveal-rays {
-  to {
-    transform: translate(-50%, -50%) rotate(1turn);
-  }
-}
-
 @keyframes pack-opening-burst {
   0% {
     opacity: 0;
@@ -1741,8 +1683,6 @@
   .pack-opening__fall-bit,
   .pack-opening__open-glow,
   .pack-opening__slot.is-filled,
-  .pack-opening__card-back-rays,
-  .pack-opening__rays,
   .pack-opening__burst-bit,
   .pack-opening__confetti-bit,
   .pack-opening__flash,
