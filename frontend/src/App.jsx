@@ -17,7 +17,7 @@ import MobileBottomNav from './components/MobileBottomNav'
 import RequireCatalog from './components/RequireCatalog'
 import PageSkeleton from './components/PageSkeleton'
 import { useCatalogoPersonajes } from './hooks/useCatalogoPersonajes'
-import { shouldGateCatalogRoute } from './lib/catalog-route-policy'
+import { shouldGateCatalogRoute, shouldPrimeCatalog } from './lib/catalog-route-policy'
 import { lazyRoute } from './lib/lazyRoute'
 import { getRouteSkeletonReserve } from './lib/routeSkeletonPolicy'
 import { canWarmupRoutes, idleWarmupRoutesFor } from './lib/route-warmup-policy'
@@ -203,7 +203,11 @@ function useQueryLanguageSync(search) {
 
 function App() {
   const location = useLocation()
-  const catalogoQuery = useCatalogoPersonajes()
+  // En rutas sin personajes (auth/legal) NO cebamos el catálogo global (~170KB):
+  // ahí App.jsx es su único observer, así que el gate aquí evita el fetch.
+  const catalogoQuery = useCatalogoPersonajes({
+    enabled: shouldPrimeCatalog(location.pathname),
+  })
   useQueryLanguageSync(location.search)
   // Rutas fullscreen sin chrome global (TV mode, etc.). Si el usuario
   // navega aquí queremos que el viewport sea solo del contenido — sin

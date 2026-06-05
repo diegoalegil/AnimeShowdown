@@ -32,10 +32,15 @@ function persistCatalogo(data) {
   }
 }
 
-export function useCatalogoPersonajes() {
+export function useCatalogoPersonajes({ enabled = true } = {}) {
   const query = useQuery({
     queryKey: ['personajes', 'catalogo', FIELDS],
     queryFn: () => endpoints.personajesCatalogo({ fields: FIELDS }),
+    // Gateado por ruta desde App.jsx: en rutas sin personajes (auth/legal) no se
+    // ceba. OJO React Query: si CUALQUIER observer de esta key está enabled, la
+    // query corre — por eso el gate vive donde está el ÚNICO observer en esas
+    // rutas (App.jsx); los consumidores de contenido siguen con enabled=true.
+    enabled,
     initialData: readPersistedCatalogo,
     initialDataUpdatedAt: 0,
     staleTime: CATALOG_STALE_MS,
