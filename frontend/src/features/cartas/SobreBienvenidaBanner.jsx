@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Gift, Sparkles } from 'lucide-react'
 import Button from '../../components/Button'
 import Dialog from '../../components/Dialog'
+import PackOpening from './PackOpening'
 import { useAuth } from '../../contexts/AuthContext'
 import { ApiError } from '../../lib/api'
 import {
@@ -11,9 +12,10 @@ import {
   useSobreBienvenida,
 } from '../../hooks/useCartas'
 
-// PackOpening (~861 líneas) se carga solo al abrir el sobre, fuera del chunk de
-// InicioPage (la home, donde se monta este banner).
-const PackOpening = lazy(() => import('./PackOpening'))
+// IMPORTANTE: PackOpening se importa EAGER a propósito. Lazy-loaded (probado en
+// la PR 330) hacía que, si el chunk fallaba al cargar tras un deploy, el revelado
+// del sobre desapareciera con fallback nulo y el usuario perdiera el regalo ya
+// consumido. Empaquetado con la página, ya está en memoria al pulsar abrir.
 
 // El gancho de reenganche (idea 7): tras abrir el sobre invitamos a la acción
 // diaria que alimenta la economía de cartas.
@@ -197,19 +199,17 @@ function SobreBienvenidaBanner() {
         panelClassName="max-w-[56rem] p-2 sm:p-3"
       >
         {reveal && (
-          <Suspense fallback={null}>
-            <PackOpening
-              reveal={reveal}
-              puedeAbrirOtro={false}
-              permitirAbrirOtro={false}
-              abriendo={false}
-              onAbrirOtro={() => {}}
-              onCerrar={() => setReveal(null)}
-              onDownload={descargar}
-              descargandoId={descargandoId}
-              hook={HOOK_VOTAR}
-            />
-          </Suspense>
+          <PackOpening
+            reveal={reveal}
+            puedeAbrirOtro={false}
+            permitirAbrirOtro={false}
+            abriendo={false}
+            onAbrirOtro={() => {}}
+            onCerrar={() => setReveal(null)}
+            onDownload={descargar}
+            descargandoId={descargandoId}
+            hook={HOOK_VOTAR}
+          />
         )}
       </Dialog>
     </section>
