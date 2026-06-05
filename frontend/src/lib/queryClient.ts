@@ -62,11 +62,12 @@ export const queryKeys = {
   // Cartas coleccionables
   coleccionCartas: (): QueryKey => ['cartas', 'coleccion'],
   coleccionResumen: (): QueryKey => ['cartas', 'resumen'],
-  coleccionPagina: (rareza?: string, anime?: string): QueryKey => [
+  coleccionPagina: (rareza?: string, anime?: string, orden?: string): QueryKey => [
     'cartas',
     'pagina',
     rareza ?? 'TODAS',
     anime ?? 'TODOS',
+    orden ?? 'POSEIDAS',
   ],
   oddsCartas: (): QueryKey => ['cartas', 'odds'],
   sobresGratis: (): QueryKey => ['cartas', 'sobres-gratis'],

@@ -24,6 +24,13 @@ import {
 // un deploy (fallback nulo), perdiendo el sobre ya consumido.
 
 const RAREZAS = ['TODAS', 'SSR', 'ESPECIAL']
+const ORDENES = [
+  ['POSEIDAS', 'Las que tengo'],
+  ['ANIME', 'Por anime'],
+  ['RAREZA', 'Por rareza'],
+  ['ELO', 'Por ELO'],
+  ['NOMBRE', 'Por nombre'],
+]
 const EMPTY_CARTAS = []
 const EMPTY_PROGRESO = []
 const numberFmt = new Intl.NumberFormat('es-ES')
@@ -55,11 +62,12 @@ function CartasPage() {
   const [revealEsGratis, setRevealEsGratis] = useState(false)
   const [rarezaFiltro, setRarezaFiltro] = useState('TODAS')
   const [animeFiltro, setAnimeFiltro] = useState('TODOS')
+  const [orden, setOrden] = useState('POSEIDAS')
   const [cofreResultado, setCofreResultado] = useState(null)
 
   // Grid paginado y filtrado en servidor. Cambiar rareza/anime crea una query
   // nueva (otra key) que arranca en offset 0 automáticamente.
-  const paginaQ = useColeccionPagina({ rareza: rarezaFiltro, anime: animeFiltro })
+  const paginaQ = useColeccionPagina({ rareza: rarezaFiltro, anime: animeFiltro, orden })
 
   const data = resumenQ.data
   const odds = oddsQ.data
@@ -259,6 +267,8 @@ function CartasPage() {
         setRarezaFiltro={setRarezaFiltro}
         animeFiltro={animeFiltro}
         setAnimeFiltro={setAnimeFiltro}
+        orden={orden}
+        setOrden={setOrden}
         animes={animesDestacados}
       />
 
@@ -386,25 +396,43 @@ function AlbumFilters({
   setRarezaFiltro,
   animeFiltro,
   setAnimeFiltro,
+  orden,
+  setOrden,
   animes,
 }) {
   return (
     <div className="mb-5 flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2">
-        {RAREZAS.map((rareza) => (
-          <button
-            key={rareza}
-            type="button"
-            onClick={() => setRarezaFiltro(rareza)}
-            className={`rounded-lg border px-3 py-2 text-[12px] font-black transition ${
-              rarezaFiltro === rareza
-                ? 'border-gold/60 bg-gold-soft text-gold'
-                : 'border-white/10 bg-surface/50 text-fg-muted hover:border-gold/50 hover:text-gold'
-            }`}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {RAREZAS.map((rareza) => (
+            <button
+              key={rareza}
+              type="button"
+              onClick={() => setRarezaFiltro(rareza)}
+              className={`rounded-lg border px-3 py-2 text-[12px] font-black transition ${
+                rarezaFiltro === rareza
+                  ? 'border-gold/60 bg-gold-soft text-gold'
+                  : 'border-white/10 bg-surface/50 text-fg-muted hover:border-gold/50 hover:text-gold'
+              }`}
+            >
+              {rareza === 'TODAS' ? 'Todas' : rareza}
+            </button>
+          ))}
+        </div>
+        <label className="flex items-center gap-2 text-[12px] text-fg-muted">
+          Ordenar
+          <select
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+            className="rounded-lg border border-white/10 bg-surface/50 px-2.5 py-2 text-[12px] font-semibold text-fg-strong outline-none transition hover:border-gold/50 focus:border-gold/60"
           >
-            {rareza === 'TODAS' ? 'Todas' : rareza}
-          </button>
-        ))}
+            {ORDENES.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       <div className="scroll-x-fade flex gap-2 overflow-x-auto pb-1">
         <button

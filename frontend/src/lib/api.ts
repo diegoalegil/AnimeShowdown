@@ -662,10 +662,11 @@ export const endpoints = {
   // Cabecera de la colección (totales, saldo, pity, progreso) sin el array de cartas.
   coleccionResumen: () => api.get('/api/me/cartas/resumen'),
   // Página del grid filtrada por rareza/anime. 'TODAS'/'TODOS' = sin filtro.
-  coleccionPagina: ({ rareza, anime, offset = 0, limit = 60 }) => {
+  coleccionPagina: ({ rareza, anime, orden, offset = 0, limit = 60 }) => {
     const params = new URLSearchParams()
     if (rareza && rareza !== 'TODAS') params.set('rareza', rareza)
     if (anime && anime !== 'TODOS') params.set('anime', anime)
+    if (orden) params.set('orden', orden)
     params.set('offset', String(offset))
     params.set('limit', String(limit))
     return api.get(`/api/me/cartas/pagina?${params.toString()}`)

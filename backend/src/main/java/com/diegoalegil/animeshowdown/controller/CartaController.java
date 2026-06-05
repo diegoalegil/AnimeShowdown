@@ -90,11 +90,12 @@ public class CartaController {
             @AuthenticationPrincipal Usuario usuario,
             @RequestParam(required = false) String rareza,
             @RequestParam(required = false) String anime,
+            @RequestParam(required = false) String orden,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "60") int limit) {
         int saneLimit = Math.min(120, Math.max(1, limit));
         int saneOffset = Math.max(0, offset);
-        return cartaService.pagina(exigirUsuario(usuario), parseRareza(rareza), anime, saneOffset, saneLimit);
+        return cartaService.pagina(exigirUsuario(usuario), parseRareza(rareza), anime, orden, saneOffset, saneLimit);
     }
 
     /** Parseo tolerante de rareza: null/blank/"TODAS"/desconocida → null (sin filtro). */
