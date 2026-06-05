@@ -66,7 +66,7 @@ function LeaderboardsPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             <Vote className="h-3 w-3" />
             Comunidad
           </span>
@@ -137,7 +137,7 @@ function LeaderboardsPage() {
         )}
 
         <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+          <h2 className="mb-2 text-sm font-semibold text-fg-muted">
             ¿Cómo subo?
           </h2>
           <p className="text-[13px] leading-relaxed text-fg-muted">
@@ -195,7 +195,7 @@ function SenpaiDelMes() {
       <div className="flex items-center gap-4">
         <Crown className="h-8 w-8 shrink-0 text-gold" />
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold">
+          <p className="text-[10px] font-bold text-gold">
             <span lang="ja">先輩</span> · Senpai del mes
           </p>
           <p className="mt-0.5 text-xl font-extrabold text-fg-strong">
@@ -238,7 +238,7 @@ function FilaVoter({ rank, voter }) {
           <p className="font-mono text-base font-bold text-gold">
             {voter.votos}
           </p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+          <p className="text-[10px] text-fg-muted">
             votos
           </p>
         </div>
