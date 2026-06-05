@@ -233,7 +233,7 @@ function ApiDocsPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             <Code2 className="h-3 w-3" />
             API pública
           </span>
@@ -287,7 +287,7 @@ function ApiDocsPage() {
         </div>
 
         <div className="mt-12 rounded-2xl border border-border bg-surface p-6">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+          <h2 className="mb-2 text-sm font-semibold text-fg-muted">
             Política de uso
           </h2>
           <p className="text-[13px] leading-relaxed text-fg-muted">
@@ -350,7 +350,7 @@ function Endpoint({ ep }) {
     <div className="rounded-lg border border-border bg-bg p-3">
       <div className="flex flex-wrap items-center gap-2">
         <span
-          className={`inline-flex rounded-lg px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
+          className={`inline-flex rounded-lg px-2 py-0.5 font-mono text-[10px] font-bold ${
             ep.metodo === 'GET'
               ? 'bg-success/15 text-success'
               : 'bg-accent/15 text-gold'

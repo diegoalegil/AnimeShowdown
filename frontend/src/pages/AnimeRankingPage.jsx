@@ -230,13 +230,13 @@ function AnimeRankingPage() {
           }
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 inset-shadow-hairline backdrop-blur-md">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Estado del ranking
               </p>
               <p className="mt-4 font-mono text-4xl font-black text-fg-strong">
                 {communityRows.length > 0 ? communityRows.length : data.total}
               </p>
-              <p className="text-[11px] uppercase tracking-[0.16em] text-fg-muted">
+              <p className="text-[11px] text-fg-muted">
                 personajes ordenados
               </p>
               <div className="mt-4 rounded-lg border border-border bg-bg/45 p-3 text-[12px] leading-5 text-fg-muted">
@@ -277,7 +277,7 @@ function AnimeRankingPage() {
             <section className="mt-8">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                  <p className="text-[11px] font-black text-gold">
                     Tabla completa
                   </p>
                   <h2 className="mt-1 text-2xl font-black text-fg-strong">
@@ -306,7 +306,7 @@ function AnimeRankingPage() {
         )}
 
         <section className="mt-10 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="text-[11px] font-black text-gold">
             FAQ del ranking
           </p>
           <h2 className="mt-1 text-2xl font-black text-fg-strong">
@@ -414,7 +414,7 @@ function PodiumCard({ personaje, rank, featured = false, className = '' }) {
         {personaje.nombre}
       </h2>
       <p className="mt-1 font-mono text-sm font-black">
-        {personaje.score} <span className="text-[10px] uppercase">{personaje.scoreLabel}</span>
+        {personaje.score} <span className="text-[10px]">{personaje.scoreLabel}</span>
       </p>
     </Link>
   )
@@ -447,7 +447,7 @@ function AnimeRankingRow({ rank, personaje }) {
         </div>
         <div className="text-right">
           <p className="font-mono text-base font-black text-gold">{personaje.score}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+          <p className="text-[10px] text-fg-muted">
             {personaje.scoreLabel}
           </p>
         </div>
@@ -469,7 +469,7 @@ function StatTile({ icon: Icon, label, value, compact = false }) {
     <div className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-surface p-4">
       <div className="flex items-center gap-2">
         <Icon className="h-3.5 w-3.5 text-gold" />
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+        <span className="text-[10px] font-semibold text-fg-muted">
           {label}
         </span>
       </div>

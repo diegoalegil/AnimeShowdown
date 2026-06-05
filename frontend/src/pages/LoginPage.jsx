@@ -154,7 +154,7 @@ function Step1Credenciales({ login, onChallenge, onSuccess, next }) {
   return (
     <>
       <div className="mb-6 flex flex-col items-start gap-2">
-        <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+        <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
           Acceso
         </span>
         <h1 className="text-3xl tracking-tight">Inicia sesión</h1>
@@ -300,7 +300,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
   return (
     <>
       <div className="mb-6 flex flex-col items-start gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-success">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3.5 py-1.5 text-[12px] font-semibold text-success">
           <ShieldCheck className="h-3.5 w-3.5" />
           Verificación en dos pasos
         </span>
@@ -339,7 +339,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
               required: 'Introduce el código',
               minLength: { value: 6, message: 'Mínimo 6 caracteres' },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-3 text-center font-mono text-2xl tracking-[0.4em] text-fg-strong placeholder:text-fg-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+            className={`rounded-lg border bg-bg px-3.5 py-3 text-center font-mono text-2xl text-fg-strong placeholder:text-fg-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/40 ${
               errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456 o ABCD-EFGHJK"

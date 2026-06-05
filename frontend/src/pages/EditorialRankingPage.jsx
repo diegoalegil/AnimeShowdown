@@ -210,7 +210,7 @@ function EditorialRankingPage() {
           }
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 inset-shadow-hairline backdrop-blur-md">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Intención SEO
               </p>
               <p className="mt-3 text-sm leading-7 text-fg-muted">
@@ -219,7 +219,7 @@ function EditorialRankingPage() {
               <p className="mt-4 font-mono text-4xl font-black text-fg-strong">
                 {rows.length}
               </p>
-              <p className="text-[11px] uppercase tracking-[0.16em] text-fg-muted">
+              <p className="text-[11px] text-fg-muted">
                 personajes en este top
               </p>
             </div>
@@ -234,7 +234,7 @@ function EditorialRankingPage() {
         </CinematicHero>
 
         <section className="mt-6 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="text-[11px] font-black text-gold">
             Qué contiene esta página
           </p>
           <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
@@ -270,7 +270,7 @@ function EditorialRankingPage() {
             <section className="mt-8">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                  <p className="text-[11px] font-black text-gold">
                     Tabla completa
                   </p>
                   <h2 className="mt-1 text-2xl font-black text-fg-strong">
@@ -299,7 +299,7 @@ function EditorialRankingPage() {
         )}
 
         <section className="mt-10 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="text-[11px] font-black text-gold">
             Más rankings para explorar
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -374,7 +374,7 @@ function PodiumCard({ personaje, rank, featured = false, className = '' }) {
       </h2>
       <p className="line-clamp-1 text-[12px] text-fg-muted">{personaje.anime}</p>
       <p className="mt-1 font-mono text-sm font-black">
-        {personaje.elo} <span className="text-[10px] uppercase">ELO base</span>
+        {personaje.elo} <span className="text-[10px]">ELO base</span>
       </p>
     </Link>
   )
@@ -407,7 +407,7 @@ function EditorialRankingRow({ rank, personaje }) {
         </div>
         <div className="text-right">
           <p className="font-mono text-base font-black text-gold">{personaje.elo}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+          <p className="text-[10px] text-fg-muted">
             ELO base
           </p>
         </div>
@@ -427,7 +427,7 @@ function EditorialRankingRow({ rank, personaje }) {
 function StatTile({ label, value }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-surface p-4">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+      <span className="text-[10px] font-semibold text-fg-muted">
         {label}
       </span>
       <p className="min-w-0 truncate text-base font-black text-fg-strong">

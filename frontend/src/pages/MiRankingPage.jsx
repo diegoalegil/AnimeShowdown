@@ -160,7 +160,7 @@ function MiRankingPage() {
           }
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Votos locales
               </p>
               <p className="mt-3 font-mono text-5xl font-black text-fg-strong">
@@ -276,7 +276,7 @@ function RankingRow({ item, rank }) {
       </div>
       <div className="hidden min-w-[5rem] text-right sm:block">
         <p className="font-mono text-2xl font-black text-fg-strong">{item.count}</p>
-        <p className="text-[10px] uppercase tracking-[0.14em] text-fg-muted">
+        <p className="text-[10px] text-fg-muted">
           votos tuyos
         </p>
       </div>
@@ -295,7 +295,7 @@ function RankingRow({ item, rank }) {
 function SummaryPanel({ stats }) {
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
-      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+      <p className="text-[11px] font-black text-gold">
         Resumen
       </p>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
@@ -312,7 +312,7 @@ function MiniStat({ icon: Icon, value, label }) {
     <div className="rounded-lg border border-border bg-bg/45 p-3">
       <Icon className="mx-auto mb-1 h-4 w-4 text-gold" />
       <p className="font-mono text-lg font-black text-fg-strong">{value}</p>
-      <p className="text-[10px] uppercase tracking-[0.12em] text-fg-muted">{label}</p>
+      <p className="text-[10px] text-fg-muted">{label}</p>
     </div>
   )
 }
@@ -320,7 +320,7 @@ function MiniStat({ icon: Icon, value, label }) {
 function AnimePanel({ animes }) {
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
-      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+      <p className="text-[11px] font-black text-gold">
         Universos que más empujas
       </p>
       <div className="mt-3 flex flex-col gap-2">
@@ -338,7 +338,7 @@ function AnimePanel({ animes }) {
 function LatestVotes({ votes }) {
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
-      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+      <p className="text-[11px] font-black text-gold">
         Últimos votos
       </p>
       <div className="mt-3 flex flex-col gap-2">
