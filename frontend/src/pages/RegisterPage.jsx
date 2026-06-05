@@ -145,7 +145,7 @@ function RegisterPage() {
         variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
       >
         <div className="mb-6 flex flex-col items-start gap-2">
-          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             Nueva cuenta
           </span>
           <h1 className="text-3xl tracking-tight">Únete a AnimeShowdown</h1>
@@ -271,7 +271,7 @@ function RegisterPage() {
               aria-invalid={Boolean(errors.referralCode)}
               aria-describedby={errors.referralCode ? 'referralCode-error' : undefined}
               {...register('referralCode')}
-              className="rounded-lg border border-border bg-bg px-3.5 py-2.5 font-mono text-sm tracking-[0.18em] text-fg-strong uppercase placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+              className="rounded-lg border border-border bg-bg px-3.5 py-2.5 font-mono text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
               placeholder="Si un amigo te invitó…"
             />
             {errors.referralCode && (

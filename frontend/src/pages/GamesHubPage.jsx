@@ -146,7 +146,7 @@ function GamesHubPage() {
           subtitle="Una ronda al día. Una racha que proteger. Un ranking que escalar. Cada minijuego tiene portada propia y una identidad visual distinta."
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Reset diario
               </p>
               <p className="mt-3 font-mono text-4xl font-black text-fg-strong">
@@ -163,7 +163,7 @@ function GamesHubPage() {
 
         {/* Reto destacado del día */}
         <section className="mb-6">
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+          <h2 className="mb-3 text-[11px] font-semibold text-fg-muted">
             Reto recomendado de hoy
           </h2>
           <CardDestacado game={destacado} estado={estadosJuegos[destacado.to]} />
@@ -171,7 +171,7 @@ function GamesHubPage() {
 
         {/* Otros retos de hoy */}
         <section className="mb-10">
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+          <h2 className="mb-3 text-[11px] font-semibold text-fg-muted">
             Otros retos de hoy
           </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -184,7 +184,7 @@ function GamesHubPage() {
         {/* Ritual diario (omikuji): el palito puede regalar pista para los
             retos de arriba. Va debajo de los juegos pero antes que misión/stats. */}
         <section className="mb-6">
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+          <h2 className="mb-3 text-[11px] font-semibold text-fg-muted">
             Ritual diario
           </h2>
           <OmikujiCard />

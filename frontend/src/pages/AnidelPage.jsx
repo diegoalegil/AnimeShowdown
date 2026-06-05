@@ -270,7 +270,7 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
                 {estado.pistaLetra.pos + 1}
               </strong>{' '}
               es{' '}
-              <strong className="font-mono font-bold uppercase">
+              <strong className="font-mono font-bold">
                 {estado.pistaLetra.letra}
               </strong>
               .
