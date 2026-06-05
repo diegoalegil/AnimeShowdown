@@ -40,7 +40,7 @@ function FeedPage() {
         animate="visible"
         variants={containerVariants}
       >
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold text-gold">
           <Users className="h-3 w-3" />
           Comunidad
         </span>

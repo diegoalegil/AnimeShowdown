@@ -95,7 +95,7 @@ function ItemTorneo({ torneo }) {
             {torneo.nombre}
           </p>
           <span
-            className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${pill.cls}`}
+            className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${pill.cls}`}
           >
             {pill.text}
           </span>
