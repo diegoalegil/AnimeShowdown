@@ -254,13 +254,11 @@ export function CinematicHero({
       <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.42fr)] lg:items-end">
         <div className="flex min-w-0 flex-col items-start gap-4">
           {eyebrow && (
+            // de-ai (DESIGN.md): el eyebrow deja de ser un pill de acento con
+            // uppercase+tracking; texto de marca limpio en sentence-case.
             <span
-              className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.14em]"
-              style={{
-                borderColor: `rgb(${visual?.accentRgb ?? '159 29 44'} / 0.48)`,
-                background: `rgb(${visual?.accentRgb ?? '159 29 44'} / 0.17)`,
-                color: `rgb(${visual?.glowRgb ?? '197 161 90'} / 1)`,
-              }}
+              className="inline-flex items-center gap-2 text-xs font-semibold"
+              style={{ color: `rgb(${visual?.glowRgb ?? '197 161 90'} / 1)` }}
             >
               {Icon && <Icon className="h-3.5 w-3.5" />}
               {eyebrow}
