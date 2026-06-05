@@ -60,12 +60,12 @@ export function useColeccionResumen() {
  * "Cargar más" pide la siguiente página (offset += limit) en vez de cargar el
  * catálogo entero de golpe.
  */
-export function useColeccionPagina({ rareza, anime } = {}) {
+export function useColeccionPagina({ rareza, anime, orden } = {}) {
   const { user } = useAuth()
   return useInfiniteQuery({
-    queryKey: queryKeys.coleccionPagina(rareza, anime),
+    queryKey: queryKeys.coleccionPagina(rareza, anime, orden),
     queryFn: ({ pageParam = 0 }) =>
-      endpoints.coleccionPagina({ rareza, anime, offset: pageParam, limit: PAGINA_LIMIT }),
+      endpoints.coleccionPagina({ rareza, anime, orden, offset: pageParam, limit: PAGINA_LIMIT }),
     enabled: Boolean(user),
     initialPageParam: 0,
     getNextPageParam: (lastPage) =>
