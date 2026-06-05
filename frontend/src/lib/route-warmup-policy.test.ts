@@ -15,9 +15,22 @@ describe('route warmup policy', () => {
     expect(canWarmupRoutes({ hardwareConcurrency: 2 })).toBe(false)
   })
 
+  it('bloquea warmup en dispositivos táctiles (puntero grueso / móvil)', () => {
+    expect(
+      canWarmupRoutes({
+        coarsePointer: true,
+        connection: { effectiveType: '4g', downlink: 10 },
+        deviceMemory: 8,
+        hardwareConcurrency: 8,
+        visibilityState: 'visible',
+      }),
+    ).toBe(false)
+  })
+
   it('permite warmup con condiciones holgadas', () => {
     expect(
       canWarmupRoutes({
+        coarsePointer: false,
         connection: { effectiveType: '4g', downlink: 10 },
         deviceMemory: 8,
         hardwareConcurrency: 8,
