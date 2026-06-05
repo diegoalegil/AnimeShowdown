@@ -4,7 +4,12 @@
  * color vía `currentColor` (úsalo con `text-gold`). Sin hex literales: el color
  * lo pone la clase Tailwind del contenedor.
  */
-function MonedaIcon({ className = '', title = 'Moneda' }) {
+interface MonedaIconProps {
+  className?: string
+  title?: string
+}
+
+function MonedaIcon({ className = '', title = 'Moneda' }: MonedaIconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
