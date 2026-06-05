@@ -93,9 +93,18 @@ export function getEstadoEvento(evento, now = new Date()) {
   return ESTADO_EVENTO.ACTIVO
 }
 
+/**
+ * Las funciones de consulta aceptan una `lista` de eventos (default: el
+ * hardcode `EVENTOS`). El front pasa la lista del backend (`/api/eventos`)
+ * vía `useEventos()`, que cae al hardcode si la API está vacía o falla —
+ * así la fuente de verdad migra a runtime sin tocar estos helpers ni los
+ * consumidores. La capa de fechas (estado/countdown) es idéntica para
+ * ambos orígenes porque comparten el mismo shape.
+ */
+
 /** Todos los activos en el momento del cálculo. Puede ser >1 simultáneo. */
-export function getEventosActivos(now = new Date()) {
-  return EVENTOS.filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.ACTIVO)
+export function getEventosActivos(now = new Date(), lista = EVENTOS) {
+  return lista.filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.ACTIVO)
 }
 
 /**
@@ -103,29 +112,29 @@ export function getEventosActivos(now = new Date()) {
  * o el PROXIMO más cercano si no. Null si no hay ni activo ni próximo
  * (el caller esconde la card en ese caso).
  */
-export function getEventoHeadline(now = new Date()) {
-  const activos = getEventosActivos(now)
+export function getEventoHeadline(now = new Date(), lista = EVENTOS) {
+  const activos = getEventosActivos(now, lista)
   if (activos.length > 0) return activos[0]
-  const proximos = EVENTOS
+  const proximos = lista
     .filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.PROXIMO)
     .sort((a, b) => new Date(a.inicioISO) - new Date(b.inicioISO))
   return proximos[0] ?? null
 }
 
-export function getEventosProximos(now = new Date()) {
-  return EVENTOS
+export function getEventosProximos(now = new Date(), lista = EVENTOS) {
+  return lista
     .filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.PROXIMO)
     .sort((a, b) => new Date(a.inicioISO) - new Date(b.inicioISO))
 }
 
-export function getEventosPasados(now = new Date()) {
-  return EVENTOS
+export function getEventosPasados(now = new Date(), lista = EVENTOS) {
+  return lista
     .filter((e) => getEstadoEvento(e, now) === ESTADO_EVENTO.PASADO)
     .sort((a, b) => new Date(b.finISO) - new Date(a.finISO))
 }
 
-export function getEventoPorSlug(slug) {
-  return EVENTOS.find((e) => e.slug === slug) ?? null
+export function getEventoPorSlug(slug, lista = EVENTOS) {
+  return lista.find((e) => e.slug === slug) ?? null
 }
 
 /**
