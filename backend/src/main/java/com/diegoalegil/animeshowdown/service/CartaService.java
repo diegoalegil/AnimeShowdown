@@ -317,21 +317,8 @@ public class CartaService {
         apertura.setPityAntes(pityAntes);
         apertura.setEspecial(especial);
 
-        long monedasDuplicados = 0L;
-        for (int i = 0; i < pack.size(); i++) {
-            Carta carta = pack.get(i);
-            boolean nueva = registrarPosesion(usuario, carta);
-            long recompensa = 0L;
-            if (!nueva) {
-                recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
-                if (recompensa > 0) {
-                    monedasDuplicados += recompensa;
-                    saldoRestante += recompensa;
-                }
-            }
-            apertura.addItem(new SobreAperturaItem(carta, i + 1, nueva,
-                    recompensa, climaxDe(i, especial)));
-        }
+        long monedasDuplicados = aplicarPack(usuario, idem, pack, apertura, especial);
+        saldoRestante += monedasDuplicados;
 
         int pityDespues = especial ? 0 : pityAntes + 1;
         pity.setSobresSinEspecial(pityDespues);
@@ -411,20 +398,8 @@ public class CartaService {
         apertura.setPityAntes(0);
         apertura.setEspecial(true);
 
-        long monedasDuplicados = 0L;
-        for (int i = 0; i < pack.size(); i++) {
-            Carta carta = pack.get(i);
-            boolean nueva = registrarPosesion(usuario, carta);
-            long recompensa = 0L;
-            if (!nueva) {
-                recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
-                if (recompensa > 0) {
-                    monedasDuplicados += recompensa;
-                    saldo += recompensa;
-                }
-            }
-            apertura.addItem(new SobreAperturaItem(carta, i + 1, nueva, recompensa, climaxDe(i, true)));
-        }
+        long monedasDuplicados = aplicarPack(usuario, idem, pack, apertura, true);
+        saldo += monedasDuplicados;
 
         apertura.setPityDespues(0);
         apertura.setSaldoRestante(saldo);
@@ -534,20 +509,8 @@ public class CartaService {
         apertura.setPityAntes(0);
         apertura.setEspecial(especial);
 
-        long monedasDuplicados = 0L;
-        for (int i = 0; i < pack.size(); i++) {
-            Carta carta = pack.get(i);
-            boolean nueva = registrarPosesion(usuario, carta);
-            long recompensa = 0L;
-            if (!nueva) {
-                recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
-                if (recompensa > 0) {
-                    monedasDuplicados += recompensa;
-                    saldo += recompensa;
-                }
-            }
-            apertura.addItem(new SobreAperturaItem(carta, i + 1, nueva, recompensa, climaxDe(i, especial)));
-        }
+        long monedasDuplicados = aplicarPack(usuario, idem, pack, apertura, especial);
+        saldo += monedasDuplicados;
 
         apertura.setPityDespues(0);
         apertura.setSaldoRestante(saldo);
@@ -591,6 +554,34 @@ public class CartaService {
      * fila) sigue resolviéndose por el UNIQUE {@code uk_usuario_carta}: una gana y
      * la otra recibe el conflicto, igual que antes.
      */
+    /**
+     * Aplica un pack de cartas a la colección del usuario y devuelve las monedas
+     * acreditadas por duplicados. Núcleo común de {@code abrirSobre},
+     * {@code reclamarSobreBienvenida} y {@code abrirSobreGratis}: por cada carta
+     * registra la posesión, acredita el duplicado (idempotente por {@code idem} +
+     * posición) y añade el ítem a la apertura con su nivel de clímax. El llamante
+     * suma el retorno a su saldo (antes cada bucle lo acumulaba inline; es
+     * equivalente porque el saldo solo se lee al final de la apertura).
+     */
+    private long aplicarPack(Usuario usuario, String idem, List<Carta> pack,
+            SobreApertura apertura, boolean especial) {
+        long monedasDuplicados = 0L;
+        for (int i = 0; i < pack.size(); i++) {
+            Carta carta = pack.get(i);
+            boolean nueva = registrarPosesion(usuario, carta);
+            long recompensa = 0L;
+            if (!nueva) {
+                recompensa = acreditarDuplicado(usuario, idem, carta, i + 1);
+                if (recompensa > 0) {
+                    monedasDuplicados += recompensa;
+                }
+            }
+            apertura.addItem(new SobreAperturaItem(carta, i + 1, nueva,
+                    recompensa, climaxDe(i, especial)));
+        }
+        return monedasDuplicados;
+    }
+
     private boolean registrarPosesion(Usuario usuario, Carta carta) {
         if (usuarioCartaRepository.incrementarCantidad(usuario, carta) > 0) {
             return false;
