@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.AbrirSobreResultadoDto;
-import com.diegoalegil.animeshowdown.dto.CartaCatalogoItem;
+import com.diegoalegil.animeshowdown.dto.CartaDto;
 import com.diegoalegil.animeshowdown.dto.CartaTradeCreateRequest;
 import com.diegoalegil.animeshowdown.dto.CartaTradeDto;
 import com.diegoalegil.animeshowdown.dto.CofreDiarioDto;
@@ -126,7 +126,7 @@ public class CartaController {
 
     /** Salón Legendario: galería pública de todas las cartas ESPECIAL curadas. */
     @GetMapping("/cartas/especiales")
-    public List<CartaCatalogoItem> especiales() {
+    public List<CartaDto> especiales() {
         return cartaService.especialesCuradas();
     }
 

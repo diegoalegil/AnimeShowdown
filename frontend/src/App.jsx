@@ -82,6 +82,7 @@ const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
 const PerfilPage = lazyRoute(routePreloaders.perfil)
 const FeedPage = lazyRoute(routePreloaders.feed)
 const CartasPage = lazyRoute(routePreloaders.cartas)
+const EspecialesPage = lazyRoute(() => import('./pages/EspecialesPage'))
 const TierListsPage = lazyRoute(routePreloaders.tierLists)
 const UsuarioPage = lazyRoute(() => import('./pages/UsuarioPage'))
 const UsuarioLogrosPage = lazyRoute(() => import('./pages/UsuarioLogrosPage'))
@@ -441,6 +442,7 @@ function App() {
               <Route path="/perfil" element={catalogAware(<PerfilPage />)} />
               <Route path="/feed" element={catalogAware(<FeedPage />)} />
               <Route path="/cartas" element={catalogAware(<CartasPage />)} />
+              <Route path="/especiales" element={catalogAware(<EspecialesPage />)} />
               <Route path="/tier-lists" element={catalogAware(<TierListsPage />)} />
               <Route path="/tier-lists/:slug" element={catalogAware(<TierListsPage />)} />
               <Route path="/u/:username" element={catalogAware(<UsuarioPage />)} />
