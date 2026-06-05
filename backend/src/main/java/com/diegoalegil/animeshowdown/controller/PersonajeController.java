@@ -3,9 +3,7 @@ package com.diegoalegil.animeshowdown.controller;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -40,6 +38,7 @@ import com.diegoalegil.animeshowdown.repository.EnfrentamientoRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.service.EloHistoryService;
 import com.diegoalegil.animeshowdown.service.JikanService;
+import com.diegoalegil.animeshowdown.service.PersonajeAdminService;
 import com.diegoalegil.animeshowdown.service.PersonajeBusquedaService;
 import com.diegoalegil.animeshowdown.service.PersonajeCatalogoService;
 import com.diegoalegil.animeshowdown.service.PersonajeMatchupService;
@@ -66,6 +65,7 @@ public class PersonajeController {
     private final JikanService jikanService;
     private final PersonajeCatalogoService personajeCatalogoService;
     private final PersonajeBusquedaService personajeBusquedaService;
+    private final PersonajeAdminService personajeAdminService;
 
     public PersonajeController(PersonajeRepository personajeRepository,
             RecomendacionService recomendacionService,
@@ -75,7 +75,8 @@ public class PersonajeController {
             VotosPeriodoService votosPeriodoService,
             JikanService jikanService,
             PersonajeCatalogoService personajeCatalogoService,
-            PersonajeBusquedaService personajeBusquedaService) {
+            PersonajeBusquedaService personajeBusquedaService,
+            PersonajeAdminService personajeAdminService) {
         this.personajeRepository = personajeRepository;
         this.recomendacionService = recomendacionService;
         this.eloHistoryService = eloHistoryService;
@@ -85,6 +86,7 @@ public class PersonajeController {
         this.jikanService = jikanService;
         this.personajeCatalogoService = personajeCatalogoService;
         this.personajeBusquedaService = personajeBusquedaService;
+        this.personajeAdminService = personajeAdminService;
     }
 
     /**
@@ -213,39 +215,20 @@ public class PersonajeController {
      * inválidos. Ahora PersonajeCrearRequest impone formato del slug,
      * longitudes y obligatoriedad de slug/nombre/anime.
      */
-    @Caching(evict = {
-            @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
-    })
+    /**
+     * Crea un personaje desde un DTO validado. La escritura (build + save +
+     * invalidación de cachés/índice) vive en {@link PersonajeAdminService}.
+     */
     @PostMapping
     public ResponseEntity<Personaje> crear(@Valid @RequestBody PersonajeCrearRequest request) {
-        Personaje p = new Personaje(
-                request.getSlug(),
-                request.getNombre(),
-                request.getAnime(),
-                request.getDescripcion(),
-                request.getImagenUrl());
-        Personaje guardado = personajeRepository.save(p);
-        personajeBusquedaService.invalidateIndex();
-        return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(personajeAdminService.crear(request));
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
-    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        if (!personajeRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        personajeRepository.deleteById(id);
-        personajeBusquedaService.invalidateIndex();
-        return ResponseEntity.noContent().build();
+        return personajeAdminService.eliminar(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     /**
@@ -253,43 +236,16 @@ public class PersonajeController {
      * Los null se ignoran (preservan el valor previo). PersonajeActualizar
      * Request valida formato y tamaño pero no obliga a estar presentes.
      */
-    @Caching(evict = {
-            @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
-    })
     @PutMapping("/{id}")
     public Personaje actualizar(
             @PathVariable Long id,
             @Valid @RequestBody PersonajeActualizarRequest datos) {
-        Personaje p = personajeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Personaje no encontrado: id=" + id));
-        if (datos.getSlug() != null) p.setSlug(datos.getSlug());
-        if (datos.getNombre() != null) p.setNombre(datos.getNombre());
-        if (datos.getAnime() != null) p.setAnime(datos.getAnime());
-        if (datos.getDescripcion() != null) p.setDescripcion(datos.getDescripcion());
-        if (datos.getImagenUrl() != null) p.setImagenUrl(datos.getImagenUrl());
-        Personaje guardado = personajeRepository.save(p);
-        personajeBusquedaService.invalidateIndex();
-        return guardado;
+        return personajeAdminService.actualizar(id, datos);
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "personajes-listado", allEntries = true),
-            @CacheEvict(value = "personajes-catalogo", allEntries = true),
-            @CacheEvict(value = "personajes-individual", allEntries = true),
-            @CacheEvict(value = "personajes-similares", allEntries = true)
-    })
     @PostMapping("/batch")
     public List<Personaje> crearBatch(@RequestBody List<@Valid PersonajeCrearRequest> personajes) {
-        List<Personaje> guardados = personajes.stream()
-                .map(r -> personajeRepository.save(new Personaje(
-                        r.getSlug(), r.getNombre(), r.getAnime(),
-                        r.getDescripcion(), r.getImagenUrl())))
-                .toList();
-        personajeBusquedaService.invalidateIndex();
-        return guardados;
+        return personajeAdminService.crearBatch(personajes);
     }
 
     /**
