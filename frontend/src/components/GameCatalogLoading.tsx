@@ -2,11 +2,17 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import KanjiSpinner from './KanjiSpinner'
 
+interface GameCatalogLoadingProps {
+  kanji?: string
+  title?: string
+  description?: string
+}
+
 function GameCatalogLoading({
   kanji = '遊',
   title = 'Preparando reto diario',
   description = 'Cargando catálogo de personajes para montar la partida.',
-}) {
+}: GameCatalogLoadingProps) {
   return (
     <section className="as-stage as-stage-visual flex min-h-[70vh] items-center px-5 py-12 sm:px-8 sm:py-16">
       <div className="mx-auto flex max-w-xl flex-col items-center gap-5 text-center">
