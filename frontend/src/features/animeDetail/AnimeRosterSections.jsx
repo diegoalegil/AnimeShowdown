@@ -43,7 +43,7 @@ function RankingRow({ rank, slug, nombre, elo }) {
         </div>
         <div className="text-right">
           <p className="font-mono text-sm font-bold text-gold">{elo}</p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+          <p className="text-[10px] text-fg-muted">
             ELO base
           </p>
         </div>
@@ -64,7 +64,7 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
     <>
       <section className="mb-12">
         <div className="mb-4 flex flex-col gap-1">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          <span className="text-[11px] font-semibold text-fg-muted">
             Roster principal
           </span>
           <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -88,7 +88,7 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
 
       <section className="mb-12">
         <div className="mb-4 flex flex-col gap-1">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
+          <span className="text-[11px] font-semibold text-gold">
             Top 10 · ELO base
           </span>
           <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -115,7 +115,7 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
       {personajes.length > destacados.length && (
         <section>
           <div className="mb-4 flex flex-col gap-1">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <span className="text-[11px] font-semibold text-fg-muted">
               Todos
             </span>
             <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">

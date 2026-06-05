@@ -120,7 +120,7 @@ function SobreBienvenidaBanner() {
               <Gift className="h-6 w-6" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Regalo de bienvenida
               </p>
               <h2 className="mt-0.5 text-lg font-black leading-tight text-fg-strong sm:text-xl">
@@ -157,7 +157,7 @@ function SobreBienvenidaBanner() {
           <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-gold/40 bg-gold-soft text-gold shadow-aura">
             <Gift className="h-8 w-8" aria-hidden="true" />
           </span>
-          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+          <p className="text-[11px] font-black text-gold">
             Regalo de bienvenida
           </p>
           <h2

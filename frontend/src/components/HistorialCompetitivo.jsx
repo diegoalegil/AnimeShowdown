@@ -87,7 +87,7 @@ function ActividadReciente({ slug, nombre }) {
           <Activity className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          <p className="text-[12px] font-semibold text-fg-muted">
             Actividad reciente
           </p>
           <p className="mt-0.5 text-[13px] text-fg-muted">
@@ -128,7 +128,7 @@ function ActividadReciente({ slug, nombre }) {
         <Activity className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+        <p className="text-[12px] font-semibold text-fg-muted">
           Actividad reciente · últimos 7 días
         </p>
         <p className="mt-0.5 text-[15px] font-bold text-fg-strong">
@@ -165,7 +165,7 @@ function UltimosDuelos({ slug, nombre }) {
     <section className="flex flex-col gap-4">
       <div className="flex items-end justify-between gap-2 border-b border-border pb-2">
         <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted">
             <History className="h-3 w-3 text-gold" />
             Historial
           </span>
@@ -321,7 +321,7 @@ function ContraQuien({ slug, nombre }) {
     <section className="flex flex-col gap-4">
       <div className="flex items-end justify-between gap-2 border-b border-border pb-2">
         <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted">
             <Swords className="h-3 w-3 text-gold" />
             Matchups
           </span>
@@ -398,7 +398,7 @@ function MatchupGroup({ titulo, items, tipo }) {
   if (!items || items.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-surface p-3">
-        <div className={`mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider ${style.color}`}>
+        <div className={`mb-2 flex items-center gap-1.5 text-[11px] font-semibold ${style.color}`}>
           <Icon className="h-3 w-3" />
           {titulo}
         </div>
@@ -408,7 +408,7 @@ function MatchupGroup({ titulo, items, tipo }) {
   }
   return (
     <div className="rounded-lg border border-border bg-surface p-3">
-      <div className={`mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider ${style.color}`}>
+      <div className={`mb-2 flex items-center gap-1.5 text-[11px] font-semibold ${style.color}`}>
         <Icon className="h-3 w-3" />
         {titulo}
       </div>

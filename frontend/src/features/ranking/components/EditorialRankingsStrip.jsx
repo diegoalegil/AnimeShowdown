@@ -7,7 +7,7 @@ function EditorialRankingsStrip() {
     <section className="mt-6 rounded-2xl border border-border bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="text-[11px] font-black text-gold">
             Rankings por intención
           </p>
           <h2 className="text-xl font-black text-fg-strong">

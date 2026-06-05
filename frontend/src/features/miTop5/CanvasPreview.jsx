@@ -173,7 +173,7 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+      <h2 className="mb-3 text-sm font-semibold text-fg-muted">
         Generar imagen
       </h2>
       <p className="mb-4 text-[12px] text-fg-muted">
@@ -215,7 +215,7 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
       </div>
       {previewActual && (
         <div className="mt-5">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+          <p className="mb-2 text-[11px] font-semibold text-fg-muted">
             Vista previa
           </p>
           <img

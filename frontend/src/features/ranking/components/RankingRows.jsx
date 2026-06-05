@@ -58,7 +58,7 @@ export function RankRowElo({
                 {nombre}
               </p>
               {esTop10 && (
-                <span className="hidden shrink-0 rounded-md border border-medal-gold/40 bg-medal-gold/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold uppercase tracking-wider text-medal-gold sm:inline">
+                <span className="hidden shrink-0 rounded-md border border-medal-gold/40 bg-medal-gold/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold text-medal-gold sm:inline">
                   Top 10
                 </span>
               )}
@@ -74,7 +74,7 @@ export function RankRowElo({
               {elo}
               <span className="ml-0.5 text-[10px] font-bold text-gold/80">·b</span>
             </p>
-            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+            <p className="text-[10px] text-fg-muted">
               ELO base
             </p>
           </div>
@@ -126,7 +126,7 @@ export function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
           </div>
           <div className="text-right">
             <p className="font-mono text-base font-bold text-gold">{votos}</p>
-            <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+            <p className="text-[10px] text-fg-muted">
               votos
             </p>
           </div>
@@ -172,7 +172,7 @@ function RankBadge({ rank }) {
 function MovimientoBadge({ movimiento }) {
   if (movimiento.esNuevo) {
     return (
-      <span className="inline-flex shrink-0 items-center rounded-md border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold uppercase tracking-wider text-gold">
+      <span className="inline-flex shrink-0 items-center rounded-md border border-accent/40 bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-gold">
         Nuevo
       </span>
     )

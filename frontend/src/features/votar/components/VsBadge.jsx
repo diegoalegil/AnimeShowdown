@@ -23,7 +23,7 @@ const VsBadge = memo(function VsBadge({ votedFor, compact = false }) {
       }`}
     >
       <Swords className={compact ? 'h-[18px] w-[18px]' : 'h-5 w-5 sm:h-7 sm:w-7'} />
-      <span className={`absolute font-mono font-extrabold uppercase tracking-[0.25em] text-gold ${
+      <span className={`absolute font-mono font-extrabold text-gold ${
         compact ? '-bottom-5 text-[9px]' : '-bottom-6 text-[10px]'
       }`}>
         VS
