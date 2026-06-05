@@ -86,7 +86,7 @@ function AssetFallback({
           {initial}
         </span>
         {anime && (
-          <span className="max-w-32 truncate text-[10px] font-bold uppercase tracking-[0.14em] text-fg-muted">
+          <span className="max-w-32 truncate text-[10px] font-bold text-fg-muted">
             {anime}
           </span>
         )}

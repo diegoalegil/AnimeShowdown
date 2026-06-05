@@ -17,7 +17,7 @@ function CarouselRow({ titulo, personajes, eyebrow }) {
         <div className="mb-4 flex items-end justify-between gap-4">
           <div className="flex flex-col gap-1">
             {eyebrow && (
-              <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+              <span className="text-[11px] font-semibold text-fg-muted">
                 {eyebrow}
               </span>
             )}

@@ -37,7 +37,7 @@ function StatPill({
   const defaultLabelClassName =
     layout === 'inline'
       ? 'text-xs text-fg-muted'
-      : 'text-xs font-semibold uppercase tracking-[0.1em] text-fg-muted'
+      : 'text-xs font-semibold text-fg-muted'
 
   return (
     <div className={cx(layouts[layout] ?? layouts.stack, className)}>

@@ -123,7 +123,7 @@ function MisionesPage() {
           }
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Estado de hoy
               </p>
               <p className="mt-3 font-mono text-5xl font-black text-fg-strong">
@@ -235,7 +235,7 @@ function SummaryTile({ icon: Icon, label, value, detail }) {
   return (
     <div className="rounded-2xl border border-border bg-surface/85 p-4">
       <Icon className="h-4 w-4 text-gold" />
-      <p className="mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-fg-muted">
+      <p className="mt-3 text-[10px] font-black text-fg-muted">
         {label}
       </p>
       <p className="mt-1 font-mono text-2xl font-black text-fg-strong">{value}</p>
@@ -264,7 +264,7 @@ function DailyCalendar({ days }) {
   return (
     <section className="rounded-2xl border border-border bg-surface/85 p-4 sm:p-5">
       <div className="mb-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gold">
+        <p className="text-[10px] font-black text-gold">
           Calendario daily
         </p>
         <h2 className="mt-1 text-xl font-black text-fg-strong">
@@ -293,7 +293,7 @@ function DailyCalendar({ days }) {
                     : 'sin progreso'
               }`}
             >
-              <p className="text-[9px] font-black uppercase tracking-[0.08em] text-fg-muted">
+              <p className="text-[9px] font-black text-fg-muted">
                 {dayFormatter.format(parsed)}
               </p>
               <p

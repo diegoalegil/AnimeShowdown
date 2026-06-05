@@ -321,7 +321,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           )}
           <Command.Group
             heading="Páginas"
-            className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+            className="text-[11px] font-semibold text-fg-muted"
           >
             {rutas.map(({ to, label, icon: Icon, searchTerms = '' }) => (
               <Command.Item
@@ -374,7 +374,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
           <Command.Group
             heading="Acciones"
-            className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+            className="mt-2 text-[11px] font-semibold text-fg-muted"
           >
             <Command.Item
               value="sonido toggle"
@@ -411,7 +411,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           {torneos.length > 0 && (
             <Command.Group
               heading="Torneos"
-              className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+              className="mt-2 text-[11px] font-semibold text-fg-muted"
             >
               {torneos.map((t) => (
                 <Command.Item
@@ -433,7 +433,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           {queryPersonajes.length < 2 && (
             <Command.Group
               heading="Personajes"
-              className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+              className="mt-2 text-[11px] font-semibold text-fg-muted"
             >
               <Command.Item
                 disabled
@@ -464,7 +464,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
   return (
     <Command.Group
       heading="Personajes"
-      className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted"
+      className="text-[11px] font-semibold text-fg-muted"
     >
       {personajesPalette.length === 0 && (
         <Command.Item

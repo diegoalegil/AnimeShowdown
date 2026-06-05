@@ -208,14 +208,14 @@ function RankingPage() {
             {/* Antes esto era un segundo "Meta report" que duplicaba el
                 componente RankingMetaReport de abajo. Lo reconvertimos en una
                 caja-CTA para mover la tabla (E2). */}
-            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.14em] text-gold">
+            <p className="mb-3 text-[12px] font-bold text-gold">
               Mueve la tabla
             </p>
             <p className="text-sm leading-relaxed text-fg-muted">
               La tabla cambia con cada duelo. Entra a votar si quieres mover el
               podio antes del próximo corte semanal.
             </p>
-            <p className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/45 px-3 py-1.5 text-[11px] font-semibold text-fg-muted">
               <Clock className="h-3.5 w-3.5 text-gold" />
               Consultado hoy a las {consultadoA}
             </p>
@@ -515,7 +515,7 @@ function SeccionCategoria({ seccion }) {
       <div className="flex items-center gap-3 border-b border-border pb-3">
         <h2
           id={`cat-${seccion.id}`}
-          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.1em] ${tonoClase}`}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold ${tonoClase}`}
         >
           <span aria-hidden="true">{seccion.emoji}</span>
           {seccion.label}
@@ -989,7 +989,7 @@ function HubLinks() {
       {/* Revision de feedback (2026-05-20): se elimino el kanji decorativo
           duplicado. as-panel-hot ya tiene glow/gradient propio. */}
       <div className="relative max-w-2xl">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+        <p className="text-[11px] font-black text-gold">
           Meta en movimiento
         </p>
         <h2 className="mt-2 text-2xl font-black tracking-tight text-fg-strong">
@@ -1049,7 +1049,7 @@ function RankingFaq() {
 
   return (
     <section className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+      <p className="text-[11px] font-black text-gold">
         FAQ del ranking
       </p>
       <h2 className="mt-1 text-2xl font-black text-fg-strong">

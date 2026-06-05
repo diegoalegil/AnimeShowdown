@@ -105,7 +105,7 @@ function UsernamePicker({
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+        <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted">
           <Sparkles className="h-3 w-3 text-gold" />
           Ideas con espíritu otaku
         </p>

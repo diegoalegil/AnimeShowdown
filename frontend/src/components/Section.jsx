@@ -31,7 +31,7 @@ const Section = forwardRef(function Section(
     headerClassName = 'mb-10 flex flex-col items-start gap-3',
     headerContentClassName = 'flex flex-col gap-2',
     headerAction,
-    eyebrowClassName = 'text-[12px] font-semibold uppercase tracking-[0.05em] text-gold',
+    eyebrowClassName = 'text-[12px] font-semibold text-gold',
     titleClassName = 'text-[clamp(1.75rem,4vw,2.75rem)] tracking-tight',
     descriptionClassName = 'max-w-3xl text-[14px] text-fg-muted',
     children,
