@@ -21,9 +21,11 @@ const MAILTO = buildContactMailto({ subject: SUBJECT, body: BODY })
 function SugerirPersonajeCTA({ titulo = '¿No está tu personaje favorito?' }) {
   return (
     <section className="mx-auto mt-16 max-w-3xl px-5 sm:px-0">
-      <div className="flex flex-col items-start gap-4 rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-surface to-surface px-6 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-9">
+      {/* de-ai (DESIGN.md): card con hairline neutro (sin gradiente accent) y el
+          label inline sin pill tintado; el oro vive en el texto. */}
+      <div className="flex flex-col items-start gap-4 rounded-2xl border border-border bg-surface px-6 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-9">
         <div className="flex flex-col gap-2 sm:max-w-md">
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/40 bg-accent/15 px-2.5 py-1 text-[11px] font-bold text-gold">
+          <span className="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-gold">
             <Mail className="h-3 w-3" />
             Catálogo abierto
           </span>
