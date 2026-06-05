@@ -1098,7 +1098,6 @@ export const BRAND_VISUALS = {
     kanji: '冠',
     fallbackImage: STAGE.ranking,
     expectedPath: '/assets/brand/backgrounds/ranking-hero.webp',
-    shellExpectedPath: '/assets/brand/backgrounds/ranking-bg.webp',
     // shellImage tiene haz dorado central muy intenso — bajamos opacity
     // para que respire y no sature visualmente.
     shellOpacity: 0.4,
@@ -1117,7 +1116,6 @@ export const BRAND_VISUALS = {
     kanji: '界',
     fallbackImage: STAGE.animes,
     expectedPath: '/assets/brand/backgrounds/anime-catalog.webp',
-    shellExpectedPath: '/assets/brand/backgrounds/anime-catalog-bg.webp',
     // shellImage tiene muchos carteles pequeños detallados — bajamos
     // opacity para que el ojo no la perciba como ruido visual.
     shellOpacity: 0.4,
@@ -1132,7 +1130,6 @@ export const BRAND_VISUALS = {
     kanji: '人',
     fallbackImage: STAGE.animes,
     expectedPath: '/assets/brand/backgrounds/personajes-hero.webp',
-    shellExpectedPath: '/assets/brand/backgrounds/personajes-bg.webp',
     mood: 'archivo de combatientes, fichas y tarjetas de personaje',
     objectPosition: 'center',
     accent: '#8a5a16',
@@ -1148,7 +1145,6 @@ export const BRAND_VISUALS = {
     kanji: '戦',
     fallbackImage: STAGE.torneos,
     expectedPath: '/assets/brand/backgrounds/tournament-catalog.webp',
-    shellExpectedPath: '/assets/brand/backgrounds/tournament-catalog-bg.webp',
     mood: 'arena de brackets, energía VS y humo',
     objectPosition: 'center',
     accent: '#1f6b83',
@@ -1164,7 +1160,6 @@ export const BRAND_VISUALS = {
     kanji: '祭',
     fallbackImage: STAGE.eventos,
     expectedPath: '/assets/brand/backgrounds/events-hero.webp',
-    shellExpectedPath: '/assets/brand/backgrounds/events-bg.webp',
     mood: 'campañas temporales, festival oscuro y temporada',
     objectPosition: 'center',
     accent: '#4b327f',
@@ -1180,7 +1175,6 @@ export const BRAND_VISUALS = {
     kanji: '遊',
     fallbackImage: STAGE.games,
     expectedPath: '/assets/brand/backgrounds/games-hub.webp',
-    shellExpectedPath: '/assets/brand/backgrounds/games-hub-bg.webp',
     mood: 'ritual diario, retos nocturnos y minijuegos',
     objectPosition: 'center',
   }),
@@ -1234,7 +1228,6 @@ export const BRAND_VISUALS = {
     kanji: '勲',
     fallbackImage: STAGE.ranking,
     expectedPath: '/assets/brand/backgrounds/logros-hero.webp',
-    shellExpectedPath: '/assets/brand/backgrounds/logros-bg.webp',
     mood: 'corredor de trofeos, medallas, kanji 勲章 en pilares',
     objectPosition: 'center',
     accent: '#c5a15a',
