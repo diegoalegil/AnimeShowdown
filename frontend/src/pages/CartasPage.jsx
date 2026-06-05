@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { Filter, Gift, PackageOpen, Sparkles, Ticket } from 'lucide-react'
 import Section from '../components/Section'
 import Button from '../components/Button'
@@ -6,7 +6,6 @@ import EmptyState from '../components/EmptyState'
 import Dialog from '../components/Dialog'
 import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
-import PackOpening from '../features/cartas/PackOpening'
 import { useAuth } from '../contexts/AuthContext'
 import {
   useAbrirSobre,
@@ -18,6 +17,10 @@ import {
   useOddsCartas,
   useSobresGratis,
 } from '../hooks/useCartas'
+
+// PackOpening (~861 líneas) se carga solo al abrir un sobre, fuera del chunk
+// inicial de /cartas (lazy + Suspense local en el Dialog).
+const PackOpening = lazy(() => import('../features/cartas/PackOpening'))
 
 const RAREZAS = ['TODAS', 'SSR', 'ESPECIAL']
 const EMPTY_CARTAS = []
@@ -311,22 +314,24 @@ function CartasPage() {
         panelClassName="max-w-[56rem] p-2 sm:p-3"
       >
         {reveal && (
-          <PackOpening
-            key={packRevealKey(reveal)}
-            reveal={reveal}
-            puedeAbrirOtro={
-              !revealEsGratis &&
-              precio != null &&
-              reveal.saldoRestante >= precio &&
-              !abrirSobre.isPending
-            }
-            permitirAbrirOtro={!revealEsGratis}
-            abriendo={abrirSobre.isPending}
-            onAbrirOtro={abrir}
-            onCerrar={() => setReveal(null)}
-            onDownload={descargar}
-            descargandoId={descargandoId}
-          />
+          <Suspense fallback={null}>
+            <PackOpening
+              key={packRevealKey(reveal)}
+              reveal={reveal}
+              puedeAbrirOtro={
+                !revealEsGratis &&
+                precio != null &&
+                reveal.saldoRestante >= precio &&
+                !abrirSobre.isPending
+              }
+              permitirAbrirOtro={!revealEsGratis}
+              abriendo={abrirSobre.isPending}
+              onAbrirOtro={abrir}
+              onCerrar={() => setReveal(null)}
+              onDownload={descargar}
+              descargandoId={descargandoId}
+            />
+          </Suspense>
         )}
       </Dialog>
     </Section>
