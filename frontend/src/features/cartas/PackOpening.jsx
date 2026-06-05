@@ -534,9 +534,6 @@ function RevealStage({
       exit={{ opacity: 0, y: -22 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
-      {revealed && !reduceMotion && (isTop || isSpecial) && (
-        <Rays special={isSpecial} />
-      )}
       {revealed && !reduceMotion && isSpecial && (
         <Confetti count={68} />
       )}
@@ -639,7 +636,6 @@ function RevealStage({
 function CardBack() {
   return (
     <div className="pack-opening__card-back">
-      <div className="pack-opening__card-back-rays" />
       <div className="pack-opening__card-back-mark">A</div>
       <div className="pack-opening__card-back-label">ANIMESHOWDOWN</div>
       <span className="pack-opening__corner pack-opening__corner--tl" />
@@ -711,15 +707,6 @@ function Burst({ count, special = false, top = false }) {
         />
       ))}
     </div>
-  )
-}
-
-function Rays({ special }) {
-  return (
-    <div
-      className={cx('pack-opening__rays', special && 'pack-opening__rays--special')}
-      aria-hidden="true"
-    />
   )
 }
 
