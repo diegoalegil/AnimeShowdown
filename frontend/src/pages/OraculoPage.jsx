@@ -223,7 +223,7 @@ function OraculoGame({ catalogoPersonajes }) {
           <div className="as-panel rounded-2xl border border-border p-5 sm:p-6">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-electric">
+                <p className="text-[11px] font-bold text-electric">
                   Lectura {Math.min(totalRespondidas + 1, MAX_PREGUNTAS)}/{MAX_PREGUNTAS}
                 </p>
                 <h2 className="mt-1 text-2xl font-extrabold text-fg-strong">
@@ -286,7 +286,7 @@ function OraculoGame({ catalogoPersonajes }) {
           </div>
 
           <aside className="as-panel rounded-2xl border border-border p-5 sm:p-6">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-gold">
+            <p className="mb-3 text-[11px] font-bold text-gold">
               Radar de candidatos
             </p>
             <div className="flex flex-col gap-3">

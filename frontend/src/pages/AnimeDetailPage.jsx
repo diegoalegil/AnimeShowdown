@@ -116,7 +116,7 @@ function AnimeDetailPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-danger/35 bg-danger/10 text-danger">
               <ShieldAlert className="h-6 w-6" />
             </div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-danger">
+            <p className="text-[11px] font-bold text-danger">
               Identity-pack requerido
             </p>
             <h1 className="mt-2 text-2xl font-extrabold text-fg-strong">
