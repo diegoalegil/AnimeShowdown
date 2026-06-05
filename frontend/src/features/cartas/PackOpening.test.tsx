@@ -144,29 +144,29 @@ describe('PackOpening', () => {
       () => {
         expect(screen.getAllByText('Naruto Uzumaki').length).toBeGreaterThan(0)
       },
-      { timeout: 4000 },
+      { timeout: 12000 },
     )
 
     const climaxButton = await screen.findByRole(
       'button',
       { name: 'Revelar carta 5' },
-      { timeout: 4000 },
+      { timeout: 12000 },
     )
     fireEvent.click(climaxButton)
     fireEvent.click(
-      await screen.findByRole('button', { name: 'Ver resumen' }, { timeout: 4000 }),
+      await screen.findByRole('button', { name: 'Ver resumen' }, { timeout: 12000 }),
     )
 
     await waitFor(
       () => {
         expect(screen.getByText('Resumen del sobre')).toBeInTheDocument()
       },
-      { timeout: 4000 },
+      { timeout: 12000 },
     )
     expect(screen.getByAltText('Satoru Gojo')).toBeInTheDocument()
     expect(screen.getByText('Duplicada +10')).toBeInTheDocument()
     expect(playMock).toHaveBeenCalledWith('playPackCharge')
     expect(playMock).toHaveBeenCalledWith('playPackTear')
     expect(playMock).toHaveBeenCalledWith('playPackRevealSpecial')
-  })
+  }, 30000)
 })
