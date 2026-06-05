@@ -154,9 +154,10 @@ public class CartaService {
      * TENER": cualquiera ve los teasers, el dueño las tiene completas.
      */
     @Transactional(readOnly = true)
-    public List<CartaCatalogoItem> especialesCuradas() {
+    public List<CartaDto> especialesCuradas() {
         return cartaLecturaCacheService.catalogo().stream()
                 .filter(c -> c.rareza() == RarezaCarta.ESPECIAL && c.especialCurada())
+                .map(c -> CartaDto.from(c, null, 0L))
                 .toList();
     }
 
