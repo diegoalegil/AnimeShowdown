@@ -659,6 +659,8 @@ export const endpoints = {
   desbloquearOtakuCertificado: () => api.post('/api/logros/otaku-certificado', undefined),
   // Cartas coleccionables. Todas autenticadas (auth por defecto).
   miColeccion: () => api.get('/api/me/cartas'),
+  // Salón Legendario: galería pública de cartas especiales curadas.
+  especialesCuradas: () => api.get('/api/cartas/especiales', { auth: false }),
   // Cabecera de la colección (totales, saldo, pity, progreso) sin el array de cartas.
   coleccionResumen: () => api.get('/api/me/cartas/resumen'),
   // Página del grid filtrada por rareza/anime. 'TODAS'/'TODOS' = sin filtro.
