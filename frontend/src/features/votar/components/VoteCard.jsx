@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
 import VoteFeedbackBurst from '../../../components/VoteFeedbackBurst'
@@ -24,6 +24,7 @@ const VoteCard = memo(function VoteCard({
   anonymousLimited,
   blindMode = false,
   voteResult,
+  ownsEspecial = false,
 }) {
   const imgSrc = personaje.imagenUrl ?? imagenPersonaje(personaje.slug)
   const dominantColor = personaje.imagenColorDominante ?? FALLBACK_DOMINANT_COLOR
@@ -117,6 +118,19 @@ const VoteCard = memo(function VoteCard({
                   : 'motion-safe:group-hover:scale-[1.03]'
               }`}
             />
+          )}
+          {ownsEspecial && !identityHidden && (
+            <span
+              className="pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full border bg-black/70 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm"
+              style={{
+                color: 'var(--color-electric)',
+                borderColor: 'color-mix(in srgb, var(--color-electric) 55%, transparent)',
+              }}
+              title="Tienes la carta especial de este personaje"
+            >
+              <Sparkles className="h-3 w-3" aria-hidden="true" />
+              Especial
+            </span>
           )}
           {isVoted && (
             <motion.div

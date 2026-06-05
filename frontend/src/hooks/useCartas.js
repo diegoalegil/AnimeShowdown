@@ -72,6 +72,23 @@ export function useSaldo() {
 }
 
 /**
+ * Set de slugs de personaje de los que el usuario POSEE la carta especial, para
+ * el badge "tienes la especial" en duelos/votos. Disabled sin user (→ undefined,
+ * el consumidor trata como vacío).
+ */
+export function useMisEspeciales() {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: ['cartas', 'especiales', 'mias'],
+    queryFn: () => endpoints.coleccionPagina({ rareza: 'ESPECIAL', limit: 120 }),
+    enabled: Boolean(user),
+    staleTime: 5 * 60 * 1000,
+    select: (data) =>
+      new Set((data?.cartas ?? []).filter((c) => c.poseida).map((c) => c.personajeSlug)),
+  })
+}
+
+/**
  * Grid de colección paginado y filtrado en servidor por rareza/anime. Cada
  * "Cargar más" pide la siguiente página (offset += limit) en vez de cargar el
  * catálogo entero de golpe.

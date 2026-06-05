@@ -27,6 +27,8 @@ const VoteArena = memo(function VoteArena({
   handleVoteRight,
   handleTieVote,
   canTie = false,
+  ownsEspecialA = false,
+  ownsEspecialB = false,
 }) {
   const reduceMotion = useReducedMotion()
   const arenaKey = a && b ? `${a.slug}-${b.slug}` : 'empty'
@@ -58,6 +60,7 @@ const VoteArena = memo(function VoteArena({
         </div>
         <VoteCard
           personaje={a}
+          ownsEspecial={ownsEspecialA}
           onClick={handleVoteLeft}
           disabled={controlsDisabled}
           isVoted={votedFor === a.slug}
@@ -85,6 +88,7 @@ const VoteArena = memo(function VoteArena({
         </div>
         <VoteCard
           personaje={b}
+          ownsEspecial={ownsEspecialB}
           onClick={handleVoteRight}
           disabled={controlsDisabled}
           isVoted={votedFor === b.slug}
