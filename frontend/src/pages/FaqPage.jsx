@@ -140,7 +140,7 @@ function FaqPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             <HelpCircle className="h-3 w-3" />
             FAQ
           </span>
@@ -172,7 +172,7 @@ function FaqPage() {
                 key={cat}
                 type="button"
                 onClick={() => setCategoria(cat)}
-                className={`min-h-10 rounded-lg px-3 text-xs font-bold uppercase tracking-[0.08em] transition-colors ${
+                className={`min-h-10 rounded-lg px-3 text-xs font-bold transition-colors ${
                   categoria === cat
                     ? 'bg-gold text-bg'
                     : 'border border-border bg-bg text-fg-muted hover:text-fg-strong'
@@ -274,7 +274,7 @@ function FaqItem({ item, abierta, onToggle }) {
         <span className="text-[15px] font-semibold text-fg-strong">
           {item.pregunta}
         </span>
-        <span className="ml-auto hidden rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-muted sm:inline-flex">
+        <span className="ml-auto hidden rounded-full border border-border bg-bg px-2 py-0.5 text-[11px] font-semibold text-fg-muted sm:inline-flex">
           {item.categoria}
         </span>
         <ChevronDown

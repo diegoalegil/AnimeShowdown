@@ -129,7 +129,7 @@ function LogrosPage() {
               para evocar "salón de trofeos" / coleccionismo. Mantenemos
               el kanji 勲章 (medalla) — tiene intención semántica directa
               con el tema de la página. */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-1.5 text-[12px] font-semibold text-gold">
             <Trophy className="h-3 w-3" />
             勲章 · Logros
           </span>
@@ -335,7 +335,7 @@ function StatTile({ icon: Icon, valor, total, label, accentClass, children }) {
               <span className="text-sm text-fg-muted tabular-nums">/ {total}</span>
             )}
           </div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider opacity-80">{label}</p>
+          <p className="text-[11px] font-semibold opacity-80">{label}</p>
         </div>
       </div>
       {children}
