@@ -561,6 +561,33 @@ function VotarPage() {
     }, NEXT_DELAY_MS)
   }, [fastMode])
 
+  // "+N monedas": el backend devuelve en la respuesta del voto las monedas que
+  // va a acreditar (misión diaria + hito cada N votos). Solo ocurre en votos
+  // concretos (primero del día, cada 10º) → es un premio puntual, no ruido, así
+  // que el toast se muestra también en modo rápido. Refrescamos el saldo del
+  // header tras el drop async (el listener lo acredita justo tras el commit).
+  const notifyCoins = useCallback(
+    (data) => {
+      const monedas = data?.monedasGanadas ?? 0
+      if (monedas <= 0) return
+      toast.success(`+${monedas} monedas`, {
+        description: 'Gástalas en sobres de cartas.',
+      })
+      // El header cuadra con el toast al instante (optimista). El crédito real lo
+      // aplica el listener async tras el commit del voto, así que NO refetcheamos
+      // de inmediato (leería el saldo viejo y el chip se quedaría desfasado);
+      // reconciliamos con el servidor con un pequeño retardo, cuando el drop ya
+      // aterrizó.
+      queryClient.setQueryData(['monedero'], (old) =>
+        old ? { ...old, saldo: (old.saldo ?? 0) + monedas } : old,
+      )
+      window.setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['monedero'] })
+      }, 1500)
+    },
+    [queryClient],
+  )
+
   const handleVoteSuccess = useCallback(
     (personaje, data, perdedor) => {
       if (data?.anonimo) {
@@ -592,11 +619,13 @@ function VotarPage() {
         })
       }
 
+      notifyCoins(data)
+
       // Prefetch del siguiente par mientras el usuario ve la animación de resultado.
       prefetchSiguientePar()
       scheduleAutoNext()
     },
-    [scheduleAutoNext, trackLocalVote, prefetchSiguientePar],
+    [scheduleAutoNext, trackLocalVote, prefetchSiguientePar, notifyCoins],
   )
 
   const handleTieVoteSuccess = useCallback(
@@ -619,10 +648,11 @@ function VotarPage() {
             : 'No mueve el ELO: reparte medio voto a cada personaje.',
         })
       }
+      notifyCoins(data)
       prefetchSiguientePar()
       scheduleAutoNext()
     },
-    [a, b, prefetchSiguientePar, scheduleAutoNext],
+    [a, b, prefetchSiguientePar, scheduleAutoNext, notifyCoins],
   )
 
   // Intención de voto (feature #15): el usuario eligió POR QUÉ votó en el panel
