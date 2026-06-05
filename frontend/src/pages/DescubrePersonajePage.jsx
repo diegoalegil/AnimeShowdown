@@ -154,7 +154,7 @@ function DescubrePersonajePage() {
                   loading="eager"
                 />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/92 via-black/52 to-transparent p-5">
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+                  <p className="text-[11px] font-black text-gold">
                     Personaje descubierto
                   </p>
                   <h1 className="mt-1 text-3xl font-black leading-tight text-white">
@@ -259,7 +259,7 @@ function StatTile({ icon: Icon, label, value }) {
   return (
     <div className="rounded-lg border border-white/10 bg-bg/55 p-4">
       <Icon className="h-4 w-4 text-gold" />
-      <p className="mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-fg-muted">
+      <p className="mt-3 text-[10px] font-black text-fg-muted">
         {label}
       </p>
       <p className="mt-1 text-base font-black text-fg-strong">{value}</p>

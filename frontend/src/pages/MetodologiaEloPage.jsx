@@ -86,7 +86,7 @@ function MetodologiaEloPage() {
         </section>
 
         <section className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="text-[11px] font-black text-gold">
             Lectura correcta
           </p>
           <h2 className="mt-1 text-2xl font-black text-fg-strong">

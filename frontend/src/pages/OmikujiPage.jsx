@@ -230,7 +230,7 @@ function OmikujiPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold text-gold">
             <Sparkles className="h-3 w-3" />
             <span lang="ja">お御籤</span> · Omikuji
           </span>
@@ -282,7 +282,7 @@ function OmikujiPage() {
         )}
 
         <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
+          <h2 className="mb-3 text-sm font-semibold text-fg-muted">
             Las 5 suertes y su kanji
           </h2>
           <ul className="flex flex-col gap-4 text-[13px] text-fg-muted">
@@ -382,7 +382,7 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
             replayKey={suerte.kanji}
           />
         </motion.span>
-        <p className="text-[12px] uppercase tracking-wider text-fg-muted">
+        <p className="text-[12px] text-fg-muted">
           {suerte.romaji}
         </p>
         <p className="text-2xl font-bold text-fg-strong">{suerte.nombre}</p>
@@ -391,7 +391,7 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
         {suerte.desc}
       </p>
       <div className="mb-4 rounded-lg border border-border bg-bg p-3 text-center text-[12px]">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+        <p className="text-[10px] font-semibold text-fg-muted">
           Bono del día
         </p>
         <p className="mt-1 text-fg-strong">{suerte.perk}</p>

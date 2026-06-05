@@ -454,7 +454,7 @@ function ScoreBar({ score, best }) {
         <Flame
           className={`h-4 w-4 ${cerca ? 'animate-pulse text-medal-bronze' : 'text-fg-muted'}`}
         />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+        <span className="text-[11px] font-semibold text-fg-muted">
           Racha actual
         </span>
         <span className="font-mono text-2xl font-extrabold tabular-nums text-fg-strong">
@@ -463,7 +463,7 @@ function ScoreBar({ score, best }) {
       </div>
       <div className="flex items-center gap-2">
         <Trophy className="h-4 w-4 text-medal-gold" />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+        <span className="text-[11px] font-semibold text-fg-muted">
           Récord
         </span>
         <span className="font-mono text-2xl font-extrabold tabular-nums text-gold">
@@ -527,7 +527,7 @@ function ReferenceCard({ personaje, elo, scoreLabel }) {
           className="h-full w-full object-contain"
         />
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
+          <span className="text-[9px] font-semibold text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
             {scoreLabel}
           </span>
           <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
@@ -586,7 +586,7 @@ function ChallengerCard({
               exit={{ opacity: 0 }}
               className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4"
             >
-              <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
+              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
                 {scoreLabel} oculto
               </span>
               <HelpCircle className="h-6 w-6 text-white/90 sm:h-9 sm:w-9" />
@@ -601,7 +601,7 @@ function ChallengerCard({
                 isCorrect ? 'bg-success/90' : 'bg-danger/90'
               }`}
             >
-              <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
+              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
                 {scoreLabel}
               </span>
               <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
@@ -679,7 +679,7 @@ function GameOver({
       exit={{ opacity: 0 }}
       className="as-panel flex flex-col items-center gap-4 rounded-2xl border-danger/30 bg-danger/5 p-8 text-center"
     >
-      <span className="inline-flex rounded-full border border-danger/40 bg-danger/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-danger">
+      <span className="inline-flex rounded-full border border-danger/40 bg-danger/10 px-3 py-1.5 text-[11px] font-semibold text-danger">
         Game Over
       </span>
       <h2 className="text-3xl font-bold tracking-tight text-fg-strong">

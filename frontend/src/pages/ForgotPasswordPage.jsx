@@ -58,7 +58,7 @@ function ForgotPasswordPage() {
         variants={containerVariants}
       >
         <div className="mb-6 flex flex-col items-start gap-2">
-          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+          <span className="inline-flex rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-fg-muted">
             Recuperar acceso
           </span>
           <h1 className="text-3xl tracking-tight">¿Olvidaste tu contraseña?</h1>
