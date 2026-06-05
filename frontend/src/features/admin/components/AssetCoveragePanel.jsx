@@ -142,7 +142,7 @@ function AssetCoveragePanel() {
             key={item.label}
             className="rounded-2xl border border-border bg-surface p-4"
           >
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+            <p className="text-[11px] font-bold text-fg-muted">
               {item.label}
             </p>
             <p className="mt-2 text-2xl font-black text-fg-strong">
@@ -163,7 +163,7 @@ function AssetCoveragePanel() {
               className="rounded-2xl border border-border bg-surface p-4"
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+                <p className="text-[11px] font-bold text-fg-muted">
                   {row.label}
                 </p>
                 <Icon
@@ -204,7 +204,7 @@ function AssetCoveragePanel() {
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-border bg-bg p-3">
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+            <p className="text-[11px] font-bold text-fg-muted">
               Total local
             </p>
             <p className="mt-1 text-2xl font-black text-fg-strong">
@@ -286,7 +286,7 @@ function AssetCoveragePanel() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[minmax(0,1fr)_repeat(3,auto)] gap-3 border-b border-border px-4 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+        <div className="grid grid-cols-[minmax(0,1fr)_repeat(3,auto)] gap-3 border-b border-border px-4 py-3 text-[11px] font-bold text-fg-muted">
           <span>Categoría</span>
           <span>Total</span>
           <span>Real</span>

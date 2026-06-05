@@ -207,7 +207,7 @@ function SectionPulso() {
       <div className="relative mx-auto max-w-6xl">
         <div className="mb-6 flex flex-col gap-2">
           {/* de-ai (DESIGN.md): estado inline, dot sólido + texto normal; sin
-              pill tintado, sin uppercase/tracking, sin ping (el "●Live" tell). */}
+              pill tintado, sin/tracking, sin ping (el "●Live" tell). */}
           <span className="inline-flex w-fit items-center gap-2 text-sm font-medium text-fg-muted">
             <span className="h-1.5 w-1.5 rounded-full bg-success" />
             En vivo

@@ -8,7 +8,7 @@ function StatTile({ icon: Icon, iconColor, label, value, className = '' }) {
         <Icon className={`h-4 w-4 ${iconColor}`} />
       </span>
       <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+        <p className="text-[10px] font-semibold text-fg-muted">
           {label}
         </p>
         <p className="truncate font-mono text-lg font-extrabold tabular-nums text-fg-strong">
@@ -66,7 +66,7 @@ export function DailyHistoryStrip({ days, streak }) {
     <section className="as-panel mb-6 rounded-2xl p-4 sm:p-5">
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gold">
+          <p className="text-[10px] font-black text-gold">
             Calendario daily
           </p>
           <h2 className="mt-1 text-lg font-black text-fg-strong">
@@ -101,7 +101,7 @@ export function DailyHistoryStrip({ days, streak }) {
                     : 'sin progreso'
               }`}
             >
-              <p className="text-[9px] font-black uppercase tracking-[0.08em] text-fg-muted">
+              <p className="text-[9px] font-black text-fg-muted">
                 {dayFormatter.format(parsed)}
               </p>
               <p

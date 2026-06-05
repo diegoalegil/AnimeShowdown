@@ -40,7 +40,7 @@ function PersonajeListRow({ slug, nombre, anime, rank, elo: eloProp }) {
             {elo}
             <span className="ml-0.5 text-[10px] font-bold text-gold/80">·b</span>
           </p>
-          <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+          <p className="text-[10px] text-fg-muted">
             ELO base
           </p>
         </div>

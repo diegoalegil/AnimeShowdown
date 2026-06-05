@@ -133,7 +133,7 @@ export default function VoteQuoteCard({ personaje, rival, intencion }) {
           />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-black uppercase tracking-[0.12em] text-gold">
+          <p className="text-[11px] font-black text-gold">
             Quote del duelo
           </p>
           <h2 className="mt-1 text-lg font-black leading-tight text-fg-strong">

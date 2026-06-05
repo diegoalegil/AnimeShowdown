@@ -53,7 +53,7 @@ function PersonalAnimeRanking({ anime, stats, personajes, onShare }) {
     <section className="mb-12 rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/[0.12] via-surface to-accent/[0.08] p-5 sm:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold">
             <Flame className="h-3.5 w-3.5" />
             Tu top personal
           </p>

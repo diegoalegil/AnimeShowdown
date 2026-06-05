@@ -13,7 +13,7 @@ function RankingTechnicalTable({ items }) {
     <details className="group mt-6 rounded-xl border border-border bg-surface">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+          <h2 className="text-sm font-semibold text-fg-muted">
             Datos técnicos
           </h2>
           <p className="mt-0.5 text-[11px] text-fg-muted">

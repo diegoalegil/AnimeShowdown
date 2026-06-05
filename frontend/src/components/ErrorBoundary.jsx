@@ -114,7 +114,7 @@ class ErrorBoundary extends Component {
             </span>
 
             <div className="mt-8 flex flex-col gap-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 {eyebrow}
               </p>
               <h1 className="max-w-sm text-3xl font-black tracking-tight sm:text-4xl">
@@ -155,7 +155,7 @@ class ErrorBoundary extends Component {
               </a>
             </div>
 
-            <p className="mt-6 text-[11px] uppercase tracking-[0.22em] text-fg-muted/70">
+            <p className="mt-6 text-[11px] text-fg-muted/70">
               El error queda registrado para poder rastrearlo.
             </p>
 

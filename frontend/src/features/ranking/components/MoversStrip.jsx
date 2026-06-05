@@ -28,7 +28,7 @@ function MoversStrip({ movimientosQuery } = {}) {
     <div className="mt-6 rounded-xl border border-success/30 bg-success/5 p-4 sm:p-5">
       <div className="mb-3 flex items-center gap-2">
         <TrendingUp className="h-4 w-4 text-success" />
-        <h2 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-success">
+        <h2 className="text-[12px] font-semibold text-success">
           Movers de la semana
         </h2>
         <span className="ml-auto text-[11px] text-fg-muted">últimos 7 días</span>
