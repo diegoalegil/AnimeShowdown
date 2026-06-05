@@ -63,14 +63,14 @@ function CampeonCard({ campeon, esFallback, loading, comunidadArrancando }) {
           {esFallback ? (
             <p className="mt-2 font-mono text-2xl font-bold text-gold tabular-nums">
               {Number(campeon.eloLocal ?? 0).toLocaleString('es-ES')}
-              <span className="ml-1 text-[11px] font-medium uppercase text-fg-muted">
+              <span className="ml-1 text-[11px] font-medium text-fg-muted">
                 ELO base
               </span>
             </p>
           ) : (
             <p className="mt-2 font-mono text-2xl font-bold text-gold tabular-nums">
               {votos.toLocaleString('es-ES')}
-              <span className="ml-1 text-[11px] font-medium uppercase text-fg-muted">
+              <span className="ml-1 text-[11px] font-medium text-fg-muted">
                 {votos === 1 ? 'voto' : 'votos'}
               </span>
             </p>

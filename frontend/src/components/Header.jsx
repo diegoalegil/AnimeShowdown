@@ -497,7 +497,7 @@ function UserBadge({ user, onLogout, t }) {
         <Link
           to="/admin"
           aria-label={t('nav.admin')}
-          className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold transition-colors hover:bg-accent/25"
+          className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-gold transition-colors hover:bg-accent/25"
         >
           <Shield className="h-3 w-3" />
           {t('nav.admin')}

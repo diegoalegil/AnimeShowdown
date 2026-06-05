@@ -5,7 +5,7 @@ function DailyRulesDetails() {
     <details className="group rounded-xl border border-border bg-surface">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+          <h3 className="text-sm font-semibold text-fg-muted">
             Detalles del reto diario
           </h3>
           <p className="mt-1 text-[12px] text-fg-muted">

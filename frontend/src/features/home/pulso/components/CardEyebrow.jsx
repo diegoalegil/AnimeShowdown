@@ -1,4 +1,4 @@
-// de-ai (DESIGN.md): sin uppercase/tracking ni pill tintado; eyebrow inline en
+// de-ai (DESIGN.md): sin/tracking ni pill tintado; eyebrow inline en
 // sentence-case, el color de marca va en el texto/icono, no en chrome.
 function CardEyebrow({ icon: Icon, label, tono = 'text-gold' }) {
   return (

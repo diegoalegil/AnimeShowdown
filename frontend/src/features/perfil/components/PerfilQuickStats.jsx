@@ -90,7 +90,7 @@ function PerfilQuickStats() {
             >
               {t.valor}
             </div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
+            <p className="text-[11px] font-semibold opacity-80">
               {t.label}
             </p>
           </div>

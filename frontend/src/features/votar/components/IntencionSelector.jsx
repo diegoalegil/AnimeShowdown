@@ -36,7 +36,7 @@ export default function IntencionSelector({ onSelect, disabled = false }) {
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface-alt/40 px-4 py-3">
-      <p className="text-[12px] font-black uppercase tracking-[0.08em] text-fg-muted">
+      <p className="text-[12px] font-black text-fg-muted">
         {chosen ? '¡Gracias! Tu motivo quedó guardado' : '¿Por qué votaste? (opcional)'}
       </p>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Intención de voto">

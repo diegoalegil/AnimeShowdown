@@ -116,7 +116,7 @@ function TierListCanvasPreview({ titulo, rows, publicSlug }) {
   return (
     <section className="border border-border bg-surface p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-black uppercase tracking-[0.05em] text-fg-muted">
+        <h2 className="text-sm font-black text-fg-muted">
           Exportar PNG
         </h2>
         <div className="flex flex-wrap gap-2">

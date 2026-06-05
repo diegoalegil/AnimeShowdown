@@ -66,7 +66,7 @@ function EventoHeadlineBanner() {
       />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
-          <span className={`inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
+          <span className={`inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold ${tonoTexto}`}>
             <CalendarClock className="h-3 w-3" />
             {eyebrowLabel} · {tiempoLabel}
           </span>
