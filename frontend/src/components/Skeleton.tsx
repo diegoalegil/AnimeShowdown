@@ -1,4 +1,8 @@
-const VARIANTS = {
+import type { ReactNode } from 'react'
+
+type SkeletonVariant = 'card' | 'line' | 'circle' | 'banner' | 'box'
+
+const VARIANTS: Record<SkeletonVariant, string> = {
   card: 'min-h-52 rounded-2xl border border-border bg-surface p-4',
   line: 'h-4 rounded-full bg-surface-alt',
   circle: 'aspect-square rounded-full bg-surface-alt',
@@ -10,7 +14,7 @@ const VARIANTS = {
   box: 'rounded-lg bg-surface-alt',
 }
 
-const CONTENT = {
+const CONTENT: Partial<Record<SkeletonVariant, ReactNode>> = {
   card: (
     <>
       <span className="block aspect-[4/3] rounded-lg bg-surface-alt" />
@@ -26,7 +30,12 @@ const CONTENT = {
   ),
 }
 
-function Skeleton({ variant = 'line', className = '' }) {
+interface SkeletonProps {
+  variant?: SkeletonVariant
+  className?: string
+}
+
+function Skeleton({ variant = 'line', className = '' }: SkeletonProps) {
   const variantClass = VARIANTS[variant] ?? VARIANTS.line
 
   return (
