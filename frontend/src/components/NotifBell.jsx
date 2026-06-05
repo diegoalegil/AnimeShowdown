@@ -237,52 +237,21 @@ function enlaceDeNotif(notif) {
   }
 }
 
+// de-ai (DESIGN.md): la card de notificación deja de llevar borde de color +
+// gradiente lateral (el tell de la captura del owner) y glows. Card plana con
+// hairline neutro; el color del tipo vive en el icono y en el dot de no-leído.
+const NOTIF_ITEM = 'border-border bg-surface hover:bg-surface-alt'
+
 const tipoStyle = {
-  BIENVENIDA: {
-    item: 'border-success/25 bg-gradient-to-r from-success/10 via-surface to-surface hover:border-success/50',
-    icon: 'border-success/30 bg-success/15 text-success',
-    unread: 'bg-success',
-  },
-  BADGE_DESBLOQUEADO: {
-    item: 'border-gold/30 bg-gradient-to-r from-gold/12 via-surface to-surface hover:border-gold/60 hover:from-gold/18',
-    icon: 'border-gold/30 bg-gold/15 text-gold shadow-aura-sm [--aura-color:rgb(251_191_36_/_0.9)]',
-    unread: 'bg-gold',
-  },
-  TORNEO_APROBADO: {
-    item: 'border-success/25 bg-gradient-to-r from-success/10 via-surface to-surface hover:border-success/50',
-    icon: 'border-success/30 bg-success/15 text-success',
-    unread: 'bg-success',
-  },
-  TORNEO_RECHAZADO: {
-    item: 'border-danger/25 bg-gradient-to-r from-danger/10 via-surface to-surface hover:border-danger/50',
-    icon: 'border-danger/30 bg-danger/15 text-danger',
-    unread: 'bg-danger',
-  },
-  TORNEO_INICIADO: {
-    item: 'border-accent/25 bg-gradient-to-r from-accent/10 via-surface to-surface hover:border-accent/50',
-    icon: 'border-accent/30 bg-accent/15 text-gold',
-    unread: 'bg-accent',
-  },
-  TORNEO_FINALIZADO: {
-    item: 'border-accent/25 bg-gradient-to-r from-accent/10 via-surface to-surface hover:border-accent/50',
-    icon: 'border-accent/30 bg-accent/15 text-gold',
-    unread: 'bg-accent',
-  },
-  SEGUIDOR_NUEVO: {
-    item: 'border-info/25 bg-gradient-to-r from-info/10 via-surface to-surface hover:border-info/50',
-    icon: 'border-info/30 bg-info/15 text-info',
-    unread: 'bg-info',
-  },
-  SISTEMA: {
-    item: 'border-rarity-epic/25 bg-gradient-to-r from-rarity-epic/10 via-surface to-surface hover:border-rarity-epic/50',
-    icon: 'border-rarity-epic/30 bg-rarity-epic/15 text-rarity-epic',
-    unread: 'bg-rarity-epic',
-  },
-  DEFAULT: {
-    item: 'border-border bg-surface hover:border-accent/30 hover:bg-bg/60',
-    icon: 'border-border bg-surface-alt text-fg-muted',
-    unread: 'bg-accent',
-  },
+  BIENVENIDA: { item: NOTIF_ITEM, icon: 'border-border bg-success/12 text-success', unread: 'bg-success' },
+  BADGE_DESBLOQUEADO: { item: NOTIF_ITEM, icon: 'border-border bg-gold/12 text-gold', unread: 'bg-gold' },
+  TORNEO_APROBADO: { item: NOTIF_ITEM, icon: 'border-border bg-success/12 text-success', unread: 'bg-success' },
+  TORNEO_RECHAZADO: { item: NOTIF_ITEM, icon: 'border-border bg-danger/12 text-danger', unread: 'bg-danger' },
+  TORNEO_INICIADO: { item: NOTIF_ITEM, icon: 'border-border bg-accent/12 text-gold', unread: 'bg-accent' },
+  TORNEO_FINALIZADO: { item: NOTIF_ITEM, icon: 'border-border bg-accent/12 text-gold', unread: 'bg-accent' },
+  SEGUIDOR_NUEVO: { item: NOTIF_ITEM, icon: 'border-border bg-info/12 text-info', unread: 'bg-info' },
+  SISTEMA: { item: NOTIF_ITEM, icon: 'border-border bg-rarity-epic/12 text-rarity-epic', unread: 'bg-rarity-epic' },
+  DEFAULT: { item: NOTIF_ITEM, icon: 'border-border bg-surface-alt text-fg-muted', unread: 'bg-accent' },
 }
 
 function NotifItem({ notif, onClick }) {
