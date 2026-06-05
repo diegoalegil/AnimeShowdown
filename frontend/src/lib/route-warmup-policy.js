@@ -29,8 +29,13 @@ export function canWarmupRoutes({
   deviceMemory = globalThis.navigator?.deviceMemory,
   hardwareConcurrency = globalThis.navigator?.hardwareConcurrency,
   visibilityState = globalThis.document?.visibilityState,
+  coarsePointer = globalThis.matchMedia?.('(pointer: coarse)')?.matches ?? false,
 } = {}) {
   if (visibilityState === 'hidden') return false
+  // Móvil/táctil (puntero grueso): prewarmear rutas en idle compite con el
+  // scroll y la descarga de imágenes del primer viewport. En móvil pesa más una
+  // primera pintura/scroll fluido que adelantar transiciones de ruta.
+  if (coarsePointer) return false
   if (connection?.saveData) return false
 
   const effectiveType = String(connection?.effectiveType ?? '').toLowerCase()
