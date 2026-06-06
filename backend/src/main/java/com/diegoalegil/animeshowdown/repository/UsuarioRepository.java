@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.diegoalegil.animeshowdown.model.MotivoMovimiento;
 import com.diegoalegil.animeshowdown.model.Usuario;
 
 import jakarta.persistence.LockModeType;
@@ -61,6 +62,23 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Query("SELECT u FROM Usuario u ORDER BY u.fechaRegistro ASC, u.id ASC")
     List<Usuario> findPrimerosPorFechaRegistro(Pageable pageable);
+
+    /**
+     * Usuarios que NO tienen un movimiento (motivo, referencia) — para el
+     * recordatorio del cofre diario: los que aún no han reclamado el cofre de
+     * hoy (motivo COFRE_DIARIO, referencia "cofre:&lt;fecha&gt;"). Acotado por
+     * Pageable para topar el fan-out.
+     */
+    @Query("""
+            SELECT u FROM Usuario u
+            WHERE NOT EXISTS (
+                SELECT 1 FROM MonederoMovimiento m
+                WHERE m.usuario = u AND m.motivo = :motivo AND m.referencia = :referencia
+            )
+            ORDER BY u.id ASC
+            """)
+    List<Usuario> findSinMovimiento(@Param("motivo") MotivoMovimiento motivo,
+            @Param("referencia") String referencia, Pageable pageable);
 
     @Query("""
             SELECT COUNT(u)
