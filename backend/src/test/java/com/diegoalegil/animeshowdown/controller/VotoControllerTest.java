@@ -93,6 +93,13 @@ class VotoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[?(@.username == 'rankuser_" + suffix + "')]").exists());
+
+        // ELO canónico: mapa slug→elo de todo el catálogo. 'a' tiene votos, así
+        // que su elo (semilla 1500 sin AniList + ajuste por votos) es >= 1500.
+        mvc.perform(get("/api/votos/ranking/elo-canonico"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$['ranking_a_" + suffix + "']")
+                        .value(org.hamcrest.Matchers.greaterThanOrEqualTo(1500)));
     }
 
     /**

@@ -18,7 +18,7 @@ function EloExplainer() {
       icon: TrendingUp,
       titulo: 'La tabla se mueve con votos reales',
       texto:
-        'Los tabs históricos y mensuales salen de actividad pública. El ELO base del catálogo sirve como estimación inicial y contexto.',
+        'Los tabs históricos y mensuales salen de actividad de votos en vivo. El ELO arranca de la popularidad del catálogo y los votos lo ajustan.',
     },
     {
       icon: Medal,

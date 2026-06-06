@@ -2,6 +2,7 @@ package com.diegoalegil.animeshowdown.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +51,18 @@ public class VotoController {
     @Cacheable(value = "votos-ranking")
     public List<RankingItem> obtenerRanking() {
         return metrics.recordRanking(() -> rankingMaterializadoService.rankingAllTime(FULL_RANKING_LIMIT));
+    }
+
+    /**
+     * ELO canónico por slug de TODO el catálogo (semilla por popularidad +15%
+     * femenino + ajuste por votos). Lo consume la pestaña ELO de /ranking para
+     * mostrar el ELO real en vez del estimado sintético del cliente. Público y
+     * cacheado (mismo TTL que el ranking).
+     */
+    @GetMapping("/ranking/elo-canonico")
+    @Cacheable(value = "votos-ranking", key = "'elo-canonico'")
+    public Map<String, Integer> eloCanonico() {
+        return rankingMaterializadoService.eloCanonicoPorSlug();
     }
 
     /**

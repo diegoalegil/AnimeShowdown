@@ -18,8 +18,8 @@ export function RankRowElo({
   imagenColorDominante,
 }) {
   if (!slug) return null
-  // Solo ELO base (estimado). Las W/L sintéticas no se muestran: el "X% WR"
-  // que salía aquí no venía de votos reales y leía como dato competitivo.
+  // ELO canónico real (semilla por popularidad +15% femenino + ajuste por votos),
+  // calculado en el backend. Las W/L sintéticas no se muestran.
   const esTop10 = rank <= 10
   const rowTone = esTop10
     ? 'border-medal-gold/30 bg-gradient-to-r from-medal-gold/5 to-surface'
@@ -31,8 +31,8 @@ export function RankRowElo({
       >
         <Link
           to={`/personajes/${slug}`}
-          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO base ${elo}`}
-          title={`${nombre} de ${anime} · ELO base ${elo}`}
+          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}`}
+          title={`${nombre} de ${anime} · ELO ${elo}`}
           className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
         >
           <RankBadge rank={rank} />
@@ -68,14 +68,13 @@ export function RankRowElo({
           </div>
           <div
             className="text-right"
-            title="ELO base estimado por popularidad. El ranking real por votos está en las pestañas Histórico y Este mes."
+            title="ELO: semilla por popularidad + ajuste por tus votos (se recalcula cada pocos minutos)."
           >
             <p className="font-mono text-base font-bold text-gold">
               {elo}
-              <span className="ml-0.5 text-[10px] font-bold text-gold/80">·b</span>
             </p>
             <p className="text-[10px] text-fg-muted">
-              ELO base
+              ELO
             </p>
           </div>
         </Link>

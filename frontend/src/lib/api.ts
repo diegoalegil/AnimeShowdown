@@ -862,6 +862,10 @@ export const endpoints = {
       auth: false,
     })
   },
+  // ELO canónico por slug de todo el catálogo (semilla popularidad +15% + votos).
+  // Lo usa la pestaña ELO de /ranking para el ELO real en vez del sintético.
+  eloCanonico: () =>
+    api.get('/api/votos/ranking/elo-canonico', { auth: false }),
   animesConVotos: () =>
     api.get('/api/votos/ranking/animes-disponibles', { auth: false }),
   // Categorías de intención (feature #15) con al menos un voto, para no pintar
