@@ -18,6 +18,7 @@ import com.diegoalegil.animeshowdown.repository.TorneoRepository;
 import com.diegoalegil.animeshowdown.repository.VotoRepository;
 import com.diegoalegil.animeshowdown.service.BracketService;
 import com.diegoalegil.animeshowdown.service.CartaCatalogoService;
+import com.diegoalegil.animeshowdown.service.EloSemillaInitializeService;
 import com.diegoalegil.animeshowdown.service.ReferralService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -51,6 +52,7 @@ class DataSeederFantasyCleanupUnitTest {
                 mock(BracketService.class),
                 mock(ReferralService.class),
                 mock(CartaCatalogoService.class),
+                mock(EloSemillaInitializeService.class),
                 mock(ObjectMapper.class));
 
         seeder.borrarPersonajeConCascadaPublic(personaje);
