@@ -54,6 +54,7 @@ const routePreloaders = {
   feed: () => import('./pages/FeedPage'),
   cartas: () => import('./pages/CartasPage'),
   tierLists: () => import('./pages/TierListsPage'),
+  wrapped: () => import('./pages/WrappedPage'),
 }
 
 const InicioPage = lazyRoute(routePreloaders.inicio)
@@ -81,6 +82,7 @@ const ForgotPasswordPage = lazyRoute(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazyRoute(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
 const PerfilPage = lazyRoute(routePreloaders.perfil)
+const WrappedPage = lazyRoute(routePreloaders.wrapped)
 const FeedPage = lazyRoute(routePreloaders.feed)
 const CartasPage = lazyRoute(routePreloaders.cartas)
 const EspecialesPage = lazyRoute(() => import('./pages/EspecialesPage'))
@@ -442,6 +444,7 @@ function App() {
               <Route path="/admin/comentarios" element={catalogAware(<AdminPage />)} />
               <Route path="/admin/assets" element={catalogAware(<AdminPage />)} />
               <Route path="/perfil" element={catalogAware(<PerfilPage />)} />
+              <Route path="/wrapped" element={<WrappedPage />} />
               <Route path="/feed" element={catalogAware(<FeedPage />)} />
               {/* /cartas no usa el catálogo global → ruta plana (sin gate) +
                   catalog-free en la policy, para no cebar ~170KB al aterrizar. */}

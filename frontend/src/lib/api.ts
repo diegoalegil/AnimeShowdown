@@ -682,6 +682,8 @@ export const endpoints = {
     return api.get(`/api/me/cartas/pagina?${params.toString()}`)
   },
   miMonedero: () => api.get('/api/me/monedero'),
+  // Wrapped: resumen de actividad del usuario autenticado (privado).
+  miWrapped: () => api.get('/api/wrapped/me'),
   // Marcos de avatar (cosmético coin-sink). Catálogo + estado (saldo, poseído,
   // equipado); comprar (débito) y equipar/desequipar devuelven el mismo estado.
   misMarcos: () => api.get('/api/me/marcos'),

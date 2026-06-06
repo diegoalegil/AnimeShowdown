@@ -75,6 +75,7 @@
 /admin/torneos            / 200
 /admin/assets             / 200
 /perfil                   / 200
+/wrapped                  / 200
 /u/:username/logros       / 200
 /u/:username              / 200
 /verify                   / 200

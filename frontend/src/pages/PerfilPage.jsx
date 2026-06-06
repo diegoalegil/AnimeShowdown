@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -196,6 +196,18 @@ function PerfilPage() {
             <>
               <CardDatosCuenta user={user} />
               <CardDanKyu />
+              <Link
+                to="/wrapped"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-gold/40 bg-gold/5 p-5 transition-colors hover:border-gold/70"
+              >
+                <div>
+                  <p className="text-sm font-bold text-fg-strong">✨ Tu Wrapped</p>
+                  <p className="text-[12px] text-fg-muted">
+                    Descubre el resumen de tu actividad y compártelo.
+                  </p>
+                </div>
+                <span className="shrink-0 text-[13px] font-semibold text-gold">Ver →</span>
+              </Link>
               <CardReferral />
               <CardActividadReciente />
             </>
