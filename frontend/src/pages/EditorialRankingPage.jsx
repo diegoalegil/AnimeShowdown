@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { useSeo } from '../hooks/useSeo'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { getStatsPersonaje } from '../lib/personajes-core'
+import { useEloCanonico } from '../hooks/useRanking'
 import {
   CATEGORIAS,
   getPersonajesPorCategoria,
@@ -36,7 +37,7 @@ import { shareOrCopy } from '../lib/share'
 import { recordDailyRankingView, recordDailyShare } from '../lib/dailyProgress'
 import NotFoundPage from './NotFoundPage'
 
-function buildRows(page, catalogoPersonajes) {
+function buildRows(page, catalogoPersonajes, eloDe) {
   const base =
     page.source.kind === 'category'
       ? getPersonajesPorCategoria(page.source.id, catalogoPersonajes)
@@ -45,6 +46,9 @@ function buildRows(page, catalogoPersonajes) {
     .map((personaje) => ({
       ...personaje,
       ...getStatsPersonaje(personaje.slug),
+      // ELO canónico real (semilla por popularidad + votos) si está cargado;
+      // cae al sintético mientras llega el mapa del backend.
+      elo: eloDe(personaje.slug),
       scoreLabel: page.scoreLabel,
     }))
     .sort((a, b) => b.elo - a.elo)
@@ -54,14 +58,18 @@ function EditorialRankingPage() {
   const { slug } = useParams()
   const page = getEditorialRankingPage(slug)
   const { personajes: catalogoPersonajes, isLoading } = usePersonajesCatalogo()
+  const { data: eloCanonico } = useEloCanonico()
 
   useEffect(() => {
     recordDailyRankingView()
   }, [])
 
   const rows = useMemo(
-    () => (page ? buildRows(page, catalogoPersonajes) : []),
-    [catalogoPersonajes, page],
+    () =>
+      page
+        ? buildRows(page, catalogoPersonajes, (slug) => eloCanonico?.[slug] ?? getStatsPersonaje(slug).elo)
+        : [],
+    [catalogoPersonajes, page, eloCanonico],
   )
   const top3 = rows.slice(0, 3)
   const category = page?.source.kind === 'category'
@@ -69,7 +77,7 @@ function EditorialRankingPage() {
     : null
   const top5Text = rows
     .slice(0, 5)
-    .map((personaje, index) => `${index + 1}. ${personaje.nombre} (${personaje.anime}) · ${personaje.elo} ELO base`)
+    .map((personaje, index) => `${index + 1}. ${personaje.nombre} (${personaje.anime}) · ${personaje.elo} ELO`)
     .join('\n')
 
   useSeo(
@@ -120,7 +128,7 @@ function EditorialRankingPage() {
     {
       pregunta: `¿Cómo se ordena ${page.h1.toLowerCase()}?`,
       respuesta:
-        'La página usa ELO base y etiquetas curadas del catálogo para dar una lectura inicial. Los votos comunitarios viven en el ranking competitivo general.',
+        'La página ordena por ELO (popularidad del catálogo ajustada por los votos) y etiquetas curadas. El ranking por volumen de votos en vivo vive en el ranking general.',
     },
     {
       pregunta: '¿Es un ranking oficial de anime?',
@@ -156,7 +164,7 @@ function EditorialRankingPage() {
             path: `/personajes/${personaje.slug}`,
             image: personaje.imagenUrl ?? personaje.imagen,
             score: personaje.elo,
-            scoreLabel: 'ELO base',
+            scoreLabel: 'ELO',
           })),
         })}
       />
@@ -228,7 +236,7 @@ function EditorialRankingPage() {
           <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
             <StatTile label="Top actual" value={rows[0]?.nombre ?? '—'} />
             <StatTile label="Filtro" value={category?.label ?? 'Global'} />
-            <StatTile label="Métrica" value="ELO base" />
+            <StatTile label="Métrica" value="ELO" />
             <StatTile label="Landing" value="Manual" />
           </div>
         </CinematicHero>
@@ -240,7 +248,7 @@ function EditorialRankingPage() {
           <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
             <p className="text-sm leading-7 text-fg-muted">
               {page.intro} La lista se construye con personajes reales del
-              catálogo, etiquetas curadas y ELO base. Para evitar contenido
+              catálogo, etiquetas curadas y su ELO. Para evitar contenido
               fino, cada landing existe solo si responde a una intención clara.
             </p>
             <div className="rounded-2xl border border-border bg-bg/45 p-4 text-[13px] leading-6 text-fg-muted">
@@ -374,7 +382,7 @@ function PodiumCard({ personaje, rank, featured = false, className = '' }) {
       </h2>
       <p className="line-clamp-1 text-[12px] text-fg-muted">{personaje.anime}</p>
       <p className="mt-1 font-mono text-sm font-black">
-        {personaje.elo} <span className="text-[10px]">ELO base</span>
+        {personaje.elo} <span className="text-[10px]">ELO</span>
       </p>
     </Link>
   )
@@ -408,7 +416,7 @@ function EditorialRankingRow({ rank, personaje }) {
         <div className="text-right">
           <p className="font-mono text-base font-black text-gold">{personaje.elo}</p>
           <p className="text-[10px] text-fg-muted">
-            ELO base
+            ELO
           </p>
         </div>
       </Link>
