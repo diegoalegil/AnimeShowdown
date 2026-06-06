@@ -11,6 +11,7 @@ import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
 import OnboardingGate from './components/onboarding/OnboardingGate'
+import CookieConsent from './components/CookieConsent'
 import SakuraPetals from './components/SakuraPetals'
 import KonamiCode from './components/KonamiCode'
 import MobileBottomNav from './components/MobileBottomNav'
@@ -354,6 +355,7 @@ function App() {
       {/* V-8: tras el primer login OAuth (username autogenerado) abre el
           modal de onboarding una vez. Internamente skipea si no hace falta. */}
       <OnboardingGate />
+      <CookieConsent />
       <EmailVerifyBanner />
       <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
         <div className="flex flex-1 flex-col">
