@@ -443,7 +443,9 @@ function App() {
               <Route path="/admin/assets" element={catalogAware(<AdminPage />)} />
               <Route path="/perfil" element={catalogAware(<PerfilPage />)} />
               <Route path="/feed" element={catalogAware(<FeedPage />)} />
-              <Route path="/cartas" element={catalogAware(<CartasPage />)} />
+              {/* /cartas no usa el catálogo global → ruta plana (sin gate) +
+                  catalog-free en la policy, para no cebar ~170KB al aterrizar. */}
+              <Route path="/cartas" element={<CartasPage />} />
               <Route path="/especiales" element={catalogAware(<EspecialesPage />)} />
               <Route path="/tier-lists" element={catalogAware(<TierListsPage />)} />
               <Route path="/tier-lists/:slug" element={catalogAware(<TierListsPage />)} />
