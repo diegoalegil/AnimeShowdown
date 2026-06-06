@@ -1,0 +1,24 @@
+name: Smoke producción
+
+# Verifica la capa CDN/Cloudflare que el build no ve: rutas públicas que deben
+# responder 200 (no 404 por el allowlist de _redirects) y que los sourcemaps NO
+# se sirven. Por schedule (cada 6h) + manual. Si falla, GitHub avisa al owner.
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Smoke de rutas públicas + sourcemaps
+        run: node scripts/smoke-prod.mjs
