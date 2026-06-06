@@ -11,6 +11,8 @@
 // consumidores (ErrorBoundary, SoundContext, vitals) no cambian — siguen
 // importando { Sentry } y llamando Sentry.captureException / setMeasurement.
 
+import { hasAnalyticsConsent } from './consent.js'
+
 const DSN = import.meta.env.VITE_SENTRY_DSN
 
 let sdk = null
@@ -18,25 +20,28 @@ let cargando = null
 
 async function cargarYConfigurar() {
   const mod = await import('@sentry/react')
-  mod.init({
-    dsn: DSN,
-    environment: import.meta.env.MODE,
-    // GDPR-friendly: NO enviamos IP del cliente ni cookies por defecto.
-    // Sentry recomienda true en su quickstart pero eso captura PII sin
-    // consentimiento explícito del usuario. Si en el futuro añadimos un
-    // banner de cookies que cubra "telemetría de errores", se puede subir
-    // a true. Servidor en .de.sentry.io = EU residency, otra capa GDPR.
-    sendDefaultPii: false,
-    integrations: [
-      mod.browserTracingIntegration(),
+  // Session Replay graba la sesión del usuario → telemetría NO esencial: solo
+  // se activa con consentimiento explícito (banner RGPD). El registro de errores
+  // y el tracing van siempre (interés legítimo, sin PII). Sin consentimiento, el
+  // replay no se añade y nunca se graba sesión.
+  const integrations = [mod.browserTracingIntegration()]
+  if (hasAnalyticsConsent()) {
+    integrations.push(
       mod.replayIntegration({
-        // Solo grabar replays cuando hay error — ahorra cuota y privacidad.
         // maskAllText: true para no leakear nombres de usuario, emails u
         // otros datos en los replays grabados.
         maskAllText: true,
         blockAllMedia: false,
       }),
-    ],
+    )
+  }
+  mod.init({
+    dsn: DSN,
+    environment: import.meta.env.MODE,
+    // GDPR-friendly: NO enviamos IP del cliente ni cookies por defecto.
+    // Servidor en .de.sentry.io = EU residency, otra capa GDPR.
+    sendDefaultPii: false,
+    integrations,
     tracesSampleRate: 0.1,
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0,
