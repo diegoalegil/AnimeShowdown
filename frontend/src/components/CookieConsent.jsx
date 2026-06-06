@@ -50,14 +50,14 @@ function CookieConsent() {
           <button
             type="button"
             onClick={() => elegir(CONSENT_DENIED)}
-            className="rounded-lg border border-border px-3 py-2 text-[12px] font-bold text-fg-muted transition-colors hover:text-fg-strong"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-2 text-[12px] font-bold text-fg-muted transition-colors hover:text-fg-strong"
           >
             Solo esenciales
           </button>
           <button
             type="button"
             onClick={() => elegir(CONSENT_GRANTED)}
-            className="rounded-lg bg-accent px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-accent-hover"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-accent-hover"
           >
             Aceptar
           </button>
