@@ -84,5 +84,7 @@ public enum AuditEvento {
     /** Recompensa de copa de evento entregada a un usuario que predijo en ella. */
     EVENTO_RECOMPENSA_ENTREGADA,
     /** El usuario abrió un crédito de sobre gratis (recompensa de evento). */
-    SOBRE_GRATIS_ABIERTO
+    SOBRE_GRATIS_ABIERTO,
+    /** El usuario compró un marco de avatar (cosmético coin-sink). */
+    MARCO_COMPRADO
 }
