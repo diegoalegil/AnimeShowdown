@@ -4,11 +4,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.diegoalegil.animeshowdown.dto.DueloLiveRoundDto;
 import com.diegoalegil.animeshowdown.dto.DueloLiveStateDto;
 import com.diegoalegil.animeshowdown.dto.DueloSugeridoDto;
 import com.diegoalegil.animeshowdown.event.DueloLiveFinalizadoEvent;
@@ -59,6 +55,8 @@ public class DueloLiveService {
     private final SimpMessagingTemplate messaging;
     private final BadgeService badgeService;
     private final ApplicationEventPublisher eventPublisher;
+    private final DueloLiveNotifier notifier;
+    private final DueloLiveBotPolicy botPolicy;
     private final Clock clock;
     private final boolean scheduledMaintenanceEnabled;
     private final int fallbackAfterSeconds;
@@ -74,6 +72,8 @@ public class DueloLiveService {
             SimpMessagingTemplate messaging,
             BadgeService badgeService,
             ApplicationEventPublisher eventPublisher,
+            DueloLiveNotifier notifier,
+            DueloLiveBotPolicy botPolicy,
             Clock clock,
             @Value("${app.duelo-live.fallback-after-seconds:5}")
             int fallbackAfterSeconds,
@@ -90,6 +90,8 @@ public class DueloLiveService {
         this.messaging = messaging;
         this.badgeService = badgeService;
         this.eventPublisher = eventPublisher;
+        this.notifier = notifier;
+        this.botPolicy = botPolicy;
         this.clock = clock;
         this.fallbackAfterSeconds = Math.max(3, fallbackAfterSeconds);
         this.scheduledMaintenanceEnabled = scheduledMaintenanceEnabled;
@@ -100,7 +102,7 @@ public class DueloLiveService {
         Usuario jugador = usuarioRepository.findById(usuario.getId()).orElseThrow();
         Optional<DueloLive> activo = dueloActivo(jugador);
         if (activo.isPresent()) {
-            return estadoPara(activo.get(), jugador, "STATE_RESTORED", null);
+            return notifier.estadoPara(activo.get(), jugador, "STATE_RESTORED", null);
         }
         long completadosHora = dueloRepository.countCompletadosDesde(jugador, now().minusHours(1));
         if (completadosHora >= COMPLETED_PER_HOUR_LIMIT) {
@@ -128,14 +130,14 @@ public class DueloLiveService {
             prepararMatch(duelo, false);
             dueloRepository.save(duelo);
             metrics.dueloLiveWaitingSeconds(Duration.between(duelo.getCreadoEn(), now()).toSeconds());
-            emitirEstado(duelo, "MATCH_FOUND", "Rival encontrado");
-            return estadoPara(duelo, jugador, "MATCH_FOUND", "Rival encontrado");
+            notifier.emitirEstado(duelo, "MATCH_FOUND", "Rival encontrado");
+            return notifier.estadoPara(duelo, jugador, "MATCH_FOUND", "Rival encontrado");
         }
 
         DueloLive duelo = dueloRepository.save(new DueloLive(jugador, ip, now()));
         metrics.dueloLiveActiveMatches((int) dueloRepository.countByEstadoIn(List.of(
                 DueloLiveEstado.WAITING, DueloLiveEstado.MATCHED, DueloLiveEstado.IN_PROGRESS)));
-        DueloLiveStateDto estado = estadoPara(duelo, jugador, "WAITING_OPPONENT", "Buscando rival");
+        DueloLiveStateDto estado = notifier.estadoPara(duelo, jugador, "WAITING_OPPONENT", "Buscando rival");
         messaging.convertAndSendToUser(jugador.getUsername(), "/queue/duelo", estado);
         return estado;
     }
@@ -147,13 +149,13 @@ public class DueloLiveService {
         if (!duelo.participa(usuario)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No participas en este duelo");
         }
-        return estadoPara(duelo, usuario, "STATE", null);
+        return notifier.estadoPara(duelo, usuario, "STATE", null);
     }
 
     @Transactional(readOnly = true)
     public DueloLiveStateDto miDueloActivo(Usuario usuario) {
         return dueloActivo(usuario)
-                .map(d -> estadoPara(d, usuario, "STATE_RESTORED", null))
+                .map(d -> notifier.estadoPara(d, usuario, "STATE_RESTORED", null))
                 .orElse(null);
     }
 
@@ -184,31 +186,31 @@ public class DueloLiveService {
         }
         if (duelo.esJugador1(usuario)) {
             if (ronda.getVotoJugador1() != null) {
-                return estadoPara(duelo, usuario, "VOTE_RECEIVED", "Tu voto ya estaba registrado");
+                return notifier.estadoPara(duelo, usuario, "VOTE_RECEIVED", "Tu voto ya estaba registrado");
             }
             ronda.setVotoJugador1(choice);
             ronda.setVotoJugador1En(now);
         } else {
             if (ronda.getVotoJugador2() != null) {
-                return estadoPara(duelo, usuario, "VOTE_RECEIVED", "Tu voto ya estaba registrado");
+                return notifier.estadoPara(duelo, usuario, "VOTE_RECEIVED", "Tu voto ya estaba registrado");
             }
             ronda.setVotoJugador2(choice);
             ronda.setVotoJugador2En(now);
         }
         if (duelo.isJugador2Bot() && ronda.getVotoJugador2() == null) {
-            ronda.setVotoJugador2(votoBot(ronda));
+            ronda.setVotoJugador2(botPolicy.votoBot(ronda));
             ronda.setVotoJugador2En(now);
         }
         rondaRepository.save(ronda);
         messaging.convertAndSendToUser(usuario.getUsername(), "/queue/duelo",
-                estadoPara(duelo, usuario, "VOTE_RECEIVED", "Voto registrado"));
+                notifier.estadoPara(duelo, usuario, "VOTE_RECEIVED", "Voto registrado"));
 
         if (ronda.ambosVotaron(duelo.isJugador2Bot())) {
             resolverRonda(duelo, ronda, now);
         } else {
-            emitirEstado(duelo, "VOTE_RECEIVED", "Voto recibido");
+            notifier.emitirEstado(duelo, "VOTE_RECEIVED", "Voto recibido");
         }
-        return estadoPara(duelo, usuario, "VOTE_RECEIVED", "Voto registrado");
+        return notifier.estadoPara(duelo, usuario, "VOTE_RECEIVED", "Voto registrado");
     }
 
     @Transactional
@@ -223,13 +225,13 @@ public class DueloLiveService {
             duelo.setAbandonador(usuario);
             duelo.setAbandonedEn(now());
             dueloRepository.save(duelo);
-            emitirEstado(duelo, "MATCH_END", "Cola cancelada");
-            return estadoPara(duelo, usuario, "MATCH_END", "Cola cancelada");
+            notifier.emitirEstado(duelo, "MATCH_END", "Cola cancelada");
+            return notifier.estadoPara(duelo, usuario, "MATCH_END", "Cola cancelada");
         }
         if (duelo.getEstado() == DueloLiveEstado.IN_PROGRESS || duelo.getEstado() == DueloLiveEstado.MATCHED) {
             finalizarWalkover(duelo, usuario, "leave");
         }
-        return estadoPara(duelo, usuario, "MATCH_END", "Duelo abandonado");
+        return notifier.estadoPara(duelo, usuario, "MATCH_END", "Duelo abandonado");
     }
 
     @Scheduled(fixedRate = 3_000)
@@ -251,7 +253,7 @@ public class DueloLiveService {
             if (duelo.getEstado() != DueloLiveEstado.WAITING) continue;
             prepararMatch(duelo, true);
             dueloRepository.save(duelo);
-            emitirEstado(duelo, "MATCH_FOUND", "Rival encontrado");
+            notifier.emitirEstado(duelo, "MATCH_FOUND", "Rival encontrado");
         }
         for (DueloLiveRonda ronda : rondaRepository.findExpiradas(now.minusSeconds(WALKOVER_GRACE_SECONDS))) {
             if (ronda.getDuelo().getEstado() == DueloLiveEstado.IN_PROGRESS) {
@@ -301,8 +303,8 @@ public class DueloLiveService {
 
     private void resolverRonda(DueloLive duelo, DueloLiveRonda ronda, LocalDateTime now) {
         long started = System.nanoTime();
-        VoteScores scores = scoresComunidad(ronda);
-        DueloLiveChoice correcta = decisionComunidad(ronda, scores);
+        var scores = botPolicy.scoresComunidad(ronda);
+        DueloLiveChoice correcta = botPolicy.decisionComunidad(ronda, scores);
         ronda.setEleccionCorrecta(correcta);
         ronda.setCerradaEn(now);
         if (correcta == DueloLiveChoice.EMPATE) {
@@ -311,7 +313,7 @@ public class DueloLiveService {
             rondaRepository.save(ronda);
             metrics.dueloLiveRoundDecisionMs(ronda.getDecisionMs());
             iniciarNuevaRonda(duelo, now.plusSeconds(1));
-            emitirEstado(duelo, "ROUND_END", "Ronda nula: la comunidad está empatada");
+            notifier.emitirEstado(duelo, "ROUND_END", "Ronda nula: la comunidad está empatada");
             return;
         }
         boolean j1 = correcta == ronda.getVotoJugador1();
@@ -329,11 +331,11 @@ public class DueloLiveService {
 
         if (debeFinalizar(duelo)) {
             finalizarPorScore(duelo);
-            emitirEstado(duelo, "MATCH_END", "Duelo terminado");
+            notifier.emitirEstado(duelo, "MATCH_END", "Duelo terminado");
         } else {
             dueloRepository.save(duelo);
             iniciarNuevaRonda(duelo, now.plusSeconds(1));
-            emitirEstado(duelo, "ROUND_END", "Ronda resuelta");
+            notifier.emitirEstado(duelo, "ROUND_END", "Ronda resuelta");
         }
     }
 
@@ -375,14 +377,14 @@ public class DueloLiveService {
             abandonador = duelo.getJugador2();
         } else {
             resolverRonda(duelo, ronda, now);
-            return estadoPara(duelo, duelo.getJugador1(), "ROUND_END", "Ronda resuelta");
+            return notifier.estadoPara(duelo, duelo.getJugador1(), "ROUND_END", "Ronda resuelta");
         }
         // Recargar duelo con lock antes de finalizar para evitar carrera
         // entre scheduler y voto cerca de la ventana de cierra.
         DueloLive locked = dueloRepository.findByIdForFinalize(duelo.getId())
                 .orElseThrow(() -> new IllegalStateException("Duelo no encontrado: " + duelo.getId()));
         finalizarWalkover(locked, abandonador, reason);
-        return estadoPara(locked, duelo.getJugador1(), "OPPONENT_ABANDONED", "Walkover por inactividad");
+        return notifier.estadoPara(locked, duelo.getJugador1(), "OPPONENT_ABANDONED", "Walkover por inactividad");
     }
 
     private void finalizarWalkover(DueloLive duelo, Usuario abandonador, String reason) {
@@ -392,7 +394,7 @@ public class DueloLiveService {
         duelo.setGanador(abandonadorEsJ1 ? duelo.getJugador2() : duelo.getJugador1());
         aplicarEloYFinalizar(duelo, abandonadorEsJ1 ? 0.0 : 1.0, true);
         metrics.dueloLiveCompleted("walkover");
-        emitirEstado(duelo, "OPPONENT_ABANDONED", "Walkover: " + reason);
+        notifier.emitirEstado(duelo, "OPPONENT_ABANDONED", "Walkover: " + reason);
     }
 
     private void aplicarEloYFinalizar(DueloLive duelo, double scoreJugador1, boolean walkover) {
@@ -438,63 +440,6 @@ public class DueloLiveService {
                 walkover);
     }
 
-    private VoteScores scoresComunidad(DueloLiveRonda ronda) {
-        Map<Long, Double> scores = votosPorPersonajeIds(List.of(
-                ronda.getPersonajeA().getId(),
-                ronda.getPersonajeB().getId()));
-        return new VoteScores(
-                scores.getOrDefault(ronda.getPersonajeA().getId(), 0.0),
-                scores.getOrDefault(ronda.getPersonajeB().getId(), 0.0));
-    }
-
-    private Map<Long, Double> votosPorPersonajeIds(Collection<Long> personajeIds) {
-        return votoRepository.countByPersonajeIds(personajeIds).stream()
-                .collect(Collectors.toMap(
-                        row -> ((Number) row[0]).longValue(),
-                        row -> ((Number) row[1]).doubleValue()));
-    }
-
-    private DueloLiveChoice decisionComunidad(DueloLiveRonda ronda, VoteScores scores) {
-        double a = scores.a();
-        double b = scores.b();
-        if (Double.compare(a, 0.0) == 0 && Double.compare(b, 0.0) == 0) {
-            return ronda.getPersonajeA().getId() <= ronda.getPersonajeB().getId()
-                    ? DueloLiveChoice.A
-                    : DueloLiveChoice.B;
-        }
-        if (Double.compare(a, b) == 0) return DueloLiveChoice.EMPATE;
-        return a > b ? DueloLiveChoice.A : DueloLiveChoice.B;
-    }
-
-    private DueloLiveChoice votoBot(DueloLiveRonda ronda) {
-        VoteScores scores = scoresComunidad(ronda);
-        DueloLiveChoice correcta = decisionComunidad(ronda, scores);
-        if (correcta == DueloLiveChoice.EMPATE) {
-            return scores.a() >= scores.b() ? DueloLiveChoice.A : DueloLiveChoice.B;
-        }
-        if (botFallaRonda(ronda)) {
-            return correcta == DueloLiveChoice.A ? DueloLiveChoice.B : DueloLiveChoice.A;
-        }
-        return correcta;
-    }
-
-    private boolean botFallaRonda(DueloLiveRonda ronda) {
-        long seed = 17L;
-        seed = seed * 31 + nullSafeId(ronda.getId());
-        seed = seed * 31 + nullSafeId(ronda.getDuelo() == null ? null : ronda.getDuelo().getId());
-        seed = seed * 31 + ronda.getNumero();
-        seed = seed * 31 + nullSafeId(ronda.getPersonajeA() == null ? null : ronda.getPersonajeA().getId());
-        seed = seed * 31 + nullSafeId(ronda.getPersonajeB() == null ? null : ronda.getPersonajeB().getId());
-        // El bot falla ~1 de cada 2 rondas (antes 1 de cada 4 → acertaba 75% y
-        // era casi imposible ganarle, reportado en auditoría). Sigue siendo
-        // determinista por ronda (mismo seed → mismo resultado).
-        return Math.floorMod(seed, 2) == 0;
-    }
-
-    private static long nullSafeId(Long id) {
-        return id == null ? 0L : id;
-    }
-
     private void marcarSeen(DueloLive duelo, Usuario usuario) {
         if (duelo.esJugador1(usuario)) {
             duelo.setLastSeenJugador1(now());
@@ -511,43 +456,6 @@ public class DueloLiveService {
                 .findFirst();
     }
 
-    private DueloLiveStateDto estadoPara(DueloLive duelo, Usuario usuario, String event, String message) {
-        boolean soyJ1 = duelo.esJugador1(usuario);
-        DueloLiveRonda activa = rondaRepository
-                .findTopByDueloAndEstadoOrderByNumeroDesc(duelo, DueloLiveRondaEstado.IN_PROGRESS)
-                .orElseGet(() -> rondaRepository.findByDueloIdDetalleDesc(duelo.getId()).stream().findFirst().orElse(null));
-        int queuePosition = 0;
-        if (duelo.getEstado() == DueloLiveEstado.WAITING) {
-            List<DueloLive> esperando = dueloRepository.findWaitingOrderByCreadoEn();
-            for (int i = 0; i < esperando.size(); i++) {
-                if (esperando.get(i).getId().equals(duelo.getId())) {
-                    queuePosition = i + 1;
-                    break;
-                }
-            }
-        }
-        return DueloLiveStateDto.from(
-                duelo,
-                DueloLiveRoundDto.from(activa, now(), soyJ1),
-                now(),
-                soyJ1,
-                queuePosition,
-                fallbackAfterSeconds,
-                event,
-                message);
-    }
-
-    private void emitirEstado(DueloLive duelo, String event, String message) {
-        if (duelo.getJugador1() != null) {
-            messaging.convertAndSendToUser(duelo.getJugador1().getUsername(), "/queue/duelo",
-                    estadoPara(duelo, duelo.getJugador1(), event, message));
-        }
-        if (duelo.getJugador2() != null) {
-            messaging.convertAndSendToUser(duelo.getJugador2().getUsername(), "/queue/duelo",
-                    estadoPara(duelo, duelo.getJugador2(), event, message));
-        }
-    }
-
     private LocalDateTime now() {
         return LocalDateTime.now(clock);
     }
@@ -556,5 +464,4 @@ public class DueloLiveService {
         return Math.max(0, (System.nanoTime() - startedNano) / 1_000_000);
     }
 
-    private record VoteScores(double a, double b) {}
 }
