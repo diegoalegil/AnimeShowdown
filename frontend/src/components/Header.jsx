@@ -22,13 +22,13 @@ import { OPEN_COMMAND_PALETTE_EVENT } from './CommandPaletteLazyMount'
 // principales quepan en una fila desde lg sin saturar el header.
 const primaryNavLinks = [
   { to: '/personajes', i18nKey: 'personajes' },
-  { to: '/animes', i18nKey: 'animes' },
+  { to: '/cartas', i18nKey: 'cartas' },
   { to: '/torneos', i18nKey: 'torneos' },
   { to: '/games', i18nKey: 'games' },
   { to: '/ranking', i18nKey: 'ranking' },
 ]
 const moreNavLinks = [
-  { to: '/cartas', i18nKey: 'cartas' },
+  { to: '/animes', i18nKey: 'animes' },
   { to: '/especiales', i18nKey: 'especiales' },
   { to: '/tier-lists', i18nKey: 'tierLists' },
   { to: '/fantasy', i18nKey: 'fantasy' },
