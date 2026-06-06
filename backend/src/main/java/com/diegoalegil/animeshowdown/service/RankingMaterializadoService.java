@@ -2,8 +2,11 @@ package com.diegoalegil.animeshowdown.service;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,11 +17,40 @@ import com.diegoalegil.animeshowdown.dto.RankingItem;
 public class RankingMaterializadoService {
 
     private static final int LIMITE_MAXIMO = 5000;
+    private static final int ELO_SEMILLA_FALLBACK = 1500;
 
     private final JdbcTemplate jdbcTemplate;
+    private final double votoPeso;
 
-    public RankingMaterializadoService(JdbcTemplate jdbcTemplate) {
+    public RankingMaterializadoService(JdbcTemplate jdbcTemplate,
+            @Value("${app.ranking.voto-peso:1.0}") double votoPeso) {
         this.jdbcTemplate = jdbcTemplate;
+        this.votoPeso = votoPeso;
+    }
+
+    /**
+     * ELO canónico por slug para TODO el catálogo: la base del ranking nuevo.
+     * {@code elo = elo_semilla(popularidad + 15% femenino) + votoPeso·peso_votos}.
+     * Los votos AJUSTAN la posición desde la semilla (no la aplastan, con
+     * votoPeso bajo). Sin semilla → suelo 1500; sin votos → solo la semilla
+     * (la tabla no muere a 0 votos). LEFT JOIN para incluir a los no votados.
+     * Lo cachea el controller (TTL de votos-ranking).
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Integer> eloCanonicoPorSlug() {
+        Map<String, Integer> elos = new LinkedHashMap<>();
+        jdbcTemplate.query("""
+                SELECT p.slug AS slug,
+                       COALESCE(p.elo_semilla, ?) AS semilla,
+                       COALESCE(s.peso_votos, 0) AS peso
+                FROM personajes p
+                LEFT JOIN voto_personaje_stats s ON s.personaje_id = p.id
+                """, rs -> {
+            int semilla = rs.getInt("semilla");
+            double peso = rs.getDouble("peso");
+            elos.put(rs.getString("slug"), semilla + (int) Math.round(votoPeso * peso));
+        }, ELO_SEMILLA_FALLBACK);
+        return elos;
     }
 
     @Transactional(readOnly = true)
