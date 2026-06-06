@@ -174,6 +174,22 @@ public class Usuario {
     @Column(name = "sobre_bienvenida_reclamado_en")
     private java.time.LocalDateTime sobreBienvenidaReclamadoEn;
 
+    /**
+     * V72: marco de avatar equipado (cosmético coin-sink). NULL = ninguno. El
+     * catálogo de marcos vive en {@code MarcoCatalogo}; la posesión, en
+     * {@code usuario_marco}. Aquí solo se guarda el id del marco activo.
+     */
+    @Column(name = "marco_avatar", length = 64)
+    private String marcoAvatar;
+
+    public String getMarcoAvatar() {
+        return marcoAvatar;
+    }
+
+    public void setMarcoAvatar(String marcoAvatar) {
+        this.marcoAvatar = marcoAvatar;
+    }
+
     public java.time.LocalDateTime getSobreBienvenidaReclamadoEn() {
         return sobreBienvenidaReclamadoEn;
     }
