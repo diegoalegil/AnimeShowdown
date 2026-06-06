@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import './marcos.css'
+import { marcoClass } from '../lib/marcos'
 
 function hashStr(s) {
   let h = 0
@@ -24,15 +26,15 @@ function initials(label) {
   ).toUpperCase()
 }
 
-function Avatar({ user, size = 32, className = '' }) {
+function Avatar({ user, size = 32, className = '', marco }) {
   const src = user?.avatarUrl
   const [failedSrc, setFailedSrc] = useState(null)
   const label = user?.username || user?.nombre || user?.email
   const ini = initials(label)
   const bg = colorFromEmail(user?.email || user?.username || 'anon')
 
-  if (src && failedSrc !== src) {
-    return (
+  const cara =
+    src && failedSrc !== src ? (
       <img
         src={src}
         alt={label ? `Avatar de ${label}` : 'Avatar'}
@@ -42,24 +44,28 @@ function Avatar({ user, size = 32, className = '' }) {
         className={`shrink-0 rounded-full object-cover ${className}`}
         style={{ width: size, height: size }}
       />
+    ) : (
+      <span
+        role="img"
+        aria-label={label ? `Avatar de ${label}` : 'Avatar'}
+        className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold text-white ${className}`}
+        style={{
+          width: size,
+          height: size,
+          background: bg,
+          fontSize: Math.max(10, Math.round(size * 0.4)),
+        }}
+      >
+        {ini}
+      </span>
     )
-  }
 
-  return (
-    <span
-      role="img"
-      aria-label={label ? `Avatar de ${label}` : 'Avatar'}
-      className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold text-white ${className}`}
-      style={{
-        width: size,
-        height: size,
-        background: bg,
-        fontSize: Math.max(10, Math.round(size * 0.4)),
-      }}
-    >
-      {ini}
-    </span>
-  )
+  // Marco de avatar (cosmético): aro/aura alrededor. `marco` explícito (preview
+  // del picker) o el equipado del usuario. Si no hay marco válido, se devuelve
+  // el avatar tal cual (cero coste, mismo markup que antes).
+  const claseMarco = marcoClass(marco ?? user?.marcoAvatar)
+  if (!claseMarco) return cara
+  return <span className={`marco ${claseMarco}`}>{cara}</span>
 }
 
 export default Avatar

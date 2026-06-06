@@ -677,6 +677,13 @@ export const endpoints = {
     return api.get(`/api/me/cartas/pagina?${params.toString()}`)
   },
   miMonedero: () => api.get('/api/me/monedero'),
+  // Marcos de avatar (cosmético coin-sink). Catálogo + estado (saldo, poseído,
+  // equipado); comprar (débito) y equipar/desequipar devuelven el mismo estado.
+  misMarcos: () => api.get('/api/me/marcos'),
+  comprarMarco: (id: string) =>
+    api.post(`/api/me/marcos/${encodeURIComponent(id)}/comprar`, undefined),
+  equiparMarco: (marcoId: string | null) =>
+    api.post('/api/me/marcos/equipar', { marcoId: marcoId ?? null }),
   oddsCartas: () => api.get('/api/cartas/odds'),
   abrirSobre: (idempotencyKey: string) => {
     const key = typeof idempotencyKey === 'string' ? idempotencyKey.trim() : ''

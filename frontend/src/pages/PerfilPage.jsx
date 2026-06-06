@@ -31,6 +31,7 @@ import PasswordInput from '../components/PasswordInput'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import CardAvatar from '../features/perfil/components/CardAvatar'
+import CardMarcos from '../features/perfil/components/CardMarcos'
 import CardBanner from '../features/perfil/components/CardBanner'
 import CardUsername from '../features/perfil/components/CardUsername'
 import CardBio from '../features/perfil/components/CardBio'
@@ -208,6 +209,9 @@ function PerfilPage() {
               <CardBio user={user} />
               <div id="card-avatar" className="scroll-mt-24">
                 <CardAvatar user={user} updateUser={updateUser} />
+              </div>
+              <div id="card-marcos" className="scroll-mt-24">
+                <CardMarcos />
               </div>
               <div id="card-banner" className="scroll-mt-24">
                 <CardBanner

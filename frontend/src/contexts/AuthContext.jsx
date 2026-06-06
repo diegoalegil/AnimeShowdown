@@ -60,6 +60,9 @@ function buildLocalUser(payload) {
     // autogenerado) no haya pasado/saltado el onboarding. Dispara el
     // OnboardingModal una vez. Se refresca desde /me en cada bootstrap.
     needsOnboarding: payload.needsOnboarding === true,
+    // V72: marco de avatar equipado (cosmético coin-sink). null = ninguno.
+    // Avatar.jsx lo lee para pintar el aro/aura del usuario propio.
+    marcoAvatar: payload.marcoAvatar ?? null,
   }
 }
 
