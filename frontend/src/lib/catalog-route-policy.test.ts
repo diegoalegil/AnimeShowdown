@@ -28,6 +28,7 @@ describe('catalog-route-policy', () => {
     expect(shouldPrimeCatalog('/forgot-password')).toBe(false)
     expect(shouldPrimeCatalog('/terminos')).toBe(false)
     expect(shouldPrimeCatalog('/faq/')).toBe(false) // normaliza trailing slash
+    expect(shouldPrimeCatalog('/cartas')).toBe(false) // colección desde DTOs, no usa el catálogo
   })
 
   it('SÍ ceba el catálogo en rutas de contenido', () => {
