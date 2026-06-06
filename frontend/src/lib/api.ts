@@ -70,16 +70,21 @@ function normalizarApiBase(value: unknown): string {
   try {
     const url = new URL(raw)
     if (import.meta.env.PROD && /\.up\.railway\.app$/i.test(url.hostname)) {
-      console.warn('[api] VITE_API_URL apunta a Railway; usa el dominio canónico del API en producción.')
+      console.warn('[api] La URL del API apunta a Railway; usa el dominio canónico del API en producción.')
     }
     return url.toString().replace(/\/$/, '')
   } catch {
     if (import.meta.env.DEV) return DEV_API_BASE
-    throw new Error('VITE_API_URL debe ser una URL válida')
+    throw new Error('VITE_API_BASE_URL debe ser una URL válida')
   }
 }
 
-export const API_BASE = normalizarApiBase(import.meta.env.VITE_API_URL)
+// VITE_API_BASE_URL es el nombre canónico (ver .env.example); VITE_API_URL se
+// mantiene como alias legacy aceptado para no romper despliegues existentes
+// (CI/Cloudflare aún pasan VITE_API_URL). El primero tiene precedencia.
+export const API_BASE = normalizarApiBase(
+  import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL,
+)
 
 // El JWT vive en memoria, no en localStorage. La sesión
 // persistente la da el refresh_token cookie httpOnly que pone el backend

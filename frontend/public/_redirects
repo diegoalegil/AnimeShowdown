@@ -54,6 +54,10 @@
 /torneos/crear            / 200
 /torneos/:slug            / 200
 /cartas                   / 200
+/especiales               / 200
+/fantasy                  / 200
+/tier-lists               / 200
+/tier-lists/:slug         / 200
 /eventos                  / 200
 /eventos/:slug            / 200
 /duelos/:par              / 200
@@ -86,6 +90,8 @@
 /games/anigrid            / 200
 /games/impostor-trial     / 200
 /games/elo-duel           / 200
+/games/oraculo            / 200
+/games/nexo-anime         / 200
 /omikuji                  / 200
 /glossary                 / 200
 /logros                   / 200
