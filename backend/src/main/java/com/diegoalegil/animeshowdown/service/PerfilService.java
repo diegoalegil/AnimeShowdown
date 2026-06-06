@@ -109,6 +109,7 @@ public class PerfilService {
                 duenyo.getId(),
                 duenyo.getUsername(),
                 duenyo.getAvatarUrl(),
+                duenyo.getMarcoAvatar(),
                 duenyo.getBannerUrl(),
                 duenyo.getBio(),
                 duenyo.getFechaRegistro(),
