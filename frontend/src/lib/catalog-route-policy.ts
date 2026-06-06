@@ -21,12 +21,12 @@ export function shouldGateCatalogRoute(pathname: string | null | undefined): boo
   return !bypassCatalogGateForPath(pathname)
 }
 
-// Rutas que NO muestran imágenes/datos de personaje (auth/legal) y cuyo chrome
-// global (Header + FooterSlim) es catalog-independent. En ellas NO cebamos el
-// catálogo global (~170KB) para no competir con la carga inicial — el fetch
-// ocurre al entrar en la primera ruta que sí lo necesita. Conservador a
-// propósito: cualquier ruta de contenido sigue cebándolo.
+// Rutas que NO necesitan el catálogo global (~170KB) primado. En ellas NO lo
+// cebamos para no competir con la carga inicial — el fetch ocurre al entrar en
+// la primera ruta que sí lo necesita. Conservador: cualquier ruta de contenido
+// que use el catálogo sigue cebándolo.
 const CATALOG_FREE_EXACT = new Set([
+  // Auth/legal: chrome global (Header + FooterSlim) catalog-independent.
   '/login',
   '/register',
   '/forgot-password',
@@ -34,6 +34,11 @@ const CATALOG_FREE_EXACT = new Set([
   '/privacidad',
   '/terminos',
   '/faq',
+  // /cartas pinta la colección desde DTOs de carta (slug/nombre/colorDominante)
+  // e imágenes por slug vía /img; NO lee el catálogo global (verificado: ningún
+  // componente de cartas usa el snapshot). Aterrizar directo en /cartas
+  // (link/notificación) ya no arrastra ese fetch.
+  '/cartas',
 ])
 
 export function shouldPrimeCatalog(pathname: string | null | undefined): boolean {
