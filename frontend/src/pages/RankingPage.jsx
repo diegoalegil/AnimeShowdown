@@ -32,10 +32,12 @@ import { endpoints } from '../lib/api'
 import {
   useAnimesConVotos,
   useCategoriasConVotos,
+  useEloCanonico,
   useRankingDeltaSubscription,
   useRankingMovimientos,
   useRankingSegmentado,
 } from '../hooks/useRanking'
+import { getStatsPersonaje } from '../lib/personajes-core'
 import { INTENCIONES } from '../data/voto-intenciones'
 import { useQueryState } from '../hooks/useQueryState'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
@@ -82,10 +84,20 @@ function RankingPage() {
     personajes: catalogoPersonajes,
     isLoading: isCatalogLoading,
   } = usePersonajesCatalogo()
-  const catalogoIndex = useMemo(
-    () => crearCatalogoIndex(catalogoPersonajes),
-    [catalogoPersonajes],
-  )
+  // ELO canónico real del backend (semilla por popularidad +15% + votos). La
+  // pestaña ELO lo usa en vez del sintético; cae al sintético mientras carga.
+  const { data: eloCanonico } = useEloCanonico()
+  const catalogoIndex = useMemo(() => {
+    const getStats = eloCanonico
+      ? (slug) => {
+          const elo = eloCanonico[slug]
+          return elo != null
+            ? { elo, wins: 0, losses: 0, _sintetico: false }
+            : getStatsPersonaje(slug)
+        }
+      : undefined
+    return crearCatalogoIndex(catalogoPersonajes, getStats ? { getStats } : undefined)
+  }, [catalogoPersonajes, eloCanonico])
   const { rankedElo, animeFilterOptions } = catalogoIndex
   useSeo({
     title: 'Ranking competitivo',
@@ -99,8 +111,8 @@ function RankingPage() {
 
   const initialSearch = searchParams.get('q') ?? ''
   const initialAnimeFilter = searchParams.get('anime') ?? ''
-  // La tabla técnica (extraíble por crawlers/LLMs) debe exponer SOLO datos
-  // reales: top por votos del backend, nunca el ELO base sintético.
+  // La tabla técnica (extraíble por crawlers/LLMs) expone el top por VOLUMEN de
+  // votos del backend (no la pestaña ELO), para datos de actividad verificables.
   const rankingAllQuery = useRankingSegmentado({
     periodo: 'all',
     limit: RANKING_BACKEND_LIMIT,
@@ -110,7 +122,7 @@ function RankingPage() {
     dias: 7,
   })
   const { data: rankingRealTop } = rankingAllQuery
-  // Default inteligente: sin pestaña elegida a mano, lideramos con "ELO base"
+  // Default inteligente: sin pestaña elegida a mano, lideramos con "ELO"
   // (siempre lleno, 1086) mientras el Histórico de votos reales esté escaso, para
   // no recibir al usuario con una tabla casi vacía. Cuando el Histórico acumule
   // señal real (>= UMBRAL con votos), pasará a liderar él solo. El default '' hace
@@ -137,12 +149,12 @@ function RankingPage() {
       return
     }
     const resumen = top5
-      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO base`)
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO`)
       .join('\n')
     try {
       const result = await shareOrCopy({
         title: 'Top anime en AnimeShowdown',
-        text: `Mi top 5 ELO base en AnimeShowdown ahora mismo:\n${resumen}\n\nVota y cambia la tabla.`,
+        text: `Mi top 5 por ELO en AnimeShowdown ahora mismo:\n${resumen}\n\nVota y cambia la tabla.`,
         url: '/ranking',
       })
       if (result === 'cancelled') return
@@ -231,8 +243,8 @@ function RankingPage() {
         />
 
         <p className="mb-6 max-w-3xl text-sm leading-7 text-fg-muted">
-          El ranking de AnimeShowdown ordena personajes por actividad competitiva
-          de la comunidad y por ELO base cuando todavía falta señal real. Úsalo
+          El ranking de AnimeShowdown ordena personajes por su ELO (popularidad
+          del catálogo ajustada por los votos) y por actividad de la comunidad. Úsalo
           para detectar cambios de meta, comparar universos y saltar a duelos
           donde tu voto puede mover posiciones. No es canon oficial: es una
           fotografía viva de preferencias fandom dentro de la plataforma.
@@ -642,7 +654,7 @@ function ListaEloLocal({
     const url = `/ranking${params.toString() ? `?${params.toString()}` : ''}`
     const top5 = filtered
       .slice(0, 5)
-      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO base`)
+      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO`)
       .join('\n')
     const scope = animeFilter
       ? ` de ${animeFilter}`
@@ -668,14 +680,14 @@ function ListaEloLocal({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Banner de honestidad: esta pestaña ordena por ELO base (estimación
-          por popularidad), no por votos reales. Dirige a las pestañas con
-          datos reales para que nadie lea estos números como competitivos. */}
-      <p className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-[12px] leading-5 text-warning/90">
-        <strong className="font-bold text-warning">ELO base · estimado.</strong>{' '}
-        Este orden usa una estimación por popularidad del catálogo, no votos
-        reales (no se mueve con tus votos). Para el ranking competitivo por
-        votos mira{' '}
+      {/* Nota: esta pestaña ordena por el ELO canónico (semilla por popularidad
+          +15% femenino + ajuste por votos, recalculado periódicamente). Las
+          pestañas por volumen de votos en vivo son Histórico / Este mes. */}
+      <p className="rounded-lg border border-border bg-surface px-4 py-3 text-[12px] leading-5 text-fg-muted">
+        <strong className="font-bold text-fg-strong">ELO.</strong>{' '}
+        Arranca de la popularidad del catálogo y tus votos lo ajustan (se
+        recalcula cada pocos minutos). Para el ranking por volumen de votos en
+        vivo mira{' '}
         <Link to="/ranking?tab=all" className="font-semibold text-gold underline">
           Histórico
         </Link>{' '}
@@ -1042,8 +1054,8 @@ function RankingFaq() {
       a: 'Los invitados pueden probar la arena con límite y peso reducido. Crear cuenta permite seguir votando con historial y mejor protección antiabuso.',
     },
     {
-      q: '¿Qué diferencia hay entre ELO base y ranking comunitario?',
-      a: 'El ELO base es una estimación estática del catálogo. El ranking comunitario se alimenta de votos reales y actividad dentro de AnimeShowdown.',
+      q: '¿Qué diferencia hay entre la pestaña ELO y Histórico / Este mes?',
+      a: 'El ELO ordena por posición canónica: arranca de la popularidad del catálogo y los votos lo ajustan (se recalcula cada pocos minutos). Histórico y Este mes ordenan por volumen de votos reales en una ventana de tiempo, en vivo.',
     },
   ]
 

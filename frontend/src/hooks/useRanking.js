@@ -33,6 +33,22 @@ export function useRankingSegmentado({
   })
 }
 
+/**
+ * ELO canónico por slug de todo el catálogo (semilla por popularidad +15%
+ * femenino + ajuste por votos), calculado en el backend. La pestaña ELO de
+ * /ranking lo usa para mostrar el ELO real en vez del estimado sintético del
+ * cliente. Cae al sintético mientras carga o si falla. Cachea 5 min (la semilla
+ * casi no cambia y el ajuste por votos es lento a esta escala).
+ */
+export function useEloCanonico({ enabled = true } = {}) {
+  return useQuery({
+    queryKey: ['ranking', 'elo-canonico'],
+    queryFn: endpoints.eloCanonico,
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useAnimesConVotos({ enabled = true } = {}) {
   return useQuery({
     queryKey: ['ranking', 'animes-disponibles'],
