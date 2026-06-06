@@ -425,14 +425,21 @@ class EnfrentamientoControllerTest {
     void votarAnonimoRotandoXForwardedForNoEvadeElThrottlePorIp() throws Exception {
         String adminToken = tokenAdmin();
         long[] ids = dosPersonajes();
-        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "xff-stuffing");
         Map<String, Long> body = Map.of("personajeGanadorId", ids[0]);
 
         // 11 votos > umbral soft (app.anon-abuse.soft-per-hour=10) desde la
         // MISMA conexión (RemoteAddr 127.0.0.1, mismo User-Agent), sin
         // conservar cookie y rotando X-Forwarded-For en cada petición.
+        //
+        // Cada voto va a un enfrentamiento DISTINTO a propósito: el throttle por
+        // IP cuenta por anon_ip_hash a través de TODOS los enfrentamientos, así
+        // que el umbral se cruza igual; pero al no repetir enfrentamiento se
+        // elimina la carrera con el dedup por (enfrentamiento, sesión) —cada
+        // request sin cookie emite una sesión aleatoria nueva— que volvía este
+        // test no determinista (a veces 409 antes del 428).
         List<Integer> estados = new java.util.ArrayList<>();
         for (int i = 0; i < 11; i++) {
+            long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "xff-stuffing-" + i);
             int status = mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
                     .header("X-Forwarded-For", "203.0.113." + i)           // IP spoofeada distinta cada vez
                     .header("User-Agent", "vote-stuffer/1.0")
