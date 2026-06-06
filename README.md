@@ -182,7 +182,7 @@ npm run dev
 Vite levanta en `http://localhost:5173`. Para usar backend local:
 
 ```env
-VITE_API_URL=http://localhost:8080
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
 ## Testing y QA

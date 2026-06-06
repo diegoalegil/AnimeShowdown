@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite",
-    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite build && node ../scripts/prerender-seo.mjs",
-    "build:no-images": "node ../scripts/generate-sitemap.mjs && cross-env ANIMESHOWDOWN_SKIP_IMG_COPY=true NODE_OPTIONS=--disable-warning=DEP0205 vite build && node ../scripts/prerender-seo.mjs",
+    "build": "node scripts/generate-dominant-colors.mjs && node ../scripts/generate-sitemap.mjs && cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite build && node ../scripts/prerender-seo.mjs && node ../scripts/strip-deploy-sourcemaps.mjs",
+    "build:no-images": "node ../scripts/generate-sitemap.mjs && cross-env ANIMESHOWDOWN_SKIP_IMG_COPY=true NODE_OPTIONS=--disable-warning=DEP0205 vite build && node ../scripts/prerender-seo.mjs && node ../scripts/strip-deploy-sourcemaps.mjs",
     "build:no-sitemap": "cross-env NODE_OPTIONS=--disable-warning=DEP0205 vite build",
     "build:e2e": "VITE_API_URL=${E2E_API_URL:-http://127.0.0.1:8080} npm run build:no-sitemap",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
