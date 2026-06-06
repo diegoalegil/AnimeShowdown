@@ -26,5 +26,7 @@ public enum MotivoMovimiento {
     /** Sobre de bienvenida gratuito para nuevos usuarios (especial garantizada). */
     SOBRE_BIENVENIDA,
     /** Moneda extra repartida al cerrar una copa de evento a quien predijo en ella. */
-    RECOMPENSA_EVENTO
+    RECOMPENSA_EVENTO,
+    /** Gasto al comprar un marco de avatar (cosmético coin-sink). */
+    COMPRA_MARCO
 }

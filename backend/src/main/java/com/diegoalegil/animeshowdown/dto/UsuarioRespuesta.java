@@ -32,6 +32,11 @@ public class UsuarioRespuesta {
      * una sola vez tras el primer login OAuth.
      */
     private boolean needsOnboarding;
+    /**
+     * V72: marco de avatar equipado (cosmético coin-sink). null = ninguno. El
+     * frontend lo usa para renderizar el aro/aura alrededor del avatar propio.
+     */
+    private String marcoAvatar;
 
     public UsuarioRespuesta(Usuario usuario) {
         this.id = usuario.getId();
@@ -46,6 +51,7 @@ public class UsuarioRespuesta {
         this.eloPvp = usuario.getEloPvp();
         this.pvpPartidos = usuario.getPvpPartidos();
         this.needsOnboarding = !usuario.isOnboardingCompletado();
+        this.marcoAvatar = usuario.getMarcoAvatar();
     }
 
     public Long getId() { return id; }
@@ -60,4 +66,5 @@ public class UsuarioRespuesta {
     public int getEloPvp() { return eloPvp; }
     public int getPvpPartidos() { return pvpPartidos; }
     public boolean isNeedsOnboarding() { return needsOnboarding; }
+    public String getMarcoAvatar() { return marcoAvatar; }
 }
