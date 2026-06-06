@@ -1,0 +1,75 @@
+/* Marcos de avatar (cosmético coin-sink). El wrapper .marco ciñe al avatar y
+   dibuja el aro con box-shadow (anillo + glow), reutilizando los tokens de
+   color existentes — sin paleta nueva. El legendario usa un aro cónico que
+   gira (degradado animado) detrás del avatar opaco. */
+
+.marco {
+  display: inline-flex;
+  position: relative;
+  border-radius: 9999px;
+  line-height: 0;
+}
+.marco > * {
+  border-radius: 9999px;
+}
+
+.marco-bronce {
+  box-shadow: 0 0 0 2px var(--color-medal-bronze);
+}
+.marco-plata {
+  box-shadow: 0 0 0 2px var(--color-medal-silver);
+}
+.marco-oro {
+  box-shadow:
+    0 0 0 2px var(--color-medal-gold),
+    0 0 6px 0 var(--color-gold-aura);
+}
+.marco-cian {
+  box-shadow:
+    0 0 0 2px var(--color-electric),
+    0 0 9px 1px var(--color-electric-soft);
+}
+.marco-carmesi {
+  box-shadow:
+    0 0 0 2px var(--color-danger),
+    0 0 9px 1px var(--color-danger);
+}
+
+/* Legendario: aro cónico multicolor giratorio. El ::before va detrás (z-index 0)
+   y el avatar opaco (z-index 1) tapa el centro, dejando solo el aro. */
+.marco-prismatico {
+  padding: 2px;
+}
+.marco-prismatico::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    var(--color-danger),
+    var(--color-gold),
+    var(--color-rarity-legendary),
+    var(--color-electric),
+    var(--color-accent),
+    var(--color-danger)
+  );
+  animation: marco-girar 5s linear infinite;
+  z-index: 0;
+}
+.marco-prismatico > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes marco-girar {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marco-prismatico::before {
+    animation: none;
+  }
+}
