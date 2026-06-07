@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   Award,
   Bell,
@@ -94,20 +93,17 @@ function NotifBell() {
         )}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <NotifDropdown
-            enabled={hasAccessToken}
-            onClose={closeAndRestoreFocus}
-          />
-        )}
-      </AnimatePresence>
+      {open && (
+        <NotifDropdown
+          enabled={hasAccessToken}
+          onClose={closeAndRestoreFocus}
+        />
+      )}
     </div>
   )
 }
 
 function NotifDropdown({ enabled, onClose }) {
-  const prefersReducedMotion = useReducedMotion()
   const { data, isLoading } = useNotificaciones({
     size: 10,
     enabled,
@@ -121,15 +117,11 @@ function NotifDropdown({ enabled, onClose }) {
   const hayNoLeidas = items.some((n) => !n.leida)
 
   return (
-    <motion.div
+    <div
       role="dialog"
       aria-modal="false"
       aria-label="Panel de notificaciones"
-      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -8, scale: prefersReducedMotion ? 1 : 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -4, scale: prefersReducedMotion ? 1 : 0.98 }}
-      transition={{ duration: prefersReducedMotion ? 0.1 : 0.15, ease: 'easeOut' }}
-      className="absolute right-0 top-10 z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-surface shadow-2xl shadow-black/30"
+      className="absolute right-0 top-10 z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-surface shadow-2xl shadow-black/30 motion-safe:animate-[notifDropdownIn_150ms_ease-out]"
     >
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div>
@@ -178,7 +170,7 @@ function NotifDropdown({ enabled, onClose }) {
           </ul>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
