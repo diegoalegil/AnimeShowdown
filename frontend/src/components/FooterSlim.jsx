@@ -32,7 +32,7 @@ function FooterSlim() {
           <li>
             <Link
               to="/privacidad"
-              className="inline-flex min-h-[40px] items-center px-2 hover:text-gold hover:underline"
+              className="inline-flex min-h-11 items-center px-2 hover:text-gold hover:underline"
             >
               {t('footer.privacidad')}
             </Link>
@@ -40,7 +40,7 @@ function FooterSlim() {
           <li>
             <Link
               to="/terminos"
-              className="inline-flex min-h-[40px] items-center px-2 hover:text-gold hover:underline"
+              className="inline-flex min-h-11 items-center px-2 hover:text-gold hover:underline"
             >
               {t('footer.terminos')}
             </Link>
@@ -48,7 +48,7 @@ function FooterSlim() {
           <li>
             <Link
               to="/dmca"
-              className="inline-flex min-h-[40px] items-center px-2 hover:text-gold hover:underline"
+              className="inline-flex min-h-11 items-center px-2 hover:text-gold hover:underline"
             >
               DMCA
             </Link>

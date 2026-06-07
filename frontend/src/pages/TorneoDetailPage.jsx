@@ -415,7 +415,7 @@ function ChampionPredictionPanel({ torneoId, torneoSlug, estado, roster, torneoN
       {!user && puedePredecir && (
         <Link
           to={`/login?next=${encodeURIComponent(next)}`}
-          className="mb-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-bold text-gold transition-colors hover:bg-accent/20"
+          className="mb-5 inline-flex min-h-11 items-center justify-center rounded-lg border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-bold text-gold transition-colors hover:bg-accent/20"
         >
           Entrar para predecir
         </Link>

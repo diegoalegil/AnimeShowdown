@@ -344,7 +344,7 @@ function TierListEditor() {
                 <button
                   type="button"
                   onClick={cargarAnime}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-bg px-3 text-sm font-black text-fg-strong transition-colors hover:border-accent/45"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-bg px-3 text-sm font-black text-fg-strong transition-colors hover:border-accent/45"
                   aria-label="Cargar plantilla"
                 >
                   <FolderOpen className="h-4 w-4" aria-hidden="true" />

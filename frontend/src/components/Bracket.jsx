@@ -371,7 +371,7 @@ function VotoButton({ personaje, active, disabled, onClick }) {
       onClick={onClick}
       disabled={disabled}
       title={`Votar a ${personaje.nombre}`}
-      className={`min-h-9 min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+      className={`min-h-11 min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
         active
           ? 'border-accent bg-accent text-bg'
           : 'border-border bg-bg text-fg-strong hover:border-accent hover:bg-accent-soft hover:text-gold'
@@ -488,7 +488,7 @@ function PickButton({ personaje, onClick, disabled }) {
       onClick={onClick}
       disabled={disabled}
       title={`Predecir a ${personaje.nombre}`}
-      className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-border bg-bg px-2 py-1.5 text-[11px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex min-h-11 min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-border bg-bg px-2 py-1.5 text-[11px] font-medium text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
     >
       <PersonajeCutImg
         slug={personaje.slug}

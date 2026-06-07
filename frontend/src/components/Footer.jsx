@@ -113,16 +113,14 @@ function Footer() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            'radial-gradient(circle at 12% 0%, rgb(159 29 44 / 0.16), transparent 28rem), radial-gradient(circle at 88% 0%, rgb(197 161 90 / 0.12), transparent 26rem), linear-gradient(180deg, rgb(7 10 18 / 0.78), rgb(7 10 18 / 0.96))',
+          background: 'var(--footer-atmosphere-bg)',
         }}
       />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.12]"
         style={{
-          backgroundImage:
-            'radial-gradient(circle at 2px 2px, rgb(255 255 255 / 0.22) 1px, transparent 0)',
+          backgroundImage: 'var(--footer-dust-bg)',
           backgroundSize: '52px 52px',
           maskImage: 'linear-gradient(to bottom, transparent, black 35%, black)',
         }}
@@ -252,17 +250,17 @@ function Footer() {
         <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-fg-muted">
           <ul className="-mx-2 flex flex-wrap justify-center gap-y-1 sm:justify-start">
             <li>
-              <Link to="/privacidad" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-gold hover:underline">
+              <Link to="/privacidad" className="inline-flex min-h-11 items-center px-2 py-2 hover:text-gold hover:underline">
                 {t('footer.privacidad')}
               </Link>
             </li>
             <li>
-              <Link to="/terminos" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-gold hover:underline">
+              <Link to="/terminos" className="inline-flex min-h-11 items-center px-2 py-2 hover:text-gold hover:underline">
                 {t('footer.terminos')}
               </Link>
             </li>
             <li>
-              <Link to="/dmca" className="inline-flex min-h-[40px] items-center px-2 py-2 hover:text-gold hover:underline">
+              <Link to="/dmca" className="inline-flex min-h-11 items-center px-2 py-2 hover:text-gold hover:underline">
                 DMCA
               </Link>
             </li>

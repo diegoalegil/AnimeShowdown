@@ -54,7 +54,7 @@ function LiveMatchSpectator({ torneo }) {
 
   return (
     <section
-      className="mb-10 overflow-hidden rounded-2xl border border-success/25 bg-surface/95 shadow-lift [--aura-color:rgb(16_185_129_/_0.12)]"
+      className="mb-10 overflow-hidden rounded-2xl border border-success/25 bg-surface/95 shadow-lift [--aura-color:var(--color-success-aura-soft)]"
       aria-label="Modo espectador del torneo en directo"
     >
       <div className="flex flex-col gap-4 border-b border-border bg-bg/70 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
@@ -75,7 +75,7 @@ function LiveMatchSpectator({ torneo }) {
           <CountdownPill remainingMs={remainingMs} endsAt={torneo?.liveEndsAt} />
           <a
             href="#duelos-abiertos"
-            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-accent px-4 text-sm font-bold text-bg transition-colors hover:bg-accent-strong"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-4 text-sm font-bold text-bg transition-colors hover:bg-accent-strong"
           >
             Vota aquí
           </a>
