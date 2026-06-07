@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -58,15 +58,16 @@ import { getRetoRecomendado } from '../features/personajes/reto-recomendado'
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
 
-function preloadPersonaje3DOnIdle() {
-  if (typeof window === 'undefined') return
-  const preload = () => {
-    void loadPersonaje3D()
-  }
-  if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(preload, { timeout: 1800 })
-  } else {
-    window.setTimeout(preload, 250)
+function canCreateWebGLContext() {
+  if (typeof document === 'undefined') return false
+
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+    gl?.getExtension?.('WEBGL_lose_context')?.loseContext?.()
+    return Boolean(gl)
+  } catch {
+    return false
   }
 }
 
@@ -323,7 +324,7 @@ function PersonajeDetailPage() {
           >
             <div
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
-              style={{ filter: 'drop-shadow(0 30px 60px rgb(159 29 44 / 0.22))' }}
+              style={{ filter: 'var(--personaje-hero-drop-shadow)' }}
             >
               {/* Personaje3D era opt-in al mount con
                   imagen como fallback, pero el chunk se descargaba siempre
@@ -620,7 +621,10 @@ function PersonajeDetailPage() {
         <ComentariosPersonaje slug={slug} nombre={personaje.nombre} />
 
         {duelosPopulares.length > 0 && (
-          <section className="mt-8 rounded-xl border border-accent/25 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.10),rgb(20_20_30_/_0.92))] p-5">
+          <section
+            className="mt-8 rounded-xl border border-accent/25 p-5"
+            style={{ background: 'var(--personaje-popular-duels-bg)' }}
+          >
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
@@ -897,9 +901,14 @@ function CarruselSimilares({ slug, nombre }) {
  */
 function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   const [show3D, setShow3D] = useState(false)
-  const preload3D = useCallback(() => {
-    preloadPersonaje3DOnIdle()
-  }, [])
+
+  const handleOpen3D = () => {
+    if (!canCreateWebGLContext()) {
+      toast.error('Tu navegador no puede abrir la vista 3D ahora mismo.')
+      return
+    }
+    setShow3D(true)
+  }
 
   if (!show3D) {
     return (
@@ -911,9 +920,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
         <PersonajeCardHolo src={imagenUrl} alt={nombre} fallbackSrc={fallbackUrl} />
         <button
           type="button"
-          onFocus={preload3D}
-          onPointerEnter={preload3D}
-          onClick={() => setShow3D(true)}
+          onClick={handleOpen3D}
           aria-label={`Abrir vista 3D rotable de ${nombre}`}
           title="Vista 3D rotable del personaje"
           className="group absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-border bg-surface/85 px-4 text-xs font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
