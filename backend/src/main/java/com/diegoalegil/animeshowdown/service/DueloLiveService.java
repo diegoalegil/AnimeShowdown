@@ -29,7 +29,6 @@ import com.diegoalegil.animeshowdown.repository.DueloLiveRepository;
 import com.diegoalegil.animeshowdown.repository.DueloLiveRondaRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
-import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 @Service
 public class DueloLiveService {
@@ -43,7 +42,6 @@ public class DueloLiveService {
     private final DueloLiveRondaRepository rondaRepository;
     private final UsuarioRepository usuarioRepository;
     private final PersonajeRepository personajeRepository;
-    private final VotoRepository votoRepository;
     private final DueloSugeridoService dueloSugeridoService;
     private final AnimeShowdownMetrics metrics;
     private final SimpMessagingTemplate messaging;
@@ -58,7 +56,6 @@ public class DueloLiveService {
             DueloLiveRondaRepository rondaRepository,
             UsuarioRepository usuarioRepository,
             PersonajeRepository personajeRepository,
-            VotoRepository votoRepository,
             DueloSugeridoService dueloSugeridoService,
             AnimeShowdownMetrics metrics,
             SimpMessagingTemplate messaging,
@@ -74,7 +71,6 @@ public class DueloLiveService {
         this.rondaRepository = rondaRepository;
         this.usuarioRepository = usuarioRepository;
         this.personajeRepository = personajeRepository;
-        this.votoRepository = votoRepository;
         this.dueloSugeridoService = dueloSugeridoService;
         this.metrics = metrics;
         this.messaging = messaging;
