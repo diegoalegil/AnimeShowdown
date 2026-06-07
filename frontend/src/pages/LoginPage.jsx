@@ -264,6 +264,13 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
     setError,
     formState: { errors, isSubmitting },
   } = useForm()
+  const [cancelDelayTick, setCancelDelayTick] = useState(0)
+
+  useEffect(() => {
+    if (cancelDelayTick === 0) return undefined
+    const id = setTimeout(onCancel, 1500)
+    return () => clearTimeout(id)
+  }, [cancelDelayTick, onCancel])
 
   // Countdown del challenge. Cuando llega a 0 forzamos volver al paso 1.
   const [segundos, setSegundos] = useState(challenge.expiraEnSegundos || 60)
@@ -292,7 +299,7 @@ function Step2Totp({ challenge, onSuccess, onCancel, completeLogin2fa }) {
       setError('codigo', { message: msg })
       if (intentosRestantes === 0) {
         // El backend ya invalidó el challenge, no tiene sentido seguir aquí.
-        setTimeout(onCancel, 1500)
+        setCancelDelayTick((tick) => tick + 1)
       }
     }
   }
