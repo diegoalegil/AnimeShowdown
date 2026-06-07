@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Copy, Share2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { usePerfilReferral } from '../hooks/usePerfil'
@@ -14,6 +14,11 @@ import KanjiSpinner from './KanjiSpinner'
 function CardReferral() {
   const { data, isLoading } = usePerfilReferral()
   const [copiado, setCopiado] = useState(false)
+  const copiadoTimerRef = useRef(null)
+
+  useEffect(() => () => {
+    if (copiadoTimerRef.current) window.clearTimeout(copiadoTimerRef.current)
+  }, [])
 
   if (isLoading) {
     return (
@@ -39,7 +44,11 @@ function CardReferral() {
     try {
       await navigator.clipboard.writeText(url)
       setCopiado(true)
-      setTimeout(() => setCopiado(false), 1800)
+      if (copiadoTimerRef.current) window.clearTimeout(copiadoTimerRef.current)
+      copiadoTimerRef.current = window.setTimeout(() => {
+        copiadoTimerRef.current = null
+        setCopiado(false)
+      }, 1800)
       toast.success('Enlace de referral copiado')
     } catch {
       toast.error('No se pudo copiar al portapapeles')
