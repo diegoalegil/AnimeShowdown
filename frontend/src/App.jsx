@@ -1,6 +1,5 @@
 import { Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { MotionConfig } from 'framer-motion'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -317,8 +316,7 @@ function App() {
   }, [location.pathname])
 
   return (
-    <MotionConfig reducedMotion="user">
-      <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3 focus:text-sm focus:font-black focus:text-fg-strong focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-gold"
@@ -503,8 +501,7 @@ function App() {
           {location.pathname === '/' ? <Footer /> : <FooterSlim />}
         </div>
       )}
-      </div>
-    </MotionConfig>
+    </div>
   )
 }
 
