@@ -5,8 +5,9 @@ import PersonajeImg from '../../components/PersonajeImg'
 
 const ROSTER_PAGE = 24
 
-function RankingRow({ rank, slug, nombre, elo }) {
+function RankingRow({ rank, slug, nombre, elo, imagen, imagenUrl, imagenColorDominante }) {
   // Solo ELO base (estimado). Las W/L sintéticas no se muestran.
+  const imageSrc = imagenUrl ?? imagen
   const tone =
     rank === 1
       ? 'border-medal-gold/50 bg-medal-gold/5'
@@ -32,7 +33,9 @@ function RankingRow({ rank, slug, nombre, elo }) {
         </span>
         <PersonajeImg
           slug={slug}
+          src={imageSrc}
           alt={nombre}
+          colorDominante={imagenColorDominante}
           loading="lazy"
           className="h-12 w-9 shrink-0 rounded-lg object-cover object-top"
         />
@@ -78,9 +81,7 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
           {destacados.map((personaje) => (
             <PersonajeCard
               key={personaje.slug}
-              slug={personaje.slug}
-              nombre={personaje.nombre}
-              anime={personaje.anime}
+              {...personaje}
             />
           ))}
         </div>
@@ -103,10 +104,8 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
           {top10.map((personaje, index) => (
             <RankingRow
               key={personaje.slug}
+              {...personaje}
               rank={index + 1}
-              slug={personaje.slug}
-              nombre={personaje.nombre}
-              elo={personaje.elo}
             />
           ))}
         </ol>
@@ -126,9 +125,7 @@ function AnimeRosterSections({ anime, destacados, personajes, top10, total }) {
             {personajes.slice(0, visibles).map((personaje) => (
               <PersonajeCard
                 key={personaje.slug}
-                slug={personaje.slug}
-                nombre={personaje.nombre}
-                anime={personaje.anime}
+                {...personaje}
               />
             ))}
           </div>
