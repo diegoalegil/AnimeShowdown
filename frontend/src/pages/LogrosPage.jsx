@@ -107,7 +107,7 @@ function LogrosPage() {
   })
 
   return (
-    <VisualPageShell visual={BRAND_VISUALS.logrosHero} contentClassName="mx-auto max-w-6xl" lateralKanji={{left: "勲", right: "章"}} atmosphere="tribute">
+    <VisualPageShell visual={BRAND_VISUALS.logrosHero} contentClassName="mx-auto max-w-6xl" lateralKanji={null} atmosphere="tribute">
       {catalogo && (
         <JsonLd id="logros-collection" schema={logrosCollectionSchema(catalogo)} />
       )}
