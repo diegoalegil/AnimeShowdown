@@ -3,15 +3,16 @@
 // generate-image-variants.mjs
 //
 // Para cada `frontend/img/<Anime>/<slug>.webp` genera variantes responsive:
-//   <slug>-300.webp, <slug>-600.webp, <slug>-1024.webp
-//   <slug>-300.avif, <slug>-600.avif, <slug>-1024.avif
+//   <slug>-300.webp, <slug>-600.webp
 //
 // Idempotencia: si la variante existe y es igual o mas nueva que la fuente,
 // se salta. Usa `--check` para auditar cobertura sin escribir archivos y
-// `--strict` para que el check falle si hay variantes missing/stale.
+// `--strict` para que el check falle si hay variantes missing/stale. En check
+// mode se compara el contenido generado; los mtimes de un checkout Git limpio
+// no son estables para decidir freshness.
 // ===========================================================================
 
-import { existsSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join, dirname, basename, extname, resolve, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
@@ -19,11 +20,11 @@ import sharp from 'sharp'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const IMG_DIR = resolve(__dirname, '..', 'img')
 const args = new Set(process.argv.slice(2))
-const CHECK_ONLY = args.has('--check') || args.has('--verify')
+const CHECK_ONLY = args.has('--check') || args.has('--verify') || args.has('--strict')
 const STRICT = args.has('--strict')
 
-const ANCHOS = [300, 600, 1024]
-const FORMATOS = ['webp', 'avif']
+const ANCHOS = [300, 600]
+const FORMATOS = ['webp']
 const WEBP_QUALITY = 82
 const AVIF_QUALITY = 50
 
@@ -69,8 +70,29 @@ function variantState(origen, destino) {
   return dstM >= srcM ? 'fresh' : 'stale'
 }
 
-function auditVariant(origen, destino) {
-  const state = variantState(origen, destino)
+async function renderVariant(origen, ancho, formato) {
+  const pipeline = sharp(origen).resize(ancho, null, {
+    withoutEnlargement: true,
+    fit: 'inside',
+  })
+  if (formato === 'webp') {
+    return pipeline.webp({ quality: WEBP_QUALITY, effort: 4 }).toBuffer()
+  }
+  return pipeline.avif({ quality: AVIF_QUALITY, effort: 4 }).toBuffer()
+}
+
+async function auditVariant(origen, destino, ancho, formato) {
+  let state = 'fresh'
+  if (!existsSync(destino)) {
+    state = 'missing'
+  } else if (CHECK_ONLY) {
+    const current = readFileSync(destino)
+    const expected = await renderVariant(origen, ancho, formato)
+    state = Buffer.compare(current, expected) === 0 ? 'fresh' : 'stale'
+  } else {
+    state = variantState(origen, destino)
+  }
+
   stats[state] += 1
   if (state === 'missing' || state === 'stale') {
     sample(state, variantLabel(destino))
@@ -79,7 +101,7 @@ function auditVariant(origen, destino) {
 }
 
 async function generar(origen, destino, ancho, formato) {
-  const state = auditVariant(origen, destino)
+  const state = await auditVariant(origen, destino, ancho, formato)
   if (state === 'fresh') {
     stats.saltadas += 1
     return
@@ -87,15 +109,7 @@ async function generar(origen, destino, ancho, formato) {
   if (CHECK_ONLY) return
 
   try {
-    const pipeline = sharp(origen).resize(ancho, null, {
-      withoutEnlargement: true,
-      fit: 'inside',
-    })
-    if (formato === 'webp') {
-      await pipeline.webp({ quality: WEBP_QUALITY, effort: 4 }).toFile(destino)
-    } else {
-      await pipeline.avif({ quality: AVIF_QUALITY, effort: 4 }).toFile(destino)
-    }
+    writeFileSync(destino, await renderVariant(origen, ancho, formato))
     stats.generadas += 1
   } catch (err) {
     const msg = `${variantLabel(origen)} -> ${variantLabel(destino)}: ${err.message}`

@@ -44,11 +44,11 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Check responsive WebP/AVIF variants
+      - name: Check responsive WebP variants
         if: github.event_name == 'pull_request'
         run: npm run build:images:check
 
-      - name: Generate responsive WebP/AVIF variants
+      - name: Generate responsive WebP variants
         if: github.event_name != 'pull_request'
         run: npm run build:images
 
@@ -56,8 +56,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           find img -type f \( \
-            -name '*-300.webp' -o -name '*-600.webp' -o -name '*-1024.webp' -o \
-            -name '*-300.avif' -o -name '*-600.avif' -o -name '*-1024.avif' \
+            -name '*-300.webp' -o -name '*-600.webp' \
           \) -print0 | tar --null -czf image-variants.tgz --files-from -
           du -h image-variants.tgz
 

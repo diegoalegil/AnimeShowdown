@@ -14,7 +14,7 @@
     "build:e2e": "VITE_API_URL=${E2E_API_URL:-http://127.0.0.1:8080} npm run build:no-sitemap",
     "build:sitemap": "node ../scripts/generate-sitemap.mjs",
     "build:images": "node scripts/generate-image-variants.mjs",
-    "build:images:check": "node scripts/generate-image-variants.mjs --check",
+    "build:images:check": "node scripts/generate-image-variants.mjs --check --strict",
     "build:optimize-assets": "node scripts/optimize-source-assets.mjs",
     "build:optimize-assets:check": "node scripts/optimize-source-assets.mjs --check",
     "build:cover-variants": "node scripts/generate-cover-variants.mjs",
