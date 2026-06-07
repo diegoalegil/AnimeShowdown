@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Copy, Link as LinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -24,8 +24,13 @@ import { toast } from 'sonner'
  */
 function ShareButtons({ url, texto }) {
   const [copiado, setCopiado] = useState(false)
+  const copiadoTimerRef = useRef(null)
   const encodedUrl = encodeURIComponent(url)
   const encodedText = encodeURIComponent(texto)
+
+  useEffect(() => () => {
+    if (copiadoTimerRef.current) window.clearTimeout(copiadoTimerRef.current)
+  }, [])
 
   const enlaces = [
     {
@@ -69,7 +74,11 @@ function ShareButtons({ url, texto }) {
     try {
       await navigator.clipboard.writeText(url)
       setCopiado(true)
-      setTimeout(() => setCopiado(false), 1800)
+      if (copiadoTimerRef.current) window.clearTimeout(copiadoTimerRef.current)
+      copiadoTimerRef.current = window.setTimeout(() => {
+        copiadoTimerRef.current = null
+        setCopiado(false)
+      }, 1800)
       toast.success('Enlace copiado al portapapeles')
     } catch {
       toast.error('No se pudo copiar')
