@@ -161,7 +161,7 @@ export function VisualPageShell({
       <div aria-hidden="true" className="absolute inset-0 bg-bg" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute -right-[20%] -top-[14%] h-[44rem] w-[44rem] rounded-full opacity-[0.10] blur-3xl motion-safe:animate-aurora-2"
+          className="absolute -right-[20%] -top-[14%] hidden h-[44rem] w-[44rem] rounded-full opacity-[0.10] blur-3xl motion-safe:animate-aurora-2 sm:block"
           style={{ background: 'rgb(var(--visual-accent) / 1)' }}
         />
       </div>
