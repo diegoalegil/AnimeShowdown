@@ -7,10 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.DueloLiveStateDto;
 import com.diegoalegil.animeshowdown.dto.DueloSugeridoDto;
-import com.diegoalegil.animeshowdown.event.DueloLiveFinalizadoEvent;
 import com.diegoalegil.animeshowdown.model.DueloLive;
 import com.diegoalegil.animeshowdown.model.DueloLiveChoice;
 import com.diegoalegil.animeshowdown.model.DueloLiveEstado;
@@ -33,12 +29,10 @@ import com.diegoalegil.animeshowdown.repository.DueloLiveRepository;
 import com.diegoalegil.animeshowdown.repository.DueloLiveRondaRepository;
 import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
-import com.diegoalegil.animeshowdown.repository.VotoRepository;
 
 @Service
 public class DueloLiveService {
 
-    private static final Logger log = LoggerFactory.getLogger(DueloLiveService.class);
     private static final int MAX_ELO_DIFF = 100;
     private static final int ROUND_SECONDS = 12;
     private static final int WALKOVER_GRACE_SECONDS = 15;
@@ -48,15 +42,12 @@ public class DueloLiveService {
     private final DueloLiveRondaRepository rondaRepository;
     private final UsuarioRepository usuarioRepository;
     private final PersonajeRepository personajeRepository;
-    private final VotoRepository votoRepository;
     private final DueloSugeridoService dueloSugeridoService;
-    private final PvpEloService pvpEloService;
     private final AnimeShowdownMetrics metrics;
     private final SimpMessagingTemplate messaging;
-    private final BadgeService badgeService;
-    private final ApplicationEventPublisher eventPublisher;
     private final DueloLiveNotifier notifier;
     private final DueloLiveBotPolicy botPolicy;
+    private final MatchFinalizationService matchFinalization;
     private final Clock clock;
     private final boolean scheduledMaintenanceEnabled;
     private final int fallbackAfterSeconds;
@@ -65,15 +56,12 @@ public class DueloLiveService {
             DueloLiveRondaRepository rondaRepository,
             UsuarioRepository usuarioRepository,
             PersonajeRepository personajeRepository,
-            VotoRepository votoRepository,
             DueloSugeridoService dueloSugeridoService,
-            PvpEloService pvpEloService,
             AnimeShowdownMetrics metrics,
             SimpMessagingTemplate messaging,
-            BadgeService badgeService,
-            ApplicationEventPublisher eventPublisher,
             DueloLiveNotifier notifier,
             DueloLiveBotPolicy botPolicy,
+            MatchFinalizationService matchFinalization,
             Clock clock,
             @Value("${app.duelo-live.fallback-after-seconds:5}")
             int fallbackAfterSeconds,
@@ -83,15 +71,12 @@ public class DueloLiveService {
         this.rondaRepository = rondaRepository;
         this.usuarioRepository = usuarioRepository;
         this.personajeRepository = personajeRepository;
-        this.votoRepository = votoRepository;
         this.dueloSugeridoService = dueloSugeridoService;
-        this.pvpEloService = pvpEloService;
         this.metrics = metrics;
         this.messaging = messaging;
-        this.badgeService = badgeService;
-        this.eventPublisher = eventPublisher;
         this.notifier = notifier;
         this.botPolicy = botPolicy;
+        this.matchFinalization = matchFinalization;
         this.clock = clock;
         this.fallbackAfterSeconds = Math.max(3, fallbackAfterSeconds);
         this.scheduledMaintenanceEnabled = scheduledMaintenanceEnabled;
@@ -229,7 +214,7 @@ public class DueloLiveService {
             return notifier.estadoPara(duelo, usuario, "MATCH_END", "Cola cancelada");
         }
         if (duelo.getEstado() == DueloLiveEstado.IN_PROGRESS || duelo.getEstado() == DueloLiveEstado.MATCHED) {
-            finalizarWalkover(duelo, usuario, "leave");
+            matchFinalization.finalizarWalkover(duelo, usuario, "leave");
         }
         return notifier.estadoPara(duelo, usuario, "MATCH_END", "Duelo abandonado");
     }
@@ -330,7 +315,7 @@ public class DueloLiveService {
         duelo.setRondasValidas(duelo.getRondasValidas() + 1);
 
         if (debeFinalizar(duelo)) {
-            finalizarPorScore(duelo);
+            matchFinalization.finalizarPorScore(duelo);
             notifier.emitirEstado(duelo, "MATCH_END", "Duelo terminado");
         } else {
             dueloRepository.save(duelo);
@@ -343,30 +328,6 @@ public class DueloLiveService {
         if (duelo.getScoreJugador1() >= 3 && duelo.getScoreJugador1() > duelo.getScoreJugador2()) return true;
         if (duelo.getScoreJugador2() >= 3 && duelo.getScoreJugador2() > duelo.getScoreJugador1()) return true;
         return duelo.getRondasValidas() >= 5;
-    }
-
-    private void finalizarPorScore(DueloLive duelo) {
-        double scoreJ1;
-        if (duelo.getScoreJugador1() > duelo.getScoreJugador2()) {
-            scoreJ1 = 1.0;
-            duelo.setGanador(duelo.getJugador1());
-            badgeService.desbloquear(duelo.getJugador1(), "primera_victoria_pvp");
-        } else if (duelo.getScoreJugador2() > duelo.getScoreJugador1()) {
-            scoreJ1 = 0.0;
-            duelo.setGanador(duelo.getJugador2());
-            if (duelo.getJugador2() != null) {
-                badgeService.desbloquear(duelo.getJugador2(), "primera_victoria_pvp");
-            }
-        } else {
-            scoreJ1 = 0.5;
-        }
-        // Cargar con lock pesimista para garantizar exclusive access antes
-        // de modificar ELO. Sin esto, el scheduler y un voto cerca de la ventana
-        // de cierra podrian finalizar el mismo duelo concurrentemente.
-        DueloLive locked = dueloRepository.findByIdForFinalize(duelo.getId())
-                .orElseThrow(() -> new IllegalStateException("Duelo no encontrado: " + duelo.getId()));
-        locked.setGanador(duelo.getGanador());
-        aplicarEloYFinalizar(locked, scoreJ1, false);
     }
 
     private DueloLiveStateDto resolverWalkoverPorTimeout(DueloLive duelo, DueloLiveRonda ronda, LocalDateTime now, String reason) {
@@ -383,61 +344,8 @@ public class DueloLiveService {
         // entre scheduler y voto cerca de la ventana de cierra.
         DueloLive locked = dueloRepository.findByIdForFinalize(duelo.getId())
                 .orElseThrow(() -> new IllegalStateException("Duelo no encontrado: " + duelo.getId()));
-        finalizarWalkover(locked, abandonador, reason);
+        matchFinalization.finalizarWalkover(locked, abandonador, reason);
         return notifier.estadoPara(locked, duelo.getJugador1(), "OPPONENT_ABANDONED", "Walkover por inactividad");
-    }
-
-    private void finalizarWalkover(DueloLive duelo, Usuario abandonador, String reason) {
-        boolean abandonadorEsJ1 = duelo.esJugador1(abandonador);
-        duelo.setAbandonador(abandonador);
-        duelo.setAbandonedEn(now());
-        duelo.setGanador(abandonadorEsJ1 ? duelo.getJugador2() : duelo.getJugador1());
-        aplicarEloYFinalizar(duelo, abandonadorEsJ1 ? 0.0 : 1.0, true);
-        metrics.dueloLiveCompleted("walkover");
-        notifier.emitirEstado(duelo, "OPPONENT_ABANDONED", "Walkover: " + reason);
-    }
-
-    private void aplicarEloYFinalizar(DueloLive duelo, double scoreJugador1, boolean walkover) {
-        // Idempotencia: si finishedEn ya esta informado, el duelo fue procesado
-        // en una llamada anterior a este metodo (scheduler o voto concurrente).
-        if (duelo.getFinishedEn() != null) {
-            log.debug("aplicarEloYFinalizar: duelo={} ya estaba finalizado, skipping", duelo.getId());
-            return;
-        }
-        PvpEloService.PvpEloResult elo = pvpEloService.aplicarResultado(
-                duelo.getJugador1(),
-                duelo.getJugador2(),
-                scoreJugador1,
-                walkover);
-        duelo.setJugador1EloBefore(elo.jugador1Before());
-        duelo.setJugador2EloBefore(elo.jugador2Before());
-        duelo.setJugador1EloAfter(elo.jugador1After());
-        duelo.setJugador2EloAfter(elo.jugador2After());
-        duelo.setEstado(walkover ? DueloLiveEstado.ABANDONED : DueloLiveEstado.FINISHED);
-        duelo.setFinishedEn(now());
-        usuarioRepository.save(duelo.getJugador1());
-        if (duelo.getJugador2() != null) {
-            usuarioRepository.save(duelo.getJugador2());
-        }
-        dueloRepository.save(duelo);
-        // Drop de cartas (F1): unico choke-point de cierre. El listener
-        // (AFTER_COMMIT) dropea moneda al ganador humano; ganador null
-        // (bot o empate) no recompensa a nadie.
-        Usuario ganador = duelo.getGanador();
-        eventPublisher.publishEvent(new DueloLiveFinalizadoEvent(
-                duelo.getId(), ganador != null ? ganador.getId() : null));
-        String outcome = scoreJugador1 == 0.5 ? "draw" : (walkover ? "walkover" : "win");
-        if (!walkover) metrics.dueloLiveCompleted(outcome);
-        log.info("duelo_live_complete id={} outcome={} j1={} j2={} score={}-{} elo_delta_j1={} elo_delta_j2={} walkover={}",
-                duelo.getId(),
-                outcome,
-                duelo.getJugador1().getUsername(),
-                duelo.getJugador2() == null ? "BOT" : duelo.getJugador2().getUsername(),
-                duelo.getScoreJugador1(),
-                duelo.getScoreJugador2(),
-                elo.jugador1Delta(),
-                elo.jugador2Delta(),
-                walkover);
     }
 
     private void marcarSeen(DueloLive duelo, Usuario usuario) {
