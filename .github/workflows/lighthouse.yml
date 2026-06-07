@@ -1,18 +1,17 @@
 name: lighthouse
 
 # Gate de rendimiento/a11y/best-practices/SEO con Lighthouse CI (B5).
-# Categorías = WARN (solo reporte + avisos). Core Web Vitals de paint/CLS
-# (FCP/LCP/CLS) = ERROR con margen amplio (límite "poor" de Web Vitals): no
-# flakean en una página normal pero tumban el run si vuelve el "blanco al
-# navegar" (V-2) — sin skeleton el paint se dispara varios segundos. El gate
-# determinista de esa regresión es el test de RequireCatalog (vitest); este es
-# la red secundaria de perf.
-# Corre sobre push a main (flujo solo-dev: cada cambio aterriza en main) y a
-# demanda. Para convertirlo en check de PR, añadir `pull_request` abajo.
-# Tras la primera corrida con estos gates, revisar el artefacto .lighthouseci y
-# apretar FCP/LCP/CLS a baseline - margen (hoy van holgados a propósito).
+# Performance y Core Web Vitals lab = ERROR. Accesibilidad/best-practices/SEO
+# siguen como WARN para no bloquear mejoras de producto por avisos no críticos.
+# Corre en PR y push a main para que un presupuesto roto se vea antes del merge.
 
 on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   push:
     branches: [main]
     paths-ignore:
@@ -151,10 +150,8 @@ jobs:
         working-directory: frontend
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-        # autorun = collect + assert + upload (según lighthouserc.json). Las
-        # categorías son WARN (el comando sale 0 aunque haya avisos), pero
-        # FCP/LCP/CLS son ERROR: un breach de esos Core Web Vitals hace que
-        # autorun salga !=0 y tumbe el push (red secundaria del "blanco al navegar").
+        # autorun = collect + assert + upload (según lighthouserc.json).
+        # Performance/FCP/LCP/CLS/TBT son ERROR: un breach tumba el PR/push.
         run: npx --yes @lhci/cli@0.14.x autorun
 
       - name: Upload Lighthouse reports
