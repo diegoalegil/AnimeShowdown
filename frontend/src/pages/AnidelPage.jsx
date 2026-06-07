@@ -20,6 +20,7 @@ import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   buildGameShareText,
+  dateFromDayKey,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
@@ -28,6 +29,7 @@ import {
   getStatsPersonaje,
 } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { useTodayKey } from '../hooks/useDailyGameState'
 import PersonajeImg from '../components/PersonajeImg'
 import { getGameVisual } from '../data/visual-assets'
 import { getAnimeIdentity } from '../data/anime-identities'
@@ -87,9 +89,10 @@ function AnidelPage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const todayKey = useTodayKey()
   const dailyObjetivo = useMemo(
-    () => personajeDelDia('anidel', new Date(), catalogoPersonajes),
-    [catalogoPersonajes],
+    () => personajeDelDia('anidel', dateFromDayKey(todayKey), catalogoPersonajes),
+    [catalogoPersonajes, todayKey],
   )
 
   if (!dailyObjetivo) {
@@ -104,27 +107,29 @@ function AnidelPage() {
 
   return (
     <AnidelGame
+      key={todayKey}
+      todayKey={todayKey}
       dailyObjetivo={dailyObjetivo}
       catalogoPersonajes={catalogoPersonajes}
     />
   )
 }
 
-function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
+function AnidelGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
   const eloObjetivo = useMemo(() => getStatsPersonaje(objetivo.slug)?.elo ?? 1500, [
     objetivo.slug,
   ])
-  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug))
+  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug, false, todayKey))
 
   useEffect(() => {
     if (esExtra) return
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
-        fecha: fechaDelDia(),
+        fecha: todayKey,
         slug: objetivo.slug,
         intentos: estado.intentos,
         pistaLetra: estado.pistaLetra,
@@ -132,7 +137,7 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
         acertado: estado.acertado,
       }),
     )
-  }, [estado, objetivo.slug, esExtra])
+  }, [estado, objetivo.slug, esExtra, todayKey])
 
   const intentosUsados = estado.intentos.length + (estado.pistaLetra ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
@@ -192,12 +197,12 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
     const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
     if (!random) return
     setExtraObjetivo(random)
-    setEstado(loadEstado(random.slug, true))
+    setEstado(loadEstado(random.slug, true, todayKey))
   }
 
   const volverAlDaily = () => {
     setExtraObjetivo(null)
-    setEstado(loadEstado(dailyObjetivo.slug))
+    setEstado(loadEstado(dailyObjetivo.slug, false, todayKey))
   }
 
   return (
@@ -340,6 +345,7 @@ function AnidelGame({ dailyObjetivo, catalogoPersonajes }) {
             intentos={estado.intentos}
             objetivo={objetivo}
             pistaUsada={Boolean(estado.pistaLetra)}
+            todayKey={todayKey}
           />
         )}
 
@@ -477,7 +483,7 @@ function tierAnidelPara(intentos, pistaUsada) {
   return 'Justo a tiempo'
 }
 
-function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
+function PanelResultado({ acertado, intentos, objetivo, pistaUsada, todayKey }) {
   const identity = getAnimeIdentity(slugifyAnime(objetivo.anime), objetivo.anime)
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
   const perfecto = acertado && totalIntentos === 1 && !pistaUsada
@@ -509,7 +515,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
 
   const texto = buildGameShareText({
     game: 'AniGrid',
-    date: fechaDelDia(),
+    date: todayKey,
     result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
     detail: acertado
       ? `Adiviné a ${objetivo.nombre}.`
@@ -555,7 +561,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   )
 }
 
-function loadEstado(slugObjetivo, forceReset = false) {
+function loadEstado(slugObjetivo, forceReset = false, todayKey = fechaDelDia()) {
   const inicial = {
     intentos: [],
     pistaLetra: null,
@@ -567,7 +573,7 @@ function loadEstado(slugObjetivo, forceReset = false) {
   if (!raw) return inicial
   try {
     const parsed = JSON.parse(raw)
-    if (parsed.fecha !== fechaDelDia() || parsed.slug !== slugObjetivo) return inicial
+    if (parsed.fecha !== todayKey || parsed.slug !== slugObjetivo) return inicial
     return {
       intentos: parsed.intentos ?? [],
       pistaLetra: parsed.pistaLetra ?? null,

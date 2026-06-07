@@ -29,6 +29,7 @@ import {
   safeStorage,
   seleccionarPreguntaOraculo,
 } from '../lib/games'
+import { useTodayKey } from '../hooks/useDailyGameState'
 
 const MAX_PREGUNTAS = 12
 const SEO_IMAGE = getGameVisual('/games/oraculo').image
@@ -56,6 +57,7 @@ function OraculoPage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const todayKey = useTodayKey()
   const preguntasDisponibles = useMemo(
     () => crearBancoPreguntasOraculo(catalogoPersonajes, tagsDePersonaje),
     [catalogoPersonajes],
@@ -71,12 +73,19 @@ function OraculoPage() {
     )
   }
 
-  return <OraculoGame catalogoPersonajes={catalogoPersonajes} />
+  return (
+    <OraculoGame
+      key={todayKey}
+      todayKey={todayKey}
+      catalogoPersonajes={catalogoPersonajes}
+    />
+  )
 }
 
-function OraculoGame({ catalogoPersonajes }) {
-  const [respuestas, setRespuestas] = useState(() => loadEstado().respuestas)
-  const [revelado, setRevelado] = useState(() => loadEstado().finalizado)
+function OraculoGame({ todayKey, catalogoPersonajes }) {
+  const initialState = () => loadEstado(todayKey)
+  const [respuestas, setRespuestas] = useState(() => initialState().respuestas)
+  const [revelado, setRevelado] = useState(() => initialState().finalizado)
 
   const pregunta = useMemo(
     () => seleccionarPreguntaOraculo(catalogoPersonajes, respuestas, tagsDePersonaje),
@@ -98,12 +107,12 @@ function OraculoGame({ catalogoPersonajes }) {
     safeStorage.set(
       ORACULO_STORAGE_KEY,
       JSON.stringify({
-        fecha: fechaDelDia(),
+        fecha: todayKey,
         respuestas,
         finalizado: revelado,
       }),
     )
-  }, [respuestas, revelado])
+  }, [respuestas, revelado, todayKey])
 
   const responder = (respuesta) => {
     if (!pregunta || revelado) return
@@ -350,13 +359,13 @@ function CandidateCard({ personaje, index, reveal }) {
   )
 }
 
-function loadEstado() {
+function loadEstado(todayKey = fechaDelDia()) {
   const fallback = { respuestas: {}, finalizado: false }
   const raw = safeStorage.get(ORACULO_STORAGE_KEY)
   if (!raw) return fallback
   try {
     const parsed = JSON.parse(raw)
-    if (parsed.fecha !== fechaDelDia()) return fallback
+    if (parsed.fecha !== todayKey) return fallback
     return {
       respuestas: parsed.respuestas && typeof parsed.respuestas === 'object'
         ? parsed.respuestas

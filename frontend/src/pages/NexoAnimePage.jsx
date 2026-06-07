@@ -19,11 +19,13 @@ import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { getGameVisual } from '../data/visual-assets'
 import {
   buildGameShareText,
+  dateFromDayKey,
   fechaDelDia,
   nexoAnimeDelDia,
   NEXO_ANIME_STORAGE_KEY,
   safeStorage,
 } from '../lib/games'
+import { useTodayKey } from '../hooks/useDailyGameState'
 
 const SEO_IMAGE = getGameVisual('/games/nexo-anime').image
 
@@ -46,9 +48,10 @@ function NexoAnimePage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const todayKey = useTodayKey()
   const dailyRound = useMemo(
-    () => nexoAnimeDelDia(new Date(), '', catalogoPersonajes),
-    [catalogoPersonajes],
+    () => nexoAnimeDelDia(dateFromDayKey(todayKey), '', catalogoPersonajes),
+    [catalogoPersonajes, todayKey],
   )
 
   if (!dailyRound) {
@@ -63,16 +66,18 @@ function NexoAnimePage() {
 
   return (
     <NexoAnimeGame
+      key={todayKey}
+      todayKey={todayKey}
       catalogoPersonajes={catalogoPersonajes}
       dailyRound={dailyRound}
     />
   )
 }
 
-function NexoAnimeGame({ catalogoPersonajes, dailyRound }) {
+function NexoAnimeGame({ todayKey, catalogoPersonajes, dailyRound }) {
   const [round, setRound] = useState(dailyRound)
   const [esExtra, setEsExtra] = useState(false)
-  const [estado, setEstado] = useState(() => loadEstado(dailyRound))
+  const [estado, setEstado] = useState(() => loadEstado(dailyRound, todayKey))
   const matchedGroupIds = new Set(estado.matchedGroupIds)
   const selectedSlugs = new Set(estado.selectedSlugs)
   const matchedSlugs = new Set(
@@ -86,7 +91,7 @@ function NexoAnimeGame({ catalogoPersonajes, dailyRound }) {
     safeStorage.set(
       NEXO_ANIME_STORAGE_KEY,
       JSON.stringify({
-        fecha: fechaDelDia(),
+        fecha: todayKey,
         roundId: round.groups.map((g) => g.id).join('|'),
         matchedGroupIds: estado.matchedGroupIds,
         attempts: estado.attempts,
@@ -94,7 +99,7 @@ function NexoAnimeGame({ catalogoPersonajes, dailyRound }) {
         finalizado: estado.finalizado,
       }),
     )
-  }, [estado, esExtra, round.groups])
+  }, [estado, esExtra, round.groups, todayKey])
 
   const seleccionar = (card) => {
     if (estado.finalizado || matchedSlugs.has(card.slug)) return
@@ -149,7 +154,7 @@ function NexoAnimeGame({ catalogoPersonajes, dailyRound }) {
   const volverAlDaily = () => {
     setRound(dailyRound)
     setEsExtra(false)
-    setEstado(loadEstado(dailyRound))
+    setEstado(loadEstado(dailyRound, todayKey))
   }
 
   const shareText = buildGameShareText({
@@ -157,7 +162,7 @@ function NexoAnimeGame({ catalogoPersonajes, dailyRound }) {
     result: estado.finalizado
       ? `${estado.attempts} intentos`
       : `${estado.matchedGroupIds.length}/${round.groups.length} nexos`,
-    detail: `${estado.errores} errores · ${fechaDelDia()}`,
+    detail: `${estado.errores} errores · ${todayKey}`,
     grid: round.groups
       .map((group) => (matchedGroupIds.has(group.id) ? 'OK' : '--'))
       .join(' '),
@@ -296,7 +301,7 @@ function NexoAnimeGame({ catalogoPersonajes, dailyRound }) {
                       matched
                         ? 'border-success/50 opacity-75'
                         : selected
-                          ? 'border-gold shadow-aura [--aura-color:rgb(var(--color-gold-rgb)/0.45)]'
+                          ? 'border-gold shadow-aura [--aura-color:var(--color-gold-aura-soft)]'
                           : 'border-border hover:border-accent/45'
                     }`}
                   >
@@ -392,14 +397,14 @@ function iniciales(nombre) {
     .toUpperCase()
 }
 
-function loadEstado(round) {
+function loadEstado(round, todayKey = fechaDelDia()) {
   const fallback = blankEstado()
   const raw = safeStorage.get(NEXO_ANIME_STORAGE_KEY)
   if (!raw) return fallback
   try {
     const parsed = JSON.parse(raw)
     const roundId = round.groups.map((g) => g.id).join('|')
-    if (parsed.fecha !== fechaDelDia() || parsed.roundId !== roundId) return fallback
+    if (parsed.fecha !== todayKey || parsed.roundId !== roundId) return fallback
     return {
       selectedSlugs: [],
       matchedGroupIds: Array.isArray(parsed.matchedGroupIds)
