@@ -12,10 +12,19 @@ vi.mock('../contexts/SoundContext', () => ({
 }))
 
 vi.mock('./PersonajeImg', () => ({
-  default: ({ className, colorDominante }: { className?: string; colorDominante?: string }) => (
+  default: ({
+    className,
+    colorDominante,
+    src,
+  }: {
+    className?: string
+    colorDominante?: string
+    src?: string
+  }) => (
     <span
       data-testid="personaje-img"
       data-color-dominante={colorDominante}
+      data-src={src}
       className={className}
     />
   ),
@@ -85,6 +94,24 @@ describe('PersonajeCard', () => {
 
     const media = screen.getByTestId('personaje-img')
     expect(media).toHaveAttribute('data-color-dominante', 'var(--demo-color-dominante)')
+  })
+
+  it('usa la imagen recibida por DTO sin esperar al catalogo global', () => {
+    render(
+      <MemoryRouter>
+        <PersonajeCard
+          slug="naruto-uzumaki"
+          nombre="Naruto Uzumaki"
+          anime="Naruto"
+          rank={1}
+          imagen="/img/Naruto/naruto-fallback.webp"
+          imagenUrl="/img/Naruto/naruto.webp"
+        />
+      </MemoryRouter>,
+    )
+
+    const media = screen.getByTestId('personaje-img')
+    expect(media).toHaveAttribute('data-src', '/img/Naruto/naruto.webp')
   })
 
   it('cae a surface cuando el personaje no trae color dominante', () => {
