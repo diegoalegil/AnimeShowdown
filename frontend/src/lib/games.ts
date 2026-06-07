@@ -197,6 +197,14 @@ export function fechaDelDia(date = new Date()): string {
   return `${y}-${m}-${d}`
 }
 
+export function dateFromDayKey(dayKey: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey)
+  if (!match) return new Date()
+
+  const [, year, month, day] = match
+  return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0, 0)
+}
+
 export function getDailyResetCountdown(date = new Date()): DailyResetCountdown {
   const nextReset = new Date(date)
   nextReset.setDate(date.getDate() + 1)

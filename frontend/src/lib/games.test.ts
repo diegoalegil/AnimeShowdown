@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
+  dateFromDayKey,
   fechaDelDia,
   getDailyResetCountdown,
   personajeDelDia,
@@ -74,6 +75,21 @@ describe('fechaDelDia', () => {
     vi.setSystemTime(new Date(2026, 4, 28, 12, 0, 0))
     expect(fechaDelDia()).toBe('2026-05-28')
     vi.useRealTimers()
+  })
+})
+
+describe('dateFromDayKey', () => {
+  it('builds a local midday date from a daily key', () => {
+    const date = dateFromDayKey('2026-05-28')
+
+    expect(date.getFullYear()).toBe(2026)
+    expect(date.getMonth()).toBe(4)
+    expect(date.getDate()).toBe(28)
+    expect(date.getHours()).toBe(12)
+  })
+
+  it('falls back to a valid Date for invalid keys', () => {
+    expect(dateFromDayKey('not-a-date')).toBeInstanceOf(Date)
   })
 })
 

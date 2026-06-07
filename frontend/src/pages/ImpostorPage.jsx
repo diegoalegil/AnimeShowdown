@@ -17,11 +17,13 @@ import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   buildGameShareText,
+  dateFromDayKey,
   fechaDelDia,
   impostorDelDia,
   safeStorage,
 } from '../lib/games'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { useTodayKey } from '../hooks/useDailyGameState'
 import PersonajeImg from '../components/PersonajeImg'
 import { getGameVisual } from '../data/visual-assets'
 import { getAnimeIdentity } from '../data/anime-identities'
@@ -41,11 +43,10 @@ const containerVariants = {
   },
 }
 
-function generarRondas(catalogoPersonajes, salt = '') {
+function generarRondas(catalogoPersonajes, salt = '', date = new Date()) {
   const out = []
-  const hoy = new Date()
   for (let r = 0; r < RONDAS_POR_DIA; r++) {
-    const ronda = impostorDelDia(hoy, `${salt}${r}`, catalogoPersonajes)
+    const ronda = impostorDelDia(date, `${salt}${r}`, catalogoPersonajes)
     if (ronda) out.push(ronda)
   }
   return out
@@ -77,9 +78,10 @@ function ImpostorPage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const todayKey = useTodayKey()
   const rondasDaily = useMemo(
-    () => generarRondas(catalogoPersonajes),
-    [catalogoPersonajes],
+    () => generarRondas(catalogoPersonajes, '', dateFromDayKey(todayKey)),
+    [catalogoPersonajes, todayKey],
   )
 
   if (rondasDaily.length === 0) {
@@ -94,19 +96,21 @@ function ImpostorPage() {
 
   return (
     <ImpostorGame
+      key={todayKey}
+      todayKey={todayKey}
       catalogoPersonajes={catalogoPersonajes}
       rondasDaily={rondasDaily}
     />
   )
 }
 
-function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
+function ImpostorGame({ todayKey, catalogoPersonajes, rondasDaily }) {
   // Rondas en useState (no useMemo) para que jugarOtra pueda regenerarlas
   // con salt distinto sin cambiar el daily. El daily usa salt=String(r),
   // los extras usan salt único por tirada.
   const [rondas, setRondas] = useState(rondasDaily)
   const [esExtra, setEsExtra] = useState(false)
-  const [estado, setEstado] = useState(() => loadEstado())
+  const [estado, setEstado] = useState(() => loadEstado(false, todayKey))
   const rondaActual = rondas[estado.rondaIdx]
   const finalizadoDia = estado.rondaIdx >= rondas.length
 
@@ -115,12 +119,12 @@ function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
-        fecha: fechaDelDia(),
+        fecha: todayKey,
         rondaIdx: estado.rondaIdx,
         resultados: estado.resultados,
       }),
     )
-  }, [estado, esExtra])
+  }, [estado, esExtra, todayKey])
 
   const handleEleccion = (item) => {
     if (finalizadoDia || !rondaActual) return
@@ -154,7 +158,7 @@ function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
   const volverAlDaily = () => {
     setRondas(rondasDaily)
     setEsExtra(false)
-    setEstado(loadEstado())
+    setEstado(loadEstado(false, todayKey))
   }
 
   return (
@@ -238,6 +242,7 @@ function ImpostorGame({ catalogoPersonajes, rondasDaily }) {
             resultados={estado.resultados}
             rondas={rondas}
             esExtra={esExtra}
+            todayKey={todayKey}
           />
         )}
 
@@ -436,7 +441,7 @@ function tierImpostorPara(aciertos, total) {
   return 'Engaño total'
 }
 
-function PanelResultado({ resultados, rondas, esExtra }) {
+function PanelResultado({ resultados, rondas, esExtra, todayKey }) {
   const aciertos = resultados.filter(Boolean).length
   const total = resultados.length
   const acertado = aciertos > 0
@@ -449,7 +454,7 @@ function PanelResultado({ resultados, rondas, esExtra }) {
 
   const texto = buildGameShareText({
     game: 'Impostor Trial',
-    date: fechaDelDia(),
+    date: todayKey,
     result: `${aciertos}/${total}`,
     detail: esExtra ? 'Ronda extra completada.' : 'Daily completado.',
     grid: squaresShare,
@@ -479,14 +484,14 @@ function PanelResultado({ resultados, rondas, esExtra }) {
   )
 }
 
-function loadEstado(forceReset = false) {
+function loadEstado(forceReset = false, todayKey = fechaDelDia()) {
   const inicial = { rondaIdx: 0, resultados: [] }
   if (forceReset) return inicial
   const raw = safeStorage.get(STORAGE_KEY)
   if (!raw) return inicial
   try {
     const parsed = JSON.parse(raw)
-    if (parsed.fecha !== fechaDelDia()) return inicial
+    if (parsed.fecha !== todayKey) return inicial
     return {
       rondaIdx: parsed.rondaIdx ?? 0,
       resultados: parsed.resultados ?? [],

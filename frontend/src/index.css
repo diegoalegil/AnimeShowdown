@@ -14,6 +14,7 @@
   --color-gold: #c5a15a;
   --color-gold-soft: rgb(197 161 90 / 0.15);
   --color-gold-aura: rgb(197 161 90 / 0.55);
+  --color-gold-aura-soft: rgb(197 161 90 / 0.45);
   --color-gold-bright: #e4c36f;
   --color-gold-pale: #f7e6a2;
   --color-elo-number: #c5a15a;
@@ -36,6 +37,7 @@
   --color-rarity-rare: #38bdf8;
   --color-rarity-epic: #a855f7;
   --color-rarity-legendary: #fbbf24;
+  --color-rarity-legendary-aura: rgb(251 191 36 / 0.55);
 
   /* Decorativos — arquetipos de personaje (/ranking). Variedad intencional,
      no semántica: namespace propio para no dejar clases stock sueltas. */
@@ -46,6 +48,7 @@
   --color-arc-protagonist: #f59e0b;
   --color-arc-rival: #f97316;
   --color-arc-mentor: #10b981;
+  --color-arc-mentor-aura: rgb(52 211 153 / 0.55);
   --color-arc-antihero: #a855f7;
 
   /* Medallero del podio/top-10. Oro brillante (distinto del oro de marca,
