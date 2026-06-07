@@ -4,7 +4,16 @@ import { useSound } from '../contexts/SoundContext'
 import PersonajeImg from './PersonajeImg'
 import { getStatsPersonaje } from '../lib/personajes-core'
 
-function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp, imagenColorDominante }) {
+function PersonajeCard({
+  slug,
+  nombre,
+  anime,
+  rank,
+  elo: eloProp,
+  imagen,
+  imagenUrl,
+  imagenColorDominante,
+}) {
   const { play } = useSound()
 
   // Solo usamos el ELO base (estimado por popularidad). Las W/L y el win rate
@@ -14,6 +23,7 @@ function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp, imagenColorDom
   const priorityImage = Boolean(rank && rank <= 12)
   const imageLoading = priorityImage ? 'eager' : 'lazy'
   const imageFetchPriority = priorityImage ? 'high' : 'auto'
+  const imageSrc = imagenUrl ?? imagen
 
   return (
     <Link
@@ -26,6 +36,7 @@ function PersonajeCard({ slug, nombre, anime, rank, elo: eloProp, imagenColorDom
       >
         <PersonajeImg
           slug={slug}
+          src={imageSrc}
           alt={nombre}
           colorDominante={imagenColorDominante ?? 'var(--color-surface)'}
           loading={imageLoading}
