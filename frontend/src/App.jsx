@@ -357,7 +357,7 @@ function App() {
       <OnboardingGate />
       <CookieConsent />
       <EmailVerifyBanner />
-      <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
+      <main id="main-content" tabIndex={-1} className="flex min-h-[calc(100svh-4.5rem)] flex-1 flex-col focus:outline-none">
         <div className="flex flex-1 flex-col">
           {/* Boundary a nivel de ruta. Un error de render en una página se
               contiene aquí y el shell (Header, Footer, nav) sigue vivo, en
