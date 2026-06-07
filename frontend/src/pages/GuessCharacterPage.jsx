@@ -20,6 +20,7 @@ import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   buildGameShareText,
   buildShareSquares,
+  dateFromDayKey,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
@@ -28,6 +29,7 @@ import PersonajeImg from '../components/PersonajeImg'
 import PersonajeCutImg from '../components/PersonajeCutImg'
 import { hasCut } from '../lib/cuts'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { useTodayKey } from '../hooks/useDailyGameState'
 import { getGameVisual } from '../data/visual-assets'
 import { getAnimeIdentity } from '../data/anime-identities'
 import { slugifyAnime } from '../lib/animes'
@@ -67,9 +69,10 @@ function GuessCharacterPage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const todayKey = useTodayKey()
   const dailyObjetivo = useMemo(
-    () => personajeDelDia('guess-character', new Date(), catalogoPersonajes),
-    [catalogoPersonajes],
+    () => personajeDelDia('guess-character', dateFromDayKey(todayKey), catalogoPersonajes),
+    [catalogoPersonajes, todayKey],
   )
 
   if (!dailyObjetivo) {
@@ -84,20 +87,22 @@ function GuessCharacterPage() {
 
   return (
     <GuessCharacterGame
+      key={todayKey}
+      todayKey={todayKey}
       dailyObjetivo={dailyObjetivo}
       catalogoPersonajes={catalogoPersonajes}
     />
   )
 }
 
-function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
+function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
   // El "daily" usa personajeDelDia (determinístico, compartible). Cuando
   // el user pulsa "Jugar otra" tras terminar, generamos un personaje
   // random sin determinismo y sin compartir — modo endless improvisado.
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
-  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug))
+  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug, false, todayKey))
 
   // Persistir cambios SOLO del Daily (no de las partidas extras random).
   // En extra no queremos guardar nada — cada extra es efímera.
@@ -106,7 +111,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
-        fecha: fechaDelDia(),
+        fecha: todayKey,
         slug: objetivo.slug,
         intentos: estado.intentos,
         pistaUsada: estado.pistaUsada,
@@ -114,7 +119,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
         acertado: estado.acertado,
       }),
     )
-  }, [estado, objetivo.slug, esExtra])
+  }, [estado, objetivo.slug, esExtra, todayKey])
 
   const intentosUsados = estado.intentos.length + (estado.pistaUsada ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
@@ -159,13 +164,13 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
     const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
     if (!random) return
     setExtraObjetivo(random)
-    setEstado(loadEstado(random.slug, true))
+    setEstado(loadEstado(random.slug, true, todayKey))
   }
 
   /** Vuelve al daily — usado tras varias extras para volver al compartible. */
   const volverAlDaily = () => {
     setExtraObjetivo(null)
-    setEstado(loadEstado(dailyObjetivo.slug))
+    setEstado(loadEstado(dailyObjetivo.slug, false, todayKey))
   }
 
   return (
@@ -234,7 +239,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
         <div
           className={`as-panel relative mx-auto mb-4 w-full max-w-[min(78vw,320px)] overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:max-w-sm ${
             estado.acertado
-              ? 'border-success/60 shadow-aura-lg [--aura-color:rgb(52_211_153_/_0.55)]'
+              ? 'border-success/60 shadow-aura-lg [--aura-color:var(--color-arc-mentor-aura)]'
               : 'border-border'
           }`}
         >
@@ -327,6 +332,7 @@ function GuessCharacterGame({ dailyObjetivo, catalogoPersonajes }) {
             intentos={estado.intentos}
             objetivo={objetivo}
             pistaUsada={estado.pistaUsada}
+            todayKey={todayKey}
           />
         )}
 
@@ -371,7 +377,7 @@ function tierPara(intentos, pistaUsada) {
   return 'Justo a tiempo'
 }
 
-function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
+function PanelResultado({ acertado, intentos, objetivo, pistaUsada, todayKey }) {
   const identity = getAnimeIdentity(slugifyAnime(objetivo.anime), objetivo.anime)
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
   const perfecto = acertado && totalIntentos === 1 && !pistaUsada
@@ -381,7 +387,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   )
   const texto = buildGameShareText({
     game: 'Shadow Guess',
-    date: fechaDelDia(),
+    date: todayKey,
     result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
     detail: acertado
       ? 'Acerté el personaje oculto.'
@@ -482,7 +488,7 @@ function ListaIntentos({ intentos, objetivo }) {
  * cambiaron (medianoche o personaje distinto al esperado), empieza
  * partida nueva.
  */
-function loadEstado(slugObjetivo, forceReset = false) {
+function loadEstado(slugObjetivo, forceReset = false, todayKey = fechaDelDia()) {
   const inicial = {
     intentos: [],
     pistaUsada: false,
@@ -494,7 +500,7 @@ function loadEstado(slugObjetivo, forceReset = false) {
   if (!raw) return inicial
   try {
     const parsed = JSON.parse(raw)
-    if (parsed.fecha !== fechaDelDia() || parsed.slug !== slugObjetivo) {
+    if (parsed.fecha !== todayKey || parsed.slug !== slugObjetivo) {
       return inicial
     }
     return {

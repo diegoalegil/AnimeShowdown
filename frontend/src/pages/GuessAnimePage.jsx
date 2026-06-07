@@ -20,11 +20,13 @@ import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
   buildGameShareText,
   buildShareSquares,
+  dateFromDayKey,
   fechaDelDia,
   personajeDelDia,
   safeStorage,
 } from '../lib/games'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
+import { useTodayKey } from '../hooks/useDailyGameState'
 import { getGameVisual } from '../data/visual-assets'
 import { getAnimeIdentity } from '../data/anime-identities'
 import { slugifyAnime } from '../lib/animes'
@@ -60,9 +62,10 @@ function GuessAnimePage() {
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
+  const todayKey = useTodayKey()
   const dailyObjetivo = useMemo(
-    () => personajeDelDia('guess-anime', new Date(), catalogoPersonajes),
-    [catalogoPersonajes],
+    () => personajeDelDia('guess-anime', dateFromDayKey(todayKey), catalogoPersonajes),
+    [catalogoPersonajes, todayKey],
   )
 
   if (!dailyObjetivo) {
@@ -77,24 +80,26 @@ function GuessAnimePage() {
 
   return (
     <GuessAnimeGame
+      key={todayKey}
+      todayKey={todayKey}
       dailyObjetivo={dailyObjetivo}
       catalogoPersonajes={catalogoPersonajes}
     />
   )
 }
 
-function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
+function GuessAnimeGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
   const [extraObjetivo, setExtraObjetivo] = useState(null)
   const objetivo = extraObjetivo ?? dailyObjetivo
   const esExtra = extraObjetivo !== null
-  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug))
+  const [estado, setEstado] = useState(() => loadEstado(dailyObjetivo.slug, false, todayKey))
 
   useEffect(() => {
     if (esExtra) return
     safeStorage.set(
       STORAGE_KEY,
       JSON.stringify({
-        fecha: fechaDelDia(),
+        fecha: todayKey,
         slug: objetivo.slug,
         intentos: estado.intentos,
         pistaUsada: estado.pistaUsada,
@@ -102,7 +107,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
         acertado: estado.acertado,
       }),
     )
-  }, [estado, objetivo.slug, esExtra])
+  }, [estado, objetivo.slug, esExtra, todayKey])
 
   const intentosUsados = estado.intentos.length + (estado.pistaUsada ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
@@ -135,12 +140,12 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
     const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
     if (!random) return
     setExtraObjetivo(random)
-    setEstado(loadEstado(random.slug, true))
+    setEstado(loadEstado(random.slug, true, todayKey))
   }
 
   const volverAlDaily = () => {
     setExtraObjetivo(null)
-    setEstado(loadEstado(dailyObjetivo.slug))
+    setEstado(loadEstado(dailyObjetivo.slug, false, todayKey))
   }
 
   return (
@@ -208,7 +213,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
         <div
           className={`as-panel relative mx-auto mb-4 w-fit overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:w-auto sm:max-w-sm ${
             estado.acertado
-              ? 'border-gold/60 shadow-aura-lg [--aura-color:rgb(251_191_36_/_0.55)]'
+              ? 'border-gold/60 shadow-aura-lg [--aura-color:var(--color-rarity-legendary-aura)]'
               : 'border-border'
           }`}
         >
@@ -286,6 +291,7 @@ function GuessAnimeGame({ dailyObjetivo, catalogoPersonajes }) {
             intentos={estado.intentos}
             objetivo={objetivo}
             pistaUsada={estado.pistaUsada}
+            todayKey={todayKey}
           />
         )}
 
@@ -328,7 +334,7 @@ function tierAnimePara(intentos, pistaUsada) {
   return 'Justo a tiempo'
 }
 
-function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
+function PanelResultado({ acertado, intentos, objetivo, pistaUsada, todayKey }) {
   const identity = getAnimeIdentity(slugifyAnime(objetivo.anime), objetivo.anime)
   const totalIntentos = intentos.length + (pistaUsada ? 1 : 0)
   const perfecto = acertado && totalIntentos === 1 && !pistaUsada
@@ -338,7 +344,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada }) {
   )
   const texto = buildGameShareText({
     game: 'Anime Reveal',
-    date: fechaDelDia(),
+    date: todayKey,
     result: acertado ? `${totalIntentos}/${MAX_INTENTOS}` : `X/${MAX_INTENTOS}`,
     detail: acertado
       ? `Acerté que era ${objetivo.anime}.`
@@ -416,7 +422,7 @@ function ListaIntentosAnime({ intentos }) {
   )
 }
 
-function loadEstado(slugObjetivo, forceReset = false) {
+function loadEstado(slugObjetivo, forceReset = false, todayKey = fechaDelDia()) {
   const inicial = {
     intentos: [],
     pistaUsada: false,
@@ -428,7 +434,7 @@ function loadEstado(slugObjetivo, forceReset = false) {
   if (!raw) return inicial
   try {
     const parsed = JSON.parse(raw)
-    if (parsed.fecha !== fechaDelDia() || parsed.slug !== slugObjetivo) return inicial
+    if (parsed.fecha !== todayKey || parsed.slug !== slugObjetivo) return inicial
     return {
       intentos: parsed.intentos ?? [],
       pistaUsada: Boolean(parsed.pistaUsada),
