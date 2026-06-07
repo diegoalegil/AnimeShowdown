@@ -13,10 +13,15 @@ const BIO_MAX = 240
  */
 function CardBio({ user }) {
   const { changeBio } = useAuth()
-  const [bio, setBio] = useState(user.bio ?? '')
+  const sourceBio = user.bio ?? ''
+  const [draft, setDraft] = useState(() => ({
+    sourceBio,
+    value: sourceBio,
+  }))
   const [guardando, setGuardando] = useState(false)
 
-  const original = user.bio ?? ''
+  const bio = draft.sourceBio === sourceBio ? draft.value : sourceBio
+  const original = sourceBio
   const sinCambios = bio.trim() === original.trim()
 
   const onSubmit = async (e) => {
@@ -49,7 +54,7 @@ function CardBio({ user }) {
       </p>
       <textarea
         value={bio}
-        onChange={(e) => setBio(e.target.value)}
+        onChange={(e) => setDraft({ sourceBio, value: e.target.value })}
         rows={3}
         maxLength={BIO_MAX}
         placeholder="Fan de los shōnen, coleccionista de duelos imposibles..."
