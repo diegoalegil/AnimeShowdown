@@ -147,7 +147,7 @@ export default function VoteQuoteCard({ personaje, rival, intencion }) {
               type="button"
               onClick={generar}
               disabled={generando}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-[12px] font-black text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-[12px] font-black text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               <ImageIcon className="h-3.5 w-3.5" />
               {generando ? 'Generando…' : preview ? 'Regenerar tarjeta' : 'Generar tarjeta'}
@@ -156,7 +156,7 @@ export default function VoteQuoteCard({ personaje, rival, intencion }) {
               <button
                 type="button"
                 onClick={descargar}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border bg-bg px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-bg px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
               >
                 <Download className="h-3.5 w-3.5" />
                 Descargar PNG
@@ -167,7 +167,7 @@ export default function VoteQuoteCard({ personaje, rival, intencion }) {
                 type="button"
                 onClick={compartir}
                 disabled={compartiendo}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-gold/40 bg-gold-soft px-3.5 py-2 text-[12px] font-black text-gold transition-colors hover:border-gold hover:bg-gold/15 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-gold/40 bg-gold-soft px-3.5 py-2 text-[12px] font-black text-gold transition-colors hover:border-gold hover:bg-gold/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Share2 className="h-3.5 w-3.5" />
                 {compartiendo ? 'Compartiendo…' : 'Compartir tarjeta'}

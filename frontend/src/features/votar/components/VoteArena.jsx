@@ -79,7 +79,7 @@ const VoteArena = memo(function VoteArena({
               type="button"
               onClick={handleTieVote}
               disabled={controlsDisabled}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[11px] font-black text-gold transition-colors hover:border-gold disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[11px] font-black text-gold transition-colors hover:border-gold disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Scale className="h-3.5 w-3.5" />
               No puedo decidir

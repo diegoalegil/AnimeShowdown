@@ -733,7 +733,7 @@ function ListaEloLocal({
           type="button"
           onClick={compartirVista}
           disabled={filtered.length === 0}
-          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[12px] font-black text-fg-strong transition-colors hover:border-accent hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Share2 className="h-3.5 w-3.5" />
           Compartir vista
