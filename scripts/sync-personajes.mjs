@@ -70,9 +70,9 @@ function deriveName(slug) {
 
 // ─── escaneo de img/ ────────────────────────────────────────────────────────
 
-// generate-image-variants.mjs escribe variantes responsive (-300/-600/-1024
-// + .avif) en frontend/img/. Si se cuela aquí, las trataríamos como
-// personajes nuevos e inyectaríamos 4x el catálogo + duplicados. Lección
+// generate-image-variants.mjs escribe variantes responsive (-300/-600) en
+// frontend/img/. Si se cuelan aquí, las trataríamos como personajes nuevos e
+// inyectaríamos entradas duplicadas en el catálogo. Lección
 // aprendida en 2026-05-17: el seed terminó con 2815 entries (700 reales x
 // 4 variantes) y rompió el DataSeeder con Unique constraint violations.
 const VARIANT_SUFFIX = /-(?:300|600|1024)$/
