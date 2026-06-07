@@ -166,6 +166,11 @@
   }
 }
 
+@keyframes notifDropdownIn {
+  from { opacity: 0; transform: translateY(-0.5rem) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @keyframes aurora-1 {
   0%,
   100% {
@@ -944,6 +949,9 @@
   --as-cream: #f1e7d3;
   max-width: calc(100vw - 2rem);
 }
+.as-splash-overlay-exit {
+  animation: asSplashFadeOut 0.4s ease-out forwards;
+}
 .as-splash-emblem {
   position: relative;
   width: 148px;
@@ -1043,6 +1051,9 @@
 }
 @keyframes asRise {
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes asSplashFadeOut {
+  to { opacity: 0; }
 }
 @keyframes asGlow {
   0%, 100% { filter: drop-shadow(0 0 12px rgb(214 43 43 / 0.5)); }
