@@ -124,7 +124,7 @@ function TierListCanvasPreview({ titulo, rows, publicSlug }) {
             type="button"
             onClick={generar}
             disabled={!canGenerate || generando}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-black text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-black text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ImageIcon className="h-4 w-4" aria-hidden="true" />
             {generando ? 'Generando' : 'Generar'}
@@ -133,7 +133,7 @@ function TierListCanvasPreview({ titulo, rows, publicSlug }) {
             <button
               type="button"
               onClick={descargar}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-bg px-4 text-sm font-black text-fg-strong transition-colors hover:border-accent/45"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-bg px-4 text-sm font-black text-fg-strong transition-colors hover:border-accent/45"
             >
               <Download className="h-4 w-4" aria-hidden="true" />
               PNG
@@ -144,7 +144,7 @@ function TierListCanvasPreview({ titulo, rows, publicSlug }) {
               type="button"
               onClick={compartir}
               disabled={compartiendo}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-gold/35 bg-gold-soft px-4 text-sm font-black text-gold transition-colors hover:border-gold/60 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-gold/35 bg-gold-soft px-4 text-sm font-black text-gold transition-colors hover:border-gold/60 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Share2 className="h-4 w-4" aria-hidden="true" />
               Compartir

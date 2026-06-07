@@ -14,7 +14,7 @@ const variants = {
 }
 
 const sizes = {
-  sm: 'min-h-9 px-3 text-xs',
+  sm: 'min-h-11 px-3 text-xs',
   md: 'min-h-11 px-4 text-sm',
   lg: 'min-h-12 px-5 text-sm',
 }
@@ -25,7 +25,7 @@ const sizes = {
  * @param {object} props
  * @param {'button'|'a'|import('react').ElementType} [props.as='button'] Element or component to render.
  * @param {'primary'|'secondary'|'ghost'} [props.variant='primary'] Visual treatment based on existing Tailwind tokens.
- * @param {'sm'|'md'|'lg'} [props.size='md'] Control height. `md` is 44px and `lg` is 48px.
+ * @param {'sm'|'md'|'lg'} [props.size='md'] Control height. `sm` and `md` are 44px; `lg` is 48px.
  * @param {string} [props.className] Extra classes appended to the primitive styles.
  * @example
  * <Button as={Link} to="/votar" variant="primary" size="lg">

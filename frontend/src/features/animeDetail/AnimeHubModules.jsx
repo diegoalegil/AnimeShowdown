@@ -91,7 +91,7 @@ function RealRankingCard({ anime, ranking, isLoading, slug }) {
       action={
         <Link
           to={`/animes/${slug}/ranking`}
-          className="inline-flex h-9 items-center rounded-lg border border-border bg-surface px-3 text-[12px] font-bold text-fg-strong transition-colors hover:border-accent/45 hover:text-gold"
+          className="inline-flex min-h-11 items-center rounded-lg border border-border bg-surface px-3 text-[12px] font-bold text-fg-strong transition-colors hover:border-accent/45 hover:text-gold"
         >
           Ver ranking
         </Link>

@@ -283,7 +283,7 @@ function RankingRow({ item, rank }) {
       <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
         <Link
           to={`/votar?personaje=${encodeURIComponent(item.slug)}`}
-          className="inline-flex min-h-10 items-center justify-center rounded-lg border border-accent/45 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-accent/45 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
         >
           Retar
         </Link>

@@ -95,7 +95,7 @@ function ShareButtons({ url, texto }) {
           rel="noopener noreferrer"
           title={`Compartir en ${e.nombre}`}
           aria-label={`Compartir en ${e.nombre}`}
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-transform hover:-translate-y-0.5 ${e.bg} ${e.text}`}
+          className={`inline-flex h-11 w-11 items-center justify-center rounded-lg transition-transform hover:-translate-y-0.5 ${e.bg} ${e.text}`}
         >
           {e.icon}
         </a>
@@ -105,7 +105,7 @@ function ShareButtons({ url, texto }) {
         onClick={handleCopy}
         aria-label="Copiar enlace"
         title="Copiar enlace"
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[12px] font-semibold text-fg-strong transition-colors hover:border-accent/40"
       >
         {copiado ? <LinkIcon className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
         {copiado ? 'Copiado' : 'Copiar enlace'}

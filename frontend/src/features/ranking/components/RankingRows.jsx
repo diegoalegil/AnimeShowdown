@@ -142,7 +142,7 @@ function ChallengeLink({ slug, nombre }) {
       to={`/votar?personaje=${encodeURIComponent(slug)}`}
       aria-label={`Retar a ${nombre} en un duelo`}
       title={`Retar a ${nombre}`}
-      className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
+      className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 text-[12px] font-black text-gold transition-colors hover:bg-accent/20"
     >
       <Swords className="h-3.5 w-3.5" />
       <span className="hidden sm:inline">Retar</span>
