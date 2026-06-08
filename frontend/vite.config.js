@@ -247,9 +247,12 @@ function criticalCssPlugin() {
 //   - Sonner monta su propio <style> para los toasts. Sin este hash, la CSP lo
 //     bloquea ("Refused to apply stylesheet") en TODAS las rutas y los toasts
 //     pueden perder estilos.
+//   - Algunas librerías montan un <style> vacío antes de inyectar reglas por
+//     CSSOM. La CSP reporta ese caso con el hash del string vacío.
 // OJO: atado a la versión de Sonner. Si se actualiza y cambia su CSS, el hash
 // cambia y hay que regenerarlo (el navegador lo reporta en la violación CSP).
 const RUNTIME_STYLE_HASHES = [
+  "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
   "'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY='",
 ]
 

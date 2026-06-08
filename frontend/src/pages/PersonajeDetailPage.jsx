@@ -71,6 +71,11 @@ function canCreateWebGLContext() {
   }
 }
 
+function isExpectedPersonaje3DRenderError(error) {
+  const message = String(error?.message || error || '')
+  return /error creating webgl context|could not create webgl context|webglrenderer/i.test(message)
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -953,7 +958,10 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   )
   return (
     <div className="relative h-full w-full">
-      <ErrorBoundary fallback={imagen2dFallback}>
+      <ErrorBoundary
+        fallback={imagen2dFallback}
+        shouldReportError={(error) => !isExpectedPersonaje3DRenderError(error)}
+      >
         <Suspense fallback={imagen2dFallback}>
           <Personaje3D slug={slug} />
         </Suspense>
