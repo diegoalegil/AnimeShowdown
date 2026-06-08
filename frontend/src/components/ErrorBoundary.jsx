@@ -48,15 +48,26 @@ class ErrorBoundary extends Component {
       return
     }
 
-    // Reporta a Sentry si está inicializado (lib/sentry.js solo llama
-    // init si hay VITE_SENTRY_DSN). Si no, captureException es no-op
-    // silencioso del propio SDK. Pasamos componentStack como contexto.
-    try {
-      Sentry.captureException(error, {
-        contexts: { react: { componentStack: info?.componentStack } },
-      })
-    } catch {
-      /* Sentry roto no debe tumbar el boundary */
+    let shouldReport = true
+    if (typeof this.props.shouldReportError === 'function') {
+      try {
+        shouldReport = this.props.shouldReportError(error, info) !== false
+      } catch {
+        shouldReport = true
+      }
+    }
+
+    if (shouldReport) {
+      // Reporta a Sentry si está inicializado (lib/sentry.js solo llama
+      // init si hay VITE_SENTRY_DSN). Si no, captureException es no-op
+      // silencioso del propio SDK. Pasamos componentStack como contexto.
+      try {
+        Sentry.captureException(error, {
+          contexts: { react: { componentStack: info?.componentStack } },
+        })
+      } catch {
+        /* Sentry roto no debe tumbar el boundary */
+      }
     }
     if (import.meta.env.DEV) {
       console.error('[ErrorBoundary]', error, info?.componentStack)
