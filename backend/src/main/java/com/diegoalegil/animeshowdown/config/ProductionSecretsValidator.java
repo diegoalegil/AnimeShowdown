@@ -121,10 +121,13 @@ public class ProductionSecretsValidator {
             }
         }
         if (!criptoCortos.isEmpty()) {
-            String mensaje = "Boot abortado: claves criptográficas demasiado cortas (mínimo 32 chars): "
-                    + criptoCortos + ". Genera valores nuevos con `openssl rand -base64 48`.";
-            log.error(mensaje);
-            throw new IllegalStateException(mensaje);
+            // log.error sin abortar: no podemos garantizar la longitud de los
+            // secretos ya desplegados y un boot-abort sorpresa en prod es peor
+            // que la debilidad. Rotar los listados y entonces subirlo a throw.
+            log.error(
+                    "Claves criptográficas demasiado cortas (mínimo recomendado 32 chars): {}. "
+                            + "Rota estos secretos con `openssl rand -base64 48` cuanto antes.",
+                    criptoCortos);
         }
 
         List<String> opcionalesInseguros = new ArrayList<>();
