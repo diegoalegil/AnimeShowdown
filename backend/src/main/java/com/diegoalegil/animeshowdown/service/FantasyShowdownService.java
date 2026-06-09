@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -241,14 +240,6 @@ public class FantasyShowdownService {
         return bloqueados;
     }
 
-    @Scheduled(cron = "${app.fantasy.weekly.cron:0 5 0 * * MON}", zone = "UTC")
-    @Transactional
-    public void cierreSemanalProgramado() {
-        LocalDate hoy = LocalDate.now(clock);
-        cerrarSemana(semanaIso(hoy.minusWeeks(1)));
-        bloquearEquiposSemana(semanaIso(hoy));
-    }
-
     public String semanaIsoActual() {
         return semanaIso(LocalDate.now(clock));
     }
@@ -389,7 +380,7 @@ public class FantasyShowdownService {
         return semanaIso.trim();
     }
 
-    private static String semanaIso(LocalDate fecha) {
+    public static String semanaIso(LocalDate fecha) {
         WeekFields wf = WeekFields.ISO;
         int year = fecha.get(wf.weekBasedYear());
         int week = fecha.get(wf.weekOfWeekBasedYear());
