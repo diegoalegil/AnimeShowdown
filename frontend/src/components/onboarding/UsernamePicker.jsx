@@ -80,24 +80,25 @@ function UsernamePicker({
               setValue(e.target.value)
             }}
             placeholder="ShadowHokage"
-            aria-invalid={status === 'taken' || status === 'invalid'}
+            aria-invalid={Boolean(errorInline) || status === 'taken' || status === 'invalid'}
+            aria-describedby="onboarding-username-status"
             className={`w-full rounded-lg border bg-bg px-3.5 py-2.5 pr-10 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              status === 'taken' || status === 'invalid'
+              errorInline || status === 'taken' || status === 'invalid'
                 ? 'border-danger'
                 : status === 'available'
-                  ? 'border-emerald-500/60'
+                  ? 'border-success/60'
                   : 'border-border'
             }`}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
             {status === 'checking' && (
-              <Loader2 className="h-4 w-4 animate-spin text-fg-muted" />
+              <Loader2 className="h-4 w-4 animate-spin text-fg-muted" aria-hidden="true" />
             )}
             {status === 'available' && (
-              <Check className="h-4 w-4 text-emerald-400" />
+              <Check className="h-4 w-4 text-success" aria-hidden="true" />
             )}
             {(status === 'taken' || status === 'invalid') && (
-              <X className="h-4 w-4 text-danger" />
+              <X className="h-4 w-4 text-danger" aria-hidden="true" />
             )}
           </span>
         </div>
@@ -143,35 +144,41 @@ function UsernamePicker({
 }
 
 function StatusHint({ status, errorInline }) {
+  const baseProps = {
+    id: 'onboarding-username-status',
+    'aria-live': 'polite',
+    'aria-atomic': 'true',
+  }
+
   if (errorInline) {
-    return <p className="text-[11px] text-danger">{errorInline}</p>
+    return <p {...baseProps} className="text-[11px] text-danger">{errorInline}</p>
   }
   if (status === 'taken') {
     return (
-      <p className="text-[11px] text-danger">
+      <p {...baseProps} className="text-[11px] text-danger">
         Ese username ya está cogido. Prueba otro o usa una sugerencia.
       </p>
     )
   }
   if (status === 'invalid') {
     return (
-      <p className="text-[11px] text-danger">
+      <p {...baseProps} className="text-[11px] text-danger">
         Usa 3-30 caracteres: letras, números, guión y guión bajo.
       </p>
     )
   }
   if (status === 'available') {
-    return <p className="text-[11px] text-emerald-400">¡Disponible! Es todo tuyo.</p>
+    return <p {...baseProps} className="text-[11px] text-success">¡Disponible! Es todo tuyo.</p>
   }
   if (status === 'same') {
     return (
-      <p className="text-[11px] text-fg-muted">
+      <p {...baseProps} className="text-[11px] text-fg-muted">
         Es tu username actual. Puedes confirmarlo o elegir otro.
       </p>
     )
   }
   return (
-    <p className="text-[11px] text-fg-muted">
+    <p {...baseProps} className="text-[11px] text-fg-muted">
       Será tu identidad pública en /u/tu-username.
     </p>
   )
