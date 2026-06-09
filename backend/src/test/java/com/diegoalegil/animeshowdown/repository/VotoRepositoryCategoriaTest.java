@@ -23,6 +23,8 @@ import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Torneo;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.model.Voto;
+import com.diegoalegil.animeshowdown.service.PersonajeScoreQueryService;
+import com.diegoalegil.animeshowdown.service.VotoStatsService;
 
 /**
  * Queries de ranking por intención de voto (feature #15) + la garantía
@@ -43,6 +45,8 @@ class VotoRepositoryCategoriaTest {
     @Autowired private EnfrentamientoRepository enfrentamientoRepository;
     @Autowired private TorneoRepository torneoRepository;
     @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private PersonajeScoreQueryService personajeScoreQueryService;
+    @Autowired private VotoStatsService votoStatsService;
 
     private final PageRequest top = PageRequest.of(0, 50);
 
@@ -192,11 +196,12 @@ class VotoRepositoryCategoriaTest {
     void topConPuntuacionYRecenciaReparteEmpateComoScoreFraccional() {
         Personaje a = nuevoPersonaje("score_a");
         Personaje b = nuevoPersonaje("score_b");
-        votoEmpate(a, b, nuevoUsuario("empate_score"));
+        Voto empate = votoEmpate(a, b, nuevoUsuario("empate_score"));
+        votoStatsService.registrar(empate);
 
-        List<PersonajeScoreItem> topScore = personajeRepository.topConPuntuacionYRecencia(
+        List<PersonajeScoreItem> topScore = personajeScoreQueryService.topConPuntuacionYRecencia(
                 LocalDateTime.now().minusDays(1),
-                PageRequest.of(0, 5000));
+                5000);
 
         PersonajeScoreItem itemA = buscarScore(topScore, a.getId());
         PersonajeScoreItem itemB = buscarScore(topScore, b.getId());

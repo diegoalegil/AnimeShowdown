@@ -17,7 +17,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +51,7 @@ public class FantasyShowdownService {
     private final UsuarioRepository usuarioRepository;
     private final VotoRepository votoRepository;
     private final RankingMovimientosService rankingMovimientosService;
+    private final PersonajeScoreQueryService personajeScoreQueryService;
     private final Clock clock;
     private final int presupuesto;
 
@@ -61,6 +61,7 @@ public class FantasyShowdownService {
             UsuarioRepository usuarioRepository,
             VotoRepository votoRepository,
             RankingMovimientosService rankingMovimientosService,
+            PersonajeScoreQueryService personajeScoreQueryService,
             Clock clock,
             @Value("${app.fantasy.presupuesto:" + PRESUPUESTO_DEFAULT + "}") int presupuesto) {
         this.equipoRepository = equipoRepository;
@@ -68,6 +69,7 @@ public class FantasyShowdownService {
         this.usuarioRepository = usuarioRepository;
         this.votoRepository = votoRepository;
         this.rankingMovimientosService = rankingMovimientosService;
+        this.personajeScoreQueryService = personajeScoreQueryService;
         this.clock = clock;
         this.presupuesto = Math.max(1, presupuesto);
     }
@@ -89,9 +91,9 @@ public class FantasyShowdownService {
         Map<Long, Double> votos = votosPorPersonaje();
         List<Personaje> personajes;
         if (q.isBlank()) {
-            personajes = personajeRepository.topConPuntuacionYRecencia(
+            personajes = personajeScoreQueryService.topConPuntuacionYRecencia(
                             LocalDateTime.now(clock).minusDays(1),
-                            PageRequest.of(0, saneLimit))
+                            saneLimit)
                     .stream()
                     .map(this::fromScoreItem)
                     .toList();
