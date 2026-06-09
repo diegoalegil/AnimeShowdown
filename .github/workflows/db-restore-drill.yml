@@ -1,0 +1,87 @@
+name: DB restore drill ← R2
+
+# Drill mensual de restore: baja el último dump daily de R2, lo restaura en
+# un Postgres 17 efímero del runner y valida el resultado (migraciones Flyway
+# íntegras + datos presentes). Un backup que nunca se ha restaurado no es un
+# backup; este workflow convierte el cron diario de db-backup.yml en algo
+# verificado todos los meses.
+#
+# NO toca producción: solo lee del bucket de R2. Reusa los mismos secretos
+# que "DB backup → R2" (R2_ENDPOINT / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY).
+# Los secretos R2_IMG_* de img-cdn-sync.yml son OTRO token, scoped al bucket
+# de imágenes — esa separación por bucket es deliberada, no duplicación.
+#
+# Para test manual: tab Actions → "DB restore drill ← R2" → Run workflow.
+
+on:
+  schedule:
+    # Día 3 de cada mes a las 05:00 UTC — una hora después del backup diario
+    # (04:00), y pasado el día 1 para que el snapshot monthly ya exista.
+    - cron: '0 5 3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drill:
+    name: Download + restore + validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      # BBDD desechable donde restaurar. postgres:17 = misma major que
+      # Supabase en prod, así el drill también pillaría un dump que solo
+      # restaura en la versión exacta del server.
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: drill
+          POSTGRES_PASSWORD: drill
+          POSTGRES_DB: drill
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U drill"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      R2_BUCKET: animeshowdown-backups
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      DRILL_DATABASE_URL: postgresql://drill:drill@localhost:5432/drill
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install PostgreSQL 17 client
+        # Mismo bloque que db-backup.yml: ubuntu-latest trae pg 16 por
+        # default y pg_restore 16 no puede leer dumps generados por 17.
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+          /usr/lib/postgresql/17/bin/pg_restore --version
+
+      - name: Verify secrets present
+        run: |
+          missing=()
+          [ -z "$R2_ENDPOINT"          ] && missing+=("R2_ENDPOINT")
+          [ -z "$R2_ACCESS_KEY_ID"     ] && missing+=("R2_ACCESS_KEY_ID")
+          [ -z "$R2_SECRET_ACCESS_KEY" ] && missing+=("R2_SECRET_ACCESS_KEY")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Faltan secrets: ${missing[*]}"
+            exit 1
+          fi
+          echo "✓ Todos los secrets presentes."
+
+      - name: Run restore drill
+        run: ./scripts/restore-drill.sh
