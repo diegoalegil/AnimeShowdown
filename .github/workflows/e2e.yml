@@ -122,19 +122,13 @@ jobs:
 
       - name: Wait for backend
         run: |
-          # Backend con Postgres real tarda ~25-40s en CI (Flyway aplica
-          # V1..V28 + JPA init). Damos hasta 240s con poll cada 2s antes
-          # de rendirnos.
-          for i in {1..120}; do
-            if curl -fsS http://127.0.0.1:8080/actuator/health >/dev/null; then
-              echo "✓ Backend up after $((i * 2))s"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "❌ Backend never came up — last 200 lines of backend-e2e.log:"
-          tail -200 backend-e2e.log
-          exit 1
+          # Backend con Postgres real tarda ~25-40s en CI (Flyway + JPA init).
+          # Damos hasta 240s con poll cada 2s y volcamos log si no responde.
+          bash scripts/ci/wait-for-http.sh \
+            http://127.0.0.1:8080/actuator/health \
+            240 \
+            2 \
+            backend-e2e.log
 
       - name: Build frontend
         working-directory: frontend
@@ -146,11 +140,7 @@ jobs:
 
       - name: Stage preview image fixtures
         working-directory: frontend
-        run: |
-          mkdir -p dist/img/One_Piece dist/img/Naruto
-          cp img/One_Piece/luffy.webp dist/img/One_Piece/luffy.webp
-          cp img/One_Piece/zoro.webp dist/img/One_Piece/zoro.webp
-          cp img/Naruto/naruto.webp dist/img/Naruto/naruto.webp
+        run: bash ../scripts/ci/stage-preview-image-fixtures.sh
 
       - name: Start frontend preview
         working-directory: frontend
@@ -160,14 +150,11 @@ jobs:
 
       - name: Wait for frontend
         run: |
-          for i in {1..60}; do
-            if curl -fsS http://127.0.0.1:4173 >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          cat frontend-e2e.log
-          exit 1
+          bash scripts/ci/wait-for-http.sh \
+            http://127.0.0.1:4173 \
+            60 \
+            1 \
+            frontend-e2e.log
 
       - name: Run Playwright E2E
         working-directory: frontend
