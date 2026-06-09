@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.diegoalegil.animeshowdown.model.DueloLiveChoice;
@@ -24,9 +25,13 @@ import com.diegoalegil.animeshowdown.repository.VotoRepository;
 public class DueloLiveBotPolicy {
 
     private final VotoRepository votoRepository;
+    private final int botFallaCada;
 
-    public DueloLiveBotPolicy(VotoRepository votoRepository) {
+    public DueloLiveBotPolicy(VotoRepository votoRepository,
+            @Value("${app.duelo-live.bot-falla-cada:2}") int botFallaCada) {
         this.votoRepository = votoRepository;
+        // Mínimo 2: con 1 el bot fallaría todas las rondas y el modo pierde gracia.
+        this.botFallaCada = Math.max(2, botFallaCada);
     }
 
     /** Puntuación de comunidad (votos históricos) de los dos personajes de la ronda. */
@@ -79,10 +84,11 @@ public class DueloLiveBotPolicy {
         seed = seed * 31 + ronda.getNumero();
         seed = seed * 31 + nullSafeId(ronda.getPersonajeA() == null ? null : ronda.getPersonajeA().getId());
         seed = seed * 31 + nullSafeId(ronda.getPersonajeB() == null ? null : ronda.getPersonajeB().getId());
-        // El bot falla ~1 de cada 2 rondas (antes 1 de cada 4 → acertaba 75% y
-        // era casi imposible ganarle). Sigue siendo
-        // determinista por ronda (mismo seed → mismo resultado).
-        return Math.floorMod(seed, 2) == 0;
+        // El bot falla ~1 de cada `botFallaCada` rondas (configurable vía
+        // app.duelo-live.bot-falla-cada; default 2 → falla el 50% y es
+        // ganable). Sigue siendo determinista por ronda (mismo seed →
+        // mismo resultado).
+        return Math.floorMod(seed, botFallaCada) == 0;
     }
 
     private static long nullSafeId(Long id) {
