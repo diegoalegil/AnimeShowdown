@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PackOpening from './PackOpening'
 
 const playMock = vi.fn()
@@ -115,6 +115,13 @@ const revealEspecial = {
 }
 
 describe('PackOpening', () => {
+  afterEach(async () => {
+    // Drena los timers de 1ms del fastTiming con window aún vivo. Bajo carga
+    // de CI (coverage), un timeout rezagado disparaba tras el teardown del
+    // entorno y reventaba como unhandled "window is not defined".
+    await new Promise((resolve) => setTimeout(resolve, 10))
+  })
+
   beforeEach(() => {
     playMock.mockClear()
     warmMock.mockClear()
