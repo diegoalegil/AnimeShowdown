@@ -27,6 +27,9 @@ public class PersonajeActualizarRequest {
     private String descripcion;
 
     @Size(max = 500, message = "La URL de imagen no puede superar 500 caracteres")
+    // Solo http(s) o rutas locales de assets: corta XSS/SSRF sembrado por
+    // un admin comprometido (javascript:, data:, file:, etc.).
+    @Pattern(regexp = "^(https?://|/(img|assets)/).*", message = "La imagen debe ser http(s) o una ruta /img|/assets")
     private String imagenUrl;
 
     public PersonajeActualizarRequest() {}

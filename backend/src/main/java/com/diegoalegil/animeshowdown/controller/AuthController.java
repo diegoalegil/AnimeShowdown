@@ -159,7 +159,10 @@ public class AuthController {
                 // crea sesión". Lax + httpOnly + Secure es la combinación
                 // estándar para refresh tokens y no abre CSRF significativo.
                 .sameSite("Lax")
-                .path("/")
+                // Path acotado: la refresh cookie solo se necesita en
+                // /api/auth/refresh y /api/auth/logout. Con Path=/ viajaba en
+                // cada request a la API (más superficie de exposición).
+                .path("/api/auth")
                 .maxAge(refreshTokenService.getTtl())
                 .build();
     }
@@ -170,6 +173,23 @@ public class AuthController {
                 .secure(cookieSecure)
                 // Lax para que matchee el atributo de la cookie original
                 // (los navegadores requieren mismo SameSite al borrar).
+                .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(0)
+                .build();
+    }
+
+    /**
+     * Borra la refresh cookie emitida con el Path=/ antiguo. Sin esto, los
+     * navegadores con sesión previa acumulan DOS cookies refresh (paths
+     * distintos) y el backend puede leer la caducada. Se adjunta junto a
+     * cada set/clear de la cookie nueva; retirable cuando las sesiones de
+     * 30 días pre-cambio hayan expirado.
+     */
+    private ResponseCookie limpiarCookieRefreshLegacy() {
+        return ResponseCookie.from(REFRESH_COOKIE, "")
+                .httpOnly(true)
+                .secure(cookieSecure)
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(0)
@@ -333,10 +353,13 @@ public class AuthController {
                     usuario.getUsername(), minutos);
             auditLogService.registrar(AuditEvento.LOGIN_BLOQUEADO, usuario,
                     Map.of("minutosRestantes", minutos), httpRequest);
-            return ResponseEntity.status(HttpStatus.LOCKED)
-                    .body(Map.of(
-                            "message", "Cuenta bloqueada por intentos fallidos. Inténtalo en " + minutos + " min.",
-                            "minutosRestantes", minutos));
+            // 401 idéntico al de credenciales malas: un 423 con minutos
+            // restantes confirmaba que la cuenta existe (enumeración) y
+            // permitía a un atacante mantenerla bloqueada a propósito
+            // sabiendo exactamente cuándo reintentar. El detalle queda en
+            // el audit log para soporte.
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Credenciales inválidas");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
@@ -402,6 +425,7 @@ public class AuthController {
         auditLogService.registrar(eventoAudit, usuario, null, httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, construirCookieRefresh(refreshPlano).toString())
+                .header(HttpHeaders.SET_COOKIE, limpiarCookieRefreshLegacy().toString())
                 .body(new TokenRespuesta(token, new UsuarioRespuesta(usuario)));
     }
 
@@ -441,6 +465,7 @@ public class AuthController {
             // de verdad (rotación failed, expirada) sigue dando 401 abajo.
             return ResponseEntity.noContent()
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
+                .header(HttpHeaders.SET_COOKIE, limpiarCookieRefreshLegacy().toString())
                     .build();
         }
         if (!cookieCsrfOriginGuard.isAllowed(httpRequest)) {
@@ -469,6 +494,7 @@ public class AuthController {
             case RefreshTokenService.ResultadoRotacion.Invalido __ -> ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
+                .header(HttpHeaders.SET_COOKIE, limpiarCookieRefreshLegacy().toString())
                     .body(Map.of("message", "Sesión expirada o inválida"));
         };
     }
@@ -512,6 +538,7 @@ public class AuthController {
         auditLogService.registrar(AuditEvento.LOGOUT, usuario, null, httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
+                .header(HttpHeaders.SET_COOKIE, limpiarCookieRefreshLegacy().toString())
                 .body(Map.of("message", "Sesión cerrada"));
     }
 
@@ -533,6 +560,7 @@ public class AuthController {
                 Map.of("sesionesCerradas", n), httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
+                .header(HttpHeaders.SET_COOKIE, limpiarCookieRefreshLegacy().toString())
                 .body(Map.of("message", "Todas las sesiones cerradas", "sesionesCerradas", n));
     }
 
@@ -831,6 +859,7 @@ public class AuthController {
                 Map.of("sesionesCerradas", sesionesCerradas), httpRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, limpiarCookieRefresh().toString())
+                .header(HttpHeaders.SET_COOKIE, limpiarCookieRefreshLegacy().toString())
                 .body(Map.of("message", "Contraseña actualizada. Inicia sesión otra vez."));
     }
 
@@ -924,7 +953,7 @@ public class AuthController {
                     "message", "No hay un setup de 2FA pendiente. Llama primero a /2fa/setup."));
         }
         String secretPlano = totpEncryptor.descifrar(secretCifrado);
-        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
+        if (!validarTotpAntiReplay(usuario, secretPlano, request.getCodigo())) {
             log.warn("2FA enable falló (código incorrecto): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Código incorrecto. Comprueba la hora de tu dispositivo y vuelve a intentarlo."));
@@ -964,7 +993,7 @@ public class AuthController {
                     "message", "La contraseña no es correcta."));
         }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
-        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
+        if (!validarTotpAntiReplay(usuario, secretPlano, request.getCodigo())) {
             log.warn("2FA disable falló (código incorrecto): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "El código de la app authenticator no es correcto."));
@@ -982,6 +1011,24 @@ public class AuthController {
     }
 
     /**
+     * Valida un código TOTP con anti-replay: el step de 30s aceptado se
+     * persiste en el usuario y cualquier código de un step ya consumido se
+     * rechaza. Sin esto, un código interceptado vale ~90s (drift de la lib).
+     */
+    private boolean validarTotpAntiReplay(Usuario usuario, String secretPlano, String codigo) {
+        long step = totpService.validarCodigoStep(secretPlano, codigo);
+        if (step < 0) return false;
+        Long ultimo = usuario.getTotpUltimoStep();
+        if (ultimo != null && step <= ultimo) {
+            log.warn("TOTP replay rechazado: username={} step={}", usuario.getUsername(), step);
+            return false;
+        }
+        usuario.setTotpUltimoStep(step);
+        usuarioRepository.save(usuario);
+        return true;
+    }
+
+    /**
      * Paso 2 del LOGIN con 2FA. Recibe el challengeToken emitido por /login
      * + el código (TOTP de 6 dígitos o backup code de 10 chars). Prueba
      * primero TOTP; si no, intenta backup code. Si OK, emite JWT + refresh
@@ -989,6 +1036,8 @@ public class AuthController {
      *
      * <p>Cada fallo decrementa los intentos del challenge; al 3º fallo el
      * challenge se invalida y el cliente debe rehacer login desde el paso 1.
+     * Además hay un tope de fallos POR CUENTA (ventana 15 min) para que
+     * re-emitir challenges no permita fuerza bruta del TOTP.
      */
     @PostMapping("/2fa/verify-login")
     public ResponseEntity<?> totpVerifyLogin(@Valid @RequestBody Totp2faVerifyLoginRequest request,
@@ -1004,14 +1053,21 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Estado inválido."));
         }
+        if (twoFactorChallengeService.usuarioBloqueado(usuario.getId())) {
+            auditLogService.registrar(AuditEvento.TOTP_LOGIN_FAIL, usuario,
+                    Map.of("razon", "cuenta_bloqueada_2fa"), httpRequest);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "Demasiados intentos. Espera unos minutos y vuelve a iniciar sesión."));
+        }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
         String codigoBruto = request.getCodigo();
-        boolean totpOk = totpService.validarCodigo(secretPlano, codigoBruto);
+        boolean totpOk = validarTotpAntiReplay(usuario, secretPlano, codigoBruto);
         Optional<Long> backupCodeId = Optional.empty();
         if (!totpOk) {
             backupCodeId = totpBackupCodeService.buscarCodigoCoincidenteNoUsado(usuario, codigoBruto);
         }
         if (!totpOk && backupCodeId.isEmpty()) {
+            twoFactorChallengeService.registrarFalloUsuario(usuario.getId());
             int restantes = twoFactorChallengeService.registrarFallo(request.getChallengeToken());
             log.warn("2FA login falló: username={} intentosRestantes={}",
                     usuario.getUsername(), restantes);
@@ -1042,6 +1098,7 @@ public class AuthController {
                         "message", "Código incorrecto."));
             }
         }
+        twoFactorChallengeService.limpiarFallosUsuario(usuario.getId());
         AuditEvento eventoAudit = backupOk ? AuditEvento.TOTP_BACKUP_CODE_USADO : AuditEvento.TOTP_LOGIN_OK;
         return emitirSesionExitosa(usuario, httpRequest, eventoAudit);
     }
@@ -1063,7 +1120,7 @@ public class AuthController {
                     "message", "El 2FA no está activado."));
         }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
-        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
+        if (!validarTotpAntiReplay(usuario, secretPlano, request.getCodigo())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Código incorrecto."));
         }

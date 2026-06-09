@@ -80,6 +80,11 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     usuario, userAgent, ip);
 
             response.addHeader(HttpHeaders.SET_COOKIE, construirCookieRefresh(refreshPlano).toString());
+            // Limpia la cookie legacy con Path=/ para no acumular dos
+            // refresh cookies tras el cambio de path (ver AuthController).
+            response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(REFRESH_COOKIE, "")
+                    .httpOnly(true).secure(cookieSecure).sameSite("Lax").path("/").maxAge(0)
+                    .build().toString());
             if (result.creado()) {
                 auditLogService.registrarConContexto(AuditEvento.OAUTH_REGISTRO, usuario,
                         Map.of("provider", provider), ip, userAgent);
@@ -123,7 +128,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 // Lax + httpOnly + Secure es la recomendación estándar para
                 // refresh tokens y no abre CSRF significativo.
                 .sameSite("Lax")
-                .path("/")
+                // Path acotado igual que en AuthController: la refresh cookie
+                // solo se usa bajo /api/auth.
+                .path("/api/auth")
                 .maxAge(refreshTokenService.getTtl())
                 .build();
     }

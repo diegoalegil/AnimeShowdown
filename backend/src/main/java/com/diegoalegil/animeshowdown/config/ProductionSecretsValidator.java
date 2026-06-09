@@ -109,6 +109,24 @@ public class ProductionSecretsValidator {
             throw new IllegalStateException(mensaje);
         }
 
+        // Piso de entropía para las claves criptográficas: con menos de 32
+        // chars un HMAC/JWT secret es fuerza-brutable offline. La password de
+        // BBDD queda fuera (la gestiona el proveedor y viaja por TLS).
+        List<String> criptoCortos = new ArrayList<>();
+        for (Map.Entry<String, String> e : secretosRequeridos.entrySet()) {
+            if (e.getKey().startsWith("DB_PASSWORD")) continue;
+            String valor = e.getValue();
+            if (valor != null && !valor.isBlank() && valor.trim().length() < 32) {
+                criptoCortos.add(e.getKey());
+            }
+        }
+        if (!criptoCortos.isEmpty()) {
+            String mensaje = "Boot abortado: claves criptográficas demasiado cortas (mínimo 32 chars): "
+                    + criptoCortos + ". Genera valores nuevos con `openssl rand -base64 48`.";
+            log.error(mensaje);
+            throw new IllegalStateException(mensaje);
+        }
+
         List<String> opcionalesInseguros = new ArrayList<>();
         for (Map.Entry<String, String> e : secretosOpcionales.entrySet()) {
             if (esInseguro(e.getValue())) {
