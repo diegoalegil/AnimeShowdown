@@ -36,8 +36,18 @@ describe('catalogo-index', () => {
       'naruto',
       'sakura',
     ])
+    expect(filtrarCatalogo(index, { sort: 'elo_desc' })).toBe(index.sortedBy.elo_desc)
+    expect(filtrarCatalogo(index, { sort: 'popularidad' })).toBe(index.sortedBy.popularidad)
+    expect(filtrarCatalogo(index, { sort: 'nombre_az' })).toBe(index.sortedBy.nombre_az)
     expect(filtrarCatalogo(index, { sort: 'popularidad' }).map((p) => p.slug))
       .toEqual(['naruto', 'luffy', 'sakura'])
+    expect(
+      filtrarCatalogo(index, {
+        sort: 'popularidad',
+        tagFilter: 'aventura',
+      }).map((p) => p.slug),
+    )
+      .toEqual(['luffy', 'sakura'])
     expect(filtrarCatalogo(index, { normalizedSearch: 'cardcaptor' }).map((p) => p.slug))
       .toEqual(['sakura'])
     expect(filtrarCatalogo(index, { tagFilter: 'protagonista' }).map((p) => p.slug))

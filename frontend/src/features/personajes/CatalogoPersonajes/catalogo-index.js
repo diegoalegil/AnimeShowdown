@@ -14,6 +14,21 @@ function compareEloDesc(a, b) {
   return b.elo - a.elo || a.nombre.localeCompare(b.nombre)
 }
 
+function createSortedViews(items, rankedElo) {
+  return {
+    popularidad: [...items].sort(
+      (a, b) => b.popularidad - a.popularidad || compareEloDesc(a, b),
+    ),
+    elo_desc: rankedElo,
+    elo_asc: [...items].sort((a, b) => a.elo - b.elo || a.nombre.localeCompare(b.nombre)),
+    nombre_az: [...items].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    nombre_za: [...items].sort((a, b) => b.nombre.localeCompare(a.nombre)),
+    anime: [...items].sort(
+      (a, b) => a.anime.localeCompare(b.anime) || a.nombre.localeCompare(b.nombre),
+    ),
+  }
+}
+
 export function crearCatalogoIndex(
   catalogoPersonajes,
   {
@@ -34,6 +49,7 @@ export function crearCatalogoIndex(
   })
 
   const rankedElo = [...items].sort(compareEloDesc)
+  const sortedBy = createSortedViews(items, rankedElo)
   const rankPorSlug = new Map(rankedElo.map((personaje, index) => [personaje.slug, index + 1]))
   const animeCounts = new Map()
   for (const item of items) {
@@ -54,6 +70,7 @@ export function crearCatalogoIndex(
   return {
     items,
     rankedElo,
+    sortedBy,
     rankPorSlug,
     animes,
     animeFilterOptions,
@@ -86,7 +103,7 @@ export function filtrarCatalogo(
     eloMax = null,
   } = {},
 ) {
-  let list = catalogoIndex.items
+  let list = catalogoIndex.sortedBy?.[sort] ?? catalogoIndex.items
   if (animeFilter) list = list.filter((personaje) => personaje.anime === animeFilter)
   if (tagFilter) {
     list = list.filter((personaje) => personaje.categorias.includes(tagFilter))
@@ -101,23 +118,7 @@ export function filtrarCatalogo(
   if (normalizedSearch) {
     list = list.filter((personaje) => personaje.searchText.includes(normalizedSearch))
   }
-
-  switch (sort) {
-    case 'popularidad':
-      return [...list].sort((a, b) => b.popularidad - a.popularidad || compareEloDesc(a, b))
-    case 'elo_desc':
-      return [...list].sort(compareEloDesc)
-    case 'elo_asc':
-      return [...list].sort((a, b) => a.elo - b.elo || a.nombre.localeCompare(b.nombre))
-    case 'nombre_az':
-      return [...list].sort((a, b) => a.nombre.localeCompare(b.nombre))
-    case 'nombre_za':
-      return [...list].sort((a, b) => b.nombre.localeCompare(a.nombre))
-    case 'anime':
-      return [...list].sort((a, b) => a.anime.localeCompare(b.anime) || a.nombre.localeCompare(b.nombre))
-    default:
-      return list
-  }
+  return list
 }
 
 export function filtrarRankingElo(rankedElo, { normalizedSearch = '', animeFilter = '' } = {}) {
