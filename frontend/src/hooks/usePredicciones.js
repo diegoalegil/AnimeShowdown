@@ -23,6 +23,33 @@ function buildMiasKey(torneoId, userKey) {
   return ['predicciones', 'mias', String(torneoId), userKey]
 }
 
+function samePredictionScope(a, b) {
+  if (!a || !b) return false
+  if (a.id != null && b.id != null) return String(a.id) === String(b.id)
+  if (a.tipo === 'CAMPEON' && b.tipo === 'CAMPEON') {
+    return String(a.torneoId ?? '') === String(b.torneoId ?? '')
+  }
+  if (a.enfrentamientoId != null && b.enfrentamientoId != null) {
+    return String(a.enfrentamientoId) === String(b.enfrentamientoId)
+  }
+  return false
+}
+
+export function mergePrediccionEnLista(predicciones, prediccion) {
+  if (!prediccion) return predicciones
+  if (!Array.isArray(predicciones)) return [prediccion]
+
+  const index = predicciones.findIndex((item) => samePredictionScope(item, prediccion))
+  if (index === -1) return [...predicciones, prediccion]
+
+  const next = [...predicciones]
+  next[index] = {
+    ...next[index],
+    ...prediccion,
+  }
+  return next
+}
+
 export function useMisPredicciones(torneoId) {
   const { user } = useAuth()
   const userKey = getUserCacheKey(user)
@@ -41,7 +68,11 @@ export function useAplicarPrediccion(torneoId) {
   return useMutation({
     mutationFn: ({ enfrentamientoId, personajePredichoId }) =>
       endpoints.aplicarPrediccion({ enfrentamientoId, personajePredichoId }),
-    onSuccess: () => {
+    onSuccess: (prediccion) => {
+      queryClient.setQueryData(
+        buildMiasKey(torneoId, userKey),
+        (old) => mergePrediccionEnLista(old, prediccion),
+      )
       queryClient.invalidateQueries({ queryKey: buildMiasKey(torneoId, userKey) })
     },
   })
@@ -54,7 +85,11 @@ export function useAplicarPrediccionCampeon(torneoId) {
   return useMutation({
     mutationFn: ({ personajePredichoId }) =>
       endpoints.aplicarPrediccionCampeon({ torneoId, personajePredichoId }),
-    onSuccess: () => {
+    onSuccess: (prediccion) => {
+      queryClient.setQueryData(
+        buildMiasKey(torneoId, userKey),
+        (old) => mergePrediccionEnLista(old, prediccion),
+      )
       queryClient.invalidateQueries({ queryKey: buildMiasKey(torneoId, userKey) })
       queryClient.invalidateQueries({
         queryKey: ['predicciones', 'leaderboard', 'torneo', String(torneoId), 10],
