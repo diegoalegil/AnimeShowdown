@@ -18,10 +18,19 @@ import {
 } from '../lib/api'
 import { playMagic } from '../lib/sounds'
 import { queryClient } from '../lib/queryClient'
-import { disconnect as disconnectStomp } from '../lib/stomp'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'animeshowdown.user'
+
+function disconnectRealtime() {
+  return import('../lib/stomp')
+    .then(({ disconnect }) => disconnect())
+    .catch((err) => {
+      if (import.meta.env.DEV) {
+        console.debug('realtime disconnect falló (ignored):', err?.message)
+      }
+    })
+}
 
 /**
  * 3 — sesión persistente vía refresh cookie httpOnly:
@@ -381,7 +390,7 @@ export function AuthProvider({ children }) {
       // stale-time refresque. Equivalente a invalidar toda la caché privada.
       queryClient.clear()
       // Cierra el WS singleton.
-      disconnectStomp()
+      void disconnectRealtime()
       setUser(null)
       setToken(null)
       toast('Hasta pronto', { description: 'Sesión cerrada.' })

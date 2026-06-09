@@ -10,7 +10,7 @@ const imageDir = join(root, 'dist', 'img')
 const htmlPath = join(root, 'dist', 'index.html')
 const maxIndexRawKb = Number(process.env.MAX_INDEX_RAW_KB ?? 350)
 const maxIndexGzipKb = Number(process.env.MAX_INDEX_GZIP_KB ?? 250)
-const maxInitialJsGzipKb = Number(process.env.MAX_INITIAL_JS_GZIP_KB ?? 220)
+const maxInitialJsGzipKb = Number(process.env.MAX_INITIAL_JS_GZIP_KB ?? 210)
 const maxImageTotalMb = Number(process.env.MAX_DEPLOY_IMAGE_TOTAL_MB ?? 1100)
 const maxImageFileKb = Number(process.env.MAX_DEPLOY_IMAGE_FILE_KB ?? 900)
 const maxImageFileCount = Number(process.env.MAX_DEPLOY_IMAGE_FILE_COUNT ?? 8500)
@@ -171,6 +171,18 @@ if (personaje3dChunks.length === 0) {
   console.log(`personaje3d chunks: ${personaje3dChunks.join(', ')}`)
 }
 
+const realtimeChunks = files.filter((file) => /^realtime-.*\.js$/.test(file))
+if (realtimeChunks.length === 0) {
+  fail('no se encontró chunk realtime-*.js')
+} else {
+  console.log(`realtime chunks: ${realtimeChunks.join(', ')}`)
+  for (const chunk of realtimeChunks) {
+    if (initialJsFiles.includes(chunk)) {
+      fail(`realtime chunk ${chunk} no debe cargarse como JS inicial`)
+    }
+  }
+}
+
 // React.lazy genera un boundary chunk pequeño (~1KB) con solo el import()
 // dinámico: eso no contiene react-three/fiber, solo el lazy wrapper. El peso
 // real va al chunk manual 'personaje3d' (verificado arriba). Solo fallamos si
@@ -188,7 +200,7 @@ for (const chunk of legacy3dChunks) {
 // Per-chunk ceiling: lazy vendor chunks (framer/i18n/lucide/react-vendor) +
 // page route chunks no deben superar el umbral para evitar regresiones
 // silenciosas tras actualizaciones de dependencias.
-const vendorChunks = files.filter((file) => /^(framer|i18n|lucide|react-vendor)-.*\.js$/.test(file))
+const vendorChunks = files.filter((file) => /^(framer|i18n|lucide|react-vendor|realtime)-.*\.js$/.test(file))
 const pageChunks = files.filter((file) => /^[A-Z][^.-]+(Page|Page)-\w+\.js$/.test(file) && !/^index-/.test(file))
 for (const chunk of [...vendorChunks, ...pageChunks]) {
   const rawBytes = statSync(join(assetsDir, chunk)).size
