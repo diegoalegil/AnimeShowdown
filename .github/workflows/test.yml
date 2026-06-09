@@ -84,7 +84,14 @@ jobs:
       run:
         working-directory: frontend
     steps:
+      # fetch-depth: 0 — el guard de colores (scripts/check-color-literals.mjs,
+      # parte de `npm run lint`) calcula el ratchet con `git diff
+      # origin/main...HEAD`; con el shallow clone por defecto origin/main no
+      # resuelve, el diff sale vacío y el guard pasa en silencio sin mirar
+      # nada. El job backend ya usa fetch-depth: 0 por el guardrail de Flyway.
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Set up Node 22 LTS
         uses: actions/setup-node@v6
