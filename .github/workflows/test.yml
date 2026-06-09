@@ -145,7 +145,7 @@ jobs:
           ANIMESHOWDOWN_IMG_CDN_BASE_URL: https://assets.animeshowdown.dev/img
         run: npm run build:no-images
 
-      # Presupuesto de bundle: falla si el JS inicial agregado supera 220KB
+      # Presupuesto de bundle: falla si el JS inicial agregado supera 210KB
       # gzip. Personaje3D y otros chunks lazy no entran en este budget.
       - name: Bundle size budget
         env:

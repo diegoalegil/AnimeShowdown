@@ -572,6 +572,7 @@ export default defineConfig({
         if (hostType !== 'html') return deps
         return deps.filter((dep) =>
           !/assets\/personaje3d-[^/]+\.js$/.test(dep) &&
+          !/assets\/realtime-[^/]+\.js$/.test(dep) &&
           !/assets\/framer-[^/]+\.js$/.test(dep) &&
           !/assets\/sentry-[^/]+\.js$/.test(dep)
         )
@@ -601,12 +602,18 @@ export default defineConfig({
               test: (id) =>
                 id.endsWith('/src/lib/api.js') ||
                 id.endsWith('\\src\\lib\\api.js') ||
-                id.endsWith('/src/lib/stomp.js') ||
-                id.endsWith('\\src\\lib\\stomp.js') ||
                 id.endsWith('/src/contexts/AuthContext.jsx') ||
                 id.endsWith('\\src\\contexts\\AuthContext.jsx') ||
                 id.endsWith('/src/hooks/useCatalogoPersonajes.js') ||
                 id.endsWith('\\src\\hooks\\useCatalogoPersonajes.js'),
+            },
+            {
+              name: 'realtime',
+              minSize: 0,
+              test: (id) =>
+                id.includes('@stomp/stompjs') ||
+                id.endsWith('/src/lib/stomp.js') ||
+                id.endsWith('\\src\\lib\\stomp.js'),
             },
             {
               name: 'react-vendor',
