@@ -297,7 +297,8 @@ function AnimeHubModules({ anime, personajes, porElo, slug, topElo }) {
   })
   const { data: rankingMes } = useRankingSegmentado({
     periodo: 'mes',
-    limit: 200,
+    anime,
+    limit: 50,
     enabled: Boolean(anime),
   })
   const { data: movimientos } = useRankingMovimientos({ limit: 100, dias: 7 })
