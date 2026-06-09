@@ -130,7 +130,7 @@ function PanelResultadoAnime({
             {acertado ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </span>
           <p
-            className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
+            className={`text-[11px] font-semibold ${
               acertado ? 'text-success' : 'text-danger'
             }`}
           >

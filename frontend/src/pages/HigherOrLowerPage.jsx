@@ -527,7 +527,7 @@ function ReferenceCard({ personaje, elo, scoreLabel }) {
           className="h-full w-full object-contain"
         />
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
-          <span className="text-[9px] font-semibold text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
+          <span className="text-[9px] font-semibold text-white/80 sm:text-[10px]">
             {scoreLabel}
           </span>
           <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
@@ -586,7 +586,7 @@ function ChallengerCard({
               exit={{ opacity: 0 }}
               className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4"
             >
-              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
+              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px]">
                 {scoreLabel} oculto
               </span>
               <HelpCircle className="h-6 w-6 text-white/90 sm:h-9 sm:w-9" />
@@ -601,7 +601,7 @@ function ChallengerCard({
                 isCorrect ? 'bg-success/90' : 'bg-danger/90'
               }`}
             >
-              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px] sm:tracking-[0.2em]">
+              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px]">
                 {scoreLabel}
               </span>
               <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">

@@ -16,8 +16,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
@@ -84,6 +88,11 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .referrerPolicy(referrer -> referrer.policy(
                                 ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        // HSTS: un año + subdominios. Spring solo lo emite en
+                        // respuestas HTTPS, así que en dev local no molesta.
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31_536_000))
                         .addHeaderWriter(new StaticHeadersWriter(
                                 "Permissions-Policy",
                                 "camera=(), microphone=(), geolocation=()"))
@@ -92,7 +101,17 @@ public class SecurityConfig {
                                 "same-origin"))
                         .addHeaderWriter(new StaticHeadersWriter(
                                 "Cross-Origin-Resource-Policy",
-                                "same-site")))
+                                "same-site"))
+                        // CSP de API: las respuestas son JSON/PNG, nunca deben
+                        // ejecutarse como documento. Swagger UI queda fuera
+                        // porque sí necesita sus scripts/estilos.
+                        .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                                new NegatedRequestMatcher(new OrRequestMatcher(
+                                        PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
+                                        PathPatternRequestMatcher.withDefaults().matcher("/v3/api-docs/**"))),
+                                new StaticHeadersWriter(
+                                        "Content-Security-Policy",
+                                        "default-src 'none'; frame-ancestors 'none'"))))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()

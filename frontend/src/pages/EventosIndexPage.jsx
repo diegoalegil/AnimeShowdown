@@ -119,7 +119,7 @@ function Seccion({ icon: Icon, tono, dotColor, titulo, count, eventos, now, etiq
         <span className={`flex h-6 w-6 items-center justify-center rounded-lg bg-surface ${tono}`}>
           <Icon className="h-3.5 w-3.5" />
         </span>
-        <h2 className={`text-[13px] font-semibold uppercase tracking-[0.1em] ${tono}`}>
+        <h2 className={`text-[13px] font-semibold ${tono}`}>
           {titulo}
         </h2>
         <span className="font-mono text-[11px] text-fg-muted tabular-nums">

@@ -56,7 +56,7 @@ function Card2faSeguridad() {
           Verificación en dos pasos
         </h2>
         {habilitado && (
-          <span className="ml-auto inline-flex rounded-full border border-success/30 bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-success">
+          <span className="ml-auto inline-flex rounded-full border border-success/30 bg-success/10 px-2.5 py-0.5 text-[11px] font-semibold text-success">
             Activo
           </span>
         )}
@@ -367,7 +367,7 @@ function SetupForm({ setupData, onBackupCodes }) {
           className="h-44 w-44 rounded-lg bg-white p-2"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p className="text-[12px] font-semibold uppercase tracking-wide text-fg-muted">
+          <p className="text-[12px] font-semibold text-fg-muted">
             ¿No puedes escanear?
           </p>
           <p className="text-[12px] text-fg-muted">
@@ -414,7 +414,7 @@ function SetupForm({ setupData, onBackupCodes }) {
             required: 'Introduce el código',
             pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
           })}
-          className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+          className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
             errors.codigo ? 'border-danger' : 'border-border'
           }`}
           placeholder="123456"
@@ -504,7 +504,7 @@ function ModalBackupCodes({ codes, onClose, descripcion }) {
     >
       <p className="mb-4 text-[13px] text-fg-muted">{descripcion}</p>
 
-      <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-success/20 bg-success/5 p-4 font-mono text-[14px] tracking-[0.15em] text-fg-strong">
+      <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-success/20 bg-success/5 p-4 font-mono text-[14px] text-fg-strong">
         {codes.map((c, i) => (
           <div key={i} className="select-all">
             {c}
@@ -650,7 +650,7 @@ function Modal2faDisable({ onClose, onSuccess }) {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
               errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456"
@@ -751,7 +751,7 @@ function Modal2faRegenerate({ onClose }) {
               required: 'Introduce el código',
               pattern: { value: /^\d{6}$/, message: 'Deben ser 6 dígitos' },
             })}
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl tracking-[0.4em] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
+            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-center font-mono text-xl text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40 ${
               errors.codigo ? 'border-danger' : 'border-border'
             }`}
             placeholder="123456"

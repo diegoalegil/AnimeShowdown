@@ -151,6 +151,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return null;
         }
 
+        // PUT sensible: cambio de password de la sesión. Mismo presupuesto
+        // que el reset para frenar fuerza bruta de la password actual.
+        if ("PUT".equalsIgnoreCase(method) && coincide(uri, "/api/auth/me/password")) {
+            return RESET_PASSWORD;
+        }
         if (!"POST".equalsIgnoreCase(method)) {
             return null;
         }
@@ -163,7 +168,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (coincide(uri, "/api/auth/forgot-password") || coincide(uri, "/api/auth/reset-password")) {
             return RESET_PASSWORD;
         }
-        if (coincide(uri, "/api/auth/2fa/verify-login")) {
+        if (coincide(uri, "/api/auth/resend-verification")) {
+            return RESET_PASSWORD;
+        }
+        // Todo el resto de 2FA (verify-login, enable, disable, setup,
+        // backup-codes/regenerar) comparte presupuesto: cada uno acepta o
+        // valida códigos TOTP y es objetivo de fuerza bruta.
+        if (uri.startsWith("/api/auth/2fa/")) {
             return TWO_FACTOR;
         }
         if (coincide(uri, "/api/newsletter")) {

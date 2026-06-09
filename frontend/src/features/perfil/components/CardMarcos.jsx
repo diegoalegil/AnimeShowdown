@@ -136,7 +136,7 @@ function CardMarcos() {
                       {m.nombre}
                     </p>
                     {m.equipado && (
-                      <span className="shrink-0 rounded-full bg-gold/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold">
+                      <span className="shrink-0 rounded-full bg-gold/15 px-1.5 py-0.5 text-[10px] font-bold text-gold">
                         Equipado
                       </span>
                     )}

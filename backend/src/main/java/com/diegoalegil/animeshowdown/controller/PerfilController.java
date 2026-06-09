@@ -233,11 +233,20 @@ public class PerfilController {
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(0)
+                .build();
+        // También la legacy con Path=/ de sesiones anteriores al cambio de path.
+        ResponseCookie clearLegacy = ResponseCookie.from(REFRESH_COOKIE, "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Lax")
                 .path("/")
                 .maxAge(0)
                 .build();
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, clear.toString())
+                .header(HttpHeaders.SET_COOKIE, clearLegacy.toString())
                 .build();
     }
 }

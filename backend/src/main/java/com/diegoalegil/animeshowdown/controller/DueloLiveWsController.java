@@ -39,7 +39,16 @@ public class DueloLiveWsController {
 
     @MessageMapping("/duelo/{id}/vote-raw")
     public void voteRaw(@DestinationVariable Long id, Map<String, String> payload, Principal principal) {
-        dueloLiveService.votar(id, usuario(principal), DueloLiveChoice.valueOf(payload.get("choice")));
+        // Parse defensivo: un frame STOMP con choice nulo o fuera del enum
+        // lanzaba NPE/IllegalArgument crudo desde valueOf.
+        String bruto = payload == null ? null : payload.get("choice");
+        DueloLiveChoice choice;
+        try {
+            choice = DueloLiveChoice.valueOf(bruto);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new IllegalArgumentException("choice inválido: " + bruto);
+        }
+        dueloLiveService.votar(id, usuario(principal), choice);
     }
 
     private static Usuario usuario(Principal principal) {

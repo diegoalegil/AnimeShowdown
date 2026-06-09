@@ -171,7 +171,7 @@ function JuegosAnimePage() {
         <section className="mb-10">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Catálogo jugable
               </p>
               <h2 className="text-2xl font-black text-fg-strong">
@@ -196,7 +196,7 @@ function JuegosAnimePage() {
 
         <section className="mb-10">
           <div className="mb-4">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+            <p className="text-[11px] font-black text-gold">
               Ritual diario
             </p>
             <h2 className="text-2xl font-black text-fg-strong">
@@ -212,7 +212,7 @@ function JuegosAnimePage() {
 
         <section className="grid gap-4 border-y border-white/10 py-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-fg-muted">
+            <p className="text-[11px] font-black text-fg-muted">
               Después de jugar
             </p>
             <h2 className="mt-1 text-2xl font-black text-fg-strong">
@@ -262,7 +262,7 @@ function InfoTile({ icon: Icon, label, value }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-bg/55 p-4 backdrop-blur">
       <Icon className="h-4 w-4 text-gold" />
-      <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-fg-muted">
+      <p className="mt-3 text-[10px] font-black text-fg-muted">
         {label}
       </p>
       <p className="mt-1 text-lg font-black text-fg-strong">{value}</p>
@@ -279,12 +279,12 @@ function GameCard({ juego }) {
     >
       <div className="flex items-start justify-between gap-3">
         <Icon className="h-5 w-5 text-gold" />
-        <span className="rounded-full border border-white/10 bg-bg px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-fg-muted">
+        <span className="rounded-full border border-white/10 bg-bg px-2 py-1 text-[10px] font-black text-fg-muted">
           {juego.cadence}
         </span>
       </div>
       <h3 className="mt-4 text-xl font-black text-fg-strong">{juego.title}</h3>
-      <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-gold/80">
+      <p className="mt-1 text-[11px] font-bold text-gold/80">
         {juego.intent}
       </p>
       <p className="mt-3 text-sm leading-6 text-fg-muted">{juego.text}</p>

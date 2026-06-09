@@ -51,7 +51,13 @@ class AdminControllersExtraTest {
         assertThat(body).isNotNull();
         assertThat(body.get("total")).isEqualTo(2);
         assertThat(body.get("pendientesReintento")).isEqualTo(1L);
-        assertThat(body.get("fallos")).isEqualTo(List.of(f1, f2));
+        // Vista REDACTADA: nunca la entidad cruda (arrastra cuerpo HTML y
+        // tokens de verificación/reset embebidos en los links).
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> fallos = (List<Map<String, Object>>) body.get("fallos");
+        assertThat(fallos).hasSize(2);
+        assertThat(fallos.get(0)).containsKeys("id", "ts", "tipo", "destinatario", "errorMsg", "reintentado");
+        assertThat(fallos.get(0)).doesNotContainKeys("contenido", "asunto");
     }
 
     @Test

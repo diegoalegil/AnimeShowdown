@@ -53,13 +53,13 @@
 - **Bordes hairline** y sombras sutiles antes que glows y rings de colores.
 - Tokens en `src/index.css`; nada de literales de color en JSX (color-literal guard).
 
-## Mapa de la deuda visual
+## Mapa de la deuda visual (actualizado 2026-06-09)
 | Horseman | Archivos | Notas |
 |---|---|---|
-| H2 uppercase+tracking | ~124 / 261 usos | `uppercase tracking-[0.05–0.3em]`; el grueso del trabajo |
+| H2 uppercase+tracking | ✅ 0 usos en JSX (barrido 2026-06-09) | Excepciones acordadas: PersonajeCardHolo + FloatingCards (marco TCG), cartas.css (estética de carta), splash japonés (index.css), siglas reales (VS/ELO/SSR). |
 | H1 acento dorado | ~77 | `border-gold/*`, barras de acento |
 | H3 pills de estado | ~16 | SectionPulso, NotifBell, "en curso", drops |
-| H4 glows radiales | ~13 | VisualSystem (procedural), EditorialCover, GameCardBackground |
+| H4 glows radiales | ~13 | VisualSystem (procedural), EditorialCover, GameCardBackground — verificado: usan paleta de marca (carmesí/oro/cian), no el morado genérico |
 
 ## Orden de limpieza visual
 1. **Zonas de alta visibilidad primero:** Header + bottom nav, NotifBell, hero

@@ -17,6 +17,7 @@ import com.diegoalegil.animeshowdown.model.EmailFailure;
 import com.diegoalegil.animeshowdown.model.Personaje;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.EmailFailureRepository;
+import com.diegoalegil.animeshowdown.security.LogSanitizer;
 import com.diegoalegil.animeshowdown.service.AuditLogService;
 import com.diegoalegil.animeshowdown.service.JikanService;
 
@@ -65,9 +66,25 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> listarEmailFailures() {
         List<EmailFailure> fallos = emailFailureRepository.findAllByOrderByTsDesc();
         long noReintentados = emailFailureRepository.countByReintentadoFalse();
+        // Vista redactada: la entidad cruda arrastra destinatario completo,
+        // cuerpo HTML y tokens embebidos (links de verificación/reset). Para
+        // diagnosticar bastan id, tipo, error y el destinatario ofuscado;
+        // el reenvío va por POST /emails/reintentar-cola sin leer el cuerpo.
+        List<Map<String, Object>> vista = fallos.stream()
+                .map(f -> {
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("id", f.getId());
+                    m.put("ts", f.getTs());
+                    m.put("tipo", f.getTipo());
+                    m.put("destinatario", LogSanitizer.email(f.getDestinatario()));
+                    m.put("errorMsg", f.getErrorMsg());
+                    m.put("reintentado", f.isReintentado());
+                    return m;
+                })
+                .toList();
         return ResponseEntity.ok(Map.of(
                 "total", fallos.size(),
                 "pendientesReintento", noReintentados,
-                "fallos", fallos));
+                "fallos", vista));
     }
 }

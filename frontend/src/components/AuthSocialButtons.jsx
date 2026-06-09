@@ -74,7 +74,7 @@ function AuthSocialButtons({ next = '/', action = 'Entrar' }) {
           </a>
         ))}
       </div>
-      <div className="mt-4 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+      <div className="mt-4 flex items-center gap-3 text-[11px] font-semibold text-fg-muted">
         <span className="h-px flex-1 bg-border" />
         o continúa con email
         <span className="h-px flex-1 bg-border" />

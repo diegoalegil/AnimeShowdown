@@ -54,6 +54,37 @@ public class TwoFactorChallengeService {
             .build();
 
     /**
+     * Fallos de 2FA acumulados POR CUENTA (no por challenge). Sin esto, un
+     * atacante con la password emite challenges nuevos vía /login y prueba
+     * 3 códigos por challenge sin tope: fuerza bruta del TOTP en minutos.
+     * Ventana de 15 min; al llegar a {@link #MAX_FALLOS_USUARIO} la cuenta
+     * no puede verificar 2FA hasta que expire la ventana.
+     */
+    private static final int MAX_FALLOS_USUARIO = 10;
+    private final Cache<Long, AtomicInteger> fallosPorUsuario = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(15))
+            .maximumSize(10_000)
+            .build();
+
+    /** ¿La cuenta superó el tope de fallos de 2FA en la ventana actual? */
+    public boolean usuarioBloqueado(Long usuarioId) {
+        if (usuarioId == null) return false;
+        AtomicInteger n = fallosPorUsuario.getIfPresent(usuarioId);
+        return n != null && n.get() >= MAX_FALLOS_USUARIO;
+    }
+
+    /** Registra un fallo de 2FA de la cuenta (independiente del challenge). */
+    public void registrarFalloUsuario(Long usuarioId) {
+        if (usuarioId == null) return;
+        fallosPorUsuario.get(usuarioId, id -> new AtomicInteger()).incrementAndGet();
+    }
+
+    /** Resetea el contador de la cuenta tras un login 2FA correcto. */
+    public void limpiarFallosUsuario(Long usuarioId) {
+        if (usuarioId != null) fallosPorUsuario.invalidate(usuarioId);
+    }
+
+    /**
      * Resultado de la creación: el token a devolver al cliente y los segundos
      * que vivirá. El cliente puede usar los segundos para mostrar countdown.
      */

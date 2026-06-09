@@ -127,7 +127,7 @@ function DueloVersusPage() {
         </Link>
 
         <div className="mb-8 flex flex-col gap-4">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-[11px] font-semibold text-gold">
             <Swords className="h-3.5 w-3.5" />
             Duelo abierto
           </span>
@@ -196,7 +196,7 @@ function DueloVersusPage() {
           <section className="rounded-xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.14),rgb(255_199_44_/_0.08),rgb(20_20_30_/_0.92))] p-5">
             <div className="flex items-center gap-2 text-gold">
               <Trophy className="h-4 w-4" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em]">
+              <p className="text-[11px] font-semibold">
                 Quién ganaría según la comunidad
               </p>
             </div>
@@ -270,7 +270,7 @@ function PersonalDuelSignal({ a, b, signal }) {
     <section className="mt-6 rounded-xl border border-gold/30 bg-gradient-to-br from-gold/[0.12] via-surface to-accent/[0.08] p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold">
             <Flame className="h-3.5 w-3.5" />
             Tu sesgo local
           </p>
@@ -328,7 +328,7 @@ function LocalVotePill({ personaje, count, highlighted }) {
     >
       <p className="line-clamp-1 text-[12px] font-black">{personaje.nombre}</p>
       <p className="mt-0.5 font-mono text-xl font-black">{count}</p>
-      <p className="text-[10px] uppercase tracking-[0.12em] text-fg-muted">votos tuyos</p>
+      <p className="text-[10px] text-fg-muted">votos tuyos</p>
     </div>
   )
 }
@@ -349,7 +349,7 @@ function VersusHeroCard({ personaje, stats, side }) {
           />
         </div>
         <div className="flex min-w-0 flex-col justify-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+          <p className="text-[11px] font-semibold text-fg-muted">
             {personaje.anime}
           </p>
           <h2 className="mt-2 text-3xl font-black leading-tight text-fg-strong">
@@ -378,7 +378,7 @@ function ComparativaRow({ label, a, b, winner }) {
       <div className={`min-w-0 px-4 py-3 text-sm font-semibold ${winner === 'a' ? 'text-gold' : 'text-fg-strong'}`}>
         {a}
       </div>
-      <div className="border-x border-border bg-bg/40 px-3 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+      <div className="border-x border-border bg-bg/40 px-3 py-3 text-center text-[11px] font-semibold text-fg-muted">
         {label}
       </div>
       <div className={`min-w-0 px-4 py-3 text-right text-sm font-semibold ${winner === 'b' ? 'text-gold' : 'text-fg-strong'}`}>
@@ -391,7 +391,7 @@ function ComparativaRow({ label, a, b, winner }) {
 function MiniStat({ label, value, accent }) {
   return (
     <div className="rounded-lg border border-border bg-bg/55 px-3 py-2">
-      <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+      <p className="text-[9px] font-semibold text-fg-muted">
         {label}
       </p>
       <p className={`mt-1 font-mono text-lg font-black ${accent ? 'text-gold' : 'text-fg-strong'}`}>
@@ -404,7 +404,7 @@ function MiniStat({ label, value, accent }) {
 function DuelosSugeridos({ personaje, sugerencias }) {
   return (
     <div>
-      <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+      <p className="mb-3 text-[11px] font-semibold text-fg-muted">
         Más duelos con {personaje.nombre}
       </p>
       <div className="grid gap-2">

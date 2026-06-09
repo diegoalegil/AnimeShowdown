@@ -258,7 +258,7 @@ function NexoAnimeGame({ todayKey, catalogoPersonajes, dailyRound }) {
           <div className="as-panel rounded-2xl border border-border p-4 sm:p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-success">
+                <p className="text-[11px] font-bold text-success">
                   {estado.matchedGroupIds.length}/{round.groups.length} nexos
                 </p>
                 <h2 className="mt-1 text-xl font-extrabold text-fg-strong">
@@ -319,7 +319,7 @@ function NexoAnimeGame({ todayKey, catalogoPersonajes, dailyRound }) {
                         <span className="font-mono text-3xl font-black text-fg-muted/75">
                           {iniciales(card.nombre)}
                         </span>
-                        <span className="px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted/65">
+                        <span className="px-3 text-[11px] font-semibold text-fg-muted/65">
                           Nexo pendiente
                         </span>
                       </div>
@@ -340,7 +340,7 @@ function NexoAnimeGame({ todayKey, catalogoPersonajes, dailyRound }) {
           </div>
 
           <aside className="as-panel rounded-2xl border border-border p-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gold">
+            <p className="text-[11px] font-bold text-gold">
               Parejas cerradas
             </p>
             <div className="mt-4 flex flex-col gap-3">

@@ -240,7 +240,7 @@ function TorneoMetric({ icon: Icon, label, value, tone }) {
       <p className="mt-3 text-2xl font-black tabular-nums text-fg-strong">
         {value}
       </p>
-      <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+      <p className="mt-0.5 text-[11px] font-semibold text-fg-muted">
         {label}
       </p>
     </div>
@@ -268,7 +268,7 @@ function TorneoDestacado({ destacado, t }) {
       to={`/torneos/${torneo.slug}`}
       className="group flex min-h-full flex-col justify-between rounded-xl border border-accent/30 bg-accent-soft p-4 transition-colors hover:border-gold/55 hover:bg-accent/20"
     >
-      <span className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+      <span className="text-[11px] font-black text-gold">
         {t('torneos.resumenDestacado')}
       </span>
       <div className="mt-3">
@@ -294,7 +294,7 @@ function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) 
         <span className={`flex h-6 w-6 items-center justify-center rounded-lg bg-surface ${tono}`}>
           <Icon className="h-3.5 w-3.5" />
         </span>
-        <h2 className={`text-[13px] font-semibold uppercase tracking-[0.1em] ${tono}`}>
+        <h2 className={`text-[13px] font-semibold ${tono}`}>
           {titulo}
         </h2>
         <span className="font-mono text-[11px] text-fg-muted tabular-nums">
@@ -331,7 +331,7 @@ function TorneosHeroBanner() {
         </div>
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-electric">
+            <p className="text-[11px] font-bold text-electric">
               Brackets en vivo
             </p>
             <p className="mt-1 max-w-sm text-sm text-fg-muted">
@@ -416,7 +416,7 @@ function EmptyState({ user, t }) {
           <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-surface text-gold">
             <Sparkles className="h-3.5 w-3.5" />
           </span>
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-gold">
+          <h2 className="text-[13px] font-semibold text-gold">
             {t('torneos.sugerenciasTitulo')}
           </h2>
           <span className="ml-auto text-[11px] text-fg-muted">
@@ -463,7 +463,7 @@ function SugerenciaCard({ sugerencia, user, t }) {
       <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-fg-muted">
         {descripcion}
       </p>
-      <div className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-bg px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+      <div className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-bg px-2.5 py-0.5 text-[10px] font-semibold text-fg-muted">
         <Clock className="h-3 w-3" />
         {t('torneos.sugerenciaBadge')}
         <span className="text-border">·</span>

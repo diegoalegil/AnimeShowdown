@@ -37,7 +37,7 @@ function WrappedPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
       <header className="mb-6 text-center">
-        <p className="inline-flex items-center gap-1.5 rounded-full bg-gold/12 px-3 py-1 text-[12px] font-bold uppercase tracking-wide text-gold">
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-gold/12 px-3 py-1 text-[12px] font-bold text-gold">
           <Sparkles className="h-3.5 w-3.5" /> Tu Wrapped
         </p>
         <h1 className="mt-2 text-2xl font-extrabold text-fg-strong">
@@ -106,7 +106,7 @@ function WrappedPage() {
                 />
               </Link>
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-gold">
+                <p className="text-[11px] font-bold text-gold">
                   Tu personaje Nº1
                 </p>
                 <Link

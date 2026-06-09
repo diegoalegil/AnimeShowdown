@@ -74,7 +74,7 @@ function AnimesPage() {
           subtitle="Entra en cada universo, descubre sus personajes más fuertes y compara quién domina su ranking interno. Cada saga se presenta como una escena propia dentro del archivo."
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 Archivo de universos
               </p>
               <p className="mt-3 text-sm leading-7 text-fg-muted">

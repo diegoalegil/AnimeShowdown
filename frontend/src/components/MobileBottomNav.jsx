@@ -114,7 +114,7 @@ function MobileBottomNav() {
             <MissionIcon className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-[11px] font-black uppercase tracking-[0.13em]">
+            <span className="block truncate text-[11px] font-black">
               {mission.title}
             </span>
             <span className="block truncate text-[10px] font-semibold text-fg-muted">

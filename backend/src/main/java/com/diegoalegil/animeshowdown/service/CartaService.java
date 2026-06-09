@@ -388,7 +388,13 @@ public class CartaService {
      * Garantiza 4 cartas SSR + 1 ESPECIAL sin coste de moneda ni afectar al pity normal.
      */
     @Transactional
-    public AbrirSobreResultadoDto reclamarSobreBienvenida(Usuario usuario) {
+    public AbrirSobreResultadoDto reclamarSobreBienvenida(Usuario usuarioParam) {
+        // Lock pesimista sobre el usuario: dos requests simultáneas (doble
+        // click, doble pestaña) pasaban ambas el chequeo de "no reclamado" y
+        // la segunda reventaba con 409 del unique de idempotency. Con el lock,
+        // la segunda espera y recibe la apertura existente.
+        Usuario usuario = usuarioRepository.findForUpdateById(usuarioParam.getId())
+                .orElse(usuarioParam);
         String idem = "bienvenida:" + usuario.getId();
         SobreApertura existente = sobreAperturaRepository
                 .findByUsuarioAndIdempotencyKey(usuario, idem)

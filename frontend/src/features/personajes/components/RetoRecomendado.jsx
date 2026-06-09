@@ -12,7 +12,7 @@ function RetoRecomendado({ personaje, stats, rival, rivalStats, delta, tipo, onS
     <section className="mt-10 overflow-hidden rounded-2xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.16),rgb(197_161_90_/_0.08),rgb(7_10_18_/_0.84))] p-5 shadow-elev-3 sm:p-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold">
             <Flame className="h-3.5 w-3.5" />
             Reto recomendado
           </p>
@@ -91,7 +91,7 @@ function RetoCard({ personaje, stats, label }) {
           />
         </Link>
         <div className="min-w-0 self-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gold">
+          <p className="text-[10px] font-black text-gold">
             {label}
           </p>
           <h3 className="mt-1 truncate text-2xl font-black text-fg-strong">
@@ -112,7 +112,7 @@ function RetoCard({ personaje, stats, label }) {
 function MiniRetoStat({ label, value, accent }) {
   return (
     <div className="rounded-lg border border-white/10 bg-surface/70 p-2">
-      <p className="text-[9px] font-black uppercase tracking-[0.12em] text-fg-muted">
+      <p className="text-[9px] font-black text-fg-muted">
         {label}
       </p>
       <p className={`mt-1 font-mono text-sm font-black ${accent ? 'text-gold' : 'text-fg-strong'}`}>

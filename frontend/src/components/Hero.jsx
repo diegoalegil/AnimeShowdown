@@ -179,7 +179,7 @@ function Hero({ catalogoPersonajes = [] }) {
         </motion.div>
         <HeroVoteTicker votos={votosRecientes} />
         <motion.p
-          className="mt-2 max-w-[22rem] text-center text-[11px] font-medium uppercase leading-5 tracking-[0.14em] text-fg-muted sm:max-w-none sm:tracking-[0.18em]"
+          className="mt-2 max-w-[22rem] text-center text-[11px] font-medium leading-5 text-fg-muted sm:max-w-none"
           variants={itemVariants}
         >
           {t('hero.features')}
@@ -205,7 +205,7 @@ function Hero({ catalogoPersonajes = [] }) {
               <Trophy className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+              <p className="text-[11px] font-black text-gold">
                 {t('hero.torneoDestacado')}
               </p>
               <p className="truncate text-sm font-bold text-fg-strong">
@@ -236,7 +236,7 @@ function HeroVoteTicker({ votos }) {
       className="flex w-full max-w-full flex-col gap-1 rounded-2xl border border-success/25 bg-bg/55 px-4 py-3 text-left shadow-lift [--aura-color:rgb(16_185_129_/_0.55)] backdrop-blur-md sm:max-w-2xl sm:flex-row sm:items-center sm:gap-3"
       aria-label={t('hero.votesAria')}
     >
-      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-success">
+      <span className="inline-flex items-center gap-1.5 text-xs font-black text-success">
         <Radio className="h-3.5 w-3.5" />
         {t('hero.votesNow')}
       </span>

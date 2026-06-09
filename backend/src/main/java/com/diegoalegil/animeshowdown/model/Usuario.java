@@ -134,6 +134,14 @@ public class Usuario {
     private LocalDateTime totpHabilitadoEn;
 
     /**
+     * Último step de 30s de TOTP aceptado (anti-replay). Un código solo
+     * vale para un step estrictamente posterior al guardado, así no se
+     * puede reusar dentro de la ventana de drift de la librería.
+     */
+    @Column(name = "totp_ultimo_step")
+    private Long totpUltimoStep;
+
+    /**
      * Código único de referral. Se genera en el
      * registro y nunca cambia. 8 chars alfanuméricos. Sirve para que
      * otros usuarios se registren con {@code ?ref={code}} y queden
@@ -358,6 +366,14 @@ public class Usuario {
 
     public boolean isTotpHabilitado() {
         return totpHabilitado != null && totpHabilitado;
+    }
+
+    public Long getTotpUltimoStep() {
+        return totpUltimoStep;
+    }
+
+    public void setTotpUltimoStep(Long totpUltimoStep) {
+        this.totpUltimoStep = totpUltimoStep;
     }
 
     public void setTotpHabilitado(boolean totpHabilitado) {

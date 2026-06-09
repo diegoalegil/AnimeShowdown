@@ -20,11 +20,9 @@ import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import { shareWithToast } from '../lib/shareWithToast'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
-import IntencionSelector from '../features/votar/components/IntencionSelector'
 import SessionRecap from '../features/votar/components/SessionRecap'
 import VoteArena from '../features/votar/components/VoteArena'
 import { useMisEspeciales } from '../hooks/useCartas'
-import VoteQuoteCard from '../features/votar/components/VoteQuoteCard'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
@@ -35,7 +33,6 @@ import {
   recordRecentPair,
   selectRandomPair,
 } from '../features/votar/vote-pairing'
-import { INTENCIONES_BY_ID } from '../data/voto-intenciones'
 
 // Claves y tiempo de vida para el prefetch del siguiente par.
 // gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
@@ -289,7 +286,6 @@ function VotarPage() {
   // post-voto. Sirve para pintar el overlay "+1 ELO" sobre la card ganadora.
   // Se resetea cuando llega un nuevo enfrentamiento o tras saltar.
   const [voteResult, setVoteResult] = useState(null)
-  const [selectedIntencionId, setSelectedIntencionId] = useState(null)
   const [showAnonLimitModal, setShowAnonLimitModal] = useState(false)
   // Cuando el backend devuelve 428, guardamos el voto pendiente (sitekey,
   // ids del enfrentamiento y personaje) y abrimos el captcha modal. Tras
@@ -493,7 +489,6 @@ function VotarPage() {
     setIsAdvancing(true)
     setVotedFor(null)
     setVoteResult(null)
-    setSelectedIntencionId(null)
     setPersonalVoteImpact(null)
     try {
       const previousKey = currentPairKeyRef.current
@@ -684,32 +679,6 @@ function VotarPage() {
     },
     [a, b, prefetchSiguientePar, scheduleAutoNext, notifyCoins],
   )
-
-  // Intención de voto (feature #15): el usuario eligió POR QUÉ votó en el panel
-  // de resultado. Set-once contra el voto ya emitido. Best-effort y opcional:
-  // un fallo (incl. 409 si ya estaba puesta) no rompe nada. Solo aplica en modo
-  // backend (matchId real); en casual/sugerido no hay voto persistido que anotar.
-  const handleSelectIntencion = useCallback(
-    (categoriaId) => {
-      if (!categoriaId || !INTENCIONES_BY_ID[categoriaId]) return
-      if (autoNextTimeoutRef.current != null) {
-        clearTimeout(autoNextTimeoutRef.current)
-        autoNextTimeoutRef.current = null
-      }
-      setSelectedIntencionId(categoriaId)
-      if (!matchId) return
-      const anonymous = !user
-      endpoints
-        .setCategoriaVoto(matchId, categoriaId, {
-          anonymous,
-        })
-        .catch(() => {
-          // Silencioso: la intención es opcional, no es un error de cara al usuario.
-        })
-    },
-    [matchId, user],
-  )
-  const selectedIntencion = selectedIntencionId ? INTENCIONES_BY_ID[selectedIntencionId] : null
 
   // "Reta a un amigo": comparte el duelo ACTUAL (a vs b) sin revelar tu voto,
   // para que el receptor aterrice votando ese mismo duelo. El middleware OG
@@ -1260,20 +1229,11 @@ function VotarPage() {
           </div>
         )}
 
-        {/* Intención de voto (feature #15): 1 tap opcional para decir POR QUÉ.
-            Solo en modo backend (voto persistido con enfrentamiento real).
-            key=matchId remonta el selector limpio en cada duelo. */}
-        {votedPersonaje && matchId && !tieSelected && (
-          <IntencionSelector key={matchId} onSelect={handleSelectIntencion} />
-        )}
-
-        {votedPersonaje && selectedIntencion && (
-          <VoteQuoteCard
-            personaje={votedPersonaje}
-            rival={losingPersonaje}
-            intencion={selectedIntencion}
-          />
-        )}
+        {/* Retirado el selector de intención post-voto (decisión del owner
+            2026-06-09): con el auto-next de ~900ms no daba tiempo a usarlo y
+            interrumpía el ritmo de votación. El backend de intenciones sigue
+            vivo para los rankings por categoría; si se recupera, debe ser en
+            un punto sin fricción (p.ej. perfil o ficha del personaje). */}
 
         {sessionStats.total > 0 && sessionStats.total % 10 === 0 && (
           <SessionRecap stats={sessionStats} onShare={handleShareSessionRecap} />

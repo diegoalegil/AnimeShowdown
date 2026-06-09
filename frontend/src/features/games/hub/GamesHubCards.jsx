@@ -36,13 +36,13 @@ export function CardDestacado({ game, estado }) {
       <div className="relative flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1 rounded-full border bg-bg/55 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] backdrop-blur-md ${theme.border} ${theme.text}`}
+            className={`inline-flex items-center gap-1 rounded-full border bg-bg/55 px-2.5 py-0.5 text-[10px] font-semibold backdrop-blur-md ${theme.border} ${theme.text}`}
           >
             <Icon className="h-3 w-3" />
             {game.rarity} · Reto del día
           </span>
           {done && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-success backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/15 px-2.5 py-0.5 text-[10px] font-semibold text-success backdrop-blur-md">
               ✓ Completado
             </span>
           )}
@@ -54,7 +54,7 @@ export function CardDestacado({ game, estado }) {
           {identity.copy}
         </p>
         <div className="flex flex-wrap gap-1.5">
-          <span className={`inline-flex rounded-full border bg-bg/45 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] backdrop-blur-md ${theme.border} ${theme.text}`}>
+          <span className={`inline-flex rounded-full border bg-bg/45 px-2 py-0.5 text-[10px] font-semibold backdrop-blur-md ${theme.border} ${theme.text}`}>
             {identity.emblem}
           </span>
           {identity.motifs.slice(0, 2).map((motif) => (
@@ -108,18 +108,18 @@ export function CardMini({ game, estado }) {
       <div className="relative min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-1.5">
           <span
-            className={`inline-flex items-center gap-1 rounded-full border bg-bg/55 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] backdrop-blur-md ${theme.border} ${theme.text}`}
+            className={`inline-flex items-center gap-1 rounded-full border bg-bg/55 px-2 py-0.5 text-[9px] font-semibold backdrop-blur-md ${theme.border} ${theme.text}`}
           >
             <Icon className="h-2.5 w-2.5" />
             {game.rarity}
           </span>
           {done && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-success backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/15 px-2 py-0.5 text-[9px] font-semibold text-success backdrop-blur-md">
               ✓
             </span>
           )}
           {best != null && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-medal-gold/40 bg-medal-gold/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-medal-gold backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 rounded-full border border-medal-gold/40 bg-medal-gold/10 px-2 py-0.5 text-[9px] font-semibold text-medal-gold backdrop-blur-md">
               <Trophy className="h-2.5 w-2.5" />
               Récord {best}
             </span>
@@ -131,7 +131,7 @@ export function CardMini({ game, estado }) {
         <p className="line-clamp-2 text-[12px] text-fg-muted drop-shadow-scrim-sm">
           {identity.copy}
         </p>
-        <p className="mt-1 line-clamp-1 text-[10px] font-semibold uppercase tracking-wider text-fg-muted/90">
+        <p className="mt-1 line-clamp-1 text-[10px] font-semibold text-fg-muted/90">
           {identity.emblem} · {game.cadencia}
         </p>
       </div>
@@ -163,7 +163,7 @@ export function OmikujiCard() {
         </span>
       </div>
       <div className="relative flex-1">
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold/90">
+        <p className="text-[10px] font-bold text-gold/90">
           Ritual diario
         </p>
         <h3 className="mt-1 text-lg font-bold text-fg-strong drop-shadow-scrim group-hover:text-gold sm:text-xl">

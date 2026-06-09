@@ -50,8 +50,11 @@ public class ProductionSecretsValidator {
     private final Map<String, String> secretosOpcionales;
     private final boolean turnstileEnabled;
     private final String turnstileSecret;
+    /** Con APP_SECRETS_STRICT=true las claves cortas abortan el boot (activar tras rotarlas). */
+    private final boolean entropiaEstricta;
 
     public ProductionSecretsValidator(
+            @Value("${app.secrets.strict:false}") boolean entropiaEstricta,
             @Value("${spring.datasource.password:}") String dbPassword,
             @Value("${jwt.secret:}") String jwtSecret,
             @Value("${app.totp.encryption-key:}") String totpKey,
@@ -82,6 +85,7 @@ public class ProductionSecretsValidator {
 
         this.turnstileEnabled = turnstileEnabled;
         this.turnstileSecret = turnstileSecret == null ? "" : turnstileSecret.trim();
+        this.entropiaEstricta = entropiaEstricta;
     }
 
     @PostConstruct
@@ -107,6 +111,29 @@ public class ProductionSecretsValidator {
                     + ". Configúralas con valores reales antes de arrancar la app.";
             log.error(mensaje);
             throw new IllegalStateException(mensaje);
+        }
+
+        // Piso de entropía para las claves criptográficas: con menos de 32
+        // chars un HMAC/JWT secret es fuerza-brutable offline. La password de
+        // BBDD queda fuera (la gestiona el proveedor y viaja por TLS).
+        List<String> criptoCortos = new ArrayList<>();
+        for (Map.Entry<String, String> e : secretosRequeridos.entrySet()) {
+            if (e.getKey().startsWith("DB_PASSWORD")) continue;
+            String valor = e.getValue();
+            if (valor != null && !valor.isBlank() && valor.trim().length() < 32) {
+                criptoCortos.add(e.getKey());
+            }
+        }
+        if (!criptoCortos.isEmpty()) {
+            String mensaje = "Claves criptográficas demasiado cortas (mínimo 32 chars): "
+                    + criptoCortos + ". Rota estos secretos con `openssl rand -base64 48`.";
+            if (entropiaEstricta) {
+                throw new IllegalStateException("Boot abortado: " + mensaje);
+            }
+            // Modo laxo (default): no podemos garantizar la longitud de los
+            // secretos ya desplegados y un boot-abort sorpresa en prod es
+            // peor que la debilidad. Tras rotar, fijar APP_SECRETS_STRICT=true.
+            log.error(mensaje);
         }
 
         List<String> opcionalesInseguros = new ArrayList<>();

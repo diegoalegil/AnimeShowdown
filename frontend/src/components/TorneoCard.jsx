@@ -136,10 +136,10 @@ function TorneoCard({ torneo }) {
               </span>
             )}
             <Icon className="h-3.5 w-3.5" />
-            <span className="uppercase tracking-wider">{badge.label}</span>
+            <span>{badge.label}</span>
           </span>
           {finalizado && (
-            <span className="inline-flex items-center rounded-md border border-border bg-bg/55 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-fg-muted">
+            <span className="inline-flex items-center rounded-md border border-border bg-bg/55 px-1.5 py-0.5 text-[10px] font-bold text-fg-muted">
               Histórico
             </span>
           )}
@@ -182,7 +182,7 @@ function TorneoCard({ torneo }) {
               className="h-10 w-10 rounded-lg border border-white/10"
             />
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-fg-muted">
+              <p className="text-[10px] text-fg-muted">
                 Campeón
               </p>
               <p className="truncate text-sm font-bold text-fg-strong">

@@ -219,7 +219,9 @@ public class DueloLiveService {
         return notifier.estadoPara(duelo, usuario, "MATCH_END", "Duelo abandonado");
     }
 
-    @Scheduled(fixedRate = 3_000)
+    // 2s (antes 3s): es el latido que asigna bots y resuelve rondas; con 3s
+    // la espera percibida en PvP era visiblemente más larga que el countdown.
+    @Scheduled(fixedRate = 2_000)
     @Transactional
     public void mantenimientoLiveProgramado() {
         if (!scheduledMaintenanceEnabled) return;

@@ -51,13 +51,15 @@ public class TotpService {
     private final SecretGenerator secretGenerator;
     private final QrGenerator qrGenerator;
     private final CodeVerifier codeVerifier;
+    private final CodeGenerator codeGenerator;
+    private final TimeProvider timeProvider;
 
     public TotpService(@Value("${app.totp.issuer:AnimeShowdown}") String issuer) {
         this.issuer = issuer;
         this.secretGenerator = new DefaultSecretGenerator();
         this.qrGenerator = new ZxingPngQrGenerator();
-        TimeProvider timeProvider = new SystemTimeProvider();
-        CodeGenerator codeGenerator = new DefaultCodeGenerator();
+        this.timeProvider = new SystemTimeProvider();
+        this.codeGenerator = new DefaultCodeGenerator();
         DefaultCodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
         // Drift de 1 step (30s a cada lado). Tolera desincronización moderada
         // del reloj del móvil sin abrir una ventana grande a ataques de fuerza
@@ -122,5 +124,29 @@ public class TotpService {
         String limpio = codigo.replaceAll("\\s+", "");
         if (limpio.length() != 6 || !limpio.matches("\\d{6}")) return false;
         return codeVerifier.isValidCode(secret, limpio);
+    }
+
+    /**
+     * Como {@link #validarCodigo} pero devuelve el step de 30s al que
+     * pertenece el código aceptado (o -1 si no valida). El caller persiste
+     * ese step y rechaza códigos de steps ya consumidos: sin esto, un código
+     * interceptado se puede reusar durante toda la ventana de drift (~90s).
+     */
+    public long validarCodigoStep(String secret, String codigo) {
+        if (secret == null || codigo == null) return -1;
+        String limpio = codigo.replaceAll("\\s+", "");
+        if (limpio.length() != 6 || !limpio.matches("\\d{6}")) return -1;
+        long stepActual = timeProvider.getTime() / 30;
+        for (long s = stepActual + 1; s >= stepActual - 1; s--) {
+            try {
+                if (codeGenerator.generate(secret, s).equals(limpio)) {
+                    return s;
+                }
+            } catch (Exception e) {
+                log.error("Error generando código TOTP de comparación", e);
+                return -1;
+            }
+        }
+        return -1;
     }
 }
