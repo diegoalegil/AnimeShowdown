@@ -1071,14 +1071,14 @@ function VotarPage() {
   return (
     <VisualPageShell
       visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
-      contentClassName="mx-auto flex max-w-5xl flex-col gap-4"
+      contentClassName="mx-auto flex max-w-5xl flex-col gap-3 sm:gap-4"
       lateralKanji={{ left: '挑', right: '闘' }}
-      className="min-h-[calc(100svh-5rem)] py-4 sm:py-8 lg:py-10"
+      className="min-h-[calc(100svh-5rem)] py-3 sm:py-8 lg:py-10"
       atmosphere="arena-storm"
     >
         {/* Top bar: badge + modo rápido + skip */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold text-fg-muted">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <span className="inline-flex max-w-full items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-[10px] font-semibold text-fg-muted sm:text-[11px]">
             <span className="relative inline-flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
@@ -1086,16 +1086,16 @@ function VotarPage() {
             {arenaStatusLabel}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
             {!identitiesHidden && !votedFor && a?.slug && b?.slug && (
               <button
                 type="button"
                 onClick={handleChallenge}
                 title="Comparte este duelo para retar a un amigo a votarlo"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3.5 py-2 text-[12px] font-semibold text-gold transition-all hover:border-accent hover:bg-accent/15"
+                className="inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-0 py-2 text-[12px] font-semibold text-gold transition-all hover:border-accent hover:bg-accent/15 sm:w-auto sm:px-3.5"
               >
                 <Swords className="h-3.5 w-3.5" />
-                Reta a un amigo
+                <span className="sr-only sm:not-sr-only">Reta a un amigo</span>
               </button>
             )}
             <button
@@ -1103,48 +1103,50 @@ function VotarPage() {
               onClick={() => setFastMode((f) => !f)}
               aria-pressed={fastMode}
               title={fastMode ? 'Auto-siguiente activo · clic para desactivar' : 'Auto-siguiente desactivado · clic para activar'}
-              className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[12px] font-semibold transition-all ${
+              className={`inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-0 py-2 text-[12px] font-semibold transition-all sm:w-auto sm:px-3.5 ${
                 fastMode
                   ? 'border-medal-gold/60 bg-medal-gold/10 text-medal-gold'
                   : 'border-border bg-surface text-fg-muted hover:border-medal-gold/40 hover:text-medal-gold'
               }`}
             >
               <Zap className={`h-3.5 w-3.5 ${fastMode ? 'fill-medal-gold' : ''}`} />
-              Modo rápido
+              <span className="sr-only sm:not-sr-only">Modo rápido</span>
             </button>
             <button
               type="button"
               onClick={() => setBlindMode((value) => !value)}
               aria-pressed={blindMode}
               title={blindMode ? 'Voto a ciegas activo · clic para desactivar' : 'Voto a ciegas desactivado · clic para activar'}
-              className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[12px] font-semibold transition-all ${
+              className={`inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-0 py-2 text-[12px] font-semibold transition-all sm:w-auto sm:px-3.5 ${
                 blindMode
                   ? 'border-accent/60 bg-accent-soft text-gold'
                   : 'border-border bg-surface text-fg-muted hover:border-accent/40 hover:text-gold'
               }`}
             >
               <EyeOff className="h-3.5 w-3.5" />
-              Voto a ciegas
+              <span className="sr-only sm:not-sr-only">Voto a ciegas</span>
             </button>
             <button
               type="button"
               onClick={handleNext}
               disabled={controlsDisabled}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50"
+              className="inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-0 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50 sm:w-auto sm:px-3.5"
             >
               <SkipForward className="h-3.5 w-3.5" />
-              {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
-              <ArrowRight className="h-3 w-3" />
+              <span className="sr-only sm:not-sr-only">
+                {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
+              </span>
+              <ArrowRight className="hidden h-3 w-3 sm:block" />
             </button>
           </div>
         </div>
 
         {/* Pregunta principal */}
-        <header className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-extrabold leading-tight tracking-tight">
+        <header className="flex flex-col items-center gap-0.5 text-center sm:gap-1">
+          <h1 className="text-2xl font-extrabold leading-tight tracking-normal sm:text-3xl">
             ¿A quién prefieres?
           </h1>
-          <p className="max-w-xl text-[13px] text-fg-muted">
+          <p className="max-w-xl text-[12px] text-fg-muted sm:text-[13px]">
             {arenaDescription}
           </p>
         </header>
