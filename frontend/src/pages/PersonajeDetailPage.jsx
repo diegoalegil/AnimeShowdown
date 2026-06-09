@@ -54,6 +54,7 @@ import {
 } from '../lib/localVoteRanking'
 import RetoRecomendado from '../features/personajes/components/RetoRecomendado'
 import { getRetoRecomendado } from '../features/personajes/reto-recomendado'
+import { buildPersonajeDetailContext } from '../features/personajes/personaje-detail-data'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -170,6 +171,12 @@ function PersonajeDetailPage() {
     () => getLocalVoteStats(localVotes),
     [localVotes],
   )
+  const detailContext = buildPersonajeDetailContext({
+    catalogo: personajes,
+    personaje,
+    slug,
+    idx,
+  })
 
   if (idx !== -1 && slugParam !== slug) {
     return <Navigate to={`/personajes/${slug}`} replace />
@@ -177,22 +184,18 @@ function PersonajeDetailPage() {
 
   if (idx === -1) return <NotFoundPage />
 
+  const {
+    prev,
+    next,
+    rankGlobal,
+    animePersonajes,
+    rankAnime,
+    relacionados,
+    duelosPopulares,
+    totalAnime,
+  } = detailContext
   const total = stats.wins + stats.losses
   const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0
-  const prev = personajes[(idx - 1 + personajes.length) % personajes.length]
-  const next = personajes[(idx + 1) % personajes.length]
-
-  // Rank global por ELO + rank dentro del anime. Una sola pasada por
-  // anime para no recalcular varias veces durante el render.
-  const eloOrdenado = [...personajes]
-    .map((p) => ({ slug: p.slug, elo: getStatsPersonaje(p.slug).elo }))
-    .sort((a, b) => b.elo - a.elo)
-  const rankGlobal = eloOrdenado.findIndex((p) => p.slug === slug) + 1
-  const animePersonajes = personajes.filter((p) => p.anime === personaje.anime)
-  const rankAnime =
-    [...animePersonajes]
-      .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
-      .findIndex((p) => p.slug === slug) + 1
   const personalRankIndex = personalLocalStats.top.findIndex((item) => item.slug === slug)
   const personalSignal = personalRankIndex >= 0
     ? {
@@ -225,17 +228,7 @@ function PersonajeDetailPage() {
       })
     }
   }
-  // Hasta 10 personajes del mismo anime como internal linking estructurado.
-  // Google sigue estos links para entender la red semántica
-  // ("Akame ga Kill!" → 10 personajes del anime); más de 10 saturaría la
-  // página y reduciría link equity por dilución.
-  const relacionados = personajes
-    .filter((p) => p.anime === personaje.anime && p.slug !== slug)
-    .slice(0, 10)
-  const duelosPopulares = getDuelosPopulares(personaje)
   const retoRecomendado = getRetoRecomendado(personaje)
-  const totalAnime =
-    personajes.filter((p) => p.anime === personaje.anime).length
   // Visual del anime al que pertenece el personaje: usa el banner editorial
   // del universo (naruto.webp, demon-slayer.webp...) como ambient hero
   // detras del shell, en lugar de la as-stage genérica.
@@ -801,25 +794,6 @@ function PersonalCharacterSignal({ personaje, signal, totalVotes }) {
       </div>
     </motion.div>
   )
-}
-
-function getDuelosPopulares(personaje) {
-  const usados = new Set([personaje.slug])
-  const mismos = personajes
-    .filter((p) => p.anime === personaje.anime && !usados.has(p.slug))
-    .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
-  const globales = [...personajes]
-    .filter((p) => p.anime !== personaje.anime && !usados.has(p.slug))
-    .sort((a, b) => getStatsPersonaje(b.slug).elo - getStatsPersonaje(a.slug).elo)
-
-  const out = []
-  for (const candidato of [...mismos, ...globales]) {
-    if (usados.has(candidato.slug)) continue
-    usados.add(candidato.slug)
-    out.push(candidato)
-    if (out.length >= 6) break
-  }
-  return out
 }
 
 /**
