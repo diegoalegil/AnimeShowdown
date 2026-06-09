@@ -76,12 +76,14 @@ class AuthLoginLockoutConcurrencyTest {
             assertThat(despues.getIntentosFallidos()).isEqualTo(0);
             assertThat(despues.getBloqueadoHasta()).isAfter(LocalDateTime.now());
 
+            // SEC-05: la cuenta bloqueada responde 401 generico (incluso con la
+            // password correcta) para no revelar su existencia ni el lockout.
             mvc.perform(post("/api/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(json.writeValueAsString(Map.of(
                             "username", username,
                             "password", "secreta123"))))
-                    .andExpect(status().isLocked());
+                    .andExpect(status().isUnauthorized());
         } finally {
             pool.shutdownNow();
         }

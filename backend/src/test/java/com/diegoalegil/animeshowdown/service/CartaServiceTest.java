@@ -193,13 +193,18 @@ class CartaServiceTest {
         com.diegoalegil.animeshowdown.model.SobreApertura previa =
                 new com.diegoalegil.animeshowdown.model.SobreApertura(usuario, "bienvenida:8");
 
+        // El servicio re-lee al usuario CON LOCK para serializar dobles
+        // clicks; esa lectura es la única interacción esperada con el repo.
+        when(usuarioRepository.findForUpdateById(8L)).thenReturn(Optional.of(usuario));
         when(sobreAperturaRepository.findByUsuarioAndIdempotencyKey(usuario, "bienvenida:8"))
                 .thenReturn(Optional.of(previa));
 
         sut.reclamarSobreBienvenida(usuario);
 
         // Devuelve la apertura ya hecha sin volver a sortear ni marcar nada.
-        verifyNoInteractions(rarezaService, usuarioRepository);
+        verifyNoInteractions(rarezaService);
+        org.mockito.Mockito.verify(usuarioRepository).findForUpdateById(8L);
+        org.mockito.Mockito.verifyNoMoreInteractions(usuarioRepository);
     }
 
     private static Carta carta(Personaje personaje, Long id, RarezaCarta rareza) {
