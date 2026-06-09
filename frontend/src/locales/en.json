@@ -40,6 +40,8 @@
     "elegirIdioma": "Choose language",
     "ctaVotar": "Vote now",
     "ctaVotarCompact": "Vote",
+    "searchAria": "Open quick search (⌘K)",
+    "searchShort": "Search",
     "ruletaAria": "Open a random character",
     "ruletaLoading": "Rolling"
   },
