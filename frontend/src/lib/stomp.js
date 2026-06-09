@@ -46,11 +46,14 @@ function createClient() {
       const token = getToken()
       c.connectHeaders = token ? { Authorization: `Bearer ${token}` } : {}
     },
-    // Reconnect cada 5s. Si el backend está caído seguimos intentando sin
+    // Reconnect cada 4s. Si el backend está caído seguimos intentando sin
     // colapsar el cliente.
-    reconnectDelay: 5000,
-    heartbeatIncoming: 25000,
-    heartbeatOutgoing: 25000,
+    reconnectDelay: 4000,
+    // 15s (antes 25s): Cloudflare/Railway cortan WebSockets sin tráfico;
+    // con 25s el corte llegaba antes que el heartbeat en redes móviles y
+    // el realtime se caía con "network connection was lost".
+    heartbeatIncoming: 15000,
+    heartbeatOutgoing: 15000,
     onConnect: () => notifyConnected(true),
     onWebSocketClose: () => notifyConnected(false),
     onStompError: (frame) => {
