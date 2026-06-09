@@ -94,6 +94,11 @@ function incrementarContadorLocalVotos() {
   }
 }
 
+function hasPrefetchReadyOrRunning(queryClient, queryKey) {
+  const state = queryClient.getQueryState(queryKey)
+  return state?.fetchStatus === 'fetching' || queryClient.getQueryData(queryKey) != null
+}
+
 /**
  * Barra split cabeza-a-cabeza con porcentajes: resalta mayoría (ganador)
  * y minoría (perdedor). Se muestra solo cuando el backend devuelve ambos
@@ -307,6 +312,7 @@ function VotarPage() {
   const isAdvancingRef = useRef(false)
   const currentPairKeyRef = useRef('')
   const recordedPairKeyRef = useRef('')
+  const warmPrefetchPairKeyRef = useRef('')
 
   useEffect(() => {
     if (fastMode || autoNextTimeoutRef.current == null) return
@@ -433,11 +439,12 @@ function VotarPage() {
     trackLocalVote,
   } = useVoteSessionStats()
 
-  // Prefetch del siguiente par en background mientras el usuario ve el resultado.
-  // Se llama justo después de registrar el voto para que la petición al backend
-  // vuele en paralelo con la animación de resultado (~900ms).
+  // Prefetch del siguiente par en background. Se dispara al mostrar el duelo y
+  // se reusa tras votar, de modo que el auto-next no dependa de la ventana de
+  // animación (~900ms) para empezar a pedir el siguiente match.
   const prefetchSiguientePar = useCallback(() => {
     if (modoBackend) {
+      if (hasPrefetchReadyOrRunning(queryClient, PREFETCH_BACKEND_KEY)) return
       queryClient.prefetchQuery({
         queryKey: PREFETCH_BACKEND_KEY,
         queryFn: fetchSiguienteBackend,
@@ -445,6 +452,7 @@ function VotarPage() {
         gcTime: PREFETCH_GC_TIME,
       })
     } else if (modoSugerido) {
+      if (hasPrefetchReadyOrRunning(queryClient, PREFETCH_SUGERIDO_KEY)) return
       queryClient.prefetchQuery({
         queryKey: PREFETCH_SUGERIDO_KEY,
         queryFn: endpoints.dueloSugerido,
@@ -454,6 +462,22 @@ function VotarPage() {
     }
     // Modo casual es instantáneo (solo estado local), no necesita prefetch.
   }, [fetchSiguienteBackend, modoBackend, modoSugerido, queryClient])
+
+  useEffect(() => {
+    if (!currentPairKey || votedFor || isAdvancing || isVotePending) return
+    if (!modoBackend && !modoSugerido) return
+    if (warmPrefetchPairKeyRef.current === currentPairKey) return
+    warmPrefetchPairKeyRef.current = currentPairKey
+    prefetchSiguientePar()
+  }, [
+    currentPairKey,
+    isAdvancing,
+    isVotePending,
+    modoBackend,
+    modoSugerido,
+    prefetchSiguientePar,
+    votedFor,
+  ])
 
   const handleNext = useCallback(async (options = {}) => {
     const force = options?.force === true
@@ -492,6 +516,9 @@ function VotarPage() {
           queryClient.setQueryData(BACKEND_QUERY_KEY, prefetchedData)
           queryClient.removeQueries({ queryKey: PREFETCH_BACKEND_KEY })
         } else {
+          if (prefetchedData) {
+            queryClient.removeQueries({ queryKey: PREFETCH_BACKEND_KEY })
+          }
           await refetch()
         }
       } else if (modoSugerido) {
@@ -504,6 +531,9 @@ function VotarPage() {
           queryClient.setQueryData(['votar', 'duelo-sugerido'], prefetchedData)
           queryClient.removeQueries({ queryKey: PREFETCH_SUGERIDO_KEY })
         } else {
+          if (prefetchedData) {
+            queryClient.removeQueries({ queryKey: PREFETCH_SUGERIDO_KEY })
+          }
           for (let attempt = 0; attempt < 3; attempt += 1) {
             const result = await refetchDueloSugerido()
             const nextKey =
