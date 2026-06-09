@@ -48,21 +48,26 @@ function CardBio({ user }) {
         <Pencil className="h-4 w-4 text-gold" />
         <h2 className="text-lg font-bold text-fg-strong">Tu bio</h2>
       </div>
-      <p className="mb-5 text-[12px] text-fg-muted">
+      <label htmlFor="profile-bio" className="sr-only">
+        Bio pública
+      </label>
+      <p id="profile-bio-help" className="mb-5 text-[12px] text-fg-muted">
         Una breve presentación que aparece en tu perfil público
         (/u/{user.username}). Opcional; puedes dejarla vacía.
       </p>
       <textarea
+        id="profile-bio"
         value={bio}
         onChange={(e) => setDraft({ sourceBio, value: e.target.value })}
         rows={3}
         maxLength={BIO_MAX}
+        aria-describedby="profile-bio-help profile-bio-counter"
         placeholder="Fan de los shōnen, coleccionista de duelos imposibles..."
         className="w-full resize-y rounded-lg border border-border bg-bg px-3 py-2 text-sm text-fg-strong placeholder:text-fg-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         disabled={guardando}
       />
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-[11px] tabular-nums text-fg-muted">
+        <span id="profile-bio-counter" className="text-[11px] tabular-nums text-fg-muted">
           {bio.length}/{BIO_MAX}
         </span>
         <button
