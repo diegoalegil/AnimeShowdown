@@ -196,7 +196,7 @@ function DueloVersusPage() {
           <section className="rounded-xl border border-accent/30 bg-[linear-gradient(135deg,rgb(159_29_44_/_0.14),rgb(255_199_44_/_0.08),rgb(20_20_30_/_0.92))] p-5">
             <div className="flex items-center gap-2 text-gold">
               <Trophy className="h-4 w-4" />
-              <p className="text-[11px] font-semibold ">
+              <p className="text-[11px] font-semibold">
                 Quién ganaría según la comunidad
               </p>
             </div>

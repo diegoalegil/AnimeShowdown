@@ -179,7 +179,7 @@ function Hero({ catalogoPersonajes = [] }) {
         </motion.div>
         <HeroVoteTicker votos={votosRecientes} />
         <motion.p
-          className="mt-2 max-w-[22rem] text-center text-[11px] font-medium leading-5 text-fg-muted sm:max-w-none sm:"
+          className="mt-2 max-w-[22rem] text-center text-[11px] font-medium leading-5 text-fg-muted sm:max-w-none"
           variants={itemVariants}
         >
           {t('hero.features')}
