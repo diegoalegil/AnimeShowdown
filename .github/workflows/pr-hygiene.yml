@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   commit-messages:
-    name: conventional commits
+    name: conventional commits and metadata
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -25,6 +25,12 @@ jobs:
 
       - name: Validate PR commit messages
         run: node scripts/commitlint.mjs --range "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+      - name: Validate PR metadata
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node scripts/metadata-hygiene.mjs --env PR_TITLE "PR title" --env PR_BODY "PR body"
 
   pr-template:
     name: PR template coverage

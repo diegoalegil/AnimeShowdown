@@ -2,6 +2,7 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { metadataIssues } from './metadata-hygiene.mjs'
 
 const require = createRequire(import.meta.url)
 const config = require('../commitlint.config.cjs')
@@ -31,9 +32,7 @@ function validateMessage(message, label = 'commit') {
     errors.push(`header > ${config.maxHeaderLength} caracteres`)
   }
 
-  if (/^Co-Authored-By:/im.test(fullMessage)) {
-    errors.push('no uses trailers Co-Authored-By')
-  }
+  errors.push(...metadataIssues(fullMessage, label))
 
   if (errors.length > 0 && !shouldSkip(header)) {
     return [`${label}: "${header || '(vacío)'}"`, ...errors.map((e) => `  - ${e}`)]
