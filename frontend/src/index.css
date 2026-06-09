@@ -451,6 +451,10 @@
       0 0 65px -36px rgb(159 29 44 / 0.92);
   }
 
+  .as-tournament-vs-aura {
+    --aura-color: rgb(197 161 90 / 0.85);
+  }
+
   .as-error-boundary-scrim {
     background:
       radial-gradient(circle at 30% 48%, rgb(159 29 44 / 0.18), transparent 32%),
