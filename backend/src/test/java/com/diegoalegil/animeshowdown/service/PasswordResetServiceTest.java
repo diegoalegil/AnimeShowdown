@@ -2,6 +2,11 @@ package com.diegoalegil.animeshowdown.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.diegoalegil.animeshowdown.model.PasswordResetToken;
 import com.diegoalegil.animeshowdown.model.Usuario;
@@ -29,6 +37,8 @@ class PasswordResetServiceTest {
     @Autowired private PasswordResetTokenRepository tokenRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private PlatformTransactionManager transactionManager;
+    @MockitoSpyBean private EmailService emailService;
 
     @Test
     void solicitarResetNoPersisteCodigoEnClaro() {
@@ -42,6 +52,28 @@ class PasswordResetServiceTest {
         assertThat(token.getCodigo()).isEqualTo(PasswordResetToken.CODIGO_REDACTADO);
         assertThat(token.getCodigoHash()).isNotBlank();
         assertThat(token.getCodigoHash()).doesNotMatch("\\d{6}");
+    }
+
+    @Test
+    void solicitarResetEnviaElEmailTrasElCommit() {
+        Usuario usuario = guardarUsuario("reset_email");
+
+        passwordResetService.solicitarReset(usuario.getEmail());
+
+        verify(emailService).enviarCodigoReset(
+                eq(usuario.getEmail()), eq(usuario.getUsername()), matches("\\d{6}"));
+    }
+
+    @Test
+    void solicitarResetNoEnviaEmailSiLaTransaccionHaceRollback() {
+        Usuario usuario = guardarUsuario("reset_rollback");
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            passwordResetService.solicitarReset(usuario.getEmail());
+            status.setRollbackOnly();
+        });
+
+        verify(emailService, never()).enviarCodigoReset(any(), any(), any());
     }
 
     @Test
