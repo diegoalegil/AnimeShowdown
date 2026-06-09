@@ -7,6 +7,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.diegoalegil.animeshowdown.event.EmailVerificacionEmitidaEvent;
+import com.diegoalegil.animeshowdown.event.NewsletterSuscripcionPendienteEvent;
 import com.diegoalegil.animeshowdown.event.PasswordResetSolicitadoEvent;
 import com.diegoalegil.animeshowdown.security.LogSanitizer;
 
@@ -55,6 +56,16 @@ public class EmailDispatchListener {
             emailService.enviarVerificacion(ev.email(), ev.username(), ev.link());
         } catch (Exception e) {
             log.warn("Despacho de email de verificación falló (no rompe el flujo): email={} err={}",
+                    LogSanitizer.email(ev.email()), e.getMessage());
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    public void onNewsletterSuscripcionPendiente(NewsletterSuscripcionPendienteEvent ev) {
+        try {
+            emailService.enviarConfirmacionNewsletter(ev.email(), ev.link());
+        } catch (Exception e) {
+            log.warn("Despacho de email de newsletter falló (no rompe el flujo): email={} err={}",
                     LogSanitizer.email(ev.email()), e.getMessage());
         }
     }

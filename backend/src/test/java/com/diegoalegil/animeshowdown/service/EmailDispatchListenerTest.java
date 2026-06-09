@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.diegoalegil.animeshowdown.event.EmailVerificacionEmitidaEvent;
+import com.diegoalegil.animeshowdown.event.NewsletterSuscripcionPendienteEvent;
 import com.diegoalegil.animeshowdown.event.PasswordResetSolicitadoEvent;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +38,17 @@ class EmailDispatchListenerTest {
 
         verify(emailService).enviarVerificacion(
                 "ana@example.com", "ana", "https://animeshowdown.dev/verify?token=abc");
+    }
+
+    @Test
+    void despachaLaConfirmacionDeNewsletterConLosDatosDelEvento() {
+        EmailDispatchListener listener = new EmailDispatchListener(emailService);
+
+        listener.onNewsletterSuscripcionPendiente(new NewsletterSuscripcionPendienteEvent(
+                "ana@example.com", "https://animeshowdown.dev/newsletter/confirmar?token=abc"));
+
+        verify(emailService).enviarConfirmacionNewsletter(
+                "ana@example.com", "https://animeshowdown.dev/newsletter/confirmar?token=abc");
     }
 
     @Test
