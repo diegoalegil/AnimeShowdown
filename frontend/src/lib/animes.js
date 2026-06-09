@@ -79,6 +79,18 @@ export function getAnimeAliases(nombre) {
   return ALIASES[nombre] ?? []
 }
 
+function normalizarBusqueda(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
+
+function compareAnimeName(a, b) {
+  return a.anime.localeCompare(b.anime, 'es', { sensitivity: 'base' })
+}
+
 // Memo de getAnimesCatalogo. `buscarAnimes` lo invoca en cada keystroke del
 // buscador de animes y el cómputo (agrupar + ordenar por ELO/popularidad +
 // stats de ~1000 personajes) es caro; antes se recomputaba entero por tecla y
@@ -118,16 +130,30 @@ function computeAnimesCatalogo(catalogo) {
     const eloPromedio = Math.round(
       stats.reduce((a, p) => a + p.elo, 0) / stats.length,
     )
+    const slug = slugifyAnime(anime)
+    const aliases = getAnimeAliases(anime)
+    const destacadoScore = list.length * 8 + (topElo?.elo ?? 0)
+    const searchText = [
+      anime,
+      slug,
+      ...aliases,
+      ...list.map((p) => p.nombre),
+    ]
+      .map(normalizarBusqueda)
+      .filter(Boolean)
+      .join(' ')
     return {
       anime,
-      slug: slugifyAnime(anime),
+      slug,
       personajes: list,
       total: list.length,
       topElo,
       eloPromedio,
       porElo,
       porPopularidad,
-      aliases: getAnimeAliases(anime),
+      aliases,
+      destacadoScore,
+      searchText,
     }
   })
 }
@@ -141,14 +167,36 @@ export function getAnimePorSlug(slug, catalogo) {
 export function buscarAnimes(query, catalogo) {
   const animesCatalogo = getAnimesCatalogo(catalogo)
   if (!query) return animesCatalogo
-  const q = query
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .trim()
-  return animesCatalogo.filter((a) => {
-    if (a.anime.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q)) return true
-    if (a.slug.includes(q.replace(/\s+/g, '-'))) return true
-    return a.aliases.some((alias) => alias.toLowerCase().includes(q))
-  })
+  const q = normalizarBusqueda(query)
+  if (!q) return animesCatalogo
+  const slugQuery = q.replace(/\s+/g, '-')
+  return animesCatalogo.filter(
+    (a) => a.searchText.includes(q) || a.slug.includes(slugQuery),
+  )
+}
+
+const ANIME_SORTERS = {
+  destacados: (a, b) =>
+    b.destacadoScore - a.destacadoScore || compareAnimeName(a, b),
+  personajes: (a, b) => b.total - a.total || compareAnimeName(a, b),
+  elo: (a, b) =>
+    (b.topElo?.elo ?? 0) - (a.topElo?.elo ?? 0) || compareAnimeName(a, b),
+  promedio: (a, b) => b.eloPromedio - a.eloPromedio || compareAnimeName(a, b),
+  az: compareAnimeName,
+}
+
+export function ordenarAnimesCatalogo(animes, sort = 'destacados') {
+  const sorter = ANIME_SORTERS[sort] ?? ANIME_SORTERS.destacados
+  return [...animes].sort(sorter)
+}
+
+/**
+ * @param {{ query?: string, sort?: string, catalogo?: Array<unknown> }} [params]
+ */
+export function filtrarOrdenarAnimes({
+  query = '',
+  sort = 'destacados',
+  catalogo,
+} = {}) {
+  return ordenarAnimesCatalogo(buscarAnimes(query, catalogo), sort)
 }
