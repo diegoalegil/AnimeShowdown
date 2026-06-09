@@ -7,7 +7,7 @@ import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
-import { buscarAnimes, getAnimesCatalogo } from '../lib/animes'
+import { filtrarOrdenarAnimes, getAnimesCatalogo } from '../lib/animes'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import BrandSelect from '../components/BrandSelect'
@@ -41,29 +41,16 @@ function AnimesPage() {
   const deferredSearch = useDeferredValue(search)
 
   const filtrados = useMemo(() => {
-    let list = buscarAnimes(deferredSearch, personajes)
-    if (sort === 'destacados') {
-      // Mezcla de cantidad de personajes + topELO. Pondera ambos para
-      // que los animes "ricos" (mucho roster + competidores fuertes) suban
-      // arriba en vez de solo los que tienen más entradas en el catálogo.
-      list = [...list].sort((a, b) => {
-        const scoreA = a.total * 8 + (a.topElo?.elo ?? 0)
-        const scoreB = b.total * 8 + (b.topElo?.elo ?? 0)
-        return scoreB - scoreA
-      })
-    } else if (sort === 'personajes') {
-      list = [...list].sort((a, b) => b.total - a.total)
-    } else if (sort === 'elo') {
-      list = [...list].sort(
-        (a, b) => (b.topElo?.elo ?? 0) - (a.topElo?.elo ?? 0),
-      )
-    } else if (sort === 'promedio') {
-      list = [...list].sort((a, b) => b.eloPromedio - a.eloPromedio)
-    } else if (sort === 'az') {
-      list = [...list].sort((a, b) => a.anime.localeCompare(b.anime))
-    }
-    return list
+    return filtrarOrdenarAnimes({
+      catalogo: personajes,
+      query: deferredSearch,
+      sort,
+    })
   }, [deferredSearch, sort, personajes])
+  const personajesEnVista = useMemo(
+    () => filtrados.reduce((total, animeData) => total + animeData.total, 0),
+    [filtrados],
+  )
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.animes} lateralKanji={{left: "世", right: "界"}}>
@@ -114,7 +101,7 @@ function AnimesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Buscar animes"
-              placeholder="Busca anime, saga o universo… (ej: kimetsu, snk, mha)"
+              placeholder="Busca anime, personaje o alias… (ej: luffy, kimetsu, snk)"
               className="as-control min-h-11 w-full rounded-lg py-2.5 pl-10 pr-12 text-sm text-fg-strong placeholder:text-fg-muted"
             />
             {search && (
@@ -143,7 +130,9 @@ function AnimesPage() {
         <p className="mb-4 text-[11px] text-fg-muted">
           Mostrando{' '}
           <strong className="text-fg-strong">{filtrados.length}</strong> de{' '}
-          {animesCatalogo.length} universos
+          {animesCatalogo.length} universos ·{' '}
+          <strong className="text-fg-strong">{personajesEnVista}</strong>{' '}
+          personajes en vista
         </p>
 
         {isLoading && animesCatalogo.length === 0 ? (
@@ -170,8 +159,8 @@ function AnimesPage() {
             title="No aparece ese universo"
           >
             <p>
-              Prueba con un nombre alternativo (kimetsu, mha, snk…) o limpia
-              la búsqueda para volver al catálogo completo.
+              Prueba con un personaje, nombre alternativo (kimetsu, mha,
+              snk…) o limpia la búsqueda para volver al catálogo completo.
             </p>
             <button
               type="button"
@@ -228,15 +217,9 @@ function AnimeTile({ animeData }) {
     <Link
       to={`/animes/${slug}`}
       onClick={() => play('playWhoosh')}
-      className="as-panel group relative block overflow-hidden rounded-2xl p-0 transition-all duration-300 motion-safe:hover:-translate-y-1.5 hover:border-gold/45"
+      className="as-anime-tile as-panel group relative block overflow-hidden rounded-2xl p-0 transition-all duration-300 motion-safe:hover:-translate-y-1.5 hover:border-gold/45"
       style={{
         '--anime-accent': accentRgb,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = `0 28px 70px -28px rgb(${accentRgb} / 0.55)`
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = ''
       }}
     >
       <EditorialCover

@@ -436,6 +436,10 @@
     backdrop-filter: blur(18px);
   }
 
+  .as-anime-tile:hover {
+    box-shadow: 0 28px 70px -28px rgb(var(--anime-accent, 159 29 44) / 0.55);
+  }
+
   .as-panel-hot {
     border-color: rgb(159 29 44 / 0.44);
     background:
