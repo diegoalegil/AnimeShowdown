@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Crown,
@@ -7,7 +8,7 @@ import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
 import EloSparkline from './EloSparkline'
 
-export function RankRowElo({
+export const RankRowElo = memo(function RankRowElo({
   rank,
   slug,
   nombre,
@@ -82,9 +83,14 @@ export function RankRowElo({
       </div>
     </li>
   )
-}
+})
 
-export function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
+export const RankRowVotos = memo(function RankRowVotos({
+  rank,
+  personaje,
+  votos,
+  movimiento = null,
+}) {
   if (!personaje?.slug) return null
   return (
     <li>
@@ -134,7 +140,7 @@ export function RankRowVotos({ rank, personaje, votos, movimiento = null }) {
       </div>
     </li>
   )
-}
+})
 
 function ChallengeLink({ slug, nombre }) {
   return (
