@@ -27,6 +27,10 @@ import {
 } from '../features/games/hub/GamesHubStats'
 import GamesHubSummaryBanner from '../features/games/hub/GamesHubSummaryBanner'
 import { leerEstadoJuego, leerMejorRacha } from '../features/games/hub/game-progress'
+import {
+  buildGamesHubPlan,
+  shouldShowDailyHistory,
+} from '../features/games/hub/games-hub-plan'
 import { GAMES, gamesHubSchema } from '../features/games/hub/games-hub-config'
 
 /**
@@ -98,8 +102,10 @@ function GamesHubPage() {
   const dailyHistory = readRecentDailyProgress(7, todayKey)
   const dailyStreak = readDailyStreak()
 
-  const destacado = GAMES.find((g) => g.destacado) ?? GAMES[0]
-  const otros = GAMES.filter((g) => g.to !== destacado.to)
+  const {
+    destacado,
+    otros,
+  } = buildGamesHubPlan(GAMES, estadosJuegos)
 
   const compartirResumen = async () => {
     const completados = Object.entries(estadosJuegos)
@@ -166,7 +172,9 @@ function GamesHubPage() {
           <h2 className="mb-3 text-[11px] font-semibold text-fg-muted">
             Reto recomendado de hoy
           </h2>
-          <CardDestacado game={destacado} estado={estadosJuegos[destacado.to]} />
+          {destacado && (
+            <CardDestacado game={destacado} estado={estadosJuegos[destacado.to]} />
+          )}
         </section>
 
         {/* Otros retos de hoy */}
@@ -207,7 +215,7 @@ function GamesHubPage() {
 
         {/* Calendario condicionado a actividad: una cuenta nueva (sin racha ni
             juegos completados hoy) no ve una tira de 7 días a cero. */}
-        {(dailyStreak > 0 || completadosHoy > 0) && (
+        {shouldShowDailyHistory(dailyStreak, completadosHoy) && (
           <DailyHistoryStrip days={dailyHistory} streak={dailyStreak} />
         )}
 
