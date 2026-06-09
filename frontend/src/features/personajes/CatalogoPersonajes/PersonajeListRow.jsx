@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import PersonajeImg from '../../../components/PersonajeImg'
@@ -65,4 +66,4 @@ function PersonajeListRow({
   )
 }
 
-export default PersonajeListRow
+export default memo(PersonajeListRow)

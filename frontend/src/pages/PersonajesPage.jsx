@@ -154,6 +154,12 @@ function PersonajesPage() {
       eloMax,
     })
   }, [catalogoIndex, normalizedSearch, animeFilter, tagFilter, sort, eloMin, eloMax])
+  const visiblePersonajes = useMemo(
+    () => filtered.slice(0, visibleCount),
+    [filtered, visibleCount],
+  )
+  const remainingPersonajes = Math.max(filtered.length - visibleCount, 0)
+  const nextPageCount = Math.min(PAGE_SIZE, remainingPersonajes)
 
   useEffect(() => {
     if (autocompleteQuery.length < 2) {
@@ -828,18 +834,18 @@ function PersonajesPage() {
         ) : view === 'grid' ? (
           <>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {filtered.slice(0, visibleCount).map((p) => (
+              {visiblePersonajes.map((p) => (
                 <PersonajeCard key={p.slug} rank={rankPorSlug.get(p.slug)} {...p} />
               ))}
             </div>
-            {visibleCount < filtered.length && (
+            {remainingPersonajes > 0 && (
               <div className="mt-8 flex justify-center">
                 <button
                   type="button"
                   onClick={cargarMas}
                   className="as-button-ghost rounded-lg px-6 py-2.5 text-sm font-bold"
                 >
-                  Cargar {Math.min(PAGE_SIZE, filtered.length - visibleCount)} más
+                  Cargar {nextPageCount} más
                   <span className="ml-2 text-fg-muted">
                     ({visibleCount} de {filtered.length})
                   </span>
@@ -850,7 +856,7 @@ function PersonajesPage() {
         ) : (
           <>
             <ul className="flex flex-col gap-2">
-              {filtered.slice(0, visibleCount).map((p) => (
+              {visiblePersonajes.map((p) => (
                 <PersonajeListRow
                   key={p.slug}
                   rank={rankPorSlug.get(p.slug)}
@@ -858,14 +864,14 @@ function PersonajesPage() {
                 />
               ))}
             </ul>
-            {visibleCount < filtered.length && (
+            {remainingPersonajes > 0 && (
               <div className="mt-8 flex justify-center">
                 <button
                   type="button"
                   onClick={cargarMas}
                   className="as-button-ghost rounded-lg px-6 py-2.5 text-sm font-bold"
                 >
-                  Cargar {Math.min(PAGE_SIZE, filtered.length - visibleCount)} más
+                  Cargar {nextPageCount} más
                   <span className="ml-2 text-fg-muted">
                     ({visibleCount} de {filtered.length})
                   </span>
