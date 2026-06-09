@@ -94,6 +94,8 @@ function ResetPasswordPage() {
               id="email"
               type="email"
               autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'reset-email-error' : undefined}
               {...register('email', {
                 required: 'Introduce tu email',
                 pattern: {
@@ -107,7 +109,9 @@ function ResetPasswordPage() {
               placeholder="tu@correo.com"
             />
             {errors.email && (
-              <p className="text-[12px] text-danger">{errors.email.message}</p>
+              <p id="reset-email-error" className="text-[12px] text-danger">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
@@ -123,6 +127,10 @@ function ResetPasswordPage() {
               inputMode="numeric"
               autoComplete="one-time-code"
               maxLength={6}
+              aria-invalid={Boolean(errors.codigo)}
+              aria-describedby={
+                errors.codigo ? 'reset-codigo-help reset-codigo-error' : 'reset-codigo-help'
+              }
               {...register('codigo', {
                 required: 'Introduce el código',
                 pattern: {
@@ -136,10 +144,13 @@ function ResetPasswordPage() {
               placeholder="000000"
             />
             {errors.codigo && (
-              <p className="text-[12px] text-danger">
+              <p id="reset-codigo-error" className="text-[12px] text-danger">
                 {errors.codigo.message}
               </p>
             )}
+            <p id="reset-codigo-help" className="text-[11px] text-fg-muted">
+              Usa exactamente los 6 dígitos del email de recuperación.
+            </p>
           </div>
           <div className="flex flex-col gap-1.5">
             <label
@@ -153,6 +164,12 @@ function ResetPasswordPage() {
               autoComplete="new-password"
               error={Boolean(errors.newPassword)}
               placeholder="••••••••"
+              aria-invalid={Boolean(errors.newPassword)}
+              aria-describedby={
+                errors.newPassword
+                  ? 'reset-new-password-help reset-new-password-error'
+                  : 'reset-new-password-help'
+              }
               {...register('newPassword', {
                 required: 'Introduce una contraseña',
                 minLength: { value: 8, message: 'Mínimo 8 caracteres' },
@@ -163,10 +180,13 @@ function ResetPasswordPage() {
               })}
             />
             {errors.newPassword && (
-              <p className="text-[12px] text-danger">
+              <p id="reset-new-password-error" className="text-[12px] text-danger">
                 {errors.newPassword.message}
               </p>
             )}
+            <p id="reset-new-password-help" className="text-[11px] text-fg-muted">
+              Mínimo 8 caracteres, con al menos una letra y un número.
+            </p>
             <PasswordStrengthMeter password={password} />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -181,6 +201,10 @@ function ResetPasswordPage() {
               autoComplete="new-password"
               error={Boolean(errors.confirmPassword)}
               placeholder="••••••••"
+              aria-invalid={Boolean(errors.confirmPassword)}
+              aria-describedby={
+                errors.confirmPassword ? 'reset-confirm-password-error' : undefined
+              }
               {...register('confirmPassword', {
                 required: 'Confirma tu contraseña',
                 validate: (value) =>
@@ -188,7 +212,7 @@ function ResetPasswordPage() {
               })}
             />
             {errors.confirmPassword && (
-              <p className="text-[12px] text-danger">
+              <p id="reset-confirm-password-error" className="text-[12px] text-danger">
                 {errors.confirmPassword.message}
               </p>
             )}

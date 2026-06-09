@@ -81,6 +81,8 @@ function ForgotPasswordPage() {
               id="email"
               type="email"
               autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'forgot-email-error' : undefined}
               {...register('email', {
                 required: 'Introduce tu email',
                 pattern: {
@@ -94,7 +96,9 @@ function ForgotPasswordPage() {
               placeholder="tu@correo.com"
             />
             {errors.email && (
-              <p className="text-[12px] text-danger">{errors.email.message}</p>
+              <p id="forgot-email-error" className="text-[12px] text-danger">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <button
