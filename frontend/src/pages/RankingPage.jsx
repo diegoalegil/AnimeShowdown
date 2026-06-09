@@ -466,11 +466,11 @@ function ListaIntenciones({ intencion, setIntencion, disponibles }) {
 
 function ListaCategoriasOtaku({ catalogoIndex, isCatalogLoading }) {
   const secciones = useMemo(() => {
+    const rankedByElo = catalogoIndex.sortedBy?.elo_desc ?? catalogoIndex.rankedElo
     return CATEGORIAS
       .map((cat) => {
-        const personajesCat = catalogoIndex.items
+        const personajesCat = rankedByElo
           .filter((p) => p.categorias.includes(cat.id))
-          .sort((a, b) => b.elo - a.elo)
           .slice(0, 10)
         return { ...cat, personajes: personajesCat }
       })
@@ -629,19 +629,38 @@ function ListaEloLocal({
     return filtrarRankingElo(rankedElo, { normalizedSearch, animeFilter })
   }, [rankedElo, normalizedSearch, animeFilter])
 
-  const podio = filtered.slice(0, 3)
-  const resto = filtered.slice(3, 100)
-  const top10Slugs = useMemo(
-    () => filtered.slice(0, 10).map((p) => p.slug),
+  const rankingSlices = useMemo(() => {
+    const top100 = filtered.slice(0, 100)
+    const top10 = top100.slice(0, 10)
+    const top10Slugs = top10.map((p) => p.slug)
+    return {
+      filteredTop100: top100,
+      podio: top100.slice(0, 3),
+      resto: top100.slice(3),
+      top10Slugs,
+      top10SlugKey: top10Slugs.join(','),
+    }
+  }, [filtered])
+  const { filteredTop100, podio, resto, top10Slugs, top10SlugKey } = rankingSlices
+  const hayFiltros = Boolean(search) || Boolean(animeFilter)
+  const visibleRankingRows = useMemo(
+    () => (hayFiltros ? filteredTop100 : resto),
+    [filteredTop100, hayFiltros, resto],
+  )
+  const top5ShareText = useMemo(
+    () =>
+      filtered
+        .slice(0, 5)
+        .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO`)
+        .join('\n'),
     [filtered],
   )
   const { data: eloHistoryTop10 } = useQuery({
-    queryKey: ['ranking', 'elo-history', 'top10', top10Slugs.join(',')],
+    queryKey: ['ranking', 'elo-history', 'top10', top10SlugKey],
     queryFn: () => endpoints.personajesEloHistoryBatch(top10Slugs, { dias: 7 }),
     enabled: top10Slugs.length > 0,
     staleTime: 60 * 60 * 1000,
   })
-  const hayFiltros = Boolean(search) || Boolean(animeFilter)
   const compartirVista = async () => {
     if (filtered.length === 0) {
       toast.error('No hay personajes para compartir con estos filtros')
@@ -652,10 +671,6 @@ function ListaEloLocal({
     if (searchTrimmed) params.set('q', searchTrimmed)
     if (animeFilter) params.set('anime', animeFilter)
     const url = `/ranking${params.toString() ? `?${params.toString()}` : ''}`
-    const top5 = filtered
-      .slice(0, 5)
-      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · ${p.elo} ELO`)
-      .join('\n')
     const scope = animeFilter
       ? ` de ${animeFilter}`
       : searchTrimmed
@@ -665,7 +680,7 @@ function ListaEloLocal({
     try {
       const result = await shareOrCopy({
         title: `Ranking anime${scope}`,
-        text: `Mi top${scope} en AnimeShowdown:\n${top5}\n\nÁbrelo y dime a quién subirías votando.`,
+        text: `Mi top${scope} en AnimeShowdown:\n${top5ShareText}\n\nÁbrelo y dime a quién subirías votando.`,
         url,
       })
       if (result === 'cancelled') return
@@ -782,7 +797,7 @@ function ListaEloLocal({
           )}
 
           <ol className="flex flex-col gap-2">
-            {(hayFiltros ? filtered.slice(0, 100) : resto).map((p, i) => (
+            {visibleRankingRows.map((p, i) => (
               <RankRowElo
                 key={p.slug}
                 rank={hayFiltros ? i + 1 : i + 4}
