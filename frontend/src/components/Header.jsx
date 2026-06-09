@@ -159,6 +159,10 @@ function Header() {
   }, [mobileOpen])
 
   const closeMobile = () => setMobileOpen(false)
+  const openQuickSearch = () => {
+    play('playClick')
+    window.dispatchEvent(new CustomEvent(OPEN_COMMAND_PALETTE_EVENT))
+  }
   const handleRuleta = async ({ close = false } = {}) => {
     play('playClick')
     const personaje = await girarRuleta()
@@ -224,12 +228,13 @@ function Header() {
         </NavLink>
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent(OPEN_COMMAND_PALETTE_EVENT))}
-          aria-label="Abrir buscador rápido (⌘K)"
-          className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border/60 bg-surface px-2.5 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+          onClick={openQuickSearch}
+          aria-label={t('header.searchAria')}
+          title={t('header.searchAria')}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border/60 bg-surface px-2.5 text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
-          <span className="hidden text-[11px] 2xl:inline">Buscar</span>
+          <span className="hidden text-[11px] 2xl:inline">{t('header.searchShort')}</span>
           <kbd className="hidden rounded-md border border-border bg-bg px-1 font-mono text-[10px] leading-none text-fg-muted 2xl:inline-block">
             ⌘K
           </kbd>
@@ -283,6 +288,15 @@ function Header() {
             >
               <Avatar user={user} size={32} />
             </Link>
+            <button
+              type="button"
+              onClick={openQuickSearch}
+              aria-label={t('header.searchAria')}
+              title={t('header.searchAria')}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </button>
           </>
         ) : (
           /* Nota de producto: "Votar ahora" en 2 líneas comía
@@ -297,6 +311,17 @@ function Header() {
             <Swords className="h-3.5 w-3.5" />
             {t('header.ctaVotarCompact')}
           </NavLink>
+        )}
+        {!user && (
+          <button
+            type="button"
+            onClick={openQuickSearch}
+            aria-label={t('header.searchAria')}
+            title={t('header.searchAria')}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+          </button>
         )}
         <button
           ref={mobileToggleRef}
