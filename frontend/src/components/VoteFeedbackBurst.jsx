@@ -60,7 +60,7 @@ function VoteFeedbackBurst({
         transition={{ duration: reduceMotion ? 0.22 : 0.58, times: [0, 0.18, 0.72, 1] }}
         className="rounded-full border border-gold/70 bg-black/75 px-4 py-2 text-center font-mono text-sm font-black text-gold shadow-aura [--aura-color:rgb(245_197_92_/_0.9)] backdrop-blur"
       >
-        <span className="block text-[10px] uppercase tracking-[0.18em] text-gold/80">
+        <span className="block text-[10px] text-gold/80">
           {label}
         </span>
         <span className="text-lg">

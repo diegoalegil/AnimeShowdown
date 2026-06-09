@@ -566,7 +566,10 @@ function CategoriaCard({ rank, personaje, tono }) {
   }
   const rankTono = RANK_TONO[tono] ?? RANK_TONO.sky
   return (
-    <li>
+    /* contentVisibility: las categorías pintan 100+ cards de golpe; el
+       navegador se salta layout/paint de las que quedan fuera de viewport
+       y el scroll rápido deja de mostrar huecos en blanco. */
+    <li style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}>
       <Link
         to={`/personajes/${personaje.slug}`}
         className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"

@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url'
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const colorLiteralRe = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/g
+// rgb(var(--token)/α) y rgb(${canal}) son token-driven, no literales.
+const tokenDrivenRe = /^(rgba?|hsla?)\($/
 const jsxExtensions = new Set(['.jsx', '.tsx'])
 const cssAllowlist = new Map([
   ['frontend/src/index.css', '@theme centraliza los tokens visuales de la app'],
@@ -48,21 +50,56 @@ function changedFiles() {
   ])
 }
 
+/**
+ * Números de línea AÑADIDOS/MODIFICADOS del archivo respecto a base+worktree.
+ * El ratchet aplica solo a líneas que el cambio introduce: tocar una clase en
+ * un archivo grande no obliga a migrar todos sus literales históricos en el
+ * mismo PR. Devuelve null si no se puede calcular (archivo nuevo → todo).
+ */
+function addedLines(file) {
+  const base = process.env.COLOR_LITERAL_BASE || 'origin/main'
+  const lines = new Set()
+  let sawDiff = false
+  for (const args of [
+    ['diff', '-U0', `${base}...HEAD`, '--', file],
+    ['diff', '-U0', '--', file],
+    ['diff', '-U0', '--cached', '--', file],
+  ]) {
+    const out = git(args)
+    if (out.length > 0) sawDiff = true
+    for (const line of out) {
+      const m = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/)
+      if (!m) continue
+      const start = Number(m[1])
+      const count = m[2] === undefined ? 1 : Number(m[2])
+      for (let i = 0; i < count; i++) lines.add(start + i)
+    }
+  }
+  // Sin diff calculable (p.ej. archivo untracked): escanear entero.
+  return sawDiff ? lines : null
+}
+
 function isScannable(file) {
   const ext = extname(file)
   if (jsxExtensions.has(ext)) return !jsxAllowlist.has(file)
   return ext === '.css' && !cssAllowlist.has(file)
 }
 
-function findViolations(file) {
+function findViolations(file, lineFilter) {
   const absolute = resolve(repoRoot, file)
   if (!existsSync(absolute) || !statSync(absolute).isFile()) return []
   const text = readFileSync(absolute, 'utf8')
   const violations = []
 
   text.split('\n').forEach((line, index) => {
+    if (lineFilter && !lineFilter.has(index + 1)) return
     colorLiteralRe.lastIndex = 0
     for (const match of line.matchAll(colorLiteralRe)) {
+      // rgb(var(--token)/α) o rgb(${canal}) son token-driven: no es literal.
+      if (tokenDrivenRe.test(match[0])) {
+        const resto = line.slice((match.index ?? 0) + match[0].length)
+        if (resto.startsWith('var(') || resto.startsWith('${')) continue
+      }
       violations.push({
         file,
         line: index + 1,
@@ -79,7 +116,9 @@ const explicitFiles = process.argv.slice(2).filter((arg) => !arg.startsWith('-')
 const files = explicitFiles.length > 0 ? explicitFiles : [...changedFiles()]
 const violations = files
   .filter(isScannable)
-  .flatMap(findViolations)
+  // Con archivos explícitos (invocación manual) se escanea entero; en modo
+  // diff, solo las líneas que el cambio introduce (ratchet por línea).
+  .flatMap((file) => findViolations(file, explicitFiles.length > 0 ? null : addedLines(file)))
 
 if (violations.length > 0) {
   console.error('Color literal detectado fuera de los tokens de diseño:')

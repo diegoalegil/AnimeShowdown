@@ -63,7 +63,7 @@ function LiveMatchSpectator({ torneo }) {
             <Radio className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-success">
+            <p className="text-[11px] font-semibold text-success">
               Spectator live
             </p>
             <h2 className="text-lg font-extrabold text-fg-strong">

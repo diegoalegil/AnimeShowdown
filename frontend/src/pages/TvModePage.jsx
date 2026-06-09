@@ -94,7 +94,7 @@ function TvModePage() {
           <span className="truncate text-base font-extrabold tracking-tight sm:text-2xl">
             AnimeShowdown
           </span>
-          <span className="ml-1 inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold sm:ml-2 sm:gap-1.5 sm:px-3 sm:py-1 sm:text-[11px]">
+          <span className="ml-1 inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-gold sm:ml-2 sm:gap-1.5 sm:px-3 sm:py-1 sm:text-[11px]">
             <Tv className="h-3 w-3" />
             TV
           </span>
@@ -151,7 +151,7 @@ function VistaTop10({ top10 }) {
       className="relative z-10 w-full max-w-7xl px-4 py-6 sm:px-8 sm:py-0"
     >
       <div className="mb-4 flex flex-col items-center text-center sm:mb-6">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold sm:text-[12px]">
+        <p className="text-[10px] font-semibold text-gold sm:text-[12px]">
           Top 10 ELO base
         </p>
         <h1 className="mt-2 text-[clamp(1.5rem,6vw,5rem)] font-extrabold leading-none">
@@ -212,7 +212,7 @@ function VistaSpotlight({ personajes, tick }) {
         />
       </motion.div>
       <div className="flex flex-col gap-3 sm:gap-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold sm:text-[12px]">
+        <p className="text-[10px] font-semibold text-gold sm:text-[12px]">
           Personaje destacado
         </p>
         <h2 className="text-[clamp(1.75rem,6vw,4.5rem)] font-extrabold leading-none">
@@ -254,7 +254,7 @@ function VistaMatchup({ personajes, tick }) {
       className="relative z-10 w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-0"
     >
       <div className="mb-5 flex flex-col items-center text-center sm:mb-8">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold sm:text-[12px]">
+        <p className="text-[10px] font-semibold text-gold sm:text-[12px]">
           Matchup random
         </p>
         <h2 className="mt-2 text-[clamp(1.5rem,5vw,4rem)] font-extrabold leading-none">
@@ -303,7 +303,7 @@ function Versus({ personaje, elo, esFavorito }) {
 function Kpi({ label, value, accent = false }) {
   return (
     <div className="rounded-lg border border-white/10 bg-white/5 p-2.5 backdrop-blur-md sm:p-3">
-      <p className="text-[9px] font-medium uppercase tracking-wider text-fg-muted sm:text-[10px]">
+      <p className="text-[9px] font-medium text-fg-muted sm:text-[10px]">
         {label}
       </p>
       <p

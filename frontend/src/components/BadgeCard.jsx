@@ -131,7 +131,7 @@ function BadgeCard({ logro }) {
           >
             <p className="mb-1.5 flex items-center gap-1.5">
               <span
-                className={`inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
+                className={`inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-bold ${style.chip}`}
               >
                 {style.nombre}
               </span>

@@ -351,7 +351,7 @@ function PersonajeDetailPage() {
             >
               {rankGlobal <= 100 && (
                 <span
-                  className="inline-flex items-center gap-1 rounded-full border border-medal-gold/40 bg-medal-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-medal-gold"
+                  className="inline-flex items-center gap-1 rounded-full border border-medal-gold/40 bg-medal-gold/10 px-3 py-1 text-[11px] font-semibold text-medal-gold"
                   title="Ranking del catálogo según ELO base estimado (popularidad). El ranking competitivo real vive en /ranking."
                 >
                   <Trophy className="h-3 w-3" />
@@ -359,16 +359,16 @@ function PersonajeDetailPage() {
                 </span>
               )}
               {animePersonajes.length > 1 && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold">
+                <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold text-gold">
                   #{rankAnime} de {personaje.anime}
                 </span>
               )}
-              <span className="inline-flex rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted">
+              <span className="inline-flex rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold text-fg-muted">
                 Personaje {idx + 1} de {personajes.length}
               </span>
               {jikan?.favorites != null && (
                 <span
-                  className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-fg-muted"
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold text-fg-muted"
                   title="Favoritos contados por MyAnimeList — métrica externa, no del ranking interno de AnimeShowdown"
                 >
                   <Star className="h-3 w-3 text-gold" />
@@ -501,7 +501,7 @@ function PersonajeDetailPage() {
                 className="rounded-lg border border-border bg-surface p-4"
                 variants={itemVariants}
               >
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                <p className="text-[11px] font-semibold text-fg-muted">
                   Sobre el personaje
                 </p>
                 <p itemProp="description" className="mt-2 text-sm leading-relaxed text-fg">
@@ -566,7 +566,7 @@ function PersonajeDetailPage() {
                 title={`${prev.nombre} de ${prev.anime}`}
                 className="inline-flex flex-col items-start gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-gold"
               >
-                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-fg-muted">
+                <span className="inline-flex items-center gap-1 text-[10px] text-fg-muted">
                   <ArrowLeft className="h-3 w-3" />
                   Anterior
                 </span>
@@ -578,7 +578,7 @@ function PersonajeDetailPage() {
                 title={`${next.nombre} de ${next.anime}`}
                 className="inline-flex flex-col items-end gap-0 text-sm font-medium text-fg-muted transition-colors hover:text-gold"
               >
-                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-fg-muted">
+                <span className="inline-flex items-center gap-1 text-[10px] text-fg-muted">
                   Siguiente
                   <ArrowRight className="h-3 w-3" />
                 </span>
@@ -605,7 +605,7 @@ function PersonajeDetailPage() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-border bg-surface p-5">
-          <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          <p className="mb-3 text-[12px] font-semibold text-fg-muted">
             Comparte la ficha de {personaje.nombre}
           </p>
           <ShareButtons
@@ -625,7 +625,7 @@ function PersonajeDetailPage() {
           >
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold">
                   <Swords className="h-3.5 w-3.5" />
                   Duelos populares
                 </span>
@@ -673,7 +673,7 @@ function PersonajeDetailPage() {
           <div className="mt-16">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+                <span className="text-[11px] font-semibold text-fg-muted">
                   Mismo universo
                 </span>
                 <h2 className="text-xl font-bold text-fg-strong sm:text-2xl">
@@ -742,7 +742,7 @@ function PersonalCharacterSignal({ personaje, signal, totalVotes }) {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-gold">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold">
             <Flame className="h-3.5 w-3.5" />
             Tu ranking personal
           </p>
@@ -820,7 +820,7 @@ function CarruselSimilares({ slug, nombre }) {
     <div className="mt-16">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted">
             <Sparkles className="h-3 w-3 text-gold" />
             Más allá del universo
           </span>
@@ -954,7 +954,7 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
 function Stat({ label, value, accent }) {
   return (
     <div className="rounded-lg border border-border bg-surface px-3 py-2.5">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+      <p className="text-[10px] font-medium text-fg-muted">
         {label}
       </p>
       <p

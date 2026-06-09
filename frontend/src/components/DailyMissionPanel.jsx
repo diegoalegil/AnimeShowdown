@@ -167,14 +167,14 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       />
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-xl">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-gold">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold">
             <Flame className="h-3.5 w-3.5" />
             Misión de hoy
           </p>
           <h2 id="daily-mission-title" className="mt-1 text-2xl font-black tracking-tight text-fg-strong">
             {completed ? 'Ritual completado. Mañana toca defender la racha.' : 'Vota, juega y deja tu marca en el ranking.'}
           </h2>
-          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-gold">
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-[11px] font-black text-gold">
             <Hourglass className="h-3.5 w-3.5" />
             Reset en {resetCountdown.label}
           </p>
@@ -188,15 +188,15 @@ function DailyMissionPanel({ compact = false, className = '' }) {
         <div className="grid min-w-[13rem] grid-cols-3 overflow-hidden rounded-xl border border-border bg-bg/45 text-center">
           <div className="px-3 py-3">
             <p className="font-mono text-xl font-black text-fg-strong">{votes}/{DAILY_VOTE_TARGET}</p>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-fg-muted">votos</p>
+            <p className="text-[10px] text-fg-muted">votos</p>
           </div>
           <div className="border-x border-border px-3 py-3">
             <p className="font-mono text-xl font-black text-fg-strong">{games}/{DAILY_GAME_TARGET}</p>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-fg-muted">daily</p>
+            <p className="text-[10px] text-fg-muted">daily</p>
           </div>
           <div className="px-3 py-3">
             <p className="font-mono text-xl font-black text-gold">{streak.current}</p>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-fg-muted">racha</p>
+            <p className="text-[10px] text-fg-muted">racha</p>
           </div>
         </div>
       </div>
@@ -241,7 +241,7 @@ function DailyMissionPanel({ compact = false, className = '' }) {
       {completed && (
         <div className="mt-4 flex flex-col gap-3 rounded-xl border border-success/30 bg-success/10 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-success">
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-black text-success">
               <Sparkles className="h-3.5 w-3.5" />
               Ritual sellado
             </p>

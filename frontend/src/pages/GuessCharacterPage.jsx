@@ -276,7 +276,7 @@ function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
                 <motion.div
                   animate={{ rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 0.6, repeat: 1 }}
-                  className="rounded-full border-2 border-success/80 bg-success/20 px-5 py-2 text-lg font-extrabold uppercase tracking-[0.2em] text-success backdrop-blur-sm"
+                  className="rounded-full border-2 border-success/80 bg-success/20 px-5 py-2 text-lg font-extrabold text-success backdrop-blur-sm"
                 >
                   ¡Acertaste!
                 </motion.div>
@@ -284,7 +284,7 @@ function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
             )}
             {estado.finalizado && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4">
-                <p className="text-[11px] uppercase tracking-wider text-fg-muted">
+                <p className="text-[11px] text-fg-muted">
                   Era…
                 </p>
                 <p className="text-xl font-bold text-fg-strong">
@@ -435,7 +435,7 @@ function PanelResultado({ acertado, intentos, objetivo, pistaUsada, todayKey }) 
 function ListaIntentos({ intentos, objetivo }) {
   return (
     <div className="rounded-2xl border border-border bg-surface p-4">
-      <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+      <p className="mb-3 text-[11px] font-semibold text-fg-muted">
         Tus intentos
       </p>
       <ul className="flex flex-col gap-2">

@@ -67,7 +67,7 @@ function ApoyaPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold text-gold">
             <Heart className="h-3 w-3" />
             Apoya · Proyecto gratuito
           </span>
@@ -104,7 +104,7 @@ function ApoyaPage() {
           >
             <div className="flex items-center gap-2">
               <Coffee className="h-5 w-5 text-gold" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
+              <p className="text-[11px] font-semibold text-gold">
                 Ko-fi
               </p>
             </div>
@@ -130,7 +130,7 @@ function ApoyaPage() {
           >
             <div className="flex items-center gap-2">
               <Heart className="h-5 w-5 text-rarity-epic" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-rarity-epic">
+              <p className="text-[11px] font-semibold text-rarity-epic">
                 GitHub Sponsors
               </p>
             </div>

@@ -96,7 +96,7 @@ function KonamiCode() {
       />
       <div className="pointer-events-none rounded-2xl border-4 border-success bg-success/10 px-10 py-8 text-center font-mono shadow-aura-lg [--aura-color:rgb(0_255_170_/_0.4)] backdrop-blur-sm">
         <Sparkles className="mx-auto mb-2 h-8 w-8 text-success" />
-        <p className="text-[11px] uppercase tracking-[0.3em] text-success/80">
+        <p className="text-[11px] text-success/80">
           Cheat code activado
         </p>
         <p className="mt-2 text-2xl font-bold text-success">

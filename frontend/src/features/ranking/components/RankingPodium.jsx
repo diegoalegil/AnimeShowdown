@@ -73,7 +73,7 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
       className={`group relative overflow-hidden rounded-2xl border-2 transition-all motion-safe:hover:-translate-y-1 ${linkLayout} ${tone.border} ${tone.bg} ${highlighted ? tone.glow : ''} ${className}`}
     >
       <span
-        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.15em] ${tone.border} ${tone.text} ${highlighted ? 'col-span-2 justify-self-start sm:justify-self-auto' : ''}`}
+        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold ${tone.border} ${tone.text} ${highlighted ? 'col-span-2 justify-self-start sm:justify-self-auto' : ''}`}
       >
         <Icon className="h-3 w-3" />
         #{rank}
@@ -120,7 +120,7 @@ function PodioCard({ personaje, rank, highlighted, history, className = '' }) {
           }`}
         >
           {personaje.elo}
-          <span className="ml-1 text-[10px] uppercase tracking-wider opacity-70">
+          <span className="ml-1 text-[10px] opacity-70">
             ELO
           </span>
         </p>

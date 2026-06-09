@@ -54,7 +54,7 @@ function StatusMetric({ title, window }) {
   return (
     <article className="rounded-lg border border-border bg-surface/80 p-4 shadow-lift [--aura-color:var(--color-gold)]">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-[12px] font-black uppercase tracking-[0.14em] text-fg-muted">
+        <h2 className="text-[12px] font-black text-fg-muted">
           {title}
         </h2>
         <span className="rounded-full border border-white/10 bg-bg/70 px-2 py-1 font-mono text-[11px] text-fg-muted">
@@ -137,7 +137,7 @@ function Sparkline({ samples }) {
           />
         ))}
       </svg>
-      <div className="mt-2 flex items-center justify-between text-[11px] uppercase tracking-[0.12em] text-fg-muted">
+      <div className="mt-2 flex items-center justify-between text-[11px] text-fg-muted">
         <span>Más antiguo</span>
         <span>Ahora</span>
       </div>
@@ -173,7 +173,7 @@ function StatusPage() {
     >
       <header className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center gap-3">
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-black uppercase tracking-[0.08em] ${tone.className}`}>
+          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-black ${tone.className}`}>
             <span className={`h-2 w-2 rounded-full ${tone.dot}`} />
             {tone.label}
           </span>
@@ -185,7 +185,7 @@ function StatusPage() {
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
           <div>
-            <p className="text-[12px] font-black uppercase tracking-[0.16em] text-gold">
+            <p className="text-[12px] font-black text-gold">
               Estado público
             </p>
             <h1 className="mt-2 text-4xl font-black tracking-tight text-fg-strong sm:text-5xl">
@@ -203,7 +203,7 @@ function StatusPage() {
                 <ToneIcon className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-[11px] uppercase tracking-[0.14em] text-fg-muted">
+                <p className="text-[11px] text-fg-muted">
                   API
                 </p>
                 <p className="font-mono text-xl font-black text-fg-strong">
@@ -251,7 +251,7 @@ function StatusPage() {
             <div>
               <div className="mb-3 flex items-center gap-2">
                 <Activity className="h-4 w-4 text-gold" />
-                <h2 className="text-sm font-black uppercase tracking-[0.14em] text-fg-muted">
+                <h2 className="text-sm font-black text-fg-muted">
                   Latencia reciente
                 </h2>
               </div>
@@ -261,7 +261,7 @@ function StatusPage() {
             <aside className="rounded-lg border border-border bg-surface/80 p-5">
               <div className="mb-4 flex items-center gap-2">
                 <Server className="h-4 w-4 text-gold" />
-                <h2 className="text-sm font-black uppercase tracking-[0.14em] text-fg-muted">
+                <h2 className="text-sm font-black text-fg-muted">
                   Lectura rápida
                 </h2>
               </div>

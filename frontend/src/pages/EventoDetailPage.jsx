@@ -158,7 +158,7 @@ function EventoDetailPage() {
             className="absolute inset-0 rounded-none border-0 opacity-90"
             imageClassName="saturate-110 contrast-105"
           />
-          <span className={`relative inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] ${tonoTexto}`}>
+          <span className={`relative inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold ${tonoTexto}`}>
             <CalendarClock className="h-3 w-3" />
             {estadoLabel}
           </span>
@@ -197,7 +197,7 @@ function EventoDetailPage() {
         {participantes.length > 0 && (
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr] sm:gap-4">
             <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 sm:p-5">
-              <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">
+              <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold text-gold">
                 <Sparkles className="h-3 w-3" />
                 Misión del evento
               </span>
@@ -215,7 +215,7 @@ function EventoDetailPage() {
 
         <div className="mb-4 flex items-end justify-between gap-3 border-b border-border pb-3">
           <div className="flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted">
               <Sparkles className="h-3 w-3 text-gold" />
               Ranking del evento
             </span>
@@ -279,7 +279,7 @@ function PodioEvento({ participantes, tono }) {
           loading="eager"
         />
         <div className="relative mt-4 min-w-0 sm:mt-0 sm:pl-5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-gold">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-black text-gold">
             <Crown className="h-3.5 w-3.5" />
             #1 del evento
           </span>
@@ -306,7 +306,7 @@ function PodioEvento({ participantes, tono }) {
               imgClassName="p-1 transition-transform duration-300 group-hover:scale-105"
             />
             <div className="min-w-0">
-              <span className="font-mono text-[11px] font-black uppercase tracking-[0.12em] text-fg-muted">
+              <span className="font-mono text-[11px] font-black text-fg-muted">
                 #{idx + 2}
               </span>
               <p className="mt-1 line-clamp-1 text-sm font-bold text-fg-strong">
@@ -372,7 +372,7 @@ function MiniStat({ label, value, tone, mono }) {
     tone === 'amber' ? 'text-gold' : 'text-fg-strong'
   return (
     <div className="flex flex-col items-center gap-0.5 text-center">
-      <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-fg-muted sm:text-[10px]">
+      <p className="text-[9px] font-semibold text-fg-muted sm:text-[10px]">
         {label}
       </p>
       <p
