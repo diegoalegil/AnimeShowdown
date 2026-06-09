@@ -493,9 +493,8 @@ function App() {
         </div>
       </main>
       {!isFullscreenRoute && <MobileBottomNav />}
-      {/* Footer completo solo en la home (cierre de landing). El resto de
-          páginas llevan un footer minimal con marca + legal + copyright, para
-          no arrastrar el footer enorme por toda la web (auditoría). */}
+      {/* Footer completo solo en la home; el resto usa una versión mínima con
+          marca, legal y copyright para reducir peso visual repetido. */}
       {!isFullscreenRoute && (
         <div className="pb-[calc(7rem_+_env(safe-area-inset-bottom))] md:pb-0">
           {location.pathname === '/' ? <Footer /> : <FooterSlim />}

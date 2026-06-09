@@ -251,8 +251,8 @@ if (imageFiles.length > 0) {
 
 // Covers/banners de /assets: el bloque dist/img de arriba solo mide personajes
 // (y se salta entero cuando /img va por CDN), así que estos covers eran un punto
-// ciego — justo lo que la auditoría de performance detectó ("no presupuestó las
-// imágenes que matan /torneos, /animes, /games").
+// ciego y volver a meter imágenes pesadas en /torneos, /animes o /games sin que
+// el budget lo marque.
 const coverImageExt = /\.(webp|avif|png|jpe?g)$/i
 const coverFiles = walkFiles(assetsDir).filter(
   (file) => coverImageExt.test(file) && !file.includes('/cartas-especiales/'),

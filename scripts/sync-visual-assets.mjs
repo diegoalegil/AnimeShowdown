@@ -28,7 +28,7 @@ const paths = files
   .map((file) => `/${relative(join(repoRoot, 'frontend/public'), file).split(sep).join('/')}`)
   .sort()
 
-const body = `// Generado por scripts/sync-visual-assets.mjs. Si anades portadas nuevas en
+const body = `// Sincronizado por scripts/sync-visual-assets.mjs. Si anades portadas nuevas en
 // frontend/public/assets, ejecuta ese script para que el frontend las use.
 export const VISUAL_ASSET_PATHS = new Set(${JSON.stringify(paths, null, 2)})
 `

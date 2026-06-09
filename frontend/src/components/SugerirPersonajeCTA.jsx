@@ -21,8 +21,7 @@ const MAILTO = buildContactMailto({ subject: SUBJECT, body: BODY })
 function SugerirPersonajeCTA({ titulo = '¿No está tu personaje favorito?' }) {
   return (
     <section className="mx-auto mt-16 max-w-3xl px-5 sm:px-0">
-      {/* de-ai (DESIGN.md): card con hairline neutro (sin gradiente accent) y el
-          label inline sin pill tintado; el oro vive en el texto. */}
+      {/* Card con hairline neutro y label inline; el oro vive en el texto. */}
       <div className="flex flex-col items-start gap-4 rounded-2xl border border-border bg-surface px-6 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-9">
         <div className="flex flex-col gap-2 sm:max-w-md">
           <span className="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-gold">

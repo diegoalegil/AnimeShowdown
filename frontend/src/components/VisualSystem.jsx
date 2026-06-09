@@ -152,12 +152,9 @@ export function VisualPageShell({
         '--visual-glow': visual?.glowRgb ?? '197 161 90',
       }}
     >
-      {/* de-ai (DESIGN.md + referencias del owner: Crunchyroll / AniList /
-          Discord = imagen real + superficie plana, NO glows procedurales). El
-          fondo de página deja de ser el show: base plana + UNA aurora muy sutil y
-          descentrada (asimétrica, no 3 simétricas), malla tenue de textura y
-          vignette lineal. Fuera los god-rays y los blobs radiales de acento (los
-          tells de IA). El contenido y el arte real mandan. */}
+      {/* Imagen real + superficie plana: base sobria, una aurora sutil y
+          descentrada, malla tenue de textura y vignette lineal. El contenido y
+          el arte real mandan. */}
       <div aria-hidden="true" className="absolute inset-0 bg-bg" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
@@ -237,8 +234,7 @@ export function CinematicHero({
       <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.42fr)] lg:items-end">
         <div className="flex min-w-0 flex-col items-start gap-4">
           {eyebrow && (
-            // de-ai (DESIGN.md): el eyebrow deja de ser un pill de acento con
-            //+tracking; texto de marca limpio en sentence-case.
+            // Eyebrow como texto de marca limpio en sentence-case.
             <span
               className="inline-flex items-center gap-2 text-xs font-semibold"
               style={{ color: `rgb(${visual?.glowRgb ?? '197 161 90'} / 1)` }}

@@ -306,12 +306,21 @@
     background-size: 32px 32px;
   }
 
+  .personaje-cut-shell {
+    background:
+      radial-gradient(
+        circle at 50% 28%,
+        rgb(159 29 44 / 0.30),
+        rgb(197 161 90 / 0.14) 34%,
+        rgb(8 11 18 / 0.94) 70%
+      );
+  }
+
   .as-stage {
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    /* de-ai (referencias del owner): fuera los 3 blobs radiales de acento
-       (el tell H4); base plana. La identidad la dan el contenido y la imagen. */
+    /* Base plana: la identidad la dan el contenido y la imagen. */
     background: linear-gradient(180deg, rgb(8 11 18 / 0.99), rgb(4 7 12 / 1) 70%);
   }
 
@@ -351,8 +360,7 @@
        dejándolo apagado y "inapreciable". Ahora bajamos el oscurecimiento
        superior (de 86% → 55%) y el inferior queda en 80% para legibilidad,
        y la imagen ocupa el viewport completo. */
-    /* de-ai: la identidad la da la IMAGEN real del stage; fuera el blob radial de
-       acento y el punteado, solo el oscurecimiento lineal para legibilidad. */
+    /* La imagen real del stage manda; solo oscurecimiento lineal para legibilidad. */
     background:
       linear-gradient(180deg, rgb(5 6 12 / 0.55), rgb(5 6 12 / 0.12) 34%, rgb(5 6 12 / 0.80) 100%),
       var(--as-stage-image);
@@ -402,8 +410,7 @@
     --as-stage-kanji: "裏";
   }
 
-  /* de-ai (referencias del owner): bases planas, sin los blobs radiales de
-     acento (el morado de .as-stage-purple era literalmente el tell de la foto). */
+  /* Bases planas y sobrias para que el cover lleve la identidad visual. */
   .as-stage-cyan {
     background: linear-gradient(180deg, rgb(8 10 18 / 0.99), rgb(4 8 14 / 1) 72%);
   }
@@ -412,10 +419,8 @@
     background: linear-gradient(180deg, rgb(10 8 18 / 0.99), rgb(7 6 13 / 1) 72%);
   }
 
-  /* de-ai (DESIGN.md): el kicker del hero deja de ser un pill dorado con
-     gradiente, uppercase, letter-spacing y glow (4 tells de IA a la vez). Ahora
-     es texto de marca limpio en sentence-case; el oro vive en el color, no en
-     un borde/stripe ni en un halo. */
+  /* Kicker como texto de marca limpio en sentence-case; el oro vive en el color,
+     no en un borde ni en un halo. */
   .as-kicker {
     display: inline-flex;
     align-items: center;
@@ -621,8 +626,7 @@
     color: var(--color-fg-muted);
   }
 
-  /* de-ai (DESIGN.md): el chip activo deja el radial-gradient glow + el halo
-     box-shadow (H4); tinte carmesí plano + borde oro de marca, sin glow. */
+  /* Chip activo con tinte carmesí plano y borde oro de marca, sin glow. */
   .as-chip-active {
     border-color: rgb(197 161 90 / 0.52);
     background: rgb(159 29 44 / 0.42);

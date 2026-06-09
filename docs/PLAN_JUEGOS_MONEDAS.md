@@ -11,7 +11,7 @@
 Toda la economía actual es **server-authoritative**: el cliente nunca pide un
 drop; los drops los disparan eventos del dominio que el SERVIDOR valida (voto,
 predicción resuelta, duelo PvP finalizado). Eso es lo que mantiene la economía
-a prueba de exploits (la auditoría la clasificó A).
+a prueba de exploits (clasificación A en la revisión de producto).
 
 Pero **los minijuegos son client-side**: toda su lógica vive en
 `frontend/src/lib/games.ts` sobre `localStorage`. El servidor NO sabe si

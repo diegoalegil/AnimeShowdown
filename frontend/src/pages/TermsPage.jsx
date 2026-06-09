@@ -16,7 +16,7 @@ const containerVariants = {
 
 /**
  * Términos de uso. Marco legal mínimo para uso del
- * servicio: aceptación, conducta esperada, contenido generado por
+ * servicio: aceptación, conducta esperada, contenido de usuarios,
  * usuarios, propiedad intelectual.
  */
 function TermsPage() {
@@ -98,7 +98,7 @@ function TermsPage() {
 
           <section>
             <h2 className="mb-2 text-lg font-bold text-fg-strong">
-              4 · Contenido generado por usuarios (UGC)
+              4 · Contenido de usuarios (UGC)
             </h2>
             <ul className="list-inside list-disc space-y-1">
               <li>

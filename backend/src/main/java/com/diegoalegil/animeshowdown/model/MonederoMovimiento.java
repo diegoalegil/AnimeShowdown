@@ -20,7 +20,7 @@ import jakarta.persistence.Table;
  * Movimiento de moneda — el ledger es la fuente de verdad de cada cambio de
  * saldo. {@code delta} positivo = drop al jugar; negativo = gasto al abrir un
  * sobre. {@code saldoResultante} congela el saldo tras aplicar el movimiento
- * (auditoría reproducible).
+ * (trazabilidad reproducible).
  *
  * <p>El UNIQUE(usuario, motivo, referencia) garantiza idempotencia: un mismo
  * hito de drop o compra no se aplica dos veces aunque el listener se reintente.

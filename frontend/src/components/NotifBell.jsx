@@ -229,9 +229,8 @@ function enlaceDeNotif(notif) {
   }
 }
 
-// de-ai (DESIGN.md): la card de notificación deja de llevar borde de color +
-// gradiente lateral (el tell de la captura del owner) y glows. Card plana con
-// hairline neutro; el color del tipo vive en el icono y en el dot de no-leído.
+// Card plana con hairline neutro; el color del tipo vive en el icono y en el
+// dot de no-leído para mantener la lista más legible.
 const NOTIF_ITEM = 'border-border bg-surface hover:bg-surface-alt'
 
 const tipoStyle = {

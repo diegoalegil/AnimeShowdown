@@ -53,7 +53,7 @@
 - **Bordes hairline** y sombras sutiles antes que glows y rings de colores.
 - Tokens en `src/index.css`; nada de literales de color en JSX (color-literal guard).
 
-## Mapa de la deuda (auditoría 2026-06-05)
+## Mapa de la deuda visual
 | Horseman | Archivos | Notas |
 |---|---|---|
 | H2 uppercase+tracking | ~124 / 261 usos | `uppercase tracking-[0.05–0.3em]`; el grueso del trabajo |
@@ -61,12 +61,12 @@
 | H3 pills de estado | ~16 | SectionPulso, NotifBell, "en curso", drops |
 | H4 glows radiales | ~13 | VisualSystem (procedural), EditorialCover, GameCardBackground |
 
-## Orden de barrido (de-AI sweep, autopilot nocturno)
+## Orden de limpieza visual
 1. **Zonas de alta visibilidad primero:** Header + bottom nav, NotifBell, hero
    (`CinematicHero`/`Hero`), cards principales (Editorial/Game/Pulso).
 2. **H2 sistemático** por features (el de mayor volumen y más mecánico).
 3. **H1 y H3** junto a las zonas que toque.
 4. **H4 (sistema procedural)** al final y con cuidado: es lo más identitario.
 
-> Estado del barrido y decisiones por zona se registran en el memory
-> `animeshowdown-rescate` y en los PRs `style(de-ai): …`.
+> Estado del barrido y decisiones por zona se registran en notas privadas de
+> producto y en PRs de estilo con alcance acotado.

@@ -148,7 +148,7 @@ for (const vp of VIEWPORTS) {
 test('rutas clave mantienen touch targets visibles de al menos 44px', async ({ page }, testInfo) => {
   test.skip(
     testInfo.project.name !== 'chromium-desktop',
-    'La auditoria fija viewport movil manualmente para evitar duplicado por proyecto.',
+    'El test fija viewport movil manualmente para evitar duplicado por proyecto.',
   )
 
   await page.setViewportSize({ width: TOUCH_VIEWPORT.width, height: TOUCH_VIEWPORT.height })
@@ -162,7 +162,7 @@ test('rutas clave mantienen touch targets visibles de al menos 44px', async ({ p
 test('panel de navegacion movil mantiene touch targets de al menos 44px', async ({ page }, testInfo) => {
   test.skip(
     testInfo.project.name !== 'chromium-desktop',
-    'La auditoria fija viewport movil manualmente para evitar duplicado por proyecto.',
+    'El test fija viewport movil manualmente para evitar duplicado por proyecto.',
   )
 
   await page.setViewportSize({ width: TOUCH_VIEWPORT.width, height: TOUCH_VIEWPORT.height })

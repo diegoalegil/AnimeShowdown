@@ -26,7 +26,7 @@ function PersonajeCutImg({
   // copias idénticas del archivo base de baja resolución (225x350), así que el
   // srcset hacía creer al navegador que existían tamaños mayores y elegía una
   // "1024w" que en realidad es la misma imagen pequeña. Servimos el único
-  // archivo real. La resolución se arregla regenerando el recorte (upscale IA,
+  // archivo real. La resolución se arregla regenerando el recorte (upscale local,
   // ver scripts/regen-cuts.mjs), no con un srcset falso.
 
   if (!canUseCut) {
@@ -60,11 +60,7 @@ function PersonajeCutImg({
 
   return (
     <div
-      className={`relative overflow-hidden bg-bg ${className}`.trim()}
-      style={{
-        background:
-          'radial-gradient(circle at 50% 28%, rgb(159 29 44 / 0.30), rgb(197 161 90 / 0.14) 34%, rgb(8 11 18 / 0.94) 70%)',
-      }}
+      className={`personaje-cut-shell relative overflow-hidden bg-bg ${className}`.trim()}
     >
       <div
         className="absolute inset-x-4 bottom-1 h-1/3 rounded-full bg-accent/25 blur-2xl"

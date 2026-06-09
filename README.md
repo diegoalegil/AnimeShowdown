@@ -77,7 +77,7 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 - **Auth, perfiles y comunidad** con JWT, refresh cookie, OAuth Google/Discord, 2FA TOTP, avatares y banner de perfil, bio, follow, feed de actividad de tus seguidos, reacciones, perfiles públicos compartibles (con Open Graph propia) y 16 logros base.
 - **Apoya, newsletter y páginas legales** integradas como parte del producto público.
 - **UX avanzada** con command palette `Cmd+K`, notificaciones, Sonner, Web Audio API y PWA con Workbox.
-- **SEO técnico** con sitemap, image sitemap, canonical, JSON-LD, robots, `llms.txt` y OG dinámicas para personajes, animes, torneos, ranking y duelos.
+- **SEO técnico** con sitemap, image sitemap, canonical, JSON-LD, robots y OG dinámicas para personajes, animes, torneos, ranking y duelos.
 
 ## Stack
 
@@ -111,7 +111,7 @@ Haz clic en cualquier captura para abrir esa sección en producción.
 AnimeShowdown/
 ├── frontend/              # React + Vite + Tailwind + PWA
 │   ├── img/               # Fuente visual del catálogo
-│   ├── public/            # PWA, redirects, robots, sitemap, llms.txt
+│   ├── public/            # PWA, redirects, robots y sitemap
 │   └── src/               # Rutas, páginas, componentes, hooks y helpers
 ├── backend/               # Spring Boot API
 │   └── src/main/resources # Flyway, config y personajes-seed.json
