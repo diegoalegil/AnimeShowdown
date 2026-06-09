@@ -16,7 +16,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,7 +25,6 @@ import com.diegoalegil.animeshowdown.dto.EloDuelGuessRequest;
 import com.diegoalegil.animeshowdown.dto.EloDuelGuessResponse;
 import com.diegoalegil.animeshowdown.dto.EloDuelRoundDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
-import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 
 @Service
 public class EloDuelService {
@@ -40,18 +38,18 @@ public class EloDuelService {
     private static final String SCORE_LABEL = "ELO competitivo";
     private static final String ALGORITHM = "server_vote_score_balanced";
 
-    private final PersonajeRepository personajeRepository;
+    private final PersonajeScoreQueryService personajeScoreQueryService;
     private final SecureRandom secureRandom;
     private final Clock clock;
     private final SecretKeySpec tokenKey;
 
     @Autowired
-    public EloDuelService(PersonajeRepository personajeRepository) {
-        this(personajeRepository, new SecureRandom(), Clock.systemUTC());
+    public EloDuelService(PersonajeScoreQueryService personajeScoreQueryService) {
+        this(personajeScoreQueryService, new SecureRandom(), Clock.systemUTC());
     }
 
-    EloDuelService(PersonajeRepository personajeRepository, SecureRandom secureRandom, Clock clock) {
-        this.personajeRepository = personajeRepository;
+    EloDuelService(PersonajeScoreQueryService personajeScoreQueryService, SecureRandom secureRandom, Clock clock) {
+        this.personajeScoreQueryService = personajeScoreQueryService;
         this.secureRandom = secureRandom;
         this.clock = clock;
         byte[] key = new byte[32];
@@ -124,9 +122,9 @@ public class EloDuelService {
     }
 
     private List<PersonajeScoreItem> poolConSenal() {
-        List<PersonajeScoreItem> pool = personajeRepository.topConPuntuacionYRecencia(
+        List<PersonajeScoreItem> pool = personajeScoreQueryService.topConPuntuacionYRecencia(
                 LocalDateTime.now(clock).minusHours(24),
-                PageRequest.of(0, TOP_POOL));
+                TOP_POOL);
         List<PersonajeScoreItem> elegibles = pool.stream()
                 .filter(p -> p.id() != null)
                 .toList();

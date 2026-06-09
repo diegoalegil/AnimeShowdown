@@ -45,6 +45,7 @@ class FantasyShowdownServiceTest {
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private VotoRepository votoRepository;
     @Mock private RankingMovimientosService rankingMovimientosService;
+    @Mock private PersonajeScoreQueryService personajeScoreQueryService;
 
     private FantasyShowdownService sut;
     private Usuario usuario;
@@ -58,6 +59,7 @@ class FantasyShowdownServiceTest {
                 usuarioRepository,
                 votoRepository,
                 rankingMovimientosService,
+                personajeScoreQueryService,
                 clock,
                 1000);
         usuario = new Usuario("fantasy_user", "hash", "fantasy@example.com");
