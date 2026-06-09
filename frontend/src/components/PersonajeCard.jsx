@@ -20,7 +20,9 @@ function PersonajeCard({
   // de getStatsPersonaje son sintéticos y se ocultan para no mostrar métricas
   // de combate falsas (ver decisión "ocultar W/L sintéticos").
   const elo = eloProp ?? getStatsPersonaje(slug).elo
-  const priorityImage = Boolean(rank && rank <= 12)
+  // 24 (antes 12): con 12, en pantallas de 6 columnas solo las 2 primeras
+  // filas cargaban eager y el scroll rápido enseñaba huecos en blanco.
+  const priorityImage = Boolean(rank && rank <= 24)
   const imageLoading = priorityImage ? 'eager' : 'lazy'
   const imageFetchPriority = priorityImage ? 'high' : 'auto'
   const imageSrc = imagenUrl ?? imagen
@@ -31,8 +33,12 @@ function PersonajeCard({
       onClick={() => play('playWhoosh')}
       className="group block"
     >
+      {/* contentVisibility: el navegador se salta layout/paint de las cartas
+          fuera de viewport y reserva el alto (intrinsic 300px), así el scroll
+          rápido no deja huecos blancos sin medida. */}
       <article
         className="as-ssr-card relative overflow-hidden rounded-2xl transition-[border-color,box-shadow] group-hover:border-gold/45 group-hover:shadow-lift [--aura-color:var(--color-gold-aura)]"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 300px' }}
       >
         <PersonajeImg
           slug={slug}

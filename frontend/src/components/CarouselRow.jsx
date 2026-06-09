@@ -5,6 +5,10 @@ import PersonajeCard from './PersonajeCard'
 function CarouselRow({ titulo, personajes, eyebrow }) {
   const scrollRef = useRef(null)
 
+  // Sin elementos no hay carrusel: evita pintar título y flechas alrededor
+  // de una fila vacía si algún caller pasa [].
+  if (!personajes?.length) return null
+
   const scroll = (dir) => {
     if (!scrollRef.current) return
     const amount = scrollRef.current.clientWidth * 0.8
