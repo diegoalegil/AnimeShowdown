@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Command } from 'cmdk'
 import { Check, ChevronDown } from 'lucide-react'
 
@@ -20,6 +20,7 @@ import { Check, ChevronDown } from 'lucide-react'
  * @param {string} [className]                 clases del wrapper (tamaño/anchura)
  * @param {string} [placeholder]
  * @param {boolean} [searchable]               por defecto: auto (> 8 opciones)
+ * @param {boolean} [disabled]
  */
 function BrandSelect({
   value,
@@ -29,16 +30,19 @@ function BrandSelect({
   className = '',
   placeholder = 'Selecciona…',
   searchable,
+  disabled = false,
 }) {
   const [open, setOpen] = useState(false)
+  const listboxId = useId()
   const wrapRef = useRef(null)
   const triggerRef = useRef(null)
   const selected = options.find((o) => o.value === value)
   const canSearch = searchable ?? options.length > 8
+  const panelOpen = open && !disabled
 
   // Cerrar al hacer click fuera o pulsar Escape (devolviendo el foco al trigger).
   useEffect(() => {
-    if (!open) return undefined
+    if (!panelOpen) return undefined
     const onPointer = (e) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
     }
@@ -54,9 +58,10 @@ function BrandSelect({
       document.removeEventListener('mousedown', onPointer)
       document.removeEventListener('keydown', onKey)
     }
-  }, [open])
+  }, [panelOpen])
 
   const choose = (next) => {
+    if (disabled) return
     onChange(next)
     setOpen(false)
     triggerRef.current?.focus()
@@ -68,22 +73,24 @@ function BrandSelect({
         ref={triggerRef}
         type="button"
         aria-haspopup="listbox"
-        aria-expanded={open}
+        aria-expanded={panelOpen}
+        aria-controls={panelOpen ? listboxId : undefined}
         aria-label={ariaLabel}
+        disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className="as-control flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-fg-strong"
+        className="as-control flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-fg-strong transition-colors hover:border-gold/45 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <span className="min-w-0 truncate">{selected ? selected.label : placeholder}</span>
         <ChevronDown
           aria-hidden="true"
-          className={`h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 ${panelOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
-      {open && (
+      {panelOpen && (
         <Command
           label={ariaLabel}
-          className="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-gold/30 bg-bg/85 shadow-aura-lg backdrop-blur-xl [--aura-color:rgb(197_161_90_/_0.6)]"
+          className="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-lg border border-gold/30 bg-bg/90 shadow-aura-lg backdrop-blur-xl [--aura-color:var(--color-gold-aura)]"
         >
           <div className={canSearch ? 'border-b border-border/60 p-2' : 'sr-only'}>
             <Command.Input
@@ -92,7 +99,7 @@ function BrandSelect({
               className="w-full rounded-md bg-surface/70 px-3 py-2 text-sm text-fg-strong outline-none placeholder:text-fg-muted"
             />
           </div>
-          <Command.List className="scrollbar-hide max-h-72 overflow-y-auto p-1.5">
+          <Command.List id={listboxId} className="scrollbar-hide max-h-72 overflow-y-auto p-1.5">
             <Command.Empty className="px-3 py-6 text-center text-sm text-fg-muted">
               Sin resultados.
             </Command.Empty>
@@ -101,7 +108,7 @@ function BrandSelect({
                 key={o.value === '' ? '__all__' : o.value}
                 value={o.label}
                 onSelect={() => choose(o.value)}
-                className="flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-fg-strong aria-selected:bg-accent/15 aria-selected:text-gold"
+                className="flex min-h-11 cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-2 text-sm font-semibold text-fg-strong aria-selected:bg-accent/15 aria-selected:text-gold"
               >
                 <span className="min-w-0 truncate">{o.label}</span>
                 {o.value === value && <Check aria-hidden="true" className="h-4 w-4 shrink-0 text-gold" />}

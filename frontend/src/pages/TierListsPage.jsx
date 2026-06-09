@@ -29,6 +29,7 @@ import Button from '../components/Button'
 import EmptyState from '../components/EmptyState'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
+import BrandSelect from '../components/BrandSelect'
 import TierListCanvasPreview from '../features/tierList/TierListCanvasPreview'
 
 const TIERS = ['S', 'A', 'B', 'C', 'D', 'BANCA']
@@ -329,18 +330,17 @@ function TierListEditor() {
                 Plantilla
               </h2>
               <div className="flex gap-2">
-                <select
+                <BrandSelect
                   value={selectedAnime}
-                  onChange={(e) => setSelectedAnime(e.target.value)}
-                  className="min-w-0 flex-1 rounded-lg border border-border bg-bg px-3 py-2.5 text-sm font-semibold text-fg-strong outline-none focus:border-accent/55"
-                >
-                  <option value="">Vacía</option>
-                  {animes.map((anime) => (
-                    <option key={anime} value={anime}>
-                      {anime}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedAnime}
+                  ariaLabel="Elegir plantilla de anime"
+                  className="min-w-0 flex-1"
+                  placeholder="Vacía"
+                  options={[
+                    { value: '', label: 'Vacía' },
+                    ...animes.map((anime) => ({ value: anime, label: anime })),
+                  ]}
+                />
                 <button
                   type="button"
                   onClick={cargarAnime}
