@@ -165,6 +165,12 @@ class FantasyShowdownServiceTest {
         assertEquals(2, leaderboard.get(1).puntos());
     }
 
+    @Test
+    void eloEstimadoUsaSemillaCanonicaYActividadComunitaria() {
+        assertEquals(1824, FantasyShowdownService.eloEstimado(1824, 0.0));
+        assertEquals(1956, FantasyShowdownService.eloEstimado(1824, 42.0));
+    }
+
     private FantasyEquipo equipoConItems(Usuario user, String semana, List<Long> ids) {
         FantasyEquipo equipo = new FantasyEquipo(user, semana);
         equipo.reemplazarItems(ids.stream()

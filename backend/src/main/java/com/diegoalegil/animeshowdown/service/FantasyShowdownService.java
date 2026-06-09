@@ -47,7 +47,6 @@ public class FantasyShowdownService {
     public static final int PRESUPUESTO_DEFAULT = 1000;
     private static final int LIMIT_CANDIDATOS_DEFAULT = 80;
     private static final int LIMIT_CANDIDATOS_MAX = 300;
-    private static final int ELO_BASE = 1500;
 
     private final FantasyEquipoRepository equipoRepository;
     private final PersonajeRepository personajeRepository;
@@ -113,7 +112,7 @@ public class FantasyShowdownService {
         return personajes.stream()
                 .map(p -> FantasyPersonajeDto.from(
                         p,
-                        eloEstimado(votos.getOrDefault(p.getId(), 0.0)),
+                        eloEstimado(p.getEloSemilla(), votos.getOrDefault(p.getId(), 0.0)),
                         costeDesdeVotos(votos.getOrDefault(p.getId(), 0.0)),
                         deltas.getOrDefault(p.getId(), 0)))
                 .toList();
@@ -260,8 +259,11 @@ public class FantasyShowdownService {
     }
 
     public static int eloEstimado(double votos) {
-        double elo = ELO_BASE + Math.max(0, votos);
-        return elo > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.floor(elo);
+        return eloEstimado(null, votos);
+    }
+
+    public static int eloEstimado(Integer eloSemilla, double votos) {
+        return PersonajeScoreItem.calcularEloEstimado(eloSemilla, votos);
     }
 
     private FantasyEquipoDto toDto(FantasyEquipo equipo) {
@@ -378,6 +380,7 @@ public class FantasyShowdownService {
         personaje.setNombre(item.nombre());
         personaje.setAnime(item.anime());
         personaje.setImagenUrl(item.imagenUrl());
+        personaje.setEloSemilla(item.eloSemilla());
         return personaje;
     }
 
