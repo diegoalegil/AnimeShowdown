@@ -1,28 +1,12 @@
 -- DATA-01: V16 dropeaba uk_voto_personaje_usuario por nombre literal. En una
 -- BBDD baselined el unique (personaje_id, usuario_id) nace con el nombre
--- autogenerado de Postgres (votos_personaje_id_usuario_id_key), así que el
--- DROP fue no-op y el unique global puede seguir vivo: el segundo voto al
--- mismo personaje en otra ronda revienta con 500. Se dropea aquí cualquier
--- unique sobre exactamente (personaje_id, usuario_id), tenga el nombre que
--- tenga. uk_voto_enfrentamiento_usuario (el que sí queremos) no matchea.
-DO $$
-DECLARE
-    c RECORD;
-BEGIN
-    FOR c IN
-        SELECT conname
-        FROM pg_constraint
-        WHERE conrelid = 'votos'::regclass
-          AND contype = 'u'
-          AND (
-            SELECT array_agg(attname ORDER BY attname)
-            FROM unnest(conkey) AS k(attnum)
-            JOIN pg_attribute a ON a.attrelid = conrelid AND a.attnum = k.attnum
-          ) = ARRAY['personaje_id', 'usuario_id']::name[]
-    LOOP
-        EXECUTE format('ALTER TABLE votos DROP CONSTRAINT %I', c.conname);
-    END LOOP;
-END $$;
+-- autogenerado de Postgres (votos_personaje_id_usuario_id_key), así que aquel
+-- DROP pudo ser no-op y el unique global seguir vivo: el segundo voto al
+-- mismo personaje en otra ronda revienta con 500. Se dropean los DOS nombres
+-- posibles (el explícito de V1 y el autogenerado de Postgres). SQL plano e
+-- IF EXISTS por portabilidad Postgres/H2 (tests), igual que V16.
+ALTER TABLE votos DROP CONSTRAINT IF EXISTS uk_voto_personaje_usuario;
+ALTER TABLE votos DROP CONSTRAINT IF EXISTS votos_personaje_id_usuario_id_key;
 
 -- DATA-12: countByUsuario corre en cada voto autenticado y el ON DELETE SET
 -- NULL del borrado de cuenta hacía full-scan sin este índice.

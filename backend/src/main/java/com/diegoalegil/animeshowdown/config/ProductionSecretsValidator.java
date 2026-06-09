@@ -50,8 +50,11 @@ public class ProductionSecretsValidator {
     private final Map<String, String> secretosOpcionales;
     private final boolean turnstileEnabled;
     private final String turnstileSecret;
+    /** Con APP_SECRETS_STRICT=true las claves cortas abortan el boot (activar tras rotarlas). */
+    private final boolean entropiaEstricta;
 
     public ProductionSecretsValidator(
+            @Value("${app.secrets.strict:false}") boolean entropiaEstricta,
             @Value("${spring.datasource.password:}") String dbPassword,
             @Value("${jwt.secret:}") String jwtSecret,
             @Value("${app.totp.encryption-key:}") String totpKey,
@@ -82,6 +85,7 @@ public class ProductionSecretsValidator {
 
         this.turnstileEnabled = turnstileEnabled;
         this.turnstileSecret = turnstileSecret == null ? "" : turnstileSecret.trim();
+        this.entropiaEstricta = entropiaEstricta;
     }
 
     @PostConstruct
@@ -121,13 +125,15 @@ public class ProductionSecretsValidator {
             }
         }
         if (!criptoCortos.isEmpty()) {
-            // log.error sin abortar: no podemos garantizar la longitud de los
-            // secretos ya desplegados y un boot-abort sorpresa en prod es peor
-            // que la debilidad. Rotar los listados y entonces subirlo a throw.
-            log.error(
-                    "Claves criptográficas demasiado cortas (mínimo recomendado 32 chars): {}. "
-                            + "Rota estos secretos con `openssl rand -base64 48` cuanto antes.",
-                    criptoCortos);
+            String mensaje = "Claves criptográficas demasiado cortas (mínimo 32 chars): "
+                    + criptoCortos + ". Rota estos secretos con `openssl rand -base64 48`.";
+            if (entropiaEstricta) {
+                throw new IllegalStateException("Boot abortado: " + mensaje);
+            }
+            // Modo laxo (default): no podemos garantizar la longitud de los
+            // secretos ya desplegados y un boot-abort sorpresa en prod es
+            // peor que la debilidad. Tras rotar, fijar APP_SECRETS_STRICT=true.
+            log.error(mensaje);
         }
 
         List<String> opcionalesInseguros = new ArrayList<>();

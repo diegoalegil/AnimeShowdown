@@ -455,6 +455,66 @@ class AuthControllerTest {
     }
 
     @Test
+    void loginCuentaBloqueadaDevuelve401GenericoSinRevelarExistencia() throws Exception {
+        // REGRESIÓN SEC-05: el lockout respondía 423 + minutosRestantes, lo
+        // que confirmaba que la cuenta existe (enumeración) y permitía
+        // mantenerla bloqueada a propósito. Debe ser 401 indistinguible del
+        // de credenciales malas, incluso con la password CORRECTA.
+        Map<String, String> reg = Map.of(
+                "username", "lockeduser",
+                "password", "secreta123",
+                "email", "lockeduser@example.com");
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(reg)))
+                .andExpect(status().isCreated());
+
+        Map<String, String> mala = Map.of("username", "lockeduser", "password", "incorrecta");
+        for (int i = 0; i < 5; i++) {
+            mvc.perform(post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(mala)))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        Map<String, String> buena = Map.of("username", "lockeduser", "password", "secreta123");
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(buena)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void loginEmiteCookieRefreshAcotadaYLimpiaLaLegacy() throws Exception {
+        // REGRESIÓN SEC-16: la refresh cookie debe ir acotada a /api/auth y
+        // cada emisión debe adjuntar el borrado de la cookie legacy con
+        // Path=/ para no acumular dos cookies con el mismo nombre.
+        Map<String, String> reg = Map.of(
+                "username", "cookiepath",
+                "password", "secreta123",
+                "email", "cookiepath@example.com");
+        mvc.perform(post("/api/auth/registro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(reg)))
+                .andExpect(status().isCreated());
+
+        Map<String, String> login = Map.of("username", "cookiepath", "password", "secreta123");
+        var setCookies = mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getHeaders("Set-Cookie");
+
+        boolean nuevaAcotada = setCookies.stream().anyMatch(c ->
+                c.startsWith("refresh_token=") && c.contains("Path=/api/auth") && !c.contains("Max-Age=0"));
+        boolean legacyBorrada = setCookies.stream().anyMatch(c ->
+                c.startsWith("refresh_token=") && c.contains("Path=/;") && c.contains("Max-Age=0"));
+        if (!nuevaAcotada || !legacyBorrada) {
+            throw new AssertionError("Set-Cookie esperado (nueva en /api/auth + legacy borrada en /): " + setCookies);
+        }
+    }
+
+    @Test
     void getMeConTokenValidoDevuelveUsuario() throws Exception {
         // REGRESIÓN: este test falla en bug donde Usuario no implementaba UserDetails
         // y auth.getName() devolvía Object.toString() en lugar del username.
@@ -986,9 +1046,14 @@ class AuthControllerTest {
     @Test
     void refreshGraceCrossTabDevuelve503ConRetryAfterYSinLimpiarCookie() throws Exception {
         registrarYLoguear("grace_user", "secreta123", "grace_user@example.com");
+        // Las dos pestañas comparten navegador: mismo User-Agent. La grace
+        // exige UA coincidente (un token reusado desde otro UA escala a
+        // revoke), así que el test lo fija explícitamente como un browser real.
+        String ua = "Mozilla/5.0 (grace-test)";
         // Login devuelve cookie refresh — la extraemos para reusar en dos
         // /refresh paralelos (simula misma cookie en dos pestañas).
         var loginRes = mvc.perform(post("/api/auth/login")
+                .header("User-Agent", ua)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of(
                         "username", "grace_user", "password", "secreta123"))))
@@ -999,6 +1064,7 @@ class AuthControllerTest {
         // Primera rotación: 200 + nueva cookie.
         mvc.perform(post("/api/auth/refresh")
                 .header("Origin", APP_ORIGIN)
+                .header("User-Agent", ua)
                 .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("refresh_token"));
@@ -1008,6 +1074,7 @@ class AuthControllerTest {
         // Set-Cookie para refresh_token — pisaría la cookie nueva.
         var graceRes = mvc.perform(post("/api/auth/refresh")
                 .header("Origin", APP_ORIGIN)
+                .header("User-Agent", ua)
                 .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshCookie)))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(header().exists("Retry-After"))

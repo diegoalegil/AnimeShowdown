@@ -936,6 +936,7 @@ public class AuthController {
      * marcamos totpHabilitado=true y generamos 10 backup codes que
      * devolvemos UNA vez en plaintext.
      */
+    @Transactional
     @PostMapping("/2fa/enable")
     public ResponseEntity<?> totpEnable(@Valid @RequestBody Totp2faEnableRequest request,
             @AuthenticationPrincipal Usuario usuario,
@@ -953,7 +954,7 @@ public class AuthController {
                     "message", "No hay un setup de 2FA pendiente. Llama primero a /2fa/setup."));
         }
         String secretPlano = totpEncryptor.descifrar(secretCifrado);
-        if (!validarTotpAntiReplay(usuario, secretPlano, request.getCodigo())) {
+        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
             log.warn("2FA enable falló (código incorrecto): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Código incorrecto. Comprueba la hora de tu dispositivo y vuelve a intentarlo."));
@@ -976,6 +977,7 @@ public class AuthController {
      * para confirmar que está siendo quien dice (defensa contra hijack de
      * sesión + dispositivo perdido).
      */
+    @Transactional
     @PostMapping("/2fa/disable")
     public ResponseEntity<?> totpDisable(@Valid @RequestBody Totp2faDisableRequest request,
             @AuthenticationPrincipal Usuario usuario,
@@ -993,7 +995,7 @@ public class AuthController {
                     "message", "La contraseña no es correcta."));
         }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
-        if (!validarTotpAntiReplay(usuario, secretPlano, request.getCodigo())) {
+        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
             log.warn("2FA disable falló (código incorrecto): username={}", usuario.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "El código de la app authenticator no es correcto."));
@@ -1014,6 +1016,12 @@ public class AuthController {
      * Valida un código TOTP con anti-replay: el step de 30s aceptado se
      * persiste en el usuario y cualquier código de un step ya consumido se
      * rechaza. Sin esto, un código interceptado vale ~90s (drift de la lib).
+     *
+     * <p>Se aplica SOLO a /2fa/verify-login (superficie sin sesión, objetivo
+     * real de replay/fuerza bruta). enable/disable/regenerar usan
+     * {@code validarCodigo} a secas: exigen sesión autenticada (+password en
+     * disable) y el anti-replay ahí rompía flujos legítimos dentro del mismo
+     * step de 30s (setup→enable→disable seguidos).
      */
     private boolean validarTotpAntiReplay(Usuario usuario, String secretPlano, String codigo) {
         long step = totpService.validarCodigoStep(secretPlano, codigo);
@@ -1039,6 +1047,7 @@ public class AuthController {
      * Además hay un tope de fallos POR CUENTA (ventana 15 min) para que
      * re-emitir challenges no permita fuerza bruta del TOTP.
      */
+    @Transactional
     @PostMapping("/2fa/verify-login")
     public ResponseEntity<?> totpVerifyLogin(@Valid @RequestBody Totp2faVerifyLoginRequest request,
             HttpServletRequest httpRequest) {
@@ -1108,6 +1117,7 @@ public class AuthController {
      * código TOTP actual para confirmar identidad. Devuelve los nuevos en
      * plaintext UNA vez.
      */
+    @Transactional
     @PostMapping("/2fa/backup-codes/regenerar")
     public ResponseEntity<?> totpRegenerarBackupCodes(@Valid @RequestBody Totp2faEnableRequest request,
             @AuthenticationPrincipal Usuario usuario,
@@ -1120,7 +1130,7 @@ public class AuthController {
                     "message", "El 2FA no está activado."));
         }
         String secretPlano = totpEncryptor.descifrar(usuario.getTotpSecret());
-        if (!validarTotpAntiReplay(usuario, secretPlano, request.getCodigo())) {
+        if (!totpService.validarCodigo(secretPlano, request.getCodigo())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Código incorrecto."));
         }

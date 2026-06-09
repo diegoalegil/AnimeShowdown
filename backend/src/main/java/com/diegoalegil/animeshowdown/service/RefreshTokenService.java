@@ -148,8 +148,10 @@ public class RefreshTokenService {
             // mismo navegador (UA igual): dos pestañas del mismo browser
             // mandan el mismo User-Agent. Un atacante que reusa un token
             // robado desde otra máquina no debe colarse por esta ventana.
-            boolean mismoUserAgent = viejo.getUserAgent() == null
-                    || java.util.Objects.equals(viejo.getUserAgent(), userAgent);
+            // Los tokens sin UA registrado (legacy/clientes raros) NO entran
+            // en la grace: mejor un logout defensivo que un bypass.
+            boolean mismoUserAgent = viejo.getUserAgent() != null
+                    && java.util.Objects.equals(viejo.getUserAgent(), userAgent);
             if (segundosDesdeRevoke <= REUSE_GRACE_SECONDS && mismoUserAgent) {
                 log.info("RefreshToken race entre pestañas (revocado hace {}s, dentro de grace) — sin escalada",
                         segundosDesdeRevoke);
