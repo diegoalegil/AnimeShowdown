@@ -183,8 +183,7 @@ public class EloDuelService {
     }
 
     private int eloCompetitivo(PersonajeScoreItem item) {
-        double score = item.votosTotales() == null ? 0.0 : Math.max(0.0, item.votosTotales());
-        return 1500 + (int) Math.round(score * 10.0);
+        return item.eloEstimado();
     }
 
     private PersonajeScoreItem randomItem(List<PersonajeScoreItem> items) {

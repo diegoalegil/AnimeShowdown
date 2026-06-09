@@ -40,10 +40,10 @@ class EloDuelServiceTest {
                 new SecureRandom(new byte[]{1, 2, 3, 4}),
                 Clock.fixed(Instant.parse("2026-05-31T12:00:00Z"), ZoneOffset.UTC));
         pool = List.of(
-                item(1L, "luffy", "Luffy", "One Piece", 42.0, 3.0),
-                item(2L, "zoro", "Zoro", "One Piece", 31.0, 1.0),
-                item(3L, "nami", "Nami", "One Piece", 12.0, 0.0),
-                item(4L, "sakura", "Sakura", "Naruto", 4.0, 0.0));
+                item(1L, "luffy", "Luffy", "One Piece", 1880, 42.0, 3.0),
+                item(2L, "zoro", "Zoro", "One Piece", 1840, 31.0, 1.0),
+                item(3L, "nami", "Nami", "One Piece", 1760, 12.0, 0.0),
+                item(4L, "sakura", "Sakura", "Naruto", 1650, 4.0, 0.0));
     }
 
     @Test
@@ -99,8 +99,8 @@ class EloDuelServiceTest {
     @Test
     void iniciarRondaRechazaPoolSinPuntuacionDistinta() {
         when(personajeRepository.topConPuntuacionYRecencia(any(), any())).thenReturn(List.of(
-                item(1L, "a", "A", "Anime", 0.0, 0.0),
-                item(2L, "b", "B", "Anime", 0.0, 0.0)));
+                item(1L, "a", "A", "Anime", 1500, 0.0, 0.0),
+                item(2L, "b", "B", "Anime", 1500, 0.0, 0.0)));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> sut.iniciarRonda());
 
@@ -108,20 +108,18 @@ class EloDuelServiceTest {
     }
 
     private EloDuelChoice expectedChoice(EloDuelRoundDto round) {
-        double referenceScore = scoreBySlug(round.reference().getSlug());
-        double challengerScore = scoreBySlug(round.challenger().getSlug());
-        int referenceElo = 1500 + (int) Math.round(referenceScore * 10.0);
-        int challengerElo = 1500 + (int) Math.round(challengerScore * 10.0);
+        int referenceElo = eloBySlug(round.reference().getSlug());
+        int challengerElo = eloBySlug(round.challenger().getSlug());
         assertEquals(referenceElo, round.referenceElo());
         assertNotEquals(referenceElo, challengerElo);
         return challengerElo > referenceElo ? EloDuelChoice.HIGHER : EloDuelChoice.LOWER;
     }
 
-    private double scoreBySlug(String slug) {
+    private int eloBySlug(String slug) {
         return pool.stream()
                 .filter(item -> item.slug().equals(slug))
                 .findFirst()
-                .map(PersonajeScoreItem::votosTotales)
+                .map(PersonajeScoreItem::eloEstimado)
                 .orElseThrow();
     }
 
@@ -134,9 +132,10 @@ class EloDuelServiceTest {
     }
 
     private static PersonajeScoreItem item(Long id, String slug, String nombre, String anime,
-            Double votosTotales, Double votosRecientes24h) {
+            Integer eloSemilla, Double votosTotales, Double votosRecientes24h) {
         return new PersonajeScoreItem(id, slug, nombre, anime, "/img/" + slug + ".webp",
                 "#%06x".formatted((id * 0x112233L) & 0xFFFFFFL),
+                eloSemilla,
                 votosTotales, votosRecientes24h);
     }
 

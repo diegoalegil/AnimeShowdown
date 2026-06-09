@@ -1,9 +1,9 @@
 package com.diegoalegil.animeshowdown.dto;
 
 /**
- * Proyeccion compacta para el sugeridor de duelos. El backend actual no
- * persiste ELO por personaje, asi que usamos el volumen de votos como senal
- * de fuerza y lo transformamos en un ELO estimado estable.
+ * Proyeccion compacta para superficies competitivas. Parte de la ELO semilla
+ * canonica y suma una senal comunitaria logaritmica para evitar que el volumen
+ * bruto de votos borre la fuerza base del personaje.
  */
 public record PersonajeScoreItem(
         Long id,
@@ -12,12 +12,23 @@ public record PersonajeScoreItem(
         String anime,
         String imagenUrl,
         String imagenColorDominante,
+        Integer eloSemilla,
         Double votosTotales,
         Double votosRecientes24h) {
 
+    private static final int ELO_FLOOR = 1500;
+    private static final int ELO_CEILING = 2400;
+    private static final double COMMUNITY_SIGNAL_FACTOR = 35.0;
+
     public int eloEstimado() {
-        double elo = 1500 + scoreSane(votosTotales);
-        return elo > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.floor(elo);
+        return calcularEloEstimado(eloSemilla, votosTotales);
+    }
+
+    public static int calcularEloEstimado(Integer eloSemilla, Double votosTotales) {
+        int base = eloSemilla == null ? ELO_FLOOR : Math.max(ELO_FLOOR, eloSemilla);
+        int senalComunitaria = (int) Math.round(
+                Math.log1p(scoreSane(votosTotales)) * COMMUNITY_SIGNAL_FACTOR);
+        return Math.min(ELO_CEILING, base + senalComunitaria);
     }
 
     public double recientes24h() {
