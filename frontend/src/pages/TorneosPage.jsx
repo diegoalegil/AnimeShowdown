@@ -5,6 +5,7 @@ import {
   CalendarClock,
   CheckCircle2,
   Clock,
+  ArrowRight,
   PlayCircle,
   Sparkles,
   Swords,
@@ -23,6 +24,7 @@ import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
 import { personajes, getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS, getTournamentVisual } from '../data/visual-assets'
+import { buildTorneosPageModel } from '../features/torneos/torneos-page-data'
 
 /**
  * Sugerencias temáticas computadas en module load. Cuando la BD está vacía
@@ -78,11 +80,14 @@ function TorneosPage() {
   })
   const { data: torneos, isLoading, isError, error, refetch } = useTorneos()
   const { user } = useAuth()
+  const model = buildTorneosPageModel(torneos)
 
-  const total = torneos?.length ?? 0
-  const enCurso = (torneos ?? []).filter((it) => it.estado === 'IN_PROGRESS')
-  const proximos = (torneos ?? []).filter((it) => it.estado === 'SCHEDULED')
-  const historial = (torneos ?? []).filter((it) => it.estado === 'FINISHED')
+  const {
+    total,
+    enCurso,
+    proximos,
+    historial,
+  } = model
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.torneos} lateralKanji={{left: "戦", right: "場"}}>
@@ -141,6 +146,7 @@ function TorneosPage() {
 
         {!isLoading && !isError && total > 0 && (
           <div className="flex flex-col gap-12">
+            <TorneosOverview model={model} t={t} />
             {enCurso.length > 0 && (
               <TorneosSeccion
                 icon={PlayCircle}
@@ -175,6 +181,109 @@ function TorneosPage() {
         )}
       </div>
     </VisualPageShell>
+  )
+}
+
+function TorneosOverview({ model, t }) {
+  const numberFormat = new Intl.NumberFormat()
+  const destacado = model.destacado
+  const metrics = [
+    {
+      icon: PlayCircle,
+      label: t('torneos.resumenEnCurso'),
+      value: model.enCurso.length,
+      tone: 'text-success',
+    },
+    {
+      icon: CalendarClock,
+      label: t('torneos.resumenProximos'),
+      value: model.proximos.length,
+      tone: 'text-electric',
+    },
+    {
+      icon: Swords,
+      label: t('torneos.resumenVotos7d'),
+      value: numberFormat.format(model.votosUltimos7Dias),
+      tone: 'text-gold',
+    },
+    {
+      icon: Users,
+      label: t('torneos.resumenParticipantes'),
+      value: numberFormat.format(model.participantes),
+      tone: 'text-fg-strong',
+    },
+  ]
+
+  return (
+    <section
+      aria-label={t('torneos.resumenAria')}
+      className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.55fr)]"
+    >
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {metrics.map((metric) => (
+          <TorneoMetric key={metric.label} {...metric} />
+        ))}
+      </div>
+      {destacado && (
+        <TorneoDestacado destacado={destacado} t={t} />
+      )}
+    </section>
+  )
+}
+
+function TorneoMetric({ icon: Icon, label, value, tone }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface/75 p-4">
+      <div className={`inline-flex h-9 w-9 items-center justify-center rounded-lg bg-bg ${tone}`}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <p className="mt-3 text-2xl font-black tabular-nums text-fg-strong">
+        {value}
+      </p>
+      <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-fg-muted">
+        {label}
+      </p>
+    </div>
+  )
+}
+
+function TorneoDestacado({ destacado, t }) {
+  const { torneo, tipo } = destacado
+  const ronda = torneo.rondaActual && torneo.totalRondas
+    ? `${torneo.rondaActual}/${torneo.totalRondas}`
+    : null
+  const copyKey = {
+    IN_PROGRESS: 'torneos.resumenDestacadoEnCurso',
+    SCHEDULED: 'torneos.resumenDestacadoProximo',
+    FINISHED: 'torneos.resumenDestacadoHistorial',
+  }[tipo]
+  const ctaKey = {
+    IN_PROGRESS: 'torneos.resumenCtaEnCurso',
+    SCHEDULED: 'torneos.resumenCtaProximo',
+    FINISHED: 'torneos.resumenCtaHistorial',
+  }[tipo]
+
+  return (
+    <Link
+      to={`/torneos/${torneo.slug}`}
+      className="group flex min-h-full flex-col justify-between rounded-xl border border-accent/30 bg-accent-soft p-4 transition-colors hover:border-gold/55 hover:bg-accent/20"
+    >
+      <span className="text-[11px] font-black uppercase tracking-[0.14em] text-gold">
+        {t('torneos.resumenDestacado')}
+      </span>
+      <div className="mt-3">
+        <p className="line-clamp-1 text-lg font-black text-fg-strong">
+          {torneo.nombre}
+        </p>
+        <p className="mt-1 text-[12px] leading-5 text-fg-muted">
+          {t(copyKey, { ronda: ronda ?? t('torneos.resumenRondaFallback') })}
+        </p>
+      </div>
+      <span className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-black text-gold">
+        {t(ctaKey)}
+        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+      </span>
+    </Link>
   )
 }
 
@@ -216,7 +325,7 @@ function TorneosHeroBanner() {
           el contenido (antes el VS iba absolute-centrado sobre todo el banner). */}
       <div className="absolute inset-0 flex flex-col justify-between gap-3 p-5">
         <div className="flex justify-center">
-          <div className="rounded-full border border-gold/50 bg-gold-soft px-5 py-2 text-4xl font-black uppercase tracking-tighter text-gold shadow-aura-lg [--aura-color:rgb(197_161_90_/_0.85)]">
+          <div className="as-tournament-vs-aura rounded-full border border-gold/50 bg-gold-soft px-5 py-2 text-4xl font-black uppercase tracking-tighter text-gold shadow-aura-lg">
             VS
           </div>
         </div>
