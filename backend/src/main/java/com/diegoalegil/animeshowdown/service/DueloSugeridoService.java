@@ -12,14 +12,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.DueloSugeridoDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
-import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 
 @Service
 public class DueloSugeridoService {
@@ -30,15 +28,18 @@ public class DueloSugeridoService {
     private static final int MAX_ATTEMPTS = 200;
     private static final Duration POOL_TTL = Duration.ofSeconds(20);
 
-    private final PersonajeRepository personajeRepository;
+    private final PersonajeScoreQueryService personajeScoreQueryService;
     private final AnimeShowdownMetrics metrics;
     private final Clock clock;
     private final ArrayDeque<Long> ultimosPersonajes = new ArrayDeque<>();
     private final Object poolCacheLock = new Object();
     private volatile CachedPool cachedPool;
 
-    public DueloSugeridoService(PersonajeRepository personajeRepository, AnimeShowdownMetrics metrics, Clock clock) {
-        this.personajeRepository = personajeRepository;
+    public DueloSugeridoService(
+            PersonajeScoreQueryService personajeScoreQueryService,
+            AnimeShowdownMetrics metrics,
+            Clock clock) {
+        this.personajeScoreQueryService = personajeScoreQueryService;
         this.metrics = metrics;
         this.clock = clock;
     }
@@ -66,9 +67,9 @@ public class DueloSugeridoService {
             if (snapshot != null && now.isBefore(snapshot.expiresAt())) {
                 return snapshot.items();
             }
-            List<PersonajeScoreItem> fresh = List.copyOf(personajeRepository.topConPuntuacionYRecencia(
+            List<PersonajeScoreItem> fresh = List.copyOf(personajeScoreQueryService.topConPuntuacionYRecencia(
                     LocalDateTime.now(clock).minusHours(24),
-                    PageRequest.of(0, TOP_POOL)));
+                    TOP_POOL));
             cachedPool = new CachedPool(fresh, now.plus(POOL_TTL));
             return fresh;
         }

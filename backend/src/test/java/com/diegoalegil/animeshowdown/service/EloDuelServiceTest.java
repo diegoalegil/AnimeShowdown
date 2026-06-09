@@ -23,12 +23,11 @@ import com.diegoalegil.animeshowdown.dto.EloDuelGuessRequest;
 import com.diegoalegil.animeshowdown.dto.EloDuelGuessResponse;
 import com.diegoalegil.animeshowdown.dto.EloDuelRoundDto;
 import com.diegoalegil.animeshowdown.dto.PersonajeScoreItem;
-import com.diegoalegil.animeshowdown.repository.PersonajeRepository;
 
 @ExtendWith(MockitoExtension.class)
 class EloDuelServiceTest {
 
-    @Mock private PersonajeRepository personajeRepository;
+    @Mock private PersonajeScoreQueryService personajeScoreQueryService;
 
     private EloDuelService sut;
     private List<PersonajeScoreItem> pool;
@@ -36,7 +35,7 @@ class EloDuelServiceTest {
     @BeforeEach
     void setUp() {
         sut = new EloDuelService(
-                personajeRepository,
+                personajeScoreQueryService,
                 new SecureRandom(new byte[]{1, 2, 3, 4}),
                 Clock.fixed(Instant.parse("2026-05-31T12:00:00Z"), ZoneOffset.UTC));
         pool = List.of(
@@ -48,7 +47,7 @@ class EloDuelServiceTest {
 
     @Test
     void iniciarRondaOcultaEloDelChallengerYEntregaTokenCifrado() {
-        when(personajeRepository.topConPuntuacionYRecencia(any(), any())).thenReturn(pool);
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
 
         EloDuelRoundDto round = sut.iniciarRonda();
 
@@ -68,7 +67,7 @@ class EloDuelServiceTest {
 
     @Test
     void resolverValidaLaRespuestaEnServidorYDevuelveSiguienteRondaSiAcierta() {
-        when(personajeRepository.topConPuntuacionYRecencia(any(), any())).thenReturn(pool);
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
 
         EloDuelRoundDto round = sut.iniciarRonda();
         EloDuelChoice correctChoice = expectedChoice(round);
@@ -80,12 +79,12 @@ class EloDuelServiceTest {
         assertTrue(result.challengerElo() >= 1500);
         assertTrue(result.eloDiff() > 0);
         assertNotNull(result.nextRound());
-        verify(personajeRepository, atLeast(2)).topConPuntuacionYRecencia(any(), any());
+        verify(personajeScoreQueryService, atLeast(2)).topConPuntuacionYRecencia(any(), anyInt());
     }
 
     @Test
     void resolverRechazaTokenManipulado() {
-        when(personajeRepository.topConPuntuacionYRecencia(any(), any())).thenReturn(pool);
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(pool);
 
         EloDuelRoundDto round = sut.iniciarRonda();
         String tampered = tamperCiphertext(round.roundToken());
@@ -98,7 +97,7 @@ class EloDuelServiceTest {
 
     @Test
     void iniciarRondaRechazaPoolSinPuntuacionDistinta() {
-        when(personajeRepository.topConPuntuacionYRecencia(any(), any())).thenReturn(List.of(
+        when(personajeScoreQueryService.topConPuntuacionYRecencia(any(), anyInt())).thenReturn(List.of(
                 item(1L, "a", "A", "Anime", 1500, 0.0, 0.0),
                 item(2L, "b", "B", "Anime", 1500, 0.0, 0.0)));
 
