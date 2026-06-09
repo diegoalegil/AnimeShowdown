@@ -860,6 +860,13 @@ function ListaBackend({
 function PorAnime({ initialAnime = '' }) {
   const { data: animes, isLoading: cargandoAnimes } = useAnimesConVotos()
   const [anime, setAnime] = useState(initialAnime)
+  const animeOptions = useMemo(
+    () => [
+      { value: '', label: 'Elige un anime' },
+      ...(animes ?? []).map((item) => ({ value: item, label: item })),
+    ],
+    [animes],
+  )
   const { data, isLoading, isError } = useRankingSegmentado({
     anime,
     limit: 50,
@@ -893,26 +900,18 @@ function PorAnime({ initialAnime = '' }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-3 sm:flex-row sm:items-center">
-        <label
-          htmlFor="anime-select"
-          className="text-[12px] font-semibold text-fg-muted"
-        >
+        <span className="text-[12px] font-semibold text-fg-muted">
           Anime:
-        </label>
-        <select
-          id="anime-select"
+        </span>
+        <BrandSelect
           value={anime}
-          onChange={(e) => setAnime(e.target.value)}
+          onChange={setAnime}
+          ariaLabel="Elegir anime para ranking interno"
           disabled={cargandoAnimes}
-          className="flex-1 rounded-lg border border-border bg-bg px-2.5 py-1.5 text-[13px] text-fg-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
-        >
-          <option value="">— Elige un anime —</option>
-          {(animes ?? []).map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
+          className="min-w-0 flex-1"
+          placeholder="Elige un anime"
+          options={animeOptions}
+        />
       </div>
 
       {!anime ? (

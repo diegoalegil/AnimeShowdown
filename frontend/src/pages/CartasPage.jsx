@@ -6,6 +6,7 @@ import EmptyState from '../components/EmptyState'
 import Dialog from '../components/Dialog'
 import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
+import BrandSelect from '../components/BrandSelect'
 import PackOpening from '../features/cartas/PackOpening'
 import { useAuth } from '../contexts/AuthContext'
 import {
@@ -419,20 +420,17 @@ function AlbumFilters({
             </button>
           ))}
         </div>
-        <label className="flex items-center gap-2 text-[12px] text-fg-muted">
-          Ordenar
-          <select
+        <div className="flex min-w-[12rem] items-center gap-2 text-[12px] text-fg-muted">
+          <span className="shrink-0 font-semibold">Ordenar</span>
+          <BrandSelect
             value={orden}
-            onChange={(e) => setOrden(e.target.value)}
-            className="rounded-lg border border-white/10 bg-surface/50 px-2.5 py-2 text-[12px] font-semibold text-fg-strong outline-none transition hover:border-gold/50 focus:border-gold/60"
-          >
-            {ORDENES.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={setOrden}
+            ariaLabel="Ordenar cartas"
+            className="min-w-0 flex-1"
+            searchable={false}
+            options={ORDENES.map(([value, label]) => ({ value, label }))}
+          />
+        </div>
       </div>
       <div className="scroll-x-fade flex gap-2 overflow-x-auto pb-1">
         <button
