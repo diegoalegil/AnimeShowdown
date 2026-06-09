@@ -109,6 +109,7 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
                 p.anime,
                 p.imagenUrl,
                 p.imagenColorDominante,
+                p.eloSemilla,
                 cast(coalesce(sum(case
                     when v.id is null then 0.0
                     when v.empate = true then 0.5
@@ -127,7 +128,7 @@ public interface PersonajeRepository extends JpaRepository<Personaje, Long> {
                 OR (v.empate = true AND v.enfrentamiento IS NOT NULL
                     AND (v.enfrentamiento.personaje1 = p OR v.enfrentamiento.personaje2 = p))
             )
-            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl, p.imagenColorDominante
+            GROUP BY p.id, p.slug, p.nombre, p.anime, p.imagenUrl, p.imagenColorDominante, p.eloSemilla
             ORDER BY sum(case
                 when v.id is null then 0.0
                 when v.empate = true then 0.5
