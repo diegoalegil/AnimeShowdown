@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Pool de usernames creíbles para el rival-bot del PvP en directo. Antes el bot
  * se mostraba siempre como "Rival PvP", lo que delataba al instante que no era
- * humano (reportado en auditoría). Ahora cada duelo toma un nombre de esta lista
+ * humano en pantalla. Ahora cada duelo toma un nombre de esta lista
  * de forma DETERMINISTA por id de duelo, así el rival parece un usuario real y
  * el nombre no cambia entre frames del mismo duelo.
  *

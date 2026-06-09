@@ -80,19 +80,15 @@ memory/
 private/
 local-notes/
 review-notes/
-audit/
-audits/
-auditoria/
-AUDIT*.md
-*AUDIT*.md
-*audit*.md
+internal-reports/
+REPORT*.md
+*REPORT*.md
 MERGE_REPORT*.md
 HANDOFF_SESSION_*.md
 *.private.md
 *.local.md
-ai-notes/
 private-notes/
-prompt-notes/
+asset-notes/
 
 # Convenciones y bitácora de proceso: solo locales, fuera del repo público
 AGENTS.md
@@ -102,9 +98,8 @@ PROPUESTAS.md
 DESIGN.md
 ROADMAP_MES.md
 
-# Config local de herramientas de asistencia al desarrollo (no versionar)
-.opencode/
-.claude/
+# Config local de editor/entorno (no versionar)
+.local-tools/
 
 # Buzon temporal para imagenes generadas a mano (tanda N)
 # Se vacia al integrar cada tanda; los assets finales viven en frontend/public/assets o frontend/img.

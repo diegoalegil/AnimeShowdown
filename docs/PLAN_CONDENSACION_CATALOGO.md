@@ -1,7 +1,7 @@
 # Plan: condensar Personajes + Animes en un catálogo único
 
 > Estado: **PROPUESTA — pendiente de revisión del owner**. No ejecutado.
-> Origen: auditoría humana 2026-06-04 ("Personajes y Animes se pueden condensar
+> Origen: revisión de producto 2026-06-04 ("Personajes y Animes se pueden condensar
 > en una sección; entras y decides ver por anime o por personaje con sus
 > filtros"). Es además la pieza que desbloquea sacar **Cartas** y **PvP** del
 > menú "Más".

@@ -77,8 +77,8 @@ describe('PersonajeCard', () => {
   })
 
   it('usa el color dominante del personaje como fondo de la imagen', () => {
-    // El auditor reportó "cuadro gris sin personalidad": muchos artes son
-    // recortes transparentes, así que el fondo se ve. Pasamos el color real
+    // Algunos artes son recortes transparentes, así que el fondo se ve.
+    // Pasamos el color real
     // del catálogo (viaja en el spread {...p}) en vez de forzar surface.
     render(
       <MemoryRouter>

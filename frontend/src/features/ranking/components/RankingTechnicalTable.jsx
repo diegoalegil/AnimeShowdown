@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 
 /**
- * Tabla técnica extraíble (la copian crawlers/LLMs). Expone SOLO datos
+ * Tabla técnica extraíble para crawlers. Expone SOLO datos
  * reales: top por votos de la comunidad desde el backend. Antes mostraba el
  * ELO base sintético + W/L estimadas, que se leían como ranking competitivo
  * real — ahora nunca exponemos dato sintético aquí.

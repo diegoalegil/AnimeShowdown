@@ -296,7 +296,7 @@ function PersonajeDetailPage() {
         {/* 3: <article> con Microdata schema.org/Person para
             crawlers que prefieren Microdata sobre JSON-LD. Coexiste con
             el JsonLd de arriba sin contradecirse — Google da prioridad a
-            JSON-LD pero algunos LLMs y scrapers parsean ambos. itemprop
+            JSON-LD pero algunos scrapers parsean ambos. itemprop
             en name (H1), description (p), image (img/meta). */}
         <motion.article
           key={slug}

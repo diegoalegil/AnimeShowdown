@@ -44,7 +44,7 @@ const FILTROS_RAREZA = [
  *
  * <p>Sirve dos propósitos:
  *   - SEO/GEO: añade una página indexable con datos extraíbles
- *     (Achievement schema) para crawlers y LLMs.
+ *     (Achievement schema) para crawlers.
  *   - Gamificación: el visitante anónimo ve qué se puede conseguir antes
  *     de registrarse; el logueado ve qué le falta.
  */

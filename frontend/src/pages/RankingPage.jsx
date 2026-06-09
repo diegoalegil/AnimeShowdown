@@ -111,7 +111,7 @@ function RankingPage() {
 
   const initialSearch = searchParams.get('q') ?? ''
   const initialAnimeFilter = searchParams.get('anime') ?? ''
-  // La tabla técnica (extraíble por crawlers/LLMs) expone el top por VOLUMEN de
+  // La tabla técnica extraíble por crawlers expone el top por VOLUMEN de
   // votos del backend (no la pestaña ELO), para datos de actividad verificables.
   const rankingAllQuery = useRankingSegmentado({
     periodo: 'all',

@@ -80,7 +80,7 @@ public class DueloLiveBotPolicy {
         seed = seed * 31 + nullSafeId(ronda.getPersonajeA() == null ? null : ronda.getPersonajeA().getId());
         seed = seed * 31 + nullSafeId(ronda.getPersonajeB() == null ? null : ronda.getPersonajeB().getId());
         // El bot falla ~1 de cada 2 rondas (antes 1 de cada 4 → acertaba 75% y
-        // era casi imposible ganarle, reportado en auditoría). Sigue siendo
+        // era casi imposible ganarle). Sigue siendo
         // determinista por ronda (mismo seed → mismo resultado).
         return Math.floorMod(seed, 2) == 0;
     }

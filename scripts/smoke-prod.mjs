@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Smoke de PRODUCCIÓN: verifica la capa CDN/Cloudflare que los tests de build
-// NO ven. Cubre dos regresiones reales detectadas en auditoría:
+// NO ven. Cubre dos regresiones reales detectadas en producción:
 //   1) Rutas públicas que devolvían 404 porque _redirects es allowlist sin
 //      catch-all (deben responder 200 sirviendo la SPA / su HTML prerenderizado).
 //   2) Sourcemaps servidos públicamente (deben dar 404; se quitan en el build).

@@ -9,7 +9,7 @@
 // REGENERANDO el recorte, no con CSS ni con un srcset falso.
 //
 // MODOS:
-//   - Upscaler IA (recomendado para detalle real): configúralo por env.
+//   - Upscaler externo/local (recomendado para detalle real): configúralo por env.
 //   - Fallback sharp (Lanczos): NO recupera detalle, pero evita que el
 //     navegador escale un 225px al vuelo. Es lo que se usó para el lote actual.
 //
@@ -26,7 +26,7 @@
 //   node scripts/regen-cuts.mjs --all --aprobado --sharp-fallback \
 //        --overwrite --width 450 --quality 78                     # lote aplicado
 //
-// UPSCALER IA (por env):
+// UPSCALER EXTERNO (por env):
 //   ANIMESHOWDOWN_UPSCALER_BIN   binario (p.ej. realesrgan-ncnn-vulkan)
 //   ANIMESHOWDOWN_UPSCALER_ARGS  plantilla de args con {in} y {out}
 // ===========================================================================
@@ -91,17 +91,17 @@ function listAllCutSlugs() {
 
 function documentarUpscalerYsalir() {
   console.log(`
-[regen-cuts] No hay upscaler IA configurado y no se pasó --sharp-fallback.
+[regen-cuts] No hay upscaler externo configurado y no se pasó --sharp-fallback.
 
 El script está LISTO pero no procesa nada para no degradar calidad ni instalar
 modelos pesados sin tu permiso. Para regenerar de verdad, elige una opción:
 
-  A) Upscaler IA local (recomendado). Ejemplo Real-ESRGAN:
+  A) Upscaler local (recomendado). Ejemplo Real-ESRGAN:
        export ANIMESHOWDOWN_UPSCALER_BIN=realesrgan-ncnn-vulkan
        export ANIMESHOWDOWN_UPSCALER_ARGS="-i {in} -o {out} -s 4 -n realesrgan-x4plus-anime"
        node scripts/regen-cuts.mjs            # POC con naruto
 
-  B) Fallback sharp (Lanczos, sin IA):
+  B) Fallback sharp (Lanczos):
        node scripts/regen-cuts.mjs --sharp-fallback
 
 Salida por defecto en: ${DEFAULT_OUT_DIR} (no toca las fuentes salvo --overwrite).
@@ -109,7 +109,7 @@ Salida por defecto en: ${DEFAULT_OUT_DIR} (no toca las fuentes salvo --overwrite
   process.exit(0)
 }
 
-function upscaleConIA(inPath, outPath) {
+function upscaleConExterno(inPath, outPath) {
   const bin = process.env.ANIMESHOWDOWN_UPSCALER_BIN
   const tpl = process.env.ANIMESHOWDOWN_UPSCALER_ARGS || '-i {in} -o {out}'
   const argList = tpl.split(/\s+/).map((t) => t.replace('{in}', inPath).replace('{out}', outPath))
@@ -136,9 +136,9 @@ async function verificar(outPath, targetWidth) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
-  const usandoIA = Boolean(process.env.ANIMESHOWDOWN_UPSCALER_BIN)
+  const usandoUpscalerExterno = Boolean(process.env.ANIMESHOWDOWN_UPSCALER_BIN)
 
-  if (!usandoIA && !args.sharpFallback) documentarUpscalerYsalir()
+  if (!usandoUpscalerExterno && !args.sharpFallback) documentarUpscalerYsalir()
 
   let slugs = args.slugs.length > 0 ? args.slugs : ['naruto']
   if (args.all) {
@@ -155,7 +155,7 @@ async function main() {
   const destino = args.overwrite ? 'SOBREESCRIBE img/cuts/' : args.outDir
   console.log(
     `[regen-cuts] ${args.all ? 'MASIVO' : 'POC'} · ${slugs.length} recorte(s) · ` +
-      `${usandoIA ? 'IA' : 'sharp'} · ${args.width}px q${args.quality} · destino: ${destino}`,
+      `${usandoUpscalerExterno ? 'externo' : 'sharp'} · ${args.width}px q${args.quality} · destino: ${destino}`,
   )
 
   if (!args.overwrite) mkdirSync(args.outDir, { recursive: true })
@@ -171,7 +171,7 @@ async function main() {
     const finalPath = args.overwrite ? inPath : join(args.outDir, `${slug}.webp`)
     const tmpPath = `${finalPath}.regen.tmp`
     try {
-      if (usandoIA) upscaleConIA(inPath, tmpPath)
+      if (usandoUpscalerExterno) upscaleConExterno(inPath, tmpPath)
       else await upscaleConSharp(inPath, tmpPath, args.width, args.quality)
       const v = await verificar(tmpPath, args.width)
       renameSync(tmpPath, finalPath)

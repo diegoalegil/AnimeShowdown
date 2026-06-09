@@ -109,7 +109,7 @@ persistencia.
 
 La logica de votos, torneos, auth, logros, notificaciones, OG images y
 observabilidad vive en services. Esta capa es el sitio correcto para reglas de
-negocio, deduplicacion, auditoria y validaciones que no pertenecen a un solo
+negocio, deduplicacion, trazabilidad y validaciones que no pertenecen a un solo
 controller.
 
 ### Persistencia

@@ -18,8 +18,8 @@ const TAB_META = {
 
 // Banners horizontales (16:9) del catálogo: key visuals de animes y de torneos.
 // A diferencia de las cards de personaje (verticales 2:3), encajan en la
-// cabecera sin recorte raro. Es el fix de la auditoría al "banner horizontal
-// con arte vertical es ilógico".
+// cabecera sin recorte raro; un banner horizontal no debe depender de arte
+// vertical pensado para cartas.
 const ANIME_BANNERS = Object.values(ANIME_VISUALS)
 const TORNEO_BANNERS = Object.values(TOURNAMENT_VISUALS)
 
