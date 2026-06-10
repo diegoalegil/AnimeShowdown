@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
@@ -28,6 +28,8 @@ import VoteArena from '../features/votar/components/VoteArena'
 import VoteResultPanel from '../features/votar/components/VoteResultPanel'
 import { useMisEspeciales } from '../hooks/useCartas'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
+import { useFixedDuelParams } from '../features/votar/hooks/useFixedDuelParams'
+import { useVotarPreferences } from '../features/votar/hooks/useVotarPreferences'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
 import {
@@ -71,8 +73,6 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
  * con pares random local si no).
  */
 
-const STORAGE_FAST = 'animeshowdown.votar.fast'
-const STORAGE_BLIND = 'animeshowdown.votar.blind'
 const ANON_VOTE_LIMIT = 5
 const TIE_VOTE_KEY = '__empate__'
 // Pausa breve entre voto y siguiente duelo. En una pantalla de juego, 1.8s
@@ -94,30 +94,17 @@ function VotarPage() {
   const { user } = useAuth()
   const { data: misEspeciales } = useMisEspeciales()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const fixedSlug = searchParams.get('personaje')
-  const fixedRivalSlug = searchParams.get('rival')
-  const fixedAnime = searchParams.get('anime')
-  const fixedPersonaje = useMemo(
-    () => catalogoPersonajes.find((p) => p.slug === fixedSlug) ?? null,
-    [catalogoPersonajes, fixedSlug],
-  )
-  const fixedRival = useMemo(
-    () =>
-      catalogoPersonajes.find((p) => p.slug === fixedRivalSlug && p.slug !== fixedSlug) ?? null,
-    [catalogoPersonajes, fixedRivalSlug, fixedSlug],
-  )
-  const hasFixedDuel = Boolean(fixedPersonaje && fixedRival)
-  const hasFixedAnime = useMemo(
-    () =>
-      !fixedPersonaje &&
-      Boolean(fixedAnime) &&
-      catalogoPersonajes.filter((p) => p.anime === fixedAnime).length >= 2,
-    [catalogoPersonajes, fixedAnime, fixedPersonaje],
-  )
-  const casualContextKey = `${fixedSlug || ''}::${fixedRivalSlug || ''}::${fixedAnime || ''}`
+  const {
+    fixedSlug,
+    fixedAnime,
+    fixedPersonaje,
+    fixedRival,
+    hasFixedDuel,
+    hasFixedAnime,
+    casualContextKey,
+  } = useFixedDuelParams(catalogoPersonajes)
   const authenticatedUserId = user?.id ?? null
   const seenBackendPairsRef = useRef(new Set())
   const seenBackendMatchIdsRef = useRef(new Set())
@@ -148,41 +135,7 @@ function VotarPage() {
   const [casualPairOverride, setCasualPairOverride] = useState(null)
   const [votedFor, setVotedFor] = useState(null)
   const [isAdvancing, setIsAdvancing] = useState(false)
-  // Auto-next por default (opt-out vía toggle). Antes era opt-in y la
-  // gente tenía que pulsar "Siguiente duelo" tras cada voto — un click
-  // extra por enfrentamiento que rompía el ritmo. Solo se respeta el
-  // valor de localStorage si fue setado explícitamente a "false";
-  // cualquier otro estado (incluido no haber preferencia) = true.
-  const [fastMode, setFastMode] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_FAST) !== 'false'
-    } catch {
-      return true
-    }
-  })
-  const [blindMode, setBlindMode] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_BLIND) === 'true'
-    } catch {
-      return false
-    }
-  })
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_FAST, String(fastMode))
-    } catch {
-      // ignore
-    }
-  }, [fastMode])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_BLIND, String(blindMode))
-    } catch {
-      // ignore
-    }
-  }, [blindMode])
+  const { fastMode, setFastMode, fastModeRef, blindMode, setBlindMode } = useVotarPreferences()
 
   // Resultado del último voto registrado: el backend devuelve delta + votos
   // post-voto. Sirve para pintar el overlay "+1 ELO" sobre la card ganadora.
@@ -193,13 +146,6 @@ function VotarPage() {
   // ids del enfrentamiento y personaje) y abrimos el captcha modal. Tras
   // éxito, re-emitimos la mutation con el header X-AS-Captcha-Token.
   const [captchaChallenge, setCaptchaChallenge] = useState(null)
-
-  // Ref sincronizada con fastMode para que handleVoteSuccess pueda leerlo
-  // sin necesitar regenerarse en cada toggle.
-  const fastModeRef = useRef(fastMode)
-  useEffect(() => {
-    fastModeRef.current = fastMode
-  }, [fastMode])
 
   // Ref para cancelar el timeout de auto-next si el usuario pulsa
   // "Siguiente duelo" antes de que dispare o si el componente se desmonta.
