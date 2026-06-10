@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -1217,6 +1218,41 @@ class EnfrentamientoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void elPerdedorDeLaCarreraDeDobleVotoRecibe409SinDuplicar() throws Exception {
+        String adminToken = tokenAdmin();
+        String userToken = tokenUserRegistrado("voto_carrera_user", "votocarrera@example.com");
+        long[] ids = dosPersonajes();
+
+        long enfId = crearEnfrentamientoListoParaVotar(adminToken, ids[0], ids[1], "carrera");
+
+        // El voto previo se inserta directo por repositorio, sin POST: así no
+        // dispara los listeners de auto-avance y el match sigue abierto seguro
+        // cuando llegue el POST del perdedor de la carrera.
+        tx.executeWithoutResult(s -> {
+            var enf = enfrentamientoRepository.findById(enfId).orElseThrow();
+            var usuario = usuarioRepository.findByUsername("voto_carrera_user").orElseThrow();
+            votoRepository.save(new com.diegoalegil.animeshowdown.model.Voto(
+                    enf.getPersonaje1(), usuario, enf));
+        });
+        long votosAntes = votoRepository.count();
+
+        // Simula al perdedor de la carrera: el precheck no ve el voto previo
+        // (como cuando dos POSTs simultáneos lo pasan a la vez) y el INSERT
+        // pega contra uk_voto_enfrentamiento_usuario. Debe salir el mismo 409
+        // que el check aplicativo, nunca un 500 a commit.
+        doReturn(false).when(votoRepository).existsByEnfrentamientoAndUsuario(any(), any());
+
+        mvc.perform(post("/api/enfrentamientos/" + enfId + "/votar")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("personajeGanadorId", ids[0]))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Ya has votado este enfrentamiento"));
+
+        org.junit.jupiter.api.Assertions.assertEquals(votosAntes, votoRepository.count());
     }
 
     private void esperarMadrugador(String slug, LocalDate fecha, Long userId) throws Exception {

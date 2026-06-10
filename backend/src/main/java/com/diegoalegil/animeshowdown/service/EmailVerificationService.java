@@ -8,9 +8,11 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.diegoalegil.animeshowdown.event.EmailVerificacionEmitidaEvent;
 import com.diegoalegil.animeshowdown.model.EmailVerification;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.NotificacionTipo;
@@ -27,7 +29,7 @@ import com.diegoalegil.animeshowdown.security.AdminEmails;
  *     ↓ invalida cualquier token activo previo del usuario
  *     ↓ genera token random Base64URL 32 bytes
  *     ↓ guarda con expira_en = now + 24h
- *     ↓ dispara email asíncrono con link al frontend
+ *     ↓ dispara email con link al frontend tras el commit (EmailDispatchListener)
  *
  *   verificar(token)
  *     ↓ valida activo + no expirado
@@ -48,7 +50,7 @@ public class EmailVerificationService {
 
     private final EmailVerificationRepository repository;
     private final UsuarioRepository usuarioRepository;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
     private final NotificacionService notificacionService;
     private final BadgeService badgeService;
     private final ReferralService referralService;
@@ -59,7 +61,7 @@ public class EmailVerificationService {
     public EmailVerificationService(
             EmailVerificationRepository repository,
             UsuarioRepository usuarioRepository,
-            EmailService emailService,
+            ApplicationEventPublisher eventPublisher,
             NotificacionService notificacionService,
             BadgeService badgeService,
             ReferralService referralService,
@@ -68,7 +70,7 @@ public class EmailVerificationService {
             @Value("${app.email-verification.ttl-hours:24}") long ttlHoras) {
         this.repository = repository;
         this.usuarioRepository = usuarioRepository;
-        this.emailService = emailService;
+        this.eventPublisher = eventPublisher;
         this.notificacionService = notificacionService;
         this.badgeService = badgeService;
         this.referralService = referralService;
@@ -98,7 +100,10 @@ public class EmailVerificationService {
         LocalDateTime expira = ahora.plusHours(ttlHoras);
         repository.save(new EmailVerification(usuarioBloqueado, token, expira));
         String link = frontendBaseUrl + "/verify?token=" + token;
-        emailService.enviarVerificacion(usuarioBloqueado.getEmail(), usuarioBloqueado.getUsername(), link);
+        // El email sale en AFTER_COMMIT (EmailDispatchListener): solo si el
+        // token quedó persistido — el link del email siempre existe en BBDD.
+        eventPublisher.publishEvent(new EmailVerificacionEmitidaEvent(
+                usuarioBloqueado.getEmail(), usuarioBloqueado.getUsername(), link));
         log.info("EmailVerification emitida: usuario={} expira={}", usuarioBloqueado.getUsername(), expira);
     }
 

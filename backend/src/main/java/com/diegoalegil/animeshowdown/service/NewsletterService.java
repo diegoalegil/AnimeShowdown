@@ -6,9 +6,11 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.diegoalegil.animeshowdown.event.NewsletterSuscripcionPendienteEvent;
 import com.diegoalegil.animeshowdown.model.NewsletterSub;
 import com.diegoalegil.animeshowdown.repository.NewsletterSubRepository;
 import com.diegoalegil.animeshowdown.security.LogSanitizer;
@@ -19,7 +21,8 @@ import com.diegoalegil.animeshowdown.security.LogSanitizer;
  * <p>Flow:
  * <ol>
  *   <li>{@link #suscribir(String)} — crea fila no confirmada (o refresca
- *       token si ya existía sin confirmar) y dispara email asíncrono.</li>
+ *       token si ya existía sin confirmar) y dispara el email de confirmación
+ *       tras el commit (EmailDispatchListener).</li>
  *   <li>{@link #confirmar(String)} — el user clica el link del email,
  *       marca confirmado=true y consume el token.</li>
  *   <li>{@link #unsubscribir(String)} — desuscribe via token persistente.
@@ -36,13 +39,13 @@ public class NewsletterService {
     private static final Logger log = LoggerFactory.getLogger(NewsletterService.class);
 
     private final NewsletterSubRepository repo;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
     private final String frontendBaseUrl;
 
-    public NewsletterService(NewsletterSubRepository repo, EmailService emailService,
+    public NewsletterService(NewsletterSubRepository repo, ApplicationEventPublisher eventPublisher,
             @Value("${app.frontend-base-url:https://animeshowdown.dev}") String frontendBaseUrl) {
         this.repo = repo;
-        this.emailService = emailService;
+        this.eventPublisher = eventPublisher;
         this.frontendBaseUrl = frontendBaseUrl.endsWith("/")
                 ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1)
                 : frontendBaseUrl;
@@ -86,7 +89,9 @@ public class NewsletterService {
 
     private void disparEmail(NewsletterSub s) {
         String link = frontendBaseUrl + "/newsletter/confirmar?token=" + s.getTokenConfirm();
-        emailService.enviarConfirmacionNewsletter(s.getEmail(), link);
+        // El email sale en AFTER_COMMIT (EmailDispatchListener): el link de
+        // confirmación del email siempre apunta a un token ya persistido.
+        eventPublisher.publishEvent(new NewsletterSuscripcionPendienteEvent(s.getEmail(), link));
     }
 
     @Transactional

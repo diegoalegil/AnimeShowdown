@@ -6,10 +6,12 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.diegoalegil.animeshowdown.event.PasswordResetSolicitadoEvent;
 import com.diegoalegil.animeshowdown.model.PasswordResetToken;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.PasswordResetTokenRepository;
@@ -30,7 +32,7 @@ public class PasswordResetService {
     private final PasswordResetTokenRepository tokenRepo;
     private final UsuarioRepository usuarioRepo;
     private final RefreshTokenRepository refreshTokenRepo;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
     private final SecureRandom random = new SecureRandom();
 
@@ -38,12 +40,12 @@ public class PasswordResetService {
             PasswordResetTokenRepository tokenRepo,
             UsuarioRepository usuarioRepo,
             RefreshTokenRepository refreshTokenRepo,
-            EmailService emailService,
+            ApplicationEventPublisher eventPublisher,
             PasswordEncoder passwordEncoder) {
         this.tokenRepo = tokenRepo;
         this.usuarioRepo = usuarioRepo;
         this.refreshTokenRepo = refreshTokenRepo;
-        this.emailService = emailService;
+        this.eventPublisher = eventPublisher;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -87,7 +89,10 @@ public class PasswordResetService {
         tokenRepo.save(token);
         log.info("Token de reset generado para userId={} expiraEn={} tokensPreviosUsados={}",
                 u.getId(), token.getExpiraEn(), tokensPrevios);
-        emailService.enviarCodigoReset(u.getEmail(), u.getUsername(), codigo);
+        // El email sale en AFTER_COMMIT (EmailDispatchListener): solo si el
+        // token quedó persistido — un rollback de esta tx no manda código muerto.
+        eventPublisher.publishEvent(
+                new PasswordResetSolicitadoEvent(u.getEmail(), u.getUsername(), codigo));
     }
 
     @Transactional(noRollbackFor = IllegalArgumentException.class)
