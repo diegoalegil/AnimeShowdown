@@ -567,9 +567,14 @@ function CategoriaCard({ rank, personaje, tono }) {
   const rankTono = RANK_TONO[tono] ?? RANK_TONO.sky
   return (
     /* contentVisibility: las categorías pintan 100+ cards de golpe; el
-       navegador se salta layout/paint de las que quedan fuera de viewport
-       y el scroll rápido deja de mostrar huecos en blanco. */
-    <li style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}>
+       navegador se salta layout/paint de las que quedan fuera de viewport.
+       El fondo va en el PROPIO li (el background de un elemento con c-v sí
+       se pinta aunque el contenido se salte): el hueco durante el fling se
+       ve como slot de card oscuro, nunca como vacío. */
+    <li
+      className="rounded-lg bg-surface/40"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}
+    >
       <Link
         to={`/personajes/${personaje.slug}`}
         className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"

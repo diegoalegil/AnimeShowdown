@@ -154,4 +154,20 @@ describe('PersonajeCard', () => {
 
     expect(source).not.toContain('[&>*]:[content-visibility:auto]')
   })
+
+  it('el documento garantiza lienzo oscuro bajo content-visibility (anti pantalla blanca)', () => {
+    // Contrato del fix de "pantallas en blanco al hacer scroll rápido":
+    // content-visibility por card SOLO es seguro si los tiles sin rasterizar
+    // del fling se rellenan de oscuro. Eso exige background-color SÓLIDO en
+    // html (el shorthand `background:` lo dejaba transparent → tiles blancos)
+    // y color-scheme dark declarado en la raíz del documento.
+    const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
+    const htmlRule = css.match(/\n  html \{[\s\S]*?\n  \}/)?.[0] ?? ''
+    expect(htmlRule).toMatch(/background-color:\s*#[0-9a-f]{6}/)
+    const rootRule = css.match(/\n  :root \{[\s\S]*?\n  \}/)?.[0] ?? ''
+    expect(rootRule).toContain('color-scheme: dark')
+
+    const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8')
+    expect(html).toContain('<meta name="color-scheme" content="dark" />')
+  })
 })

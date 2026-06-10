@@ -825,8 +825,21 @@
     box-sizing: border-box;
   }
 
+  :root {
+    /* En la RAÍZ (no solo en body): el navegador usa el color-scheme del
+       documento para rellenar los tiles aún sin rasterizar durante un
+       fling. Con esto + el background-color sólido de abajo, el scroll
+       rápido enseña lienzo oscuro, nunca blanco. */
+    color-scheme: dark;
+  }
+
   html {
-    background:
+    /* background-color SÓLIDO además de los gradientes: el shorthand
+       `background:` lo dejaba en transparent y los tiles sin rasterizar
+       del fling se pintaban de blanco (causa raíz de las "pantallas en
+       blanco al hacer scroll rápido" en listados). */
+    background-color: #04070c;
+    background-image:
       radial-gradient(circle at 78% 0%, rgb(36 198 220 / 0.08), transparent 26rem),
       radial-gradient(circle at 12% 18%, rgb(159 29 44 / 0.14), transparent 30rem),
       linear-gradient(180deg, #080b12 0%, #070a11 45%, #04070c 100%);
@@ -838,7 +851,8 @@
     margin: 0;
     min-height: 100vh;
     min-height: 100dvh;
-    background:
+    background-color: #04070c;
+    background-image:
       radial-gradient(circle at 70% 8%, rgb(36 198 220 / 0.05), transparent 26rem),
       radial-gradient(circle at 16% 12%, rgb(159 29 44 / 0.10), transparent 32rem),
       linear-gradient(180deg, #080b12 0%, #070a11 48%, #04070c 100%);
