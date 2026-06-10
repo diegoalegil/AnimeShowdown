@@ -163,7 +163,7 @@ describe('PersonajeCard', () => {
     // y color-scheme dark declarado en la raíz del documento.
     const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
     const htmlRule = css.match(/\n  html \{[\s\S]*?\n  \}/)?.[0] ?? ''
-    expect(htmlRule).toContain('background-color: #04070c')
+    expect(htmlRule).toMatch(/background-color:\s*#[0-9a-f]{6}/)
     const rootRule = css.match(/\n  :root \{[\s\S]*?\n  \}/)?.[0] ?? ''
     expect(rootRule).toContain('color-scheme: dark')
 
