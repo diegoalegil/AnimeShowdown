@@ -7,8 +7,7 @@ name: DB backup → R2
 #   PROD_DATABASE_URL      postgresql://postgres.<ref>:pass@aws-0-<region>.pooler.supabase.com:5432/postgres
 #                          (usa el SESSION pooler :5432 —IPv4, compatible con
 #                          pg_dump—, NO el transaction pooler :6543 que rompe
-#                          pg_dump. NEON_DATABASE_URL es el nombre legacy y solo
-#                          actúa de fallback; borrarlo al crear el nuevo secret)
+#                          pg_dump)
 #   R2_ENDPOINT            https://<account-id>.r2.cloudflarestorage.com
 #   R2_ACCESS_KEY_ID       Access Key del API token R2 con write al bucket
 #   R2_SECRET_ACCESS_KEY   Secret correspondiente
@@ -36,9 +35,7 @@ jobs:
 
     env:
       R2_BUCKET: animeshowdown-backups
-      # Fallback transitorio al secret legacy; quitarlo cuando PROD_DATABASE_URL
-      # exista en Settings → Secrets y NEON_DATABASE_URL se haya borrado.
-      PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL || secrets.NEON_DATABASE_URL }}
+      PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
       R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
       R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
