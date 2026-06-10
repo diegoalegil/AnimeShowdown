@@ -33,6 +33,9 @@ import {
   recordRecentPair,
   selectRandomPair,
 } from '../features/votar/vote-pairing'
+import { formatPersonalVoteImpact, formatVoteScore } from '../features/votar/vote-format'
+import { incrementarContadorLocalVotos } from '../features/votar/vote-local-counter'
+import { getArenaDescription, getArenaStatusLabel } from '../features/votar/arena-labels'
 
 // Claves y tiempo de vida para el prefetch del siguiente par.
 // gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
@@ -66,30 +69,11 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
 
 const STORAGE_FAST = 'animeshowdown.votar.fast'
 const STORAGE_BLIND = 'animeshowdown.votar.blind'
-const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
-const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 const ANON_VOTE_LIMIT = 5
 const TIE_VOTE_KEY = '__empate__'
 // Pausa breve entre voto y siguiente duelo. En una pantalla de juego, 1.8s
 // se percibía como bloqueo; ~0.9s conserva feedback y mantiene ritmo.
 const NEXT_DELAY_MS = 900
-
-function formatVoteScore(value) {
-  const n = Number(value)
-  if (!Number.isFinite(n)) return '0'
-  return Number.isInteger(n) ? String(n) : n.toFixed(1)
-}
-
-function incrementarContadorLocalVotos() {
-  try {
-    const current = Number(localStorage.getItem(STORAGE_VOTES_COUNT) || '0')
-    const next = Number.isFinite(current) ? current + 1 : 1
-    localStorage.setItem(STORAGE_VOTES_COUNT, String(next))
-    window.dispatchEvent(new CustomEvent(VOTES_COUNT_EVENT, { detail: next }))
-  } catch {
-    // localStorage puede fallar en privacy mode; votar no debe depender de esto.
-  }
-}
 
 function hasPrefetchReadyOrRunning(queryClient, queryKey) {
   const state = queryClient.getQueryState(queryKey)
@@ -130,12 +114,6 @@ function HeadToHeadBar({ ganadorNombre, perdedorNombre, votosGanador, votosPerde
       </div>
     </div>
   )
-}
-
-function formatPersonalVoteImpact(impact) {
-  if (!impact) return ''
-  const plural = impact.count === 1 ? '' : 's'
-  return `#${impact.rank} en tu ranking personal · ${impact.count} voto${plural} tuyo${plural}`
 }
 
 /**
@@ -982,44 +960,28 @@ function VotarPage() {
     )
   }, [modoBackend, matchId, votedFor, user, votarMutation, handleTieVoteSuccess])
 
-  const arenaStatusLabel = modoBackend
-    ? 'Match en juego · En vivo'
-    : exactDuelActive
-      ? identitiesHidden
-        ? 'Duelo a ciegas'
-        : `${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
-      : fixedPersonaje
-        ? identitiesHidden
-          ? 'Reto a ciegas'
-          : `Retando a ${fixedPersonaje.nombre}`
-        : hasFixedAnime
-          ? identitiesHidden
-            ? 'Duelo interno a ciegas'
-            : `Duelo interno · ${fixedAnime}`
-          : modoSugerido
-            ? `Duelo ELO equilibrado · Δ ${dueloSugerido.eloDiff}`
-            : 'Enfrentamiento aleatorio'
-  const arenaDescription = modoBackend
-    ? votoInvitadoActivo
-      ? 'Puedes votar 5 duelos como invitado; crea cuenta para guardar tu historial'
-      : identitiesHidden
-        ? 'Voto a ciegas activo: decide sin ver identidades o reparte medio voto'
-        : 'Tu voto cuenta para el bracket en directo · puedes decidir o repartir medio voto'
-    : sinMatchesAbiertos
-      ? 'No hay torneos en juego — te proponemos pares de ELO similar'
-      : exactDuelActive
-        ? identitiesHidden
-          ? 'Duelo fijado con identidades ocultas hasta votar'
-          : `Duelo fijado desde una comparación: ${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
-        : fixedPersonaje
-          ? identitiesHidden
-            ? 'Duelo fijado desde ficha con identidad oculta'
-            : `Duelo fijado desde la ficha de ${fixedPersonaje.nombre}`
-          : hasFixedAnime
-            ? identitiesHidden
-              ? 'Solo personajes del mismo anime, ocultos hasta votar'
-              : `Solo personajes de ${fixedAnime} en este duelo`
-            : 'Elige quién gana este duelo y ayuda a mover el ranking competitivo'
+  const arenaStatusLabel = getArenaStatusLabel({
+    modoBackend,
+    exactDuelActive,
+    identitiesHidden,
+    fixedPersonaje,
+    fixedRival,
+    hasFixedAnime,
+    fixedAnime,
+    modoSugerido,
+    dueloSugerido,
+  })
+  const arenaDescription = getArenaDescription({
+    modoBackend,
+    votoInvitadoActivo,
+    identitiesHidden,
+    sinMatchesAbiertos,
+    exactDuelActive,
+    fixedPersonaje,
+    fixedRival,
+    hasFixedAnime,
+    fixedAnime,
+  })
 
   if ((!fixedPersonaje && !hasFixedAnime && isLoading) || needsCasualPair) {
     return (
