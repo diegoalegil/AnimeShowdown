@@ -3,11 +3,14 @@
 # backup-and-rotate.sh — Backup diario de la BBDD (Supabase) → Cloudflare R2
 #
 # Flow:
-#   1. pg_dump --format=custom de la BBDD de producción (Supabase).
-#   2. Sube a R2 con AWS CLI (R2 es S3-compatible, requiere --endpoint-url).
-#   3. Si es lunes, también copia el dump a weekly/.
-#   4. Si es día 1 del mes, también copia el dump a monthly/.
-#   5. Limpia entradas antiguas:
+#   1. Guard: la última migración Flyway de la BBDD objetivo no puede ir por
+#      detrás de las del repo — si va, el secret apunta a una BBDD que no es
+#      producción y el backup aborta sin subir nada.
+#   2. pg_dump --format=custom de la BBDD de producción (Supabase).
+#   3. Sube a R2 con AWS CLI (R2 es S3-compatible, requiere --endpoint-url).
+#   4. Si es lunes, también copia el dump a weekly/.
+#   5. Si es día 1 del mes, también copia el dump a monthly/.
+#   6. Limpia entradas antiguas:
 #        daily/   > 7  días
 #        weekly/  > 28 días (~4 semanas)
 #        monthly/ > 365 días (~12 meses)
@@ -58,7 +61,30 @@ echo "Bucket: $R2_BUCKET"
 echo "Endpoint: $R2_ENDPOINT"
 echo "============================================================"
 
-# --- 1) pg_dump -----------------------------------------------------------
+# --- 1) Guard: la BBDD objetivo es la de producción actual ------------------
+# El drill de restore del 2026-06-10 destapó que el secret llevaba semanas
+# apuntando a una BBDD legacy congelada en V32 mientras producción iba por
+# V74: backups diarios en verde que no servían para nada. Antes de dumpear,
+# comparamos la última migración Flyway aplicada en la BBDD objetivo con la
+# última del repo (el workflow ya hizo checkout). El repo puede ir por
+# delante unos minutos tras un merge con deploy en curso — margen de 2 —,
+# pero una BBDD más rezagada solo significa que el secret apunta donde no es.
+echo "→ Guard: comparando migraciones Flyway (BBDD vs repo) ..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MIGRATIONS_DIR="$SCRIPT_DIR/../backend/src/main/resources/db/migration"
+REPO_MAX="$(ls "$MIGRATIONS_DIR" | sed -nE 's/^V([0-9]+)__.*\.sql$/\1/p' | sort -n | tail -1)"
+if ! DB_MAX="$(psql "$NEON_DATABASE_URL" -v ON_ERROR_STOP=1 -At \
+    -c "SELECT coalesce(max(version::int), 0) FROM flyway_schema_history WHERE version IS NOT NULL AND success")"; then
+    echo "::error::No se pudo leer flyway_schema_history de la BBDD objetivo — el secret no apunta a una BBDD de AnimeShowdown."
+    exit 1
+fi
+if [ "$DB_MAX" -lt $((REPO_MAX - 2)) ]; then
+    echo "::error::La BBDD objetivo va por V$DB_MAX y el repo por V$REPO_MAX — el secret no apunta a producción. Backup abortado: no se sube nada."
+    exit 1
+fi
+echo "✓ Guard OK: BBDD en V$DB_MAX, repo en V$REPO_MAX."
+
+# --- 2) pg_dump -----------------------------------------------------------
 # --format=custom comprime nativo (~85% reducción), permite pg_restore
 # selectivo, y es el formato recomendado por la propia doc de Postgres
 # para backups. --no-owner / --no-acl evitan que un restore en una BBDD
@@ -74,14 +100,14 @@ pg_dump \
 SIZE_HUMAN="$(du -h "$DUMP_FILE" | cut -f1)"
 echo "✓ Dump generado: $DUMP_FILE ($SIZE_HUMAN)"
 
-# --- 2) Subir daily -------------------------------------------------------
+# --- 3) Subir daily -------------------------------------------------------
 echo "→ Subiendo a r2://$R2_BUCKET/$DAILY_KEY ..."
 aws s3 cp "$DUMP_FILE" "s3://$R2_BUCKET/$DAILY_KEY" \
     --endpoint-url "$R2_ENDPOINT" \
     --no-progress
 echo "✓ Daily subido."
 
-# --- 3) Copia weekly los lunes --------------------------------------------
+# --- 4) Copia weekly los lunes --------------------------------------------
 if [ "$DOW" = "1" ]; then
     echo "→ Es lunes — copiando también a $WEEKLY_KEY ..."
     aws s3 cp "s3://$R2_BUCKET/$DAILY_KEY" "s3://$R2_BUCKET/$WEEKLY_KEY" \
@@ -90,7 +116,7 @@ if [ "$DOW" = "1" ]; then
     echo "✓ Weekly copiado."
 fi
 
-# --- 4) Copia monthly el día 1 --------------------------------------------
+# --- 5) Copia monthly el día 1 --------------------------------------------
 if [ "$DOM" = "01" ]; then
     echo "→ Es día 1 — copiando también a $MONTHLY_KEY ..."
     aws s3 cp "s3://$R2_BUCKET/$DAILY_KEY" "s3://$R2_BUCKET/$MONTHLY_KEY" \
@@ -99,7 +125,7 @@ if [ "$DOM" = "01" ]; then
     echo "✓ Monthly copiado."
 fi
 
-# --- 5) Retención: borra lo viejo -----------------------------------------
+# --- 6) Retención: borra lo viejo -----------------------------------------
 # Política de retención:
 #   daily/   retiene 7 días
 #   weekly/  retiene 28 días (4 semanas)
@@ -144,7 +170,7 @@ prune_prefix "daily/"   7
 prune_prefix "weekly/"  28
 prune_prefix "monthly/" 365
 
-# --- 6) Cleanup local ------------------------------------------------------
+# --- 7) Cleanup local ------------------------------------------------------
 rm -f "$DUMP_FILE"
 
 echo "============================================================"
