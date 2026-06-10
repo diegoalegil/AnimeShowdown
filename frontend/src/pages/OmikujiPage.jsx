@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { ArrowLeft, Copy, RotateCcw, Sparkles } from 'lucide-react'
+import { ArrowLeft, Copy, Sparkles } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import KanjiStroke from '../components/KanjiStroke'
 import { VisualPageShell } from '../components/VisualSystem'
 import { getGameVisual } from '../data/visual-assets'
-import { fechaDelDia, safeStorage } from '../lib/games'
+import { useDailyGameState } from '../hooks/useDailyGameState'
 
 const STORAGE_KEY = 'animeshowdown.omikuji.v1'
+const ESTADO_INICIAL = { revelado: false }
+const normalizarEstado = (value) => ({ revelado: Boolean(value?.revelado) })
 
 /**
  * Suertes del omikuji en orden tradicional japonés del
@@ -174,27 +176,20 @@ function OmikujiPage() {
       'Suerte japonesa del día estilo santuario: 大吉, 中吉, 小吉, 末吉 o 凶. Tira tu palito y descubre qué te depara el día en AnimeShowdown.',
   })
 
-  const fecha = fechaDelDia()
-  const suerte = useMemo(() => elegirSuerte(`omikuji:${fecha}`), [fecha])
-  const [revelado, setRevelado] = useState(() => {
-    const raw = safeStorage.get(STORAGE_KEY)
-    if (!raw) return false
-    try {
-      const parsed = JSON.parse(raw)
-      return parsed.fecha === fecha
-    } catch {
-      return false
-    }
+  // useDailyGameState (el mismo hook del resto de juegos diarios) en vez
+  // del localStorage ad-hoc: aporta el reset automático a medianoche y al
+  // volver a la pestaña, y guarda por clave de día — antes la suerte
+  // revelada se quedaba congelada hasta recargar.
+  const [estado, setEstado, { todayKey: fecha }] = useDailyGameState({
+    initialState: ESTADO_INICIAL,
+    normalize: normalizarEstado,
+    storageKeyPrefix: STORAGE_KEY,
   })
+  const suerte = useMemo(() => elegirSuerte(`omikuji:${fecha}`), [fecha])
+  const revelado = estado.revelado
 
   const revelar = () => {
-    setRevelado(true)
-    safeStorage.set(STORAGE_KEY, JSON.stringify({ fecha }))
-  }
-
-  const reset = () => {
-    setRevelado(false)
-    safeStorage.set(STORAGE_KEY, '')
+    setEstado({ revelado: true })
   }
 
   const compartir = async () => {
@@ -277,7 +272,6 @@ function OmikujiPage() {
           <SuerteRevelada
             suerte={suerte}
             onCompartir={compartir}
-            onReset={reset}
           />
         )}
 
@@ -343,7 +337,7 @@ function OmikujiPage() {
   )
 }
 
-function SuerteRevelada({ suerte, onCompartir, onReset }) {
+function SuerteRevelada({ suerte, onCompartir }) {
   return (
     <div className={`rounded-2xl border-2 p-8 ${COLOR_CLASSES[suerte.color]}`}>
       <motion.div
@@ -370,9 +364,9 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
           }}
           className={`kanji-ink mb-4 inline-flex h-32 w-32 cursor-default items-center justify-center rounded-2xl border-2 ${COLOR_CLASSES[suerte.color]}`}
         >
-          {/* KanjiStroke con replayKey = suerte.kanji para que cuando el
-              user resetee y vuelva a tirar, los trazos se redibujen en
-              vez de aparecer instantáneos. */}
+          {/* KanjiStroke con replayKey = suerte.kanji para que al cambiar
+              la suerte (nuevo día) los trazos se redibujen en vez de
+              aparecer instantáneos. */}
           <KanjiStroke
             kanji={suerte.kanji}
             size="5em"
@@ -404,14 +398,6 @@ function SuerteRevelada({ suerte, onCompartir, onReset }) {
         >
           <Copy className="h-3.5 w-3.5" />
           Compartir
-        </button>
-        <button
-          type="button"
-          onClick={onReset}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:text-fg-strong"
-        >
-          <RotateCcw className="h-3 w-3" />
-          Reiniciar (solo testear)
         </button>
       </div>
       <p className="mt-4 text-center text-[11px] text-fg-muted">
