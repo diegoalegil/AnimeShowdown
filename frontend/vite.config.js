@@ -608,7 +608,17 @@ export default defineConfig({
                 id.endsWith('/src/contexts/AuthContext.jsx') ||
                 id.endsWith('\\src\\contexts\\AuthContext.jsx') ||
                 id.endsWith('/src/hooks/useCatalogoPersonajes.js') ||
-                id.endsWith('\\src\\hooks\\useCatalogoPersonajes.js'),
+                id.endsWith('\\src\\hooks\\useCatalogoPersonajes.js') ||
+                // La fachada de Sentry (lib/sentry + lib/consent) es un import
+                // ESTÁTICO del entry (main.jsx); como chunk propio se llamaba
+                // sentry-*.js y el filtro de modulePreload — pensado para el SDK
+                // async — lo excluía del preload, añadiendo +1 RTT en serie en
+                // cada carga. Metida en app-runtime (que sí se precarga); el SDK
+                // real sigue siendo un import() dinámico aparte.
+                id.endsWith('/src/lib/sentry.js') ||
+                id.endsWith('\\src\\lib\\sentry.js') ||
+                id.endsWith('/src/lib/consent.js') ||
+                id.endsWith('\\src\\lib\\consent.js'),
             },
             {
               // Solo el vendor: src/lib/stomp.js queda FUERA del grupo para
