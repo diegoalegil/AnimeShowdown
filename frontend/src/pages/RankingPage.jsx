@@ -124,16 +124,23 @@ function RankingPage() {
   const { data: rankingRealTop } = rankingAllQuery
   // Default inteligente: sin pestaña elegida a mano, lideramos con "ELO"
   // (siempre lleno, 1086) mientras el Histórico de votos reales esté escaso, para
-  // no recibir al usuario con una tabla casi vacía. Cuando el Histórico acumule
-  // señal real (>= UMBRAL con votos), pasará a liderar él solo. El default '' hace
+  // no recibir al usuario con una tabla casi vacía. El default '' hace
   // que cualquier elección (incluida "Histórico"=all) quede explícita en la URL
   // y se respete; los crawlers siguen extrayendo datos reales de la tabla técnica.
+  //
+  // La decisión se toma UNA vez en el mount (con lo que haya en caché).
+  // Antes se recalculaba al resolver el fetch del histórico y la pestaña
+  // saltaba de ELO a Histórico delante del usuario, reemplazando la lista
+  // entera que ya estaba leyendo.
   const UMBRAL_HISTORICO = 10
   const [queryTab, setTab] = useQueryState('tab', '')
   const tabExplicito = RANKING_TABS.some((item) => item.id === queryTab)
-  const historicoConSenal =
+  const [tabPorDefecto] = useState(() =>
     Array.isArray(rankingRealTop) && rankingRealTop.length >= UMBRAL_HISTORICO
-  const tab = tabExplicito ? queryTab : historicoConSenal ? 'all' : 'elo'
+      ? 'all'
+      : 'elo',
+  )
+  const tab = tabExplicito ? queryTab : tabPorDefecto
   const consultadoA = useMemo(
     () =>
       new Date().toLocaleTimeString('es-ES', {
