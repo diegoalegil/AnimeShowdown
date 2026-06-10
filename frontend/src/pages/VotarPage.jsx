@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, EyeOff, Scale, SkipForward, Swords, Zap } from 'lucide-react'
+import { ArrowRight, EyeOff, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
@@ -20,11 +20,12 @@ import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import { shareWithToast } from '../lib/shareWithToast'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
-import HeadToHeadBar from '../features/votar/components/HeadToHeadBar'
 import MobileExtrasToggle from '../features/votar/components/MobileExtrasToggle'
 import SessionRecap from '../features/votar/components/SessionRecap'
+import TieResultPanel from '../features/votar/components/TieResultPanel'
 import VotarShortcutsFooter from '../features/votar/components/VotarShortcutsFooter'
 import VoteArena from '../features/votar/components/VoteArena'
+import VoteResultPanel from '../features/votar/components/VoteResultPanel'
 import { useMisEspeciales } from '../hooks/useCartas'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
@@ -1032,86 +1033,17 @@ function VotarPage() {
         />
 
         {tieSelected && a && b && (
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-gold/30 bg-gold-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              className="min-w-0 flex-1"
-            >
-              <p className="text-sm font-black text-fg-strong">
-                No pudiste decidir entre {a.nombre} y {b.nombre}.
-              </p>
-              <p className="text-[12px] text-fg-muted">
-                {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null
-                  ? `Medio voto para cada lado · ${formatVoteScore(voteResult.votosGanador)} vs ${formatVoteScore(voteResult.votosPerdedor)}`
-                  : 'Empate neutral registrado. No mueve el ELO del duelo.'}
-              </p>
-              {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null && (
-                <HeadToHeadBar
-                  ganadorNombre={a.nombre}
-                  perdedorNombre={b.nombre}
-                  votosGanador={voteResult.votosGanador}
-                  votosPerdedor={voteResult.votosPerdedor}
-                />
-              )}
-            </div>
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-bg/60 px-3 py-2 text-[12px] font-black text-gold">
-              <Scale className="h-3.5 w-3.5" />
-              ½ + ½
-            </span>
-          </div>
+          <TieResultPanel a={a} b={b} voteResult={voteResult} />
         )}
 
         {votedPersonaje && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              className="min-w-0 flex-1"
-            >
-              <p className="text-sm font-black text-fg-strong">
-                {votedPersonaje.nombre} ganó tu duelo.
-              </p>
-              <p className="text-[12px] text-fg-muted">
-                {voteResult?.votosGanador != null
-                  ? `${formatVoteScore(voteResult.votosGanador)} votos para ${votedPersonaje.nombre}${losingPersonaje ? ` · rival: ${losingPersonaje.nombre}` : ''}`
-                  : 'Voto registrado en modo casual. Sigue para completar tu misión diaria.'}
-              </p>
-              {/* Barra split cabeza-a-cabeza — solo cuando el backend devuelve ambos totales */}
-              {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null && losingPersonaje && (
-                <HeadToHeadBar
-                  ganadorNombre={votedPersonaje.nombre}
-                  perdedorNombre={losingPersonaje.nombre}
-                  votosGanador={voteResult.votosGanador}
-                  votosPerdedor={voteResult.votosPerdedor}
-                />
-              )}
-              {personalVoteImpact?.slug === votedPersonaje.slug && (
-                <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-2.5 py-1 text-[11px] font-black text-gold">
-                  {formatPersonalVoteImpact(personalVoteImpact)}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-wrap justify-center gap-2">
-              <button
-                type="button"
-                onClick={handleShareVote}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-4 py-2 text-[13px] font-black text-white transition-colors hover:bg-accent-hover"
-              >
-                <Swords className="h-3.5 w-3.5" />
-                Reta a un amigo
-              </button>
-              <Link
-                to="/mi-ranking"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
-              >
-                Mi ranking
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
+          <VoteResultPanel
+            votedPersonaje={votedPersonaje}
+            losingPersonaje={losingPersonaje}
+            voteResult={voteResult}
+            personalVoteImpact={personalVoteImpact}
+            onShareVote={handleShareVote}
+          />
         )}
 
         {/* Retirado el selector de intención post-voto (decisión del owner
