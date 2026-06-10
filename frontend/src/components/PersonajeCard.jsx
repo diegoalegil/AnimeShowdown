@@ -20,11 +20,14 @@ function PersonajeCard({
   // de getStatsPersonaje son sintéticos y se ocultan para no mostrar métricas
   // de combate falsas (ver decisión "ocultar W/L sintéticos").
   const elo = eloProp ?? getStatsPersonaje(slug).elo
-  // 24 (antes 12): con 12, en pantallas de 6 columnas solo las 2 primeras
-  // filas cargaban eager y el scroll rápido enseñaba huecos en blanco.
-  const priorityImage = Boolean(rank && rank <= 24)
-  const imageLoading = priorityImage ? 'eager' : 'lazy'
-  const imageFetchPriority = priorityImage ? 'high' : 'auto'
+  // Eager solo para las ~2 primeras filas y fetchpriority=high solo para
+  // las above-the-fold reales: 24 imágenes high simultáneas (~1MB) competían
+  // con el propio LCP. El hueco de scroll rápido que motivó subir a 24 ya
+  // no es blanco: el placeholder de color dominante + content-visibility
+  // (fix pantallas-blancas) pintan el hueco coloreado mientras carga.
+  const eagerImage = Boolean(rank && rank <= 12)
+  const imageLoading = eagerImage ? 'eager' : 'lazy'
+  const imageFetchPriority = rank && rank <= 6 ? 'high' : 'auto'
   const imageSrc = imagenUrl ?? imagen
 
   return (

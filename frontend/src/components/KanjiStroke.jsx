@@ -1,5 +1,41 @@
-import { useId, useMemo } from 'react'
-import { KANJI_STROKES } from '../lib/kanjiStrokes'
+import { useEffect, useId, useMemo, useState } from 'react'
+
+// KANJI_STROKES (~23KB gz) llegaba a casi todas las rutas vía
+// PersonajePlaceholder siendo puramente decorativo. Se difiere con
+// import(): hasta que el chunk resuelve se renderiza el carácter Unicode
+// plano (mismo box → cero CLS) y al llegar los paths el SVG anima igual.
+let cachedStrokes = null
+let strokesPromise = null
+
+function loadStrokes() {
+  if (!strokesPromise) {
+    strokesPromise = import('../lib/kanjiStrokes').then((mod) => {
+      cachedStrokes = mod.KANJI_STROKES
+      return cachedStrokes
+    })
+  }
+  return strokesPromise
+}
+
+function useKanjiStrokes() {
+  const [strokes, setStrokes] = useState(cachedStrokes)
+  useEffect(() => {
+    if (strokes) return undefined
+    let alive = true
+    loadStrokes()
+      .then((data) => {
+        if (alive) setStrokes(data)
+      })
+      .catch(() => {
+        // Sin red para el chunk: queda el fallback Unicode, que ya es
+        // contenido legible — no hay nada que romper.
+      })
+    return () => {
+      alive = false
+    }
+  }, [strokes])
+  return strokes
+}
 
 /**
  * KanjiStroke — anima un kanji trazo a trazo usando los paths de KanjiVG
@@ -91,9 +127,12 @@ function SingleKanji({
   className = '',
 }) {
   const uniqueId = useId() // por si en el futuro añadimos masks/clips por path
-  const paths = KANJI_STROKES[char]
+  const strokes = useKanjiStrokes()
+  const paths = strokes?.[char]
   if (!paths) {
-    // Fallback: el carácter Unicode plano. Lectores de pantalla siguen viendo el texto.
+    // Fallback: el carácter Unicode plano, tanto mientras carga el chunk
+    // de strokes como para kanji sin path generado. Lectores de pantalla
+    // siguen viendo el texto.
     return (
       <span
         aria-label={char}

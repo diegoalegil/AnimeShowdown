@@ -24,14 +24,32 @@ import { useEffect, useRef, useState } from 'react'
  * disponible), aunque por simplicidad inicial dejamos solo mouse — en
  * touch el holo queda en idle (no molesta) y la imagen sigue legible.
  */
+// La carta holo es el LCP de la ficha y cargaba siempre el original
+// (p.ej. zoro 723px/301KB) existiendo la variante -600 (148KB) generada
+// para TODO el catálogo. Igual que en PersonajeImg, el original queda
+// FUERA del srcset: en pantallas 2x-3x el navegador lo elegiría siempre
+// por un extra de nitidez imperceptible (la carta renderiza a ≤448px CSS)
+// pagando el doble de bytes en el LCP. Solo aplica a paths locales
+// /img/*.webp — las URLs externas (MAL) no tienen variantes.
+function buildVariantSrcSet(src) {
+  if (!src || !/^\/img\/.+\.webp$/i.test(src)) return null
+  const base = src.replace(/(?:-(?:300|600|1024))?\.webp$/i, '')
+  return `${base}-300.webp 300w, ${base}-600.webp 600w`
+}
+
 function PersonajeCardHolo({ src, alt, className = '', fallbackSrc }) {
   const rootRef = useRef(null)
   const rafRef = useRef(0)
   const pendingRef = useRef(null)
   const [failedSources, setFailedSources] = useState(() => new Set())
+  // Srcs cuya variante -600 falló: se reintentan sin srcset (solo el
+  // original) antes de declarar el src entero como roto.
+  const [variantFailures, setVariantFailures] = useState(() => new Set())
   const shouldUseFallback = failedSources.has(src) && fallbackSrc && !failedSources.has(fallbackSrc)
   const currentSrc = shouldUseFallback ? fallbackSrc : src
   const imageFailed = failedSources.has(currentSrc)
+  const variantSrcSet = buildVariantSrcSet(currentSrc)
+  const useVariants = Boolean(variantSrcSet) && !variantFailures.has(currentSrc)
 
   useEffect(() => {
     const el = rootRef.current
@@ -100,9 +118,16 @@ function PersonajeCardHolo({ src, alt, className = '', fallbackSrc }) {
       ) : (
         <img
           src={currentSrc}
+          srcSet={useVariants ? variantSrcSet : undefined}
+          // La carta ocupa max-w-sm en móvil (limitada por max-h-55vh) y
+          // max-w-md (28rem) en desktop → la variante 600w basta hasta 2x.
+          sizes={useVariants ? '(min-width: 768px) 28rem, 85vw' : undefined}
           alt={alt}
           width={600}
           height={900}
+          // LCP de la ficha: prioridad alta para que el navegador no la
+          // encole detrás de chunks/img del grid de relacionados.
+          fetchPriority="high"
           // ReferrerPolicy no-referrer como defensa extra para imagenes
           // externas de MyAnimeList. Si aun asi fallan, volvemos a la imagen
           // local del catalogo para no dejar la ficha en blanco.
@@ -110,6 +135,16 @@ function PersonajeCardHolo({ src, alt, className = '', fallbackSrc }) {
           className="card-holo__img h-full w-full object-cover"
           draggable={false}
           onError={() => {
+            if (useVariants) {
+              // Pudo fallar solo la variante -600: reintento sin srcset.
+              setVariantFailures((prev) => {
+                if (prev.has(currentSrc)) return prev
+                const next = new Set(prev)
+                next.add(currentSrc)
+                return next
+              })
+              return
+            }
             setFailedSources((prev) => {
               if (prev.has(currentSrc)) return prev
               const next = new Set(prev)
