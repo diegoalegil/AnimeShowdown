@@ -9,15 +9,19 @@ import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { usePersonajeRuleta } from '../hooks/usePersonajeRuleta'
 import { getStatsPersonaje } from '../lib/personajes-core'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import { brandImage } from '../lib/brand-assets'
 import { useTorneos } from '../lib/torneosQueries'
 import { endpoints } from '../lib/api'
 import Button from './Button'
 import StatPill from './StatPill'
 
+// Entrada transform-only: el hero es el LCP de la home y arrancar la pila
+// entera en opacity 0 retrasaba el paint del H1 ~1s (y si rAF se atasca,
+// la portada queda vacía). Sin fade, el primer frame ya pinta contenido;
+// el stagger de translate/scale conserva la entrada escalonada.
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: {},
   visible: {
-    opacity: 1,
     transition: {
       staggerChildren: 0.12,
       delayChildren: 0.1,
@@ -26,21 +30,36 @@ const containerVariants = {
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { y: 18 },
   visible: {
-    opacity: 1,
     y: 0,
     transition: { duration: 0.6, ease: 'easeOut' },
   },
 }
 
 const logoVariants = {
-  hidden: { opacity: 0, scale: 0.85 },
+  hidden: { scale: 0.9 },
   visible: {
-    opacity: 1,
     scale: 1,
     transition: { duration: 0.8, ease: 'easeOut' },
   },
+}
+
+// Rotación diaria del escenario del hero entre los fondos globales de la
+// marca (todos arena/duelo, composición con el centro despejado para que
+// el titular respire). Determinista por día del año: toda la audiencia ve
+// el mismo escenario y mañana habrá otro — la portada no se congela.
+const HERO_ARTS = [
+  'home-hero-vote-arena',
+  'vote-arena-refresh',
+  'pvp-live-arena-refresh',
+]
+
+function getHeroArtDelDia() {
+  const ahora = new Date()
+  const inicioDeAno = new Date(ahora.getFullYear(), 0, 0)
+  const diaDelAno = Math.floor((ahora - inicioDeAno) / 86_400_000)
+  return brandImage(HERO_ARTS[diaDelAno % HERO_ARTS.length])?.src ?? null
 }
 
 function Hero({ catalogoPersonajes = [] }) {
@@ -75,7 +94,7 @@ function Hero({ catalogoPersonajes = [] }) {
   const ctaRanking = useInstantSoundPress('playClick')
   const { girarRuleta, isLoading: ruletaLoading } = usePersonajeRuleta()
   const heroVisual = BRAND_VISUALS.homeHero
-  const heroImage = heroVisual.image || heroVisual.fallbackImage
+  const heroImage = getHeroArtDelDia() || heroVisual.image || heroVisual.fallbackImage
   const handleRuleta = (event) => {
     ctaRuleta.onClick(event)
     girarRuleta()
@@ -103,17 +122,20 @@ function Hero({ catalogoPersonajes = [] }) {
         initial="hidden"
         animate="visible"
       >
+        {/* Sello contenido (antes 160-176px): a tamaño grande tapaba el
+            punto focal del arte y duplicaba el logo del header. Más pequeño,
+            el escenario y el titular mandan. */}
         <motion.img
           src="/logo.webp"
           alt=""
           width={240}
           height={240}
-          className="h-28 w-28 object-contain sm:h-40 sm:w-40 lg:h-44 lg:w-44"
+          className="h-20 w-20 object-contain sm:h-24 sm:w-24 lg:h-28 lg:w-28"
           style={{ filter: 'drop-shadow(0 0 60px rgb(159 29 44 / 0.52))' }}
           variants={logoVariants}
         />
         <motion.span
-          className="as-kicker"
+          className="as-kicker drop-shadow-scrim"
           variants={itemVariants}
         >
           Arena 1v1 · ranking vivo · retos diarios

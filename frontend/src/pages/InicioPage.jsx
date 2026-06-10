@@ -12,7 +12,6 @@ import {
 import Hero from '../components/Hero'
 import SectionPulso from '../components/SectionPulso'
 import TorneoCard from '../components/TorneoCard'
-import CountUp from '../components/CountUp'
 import CarouselRow from '../components/CarouselRow'
 import LazyOnView from '../components/LazyOnView'
 import DailyMissionPanel from '../components/DailyMissionPanel'
@@ -20,7 +19,6 @@ import SobreBienvenidaBanner from '../features/cartas/SobreBienvenidaBanner'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Section from '../components/Section'
-import StatPill from '../components/StatPill'
 import EmptyState from '../components/EmptyState'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { HomeSkeleton } from '../components/PageSkeleton'
@@ -30,19 +28,6 @@ import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { getGameVisual } from '../data/visual-assets'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
-
-function getHomeStats(catalogoPersonajes) {
-  if (catalogoPersonajes.length === 0) {
-    return { totalPersonajes: 0, animeUniversos: 0, eloMax: 0 }
-  }
-  return {
-    totalPersonajes: catalogoPersonajes.length,
-    animeUniversos: new Set(catalogoPersonajes.map((p) => p.anime)).size,
-    eloMax: Math.max(
-      ...catalogoPersonajes.map((p) => getStatsPersonaje(p.slug).elo),
-    ),
-  }
-}
 
 function getHomeCarousels(catalogoPersonajes) {
   const byAnime = catalogoPersonajes.reduce((acc, p) => {
@@ -81,10 +66,6 @@ function InicioPage() {
     isError: isCatalogError,
     refetch: refetchCatalogo,
   } = usePersonajesCatalogo()
-  const stats = useMemo(
-    () => getHomeStats(catalogoPersonajes),
-    [catalogoPersonajes],
-  )
   const carousels = useMemo(
     () => getHomeCarousels(catalogoPersonajes),
     [catalogoPersonajes],
@@ -125,7 +106,9 @@ function InicioPage() {
           <DailyMissionPanel />
         </section>
       </HomeSectionBoundary>
-      <SectionStats stats={stats} />
+      {/* La sección de stats se retiró: duplicaba 1:1 el panel de cifras
+          del hero (personajes/torneos/universos/ELO máx) una pantalla más
+          abajo. El top ranking sube y la home se acorta. */}
       <HomeSectionBoundary title="No pudimos mostrar el top ranking">
         <SectionTop10Ranking top10={top10} />
       </HomeSectionBoundary>
@@ -237,71 +220,6 @@ function SectionPorAnime({ carousels }) {
         />
       ))}
     </motion.div>
-  )
-}
-
-function SectionStats({ stats }) {
-  // Si hay torneos del backend mostramos el número. Si no, sustituimos
-  // el tile por un "Ranking en vivo" para no transmitir vacío (un "0
-  // torneos" hace pensar que la plataforma está incompleta).
-  const { data: torneos = [] } = useTorneos()
-  if (stats.totalPersonajes === 0) return null
-
-  const hayTorneos = torneos.length > 0
-  return (
-    <Section
-      as={motion.section}
-      containerClassName="mx-auto max-w-5xl"
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.3 }}
-    >
-      <div className="grid grid-cols-2 gap-y-8 gap-x-6 sm:grid-cols-4">
-        <Stat target={stats.totalPersonajes} label="Personajes" />
-        <Stat target={stats.animeUniversos} label="Animes" />
-        {/* ELO base máx es una estimación por popularidad, no un dato que
-            "suba" con votos: no lo animamos con CountUp para no sugerir que
-            es una métrica en movimiento (A7). */}
-        <Stat target={stats.eloMax} label="ELO base máx" animate={false} />
-        {hayTorneos ? (
-          <Stat target={torneos.length} label="Torneos visibles" />
-        ) : (
-          <StatBadge
-            label="Ranking en vivo"
-            hint="Actualizado con cada voto"
-          />
-        )}
-      </div>
-    </Section>
-  )
-}
-
-function Stat({ target, label, animate = true }) {
-  return (
-    <StatPill
-      value={animate ? <CountUp target={target} /> : target}
-      label={label}
-    />
-  )
-}
-
-function StatBadge({ label, hint }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <span className="relative inline-flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
-        </span>
-        <p className="font-mono text-2xl font-extrabold tracking-tight text-success sm:text-3xl">
-          {label}
-        </p>
-      </div>
-      <p className="text-xs font-semibold text-fg-muted">
-        {hint}
-      </p>
-    </div>
   )
 }
 
