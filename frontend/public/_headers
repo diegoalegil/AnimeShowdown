@@ -39,11 +39,41 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 /assets/error-scenes/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+# Mismo razonamiento (arte de marca con path estable, se sobrescribe entre
+# tandas): overlays, particles, cartas especiales y fallbacks. Antes caían en
+# la regla genérica /assets/* immutable y quedaban cacheados 1 año.
+/assets/overlays/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/particles/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/cartas-especiales/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/assets/fallbacks/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-# Bundles JS/CSS de Vite tienen hash en el filename (index-B7ScjF8C.js etc.).
-# Sí pueden ser immutable porque el filename cambia con cada build.
-/assets/*
+# Bundles JS/CSS de Vite: hash en el filename (index-B7ScjF8C.js etc.), sí
+# pueden ser immutable porque el nombre cambia con cada build.
+#
+# IMPORTANTE: la regla se limita a los bundles hasheados (.js/.css en la raíz
+# de /assets/). La regla genérica `/assets/*` anterior matcheaba TAMBIÉN las
+# subcarpetas de arte de arriba y, como Cloudflare Pages COMBINA las cabeceras
+# de todas las reglas que casan, su Cache-Control acababa con `immutable`
+# (verificado en prod: anime-banners/brand servían max-age=1año immutable) —
+# reintroduciendo el bug de arte stale que las reglas anti-stale evitan. Acotar
+# por extensión deja el arte fuera (no hay .js/.css en las subcarpetas de arte).
+/assets/*.js
   Cache-Control: public, max-age=31536000, immutable
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# El SW y el script de push importado se sirven con el default de Cloudflare
+# (max-age 14400): un deploy que toque push-sw.js puede activar el SW nuevo
+# ejecutando el handler de push viejo hasta 4h. Los fetch de update del SW son
+# poco frecuentes; servirlos sin caché evita ese skew silencioso.
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+/push-sw.js
+  Cache-Control: public, max-age=0, must-revalidate
 
 # index.html nunca se cachea: siempre debe servir la versión más nueva del SPA
 /
