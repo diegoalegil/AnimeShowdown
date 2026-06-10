@@ -1,5 +1,4 @@
 import { VISUAL_ASSET_PATHS } from './visual-assets-manifest'
-import { getAnimeIdentity } from './anime-identities'
 import { brandImage } from '../lib/brand-assets'
 
 /**
@@ -12,7 +11,9 @@ import { brandImage } from '../lib/brand-assets'
  * overlays propios para que no vuelva a caer en collages de cartas.
  */
 
-const STAGE = {
+// Exportados para `data/anime-visual.js` (getAnimeVisual vive ahí para que el
+// dataset pesado anime-identities NO entre en el bundle inicial; ver ese módulo).
+export const STAGE = {
   home: '/img/stage/home-hero.webp',
   pulse: '/img/stage/home-pulse.webp',
   games: '/img/stage/games-stage.webp',
@@ -77,7 +78,7 @@ function palette(seed = '') {
   return PALETTES[hash % PALETTES.length]
 }
 
-function makeVisual({
+export function makeVisual({
   slug,
   title,
   type,
@@ -155,7 +156,7 @@ function makeVisual({
   }
 }
 
-function withAnimeIdentity(visual, identity) {
+export function withAnimeIdentity(visual, identity) {
   return {
     ...visual,
     kanji: identity.kanji,
@@ -1319,26 +1320,6 @@ export const BRAND_VISUALS = {
     mood: 'arena vacia al atardecer, polvo flotando, banderines crimson quietos',
     objectPosition: 'center',
   }),
-}
-
-export function getAnimeVisual(slug, anime = slug) {
-  const identity = getAnimeIdentity(slug, anime)
-  if (ANIME_VISUALS[slug]) return withAnimeIdentity(ANIME_VISUALS[slug], identity)
-  const assetSlug = identity.assetSlug || slug
-  return withAnimeIdentity(makeVisual({
-    slug,
-    title: identity.title || anime,
-    type: 'anime',
-    kanji: identity.kanji,
-    fallbackImage: STAGE.animes,
-    expectedPath: `/assets/anime-banners/${assetSlug}.webp`,
-    cdn: `${slug}-scene-01`,
-    paletteSeed: slug,
-    accentRgb: identity.accentRgb,
-    glowRgb: identity.glowRgb,
-    atmosphere: identity.atmosphere,
-    mood: identity.copy,
-  }), identity)
 }
 
 export function getTournamentVisual(slug, title = slug) {
