@@ -16,7 +16,7 @@
 #        monthly/ > 365 días (~12 meses)
 #
 # Variables de entorno requeridas:
-#   NEON_DATABASE_URL      postgres://postgres.<ref>:pass@aws-0-<region>.pooler.supabase.com:5432/postgres  (secret legacy → Supabase)
+#   PROD_DATABASE_URL      postgres://postgres.<ref>:pass@aws-0-<region>.pooler.supabase.com:5432/postgres
 #   R2_ENDPOINT            https://<account-id>.r2.cloudflarestorage.com
 #   R2_ACCESS_KEY_ID       (Access Key del API token R2)
 #   R2_SECRET_ACCESS_KEY   (Secret del API token R2)
@@ -31,7 +31,7 @@
 set -euo pipefail
 
 # --- Sanity checks: variables presentes -----------------------------------
-: "${NEON_DATABASE_URL:?NEON_DATABASE_URL requerida}"
+: "${PROD_DATABASE_URL:?PROD_DATABASE_URL requerida}"
 : "${R2_ENDPOINT:?R2_ENDPOINT requerida}"
 : "${R2_ACCESS_KEY_ID:?R2_ACCESS_KEY_ID requerida}"
 : "${R2_SECRET_ACCESS_KEY:?R2_SECRET_ACCESS_KEY requerida}"
@@ -73,7 +73,7 @@ echo "→ Guard: comparando migraciones Flyway (BBDD vs repo) ..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIGRATIONS_DIR="$SCRIPT_DIR/../backend/src/main/resources/db/migration"
 REPO_MAX="$(ls "$MIGRATIONS_DIR" | sed -nE 's/^V([0-9]+)__.*\.sql$/\1/p' | sort -n | tail -1)"
-if ! DB_MAX="$(psql "$NEON_DATABASE_URL" -v ON_ERROR_STOP=1 -At \
+if ! DB_MAX="$(psql "$PROD_DATABASE_URL" -v ON_ERROR_STOP=1 -At \
     -c "SELECT coalesce(max(version::int), 0) FROM flyway_schema_history WHERE version IS NOT NULL AND success")"; then
     echo "::error::No se pudo leer flyway_schema_history de la BBDD objetivo — el secret no apunta a una BBDD de AnimeShowdown."
     exit 1
@@ -95,7 +95,7 @@ pg_dump \
     --no-acl \
     --format=custom \
     --file="$DUMP_FILE" \
-    "$NEON_DATABASE_URL"
+    "$PROD_DATABASE_URL"
 
 SIZE_HUMAN="$(du -h "$DUMP_FILE" | cut -f1)"
 echo "✓ Dump generado: $DUMP_FILE ($SIZE_HUMAN)"
