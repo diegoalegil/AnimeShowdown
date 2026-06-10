@@ -22,7 +22,7 @@ export function CardDestacado({ game, estado }) {
       to={game.to}
       className={`as-panel-hot group relative flex min-h-[14rem] flex-col justify-end overflow-hidden rounded-2xl border p-6 transition-all duration-300 motion-safe:hover:-translate-y-1 sm:min-h-[18rem] sm:p-8 ${theme.border} ${theme.hoverGlow}`}
     >
-      <GameCardBackground visual={visual} opacity={0.95} />
+      <GameCardBackground visual={visual} />
 
       <span
         aria-hidden="true"
@@ -94,7 +94,7 @@ export function CardMini({ game, estado }) {
       to={game.to}
       className={`as-panel group relative flex min-h-[12rem] flex-col justify-end overflow-hidden rounded-2xl border p-5 transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-elev-2 sm:min-h-[13rem] ${theme.border} ${theme.hoverGlow}`}
     >
-      <GameCardBackground visual={visual} opacity={0.92} />
+      <GameCardBackground visual={visual} />
 
       <span
         aria-hidden="true"
@@ -148,7 +148,7 @@ export function OmikujiCard() {
       to="/omikuji"
       className="as-panel-hot group relative flex min-h-[9rem] items-center gap-4 overflow-hidden rounded-2xl border border-accent/40 px-5 py-5 transition-all duration-300 hover:border-accent/60 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-lift sm:min-h-[10rem]"
     >
-      <GameCardBackground visual={visual} opacity={0.90} />
+      <GameCardBackground visual={visual} />
       <div
         className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-accent/40 backdrop-blur-md sm:h-16 sm:w-16"
         style={{ background: 'linear-gradient(135deg, rgb(159 29 44 / 0.32) 0%, rgb(7 10 18 / 0.55) 100%)' }}
