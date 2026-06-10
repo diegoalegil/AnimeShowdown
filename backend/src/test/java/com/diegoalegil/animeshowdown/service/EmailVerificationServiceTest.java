@@ -11,18 +11,25 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.diegoalegil.animeshowdown.TestAsyncConfig;
 import com.diegoalegil.animeshowdown.model.EstadoVerificacion;
 import com.diegoalegil.animeshowdown.model.Usuario;
 import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 @SpringBootTest
 @ActiveProfiles("test")
+// TestAsyncConfig: los asserts del email post-commit verifican un spy de
+// EmailService cuyos metodos son @Async — con el executor real, verify()
+// corre ANTES de que el hilo del pool invoque al spy (flake de timing
+// visto en CI). SyncTaskExecutor lo hace determinista.
+@Import(TestAsyncConfig.class)
 class EmailVerificationServiceTest {
 
     @Autowired private EmailVerificationService emailVerificationService;
