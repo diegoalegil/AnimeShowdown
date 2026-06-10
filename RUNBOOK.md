@@ -145,12 +145,14 @@ Desde GitHub Actions, usa el workflow manual **IMG CDN sync**. El input `apply=f
 **Diagnóstico**:
 1. `.github/workflows/db-backup.yml` — workflow status en GitHub.
 2. Logs del último run: errores comunes:
-   - `NEON_DATABASE_URL` expirada.
+   - `PROD_DATABASE_URL` expirada o apuntando a una BBDD que no es producción
+     (el guard del script aborta con "La BBDD objetivo va por VX y el repo por VY"
+     antes de subir nada).
    - `R2_ACCESS_KEY_ID` rotado.
    - `pg_dump` versión no compatible con Postgres 17.
 
 **Respuesta**:
-- Rota secrets si fueron expirados (los 4 keys de R2 + `NEON_DATABASE_URL`).
+- Rota secrets si fueron expirados (los 4 keys de R2 + `PROD_DATABASE_URL`).
 - Lanza manualmente: GitHub Actions → db-backup → Run workflow.
 
 ---
