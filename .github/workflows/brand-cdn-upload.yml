@@ -37,7 +37,10 @@ jobs:
   upload:
     name: Download release + sync to CDN
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # El sync hace head+put POR OBJETO (~1,5s cada uno): una tanda de ~1.200
+    # archivos ronda la hora. Margen amplio; el sync es idempotente y un
+    # re-run continúa donde se quedó.
+    timeout-minutes: 180
 
     steps:
       - uses: actions/checkout@v6
@@ -61,7 +64,29 @@ jobs:
             echo "::error::El tarball no contiene el directorio raíz img/"
             exit 1
           fi
+          # Cinturón y tirantes contra tarballs creados en macOS sin
+          # COPYFILE_DISABLE: los AppleDouble (._*) duplican la tanda y
+          # subirían basura al bucket.
+          find /tmp/brand-assets/img -name '._*' -delete
           echo "Archivos extraídos: $(find /tmp/brand-assets/img -type f | wc -l)"
+
+      - name: Purge AppleDouble remoto
+        # Limpieza puntual de los ._* que subió la primera tanda (tarball
+        # macOS sin COPYFILE_DISABLE). Inofensivos pero basura; el sync no
+        # borra remotos por diseño, así que se purgan aquí explícitamente.
+        if: ${{ inputs.apply == 'true' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_IMG_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_IMG_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_IMG_ENDPOINT: ${{ secrets.R2_IMG_ENDPOINT }}
+          R2_IMG_BUCKET: ${{ secrets.R2_IMG_BUCKET }}
+          R2_IMG_PREFIX: ${{ secrets.R2_IMG_PREFIX || 'img' }}
+        run: |
+          aws s3 rm "s3://$R2_IMG_BUCKET/$R2_IMG_PREFIX/brand/" \
+            --endpoint-url "$R2_IMG_ENDPOINT" \
+            --recursive --exclude '*' --include '._*' \
+            | tail -5 || true
 
       - name: Plan
         env:
