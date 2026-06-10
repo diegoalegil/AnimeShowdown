@@ -32,6 +32,20 @@ function persistCatalogo(data) {
   }
 }
 
+// Identidad ESTABLE del select: React Query solo reutiliza el resultado
+// memoizado si la función es la MISMA referencia entre renders (queryObserver
+// compara options.select por identidad). Con una arrow inline, cada render de
+// cada observer re-normalizaba los ~1086 items (un spread por item) y
+// query.data cambiaba de identidad → invalidaba todos los useMemo derivados
+// (índices con 6 sorts por keystroke) y anulaba los memo() de las 60 cards.
+const selectCatalogo = (data) => normalizarCatalogoPersonajes(data)
+
+// El hook se monta en 30+ consumidores: sin guard, cada actualización real
+// disparaba N escrituras idénticas de ~174KB a localStorage (una por
+// consumidor). Con query.data de identidad estable basta recordar la última
+// referencia sincronizada a nivel de módulo.
+let ultimoCatalogoSincronizado
+
 export function useCatalogoPersonajes({ enabled = true } = {}) {
   const query = useQuery({
     queryKey: ['personajes', 'catalogo', FIELDS],
@@ -51,11 +65,14 @@ export function useCatalogoPersonajes({ enabled = true } = {}) {
     // so usePersonajesCatalogo() can return query.data directly (no double
     // normalization on every caller). Both localStorage (initialData) and
     // fresh API responses go through this select.
-    select: (data) => normalizarCatalogoPersonajes(data),
+    select: selectCatalogo,
   })
 
   useEffect(() => {
     // Persist raw data for next load's initialData; sync also runs normalization.
+    // Solo cuando la referencia cambió de verdad (guard de módulo de arriba).
+    if (!query.data || query.data === ultimoCatalogoSincronizado) return
+    ultimoCatalogoSincronizado = query.data
     persistCatalogo(query.data)
     syncCatalogoPersonajes(query.data)
   }, [query.data])

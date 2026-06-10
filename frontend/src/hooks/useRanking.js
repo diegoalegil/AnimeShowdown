@@ -91,6 +91,10 @@ export function useRankingMovimientos({
   })
 }
 
+// Marca de tiempo (módulo) del último invalidate de movimientos disparado
+// por delta WS — ver throttle dentro de la suscripción.
+let ultimoInvalidateMovimientos = 0
+
 export function useRankingDeltaSubscription({ enabled = true } = {}) {
   const queryClient = useQueryClient()
 
@@ -162,7 +166,15 @@ export function useRankingDeltaSubscription({ enabled = true } = {}) {
           })
           queryClient.setQueryData(queryKey, next.slice(0, Number(limit) || next.length))
         })
-      queryClient.invalidateQueries({ queryKey: ['ranking', 'movimientos'] })
+      // Throttle: llega un delta por CADA voto global — invalidar movimientos
+      // en cada uno disparaba un refetch HTTP por voto y pestaña abierta
+      // (justo el patrón viral). El ranking visible ya se actualiza arriba
+      // con setQueryData; los movimientos se refrescan como mucho cada 10s.
+      const ahora = Date.now()
+      if (ahora - ultimoInvalidateMovimientos > 10_000) {
+        ultimoInvalidateMovimientos = ahora
+        queryClient.invalidateQueries({ queryKey: ['ranking', 'movimientos'] })
+      }
     })
   }, [enabled, queryClient])
 }

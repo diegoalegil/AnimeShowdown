@@ -61,15 +61,12 @@ function PersonajesPage() {
     isError: isCatalogError,
     refetch,
   } = useCatalogoPersonajes()
-  const catalogoPersonajes = useMemo(() => {
-    if (!Array.isArray(catalogoRemoto) || catalogoRemoto.length === 0) {
-      return personajes
-    }
-    return catalogoRemoto.map((p) => ({
-      ...p,
-      imagen: p.imagenUrl ?? p.imagen,
-    }))
-  }, [catalogoRemoto])
+  // query.data ya viene normalizado por el select del hook (imagen incluida)
+  // y con identidad estable: usarlo directo mantiene vivos los useMemo de
+  // abajo (índice con 6 sorts) y los memo() de las cards. El map con spread
+  // que vivía aquí duplicaba 1086 objetos por recomputación para nada.
+  const catalogoPersonajes =
+    Array.isArray(catalogoRemoto) && catalogoRemoto.length > 0 ? catalogoRemoto : personajes
   const shouldShowCatalogLoading = isCatalogLoading && catalogoPersonajes.length === 0
   const shouldShowCatalogError = isCatalogError && catalogoPersonajes.length === 0
   const catalogoIndex = useMemo(
