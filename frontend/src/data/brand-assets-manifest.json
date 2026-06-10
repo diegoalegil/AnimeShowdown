@@ -1,0 +1,1611 @@
+{
+ "base": "https://assets.animeshowdown.dev/img/brand",
+ "files": {
+  "86-eighty-six-prop-01": [
+   300,
+   600
+  ],
+  "86-eighty-six-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "86-eighty-six-symbol-01": [
+   300,
+   600
+  ],
+  "akame-ga-kill-prop-01": [
+   300,
+   600
+  ],
+  "akame-ga-kill-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "akame-ga-kill-symbol-01": [
+   300,
+   600
+  ],
+  "alya-sometimes-hides-her-feelings-in-russian-prop-01": [
+   300,
+   600
+  ],
+  "alya-sometimes-hides-her-feelings-in-russian-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "alya-sometimes-hides-her-feelings-in-russian-symbol-01": [
+   300,
+   600
+  ],
+  "angel-beats-prop-01": [
+   300,
+   600
+  ],
+  "angel-beats-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "angel-beats-symbol-01": [
+   300,
+   600
+  ],
+  "anigrid-background": [
+   480,
+   768,
+   1280
+  ],
+  "anigrid-cover": [
+   480,
+   768,
+   1280
+  ],
+  "anigrid-result-card": [
+   300,
+   600
+  ],
+  "anime-mastered-share": [
+   300,
+   600
+  ],
+  "anime-reveal-background": [
+   480,
+   768,
+   1280
+  ],
+  "anime-reveal-cover": [
+   480,
+   768,
+   1280
+  ],
+  "anime-reveal-result-card": [
+   300,
+   600
+  ],
+  "another-prop-01": [
+   300,
+   600
+  ],
+  "another-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "another-symbol-01": [
+   300,
+   600
+  ],
+  "ao-no-exorcist-prop-01": [
+   300,
+   600
+  ],
+  "ao-no-exorcist-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "ao-no-exorcist-symbol-01": [
+   300,
+   600
+  ],
+  "aoashi-prop-01": [
+   300,
+   600
+  ],
+  "aoashi-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "aoashi-symbol-01": [
+   300,
+   600
+  ],
+  "assassination-classroom-prop-01": [
+   300,
+   600
+  ],
+  "assassination-classroom-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "assassination-classroom-symbol-01": [
+   300,
+   600
+  ],
+  "attack-on-titan-prop-01": [
+   300,
+   600
+  ],
+  "attack-on-titan-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "attack-on-titan-symbol-01": [
+   300,
+   600
+  ],
+  "auth-login-premium": [
+   480,
+   768,
+   1280
+  ],
+  "auth-register-premium": [
+   480,
+   768,
+   1280
+  ],
+  "beyblade-prop-01": [
+   300,
+   600
+  ],
+  "beyblade-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "beyblade-symbol-01": [
+   300,
+   600
+  ],
+  "black-clover-prop-01": [
+   300,
+   600
+  ],
+  "black-clover-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "black-clover-symbol-01": [
+   300,
+   600
+  ],
+  "black-lagoon-prop-01": [
+   300,
+   600
+  ],
+  "black-lagoon-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "black-lagoon-symbol-01": [
+   300,
+   600
+  ],
+  "bleach-prop-01": [
+   300,
+   600
+  ],
+  "bleach-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "bleach-symbol-01": [
+   300,
+   600
+  ],
+  "blue-lock-prop-01": [
+   300,
+   600
+  ],
+  "blue-lock-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "blue-lock-symbol-01": [
+   300,
+   600
+  ],
+  "bocchi-the-rock-prop-01": [
+   300,
+   600
+  ],
+  "bocchi-the-rock-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "bocchi-the-rock-symbol-01": [
+   300,
+   600
+  ],
+  "btooom-prop-01": [
+   300,
+   600
+  ],
+  "btooom-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "btooom-symbol-01": [
+   300,
+   600
+  ],
+  "bunny-girl-senpai-prop-01": [
+   300,
+   600
+  ],
+  "bunny-girl-senpai-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "bunny-girl-senpai-symbol-01": [
+   300,
+   600
+  ],
+  "catalog-offline": [
+   480,
+   768,
+   1280
+  ],
+  "chainsaw-man-prop-01": [
+   300,
+   600
+  ],
+  "chainsaw-man-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "chainsaw-man-symbol-01": [
+   300,
+   600
+  ],
+  "charlotte-prop-01": [
+   300,
+   600
+  ],
+  "charlotte-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "charlotte-symbol-01": [
+   300,
+   600
+  ],
+  "chuunibyou-demo-koi-ga-shitai-prop-01": [
+   300,
+   600
+  ],
+  "chuunibyou-demo-koi-ga-shitai-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "chuunibyou-demo-koi-ga-shitai-symbol-01": [
+   300,
+   600
+  ],
+  "claymore-prop-01": [
+   300,
+   600
+  ],
+  "claymore-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "claymore-symbol-01": [
+   300,
+   600
+  ],
+  "code-geass-prop-01": [
+   300,
+   600
+  ],
+  "code-geass-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "code-geass-symbol-01": [
+   300,
+   600
+  ],
+  "collection-ssr-share": [
+   300,
+   600
+  ],
+  "cowboy-bebop-prop-01": [
+   300,
+   600
+  ],
+  "cowboy-bebop-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "cowboy-bebop-symbol-01": [
+   300,
+   600
+  ],
+  "cyberpunk-edgerunners-prop-01": [
+   300,
+   600
+  ],
+  "cyberpunk-edgerunners-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "cyberpunk-edgerunners-symbol-01": [
+   300,
+   600
+  ],
+  "daily-completed-perfect": [
+   480,
+   768,
+   1280
+  ],
+  "daily-perfect-share": [
+   300,
+   600
+  ],
+  "dandadan-prop-01": [
+   300,
+   600
+  ],
+  "dandadan-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "dandadan-symbol-01": [
+   300,
+   600
+  ],
+  "darling-in-the-franxx-prop-01": [
+   300,
+   600
+  ],
+  "darling-in-the-franxx-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "darling-in-the-franxx-symbol-01": [
+   300,
+   600
+  ],
+  "date-a-live-prop-01": [
+   300,
+   600
+  ],
+  "date-a-live-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "date-a-live-symbol-01": [
+   300,
+   600
+  ],
+  "death-note-prop-01": [
+   300,
+   600
+  ],
+  "death-note-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "death-note-symbol-01": [
+   300,
+   600
+  ],
+  "demon-slayer-prop-01": [
+   300,
+   600
+  ],
+  "demon-slayer-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "demon-slayer-symbol-01": [
+   300,
+   600
+  ],
+  "dr-stone-prop-01": [
+   300,
+   600
+  ],
+  "dr-stone-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "dr-stone-symbol-01": [
+   300,
+   600
+  ],
+  "dragon-ball-prop-01": [
+   300,
+   600
+  ],
+  "dragon-ball-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "dragon-ball-symbol-01": [
+   300,
+   600
+  ],
+  "elfen-lied-prop-01": [
+   300,
+   600
+  ],
+  "elfen-lied-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "elfen-lied-symbol-01": [
+   300,
+   600
+  ],
+  "elo-duel-background": [
+   480,
+   768,
+   1280
+  ],
+  "elo-duel-cover": [
+   480,
+   768,
+   1280
+  ],
+  "elo-duel-game-over-share": [
+   300,
+   600
+  ],
+  "elo-duel-result-card": [
+   300,
+   600
+  ],
+  "empty-ranking-arena-refresh": [
+   480,
+   768,
+   1280
+  ],
+  "empty-search-night-city-refresh": [
+   480,
+   768,
+   1280
+  ],
+  "erased-prop-01": [
+   300,
+   600
+  ],
+  "erased-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "erased-symbol-01": [
+   300,
+   600
+  ],
+  "fairy-tail-prop-01": [
+   300,
+   600
+  ],
+  "fairy-tail-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "fairy-tail-symbol-01": [
+   300,
+   600
+  ],
+  "fate-grand-order-prop-01": [
+   300,
+   600
+  ],
+  "fate-grand-order-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "fate-grand-order-symbol-01": [
+   300,
+   600
+  ],
+  "fate-stay-night-prop-01": [
+   300,
+   600
+  ],
+  "fate-stay-night-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "fate-stay-night-symbol-01": [
+   300,
+   600
+  ],
+  "fate-zero-prop-01": [
+   300,
+   600
+  ],
+  "fate-zero-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "fate-zero-symbol-01": [
+   300,
+   600
+  ],
+  "fire-force-prop-01": [
+   300,
+   600
+  ],
+  "fire-force-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "fire-force-symbol-01": [
+   300,
+   600
+  ],
+  "frieren-beyond-journey-s-end-prop-01": [
+   300,
+   600
+  ],
+  "frieren-beyond-journey-s-end-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "frieren-beyond-journey-s-end-symbol-01": [
+   300,
+   600
+  ],
+  "fullmetal-alchemist-prop-01": [
+   300,
+   600
+  ],
+  "fullmetal-alchemist-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "fullmetal-alchemist-symbol-01": [
+   300,
+   600
+  ],
+  "fumetsu-no-anata-e-prop-01": [
+   300,
+   600
+  ],
+  "fumetsu-no-anata-e-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "fumetsu-no-anata-e-symbol-01": [
+   300,
+   600
+  ],
+  "gachiakuta-prop-01": [
+   300,
+   600
+  ],
+  "gachiakuta-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "gachiakuta-symbol-01": [
+   300,
+   600
+  ],
+  "generic-error-rain-refresh": [
+   480,
+   768,
+   1280
+  ],
+  "gintama-prop-01": [
+   300,
+   600
+  ],
+  "gintama-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "gintama-symbol-01": [
+   300,
+   600
+  ],
+  "gurren-lagann-prop-01": [
+   300,
+   600
+  ],
+  "gurren-lagann-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "gurren-lagann-symbol-01": [
+   300,
+   600
+  ],
+  "haikyuu-prop-01": [
+   300,
+   600
+  ],
+  "haikyuu-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "haikyuu-symbol-01": [
+   300,
+   600
+  ],
+  "hellsing-prop-01": [
+   300,
+   600
+  ],
+  "hellsing-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "hellsing-symbol-01": [
+   300,
+   600
+  ],
+  "high-school-dxd-prop-01": [
+   300,
+   600
+  ],
+  "high-school-dxd-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "high-school-dxd-symbol-01": [
+   300,
+   600
+  ],
+  "himouto-umaru-chan-prop-01": [
+   300,
+   600
+  ],
+  "himouto-umaru-chan-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "himouto-umaru-chan-symbol-01": [
+   300,
+   600
+  ],
+  "home-hero-vote-arena": [
+   480,
+   768,
+   1280
+  ],
+  "hunter-x-hunter-prop-01": [
+   300,
+   600
+  ],
+  "hunter-x-hunter-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "hunter-x-hunter-symbol-01": [
+   300,
+   600
+  ],
+  "hyouka-prop-01": [
+   300,
+   600
+  ],
+  "hyouka-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "hyouka-symbol-01": [
+   300,
+   600
+  ],
+  "impostor-perfect-share": [
+   300,
+   600
+  ],
+  "impostor-trial-background": [
+   480,
+   768,
+   1280
+  ],
+  "impostor-trial-cover": [
+   480,
+   768,
+   1280
+  ],
+  "impostor-trial-result-card": [
+   300,
+   600
+  ],
+  "inazuma-eleven-prop-01": [
+   300,
+   600
+  ],
+  "inazuma-eleven-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "inazuma-eleven-symbol-01": [
+   300,
+   600
+  ],
+  "inuyasha-prop-01": [
+   300,
+   600
+  ],
+  "inuyasha-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "inuyasha-symbol-01": [
+   300,
+   600
+  ],
+  "jujutsu-kaisen-prop-01": [
+   300,
+   600
+  ],
+  "jujutsu-kaisen-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "jujutsu-kaisen-symbol-01": [
+   300,
+   600
+  ],
+  "kaguya-sama-love-is-war-prop-01": [
+   300,
+   600
+  ],
+  "kaguya-sama-love-is-war-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "kaguya-sama-love-is-war-symbol-01": [
+   300,
+   600
+  ],
+  "kakegurui-prop-01": [
+   300,
+   600
+  ],
+  "kakegurui-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "kakegurui-symbol-01": [
+   300,
+   600
+  ],
+  "kaoru-hana-wa-rin-to-saku-prop-01": [
+   300,
+   600
+  ],
+  "kaoru-hana-wa-rin-to-saku-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "kaoru-hana-wa-rin-to-saku-symbol-01": [
+   300,
+   600
+  ],
+  "kill-la-kill-prop-01": [
+   300,
+   600
+  ],
+  "kill-la-kill-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "kill-la-kill-symbol-01": [
+   300,
+   600
+  ],
+  "kimi-no-suizou-wo-tabetai-prop-01": [
+   300,
+   600
+  ],
+  "kimi-no-suizou-wo-tabetai-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "kimi-no-suizou-wo-tabetai-symbol-01": [
+   300,
+   600
+  ],
+  "kobayashi-san-chi-no-maidragon-prop-01": [
+   300,
+   600
+  ],
+  "kobayashi-san-chi-no-maidragon-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "kobayashi-san-chi-no-maidragon-symbol-01": [
+   300,
+   600
+  ],
+  "koe-no-katachi-prop-01": [
+   300,
+   600
+  ],
+  "koe-no-katachi-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "koe-no-katachi-symbol-01": [
+   300,
+   600
+  ],
+  "komi-san-wa-komyushou-desu-prop-01": [
+   300,
+   600
+  ],
+  "komi-san-wa-komyushou-desu-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "komi-san-wa-komyushou-desu-symbol-01": [
+   300,
+   600
+  ],
+  "konosuba-prop-01": [
+   300,
+   600
+  ],
+  "konosuba-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "konosuba-symbol-01": [
+   300,
+   600
+  ],
+  "log-horizon-prop-01": [
+   300,
+   600
+  ],
+  "log-horizon-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "log-horizon-symbol-01": [
+   300,
+   600
+  ],
+  "logros-trophy-hall": [
+   480,
+   768,
+   1280
+  ],
+  "lost-portal": [
+   480,
+   768,
+   1280
+  ],
+  "made-in-abyss-prop-01": [
+   300,
+   600
+  ],
+  "made-in-abyss-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "made-in-abyss-symbol-01": [
+   300,
+   600
+  ],
+  "madoka-magica-prop-01": [
+   300,
+   600
+  ],
+  "madoka-magica-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "madoka-magica-symbol-01": [
+   300,
+   600
+  ],
+  "mazinger-z-prop-01": [
+   300,
+   600
+  ],
+  "mazinger-z-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "mazinger-z-symbol-01": [
+   300,
+   600
+  ],
+  "mirai-nikki-prop-01": [
+   300,
+   600
+  ],
+  "mirai-nikki-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "mirai-nikki-symbol-01": [
+   300,
+   600
+  ],
+  "mob-psycho-100-prop-01": [
+   300,
+   600
+  ],
+  "mob-psycho-100-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "mob-psycho-100-symbol-01": [
+   300,
+   600
+  ],
+  "monogatari-series-prop-01": [
+   300,
+   600
+  ],
+  "monogatari-series-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "monogatari-series-symbol-01": [
+   300,
+   600
+  ],
+  "monster-prop-01": [
+   300,
+   600
+  ],
+  "monster-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "monster-symbol-01": [
+   300,
+   600
+  ],
+  "mushishi-prop-01": [
+   300,
+   600
+  ],
+  "mushishi-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "mushishi-symbol-01": [
+   300,
+   600
+  ],
+  "mushoku-tensei-prop-01": [
+   300,
+   600
+  ],
+  "mushoku-tensei-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "mushoku-tensei-symbol-01": [
+   300,
+   600
+  ],
+  "my-dress-up-darling-prop-01": [
+   300,
+   600
+  ],
+  "my-dress-up-darling-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "my-dress-up-darling-symbol-01": [
+   300,
+   600
+  ],
+  "my-hero-academia-prop-01": [
+   300,
+   600
+  ],
+  "my-hero-academia-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "my-hero-academia-symbol-01": [
+   300,
+   600
+  ],
+  "naruto-prop-01": [
+   300,
+   600
+  ],
+  "naruto-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "naruto-symbol-01": [
+   300,
+   600
+  ],
+  "neon-genesis-evangelion-prop-01": [
+   300,
+   600
+  ],
+  "neon-genesis-evangelion-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "neon-genesis-evangelion-symbol-01": [
+   300,
+   600
+  ],
+  "nexo-anime-background": [
+   480,
+   768,
+   1280
+  ],
+  "nexo-anime-cover": [
+   480,
+   768,
+   1280
+  ],
+  "nexo-anime-result-card": [
+   300,
+   600
+  ],
+  "nexo-complete-share": [
+   300,
+   600
+  ],
+  "nisekoi-prop-01": [
+   300,
+   600
+  ],
+  "nisekoi-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "nisekoi-symbol-01": [
+   300,
+   600
+  ],
+  "no-duels-open-refresh": [
+   480,
+   768,
+   1280
+  ],
+  "no-game-no-life-prop-01": [
+   300,
+   600
+  ],
+  "no-game-no-life-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "no-game-no-life-symbol-01": [
+   300,
+   600
+  ],
+  "omikuji-background": [
+   480,
+   768,
+   1280
+  ],
+  "omikuji-cover": [
+   480,
+   768,
+   1280
+  ],
+  "omikuji-result-card": [
+   300,
+   600
+  ],
+  "one-piece-prop-01": [
+   300,
+   600
+  ],
+  "one-piece-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "one-piece-symbol-01": [
+   300,
+   600
+  ],
+  "one-punch-man-prop-01": [
+   300,
+   600
+  ],
+  "one-punch-man-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "one-punch-man-symbol-01": [
+   300,
+   600
+  ],
+  "oraculo-background": [
+   480,
+   768,
+   1280
+  ],
+  "oraculo-cover": [
+   480,
+   768,
+   1280
+  ],
+  "oraculo-result-card": [
+   300,
+   600
+  ],
+  "oraculo-result-share": [
+   300,
+   600
+  ],
+  "oreimo-prop-01": [
+   300,
+   600
+  ],
+  "oreimo-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "oreimo-symbol-01": [
+   300,
+   600
+  ],
+  "oshi-no-ko-prop-01": [
+   300,
+   600
+  ],
+  "oshi-no-ko-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "oshi-no-ko-symbol-01": [
+   300,
+   600
+  ],
+  "overlord-prop-01": [
+   300,
+   600
+  ],
+  "overlord-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "overlord-symbol-01": [
+   300,
+   600
+  ],
+  "parasyte-prop-01": [
+   300,
+   600
+  ],
+  "parasyte-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "parasyte-symbol-01": [
+   300,
+   600
+  ],
+  "perfect-clear-share": [
+   300,
+   600
+  ],
+  "perfil-hero-dojo": [
+   480,
+   768,
+   1280
+  ],
+  "personajes-archive": [
+   480,
+   768,
+   1280
+  ],
+  "pokemon-prop-01": [
+   300,
+   600
+  ],
+  "pokemon-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "pokemon-symbol-01": [
+   300,
+   600
+  ],
+  "prison-school-prop-01": [
+   300,
+   600
+  ],
+  "prison-school-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "prison-school-symbol-01": [
+   300,
+   600
+  ],
+  "pvp-live-arena-refresh": [
+   480,
+   768,
+   1280
+  ],
+  "pvp-no-session": [
+   480,
+   768,
+   1280
+  ],
+  "pvp-victory-share": [
+   480,
+   768
+  ],
+  "ranking-podium": [
+   480,
+   768,
+   1280
+  ],
+  "ranking-top-share": [
+   300,
+   600
+  ],
+  "re-zero-prop-01": [
+   300,
+   600
+  ],
+  "re-zero-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "re-zero-symbol-01": [
+   300,
+   600
+  ],
+  "sakurasou-no-pet-na-kanojo-prop-01": [
+   300,
+   600
+  ],
+  "sakurasou-no-pet-na-kanojo-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "sakurasou-no-pet-na-kanojo-symbol-01": [
+   300,
+   600
+  ],
+  "serial-experiments-lain-prop-01": [
+   300,
+   600
+  ],
+  "serial-experiments-lain-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "serial-experiments-lain-symbol-01": [
+   300,
+   600
+  ],
+  "shadow-guess-background": [
+   480,
+   768,
+   1280
+  ],
+  "shadow-guess-cover": [
+   480,
+   768,
+   1280
+  ],
+  "shadow-guess-result-card": [
+   300,
+   600
+  ],
+  "solo-leveling-prop-01": [
+   300,
+   600
+  ],
+  "solo-leveling-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "solo-leveling-symbol-01": [
+   300,
+   600
+  ],
+  "soul-eater-prop-01": [
+   300,
+   600
+  ],
+  "soul-eater-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "soul-eater-symbol-01": [
+   300,
+   600
+  ],
+  "spy-family-prop-01": [
+   300,
+   600
+  ],
+  "spy-family-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "spy-family-symbol-01": [
+   300,
+   600
+  ],
+  "steins-gate-prop-01": [
+   300,
+   600
+  ],
+  "steins-gate-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "steins-gate-symbol-01": [
+   300,
+   600
+  ],
+  "sword-art-online-prop-01": [
+   300,
+   600
+  ],
+  "sword-art-online-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "sword-art-online-symbol-01": [
+   300,
+   600
+  ],
+  "the-angel-next-door-spoils-me-rotten-prop-01": [
+   300,
+   600
+  ],
+  "the-angel-next-door-spoils-me-rotten-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "the-angel-next-door-spoils-me-rotten-symbol-01": [
+   300,
+   600
+  ],
+  "the-promised-neverland-prop-01": [
+   300,
+   600
+  ],
+  "the-promised-neverland-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "the-promised-neverland-symbol-01": [
+   300,
+   600
+  ],
+  "tokyo-ghoul-prop-01": [
+   300,
+   600
+  ],
+  "tokyo-ghoul-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "tokyo-ghoul-symbol-01": [
+   300,
+   600
+  ],
+  "toradora-prop-01": [
+   300,
+   600
+  ],
+  "toradora-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "toradora-symbol-01": [
+   300,
+   600
+  ],
+  "tower-of-god-prop-01": [
+   300,
+   600
+  ],
+  "tower-of-god-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "tower-of-god-symbol-01": [
+   300,
+   600
+  ],
+  "uma-musume-prop-01": [
+   300,
+   600
+  ],
+  "uma-musume-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "uma-musume-symbol-01": [
+   300,
+   600
+  ],
+  "vinland-saga-prop-01": [
+   300,
+   600
+  ],
+  "vinland-saga-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "vinland-saga-symbol-01": [
+   300,
+   600
+  ],
+  "violet-evergarden-prop-01": [
+   300,
+   600
+  ],
+  "violet-evergarden-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "violet-evergarden-symbol-01": [
+   300,
+   600
+  ],
+  "vocaloid-prop-01": [
+   300,
+   600
+  ],
+  "vocaloid-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "vocaloid-symbol-01": [
+   300,
+   600
+  ],
+  "vote-arena-refresh": [
+   480,
+   768,
+   1280
+  ],
+  "vote-streak-share": [
+   300,
+   600
+  ],
+  "your-lie-in-april-prop-01": [
+   300,
+   600
+  ],
+  "your-lie-in-april-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "your-lie-in-april-symbol-01": [
+   300,
+   600
+  ],
+  "your-name-prop-01": [
+   300,
+   600
+  ],
+  "your-name-scene-01": [
+   480,
+   768,
+   1280
+  ],
+  "your-name-symbol-01": [
+   300,
+   600
+  ]
+ }
+}

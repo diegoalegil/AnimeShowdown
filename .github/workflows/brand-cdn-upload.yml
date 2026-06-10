@@ -1,0 +1,82 @@
+name: Brand assets → CDN
+
+# Sube al CDN (R2) tandas de assets de marca que NO viven en git: la fuente
+# es un tarball adjunto a una GitHub Release (p.ej. brand-assets-v1). Así el
+# repo no carga con cientos de MB de arte y el bucket queda como única
+# verdad servida por assets.animeshowdown.dev.
+#
+# El tarball debe contener un directorio raíz `img/` cuya estructura replica
+# el prefijo del bucket: img/brand/<archivo>.webp → /img/brand/<archivo>.webp.
+# El sync es idempotente (hash sha256 por objeto): relanzarlo solo sube lo
+# que falte o haya cambiado.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag de la release con el tarball de assets"
+        required: true
+        default: "brand-assets-v1"
+      apply:
+        description: "Subir de verdad a R2. Si false, solo plan."
+        required: true
+        type: choice
+        default: "false"
+        options:
+          - "false"
+          - "true"
+
+concurrency:
+  group: brand-cdn-upload
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    name: Download release + sync to CDN
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Node 22 LTS
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Download release tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${{ inputs.release_tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "*.tar.gz" \
+            --dir /tmp/brand-release
+          mkdir -p /tmp/brand-assets
+          tar -xzf /tmp/brand-release/*.tar.gz -C /tmp/brand-assets
+          if [ ! -d /tmp/brand-assets/img ]; then
+            echo "::error::El tarball no contiene el directorio raíz img/"
+            exit 1
+          fi
+          echo "Archivos extraídos: $(find /tmp/brand-assets/img -type f | wc -l)"
+
+      - name: Plan
+        env:
+          SYNC_IMG_SOURCE_DIR: /tmp/brand-assets/img
+          ANIMESHOWDOWN_IMG_CDN_BASE_URL: ${{ secrets.ANIMESHOWDOWN_IMG_CDN_BASE_URL || 'https://assets.animeshowdown.dev/img' }}
+        run: node scripts/sync-img-cdn.mjs --plan
+
+      - name: Apply sync to CDN
+        if: ${{ inputs.apply == 'true' }}
+        env:
+          SYNC_IMG_SOURCE_DIR: /tmp/brand-assets/img
+          ANIMESHOWDOWN_IMG_CDN_BASE_URL: ${{ secrets.ANIMESHOWDOWN_IMG_CDN_BASE_URL || 'https://assets.animeshowdown.dev/img' }}
+          R2_IMG_ENDPOINT: ${{ secrets.R2_IMG_ENDPOINT }}
+          R2_IMG_ACCESS_KEY_ID: ${{ secrets.R2_IMG_ACCESS_KEY_ID }}
+          R2_IMG_SECRET_ACCESS_KEY: ${{ secrets.R2_IMG_SECRET_ACCESS_KEY }}
+          R2_IMG_BUCKET: ${{ secrets.R2_IMG_BUCKET }}
+          R2_IMG_PREFIX: ${{ secrets.R2_IMG_PREFIX || 'img' }}
+        run: node scripts/sync-img-cdn.mjs --apply
