@@ -7,10 +7,16 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(__dirname, '..')
-const sources = [
-  resolve(repoRoot, 'frontend/img'),
-  resolve(repoRoot, 'frontend/public/img'),
-]
+// SYNC_IMG_SOURCE_DIR: fuente alternativa para tandas que NO viven en git
+// (p.ej. el banco de assets de marca, que llega vía GitHub Release y sube
+// con el workflow brand-cdn-upload). El directorio replica la estructura
+// del prefijo destino: <SOURCE_DIR>/brand/... → <bucket>/img/brand/...
+const sources = process.env.SYNC_IMG_SOURCE_DIR
+  ? [resolve(process.env.SYNC_IMG_SOURCE_DIR)]
+  : [
+      resolve(repoRoot, 'frontend/img'),
+      resolve(repoRoot, 'frontend/public/img'),
+    ]
 const baseExtensions = ['.webp', '.png', '.jpg', '.jpeg', '.gif', '.svg']
 const includeAvif =
   process.argv.includes('--include-avif') ||
