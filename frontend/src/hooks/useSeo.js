@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { API_BASE } from '../lib/api'
 
 /**
  * Hook para set de meta tags por ruta.
@@ -104,6 +105,12 @@ function absolutizar(src) {
     src.startsWith('blob:')
   ) {
     return src
+  }
+  // Las imágenes OG dinámicas las sirve el API, no el front: con SITIO
+  // (animeshowdown.dev) devuelven 404 — el dominio del front no expone /api.
+  // Hay que absolutizarlas contra API_BASE (api.animeshowdown.dev).
+  if (src.startsWith('/api/')) {
+    return `${API_BASE}${src}`
   }
   return `${SITIO}${src.startsWith('/') ? '' : '/'}${src}`
 }

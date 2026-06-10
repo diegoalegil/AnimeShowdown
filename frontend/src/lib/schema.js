@@ -20,11 +20,16 @@
  * </ul>
  */
 
+import { API_BASE } from './api'
+
 const SITIO = 'https://animeshowdown.dev'
 
 function abs(path) {
   if (!path) return undefined
   if (path.startsWith('http://') || path.startsWith('https://')) return path
+  // Las imágenes OG dinámicas las sirve el API (api.animeshowdown.dev), no el
+  // dominio del front: con SITIO devuelven 404 en el JSON-LD social.
+  if (path.startsWith('/api/')) return `${API_BASE}${path}`
   return `${SITIO}${path.startsWith('/') ? '' : '/'}${path}`
 }
 
@@ -317,7 +322,9 @@ export function torneoSchema(torneo, competidores = [], options = {}) {
 export function eventoSchema(evento, participantes = [], options = {}) {
   if (!evento) return null
   const url = abs(`/eventos/${evento.slug}`)
-  const image = abs(options.image || `/api/og/evento/${evento.slug}.png`)
+  // No existe endpoint OG para eventos (/api/og/evento/* devuelve 500): usar la
+  // imagen explícita si la hay, o el logo de marca como fallback estable.
+  const image = abs(options.image || '/logo.webp')
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Event',

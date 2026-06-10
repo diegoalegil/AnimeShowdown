@@ -56,7 +56,7 @@ const staticRoutes = [
     path: '/',
     title: 'AnimeShowdown — Torneos de personajes de anime',
     description:
-      'Mas de 1000 personajes anime, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el meta cada semana.',
+      'Más de 1000 personajes anime, ranking ELO en directo y brackets visuales. Vota a tus favoritos y mueve el meta cada semana.',
     jsonLd: [
       webSiteSchema(),
       webPageSchema('/', 'AnimeShowdown', 'Plataforma de duelos, rankings ELO y torneos anime.'),
