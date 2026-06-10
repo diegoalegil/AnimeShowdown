@@ -76,6 +76,16 @@ export function normalizarCatalogoPersonajes(catalogo: unknown): PersonajeLite[]
 // vuelve a intentar el load del src correcto.
 export const CATALOGO_PERSONAJES_HYDRATED_EVENT = 'animeshowdown:catalogo-personajes-hidratado'
 
+// Índice slug→personaje del snapshot: getPersonajeBySlug/imagenPersonaje se
+// llaman por card y por render (PersonajeImg) — un .find() lineal sobre 1086
+// eran ~65K comparaciones por render de un grid de 60.
+const personajesPorSlug = new Map<string, PersonajeLite>()
+
+function reconstruirIndicePorSlug() {
+  personajesPorSlug.clear()
+  for (const p of personajes) personajesPorSlug.set(p.slug, p)
+}
+
 export function syncCatalogoPersonajes(catalogo: unknown): PersonajeLite[] {
   const normalizado = normalizarCatalogoPersonajes(catalogo)
   if (normalizado.length === 0) return personajes
@@ -83,6 +93,7 @@ export function syncCatalogoPersonajes(catalogo: unknown): PersonajeLite[] {
     personajes.length !== normalizado.length ||
     personajes.some((p, i) => p.slug !== normalizado[i]?.slug || p.imagenUrl !== normalizado[i]?.imagenUrl)
   personajes.splice(0, personajes.length, ...normalizado)
+  reconstruirIndicePorSlug()
   if (cambiado && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(CATALOGO_PERSONAJES_HYDRATED_EVENT))
   }
@@ -114,14 +125,16 @@ readCatalogoPersonajesSnapshot()
 export const MISSING_IMAGE_PREFIX = '/img/_missing/'
 
 export function imagenPersonaje(slug: string): string {
-  const canonical = canonicalPersonajeSlug(slug)
-  const fromCache = readCatalogoPersonajesSnapshot().find((p) => p.slug === canonical)
-  return versionarImagenSiHaceFalta(fromCache?.imagenUrl ?? `${MISSING_IMAGE_PREFIX}${canonical}.webp`)
+  const fromCache = getPersonajeBySlug(slug)
+  return versionarImagenSiHaceFalta(
+    fromCache?.imagenUrl ?? `${MISSING_IMAGE_PREFIX}${canonicalPersonajeSlug(slug)}.webp`,
+  )
 }
 
 export function getPersonajeBySlug(slug: string): PersonajeLite | null {
   const canonical = canonicalPersonajeSlug(slug)
-  return readCatalogoPersonajesSnapshot().find((p) => p.slug === canonical) ?? null
+  readCatalogoPersonajesSnapshot()
+  return personajesPorSlug.get(canonical) ?? null
 }
 
 export function getIndicePersonaje(slug: string): number {
