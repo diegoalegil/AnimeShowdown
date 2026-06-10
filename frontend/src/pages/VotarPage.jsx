@@ -20,7 +20,10 @@ import { recordDailyShare } from '../lib/dailyProgress'
 import { shareOrCopy } from '../lib/share'
 import { shareWithToast } from '../lib/shareWithToast'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
+import HeadToHeadBar from '../features/votar/components/HeadToHeadBar'
+import MobileExtrasToggle from '../features/votar/components/MobileExtrasToggle'
 import SessionRecap from '../features/votar/components/SessionRecap'
+import VotarShortcutsFooter from '../features/votar/components/VotarShortcutsFooter'
 import VoteArena from '../features/votar/components/VoteArena'
 import { useMisEspeciales } from '../hooks/useCartas'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
@@ -78,86 +81,6 @@ const NEXT_DELAY_MS = 900
 function hasPrefetchReadyOrRunning(queryClient, queryKey) {
   const state = queryClient.getQueryState(queryKey)
   return state?.fetchStatus === 'fetching' || queryClient.getQueryData(queryKey) != null
-}
-
-/**
- * Barra split cabeza-a-cabeza con porcentajes: resalta mayoría (ganador)
- * y minoría (perdedor). Se muestra solo cuando el backend devuelve ambos
- * totales de votos.
- */
-function HeadToHeadBar({ ganadorNombre, perdedorNombre, votosGanador, votosPerdedor }) {
-  const total = votosGanador + votosPerdedor
-  if (total <= 0) return null
-  const pctGanador = Math.round((votosGanador / total) * 100)
-  const pctPerdedor = 100 - pctGanador
-  const esCercano = pctGanador < 60 // consideramos "polémico" si el ganador tiene < 60%
-  return (
-    <div className="mt-2 w-full">
-      <div className="mb-1 flex justify-between text-[11px] font-black">
-        <span className="text-fg-strong">{ganadorNombre}</span>
-        <span className="text-fg-muted">{perdedorNombre}</span>
-      </div>
-      <div className="relative flex h-2.5 w-full overflow-hidden rounded-full bg-border">
-        <div
-          className="h-full rounded-l-full bg-accent transition-all duration-500"
-          style={{ width: `${pctGanador}%` }}
-        />
-      </div>
-      <div className="mt-1 flex justify-between text-[11px] font-semibold">
-        <span className="text-danger">{pctGanador}%</span>
-        {esCercano && (
-          <span className="text-center text-[10px] font-bold text-fg-muted">
-            ¡Duelo reñido!
-          </span>
-        )}
-        <span className="text-fg-muted">{pctPerdedor}%</span>
-      </div>
-    </div>
-  )
-}
-
-/**
- * MobileExtrasToggle — visible solo en móvil (sm:hidden).
- * Muestra un botón compacto que expande/contrae VotarQuickModes y
- * DailyMissionPanel para que la arena + resultado quepan sin scroll.
- */
-function MobileExtrasToggle({
-  a,
-  b,
-  fixedAnime,
-  fixedPersonaje,
-  exactDuelActive,
-  hasFixedAnime,
-  blindMode,
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="sm:hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-fg-strong"
-        aria-expanded={open}
-      >
-        <span>{open ? 'Ocultar opciones' : 'Más opciones'}</span>
-        <span aria-hidden="true" className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▾</span>
-      </button>
-      {open && (
-        <div className="mt-2 flex flex-col gap-2">
-          <VotarQuickModes
-            a={a}
-            b={b}
-            fixedAnime={fixedAnime}
-            fixedPersonaje={fixedPersonaje}
-            hasFixedDuel={exactDuelActive}
-            hasFixedAnime={hasFixedAnime}
-            blindMode={blindMode}
-          />
-          <DailyMissionPanel compact />
-        </div>
-      )}
-    </div>
-  )
 }
 
 function VotarPage() {
@@ -1225,41 +1148,7 @@ function VotarPage() {
           blindMode={identitiesHidden}
         />
 
-        {/* Atajos + (en sin matches) link a torneos */}
-        <div className="flex flex-col items-center gap-2">
-          <p className="hidden text-[11px] text-fg-muted sm:block">
-            Atajos:{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-              ←
-            </kbd>{' '}
-            izquierda ·{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-              →
-            </kbd>{' '}
-            derecha ·{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-              S
-            </kbd>{' '}
-            saltar
-            {votedFor && (
-              <>
-                {' '}·{' '}
-                <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-                  Espacio
-                </kbd>{' '}
-                siguiente
-              </>
-            )}
-          </p>
-          {sinMatchesAbiertos && (
-            <Link
-              to="/torneos"
-              className="text-[12px] text-gold hover:underline"
-            >
-              Ver torneos disponibles →
-            </Link>
-          )}
-        </div>
+        <VotarShortcutsFooter votedFor={votedFor} sinMatchesAbiertos={sinMatchesAbiertos} />
         <AnonVoteLimitModal
           open={showAnonLimitModal}
           onClose={() => setShowAnonLimitModal(false)}
