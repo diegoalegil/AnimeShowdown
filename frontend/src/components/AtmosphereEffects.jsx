@@ -695,6 +695,17 @@ export function AtmospherePreset({ preset }) {
           <KanjiRain density="low" />
         </>
       )
+    case 'forest':
+      // Niebla baja + luciérnagas ámbar = bosque nocturno. Las identidades
+      // con theme 'emerald' (Aoashi, Black Clover, …) declaraban esta
+      // atmósfera y el case no existía → 10 series renderizaban sin
+      // atmósfera en silencio (default: null).
+      return (
+        <>
+          <MistDrift tone="cold" intensity="soft" />
+          <Embers tone="amber" density="low" />
+        </>
+      )
     case 'archive':
       return <ConstellationNetwork tone="gold" density="normal" />
     case 'tribute':

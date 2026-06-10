@@ -1,5 +1,6 @@
 import { VISUAL_ASSET_PATHS } from './visual-assets-manifest'
 import { getAnimeIdentity } from './anime-identities'
+import { brandImage } from '../lib/brand-assets'
 
 /**
  * Registro visual de AnimeShowdown.
@@ -107,9 +108,20 @@ function makeVisual({
   glow,
   glowRgb,
   atmosphere,
+  // Banco de marca en CDN (lib/brand-assets): nombre del asset (sin .webp).
+  // Por defecto rellena huecos (solo si no hay arte local para expectedPath);
+  // con cdnFirst el banco MANDA sobre el arte local — para los slots que el
+  // banco regeneró a propósito (los *-refresh, auth premium, heroes nuevos).
+  // brandImage() devuelve null si el nombre no está en el manifest → la
+  // cascada local/procedural queda intacta.
+  cdn = null,
+  cdnFirst = false,
 }) {
   const p = palette(paletteSeed)
-  const resolvedImage = image ?? resolveAsset(expectedPath) ?? fallbackImage
+  const localImage = image ?? resolveAsset(expectedPath)
+  const cdnCandidate = cdn ? brandImage(cdn) : null
+  const cdnImage = cdnCandidate && (cdnFirst || !localImage) ? cdnCandidate : null
+  const resolvedImage = cdnImage?.src ?? localImage ?? fallbackImage
   const resolvedShellImage =
     shellImage ?? (shellExpectedPath ? resolveAsset(shellExpectedPath) : null)
   return {
@@ -121,8 +133,11 @@ function makeVisual({
     // Srcset responsive (AVIF preferido, WebP fallback) para que <picture>
     // sirva 480/768/1280 según viewport en vez del original 1600. null si el
     // asset no tiene variantes (shells, fallbacks) → se usa solo `image`.
-    imageAvifSrcset: buildVariantSrcset(resolvedImage, 'avif'),
-    imageWebpSrcset: buildVariantSrcset(resolvedImage, 'webp'),
+    // El banco CDN es WebP-only: su srcSet viaja como webp y AVIF queda null.
+    imageAvifSrcset: cdnImage ? null : buildVariantSrcset(resolvedImage, 'avif'),
+    imageWebpSrcset: cdnImage
+      ? cdnImage.srcSet ?? null
+      : buildVariantSrcset(resolvedImage, 'webp'),
     shellImage: resolvedShellImage,
     shellObjectPosition,
     shellOpacity,
@@ -977,6 +992,8 @@ export const GAME_VISUALS = {
     kanji: '影',
     fallbackImage: STAGE.shadow,
     expectedPath: '/assets/game-covers/shadow-guess-v2.webp',
+    cdn: 'shadow-guess-cover',
+    cdnFirst: true,
     mood: 'silueta, luna carmesí, kanji y misterio',
     objectPosition: 'right center',
     accent: '#9f1d2c',
@@ -989,6 +1006,8 @@ export const GAME_VISUALS = {
     kanji: '謎',
     fallbackImage: STAGE.reveal,
     expectedPath: '/assets/game-covers/anime-reveal.webp',
+    cdn: 'anime-reveal-cover',
+    cdnFirst: true,
     mood: 'personaje borroso, distorsión y revelación',
     objectPosition: 'center',
     accent: '#8a5a16',
@@ -1001,6 +1020,8 @@ export const GAME_VISUALS = {
     kanji: '格',
     fallbackImage: STAGE.anigrid,
     expectedPath: '/assets/game-covers/anigrid.webp',
+    cdn: 'anigrid-cover',
+    cdnFirst: true,
     mood: 'cuadrícula lógica, pistas y teal tecnológico',
     objectPosition: 'center',
     accent: '#1f6b83',
@@ -1015,6 +1036,8 @@ export const GAME_VISUALS = {
     kanji: '裏',
     fallbackImage: STAGE.impostor,
     expectedPath: '/assets/game-covers/impostor-trial.webp',
+    cdn: 'impostor-trial-cover',
+    cdnFirst: true,
     mood: 'juicio oscuro, cuatro siluetas y una aura distinta',
     objectPosition: 'center',
     accent: '#4b327f',
@@ -1027,6 +1050,8 @@ export const GAME_VISUALS = {
     kanji: '戦',
     fallbackImage: STAGE.duel,
     expectedPath: '/assets/game-covers/elo-duel.webp',
+    cdn: 'elo-duel-cover',
+    cdnFirst: true,
     mood: 'VS, arena oscura y energía dividida',
     objectPosition: 'center',
     accent: '#9f1d2c',
@@ -1041,6 +1066,8 @@ export const GAME_VISUALS = {
     kanji: '心',
     fallbackImage: STAGE.games,
     expectedPath: '/assets/game-covers/oraculo.webp',
+    cdn: 'oraculo-cover',
+    cdnFirst: true,
     mood: 'preguntas, aura mental y decision tactica',
     objectPosition: 'center',
   }),
@@ -1051,6 +1078,8 @@ export const GAME_VISUALS = {
     kanji: '結',
     fallbackImage: STAGE.games,
     expectedPath: '/assets/game-covers/nexo-anime.webp',
+    cdn: 'nexo-anime-cover',
+    cdnFirst: true,
     mood: 'cartas conectadas, tablero y lineas de universo',
     objectPosition: 'center',
   }),
@@ -1061,6 +1090,8 @@ export const GAME_VISUALS = {
     kanji: '吉',
     fallbackImage: STAGE.omikuji,
     expectedPath: '/assets/game-covers/omikuji.webp',
+    cdn: 'omikuji-cover',
+    cdnFirst: true,
     mood: 'santuario nocturno, torii, papel y fortuna',
     objectPosition: 'center',
     accent: '#c5a15a',
@@ -1077,6 +1108,8 @@ export const BRAND_VISUALS = {
     kanji: '決',
     fallbackImage: STAGE.home,
     expectedPath: '/assets/brand/backgrounds/home-hero.webp',
+    cdn: 'home-hero-vote-arena',
+    cdnFirst: true,
     mood: 'arena nocturna, logo de torneo, energía y ciudad',
     objectPosition: 'center',
   }),
@@ -1098,6 +1131,8 @@ export const BRAND_VISUALS = {
     kanji: '冠',
     fallbackImage: STAGE.ranking,
     expectedPath: '/assets/brand/backgrounds/ranking-hero.webp',
+    cdn: 'ranking-podium',
+    cdnFirst: true,
     // shellImage tiene haz dorado central muy intenso — bajamos opacity
     // para que respire y no sature visualmente.
     shellOpacity: 0.4,
@@ -1130,6 +1165,8 @@ export const BRAND_VISUALS = {
     kanji: '人',
     fallbackImage: STAGE.animes,
     expectedPath: '/assets/brand/backgrounds/personajes-hero.webp',
+    cdn: 'personajes-archive',
+    cdnFirst: true,
     mood: 'archivo de combatientes, fichas y tarjetas de personaje',
     objectPosition: 'center',
     accent: '#8a5a16',
@@ -1187,6 +1224,8 @@ export const BRAND_VISUALS = {
     kanji: '入',
     fallbackImage: STAGE.home,
     expectedPath: '/assets/brand/backgrounds/auth-login.webp',
+    cdn: 'auth-login-premium',
+    cdnFirst: true,
     mood: 'torii con lanternas en la lluvia, umbral hacia el mundo del torneo',
     objectPosition: 'center',
     accent: '#c5a15a',
@@ -1202,6 +1241,8 @@ export const BRAND_VISUALS = {
     kanji: '名',
     fallbackImage: STAGE.home,
     expectedPath: '/assets/brand/backgrounds/auth-register.webp',
+    cdn: 'auth-register-premium',
+    cdnFirst: true,
     mood: 'pergamino de combatientes, brush de tinta dorada, máscara y escudo',
     objectPosition: 'center',
     accent: '#c5a15a',
@@ -1215,6 +1256,8 @@ export const BRAND_VISUALS = {
     kanji: '我',
     fallbackImage: STAGE.home,
     expectedPath: '/assets/brand/backgrounds/perfil-hero.webp',
+    cdn: 'perfil-hero-dojo',
+    cdnFirst: true,
     mood: 'dojo nocturno con shoji, katana en stand y jardín de nieve',
     objectPosition: 'center',
     accent: '#8a5a16',
@@ -1228,6 +1271,8 @@ export const BRAND_VISUALS = {
     kanji: '勲',
     fallbackImage: STAGE.ranking,
     expectedPath: '/assets/brand/backgrounds/logros-hero.webp',
+    cdn: 'logros-trophy-hall',
+    cdnFirst: true,
     mood: 'corredor de trofeos, medallas, kanji 勲章 en pilares',
     objectPosition: 'center',
     accent: '#c5a15a',
@@ -1256,6 +1301,8 @@ export const BRAND_VISUALS = {
     atmosphere: 'arena-storm',
     fallbackImage: STAGE.error,
     expectedPath: '/assets/error-scenes/rainy-rooftop.webp',
+    cdn: 'generic-error-rain-refresh',
+    cdnFirst: true,
     mood: 'figura encapuchada en azotea bajo lluvia, neon distante difuminado',
     objectPosition: '50% center',
   }),
@@ -1267,6 +1314,8 @@ export const BRAND_VISUALS = {
     atmosphere: 'arena',
     fallbackImage: STAGE.error,
     expectedPath: '/assets/empty-states/quiet-arena.webp',
+    cdn: 'empty-ranking-arena-refresh',
+    cdnFirst: true,
     mood: 'arena vacia al atardecer, polvo flotando, banderines crimson quietos',
     objectPosition: 'center',
   }),
@@ -1283,6 +1332,7 @@ export function getAnimeVisual(slug, anime = slug) {
     kanji: identity.kanji,
     fallbackImage: STAGE.animes,
     expectedPath: `/assets/anime-banners/${assetSlug}.webp`,
+    cdn: `${slug}-scene-01`,
     paletteSeed: slug,
     accentRgb: identity.accentRgb,
     glowRgb: identity.glowRgb,

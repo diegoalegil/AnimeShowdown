@@ -142,7 +142,7 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
     : ''
 
   return (
-    <section className="as-stage as-stage-purple as-stage-visual px-5 py-10 sm:px-8 sm:py-14">
+    <section className="as-stage as-stage-purple as-stage-visual as-stage-oraculo px-5 py-10 sm:px-8 sm:py-14">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
