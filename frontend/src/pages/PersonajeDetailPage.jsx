@@ -123,8 +123,11 @@ function PersonajeDetailPage() {
         }
       : { title: '404 — Personaje no encontrado', noindex: true },
   )
-  const [jikan, setJikan] = useState(null)
-  const [cita, setCita] = useState(null)
+  // undefined = pendiente (se reserva sitio con skeleton para que la ficha
+  // no pegue saltos al llegar el fetch), null = resuelto sin dato (el hueco
+  // se colapsa una sola vez), objeto = dato real.
+  const [jikan, setJikan] = useState(undefined)
+  const [cita, setCita] = useState(undefined)
   // Imagen mostrada en el hero. Default = imagen del catálogo (la galería
   // que permitía cambiarla se retiró; el state se conserva por el reset).
   // Reset al cambiar de slug usando el patrón "storing info from previous
@@ -142,16 +145,21 @@ function PersonajeDetailPage() {
   if (slug !== slugAnterior) {
     setSlugAnterior(slug)
     setImagenActiva(imagenCatalogo)
+    // Volver a pendiente: si no, la cita y los datos MAL del personaje
+    // ANTERIOR se quedan visibles en la ficha nueva hasta que respondan
+    // los fetches.
+    setJikan(undefined)
+    setCita(undefined)
   }
 
   useEffect(() => {
     if (!personaje) return
     let cancelado = false
     buscarPersonajeJikan(personaje.nombre, personaje.anime).then((d) => {
-      if (!cancelado) setJikan(d)
+      if (!cancelado) setJikan(d ?? null)
     })
     citaPersonaje(personaje.nombre).then((q) => {
-      if (!cancelado) setCita(q)
+      if (!cancelado) setCita(q ?? null)
     })
     return () => {
       cancelado = true
@@ -366,6 +374,14 @@ function PersonajeDetailPage() {
               <span className="inline-flex rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold text-fg-muted">
                 Personaje {idx + 1} de {personajes.length}
               </span>
+              {/* Píldora fantasma mientras Jikan responde — la badge real
+                  entraba tarde en la fila y la hacía re-envolver (CLS). */}
+              {jikan === undefined && (
+                <span
+                  aria-hidden="true"
+                  className="inline-flex h-[26px] w-28 animate-pulse rounded-full border border-border bg-surface motion-reduce:animate-none"
+                />
+              )}
               {jikan?.favorites != null && (
                 <span
                   className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold text-fg-muted"
@@ -516,6 +532,15 @@ function PersonajeDetailPage() {
                   </p>
                 )}
               </motion.div>
+            )}
+            {/* Reserva mientras la cita está en vuelo: el blockquote
+                aparecía de golpe a mitad de ficha y empujaba todo lo de
+                debajo (CLS). Si no hay cita, el hueco se colapsa una vez. */}
+            {cita === undefined && (
+              <span
+                aria-hidden="true"
+                className="block min-h-[6.5rem] w-full animate-pulse rounded-lg border border-border bg-surface motion-reduce:animate-none"
+              />
             )}
             {cita && (
               <motion.blockquote
