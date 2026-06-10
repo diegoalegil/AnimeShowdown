@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, EyeOff, Scale, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
@@ -16,14 +15,19 @@ import { VisualPageShell } from '../components/VisualSystem'
 import KanjiSpinner from '../components/KanjiSpinner'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import DailyMissionPanel from '../components/DailyMissionPanel'
-import { recordDailyShare } from '../lib/dailyProgress'
-import { shareOrCopy } from '../lib/share'
-import { shareWithToast } from '../lib/shareWithToast'
 import AnonVoteLimitModal from '../features/votar/components/AnonVoteLimitModal'
+import MobileExtrasToggle from '../features/votar/components/MobileExtrasToggle'
 import SessionRecap from '../features/votar/components/SessionRecap'
+import TieResultPanel from '../features/votar/components/TieResultPanel'
+import VotarShortcutsFooter from '../features/votar/components/VotarShortcutsFooter'
+import VotarTopBar from '../features/votar/components/VotarTopBar'
 import VoteArena from '../features/votar/components/VoteArena'
+import VoteResultPanel from '../features/votar/components/VoteResultPanel'
 import { useMisEspeciales } from '../hooks/useCartas'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
+import { useFixedDuelParams } from '../features/votar/hooks/useFixedDuelParams'
+import { useVotarPreferences } from '../features/votar/hooks/useVotarPreferences'
+import { useVotarShare } from '../features/votar/hooks/useVotarShare'
 import { useVoteKeyboardShortcuts } from '../features/votar/hooks/useVoteKeyboardShortcuts'
 import { useVoteSessionStats } from '../features/votar/hooks/useVoteSessionStats'
 import {
@@ -33,6 +37,9 @@ import {
   recordRecentPair,
   selectRandomPair,
 } from '../features/votar/vote-pairing'
+import { formatPersonalVoteImpact, formatVoteScore } from '../features/votar/vote-format'
+import { incrementarContadorLocalVotos } from '../features/votar/vote-local-counter'
+import { getArenaDescription, getArenaStatusLabel } from '../features/votar/arena-labels'
 
 // Claves y tiempo de vida para el prefetch del siguiente par.
 // gcTime de 8s: suficiente para que el usuario vea el resultado y avance.
@@ -64,122 +71,15 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
  * con pares random local si no).
  */
 
-const STORAGE_FAST = 'animeshowdown.votar.fast'
-const STORAGE_BLIND = 'animeshowdown.votar.blind'
-const STORAGE_VOTES_COUNT = 'animeshowdown.votos_count'
-const VOTES_COUNT_EVENT = 'animeshowdown:votes-count'
 const ANON_VOTE_LIMIT = 5
 const TIE_VOTE_KEY = '__empate__'
 // Pausa breve entre voto y siguiente duelo. En una pantalla de juego, 1.8s
 // se percibía como bloqueo; ~0.9s conserva feedback y mantiene ritmo.
 const NEXT_DELAY_MS = 900
 
-function formatVoteScore(value) {
-  const n = Number(value)
-  if (!Number.isFinite(n)) return '0'
-  return Number.isInteger(n) ? String(n) : n.toFixed(1)
-}
-
-function incrementarContadorLocalVotos() {
-  try {
-    const current = Number(localStorage.getItem(STORAGE_VOTES_COUNT) || '0')
-    const next = Number.isFinite(current) ? current + 1 : 1
-    localStorage.setItem(STORAGE_VOTES_COUNT, String(next))
-    window.dispatchEvent(new CustomEvent(VOTES_COUNT_EVENT, { detail: next }))
-  } catch {
-    // localStorage puede fallar en privacy mode; votar no debe depender de esto.
-  }
-}
-
 function hasPrefetchReadyOrRunning(queryClient, queryKey) {
   const state = queryClient.getQueryState(queryKey)
   return state?.fetchStatus === 'fetching' || queryClient.getQueryData(queryKey) != null
-}
-
-/**
- * Barra split cabeza-a-cabeza con porcentajes: resalta mayoría (ganador)
- * y minoría (perdedor). Se muestra solo cuando el backend devuelve ambos
- * totales de votos.
- */
-function HeadToHeadBar({ ganadorNombre, perdedorNombre, votosGanador, votosPerdedor }) {
-  const total = votosGanador + votosPerdedor
-  if (total <= 0) return null
-  const pctGanador = Math.round((votosGanador / total) * 100)
-  const pctPerdedor = 100 - pctGanador
-  const esCercano = pctGanador < 60 // consideramos "polémico" si el ganador tiene < 60%
-  return (
-    <div className="mt-2 w-full">
-      <div className="mb-1 flex justify-between text-[11px] font-black">
-        <span className="text-fg-strong">{ganadorNombre}</span>
-        <span className="text-fg-muted">{perdedorNombre}</span>
-      </div>
-      <div className="relative flex h-2.5 w-full overflow-hidden rounded-full bg-border">
-        <div
-          className="h-full rounded-l-full bg-accent transition-all duration-500"
-          style={{ width: `${pctGanador}%` }}
-        />
-      </div>
-      <div className="mt-1 flex justify-between text-[11px] font-semibold">
-        <span className="text-danger">{pctGanador}%</span>
-        {esCercano && (
-          <span className="text-center text-[10px] font-bold text-fg-muted">
-            ¡Duelo reñido!
-          </span>
-        )}
-        <span className="text-fg-muted">{pctPerdedor}%</span>
-      </div>
-    </div>
-  )
-}
-
-function formatPersonalVoteImpact(impact) {
-  if (!impact) return ''
-  const plural = impact.count === 1 ? '' : 's'
-  return `#${impact.rank} en tu ranking personal · ${impact.count} voto${plural} tuyo${plural}`
-}
-
-/**
- * MobileExtrasToggle — visible solo en móvil (sm:hidden).
- * Muestra un botón compacto que expande/contrae VotarQuickModes y
- * DailyMissionPanel para que la arena + resultado quepan sin scroll.
- */
-function MobileExtrasToggle({
-  a,
-  b,
-  fixedAnime,
-  fixedPersonaje,
-  exactDuelActive,
-  hasFixedAnime,
-  blindMode,
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="sm:hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/40 hover:text-fg-strong"
-        aria-expanded={open}
-      >
-        <span>{open ? 'Ocultar opciones' : 'Más opciones'}</span>
-        <span aria-hidden="true" className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▾</span>
-      </button>
-      {open && (
-        <div className="mt-2 flex flex-col gap-2">
-          <VotarQuickModes
-            a={a}
-            b={b}
-            fixedAnime={fixedAnime}
-            fixedPersonaje={fixedPersonaje}
-            hasFixedDuel={exactDuelActive}
-            hasFixedAnime={hasFixedAnime}
-            blindMode={blindMode}
-          />
-          <DailyMissionPanel compact />
-        </div>
-      )}
-    </div>
-  )
 }
 
 function VotarPage() {
@@ -192,30 +92,17 @@ function VotarPage() {
   const { user } = useAuth()
   const { data: misEspeciales } = useMisEspeciales()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const fixedSlug = searchParams.get('personaje')
-  const fixedRivalSlug = searchParams.get('rival')
-  const fixedAnime = searchParams.get('anime')
-  const fixedPersonaje = useMemo(
-    () => catalogoPersonajes.find((p) => p.slug === fixedSlug) ?? null,
-    [catalogoPersonajes, fixedSlug],
-  )
-  const fixedRival = useMemo(
-    () =>
-      catalogoPersonajes.find((p) => p.slug === fixedRivalSlug && p.slug !== fixedSlug) ?? null,
-    [catalogoPersonajes, fixedRivalSlug, fixedSlug],
-  )
-  const hasFixedDuel = Boolean(fixedPersonaje && fixedRival)
-  const hasFixedAnime = useMemo(
-    () =>
-      !fixedPersonaje &&
-      Boolean(fixedAnime) &&
-      catalogoPersonajes.filter((p) => p.anime === fixedAnime).length >= 2,
-    [catalogoPersonajes, fixedAnime, fixedPersonaje],
-  )
-  const casualContextKey = `${fixedSlug || ''}::${fixedRivalSlug || ''}::${fixedAnime || ''}`
+  const {
+    fixedSlug,
+    fixedAnime,
+    fixedPersonaje,
+    fixedRival,
+    hasFixedDuel,
+    hasFixedAnime,
+    casualContextKey,
+  } = useFixedDuelParams(catalogoPersonajes)
   const authenticatedUserId = user?.id ?? null
   const seenBackendPairsRef = useRef(new Set())
   const seenBackendMatchIdsRef = useRef(new Set())
@@ -246,41 +133,7 @@ function VotarPage() {
   const [casualPairOverride, setCasualPairOverride] = useState(null)
   const [votedFor, setVotedFor] = useState(null)
   const [isAdvancing, setIsAdvancing] = useState(false)
-  // Auto-next por default (opt-out vía toggle). Antes era opt-in y la
-  // gente tenía que pulsar "Siguiente duelo" tras cada voto — un click
-  // extra por enfrentamiento que rompía el ritmo. Solo se respeta el
-  // valor de localStorage si fue setado explícitamente a "false";
-  // cualquier otro estado (incluido no haber preferencia) = true.
-  const [fastMode, setFastMode] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_FAST) !== 'false'
-    } catch {
-      return true
-    }
-  })
-  const [blindMode, setBlindMode] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_BLIND) === 'true'
-    } catch {
-      return false
-    }
-  })
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_FAST, String(fastMode))
-    } catch {
-      // ignore
-    }
-  }, [fastMode])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_BLIND, String(blindMode))
-    } catch {
-      // ignore
-    }
-  }, [blindMode])
+  const { fastMode, setFastMode, fastModeRef, blindMode, setBlindMode } = useVotarPreferences()
 
   // Resultado del último voto registrado: el backend devuelve delta + votos
   // post-voto. Sirve para pintar el overlay "+1 ELO" sobre la card ganadora.
@@ -291,13 +144,6 @@ function VotarPage() {
   // ids del enfrentamiento y personaje) y abrimos el captcha modal. Tras
   // éxito, re-emitimos la mutation con el header X-AS-Captcha-Token.
   const [captchaChallenge, setCaptchaChallenge] = useState(null)
-
-  // Ref sincronizada con fastMode para que handleVoteSuccess pueda leerlo
-  // sin necesitar regenerarse en cada toggle.
-  const fastModeRef = useRef(fastMode)
-  useEffect(() => {
-    fastModeRef.current = fastMode
-  }, [fastMode])
 
   // Ref para cancelar el timeout de auto-next si el usuario pulsa
   // "Siguiente duelo" antes de que dispare o si el componente se desmonta.
@@ -680,88 +526,16 @@ function VotarPage() {
     [a, b, prefetchSiguientePar, scheduleAutoNext, notifyCoins],
   )
 
-  // "Reta a un amigo": comparte el duelo ACTUAL (a vs b) sin revelar tu voto,
-  // para que el receptor aterrice votando ese mismo duelo. El middleware OG
-  // pinta la card de duelo (/api/og/duelo/a/vs/b.png) en la preview social.
-  const handleChallenge = useCallback(() => {
-    if (!a?.slug || !b?.slug) return undefined
-    return shareWithToast(
-      {
-        title: `Reto: ${a.nombre} vs ${b.nombre}`,
-        text: `Te reto a este duelo en AnimeShowdown: ${a.nombre} (${a.anime}) vs ${b.nombre} (${b.anime}). ¿A quién subes tú?`,
-        url: `/votar?personaje=${encodeURIComponent(a.slug)}&rival=${encodeURIComponent(b.slug)}`,
-      },
-      {
-        nativeSuccess: 'Reto enviado',
-        clipboardSuccess: 'Enlace de reto copiado',
-        errorTitle: 'No se pudo compartir el reto',
-      },
-    )
-  }, [a, b])
-
-  const handleShareVote = useCallback(async () => {
-    if (!votedPersonaje) return
-    const personalLine = personalVoteImpact?.slug === votedPersonaje.slug
-      ? `En mi ranking personal va #${personalVoteImpact.rank} con ${personalVoteImpact.count} votos míos.`
-      : ''
-    const baseShareText =
-      sessionStats.lastShareText ||
-      `Voté por ${votedPersonaje.nombre} en AnimeShowdown. ¿Tú a quién elegirías?`
-    const text = [baseShareText, personalLine].filter(Boolean).join('\n')
-    try {
-      const result = await shareOrCopy({
-        title: `${votedPersonaje.nombre} ganó mi duelo`,
-        text,
-        url: losingPersonaje?.slug
-          ? `/votar?personaje=${encodeURIComponent(votedPersonaje.slug)}&rival=${encodeURIComponent(losingPersonaje.slug)}`
-          : `/votar${
-              fixedSlug
-                ? `?personaje=${encodeURIComponent(fixedSlug)}`
-                : fixedAnime
-                  ? `?anime=${encodeURIComponent(fixedAnime)}`
-                  : ''
-            }`,
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Reto enviado' : 'Enlace de reto copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el reto', {
-        description: error?.message || 'Copia el resultado manualmente.',
-      })
-    }
-  }, [fixedAnime, fixedSlug, losingPersonaje, personalVoteImpact, sessionStats.lastShareText, votedPersonaje])
-
-  const handleShareSessionRecap = useCallback(async () => {
-    if (sessionStats.total <= 0) return
-    const top = Object.values(sessionStats.bySlug || {})
-      .sort((x, y) => y.count - x.count)
-      .slice(0, 5)
-      .map((p, index) => `${index + 1}. ${p.nombre} (${p.anime}) · x${p.count}`)
-      .join('\n')
-    const text = [
-      `Llevo ${sessionStats.total} votos en AnimeShowdown hoy.`,
-      top ? `Mi top de la sesión:\n${top}` : null,
-      sessionStats.closeDuels > 0
-        ? `${sessionStats.closeDuels} duelos estuvieron a 1 voto o menos.`
-        : 'Todavía estoy buscando el duelo más polémico.',
-      '¿A quién defenderías tú?',
-    ].filter(Boolean).join('\n')
-    try {
-      const result = await shareOrCopy({
-        title: 'Mi recap de votos anime',
-        text,
-        url: '/mi-ranking',
-      })
-      if (result === 'cancelled') return
-      recordDailyShare()
-      toast.success(result === 'native' ? 'Recap compartido' : 'Recap copiado')
-    } catch (error) {
-      toast.error('No se pudo compartir el recap', {
-        description: error?.message || 'Copia tu resumen manualmente.',
-      })
-    }
-  }, [sessionStats])
+  const { handleChallenge, handleShareVote, handleShareSessionRecap } = useVotarShare({
+    a,
+    b,
+    votedPersonaje,
+    losingPersonaje,
+    personalVoteImpact,
+    sessionStats,
+    fixedSlug,
+    fixedAnime,
+  })
 
   const handleVote = useCallback(
     (personaje) => {
@@ -982,44 +756,28 @@ function VotarPage() {
     )
   }, [modoBackend, matchId, votedFor, user, votarMutation, handleTieVoteSuccess])
 
-  const arenaStatusLabel = modoBackend
-    ? 'Match en juego · En vivo'
-    : exactDuelActive
-      ? identitiesHidden
-        ? 'Duelo a ciegas'
-        : `${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
-      : fixedPersonaje
-        ? identitiesHidden
-          ? 'Reto a ciegas'
-          : `Retando a ${fixedPersonaje.nombre}`
-        : hasFixedAnime
-          ? identitiesHidden
-            ? 'Duelo interno a ciegas'
-            : `Duelo interno · ${fixedAnime}`
-          : modoSugerido
-            ? `Duelo ELO equilibrado · Δ ${dueloSugerido.eloDiff}`
-            : 'Enfrentamiento aleatorio'
-  const arenaDescription = modoBackend
-    ? votoInvitadoActivo
-      ? 'Puedes votar 5 duelos como invitado; crea cuenta para guardar tu historial'
-      : identitiesHidden
-        ? 'Voto a ciegas activo: decide sin ver identidades o reparte medio voto'
-        : 'Tu voto cuenta para el bracket en directo · puedes decidir o repartir medio voto'
-    : sinMatchesAbiertos
-      ? 'No hay torneos en juego — te proponemos pares de ELO similar'
-      : exactDuelActive
-        ? identitiesHidden
-          ? 'Duelo fijado con identidades ocultas hasta votar'
-          : `Duelo fijado desde una comparación: ${fixedPersonaje.nombre} vs ${fixedRival.nombre}`
-        : fixedPersonaje
-          ? identitiesHidden
-            ? 'Duelo fijado desde ficha con identidad oculta'
-            : `Duelo fijado desde la ficha de ${fixedPersonaje.nombre}`
-          : hasFixedAnime
-            ? identitiesHidden
-              ? 'Solo personajes del mismo anime, ocultos hasta votar'
-              : `Solo personajes de ${fixedAnime} en este duelo`
-            : 'Elige quién gana este duelo y ayuda a mover el ranking competitivo'
+  const arenaStatusLabel = getArenaStatusLabel({
+    modoBackend,
+    exactDuelActive,
+    identitiesHidden,
+    fixedPersonaje,
+    fixedRival,
+    hasFixedAnime,
+    fixedAnime,
+    modoSugerido,
+    dueloSugerido,
+  })
+  const arenaDescription = getArenaDescription({
+    modoBackend,
+    votoInvitadoActivo,
+    identitiesHidden,
+    sinMatchesAbiertos,
+    exactDuelActive,
+    fixedPersonaje,
+    fixedRival,
+    hasFixedAnime,
+    fixedAnime,
+  })
 
   if ((!fixedPersonaje && !hasFixedAnime && isLoading) || needsCasualPair) {
     return (
@@ -1045,70 +803,18 @@ function VotarPage() {
       className="min-h-[calc(100svh-5rem)] py-3 sm:py-8 lg:py-10"
       atmosphere="arena-storm"
     >
-        {/* Top bar: badge + modo rápido + skip */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          <span className="inline-flex max-w-full items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-[10px] font-semibold text-fg-muted sm:text-[11px]">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-            </span>
-            {arenaStatusLabel}
-          </span>
-
-          <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
-            {!identitiesHidden && !votedFor && a?.slug && b?.slug && (
-              <button
-                type="button"
-                onClick={handleChallenge}
-                title="Comparte este duelo para retar a un amigo a votarlo"
-                className="inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-0 py-2 text-[12px] font-semibold text-gold transition-all hover:border-accent hover:bg-accent/15 sm:w-auto sm:px-3.5"
-              >
-                <Swords className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only">Reta a un amigo</span>
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setFastMode((f) => !f)}
-              aria-pressed={fastMode}
-              title={fastMode ? 'Auto-siguiente activo · clic para desactivar' : 'Auto-siguiente desactivado · clic para activar'}
-              className={`inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-0 py-2 text-[12px] font-semibold transition-all sm:w-auto sm:px-3.5 ${
-                fastMode
-                  ? 'border-medal-gold/60 bg-medal-gold/10 text-medal-gold'
-                  : 'border-border bg-surface text-fg-muted hover:border-medal-gold/40 hover:text-medal-gold'
-              }`}
-            >
-              <Zap className={`h-3.5 w-3.5 ${fastMode ? 'fill-medal-gold' : ''}`} />
-              <span className="sr-only sm:not-sr-only">Modo rápido</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setBlindMode((value) => !value)}
-              aria-pressed={blindMode}
-              title={blindMode ? 'Voto a ciegas activo · clic para desactivar' : 'Voto a ciegas desactivado · clic para activar'}
-              className={`inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-0 py-2 text-[12px] font-semibold transition-all sm:w-auto sm:px-3.5 ${
-                blindMode
-                  ? 'border-accent/60 bg-accent-soft text-gold'
-                  : 'border-border bg-surface text-fg-muted hover:border-accent/40 hover:text-gold'
-              }`}
-            >
-              <EyeOff className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only">Voto a ciegas</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={controlsDisabled}
-              className="inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-0 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50 sm:w-auto sm:px-3.5"
-            >
-              <SkipForward className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only">
-                {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
-              </span>
-              <ArrowRight className="hidden h-3 w-3 sm:block" />
-            </button>
-          </div>
-        </div>
+        <VotarTopBar
+          arenaStatusLabel={arenaStatusLabel}
+          showChallenge={Boolean(!identitiesHidden && !votedFor && a?.slug && b?.slug)}
+          onChallenge={handleChallenge}
+          fastMode={fastMode}
+          onToggleFastMode={() => setFastMode((f) => !f)}
+          blindMode={blindMode}
+          onToggleBlindMode={() => setBlindMode((value) => !value)}
+          onNext={handleNext}
+          controlsDisabled={controlsDisabled}
+          votedFor={votedFor}
+        />
 
         {/* Pregunta principal */}
         <header className="flex flex-col items-center gap-0.5 text-center sm:gap-1">
@@ -1147,86 +853,17 @@ function VotarPage() {
         />
 
         {tieSelected && a && b && (
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-gold/30 bg-gold-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              className="min-w-0 flex-1"
-            >
-              <p className="text-sm font-black text-fg-strong">
-                No pudiste decidir entre {a.nombre} y {b.nombre}.
-              </p>
-              <p className="text-[12px] text-fg-muted">
-                {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null
-                  ? `Medio voto para cada lado · ${formatVoteScore(voteResult.votosGanador)} vs ${formatVoteScore(voteResult.votosPerdedor)}`
-                  : 'Empate neutral registrado. No mueve el ELO del duelo.'}
-              </p>
-              {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null && (
-                <HeadToHeadBar
-                  ganadorNombre={a.nombre}
-                  perdedorNombre={b.nombre}
-                  votosGanador={voteResult.votosGanador}
-                  votosPerdedor={voteResult.votosPerdedor}
-                />
-              )}
-            </div>
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-bg/60 px-3 py-2 text-[12px] font-black text-gold">
-              <Scale className="h-3.5 w-3.5" />
-              ½ + ½
-            </span>
-          </div>
+          <TieResultPanel a={a} b={b} voteResult={voteResult} />
         )}
 
         {votedPersonaje && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              className="min-w-0 flex-1"
-            >
-              <p className="text-sm font-black text-fg-strong">
-                {votedPersonaje.nombre} ganó tu duelo.
-              </p>
-              <p className="text-[12px] text-fg-muted">
-                {voteResult?.votosGanador != null
-                  ? `${formatVoteScore(voteResult.votosGanador)} votos para ${votedPersonaje.nombre}${losingPersonaje ? ` · rival: ${losingPersonaje.nombre}` : ''}`
-                  : 'Voto registrado en modo casual. Sigue para completar tu misión diaria.'}
-              </p>
-              {/* Barra split cabeza-a-cabeza — solo cuando el backend devuelve ambos totales */}
-              {voteResult?.votosGanador != null && voteResult?.votosPerdedor != null && losingPersonaje && (
-                <HeadToHeadBar
-                  ganadorNombre={votedPersonaje.nombre}
-                  perdedorNombre={losingPersonaje.nombre}
-                  votosGanador={voteResult.votosGanador}
-                  votosPerdedor={voteResult.votosPerdedor}
-                />
-              )}
-              {personalVoteImpact?.slug === votedPersonaje.slug && (
-                <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-2.5 py-1 text-[11px] font-black text-gold">
-                  {formatPersonalVoteImpact(personalVoteImpact)}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-wrap justify-center gap-2">
-              <button
-                type="button"
-                onClick={handleShareVote}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/45 bg-accent px-4 py-2 text-[13px] font-black text-white transition-colors hover:bg-accent-hover"
-              >
-                <Swords className="h-3.5 w-3.5" />
-                Reta a un amigo
-              </button>
-              <Link
-                to="/mi-ranking"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
-              >
-                Mi ranking
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
+          <VoteResultPanel
+            votedPersonaje={votedPersonaje}
+            losingPersonaje={losingPersonaje}
+            voteResult={voteResult}
+            personalVoteImpact={personalVoteImpact}
+            onShareVote={handleShareVote}
+          />
         )}
 
         {/* Retirado el selector de intención post-voto (decisión del owner
@@ -1263,41 +900,7 @@ function VotarPage() {
           blindMode={identitiesHidden}
         />
 
-        {/* Atajos + (en sin matches) link a torneos */}
-        <div className="flex flex-col items-center gap-2">
-          <p className="hidden text-[11px] text-fg-muted sm:block">
-            Atajos:{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-              ←
-            </kbd>{' '}
-            izquierda ·{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-              →
-            </kbd>{' '}
-            derecha ·{' '}
-            <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-              S
-            </kbd>{' '}
-            saltar
-            {votedFor && (
-              <>
-                {' '}·{' '}
-                <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-border bg-surface px-1 font-mono text-[10px] text-fg-strong">
-                  Espacio
-                </kbd>{' '}
-                siguiente
-              </>
-            )}
-          </p>
-          {sinMatchesAbiertos && (
-            <Link
-              to="/torneos"
-              className="text-[12px] text-gold hover:underline"
-            >
-              Ver torneos disponibles →
-            </Link>
-          )}
-        </div>
+        <VotarShortcutsFooter votedFor={votedFor} sinMatchesAbiertos={sinMatchesAbiertos} />
         <AnonVoteLimitModal
           open={showAnonLimitModal}
           onClose={() => setShowAnonLimitModal(false)}
