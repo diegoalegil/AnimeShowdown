@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, EyeOff, SkipForward, Swords, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { endpoints, ApiError } from '../lib/api'
 import {
@@ -24,6 +23,7 @@ import MobileExtrasToggle from '../features/votar/components/MobileExtrasToggle'
 import SessionRecap from '../features/votar/components/SessionRecap'
 import TieResultPanel from '../features/votar/components/TieResultPanel'
 import VotarShortcutsFooter from '../features/votar/components/VotarShortcutsFooter'
+import VotarTopBar from '../features/votar/components/VotarTopBar'
 import VoteArena from '../features/votar/components/VoteArena'
 import VoteResultPanel from '../features/votar/components/VoteResultPanel'
 import { useMisEspeciales } from '../hooks/useCartas'
@@ -931,70 +931,18 @@ function VotarPage() {
       className="min-h-[calc(100svh-5rem)] py-3 sm:py-8 lg:py-10"
       atmosphere="arena-storm"
     >
-        {/* Top bar: badge + modo rápido + skip */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          <span className="inline-flex max-w-full items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-[10px] font-semibold text-fg-muted sm:text-[11px]">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 motion-safe:animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-            </span>
-            {arenaStatusLabel}
-          </span>
-
-          <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
-            {!identitiesHidden && !votedFor && a?.slug && b?.slug && (
-              <button
-                type="button"
-                onClick={handleChallenge}
-                title="Comparte este duelo para retar a un amigo a votarlo"
-                className="inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-0 py-2 text-[12px] font-semibold text-gold transition-all hover:border-accent hover:bg-accent/15 sm:w-auto sm:px-3.5"
-              >
-                <Swords className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only">Reta a un amigo</span>
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setFastMode((f) => !f)}
-              aria-pressed={fastMode}
-              title={fastMode ? 'Auto-siguiente activo · clic para desactivar' : 'Auto-siguiente desactivado · clic para activar'}
-              className={`inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-0 py-2 text-[12px] font-semibold transition-all sm:w-auto sm:px-3.5 ${
-                fastMode
-                  ? 'border-medal-gold/60 bg-medal-gold/10 text-medal-gold'
-                  : 'border-border bg-surface text-fg-muted hover:border-medal-gold/40 hover:text-medal-gold'
-              }`}
-            >
-              <Zap className={`h-3.5 w-3.5 ${fastMode ? 'fill-medal-gold' : ''}`} />
-              <span className="sr-only sm:not-sr-only">Modo rápido</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setBlindMode((value) => !value)}
-              aria-pressed={blindMode}
-              title={blindMode ? 'Voto a ciegas activo · clic para desactivar' : 'Voto a ciegas desactivado · clic para activar'}
-              className={`inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-0 py-2 text-[12px] font-semibold transition-all sm:w-auto sm:px-3.5 ${
-                blindMode
-                  ? 'border-accent/60 bg-accent-soft text-gold'
-                  : 'border-border bg-surface text-fg-muted hover:border-accent/40 hover:text-gold'
-              }`}
-            >
-              <EyeOff className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only">Voto a ciegas</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={controlsDisabled}
-              className="inline-flex min-h-11 w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-0 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent hover:text-gold disabled:opacity-50 sm:w-auto sm:px-3.5"
-            >
-              <SkipForward className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only">
-                {votedFor ? 'Siguiente duelo' : 'Saltar duelo'}
-              </span>
-              <ArrowRight className="hidden h-3 w-3 sm:block" />
-            </button>
-          </div>
-        </div>
+        <VotarTopBar
+          arenaStatusLabel={arenaStatusLabel}
+          showChallenge={Boolean(!identitiesHidden && !votedFor && a?.slug && b?.slug)}
+          onChallenge={handleChallenge}
+          fastMode={fastMode}
+          onToggleFastMode={() => setFastMode((f) => !f)}
+          blindMode={blindMode}
+          onToggleBlindMode={() => setBlindMode((value) => !value)}
+          onNext={handleNext}
+          controlsDisabled={controlsDisabled}
+          votedFor={votedFor}
+        />
 
         {/* Pregunta principal */}
         <header className="flex flex-col items-center gap-0.5 text-center sm:gap-1">

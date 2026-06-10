@@ -3,23 +3,18 @@ import { resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+// Los checks de las acciones icon-first viven con el componente extraído:
+// src/features/votar/components/VotarTopBar.test.tsx
+
 describe('VotarPage mobile viewport', () => {
   const source = readFileSync(
     resolve(process.cwd(), 'src/pages/VotarPage.jsx'),
     'utf8',
   )
 
-  it('compacta la cabecera y los controles antes de la arena en movil', () => {
+  it('compacta la cabecera antes de la arena en movil', () => {
     expect(source).toContain('contentClassName="mx-auto flex max-w-5xl flex-col gap-3 sm:gap-4"')
     expect(source).toContain('className="min-h-[calc(100svh-5rem)] py-3 sm:py-8 lg:py-10"')
-    expect(source).toContain('className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3"')
-  })
-
-  it('mantiene acciones icon-first en movil y texto visible desde sm', () => {
-    expect(source.match(/sr-only sm:not-sr-only/g)?.length ?? 0).toBeGreaterThanOrEqual(4)
-    expect(source.match(/min-h-11 w-11 shrink-0/g)?.length ?? 0).toBeGreaterThanOrEqual(4)
-    expect(source.match(/sm:w-auto sm:px-3\.5/g)?.length ?? 0).toBeGreaterThanOrEqual(4)
-    expect(source).toContain('<ArrowRight className="hidden h-3 w-3 sm:block" />')
   })
 
   it('usa escala tipografica estable por breakpoint en la pregunta principal', () => {
