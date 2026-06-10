@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.diegoalegil.animeshowdown.dto.BracketUpdateEvent;
 import com.diegoalegil.animeshowdown.dto.CategoriaVotoRequest;
@@ -368,7 +370,22 @@ public class EnfrentamientoController {
         if (categoria != null) {
             voto.setCategoria(categoria.getId());
         }
-        Voto guardado = votoRepository.save(voto);
+        // saveAndFlush: el perdedor de la carrera de doble voto (dos POSTs
+        // simultáneos que pasaron el check aplicativo a la vez) pega aquí
+        // contra el unique de votos, en vez de reventar con 500 al commit —
+        // después de haber emitido métricas, deltas WS y eventos de un voto
+        // que nunca existió. Se LANZA (no se devuelve) porque el flush fallido
+        // marca la tx rollback-only; GlobalExceptionHandler la convierte en el
+        // mismo 409 que devuelve el check.
+        Voto guardado;
+        try {
+            guardado = votoRepository.saveAndFlush(voto);
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    usuario != null
+                            ? "Ya has votado este enfrentamiento"
+                            : "Ya has votado este enfrentamiento como invitado");
+        }
         metrics.votoRegistrado();
         VotoStatsSnapshot stats = votoStatsService.registrar(guardado);
 
