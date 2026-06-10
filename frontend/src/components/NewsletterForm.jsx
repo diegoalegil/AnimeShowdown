@@ -1,37 +1,53 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Check, Mail } from 'lucide-react'
 import { ApiError, endpoints } from '../lib/api'
+
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/
 
 /**
  * Form de suscripción a newsletter en el footer.
  *
  * Tras submit muestra estado de éxito inline (en lugar de toast) porque
  * vive en el footer y el toast podría perderse fuera del viewport.
+ *
+ * Validación nativa con useState en vez de react-hook-form: es un único campo
+ * email y RHF (~7 KB gzip) viajaba en el bundle inicial de TODA la app por ser
+ * el footer un import estático del shell. Mismo comportamiento, sin la dep.
  */
 function NewsletterForm() {
   const { t } = useTranslation()
-  const {
-    register,
-    handleSubmit,
-    setError,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm()
+  const [email, setEmail] = useState('')
+  const [error, setErrorMsg] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [exito, setExito] = useState(null) // {mensaje} | null
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    if (isSubmitting) return
+    const value = email.trim()
+    if (!value) {
+      setErrorMsg(t('newsletter.errorRequired'))
+      return
+    }
+    if (!EMAIL_PATTERN.test(value)) {
+      setErrorMsg(t('newsletter.errorInvalido'))
+      return
+    }
+    setErrorMsg(null)
+    setIsSubmitting(true)
     try {
-      const res = await endpoints.suscribirNewsletter(data.email.trim())
+      const res = await endpoints.suscribirNewsletter(value)
       setExito({ mensaje: res?.message ?? t('newsletter.okDefault') })
-      reset()
+      setEmail('')
     } catch (err) {
       const msg =
         err instanceof ApiError
           ? err.message || `Error ${err.status}`
           : t('newsletter.errorEnvio')
-      setError('email', { message: msg })
+      setErrorMsg(msg)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -55,7 +71,8 @@ function NewsletterForm() {
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={onSubmit}
+      noValidate
       className="flex w-full min-w-0 flex-col gap-2"
     >
       <p className="text-[12px] text-fg-muted">{t('newsletter.intro')}</p>
@@ -64,15 +81,11 @@ function NewsletterForm() {
           type="email"
           autoComplete="email"
           placeholder={t('newsletter.emailPlaceholder')}
-          {...register('email', {
-            required: t('newsletter.errorRequired'),
-            pattern: {
-              value: /^\S+@\S+\.\S+$/,
-              message: t('newsletter.errorInvalido'),
-            },
-          })}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          aria-invalid={error ? 'true' : undefined}
           className={`w-full min-w-0 rounded-lg border bg-bg px-3 py-2 text-[13px] text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-            errors.email ? 'border-danger' : 'border-border'
+            error ? 'border-danger' : 'border-border'
           }`}
         />
         <button
@@ -84,8 +97,8 @@ function NewsletterForm() {
           {isSubmitting ? t('newsletter.enviando') : t('newsletter.submit')}
         </button>
       </div>
-      {errors.email && (
-        <p className="text-[11px] text-danger">{errors.email.message}</p>
+      {error && (
+        <p className="text-[11px] text-danger">{error}</p>
       )}
       <p className="text-[10px] text-fg-muted">{t('newsletter.doubleOptIn')}</p>
     </form>
