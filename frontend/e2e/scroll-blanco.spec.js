@@ -1,8 +1,6 @@
 import { expect, test } from '@playwright/test'
 import sharp from 'sharp'
 
-const CATALOG_STORAGE_KEY = 'animeshowdown.catalogo-personajes.v1'
-
 // Catálogo sintético largo: el bug de tiles blancos solo aparece con
 // listados que superan varias pantallas (fling con zonas sin rasterizar).
 const ANIMES = ['One Piece', 'Naruto', 'Bleach', 'Dragon Ball']
