@@ -9,8 +9,6 @@ import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
 import AuthSocialButtons from '../components/AuthSocialButtons'
 import AuthLegalNote from '../components/AuthLegalNote'
-import { VisualPageShell } from '../components/VisualSystem'
-import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -133,13 +131,14 @@ function RegisterPage() {
   }
 
   return (
-    <VisualPageShell
-      visual={BRAND_VISUALS.authRegister} lateralKanji={{left: "新", right: "生"}}
-      className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
-      contentClassName="w-full max-w-md"
-    >
+    // Full-bleed con el arte premium del banco (mismo patrón que los
+    // juegos): el altar de cartas doradas ocupa la mitad derecha del arte,
+    // así que el formulario vive a la izquierda sobre la zona oscura,
+    // dentro de un panel de cristal para asegurar contraste.
+    <section className="as-stage as-stage-visual as-stage-auth-register flex min-h-[calc(100vh-6rem)] items-center px-5 py-12 sm:px-8">
+      <div className="mx-auto flex w-full max-w-6xl justify-center lg:justify-start">
       <motion.div
-        className="w-full"
+        className="w-full max-w-md rounded-3xl border border-white/10 bg-bg/80 p-6 shadow-2xl backdrop-blur-md sm:p-8"
         initial="hidden"
         animate="visible"
         variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
@@ -312,7 +311,8 @@ function RegisterPage() {
           </Link>
         </p>
       </motion.div>
-    </VisualPageShell>
+      </div>
+    </section>
   )
 }
 
