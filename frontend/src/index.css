@@ -386,28 +386,38 @@
     /* WEBP cinematográfica (vs SVG outline) — el SVG es solo silueta
        minimalista; el WEBP es la portada real del juego. Mucha más
        presencia visual para que cada juego se sienta su propio escenario. */
-    --as-stage-image: url('/assets/game-covers/shadow-guess-v2.webp');
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/shadow-guess-background.webp');
     --as-stage-kanji: "影";
   }
 
   .as-stage-anigrid {
-    --as-stage-image: url('/assets/game-covers/anigrid.webp');
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/anigrid-background.webp');
     --as-stage-kanji: "格";
   }
 
   .as-stage-reveal {
-    --as-stage-image: url('/assets/game-covers/anime-reveal.webp');
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/anime-reveal-background.webp');
     --as-stage-kanji: "謎";
   }
 
   .as-stage-duel {
-    --as-stage-image: url('/assets/game-covers/elo-duel.webp');
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/elo-duel-background.webp');
     --as-stage-kanji: "対";
   }
 
   .as-stage-impostor {
-    --as-stage-image: url('/assets/game-covers/impostor-trial.webp');
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/impostor-trial-background.webp');
     --as-stage-kanji: "裏";
+  }
+
+  .as-stage-oraculo {
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/oraculo-background.webp');
+    --as-stage-kanji: "占";
+  }
+
+  .as-stage-nexo {
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/nexo-anime-background.webp');
+    --as-stage-kanji: "絆";
   }
 
   /* Bases planas y sobrias para que el cover lleve la identidad visual. */

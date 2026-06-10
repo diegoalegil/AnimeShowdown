@@ -170,7 +170,7 @@ function NexoAnimeGame({ todayKey, catalogoPersonajes, dailyRound }) {
   })
 
   return (
-    <section className="as-stage as-stage-visual px-5 py-10 sm:px-8 sm:py-14">
+    <section className="as-stage as-stage-visual as-stage-nexo px-5 py-10 sm:px-8 sm:py-14">
       <JsonLd
         id="breadcrumbs"
         schema={breadcrumbsSchema([
