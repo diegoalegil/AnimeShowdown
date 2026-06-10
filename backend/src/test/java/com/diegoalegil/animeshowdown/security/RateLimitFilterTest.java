@@ -100,6 +100,16 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void eloDuelLimitaTreintaPorMinutoEntreRoundYGuess() throws Exception {
+        // GET /round y POST /guess comparten el bucket "elo-duel" por IP.
+        for (int i = 0; i < 30; i++) {
+            assertEquals(200, get("/api/games/elo-duel/round").getStatus());
+        }
+        assertEquals(429, get("/api/games/elo-duel/round").getStatus());
+        assertEquals(429, post("/api/games/elo-duel/guess").getStatus());
+    }
+
+    @Test
     void getNoCostosoNoSeLimita() throws Exception {
         // Un GET corriente (no OG ni descarga) no consume bucket: ilimitado.
         for (int i = 0; i < 100; i++) {

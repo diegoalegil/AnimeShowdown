@@ -69,7 +69,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
     // Social: POST de reacciones, comentarios y seguir. 60/min por IP.
     private static final RateLimitPolicy SOCIAL = new RateLimitPolicy(
             "social", 60, Duration.ofMinutes(1));
+    // ELO Duel (juego higher-or-lower): GET /round genera un par aleatorio
+    // (coste CPU) y POST /guess lo resuelve (CPU + lectura DB). Ambos son
+    // permitAll sin auth; sin límite una IP los martillea a velocidad de red
+    // consumiendo CPU y conexiones. 30/min por IP no molesta a un jugador real
+    // (un guess cada 2s sostenido) y corta el abuso.
+    private static final RateLimitPolicy ELO_DUEL = new RateLimitPolicy(
+            "elo-duel", 30, Duration.ofMinutes(1));
 
+    private static final String RUTA_ELO_DUEL_PREFIJO = "/api/games/elo-duel/";
     private static final String RUTA_VOTAR_SUFIJO = "/votar";
     private static final String RUTA_VOTAR_PREFIJO = "/api/enfrentamientos/";
     private static final String RUTA_VOTAR_PERSONAJE_PREFIJO = "/api/personajes/";
@@ -148,6 +156,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             if (uri.startsWith(RUTA_CARTAS_PREFIJO) && uri.endsWith(RUTA_DESCARGA_SUFIJO)) {
                 return CARD_DOWNLOAD;
             }
+            if (uri.startsWith(RUTA_ELO_DUEL_PREFIJO)) {
+                return ELO_DUEL;
+            }
             return null;
         }
 
@@ -158,6 +169,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
         if (!"POST".equalsIgnoreCase(method)) {
             return null;
+        }
+        if (uri.startsWith(RUTA_ELO_DUEL_PREFIJO)) {
+            return ELO_DUEL;
         }
         if (coincide(uri, "/api/auth/login")) {
             return LOGIN;
