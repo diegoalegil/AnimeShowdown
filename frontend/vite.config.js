@@ -441,10 +441,13 @@ const pwaPlugin = VitePWA({
         // deploy), que si no perpetuaria el SW aun tras purgar la edge.
         urlPattern: ({ url }) => url.pathname.startsWith('/assets/'),
         handler: 'NetworkFirst',
+        // Sin fetchOptions {cache:'reload'}: ese flag saltaba la HTTP cache
+        // del navegador y re-descargaba banners/covers completos en cada
+        // vista. La protección contra cache poison la da el plugin
+        // requireContentType (image/*) de abajo, no el reload.
         options: {
           cacheName: 'imagenes-personajes-v3',
           networkTimeoutSeconds: 3,
-          fetchOptions: { cache: 'reload' },
           expiration: {
             maxEntries: 300,
             maxAgeSeconds: 60 * 60 * 24 * 7,
