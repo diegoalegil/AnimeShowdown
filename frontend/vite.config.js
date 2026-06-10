@@ -608,12 +608,13 @@ export default defineConfig({
                 id.endsWith('\\src\\hooks\\useCatalogoPersonajes.js'),
             },
             {
+              // Solo el vendor: src/lib/stomp.js queda FUERA del grupo para
+              // que su import estático desde los hooks no arrastre el vendor
+              // al arranque — stomp.js carga @stomp/stompjs con import()
+              // dinámico en el primer subscribe, así que este chunk es async.
               name: 'realtime',
               minSize: 0,
-              test: (id) =>
-                id.includes('@stomp/stompjs') ||
-                id.endsWith('/src/lib/stomp.js') ||
-                id.endsWith('\\src\\lib\\stomp.js'),
+              test: (id) => id.includes('@stomp/stompjs'),
             },
             {
               name: 'react-vendor',

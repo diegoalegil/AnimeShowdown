@@ -18,11 +18,36 @@
 //   - Los topics públicos conectan incluso sin JWT. Si hay JWT, viaja en
 //     CONNECT para habilitar colas privadas /user/**.
 
-import { Client } from '@stomp/stompjs'
 import { API_BASE, getToken, onTokenChange } from './api'
 
 // Convierte el API base HTTP en URL WS: https → wss, http → ws.
 const BROKER_URL = API_BASE.replace(/^http/, 'ws') + '/ws'
+
+// @stomp/stompjs se carga con import() dinámico en el primer subscribe.
+// El import estático lo metía en el path de arranque de TODAS las rutas
+// (BadgeUnlockListener vive en el shell) pero estaba excluido del
+// modulepreload: bloqueaba Y se descubría tarde. Mientras el chunk llega,
+// los canales quedan pendientes y attach() los engancha al resolver —
+// mismo mecanismo que ya cubría el caso "subscribe antes de tener token".
+let StompClient = null
+let stompLoadPromise = null
+
+function loadStompClient() {
+  if (StompClient) return null
+  if (!stompLoadPromise) {
+    stompLoadPromise = import('@stomp/stompjs')
+      .then((mod) => {
+        StompClient = mod.Client
+        tryAttachPending()
+      })
+      .catch(() => {
+        // Red caída durante la descarga del chunk: resetea para que el
+        // próximo subscribe/reconnect pueda reintentar la carga.
+        stompLoadPromise = null
+      })
+  }
+  return stompLoadPromise
+}
 
 let client = null
 let connectedListeners = new Set() // Set<(connected: boolean) => void>
@@ -38,7 +63,7 @@ function notifyConnected(value) {
 }
 
 function createClient() {
-  const c = new Client({
+  const c = new StompClient({
     brokerURL: BROKER_URL,
     // Refrescar headers en cada CONNECT — si el JWT cambió entre intentos
     // de reconexión, esta función se vuelve a llamar y agarra el nuevo.
@@ -87,6 +112,12 @@ let deactivationPromise = null
 export function ensureConnected() {
   if (deactivationPromise) return null
   if (client) return client
+  if (!StompClient) {
+    // El vendor aún no está: dispara la carga y deja al caller en
+    // pendiente. loadStompClient → tryAttachPending reintenta al llegar.
+    loadStompClient()
+    return null
+  }
   client = createClient()
   client.activate()
   return client
