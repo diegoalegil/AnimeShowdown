@@ -22,6 +22,34 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification(title, options))
 })
 
+self.addEventListener('pushsubscriptionchange', (event) => {
+  // El navegador rotó/expiró la suscripción: la antigua que conoce el server
+  // está muerta. Re-suscribimos aquí con la misma applicationServerKey y
+  // delegamos el re-registro en cualquier pestaña abierta (el worker no tiene
+  // credenciales para llamar al API). Si no hay pestañas, el resync al abrir
+  // la app (PushSubscriptionSync) re-registra la suscripción local nueva.
+  const applicationServerKey = event.oldSubscription?.options?.applicationServerKey
+
+  const resuscribir = async () => {
+    if (applicationServerKey) {
+      try {
+        await self.registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        })
+      } catch {
+        // Sin permiso o sin key válida: lo recogerá el resync de la app.
+      }
+    }
+    const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const client of clientList) {
+      client.postMessage({ type: 'push-subscription-change' })
+    }
+  }
+
+  event.waitUntil(resuscribir())
+})
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   const rawUrl = event.notification.data?.url || '/'

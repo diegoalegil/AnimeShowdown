@@ -9,6 +9,7 @@ import ScrollProgress from './components/ScrollProgress'
 import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
+import PushSubscriptionSync from './components/PushSubscriptionSync'
 import OnboardingGate from './components/onboarding/OnboardingGate'
 import CookieConsent from './components/CookieConsent'
 import SakuraPetals from './components/SakuraPetals'
@@ -347,6 +348,10 @@ function App() {
       {/* Listener global de unlock: side-effect-only, sin UI. Se monta
           siempre — internamente skipea cuando no hay user logueado. */}
       <BadgeUnlockListener />
+      {/* Mantiene la suscripción de web push atada al backend: resync al
+          arrancar + reacción al pushsubscriptionchange del SW. Side-effect-only,
+          skipea sin user, sin soporte push o sin permiso concedido. */}
+      <PushSubscriptionSync />
       {/* Pétalos de sakura del 15 marzo al 15 abril (hanami). Auto-off el
           resto del año. Toggle vía localStorage animeshowdown.sakura. */}
       <SakuraPetals />
