@@ -184,7 +184,17 @@ export function VisualPageShell({
         }}
       />
       <ParticleLayer density={density} />
-      {atmosphereNode}
+      {/* Clamp de la atmósfera al viewport: los efectos canvas dimensionan su
+          buffer al rect del padre; sobre el section completo, un listado largo
+          (8000px+) creaba buffers de >90MB redibujados por rAF — presupuesto
+          de raster destrozado y blank silencioso en Safari al superar su
+          límite de canvas. El sticky h-screen mantiene los efectos siempre
+          alrededor del viewport con buffer constante de una pantalla. */}
+      {atmosphereNode && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="sticky top-0 h-screen w-full">{atmosphereNode}</div>
+        </div>
+      )}
       {usarLateral && <LateralKanjiPair kanji={kanjiLateral} visual={visual} />}
       {isVisualDebugActive() && <VisualDebugBadge visual={visual} where="VisualPageShell" />}
       <div className={`relative z-10 ${contentClassName}`}>{children}</div>
