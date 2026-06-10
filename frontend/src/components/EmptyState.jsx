@@ -66,11 +66,18 @@ function EmptyState({
           '--empty-glow': visual?.glowRgb ?? '197 161 90',
         }}
       >
-        <EditorialCover
-          visual={visual}
-          className="absolute inset-0 rounded-none border-0 opacity-70"
-          imageClassName="saturate-110 contrast-105"
-        />
+        {/* Wrapper posicionado en vez de pasarle `absolute` a EditorialCover:
+            su raíz ya trae `relative` y cuál de las dos clases de posición
+            gana depende del orden interno del CSS de Tailwind, no del
+            className — con `relative` ganando, el cover colapsaba a una
+            miniatura del tamaño de su contenido. */}
+        <div aria-hidden="true" className="absolute inset-0">
+          <EditorialCover
+            visual={visual}
+            className="h-full w-full rounded-none border-0 opacity-70"
+            imageClassName="saturate-110 contrast-105"
+          />
+        </div>
         {Icon && (
           <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/35 bg-gold/10 text-gold shadow-aura [--aura-color:rgb(197_161_90_/_0.8)]">
             <Icon className="h-6 w-6" aria-hidden="true" />

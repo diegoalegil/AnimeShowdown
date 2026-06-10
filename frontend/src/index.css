@@ -420,6 +420,20 @@
     --as-stage-kanji: "絆";
   }
 
+  /* Las artes de auth están compuestas para un split: el torii del login
+     ocupa la mitad izquierda (form a la derecha) y el altar de cartas del
+     registro la derecha (form a la izquierda). El lado vacío de cada arte
+     es la zona del formulario. */
+  .as-stage-auth-login {
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/auth-login-premium.webp');
+    --as-stage-kanji: "入";
+  }
+
+  .as-stage-auth-register {
+    --as-stage-image: url('https://assets.animeshowdown.dev/img/brand/auth-register-premium.webp');
+    --as-stage-kanji: "新";
+  }
+
   /* Bases planas y sobrias para que el cover lleve la identidad visual. */
   .as-stage-cyan {
     background: linear-gradient(180deg, rgb(8 10 18 / 0.99), rgb(4 8 14 / 1) 72%);

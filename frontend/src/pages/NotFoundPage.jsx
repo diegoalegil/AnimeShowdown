@@ -3,14 +3,24 @@ import { ArrowRight, Home, MapPinned } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import { brandImage } from '../lib/brand-assets'
 import { useSeo } from '../hooks/useSeo'
+
+// El arte lost-portal del banco (portal cian en una sala en ruinas) es la
+// escena hecha a medida para el 404. OJO con los srcsets: si solo se
+// reemplaza visual.image, ResponsivePicture sigue sirviendo los srcsets
+// del visual base (otra imagen) y el navegador pinta la equivocada — hay
+// que reemplazar image Y los srcsets juntos.
+const lostPortal = brandImage('lost-portal')
 
 function NotFoundPage() {
   useSeo({ title: '404 — Página no encontrada', noindex: true })
 
   const visual = {
     ...BRAND_VISUALS.error,
-    image: '/assets/error-scenes/not-found-lost-shinobi.svg',
+    image: lostPortal?.src ?? BRAND_VISUALS.error.image,
+    imageWebpSrcset: lostPortal?.srcSet ?? BRAND_VISUALS.error.imageWebpSrcset ?? null,
+    imageAvifSrcset: lostPortal ? null : (BRAND_VISUALS.error.imageAvifSrcset ?? null),
     kanji: '迷',
     title: '404',
   }

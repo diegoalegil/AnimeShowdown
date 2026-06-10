@@ -9,8 +9,6 @@ import { useSeo } from '../hooks/useSeo'
 import PasswordInput from '../components/PasswordInput'
 import AuthSocialButtons from '../components/AuthSocialButtons'
 import AuthLegalNote from '../components/AuthLegalNote'
-import { VisualPageShell } from '../components/VisualSystem'
-import { BRAND_VISUALS } from '../data/visual-assets'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -73,13 +71,14 @@ function LoginPage() {
   const [pendingChallenge, setPendingChallenge] = useState(null)
 
   return (
-    <VisualPageShell
-      visual={BRAND_VISUALS.authLogin} lateralKanji={{left: "入", right: "門"}}
-      className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
-      contentClassName="w-full max-w-md"
-    >
+    // Full-bleed con el arte premium del banco (mismo patrón que los
+    // juegos): el torii ocupa la mitad izquierda del arte, así que el
+    // formulario vive a la derecha sobre la zona oscura, dentro de un
+    // panel de cristal para asegurar contraste a cualquier viewport.
+    <section className="as-stage as-stage-visual as-stage-auth-login flex min-h-[calc(100vh-6rem)] items-center px-5 py-12 sm:px-8">
+      <div className="mx-auto flex w-full max-w-6xl justify-center lg:justify-end">
       <motion.div
-        className="w-full"
+        className="w-full max-w-md rounded-3xl border border-white/10 bg-bg/80 p-6 shadow-2xl backdrop-blur-md sm:p-8"
         initial="hidden"
         animate="visible"
         variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
@@ -118,7 +117,8 @@ function LoginPage() {
           )}
         </AnimatePresence>
       </motion.div>
-    </VisualPageShell>
+      </div>
+    </section>
   )
 }
 
