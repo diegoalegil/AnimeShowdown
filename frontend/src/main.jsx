@@ -12,6 +12,7 @@ import {
 } from './lib/staleAssetRecovery.js'
 import './lib/i18n.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import './styles/display-font.css'
 import './index.css'
 import App from './App.jsx'
 
