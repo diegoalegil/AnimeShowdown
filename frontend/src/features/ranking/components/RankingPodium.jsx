@@ -24,7 +24,9 @@ function useInViewOnce(ref) {
       ([entry]) => {
         if (entry.isIntersecting) setInView(true)
       },
-      { threshold: 0.15 },
+      // Umbral mínimo: con 0.15 el podio podía quedarse invisible si asoma
+      // recortado por abajo en el primer viewport y nunca llega al 15%.
+      { threshold: 0.05 },
     )
     io.observe(el)
     return () => io.disconnect()
