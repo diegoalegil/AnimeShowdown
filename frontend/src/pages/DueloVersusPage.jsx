@@ -18,8 +18,11 @@ import {
   personajes,
 } from '../lib/personajes-core'
 import { useSeo } from '../hooks/useSeo'
+import { getAnimeIdentity } from '../data/anime-identities'
+import { slugifyAnime } from '../lib/animes'
 import JsonLd from '../components/JsonLd'
 import PersonajeImg from '../components/PersonajeImg'
+import VersusIntroOverlay from '../features/versus/VersusIntroOverlay'
 import NotFoundPage from './NotFoundPage'
 import { shareOrCopy } from '../lib/share'
 import { recordDailyShare } from '../lib/dailyProgress'
@@ -79,6 +82,8 @@ function DueloVersusPage() {
 
   const statsA = getStatsPersonaje(personajeA.slug)
   const statsB = getStatsPersonaje(personajeB.slug)
+  const fighterA = toFighter(personajeA)
+  const fighterB = toFighter(personajeB)
   const ganadorTeorico = statsA.elo >= statsB.elo ? personajeA : personajeB
   const diferenciaElo = Math.abs(statsA.elo - statsB.elo)
   const sugerenciasA = getSugerenciasDuelo(personajeA, personajeB.slug)
@@ -116,6 +121,11 @@ function DueloVersusPage() {
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
+      <VersusIntroOverlay
+        left={fighterA}
+        right={fighterB}
+        storageKey={`vs-intro:${personajeA.slug}-vs-${personajeB.slug}`}
+      />
       <JsonLd id="duelo-versus" schema={dueloSchema(personajeA, personajeB, canonical)} />
       <div className="mx-auto max-w-6xl">
         <Link
@@ -438,6 +448,17 @@ function DuelosSugeridos({ personaje, sugerencias }) {
       </div>
     </div>
   )
+}
+
+function toFighter(personaje) {
+  // Kanji del universo (cae al genérico 界 si el anime no tiene identidad curada).
+  const kanji = getAnimeIdentity(slugifyAnime(personaje.anime), personaje.anime).kanji
+  return {
+    slug: personaje.slug,
+    name: personaje.nombre,
+    series: personaje.anime,
+    kanji,
+  }
 }
 
 function getWinRate(stats) {
