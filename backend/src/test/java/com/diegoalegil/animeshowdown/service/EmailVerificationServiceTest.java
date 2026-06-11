@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import java.util.UUID;
@@ -25,10 +26,11 @@ import com.diegoalegil.animeshowdown.repository.UsuarioRepository;
 
 @SpringBootTest
 @ActiveProfiles("test")
-// TestAsyncConfig: los asserts del email post-commit verifican un spy de
-// EmailService cuyos metodos son @Async — con el executor real, verify()
-// corre ANTES de que el hilo del pool invoque al spy (flake de timing
-// visto en CI). SyncTaskExecutor lo hace determinista.
+// TestAsyncConfig solo sustituye el TaskExecutor POR DEFECTO; los emails
+// usan @Async("emailExecutor") — un bean RESUELTO POR NOMBRE al que el
+// @Primary del test-config NO alcanza, así que el envío corre igualmente
+// en el pool real. Por eso el verify() positivo del email lleva timeout():
+// espera a que el hilo del pool invoque al spy (flake real visto en CI).
 @Import(TestAsyncConfig.class)
 class EmailVerificationServiceTest {
 
@@ -44,7 +46,7 @@ class EmailVerificationServiceTest {
 
         emailVerificationService.emitir(usuario);
 
-        verify(emailService).enviarVerificacion(
+        verify(emailService, timeout(5000)).enviarVerificacion(
                 eq(usuario.getEmail()), eq(usuario.getUsername()), contains("/verify?token="));
     }
 
