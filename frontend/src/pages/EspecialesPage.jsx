@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../lib/api'
 import CartaFace from '../features/cartas/CartaFace'
+import TiltCard from '../features/cartas/TiltCard'
 
 /**
  * Salón Legendario: galería pública de todas las cartas ESPECIAL curadas
@@ -53,9 +54,11 @@ function EspecialesPage() {
       )}
 
       {!isLoading && !isError && cartas.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="as-salon-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {cartas.map((carta) => (
-            <CartaFace key={carta.id} carta={carta} />
+            <TiltCard key={carta.id} foil="especial" sheen>
+              <CartaFace carta={carta} />
+            </TiltCard>
           ))}
         </div>
       )}

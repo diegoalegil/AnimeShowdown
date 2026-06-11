@@ -21,8 +21,9 @@ function clamp01(valor) {
  * - Con prefers-reduced-motion no monta listeners y el CSS oculta las capas.
  * - Las capas son decorativas: aria-hidden, pointer-events: none y z-index
  *   por debajo de las acciones del tile (botón de descarga en z-10).
+ * - sheen: barrido de luz idle periódico (Salón Legendario).
  */
-function TiltCard({ children, foil = 'ssr', className = '' }) {
+function TiltCard({ children, foil = 'ssr', sheen = false, className = '' }) {
   const rootRef = useRef(null)
   const rafRef = useRef(0)
   const pendingRef = useRef(null)
@@ -113,6 +114,7 @@ function TiltCard({ children, foil = 'ssr', className = '' }) {
             <span className="as-card-foil__sparkle" />
           </>
         )}
+        {sheen && <span className="as-card-foil__sheen" />}
       </div>
     </div>
   )

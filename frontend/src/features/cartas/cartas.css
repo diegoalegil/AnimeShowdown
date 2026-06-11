@@ -429,6 +429,61 @@
   }
 }
 
+/* Barrido de luz idle del Salón Legendario: una franja cruza la carta en
+   ~1.3s y descansa el resto del ciclo de 9s. Solo transform/opacity. */
+.as-card-foil__sheen {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -48%;
+  width: 38%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--color-fg-strong) 18%, transparent) 52%,
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(0) rotate(12deg);
+  animation: as-card-sheen 9s linear infinite;
+}
+
+/* Desfase y deriva por posición en el grid: las cartas no respiran a la
+   vez y el patrón no se repite en bucle exacto. */
+.as-salon-grid > *:nth-child(4n+2) .as-card-foil__sheen {
+  animation-delay: 5.1s;
+}
+
+.as-salon-grid > *:nth-child(4n+3) .as-card-foil__sheen {
+  animation-delay: 2.3s;
+}
+
+.as-salon-grid > *:nth-child(4n) .as-card-foil__sheen {
+  animation-delay: 7.6s;
+}
+
+.as-salon-grid > *:nth-child(odd) .as-card-foil__sheen {
+  animation-duration: 9.7s;
+}
+
+@keyframes as-card-sheen {
+  0% {
+    opacity: 0;
+    transform: translateX(0) rotate(12deg);
+  }
+  4% {
+    opacity: 1;
+  }
+  11% {
+    opacity: 1;
+  }
+  14%,
+  100% {
+    opacity: 0;
+    transform: translateX(560%) rotate(12deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .as-card-tilt {
     transform: none !important;
