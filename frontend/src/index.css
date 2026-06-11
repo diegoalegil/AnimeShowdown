@@ -345,6 +345,13 @@
   animation-timing-function: var(--ease-lift);
 }
 
+/* Al salir del detalle hacia una ruta sin hero el grupo no tiene destino:
+   solo hay snapshot viejo. Si conservara los 320ms del morph flotaría 80ms
+   más que el page-out del root (240ms) como un ghost; muere con la página. */
+::view-transition-old(personaje-hero):only-child {
+  animation-duration: 240ms;
+}
+
 /* El shell fijo (header, bottom nav móvil, barra de progreso) va en su
    propio grupo: queda quieto mientras el contenido transiciona y la app
    se siente persistente, no recargada. */
