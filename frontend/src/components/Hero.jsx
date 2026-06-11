@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { AppLink } from './AppLink'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, Globe2, Radio, Shuffle, Swords, TrendingUp, Trophy } from 'lucide-react'
@@ -164,7 +165,7 @@ function Hero({ catalogoPersonajes = [] }) {
           variants={itemVariants}
         >
           <Button
-            as={Link}
+            as={AppLink}
             to="/votar"
             size="lg"
             onPointerDown={ctaVotar.onPointerDown}
@@ -187,7 +188,7 @@ function Hero({ catalogoPersonajes = [] }) {
             {ruletaLoading ? t('hero.ctaRuletaLoading') : t('hero.ctaRuleta')}
           </Button>
           <Button
-            as={Link}
+            as={AppLink}
             to="/ranking"
             variant="secondary"
             size="lg"

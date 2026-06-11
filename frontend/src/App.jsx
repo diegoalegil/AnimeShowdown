@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useLayoutEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import Header from './components/Header'
@@ -23,6 +23,7 @@ import { lazyRoute } from './lib/lazyRoute'
 import { getRouteSkeletonReserve } from './lib/routeSkeletonPolicy'
 import { canWarmupRoutes, idleWarmupRoutesFor } from './lib/route-warmup-policy'
 import { recoverFromStaleAssetError } from './lib/staleAssetRecovery'
+import { settleNavigationViewTransition } from './lib/viewTransitions'
 import i18n from './lib/i18n'
 
 // Todas las rutas, incluida home, van detrás de React.lazy. InicioPage
@@ -236,8 +237,14 @@ function App() {
   // de la página anterior, así que al click en una card del catálogo el detalle
   // aparecía "desde abajo" (porque el navegador conserva la posición y el
   // contenido nuevo es más corto que el scroll heredado).
-  useEffect(() => {
+  //
+  // Layout effect (no effect) a propósito: este commit es el que espera la
+  // view transition de la navegación. El reset de scroll ocurre antes de
+  // pintar y DENTRO de la transición, y el settle libera la captura del
+  // estado nuevo ya arriba del todo. Sin transición pendiente es un no-op.
+  useLayoutEffect(() => {
     window.scrollTo(0, 0)
+    settleNavigationViewTransition()
   }, [location.pathname])
 
   useEffect(() => {

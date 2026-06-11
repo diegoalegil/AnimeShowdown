@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   Crown,
   Medal,
 } from 'lucide-react'
+import { AppLink } from '../../../components/AppLink'
 import PersonajeImg from '../../../components/PersonajeImg'
+import { markPersonajeHero } from '../../../lib/viewTransitions'
 import EloSparkline from './EloSparkline'
 
 /**
@@ -91,6 +92,7 @@ function TronoRays() {
 }
 
 function PodioCard({ personaje, rank, highlighted, history, orden = 0, className = '' }) {
+  const retratoRef = useRef(null)
   if (!personaje?.slug) return null
   const tone =
     rank === 1
@@ -133,8 +135,10 @@ function PodioCard({ personaje, rank, highlighted, history, orden = 0, className
           className="trono-aura pointer-events-none absolute inset-0 rounded-2xl shadow-aura-lg [--aura-color:var(--color-medal-gold-aura)]"
         />
       )}
-      <Link
+      <AppLink
         to={`/personajes/${personaje.slug}`}
+        // El retrato del podio viaja hasta el hero del detalle (morph).
+        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
         className={`group relative h-full overflow-hidden rounded-2xl border-2 transition-all motion-safe:hover:-translate-y-1 ${linkLayout} ${tone.border} ${tone.bg} ${tone.hoverGlow ?? ''}`}
       >
         {rank === 1 ? (
@@ -166,6 +170,7 @@ function PodioCard({ personaje, rank, highlighted, history, orden = 0, className
             />
           )}
           <div
+            ref={retratoRef}
             className={`relative aspect-[2/3] w-full overflow-hidden rounded-2xl border ${tone.border} bg-surface ${
               highlighted ? '' : 'opacity-95'
             }`}
@@ -211,7 +216,7 @@ function PodioCard({ personaje, rank, highlighted, history, orden = 0, className
           </p>
           <EloSparkline points={history} className="mt-1" />
         </div>
-      </Link>
+      </AppLink>
     </div>
   )
 }

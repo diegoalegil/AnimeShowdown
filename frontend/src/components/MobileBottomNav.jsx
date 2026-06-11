@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { AppLink, AppNavLink } from './AppLink'
 import { CheckCircle2, Gamepad2, Home, Swords, Trophy, UsersRound } from 'lucide-react'
 import {
   DAILY_GAME_TARGET,
@@ -93,9 +94,9 @@ function MobileBottomNav() {
   return (
     <nav
       aria-label={t('mobileNav.ariaLabel')}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-bg/92 pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pt-2 shadow-elev-up backdrop-blur-xl md:hidden"
+      className="as-vt-bottom-nav fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-bg/92 pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pt-2 shadow-elev-up backdrop-blur-xl md:hidden"
     >
-      <Link
+      <AppLink
         to={mission.to}
         className={`mx-auto mb-2 flex max-w-lg items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${
           mission.completed
@@ -125,11 +126,11 @@ function MobileBottomNav() {
         <span className="shrink-0 font-mono text-sm font-black text-gold">
           {mission.percent}%
         </span>
-      </Link>
+      </AppLink>
       <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1">
         {items.map(({ to, i18nKey, icon: Icon }) => (
           <li key={to}>
-            <NavLink
+            <AppNavLink
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
@@ -150,7 +151,7 @@ function MobileBottomNav() {
                 )}
               </span>
               <span className="max-w-full truncate">{t(`nav.${i18nKey}`)}</span>
-            </NavLink>
+            </AppNavLink>
           </li>
         ))}
       </ul>

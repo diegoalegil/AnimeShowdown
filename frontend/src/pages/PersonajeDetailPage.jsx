@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -55,6 +55,7 @@ import {
 import RetoRecomendado from '../features/personajes/components/RetoRecomendado'
 import { getRetoRecomendado } from '../features/personajes/reto-recomendado'
 import { buildPersonajeDetailContext } from '../features/personajes/personaje-detail-data'
+import { adoptPersonajeHero, releasePersonajeHero } from '../lib/viewTransitions'
 
 const loadPersonaje3D = () => import('../components/Personaje3D')
 const Personaje3D = lazy(loadPersonaje3D)
@@ -77,10 +78,13 @@ function isExpectedPersonaje3DRenderError(error) {
   return /error creating webgl context|could not create webgl context|webglrenderer/i.test(message)
 }
 
+// El contenedor solo orquesta el stagger; el fade por bloque vive en
+// itemVariants. Sin opacity propia: durante el morph de navegación el hero
+// se captura sin efectos de ancestro y un fade del article entero
+// reaparecería como parpadeo justo al terminar la transición.
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: {},
   visible: {
-    opacity: 1,
     transition: { staggerChildren: 0.08, delayChildren: 0.05 },
   },
 }
@@ -175,6 +179,16 @@ function PersonajeDetailPage() {
     () => listenLocalVotes((nextVotes) => setLocalVotes(nextVotes)),
     [],
   )
+  // Morph de navegación: el contenedor del hero adopta el view-transition-name
+  // compartido en cuanto commitea (destino del morph carta → detalle, y origen
+  // al navegar a otra ficha). Layout effect a propósito: el nombre tiene que
+  // estar puesto cuando la transición capture el estado nuevo.
+  const heroMorphRef = useRef(null)
+  useLayoutEffect(() => {
+    const el = heroMorphRef.current
+    adoptPersonajeHero(el)
+    return () => releasePersonajeHero(el)
+  }, [slug])
   const personalLocalStats = useMemo(
     () => getLocalVoteStats(localVotes),
     [localVotes],
@@ -324,11 +338,13 @@ function PersonajeDetailPage() {
               figura. A la derecha, la info encabezada por el avatar circular +
               nombre. items-start en el grid evita el espacio muerto que dejaba
               items-center; en móvil la identidad va antes (order-1). */}
-          <motion.div
-            className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md"
-            variants={itemVariants}
-          >
+          {/* La columna del hero pinta SIN animación de entrada: es el destino
+              del morph compartido y además el candidato a LCP. Un fade de
+              framer encima del morph produciría un pop de opacidad al
+              terminar la transición; el resto de la ficha sí escalona. */}
+          <div className="order-2 mx-auto flex w-full min-w-0 max-w-sm flex-col md:order-1 md:mx-0 md:max-w-md">
             <div
+              ref={heroMorphRef}
               className="relative mx-auto aspect-[2/3] max-h-[55vh] w-auto overflow-hidden rounded-2xl border border-border bg-surface md:mx-0 md:w-full md:max-h-none"
               style={{ filter: 'var(--personaje-hero-drop-shadow)' }}
             >
@@ -348,7 +364,7 @@ function PersonajeDetailPage() {
                 nombre={personaje.nombre}
               />
             </div>
-          </motion.div>
+          </div>
           <motion.div
             className="order-1 flex flex-col items-start gap-5 md:order-2"
             variants={containerVariants}

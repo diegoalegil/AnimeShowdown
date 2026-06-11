@@ -303,6 +303,79 @@
   }
 }
 
+/* ============================================================
+   Navegación viva — View Transitions API (same-document).
+   Los pseudos ::view-transition-* solo existen en navegadores con
+   soporte (Safari 18+, Chrome 111+); en el resto este bloque es CSS
+   inerte y la navegación corta como siempre. La página saliente se
+   hunde y atenúa; la entrante sube con la curva lift del sistema.
+   Solo transform/opacity: cero relayout, CLS intacto. */
+
+@keyframes as-vt-page-out {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes as-vt-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: as-vt-page-out 240ms var(--ease-lift) both;
+}
+
+::view-transition-new(root) {
+  animation: as-vt-page-in 260ms var(--ease-lift) both;
+}
+
+/* Morph compartido carta → hero del detalle de personaje. El nombre lo
+   gestiona lib/viewTransitions.js (solo un elemento por captura). Mismo
+   timing en grupo, par e imágenes para que el cross-fade acompañe al
+   desplazamiento completo. */
+::view-transition-group(personaje-hero),
+::view-transition-image-pair(personaje-hero),
+::view-transition-old(personaje-hero),
+::view-transition-new(personaje-hero) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-lift);
+}
+
+/* Al salir del detalle hacia una ruta sin hero el grupo no tiene destino:
+   solo hay snapshot viejo. Si conservara los 320ms del morph flotaría 80ms
+   más que el page-out del root (240ms) como un ghost; muere con la página. */
+::view-transition-old(personaje-hero):only-child {
+  animation-duration: 240ms;
+}
+
+/* El shell fijo (header, bottom nav móvil, barra de progreso) va en su
+   propio grupo: queda quieto mientras el contenido transiciona y la app
+   se siente persistente, no recargada. */
+.as-vt-header {
+  view-transition-name: app-header;
+}
+
+.as-vt-bottom-nav {
+  view-transition-name: app-bottom-nav;
+}
+
+.as-vt-scroll-progress {
+  view-transition-name: app-scroll-progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 @layer utilities {
   .scrollbar-hide {
     scrollbar-width: none;

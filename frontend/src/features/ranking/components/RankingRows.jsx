@@ -1,9 +1,9 @@
 import { memo } from 'react'
-import { Link } from 'react-router-dom'
 import {
   Crown,
   Swords,
 } from 'lucide-react'
+import { AppLink } from '../../../components/AppLink'
 import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
 import EloSparkline from './EloSparkline'
@@ -54,7 +54,7 @@ export const RankRowElo = memo(function RankRowElo({
         className={`group relative flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
       >
         <FlipFlashOverlays />
-        <Link
+        <AppLink
           to={`/personajes/${slug}`}
           aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}`}
           title={`${nombre} de ${anime} · ELO ${elo}`}
@@ -102,7 +102,7 @@ export const RankRowElo = memo(function RankRowElo({
               ELO
             </p>
           </div>
-        </Link>
+        </AppLink>
         <ChallengeLink slug={slug} nombre={nombre} />
       </div>
     </li>
@@ -120,7 +120,7 @@ export const RankRowVotos = memo(function RankRowVotos({
     <li data-flip-key={personaje.slug}>
       <div className="group relative flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5">
         <FlipFlashOverlays />
-        <Link
+        <AppLink
           to={`/personajes/${personaje.slug}`}
           aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
           title={`${personaje.nombre} de ${personaje.anime}`}
@@ -162,7 +162,7 @@ export const RankRowVotos = memo(function RankRowVotos({
               votos
             </p>
           </div>
-        </Link>
+        </AppLink>
         <ChallengeLink slug={personaje.slug} nombre={personaje.nombre} />
       </div>
     </li>
@@ -171,7 +171,7 @@ export const RankRowVotos = memo(function RankRowVotos({
 
 function ChallengeLink({ slug, nombre }) {
   return (
-    <Link
+    <AppLink
       to={`/votar?personaje=${encodeURIComponent(slug)}`}
       aria-label={`Retar a ${nombre} en un duelo`}
       title={`Retar a ${nombre}`}
@@ -179,7 +179,7 @@ function ChallengeLink({ slug, nombre }) {
     >
       <Swords className="h-3.5 w-3.5" />
       <span className="hidden sm:inline">Retar</span>
-    </Link>
+    </AppLink>
   )
 }
 

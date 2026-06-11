@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Inbox,
 } from 'lucide-react'
+import { AppLink } from '../components/AppLink'
 import Hero from '../components/Hero'
 import SectionCombateEstelar from '../components/SectionCombateEstelar'
 import SectionPulso from '../components/SectionPulso'
@@ -25,6 +26,7 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import { HomeSkeleton } from '../components/PageSkeleton'
 import { useTorneos } from '../lib/torneosQueries'
 import { getStatsPersonaje } from '../lib/personajes-core'
+import { markPersonajeHero } from '../lib/viewTransitions'
 import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { getGameVisual } from '../data/visual-assets'
@@ -255,13 +257,13 @@ function SectionTorneosActivos() {
       eyebrowClassName="text-[12px] font-semibold text-fg-muted"
       headerClassName="mb-8 flex items-end justify-between gap-4"
       headerAction={
-        <Link
+        <AppLink
           to="/torneos"
           className="hidden items-center gap-1.5 text-sm font-medium text-fg-muted transition-colors hover:text-gold sm:inline-flex"
         >
           Ver todos
           <ArrowRight className="h-4 w-4" />
-        </Link>
+        </AppLink>
       }
     >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -292,7 +294,7 @@ function SectionTop10Ranking({ top10 }) {
       headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
       headerAction={
         <Button
-          as={Link}
+          as={AppLink}
           to="/ranking"
           variant="secondary"
           className="group"
@@ -313,12 +315,15 @@ function SectionTop10Ranking({ top10 }) {
 
 function Top10Card({ rank, slug, nombre, anime, elo }) {
   const { play } = useSound()
+  const retratoRef = useRef(null)
   const highPriorityImage = rank <= 4
   return (
     <li className="flex-none snap-start">
-      <Link
+      <AppLink
         to={`/personajes/${slug}`}
         onClick={() => play('playWhoosh')}
+        // El retrato del top 10 viaja hasta el hero del detalle (morph).
+        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
         className="group flex items-end gap-0"
       >
         <span
@@ -335,6 +340,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
         <div className="relative z-10 flex w-[140px] flex-col gap-1 sm:w-[160px]">
           <Card
             as="div"
+            ref={retratoRef}
             className="aspect-[2/3] border border-border bg-surface p-0 transition-all group-hover:-translate-y-1 group-hover:border-accent/40"
           >
             <PersonajeImg
@@ -361,7 +367,7 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
             </p>
           </div>
         </div>
-      </Link>
+      </AppLink>
     </li>
   )
 }
@@ -443,7 +449,7 @@ function SectionRetosDiarios() {
       headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
       headerAction={
         <Button
-          as={Link}
+          as={AppLink}
           to="/games"
           variant="secondary"
           className="group"
