@@ -111,8 +111,11 @@ test('duel-live empareja dos usuarios, completa duelo y refleja ELO PvP', async 
 
     await expect(pageA.getByText('Resultado final')).toBeVisible({ timeout: 20_000 })
     await expect(pageB.getByText('Resultado final')).toBeVisible({ timeout: 20_000 })
-    await expect(pageA.getByText(/Victoria|Derrota/)).toBeVisible()
-    await expect(pageB.getByText(/Victoria|Derrota/)).toBeVisible()
+    // El veredicto aparece en el panel de resultado Y en la ceremonia de
+    // tinta que lo celebra por encima (overlay transitorio): el texto
+    // duplicado es UI legítima, el selector debe anclarse a un elemento.
+    await expect(pageA.getByText(/Victoria|Derrota/).first()).toBeVisible()
+    await expect(pageB.getByText(/Victoria|Derrota/).first()).toBeVisible()
 
     await pageA.goto('/perfil')
     await pageB.goto('/perfil')
