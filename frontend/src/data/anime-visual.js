@@ -24,7 +24,11 @@ export function getAnimeVisual(slug, anime = slug) {
     kanji: identity.kanji,
     fallbackImage: STAGE.animes,
     expectedPath: `/assets/anime-banners/${assetSlug}.webp`,
+    // cdnFirst: la scene cinematográfica del banco MANDA sobre el banner
+    // local antiguo. Sin esto, los animes con banner legacy seguían
+    // enseñando el arte viejo y el banco no se veía en sus páginas.
     cdn: `${slug}-scene-01`,
+    cdnFirst: true,
     paletteSeed: slug,
     accentRgb: identity.accentRgb,
     glowRgb: identity.glowRgb,
