@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
 import { Filter, Gift, PackageOpen, Sparkles, Ticket } from 'lucide-react'
 import Section from '../components/Section'
 import Button from '../components/Button'
@@ -52,13 +51,25 @@ function makeIdempotencyKey() {
 }
 
 // La vitrina 3D pide hover + puntero fino (el parallax no existe en táctil y
-// CartaFace es ilegible en pantallas estrechas). Mismo patrón de suscripción a
-// matchMedia que FloatingCards: estado externo, no derived state.
+// CartaFace es ilegible en pantallas estrechas) y respeta reduced-motion en la
+// MISMA query: el useReducedMotion de framer 12 solo lee el valor al montar,
+// así que aquí la fuente de verdad es matchMedia con listener 'change' (vivo).
+// Mismo patrón de suscripción que FloatingCards: estado externo, no derived
+// state. Inicialización síncrona: evita pintar el grid un frame y desmontarlo
+// entero para montar la vitrina cuando la query de cartas está en caché.
+const VITRINA_QUERY =
+  '(min-width: 640px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
+
 function useVitrinaCapaz() {
-  const [capaz, setCapaz] = useState(false)
+  const [capaz, setCapaz] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia(VITRINA_QUERY).matches,
+  )
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return undefined
-    const media = window.matchMedia('(min-width: 640px) and (hover: hover) and (pointer: fine)')
+    const media = window.matchMedia(VITRINA_QUERY)
     const update = () => setCapaz(media.matches)
     update()
     media.addEventListener('change', update)
@@ -84,9 +95,7 @@ function CartasPage() {
   const [orden, setOrden] = useState('POSEIDAS')
   const [cofreResultado, setCofreResultado] = useState(null)
 
-  const vitrinaCapaz = useVitrinaCapaz()
-  const reducedMotion = useReducedMotion()
-  const usaVitrina = vitrinaCapaz && !reducedMotion
+  const usaVitrina = useVitrinaCapaz()
 
   // Grid paginado y filtrado en servidor. Cambiar rareza/anime crea una query
   // nueva (otra key) que arranca en offset 0 automáticamente.

@@ -10,7 +10,15 @@ function rarezaLabel(rareza) {
   return rareza === 'ESPECIAL' ? 'UR' : rareza || 'SSR'
 }
 
-function CartaFace({ carta, className = '', eager = false, reveal = false }) {
+// sizes: el grid usa el default; contextos con slot conocido (vitrina ≤150px,
+// detalle 300px) lo ajustan para no descargar la variante 600w sin necesidad.
+function CartaFace({
+  carta,
+  className = '',
+  eager = false,
+  reveal = false,
+  sizes = '(min-width: 768px) 220px, 58vw',
+}) {
   const [arteFallido, setArteFallido] = useState(false)
   const esEspecial = carta?.rareza === 'ESPECIAL'
   const usaArteCompleto = esEspecial && carta?.arteUrl && !arteFallido
@@ -68,7 +76,7 @@ function CartaFace({ carta, className = '', eager = false, reveal = false }) {
           nombre={carta.personajeNombre}
           colorDominante={carta.colorDominante}
           loading={eager ? 'eager' : 'lazy'}
-          sizes="(min-width: 768px) 220px, 58vw"
+          sizes={sizes}
           fit="contain"
           position="center"
           className="as-card-face__personaje"

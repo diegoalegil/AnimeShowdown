@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { FOCUSABLE_SELECTOR } from '../lib/focusables'
 
 /**
  * Diálogo modal accesible reutilizable.
@@ -224,18 +225,5 @@ function AccessibleDialog({
     document.body,
   )
 }
-
-// Selector para elementos focusables dentro del modal. Cubre los casos
-// estándar de WAI-ARIA: links con href, botones no disabled, inputs/select/
-// textarea no disabled, [tabindex>=0] explícitos, y contenteditable.
-const FOCUSABLE_SELECTOR = [
-  'a[href]',
-  'button:not([disabled])',
-  'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-  '[contenteditable="true"]',
-].join(',')
 
 export default AccessibleDialog
