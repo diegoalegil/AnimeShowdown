@@ -13,7 +13,8 @@ import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import BrandSelect from '../components/BrandSelect'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
-import { BRAND_VISUALS, getAnimeVisual } from '../data/visual-assets'
+import { BRAND_VISUALS } from '../data/visual-assets'
+import { getAnimeVisual } from '../data/anime-visual'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 const SORT_LABELS = {

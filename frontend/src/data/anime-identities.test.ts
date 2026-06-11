@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { GAMES } from '../features/games/hub/games-hub-config'
 import { slugifyAnime } from '../lib/animes'
-import { getAnimeVisual } from './visual-assets'
+import { getAnimeVisual } from './anime-visual'
 import {
   ANIME_IDENTITY_DEFINITIONS,
   getAnimeIdentity,

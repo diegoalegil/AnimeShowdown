@@ -39,6 +39,9 @@ vi.mock('../components/VisualSystem', () => ({
 
 vi.mock('../data/visual-assets', () => ({
   BRAND_VISUALS: { animes: {}, empty: {} },
+}))
+
+vi.mock('../data/anime-visual', () => ({
   getAnimeVisual: () => ({ accentRgb: '1 2 3' }),
 }))
 
