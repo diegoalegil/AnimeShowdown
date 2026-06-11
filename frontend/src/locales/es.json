@@ -100,6 +100,17 @@
       "eloMaximo": "ELO máximo"
     }
   },
+  "combate": {
+    "eyebrow": "El cartel de hoy",
+    "titulo": "Combate estelar",
+    "descripcion": "Dos leyendas del catálogo se encaran cada día. Tu voto decide quién se lleva la noche.",
+    "cta": "Entra al duelo",
+    "rotacion": "El cartel cambia cada día",
+    "duelAria": "Duelo del día: {{a}} contra {{b}}",
+    "statElo": "ELO base",
+    "statVictorias": "Victorias est.",
+    "statDerrotas": "Derrotas est."
+  },
   "torneos": {
     "tituloPagina": "Torneos",
     "subtitulo": "Cada bracket se siente como una cartelera de combate, con estado, participantes y ruta directa a los duelos abiertos.",

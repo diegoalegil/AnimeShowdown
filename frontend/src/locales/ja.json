@@ -100,6 +100,17 @@
       "eloMaximo": "最高ELO"
     }
   },
+  "combate": {
+    "eyebrow": "本日の対戦カード",
+    "titulo": "スター決戦",
+    "descripcion": "毎日、カタログの伝説が激突。あなたの票が勝者を決める。",
+    "cta": "デュエルに参加",
+    "rotacion": "対戦カードは毎日更新",
+    "duelAria": "本日のデュエル：{{a}} 対 {{b}}",
+    "statElo": "基準ELO",
+    "statVictorias": "推定勝利数",
+    "statDerrotas": "推定敗北数"
+  },
   "torneos": {
     "tituloPagina": "トーナメント",
     "subtitulo": "各ブラケットは、フォーマット、参加者、直接リンクを備えた闘技カードのように感じられます。",

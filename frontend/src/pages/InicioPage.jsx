@@ -10,6 +10,7 @@ import {
   Inbox,
 } from 'lucide-react'
 import Hero from '../components/Hero'
+import SectionCombateEstelar from '../components/SectionCombateEstelar'
 import SectionPulso from '../components/SectionPulso'
 import TorneoCard from '../components/TorneoCard'
 import CarouselRow from '../components/CarouselRow'
@@ -85,8 +86,8 @@ function InicioPage() {
   return (
     <>
       <JsonLd id="website" schema={webSiteSchema()} />
-      {/* Jerarquía recomendada: hero → stats → duelo en vivo → top ranking
-          → retos diarios → "Hecho para fans" → cómo funciona → torneos
+      {/* Jerarquía de la portada: hero → combate estelar (cartel del día)
+          → pulso + misión diaria → top ranking → retos diarios → torneos
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
       <Hero catalogoPersonajes={catalogoPersonajes} />
@@ -97,6 +98,16 @@ function InicioPage() {
         hasItems={catalogoPersonajes.length > 0}
         onRetry={refetchCatalogo}
       >
+      {/* Combate estelar: el cartel del duelo del día justo tras el hero.
+          LazyOnView lo saca del primer paint (el hero sigue siendo el LCP).
+          minHeight = altura real medida de la sección (961px @390px de
+          viewport, 1086px @1440px; se reserva la menor redondeada a decenas
+          para no sobre-reservar en móvil). */}
+      <LazyOnView minHeight={960}>
+        <HomeSectionBoundary title="No pudimos mostrar el combate estelar">
+          <SectionCombateEstelar />
+        </HomeSectionBoundary>
+      </LazyOnView>
       {/* Bloque "en vivo" (F2): el Pulso (cinco señales reales del backend)
           y tu misión diaria van juntos arriba del fold. Antes la misión era
           una sección suelta propia; fusionarla aquí recorta la home. */}
