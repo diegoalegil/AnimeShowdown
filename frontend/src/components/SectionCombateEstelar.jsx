@@ -316,7 +316,8 @@ function EmblemaVs({ reduceMotion }) {
       >
         <span
           lang="ja"
-          className="kanji-ink block font-kanji-serif text-[clamp(3.6rem,9vw,7rem)] font-black leading-none text-fg-strong/95"
+          data-glyph="決"
+          className="kanji-ink-glyph block font-kanji-serif text-[clamp(3.6rem,9vw,7rem)] font-black leading-none text-fg-strong/95"
           style={{ '--glow-rgb': CANALES_GOLD }}
         >
           決

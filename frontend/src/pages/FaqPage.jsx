@@ -284,15 +284,13 @@ function FaqItem({ item, abierta, onToggle }) {
         />
       </button>
       {abierta && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="overflow-hidden rounded-b-xl border-x border-b border-border bg-bg px-5 py-4 text-[14px] leading-relaxed text-fg-muted"
-        >
-          {item.respuesta}
-        </motion.div>
+        <div className="as-acordeon">
+          <div className="min-h-0 overflow-hidden">
+            <div className="rounded-b-xl border-x border-b border-border bg-bg px-5 py-4 text-[14px] leading-relaxed text-fg-muted">
+              {item.respuesta}
+            </div>
+          </div>
+        </div>
       )}
     </li>
   )

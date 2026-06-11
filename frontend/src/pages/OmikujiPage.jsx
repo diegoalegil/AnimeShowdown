@@ -86,8 +86,8 @@ const COLOR_CLASSES = {
 }
 
 // RGB del glow latente de cada suerte — se inyecta como CSS custom
-// prop --glow-rgb en el <span> del kanji y el keyframe kanji-glow
-// del index.css modula el drop-shadow infinito en ese color.
+// prop --glow-rgb en la caja del kanji y la clase kanji-ink del
+// index.css respira ese color (cross-fade de una capa pre-pintada).
 // Coincide con los tones de Tailwind 400-500 para que el resplandor
 // case con el borde y el texto sin chocar.
 const GLOW_RGB = {
