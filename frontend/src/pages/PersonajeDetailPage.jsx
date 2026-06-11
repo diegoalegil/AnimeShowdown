@@ -20,6 +20,7 @@ import {
   personajes,
   imagenPersonaje,
   getIndicePersonaje,
+  getPopularidad,
   getStatsPersonaje,
   canonicalPersonajeSlug,
 } from '../lib/personajes-core'
@@ -31,6 +32,8 @@ import JsonLd from '../components/JsonLd'
 import EloHistoryChart from '../components/EloHistoryChart'
 import HistorialCompetitivo from '../components/HistorialCompetitivo'
 import PersonajeCard from '../components/PersonajeCard'
+import CardFlip from '../components/CardFlip'
+import PersonajeCardBack from '../components/PersonajeCardBack'
 import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import PersonajeImg from '../components/PersonajeImg'
 import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
@@ -256,6 +259,31 @@ function PersonajeDetailPage() {
   // detras del shell, en lugar de la as-stage genérica.
   const animeSlug = slugifyAnime(personaje.anime)
   const visualAnime = getAnimeVisual(animeSlug, personaje.anime)
+  // Dossier del dorso de la carta (flip "Stats"): SOLO métricas que la ficha
+  // ya muestra, con los mismos calificadores "est." — sin inventar datos.
+  // La racha de duelos no existe como dato real → no se pasa (sección oculta).
+  const popularidad = getPopularidad(slug)
+  const dossier = {
+    nombre: personaje.nombre,
+    anime: personaje.anime,
+    subtitulo: `${totalAnime} personajes en su universo`,
+    selloKanji: visualAnime?.identity?.kanji ?? visualAnime?.kanji,
+    numero: `Nº ${String(idx + 1).padStart(3, '0')}`,
+    ejes: [
+      { label: 'Popularidad', valor: String(popularidad), pct: popularidad / 100 },
+      {
+        label: 'ELO base',
+        valor: String(stats.elo),
+        pct: 1 - (rankGlobal - 1) / Math.max(1, personajes.length),
+      },
+      { label: 'Win rate est.', valor: `${winRate}%`, pct: winRate / 100 },
+      {
+        label: 'Rank anime',
+        valor: `#${rankAnime}`,
+        pct: 1 - (rankAnime - 1) / Math.max(1, totalAnime),
+      },
+    ],
+  }
   const compartirRetoRecomendado = async () => {
     if (!retoRecomendado) return
     const rival = retoRecomendado.personaje
@@ -362,6 +390,7 @@ function PersonajeDetailPage() {
                 fallbackUrl={imagenCatalogo}
                 slug={slug}
                 nombre={personaje.nombre}
+                dossier={dossier}
               />
             </div>
           </div>
@@ -919,8 +948,10 @@ function CarruselSimilares({ slug, nombre }) {
  * mantiene como prop separada porque Personaje3D lo necesita para cargar
  * el modelo lazy con sus propios assets.
  */
-function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
+function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre, dossier }) {
   const [show3D, setShow3D] = useState(false)
+  // Flip al dorso "dossier" de la carta (stats reales de la ficha).
+  const [showStats, setShowStats] = useState(false)
 
   const handleOpen3D = () => {
     if (!canCreateWebGLContext()) {
@@ -933,23 +964,40 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre }) {
   if (!show3D) {
     return (
       <div className="relative h-full w-full">
-        {/* Holo: la imagen del personaje (cards SSR
-            del catálogo) se renderiza con efecto Pokémon-TCG-style
-            (tilt 3D + specular shine + rainbow holo). PersonajeCardHolo
-            es zero-lib y respeta prefers-reduced-motion. */}
-        <PersonajeCardHolo src={imagenUrl} alt={nombre} fallbackSrc={fallbackUrl} />
-        <button
-          type="button"
-          onClick={handleOpen3D}
-          aria-label={`Abrir vista 3D rotable de ${nombre}`}
-          title="Vista 3D rotable del personaje"
-          className="group absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-border bg-surface/85 px-4 text-xs font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
-        >
-          <span className="pointer-events-none absolute bottom-full right-0 mb-2 hidden w-48 rounded-lg border border-border bg-bg/95 px-3 py-2 text-left text-[12px] leading-snug text-fg-muted shadow-2xl group-hover:block group-focus-visible:block">
-            Vista 360° rotable. Se carga solo al abrirla.
-          </span>
-          Ver en 3D
-        </button>
+        {/* Holo (frente): la imagen del personaje con efecto TCG (tilt 3D +
+            specular + rainbow). Dorso: PersonajeCardBack con el radar de
+            stats. CardFlip lleva el blindaje Safari (preserve-3d +
+            -webkit-backface-visibility en ambas caras). */}
+        <CardFlip
+          flipped={showStats}
+          front={<PersonajeCardHolo src={imagenUrl} alt={nombre} fallbackSrc={fallbackUrl} />}
+          back={dossier ? <PersonajeCardBack {...dossier} /> : null}
+        />
+        {dossier && (
+          <button
+            type="button"
+            onClick={() => setShowStats((v) => !v)}
+            aria-pressed={showStats}
+            aria-label={showStats ? `Volver a la carta de ${nombre}` : `Ver stats de ${nombre}`}
+            className="absolute bottom-3 left-3 z-10 inline-flex min-h-11 items-center rounded-full border border-gold/45 bg-surface/85 px-4 font-mono text-xs font-semibold text-gold backdrop-blur transition-colors hover:bg-gold/10"
+          >
+            {showStats ? 'Ver carta' : 'Stats'}
+          </button>
+        )}
+        {!showStats && (
+          <button
+            type="button"
+            onClick={handleOpen3D}
+            aria-label={`Abrir vista 3D rotable de ${nombre}`}
+            title="Vista 3D rotable del personaje"
+            className="group absolute bottom-3 right-3 z-10 inline-flex min-h-11 items-center rounded-full border border-border bg-surface/85 px-4 text-xs font-semibold text-fg-strong backdrop-blur transition-colors hover:border-accent hover:text-gold"
+          >
+            <span className="pointer-events-none absolute bottom-full right-0 mb-2 hidden w-48 rounded-lg border border-border bg-bg/95 px-3 py-2 text-left text-[12px] leading-snug text-fg-muted shadow-2xl group-hover:block group-focus-visible:block">
+              Vista 360° rotable. Se carga solo al abrirla.
+            </span>
+            Ver en 3D
+          </button>
+        )}
       </div>
     )
   }
