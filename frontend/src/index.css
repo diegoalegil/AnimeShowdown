@@ -53,10 +53,20 @@
   --color-arc-antihero: #a855f7;
 
   /* Medallero del podio/top-10. Oro brillante (distinto del oro de marca,
-     más apagado) + plata + bronce. */
+     más apagado) + plata + bronce. Las variantes -aura alimentan la ranura
+     --aura-color de las sombras shadow-aura-* desde JSX sin literales. */
   --color-medal-gold: #facc15;
   --color-medal-silver: #d4d4d8;
   --color-medal-bronze: #fb923c;
+  --color-medal-gold-aura: rgb(250 204 21 / 0.5);
+  --color-medal-silver-aura: rgb(212 212 216 / 0.4);
+  --color-medal-bronze-aura: rgb(251 146 60 / 0.4);
+  /* God-rays y destello de borde del podio del trono. rgb con alpha (alpha
+     = la proporción que mezclaba color-mix) en vez de color-mix(): Safari
+     <16.2 no lo soporta y los degradados desaparecían en silencio. */
+  --color-medal-gold-ray: rgb(250 204 21 / 0.26);
+  --color-medal-silver-shine: rgb(212 212 216 / 0.55);
+  --color-medal-bronze-shine: rgb(251 146 60 / 0.55);
 
   --footer-atmosphere-bg: radial-gradient(circle at 12% 0%, rgb(159 29 44 / 0.16), transparent 28rem), radial-gradient(circle at 88% 0%, rgb(197 161 90 / 0.12), transparent 26rem), linear-gradient(180deg, rgb(7 10 18 / 0.78), rgb(7 10 18 / 0.96));
   --footer-dust-bg: radial-gradient(circle at 2px 2px, rgb(255 255 255 / 0.22) 1px, transparent 0);
@@ -234,6 +244,63 @@
 @keyframes kanji-stroke-draw {
   from { stroke-dashoffset: 1; }
   to   { stroke-dashoffset: 0; }
+}
+
+/* Salón del Trono (/ranking) — solo transform/opacity. La pestaña oculta
+   los pausa vía html.as-tab-hidden y reduced-motion los apaga en el bloque
+   de utilidades trono-*. */
+@keyframes trono-ray-sway {
+  from {
+    transform: rotate(var(--ray-rot, 14deg)) translateX(-7%);
+  }
+  to {
+    transform: rotate(calc(var(--ray-rot, 14deg) + 4deg)) translateX(7%);
+  }
+}
+
+@keyframes trono-aura-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes trono-crown-bob {
+  0%,
+  100% {
+    transform: translate(-50%, 0) rotate(-8deg);
+  }
+  45% {
+    transform: translate(-50%, -4px) rotate(3deg);
+  }
+  70% {
+    transform: translate(-50%, -2px) rotate(-3deg);
+  }
+}
+
+@keyframes trono-shine-orbit {
+  to {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
+}
+
+/* Odómetro de la tabla viva (/ranking): el "+N" decorativo que flota al
+   llegar un voto. Solo opacity/transform. */
+@keyframes live-burst-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
 }
 
 @layer utilities {
@@ -903,6 +970,158 @@
        Usado en CardLogros del perfil como fondo de los badges. */
     background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%2324c6dc' stroke-width='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 40px 20px;
+  }
+
+  /* ============================================================
+     Salón del Trono (/ranking): podio + tabla viva. Todo decorativo
+     (aria-hidden + pointer-events-none en JSX), solo transform/opacity. */
+
+  /* Entrada escalonada del podio. El grid reserva su espacio desde el
+     primer paint (cero CLS); cada carta sube 24px→0 con --trono-i como
+     índice del stagger. El atributo lo pone useInViewOnce una sola vez. */
+  .trono-card {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  [data-trono-in] .trono-card {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      transform 500ms var(--ease-lift),
+      opacity 500ms var(--ease-lift);
+    transition-delay: calc(var(--trono-i, 0) * 90ms);
+  }
+
+  /* God-rays del campeón: tres haces oblicuos con ángulo, anchura, alpha
+     y tempo DISTINTOS (asimetría deliberada), oscilando entre 9.5 y 14s. */
+  .trono-ray {
+    position: absolute;
+    top: -20%;
+    height: 150%;
+    width: var(--ray-w, 18%);
+    background: linear-gradient(
+      to bottom,
+      var(--color-medal-gold-ray),
+      transparent 78%
+    );
+    transform: rotate(var(--ray-rot, 14deg)) translateX(0);
+    transform-origin: top center;
+    mix-blend-mode: screen;
+    animation: trono-ray-sway var(--ray-dur, 12s) ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  .trono-ray--a {
+    left: 6%;
+    --ray-w: 13%;
+    --ray-rot: 16deg;
+    --ray-dur: 9.5s;
+    opacity: 0.85;
+  }
+
+  .trono-ray--b {
+    left: 32%;
+    --ray-w: 24%;
+    --ray-rot: 23deg;
+    --ray-dur: 12.5s;
+    opacity: 0.5;
+    animation-delay: -4s;
+  }
+
+  .trono-ray--c {
+    left: 62%;
+    --ray-w: 9%;
+    --ray-rot: 7deg;
+    --ray-dur: 14s;
+    opacity: 0.65;
+    animation-delay: -8s;
+  }
+
+  /* Aura de oro respirando tras la carta del campeón (opacidad sobre un
+     shadow-aura-lg fijo: compone en GPU, no repinta la sombra). */
+  .trono-aura {
+    opacity: 0.8;
+    animation: trono-aura-breathe 5.5s ease-in-out infinite;
+  }
+
+  /* Corona del campeón: bob + tilt leve, deliberadamente no simétrico. */
+  .trono-crown {
+    transform: translate(-50%, 0) rotate(-8deg);
+    animation: trono-crown-bob 4.6s ease-in-out infinite;
+  }
+
+  /* Destello hairline que recorre el borde de plata y bronce: un cometa
+     conic-gradient girando dentro de un anillo enmascarado de 2px (el
+     grosor del border-2 de la carta). Desfasados entre sí vía vars. */
+  .trono-shine {
+    padding: 2px;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+  }
+
+  .trono-shine::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 330%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%) rotate(0turn);
+    background: conic-gradient(
+      transparent 0deg 308deg,
+      var(--shine-color) 348deg,
+      transparent 360deg
+    );
+    animation: trono-shine-orbit var(--shine-dur, 8s) linear infinite;
+    animation-delay: var(--shine-delay, 0s);
+  }
+
+  .trono-shine--plata {
+    --shine-color: var(--color-medal-silver-shine);
+    --shine-dur: 7.5s;
+  }
+
+  .trono-shine--bronce {
+    --shine-color: var(--color-medal-bronze-shine);
+    --shine-dur: 9s;
+    --shine-delay: -3.8s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .trono-card {
+      opacity: 1;
+      transform: none;
+    }
+
+    .trono-ray,
+    .trono-aura,
+    .trono-crown {
+      animation: none;
+    }
+
+    .trono-shine {
+      display: none;
+    }
+  }
+
+  /* "+N" del odómetro de la tabla viva: sube 28px y se desvanece. */
+  .live-burst {
+    opacity: 0;
+    animation: live-burst-rise 700ms var(--ease-lift) forwards;
+    will-change: transform, opacity;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live-burst {
+      animation: none;
+    }
   }
 }
 

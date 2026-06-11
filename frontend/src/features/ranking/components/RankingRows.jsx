@@ -7,6 +7,29 @@ import {
 import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
 import EloSparkline from './EloSparkline'
+import LiveNumber from './LiveNumber'
+
+/**
+ * Tinte de movimiento de la tabla viva: useFlipList anima la opacidad del
+ * overlay que corresponda (up=success / down=danger) cuando la fila cambia
+ * de posición en caliente. En reposo ambos quedan a opacity 0.
+ */
+function FlipFlashOverlays() {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        data-flip-flash="up"
+        className="pointer-events-none absolute inset-0 rounded-lg bg-success/15 opacity-0"
+      />
+      <span
+        aria-hidden="true"
+        data-flip-flash="down"
+        className="pointer-events-none absolute inset-0 rounded-lg bg-danger/15 opacity-0"
+      />
+    </>
+  )
+}
 
 export const RankRowElo = memo(function RankRowElo({
   rank,
@@ -26,10 +49,11 @@ export const RankRowElo = memo(function RankRowElo({
     ? 'border-medal-gold/30 bg-gradient-to-r from-medal-gold/5 to-surface'
     : 'border-border bg-surface'
   return (
-    <li>
+    <li data-flip-key={slug}>
       <div
-        className={`group flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
+        className={`group relative flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
       >
+        <FlipFlashOverlays />
         <Link
           to={`/personajes/${slug}`}
           aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}`}
@@ -72,7 +96,7 @@ export const RankRowElo = memo(function RankRowElo({
             title="ELO: semilla por popularidad + ajuste por tus votos (se recalcula cada pocos minutos)."
           >
             <p className="font-mono text-base font-bold text-gold">
-              {elo}
+              <LiveNumber value={elo} />
             </p>
             <p className="text-[10px] text-fg-muted">
               ELO
@@ -93,8 +117,9 @@ export const RankRowVotos = memo(function RankRowVotos({
 }) {
   if (!personaje?.slug) return null
   return (
-    <li>
-      <div className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5">
+    <li data-flip-key={personaje.slug}>
+      <div className="group relative flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5">
+        <FlipFlashOverlays />
         <Link
           to={`/personajes/${personaje.slug}`}
           aria-label={`Rank #${rank} — ${personaje.nombre} de ${personaje.anime}, ${votos} votos`}
@@ -130,7 +155,9 @@ export const RankRowVotos = memo(function RankRowVotos({
             </p>
           </div>
           <div className="text-right">
-            <p className="font-mono text-base font-bold text-gold">{votos}</p>
+            <p className="font-mono text-base font-bold text-gold">
+              <LiveNumber value={votos} />
+            </p>
             <p className="text-[10px] text-fg-muted">
               votos
             </p>
