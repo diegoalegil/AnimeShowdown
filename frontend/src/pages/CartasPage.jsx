@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Filter, Gift, PackageOpen, Sparkles, Ticket } from 'lucide-react'
 import Section from '../components/Section'
 import Button from '../components/Button'
@@ -8,6 +8,7 @@ import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
 import BrandSelect from '../components/BrandSelect'
 import PackOpening from '../features/cartas/PackOpening'
+import CardShowcase from '../features/cartas/CardShowcase'
 import { useAuth } from '../contexts/AuthContext'
 import {
   useAbrirSobre,
@@ -49,6 +50,34 @@ function makeIdempotencyKey() {
   return `pack-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
+// La vitrina 3D pide hover + puntero fino (el parallax no existe en táctil y
+// CartaFace es ilegible en pantallas estrechas) y respeta reduced-motion en la
+// MISMA query: el useReducedMotion de framer 12 solo lee el valor al montar,
+// así que aquí la fuente de verdad es matchMedia con listener 'change' (vivo).
+// Mismo patrón de suscripción que FloatingCards: estado externo, no derived
+// state. Inicialización síncrona: evita pintar el grid un frame y desmontarlo
+// entero para montar la vitrina cuando la query de cartas está en caché.
+const VITRINA_QUERY =
+  '(min-width: 640px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
+
+function useVitrinaCapaz() {
+  const [capaz, setCapaz] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia(VITRINA_QUERY).matches,
+  )
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined
+    const media = window.matchMedia(VITRINA_QUERY)
+    const update = () => setCapaz(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+  return capaz
+}
+
 function CartasPage() {
   const { user } = useAuth()
   const resumenQ = useColeccionResumen()
@@ -65,6 +94,8 @@ function CartasPage() {
   const [animeFiltro, setAnimeFiltro] = useState('TODOS')
   const [orden, setOrden] = useState('POSEIDAS')
   const [cofreResultado, setCofreResultado] = useState(null)
+
+  const usaVitrina = useVitrinaCapaz()
 
   // Grid paginado y filtrado en servidor. Cambiar rareza/anime crea una query
   // nueva (otra key) que arranca en offset 0 automáticamente.
@@ -293,16 +324,20 @@ function CartasPage() {
         />
       ) : (
         <>
-          <div className="as-card-grid-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {cartas.map((carta) => (
-              <CartaTile
-                key={carta.id}
-                carta={carta}
-                onDownload={descargar}
-                downloading={descargandoId === carta.id}
-              />
-            ))}
-          </div>
+          {usaVitrina ? (
+            <CardShowcase cartas={cartas} onDownload={descargar} descargandoId={descargandoId} />
+          ) : (
+            <div className="as-card-grid-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {cartas.map((carta) => (
+                <CartaTile
+                  key={carta.id}
+                  carta={carta}
+                  onDownload={descargar}
+                  downloading={descargandoId === carta.id}
+                />
+              ))}
+            </div>
+          )}
           {paginaQ.hasNextPage && (
             <div className="mt-8 flex justify-center">
               <Button
