@@ -1291,14 +1291,17 @@
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    /* Opacidad reducida de 0.055 → 0.038: menos intrusivo en móviles
-       con pantallas OLED donde el grano era visible en fondos oscuros. */
-    opacity: 0.038;
-    mix-blend-mode: overlay;
-    /* numOctaves 3→2: el tercer octavo añade detalle de alta frecuencia
-       prácticamente invisible a ojo humano en pantallas normales pero
-       multiplica el tiempo de rasterizado del SVG filter. */
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    /* Grano pre-horneado (generate-atmosphere-assets.mjs) en lugar del SVG
+       con feTurbulence: WebKit rasterizaba ese filtro en CPU al tamaño
+       COMPLETO del body (8000px+ en el catálogo) y el mix-blend-mode
+       obligaba a recomponer cada tile de GPU contra ese raster — juntos
+       eran el sospechoso nº1 del flash blanco de pantalla entera al hacer
+       scroll rápido en Safari. El tile de 128px repite y compone en alpha
+       normal: mismo grano, coste de composición ~cero. La opacidad sube
+       0.038 → 0.05 para compensar el realce que aportaba el blend overlay. */
+    opacity: 0.05;
+    background-image: url("/assets/overlays/film-grain-v1.png");
+    background-size: 128px 128px;
   }
 
   a {

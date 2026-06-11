@@ -21,6 +21,7 @@
     "build:cover-variants:check": "node scripts/generate-cover-variants.mjs --check",
     "build:colors": "node scripts/generate-dominant-colors.mjs",
     "build:stage-assets": "node scripts/generate-stage-assets.mjs",
+    "build:atmosphere-assets": "node scripts/generate-atmosphere-assets.mjs",
     "assets:cdn:plan": "node ../scripts/sync-img-cdn.mjs --plan",
     "assets:cdn:dry-run": "node ../scripts/sync-img-cdn.mjs --dry-run",
     "assets:cdn:sync": "node ../scripts/sync-img-cdn.mjs --apply",
