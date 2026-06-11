@@ -18,6 +18,9 @@ import JsonLd from '../components/JsonLd'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import PersonajeImg from '../components/PersonajeImg'
+import DepthCard from '../components/DepthCard'
+import { cutUrl, hasCut } from '../lib/cuts'
+import { getAnimeIdentity } from '../data/anime-identities'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { fechaDelDia } from '../lib/games'
 import { slugifyAnime } from '../lib/animes'
@@ -67,6 +70,8 @@ function DescubrePersonajePage() {
   )
   const personaje = personajeManual ?? personajeDelDia
   const animeSlug = personaje?.anime ? slugifyAnime(personaje.anime) : ''
+  // Identidad curada del universo (kanji + lema) para la placa de la carta 2.5D.
+  const identidadAnime = getAnimeIdentity(animeSlug, personaje?.anime ?? '')
 
   const descubrirOtro = () => {
     const next = randomPersonaje(catalogoPersonajes, personaje?.slug)
@@ -144,28 +149,47 @@ function DescubrePersonajePage() {
 
         {personaje ? (
           <section className="grid gap-6 lg:grid-cols-[minmax(18rem,0.44fr)_minmax(0,1fr)] lg:items-stretch">
-            <article className="overflow-hidden rounded-xl border border-border bg-surface">
-              <div className="relative aspect-[4/5] bg-bg">
-                <PersonajeImg
-                  slug={personaje.slug}
-                  src={personaje.imagenUrl ?? personaje.imagen ?? imagenPersonaje(personaje.slug)}
-                  alt={personaje.nombre}
-                  className="h-full w-full object-cover object-top"
-                  loading="eager"
+            {hasCut(personaje.slug) ? (
+              /* Carta 2.5D: el recorte del personaje rompe el marco por arriba
+                 (de ahí el aire pt-12) y la escena de fondo es su imagen normal
+                 desenfocada. El kanji y el lema salen de la identidad curada
+                 del universo. Sin recorte: presentación plana de siempre. */
+              <article className="flex items-end justify-center px-2 pb-1 pt-12 sm:pt-14">
+                <DepthCard
+                  key={personaje.slug}
+                  bgSrc={personaje.imagenUrl ?? personaje.imagen ?? imagenPersonaje(personaje.slug)}
+                  cutoutSrc={cutUrl(personaje.slug)}
+                  name={personaje.nombre}
+                  anime={personaje.anime}
+                  kanji={identidadAnime.kanji}
+                  kanjiMeaning={identidadAnime.emblem}
+                  nameTag="h1"
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/92 via-black/52 to-transparent p-5">
-                  <p className="text-[11px] font-black text-gold">
-                    Personaje descubierto
-                  </p>
-                  <h1 className="mt-1 text-3xl font-black leading-tight text-white">
-                    {personaje.nombre}
-                  </h1>
-                  <p className="mt-1 text-sm font-semibold text-white/76">
-                    {personaje.anime}
-                  </p>
+              </article>
+            ) : (
+              <article className="overflow-hidden rounded-xl border border-border bg-surface">
+                <div className="relative aspect-[4/5] bg-bg">
+                  <PersonajeImg
+                    slug={personaje.slug}
+                    src={personaje.imagenUrl ?? personaje.imagen ?? imagenPersonaje(personaje.slug)}
+                    alt={personaje.nombre}
+                    className="h-full w-full object-cover object-top"
+                    loading="eager"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/92 via-black/52 to-transparent p-5">
+                    <p className="text-[11px] font-black text-gold">
+                      Personaje descubierto
+                    </p>
+                    <h1 className="mt-1 text-3xl font-black leading-tight text-white">
+                      {personaje.nombre}
+                    </h1>
+                    <p className="mt-1 text-sm font-semibold text-white/76">
+                      {personaje.anime}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            )}
 
             <div className="flex flex-col gap-4">
               <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">

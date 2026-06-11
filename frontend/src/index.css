@@ -154,6 +154,17 @@
   --text-shadow-aura-lg: 0 0 90px rgb(159 29 44 / 0.32);
 }
 
+/* DepthCard: respiración de la capa frontal en reposo (escala imperceptible). */
+@keyframes as-depth-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.008);
+  }
+}
+
 @keyframes pulse-halo {
   0% {
     box-shadow: 0 0 0 0 rgb(159 29 44 / 0.58);
