@@ -137,7 +137,11 @@
   },
   "votar": {
     "tituloPagina": "Vote",
-    "subtituloPagina": "Pick the winner of each matchup."
+    "subtituloPagina": "Pick the winner of each matchup.",
+    "racha": {
+      "etiqueta": "STREAK ×{{total}}",
+      "aria": "Streak of {{total}} votes this session"
+    }
   },
   "ranking": {
     "tituloPagina": "Ranking",
