@@ -39,6 +39,19 @@ describe('font loading', () => {
     expect(fontCss).toContain('font-display: swap')
   })
 
+  it('cada cara del CSS generado apunta a un woff2 que existe (CSS y subsets viajan juntos)', () => {
+    // Regresión real: una regeneración commiteó las fuentes nuevas pero no
+    // el CSS generado → producción referenciaba un hash borrado y la
+    // display caía al fallback. El contrato ata los tres: manifest, CSS y
+    // archivos.
+    const fontCss = readFileSync(resolve(frontendRoot, 'src/styles/display-font.css'), 'utf8')
+    const refs = [...fontCss.matchAll(/\/fonts\/(as-display-[a-z]+\.[0-9a-f]{8}\.woff2)/g)].map((m) => m[1])
+    expect(refs.length).toBeGreaterThanOrEqual(2)
+    for (const ref of refs) {
+      expect(() => readFileSync(resolve(frontendRoot, 'public/fonts', ref))).not.toThrow()
+    }
+  })
+
   it('el preload de index.html apunta a un archivo que existe en public/fonts', () => {
     const indexHtml = readFileSync(resolve(frontendRoot, 'index.html'), 'utf8')
     const href = indexHtml.match(/href="\/fonts\/(as-display-core\.[0-9a-f]{8}\.woff2)"/)?.[1]
