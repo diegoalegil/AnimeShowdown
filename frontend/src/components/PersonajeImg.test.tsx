@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 import PersonajeImg from './PersonajeImg'
 
@@ -68,6 +68,51 @@ describe('PersonajeImg', () => {
     expect(srcSet).toContain('/img/One_Piece/luffy-300.webp?v=1 300w')
     expect(srcSet).toContain('/img/One_Piece/luffy-600.webp?v=1 600w')
     expect(srcSet).not.toContain('luffy-600-300')
+  })
+
+  // Contrato V-5: la visibilidad de la imagen NUNCA depende del load-event.
+  // En Safari, con lazy + content-visibility, el evento puede perderse; un
+  // gate opacity-0 dejaba la carta atascada en el color dominante (sintoma
+  // real de prod). El fade es CSS (.as-img-reveal) y solo cosmetico.
+  it('nunca gatea la visibilidad con opacity-0 a la espera del load-event', () => {
+    render(
+      <PersonajeImg
+        slug="nami"
+        src="/img/One_Piece/nami.webp"
+        alt="Nami"
+      />,
+    )
+
+    const img = screen.getByRole('img', { name: 'Nami' })
+
+    expect(img.className).not.toContain('opacity-0')
+    expect(img.className).toContain('as-img-reveal')
+  })
+
+  it('no re-aplica el fade al remontar un src ya cargado (anti-parpadeo V-4)', () => {
+    const { unmount } = render(
+      <PersonajeImg
+        slug="zoro"
+        src="/img/One_Piece/zoro.webp"
+        alt="Roronoa Zoro"
+      />,
+    )
+
+    fireEvent.load(screen.getByRole('img', { name: 'Roronoa Zoro' }))
+    unmount()
+
+    render(
+      <PersonajeImg
+        slug="zoro"
+        src="/img/One_Piece/zoro.webp"
+        alt="Roronoa Zoro"
+      />,
+    )
+
+    const img = screen.getByRole('img', { name: 'Roronoa Zoro' })
+
+    expect(img.className).not.toContain('as-img-reveal')
+    expect(img.className).not.toContain('opacity-0')
   })
 
   it('acepta politica de encuadre sin depender de clases del contenedor', () => {

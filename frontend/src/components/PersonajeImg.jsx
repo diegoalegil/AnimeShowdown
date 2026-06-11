@@ -11,11 +11,11 @@ import PersonajePlaceholder from './PersonajePlaceholder'
 
 // Srcs que ya cargaron con éxito en esta sesión. Cuando un <img> se remonta
 // —p.ej. PersonajeCard arma el tilt al primer hover y reemplaza el subárbol—
-// WebKit crea un <img> nuevo cuyo `complete` es false aunque la imagen esté en
-// cache, así que el ref-callback no detecta el cacheo y se re-dispara el fade
-// opacity 0→1: se ve un parpadeo en blanco de la silueta (solo en Safari).
-// Recordando los srcs ya cargados, en el remonte pintamos a opacidad plena sin
-// fade (instant) desde el primer frame y el flash desaparece. V-4.
+// WebKit crea un <img> nuevo y el fade de primera aparición volvería a correr
+// sobre una imagen ya vista: parpadeo en blanco de la silueta (solo Safari).
+// Recordando los srcs ya cargados, el remonte se pinta sin fade. V-4.
+// Desde V-5 este Set solo decide el fade COSMÉTICO (.as-img-reveal): la
+// visibilidad del <img> nunca depende de él ni de ningún estado JS.
 const loadedSrcs = new Set()
 const FIT_CLASSES = {
   contain: 'object-contain',
@@ -46,6 +46,15 @@ function encodeImageUrl(url) {
  *
  * <p>Lazy loading y async decoding por default. El caller puede override
  * (p.ej. {@code loading="eager" fetchPriority="high"} para LCP).
+ *
+ * <p>Contrato de visibilidad (V-5): el {@code <img>} es SIEMPRE visible.
+ * Nada de gates {@code opacity-0} dependientes del load-event de React:
+ * en Safari, con {@code loading="lazy"} bajo {@code content-visibility:auto},
+ * el evento puede perderse y la carta quedaba atascada en el color dominante
+ * hasta recargar. Un {@code <img>} sin datos no pinta nada, así que el span
+ * con el color dominante hace de placeholder igual; el fade de primera
+ * aparición corre por CSS ({@code .as-img-reveal} con {@code @starting-style},
+ * que degrada a "sin fade" donde no hay soporte — nunca a "invisible").
  */
 function PersonajeImg({
   slug,
@@ -72,7 +81,7 @@ function PersonajeImg({
   height = 600,
   ...imgProps
 }) {
-  const [status, setStatus] = useState({ src: null, loaded: false, errored: false, instant: false })
+  const [status, setStatus] = useState({ src: null, errored: false })
   // Tick para forzar rerender cuando el catálogo de personajes se hidrata
   // (evento CATALOGO_PERSONAJES_HYDRATED_EVENT). Antes de hidratarse,
   // imagenPersonaje(slug) cae a `/img/_missing/${slug}.webp` y dispara
@@ -97,32 +106,25 @@ function PersonajeImg({
   //   - El slug cambia (caso poco común pero el componente debería
   //     soportarlo: e.g. carousel que reusa la misma instancia).
   // https://react.dev/reference/react/useState#storing-information-from-previous-renders
-  if (status.src !== src) {
-    if (loadedSrcs.has(src)) {
-      // Ya cargó antes en esta sesión: pinta instantánea a opacidad plena sin
-      // fade, aunque sea un remonte (evita el parpadeo en blanco de WebKit).
-      setStatus({ src, loaded: true, errored: false, instant: true })
-    } else if (status.src !== null) {
-      setStatus({ src: null, loaded: false, errored: false, instant: false })
-    }
+  if (status.src !== null && status.src !== src) {
+    setStatus({ src: null, errored: false })
   }
-  const loaded = status.src === src && status.loaded
   const errored = status.src === src && status.errored
-  // Imagen ya completa al montar (cache del navegador): pintar a opacidad
-  // plena SIN el fade opacity 0→1. En un remonte —p.ej. PersonajeCard arma el
-  // tilt al primer hover y reemplaza el subárbol— ese fade se percibe como un
-  // parpadeo de la silueta (la imagen desaparece y reaparece). V-3.
-  const instant = status.src === src && status.instant
+  // Fade cosmético solo en la PRIMERA aparición del src en la sesión: en un
+  // remonte de un src ya visto (tilt de PersonajeCard, etc.) repetir el fade
+  // se percibe como parpadeo de la silueta en WebKit (V-3/V-4). Se evalúa por
+  // render a propósito: aunque cambie tras onLoad, quitar la clase con la
+  // transición ya completada no produce ningún cambio visual.
+  const reveal = !loadedSrcs.has(src)
   const dominantColor =
     colorDominante ?? imagenColorDominante ?? p?.imagenColorDominante ?? 'var(--color-surface)'
   const altText = alt ?? nombre ?? p?.nombre ?? slug
   const handleImageLoad = useCallback((event) => {
     loadedSrcs.add(src)
-    setStatus({ src, loaded: true, errored: false, instant: false })
     onLoad?.(event)
   }, [onLoad, src])
   const handleImageError = useCallback((event) => {
-    setStatus({ src, loaded: false, errored: true })
+    setStatus({ src, errored: true })
     trackAssetError({
       src: event.currentTarget?.currentSrc || src,
       category: 'character',
@@ -130,16 +132,14 @@ function PersonajeImg({
     })
     onError?.(event)
   }, [onError, slug, src])
+  // Si la imagen ya estaba completa al attachear (cache del navegador: el
+  // load nativo pudo dispararse antes de que React enganche su listener
+  // sintético), registrarla igualmente para que futuros remontes no fadeen.
   const handleImageRef = useCallback(
     (node) => {
-      if (!node || loaded || errored) return
-      if (node.complete && node.naturalWidth > 0) {
-        // Cacheada: marcar instant para pintar a opacidad plena sin fade.
-        loadedSrcs.add(src)
-        setStatus({ src, loaded: true, errored: false, instant: true })
-      }
+      if (node?.complete && node.naturalWidth > 0) loadedSrcs.add(src)
     },
-    [errored, loaded, src],
+    [src],
   )
 
   // Catálogo no hidratado todavía: imagenPersonaje(slug) devolvió el path
@@ -223,9 +223,7 @@ function PersonajeImg({
           alt={altText}
           width={width}
           height={height}
-          className={`h-full w-full ${fitClass} ${positionClass} ${
-            loaded && instant ? '' : 'transition-opacity duration-300 motion-reduce:transition-none'
-          } ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`h-full w-full ${fitClass} ${positionClass}${reveal ? ' as-img-reveal' : ''}`}
           loading={loading ?? 'lazy'}
           decoding={decoding ?? 'async'}
           {...imgProps}

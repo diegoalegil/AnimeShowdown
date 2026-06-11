@@ -418,6 +418,26 @@
     animation-play-state: paused !important;
   }
 
+  /* PersonajeImg (V-5) — fade de primera aparición SIN gate JS. La opacidad
+     final es siempre 1: en Safari el load-event puede perderse con lazy +
+     content-visibility y un gate opacity-0 dejaba la carta atascada en el
+     color dominante hasta recargar. @starting-style anima desde 0 solo al
+     insertarse el nodo; sin soporte, degrada a "sin fade", nunca a invisible. */
+  .as-img-reveal {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  @starting-style {
+    .as-img-reveal {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .as-img-reveal {
+      transition: none !important;
+    }
+  }
+
   .kanji-ink {
     animation: kanji-glow 3.6s ease-in-out infinite;
     animation-delay: var(--glow-delay, 0s);
