@@ -21,11 +21,9 @@ import {
   CardMini,
   OmikujiCard,
 } from '../features/games/hub/GamesHubCards'
-import {
-  DailyHistoryStrip,
-  GamesHubStatsBar,
-} from '../features/games/hub/GamesHubStats'
+import { GamesHubStatsBar } from '../features/games/hub/GamesHubStats'
 import GamesHubSummaryBanner from '../features/games/hub/GamesHubSummaryBanner'
+import StreakFlame from '../features/games/hub/StreakFlame'
 import { leerEstadoJuego, leerMejorRacha } from '../features/games/hub/game-progress'
 import {
   buildGamesHubPlan,
@@ -99,7 +97,8 @@ function GamesHubPage() {
 
   // Se recalcula en cada render; el listener solo fuerza el render
   // cuando otra acción del ritual cambia localStorage en esta misma sesión.
-  const dailyHistory = readRecentDailyProgress(7, todayKey)
+  // 14 días: la llama de racha pinta dos semanas de calendario 完.
+  const dailyHistory = readRecentDailyProgress(14, todayKey)
   const dailyStreak = readDailyStreak()
 
   const {
@@ -213,10 +212,20 @@ function GamesHubPage() {
           resetLabel={reinicio.label}
         />
 
-        {/* Calendario condicionado a actividad: una cuenta nueva (sin racha ni
-            juegos completados hoy) no ve una tira de 7 días a cero. */}
+        {/* La llama de racha sustituye a la tira plana de historial: nivel
+            visual por días (brasa → llama → llama doble), calendario 完 de
+            dos semanas con datos REALES y aviso ámbar si la racha corre
+            peligro. Mismo gate de actividad: una cuenta nueva no ve una
+            llama apagada a cero. */}
         {shouldShowDailyHistory(dailyStreak, completadosHoy) && (
-          <DailyHistoryStrip days={dailyHistory} streak={dailyStreak} />
+          <div className="mt-6 flex justify-center">
+            <StreakFlame
+              streakDays={dailyStreak.current}
+              playedToday={dailyStreak.lastCompletedDate === todayKey}
+              hoursLeft={reinicio.h + reinicio.m / 60}
+              history={dailyHistory.map((d) => Boolean(d?.completed))}
+            />
+          </div>
         )}
 
         <DailyRulesDetails />
