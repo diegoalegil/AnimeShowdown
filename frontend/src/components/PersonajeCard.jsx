@@ -1,8 +1,9 @@
-import { memo } from 'react'
-import { Link } from 'react-router-dom'
+import { memo, useRef } from 'react'
 import { useSound } from '../contexts/SoundContext'
+import { AppLink } from './AppLink'
 import PersonajeImg from './PersonajeImg'
 import { getStatsPersonaje } from '../lib/personajes-core'
+import { markPersonajeHero } from '../lib/viewTransitions'
 
 function PersonajeCard({
   slug,
@@ -15,6 +16,7 @@ function PersonajeCard({
   imagenColorDominante,
 }) {
   const { play } = useSound()
+  const cardRef = useRef(null)
 
   // Solo usamos el ELO base (estimado por popularidad). Las W/L y el win rate
   // de getStatsPersonaje son sintéticos y se ocultan para no mostrar métricas
@@ -31,15 +33,22 @@ function PersonajeCard({
   const imageSrc = imagenUrl ?? imagen
 
   return (
-    <Link
+    <AppLink
       to={`/personajes/${slug}`}
-      onClick={() => play('playWhoosh')}
+      onClick={() => {
+        play('playWhoosh')
+        // Antes de capturar el estado viejo: esta carta es el origen del
+        // morph hacia el hero del detalle (mismo aspect 2/3 y radio).
+        markPersonajeHero(cardRef.current)
+      }}
       className="group block"
     >
       {/* contentVisibility: el navegador se salta layout/paint de las cartas
           fuera de viewport y reserva el alto (intrinsic 300px), así el scroll
-          rápido no deja huecos blancos sin medida. */}
+          rápido no deja huecos blancos sin medida. La carta clickada está en
+          viewport (pintada), así que la captura del morph no se ve afectada. */}
       <article
+        ref={cardRef}
         className="as-ssr-card relative overflow-hidden rounded-2xl transition-[border-color,box-shadow] group-hover:border-gold/45 group-hover:shadow-lift [--aura-color:var(--color-gold-aura)]"
         style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 300px' }}
       >
@@ -54,7 +63,7 @@ function PersonajeCard({
         />
         <CardBadges rank={rank} elo={elo} nombre={nombre} anime={anime} />
       </article>
-    </Link>
+    </AppLink>
   )
 }
 

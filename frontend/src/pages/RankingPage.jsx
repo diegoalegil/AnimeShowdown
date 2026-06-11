@@ -17,6 +17,7 @@ import {
   CATEGORIAS,
   MIN_PARA_SECCION,
 } from '../data/personajes-tags'
+import { AppLink } from '../components/AppLink'
 import PersonajeImg from '../components/PersonajeImg'
 import BrandSelect from '../components/BrandSelect'
 import RankingMetaReport from '../components/RankingMetaReport'
@@ -38,6 +39,7 @@ import {
   useRankingSegmentado,
 } from '../hooks/useRanking'
 import { getStatsPersonaje } from '../lib/personajes-core'
+import { markPersonajeHero } from '../lib/viewTransitions'
 import { INTENCIONES } from '../data/voto-intenciones'
 import { useQueryState } from '../hooks/useQueryState'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
@@ -559,6 +561,7 @@ function SeccionCategoria({ seccion }) {
 }
 
 function CategoriaCard({ rank, personaje, tono }) {
+  const retratoRef = useRef(null)
   // El ranking puede devolver items sin slug durante cold-start o con datos
   // incompletos. Evitamos /personajes/undefined y preferimos omitir la card.
   if (!personaje?.slug) return null
@@ -583,11 +586,13 @@ function CategoriaCard({ rank, personaje, tono }) {
       className="rounded-lg bg-surface/40"
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}
     >
-      <Link
+      <AppLink
         to={`/personajes/${personaje.slug}`}
+        // El retrato de la card viaja hasta el hero del detalle (morph).
+        onClick={() => markPersonajeHero(retratoRef.current)}
         className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"
       >
-        <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-bg">
+        <div ref={retratoRef} className="relative aspect-[2/3] overflow-hidden rounded-lg bg-bg">
           <PersonajeImg
             slug={personaje.slug}
             // Pasamos src/colorDominante explícitos desde la data del ranking
@@ -621,7 +626,7 @@ function CategoriaCard({ rank, personaje, tono }) {
         <p className="font-mono text-[11px] font-bold text-gold">
           {personaje.elo}
         </p>
-      </Link>
+      </AppLink>
     </li>
   )
 }
