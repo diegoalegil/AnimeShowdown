@@ -348,7 +348,7 @@ function Face({ front, kanji, fullGoldRing }) {
           lang="ja"
           style={{
             fontFamily: 'var(--font-kanji-serif)',
-            fontWeight: 900,
+            fontWeight: 700,
             fontSize: front ? 76 : 56,
             lineHeight: 1,
             color: 'var(--color-gold)',
@@ -383,7 +383,7 @@ function ReducedToast({ title, rarity, kanji, onDone }) {
         >
           <span
             lang="ja"
-            style={{ fontFamily: 'var(--font-kanji-serif)', fontWeight: 900, fontSize: 26, color: 'color-mix(in oklab, var(--color-accent) 45%, black)' }}
+            style={{ fontFamily: 'var(--font-kanji-serif)', fontWeight: 700, fontSize: 26, color: 'color-mix(in oklab, var(--color-accent) 45%, black)' }}
           >
             {kanji}
           </span>

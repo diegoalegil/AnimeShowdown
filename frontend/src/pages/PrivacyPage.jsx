@@ -51,7 +51,7 @@ function PrivacyPage() {
             <Shield className="h-3 w-3" />
             Legal
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Política de privacidad
           </h1>
           <p className="max-w-2xl text-[13px] text-fg-muted">

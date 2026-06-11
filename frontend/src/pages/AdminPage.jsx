@@ -80,7 +80,7 @@ function AdminPage() {
             <Shield className="h-3 w-3" />
             Panel ADMIN
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Mantenimiento
           </h1>
         </motion.header>

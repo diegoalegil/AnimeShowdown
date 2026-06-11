@@ -381,7 +381,7 @@ function GlossaryPage() {
             <BookOpen className="h-3 w-3" />
             <span lang="ja">用語集</span> · Glosario
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Términos otaku
           </h1>
           <p className="max-w-2xl text-fg-muted">

@@ -160,10 +160,13 @@ describe('PersonajeCard', () => {
     // content-visibility por card SOLO es seguro si los tiles sin rasterizar
     // del fling se rellenan de oscuro. Eso exige background-color SÓLIDO en
     // html (el shorthand `background:` lo dejaba transparent → tiles blancos)
-    // y color-scheme dark declarado en la raíz del documento.
+    // y color-scheme dark declarado en la raíz del documento. Desde Kessen
+    // el valor vive en el token --color-canvas: se verifica la cadena entera
+    // (html usa el token Y el token es un hex sólido, sin alpha).
     const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
     const htmlRule = css.match(/\n  html \{[\s\S]*?\n  \}/)?.[0] ?? ''
-    expect(htmlRule).toMatch(/background-color:\s*#[0-9a-f]{6}/)
+    expect(htmlRule).toMatch(/background-color:\s*var\(--color-canvas\)/)
+    expect(css).toMatch(/--color-canvas:\s*#[0-9a-f]{6};/)
     const rootRule = css.match(/\n  :root \{[\s\S]*?\n  \}/)?.[0] ?? ''
     expect(rootRule).toContain('color-scheme: dark')
 

@@ -10,6 +10,7 @@ import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { getCombateEstelarDelDia } from '../lib/combate-estelar'
 import { hexToRgbChannels } from '../lib/color'
+import { EASE_LIFT } from '../lib/motion'
 
 /**
  * Combate estelar — cartel de velada de la home. Dos personajes del catálogo
@@ -24,7 +25,6 @@ const CANALES_ACCENT = '159 29 44' // --color-accent
 const CANALES_ELECTRIC = '36 198 220' // --color-electric
 
 // Curva --ease-lift de index.css, para las entradas framer-motion.
-const EASE_LIFT = [0.16, 1, 0.3, 1]
 
 const MQ_PARALLAX = '(min-width: 1024px) and (hover: hover) and (pointer: fine)'
 const MQ_EFECTOS = '(min-width: 768px)'
@@ -317,7 +317,7 @@ function EmblemaVs({ reduceMotion }) {
         <span
           lang="ja"
           data-glyph="決"
-          className="kanji-ink-glyph block font-kanji-serif text-[clamp(3.6rem,9vw,7rem)] font-black leading-none text-fg-strong/95"
+          className="kanji-ink-glyph block font-kanji-serif text-[clamp(3.6rem,9vw,7rem)] font-bold leading-none text-fg-strong/95"
           style={{ '--glow-rgb': CANALES_GOLD }}
         >
           決

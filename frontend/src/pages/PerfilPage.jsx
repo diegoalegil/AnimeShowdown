@@ -159,7 +159,7 @@ function PerfilPage() {
             <User className="h-3 w-3" />
             Mi cuenta · Tu espacio personal
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Mi perfil
           </h1>
           <p className="max-w-2xl text-fg-muted">

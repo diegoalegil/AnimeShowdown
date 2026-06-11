@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { animate, motion, useMotionValue, useReducedMotion } from 'framer-motion'
 import { useSound } from '../../../contexts/SoundContext'
+import { EASE_LIFT } from '../../../lib/motion'
 
 /** AGITADO (hold). Oscilador escrito a mano sobre motion values en rAF.
  *  ω = 21 rad/s (≈3.3 Hz) con wobble lento de ±2.5 rad/s para que no suene
@@ -44,7 +45,7 @@ const DROP = {
 
 /** DESENROLLADO. scaleY 0→1 con origin-top, 600 ms, curva lift del sistema
  *  (--ease-lift = cubic-bezier(0.16, 1, 0.3, 1)). */
-const UNROLL = { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
+const UNROLL = { duration: 0.6, ease: EASE_LIFT }
 
 // Geometría del prisma hexagonal: 6 caras de 92×210.
 // Apotema = (92/2)·√3 ≈ 80 px → cara k = rotateY(k·60°) translateZ(80px).
@@ -501,7 +502,7 @@ export default function OmikujiCylinder({ fortuna, numero, onRevealed }) {
               御神籤
             </span>
             <div className="my-2.5 h-px w-[70%] bg-[color-mix(in_srgb,var(--color-gold)_55%,var(--color-bg))] opacity-50" />
-            <span lang="ja" className="text-[52px] leading-none text-accent" style={{ fontFamily: 'var(--font-kanji-serif)', fontWeight: 900 }}>
+            <span lang="ja" className="text-[52px] leading-none text-accent-text" style={{ fontFamily: 'var(--font-kanji-serif)', fontWeight: 700 }}>
               {fortuna}
             </span>
             <span className="mt-auto font-mono text-[11px] text-[color-mix(in_srgb,var(--color-gold)_60%,var(--color-bg))]">第 {numero} 番</span>

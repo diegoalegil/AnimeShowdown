@@ -11,6 +11,7 @@ import { VisualPageShell } from '../components/VisualSystem'
 import { getGameVisual } from '../data/visual-assets'
 import { useDailyGameState } from '../hooks/useDailyGameState'
 import OmikujiCylinder from '../features/games/omikuji/OmikujiCylinder'
+import { EASE_LIFT } from '../lib/motion'
 
 const STORAGE_KEY = 'animeshowdown.omikuji.v1'
 const ESTADO_INICIAL = { revelado: false }
@@ -118,7 +119,7 @@ const kanjiEntryVariants = {
     transition: {
       delay: i * 0.14,
       duration: 0.65,
-      ease: [0.16, 1, 0.3, 1],
+      ease: EASE_LIFT,
     },
   }),
 }
@@ -233,7 +234,7 @@ function OmikujiPage() {
             <Sparkles className="h-3 w-3" />
             <span lang="ja">お御籤</span> · Omikuji
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Tu suerte del día
           </h1>
           <p className="text-[13px] text-fg-muted">
@@ -335,7 +336,7 @@ function SuerteRevelada({ suerte, onCompartir }) {
           transition={{
             delay: 0.15,
             duration: 0.5,
-            ease: [0.16, 1, 0.3, 1],
+            ease: EASE_LIFT,
           }}
           whileHover={{
             scale: 1.08,

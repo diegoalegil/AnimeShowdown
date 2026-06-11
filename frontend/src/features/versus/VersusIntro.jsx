@@ -130,7 +130,7 @@ function KanjiStamp({ anim }) {
     <div className="absolute left-1/2 top-[48%] z-0 -translate-x-1/2 -translate-y-1/2">
       {/* sangrado de tinta */}
       <motion.span
-        className="absolute inset-0 grid place-items-center font-black leading-none text-accent"
+        className="absolute inset-0 grid place-items-center font-black leading-none text-accent-text"
         style={face}
         initial={anim ? { scale: 1.35, opacity: 0 } : false}
         animate={{ scale: 1.07, opacity: 0.14 }}
@@ -140,7 +140,7 @@ function KanjiStamp({ anim }) {
         決
       </motion.span>
       <motion.span
-        className="block font-black leading-none text-accent"
+        className="block font-black leading-none text-accent-text"
         style={face}
         initial={anim ? { scale: 1.6, opacity: 0, rotate: 3 } : false}
         animate={{ scale: 1, opacity: 0.5, rotate: -1.5 }}

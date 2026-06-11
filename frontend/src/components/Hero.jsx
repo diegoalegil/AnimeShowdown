@@ -142,7 +142,7 @@ function Hero({ catalogoPersonajes = [] }) {
           Arena 1v1 · ranking vivo · retos diarios
         </motion.span>
         <motion.h1
-          className="w-full max-w-[min(90vw,28rem)] text-balance text-[clamp(1.95rem,8vw,4.55rem)] font-extrabold leading-[1.02] tracking-normal sm:max-w-4xl"
+          className="font-display w-full max-w-[min(90vw,28rem)] text-balance text-[clamp(1.95rem,8vw,4.55rem)] font-bold leading-[1.02] tracking-normal sm:max-w-4xl"
           variants={itemVariants}
         >
           {t('hero.tituloAntes')}{' '}

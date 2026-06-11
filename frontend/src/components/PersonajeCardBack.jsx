@@ -129,7 +129,7 @@ function PersonajeCardBack({
             {selloKanji && (
               <span className="relative flex h-[46px] w-[46px] items-center justify-center rounded-full border border-accent/70">
                 <span aria-hidden="true" className="absolute inset-[3px] rounded-full border border-accent/35" />
-                <span lang="ja" className="text-[19px] text-accent" style={{ fontFamily: 'var(--font-kanji-serif)' }}>
+                <span lang="ja" className="text-[19px] text-accent-text" style={{ fontFamily: 'var(--font-kanji-serif)' }}>
                   {selloKanji}
                 </span>
               </span>

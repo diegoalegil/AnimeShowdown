@@ -44,7 +44,7 @@ function FeedPage() {
           <Users className="h-3 w-3" />
           Comunidad
         </span>
-        <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+        <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
           Feed de comunidad
         </h1>
         <p className="max-w-2xl text-fg-muted">
@@ -105,7 +105,7 @@ function FeedContenido() {
 function EmptyNoLogueado() {
   return (
     <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-      <span className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent">
+      <span className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent-text">
         <Users className="h-6 w-6" />
       </span>
       <h2 className="mb-2 text-lg font-bold text-fg-strong">

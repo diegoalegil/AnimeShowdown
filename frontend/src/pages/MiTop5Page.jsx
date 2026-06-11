@@ -199,7 +199,7 @@ function MiTop5Page() {
             <ImageIcon className="h-3 w-3" />
             Mi Top 5
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Tu top 5 anime, imagen lista para share
           </h1>
           <p className="text-[13px] text-fg-muted">
