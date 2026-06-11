@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, LogOut, Menu, Search, Shield, Shuffle, Swords, Volume2, VolumeX, X } from 'lucide-react'
+import { AppLink, AppNavLink } from './AppLink'
 import { useAuth } from '../contexts/AuthContext'
 import { useSound } from '../contexts/SoundContext'
 import Avatar from './Avatar'
@@ -171,13 +172,13 @@ function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-200 sm:gap-6 sm:px-8 sm:py-4 ${
+      className={`as-vt-header sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-200 sm:gap-6 sm:px-8 sm:py-4 ${
         scrolled
           ? 'border-b border-white/10 bg-bg/78 shadow-elev-2 backdrop-blur-2xl'
           : 'border-b border-white/8 bg-bg/52 backdrop-blur-xl'
       }`}
     >
-      <Link to="/" className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 min-[1120px]:flex-none">
+      <AppLink to="/" className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 min-[1120px]:flex-none">
         <img
           src="/logo.svg"
           alt=""
@@ -189,21 +190,21 @@ function Header() {
           <span className="text-fg-strong">Anime</span>
           <span className="text-gold">Showdown</span>
         </span>
-      </Link>
+      </AppLink>
 
       {/* Nav desktop (≥1120px). 5 enlaces principales + menú "Más" + CTA caben
           en una fila con holgura; por debajo pasa al panel del hamburger.
           1024px (lg) era demasiado justo con el logotipo + estos elementos. */}
       <nav className="hidden flex-nowrap items-center justify-center gap-1 min-[1120px]:flex">
         {primaryNavLinks.map(({ to, i18nKey }) => (
-          <NavLink
+          <AppNavLink
             key={to}
             to={to}
             onClick={() => play('playClick')}
             className={regularLinkClass}
           >
             {t(`nav.${i18nKey}`)}
-          </NavLink>
+          </AppNavLink>
         ))}
         <MoreMenu moreLinks={moreNavLinks} t={t} play={play} />
         <button
@@ -217,7 +218,7 @@ function Header() {
           {ruletaLoading ? t('header.ruletaLoading') : t('nav.ruleta')}
         </button>
         {/* CTA principal: votar siempre visible, no requiere login. */}
-        <NavLink
+        <AppNavLink
           to="/votar"
           onPointerDown={ctaVotarDesktop.onPointerDown}
           onClick={ctaVotarDesktop.onClick}
@@ -225,7 +226,7 @@ function Header() {
         >
           <Swords className="h-4 w-4" />
           {t('header.ctaVotar')}
-        </NavLink>
+        </AppNavLink>
         <button
           type="button"
           onClick={openQuickSearch}
@@ -262,13 +263,13 @@ function Header() {
             <UserBadge user={user} onLogout={logout} t={t} />
           </>
         ) : (
-          <NavLink
+          <AppNavLink
             to="/login"
             onClick={() => play('playClick')}
             className={loginGhostClass}
           >
             {t('nav.login')}
-          </NavLink>
+          </AppNavLink>
         )}
       </nav>
 
@@ -281,13 +282,13 @@ function Header() {
           <>
             <SaldoChip className="px-1.5 py-0.5 text-xs" />
             <NotifBell />
-            <Link
+            <AppLink
               to="/perfil"
               aria-label={t('nav.perfil')}
               onClick={() => play('playClick')}
             >
               <Avatar user={user} size={32} />
-            </Link>
+            </AppLink>
             <button
               type="button"
               onClick={openQuickSearch}
@@ -302,7 +303,7 @@ function Header() {
           /* Nota de producto: "Votar ahora" en 2 líneas comía
              demasiado del header móvil. Cambio a "Votar" + icono Swords:
              una palabra cabe en una línea y deja respirar al hamburger. */
-          <NavLink
+          <AppNavLink
             to="/votar"
             onPointerDown={ctaVotarMobile.onPointerDown}
             onClick={ctaVotarMobile.onClick}
@@ -310,7 +311,7 @@ function Header() {
           >
             <Swords className="h-3.5 w-3.5" />
             {t('header.ctaVotarCompact')}
-          </NavLink>
+          </AppNavLink>
         )}
         {!user && (
           <button
@@ -355,7 +356,7 @@ function Header() {
           >
             <div className="flex flex-col gap-1">
               {[...primaryNavLinks, ...moreNavLinks].map(({ to, i18nKey }) => (
-                <NavLink
+                <AppNavLink
                   key={to}
                   to={to}
                   onClick={() => { play('playClick'); closeMobile() }}
@@ -368,9 +369,9 @@ function Header() {
                   }
                 >
                   {t(`nav.${i18nKey}`)}
-                </NavLink>
+                </AppNavLink>
               ))}
-              <NavLink
+              <AppNavLink
                 to="/votar"
                 onClick={() => { play('playClick'); closeMobile() }}
                 className={({ isActive }) =>
@@ -382,7 +383,7 @@ function Header() {
                 }
               >
                 {t('nav.votar')}
-              </NavLink>
+              </AppNavLink>
               <button
                 type="button"
                 onClick={() => handleRuleta({ close: true })}
@@ -393,13 +394,13 @@ function Header() {
                 {ruletaLoading ? t('header.ruletaLoading') : t('nav.ruleta')}
               </button>
               {!user && (
-                <NavLink
+                <AppNavLink
                   to="/login"
                   onClick={() => { play('playClick'); closeMobile() }}
                   className="mt-1 inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium text-fg-muted hover:border-accent hover:text-gold"
                 >
                   {t('nav.login')}
-                </NavLink>
+                </AppNavLink>
               )}
             </div>
             <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
@@ -487,7 +488,7 @@ function MoreMenu({ moreLinks, t, play }) {
           className="absolute right-0 top-full z-40 mt-2 min-w-44 overflow-hidden rounded-xl border border-white/10 bg-bg/95 p-1.5 shadow-elev-2 backdrop-blur-xl"
         >
           {moreLinks.map(({ to, i18nKey }) => (
-            <NavLink
+            <AppNavLink
               key={to}
               to={to}
               onClick={() => { play('playClick'); setOpen(false) }}
@@ -500,7 +501,7 @@ function MoreMenu({ moreLinks, t, play }) {
               }
             >
               {t(`nav.${i18nKey}`)}
-            </NavLink>
+            </AppNavLink>
           ))}
         </div>
       )}
@@ -512,7 +513,7 @@ function UserBadge({ user, onLogout, t }) {
   const isAdmin = user.rol === 'ADMIN'
   return (
     <div className="ml-2 flex items-center gap-2 rounded-lg bg-surface-alt px-2 py-1.5">
-      <Link
+      <AppLink
         to="/perfil"
         aria-label={t('nav.perfil')}
         className="flex items-center gap-2.5"
@@ -521,16 +522,16 @@ function UserBadge({ user, onLogout, t }) {
         <span className="text-sm font-medium text-fg-strong hover:text-gold">
           {user.username}
         </span>
-      </Link>
+      </AppLink>
       {isAdmin && (
-        <Link
+        <AppLink
           to="/admin"
           aria-label={t('nav.admin')}
           className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-gold transition-colors hover:bg-accent/25"
         >
           <Shield className="h-3 w-3" />
           {t('nav.admin')}
-        </Link>
+        </AppLink>
       )}
       <button
         type="button"

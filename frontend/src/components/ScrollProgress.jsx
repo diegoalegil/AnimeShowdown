@@ -34,7 +34,7 @@ function ScrollProgress() {
     <div
       ref={ref}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px] origin-left scale-x-0 bg-accent"
+      className="as-vt-scroll-progress pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px] origin-left scale-x-0 bg-accent"
       style={{ boxShadow: 'var(--shadow-aura-sm)' }}
     />
   )
