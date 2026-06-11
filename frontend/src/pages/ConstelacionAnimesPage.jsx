@@ -1,36 +1,52 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { List, Sparkles } from 'lucide-react'
+import { Suspense, lazy, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { List, Orbit } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
-import { construirGruposConstelacion } from '../features/animes/constelacion-grupos'
-import UniverseConstellation from '../features/animes/UniverseConstellation'
+import { brandAssetUrl } from '../lib/brand-assets'
+import { supportsWebGL } from '../features/animes/galaxy/galaxy-layout'
+import { construirUniversosGalaxia } from '../features/animes/galaxy/construir-universos'
+import UniverseGalaxyPoster from '../features/animes/UniverseGalaxyPoster'
+
+// La galaxia 3D arrastra el chunk de three/@react-three: solo se carga cuando
+// hace falta y siempre tras decidir que el navegador soporta WebGL.
+const UniverseGalaxy = lazy(() => import('../features/animes/UniverseGalaxy'))
+
+const symbolUrlFor = (u) => brandAssetUrl(`${u.slug}-symbol-01`, 480)
 
 /**
- * Vista constelación del índice de animes: cielo nocturno navegable con los
- * universos como emblemas unidos por trazos de constelación, agrupados por
- * su taxonomía temática (anime-identities). Vista alternativa inmersiva —
- * la canónica e indexable sigue siendo /animes.
+ * Vista galaxia del índice de animes: cada universo es una estrella en una
+ * espiral 3D navegable (WebGL), con los más poblados como núcleo dorado. Sin
+ * WebGL cae a un póster 2D con la misma espiral. Vista inmersiva — la canónica
+ * e indexable sigue siendo /animes.
  */
 function ConstelacionAnimesPage() {
   useSeo({
-    title: 'Constelación de universos',
+    title: 'Galaxia de universos',
     description:
-      'Explora los universos anime de AnimeShowdown como un cielo de constelaciones temáticas: batalla, romance, terror, mecha y más.',
+      'Explora los universos anime de AnimeShowdown como una galaxia navegable: cada estrella es un universo y los más poblados forman el núcleo dorado.',
     noindex: true,
   })
+  const navigate = useNavigate()
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const grupos = useMemo(
-    () => construirGruposConstelacion(catalogoPersonajes),
+  const universos = useMemo(
+    () => construirUniversosGalaxia(catalogoPersonajes),
     [catalogoPersonajes],
   )
-  const totales = useMemo(
-    () => grupos.reduce((s, g) => s + g.list.reduce((t, u) => t + u.chars, 0), 0),
-    [grupos],
+  const totalPersonajes = useMemo(
+    () => universos.reduce((s, u) => s + u.charCount, 0),
+    [universos],
   )
-  const universos = useMemo(
-    () => grupos.reduce((s, g) => s + g.list.length, 0),
-    [grupos],
+
+  const webgl = supportsWebGL()
+  const onSelect = (u) => navigate(`/animes/${u.slug}`)
+
+  const poster = (
+    <UniverseGalaxyPoster
+      universes={universos}
+      getSymbolUrl={symbolUrlFor}
+      onSelect={onSelect}
+    />
   )
 
   return (
@@ -38,11 +54,11 @@ function ConstelacionAnimesPage() {
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b border-white/10 bg-bg/90 px-4 backdrop-blur-md sm:px-6">
         <div className="flex min-w-0 items-baseline gap-2.5">
           <span aria-hidden="true" lang="ja" className="text-2xl font-bold leading-none text-gold" style={{ fontFamily: 'var(--font-jp)' }}>
-            宙
+            宇宙
           </span>
           <h1 className="text-[15px] font-semibold text-fg-strong">Universos</h1>
           <span className="hidden truncate font-mono text-[11px] text-fg-muted sm:inline">
-            {universos} universos · {totales.toLocaleString('es-ES')} personajes
+            {universos.length} universos · {totalPersonajes.toLocaleString('es-ES')} personajes
           </span>
         </div>
         <nav
@@ -60,18 +76,28 @@ function ConstelacionAnimesPage() {
             aria-current="page"
             className="inline-flex items-center gap-1.5 rounded-[7px] border border-gold/40 bg-gold/10 px-3 py-1.5 text-[12.5px] font-semibold text-gold"
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            Constelación
+            <Orbit className="h-3.5 w-3.5" />
+            Galaxia
           </span>
         </nav>
       </header>
 
-      {grupos.length > 0 ? (
-        <UniverseConstellation grupos={grupos} seed={7} />
-      ) : (
+      {universos.length === 0 ? (
         <div className="flex min-h-[60vh] items-center justify-center text-sm text-fg-muted">
-          Cargando el cielo de universos…
+          Cargando la galaxia de universos…
         </div>
+      ) : webgl ? (
+        <div className="h-[calc(100dvh-3.5rem)] w-full">
+          <Suspense fallback={poster}>
+            <UniverseGalaxy
+              universes={universos}
+              getSymbolUrl={symbolUrlFor}
+              onSelect={onSelect}
+            />
+          </Suspense>
+        </div>
+      ) : (
+        poster
       )}
     </div>
   )
