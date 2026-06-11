@@ -20,7 +20,7 @@ function Top5QuickSuggestions({ slotsVacios, sugerencias, onAdd }) {
           <button
             key={personaje.slug}
             type="button"
-            onClick={() => onAdd(personaje.slug)}
+            onClick={(e) => onAdd(personaje.slug, e.currentTarget)}
             className="group inline-flex items-center gap-2 rounded-full border border-border bg-bg px-2 py-1 text-[12px] font-medium text-fg-strong transition-colors hover:border-accent hover:text-gold"
           >
             <PersonajeImg
