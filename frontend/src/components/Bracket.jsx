@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Check, Lock, Sparkles, Trophy } from 'lucide-react'
 import { toast } from 'sonner'
@@ -9,6 +9,7 @@ import {
 } from '../hooks/usePredicciones'
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
+import BracketReveal from './BracketReveal'
 import PersonajeCutImg from './PersonajeCutImg'
 import KanjiStroke from './KanjiStroke'
 
@@ -65,6 +66,32 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
     }
     return map
   }, [misPredicciones])
+
+  // Cruces que se resuelven EN VIVO (el update llega por el topic STOMP del
+  // bracket y refresca los DTOs): solo ESOS se animan con BracketReveal.
+  // El histórico ya resuelto al montar se pinta estático — sin teatro
+  // retroactivo cada vez que alguien abre el torneo.
+  const resueltosPreviosRef = useRef(null)
+  const [reveladosEnVivo, setReveladosEnVivo] = useState(() => new Set())
+  useEffect(() => {
+    const actuales = new Set(
+      (enfrentamientos ?? []).filter((e) => e.ganador).map((e) => e.id),
+    )
+    if (resueltosPreviosRef.current === null) {
+      resueltosPreviosRef.current = actuales
+      return
+    }
+    const previos = resueltosPreviosRef.current
+    const nuevos = [...actuales].filter((id) => !previos.has(id))
+    resueltosPreviosRef.current = actuales
+    if (nuevos.length > 0) {
+      setReveladosEnVivo((prev) => {
+        const next = new Set(prev)
+        for (const id of nuevos) next.add(id)
+        return next
+      })
+    }
+  }, [enfrentamientos])
 
   if (!enfrentamientos || enfrentamientos.length === 0) {
     return null
@@ -175,6 +202,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
                     torneoSlug={torneoSlug}
                     estado={estado}
                     prediccion={prediccionesPorEnf.get(match.id)}
+                    revelar={reveladosEnVivo.has(match.id)}
                   />
                 ))}
               </div>
@@ -226,7 +254,7 @@ function findPersonajePorSlug(enfrentamientos, slug) {
   return null
 }
 
-function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion }) {
+function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion, revelar = false }) {
   const ambosPersonajes = match.personaje1 && match.personaje2
 
   // Match vacío (slot de ronda futura sin resolver): placeholder difuminado.
@@ -247,17 +275,49 @@ function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion }) {
   const resuelto = Boolean(ganadorId)
   const abiertoParaVotar = estado === 'IN_PROGRESS' && !resuelto
 
+  const slot1 = (
+    <BracketSlot
+      personaje={match.personaje1}
+      winner={ganadorId === match.personaje1.id}
+    />
+  )
+  const slot2 = (
+    <BracketSlot
+      personaje={match.personaje2}
+      winner={ganadorId === match.personaje2.id}
+    />
+  )
+  // Revelado en vivo: el cruce acaba de resolverse delante del usuario.
+  // Los wrappers montan en "idle" y animan a "resolved" en este mismo
+  // render (línea→pulse→atenuado, 800ms). El estado final del perdedor
+  // (0.45 + desaturado) persiste mientras el match siga montado.
+  const conReveal = revelar && resuelto
+  const Envoltura1 = conReveal
+    ? ganadorId === match.personaje1.id
+      ? BracketReveal.Winner
+      : BracketReveal.Loser
+    : null
+  const Envoltura2 = conReveal
+    ? ganadorId === match.personaje2.id
+      ? BracketReveal.Winner
+      : BracketReveal.Loser
+    : null
+
   return (
     <div className="rounded-xl border border-border bg-surface p-2">
-      <BracketSlot
-        personaje={match.personaje1}
-        winner={ganadorId === match.personaje1.id}
-      />
-      <div className="my-1 h-px bg-border" />
-      <BracketSlot
-        personaje={match.personaje2}
-        winner={ganadorId === match.personaje2.id}
-      />
+      {conReveal ? (
+        <BracketReveal resolved>
+          <Envoltura1 className="rounded-lg">{slot1}</Envoltura1>
+          <div className="my-1 h-px bg-border" />
+          <Envoltura2 className="rounded-lg">{slot2}</Envoltura2>
+        </BracketReveal>
+      ) : (
+        <>
+          {slot1}
+          <div className="my-1 h-px bg-border" />
+          {slot2}
+        </>
+      )}
       {abiertoParaVotar && (
         <VotoRow match={match} torneoSlug={torneoSlug} />
       )}
