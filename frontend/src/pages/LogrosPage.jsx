@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -7,7 +7,6 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, logrosCollectionSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useAuth } from '../contexts/AuthContext'
-import EmptyState from '../components/EmptyState'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import {
@@ -15,7 +14,9 @@ import {
   useMisLogros,
   useStatsLogros,
 } from '../hooks/useLogros'
-import BadgeCardCatalogo from '../components/BadgeCardCatalogo'
+import TrophyHall from '../features/logros/TrophyHall'
+import { iconoDeBadge } from '../lib/badgeIcons'
+import { kanjiDeBadge } from '../lib/badgeKanji'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -26,13 +27,14 @@ const containerVariants = {
   },
 }
 
-const FILTROS_RAREZA = [
-  { value: null, label: 'Todos' },
-  { value: 5, label: 'Legendarios' },
-  { value: 4, label: 'Épicos' },
-  { value: 3, label: 'Raros' },
-  { value: 2, label: 'Poco comunes' },
-  { value: 1, label: 'Comunes' },
+// Estanterías del salón: la rareza ES la categoría (legendarios arriba).
+// Kanji con significado: 伝 leyenda · 極 extremo · 稀 raro · 準 semi · 常 común.
+const ESTANTERIAS_RAREZA = [
+  { value: 5, kanji: '伝', name: 'Legendarios' },
+  { value: 4, kanji: '極', name: 'Épicos' },
+  { value: 3, kanji: '稀', name: 'Raros' },
+  { value: 2, kanji: '準', name: 'Poco comunes' },
+  { value: 1, kanji: '常', name: 'Comunes' },
 ]
 
 /**
@@ -57,28 +59,38 @@ function LogrosPage() {
   const { data: mios } = useMisLogros({ enabled: Boolean(user) })
   const { data: stats } = useStatsLogros()
 
-  const [filtroRareza, setFiltroRareza] = useState(null)
-
   // Cuando hay sesión usamos /mios (incluye desbloqueadoEn por logro).
   // Sin sesión, el catálogo plano basta — todos los badges en modo "cómo
   // conseguirlo".
   const fuente = user ? mios : catalogo
 
-  const visibles = useMemo(() => {
+  // Estanterías del salón por rareza, con kanji real de badgeKanji (fallback
+  // al icono lucide del logro) y conteo de comunidad. Dentro de cada
+  // estantería: desbloqueados primero, luego alfabético con collation del
+  // idioma activo (los acentos y ñ rankean distinto en EN).
+  const estanterias = useMemo(() => {
     if (!fuente) return []
-    const filtrados =
-      filtroRareza == null
-        ? fuente
-        : fuente.filter((l) => l.rareza === filtroRareza)
-    // Ordena por rareza desc (legendarios primero) y luego alfabético.
-    return [...filtrados].sort((a, b) => {
-      if (b.rareza !== a.rareza) return (b.rareza ?? 0) - (a.rareza ?? 0)
-      // locale dinámico segun el idioma activo en
-      // i18n, no hardcoded 'es'. Si el user cambia a EN, ordena con
-      // collation inglés (los acentos y ñ rankean distinto).
-      return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
-    })
-  }, [fuente, filtroRareza, i18n.language])
+    return ESTANTERIAS_RAREZA.map((nivel) => ({
+      kanji: nivel.kanji,
+      name: nivel.name,
+      items: fuente
+        .filter((l) => l.rareza === nivel.value)
+        .map((l) => ({
+          codigo: l.codigo,
+          kanji: kanjiDeBadge(l.codigo),
+          Icon: iconoDeBadge(l.icono),
+          nombre: l.nombre,
+          descripcion: l.descripcion,
+          // Sin sesión, modo escaparate: placas a plena luz (catálogo).
+          unlocked: user ? Boolean(l.desbloqueadoEn) : true,
+          count: stats?.[l.codigo] ?? null,
+        }))
+        .sort((a, b) => {
+          if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1
+          return a.nombre.localeCompare(b.nombre, i18n.language || undefined)
+        }),
+    })).filter((shelf) => shelf.items.length > 0)
+  }, [fuente, i18n.language, stats, user])
 
   const total = catalogo?.length ?? 16
   const desbloqueados = mios?.filter((l) => l.desbloqueadoEn).length ?? 0
@@ -92,14 +104,14 @@ function LogrosPage() {
   const progresoPct = total > 0 ? Math.round((desbloqueados / total) * 100) : 0
 
   useEffect(() => {
-    if (!logroDestacado || visibles.length === 0) return undefined
+    if (!logroDestacado || estanterias.length === 0) return undefined
     const frame = window.requestAnimationFrame(() => {
       document
         .getElementById(`logro-${logroDestacado}`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [logroDestacado, visibles.length])
+  }, [logroDestacado, estanterias.length])
 
   useSeo({
     title: 'Logros desbloqueables',
@@ -212,29 +224,6 @@ function LogrosPage() {
           </motion.div>
         )}
 
-        <div className="mb-6 flex flex-wrap gap-1.5">
-          {FILTROS_RAREZA.map((f) => {
-            const n =
-              f.value == null
-                ? total
-                : (catalogo ?? []).filter((l) => l.rareza === f.value).length
-            return (
-              <button
-                key={f.label}
-                type="button"
-                onClick={() => setFiltroRareza(f.value)}
-                className={`min-h-11 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-                  filtroRareza === f.value
-                    ? 'bg-accent text-white'
-                    : 'border border-border bg-surface text-fg-muted hover:text-fg-strong'
-                }`}
-              >
-                {f.label} ({n})
-              </button>
-            )
-          })}
-        </div>
-
         {cargandoCatalogo ? (
           // Skeletons en grid: pre-llena 6 cards con shimmer animado.
           // Mejor que spinner solo porque "anuncia" la forma de lo que va
@@ -255,41 +244,15 @@ function LogrosPage() {
               </div>
             ))}
           </div>
-        ) : visibles.length === 0 ? (
-          // Empty state cinematic: aprovecha quiet-arena + Trophy + accion.
-          // Antes era solo un parrafo gris, ahora es una escena completa
-          // que invita a quitar el filtro.
-          <EmptyState scene
-            icon={Trophy}
-            title={`No hay logros ${FILTROS_RAREZA.find((f) => f.value === filtroRareza)?.label.toLowerCase() ?? ''}.`}
-          >
-            <p>
-              Prueba con otra rareza o explora el catálogo completo. Cada
-              rareza es una categoría diferente: los legendarios son los más
-              difíciles, los comunes los que casi todo el mundo consigue
-              empezando.
-            </p>
-            {filtroRareza != null && (
-              <button
-                type="button"
-                onClick={() => setFiltroRareza(null)}
-                className="as-button-primary mt-3 rounded-lg px-5 py-3 text-sm font-black"
-              >
-                Limpiar filtro
-              </button>
-            )}
-          </EmptyState>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visibles.map((l) => (
-              <BadgeCardCatalogo
-                key={l.codigo}
-                logro={l}
-                count={stats?.[l.codigo] ?? 0}
-                destacado={l.codigo === logroDestacado}
-              />
-            ))}
-          </div>
+          // Salón de trofeos: estanterías por rareza (la rareza ES la
+          // categoría — los filtros viejos quedaban redundantes) sobre el
+          // hall dorado del banco de marca.
+          <TrophyHall
+            estanterias={estanterias}
+            logueado={Boolean(user)}
+            logroDestacado={logroDestacado}
+          />
         )}
 
         {user && (
