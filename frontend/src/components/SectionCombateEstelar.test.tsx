@@ -3,17 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import SectionCombateEstelar from './SectionCombateEstelar'
 import { getCombateEstelarDelDia } from '../lib/combate-estelar'
-
-const CATALOGO = vi.hoisted(() => [
-  { slug: 'luffy', nombre: 'Luffy', anime: 'One Piece', imagenUrl: '/img/One_Piece/luffy.webp', imagenColorDominante: '#aa3322' },
-  { slug: 'goku', nombre: 'Goku', anime: 'Dragon Ball', imagenUrl: '/img/Dragon_Ball/goku.webp', imagenColorDominante: '#dd7711' },
-  { slug: 'naruto', nombre: 'Naruto', anime: 'Naruto', imagenUrl: '/img/Naruto/naruto.webp', imagenColorDominante: '#ddaa11' },
-  { slug: 'tanjiro', nombre: 'Tanjiro', anime: 'Demon Slayer', imagenUrl: '/img/Demon_Slayer/tanjiro.webp', imagenColorDominante: '#117755' },
-  { slug: 'satoru_gojo', nombre: 'Gojo', anime: 'Jujutsu Kaisen', imagenUrl: '/img/Jujutsu_Kaisen/satoru_gojo.webp', imagenColorDominante: '#3399dd' },
-  { slug: 'light_yagami', nombre: 'Light', anime: 'Death Note', imagenUrl: '/img/Death_Note/light_yagami.webp', imagenColorDominante: '#884422' },
-  { slug: 'levi', nombre: 'Levi', anime: 'Attack on Titan', imagenUrl: '/img/Attack_on_Titan/levi.webp', imagenColorDominante: '#445566' },
-  { slug: 'rem', nombre: 'Rem', anime: 'Re:Zero', imagenUrl: '/img/Re_Zero/rem.webp', imagenColorDominante: '#5577cc' },
-])
+import { CATALOGO } from '../lib/combate-estelar.fixtures'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -28,14 +18,19 @@ vi.mock('./AtmosphereEffects', () => ({
   LightningStrike: () => null,
 }))
 
-vi.mock('../hooks/usePersonajesCatalogo', () => ({
-  usePersonajesCatalogo: () => ({
-    personajes: CATALOGO,
-    isLoading: false,
-    isError: false,
-    refetch: vi.fn(),
-  }),
-}))
+// Factory async: vi.mock se iza por encima de los imports, así que el
+// catálogo compartido se resuelve con un import dinámico dentro del factory.
+vi.mock('../hooks/usePersonajesCatalogo', async () => {
+  const { CATALOGO: catalogo } = await import('../lib/combate-estelar.fixtures')
+  return {
+    usePersonajesCatalogo: () => ({
+      personajes: catalogo,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    }),
+  }
+})
 
 const FECHA = new Date(2026, 5, 11, 12, 0, 0)
 
