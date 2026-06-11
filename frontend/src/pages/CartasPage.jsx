@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
 import { Filter, Gift, PackageOpen, Sparkles, Ticket } from 'lucide-react'
 import Section from '../components/Section'
 import Button from '../components/Button'
@@ -8,6 +9,7 @@ import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
 import BrandSelect from '../components/BrandSelect'
 import PackOpening from '../features/cartas/PackOpening'
+import CardShowcase from '../features/cartas/CardShowcase'
 import { useAuth } from '../contexts/AuthContext'
 import {
   useAbrirSobre,
@@ -49,6 +51,22 @@ function makeIdempotencyKey() {
   return `pack-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
+// La vitrina 3D pide hover + puntero fino (el parallax no existe en táctil y
+// CartaFace es ilegible en pantallas estrechas). Mismo patrón de suscripción a
+// matchMedia que FloatingCards: estado externo, no derived state.
+function useVitrinaCapaz() {
+  const [capaz, setCapaz] = useState(false)
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined
+    const media = window.matchMedia('(min-width: 640px) and (hover: hover) and (pointer: fine)')
+    const update = () => setCapaz(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+  return capaz
+}
+
 function CartasPage() {
   const { user } = useAuth()
   const resumenQ = useColeccionResumen()
@@ -65,6 +83,10 @@ function CartasPage() {
   const [animeFiltro, setAnimeFiltro] = useState('TODOS')
   const [orden, setOrden] = useState('POSEIDAS')
   const [cofreResultado, setCofreResultado] = useState(null)
+
+  const vitrinaCapaz = useVitrinaCapaz()
+  const reducedMotion = useReducedMotion()
+  const usaVitrina = vitrinaCapaz && !reducedMotion
 
   // Grid paginado y filtrado en servidor. Cambiar rareza/anime crea una query
   // nueva (otra key) que arranca en offset 0 automáticamente.
@@ -293,16 +315,20 @@ function CartasPage() {
         />
       ) : (
         <>
-          <div className="as-card-grid-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {cartas.map((carta) => (
-              <CartaTile
-                key={carta.id}
-                carta={carta}
-                onDownload={descargar}
-                downloading={descargandoId === carta.id}
-              />
-            ))}
-          </div>
+          {usaVitrina ? (
+            <CardShowcase cartas={cartas} onDownload={descargar} descargandoId={descargandoId} />
+          ) : (
+            <div className="as-card-grid-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {cartas.map((carta) => (
+                <CartaTile
+                  key={carta.id}
+                  carta={carta}
+                  onDownload={descargar}
+                  downloading={descargandoId === carta.id}
+                />
+              ))}
+            </div>
+          )}
           {paginaQ.hasNextPage && (
             <div className="mt-8 flex justify-center">
               <Button
