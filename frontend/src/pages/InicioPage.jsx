@@ -99,8 +99,11 @@ function InicioPage() {
         onRetry={refetchCatalogo}
       >
       {/* Combate estelar: el cartel del duelo del día justo tras el hero.
-          LazyOnView lo saca del primer paint (el hero sigue siendo el LCP). */}
-      <LazyOnView minHeight={620}>
+          LazyOnView lo saca del primer paint (el hero sigue siendo el LCP).
+          minHeight = altura real medida de la sección (961px @390px de
+          viewport, 1086px @1440px; se reserva la menor redondeada a decenas
+          para no sobre-reservar en móvil). */}
+      <LazyOnView minHeight={960}>
         <HomeSectionBoundary title="No pudimos mostrar el combate estelar">
           <SectionCombateEstelar />
         </HomeSectionBoundary>
