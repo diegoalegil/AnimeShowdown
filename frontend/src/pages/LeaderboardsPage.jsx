@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Calendar, Clock, Crown, Trophy, Vote } from 'lucide-react'
+import { AlertTriangle, Calendar, Clock, Trophy, Vote } from 'lucide-react'
 import { useSeo } from '../hooks/useSeo'
+import PioneersPodium from '../features/leaderboards/PioneersPodium'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
-import Avatar from '../components/Avatar'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { endpoints } from '../lib/api'
@@ -49,6 +49,13 @@ function LeaderboardsPage() {
     queryFn: () => endpoints.topVoters({ periodo, limit: 20 }),
     staleTime: 60_000,
   })
+  // Senpai del mes: top predictor real de los últimos 30 días (item [0]).
+  const { data: senpaiData } = useQuery({
+    queryKey: ['predicciones', 'senpai-mes'],
+    queryFn: () => endpoints.leaderboardPredicciones({ dias: 30, limit: 1 }),
+    staleTime: 5 * 60 * 1000,
+  })
+  const senpai = senpaiData?.[0] ?? null
 
   return (
     <VisualPageShell visual={BRAND_VISUALS.ranking} contentClassName="mx-auto max-w-6xl" lateralKanji={{left: "覇", right: "者"}} atmosphere="tribute">
@@ -78,8 +85,6 @@ function LeaderboardsPage() {
             Aquí celebramos a quienes están construyendo la liga desde el inicio.
           </p>
         </motion.header>
-
-        <SenpaiDelMes />
 
         <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-border bg-surface p-1">
           {PERIODOS.map(({ id, label, icon: Icon }) => (
@@ -129,11 +134,7 @@ function LeaderboardsPage() {
           </EmptyState>
         )}
         {!isLoading && !isError && data && data.length > 0 && (
-          <ol className="flex flex-col gap-2">
-            {data.map((voter, i) => (
-              <FilaVoter key={voter.username} rank={i + 1} voter={voter} />
-            ))}
-          </ol>
+          <PioneersPodium voters={data} senpai={senpai} />
         )}
 
         <div className="mt-10 rounded-2xl border border-border bg-surface p-6">
@@ -172,79 +173,5 @@ function LeaderboardSkeleton() {
   )
 }
 
-/**
- * Sección "Senpai del mes" — destaca al Top Predictor
- * del mes actual con un badge especial encima del leaderboard de voters.
- * Si nadie tiene predicciones acertadas, no se muestra.
- *
- * <p>Usa el endpoint de leaderboard de predicciones que ya existe
- * (`/api/predicciones/leaderboard?dias=30`) tomando solo el item [0].
- */
-function SenpaiDelMes() {
-  const { data } = useQuery({
-    queryKey: ['predicciones', 'senpai-mes'],
-    queryFn: () => endpoints.leaderboardPredicciones({ dias: 30, limit: 1 }),
-    staleTime: 5 * 60 * 1000,
-  })
-
-  if (!data || data.length === 0) return null
-  const top = data[0]
-
-  return (
-    <div className="mb-6 overflow-hidden rounded-xl border-2 border-gold/40 bg-gradient-to-r from-gold/10 via-gold/5 to-transparent p-5">
-      <div className="flex items-center gap-4">
-        <Crown className="h-8 w-8 shrink-0 text-gold" />
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-gold">
-            <span lang="ja">先輩</span> · Senpai del mes
-          </p>
-          <p className="mt-0.5 text-xl font-extrabold text-fg-strong">
-            <Link
-              to={`/u/${encodeURIComponent(top.username)}`}
-              className="hover:underline"
-            >
-              {top.username}
-            </Link>
-          </p>
-          <p className="text-[12px] text-fg-muted">
-            Predictor más acertado de los últimos 30 días ·{' '}
-            <strong className="text-gold">{top.aciertos} aciertos</strong>
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function FilaVoter({ rank, voter }) {
-  const medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
-  return (
-    <li>
-      <Link
-        to={`/u/${encodeURIComponent(voter.username)}`}
-        aria-label={`Rank #${rank} — ${voter.username}, ${voter.votos} votos`}
-        className="group flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 transition-all hover:border-accent/40 hover:bg-surface-alt sm:gap-4 sm:px-5"
-      >
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg font-mono text-sm font-bold text-fg-muted">
-          {medalla ?? `#${rank}`}
-        </span>
-        <Avatar user={voter} size={36} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-            {voter.username}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-base font-bold text-gold">
-            {voter.votos}
-          </p>
-          <p className="text-[10px] text-fg-muted">
-            votos
-          </p>
-        </div>
-      </Link>
-    </li>
-  )
-}
 
 export default LeaderboardsPage
