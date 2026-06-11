@@ -484,6 +484,42 @@
   }
 }
 
+/* Entrada del grid: rise+fade escalonado. Las 16 primeras cartas entran en
+   oleada (28ms por carta) y las siguientes juntas justo detrás. backwards =
+   arrancan invisibles; el espacio ya está reservado por aspect-ratio, así
+   que no hay shift de layout. */
+.as-card-grid-stagger > * {
+  animation: as-card-rise 480ms var(--ease-lift) 448ms backwards;
+}
+
+.as-card-grid-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.as-card-grid-stagger > *:nth-child(2) { animation-delay: 28ms; }
+.as-card-grid-stagger > *:nth-child(3) { animation-delay: 56ms; }
+.as-card-grid-stagger > *:nth-child(4) { animation-delay: 84ms; }
+.as-card-grid-stagger > *:nth-child(5) { animation-delay: 112ms; }
+.as-card-grid-stagger > *:nth-child(6) { animation-delay: 140ms; }
+.as-card-grid-stagger > *:nth-child(7) { animation-delay: 168ms; }
+.as-card-grid-stagger > *:nth-child(8) { animation-delay: 196ms; }
+.as-card-grid-stagger > *:nth-child(9) { animation-delay: 224ms; }
+.as-card-grid-stagger > *:nth-child(10) { animation-delay: 252ms; }
+.as-card-grid-stagger > *:nth-child(11) { animation-delay: 280ms; }
+.as-card-grid-stagger > *:nth-child(12) { animation-delay: 308ms; }
+.as-card-grid-stagger > *:nth-child(13) { animation-delay: 336ms; }
+.as-card-grid-stagger > *:nth-child(14) { animation-delay: 364ms; }
+.as-card-grid-stagger > *:nth-child(15) { animation-delay: 392ms; }
+.as-card-grid-stagger > *:nth-child(16) { animation-delay: 420ms; }
+
+@keyframes as-card-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(1.1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .as-card-tilt {
     transform: none !important;
@@ -492,6 +528,10 @@
 
   .as-card-foil {
     display: none !important;
+  }
+
+  .as-card-grid-stagger > * {
+    animation: none !important;
   }
 }
 

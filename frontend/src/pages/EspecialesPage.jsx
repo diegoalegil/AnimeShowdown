@@ -54,7 +54,7 @@ function EspecialesPage() {
       )}
 
       {!isLoading && !isError && cartas.length > 0 && (
-        <div className="as-salon-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="as-card-grid-stagger as-salon-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {cartas.map((carta) => (
             <TiltCard key={carta.id} foil="especial" sheen>
               <CartaFace carta={carta} />
