@@ -21,6 +21,21 @@ function tieneArtePromocionable(p) {
   )
 }
 
+/**
+ * Hash entero barato (mezcla multiplicativa de 32 bits, estilo lowbias32)
+ * que descorrelaciona el cartel del índice del día. Con la selección lineal
+ * anterior (pool[d % 30] + offset (7d+3) % 30) el retador recorría el top en
+ * orden predecible y el par exacto se repetía cada 30 días; con el hash, el
+ * retador salta por el pool y el ciclo del cartel pasa a ser el del propio
+ * día del año. Determinista: mismo día → misma semilla.
+ */
+function hashDia(dia) {
+  let h = dia >>> 0
+  h = Math.imul(h ^ (h >>> 16), 0x21f0aaad)
+  h = Math.imul(h ^ (h >>> 15), 0x735a2d97)
+  return (h ^ (h >>> 15)) >>> 0
+}
+
 export function getCombateEstelarDelDia(catalogo, fecha = new Date()) {
   const pool = catalogo
     .filter((p) => p?.slug && p?.anime && tieneArtePromocionable(p))
@@ -31,12 +46,13 @@ export function getCombateEstelarDelDia(catalogo, fecha = new Date()) {
 
   const inicioDeAno = new Date(fecha.getFullYear(), 0, 0)
   const diaDelAno = Math.floor((fecha - inicioDeAno) / 86_400_000)
-  const retador = pool[diaDelAno % pool.length]
+  const semilla = hashDia(diaDelAno)
+  const retador = pool[semilla % pool.length]
 
-  // El rival arranca en un offset que rota día a día (paso 7, co-primo con
-  // los tamaños habituales del pool) y se salta a los compañeros del mismo
-  // anime para que el duelo cruce universos.
-  const inicio = (diaDelAno * 7 + 3) % pool.length
+  // El rival arranca en un offset independiente del retador (el siguiente
+  // "dígito" en base pool.length de la misma semilla) y se salta a los
+  // compañeros del mismo anime para que el duelo cruce universos.
+  const inicio = Math.floor(semilla / pool.length) % pool.length
   let rival = null
   for (let i = 0; i < pool.length; i += 1) {
     const candidato = pool[(inicio + i) % pool.length]
