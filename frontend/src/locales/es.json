@@ -139,7 +139,7 @@
     "tituloPagina": "Votar",
     "subtituloPagina": "Elige quién gana en cada enfrentamiento.",
     "racha": {
-      "etiqueta": "RACHA ×{{total}}",
+      "etiqueta": "Racha ×{{total}}",
       "aria": "Racha de {{total}} votos en esta sesión"
     }
   },

@@ -139,7 +139,7 @@
     "tituloPagina": "Vote",
     "subtituloPagina": "Pick the winner of each matchup.",
     "racha": {
-      "etiqueta": "STREAK ×{{total}}",
+      "etiqueta": "Streak ×{{total}}",
       "aria": "Streak of {{total}} votes this session"
     }
   },

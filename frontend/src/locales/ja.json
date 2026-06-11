@@ -139,7 +139,7 @@
     "tituloPagina": "投票",
     "subtituloPagina": "各対戦で勝者を選びましょう。",
     "racha": {
-      "etiqueta": "連勝 ×{{total}}",
+      "etiqueta": "コンボ ×{{total}}",
       "aria": "このセッションで{{total}}連続投票中"
     }
   },

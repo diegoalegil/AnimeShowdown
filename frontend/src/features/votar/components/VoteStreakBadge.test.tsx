@@ -8,7 +8,7 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, opts?: { total?: number }) =>
       key === 'votar.racha.etiqueta'
-        ? `RACHA ×${opts?.total}`
+        ? `Racha ×${opts?.total}`
         : `Racha de ${opts?.total} votos en esta sesión`,
   }),
 }))
@@ -40,7 +40,7 @@ describe('VoteStreakBadge', () => {
       name: 'Racha de 3 votos en esta sesión',
     })
     expect(badge).toHaveAttribute('data-tier', 'base')
-    expect(badge).toHaveTextContent('RACHA ×3')
+    expect(badge).toHaveTextContent('Racha ×3')
     expect(badge.className).toContain('pointer-events-none')
   })
 
@@ -54,6 +54,6 @@ describe('VoteStreakBadge', () => {
     rerender(<VoteStreakBadge total={25} />)
     const legendaria = screen.getByRole('img')
     expect(legendaria).toHaveAttribute('data-tier', 'legendaria')
-    expect(legendaria).toHaveTextContent('RACHA ×25')
+    expect(legendaria).toHaveTextContent('Racha ×25')
   })
 })
