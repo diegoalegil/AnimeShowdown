@@ -10,6 +10,7 @@ import KanjiStroke from '../components/KanjiStroke'
 import { VisualPageShell } from '../components/VisualSystem'
 import { getGameVisual } from '../data/visual-assets'
 import { useDailyGameState } from '../hooks/useDailyGameState'
+import OmikujiCylinder from '../features/games/omikuji/OmikujiCylinder'
 
 const STORAGE_KEY = 'animeshowdown.omikuji.v1'
 const ESTADO_INICIAL = { revelado: false }
@@ -186,6 +187,9 @@ function OmikujiPage() {
     storageKeyPrefix: STORAGE_KEY,
   })
   const suerte = useMemo(() => elegirSuerte(`omikuji:${fecha}`), [fecha])
+  // Nº de varilla del día (第 N 番): mismo seed determinista que la suerte —
+  // todos ven la misma varilla el mismo día, como en el santuario.
+  const varilla = useMemo(() => (djb2(`omikuji-vara:${fecha}`) % 100) + 1, [fecha])
   const revelado = estado.revelado
 
   const revelar = () => {
@@ -240,33 +244,12 @@ function OmikujiPage() {
         </motion.header>
 
         {!revelado ? (
-          <div className="rounded-2xl border border-border bg-surface p-10 text-center">
-            <p className="mb-6 text-[13px] text-fg-muted">
-              El tubo de bambú espera. ¿Listo para ver qué te trae{' '}
-              <strong className="text-fg-strong">{fecha}</strong>?
+          <div className="rounded-2xl border border-border bg-surface px-4 pb-2 pt-8 text-center sm:px-10">
+            <p className="mb-2 text-[13px] text-fg-muted">
+              El cilindro espera tu mano. Agítalo y deja que{' '}
+              <strong className="text-fg-strong">{fecha}</strong> suelte su varilla.
             </p>
-            <motion.div
-              className="mb-6 inline-block rounded-2xl border-2 border-gold/30 bg-gold/5 px-8 py-12 font-mono text-6xl text-gold/40"
-              animate={{
-                rotate: [-2, 2, -2, 2, 0],
-                y: [0, -3, 0, -3, 0],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              ?
-            </motion.div>
-            <button
-              type="button"
-              onClick={revelar}
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-            >
-              <Sparkles className="h-4 w-4" />
-              Sacar palito
-            </button>
+            <OmikujiCylinder fortuna={suerte.kanji} numero={varilla} onRevealed={revelar} />
           </div>
         ) : (
           <SuerteRevelada
