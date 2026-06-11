@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Activity, Loader2, LogOut, Radio, Share2, ShieldCheck, Swords, Zap } from 'lucide-react'
@@ -13,6 +13,8 @@ import { BRAND_VISUALS } from '../data/visual-assets'
 import Avatar from '../components/Avatar'
 import VoteFeedbackBurst from '../components/VoteFeedbackBurst'
 import PersonajeImg from '../components/PersonajeImg'
+import DuelCeremony from '../features/dueloLive/DuelCeremony'
+import WaitingSonar from '../features/dueloLive/WaitingSonar'
 import {
   getDueloLivePollDelay,
   isRecoverableDueloLiveState,
@@ -86,17 +88,41 @@ function DueloLivePage() {
   const [loading, setLoading] = useState(true)
   const [joining, setJoining] = useState(false)
   const [voting, setVoting] = useState(false)
+  // Ceremonia 勝/敗: solo cuando PRESENCIAMOS la transición a FINISHED (no
+  // al recargar con un duelo ya terminado) y solo con resultado win/lose —
+  // el empate (delta 0) conserva la card de siempre. La detección vive en
+  // aplicarEstado (contexto de evento: WS/poll/respuestas), no en un effect.
+  const [ceremony, setCeremony] = useState(null)
+  const prevEstadoRef = useRef(null)
   const lastDueloLivePushAtRef = useRef(0)
   const { lastMessage, connected } = useStompSubscription('/user/queue/duelo', {
     enabled: Boolean(user),
   })
+
+  const aplicarEstado = useCallback((data) => {
+    if (!data) return
+    const prev = prevEstadoRef.current
+    prevEstadoRef.current = data.estado
+    if (data.estado === 'FINISHED' && prev != null && prev !== 'FINISHED') {
+      const delta = data.miEloDelta
+      if (delta != null && delta !== 0) {
+        setCeremony({
+          id: data.id,
+          outcome: delta > 0 ? 'win' : 'lose',
+          delta,
+          ratingBefore: (data?.yo?.eloPvp ?? delta) - delta,
+        })
+      }
+    }
+    setState(data)
+  }, [])
 
   useEffect(() => {
     if (!user) return undefined
     let cancelled = false
     endpoints.dueloLiveActive()
       .then((data) => {
-        if (!cancelled && data) setState(data)
+        if (!cancelled && data) aplicarEstado(data)
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status !== 204) {
@@ -109,19 +135,19 @@ function DueloLivePage() {
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user, aplicarEstado])
 
   useEffect(() => {
     if (!lastMessage) return
     lastDueloLivePushAtRef.current = Date.now()
-    queueMicrotask(() => setState(lastMessage))
+    queueMicrotask(() => aplicarEstado(lastMessage))
     if (lastMessage.event === 'MATCH_FOUND') {
       toast.success('Rival encontrado', { description: 'Duelo listo' })
     }
     if (lastMessage.event === 'MATCH_END' || lastMessage.event === 'OPPONENT_ABANDONED') {
       toast.success('Duelo terminado', { description: lastMessage.message ?? 'Resultado calculado' })
     }
-  }, [lastMessage])
+  }, [lastMessage, aplicarEstado])
 
   const estadoActual = state?.estado
   const dueloId = state?.id
@@ -154,7 +180,7 @@ function DueloLivePage() {
         .then((data) => {
           if (cancelled) return
           failures = 0
-          if (data) setState(data)
+          if (data) aplicarEstado(data)
         })
         .catch(() => {
           failures += 1
@@ -167,14 +193,14 @@ function DueloLivePage() {
       cancelled = true
       window.clearTimeout(timeoutId)
     }
-  }, [connected, dueloId, estadoActual, user])
+  }, [connected, dueloId, estadoActual, user, aplicarEstado])
 
   if (!user) return <Navigate to="/login?next=/duel-live" replace />
 
   const join = async () => {
     setJoining(true)
     try {
-      setState(await endpoints.dueloLiveJoin())
+      aplicarEstado(await endpoints.dueloLiveJoin())
     } catch (err) {
       toast.error('No pudimos entrar en cola', { description: err.message })
     } finally {
@@ -186,7 +212,7 @@ function DueloLivePage() {
     if (!state?.id || voting) return
     setVoting(true)
     try {
-      setState(await endpoints.dueloLiveVote(state.id, choice))
+      aplicarEstado(await endpoints.dueloLiveVote(state.id, choice))
     } catch (err) {
       toast.error('No pudimos registrar el voto', { description: err.message })
     } finally {
@@ -197,7 +223,7 @@ function DueloLivePage() {
   const leave = async () => {
     if (!state?.id) return
     try {
-      setState(await endpoints.dueloLiveLeave(state.id))
+      aplicarEstado(await endpoints.dueloLiveLeave(state.id))
     } catch (err) {
       toast.error('No pudimos salir del duelo', { description: err.message })
     }
@@ -231,9 +257,19 @@ function DueloLivePage() {
       ) : !state || state.estado === 'ABANDONED' || state.estado === 'FINISHED' ? (
         <StartArena state={state} joining={joining} onJoin={join} />
       ) : state.estado === 'WAITING' ? (
-        <WaitingArena state={state} onLeave={leave} />
+        <WaitingArena state={state} user={user} onLeave={leave} />
       ) : (
         <BattleArena state={state} voting={voting} onVote={vote} onLeave={leave} />
+      )}
+
+      {ceremony && (
+        <DuelCeremony
+          key={ceremony.id}
+          outcome={ceremony.outcome}
+          delta={ceremony.delta}
+          ratingBefore={ceremony.ratingBefore}
+          onDone={() => setCeremony(null)}
+        />
       )}
     </VisualPageShell>
   )
@@ -323,7 +359,7 @@ function StartArena({ state, joining, onJoin }) {
   )
 }
 
-function WaitingArena({ state, onLeave }) {
+function WaitingArena({ state, user, onLeave }) {
   const seconds = useElapsedSeconds(state.serverNow, state.creadoEn)
   const fallbackRaw = Number(state.fallbackAfterSeconds ?? 10)
   const fallbackAfter = Number.isFinite(fallbackRaw) ? Math.max(3, fallbackRaw) : 10
@@ -331,10 +367,9 @@ function WaitingArena({ state, onLeave }) {
   const fallbackProgress = Math.min(100, (seconds / fallbackAfter) * 100)
   return (
     <div className="as-panel rounded-2xl border border-border bg-surface/80 p-8 text-center shadow-xl shadow-black/25">
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
-        <Loader2 className="h-9 w-9 animate-spin text-gold" />
-      </div>
-      <h2 className="mt-5 text-3xl font-black text-fg-strong">Buscando rival</h2>
+      {/* sonar de combate en lugar del spinner: anillos + taiko a ~52 bpm */}
+      <WaitingSonar user={user} />
+      <h2 className="mt-2 text-3xl font-black text-fg-strong">Buscando rival</h2>
       <p className="mt-2 text-sm text-fg-muted">
         Eres el #{state.queuePosition || 1} en cola · {seconds}s esperando
       </p>
@@ -360,9 +395,10 @@ function WaitingArena({ state, onLeave }) {
           aria-label="Cuenta atrás para partida rápida"
           className="h-2 overflow-hidden rounded-full bg-surface-alt"
         >
+          {/* scaleX en vez de width: mismo llenado sin re-layout por tick */}
           <div
-            className="h-full rounded-full bg-gradient-to-r from-accent via-gold to-success transition-[width] duration-500"
-            style={{ width: `${fallbackProgress}%` }}
+            className="h-full w-full origin-left rounded-full bg-gradient-to-r from-accent via-gold to-success transition-transform duration-500"
+            style={{ transform: `scaleX(${fallbackProgress / 100})` }}
           />
         </div>
       </div>
