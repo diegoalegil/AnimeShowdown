@@ -54,6 +54,13 @@ if ('serviceWorker' in navigator) {
   let swRecargado = false
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (swRecargado || !teniaController) return
+    // Solo recargar en una actualización MID-SESIÓN (pestaña abierta un rato),
+    // que es cuando el shell viejo persiste. Si el controllerchange ocurre
+    // durante el arranque (primeros ~10s), la página YA cargó con el HTML y los
+    // chunks frescos (HTML max-age=0 + chunks NetworkFirst): el cambio es solo
+    // el SW nuevo tomando el control, y recargar no aporta nada — solo provoca
+    // un parpadeo y pierde scroll/estado en cada visitante tras cada deploy.
+    if (performance.now() < 10000) return
     swRecargado = true
     window.location.reload()
   })
