@@ -546,3 +546,52 @@ export async function playPackRevealSpecial() {
     when: 0.7,
   })
 }
+
+// Acuñado del hanko (rito de iniciación) — golpe sub con el peso del sello,
+// crack metálico del impacto y un ring de moneda recién acuñada que decae.
+export async function playAcunado() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  // Golpe sub (el peso del sello)
+  const sub = ctx.createOscillator()
+  const subGain = ctx.createGain()
+  sub.type = 'sine'
+  sub.frequency.setValueAtTime(170, now)
+  sub.frequency.exponentialRampToValueAtTime(46, now + 0.2)
+  subGain.gain.setValueAtTime(0, now)
+  subGain.gain.linearRampToValueAtTime(0.3, now + 0.006)
+  subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24)
+  sub.connect(subGain)
+  subGain.connect(ctx.destination)
+  sub.start(now)
+  sub.stop(now + 0.26)
+  // Crack del impacto
+  const crack = ctx.createBufferSource()
+  crack.buffer = getNoiseBuffer(ctx, 0.12)
+  const bp = ctx.createBiquadFilter()
+  bp.type = 'bandpass'
+  bp.frequency.setValueAtTime(1500, now)
+  bp.Q.value = 3
+  const crackGain = ctx.createGain()
+  crackGain.gain.setValueAtTime(0.16, now)
+  crackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11)
+  crack.connect(bp)
+  bp.connect(crackGain)
+  crackGain.connect(ctx.destination)
+  crack.start(now)
+  // Ring metálico (la moneda recién acuñada)
+  ;[2093, 3135.96].forEach((freq, i) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, now + 0.015)
+    gain.gain.setValueAtTime(0, now + 0.015)
+    gain.gain.linearRampToValueAtTime(i === 0 ? 0.05 : 0.028, now + 0.03)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now + 0.015)
+    osc.stop(now + 0.65)
+  })
+}

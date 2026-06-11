@@ -3,14 +3,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ANIME_SCENE_VT,
   PERSONAJE_HERO_VT,
+  RITO_ACUNACION_VT,
   adoptPersonajeHero,
   animeSceneMorph,
   markPersonajeHero,
   queueSettleAdopt,
+  registerRitoAvatarTarget,
   releasePersonajeHero,
   settleNavigationViewTransition,
   startNavigationViewTransition,
+  startRitoAcunacionTransition,
   supportsViewTransitions,
+  unregisterRitoAvatarTarget,
 } from './viewTransitions'
 
 type TransitionFake = {
@@ -264,5 +268,89 @@ describe('queueSettleAdopt', () => {
     startNavigationViewTransition(vi.fn())
     settleNavigationViewTransition()
     expect(adopt).not.toHaveBeenCalled()
+  })
+})
+
+describe('rito de acuñación (placa → avatar del header)', () => {
+  // jsdom no pinta: getClientRects() devuelve vacío y todo elemento parece
+  // invisible. La visibilidad se stubea por elemento.
+  function crearAvatar(visible = true) {
+    const el = crearElemento('span')
+    el.getClientRects = () => (visible ? [{}] : []) as unknown as DOMRectList
+    return el
+  }
+
+  it('sin soporte navega directo y no marca nada', () => {
+    const placa = crearElemento('div')
+    const navigateFn = vi.fn()
+    startRitoAcunacionTransition(placa, navigateFn)
+    expect(navigateFn).toHaveBeenCalledTimes(1)
+    expect(nombreDe(placa)).toBe('')
+  })
+
+  it('sin avatar visible registrado navega directo (logout raro, header sin user)', () => {
+    instalarStartViewTransition()
+    const placa = crearElemento('div')
+    const oculto = crearAvatar(false)
+    registerRitoAvatarTarget(oculto)
+    const navigateFn = vi.fn()
+    startRitoAcunacionTransition(placa, navigateFn)
+    expect(navigateFn).toHaveBeenCalledTimes(1)
+    expect(nombreDe(placa)).toBe('')
+    expect(nombreDe(oculto)).toBe('')
+    unregisterRitoAvatarTarget(oculto)
+  })
+
+  it('la placa viaja en la captura vieja, el avatar en la nueva, y el finished limpia', async () => {
+    const placa = crearElemento('div')
+    const avatar = crearAvatar()
+    registerRitoAvatarTarget(avatar)
+
+    // Fake propio: registra qué nombres había EN el momento de la captura
+    // vieja (al invocar startViewTransition, antes del callback).
+    const enCaptura: string[] = []
+    const transition = {
+      ready: Promise.resolve(),
+      finished: Promise.resolve(),
+      updateCallbackDone: Promise.resolve(),
+    }
+    doc.startViewTransition = vi.fn((cb: () => Promise<void>) => {
+      enCaptura.push(nombreDe(placa), nombreDe(avatar))
+      transition.updateCallbackDone = cb()
+      return transition
+    })
+
+    const navigateFn = vi.fn()
+    startRitoAcunacionTransition(placa, navigateFn)
+
+    expect(enCaptura).toEqual([RITO_ACUNACION_VT, ''])
+    expect(navigateFn).toHaveBeenCalledTimes(1)
+    expect(nombreDe(placa)).toBe('')
+    expect(nombreDe(avatar)).toBe(RITO_ACUNACION_VT)
+
+    settleNavigationViewTransition()
+    await transition.updateCallbackDone
+    await transition.finished
+    await Promise.resolve()
+    expect(nombreDe(avatar)).toBe('')
+    unregisterRitoAvatarTarget(avatar)
+  })
+
+  it('con dos avatares registrados (cluster móvil + desktop) elige el visible', () => {
+    instalarStartViewTransition()
+    const placa = crearElemento('div')
+    const oculto = crearAvatar(false)
+    const visible = crearAvatar(true)
+    registerRitoAvatarTarget(oculto)
+    registerRitoAvatarTarget(visible)
+
+    startRitoAcunacionTransition(placa, vi.fn())
+    expect(nombreDe(oculto)).toBe('')
+    expect(nombreDe(visible)).toBe(RITO_ACUNACION_VT)
+
+    visible.style.removeProperty('view-transition-name')
+    unregisterRitoAvatarTarget(oculto)
+    unregisterRitoAvatarTarget(visible)
+    settleNavigationViewTransition()
   })
 })
