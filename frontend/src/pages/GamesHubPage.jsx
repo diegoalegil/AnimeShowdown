@@ -16,6 +16,7 @@ import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import DailyMissionPanel from '../components/DailyMissionPanel'
 import DailyRulesDetails from '../features/games/hub/DailyRulesDetails'
+import KanjiInkSplash from '../features/games/hub/KanjiInkSplash'
 import {
   CardDestacado,
   CardMini,
@@ -147,6 +148,15 @@ function GamesHubPage() {
           visual={BRAND_VISUALS.games}
           icon={Gamepad2}
           eyebrow="Anime Daily Trials"
+          // El backdrop del hero es la tinta del reto del día: se ensambla en
+          // su kanji y, al completarlo (el plan recalcula el destacado), se
+          // desarma y rearma con el siguiente. Fallback estático integrado.
+          fx={
+            <KanjiInkSplash
+              kanji={destacado?.kanji ?? BRAND_VISUALS.games.kanji}
+              visual={BRAND_VISUALS.games}
+            />
+          }
           title="Retos diarios"
           subtitle="Una ronda al día. Una racha que proteger. Un ranking que escalar. Cada minijuego tiene portada propia y una identidad visual distinta."
           aside={
