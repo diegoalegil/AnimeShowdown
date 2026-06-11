@@ -318,7 +318,7 @@ function Top5Altar({
                     <button
                       type="button"
                       onClick={() => onQuitar(idx)}
-                      aria-label={`Quitar ${personaje?.nombre ?? 'personaje'} del altar`}
+                      aria-label={`Quitar ${personaje?.nombre ?? 'personaje'} del top`}
                       className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-bg/80 text-[11px] leading-none text-fg-muted opacity-0 transition-opacity hover:text-danger focus-visible:opacity-100 group-hover:opacity-100"
                     >
                       ×
