@@ -34,6 +34,25 @@ function matchMediaSafe(query) {
   return window.matchMedia(query).matches
 }
 
+// Visibilidad del stage en viewport, mismo patrón useVisible de los canvas
+// de AtmosphereEffects (replicado: ese archivo solo puede exportar
+// componentes por la regla react-refresh/only-export-components). Sin
+// IntersectionObserver se asume visible para no perder el parallax.
+function useVisible(ref) {
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined
+    const io = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [ref])
+  return visible
+}
+
 function SectionCombateEstelar() {
   const { t } = useTranslation()
   const reduceMotion = useReducedMotion()
@@ -43,6 +62,8 @@ function SectionCombateEstelar() {
 
   const [canParallax, setCanParallax] = useState(() => matchMediaSafe(MQ_PARALLAX))
   const [conEfectos, setConEfectos] = useState(() => matchMediaSafe(MQ_EFECTOS))
+  const stageRef = useRef(null)
+  const stageVisible = useVisible(stageRef)
   const rafRef = useRef(null)
   const pointerRef = useRef(0)
   const mouseX = useMotionValue(0)
@@ -63,8 +84,11 @@ function SectionCombateEstelar() {
     }
   }, [])
 
+  // El listener de mousemove es global (window): además de reduceMotion y la
+  // media query, se apaga cuando el stage sale del viewport (useVisible,
+  // mismo patrón que los canvas de AtmosphereEffects).
   useEffect(() => {
-    if (reduceMotion || !canParallax) return undefined
+    if (reduceMotion || !canParallax || !stageVisible) return undefined
     const handle = (e) => {
       pointerRef.current = (e.clientX / window.innerWidth) * 2 - 1
       if (rafRef.current) return
@@ -81,7 +105,7 @@ function SectionCombateEstelar() {
         rafRef.current = null
       }
     }
-  }, [canParallax, mouseX, reduceMotion])
+  }, [canParallax, mouseX, reduceMotion, stageVisible])
 
   if (!combate) return null
   const { retador, rival } = combate
@@ -117,6 +141,7 @@ function SectionCombateEstelar() {
         {/* Wrapper sin overflow: los nombres solapan los bordes del cartel. */}
         <div className="relative">
           <div
+            ref={stageRef}
             className="combate-stage relative isolate min-h-[30rem] overflow-hidden rounded-3xl border border-border sm:aspect-[16/9] sm:min-h-0 lg:aspect-[21/9]"
             style={{ '--combate-a': canalesRetador, '--combate-b': canalesRival }}
           >
