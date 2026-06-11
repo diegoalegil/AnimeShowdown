@@ -316,6 +316,68 @@
       );
   }
 
+  /* Combate estelar (home) — cartel de velada con partición diagonal.
+     Los canales RGB de cada esquina llegan por custom props runtime
+     (--combate-a / --combate-b, formato "R G B") desde el color dominante
+     de cada personaje. En móvil el corte apila las dos zonas (A arriba,
+     B abajo); en sm+ pasa a la diagonal lateral del cartel ancho. */
+  .combate-stage {
+    background: linear-gradient(180deg, rgb(10 13 22 / 0.97), rgb(4 7 12) 78%);
+  }
+  /* Viñeta profunda: oscurecimiento de bordes (no glow), por encima de las
+     zonas de color y por debajo de las figuras. */
+  .combate-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    box-shadow:
+      inset 0 -110px 130px -60px rgb(2 4 8 / 0.88),
+      inset 0 56px 90px -52px rgb(2 4 8 / 0.55),
+      inset -64px 0 110px -82px rgb(2 4 8 / 0.66),
+      inset 64px 0 110px -82px rgb(2 4 8 / 0.66);
+  }
+  .combate-split-a,
+  .combate-split-b,
+  .combate-seam {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .combate-split-a {
+    -webkit-clip-path: polygon(0 0, 100% 0, 100% 36%, 0 64%);
+    clip-path: polygon(0 0, 100% 0, 100% 36%, 0 64%);
+    background: linear-gradient(160deg, rgb(var(--combate-a) / 0.42), rgb(var(--combate-a) / 0.10) 55%, transparent 85%);
+  }
+  .combate-split-b {
+    -webkit-clip-path: polygon(0 64%, 100% 36%, 100% 100%, 0 100%);
+    clip-path: polygon(0 64%, 100% 36%, 100% 100%, 0 100%);
+    background: linear-gradient(340deg, rgb(var(--combate-b) / 0.42), rgb(var(--combate-b) / 0.10) 55%, transparent 85%);
+  }
+  .combate-seam {
+    -webkit-clip-path: polygon(0 63.5%, 100% 35.5%, 100% 36.5%, 0 64.5%);
+    clip-path: polygon(0 63.5%, 100% 35.5%, 100% 36.5%, 0 64.5%);
+    background: linear-gradient(90deg, rgb(var(--combate-a) / 0.55), rgb(247 243 234 / 0.32) 50%, rgb(var(--combate-b) / 0.55));
+  }
+  @media (min-width: 640px) {
+    .combate-split-a {
+      -webkit-clip-path: polygon(0 0, 58% 0, 44% 100%, 0 100%);
+      clip-path: polygon(0 0, 58% 0, 44% 100%, 0 100%);
+      background: linear-gradient(115deg, rgb(var(--combate-a) / 0.45), rgb(var(--combate-a) / 0.10) 60%, transparent 88%);
+    }
+    .combate-split-b {
+      -webkit-clip-path: polygon(58% 0, 100% 0, 100% 100%, 44% 100%);
+      clip-path: polygon(58% 0, 100% 0, 100% 100%, 44% 100%);
+      background: linear-gradient(295deg, rgb(var(--combate-b) / 0.45), rgb(var(--combate-b) / 0.10) 60%, transparent 88%);
+    }
+    .combate-seam {
+      -webkit-clip-path: polygon(57.7% 0, 58.3% 0, 44.3% 100%, 43.7% 100%);
+      clip-path: polygon(57.7% 0, 58.3% 0, 44.3% 100%, 43.7% 100%);
+      background: linear-gradient(180deg, rgb(var(--combate-a) / 0.5), rgb(247 243 234 / 0.30) 50%, rgb(var(--combate-b) / 0.5));
+    }
+  }
+
   .as-stage {
     position: relative;
     isolation: isolate;
