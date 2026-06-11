@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, Sparkles } from 'lucide-react'
@@ -50,21 +50,24 @@ const VoteCard = memo(function VoteCard({
       : `Votar por ${personaje.nombre} de ${personaje.anime}`
 
   // Punto de pulsación (en % de la carta) para anclar la onda expansiva del
-  // impacto. Se captura en el mismo onPointerDown del sonido instantáneo. El
-  // voto por teclado (←/→) no pasa por aquí: el guard de frescura descarta
+  // impacto. Se captura en el mismo onPointerDown del sonido instantáneo y va
+  // en un ref: no necesita re-render propio (el de isVoted ya lo lee) y así
+  // los touchstart de gestos de scroll no re-renderizan la carta memoizada.
+  // El voto por teclado (←/→) no pasa por aquí: el guard de frescura descarta
   // pulsaciones viejas abandonadas y la onda cae al centro de la carta.
-  const [pressPoint, setPressPoint] = useState(null)
+  const pressPointRef = useRef(null)
   const capturePressPoint = (event) => {
     const rect = event.currentTarget.getBoundingClientRect()
     if (rect.width > 0 && rect.height > 0 && Number.isFinite(event.clientX)) {
-      setPressPoint({
+      pressPointRef.current = {
         x: ((event.clientX - rect.left) / rect.width) * 100,
         y: ((event.clientY - rect.top) / rect.height) * 100,
         at: Date.now(),
-      })
+      }
     }
     onSoundPointerDown(event)
   }
+  const pressPoint = pressPointRef.current
   const impactOrigin =
     isVoted && pressPoint && Date.now() - pressPoint.at < 600 ? pressPoint : null
 
