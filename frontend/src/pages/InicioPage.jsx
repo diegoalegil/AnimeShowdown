@@ -86,8 +86,8 @@ function InicioPage() {
   return (
     <>
       <JsonLd id="website" schema={webSiteSchema()} />
-      {/* Jerarquía recomendada: hero → stats → duelo en vivo → top ranking
-          → retos diarios → "Hecho para fans" → cómo funciona → torneos
+      {/* Jerarquía de la portada: hero → combate estelar (cartel del día)
+          → pulso + misión diaria → top ranking → retos diarios → torneos
           → explora por universo. Primero entender la propuesta, luego una
           acción clara, luego ranking y el resto a explorar. */}
       <Hero catalogoPersonajes={catalogoPersonajes} />
