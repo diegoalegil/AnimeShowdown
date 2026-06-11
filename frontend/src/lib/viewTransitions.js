@@ -16,6 +16,7 @@
 // propio navegador (~4s) cubren el caso patológico.
 
 export const PERSONAJE_HERO_VT = 'personaje-hero'
+export const ANIME_SCENE_VT = 'anime-scene'
 
 // Tiempo máximo congelado esperando el commit de React. Si vence, la
 // transición se asienta con el contenido que haya (equivale al corte de
@@ -24,10 +25,28 @@ const SETTLE_WATCHDOG_MS = 1500
 
 let settlePending = null
 let watchdogId = 0
+let settleAdopt = null
 
 export function supportsViewTransitions(doc = typeof document === 'undefined' ? null : document) {
   if (!doc || typeof doc.startViewTransition !== 'function') return false
   return !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+}
+
+/**
+ * Encola una función que correrá en el settle de la transición en curso,
+ * con el scroll YA reseteado por App.jsx (su scrollTo(0,0) va en su layout
+ * effect, que corre DESPUÉS del de la página hija) y ANTES de resolver la
+ * captura del estado nuevo. Es el hueco donde un destino del morph de
+ * vuelta puede decidir si adopta el nombre: la card del grid no puede
+ * decidir por sí sola en su propio layout effect porque el viewport aún
+ * tiene el scroll de la página saliente.
+ *
+ * Sin transición pendiente la función encolada se descarta sin ejecutarse
+ * (una navegación por popstate no pasa por aquí y marcar dejaría un nombre
+ * residual sin transición que lo limpie).
+ */
+export function queueSettleAdopt(fn) {
+  settleAdopt = fn
 }
 
 /**
@@ -39,7 +58,10 @@ export function settleNavigationViewTransition() {
     clearTimeout(watchdogId)
     watchdogId = 0
   }
+  const adopt = settleAdopt
+  settleAdopt = null
   if (!settlePending) return
+  adopt?.()
   const settle = settlePending
   settlePending = null
   settle()
@@ -57,6 +79,11 @@ export function startNavigationViewTransition(navigateFn) {
   // Una transición anterior sin asentar (doble click rápido) se libera ya;
   // startViewTransition además descarta la activa al iniciar la nueva.
   settleNavigationViewTransition()
+  // La captura del estado viejo ocurre al invocar startViewTransition: cada
+  // morph recuerda si su nombre viajaba en ella (heldAtCapture). La adopción
+  // diferida del settle lo consulta para no crear un grupo sin origen.
+  personajeHeroMorph.snapshotCapture()
+  animeSceneMorph.snapshotCapture()
   const transition = document.startViewTransition(
     () =>
       new Promise((resolve) => {
@@ -68,66 +95,103 @@ export function startNavigationViewTransition(navigateFn) {
   // Una transición saltada (timeout del UA, nombres duplicados, otra nav)
   // rechaza estas promesas; sin catch acabarían como errores de consola.
   transition.ready.catch(() => {})
-  transition.finished.then(clearTransientPersonajeHero, clearTransientPersonajeHero)
+  transition.finished.then(clearTransients, clearTransients)
 }
 
 // ---------------------------------------------------------------------------
-// Morph compartido carta → hero del detalle. Solo UN elemento del documento
-// puede llevar el view-transition-name por captura, así que el holder vive
-// aquí centralizado: marcar siempre libera al anterior (incluido el hero del
-// detalle al navegar detalle → detalle vía cartas de similares).
+// Morphs compartidos origen → destino (carta → hero de personaje, scene de
+// card → hero de anime). Solo UN elemento del documento puede llevar cada
+// view-transition-name por captura — un duplicado aborta la transición EN
+// SILENCIO — así que cada nombre vive en un holder centralizado: marcar
+// siempre libera al anterior (incluido el hero del detalle al navegar
+// detalle → detalle vía cartas de similares o módulos del hub).
 
-let heroHolder = null
-let heroHolderTransient = false
+function createSharedMorphName(name) {
+  let holder = null
+  let transient = false
+  let heldAtCapture = false
 
-function setHeroName(el) {
-  if (heroHolder && heroHolder !== el) {
-    heroHolder.style.removeProperty('view-transition-name')
+  function set(el, isTransient) {
+    if (holder && holder !== el) {
+      holder.style.removeProperty('view-transition-name')
+    }
+    holder = el
+    transient = isTransient
+    el.style.setProperty('view-transition-name', name)
   }
-  heroHolder = el
-  el.style.setProperty('view-transition-name', PERSONAJE_HERO_VT)
+
+  return {
+    /**
+     * Marca transitoriamente el origen del morph (la carta/cover clickada).
+     * Llamar desde el onViewTransitionStart de AppLink, que corre ANTES de
+     * iniciar la transición (la captura del estado viejo necesita el nombre
+     * puesto) pero SOLO cuando los guards pasan: en un click modificado
+     * (cmd/ctrl, pestaña nueva) no hay transición que limpie la marca y
+     * quedaría residual. Si la navegación no llega a cuajar, la marca se
+     * limpia sola al terminar la transición.
+     */
+    mark(el) {
+      if (!el || !supportsViewTransitions()) return
+      set(el, true)
+    },
+    /**
+     * El destino estable (hero del detalle) adopta el nombre: destino del
+     * morph de entrada y origen del de salida. Llamar desde un layout effect.
+     */
+    adopt(el) {
+      if (!el || !supportsViewTransitions()) return
+      set(el, false)
+    },
+    /** Libera el nombre al desmontar el elemento que lo tenía. */
+    release(el) {
+      if (!el) return
+      el.style.removeProperty('view-transition-name')
+      if (holder === el) {
+        holder = null
+        transient = false
+      }
+    },
+    /**
+     * Si la transición terminó y la marca sigue siendo la transitoria de un
+     * origen (navegación abortada / sin morph de destino), se retira para que
+     * una transición posterior no arrastre un grupo fantasma desde el grid.
+     */
+    clearTransient() {
+      if (holder && transient) {
+        this.release(holder)
+      }
+    },
+    /** Congela, al iniciar una transición, si el nombre viaja en la captura
+        del estado viejo. Solo tiene sentido leerlo durante esa transición. */
+    snapshotCapture() {
+      heldAtCapture = holder !== null
+    },
+    heldAtCapture() {
+      return heldAtCapture
+    },
+  }
 }
 
-/**
- * Marca transitoriamente la carta clickada como origen del morph. Llamar
- * desde el onViewTransitionStart de AppLink, que corre ANTES de iniciar la
- * transición (la captura del estado viejo necesita el nombre puesto) pero
- * SOLO cuando los guards pasan: en un click modificado (cmd/ctrl, pestaña
- * nueva) no hay transición que limpie la marca y quedaría residual. Si la
- * navegación no llega a cuajar, la marca se limpia sola al terminar la
- * transición.
- */
+export const personajeHeroMorph = createSharedMorphName(PERSONAJE_HERO_VT)
+export const animeSceneMorph = createSharedMorphName(ANIME_SCENE_VT)
+
+// API original del morph de personaje, intacta para sus consumidores.
 export function markPersonajeHero(el) {
-  if (!el || !supportsViewTransitions()) return
-  setHeroName(el)
-  heroHolderTransient = true
+  personajeHeroMorph.mark(el)
 }
 
-/**
- * El hero del detalle adopta el nombre de forma estable (destino del morph
- * de entrada y origen del de salida). Llamar desde un layout effect.
- */
 export function adoptPersonajeHero(el) {
-  if (!el || !supportsViewTransitions()) return
-  setHeroName(el)
-  heroHolderTransient = false
+  personajeHeroMorph.adopt(el)
 }
 
-/** Libera el nombre al desmontar el elemento que lo tenía. */
 export function releasePersonajeHero(el) {
-  if (!el) return
-  el.style.removeProperty('view-transition-name')
-  if (heroHolder === el) {
-    heroHolder = null
-    heroHolderTransient = false
-  }
+  personajeHeroMorph.release(el)
 }
 
-// Si la transición terminó y la marca sigue siendo la transitoria de una
-// carta (navegación abortada / sin morph de destino), se retira para que una
-// transición posterior no arrastre un grupo fantasma desde el grid.
-function clearTransientPersonajeHero() {
-  if (heroHolder && heroHolderTransient) {
-    releasePersonajeHero(heroHolder)
-  }
+function clearTransients() {
+  personajeHeroMorph.clearTransient()
+  animeSceneMorph.clearTransient()
+  // Una adopción encolada que nunca llegó a settle no debe filtrarse a la
+  // siguiente navegación.
+  settleAdopt = null
 }

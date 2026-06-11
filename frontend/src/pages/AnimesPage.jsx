@@ -1,8 +1,10 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, Search, Sparkles, Trophy, X } from 'lucide-react'
+import { AppLink } from '../components/AppLink'
 import LazyOnView from '../components/LazyOnView'
 import { useSeo } from '../hooks/useSeo'
+import { markAnimeScene } from '../lib/animeSceneMorph'
 import { animesListSchema, breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
@@ -224,9 +226,13 @@ function AnimeTile({ animeData }) {
   // dorado mar para One Piece, etc.). Usamos eso para el glow del hover.
   const accentRgb = visual?.accentRgb ?? '159 29 44'
   return (
-    <Link
+    <AppLink
       to={`/animes/${slug}`}
       onClick={() => play('playWhoosh')}
+      // El origen del morph scene → hero se marca SOLO cuando los guards de
+      // AppLink pasan: en clicks modificados no hay transición que limpie la
+      // marca y la cover quedaría con un nombre residual.
+      onViewTransitionStart={() => markAnimeScene(slug)}
       className="as-anime-tile as-panel group relative block overflow-hidden rounded-2xl p-0 transition-all duration-300 motion-safe:hover:-translate-y-1.5 hover:border-gold/45"
       style={{
         '--anime-accent': accentRgb,
@@ -238,6 +244,7 @@ function AnimeTile({ animeData }) {
         eyebrow="Universo"
         className="h-44 rounded-none border-0"
         imageClassName="saturate-105 contrast-100"
+        sceneMorphSlug={slug}
         compact
       >
         <div className="mt-3 flex items-center justify-between gap-2">
@@ -271,7 +278,7 @@ function AnimeTile({ animeData }) {
           <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>
-    </Link>
+    </AppLink>
   )
 }
 

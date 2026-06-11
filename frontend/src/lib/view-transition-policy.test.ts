@@ -19,6 +19,8 @@ const SUPERFICIES_APPLINK = [
   'src/components/Hero.jsx',
   'src/pages/InicioPage.jsx',
   'src/pages/RankingPage.jsx',
+  'src/pages/AnimesPage.jsx',
+  'src/pages/AnimeDetailPage.jsx',
 ]
 
 // Orígenes del morph carta → hero: al click marcan su retrato con el
@@ -56,6 +58,19 @@ describe('política de view transitions', () => {
     expect(source).toContain('releasePersonajeHero')
   })
 
+  it('el catálogo de animes marca la scene al click y la cover viaja en el morph', () => {
+    const source = leer('src/pages/AnimesPage.jsx')
+    expect(source).toContain('markAnimeScene')
+    expect(source).toContain('sceneMorphSlug')
+  })
+
+  it('el hero del anime adopta el lienzo del morph y gatea el slow-zoom', () => {
+    const source = leer('src/features/animeDetail/AnimeCinematicHero.jsx')
+    expect(source).toContain('AnimeSceneMorph')
+    expect(source).toContain('kind="hero"')
+    expect(source).toContain('peekAnimeSceneMorphEntry')
+  })
+
   it('App asienta la transición en el commit de ruta, con el scroll ya arriba', () => {
     const source = leer('src/App.jsx')
     const scrollReset = source.match(/useLayoutEffect\(\(\) => \{[\s\S]*?\}, \[location\.pathname\]\)/)?.[0] ?? ''
@@ -77,6 +92,8 @@ describe('política de view transitions', () => {
     expect(css).toContain('::view-transition-old(root)')
     expect(css).toContain('::view-transition-new(root)')
     expect(css).toContain('::view-transition-group(personaje-hero)')
+    expect(css).toContain('::view-transition-group(anime-scene)')
+    expect(css).toContain('::view-transition-old(anime-scene):only-child')
     expect(css).toContain('.as-vt-header')
     expect(css).toContain('.as-vt-bottom-nav')
 
