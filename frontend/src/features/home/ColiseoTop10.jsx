@@ -170,6 +170,7 @@ function Ring({ items }) {
         className="relative flex min-h-0 flex-1 cursor-grab items-center justify-center overflow-hidden active:cursor-grabbing"
         style={{ touchAction: "pan-y" }}
         role="listbox"
+        aria-label="Carrusel del top 10 — gira para elegir personaje"
         aria-activedescendant={`coliseo-card-${front}`}
         tabIndex={0}
         onKeyDown={onKeyDown}
