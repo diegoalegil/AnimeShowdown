@@ -622,6 +622,31 @@
   animation-duration: 240ms;
 }
 
+/* Rito de acuñación (registro → home): la placa del nuevo luchador morfa
+   hacia el avatar del header. One-shot gestionado por
+   startRitoAcunacionTransition (la placa lleva el nombre en la captura
+   vieja; el avatar, en la nueva). El grupo interpola caja+posición (placa
+   grande centrada → círculo de 32px) mientras old/new hacen cross-fade. */
+::view-transition-group(rito-acunacion),
+::view-transition-image-pair(rito-acunacion),
+::view-transition-old(rito-acunacion),
+::view-transition-new(rito-acunacion) {
+  animation-duration: 480ms;
+  animation-timing-function: var(--ease-lift);
+}
+
+::view-transition-old(rito-acunacion),
+::view-transition-new(rito-acunacion) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Sin destino (avatar no montado, logout raro): muere con el page-out. */
+::view-transition-old(rito-acunacion):only-child {
+  animation-duration: 240ms;
+}
+
 /* El shell fijo (header, bottom nav móvil, barra de progreso) va en su
    propio grupo: queda quieto mientras el contenido transiciona y la app
    se siente persistente, no recargada. */

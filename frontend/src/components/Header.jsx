@@ -12,6 +12,26 @@ import SaldoChip from './SaldoChip'
 import { useInstantSoundPress } from '../hooks/useInstantSoundPress'
 import { usePersonajeRuleta } from '../hooks/usePersonajeRuleta'
 import { OPEN_COMMAND_PALETTE_EVENT } from './CommandPaletteLazyMount'
+import { registerRitoAvatarTarget, unregisterRitoAvatarTarget } from '../lib/viewTransitions'
+
+// Destino del morph del rito de acuñación (registro → home): la placa del
+// nuevo luchador vuela hasta el avatar del header. Hay dos avatares (cluster
+// móvil y UserBadge desktop) y el CSS decide cuál se ve, así que se registran
+// ambos y el morph elige el visible en el momento de salir.
+function RitoAvatarTarget({ children }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    registerRitoAvatarTarget(el)
+    return () => unregisterRitoAvatarTarget(el)
+  }, [])
+  return (
+    <span ref={ref} className="inline-flex rounded-full">
+      {children}
+    </span>
+  )
+}
 
 // Nota de producto: /votar sale de los enlaces regulares y pasa a
 // CTA principal del header. El login deja de ser el botón accent (estaba
@@ -287,7 +307,9 @@ function Header() {
               aria-label={t('nav.perfil')}
               onClick={() => play('playClick')}
             >
-              <Avatar user={user} size={32} />
+              <RitoAvatarTarget>
+                <Avatar user={user} size={32} />
+              </RitoAvatarTarget>
             </AppLink>
             <button
               type="button"
@@ -518,7 +540,9 @@ function UserBadge({ user, onLogout, t }) {
         aria-label={t('nav.perfil')}
         className="flex items-center gap-2.5"
       >
-        <Avatar user={user} size={28} />
+        <RitoAvatarTarget>
+          <Avatar user={user} size={28} />
+        </RitoAvatarTarget>
         <span className="text-sm font-medium text-fg-strong hover:text-gold">
           {user.username}
         </span>

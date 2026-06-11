@@ -94,6 +94,8 @@ describe('política de view transitions', () => {
     expect(css).toContain('::view-transition-group(personaje-hero)')
     expect(css).toContain('::view-transition-group(anime-scene)')
     expect(css).toContain('::view-transition-old(anime-scene):only-child')
+    expect(css).toContain('::view-transition-group(rito-acunacion)')
+    expect(css).toContain('::view-transition-old(rito-acunacion):only-child')
     expect(css).toContain('.as-vt-header')
     expect(css).toContain('.as-vt-bottom-nav')
 

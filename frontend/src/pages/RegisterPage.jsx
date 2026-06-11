@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { toast } from 'sonner'
 import { z } from 'zod'
 import { useAuth } from '../contexts/AuthContext'
 import { useSeo } from '../hooks/useSeo'
@@ -9,6 +10,18 @@ import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import PasswordInput from '../components/PasswordInput'
 import AuthSocialButtons from '../components/AuthSocialButtons'
 import AuthLegalNote from '../components/AuthLegalNote'
+// Import ESTÁTICO a propósito: el rito es el primer momento-recompensa de la
+// cuenta y los flujos de recompensa no van detrás de un import() dinámico
+// (un chunk lento o caído lo rompería). Esta página ya es una ruta lazy.
+import InitiationRite from '../components/InitiationRite'
+import { markInitiationRiteSeen, shouldRunInitiationRite } from '../lib/initiationRite'
+
+// El funnel puede llegar con ?next= (p.ej. desde una superficie que pide
+// cuenta). Solo rutas relativas propias: mismo criterio que el next del
+// flujo OAuth en AuthSocialButtons.
+function sanitizeNext(next) {
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+}
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -87,6 +100,10 @@ function RegisterPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const refDeQuery = searchParams.get('ref') ?? ''
+  const next = sanitizeNext(searchParams.get('next'))
+  // Username recién registrado mientras corre el rito de acuñación; el
+  // propio rito navega al terminar.
+  const [acunando, setAcunando] = useState(null)
   const {
     register,
     handleSubmit,
@@ -119,7 +136,19 @@ function RegisterPage() {
         password: data.password,
         referralCode: data.referralCode || undefined,
       })
-      navigate('/')
+      // Rito de iniciación one-shot. Con reduced-motion no se monta la
+      // ceremonia: bienvenida por toast y navegación directa, cero animación.
+      if (prefersReducedMotion || !shouldRunInitiationRite()) {
+        if (prefersReducedMotion) {
+          markInitiationRiteSeen()
+          toast.success(`Bienvenido, ${data.username}`, {
+            description: 'Tu placa de luchador quedó acuñada.',
+          })
+        }
+        navigate(next)
+      } else {
+        setAcunando(data.username)
+      }
     } catch (err) {
       setError('root', {
         message:
@@ -153,7 +182,7 @@ function RegisterPage() {
             el ranking. Tu nombre de usuario aparece junto a tus votos.
           </p>
         </div>
-        <AuthSocialButtons action="Crear cuenta" next="/" />
+        <AuthSocialButtons action="Crear cuenta" next={next} />
         <AuthLegalNote action="crear tu cuenta" />
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -312,6 +341,8 @@ function RegisterPage() {
         </p>
       </motion.div>
       </div>
+
+      {acunando && <InitiationRite username={acunando} to={next} />}
     </section>
   )
 }

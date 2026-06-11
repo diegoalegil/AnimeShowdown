@@ -17,6 +17,7 @@
 
 export const PERSONAJE_HERO_VT = 'personaje-hero'
 export const ANIME_SCENE_VT = 'anime-scene'
+export const RITO_ACUNACION_VT = 'rito-acunacion'
 
 // Tiempo máximo congelado esperando el commit de React. Si vence, la
 // transición se asienta con el contenido que haya (equivale al corte de
@@ -194,4 +195,67 @@ function clearTransients() {
   // Una adopción encolada que nunca llegó a settle no debe filtrarse a la
   // siguiente navegación.
   settleAdopt = null
+}
+
+// ---------------------------------------------------------------------------
+// Rito de acuñación (registro → home): morph ONE-SHOT de la placa del nuevo
+// luchador hacia el avatar del header. A diferencia de los morphs de holder
+// (origen y destino son instancias del mismo lienzo), aquí el nombre SALTA de
+// elemento dentro del callback: la placa lo lleva en la captura vieja, el
+// avatar en la nueva, y se limpia pase lo que pase al terminar.
+//
+// El header monta DOS avatares (cluster <1120px y UserBadge desktop) y el CSS
+// decide cuál se ve: un elemento display:none no se captura (el grupo quedaría
+// sin destino), así que se registran todos y el morph elige el visible.
+
+const ritoAvatarTargets = new Set()
+
+export function registerRitoAvatarTarget(el) {
+  if (el) ritoAvatarTargets.add(el)
+}
+
+export function unregisterRitoAvatarTarget(el) {
+  ritoAvatarTargets.delete(el)
+}
+
+function visibleRitoAvatarTarget() {
+  for (const el of ritoAvatarTargets) {
+    if (el.isConnected && el.getClientRects().length > 0) return el
+  }
+  return null
+}
+
+/**
+ * Lanza la transición placa → avatar y navega. Sin soporte, con
+ * reduced-motion o sin un avatar visible (logout raro, header sin user
+ * todavía) navega directo: corte limpio, cero coste.
+ */
+export function startRitoAcunacionTransition(placaEl, navigateFn) {
+  const avatarEl = supportsViewTransitions() && placaEl ? visibleRitoAvatarTarget() : null
+  if (!avatarEl) {
+    navigateFn()
+    return
+  }
+  settleNavigationViewTransition()
+  personajeHeroMorph.snapshotCapture()
+  animeSceneMorph.snapshotCapture()
+  // La captura vieja necesita el nombre en la placa; el avatar NO debe
+  // llevarlo aún o habría duplicado y el UA saltaría la transición.
+  placaEl.style.setProperty('view-transition-name', RITO_ACUNACION_VT)
+  const transition = document.startViewTransition(
+    () =>
+      new Promise((resolve) => {
+        settlePending = resolve
+        placaEl.style.removeProperty('view-transition-name')
+        avatarEl.style.setProperty('view-transition-name', RITO_ACUNACION_VT)
+        navigateFn()
+        watchdogId = window.setTimeout(settleNavigationViewTransition, SETTLE_WATCHDOG_MS)
+      }),
+  )
+  transition.ready.catch(() => {})
+  const cleanup = () => {
+    avatarEl.style.removeProperty('view-transition-name')
+    clearTransients()
+  }
+  transition.finished.then(cleanup, cleanup)
 }
