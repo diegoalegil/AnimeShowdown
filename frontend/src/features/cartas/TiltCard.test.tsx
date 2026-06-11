@@ -23,6 +23,7 @@ function stubRaf() {
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 
 describe('TiltCard', () => {
@@ -88,8 +89,9 @@ describe('TiltCard', () => {
     expect(root.classList.contains('is-active')).toBe(false)
   })
 
-  it('en táctil marca la presión sin inclinar', () => {
+  it('en táctil marca la presión tras el retardo, sin inclinar', () => {
     stubMatchMedia({ reduce: false, fine: false })
+    vi.useFakeTimers()
     const { container } = render(
       <TiltCard>
         <span>carta</span>
@@ -97,11 +99,50 @@ describe('TiltCard', () => {
     )
     const root = container.firstElementChild as HTMLElement
 
-    fireEvent.pointerDown(root)
+    fireEvent.pointerDown(root, { clientX: 50, clientY: 50 })
+    expect(root.classList.contains('is-pressed')).toBe(false)
+
+    vi.advanceTimersByTime(120)
     expect(root.classList.contains('is-pressed')).toBe(true)
     expect(root.style.getPropertyValue('--active')).toBe('1')
 
     fireEvent.pointerUp(root)
+    expect(root.classList.contains('is-pressed')).toBe(false)
+    expect(root.style.getPropertyValue('--active')).toBe('0')
+  })
+
+  it('en táctil un toque breve no llega a pintar la presión', () => {
+    stubMatchMedia({ reduce: false, fine: false })
+    vi.useFakeTimers()
+    const { container } = render(
+      <TiltCard>
+        <span>carta</span>
+      </TiltCard>,
+    )
+    const root = container.firstElementChild as HTMLElement
+
+    fireEvent.pointerDown(root, { clientX: 50, clientY: 50 })
+    fireEvent.pointerUp(root)
+    vi.advanceTimersByTime(200)
+
+    expect(root.classList.contains('is-pressed')).toBe(false)
+    expect(root.style.getPropertyValue('--active')).toBe('0')
+  })
+
+  it('en táctil el scroll cancela la presión pendiente', () => {
+    stubMatchMedia({ reduce: false, fine: false })
+    vi.useFakeTimers()
+    const { container } = render(
+      <TiltCard>
+        <span>carta</span>
+      </TiltCard>,
+    )
+    const root = container.firstElementChild as HTMLElement
+
+    fireEvent.pointerDown(root, { clientX: 50, clientY: 50 })
+    fireEvent.pointerMove(root, { clientX: 50, clientY: 70 })
+    vi.advanceTimersByTime(200)
+
     expect(root.classList.contains('is-pressed')).toBe(false)
     expect(root.style.getPropertyValue('--active')).toBe('0')
   })

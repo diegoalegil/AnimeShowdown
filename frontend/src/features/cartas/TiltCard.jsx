@@ -9,6 +9,11 @@ function clamp01(valor) {
   return Math.min(1, Math.max(0, valor))
 }
 
+// Retardo antes de marcar la presión en táctil (delaysContentTouches) y
+// desplazamiento a partir del cual el gesto se considera scroll.
+const PRESS_DELAY_MS = 90
+const SCROLL_SLOP_PX = 8
+
 /**
  * Envuelve una carta del álbum con tilt 3D al puntero y capas de foil
  * (glare especular + lámina por rareza). Mismo motor que PersonajeCardHolo:
@@ -17,7 +22,9 @@ function clamp01(valor) {
  * (.as-card-tilt / .as-card-foil).
  *
  * - Solo inclina con puntero fino (hover:hover + pointer:fine). En táctil
- *   queda el feedback de presión: scale + pulso breve del foil.
+ *   queda el feedback de presión: scale + pulso breve del foil, retrasado
+ *   ~90ms (patrón delaysContentTouches de iOS) para que las cartas no
+ *   parpadeen al hacer scroll por el álbum.
  * - Con prefers-reduced-motion no monta listeners y el CSS oculta las capas.
  * - Las capas son decorativas: aria-hidden, pointer-events: none y z-index
  *   por debajo de las acciones del tile (botón de descarga en z-10).
@@ -35,23 +42,49 @@ function TiltCard({ children, foil = 'ssr', sheen = false, className = '' }) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     // Sin puntero fino no hay tilt que seguir: presión = scale en CSS
-    // (.is-pressed) + el foil pulsa centrado mientras dura el toque.
+    // (.is-pressed) + el foil pulsa centrado mientras dura el toque. La
+    // presión se marca tras PRESS_DELAY_MS; si antes el dedo se levanta o
+    // se desplaza más de SCROLL_SLOP_PX (scroll), se cancela sin pintar.
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-      const onDown = () => {
+      let pressTimer = 0
+      let downX = 0
+      let downY = 0
+
+      const press = () => {
+        pressTimer = 0
         el.classList.add('is-pressed')
         el.style.setProperty('--active', '1')
       }
-      const onUp = () => {
+      const release = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer)
+          pressTimer = 0
+        }
         el.classList.remove('is-pressed')
         el.style.setProperty('--active', '0')
       }
+      const onDown = (e) => {
+        downX = e.clientX
+        downY = e.clientY
+        release()
+        pressTimer = window.setTimeout(press, PRESS_DELAY_MS)
+      }
+      const onMove = (e) => {
+        if (!pressTimer && !el.classList.contains('is-pressed')) return
+        if (Math.hypot(e.clientX - downX, e.clientY - downY) > SCROLL_SLOP_PX) {
+          release()
+        }
+      }
       el.addEventListener('pointerdown', onDown)
-      el.addEventListener('pointerup', onUp)
-      el.addEventListener('pointercancel', onUp)
+      el.addEventListener('pointermove', onMove)
+      el.addEventListener('pointerup', release)
+      el.addEventListener('pointercancel', release)
       return () => {
         el.removeEventListener('pointerdown', onDown)
-        el.removeEventListener('pointerup', onUp)
-        el.removeEventListener('pointercancel', onUp)
+        el.removeEventListener('pointermove', onMove)
+        el.removeEventListener('pointerup', release)
+        el.removeEventListener('pointercancel', release)
+        if (pressTimer) clearTimeout(pressTimer)
       }
     }
 
