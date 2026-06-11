@@ -1,12 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../lib/api'
-import CartaFace from '../features/cartas/CartaFace'
-import TiltCard from '../features/cartas/TiltCard'
+import LegendaryGallery from '../features/cartas/LegendaryGallery'
 
 /**
  * Salón Legendario: galería pública de todas las cartas ESPECIAL curadas
  * (arte de autor). Showcase / marketing — cualquiera ve el arte; el dueño las
  * consigue en sobres y las usa. Consume GET /api/cartas/especiales (público).
+ *
+ * El estado de éxito es la museografía de "galería a oscuras"
+ * (LegendaryGallery): estanterías de 4 con spotlights que se encienden al
+ * entrar al viewport, penumbra compartida en hover y placa de museo por
+ * pieza. Loading/error/empty conservan su presentación de siempre.
  */
 function EspecialesPage() {
   const { data, isLoading, isError } = useQuery({
@@ -16,6 +20,9 @@ function EspecialesPage() {
   })
 
   const cartas = Array.isArray(data) ? data : []
+  const conPiezas = !isLoading && !isError && cartas.length > 0
+
+  if (conPiezas) return <LegendaryGallery cartas={cartas} />
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8">
@@ -51,16 +58,6 @@ function EspecialesPage() {
         <p className="py-12 text-center text-sm text-fg-muted">
           Aún no hay cartas especiales. Vuelve pronto.
         </p>
-      )}
-
-      {!isLoading && !isError && cartas.length > 0 && (
-        <div className="as-card-grid-stagger as-salon-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {cartas.map((carta) => (
-            <TiltCard key={carta.id} foil="especial" sheen>
-              <CartaFace carta={carta} />
-            </TiltCard>
-          ))}
-        </div>
       )}
     </main>
   )
