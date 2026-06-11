@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import {
   computeFlipMoves,
   computeRankShifts,
@@ -27,6 +27,27 @@ const MAX_ANIMATED_SHIFTS = 24
 export function useFlipList(listRef, order) {
   const prevOffsetsRef = useRef(null)
   const prevOrderRef = useRef(null)
+
+  // Tras un resize/rotación las filas re-wrappean y el snapshot de offsets
+  // queda obsoleto: el siguiente FLIP animaría desde posiciones viejas. Se
+  // observa el ANCHO del contenedor (la altura del viewport no mueve los
+  // offsetTop, y en móvil cambia con la barra de URL en cada scroll); al
+  // cambiar se invalida el snapshot: ese reorden no anima y el siguiente
+  // parte de medidas frescas. El primer callback del observer solo calibra.
+  useEffect(() => {
+    const listEl = listRef.current
+    if (!listEl || typeof ResizeObserver === 'undefined') return undefined
+    let lastWidth = null
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[entries.length - 1]?.contentRect?.width
+      if (lastWidth !== null && width !== lastWidth) {
+        prevOffsetsRef.current = null
+      }
+      lastWidth = width
+    })
+    observer.observe(listEl)
+    return () => observer.disconnect()
+  }, [listRef])
 
   useLayoutEffect(() => {
     const listEl = listRef.current
