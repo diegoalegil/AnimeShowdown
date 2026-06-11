@@ -15,8 +15,6 @@ const EASE = [0.4, 0, 0.2, 1]
 // AMBAS caras, como estilo inline (no clase) para que framer-motion no lo
 // pise al componer transforms. Este proyecto ya se quemó con esto.
 const caraBase = {
-  position: 'absolute',
-  inset: 0,
   backfaceVisibility: 'hidden',
   WebkitBackfaceVisibility: 'hidden',
 }
@@ -36,10 +34,15 @@ function CardFlip({ front, back, flipped = false }) {
         animate={reduced ? { rotateY: 0 } : { rotateY: flipped ? 180 : 0 }}
         transition={{ duration: 0.5, ease: EASE }}
       >
-        {/* frente */}
+        {/* frente — EN FLUJO: es quien da el tamaño intrínseco al flip.
+            Con ambas caras absolute, el contenedor w-auto de la ficha
+            colapsaba a ancho 0 en móvil y los botones superpuestos
+            quedaban inclicables (lo cazó el e2e del deeplink 3D). */}
         <motion.div
           style={{
             ...caraBase,
+            position: 'relative',
+            height: '100%',
             pointerEvents: flipped ? 'none' : 'auto',
           }}
           initial={false}
@@ -50,10 +53,13 @@ function CardFlip({ front, back, flipped = false }) {
           {front}
         </motion.div>
 
-        {/* dorso — pre-rotado 180º; en reduced queda a 0º y se hace crossfade */}
+        {/* dorso — absoluto sobre el frente, pre-rotado 180º; en reduced
+            queda a 0º y se hace crossfade */}
         <motion.div
           style={{
             ...caraBase,
+            position: 'absolute',
+            inset: 0,
             rotateY: reduced ? 0 : 180,
             pointerEvents: flipped ? 'auto' : 'none',
           }}
