@@ -1,0 +1,296 @@
+/* ============================================================
+   Salón Legendario — museografía de "galería a oscuras".
+   Acompaña a LegendaryGallery.jsx (mismo patrón que cartas.css:
+   los efectos viven en CSS para respetar la CSP).
+
+   Reglas de perf del proyecto que se respetan aquí:
+   - Gradientes ESTÁTICOS; solo se animan opacity (spots/penumbra)
+     y transform (dolly scroll-driven). Nada de blur()/backdrop-blur
+     ni SVG filters nuevos.
+   - Cero loops infinitos nuevos: el único loop (sheen) ya existe en
+     cartas.css y se pausa fuera del viewport (.is-off).
+   - prefers-reduced-motion: spots encendidos fijos, sin dolly.
+   ============================================================ */
+
+/* La sala baja el lienzo por debajo de --color-bg: galería a oscuras. */
+.lg-room {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 90% 34% at 50% -4%, color-mix(in srgb, var(--color-gold) 5%, transparent), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-bg) 52%, black) 0%,
+      color-mix(in srgb, var(--color-bg) 30%, black) 26%,
+      color-mix(in srgb, var(--color-bg) 18%, black) 100%
+    );
+}
+
+/* ---- Cabecera de sala: kanji 殿 (palacio/salón) + filo dorado ---- */
+
+.lg-kanji {
+  position: absolute;
+  left: 50%;
+  top: 0.25rem;
+  transform: translateX(-50%);
+  font-family: var(--font-kanji-serif);
+  font-weight: 800;
+  font-size: clamp(7rem, 26vw, 12.5rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-gold) 7%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+.lg-sala {
+  font-size: 0.7rem;
+  color: var(--color-gold);
+}
+
+.lg-filo {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 45%, transparent) 18%,
+    color-mix(in srgb, var(--color-gold-bright) 60%, transparent) 50%,
+    color-mix(in srgb, var(--color-gold) 45%, transparent) 82%,
+    transparent
+  );
+}
+
+.lg-filo::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.32rem;
+  height: 0.32rem;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--color-gold-bright);
+}
+
+/* ---- Estanterías ---- */
+
+.lg-rail {
+  height: 1px;
+  margin: 0 4%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 16%, transparent) 14%,
+    color-mix(in srgb, var(--color-gold) 16%, transparent) 86%,
+    transparent
+  );
+}
+
+.lg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.7rem 0.9rem;
+}
+
+@media (min-width: 720px) {
+  .lg-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2.1rem 1.4rem;
+  }
+}
+
+/* Dolly lateral sutil con el scroll. Solo transform; los navegadores sin
+   scroll-driven animations simplemente no lo ven (fallback sin efecto). */
+@keyframes lg-dolly {
+  from { transform: translateX(1rem); }
+  to { transform: translateX(-1rem); }
+}
+
+@keyframes lg-dolly-rev {
+  from { transform: translateX(-1rem); }
+  to { transform: translateX(1rem); }
+}
+
+@supports (animation-timeline: view()) {
+  .lg-shelf {
+    animation: lg-dolly linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+
+  .lg-shelf:nth-of-type(even) {
+    animation-name: lg-dolly-rev;
+  }
+}
+
+/* ---- Expuesto: lámpara + cono de spotlight + carta + placa ---- */
+
+.lg-exhibit {
+  position: relative;
+  display: grid;
+  grid-template-rows: 3.25rem auto auto;
+  justify-items: center;
+}
+
+.lg-exhibit-card {
+  position: relative;
+  grid-row: 2;
+  width: 100%;
+}
+
+/* Punto de luz del carril (estático; el glow es box-shadow pre-renderizada). */
+.lg-lamp {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-gold-pale);
+  box-shadow: 0 0 0.7rem 0.12rem color-mix(in srgb, var(--color-gold-pale) 50%, transparent);
+}
+
+/* Cono cálido ESTÁTICO. Dos capas pre-renderizadas (base + boost) con
+   cross-fade de opacity — nunca se anima el gradiente en sí. */
+.lg-spot,
+.lg-boost {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 124%;
+  height: 78%;
+  pointer-events: none;
+  clip-path: polygon(46.5% 0%, 53.5% 0%, 100% 100%, 0% 100%);
+  background:
+    radial-gradient(ellipse 56% 30% at 50% 0%, color-mix(in srgb, var(--color-gold-pale) 50%, transparent), transparent 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-gold-pale) 30%, transparent) 0%, color-mix(in srgb, var(--color-gold-bright) 10%, transparent) 52%, transparent 90%);
+  opacity: 0;
+}
+
+.lg-spot {
+  transition: opacity 900ms ease 120ms;
+}
+
+.lg-exhibit.is-lit .lg-spot {
+  opacity: 1;
+}
+
+.lg-boost {
+  background:
+    radial-gradient(ellipse 56% 30% at 50% 0%, color-mix(in srgb, var(--color-gold-pale) 65%, transparent), transparent 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-gold-pale) 34%, transparent) 0%, color-mix(in srgb, var(--color-gold-bright) 16%, transparent) 55%, transparent 94%);
+  transition: opacity 240ms ease;
+}
+
+.lg-exhibit.is-focus .lg-boost {
+  opacity: 1;
+}
+
+/* El único loop (sheen de TiltCard) se pausa fuera del viewport. */
+.lg-exhibit.is-off .as-card-foil__sheen {
+  animation-play-state: paused;
+}
+
+/* ---- Placa de museo ---- */
+
+.lg-plaque {
+  grid-row: 3;
+  position: relative;
+  margin-top: 1rem;
+  min-width: 60%;
+  max-width: 94%;
+  padding: 0.5rem 0.9rem 0.55rem;
+  text-align: center;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    var(--color-gold-bright) 0%,
+    var(--color-gold) 46%,
+    color-mix(in oklab, var(--color-gold) 70%, black) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-gold-pale) 55%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, color-mix(in oklab, var(--color-gold) 30%, black) 55%, transparent),
+    0 0.5rem 1.1rem -0.5rem color-mix(in srgb, black 85%, transparent);
+}
+
+/* Hairline interior grabado en la placa. */
+.lg-plaque::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, color-mix(in oklab, var(--color-gold) 38%, black) 42%, transparent);
+  border-radius: calc(var(--radius-lg) - 3px);
+  pointer-events: none;
+}
+
+.lg-plaque-name {
+  display: block;
+  font-size: clamp(0.72rem, 2.6vw, 0.82rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: color-mix(in oklab, var(--color-gold) 34%, black);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-gold-pale) 45%, transparent); /* grabado */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lg-plaque-meta {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.58rem;
+  color: color-mix(in srgb, color-mix(in oklab, var(--color-gold) 32%, black) 82%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Penumbra compartida ----
+   UN solo elemento fijo que atenúa toda la sala salvo un agujero de máscara
+   ESTÁTICO (posicionado por custom props al entrar en hover). Lo único que
+   se anima es su opacity. pointer-events: none siempre. */
+
+.lg-penumbra {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: color-mix(in srgb, color-mix(in srgb, var(--color-bg) 20%, black) 62%, transparent);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--lg-hw, 0px) var(--lg-hh, 0px) at var(--lg-hx, -999px) var(--lg-hy, -999px),
+    transparent 50%,
+    color-mix(in srgb, black 94%, transparent) 84%,
+    black 100%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--lg-hw, 0px) var(--lg-hh, 0px) at var(--lg-hx, -999px) var(--lg-hy, -999px),
+    transparent 50%,
+    color-mix(in srgb, black 94%, transparent) 84%,
+    black 100%
+  );
+}
+
+.lg-penumbra.is-on {
+  opacity: 1;
+}
+
+/* ---- Reduced motion: la sala entera encendida, fija ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-shelf {
+    animation: none !important;
+  }
+
+  .lg-spot {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+
+  .lg-penumbra {
+    display: none;
+  }
+}
