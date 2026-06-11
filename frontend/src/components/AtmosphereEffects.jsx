@@ -308,58 +308,25 @@ export function Embers({ density = 'normal', tone = 'amber' }) {
 }
 
 /**
- * Niebla deslizandose lateralmente. SVG con feTurbulence + animacion
- * CSS — cero JS por frame. tone: 'cold' (azulado JJK) | 'warm' (calido).
+ * Niebla deslizandose lateralmente: banda WebP pre-horneada (tileable
+ * en X, generate-atmosphere-assets.mjs) panneada con transform — cero
+ * JS por frame y cero filtros vivos. Antes era un SVG feTurbulence a
+ * viewport completo en loop de 28s: WebKit rasteriza esos filtros en
+ * CPU, tambien en movil. El elemento mide 200% y desplaza -50%
+ * (exactamente un tile) → loop sin costura.
+ *
+ * <p>tone se acepta por compatibilidad pero ya no tinta: en el SVG
+ * original el filtro descartaba el fill teñido (la niebla SIEMPRE fue
+ * blanca), asi que el raster blanco replica el comportamiento real.
  */
-export function MistDrift({ tone = 'cold', intensity = 'normal' }) {
+export function MistDrift({ intensity = 'normal' }) {
   const opacity = intensity === 'soft' ? 0.18 : intensity === 'strong' ? 0.42 : 0.28
-  const color = tone === 'warm' ? 'rgb(180 100 60)' : 'rgb(120 140 200)'
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      <svg
-        className="absolute -left-[10%] top-0 h-full w-[120%]"
-        preserveAspectRatio="none"
-        viewBox="0 0 1200 600"
-      >
-        <defs>
-          <filter id="as-mist-turbulence">
-            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.022" numOctaves="2" seed="3" />
-            <feColorMatrix
-              values="0 0 0 0 1
-                      0 0 0 0 1
-                      0 0 0 0 1
-                      0 0 0 0.7 0"
-            />
-          </filter>
-          <radialGradient id="as-mist-fade" cx="50%" cy="50%" r="65%">
-            <stop offset="0%" stopColor={color} stopOpacity="0.9" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <g className="as-mist-drift" style={{ animation: 'as-mist-pan 28s linear infinite' }}>
-          <rect
-            x="-200"
-            y="0"
-            width="1600"
-            height="600"
-            fill="url(#as-mist-fade)"
-            filter="url(#as-mist-turbulence)"
-            opacity={opacity}
-          />
-        </g>
-        <style>{`
-          @keyframes as-mist-pan {
-            0%   { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(-200px, 0, 0); }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .as-mist-drift { animation: none !important; }
-          }
-        `}</style>
-      </svg>
+      <div className="as-mist-pan absolute inset-y-0 left-0 w-[200%]" style={{ opacity }} />
     </div>
   )
 }

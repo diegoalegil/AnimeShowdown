@@ -264,6 +264,15 @@
   to   { stroke-dashoffset: 0; }
 }
 
+/* MistDrift: el elemento mide 200% del contenedor y cada tile ocupa el 50%
+   del elemento (background-size) → desplazar -50% recorre exactamente un
+   tile y el loop no tiene costura (la banda es tileable en X). */
+@keyframes as-mist-pan {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 /* Salón del Trono (/ranking) — solo transform/opacity. La pestaña oculta
    los pausa vía html.as-tab-hidden y reduced-motion los apaga en el bloque
    de utilidades trono-*. */
@@ -479,6 +488,19 @@
       rgb(120 80 30 / 0.04) 75%,
       rgb(197 161 90 / 0.20)
     );
+  }
+
+  /* Banda de niebla de MistDrift (ver el keyframe as-mist-pan arriba). */
+  .as-mist-pan {
+    background-image: url("/assets/overlays/mist-fog-v1.webp");
+    background-repeat: repeat-x;
+    background-size: 50% 100%;
+    animation: as-mist-pan 28s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .as-mist-pan {
+      animation: none !important;
+    }
   }
 
   .kanji-ink {
