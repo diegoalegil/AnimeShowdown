@@ -17,7 +17,8 @@ import { miTop5Schema } from '../features/miTop5/mi-top5-schema'
 import RankingImportPanel from '../features/miTop5/RankingImportPanel'
 import Top5QuickSuggestions from '../features/miTop5/Top5QuickSuggestions'
 import Top5SearchPanel from '../features/miTop5/Top5SearchPanel'
-import Top5Slot from '../features/miTop5/Top5Slot'
+import Top5Altar from '../features/miTop5/Top5Altar'
+import { lanzarVueloTop5 } from '../features/miTop5/top5-altar'
 import {
   buildInitialSlots,
   getTop5AddSlugs,
@@ -42,7 +43,7 @@ const containerVariants = {
  * Twitter/Discord/Instagram con su selección.
  *
  * <p>Renderiza un canvas server-side-style en cliente con:
- * - Fondo dark con aurora magenta blur (consistente con el sitio).
+ * - Fondo «corte carmesí» de marca (tajo diagonal + hairline oro + 戦).
  * - Logo AnimeShowdown arriba izq.
  * - Título "Mi Top 5 anime".
  * - Grid horizontal de las 5 cards con avatar + nombre + anime.
@@ -135,7 +136,7 @@ function MiTop5Page() {
       .slice(0, 6)
   }, [personajesBySlug, effectiveSlots])
 
-  const addSlugAlPrimerSlotLibre = (slug) => {
+  const addSlugAlPrimerSlotLibre = (slug, originEl) => {
     const idx = effectiveSlots.findIndex((s) => !s)
     if (idx === -1) {
       toast.info('Top 5 completo. Quita uno para añadir otro.')
@@ -146,6 +147,8 @@ function MiTop5Page() {
       return
     }
     setSlot(idx, slug)
+    // La carta vuela del chip clicado a su pedestal (el altar concilia por slug).
+    if (originEl) lanzarVueloTop5(slug, originEl)
   }
 
   const rellenarDesdeRanking = () => {
@@ -213,23 +216,15 @@ function MiTop5Page() {
           onImport={rellenarDesdeRanking}
         />
 
-        {/* Nota de producto: antes los slots usaban grid 1-col
-            en mobile → cada uno aspect-2/3 full-width = ~580px de alto
-            vacío. Cambio a grid-cols-5 en TODAS las viewports con tamaño
-            compacto que se escala con sm:; los slots vacíos quedan
-            pequeños y el resto de la página (buscador + sugerencias)
-            entra dentro del primer viewport. */}
-        <div className="mb-5 grid grid-cols-5 gap-2 sm:mb-8 sm:gap-4">
-          {effectiveSlots.map((slug, i) => (
-            <Top5Slot
-              key={i}
-              slug={slug}
-              personaje={slug ? personajesBySlug.get(slug) : null}
-              index={i}
-              onQuitar={() => quitarSlot(i)}
-            />
-          ))}
-        </div>
+        {/* Altar de cinco pedestales: escalonado 3D con el nº1 al frente y
+            numerales kanji 一二三四五 grabados en las peanas. En móvil
+            (<640px) y reduced-motion degrada al grid compacto de Top5Slot
+            de siempre (lo resuelve el propio Top5Altar). */}
+        <Top5Altar
+          slots={effectiveSlots}
+          personajesBySlug={personajesBySlug}
+          onQuitar={quitarSlot}
+        />
 
         <Top5QuickSuggestions
           slotsVacios={slotsVacios}

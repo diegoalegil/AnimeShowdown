@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { imagenPersonaje } from '../../lib/personajes-core'
 import { recordDailyShare } from '../../lib/dailyProgress'
 import { shareOrCopy } from '../../lib/share'
-import { TOP5_CANVAS_THEME } from './top5-canvas-theme'
+import { TOP5_CANVAS_THEME, drawTop5Background, drawTop5Numeral } from './top5-canvas-theme'
 
 function CanvasPreview({ slots, completo, personajesBySlug }) {
   const canvasRef = useRef(null)
@@ -26,14 +26,8 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
       canvas.height = 630
       const ctx = canvas.getContext('2d')
 
-      // Fondo dark + aurora magenta blur fake
-      ctx.fillStyle = TOP5_CANVAS_THEME.background
-      ctx.fillRect(0, 0, 1200, 630)
-      const grad = ctx.createRadialGradient(900, 100, 0, 900, 100, 600)
-      grad.addColorStop(0, TOP5_CANVAS_THEME.auroraStart)
-      grad.addColorStop(1, TOP5_CANVAS_THEME.auroraEnd)
-      ctx.fillStyle = grad
-      ctx.fillRect(0, 0, 1200, 630)
+      // Fondo «corte carmesí»: lienzo + tajo diagonal + hairline de oro + 戦
+      drawTop5Background(ctx, { width: 1200, height: 630 })
 
       // Título
       ctx.fillStyle = TOP5_CANVAS_THEME.text
@@ -68,9 +62,8 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
           ctx.drawImage(img, x + 12, startY + 12, cardW - 24, 240)
         }
 
-        ctx.fillStyle = TOP5_CANVAS_THEME.accent
-        ctx.font = 'bold 24px system-ui, sans-serif'
-        ctx.fillText(`#${i + 1}`, x + 12, startY + 290)
+        // Numeral kanji de rango (一..五) en chip con borde de oro
+        drawTop5Numeral(ctx, i, x + 26, startY + 288)
 
         ctx.fillStyle = TOP5_CANVAS_THEME.text
         ctx.font = 'bold 20px system-ui, sans-serif'
@@ -83,7 +76,7 @@ function CanvasPreview({ slots, completo, personajesBySlug }) {
 
       ctx.fillStyle = TOP5_CANVAS_THEME.watermark
       ctx.font = '18px system-ui, sans-serif'
-      ctx.fillText('🔥 animeshowdown.dev', 60, 600)
+      ctx.fillText('animeshowdown.dev · 戦', 60, 600)
 
       const blob = await canvasToPngBlob(canvas)
       const url = canvas.toDataURL('image/png')
