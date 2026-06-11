@@ -172,10 +172,10 @@ function Header() {
 
   return (
     <header
-      className={`as-vt-header sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-200 sm:gap-6 sm:px-8 sm:py-4 ${
+      className={`as-vt-header sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3 transition-[background-color,border-color,box-shadow] duration-200 sm:gap-6 sm:px-8 sm:py-4 ${
         scrolled
-          ? 'border-b border-white/10 bg-bg/78 shadow-elev-2 backdrop-blur-2xl'
-          : 'border-b border-white/8 bg-bg/52 backdrop-blur-xl'
+          ? 'border-b border-white/10 bg-bg/95 shadow-elev-2 pointer-fine:bg-bg/78 pointer-fine:backdrop-blur-2xl'
+          : 'border-b border-white/8 bg-bg/90 pointer-fine:bg-bg/52 pointer-fine:backdrop-blur-xl'
       }`}
     >
       <AppLink to="/" className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 min-[1120px]:flex-none">
@@ -352,7 +352,7 @@ function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="Menú de navegación"
-            className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh_-_4rem_-_env(safe-area-inset-bottom))] overflow-y-auto border-b border-white/10 bg-bg/95 px-5 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pt-4 shadow-elev-2 backdrop-blur-2xl lg:hidden"
+            className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh_-_4rem_-_env(safe-area-inset-bottom))] overflow-y-auto border-b border-white/10 bg-bg/98 px-5 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pt-4 shadow-elev-2 pointer-fine:bg-bg/95 pointer-fine:backdrop-blur-2xl lg:hidden"
           >
             <div className="flex flex-col gap-1">
               {[...primaryNavLinks, ...moreNavLinks].map(({ to, i18nKey }) => (
@@ -485,7 +485,7 @@ function MoreMenu({ moreLinks, t, play }) {
       {open && (
         <div
           ref={menuRef}
-          className="absolute right-0 top-full z-40 mt-2 min-w-44 overflow-hidden rounded-xl border border-white/10 bg-bg/95 p-1.5 shadow-elev-2 backdrop-blur-xl"
+          className="absolute right-0 top-full z-40 mt-2 min-w-44 overflow-hidden rounded-xl border border-white/10 bg-bg/98 p-1.5 shadow-elev-2 pointer-fine:bg-bg/95 pointer-fine:backdrop-blur-xl"
         >
           {moreLinks.map(({ to, i18nKey }) => (
             <AppNavLink

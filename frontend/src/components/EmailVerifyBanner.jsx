@@ -44,7 +44,7 @@ function EmailVerifyBanner() {
 
   return (
     <div
-      className="sticky top-16 z-30 border-b border-warning/30 bg-warning/10 backdrop-blur"
+      className="sticky top-16 z-30 border-b border-warning/30 bg-[color-mix(in_srgb,var(--color-warning)_12%,var(--color-bg))] pointer-fine:bg-warning/10 pointer-fine:backdrop-blur"
       role="status"
     >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-5 py-2.5 sm:px-8">

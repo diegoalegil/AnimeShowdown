@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Variante de puntero fino: el frosted-glass (backdrop-blur) solo se sirve
+   a dispositivos con hover real. En puntero grueso (móvil/tablet), las
+   barras fijas al eje de scroll usan fondo casi opaco sin filter — WebKit
+   re-aplica el backdrop-filter en cada frame de scroll y es uno de los
+   culpables medidos de la lentitud global percibida en Safari. */
+@custom-variant pointer-fine (@media (hover: hover) and (pointer: fine));
+
 @theme {
   --color-bg: #080b12;
   --color-surface: #101620;
