@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -51,6 +51,7 @@ import { RankRowElo, RankRowVotos } from '../features/ranking/components/Ranking
 import RankingTabs from '../features/ranking/components/RankingTabs'
 import RankingTechnicalTable from '../features/ranking/components/RankingTechnicalTable'
 import { RANKING_TABS } from '../features/ranking/ranking-tabs'
+import { useFlipList } from '../features/ranking/useFlipList'
 import {
   crearCatalogoIndex,
   filtrarRankingElo,
@@ -662,6 +663,14 @@ function ListaEloLocal({
     () => (hayFiltros ? filteredTop100 : resto),
     [filteredTop100, hayFiltros, resto],
   )
+  // Tabla viva: cuando el ELO canónico refresca y reordena, las filas
+  // deslizan a su nueva posición (FLIP manual sobre data-flip-key).
+  const listRef = useRef(null)
+  const flipOrder = useMemo(
+    () => visibleRankingRows.map((p) => p.slug),
+    [visibleRankingRows],
+  )
+  useFlipList(listRef, flipOrder)
   const top5ShareText = useMemo(
     () =>
       filtered
@@ -811,7 +820,7 @@ function ListaEloLocal({
             </p>
           )}
 
-          <ol className="flex flex-col gap-2">
+          <ol ref={listRef} className="flex flex-col gap-2">
             {visibleRankingRows.map((p, i) => (
               <RankRowElo
                 key={p.slug}
@@ -981,6 +990,17 @@ function PorAnime({ initialAnime = '' }) {
 }
 
 function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null }) {
+  // Tabla viva: cada voto del WS reordena la caché y la fila desliza a su
+  // nueva posición (FLIP manual; el odómetro y el flash viven en la fila).
+  const listRef = useRef(null)
+  const flipOrder = useMemo(
+    () =>
+      Array.isArray(items)
+        ? items.map((item) => item?.personaje?.slug).filter(Boolean)
+        : [],
+    [items],
+  )
+  useFlipList(listRef, flipOrder)
   if (isLoading) {
     return <RankingSkeletonList />
   }
@@ -1006,7 +1026,7 @@ function ListaVotosCommon({ items, isLoading, isError, movimientosPorSlug = null
     )
   }
   return (
-    <ol className="flex flex-col gap-2">
+    <ol ref={listRef} className="flex flex-col gap-2">
       {items.map((item, i) => (
         <RankRowVotos
           key={item.personaje.slug}

@@ -236,6 +236,22 @@
   to   { stroke-dashoffset: 0; }
 }
 
+/* Odómetro de la tabla viva (/ranking): el "+N" decorativo que flota al
+   llegar un voto. Solo opacity/transform. */
+@keyframes live-burst-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}
+
 @layer utilities {
   .scrollbar-hide {
     scrollbar-width: none;
@@ -841,6 +857,19 @@
        Usado en CardLogros del perfil como fondo de los badges. */
     background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%2324c6dc' stroke-width='0.5'%3E%3Ccircle cx='0' cy='20' r='20'/%3E%3Ccircle cx='40' cy='20' r='20'/%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='40' r='20'/%3E%3Ccircle cx='0' cy='20' r='14'/%3E%3Ccircle cx='40' cy='20' r='14'/%3E%3Ccircle cx='20' cy='0' r='14'/%3E%3Ccircle cx='20' cy='40' r='14'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 40px 20px;
+  }
+
+  /* "+N" del odómetro de la tabla viva: sube 28px y se desvanece. */
+  .live-burst {
+    opacity: 0;
+    animation: live-burst-rise 700ms var(--ease-lift) forwards;
+    will-change: transform, opacity;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live-burst {
+      animation: none;
+    }
   }
 }
 
