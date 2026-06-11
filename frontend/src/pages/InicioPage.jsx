@@ -321,11 +321,9 @@ function Top10Card({ rank, slug, nombre, anime, elo }) {
     <li className="flex-none snap-start">
       <AppLink
         to={`/personajes/${slug}`}
-        onClick={() => {
-          play('playWhoosh')
-          // El retrato del top 10 viaja hasta el hero del detalle (morph).
-          markPersonajeHero(retratoRef.current)
-        }}
+        onClick={() => play('playWhoosh')}
+        // El retrato del top 10 viaja hasta el hero del detalle (morph).
+        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
         className="group flex items-end gap-0"
       >
         <span

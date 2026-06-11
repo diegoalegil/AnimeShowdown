@@ -35,12 +35,11 @@ function PersonajeCard({
   return (
     <AppLink
       to={`/personajes/${slug}`}
-      onClick={() => {
-        play('playWhoosh')
-        // Antes de capturar el estado viejo: esta carta es el origen del
-        // morph hacia el hero del detalle (mismo aspect 2/3 y radio).
-        markPersonajeHero(cardRef.current)
-      }}
+      onClick={() => play('playWhoosh')}
+      // Justo antes de capturar el estado viejo (y solo si la transición
+      // arranca de verdad): esta carta es el origen del morph hacia el hero
+      // del detalle (mismo aspect 2/3 y radio).
+      onViewTransitionStart={() => markPersonajeHero(cardRef.current)}
       className="group block"
     >
       {/* contentVisibility: el navegador se salta layout/paint de las cartas

@@ -89,10 +89,13 @@ function setHeroName(el) {
 }
 
 /**
- * Marca transitoriamente la carta clickada como origen del morph. Llamar en
- * el onClick ANTES de iniciar la transición (la captura del estado viejo
- * necesita el nombre puesto). Si la navegación no llega a cuajar, la marca
- * se limpia sola al terminar la transición.
+ * Marca transitoriamente la carta clickada como origen del morph. Llamar
+ * desde el onViewTransitionStart de AppLink, que corre ANTES de iniciar la
+ * transición (la captura del estado viejo necesita el nombre puesto) pero
+ * SOLO cuando los guards pasan: en un click modificado (cmd/ctrl, pestaña
+ * nueva) no hay transición que limpie la marca y quedaría residual. Si la
+ * navegación no llega a cuajar, la marca se limpia sola al terminar la
+ * transición.
  */
 export function markPersonajeHero(el) {
   if (!el || !supportsViewTransitions()) return

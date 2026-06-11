@@ -9,6 +9,13 @@ import { startNavigationViewTransition, supportsViewTransitions } from '../lib/v
 // navegadores sin soporte, con reduced motion o en clicks modificados
 // (cmd/ctrl, botón central, target) el Link se comporta exactamente igual
 // que el de react-router.
+//
+// `onViewTransitionStart` se invoca SOLO cuando todos los guards pasan,
+// justo antes de iniciar la transición: es el sitio para marcar el origen
+// de un morph (view-transition-name). En el onClick del consumidor la
+// marca se pondría también en clicks modificados (cmd/ctrl/shift, pestaña
+// nueva), donde no hay transición que la limpie, y la siguiente navegación
+// arrastraría un morph fantasma desde la carta marcada.
 
 function esClickDeNavegacion(event, target) {
   return (
@@ -21,7 +28,7 @@ function esClickDeNavegacion(event, target) {
   )
 }
 
-function useViewTransitionClick({ to, replace, state, target, onClick }) {
+function useViewTransitionClick({ to, replace, state, target, onClick, onViewTransitionStart }) {
   const navigate = useNavigate()
   const href = useHref(to)
 
@@ -36,16 +43,17 @@ function useViewTransitionClick({ to, replace, state, target, onClick }) {
     if (href.split(/[?#]/)[0] === window.location.pathname) return
 
     event.preventDefault()
+    onViewTransitionStart?.()
     startNavigationViewTransition(() => navigate(to, { replace, state }))
   }
 }
 
-export function AppLink({ to, replace, state, target, onClick, ...rest }) {
-  const handleClick = useViewTransitionClick({ to, replace, state, target, onClick })
+export function AppLink({ to, replace, state, target, onClick, onViewTransitionStart, ...rest }) {
+  const handleClick = useViewTransitionClick({ to, replace, state, target, onClick, onViewTransitionStart })
   return <Link to={to} replace={replace} state={state} target={target} onClick={handleClick} {...rest} />
 }
 
-export function AppNavLink({ to, replace, state, target, onClick, ...rest }) {
-  const handleClick = useViewTransitionClick({ to, replace, state, target, onClick })
+export function AppNavLink({ to, replace, state, target, onClick, onViewTransitionStart, ...rest }) {
+  const handleClick = useViewTransitionClick({ to, replace, state, target, onClick, onViewTransitionStart })
   return <NavLink to={to} replace={replace} state={state} target={target} onClick={handleClick} {...rest} />
 }

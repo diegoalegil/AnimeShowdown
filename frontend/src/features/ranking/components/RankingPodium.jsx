@@ -138,7 +138,7 @@ function PodioCard({ personaje, rank, highlighted, history, orden = 0, className
       <AppLink
         to={`/personajes/${personaje.slug}`}
         // El retrato del podio viaja hasta el hero del detalle (morph).
-        onClick={() => markPersonajeHero(retratoRef.current)}
+        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
         className={`group relative h-full overflow-hidden rounded-2xl border-2 transition-all motion-safe:hover:-translate-y-1 ${linkLayout} ${tone.border} ${tone.bg} ${tone.hoverGlow ?? ''}`}
       >
         {rank === 1 ? (

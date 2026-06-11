@@ -3,7 +3,12 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import { AppLink, AppNavLink } from './AppLink'
-import { settleNavigationViewTransition } from '../lib/viewTransitions'
+import {
+  PERSONAJE_HERO_VT,
+  markPersonajeHero,
+  releasePersonajeHero,
+  settleNavigationViewTransition,
+} from '../lib/viewTransitions'
 
 const doc = document as unknown as {
   startViewTransition?: (cb: () => Promise<void>) => {
@@ -67,7 +72,7 @@ describe('AppLink', () => {
     expect(startViewTransition).not.toHaveBeenCalled()
   })
 
-  it('ejecuta el onClick del consumidor antes de transicionar (marca del morph)', () => {
+  it('ejecuta el onClick del consumidor antes de transicionar', () => {
     const llamadas: string[] = []
     doc.startViewTransition = vi.fn((cb: () => Promise<void>) => {
       llamadas.push('transition')
@@ -83,6 +88,60 @@ describe('AppLink', () => {
     fireEvent.click(screen.getByText('ir'))
 
     expect(llamadas).toEqual(['onClick', 'transition'])
+  })
+
+  it('invoca onViewTransitionStart tras los guards, justo antes de transicionar', () => {
+    const llamadas: string[] = []
+    doc.startViewTransition = vi.fn((cb: () => Promise<void>) => {
+      llamadas.push('transition')
+      cb()
+      return { ready: Promise.resolve(), finished: Promise.resolve() }
+    })
+
+    renderConRutas(
+      <AppLink
+        to="/personajes"
+        onClick={() => llamadas.push('onClick')}
+        onViewTransitionStart={() => llamadas.push('marca')}
+      >
+        ir
+      </AppLink>,
+    )
+    fireEvent.click(screen.getByText('ir'))
+
+    expect(llamadas).toEqual(['onClick', 'marca', 'transition'])
+  })
+
+  it('un cmd+click no deja marca residual del morph', () => {
+    const startViewTransition = vi.fn(() => ({
+      ready: Promise.resolve(),
+      finished: Promise.resolve(),
+    }))
+    doc.startViewTransition = startViewTransition
+
+    const carta = document.createElement('article')
+    document.body.appendChild(carta)
+    try {
+      renderConRutas(
+        <AppLink to="/personajes" onViewTransitionStart={() => markPersonajeHero(carta)}>
+          ir
+        </AppLink>,
+      )
+      fireEvent.click(screen.getByText('ir'), { metaKey: true })
+
+      expect(startViewTransition).not.toHaveBeenCalled()
+      expect(carta.style.getPropertyValue('view-transition-name')).toBe('')
+
+      // El mismo link, en un click normal, sí marca el origen del morph.
+      // (El cmd+click dejó que happy-dom navegara el <a>; se restaura la
+      // location para que el guard por pathname no corte el segundo click.)
+      window.history.replaceState(null, '', '/')
+      fireEvent.click(screen.getByText('ir'))
+      expect(carta.style.getPropertyValue('view-transition-name')).toBe(PERSONAJE_HERO_VT)
+    } finally {
+      releasePersonajeHero(carta)
+      carta.remove()
+    }
   })
 
   it('AppNavLink conserva el className funcional de NavLink', () => {

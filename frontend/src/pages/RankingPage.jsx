@@ -589,7 +589,7 @@ function CategoriaCard({ rank, personaje, tono }) {
       <AppLink
         to={`/personajes/${personaje.slug}`}
         // El retrato de la card viaja hasta el hero del detalle (morph).
-        onClick={() => markPersonajeHero(retratoRef.current)}
+        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
         className="group flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 transition-all hover:-translate-y-0.5 hover:border-accent/40 sm:p-3"
       >
         <div ref={retratoRef} className="relative aspect-[2/3] overflow-hidden rounded-lg bg-bg">
