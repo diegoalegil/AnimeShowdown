@@ -1,6 +1,6 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
 import { webSiteSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
@@ -25,11 +25,11 @@ import EmptyState from '../components/EmptyState'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { HomeSkeleton } from '../components/PageSkeleton'
 import { useTorneos } from '../lib/torneosQueries'
-import { getStatsPersonaje } from '../lib/personajes-core'
+import { getStatsPersonaje, imagenPersonaje } from '../lib/personajes-core'
 import { markPersonajeHero } from '../lib/viewTransitions'
-import PersonajeImg from '../components/PersonajeImg'
 import { useSound } from '../contexts/SoundContext'
 import { getGameVisual } from '../data/visual-assets'
+import ColiseoTop10 from '../features/home/ColiseoTop10'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 
 function getHomeCarousels(catalogoPersonajes) {
@@ -275,8 +275,25 @@ function SectionTorneosActivos() {
   )
 }
 
+// Rango en kanji por posición (números japoneses): flavor sin coste de datos.
+const KANJI_RANGO = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+
 function SectionTop10Ranking({ top10 }) {
-  if (top10.length === 0) return null
+  const navigate = useNavigate()
+  const { play } = useSound()
+  const items = useMemo(
+    () =>
+      top10.map((p, i) => ({
+        slug: p.slug,
+        name: p.nombre,
+        anime: p.anime,
+        elo: p.elo,
+        kanji: KANJI_RANGO[i] ?? '戦',
+        image: imagenPersonaje(p.slug),
+      })),
+    [top10],
+  )
+  if (top10.length < 10) return null
 
   return (
     <Section
@@ -287,9 +304,9 @@ function SectionTop10Ranking({ top10 }) {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
-      eyebrow="Top 10 · ELO base"
-      title="Top 10 por ELO base"
-      description="Orden estimado por popularidad del catálogo, no por votos. El ranking competitivo real, que sí se mueve con cada voto, está en /ranking."
+      eyebrow="Top 10 · ELO base ·b"
+      title="Coliseo de Leyendas"
+      description="El top 10 por ELO base gira en la arena: arrastra el anillo o usa las flechas, y toca la carta frontal para abrir su ficha. Orden estimado por popularidad, no por votos — el ranking competitivo real está en /ranking."
       descriptionClassName="max-w-2xl text-[14px] text-fg-muted"
       headerClassName="mb-8 flex flex-wrap items-end justify-between gap-3"
       headerAction={
@@ -304,71 +321,17 @@ function SectionTop10Ranking({ top10 }) {
         </Button>
       }
     >
-        <ol className="scrollbar-hide scroll-x-affordance scroll-x-fade -mx-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
-          {top10.map((p, i) => (
-            <Top10Card key={p.slug} rank={i + 1} {...p} />
-          ))}
-        </ol>
+      <ColiseoTop10
+        items={items}
+        onOpen={(slug, retrato) => {
+          play('playWhoosh')
+          // El retrato frontal del coliseo viaja hasta el hero del detalle
+          // (mismo morph que tenían las cartas del top 10 anterior).
+          markPersonajeHero(retrato)
+          navigate(`/personajes/${slug}`)
+        }}
+      />
     </Section>
-  )
-}
-
-function Top10Card({ rank, slug, nombre, anime, elo }) {
-  const { play } = useSound()
-  const retratoRef = useRef(null)
-  const highPriorityImage = rank <= 4
-  return (
-    <li className="flex-none snap-start">
-      <AppLink
-        to={`/personajes/${slug}`}
-        onClick={() => play('playWhoosh')}
-        // El retrato del top 10 viaja hasta el hero del detalle (morph).
-        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
-        className="group flex items-end gap-0"
-      >
-        <span
-          aria-hidden="true"
-          className="select-none font-extrabold leading-[0.85] tracking-tighter text-[120px] sm:text-[160px]"
-          style={{
-            WebkitTextStroke: '2px var(--color-accent)',
-            color: 'transparent',
-            marginRight: rank === 10 ? '-30px' : '-20px',
-          }}
-        >
-          {rank}
-        </span>
-        <div className="relative z-10 flex w-[140px] flex-col gap-1 sm:w-[160px]">
-          <Card
-            as="div"
-            ref={retratoRef}
-            className="aspect-[2/3] border border-border bg-surface p-0 transition-all group-hover:-translate-y-1 group-hover:border-accent/40"
-          >
-            <PersonajeImg
-              slug={slug}
-              alt={nombre}
-              loading={highPriorityImage ? 'eager' : 'lazy'}
-              fetchPriority={highPriorityImage ? 'high' : 'auto'}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          </Card>
-          <div className="flex items-center justify-between gap-2 px-1">
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-bold text-fg-strong group-hover:text-gold">
-                {nombre}
-              </p>
-              <p className="truncate text-xs text-fg-muted">{anime}</p>
-            </div>
-            <p
-              className="shrink-0 font-mono text-[12px] font-bold text-elo-number tabular-nums"
-              title="ELO base estimado por popularidad. El ranking real por votos está en /ranking."
-            >
-              {elo}
-              <span className="ml-0.5 text-[9px] font-bold text-elo-number/70">·b</span>
-            </p>
-          </div>
-        </div>
-      </AppLink>
-    </li>
   )
 }
 
