@@ -106,7 +106,7 @@ const VoteCard = memo(function VoteCard({
                   : { duration: 0.32, ease: 'easeOut' }
         }
         aria-label={voteAriaLabel}
-        className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 transition-[transform,border-color,box-shadow,opacity,filter] ${
+        className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 transition-[border-color,box-shadow,opacity,filter] ${
           isVoted
             ? 'shadow-aura-lg ring-2 ring-white/25'
             : isTie
