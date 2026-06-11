@@ -40,7 +40,8 @@ function ShelfLedge() {
   return (
     <div aria-hidden="true">
       <div className="-mx-2 h-[11px] bg-gradient-to-b from-gold/35 via-gold/20 to-black/95 [clip-path:polygon(1.5%_0,98.5%_0,100%_100%,0_100%)]" />
-      <div className="mx-0.5 h-4 bg-[radial-gradient(50%_90%_at_50%_0%,rgb(0_0_0/0.55),transparent_75%)]" />
+      {/* sombra proyectada de la repisa — tokens puros, sin literales de color */}
+      <div className="mx-0.5 h-4 bg-[radial-gradient(50%_90%_at_50%_0%,color-mix(in_srgb,var(--color-bg)_92%,transparent),transparent_75%)]" />
     </div>
   )
 }
