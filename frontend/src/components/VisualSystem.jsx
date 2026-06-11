@@ -158,8 +158,8 @@ export function VisualPageShell({
       <div aria-hidden="true" className="absolute inset-0 bg-bg" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute -right-[20%] -top-[14%] hidden h-[44rem] w-[44rem] rounded-full opacity-[0.10] blur-3xl motion-safe:animate-aurora-2 sm:block"
-          style={{ background: 'rgb(var(--visual-accent) / 1)' }}
+          className="as-aurora-blob absolute -right-[20%] -top-[14%] hidden h-[44rem] w-[44rem] opacity-[0.10] motion-safe:animate-aurora-2 sm:block"
+          style={{ '--aurora-color': 'rgb(var(--visual-accent) / 1)' }}
         />
       </div>
       {/* Malla geométrica tenue — textura sutil, no decorado. */}

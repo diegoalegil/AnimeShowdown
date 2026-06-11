@@ -365,29 +365,24 @@ export function MistDrift({ tone = 'cold', intensity = 'normal' }) {
 }
 
 /**
- * Aurora rotando con conic-gradient. Ideal para hero principal —
- * sensacion de "ahora mismo" en movimiento sin saturar.
+ * Aurora de conic-gradient pre-horneada. Antes el conic llevaba un
+ * filter blur(40-80px) permanente (bajo una clase de rotacion que no
+ * existia): WebKit mantenia una capa filtrada a tamano de hero por
+ * instancia — coste de raster puro sin movimiento. Los conics viven en
+ * index.css (.as-aurora-conic-*) con paradas suaves que reproducen la
+ * difusion del blur; la intensidad se mapea a opacity (composited).
+ * El tono violeta se retiro (tell de glow morado): los presets que lo
+ * usaban pasan a la familia de marca.
  */
 export function AuroraGlow({ tone = 'carmine', intensity = 'normal' }) {
-  const palette =
-    tone === 'gold'
-      ? 'conic-gradient(from 0deg at 50% 50%, rgb(197 161 90 / 0.25), rgb(120 80 30 / 0.04) 25%, rgb(220 180 90 / 0.18) 50%, rgb(120 80 30 / 0.04) 75%, rgb(197 161 90 / 0.25))'
-      : tone === 'violet'
-        ? 'conic-gradient(from 0deg at 50% 50%, rgb(139 92 246 / 0.25), rgb(60 30 120 / 0.04) 25%, rgb(190 130 255 / 0.20) 50%, rgb(60 30 120 / 0.04) 75%, rgb(139 92 246 / 0.25))'
-        : 'conic-gradient(from 0deg at 50% 50%, rgb(255 70 110 / 0.22), rgb(120 30 50 / 0.04) 30%, rgb(220 60 100 / 0.18) 55%, rgb(120 30 50 / 0.04) 78%, rgb(255 70 110 / 0.22))'
-  const blur = intensity === 'soft' ? 'blur(80px)' : intensity === 'strong' ? 'blur(40px)' : 'blur(60px)'
+  const toneClass = tone === 'gold' ? 'as-aurora-conic-gold' : 'as-aurora-conic-carmine'
+  const opacity = intensity === 'soft' ? 0.7 : intensity === 'strong' ? 1 : 0.85
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      <div
-        className="as-aurora absolute inset-0"
-        style={{
-          background: palette,
-          filter: blur,
-        }}
-      />
+      <div className={`absolute inset-0 ${toneClass}`} style={{ opacity }} />
     </div>
   )
 }
@@ -685,7 +680,7 @@ export function AtmospherePreset({ preset }) {
       return (
         <>
           <SakuraPetals tone="rose" density="normal" />
-          <AuroraGlow tone="violet" intensity="soft" />
+          <AuroraGlow tone="gold" intensity="soft" />
         </>
       )
     case 'arcane':

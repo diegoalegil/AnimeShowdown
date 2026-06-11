@@ -445,6 +445,42 @@
     }
   }
 
+  /* Auroras pre-horneadas. Antes: blob sólido (bg-*) + blur-3xl — WebKit
+     mantenía una capa filtrada de 24-44rem POR AURORA y la re-rasterizaba
+     mientras el drift (animate-aurora-*) la movía; parte del coste de
+     composición que hacía ir lento TODO Safari. El radial-gradient da el
+     mismo halo difuso ya pintado: el drift queda transform-only sobre una
+     capa estática. El color lo pone cada uso vía --aurora-color (token o
+     canal del visual); la intensidad sigue en la opacity del elemento. */
+  .as-aurora-blob {
+    background: radial-gradient(closest-side, var(--aurora-color) 45%, transparent);
+  }
+
+  /* Conics de AuroraGlow pre-horneados (antes: conic + filter blur(40-80px)
+     bajo una clase de rotación que nunca existió — el blur era coste puro
+     sin movimiento). Alphas algo más bajos que el original para reproducir
+     la difusión que aportaba el blur. */
+  .as-aurora-conic-carmine {
+    background: conic-gradient(
+      from 0deg at 50% 50%,
+      rgb(255 70 110 / 0.18),
+      rgb(120 30 50 / 0.04) 30%,
+      rgb(220 60 100 / 0.14) 55%,
+      rgb(120 30 50 / 0.04) 78%,
+      rgb(255 70 110 / 0.18)
+    );
+  }
+  .as-aurora-conic-gold {
+    background: conic-gradient(
+      from 0deg at 50% 50%,
+      rgb(197 161 90 / 0.20),
+      rgb(120 80 30 / 0.04) 25%,
+      rgb(220 180 90 / 0.14) 50%,
+      rgb(120 80 30 / 0.04) 75%,
+      rgb(197 161 90 / 0.20)
+    );
+  }
+
   .kanji-ink {
     animation: kanji-glow 3.6s ease-in-out infinite;
     animation-delay: var(--glow-delay, 0s);
