@@ -296,6 +296,16 @@
   to   { stroke-dashoffset: 0; }
 }
 
+/* Ticker del Modo TV: cinta translateX infinita (dos copias, -50%). */
+@keyframes as-tv-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 /* Wrapped cinematográfico: SLAM del número (aterriza con overshoot),
    micro-shake del frame de aterrizaje, slow-zoom de la scene y el bob del
    chevrón del cover. Solo transform/opacity; los dispara el view timeline
