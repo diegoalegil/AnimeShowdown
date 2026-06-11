@@ -21,9 +21,16 @@ function LiveNumber({ value, className = '' }) {
     const prev = prevRef.current
     prevRef.current = value
     if (!Number.isFinite(value) || !Number.isFinite(prev) || value === prev) {
+      // Sin animación nueva no puede quedar vivo el estado de una anterior
+      // cancelada a medias: un roll obsoleto congelaría el display en un
+      // valor intermedio (roll ?? value) y un burst sin timer no se iría.
+      setRoll(null)
+      setBurst(null)
       return undefined
     }
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setRoll(null)
+      setBurst(null)
       return undefined
     }
     const duration = 500
