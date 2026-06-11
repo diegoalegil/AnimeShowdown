@@ -15,6 +15,7 @@ import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
 import PersonajeImg from '../components/PersonajeImg'
+import TaleOfTheTape from '../features/comparar/TaleOfTheTape'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
@@ -203,11 +204,9 @@ function CompararPage() {
               </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <CompareStat label={personajeA.nombre} value={statsA.elo} detail={`${statsA.wins}V · ${statsA.losses}D`} accent={statsA.elo >= statsB.elo} />
-              <CompareStat label="Diferencia" value={diferencia} detail="ELO base" accent />
-              <CompareStat label={personajeB.nombre} value={statsB.elo} detail={`${statsB.wins}V · ${statsB.losses}D`} accent={statsB.elo > statsA.elo} />
-            </div>
+            {/* Tale of the Tape: el cara a cara como cartel de velada —
+                対 trazado, retratos a sangre y barras enfrentadas. */}
+            <TaleOfTheTape personajeA={personajeA} personajeB={personajeB} />
 
             <div className="mt-5 flex flex-wrap gap-2">
               <Link
