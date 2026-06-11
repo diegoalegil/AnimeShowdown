@@ -170,6 +170,9 @@ function makeIdentity([
     copy,
     pattern,
     audioCue: AUDIO_CUES[audioCue] ?? AUDIO_CUES.anthem,
+    // Clave cruda del cue (battle/comedy/voyage…): además de sonido es la
+    // taxonomía temática del universo — la vista constelación agrupa por ella.
+    audioCueKey: AUDIO_CUES[audioCue] ? audioCue : 'anthem',
     assetSlug,
     imageSlot: `/assets/anime-banners/${assetSlug}.webp`,
     accentRgb: theme.accentRgb,

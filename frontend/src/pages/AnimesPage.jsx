@@ -73,6 +73,15 @@ function AnimesPage() {
           eyebrow={`Catálogo anime · ${animesCatalogo.length} universos`}
           title="Universos anime"
           subtitle="Entra en cada universo, descubre sus personajes más fuertes y compara quién domina su ranking interno. Cada saga se presenta como una escena propia dentro del archivo."
+          actions={
+            <Link
+              to="/animes/constelacion"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-0.5 hover:border-gold/55 hover:text-gold"
+            >
+              <Sparkles className="h-4 w-4" />
+              Ver como constelación
+            </Link>
+          }
           aside={
             <div className="rounded-2xl border border-white/10 bg-bg/60 p-5 backdrop-blur-md">
               <p className="text-[11px] font-black text-gold">
