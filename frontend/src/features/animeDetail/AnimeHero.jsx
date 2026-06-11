@@ -38,6 +38,7 @@ function AnimeHero({
       sceneSrc={visual?.image || visual?.fallbackImage}
       sceneSrcSet={visual?.imageWebpSrcset}
       symbolSrc={symbol?.src ?? null}
+      slug={slug}
       nombre={anime}
       kanji={identity?.kanji ?? visual?.kanji ?? '戦'}
       stats={[

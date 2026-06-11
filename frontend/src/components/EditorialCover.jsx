@@ -1,6 +1,19 @@
 import { isVisualDebugActive } from '../lib/visualDebug'
+import AnimeSceneMorph from './AnimeSceneMorph'
 import ResponsivePicture from './ResponsivePicture'
 import VisualDebugBadge from './VisualDebugBadge'
+
+// Con sceneMorphSlug las capas de imagen (picture + vignette) viajan juntas
+// en el snapshot del morph scene → hero del detalle de anime; glow de
+// esquinas, dot-grid y contenido quedan fuera — snapshot limpio.
+function CoverMedia({ sceneMorphSlug, children }) {
+  if (!sceneMorphSlug) return children
+  return (
+    <AnimeSceneMorph slug={sceneMorphSlug} kind="card" className="absolute inset-0">
+      {children}
+    </AnimeSceneMorph>
+  )
+}
 
 function EditorialCover({
   visual,
@@ -19,6 +32,9 @@ function EditorialCover({
   // Override del object-position para encuadrar mejor cuando la imagen
   // tiene una orientación distinta a la esperada por el visual.
   objectPositionOverride,
+  // Slug del anime cuando esta cover es origen/destino del morph
+  // scene → hero del catálogo (ver CoverMedia).
+  sceneMorphSlug,
 }) {
   const cover = visual ?? {}
   const image = imageOverride || cover.image || cover.fallbackImage || '/img/stage/home-pulse.webp'
@@ -37,25 +53,27 @@ function EditorialCover({
         '--cover-glow': glowRgb,
       }}
     >
-      <ResponsivePicture
-        // Con imageOverride la imagen es otra (p.ej. carta de personaje /img/*),
-        // cuyas variantes NO son las del banner del visual → sin srcsets ahí.
-        visual={imageOverride ? undefined : visual}
-        src={image}
-        objectPosition={objectPosition}
-        sizes="(min-width: 1024px) 33vw, 100vw"
-        className={`absolute inset-0 transition-transform duration-700 group-hover/cover:scale-[1.04] ${imageClassName}`}
-      />
-      {/* Vignette solo en el bottom, donde va el texto, más glow accent sutil
-          en esquinas para identidad sin tintar la imagen. */}
-      <div
-        className="absolute inset-0"
-        aria-hidden="true"
-        style={{
-          background:
-            'linear-gradient(180deg, transparent 0%, transparent 38%, rgb(5 8 14 / 0.55) 70%, rgb(5 8 14 / 0.92) 100%)',
-        }}
-      />
+      <CoverMedia sceneMorphSlug={sceneMorphSlug}>
+        <ResponsivePicture
+          // Con imageOverride la imagen es otra (p.ej. carta de personaje /img/*),
+          // cuyas variantes NO son las del banner del visual → sin srcsets ahí.
+          visual={imageOverride ? undefined : visual}
+          src={image}
+          objectPosition={objectPosition}
+          sizes="(min-width: 1024px) 33vw, 100vw"
+          className={`absolute inset-0 transition-transform duration-700 group-hover/cover:scale-[1.04] ${imageClassName}`}
+        />
+        {/* Vignette solo en el bottom, donde va el texto, más glow accent sutil
+            en esquinas para identidad sin tintar la imagen. */}
+        <div
+          className="absolute inset-0"
+          aria-hidden="true"
+          style={{
+            background:
+              'linear-gradient(180deg, transparent 0%, transparent 38%, rgb(5 8 14 / 0.55) 70%, rgb(5 8 14 / 0.92) 100%)',
+          }}
+        />
+      </CoverMedia>
       <div
         className="absolute inset-0"
         aria-hidden="true"

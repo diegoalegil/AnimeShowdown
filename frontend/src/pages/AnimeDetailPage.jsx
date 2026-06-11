@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { ArrowLeft, ShieldAlert } from 'lucide-react'
+import { AppLink } from '../components/AppLink'
 import { getAnimePorSlug } from '../lib/animes'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useSeo } from '../hooks/useSeo'
@@ -127,13 +128,13 @@ function AnimeDetailPage() {
               emblema, motivos y slots propios. Asi evitamos publicar una ficha
               con fallback generico.
             </p>
-            <Link
+            <AppLink
               to="/animes"
               className="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/60 px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-accent/45 hover:text-gold"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver a animes
-            </Link>
+            </AppLink>
           </div>
         </div>
       </VisualPageShell>
@@ -163,13 +164,16 @@ function AnimeDetailPage() {
         ])}
       />
       <div className="mx-auto max-w-6xl">
-        <Link
+        {/* AppLink a propósito: la vuelta al catálogo viaja con view
+            transition y el hero puede contraerse hacia su card (morph
+            scene → hero). Con un Link plano la vuelta cortaría siempre. */}
+        <AppLink
           to="/animes"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg-strong"
         >
           <ArrowLeft className="h-4 w-4" />
           Volver a animes
-        </Link>
+        </AppLink>
 
         <AnimeHero
           anime={anime}

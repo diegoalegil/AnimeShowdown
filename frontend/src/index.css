@@ -592,6 +592,36 @@
   animation-duration: 240ms;
 }
 
+/* Morph compartido scene de card → hero del detalle de ANIME. El nombre lo
+   gestiona lib/viewTransitions.js (holder único por captura, mismo patrón
+   que personaje-hero). 360ms: el viaje es mayor que el de la carta de
+   personaje (cover h-44 → hero de 55vh full-bleed). */
+::view-transition-group(anime-scene),
+::view-transition-image-pair(anime-scene),
+::view-transition-old(anime-scene),
+::view-transition-new(anime-scene) {
+  animation-duration: 360ms;
+  animation-timing-function: var(--ease-lift);
+}
+
+/* El ratio cambia entre estados (cover ~2.16:1 → hero ~2:1 en desktop,
+   ~1:1 en móvil). Por defecto el UA encaja los snapshots por inline-size
+   y la altura "estira"; con cover ambos llenan el grupo durante todo el
+   tween y el cross-fade es un reencuadre, no una deformación. */
+::view-transition-old(anime-scene),
+::view-transition-new(anime-scene) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Vuelta sin destino (card fuera de viewport o filtrada) y salidas del
+   detalle hacia rutas sin card: solo hay snapshot viejo; muere con el
+   page-out del root (240ms), nunca flota como ghost. */
+::view-transition-old(anime-scene):only-child {
+  animation-duration: 240ms;
+}
+
 /* El shell fijo (header, bottom nav móvil, barra de progreso) va en su
    propio grupo: queda quieto mientras el contenido transiciona y la app
    se siente persistente, no recargada. */

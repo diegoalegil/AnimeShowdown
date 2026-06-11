@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  ANIME_SCENE_VT,
   PERSONAJE_HERO_VT,
   adoptPersonajeHero,
+  animeSceneMorph,
   markPersonajeHero,
+  queueSettleAdopt,
   releasePersonajeHero,
   settleNavigationViewTransition,
   startNavigationViewTransition,
@@ -54,10 +57,14 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  // Asentar lo pendiente y soltar el holder del morph entre tests: la lib
-  // guarda estado a nivel de módulo a propósito (un solo nombre por captura).
+  // Asentar lo pendiente y soltar los holders de los morphs entre tests: la
+  // lib guarda estado a nivel de módulo a propósito (un solo nombre por
+  // captura). release() es seguro sobre el holder ajeno (solo limpia estilo).
   settleNavigationViewTransition()
-  releasePersonajeHero(document.querySelector('[style*="view-transition-name"]') as HTMLElement)
+  for (const el of document.querySelectorAll('[style*="view-transition-name"]')) {
+    releasePersonajeHero(el as HTMLElement)
+    animeSceneMorph.release(el as HTMLElement)
+  }
   delete doc.startViewTransition
   vi.useRealTimers()
   document.body.innerHTML = ''
@@ -183,5 +190,79 @@ describe('morph personaje-hero', () => {
     await startViewTransition.mock.results[1].value.finished
     await Promise.resolve()
     expect(nombreDe(hero)).toBe(PERSONAJE_HERO_VT)
+  })
+})
+
+describe('morphs compartidos (factoría)', () => {
+  it('anime-scene y personaje-hero son holders independientes', () => {
+    instalarStartViewTransition()
+    const hero = crearElemento('div')
+    const cover = crearElemento('div')
+
+    adoptPersonajeHero(hero)
+    animeSceneMorph.adopt(cover)
+    expect(nombreDe(hero)).toBe(PERSONAJE_HERO_VT)
+    expect(nombreDe(cover)).toBe(ANIME_SCENE_VT)
+
+    // Marcar/liberar en un grupo no toca al otro.
+    animeSceneMorph.release(cover)
+    expect(nombreDe(cover)).toBe('')
+    expect(nombreDe(hero)).toBe(PERSONAJE_HERO_VT)
+  })
+
+  it('la marca transitoria de anime-scene se limpia al terminar la transición', async () => {
+    const { startViewTransition } = instalarStartViewTransition()
+    const cover = crearElemento('div')
+    animeSceneMorph.mark(cover)
+    startNavigationViewTransition(vi.fn())
+    settleNavigationViewTransition()
+    await startViewTransition.mock.results[0].value.finished
+    await Promise.resolve()
+    expect(nombreDe(cover)).toBe('')
+  })
+
+  it('heldAtCapture refleja si el nombre viajaba en la captura del estado viejo', () => {
+    instalarStartViewTransition()
+    const cover = crearElemento('div')
+
+    animeSceneMorph.adopt(cover)
+    startNavigationViewTransition(vi.fn())
+    expect(animeSceneMorph.heldAtCapture()).toBe(true)
+    settleNavigationViewTransition()
+
+    animeSceneMorph.release(cover)
+    startNavigationViewTransition(vi.fn())
+    expect(animeSceneMorph.heldAtCapture()).toBe(false)
+    settleNavigationViewTransition()
+  })
+})
+
+describe('queueSettleAdopt', () => {
+  it('ejecuta la adopción encolada en el settle, antes de resolver la captura nueva', async () => {
+    const { startViewTransition } = instalarStartViewTransition()
+    const adopt = vi.fn()
+
+    startNavigationViewTransition(vi.fn())
+    queueSettleAdopt(adopt)
+    expect(adopt).not.toHaveBeenCalled()
+
+    settleNavigationViewTransition()
+    expect(adopt).toHaveBeenCalledTimes(1)
+    await startViewTransition.mock.results[0].value.updateCallbackDone
+  })
+
+  it('descarta la adopción sin transición pendiente (popstate) y no la filtra después', () => {
+    instalarStartViewTransition()
+    const adopt = vi.fn()
+
+    // App.jsx asienta en cada commit de ruta; sin transición la cola se vacía
+    // sin ejecutarse (marcar dejaría un nombre residual sin quien lo limpie).
+    queueSettleAdopt(adopt)
+    settleNavigationViewTransition()
+    expect(adopt).not.toHaveBeenCalled()
+
+    startNavigationViewTransition(vi.fn())
+    settleNavigationViewTransition()
+    expect(adopt).not.toHaveBeenCalled()
   })
 })

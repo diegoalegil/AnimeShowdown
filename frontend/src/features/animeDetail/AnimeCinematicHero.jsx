@@ -14,8 +14,13 @@
 //   stats       — [{ label, value, gold?, hint? }] (value numérico se formatea es-ES)
 //   actions     — CTAs bajo las stats (votar / ranking / top5 / compartir)
 //   aside       — dossier de identidad, columna derecha en lg+
+//   slug        — slug del anime: ancla el morph scene → hero con la cover
+//                 del catálogo (view-transition-name compartido)
 
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import AnimeSceneMorph from '../../components/AnimeSceneMorph'
+import { peekAnimeSceneMorphEntry } from '../../lib/animeSceneMorph'
 
 const EASE = [0.22, 1, 0.36, 1]
 const nf = new Intl.NumberFormat('es-ES')
@@ -29,8 +34,14 @@ function AnimeCinematicHero({
   stats = [],
   actions,
   aside,
+  slug,
 }) {
   const reduce = useReducedMotion()
+  // true solo si esta ficha entró vía el morph del catálogo: el morph ES la
+  // entrada, así que el slow-zoom se salta (apilados, la captura del UA
+  // congelaría un frame intermedio del scale). Lectura pura: la señal la
+  // consume el adopt de AnimeSceneMorph, ya en fase de effects.
+  const [viaMorph] = useState(peekAnimeSceneMorphEntry)
 
   // Variante compartida para el stagger del texto (transform/opacity only)
   const rise = {
@@ -48,30 +59,36 @@ function AnimeCinematicHero({
     <header className="relative mb-8 overflow-hidden rounded-3xl border border-white/10 bg-bg shadow-elev-3">
       {/* ───── Scene full-bleed del card, ~55vh ───── */}
       <div className="relative h-[55vh] max-h-[560px] min-h-[380px] overflow-hidden bg-surface">
-        {/* Slow-zoom de entrada: scale 1.06 → 1 en 1.2s */}
-        <motion.img
-          src={sceneSrc}
-          srcSet={sceneSrcSet || undefined}
-          sizes="(min-width: 1280px) 1152px, 100vw"
-          alt=""
-          fetchPriority="high"
-          className="absolute inset-0 h-full w-full object-cover [object-position:50%_30%] [transform-origin:50%_35%]"
-          initial={reduce ? false : { scale: 1.06 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.2, ease: EASE }}
-        />
+        {/* Lienzo nombrado del morph: img + kanji + scrim. El scrim DEBE
+            viajar para que la legibilidad cross-fadee con la geometría; el
+            kanji vive entre img y scrim y no puede quedarse fuera del grupo.
+            Título y medallón quedan fuera — snapshot limpio. */}
+        <AnimeSceneMorph slug={slug} kind="hero" className="absolute inset-0">
+          {/* Slow-zoom de entrada: scale 1.06 → 1 en 1.2s */}
+          <motion.img
+            src={sceneSrc}
+            srcSet={sceneSrcSet || undefined}
+            sizes="(min-width: 1280px) 1152px, 100vw"
+            alt=""
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover [object-position:50%_30%] [transform-origin:50%_35%]"
+            initial={reduce || viaMorph ? false : { scale: 1.06 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.2, ease: EASE }}
+          />
 
-        {/* Kanji temático como marca de agua lateral — kanji real, muy tenue */}
-        <span
-          aria-hidden="true"
-          lang="ja"
-          className="pointer-events-none absolute right-[1%] top-1/2 -translate-y-[52%] select-none text-[clamp(190px,42vh,430px)] font-semibold leading-none text-gold/10 [font-family:var(--font-kanji-serif)]"
-        >
-          {kanji}
-        </span>
+          {/* Kanji temático como marca de agua lateral — kanji real, muy tenue */}
+          <span
+            aria-hidden="true"
+            lang="ja"
+            className="pointer-events-none absolute right-[1%] top-1/2 -translate-y-[52%] select-none text-[clamp(190px,42vh,430px)] font-semibold leading-none text-gold/10 [font-family:var(--font-kanji-serif)]"
+          >
+            {kanji}
+          </span>
 
-        {/* Scrim de legibilidad — solo en la zona inferior, donde vive el texto */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-gradient-to-t from-bg via-bg/55 to-transparent" />
+          {/* Scrim de legibilidad — solo en la zona inferior, donde vive el texto */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-gradient-to-t from-bg via-bg/55 to-transparent" />
+        </AnimeSceneMorph>
 
         {/* Título, abajo a la izquierda sobre el scrim */}
         <div className="absolute inset-x-0 bottom-0 px-5 pb-7 sm:px-10 sm:pb-9">
@@ -96,12 +113,15 @@ function AnimeCinematicHero({
 
       {/* ───── Banda inferior: stats + CTAs + dossier, con el medallón a caballo ───── */}
       <div className="relative border-t border-gold/20 bg-surface px-5 sm:px-10">
-        {/* Medallón con borde oro, a caballo entre la scene y la banda */}
+        {/* Medallón con borde oro, a caballo entre la scene y la banda.
+            Fade + rise al asentarse el morph: vive fuera del lienzo nombrado
+            (no viaja en el snapshot) y su delay debe seguir siendo ≥ los
+            360ms del morph para aparecer cuando la scene ya aterrizó. */}
         {symbolSrc && (
           <motion.div
-            initial={reduce ? false : { opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={reduce ? { duration: 0 } : { duration: 0.55, delay: 0.5, ease: EASE }}
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? { duration: 0 } : { duration: 0.45, delay: 0.5, ease: EASE }}
             className="absolute -top-10 right-5 size-20 rounded-full border border-gold/70 bg-bg p-1 shadow-[0_0_0_6px] shadow-bg/60 sm:-top-12 sm:right-10 sm:size-24"
           >
             <img
