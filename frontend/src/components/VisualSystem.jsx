@@ -212,6 +212,10 @@ export function CinematicHero({
   children,
   className = '',
   aside,
+  // fx: capa decorativa que SUSTITUYE al KanjiBackdrop estático (p.ej. el
+  // splash de tinta del hub de juegos). Quien la pasa es responsable de su
+  // propio fallback estático para no perder el backdrop.
+  fx,
 }) {
   return (
     <div
@@ -239,7 +243,9 @@ export function CinematicHero({
             'linear-gradient(180deg, rgb(7 10 18 / 0.34) 0%, rgb(7 10 18 / 0.68) 70%, rgb(7 10 18 / 0.92) 100%), linear-gradient(90deg, rgb(7 10 18 / 0.62) 0%, rgb(7 10 18 / 0.18) 45%, transparent 80%), radial-gradient(circle at 20% 16%, rgb(var(--hero-accent) / 0.24), transparent 24rem), radial-gradient(circle at 82% 12%, rgb(var(--hero-glow) / 0.16), transparent 22rem)',
         }}
       />
-      <KanjiBackdrop kanji={visual?.kanji} visual={visual} className="top-1/2 -translate-y-1/2" />
+      {fx ?? (
+        <KanjiBackdrop kanji={visual?.kanji} visual={visual} className="top-1/2 -translate-y-1/2" />
+      )}
 
       <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.42fr)] lg:items-end">
         <div className="flex min-w-0 flex-col items-start gap-4">
