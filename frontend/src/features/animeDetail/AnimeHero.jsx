@@ -5,34 +5,16 @@ import {
   Sparkles,
   Swords,
   TrendingUp,
-  Trophy,
-  Users,
 } from 'lucide-react'
-import { CinematicHero } from '../../components/VisualSystem'
+import { brandImage } from '../../lib/brand-assets'
+import AnimeCinematicHero from './AnimeCinematicHero'
 
-function StatTile({ icon: Icon, label, value, hint, accent }) {
-  return (
-    <div className="flex flex-col gap-1.5 rounded-2xl border border-border bg-surface p-4">
-      <div className="flex items-center gap-2">
-        <Icon
-          className={`h-3.5 w-3.5 ${accent ? 'text-gold' : 'text-fg-muted'}`}
-        />
-        <span className="text-[10px] font-semibold text-fg-muted">
-          {label}
-        </span>
-      </div>
-      <p
-        className={`font-mono text-2xl font-extrabold tabular-nums ${accent ? 'text-gold' : 'text-fg-strong'}`}
-      >
-        {value}
-      </p>
-      {hint && (
-        <p className="line-clamp-1 text-[11px] text-fg-muted">{hint}</p>
-      )}
-    </div>
-  )
-}
-
+/**
+ * Hero del detalle de anime: compone AnimeCinematicHero (scene del banco a
+ * ~55vh + kanji marca de agua + medallón del symbol + stats en mono) con la
+ * funcionalidad de producto que ya existía — CTAs de votar/ranking/top5/
+ * compartir y el dossier de identidad como columna derecha.
+ */
 function AnimeHero({
   anime,
   eloPromedio,
@@ -47,14 +29,23 @@ function AnimeHero({
   const identity = visual?.identity
   const dossierCopy = identity?.copy || visual.mood || 'Atmosfera cinematografica de marca.'
   const motifs = identity?.motifs?.slice(0, 3) ?? []
+  // El symbol comparte slug con la scene en el banco (verificado: los 105
+  // tríos están completos). Si el anime no tiene arte, sin medallón.
+  const symbol = brandImage(`${visual?.slug ?? slug}-symbol-01`)
 
   return (
-    <CinematicHero
-      visual={visual}
-      icon={Sparkles}
-      eyebrow="Universo anime"
-      title={anime}
-      subtitle={`Explora el roster de ${anime}, revisa sus personajes mejor posicionados y descubre quién domina su ranking interno.`}
+    <AnimeCinematicHero
+      sceneSrc={visual?.image || visual?.fallbackImage}
+      sceneSrcSet={visual?.imageWebpSrcset}
+      symbolSrc={symbol?.src ?? null}
+      nombre={anime}
+      kanji={identity?.kanji ?? visual?.kanji ?? '戦'}
+      stats={[
+        { label: 'personajes', value: total },
+        { label: 'top ELO base', value: topElo.elo, gold: true, hint: topElo.nombre },
+        { label: 'ELO base promedio', value: eloPromedio },
+        { label: 'combates base', value: totalVotos },
+      ]}
       actions={
         <>
           <Link
@@ -121,38 +112,9 @@ function AnimeHero({
               ))}
             </div>
           )}
-          <div className="mt-4 grid grid-cols-[auto_1fr] items-end gap-x-3">
-            <p className="font-mono text-4xl font-black text-fg-strong">
-              {total}
-            </p>
-            <p className="pb-1 text-[11px] text-fg-muted">
-              personajes listos para competir
-            </p>
-          </div>
         </div>
       }
-    >
-      <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile icon={Users} label="Personajes" value={total} />
-        <StatTile
-          icon={Trophy}
-          label="Top ELO base"
-          value={topElo.elo}
-          hint={topElo.nombre}
-          accent
-        />
-        <StatTile
-          icon={TrendingUp}
-          label="ELO base promedio"
-          value={eloPromedio}
-        />
-        <StatTile
-          icon={Swords}
-          label="Combates base"
-          value={totalVotos.toLocaleString('es-ES')}
-        />
-      </div>
-    </CinematicHero>
+    />
   )
 }
 
