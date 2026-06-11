@@ -308,86 +308,48 @@ export function Embers({ density = 'normal', tone = 'amber' }) {
 }
 
 /**
- * Niebla deslizandose lateralmente. SVG con feTurbulence + animacion
- * CSS — cero JS por frame. tone: 'cold' (azulado JJK) | 'warm' (calido).
+ * Niebla deslizandose lateralmente: banda WebP pre-horneada (tileable
+ * en X, generate-atmosphere-assets.mjs) panneada con transform — cero
+ * JS por frame y cero filtros vivos. Antes era un SVG feTurbulence a
+ * viewport completo en loop de 28s: WebKit rasteriza esos filtros en
+ * CPU, tambien en movil. El elemento mide 200% y desplaza -50%
+ * (exactamente un tile) → loop sin costura.
+ *
+ * <p>tone se acepta por compatibilidad pero ya no tinta: en el SVG
+ * original el filtro descartaba el fill teñido (la niebla SIEMPRE fue
+ * blanca), asi que el raster blanco replica el comportamiento real.
  */
-export function MistDrift({ tone = 'cold', intensity = 'normal' }) {
+export function MistDrift({ intensity = 'normal' }) {
   const opacity = intensity === 'soft' ? 0.18 : intensity === 'strong' ? 0.42 : 0.28
-  const color = tone === 'warm' ? 'rgb(180 100 60)' : 'rgb(120 140 200)'
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      <svg
-        className="absolute -left-[10%] top-0 h-full w-[120%]"
-        preserveAspectRatio="none"
-        viewBox="0 0 1200 600"
-      >
-        <defs>
-          <filter id="as-mist-turbulence">
-            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.022" numOctaves="2" seed="3" />
-            <feColorMatrix
-              values="0 0 0 0 1
-                      0 0 0 0 1
-                      0 0 0 0 1
-                      0 0 0 0.7 0"
-            />
-          </filter>
-          <radialGradient id="as-mist-fade" cx="50%" cy="50%" r="65%">
-            <stop offset="0%" stopColor={color} stopOpacity="0.9" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <g className="as-mist-drift" style={{ animation: 'as-mist-pan 28s linear infinite' }}>
-          <rect
-            x="-200"
-            y="0"
-            width="1600"
-            height="600"
-            fill="url(#as-mist-fade)"
-            filter="url(#as-mist-turbulence)"
-            opacity={opacity}
-          />
-        </g>
-        <style>{`
-          @keyframes as-mist-pan {
-            0%   { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(-200px, 0, 0); }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .as-mist-drift { animation: none !important; }
-          }
-        `}</style>
-      </svg>
+      <div className="as-mist-pan absolute inset-y-0 left-0 w-[200%]" style={{ opacity }} />
     </div>
   )
 }
 
 /**
- * Aurora rotando con conic-gradient. Ideal para hero principal —
- * sensacion de "ahora mismo" en movimiento sin saturar.
+ * Aurora de conic-gradient pre-horneada. Antes el conic llevaba un
+ * filter blur(40-80px) permanente (bajo una clase de rotacion que no
+ * existia): WebKit mantenia una capa filtrada a tamano de hero por
+ * instancia — coste de raster puro sin movimiento. Los conics viven en
+ * index.css (.as-aurora-conic-*) con paradas suaves que reproducen la
+ * difusion del blur; la intensidad se mapea a opacity (composited).
+ * El tono violeta se retiro (tell de glow morado): los presets que lo
+ * usaban pasan a la familia de marca.
  */
 export function AuroraGlow({ tone = 'carmine', intensity = 'normal' }) {
-  const palette =
-    tone === 'gold'
-      ? 'conic-gradient(from 0deg at 50% 50%, rgb(197 161 90 / 0.25), rgb(120 80 30 / 0.04) 25%, rgb(220 180 90 / 0.18) 50%, rgb(120 80 30 / 0.04) 75%, rgb(197 161 90 / 0.25))'
-      : tone === 'violet'
-        ? 'conic-gradient(from 0deg at 50% 50%, rgb(139 92 246 / 0.25), rgb(60 30 120 / 0.04) 25%, rgb(190 130 255 / 0.20) 50%, rgb(60 30 120 / 0.04) 75%, rgb(139 92 246 / 0.25))'
-        : 'conic-gradient(from 0deg at 50% 50%, rgb(255 70 110 / 0.22), rgb(120 30 50 / 0.04) 30%, rgb(220 60 100 / 0.18) 55%, rgb(120 30 50 / 0.04) 78%, rgb(255 70 110 / 0.22))'
-  const blur = intensity === 'soft' ? 'blur(80px)' : intensity === 'strong' ? 'blur(40px)' : 'blur(60px)'
+  const toneClass = tone === 'gold' ? 'as-aurora-conic-gold' : 'as-aurora-conic-carmine'
+  const opacity = intensity === 'soft' ? 0.7 : intensity === 'strong' ? 1 : 0.85
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      <div
-        className="as-aurora absolute inset-0"
-        style={{
-          background: palette,
-          filter: blur,
-        }}
-      />
+      <div className={`absolute inset-0 ${toneClass}`} style={{ opacity }} />
     </div>
   )
 }
@@ -685,7 +647,7 @@ export function AtmospherePreset({ preset }) {
       return (
         <>
           <SakuraPetals tone="rose" density="normal" />
-          <AuroraGlow tone="violet" intensity="soft" />
+          <AuroraGlow tone="gold" intensity="soft" />
         </>
       )
     case 'arcane':

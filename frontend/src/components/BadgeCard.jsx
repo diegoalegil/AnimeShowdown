@@ -50,7 +50,7 @@ const RAREZA_STYLE = {
     nombre: 'Legendario',
     borde: 'border-rarity-legendary/60',
     // Glow doble + animado para legendarios — el premio mayor del catálogo.
-    glow: 'shadow-aura-sm [--aura-color:rgb(251_191_36_/_0.65)] animate-pulse-halo',
+    glow: 'shadow-aura-sm [--aura-color:var(--color-rarity-legendary-aura)] as-pulse-halo',
     icono: 'text-rarity-legendary',
     chip: 'bg-rarity-legendary/15 text-rarity-legendary',
   },

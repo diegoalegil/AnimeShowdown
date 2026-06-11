@@ -112,9 +112,9 @@ function Hero({ catalogoPersonajes = [] }) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
-        <div className="absolute -top-24 left-1/4 hidden h-[28rem] w-[28rem] rounded-full bg-accent opacity-24 blur-3xl motion-safe:animate-aurora-1 md:block" />
-        <div className="absolute top-1/4 right-1/4 hidden h-[24rem] w-[24rem] rounded-full bg-gold opacity-16 blur-3xl motion-safe:animate-aurora-2 md:block" />
-        <div className="absolute -bottom-16 left-1/2 hidden h-[26rem] w-[26rem] rounded-full bg-electric opacity-12 blur-3xl motion-safe:animate-aurora-3 md:block" />
+        <div className="as-aurora-blob absolute -top-24 left-1/4 hidden h-[28rem] w-[28rem] opacity-24 motion-safe:animate-aurora-1 md:block" style={{ '--aurora-color': 'var(--color-accent)' }} />
+        <div className="as-aurora-blob absolute top-1/4 right-1/4 hidden h-[24rem] w-[24rem] opacity-16 motion-safe:animate-aurora-2 md:block" style={{ '--aurora-color': 'var(--color-gold)' }} />
+        <div className="as-aurora-blob absolute -bottom-16 left-1/2 hidden h-[26rem] w-[26rem] opacity-12 motion-safe:animate-aurora-3 md:block" style={{ '--aurora-color': 'var(--color-electric)' }} />
       </div>
       <FloatingCards />
       <motion.div

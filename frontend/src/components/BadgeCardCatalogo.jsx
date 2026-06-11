@@ -50,7 +50,7 @@ const RAREZA_STYLE = {
   5: {
     nombre: 'Legendario',
     borde: 'border-rarity-legendary/60',
-    glow: 'shadow-aura [--aura-color:rgb(251_191_36_/_0.7)] animate-pulse-halo',
+    glow: 'shadow-aura [--aura-color:var(--color-rarity-legendary-aura)] as-pulse-halo',
     icono: 'text-rarity-legendary',
     chip: 'bg-rarity-legendary/15 text-rarity-legendary border-rarity-legendary/40',
     kanjiBg: 'bg-rarity-legendary/15',

@@ -213,10 +213,13 @@ function LogrosPage() {
               accentClass="text-success border-success/30 bg-success/5"
             >
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg/60">
+                {/* scaleX en vez de animar width: el llenado es idéntico
+                    (el gradiente se comprime igual) sin re-layout por frame. */}
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-success via-gold to-rarity-epic"
-                  initial={{ width: prefersReducedMotion ? `${progresoPct}%` : 0 }}
-                  animate={{ width: `${progresoPct}%` }}
+                  className="h-full w-full rounded-full bg-gradient-to-r from-success via-gold to-rarity-epic"
+                  style={{ transformOrigin: 'left' }}
+                  initial={{ scaleX: prefersReducedMotion ? progresoPct / 100 : 0 }}
+                  animate={{ scaleX: progresoPct / 100 }}
                   transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.2, ease: 'easeOut', delay: 0.3 }}
                 />
               </div>

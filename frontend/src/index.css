@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Variante de puntero fino: el frosted-glass (backdrop-blur) solo se sirve
+   a dispositivos con hover real. En puntero grueso (móvil/tablet), las
+   barras fijas al eje de scroll usan fondo casi opaco sin filter — WebKit
+   re-aplica el backdrop-filter en cada frame de scroll y es uno de los
+   culpables medidos de la lentitud global percibida en Safari. */
+@custom-variant pointer-fine (@media (hover: hover) and (pointer: fine));
+
 @theme {
   --color-bg: #080b12;
   --color-surface: #101620;
@@ -88,7 +95,6 @@
      visible: claramente rápido pero aún legible. Si saturase, subir
      a 110-120s. Si pareciera lento otra vez, bajar a 60s. */
   --animate-marquee: marquee 40s linear infinite;
-  --animate-pulse-halo: pulse-halo 2.4s ease-out infinite;
 
   /* Motion — única fuente de verdad de las curvas del sistema.
      "lift": entradas y hovers premium. "brush": trazo de pincel del kanji.
@@ -165,15 +171,19 @@
   }
 }
 
-@keyframes pulse-halo {
+/* Anillo "sonar" de los badges legendarios (.as-pulse-halo): la sombra es
+   estática en el ::after y solo animan transform/opacity. El antecesor
+   pulse-halo animaba box-shadow directamente — re-paint de la sombra en
+   cada frame, multiplicado por cada badge del grid de logros. */
+@keyframes as-halo-ping {
   0% {
-    box-shadow: 0 0 0 0 rgb(159 29 44 / 0.58);
+    transform: scale(0.94);
+    opacity: 0.6;
   }
-  70% {
-    box-shadow: 0 0 0 16px rgb(159 29 44 / 0);
-  }
+  70%,
   100% {
-    box-shadow: 0 0 0 0 rgb(159 29 44 / 0);
+    transform: scale(1.12);
+    opacity: 0;
   }
 }
 
@@ -240,21 +250,33 @@
   }
 }
 
-/* Kanji con glow latente tipo "tinta sobre papel washi". Cada suerte
-   pasa su color como CSS custom prop --glow-rgb (formato "R G B" sin
-   espacios) y el keyframe modula la intensidad del drop-shadow. */
-@keyframes kanji-glow {
-  0%, 100% {
-    filter: drop-shadow(0 0 6px rgb(var(--glow-rgb) / 0.35));
+/* Kanji con glow latente tipo "tinta sobre papel washi". Cada uso pasa su
+   color como CSS custom prop --glow-rgb ("R G B"). El latido es un
+   cross-fade: una capa fuerte PRE-PINTADA (::after con sombra estática)
+   respira en opacity sobre la base tenue — el antecesor kanji-glow animaba
+   filter: drop-shadow, que WebKit re-rasteriza en cada frame del loop. */
+@keyframes kanji-ink-breathe {
+  0%,
+  100% {
+    opacity: 0;
   }
   50% {
-    filter: drop-shadow(0 0 18px rgb(var(--glow-rgb) / 0.85));
+    opacity: 1;
   }
 }
 
 @keyframes kanji-stroke-draw {
   from { stroke-dashoffset: 1; }
   to   { stroke-dashoffset: 0; }
+}
+
+/* MistDrift: el elemento mide 200% del contenedor y cada tile ocupa el 50%
+   del elemento (background-size) → desplazar -50% recorre exactamente un
+   tile y el loop no tiene costura (la banda es tileable en X). */
+@keyframes as-mist-pan {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 /* Salón del Trono (/ranking) — solo transform/opacity. La pestaña oculta
@@ -438,14 +460,139 @@
     }
   }
 
-  .kanji-ink {
-    animation: kanji-glow 3.6s ease-in-out infinite;
-    animation-delay: var(--glow-delay, 0s);
-    will-change: filter, transform;
+  /* Auroras pre-horneadas. Antes: blob sólido (bg-*) + blur-3xl — WebKit
+     mantenía una capa filtrada de 24-44rem POR AURORA y la re-rasterizaba
+     mientras el drift (animate-aurora-*) la movía; parte del coste de
+     composición que hacía ir lento TODO Safari. El radial-gradient da el
+     mismo halo difuso ya pintado: el drift queda transform-only sobre una
+     capa estática. El color lo pone cada uso vía --aurora-color (token o
+     canal del visual); la intensidad sigue en la opacity del elemento. */
+  .as-aurora-blob {
+    background: radial-gradient(closest-side, var(--aurora-color) 45%, transparent);
+  }
+
+  /* Conics de AuroraGlow pre-horneados (antes: conic + filter blur(40-80px)
+     bajo una clase de rotación que nunca existió — el blur era coste puro
+     sin movimiento). Alphas algo más bajos que el original para reproducir
+     la difusión que aportaba el blur. */
+  .as-aurora-conic-carmine {
+    background: conic-gradient(
+      from 0deg at 50% 50%,
+      rgb(255 70 110 / 0.18),
+      rgb(120 30 50 / 0.04) 30%,
+      rgb(220 60 100 / 0.14) 55%,
+      rgb(120 30 50 / 0.04) 78%,
+      rgb(255 70 110 / 0.18)
+    );
+  }
+  .as-aurora-conic-gold {
+    background: conic-gradient(
+      from 0deg at 50% 50%,
+      rgb(197 161 90 / 0.20),
+      rgb(120 80 30 / 0.04) 25%,
+      rgb(220 180 90 / 0.14) 50%,
+      rgb(120 80 30 / 0.04) 75%,
+      rgb(197 161 90 / 0.20)
+    );
+  }
+
+  /* Banda de niebla de MistDrift (ver el keyframe as-mist-pan arriba). */
+  .as-mist-pan {
+    background-image: url("/assets/overlays/mist-fog-v1.webp");
+    background-repeat: repeat-x;
+    background-size: 50% 100%;
+    animation: as-mist-pan 28s linear infinite;
   }
   @media (prefers-reduced-motion: reduce) {
-    .kanji-ink {
+    .as-mist-pan {
       animation: none !important;
+    }
+  }
+
+  /* Glow latente para CAJAS con kanji (omikuji): base estática tenue +
+     capa fuerte pre-pintada en el ::after que respira en opacity. Ver el
+     keyframe kanji-ink-breathe. El consumidor pone --glow-rgb y, si
+     quiere, --glow-delay para desfasarse del resto. */
+  .kanji-ink {
+    position: relative;
+    box-shadow: 0 0 10px rgb(var(--glow-rgb) / 0.3);
+  }
+  .kanji-ink::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 20px rgb(var(--glow-rgb) / 0.65);
+    opacity: 0;
+    animation: kanji-ink-breathe 3.6s ease-in-out infinite;
+    animation-delay: var(--glow-delay, 0s);
+    pointer-events: none;
+  }
+  /* Variante para GLIFOS de texto sueltos (Combate Estelar): el gemelo es
+     el mismo carácter (content: attr(data-glyph)) transparente con
+     text-shadow fuerte — el glow sigue el contorno de los trazos. */
+  .kanji-ink-glyph {
+    position: relative;
+    text-shadow: 0 0 8px rgb(var(--glow-rgb) / 0.35);
+  }
+  .kanji-ink-glyph::after {
+    content: attr(data-glyph);
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    text-shadow: 0 0 18px rgb(var(--glow-rgb) / 0.8);
+    opacity: 0;
+    animation: kanji-ink-breathe 3.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kanji-ink::after,
+    .kanji-ink-glyph::after {
+      animation: none !important;
+    }
+  }
+
+  /* Halo sonar de badges legendarios (ver keyframe as-halo-ping). El
+     consumidor debe estar posicionado y con border-radius propio. */
+  .as-pulse-halo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 8px rgb(159 29 44 / 0.45);
+    opacity: 0;
+    transform: scale(0.94);
+    animation: as-halo-ping 2.4s ease-out infinite;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .as-pulse-halo::after {
+      animation: none !important;
+    }
+  }
+
+  /* Acordeón (FAQ): el alto se anima con grid-template-rows arrancando en
+     0fr vía @starting-style — antes framer animaba height: auto midiendo
+     layout por frame. El cierre desmonta sin animación, igual que antes
+     (el exit nunca corría: no había AnimatePresence). Sin soporte de
+     @starting-style degrada a "aparece ya abierto". */
+  .as-acordeon {
+    display: grid;
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transition:
+      grid-template-rows 200ms ease-out,
+      opacity 200ms ease-out;
+  }
+  @starting-style {
+    .as-acordeon {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .as-acordeon {
+      transition: none !important;
     }
   }
 
@@ -1111,7 +1258,9 @@
     );
     transform: rotate(var(--ray-rot, 14deg)) translateX(0);
     transform-origin: top center;
-    mix-blend-mode: screen;
+    /* Sin mix-blend-mode: el screen obligaba a WebKit a recomponer cada
+       rayo contra el backdrop en cada frame del sway; sobre fondo oscuro
+       el alpha normal del gradiente da prácticamente el mismo brillo. */
     animation: trono-ray-sway var(--ray-dur, 12s) ease-in-out infinite alternate;
     will-change: transform;
   }
@@ -1291,14 +1440,17 @@
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    /* Opacidad reducida de 0.055 → 0.038: menos intrusivo en móviles
-       con pantallas OLED donde el grano era visible en fondos oscuros. */
-    opacity: 0.038;
-    mix-blend-mode: overlay;
-    /* numOctaves 3→2: el tercer octavo añade detalle de alta frecuencia
-       prácticamente invisible a ojo humano en pantallas normales pero
-       multiplica el tiempo de rasterizado del SVG filter. */
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    /* Grano pre-horneado (generate-atmosphere-assets.mjs) en lugar del SVG
+       con feTurbulence: WebKit rasterizaba ese filtro en CPU al tamaño
+       COMPLETO del body (8000px+ en el catálogo) y el mix-blend-mode
+       obligaba a recomponer cada tile de GPU contra ese raster — juntos
+       eran el sospechoso nº1 del flash blanco de pantalla entera al hacer
+       scroll rápido en Safari. El tile de 128px repite y compone en alpha
+       normal: mismo grano, coste de composición ~cero. La opacidad sube
+       0.038 → 0.05 para compensar el realce que aportaba el blend overlay. */
+    opacity: 0.05;
+    background-image: url("/assets/overlays/film-grain-v1.png");
+    background-size: 128px 128px;
   }
 
   a {

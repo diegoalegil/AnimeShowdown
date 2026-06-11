@@ -122,9 +122,16 @@ function InicioPage() {
       {/* La sección de stats se retiró: duplicaba 1:1 el panel de cifras
           del hero (personajes/torneos/universos/ELO máx) una pantalla más
           abajo. El top ranking sube y la home se acorta. */}
-      <HomeSectionBoundary title="No pudimos mostrar el top ranking">
-        <SectionTop10Ranking top10={top10} />
-      </HomeSectionBoundary>
+      {/* Coliseo: única sección below-the-fold que montaba en el primer
+          paint (anillo 3D = ~30 <img> + escena perspective + rAF). LazyOnView
+          difiere el mount como sus vecinas; el pause al salir del viewport
+          lo da el gate IO interno del propio anillo. minHeight = sección
+          h-[680px] + cabecera/descripción del wrapper. */}
+      <LazyOnView minHeight={820}>
+        <HomeSectionBoundary title="No pudimos mostrar el top ranking">
+          <SectionTop10Ranking top10={top10} />
+        </HomeSectionBoundary>
+      </LazyOnView>
       {/* Recorte de home (F2): se retiraron el marquee de nombres, el bento
           "Plataforma" (feature-list estilo SaaS) y "Cómo funciona" (vive ya en
           /como-funciona) para que el ranking y las acciones no queden
