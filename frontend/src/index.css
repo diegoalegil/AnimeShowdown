@@ -61,6 +61,12 @@
   --color-medal-gold-aura: rgb(250 204 21 / 0.5);
   --color-medal-silver-aura: rgb(212 212 216 / 0.4);
   --color-medal-bronze-aura: rgb(251 146 60 / 0.4);
+  /* God-rays y destello de borde del podio del trono. rgb con alpha (alpha
+     = la proporción que mezclaba color-mix) en vez de color-mix(): Safari
+     <16.2 no lo soporta y los degradados desaparecían en silencio. */
+  --color-medal-gold-ray: rgb(250 204 21 / 0.26);
+  --color-medal-silver-shine: rgb(212 212 216 / 0.55);
+  --color-medal-bronze-shine: rgb(251 146 60 / 0.55);
 
   --footer-atmosphere-bg: radial-gradient(circle at 12% 0%, rgb(159 29 44 / 0.16), transparent 28rem), radial-gradient(circle at 88% 0%, rgb(197 161 90 / 0.12), transparent 26rem), linear-gradient(180deg, rgb(7 10 18 / 0.78), rgb(7 10 18 / 0.96));
   --footer-dust-bg: radial-gradient(circle at 2px 2px, rgb(255 255 255 / 0.22) 1px, transparent 0);
@@ -934,7 +940,7 @@
     width: var(--ray-w, 18%);
     background: linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--color-medal-gold) 26%, transparent),
+      var(--color-medal-gold-ray),
       transparent 78%
     );
     transform: rotate(var(--ray-rot, 14deg)) translateX(0);
@@ -1016,12 +1022,12 @@
   }
 
   .trono-shine--plata {
-    --shine-color: color-mix(in srgb, var(--color-medal-silver) 55%, transparent);
+    --shine-color: var(--color-medal-silver-shine);
     --shine-dur: 7.5s;
   }
 
   .trono-shine--bronce {
-    --shine-color: color-mix(in srgb, var(--color-medal-bronze) 55%, transparent);
+    --shine-color: var(--color-medal-bronze-shine);
     --shine-dur: 9s;
     --shine-delay: -3.8s;
   }
