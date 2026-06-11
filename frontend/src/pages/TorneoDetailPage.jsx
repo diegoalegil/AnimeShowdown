@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -17,6 +18,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api'
 import { formatDateSafe, parseDateSafe } from '../lib/dateUtils'
 import { useTorneoBySlug, getEstadoBadge } from '../lib/torneosQueries'
+import ChampionSeal from '../features/torneos/seal/ChampionSeal'
 import {
   useAplicarPrediccionCampeon,
   useLeaderboardPrediccionesTorneo,
@@ -368,21 +370,28 @@ function ChampionPredictionPanel({ torneoId, torneoSlug, estado, roster, torneoN
   const { data: misPredicciones, isLoading } = useMisPredicciones(torneoId)
   const mutation = useAplicarPrediccionCampeon(torneoId)
   const prediccion = (misPredicciones ?? []).find((p) => p.tipo === 'CAMPEON')
-  const selectedId = prediccion?.personajePredichoId
   const puedePredecir = estado === 'SCHEDULED'
   const next = `/torneos/${torneoSlug}`
+  // Remonta la ceremonia: tras un rechazo del backend (la confirmación es
+  // optimista) o al pulsar "Cambiar apuesta" mientras la ventana siga abierta.
+  const [sealKey, setSealKey] = useState(0)
+  const [cambiando, setCambiando] = useState(false)
 
   if (!Array.isArray(roster) || roster.length === 0) return null
 
-  const onPick = (personaje) => {
+  const confirmarCampeon = (personajeId) => {
     if (!user || !puedePredecir || mutation.isPending) return
+    const personaje = roster.find((p) => p.id === personajeId)
     mutation.mutate(
-      { personajePredichoId: personaje.id },
+      { personajePredichoId: personajeId },
       {
         onSuccess: () => {
-          toast.success(`Campeón predicho: ${personaje.nombre}`)
+          setCambiando(false)
+          toast.success(`Campeón predicho: ${personaje?.nombre ?? ''}`)
         },
         onError: (err) => {
+          setSealKey((k) => k + 1)
+          setCambiando(false)
           toast.error(err instanceof ApiError ? err.message : 'No se pudo guardar la predicción')
         },
       },
@@ -447,36 +456,33 @@ function ChampionPredictionPanel({ torneoId, torneoSlug, estado, roster, torneoN
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-        {roster.map((personaje) => {
-          const active = String(selectedId ?? '') === String(personaje.id)
-          return (
-            <button
-              key={personaje.slug}
-              type="button"
-              onClick={() => onPick(personaje)}
-              disabled={!user || !puedePredecir || mutation.isPending || isLoading}
-              className={`group min-h-44 rounded-xl border p-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-75 ${
-                active
-                  ? 'border-accent bg-accent-soft'
-                  : 'border-border bg-bg hover:border-accent/40 hover:bg-surface-alt'
-              }`}
-            >
-              <PersonajeImg
-                slug={personaje.slug}
-                alt={personaje.nombre}
-                className="aspect-[4/5] w-full rounded-lg object-cover"
-              />
-              <span className="mt-2 block truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-                {personaje.nombre}
-              </span>
-              <span className="block truncate text-[11px] text-fg-muted">
-                {personaje.anime}
-              </span>
-            </button>
-          )
-        })}
-      </div>
+      {/* Ceremonia de la apuesta: dominó + sello 王 + papeleta. Monta en
+          papeleta directa si la predicción ya está persistida (sin teatro
+          retroactivo); la resolución viene de `acertada`. */}
+      {!isLoading && (
+        <ChampionSeal
+          key={`${sealKey}-${cambiando ? 'libre' : (prediccion?.personajePredichoId ?? 'libre')}`}
+          candidatos={roster}
+          prediccion={
+            !cambiando && prediccion
+              ? { personajeId: prediccion.personajePredichoId, fechaISO: prediccion.fecha ?? null }
+              : null
+          }
+          resolucion={prediccion ? { acertada: prediccion.acertada ?? null } : null}
+          onConfirmar={confirmarCampeon}
+          puedeApostar={Boolean(user) && puedePredecir && !mutation.isPending}
+        />
+      )}
+
+      {prediccion && puedePredecir && !cambiando && (
+        <button
+          type="button"
+          onClick={() => setCambiando(true)}
+          className="mt-3 text-[12px] font-semibold text-fg-muted underline-offset-2 transition-colors hover:text-gold hover:underline"
+        >
+          Cambiar apuesta (hasta que arranque el torneo)
+        </button>
+      )}
     </section>
   )
 }
