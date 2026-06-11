@@ -296,6 +296,116 @@
   to   { stroke-dashoffset: 0; }
 }
 
+/* Tale of the Tape (/comparar): trazado del 対, retratos a sangre, barras
+   enfrentadas con overshoot/retroceso, odómetro y sello 勝. Solo definen el
+   "from" — el estado base YA es el final, así reduced-motion sale gratis. */
+@keyframes totb-stroke {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes totb-kanji {
+  0% {
+    opacity: 0.95;
+  }
+  60% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0.34;
+  }
+}
+@keyframes totb-port-l {
+  from {
+    transform: translateX(-11%);
+    opacity: 0;
+  }
+}
+@keyframes totb-port-r {
+  from {
+    transform: translateX(11%);
+    opacity: 0;
+  }
+}
+@keyframes totb-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes totb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes totb-grow-win {
+  0% {
+    transform: scaleX(0);
+  }
+  62% {
+    transform: scaleX(1.055);
+  }
+  80% {
+    transform: scaleX(0.985);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes totb-grow-lose {
+  0% {
+    transform: scaleX(0);
+  }
+  52% {
+    transform: scaleX(1);
+  }
+  66% {
+    transform: scaleX(1);
+  }
+  78% {
+    transform: scaleX(0.885);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes totb-roll {
+  from {
+    transform: translateY(0);
+  }
+}
+@keyframes totb-seal {
+  0% {
+    transform: translateY(-52px) scale(1.65) rotate(-20deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(3px) scale(0.92) rotate(-5deg);
+    opacity: 1;
+  }
+  72% {
+    transform: translateY(-2px) scale(1.06) rotate(-10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(-8deg);
+    opacity: 1;
+  }
+}
+@keyframes totb-ripple {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
 /* Ticker del Modo TV: cinta translateX infinita (dos copias, -50%). */
 @keyframes as-tv-ticker {
   from {
@@ -595,6 +705,42 @@
 
   .as-tab-hidden .wrapped-bob {
     animation-play-state: paused !important;
+  }
+
+  /* Tale of the Tape: gradientes/colores fuera del JSX (guard de hex). El
+     wash de cada lado tiñe con el color dominante real del personaje vía
+     las custom props --totb-rgb-a/b que pone el componente. */
+  .totb-bar-win {
+    background: linear-gradient(90deg, var(--color-gold), var(--color-gold-bright));
+    box-shadow:
+      0 0 18px -4px var(--color-gold-aura),
+      inset 0 1px 0 rgb(255 255 255 / 0.22);
+  }
+  .totb-bar-win--rtl {
+    background: linear-gradient(270deg, var(--color-gold), var(--color-gold-bright));
+  }
+  .totb-bar-lose {
+    background: rgb(159 29 44 / 0.82);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  }
+  .totb-seal {
+    border: 2.5px solid rgb(197 161 90 / 0.92);
+    background: radial-gradient(circle at 50% 35%, rgb(197 161 90 / 0.26), rgb(8 11 18 / 0.55) 75%);
+    box-shadow:
+      0 0 36px -10px var(--color-gold-aura),
+      inset 0 1px 0 rgb(255 255 255 / 0.18);
+  }
+  .totb-wash-l {
+    background: linear-gradient(115deg, rgb(var(--totb-rgb-a) / 0.55), rgb(var(--totb-rgb-a) / 0.12) 55%, transparent 80%);
+  }
+  .totb-wash-r {
+    background: linear-gradient(295deg, rgb(var(--totb-rgb-b) / 0.55), rgb(var(--totb-rgb-b) / 0.12) 55%, transparent 80%);
+  }
+  .totb-seam {
+    background: linear-gradient(180deg, rgb(var(--totb-rgb-a) / 0.7), rgb(247 243 234 / 0.32) 50%, rgb(var(--totb-rgb-b) / 0.6));
+  }
+  .totb-scrim {
+    background: linear-gradient(180deg, transparent 30%, rgb(4 7 12 / 0.86) 60%, rgb(4 7 12 / 0.97) 100%);
   }
 
   /* Banda de niebla de MistDrift (ver el keyframe as-mist-pan arriba). */
