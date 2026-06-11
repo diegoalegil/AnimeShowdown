@@ -78,3 +78,8 @@
 # index.html nunca se cachea: siempre debe servir la versión más nueva del SPA
 /
   Cache-Control: public, max-age=0, must-revalidate
+
+# Fuentes self-host de la display: el nombre lleva hash de contenido
+# (subset-display-font.mjs), así que pueden ser immutable sin riesgo de stale.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

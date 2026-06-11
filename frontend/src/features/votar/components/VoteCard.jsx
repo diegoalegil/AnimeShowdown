@@ -10,6 +10,7 @@ import { useSound } from '../../../contexts/SoundContext'
 import { useInstantSoundPress } from '../../../hooks/useInstantSoundPress'
 import { hasCut } from '../../../lib/cuts'
 import { imagenPersonaje } from '../../../lib/personajes-core'
+import { EASE_LIFT } from '../../../lib/motion'
 
 const FALLBACK_DOMINANT_COLOR = 'var(--color-surface)'
 
@@ -140,7 +141,7 @@ const VoteCard = memo(function VoteCard({
                 ? { filter: ['blur(16px)', 'blur(0px)'] }
                 : undefined
             }
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.4, ease: EASE_LIFT }}
           >
             {canUseCut ? (
               <PersonajeCutImg

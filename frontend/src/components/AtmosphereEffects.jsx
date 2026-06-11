@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useReducedMotionPref } from '../hooks/useReducedMotionPref'
 
 /**
  * Efectos atmosfericos canvas para reforzar el feel cinematografico de
@@ -20,25 +21,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
  *     ...
  *   </VisualPageShell>
  */
-
-function useReducedMotion() {
-  // Lazy initializer: computa el valor inicial DURANTE el primer render
-  // (no via setState desde un useEffect, que dispara un re-render extra y
-  // que ESLint marca como anti-patron en React 19 con la regla
-  // react-hooks/set-state-in-effect).
-  const [reduced, setReduced] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const handler = (e) => setReduced(e.matches)
-    mq.addEventListener?.('change', handler)
-    return () => mq.removeEventListener?.('change', handler)
-  }, [])
-  return reduced
-}
 
 function useVisible(ref) {
   const [visible, setVisible] = useState(true)
@@ -104,7 +86,7 @@ export function SakuraPetals({ density = 'normal', tone = 'rose' }) {
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const rafRef = useRef(0)
-  const reduced = useReducedMotion()
+  const reduced = useReducedMotionPref()
   const visible = useVisible(containerRef)
   const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
@@ -202,7 +184,7 @@ export function Embers({ density = 'normal', tone = 'amber' }) {
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const rafRef = useRef(0)
-  const reduced = useReducedMotion()
+  const reduced = useReducedMotionPref()
   const visible = useVisible(containerRef)
   const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
@@ -362,7 +344,7 @@ export function KanjiRain({ density = 'low', glyphs = '戦闘決勝影神鬼龍�
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const rafRef = useRef(0)
-  const reduced = useReducedMotion()
+  const reduced = useReducedMotionPref()
   const visible = useVisible(containerRef)
   const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
@@ -438,7 +420,7 @@ export function ConstellationNetwork({ density = 'normal', tone = 'gold' }) {
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const rafRef = useRef(0)
-  const reduced = useReducedMotion()
+  const reduced = useReducedMotionPref()
   const visible = useVisible(containerRef)
   const pageVisible = usePageVisible()
   useCanvasResize(canvasRef)
@@ -529,7 +511,7 @@ export function ConstellationNetwork({ density = 'normal', tone = 'gold' }) {
  */
 export function LightningStrike({ minInterval = 8000, maxInterval = 15000 }) {
   const [flash, setFlash] = useState(0)
-  const reduced = useReducedMotion()
+  const reduced = useReducedMotionPref()
   const pageVisible = usePageVisible()
   useEffect(() => {
     if (reduced || !pageVisible) return

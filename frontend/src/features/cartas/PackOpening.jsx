@@ -8,6 +8,7 @@ import { useSound } from '../../contexts/SoundContext'
 import CartaTile from '../../components/CartaTile'
 import CartaFace from './CartaFace'
 import './cartas.css'
+import { EASE_LIFT } from '../../lib/motion'
 
 const PACK_TIMING = {
   peel: 720,
@@ -324,7 +325,7 @@ function PackOpening({
               initial={{ opacity: 0, y: 28, scale: 0.94, rotateX: 10 }}
               animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
               exit={{ opacity: 0, y: -30, scale: 1.08, rotateX: -12 }}
-              transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.42, ease: EASE_LIFT }}
             >
               <PackEnvelope
                 phase={phase}
@@ -532,7 +533,7 @@ function RevealStage({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -22 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.3, ease: EASE_LIFT }}
     >
       {revealed && !reduceMotion && isSpecial && (
         <Confetti count={68} />
@@ -574,7 +575,7 @@ function RevealStage({
         }}
         transition={{
           duration: leaving ? 0.42 : isSpecial ? 0.72 : 0.44,
-          ease: [0.16, 1, 0.3, 1],
+          ease: EASE_LIFT,
         }}
       >
         <div className="pack-opening__flip">
@@ -606,7 +607,7 @@ function RevealStage({
             initial={{ opacity: 0, y: 18, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.28, ease: EASE_LIFT }}
           >
             <strong>{label.key}</strong>
             <span>{label.sub}</span>
@@ -759,7 +760,7 @@ function SummaryStage({
       initial={{ opacity: 0, y: 18, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.3, ease: EASE_LIFT }}
       className="pack-opening__summary"
     >
       <div className="pack-opening__summary-heading">

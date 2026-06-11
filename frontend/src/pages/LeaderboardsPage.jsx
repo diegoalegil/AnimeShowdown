@@ -77,7 +77,7 @@ function LeaderboardsPage() {
             <Vote className="h-3 w-3" />
             Comunidad
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Pioneros de AnimeShowdown
           </h1>
           <p className="max-w-2xl text-fg-muted">

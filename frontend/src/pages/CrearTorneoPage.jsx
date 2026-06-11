@@ -178,7 +178,7 @@ function CrearTorneoPage() {
             <Sparkles className="h-3 w-3" />
             Crea un torneo
           </span>
-          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
+          <h1 className="font-display text-[clamp(2rem,5vw,3rem)] leading-tight tracking-tight">
             Tu torneo personalizado
           </h1>
           <p className="max-w-2xl text-fg-muted">

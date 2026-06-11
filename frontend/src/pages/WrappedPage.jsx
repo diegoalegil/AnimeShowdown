@@ -80,7 +80,7 @@ function WrappedPage() {
           <div className="grid grid-cols-2 gap-px bg-border">
             {ESTADISTICAS.map(({ key, label, icon: Icon }) => (
               <div key={key} className="bg-surface p-5">
-                <Icon className="mb-2 h-5 w-5 text-accent" />
+                <Icon className="mb-2 h-5 w-5 text-accent-text" />
                 <p className="text-2xl font-extrabold tabular-nums text-fg-strong">
                   {Number(data[key] ?? 0).toLocaleString('es')}
                 </p>
