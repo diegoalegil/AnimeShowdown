@@ -13,6 +13,9 @@ vi.mock('../lib/api', () => ({ endpoints: { miWrapped: h.miWrapped } }))
 vi.mock('../components/PersonajeImg', () => ({
   default: ({ nombre }: { nombre: string }) => <img alt={nombre} />,
 }))
+vi.mock('../components/ShareButtons', () => ({
+  default: () => <div data-testid="share-buttons" />,
+}))
 
 import WrappedPage from './WrappedPage'
 
@@ -27,17 +30,17 @@ function renderPage() {
   )
 }
 
-describe('WrappedPage', () => {
+describe('WrappedPage (scrollytelling cinematográfico)', () => {
   beforeEach(() => {
     h.user = { username: 'goku', id: 1 }
     h.miWrapped.mockReset()
   })
   afterEach(() => cleanup())
 
-  it('muestra las cifras, el personaje top y el bloque de compartir', async () => {
+  it('monta los 6 capítulos con los datos reales del Wrapped', async () => {
     h.miWrapped.mockResolvedValue({
       username: 'goku',
-      votosTotales: 42,
+      votosTotales: 1234,
       duelosJugados: 10,
       prediccionesAcertadas: 5,
       badgesDesbloqueados: 7,
@@ -46,16 +49,25 @@ describe('WrappedPage', () => {
     })
     renderPage()
 
-    expect(await screen.findByText('@goku')).toBeInTheDocument()
-    expect(screen.getByText('42')).toBeInTheDocument()
-    expect(screen.getByText('Votos emitidos')).toBeInTheDocument()
+    // Cover con el username real y los capítulos por su label accesible.
+    expect(await screen.findByText(/@goku/)).toBeInTheDocument()
+    expect(screen.getByText('El opening de tu temporada')).toBeInTheDocument()
+    const capitulos = document.querySelectorAll('[data-screen-label]')
+    expect(capitulos.length).toBe(6)
+    // El SLAM pinta la cifra real formateada (robusto al separador del ICU).
+    expect(
+      screen.getAllByText((content) => content.replace(/[\s.,\u00a0]/g, '') === '1234').length,
+    ).toBeGreaterThanOrEqual(1)
+    // Fandom Nº1 y personaje top reales.
+    expect(screen.getByText('Dragon Ball')).toBeInTheDocument()
     expect(screen.getByText('Gohan')).toBeInTheDocument()
-    expect(screen.getByText('Comparte tu Wrapped')).toBeInTheDocument()
+    // Capítulo final: la tarjeta exportable.
+    expect(screen.getByLabelText(/Tarjeta resumen de tu temporada/)).toBeInTheDocument()
   })
 
   it('redirige a /login si no hay usuario', () => {
     h.user = null
     renderPage()
-    expect(screen.queryByText('Tu año en AnimeShowdown')).not.toBeInTheDocument()
+    expect(document.querySelector('[data-screen-label]')).not.toBeInTheDocument()
   })
 })
