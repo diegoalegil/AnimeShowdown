@@ -23,6 +23,7 @@ import VotarShortcutsFooter from '../features/votar/components/VotarShortcutsFoo
 import VotarTopBar from '../features/votar/components/VotarTopBar'
 import VoteArena from '../features/votar/components/VoteArena'
 import VoteResultPanel from '../features/votar/components/VoteResultPanel'
+import VoteStreakBadge from '../features/votar/components/VoteStreakBadge'
 import { useMisEspeciales } from '../hooks/useCartas'
 import VotarQuickModes from '../features/votar/components/VotarQuickModes'
 import { useFixedDuelParams } from '../features/votar/hooks/useFixedDuelParams'
@@ -835,22 +836,29 @@ function VotarPage() {
           </div>
         )}
 
-        {/* Arena — subcomponente memoizado con AnimatePresence para aislar re-renders */}
-        <VoteArena
-          a={a}
-          b={b}
-          votedFor={votedFor}
-          voteResult={voteResult}
-          controlsDisabled={controlsDisabled}
-          votoInvitadoActivo={votoInvitadoActivo}
-          blindMode={identitiesHidden}
-          handleVoteLeft={handleVoteLeft}
-          handleVoteRight={handleVoteRight}
-          handleTieVote={handleTieVote}
-          canTie={modoBackend}
-          ownsEspecialA={Boolean(a?.slug && misEspeciales?.has(a.slug))}
-          ownsEspecialB={Boolean(b?.slug && misEspeciales?.has(b.slug))}
-        />
+        {/* Arena — subcomponente memoizado con AnimatePresence para aislar re-renders.
+            La insignia de racha vive FUERA del memo y del key del par: ni
+            re-renderiza la arena al subir el contador ni re-popea al cambiar
+            de duelo. */}
+        <div className="relative">
+          <VoteArena
+            a={a}
+            b={b}
+            votedFor={votedFor}
+            voteResult={voteResult}
+            controlsDisabled={controlsDisabled}
+            votoInvitadoActivo={votoInvitadoActivo}
+            blindMode={identitiesHidden}
+            blindReveal={blindMode && Boolean(votedFor)}
+            handleVoteLeft={handleVoteLeft}
+            handleVoteRight={handleVoteRight}
+            handleTieVote={handleTieVote}
+            canTie={modoBackend}
+            ownsEspecialA={Boolean(a?.slug && misEspeciales?.has(a.slug))}
+            ownsEspecialB={Boolean(b?.slug && misEspeciales?.has(b.slug))}
+          />
+          <VoteStreakBadge total={sessionStats.total} />
+        </div>
 
         {tieSelected && a && b && (
           <TieResultPanel a={a} b={b} voteResult={voteResult} />

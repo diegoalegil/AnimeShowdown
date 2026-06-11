@@ -53,6 +53,28 @@ describe('VoteArena', () => {
     expect(handleTieVote).toHaveBeenCalledTimes(1)
   })
 
+  it('marca el empate desde el voto optimista, antes de la respuesta', () => {
+    render(
+      <VoteArena
+        a={a}
+        b={b}
+        votedFor="__empate__"
+        voteResult={null}
+        controlsDisabled={false}
+        votoInvitadoActivo={false}
+        handleVoteLeft={() => {}}
+        handleVoteRight={() => {}}
+        handleTieVote={() => {}}
+        canTie
+      />,
+    )
+
+    expect(screen.getAllByTestId('vote-card').map((card) => card.dataset.tie)).toEqual([
+      'true',
+      'true',
+    ])
+  })
+
   it('marca ambas cartas como empate cuando el resultado es neutral', () => {
     render(
       <VoteArena

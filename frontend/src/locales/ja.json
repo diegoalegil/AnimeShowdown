@@ -137,7 +137,11 @@
   },
   "votar": {
     "tituloPagina": "投票",
-    "subtituloPagina": "各対戦で勝者を選びましょう。"
+    "subtituloPagina": "各対戦で勝者を選びましょう。",
+    "racha": {
+      "etiqueta": "コンボ ×{{total}}",
+      "aria": "このセッションで{{total}}連続投票中"
+    }
   },
   "ranking": {
     "tituloPagina": "ランキング",

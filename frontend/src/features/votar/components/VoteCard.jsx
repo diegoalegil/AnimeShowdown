@@ -1,10 +1,11 @@
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
 import VoteFeedbackBurst from '../../../components/VoteFeedbackBurst'
+import VoteImpactEffects from './VoteImpactEffects'
 import { useSound } from '../../../contexts/SoundContext'
 import { useInstantSoundPress } from '../../../hooks/useInstantSoundPress'
 import { hasCut } from '../../../lib/cuts'
@@ -23,6 +24,7 @@ const VoteCard = memo(function VoteCard({
   side,
   anonymousLimited,
   blindMode = false,
+  blindReveal = false,
   voteResult,
   ownsEspecial = false,
 }) {
@@ -47,7 +49,29 @@ const VoteCard = memo(function VoteCard({
       ? `Votar como invitado por ${personaje.nombre} de ${personaje.anime}`
       : `Votar por ${personaje.nombre} de ${personaje.anime}`
 
-  const handlePointerDown = (disabled || showResult) ? undefined : onSoundPointerDown
+  // Punto de pulsación (en % de la carta) para anclar la onda expansiva del
+  // impacto. Se captura en el mismo onPointerDown del sonido instantáneo y va
+  // en un ref: no necesita re-render propio (el de isVoted ya lo lee) y así
+  // los touchstart de gestos de scroll no re-renderizan la carta memoizada.
+  // El voto por teclado (←/→) no pasa por aquí: el guard de frescura descarta
+  // pulsaciones viejas abandonadas y la onda cae al centro de la carta.
+  const pressPointRef = useRef(null)
+  const capturePressPoint = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    if (rect.width > 0 && rect.height > 0 && Number.isFinite(event.clientX)) {
+      pressPointRef.current = {
+        x: ((event.clientX - rect.left) / rect.width) * 100,
+        y: ((event.clientY - rect.top) / rect.height) * 100,
+        at: Date.now(),
+      }
+    }
+    onSoundPointerDown(event)
+  }
+  const pressPoint = pressPointRef.current
+  const impactOrigin =
+    isVoted && pressPoint && Date.now() - pressPoint.at < 600 ? pressPoint : null
+
+  const handlePointerDown = (disabled || showResult) ? undefined : capturePressPoint
   const handleClick = (e) => {
     onSoundClick(e)
     onClick(e)
@@ -64,12 +88,28 @@ const VoteCard = memo(function VoteCard({
         disabled={disabled || showResult}
         animate={
           isVoted
-            ? { scale: reduceMotion ? 1 : 1.05 }
-            : { scale: 1 }
+            // Punch de hit-stop: sobrepasa a 1.07 y asienta en el 1.05 de
+            // siempre — mismo estado final, golpe más físico.
+            ? { scale: reduceMotion ? 1 : [1, 1.07, 1.05] }
+            : isTie
+              ? { scale: reduceMotion ? 1 : [1, 1.02, 1] }
+              : isLoser
+                ? { scale: 1, x: reduceMotion ? 0 : [0, -3, 3, -1.5, 0] }
+                : { scale: 1 }
         }
-        transition={{ duration: reduceMotion ? 0.18 : 0.32, ease: 'easeOut' }}
+        transition={
+          reduceMotion
+            ? { duration: 0.18, ease: 'easeOut' }
+            : isVoted
+              ? { duration: 0.36, times: [0, 0.4, 1], ease: 'easeOut' }
+              : isLoser
+                ? { duration: 0.22, delay: 0.15, ease: 'easeInOut' }
+                : isTie
+                  ? { duration: 0.45, times: [0, 0.4, 1], ease: 'easeOut' }
+                  : { duration: 0.32, ease: 'easeOut' }
+        }
         aria-label={voteAriaLabel}
-        className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 transition-[transform,border-color,box-shadow,opacity,filter] ${
+        className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 transition-[border-color,box-shadow,opacity,filter] ${
           isVoted
             ? 'shadow-aura-lg ring-2 ring-white/25'
             : isTie
@@ -90,35 +130,50 @@ const VoteCard = memo(function VoteCard({
           className="relative aspect-[2/3] max-h-[min(44svh,28rem)] w-full overflow-hidden sm:max-h-[min(55svh,34rem)]"
           style={{ backgroundColor: identityHidden ? 'var(--color-bg)' : dominantColor }}
         >
-          {canUseCut ? (
-            <PersonajeCutImg
-              slug={personaje.slug}
-              alt={`Silueta de la ${optionLabel.toLowerCase()}`}
-              className="h-full w-full"
-              imgClassName="scale-[1.04] brightness-0 blur-[1px] transition-all duration-300"
-              loading="eager"
-              decoding="async"
-            />
-          ) : (
-            <PersonajeImg
-              slug={personaje.slug}
-              src={imgSrc}
-              alt={identityHidden ? `Personaje oculto en la ${optionLabel.toLowerCase()}` : personaje.nombre}
-              nombre={identityHidden ? optionLabel : personaje.nombre}
-              colorDominante={dominantColor}
-              loading="eager"
-              decoding="async"
-              fetchPriority={side === 'left' ? 'high' : 'auto'}
-              sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
-              fit="contain"
-              position="center"
-              className={`relative h-full w-full object-cover transition-transform duration-300 ${
-                identityHidden
-                  ? 'scale-[1.04] brightness-0 blur-sm'
-                  : 'motion-safe:group-hover:scale-[1.03]'
-              }`}
-            />
-          )}
+          {/* Wrapper de revelado del modo a ciegas: al votar, la identidad
+              pasa de desenfoque a nítido en 400ms (ease-lift). Las clases
+              pre-reveal de la imagen no cambian; solo se anima el wrapper. */}
+          <motion.div
+            className="h-full w-full"
+            animate={
+              blindReveal && !reduceMotion
+                ? { filter: ['blur(16px)', 'blur(0px)'] }
+                : undefined
+            }
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {canUseCut ? (
+              <PersonajeCutImg
+                slug={personaje.slug}
+                alt={`Silueta de la ${optionLabel.toLowerCase()}`}
+                className="h-full w-full"
+                imgClassName="scale-[1.04] brightness-0 blur-[1px] transition-all duration-300"
+                loading="eager"
+                decoding="async"
+              />
+            ) : (
+              <PersonajeImg
+                slug={personaje.slug}
+                src={imgSrc}
+                alt={identityHidden ? `Personaje oculto en la ${optionLabel.toLowerCase()}` : personaje.nombre}
+                nombre={identityHidden ? optionLabel : personaje.nombre}
+                colorDominante={dominantColor}
+                loading="eager"
+                decoding="async"
+                fetchPriority={side === 'left' ? 'high' : 'auto'}
+                sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
+                fit="contain"
+                position="center"
+                className={`relative h-full w-full object-cover transition-transform duration-300 ${
+                  identityHidden
+                    ? 'scale-[1.04] brightness-0 blur-sm'
+                    : 'motion-safe:group-hover:scale-[1.03]'
+                }`}
+              />
+            )}
+          </motion.div>
+          {isVoted && <VoteImpactEffects origin={impactOrigin} />}
+          {isTie && <VoteImpactEffects variant="tie" />}
           {ownsEspecial && !identityHidden && (
             <span
               className="pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full border bg-black/70 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm"
