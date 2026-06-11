@@ -23,6 +23,7 @@ const VoteArena = memo(function VoteArena({
   controlsDisabled,
   votoInvitadoActivo,
   blindMode,
+  blindReveal = false,
   handleVoteLeft,
   handleVoteRight,
   handleTieVote,
@@ -32,13 +33,21 @@ const VoteArena = memo(function VoteArena({
 }) {
   const reduceMotion = useReducedMotion()
   const arenaKey = a && b ? `${a.slug}-${b.slug}` : 'empty'
-  const isTie = Boolean(voteResult?.empate)
-  const leftVoteResult = isTie
+  // El empate también cuenta desde el voto optimista (votedFor con el
+  // sentinel que no es ninguna de las dos cartas): sin esto, mientras el
+  // POST resuelve ambas cartas pasarían por el estado de perdedor
+  // (grayscale + shake) y al confirmar saltarían a doradas.
+  const tieResolved = Boolean(voteResult?.empate)
+  const tiePending = Boolean(
+    votedFor && votedFor !== a?.slug && votedFor !== b?.slug,
+  )
+  const isTie = tieResolved || tiePending
+  const leftVoteResult = tieResolved
     ? { ...voteResult, delta: 0.5, votosGanador: voteResult?.votosGanador }
     : voteResult?.ganadorSlug === a.slug
       ? voteResult
       : null
-  const rightVoteResult = isTie
+  const rightVoteResult = tieResolved
     ? { ...voteResult, delta: 0.5, votosGanador: voteResult?.votosPerdedor, votosPerdedor: voteResult?.votosGanador }
     : voteResult?.ganadorSlug === b.slug
       ? voteResult
@@ -56,7 +65,7 @@ const VoteArena = memo(function VoteArena({
         className="relative grid grid-cols-2 items-start gap-x-2 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-stretch sm:gap-6"
       >
         <div className="pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 sm:hidden">
-          <VsBadge votedFor={votedFor} compact />
+          <VsBadge votedFor={votedFor} isTie={isTie} compact />
         </div>
         <VoteCard
           personaje={a}
@@ -70,10 +79,11 @@ const VoteArena = memo(function VoteArena({
           side="left"
           anonymousLimited={votoInvitadoActivo}
           blindMode={blindMode}
+          blindReveal={blindReveal}
           voteResult={leftVoteResult}
         />
         <div className="hidden self-center justify-self-center sm:flex sm:flex-col sm:items-center sm:gap-3">
-          <VsBadge votedFor={votedFor} />
+          <VsBadge votedFor={votedFor} isTie={isTie} />
           {canTie && !votedFor && (
             <button
               type="button"
@@ -98,6 +108,7 @@ const VoteArena = memo(function VoteArena({
           side="right"
           anonymousLimited={votoInvitadoActivo}
           blindMode={blindMode}
+          blindReveal={blindReveal}
           voteResult={rightVoteResult}
         />
         {canTie && !votedFor && (
