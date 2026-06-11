@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Swords } from 'lucide-react'
+import { ArrowRight, ImageDown, Swords } from 'lucide-react'
 import { formatPersonalVoteImpact, formatVoteScore } from '../vote-format'
 import HeadToHeadBar from './HeadToHeadBar'
 
@@ -14,6 +14,8 @@ function VoteResultPanel({
   voteResult,
   personalVoteImpact,
   onShareVote,
+  onShareResultImage,
+  generandoCard = false,
 }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
@@ -55,6 +57,19 @@ function VoteResultPanel({
           <Swords className="h-3.5 w-3.5" />
           Reta a un amigo
         </button>
+        {/* Card 1080×1080 del duelo pintada en canvas (duel-share-card).
+            Solo con rival conocido: sin él no hay cara derecha que pintar. */}
+        {onShareResultImage && losingPersonaje && (
+          <button
+            type="button"
+            onClick={onShareResultImage}
+            disabled={generandoCard}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/55 hover:text-gold disabled:cursor-wait disabled:opacity-60"
+          >
+            <ImageDown className="h-3.5 w-3.5" />
+            {generandoCard ? 'Generando…' : 'Card del duelo'}
+          </button>
+        )}
         <Link
           to="/mi-ranking"
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-[13px] font-black text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"

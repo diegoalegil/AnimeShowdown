@@ -527,11 +527,18 @@ function VotarPage() {
     [a, b, prefetchSiguientePar, scheduleAutoNext, notifyCoins],
   )
 
-  const { handleChallenge, handleShareVote, handleShareSessionRecap } = useVotarShare({
+  const {
+    handleChallenge,
+    handleShareVote,
+    handleShareSessionRecap,
+    handleShareResultImage,
+    generandoCard,
+  } = useVotarShare({
     a,
     b,
     votedPersonaje,
     losingPersonaje,
+    voteResult,
     personalVoteImpact,
     sessionStats,
     fixedSlug,
@@ -871,6 +878,8 @@ function VotarPage() {
             voteResult={voteResult}
             personalVoteImpact={personalVoteImpact}
             onShareVote={handleShareVote}
+            onShareResultImage={handleShareResultImage}
+            generandoCard={generandoCard}
           />
         )}
 
