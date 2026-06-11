@@ -77,7 +77,7 @@ const personaje = {
 
 function renderVoteCard(overrides = {}) {
   const onClick = vi.fn()
-  render(
+  const utils = render(
     <MemoryRouter>
       <VoteCard
         personaje={personaje}
@@ -93,7 +93,7 @@ function renderVoteCard(overrides = {}) {
       />
     </MemoryRouter>,
   )
-  return { onClick }
+  return { onClick, ...utils }
 }
 
 describe('VoteCard blind mode', () => {
@@ -166,6 +166,30 @@ describe('VoteCard blind mode', () => {
       'Opción izquierda',
     )
     expect(screen.getByTestId('personaje-img').className).toContain('brightness-0')
+  })
+})
+
+describe('VoteCard impacto arcade', () => {
+  it('monta la capa de impacto del ganador al votar', () => {
+    const { container } = renderVoteCard({ isVoted: true, showResult: true })
+
+    const impacto = container.querySelector('[data-vote-impact="winner"]')
+    expect(impacto).toBeInTheDocument()
+    expect(impacto).toHaveAttribute('aria-hidden', 'true')
+    expect(impacto?.className).toContain('pointer-events-none')
+  })
+
+  it('en empate muestra el pulso dorado y no la onda del ganador', () => {
+    const { container } = renderVoteCard({ isTie: true, showResult: true })
+
+    expect(container.querySelector('[data-vote-impact="tie"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-vote-impact="winner"]')).not.toBeInTheDocument()
+  })
+
+  it('sin voto no hay capa de impacto', () => {
+    const { container } = renderVoteCard()
+
+    expect(container.querySelector('[data-vote-impact]')).not.toBeInTheDocument()
   })
 })
 
