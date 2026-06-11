@@ -16,6 +16,7 @@ import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { ApiError } from '../lib/api'
 import PersonajeImg from '../components/PersonajeImg'
+import TournamentBannerForge from '../features/torneos/forge/TournamentBannerForge'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -61,9 +62,14 @@ function CrearTorneoPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
     setError,
   } = useForm({ defaultValues: { publico: true } })
+  // Datos reales para el estandarte de la forja: el nombre se observa en
+  // vivo, el organizador es el usuario logueado y la fecha es la de hoy.
+  const nombreEnVivo = watch('nombre')
+  const hoy = useMemo(() => new Date().toISOString().slice(0, 10), [])
 
   const slugToBackendId = useMemo(() => {
     const m = new Map()
@@ -161,7 +167,7 @@ function CrearTorneoPage() {
 
   return (
     <section className="px-5 py-12 sm:px-8 sm:py-16">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-6xl">
         <motion.header
           className="mb-8 flex flex-col items-start gap-3"
           initial="hidden"
@@ -178,10 +184,14 @@ function CrearTorneoPage() {
           <p className="max-w-2xl text-fg-muted">
             Elige el tamaño y los personajes. Tu torneo entrará en una cola
             de revisión; cuando un admin lo apruebe, se inicia en juego para
-            que todos voten.
+            que todos voten. El estandarte se teje con lo que escribes.
           </p>
         </motion.header>
 
+        {/* Forja: formulario a la izquierda, estandarte en vivo a la derecha
+            (sticky para acompañar al formulario largo). En móvil el cartel
+            estático queda debajo del formulario. */}
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-6"
@@ -228,6 +238,16 @@ function CrearTorneoPage() {
             </Link>
           </div>
         </form>
+
+        <div className="lg:sticky lg:top-24">
+          <TournamentBannerForge
+            nombre={nombreEnVivo}
+            organizador={user?.username}
+            fecha={hoy}
+            bracketSize={tamano}
+          />
+        </div>
+        </div>
       </div>
     </section>
   )
