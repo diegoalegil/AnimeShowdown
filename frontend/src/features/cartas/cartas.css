@@ -260,6 +260,281 @@
   opacity: 0.31;
 }
 
+/* Tilt 3D del álbum (TiltCard). Conducido por custom props que JS actualiza
+   vía rAF: --mx/--my (posición del puntero 0..1) y --active (0 reposo,
+   1 puntero encima). La perspectiva va dentro del propio transform para no
+   necesitar wrapper con preserve-3d (la cara de la carta NO debe llevarlo). */
+.as-card-tilt {
+  --as-tilt-max: 8deg;
+  position: relative;
+  transform: perspective(1200px)
+    rotateX(calc((var(--my, 0.5) - 0.5) * var(--as-tilt-max) * -1 * var(--active, 0)))
+    rotateY(calc((var(--mx, 0.5) - 0.5) * var(--as-tilt-max) * var(--active, 0)));
+  transition: transform 420ms var(--ease-lift);
+}
+
+.as-card-tilt--especial {
+  --as-tilt-max: 12deg;
+}
+
+/* Siguiendo al puntero la transición corta hace de suavizado; al salir
+   recupera los 420ms de vuelta con muelle. */
+.as-card-tilt.is-active {
+  transition-duration: 140ms;
+  will-change: transform;
+}
+
+.as-card-tilt.is-pressed {
+  transform: perspective(1200px) scale(0.98);
+  transition-duration: 160ms;
+  will-change: transform;
+}
+
+/* Capa decorativa por encima de la carta: clipea sus gradientes al radio de
+   la cara y nunca intercepta clicks (el botón de descarga vive en z-10). */
+.as-card-foil {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  pointer-events: none;
+}
+
+/* Glare especular que persigue al puntero. */
+.as-card-foil::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at calc(var(--mx, 0.5) * 100%) calc(var(--my, 0.5) * 100%),
+    color-mix(in srgb, var(--color-fg-strong) 44%, transparent),
+    transparent 38%
+  );
+  mix-blend-mode: soft-light;
+  opacity: var(--active, 0);
+  transition: opacity 260ms ease;
+}
+
+/* Láminas doradas de las SSR: dos tramas diagonales de periodo distinto
+   (no múltiplo → solape irregular, sin moiré mecánico) que se desplazan
+   con la inclinación. Oversize para que el desplazamiento no descubra
+   bordes. */
+.as-card-foil--ssr::after {
+  content: "";
+  position: absolute;
+  inset: -16%;
+  background:
+    repeating-linear-gradient(
+      115deg,
+      transparent 0 0.55rem,
+      color-mix(in srgb, var(--color-gold) 34%, transparent) 0.55rem 0.85rem,
+      transparent 0.85rem 1.9rem
+    ),
+    repeating-linear-gradient(
+      115deg,
+      transparent 0 1.3rem,
+      color-mix(in srgb, var(--color-gold-pale) 22%, transparent) 1.3rem 1.55rem,
+      transparent 1.55rem 3.1rem
+    );
+  mix-blend-mode: color-dodge;
+  opacity: calc(var(--active, 0) * 0.32);
+  transform: translateX(calc((var(--mx, 0.5) - 0.5) * 9%));
+  transition: opacity 280ms ease;
+}
+
+/* Foil arcoíris nacarado de las ESPECIALES: cónico carmesí→oro→electric→
+   violeta que gira con la inclinación; el blur ancho lo vuelve nácar en
+   lugar de bandas duras. */
+.as-card-foil--especial::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  background: conic-gradient(
+    from calc(var(--mx, 0.5) * 360deg) at 50% 46%,
+    color-mix(in srgb, var(--color-accent) 60%, transparent),
+    color-mix(in srgb, var(--color-gold) 52%, transparent),
+    color-mix(in srgb, var(--color-electric) 48%, transparent),
+    color-mix(in srgb, var(--color-rarity-epic) 50%, transparent),
+    color-mix(in srgb, var(--color-accent) 60%, transparent)
+  );
+  mix-blend-mode: color-dodge;
+  filter: blur(12px);
+  opacity: calc(var(--active, 0) * 0.25);
+  transition: opacity 300ms ease;
+}
+
+/* Destellos de las especiales: rombos diminutos descentrados que parpadean
+   desfasados. La animación queda declarada pero pausada: solo corre con la
+   carta activa (una a la vez → coste despreciable). */
+.as-card-foil__sparkle {
+  position: absolute;
+  width: 0.3rem;
+  height: 0.3rem;
+  background: var(--color-gold-pale);
+  box-shadow: 0 0 0.6rem var(--color-gold-pale);
+  opacity: 0;
+  transform: rotate(45deg) scale(0.4);
+  animation: as-card-sparkle 1.8s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.as-card-foil__sparkle:nth-child(1) {
+  left: 17%;
+  top: 13%;
+}
+
+.as-card-foil__sparkle:nth-child(2) {
+  right: 21%;
+  top: 34%;
+  width: 0.22rem;
+  height: 0.22rem;
+  background: var(--color-fg-strong);
+  box-shadow: 0 0 0.5rem var(--color-fg-strong);
+  animation-delay: 0.45s;
+  animation-duration: 2.3s;
+}
+
+.as-card-foil__sparkle:nth-child(3) {
+  left: 28%;
+  bottom: 27%;
+  background: var(--color-electric-pale);
+  box-shadow: 0 0 0.55rem var(--color-electric-pale);
+  animation-delay: 0.9s;
+}
+
+.as-card-foil__sparkle:nth-child(4) {
+  right: 14%;
+  bottom: 12%;
+  width: 0.24rem;
+  height: 0.24rem;
+  animation-delay: 1.3s;
+  animation-duration: 1.6s;
+}
+
+.as-card-tilt.is-active .as-card-foil__sparkle,
+.as-card-tilt.is-pressed .as-card-foil__sparkle {
+  animation-play-state: running;
+}
+
+@keyframes as-card-sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.4);
+  }
+  50% {
+    opacity: 0.9;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* Barrido de luz idle del Salón Legendario: una franja cruza la carta en
+   ~1.3s y descansa el resto del ciclo de 9s. Solo transform/opacity. */
+.as-card-foil__sheen {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -48%;
+  width: 38%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--color-fg-strong) 18%, transparent) 52%,
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(0) rotate(12deg);
+  animation: as-card-sheen 9s linear infinite;
+}
+
+/* Desfase y deriva por posición en el grid: las cartas no respiran a la
+   vez y el patrón no se repite en bucle exacto. */
+.as-salon-grid > *:nth-child(4n+2) .as-card-foil__sheen {
+  animation-delay: 5.1s;
+}
+
+.as-salon-grid > *:nth-child(4n+3) .as-card-foil__sheen {
+  animation-delay: 2.3s;
+}
+
+.as-salon-grid > *:nth-child(4n) .as-card-foil__sheen {
+  animation-delay: 7.6s;
+}
+
+.as-salon-grid > *:nth-child(odd) .as-card-foil__sheen {
+  animation-duration: 9.7s;
+}
+
+@keyframes as-card-sheen {
+  0% {
+    opacity: 0;
+    transform: translateX(0) rotate(12deg);
+  }
+  4% {
+    opacity: 1;
+  }
+  11% {
+    opacity: 1;
+  }
+  14%,
+  100% {
+    opacity: 0;
+    transform: translateX(560%) rotate(12deg);
+  }
+}
+
+/* Entrada del grid: rise+fade escalonado. Las 16 primeras cartas entran en
+   oleada (28ms por carta) y las siguientes juntas justo detrás. backwards =
+   arrancan invisibles; el espacio ya está reservado por aspect-ratio, así
+   que no hay shift de layout. */
+.as-card-grid-stagger > * {
+  animation: as-card-rise 480ms var(--ease-lift) 448ms backwards;
+}
+
+.as-card-grid-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.as-card-grid-stagger > *:nth-child(2) { animation-delay: 28ms; }
+.as-card-grid-stagger > *:nth-child(3) { animation-delay: 56ms; }
+.as-card-grid-stagger > *:nth-child(4) { animation-delay: 84ms; }
+.as-card-grid-stagger > *:nth-child(5) { animation-delay: 112ms; }
+.as-card-grid-stagger > *:nth-child(6) { animation-delay: 140ms; }
+.as-card-grid-stagger > *:nth-child(7) { animation-delay: 168ms; }
+.as-card-grid-stagger > *:nth-child(8) { animation-delay: 196ms; }
+.as-card-grid-stagger > *:nth-child(9) { animation-delay: 224ms; }
+.as-card-grid-stagger > *:nth-child(10) { animation-delay: 252ms; }
+.as-card-grid-stagger > *:nth-child(11) { animation-delay: 280ms; }
+.as-card-grid-stagger > *:nth-child(12) { animation-delay: 308ms; }
+.as-card-grid-stagger > *:nth-child(13) { animation-delay: 336ms; }
+.as-card-grid-stagger > *:nth-child(14) { animation-delay: 364ms; }
+.as-card-grid-stagger > *:nth-child(15) { animation-delay: 392ms; }
+.as-card-grid-stagger > *:nth-child(16) { animation-delay: 420ms; }
+
+@keyframes as-card-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(1.1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-card-tilt {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .as-card-foil {
+    display: none !important;
+  }
+
+  .as-card-grid-stagger > * {
+    animation: none !important;
+  }
+}
+
 .pack-opening {
   --pack-aura: rgb(197 161 90 / 0.55);
   --pack-aura-strong: rgb(197 161 90 / 0.82);

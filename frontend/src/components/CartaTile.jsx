@@ -1,5 +1,6 @@
 import { Download, Lock } from 'lucide-react'
 import CartaFace from '../features/cartas/CartaFace'
+import TiltCard from '../features/cartas/TiltCard'
 import PersonajeImg from './PersonajeImg'
 
 /**
@@ -44,7 +45,7 @@ function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
   }
 
   return (
-    <div className="relative">
+    <TiltCard foil={carta.rareza === 'ESPECIAL' ? 'especial' : 'ssr'}>
       <CartaFace carta={carta} eager={eager} />
       {puedeDescargar && (
         <button
@@ -58,7 +59,7 @@ function CartaTile({ carta, eager = false, onDownload, downloading = false }) {
           <Download className="h-4 w-4" aria-hidden="true" />
         </button>
       )}
-    </div>
+    </TiltCard>
   )
 }
 

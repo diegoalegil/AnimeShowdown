@@ -293,7 +293,7 @@ function CartasPage() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          <div className="as-card-grid-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {cartas.map((carta) => (
               <CartaTile
                 key={carta.id}
