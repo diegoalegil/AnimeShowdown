@@ -8,7 +8,10 @@
 //   width/height/top, nada de re-render por frame (el índice frontal es el único setState).
 // · Safari: -webkit-transform-style / -webkit-backface-visibility en TODAS las caras,
 //   incluidas las capas internas de cada cara (Safari aplana descendientes si falta).
-// · Fog: opacity = 0.16 + 0.84 · ((cosθ+1)/2)^1.7 — derivada del MotionValue de rotación.
+// · Fog: opacity = 0.16 + 0.84 · ((cosθ+1)/2)^1.7 — derivada del MotionValue de
+//   rotación y aplicada en las HOJAS aplanadas de cada carta (nunca en el nodo
+//   preserve-3d: WebKit re-rasteriza ese grupo entero por frame).
+// · Idle gateado por viewport + visibilidad de pestaña + puntero fino (refs).
 // · Reflejo: copia especular barata (scaleY(-1) + mask-image gradiente), fuera del
 //   wrapper de elevación para que el reflejo no "despegue" del suelo.
 // · Reduced motion: grid estático, cero animación.
@@ -64,9 +67,62 @@ function Ring({ items }) {
   const lastX = useRef(0);
   const vel = useRef(0); // °/frame aprox durante el drag
 
+  // Gates del giro idle, todos por REF para no re-renderizar las 10 cartas
+  // en cada cruce de borde (patrón AtmosphereEffects, versión sin estado):
+  // fuera de viewport, con la pestaña oculta o en puntero grueso el rAF no
+  // escribe — en Safari el anillo preserve-3d recompone TODA la escena por
+  // frame y la home es la ruta más visitada. El drag/inercia/goTo siguen
+  // intactos (operan en modos drag/settle, no idle).
+  const sectionRef = useRef(null);
+  const inViewRef = useRef(true);
+  const pageVisibleRef = useRef(true);
+  const idlePointerFineRef = useRef(true);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inViewRef.current = entry.isIntersecting;
+        if (!entry.isIntersecting) {
+          // Corta una inercia en vuelo: animar fuera de pantalla es coste
+          // puro. Devolver el modo a idle evita dejar el anillo congelado
+          // en "settle" sin animación al volver a entrar.
+          anim.current?.stop();
+          if (mode.current === "settle") mode.current = "idle";
+        }
+      },
+      { threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const update = () => {
+      pageVisibleRef.current = document.visibilityState !== "hidden";
+    };
+    update();
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => {
+      idlePointerFineRef.current = mq.matches;
+    };
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
   // Idle: rotación lenta continua (sin setState, solo el MotionValue)
   useAnimationFrame((_, delta) => {
-    if (mode.current === "idle") rotation.set(rotation.get() - (IDLE_DPS * delta) / 1000);
+    if (mode.current !== "idle") return;
+    if (!inViewRef.current || !pageVisibleRef.current || !idlePointerFineRef.current) return;
+    rotation.set(rotation.get() - (IDLE_DPS * delta) / 1000);
   });
 
   // Índice frontal derivado de la rotación (único estado React)
@@ -151,6 +207,7 @@ function Ring({ items }) {
 
   return (
     <section
+      ref={sectionRef}
       className="flex h-[680px] min-h-[580px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-bg text-fg select-none"
       aria-label="Top 10 — Coliseo de Leyendas"
     >
@@ -248,7 +305,15 @@ function Ring({ items }) {
 function RingCard({ c, i, rotation, front }) {
   // frontalidad ∈ [0,1] por coseno del ángulo respecto a cámara
   const frontness = useTransform(rotation, (r) => (Math.cos(((i * STEP + r) * Math.PI) / 180) + 1) / 2);
-  const opacity = useTransform(frontness, (v) => 0.16 + 0.84 * Math.pow(v, 1.7)); // fog progresivo
+  // Fog progresivo. OJO WebKit: una opacity animada sobre el nodo
+  // preserve-3d crea un render-group offscreen POR CARTA re-rasterizado
+  // cada frame (y per spec opacity<1 debería incluso aplanar el 3D), así
+  // que el fog se aplica en las HOJAS aplanadas (cara frontal, trasera y
+  // reflejo) donde es composited puro — visualmente equivalente: las dos
+  // caras son back-to-back con backface-visibility hidden y el reflejo
+  // no solapa con ellas.
+  const opacity = useTransform(frontness, (v) => 0.16 + 0.84 * Math.pow(v, 1.7));
+  const reflexOpacity = useTransform(opacity, (v) => v * 0.4); // compone el opacity-40 base del reflejo
   const liftAmt = useTransform(frontness, (v) => Math.pow(Math.max(0, (v - 0.82) / 0.18), 2));
   const liftT = useTransform(liftAmt, (v) => `translateZ(${(v * LIFT).toFixed(1)}px)`);
 
@@ -264,7 +329,6 @@ function RingCard({ c, i, rotation, front }) {
         height: CARD_H,
         margin: `${-CARD_H / 2}px 0 0 ${-CARD_W / 2}px`,
         transform: `rotateY(${i * STEP}deg) translateZ(${RADIUS}px)`, // el cilindro
-        opacity,
       }}
     >
       {/* wrapper de elevación — la frontal "sube" del anillo */}
@@ -283,9 +347,9 @@ function RingCard({ c, i, rotation, front }) {
         />
 
         {/* cara frontal */}
-        <div
+        <motion.div
           className="absolute inset-0 overflow-hidden rounded-xl border bg-surface"
-          style={{ ...SAFARI_FACE, borderColor: "color-mix(in oklab, var(--color-gold) 22%, transparent)" }}
+          style={{ ...SAFARI_FACE, opacity, borderColor: "color-mix(in oklab, var(--color-gold) 22%, transparent)" }}
         >
           <img
             src={img(c, 600)}
@@ -316,13 +380,14 @@ function RingCard({ c, i, rotation, front }) {
               <span className="font-mono text-xs text-gold">{c.elo}</span>
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* cara trasera — emblema, evita el "contenido espejado" al fondo del anillo */}
-        <div
+        <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 rounded-xl border bg-surface"
           style={{
             ...SAFARI_FACE,
+            opacity,
             transform: "rotateY(180deg)",
             borderColor: "color-mix(in oklab, var(--color-gold) 14%, transparent)",
             background:
@@ -335,15 +400,16 @@ function RingCard({ c, i, rotation, front }) {
           <span className="font-mono text-[11px] opacity-30" style={SAFARI_FACE}>
             {String(i + 1).padStart(2, "0")}
           </span>
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* reflejo especular falso — fuera del wrapper de elevación, pegado al suelo */}
-      <div
+      <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-full mt-1 overflow-hidden rounded-xl opacity-40"
+        className="pointer-events-none absolute inset-x-0 top-full mt-1 overflow-hidden rounded-xl"
         style={{
           ...SAFARI_FACE,
+          opacity: reflexOpacity,
           height: CARD_H,
           transform: "scaleY(-1)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent 42%, color-mix(in srgb, var(--color-bg) 65%, transparent) 100%)",
@@ -352,7 +418,7 @@ function RingCard({ c, i, rotation, front }) {
       >
         <img src={img(c, 300)} alt="" draggable={false} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-top" style={SAFARI_FACE} />
         <div className="absolute inset-0 bg-bg/55" style={SAFARI_FACE} />
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
