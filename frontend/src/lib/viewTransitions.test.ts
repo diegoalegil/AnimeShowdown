@@ -40,6 +40,15 @@ function nombreDe(el: HTMLElement) {
   return el.style.getPropertyValue('view-transition-name')
 }
 
+// Los elementos van appendeados al body: el afterEach localiza al holder del
+// morph por su atributo style, y un nodo suelto (sin appendear) dejaría el
+// heroHolder a nivel de módulo filtrado al test siguiente.
+function crearElemento(tag: string) {
+  const el = document.createElement(tag)
+  document.body.appendChild(el)
+  return el
+}
+
 beforeEach(() => {
   vi.useFakeTimers()
 })
@@ -119,22 +128,22 @@ describe('startNavigationViewTransition', () => {
 
 describe('morph personaje-hero', () => {
   it('sin soporte no marca nada (los nombres solo aparecen donde hay API)', () => {
-    const carta = document.createElement('article')
+    const carta = crearElemento('article')
     markPersonajeHero(carta)
     expect(nombreDe(carta)).toBe('')
   })
 
   it('marca la carta clickada con el nombre compartido', () => {
     instalarStartViewTransition()
-    const carta = document.createElement('article')
+    const carta = crearElemento('article')
     markPersonajeHero(carta)
     expect(nombreDe(carta)).toBe(PERSONAJE_HERO_VT)
   })
 
   it('solo un elemento conserva el nombre: marcar libera al holder anterior', () => {
     instalarStartViewTransition()
-    const hero = document.createElement('div')
-    const carta = document.createElement('article')
+    const hero = crearElemento('div')
+    const carta = crearElemento('article')
 
     adoptPersonajeHero(hero)
     expect(nombreDe(hero)).toBe(PERSONAJE_HERO_VT)
@@ -146,12 +155,12 @@ describe('morph personaje-hero', () => {
 
   it('release limpia el nombre y deja adoptar a otro elemento', () => {
     instalarStartViewTransition()
-    const hero = document.createElement('div')
+    const hero = crearElemento('div')
     adoptPersonajeHero(hero)
     releasePersonajeHero(hero)
     expect(nombreDe(hero)).toBe('')
 
-    const otro = document.createElement('div')
+    const otro = crearElemento('div')
     adoptPersonajeHero(otro)
     expect(nombreDe(otro)).toBe(PERSONAJE_HERO_VT)
   })
@@ -159,7 +168,7 @@ describe('morph personaje-hero', () => {
   it('al terminar la transición se limpia la marca transitoria, no la adoptada', async () => {
     const { startViewTransition } = instalarStartViewTransition()
 
-    const carta = document.createElement('article')
+    const carta = crearElemento('article')
     markPersonajeHero(carta)
     startNavigationViewTransition(vi.fn())
     settleNavigationViewTransition()
@@ -167,7 +176,7 @@ describe('morph personaje-hero', () => {
     await Promise.resolve()
     expect(nombreDe(carta)).toBe('')
 
-    const hero = document.createElement('div')
+    const hero = crearElemento('div')
     adoptPersonajeHero(hero)
     startNavigationViewTransition(vi.fn())
     settleNavigationViewTransition()
