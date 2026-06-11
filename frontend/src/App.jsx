@@ -62,6 +62,7 @@ const InicioPage = lazyRoute(routePreloaders.inicio)
 const PersonajesPage = lazyRoute(routePreloaders.personajes)
 const PersonajeDetailPage = lazyRoute(routePreloaders.personajeDetail)
 const AnimesPage = lazyRoute(routePreloaders.animes)
+const ConstelacionAnimesPage = lazyRoute(() => import('./pages/ConstelacionAnimesPage'))
 const AnimeDetailPage = lazyRoute(routePreloaders.animeDetail)
 const AnimeRankingPage = lazyRoute(routePreloaders.animeRanking)
 const EditorialRankingPage = lazyRoute(routePreloaders.editorialRanking)
@@ -424,6 +425,7 @@ function App() {
               <Route path="/personajes" element={catalogAware(<PersonajesPage />)} />
               <Route path="/personajes/:slug" element={catalogAware(<PersonajeDetailPage />)} />
               <Route path="/animes" element={catalogAware(<AnimesPage />)} />
+              <Route path="/animes/constelacion" element={catalogAware(<ConstelacionAnimesPage />)} />
               <Route path="/animes/:slug/ranking" element={catalogAware(<AnimeRankingPage />)} />
               <Route path="/animes/:slug" element={catalogAware(<AnimeDetailPage />)} />
               <Route path="/torneos" element={catalogAware(<TorneosPage />)} />

@@ -34,6 +34,9 @@
 # title/canonical/JSON-LD existan antes del bootstrap de React.
 /personajes               /personajes/index.html 200
 /animes                   /animes/index.html 200
+# Vista constelación: SPA pura (noindex), ANTES del catch :slug para que no
+# intente servir un prerender /animes/constelacion/index.html inexistente.
+/animes/constelacion      /index.html 200
 /animes/:slug/ranking     /animes/:slug/ranking/index.html 200
 /animes/:slug             /animes/:slug/index.html 200
 /versus/:par              /versus/:par/index.html 200
