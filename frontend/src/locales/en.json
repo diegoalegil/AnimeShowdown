@@ -100,6 +100,17 @@
       "eloMaximo": "Max ELO"
     }
   },
+  "combate": {
+    "eyebrow": "Tonight's card",
+    "titulo": "Star showdown",
+    "descripcion": "Two catalog legends face off every day. Your vote decides who takes the night.",
+    "cta": "Enter the duel",
+    "rotacion": "The card changes every day",
+    "duelAria": "Duel of the day: {{a}} vs {{b}}",
+    "statElo": "Base ELO",
+    "statVictorias": "Est. wins",
+    "statDerrotas": "Est. losses"
+  },
   "torneos": {
     "tituloPagina": "Tournaments",
     "subtitulo": "Each bracket feels like a combat billboard, with status, participants, and a direct path to open duels.",
