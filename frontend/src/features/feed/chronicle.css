@@ -1,0 +1,57 @@
+/* ──────────────────────────────────────────────────────────────────────
+   Crónica de la federación — hilo de tinta scroll-driven.
+
+   Ruta feliz: CSS scroll-driven animation — el scroll ES el motor, cero
+   JS por frame. Fallback: FederationChronicle añade .chronicle-hilo--io
+   y un IntersectionObserver actualiza scaleY por pasos discretos (la
+   transición de transform hace el resto; tampoco hay JS por frame).
+   ────────────────────────────────────────────────────────────────────── */
+
+.chronicle-hilo {
+  background: linear-gradient(
+    180deg,
+    var(--color-accent-hover),
+    var(--color-accent) 55%,
+    color-mix(in srgb, var(--color-accent) 30%, transparent)
+  );
+  transform-origin: top center;
+  /* Arranque: un trazo corto ya entintado bajo la gota de origen. */
+  transform: scaleY(0.06);
+  will-change: transform;
+}
+
+@keyframes chronicle-hilo-draw {
+  from {
+    transform: scaleY(0.06);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Ruta feliz — el hilo se dibuja ligado al scroll del documento. */
+@supports (animation-timeline: scroll()) {
+  .chronicle-hilo--sda {
+    animation: chronicle-hilo-draw linear both;
+    animation-timeline: scroll();
+    animation-range: 0% 90%;
+  }
+}
+
+/* Fallback IO — el observer escribe scaleY inline; esta transición lo
+   convierte en un trazo continuo (compositor, no layout). */
+.chronicle-hilo--io {
+  transition: transform 0.6s var(--ease-lift);
+}
+
+/* reduced-motion: hilo completo y quieto; los sellos los resuelve
+   useReducedMotion() en chronicle-hanko (aparecen ya estampados). */
+@media (prefers-reduced-motion: reduce) {
+  .chronicle-hilo,
+  .chronicle-hilo--sda,
+  .chronicle-hilo--io {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
