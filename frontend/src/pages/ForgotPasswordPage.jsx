@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { ArrowRight, Mail } from 'lucide-react'
+import FlowSeal from '../components/FlowSeal'
 import { useSeo } from '../hooks/useSeo'
 import { endpoints, ApiError } from '../lib/api'
 import { VisualPageShell } from '../components/VisualSystem'
@@ -114,9 +115,13 @@ function ForgotPasswordPage() {
               decide navegar al formulario de código. */}
           <div aria-live="polite" aria-atomic="true">
             {enviado && (
-              <p className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-[13px] text-success">
-                Código enviado. Revisa tu bandeja de entrada (y la carpeta spam).
-              </p>
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-bg/50 px-4 py-3">
+                {/* Lacre 送 (envío): el sello del sobre se parte y la carta asoma. */}
+                <FlowSeal variant="enviado" size={180} />
+                <p className="text-[13px] text-success">
+                  Código enviado. Revisa tu bandeja de entrada (y la carpeta spam).
+                </p>
+              </div>
             )}
           </div>
           {enviado && (
