@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, Lock, Save, Search, ShieldCheck, Sparkles, Trophy, WalletCards, X } from 'lucide-react'
+import { AlertTriangle, Lock, Save, Search, ShieldCheck, Sparkles, Trophy, WalletCards } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSeo } from '../hooks/useSeo'
 import { useAuth } from '../contexts/AuthContext'
@@ -14,6 +14,8 @@ import PersonajeImg from '../components/PersonajeImg'
 import Avatar from '../components/Avatar'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
+import StrategistBench from '../features/fantasy/StrategistBench'
+import ScoreScroll from '../features/fantasy/ScoreScroll'
 
 function normalizarItems(items = []) {
   return items.map((item) => ({
@@ -70,6 +72,7 @@ function FantasyPage() {
   }, [candidatos, draftCache, equipoItems])
 
   const selectedItems = selectedIds.map((id) => itemById.get(id)).filter(Boolean)
+  const [actaAbierta, setActaAbierta] = useState(false)
   const presupuesto = Number(resumen?.presupuesto ?? equipo?.presupuesto ?? 1000)
   const slots = Number(resumen?.slots ?? 5)
   const costeTotal = selectedItems.reduce((acc, item) => acc + Number(item.coste || 0), 0)
@@ -110,6 +113,44 @@ function FantasyPage() {
     queryFn: () => endpoints.fantasyLeaderboard({ semanaIso: resumen?.semanaIso, limit: 20 }),
     staleTime: 60_000,
   })
+
+  // Adaptadores del banquillo (StrategistBench habla en slugs).
+  const porSlug = useMemo(() => {
+    const map = new Map()
+    for (const c of candidatos) map.set(c.slug, c)
+    for (const item of selectedItems) map.set(item.slug, item)
+    return map
+  }, [candidatos, selectedItems])
+  const equipoBench = useMemo(
+    () =>
+      Array.from({ length: slots }, (_, i) => {
+        const item = selectedItems[i]
+        return item
+          ? { slug: item.slug, nombre: item.nombre, anime: item.anime, coste: item.coste }
+          : null
+      }),
+    [selectedItems, slots],
+  )
+  const mercadoBench = useMemo(
+    () =>
+      candidatos
+        .filter((c) => !selectedIds.includes(c.personajeId))
+        .map((c) => ({ slug: c.slug, nombre: c.nombre, anime: c.anime, coste: c.coste })),
+    [candidatos, selectedIds],
+  )
+  const ficharPorSlug = (slug) => {
+    const personaje = porSlug.get(slug)
+    if (personaje) togglePersonaje(personaje)
+  }
+  const venderPorSlug = (slug) => {
+    const item = selectedItems.find((i) => i.slug === slug)
+    if (item) quitarSlot(item.personajeId)
+  }
+  const actaLineas = equipoItems.map((item) => ({
+    slug: item.slug,
+    nombre: item.nombre,
+    delta: item.deltaSemanal,
+  }))
 
   const togglePersonaje = (personaje) => {
     if (locked) return
@@ -225,21 +266,8 @@ function FantasyPage() {
               </div>
             </div>
 
-            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
-              {Array.from({ length: slots }).map((_, index) => {
-                const item = selectedItems[index]
-                return (
-                  <DraftSlot
-                    key={item?.personajeId ?? `slot-${index}`}
-                    item={item}
-                    index={index}
-                    locked={locked}
-                    onRemove={quitarSlot}
-                  />
-                )
-              })}
-            </div>
-
+            {/* El vestuario del estratega: taquillas + pila de monedas +
+                mercado con vuelos WAAPI. El buscador alimenta el mercado. */}
             <div className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2">
               <Search className="h-4 w-4 text-fg-muted" />
               <input
@@ -250,27 +278,41 @@ function FantasyPage() {
               />
             </div>
 
-            {candidatosQuery.isLoading && (
+            {candidatosQuery.isLoading ? (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 9 }).map((_, index) => (
                   <Skeleton key={index} variant="card" className="h-36 rounded-lg" />
                 ))}
               </div>
+            ) : (
+              <StrategistBench
+                equipo={equipoBench}
+                mercado={mercadoBench}
+                presupuesto={restante}
+                onFichar={ficharPorSlug}
+                onVender={venderPorSlug}
+                estado={locked ? 'cerrada' : 'draft'}
+              />
             )}
 
-            {!candidatosQuery.isLoading && (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {candidatos.map((personaje) => (
-                  <CandidateCard
-                    key={personaje.personajeId}
-                    personaje={personaje}
-                    selected={selectedIds.includes(personaje.personajeId)}
-                    locked={locked}
-                    onToggle={togglePersonaje}
-                  />
-                ))}
+            {locked && actaLineas.length > 0 && (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setActaAbierta(true)}
+                  className="as-button-ghost inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-black"
+                >
+                  <Trophy className="h-4 w-4" />
+                  Leer el acta de la semana
+                </button>
               </div>
             )}
+            <ScoreScroll
+              abierta={actaAbierta}
+              lineas={actaLineas}
+              fecha={resumen?.semanaIso ? `semana ${resumen.semanaIso}` : undefined}
+              onCerrar={() => setActaAbierta(false)}
+            />
           </section>
 
           <aside className="min-w-0 space-y-5">
@@ -345,82 +387,6 @@ function Kpi({ icon: Icon, label, value, tone = 'default' }) {
       </div>
       <p className={`font-mono text-2xl font-black tabular-nums ${valueClass}`}>{value}</p>
     </div>
-  )
-}
-
-function DraftSlot({ item, index, locked, onRemove }) {
-  if (!item) {
-    return (
-      <div className="flex aspect-[2/3] items-center justify-center rounded-lg border border-dashed border-border bg-surface-alt text-[12px] font-bold text-fg-muted">
-        Slot {index + 1}
-      </div>
-    )
-  }
-
-  return (
-    <div className="group relative aspect-[2/3] overflow-hidden rounded-lg border border-border bg-surface">
-      <PersonajeImg
-        slug={item.slug}
-        src={item.imagenUrl}
-        nombre={item.nombre}
-        alt={item.nombre}
-        className="h-full w-full"
-        sizes="(min-width: 1024px) 170px, 42vw"
-      />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-bg via-bg/80 to-transparent p-3">
-        <p className="line-clamp-2 text-sm font-black text-fg-strong">{item.nombre}</p>
-        <p className="mt-1 text-[11px] text-fg-muted">{item.coste} pts · Δ {item.deltaSemanal}</p>
-      </div>
-      {!locked && (
-        <button
-          type="button"
-          onClick={() => onRemove(item.personajeId)}
-          className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-bg/80 text-fg-muted opacity-100 transition-colors hover:text-fg-strong"
-          aria-label={`Quitar ${item.nombre}`}
-        >
-          <X className="h-4 w-4" />
-        </button>
-      )}
-    </div>
-  )
-}
-
-function CandidateCard({ personaje, selected, locked, onToggle }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onToggle(personaje)}
-      disabled={locked}
-      className={`grid min-h-36 grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-lg border bg-surface p-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-        selected ? 'border-gold shadow-aura' : 'border-border hover:border-accent/60'
-      }`}
-    >
-      <PersonajeImg
-        slug={personaje.slug}
-        src={personaje.imagenUrl}
-        nombre={personaje.nombre}
-        alt={personaje.nombre}
-        className="aspect-[2/3] h-32 w-20 rounded-md"
-        sizes="80px"
-      />
-      <span className="flex min-w-0 flex-col justify-between py-1">
-        <span className="min-w-0">
-          <span className="line-clamp-2 text-sm font-black text-fg-strong">{personaje.nombre}</span>
-          <span className="mt-1 block truncate text-[12px] text-fg-muted">{personaje.anime}</span>
-        </span>
-        <span className="grid grid-cols-3 gap-1 text-[11px] font-bold">
-          <span className="rounded-md bg-surface-alt px-2 py-1 text-fg-muted">
-            ELO {personaje.eloEstimado}
-          </span>
-          <span className="rounded-md bg-surface-alt px-2 py-1 text-gold">
-            {personaje.coste}
-          </span>
-          <span className="rounded-md bg-surface-alt px-2 py-1 text-fg-muted">
-            Δ {personaje.deltaSemanal}
-          </span>
-        </span>
-      </span>
-    </button>
   )
 }
 
