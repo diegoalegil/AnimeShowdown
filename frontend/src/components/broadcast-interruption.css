@@ -1,0 +1,115 @@
+/* ============================================================================
+   BroadcastInterruption — bloque para index.css (CSP por hash: los keyframes
+   viven aquí, nada de <style> en runtime).
+
+   Token NUEVO propuesto en :root (overshoot de hanko, ya usado a mano en los
+   sellos; promoverlo aquí lo vuelve sistema):
+
+     --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+   Reglas Kessen: solo transform/opacity; los keyframes definen únicamente el
+   "from" cuando es posible — el estado base YA es el final, así
+   prefers-reduced-motion sale gratis. Todo es play-once: cero loops.
+   ========================================================================== */
+
+/* --- Fase 1 · estática fingida (0–300 ms, una iteración) ------------------ */
+@keyframes bi-static-a {
+  0% { opacity: 0.85; }
+  30% { opacity: 0.18; }
+  55% { opacity: 0.6; }
+  80% { opacity: 0.1; }
+  100% { opacity: 0; }
+}
+@keyframes bi-static-b {
+  0% { opacity: 0.55; }
+  40% { opacity: 0.08; }
+  70% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+.bi-static-a { animation: bi-static-a 300ms steps(3, end) 1 both; }
+.bi-static-b { animation: bi-static-b 300ms steps(3, end) 30ms 1 both; }
+
+/* --- Fase 2 · la carta de ajuste se asienta (140–680 ms) ------------------ */
+@keyframes bi-bar {
+  from { transform: translateY(-103%); opacity: 0; }
+}
+/* El stagger entra por --bi-d inline (140ms + i·45ms), patrón --mf-amp. */
+.bi-bar { animation: bi-bar 560ms var(--ease-lift) var(--bi-d, 0ms) both; }
+
+/* Colores de barra: rgb alpha (NO color-mix — Safari < 16.2). Si este CSS no
+   carga, las barras quedan transparentes: decorativo que falla en silencio. */
+.bi-bar-carmesi { background: color-mix(in srgb, var(--color-accent) 50%, transparent); }
+.bi-bar-oro { background: color-mix(in srgb, var(--color-gold) 42%, transparent); }
+.bi-bar-cian { background: color-mix(in srgb, var(--color-electric, var(--color-gold)) 26%, transparent); }
+.bi-bar-tinta { background: color-mix(in srgb, var(--color-bg) 70%, var(--color-surface)); }
+.bi-bar-pizarra { background: var(--color-surface-alt); }
+.bi-bar-niebla { background: color-mix(in srgb, var(--color-fg-muted) 14%, transparent); }
+
+/* --- Fase 3 · sello 乱 (620–1140 ms) + sangrado --------------------------- */
+@keyframes bi-stamp {
+  0% { opacity: 0; transform: rotate(-13deg) scale(2.3); }
+  55% { opacity: 1; transform: rotate(-5deg) scale(0.94); }
+  78% { transform: rotate(-7.5deg) scale(1.05); }
+  100% { opacity: 1; transform: rotate(-6deg) scale(1); }
+}
+.bi-stamp { animation: bi-stamp 520ms var(--ease-stamp, cubic-bezier(0.34, 1.56, 0.64, 1)) 620ms both; }
+
+/* Sangrado: capa pre-renderizada (copia scale(1.05) al 30%) que cross-fadea
+   su opacity cuando el sello ya asentó. Cero blur, cero filters. */
+@keyframes bi-bleed {
+  from { opacity: 0; }
+}
+.bi-bleed { animation: bi-bleed 260ms ease 1020ms both; }
+
+/* --- Texto y acciones (320/400/480/900 ms) -------------------------------- */
+@keyframes bi-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+.bi-rise-1 { animation: bi-rise 540ms var(--ease-lift) 320ms both; }
+.bi-rise-2 { animation: bi-rise 540ms var(--ease-lift) 400ms both; }
+.bi-rise-3 { animation: bi-rise 540ms var(--ease-lift) 480ms both; }
+.bi-rise-4 { animation: bi-rise 540ms var(--ease-lift) 900ms both; }
+
+/* --- Confirmación de copia · subrayado de tinta (400 ms) ------------------ */
+@keyframes bi-underline {
+  from { transform: scaleX(0); }
+}
+.bi-underline-run { animation: bi-underline 400ms var(--ease-brush) both; }
+
+/* --- Acciones: hover/focus de marca (NO críticos: sin ellos los botones
+       siguen operativos con sus estilos inline) ---------------------------- */
+.bi-accion-primaria {
+  background-image: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  transition: transform 200ms var(--ease-lift), filter 200ms ease;
+}
+.bi-accion-primaria:hover { transform: translateY(-2px); filter: brightness(1.12); }
+.bi-accion-primaria:active { transform: translateY(0) scale(0.985); }
+.bi-accion-secundaria { transition: border-color 200ms ease, color 200ms ease, background 200ms ease; }
+.bi-accion-secundaria:hover {
+  border-color: var(--color-border-gold);
+  background: var(--color-gold-soft);
+  color: var(--color-gold-bright);
+}
+.bi-parte:hover { color: var(--color-fg); }
+.bi-accion-primaria:focus-visible,
+.bi-accion-secundaria:focus-visible,
+.bi-parte:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* --- Cinturón y tirantes: el JS ya no monta la estática con reduced-motion,
+       pero si alguien reutiliza las clases, esto las apaga igual ------------ */
+@media (prefers-reduced-motion: reduce) {
+  .bi-static-a,
+  .bi-static-b { display: none; }
+  .bi-bar,
+  .bi-stamp,
+  .bi-bleed,
+  .bi-rise-1,
+  .bi-rise-2,
+  .bi-rise-3,
+  .bi-rise-4,
+  .bi-underline-run { animation: none; }
+}

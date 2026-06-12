@@ -1,8 +1,6 @@
 import { Component } from 'react'
-import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { Sentry } from '../lib/sentry'
-import { BRAND_VISUALS } from '../data/visual-assets'
-import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_MAILTO } from '../data/legal'
+import BroadcastInterruption from './BroadcastInterruption'
 import {
   isStaleAssetError,
   recoverFromStaleAssetError,
@@ -65,6 +63,10 @@ class ErrorBoundary extends Component {
         Sentry.captureException(error, {
           contexts: { react: { componentStack: info?.componentStack } },
         })
+        // El parte nº de la pantalla de interrupción; si Sentry no está,
+        // queda undefined y la franja del parte no se renderiza.
+        const eventId = Sentry.lastEventId?.()
+        if (eventId) this.setState({ eventId })
       } catch {
         /* Sentry roto no debe tumbar el boundary */
       }
@@ -82,7 +84,7 @@ class ErrorBoundary extends Component {
   }
 
   reset = () => {
-    this.setState({ hasError: false, error: null, staleAsset: false })
+    this.setState({ hasError: false, error: null, staleAsset: false, eventId: null })
   }
 
   render() {
@@ -93,98 +95,14 @@ class ErrorBoundary extends Component {
         : this.props.fallback
     }
 
-    const visual = BRAND_VISUALS.error
-    const image = visual.image || visual.fallbackImage || '/img/stage/error-rain.webp'
-    const staleAsset = this.state.staleAsset
-    const eyebrow = staleAsset ? 'Nueva versión disponible' : 'Error de escena'
-    const title = staleAsset ? 'Actualizando la arena' : 'La batalla se ha interrumpido'
-    const copy = staleAsset
-      ? 'Tu navegador tenía una pieza antigua de la página. Recarga para tomar la versión nueva y volver al combate.'
-      : 'Algo falló al cargar esta pantalla. Recarga para volver al combate; si vuelve a pasar, avísanos en'
-
+    // La interrupción de la retransmisión: carta de ajuste + sello 乱.
+    // Aislada a propósito del árbol que pudo romper (cero router/contexts).
     return (
-      <section className="relative min-h-[100svh] overflow-hidden bg-bg text-fg-strong">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-cover bg-[63%_center] sm:bg-center"
-          style={{ backgroundImage: `url("${image}")` }}
-        />
-        <div
-          aria-hidden="true"
-          className="as-error-boundary-scrim absolute inset-0"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-bg via-bg/60 to-transparent"
-        />
-
-        <div className="relative z-10 flex min-h-[100svh] w-full items-center px-5 py-12 sm:px-10 lg:px-20">
-          <div className="as-error-boundary-panel w-full max-w-xl rounded-2xl border border-accent/42 p-6 shadow-aura-lg inset-shadow-hairline backdrop-blur-xl sm:p-9">
-            <span className="as-error-boundary-icon inline-flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold shadow-aura">
-              <AlertTriangle className="h-6 w-6" />
-            </span>
-
-            <div className="mt-8 flex flex-col gap-3">
-              <p className="text-[11px] font-black text-gold">
-                {eyebrow}
-              </p>
-              <h1 className="max-w-sm text-3xl font-black tracking-tight sm:text-4xl">
-                {title}
-              </h1>
-              <p className="max-w-md text-sm leading-7 text-fg-muted sm:text-base">
-                {copy}
-                {!staleAsset && (
-                  <>
-                    {' '}
-                    <a
-                      href={LEGAL_CONTACT_MAILTO}
-                      className="font-semibold text-gold hover:text-fg-strong"
-                    >
-                      {LEGAL_CONTACT_EMAIL}
-                    </a>
-                    .
-                  </>
-                )}
-              </p>
-            </div>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={this.handleReload}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-accent/55 bg-gradient-to-b from-accent-hover to-accent px-5 py-3 text-sm font-black text-white shadow-aura inset-shadow-hairline-strong transition-all hover:-translate-y-0.5 hover:brightness-110"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Recargar página
-              </button>
-              <a
-                href="/"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/5 px-5 py-3 text-sm font-bold text-fg-strong transition-colors hover:border-gold/45 hover:text-gold"
-              >
-                <Home className="h-4 w-4" />
-                Volver al inicio
-              </a>
-            </div>
-
-            <p className="mt-6 text-[11px] text-fg-muted/70">
-              El error queda registrado para poder rastrearlo.
-            </p>
-
-            {/* Detalles solo en desarrollo — en producción ocultamos el
-                stacktrace para no exponer internals del bundle. */}
-            {import.meta.env.DEV && this.state.error && (
-              <details className="mt-5 w-full">
-                <summary className="cursor-pointer text-[11px] font-mono text-fg-muted">
-                  Stack (solo en dev)
-                </summary>
-                <pre className="mt-2 max-h-64 overflow-auto rounded-lg border border-white/10 bg-bg/85 p-3 text-[11px] text-gold">
-                  {String(this.state.error.stack || this.state.error)}
-                </pre>
-              </details>
-            )}
-          </div>
-        </div>
-      </section>
+      <BroadcastInterruption
+        eventId={this.state.eventId || undefined}
+        esChunkError={this.state.staleAsset}
+        onRetry={this.reset}
+      />
     )
   }
 }
