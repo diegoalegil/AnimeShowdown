@@ -1,0 +1,251 @@
+/* EL EXPEDIENTE DEL LUCHADOR — piezas del header de la ficha.
+   Reglas: solo transform/opacity; keyframes solo con `from` (el estado
+   base es el final → print y reduced-motion ven contenido); sangrado y
+   filo pre-renderizados que viajan con el transform del padre; cero
+   blur; alturas reservadas → cero CLS. */
+
+:root {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Esquinas doradas finas del expediente, sobre el retrato existente. */
+.fdh-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 0 solid var(--color-border-gold);
+  pointer-events: none;
+}
+.fdh-corner[data-pos='tl'] { top: 2px; left: 2px; border-top-width: 1px; border-left-width: 1px; }
+.fdh-corner[data-pos='tr'] { top: 2px; right: 2px; border-top-width: 1px; border-right-width: 1px; }
+.fdh-corner[data-pos='bl'] { bottom: 2px; left: 2px; border-bottom-width: 1px; border-left-width: 1px; }
+.fdh-corner[data-pos='br'] { bottom: 2px; right: 2px; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* Sello hanko del anime, abajo-derecha. Estático: forma parte del
+   retrato y viaja con su morph. Inset (el contenedor del retrato
+   recorta con overflow-hidden, el sello no muerde el marco). */
+.fdh-seal {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 50% 45%,
+    var(--color-hanko) 62%,
+    color-mix(in srgb, var(--color-hanko) 78%, var(--color-canvas)) 100%
+  );
+  border-radius: 8px;
+  transform: rotate(-4deg);
+  color: var(--color-fg-strong);
+  font-family: var(--font-kanji-serif);
+  font-size: 26px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-fg-strong) 28%, transparent);
+}
+
+/* Anotación tipo furigana: el anime encima del nombre, mono pequeño. */
+.fdh-anime {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-gold);
+}
+.fdh-anime::before {
+  content: '';
+  width: 18px;
+  height: 1px;
+  background: var(--color-border-gold);
+}
+
+/* Hairline dorada bajo el bloque de identidad: papel, no anima. */
+.fdh-hairline {
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-border-gold), transparent 78%);
+}
+
+/* Placa ELO acuñada (t0+100ms). */
+.fdh-placa-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 86px; /* espacio reservado: el odómetro nunca empuja nada */
+}
+.fdh-placa {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  align-self: flex-start;
+  padding: 8px 18px 10px;
+  background: linear-gradient(180deg, var(--color-surface-alt), var(--color-surface));
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 7%, transparent);
+  animation: fdh-mint 250ms var(--ease-stamp) 100ms both;
+}
+.fdh-placa-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+.fdh-placa-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-elo-number);
+  /* acuñado: bisel, sin glow */
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-canvas) 55%, transparent);
+  min-width: 4ch; /* tabular + ancho fijo: el odómetro no respira */
+}
+.fdh-puesto {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-fg-muted);
+  animation: fdh-rise 300ms var(--ease-lift) 100ms both;
+}
+
+/* Win-rate: UNA pincelada (t0+250ms). */
+.fdh-wr {
+  min-height: 58px; /* mismo alto que la variante sin clasificar → cero CLS */
+  max-width: 460px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.fdh-wr-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-fg-muted);
+}
+.fdh-wr-track {
+  position: relative;
+  margin-top: 18px; /* banda reservada para la cifra que cabalga el filo */
+  height: 14px;
+  border-bottom: 1px solid var(--color-border-gold-subtle); /* guía de papel */
+}
+/* El fill viaja DENTRO de un clip estático (overflow en un nodo que no
+   anima). translateX en vez de scaleX: el degradado y el filo no se
+   deforman, y la cifra comparte keyframes idénticos → sincronía por
+   motor. */
+.fdh-wr-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.fdh-wr-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--fdh-wr, 0) * 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-accent) 0%,
+    var(--color-accent-hover) 62%,
+    var(--color-gold) 96%
+  );
+  border-radius: 0 2px 2px 0;
+  animation: fdh-brush-travel 600ms var(--ease-brush) 250ms both;
+}
+/* Sangrado de tinta pre-renderizado: misma capa, solo viaja con el
+   transform del padre. Nada de blur en runtime. */
+.fdh-wr-fill::after {
+  content: '';
+  position: absolute;
+  inset: -2px 0;
+  background: var(--color-accent);
+  opacity: 0.16;
+  border-radius: inherit;
+}
+/* Filo dorado de 3px en el borde de avance (familia de los cortes de tinta). */
+.fdh-wr-fill::before {
+  content: '';
+  position: absolute;
+  inset: -2px 0 -2px auto;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 15%, transparent),
+    var(--color-gold-bright) 35%,
+    var(--color-gold-bright) 65%,
+    color-mix(in srgb, var(--color-gold) 15%, transparent)
+  );
+  z-index: 1;
+}
+/* Carrier de la cifra: mismo ancho y MISMOS keyframes que el fill →
+   la cifra cabalga el filo, no aparece al final. */
+.fdh-wr-carrier {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--fdh-wr, 0) * 100%);
+  pointer-events: none;
+  animation: fdh-brush-travel 600ms var(--ease-brush) 250ms both;
+}
+.fdh-wr-cifra {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 5px);
+  transform: translateX(50%);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gold-bright);
+  white-space: nowrap;
+}
+/* Variante honesta sin pincelada: entra en el hueco del mismo alto. */
+.fdh-wr-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: fdh-rise 300ms var(--ease-lift) 250ms both;
+}
+.fdh-wr-empty-titulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-fg-strong);
+}
+.fdh-wr-empty-nota {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-fg-muted);
+}
+
+/* Keyframes solo con `from`: el estado base es el final. */
+@keyframes fdh-mint {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+@keyframes fdh-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes fdh-brush-travel {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+/* Reduced motion: todo pintado directo (el odómetro lo corta el
+   componente por su lado con matchMedia). */
+@media (prefers-reduced-motion: reduce) {
+  .fdh-placa,
+  .fdh-puesto,
+  .fdh-wr-fill,
+  .fdh-wr-carrier,
+  .fdh-wr-empty {
+    animation: none;
+  }
+}

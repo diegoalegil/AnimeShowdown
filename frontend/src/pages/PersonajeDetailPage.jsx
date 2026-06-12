@@ -10,6 +10,7 @@ import {
   Quote,
   Share2,
   Sparkles,
+  Scale,
   Star,
   Swords,
   TrendingUp,
@@ -36,7 +37,11 @@ import CardFlip from '../components/CardFlip'
 import PersonajeCardBack from '../components/PersonajeCardBack'
 import PersonajeCardHolo from '../components/PersonajeCardHolo'
 import PersonajeImg from '../components/PersonajeImg'
-import { useImagenesPersonaje } from '../hooks/useImagenesPersonaje'
+import {
+  MarcoExpediente,
+  PlacaElo,
+  PinceladaWinRate,
+} from '../features/personajes/fighter-dossier'
 import ErrorBoundary from '../components/ErrorBoundary'
 import ReactionsBar from '../components/ReactionsBar'
 import SeguirPersonajeButton from '../components/SeguirPersonajeButton'
@@ -142,12 +147,6 @@ function PersonajeDetailPage() {
   // dispara un render extra: https://react.dev/reference/react/useState
   const imagenCatalogo = personaje ? imagenPersonaje(slug) : null
   const [imagenActiva, setImagenActiva] = useState(imagenCatalogo)
-  // Avatar del hero: primer retrato limpio de la galería (Jikan/MAL) si existe,
-  // con fallback a la imagen del catálogo (la carta). Mismo queryKey que la
-  // galería de abajo → TanStack lo deduplica, sin doble fetch.
-  const { data: galeriaExtras } = useImagenesPersonaje(slug)
-  const avatarSrc =
-    (Array.isArray(galeriaExtras) && galeriaExtras[0]) || imagenCatalogo
   const [slugAnterior, setSlugAnterior] = useState(slug)
   if (slug !== slugAnterior) {
     setSlugAnterior(slug)
@@ -392,6 +391,13 @@ function PersonajeDetailPage() {
                 nombre={personaje.nombre}
                 dossier={dossier}
               />
+              {/* Marco de expediente: esquinas + sello hanko del anime.
+                  Overlays estáticos que viajan con el morph del contenedor.
+                  Sin kanji real del universo → sin sello (nunca relleno). */}
+              <MarcoExpediente
+                animeKanji={visualAnime?.identity?.kanji ?? visualAnime?.kanji}
+                anime={personaje.anime}
+              />
             </div>
           </div>
           <motion.div
@@ -438,52 +444,29 @@ function PersonajeDetailPage() {
               )}
             </motion.div>
             <motion.div
-              className="flex items-center gap-4 sm:gap-5"
+              className="flex w-full min-w-0 flex-col gap-1.5"
               variants={itemVariants}
             >
-              {/* Retrato circular pequeño: imagen limpia del catálogo, estable
-                  (no cambia con la galería de abajo). object-top favorece la
-                  cabeza dentro del recorte circular. */}
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-gold/30 bg-surface shadow-aura sm:h-28 sm:w-28">
-                {/* Retrato limpio de la galería (MAL/Jikan) si existe; si falla
-                    o no hay, cae a la imagen del catálogo (la carta). no-referrer
-                    como en la galería para no romper por hotlink protection. */}
-                <img
-                  src={avatarSrc}
-                  alt={personaje.nombre}
-                  width={112}
-                  height={112}
-                  loading="eager"
-                  referrerPolicy="no-referrer"
-                  className="h-full w-full object-cover object-top"
-                  onError={(e) => {
-                    const img = e.currentTarget
-                    if (!img.dataset.fellBack && imagenCatalogo) {
-                      img.dataset.fellBack = '1'
-                      img.src = imagenCatalogo
-                    }
-                  }}
-                />
-              </div>
-              <div className="flex min-w-0 flex-col gap-1">
-                <h1
-                  itemProp="name"
-                  className="text-[clamp(1.75rem,4.5vw,3rem)] leading-tight tracking-tight"
+              {/* Identidad de expediente: el anime como anotación furigana
+                  (mono, oro) sobre el nombre, con hairline de papel debajo.
+                  El retrato circular murió: el retrato 2:3 con marco y sello
+                  ya lleva la identidad visual. Microdata intacta. */}
+              <p className="fdh-anime">
+                <span
+                  itemProp="affiliation"
+                  itemScope
+                  itemType="https://schema.org/TVSeries"
                 >
-                  {personaje.nombre}
-                </h1>
-                <p className="text-lg text-fg-muted">
-                  de{' '}
-                  <span
-                    itemProp="affiliation"
-                    itemScope
-                    itemType="https://schema.org/TVSeries"
-                    className="font-semibold text-fg-strong"
-                  >
-                    <span itemProp="name">{personaje.anime}</span>
-                  </span>
-                </p>
-              </div>
+                  <span itemProp="name">{personaje.anime}</span>
+                </span>
+              </p>
+              <h1
+                itemProp="name"
+                className="text-[clamp(1.75rem,4.5vw,3rem)] leading-tight tracking-tight"
+              >
+                {personaje.nombre}
+              </h1>
+              <div className="fdh-hairline mt-2 w-full" aria-hidden="true" />
             </motion.div>
             <motion.div
               className="flex flex-wrap gap-2"
@@ -503,6 +486,13 @@ function PersonajeDetailPage() {
               >
                 <TrendingUp className="h-4 w-4" />
                 Ver en ranking
+              </Link>
+              <Link
+                to={`/comparar?a=${encodeURIComponent(personaje.slug)}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-fg-strong transition-colors hover:border-gold/50 hover:text-gold"
+              >
+                <Scale className="h-4 w-4" />
+                Comparar
               </Link>
               <Link
                 to={`/mi-top5?add=${encodeURIComponent(personaje.slug)}`}
@@ -534,20 +524,18 @@ function PersonajeDetailPage() {
                 />
               </motion.div>
             )}
-            <motion.div
-              className="grid w-full grid-cols-3 gap-3"
-              variants={itemVariants}
-            >
-              {/* El "ELO" mostrado aquí viene de getStatsPersonaje(slug);
-                  es determinístico y no se mueve con los votos. Lo
-                  etiquetamos como base/estimado y apuntamos al ranking real. */}
-              <Stat label="ELO base" value={stats.elo} accent />
-              <Stat
-                label="Récord est."
-                value={`${stats.wins}-${stats.losses}`}
+            {/* La placa acuñada y la pincelada llevan su propia entrada CSS
+                (cuño t0+100ms, pincelada t0+250ms): div plano, fuera del
+                stagger de framer para no doblar la coreografía. El "ELO"
+                sigue siendo getStatsPersonaje(slug): base/estimado — la
+                placa no lo inventa, y el ranking real vive en /ranking. */}
+            <div className="flex w-full flex-col gap-4">
+              <PlacaElo elo={stats.elo} puesto={rankGlobal} total={personajes.length} />
+              <PinceladaWinRate
+                winRate={total > 0 ? winRate : null}
+                combates={total}
               />
-              <Stat label="Win rate est." value={`${winRate}%`} />
-            </motion.div>
+            </div>
             {total === 0 && (
               <motion.p
                 className="text-[12px] italic text-fg-muted"
@@ -1036,23 +1024,6 @@ function PersonajeStaticOr3D({ imagenUrl, fallbackUrl, slug, nombre, dossier }) 
       >
         Volver a imagen
       </button>
-    </div>
-  )
-}
-
-function Stat({ label, value, accent }) {
-  return (
-    <div className="rounded-lg border border-border bg-surface px-3 py-2.5">
-      <p className="text-[10px] font-medium text-fg-muted">
-        {label}
-      </p>
-      <p
-        className={`mt-1 font-mono text-xl font-bold ${
-          accent ? 'text-gold' : 'text-fg-strong'
-        }`}
-      >
-        {value}
-      </p>
     </div>
   )
 }
