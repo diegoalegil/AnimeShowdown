@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 import VoteResultPanel from './VoteResultPanel'
+import { SoundProvider } from '../../../contexts/SoundContext'
 
 afterEach(() => cleanup())
 
@@ -12,15 +13,18 @@ const zoro = { slug: 'zoro', nombre: 'Roronoa Zoro' }
 function renderPanel(props: Record<string, unknown> = {}) {
   const onShareVote = vi.fn()
   render(
+    // SoundProvider: la balanza de tinta (VoteVerdict) usa useSound.
     <MemoryRouter>
-      <VoteResultPanel
-        votedPersonaje={luffy}
-        losingPersonaje={zoro}
-        voteResult={null}
-        personalVoteImpact={null}
-        onShareVote={onShareVote}
-        {...props}
-      />
+      <SoundProvider>
+        <VoteResultPanel
+          votedPersonaje={luffy}
+          losingPersonaje={zoro}
+          voteResult={null}
+          personalVoteImpact={null}
+          onShareVote={onShareVote}
+          {...props}
+        />
+      </SoundProvider>
     </MemoryRouter>,
   )
   return { onShareVote }

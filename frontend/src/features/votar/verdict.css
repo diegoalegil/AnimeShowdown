@@ -1,0 +1,412 @@
+/* ════════════════════════════════════════════════════════════════════
+   VoteVerdict — "La balanza de tinta" veredicto del duelo post-voto)
+   Bloque para pegar en src/index.css. Espejo temporal de verdict-timing.js:
+   el componente inyecta delays/duraciones como custom props --vv-d-… y
+   --vv-ms-…, RELATIVOS al settle — t+600ms, fin del avance de aguadas.
+
+   Patrón del sistema (como totb-…/mf-*): el estado BASE de cada nodo ES
+   el estado final; las keyframes solo definen el "from"/transitorio.
+   Así reduced-motion y el pintado directo salen gratis y sin CLS.
+   Todo anima transform/opacity. Sin blur, sin SVG filters vivos.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Overshoot del hanko, promovido a token de motion.
+   Si --ease-stamp ya vive en @theme, eliminar esta regla. */
+:root {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ——— keyframes (solo "from" / transitorios) ——— */
+@keyframes vv-hairline-v {
+  from { transform: translateX(-50%) scaleY(0); }
+}
+@keyframes vv-hairline-h {
+  from { transform: translateY(-50%) scaleX(0); }
+}
+@keyframes vv-breath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+}
+@keyframes vv-stamp {
+  from { opacity: 0; transform: translate(-50%, -50%) translateY(-44px) rotate(-13deg) scale(1.9); }
+}
+@keyframes vv-stamp-inline {
+  from { opacity: 0; transform: translateY(-32px) rotate(-13deg) scale(1.8); }
+}
+@keyframes vv-bleed {
+  from { opacity: 0; transform: scale(0.9); }
+}
+@keyframes vv-flash {
+  0% { opacity: 0; }
+  35% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ——— panel (alturas RESERVADAS: cero CLS al entrar o al cambiar estado) ——— */
+.vv {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--radius-card, 1rem);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elev-1), var(--inset-shadow-hairline);
+  padding: 18px 20px 16px;
+}
+
+/* Cabecera: nombres + odómetros. Altura fija. */
+.vv-heads {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  height: 58px;
+  margin-bottom: 12px;
+}
+.vv-side {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.vv-side--b {
+  align-items: flex-end;
+  text-align: right;
+}
+.vv-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 18ch;
+}
+.vv-pct {
+  font-family: var(--font-mono);
+  font-weight: 900;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--color-fg-strong);
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: baseline;
+  transform: scale(1);
+}
+.vv-side--a .vv-pct { transform-origin: 0% 100%; }
+.vv-side--b .vv-pct { transform-origin: 100% 100%; }
+.vv-pct-num {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+}
+.vv-pct-sym {
+  font-size: 17px;
+  margin-left: 2px;
+  color: var(--color-fg-muted);
+}
+
+/* t+720 (settle+120): el % ganador gana peso — transform + color, cero relayout. */
+.vv[data-vv-settled] .vv-side[data-vv-winner="1"] .vv-pct {
+  transform: scale(1.12);
+  color: var(--color-gold-bright);
+  transition:
+    transform var(--vv-ms-breath, 250ms) var(--ease-lift) var(--vv-d-breath, 120ms),
+    color var(--vv-ms-breath, 250ms) linear var(--vv-d-breath, 120ms);
+}
+.vv[data-vv-settled] .vv-side[data-vv-winner="1"] .vv-pct-sym { color: inherit; }
+
+/* El lado perdedor cede medio paso. */
+.vv[data-vv-settled] .vv-side[data-vv-loser="1"] {
+  opacity: 0.6;
+  transition: opacity var(--vv-ms-breath, 250ms) linear var(--vv-d-breath, 120ms);
+}
+
+/* Respiración: UNA vez. En empate, AMBOS lados llevan data-vv-breathe. */
+.vv[data-vv-settled] .vv-side[data-vv-breathe="1"] {
+  animation: vv-breath var(--vv-ms-breath, 250ms) var(--ease-lift) var(--vv-d-breath, 120ms) 1 both;
+}
+.vv[data-vv-settled] .vv-wash[data-vv-breathe="1"] {
+  transform-origin: 50% 50%;
+  animation: vv-breath var(--vv-ms-breath, 250ms) var(--ease-lift) var(--vv-d-breath, 120ms) 1 both;
+}
+
+/* ——— banda de tinta ——— */
+.vv-band {
+  position: relative;
+  height: 64px;
+}
+.vv-ink {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg, 0.5rem);
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--color-fg-strong) 3%, transparent), transparent 60%),
+    var(--color-canvas);
+  box-shadow: var(--inset-shadow-hairline);
+}
+
+/* Aguadas: tinta SÓLIDA carmesí y sumi frío pre-mezclados sobre el lienzo —
+   sin alphas apiladas, el frente SVG empalma sin costura. El avance lo
+   escribe JS frame a frame en style.transform (scaleX/scaleY, origin en su
+   extremo); el estado base ya es el final (escala 1). */
+.vv-wash {
+  position: absolute;
+  will-change: transform;
+}
+.vv-wash--a {
+  inset: 0 auto 0 0;
+  width: var(--vv-split, 50%);
+  transform-origin: 0% 50%;
+  background-color: color-mix(in srgb, var(--color-accent) 88%, var(--color-canvas));
+  background-image: repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-canvas) 13%, transparent) 0 2px, transparent 2px 11px);
+}
+.vv-wash--b {
+  inset: 0 0 0 auto;
+  width: calc(100% - var(--vv-split, 50%));
+  transform-origin: 100% 50%;
+  background-color: color-mix(in srgb, var(--color-border) 72%, var(--color-canvas));
+  background-image: repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-canvas) 16%, transparent) 0 2px, transparent 2px 13px);
+}
+
+/* Frente irregular de tinta: SVG path ESTÁTICO (no se redibuja) que viaja
+   con su capa — translate escrito por JS con el MISMO progress que la
+   aguada y el odómetro. Base = posición final: los frentes se funden bajo
+   la hairline — la tinta de ambos juicios se toca. */
+.vv-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  will-change: transform;
+  pointer-events: none;
+}
+.vv-edge--a { left: var(--vv-split, 50%); color: color-mix(in srgb, var(--color-accent) 88%, var(--color-canvas)); }
+.vv-edge--b { left: calc(var(--vv-split, 50%) - 16px); color: color-mix(in srgb, var(--color-border) 72%, var(--color-canvas)); }
+.vv-edge svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Marca de agua kanji al 5% — 決 (decisión). */
+.vv-watermark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -52%);
+  font-family: var(--font-kanji-serif);
+  font-weight: 900;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--color-gold);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+/* ——— la frontera del juicio ——— */
+.vv-hairline {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  left: var(--vv-split, 50%);
+  transform: translateX(-50%) scaleY(1);
+  background: linear-gradient(180deg, transparent, var(--color-gold-bright) 18%, var(--color-gold-bright) 82%, transparent);
+  box-shadow: 0 0 14px 1px var(--color-gold-aura-soft);
+  pointer-events: none;
+  z-index: 3;
+}
+.vv:not([data-vv-settled]) .vv-hairline {
+  transform: translateX(-50%) scaleY(0);
+}
+.vv[data-vv-settled] .vv-hairline {
+  animation: vv-hairline-v var(--vv-ms-hairline, 120ms) var(--ease-lift) var(--vv-d-hairline, 0ms) both;
+}
+
+/* Destello cian — SOLO si ganó el underdog (data-vv-underdog en la raíz).
+   Glow pre-pintado (sombra estática), solo anima opacity. UNA vez. */
+.vv-flash {
+  position: absolute;
+  inset: -8px -7px;
+  opacity: 0;
+  background: radial-gradient(closest-side, var(--color-electric-soft), transparent 70%);
+  box-shadow: 0 0 28px 4px color-mix(in srgb, var(--color-electric) 55%, transparent);
+  pointer-events: none;
+}
+.vv[data-vv-settled][data-vv-underdog="1"] .vv-flash {
+  animation: vv-flash var(--vv-ms-flash, 150ms) linear var(--vv-d-flash, 120ms) 1 both;
+}
+
+/* ——— sello 票 (tu papeleta) ——— */
+.vv-stamp {
+  position: absolute;
+  top: 50%;
+  left: var(--vv-stamp-pos, 50%);
+  width: 46px;
+  height: 46px;
+  transform: translate(-50%, -50%) rotate(-8deg) scale(1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-hanko);
+  border-radius: 9px;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-canvas) 60%, transparent), inset 0 0 0 2px color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  pointer-events: none;
+  z-index: 4;
+}
+.vv-stamp-glyph {
+  font-family: var(--font-kanji-serif);
+  font-weight: 900;
+  font-size: 27px;
+  line-height: 1;
+  color: var(--color-canvas);
+  transform: translateY(1px);
+}
+/* Sangrado: contorno irregular PRE-PINTADO que aflora al asentar el hanko. */
+.vv-stamp::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 2px solid color-mix(in srgb, var(--color-hanko) 50%, transparent);
+  border-radius: 46% 54% 52% 48% / 52% 47% 56% 44%;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-hanko) 40%, transparent);
+  opacity: 0.85;
+}
+.vv:not([data-vv-settled]) .vv-stamp { opacity: 0; }
+.vv:not([data-vv-settled]) .vv-stamp::after { opacity: 0; }
+.vv[data-vv-settled] .vv-stamp {
+  animation: vv-stamp var(--vv-ms-stamp, 350ms) var(--ease-stamp) var(--vv-d-stamp, 200ms) both;
+}
+.vv[data-vv-settled] .vv-stamp::after {
+  animation: vv-bleed var(--vv-ms-bleed, 240ms) var(--ease-lift) var(--vv-d-bleed, 400ms) both;
+}
+
+/* Variante inline (estado "primer voto"): el sello vive en el flujo. */
+.vv-stamp--inline {
+  position: static;
+  width: 40px;
+  height: 40px;
+  transform: rotate(-8deg);
+}
+.vv-stamp--inline .vv-stamp-glyph { font-size: 23px; }
+.vv[data-vv-settled] .vv-stamp--inline {
+  animation-name: vv-stamp-inline;
+}
+
+/* ——— caption accesible (aria-live=polite, altura reservada) ——— */
+.vv-caption {
+  margin: 12px 0 0;
+  min-height: 36px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-fg-muted);
+  text-wrap: pretty;
+}
+
+/* ——— primer voto / error de red: misma huella que cabecera+banda ——— */
+.vv-void {
+  height: 134px; /* 58 (heads) + 12 (gap) + 64 (band) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+}
+.vv-void p { margin: 0; }
+.vv-void-kicker {
+  color: var(--color-fg-strong);
+  font-weight: 700;
+}
+.vv-retry {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-lg, 0.5rem);
+  border: 1px solid var(--color-border-gold-subtle);
+  background: var(--color-gold-soft);
+  color: var(--color-fg-strong);
+  font: 700 13px/1 var(--font-mono);
+  cursor: pointer;
+  transition: border-color 150ms linear, color 150ms linear;
+}
+.vv-retry:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-gold);
+}
+.vv-retry:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* ——— 390px: aguadas apiladas en VERTICAL, hairline HORIZONTAL ———
+   El componente pone .vv--vertical (matchMedia 639px). A avanza desde
+   arriba, B desde abajo; el punto de encuentro es --vv-split de la altura. */
+.vv--vertical .vv-band { height: 230px; }
+.vv--vertical .vv-void { height: 300px; }
+.vv--vertical .vv-wash--a {
+  inset: 0 0 auto 0;
+  width: auto;
+  height: var(--vv-split, 50%);
+  transform-origin: 50% 0%;
+  background-image: repeating-linear-gradient(180deg, color-mix(in srgb, var(--color-canvas) 13%, transparent) 0 2px, transparent 2px 11px);
+}
+.vv--vertical .vv-wash--b {
+  inset: auto 0 0 0;
+  width: auto;
+  height: calc(100% - var(--vv-split, 50%));
+  transform-origin: 50% 100%;
+  background-image: repeating-linear-gradient(180deg, color-mix(in srgb, var(--color-canvas) 16%, transparent) 0 2px, transparent 2px 13px);
+}
+.vv--vertical .vv-edge {
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 16px;
+}
+.vv--vertical .vv-edge--a { top: var(--vv-split, 50%); bottom: auto; }
+.vv--vertical .vv-edge--b { top: calc(var(--vv-split, 50%) - 16px); bottom: auto; }
+.vv--vertical .vv-hairline {
+  top: var(--vv-split, 50%);
+  bottom: auto;
+  left: -5px;
+  right: -5px;
+  width: auto;
+  height: 2px;
+  transform: translateY(-50%) scaleX(1);
+  background: linear-gradient(90deg, transparent, var(--color-gold-bright) 12%, var(--color-gold-bright) 88%, transparent);
+}
+.vv--vertical.vv:not([data-vv-settled]) .vv-hairline {
+  transform: translateY(-50%) scaleX(0);
+}
+.vv--vertical.vv[data-vv-settled] .vv-hairline {
+  animation-name: vv-hairline-h;
+}
+.vv--vertical .vv-stamp {
+  top: var(--vv-stamp-pos, 50%);
+  left: 50%;
+}
+
+/* ——— reduced-motion: estado final pintado directo, sello puesto ———
+   Redundante con la regla global del proyecto; se incluye para que el
+   bloque sea autosuficiente. */
+@media (prefers-reduced-motion: reduce) {
+  .vv *,
+  .vv *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
