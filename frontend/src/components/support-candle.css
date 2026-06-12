@@ -1,0 +1,20 @@
+/* SupportCandle — la vela del mes de /apoya. CSS de feature (CSP-safe). */
+.candle-flame, .candle-flame-core {
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+}
+/* Latido en contrafase: dos capas pre-renderizadas que se cruzan en opacity. */
+@keyframes candle-breathe-a { 0%, 100% { opacity: 0.95; } 50% { opacity: 0.55; } }
+@keyframes candle-breathe-b { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.95; } }
+@keyframes candle-halo-breathe {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.92); }
+}
+.candle-flame { animation: candle-breathe-a 2.8s ease-in-out infinite; }
+.candle-flame-core { animation: candle-breathe-b 2.8s ease-in-out infinite; }
+.candle-halo { animation: candle-halo-breathe 2.8s ease-in-out infinite; }
+[data-flame-paused] .candle-flame,
+[data-flame-paused] .candle-flame-core,
+[data-flame-paused] .candle-halo { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .candle-flame, .candle-flame-core, .candle-halo { animation: none !important; }
+}
