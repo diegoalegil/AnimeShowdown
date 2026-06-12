@@ -31,7 +31,7 @@ import { useSound } from '../contexts/SoundContext'
  *                           así que el dojo está en calma. Se gestiona
  *                           desde los ajustes del sistema."
  */
-function CalmLantern() {
+function CalmLantern({ size = 'h-10 w-10' }) {
   const { t } = useTranslation()
   const { calm, osReduced, toggle, announcement } = useCalmMode()
   const { play } = useSound()
@@ -54,7 +54,7 @@ function CalmLantern() {
         aria-pressed={calm}
         aria-label={label}
         title={osReduced ? undefined : label}
-        className="group inline-flex h-10 w-10 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
+        className={`group inline-flex ${size} items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong`}
       >
         <span className="as-lantern" data-calm={calm ? '' : undefined}>
           <span className="as-lantern__halo" aria-hidden="true" />
