@@ -650,6 +650,83 @@
   }
 }
 
+/* Cmd+K de archivo — corte de tinta. El panel se descubre con una pincelada
+   (un cover scaleX origin-left que se retira con filo dorado en el borde),
+   una hairline carmesí persigue la selección por translateY y el vacío se
+   nombra con un kanji revelado con el mismo barrido. Todo transform/opacity;
+   el scrim es opacidad plana (sin backdrop-blur). Los covers son animaciones
+   CSS de montaje: cero fases en JS. */
+@keyframes as-cmdk-cut {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes as-cmdk-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.as-cmdk-cover {
+  transform-origin: left center;
+  animation: as-cmdk-cut 240ms var(--ease-brush) both;
+}
+
+.as-cmdk-edge {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 15%, transparent),
+    var(--color-gold) 30%,
+    var(--color-gold) 70%,
+    color-mix(in srgb, var(--color-gold) 15%, transparent)
+  );
+}
+
+.as-cmdk-rail {
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--color-accent) 20%,
+    var(--color-accent) 80%,
+    transparent
+  );
+  transition:
+    transform 180ms var(--ease-brush),
+    height 180ms var(--ease-brush),
+    opacity 120ms ease;
+}
+
+.as-cmdk-mu-cover {
+  transform-origin: left center;
+  animation: as-cmdk-cut 420ms var(--ease-brush) 60ms both;
+}
+
+.as-cmdk-mu-text {
+  animation: as-cmdk-fade 300ms ease 260ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-cmdk-cover,
+  .as-cmdk-mu-cover {
+    animation: none;
+    transform: scaleX(0);
+  }
+  .as-cmdk-mu-text {
+    animation: none;
+  }
+  .as-cmdk-rail {
+    transition: none;
+  }
+}
+
 /* Ticker del Modo TV: cinta translateX infinita (dos copias, -50%). */
 @keyframes as-tv-ticker {
   from {
