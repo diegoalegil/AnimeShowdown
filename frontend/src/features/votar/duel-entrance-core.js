@@ -83,8 +83,9 @@ export function figureWalkFrames(dirSign, axis) {
 /**
  * Lanza la ceremonia de entrada.
  * @param {object} els nodos: { leftFigure, rightFigure, vsLine, vsFlash,
- *   leftCover, rightCover } — cualquiera puede faltar (arte faltante,
- *   móvil sin flash…), el coreógrafo lo salta.
+ *   vsCompact, leftCover, rightCover } — cualquiera puede faltar (arte
+ *   faltante, móvil sin flash…), el coreógrafo lo salta. vsCompact es el
+ *   badge de móvil: fade-in ligado al nacimiento del VS.
  * @param {object} opts
  *   scale       1 = primera ceremonia · 0.7 = par nuevo de auto-avance
  *   axis        'x' (escritorio) | 'y' (390px apilado)
@@ -154,7 +155,7 @@ export function runDuelEntrance(els, opts = {}) {
 
   if (fast) {
     // La cadencia de votar manda: fade único de 120ms, cero ceremonia.
-    ;[els.leftFigure, els.rightFigure].forEach((el) =>
+    ;[els.leftFigure, els.rightFigure, els.vsCompact].forEach((el) =>
       animate(el, [{ opacity: 0 }, { opacity: 1 }], {
         dur: ENTRANCE_T.fastFadeMs,
         easing: 'ease-out',
@@ -175,6 +176,12 @@ export function runDuelEntrance(els, opts = {}) {
     dur: figDur,
     delay: s(T.stepLagMs),
     easing: EASE_LIFT,
+  })
+
+  animate(els.vsCompact, [{ opacity: 0 }, { opacity: 1 }], {
+    dur: s(T.vsMs),
+    delay: s(T.vsAtMs),
+    easing: 'ease-out',
   })
 
   const vsAxis = axis === 'y' ? 'scaleX' : 'scaleY'

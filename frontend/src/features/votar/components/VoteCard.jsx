@@ -162,7 +162,7 @@ const VoteCard = memo(function VoteCard({
                 colorDominante={dominantColor}
                 loading="eager"
                 decoding="async"
-                fetchPriority={side === 'left' ? 'high' : 'auto'}
+                fetchPriority="high"
                 sizes="(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px"
                 fit="contain"
                 position="center"
@@ -222,28 +222,20 @@ const VoteCard = memo(function VoteCard({
             particles={false}
             label={isTie ? 'Medio voto' : 'Voto registrado'}
           />
-          {anonymousLimited && !showResult && (
-            <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full border border-gold/50 bg-black/70 px-3 py-1.5 text-center text-[11px] font-bold text-gold backdrop-blur-sm">
-              Voto invitado
-            </div>
-          )}
         </div>
       </motion.button>
+      {!captionHidden && (
       <div
         className={`flex min-w-0 flex-col px-1 ${
           side === 'right' ? 'items-end text-right' : 'items-start text-left'
         }`}
       >
-        {!captionHidden && (
-          <>
-            <h2 className="line-clamp-1 w-full text-base font-bold text-fg-strong sm:text-lg">
-              {identityHidden ? optionLabel : personaje.nombre}
-            </h2>
-            <p className="line-clamp-1 w-full text-[12px] text-fg-muted">
-              {identityHidden ? 'Identidad oculta' : personaje.anime}
-            </p>
-          </>
-        )}
+        <h2 className="line-clamp-1 w-full text-base font-bold text-fg-strong sm:text-lg">
+          {identityHidden ? optionLabel : personaje.nombre}
+        </h2>
+        <p className="line-clamp-1 w-full text-[12px] text-fg-muted">
+          {identityHidden ? 'Identidad oculta' : personaje.anime}
+        </p>
         {showResult && (
           <Link
             to={`/personajes/${personaje.slug}`}
@@ -254,6 +246,7 @@ const VoteCard = memo(function VoteCard({
           </Link>
         )}
       </div>
+      )}
     </div>
   )
 })

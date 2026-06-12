@@ -1,5 +1,7 @@
 import { memo, useMemo } from 'react'
-import { Scale } from 'lucide-react'
+import { useSound } from '../../../contexts/SoundContext'
+import { ArrowRight, Scale } from 'lucide-react'
+import { AppLink } from '../../../components/AppLink'
 import VoteCard from './VoteCard'
 import VsBadge from './VsBadge'
 import DuelEntrance from './DuelEntrance'
@@ -26,6 +28,7 @@ function toFigura(p, sideLabel, oculto) {
   if (oculto) {
     return {
       slug: p.slug,
+      personaje: p,
       nombre: `Opción ${sideLabel}`,
       anime: 'Identidad oculta',
       kanji: null,
@@ -33,6 +36,7 @@ function toFigura(p, sideLabel, oculto) {
   }
   return {
     slug: p.slug,
+    personaje: p,
     nombre: p.nombre,
     anime: p.anime,
     // Mismo patrón que DueloVersusPage: kanji de universo curado (o el
@@ -58,6 +62,7 @@ const VoteArena = memo(function VoteArena({
   ownsEspecialA = false,
   ownsEspecialB = false,
 }) {
+  const { play } = useSound()
   const arenaKey = a && b ? `${a.slug}-${b.slug}` : 'empty'
   // El empate también cuenta desde el voto optimista (votedFor con el
   // sentinel que no es ninguna de las dos cartas): sin esto, mientras el
@@ -85,10 +90,10 @@ const VoteArena = memo(function VoteArena({
   const figuraA = useMemo(() => toFigura(a, 'A', oculto), [a, oculto])
   const figuraB = useMemo(() => toFigura(b, 'B', oculto), [b, oculto])
 
-  const renderCard = (side) =>
+  const renderCard = (side, fig) =>
     side === 'left' ? (
       <VoteCard
-        personaje={a}
+        personaje={fig.personaje}
         ownsEspecial={ownsEspecialA}
         onClick={handleVoteLeft}
         disabled={controlsDisabled}
@@ -105,7 +110,7 @@ const VoteArena = memo(function VoteArena({
       />
     ) : (
       <VoteCard
-        personaje={b}
+        personaje={fig.personaje}
         ownsEspecial={ownsEspecialB}
         onClick={handleVoteRight}
         disabled={controlsDisabled}
@@ -124,18 +129,29 @@ const VoteArena = memo(function VoteArena({
 
   return (
     <div className="relative">
-      {/* VS compacto de móvil: overlay sobre el grid de 2 columnas (el
-          VS de tinta central solo existe en sm+). */}
-      <div className="pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 sm:hidden">
-        <VsBadge votedFor={votedFor} isTie={isTie} compact />
-      </div>
       <DuelEntrance
         pairKey={arenaKey}
         a={figuraA}
         b={figuraB}
         renderCard={renderCard}
         fastMode={fastMode}
-        vsBadge={<VsBadge votedFor={votedFor} isTie={isTie} />}
+        onPhase={(fase) => {
+          // El VS de tinta nace con un whoosh; rápido/calma no emiten fases.
+          if (fase === 'vs') play('playWhoosh')
+        }}
+        vsBadge={<VsBadge votedFor={votedFor} isTie={isTie} caption={false} />}
+        vsBadgeCompact={<VsBadge votedFor={votedFor} isTie={isTie} compact caption={false} />}
+        nameExtra={(side, fig) =>
+          votedFor ? (
+            <AppLink
+              to={`/personajes/${fig.personaje.slug}`}
+              className="mt-1 inline-flex items-center gap-1 text-[11px] text-gold hover:underline"
+            >
+              Ver ficha
+              <ArrowRight className="h-3 w-3" />
+            </AppLink>
+          ) : null
+        }
         tieSlot={
           canTie && !votedFor ? (
             <button

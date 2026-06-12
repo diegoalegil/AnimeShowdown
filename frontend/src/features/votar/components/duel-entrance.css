@@ -169,37 +169,6 @@
 
 /* 390px — apilado en columna: el VS pasa a hairline horizontal con su
    kanji; la línea nace por scaleX (el coreógrafo cambia el eje). */
-.as-duel-vs--h {
-  flex-direction: row;
-  min-width: 0;
-  min-height: 2.75rem;
-  width: 100%;
-}
-.as-duel-vs--h .as-duel-vs-line {
-  inset-block: auto;
-  inset-inline: 4%;
-  left: auto;
-  top: 50%;
-  width: auto;
-  height: 2px;
-  margin-left: 0;
-  margin-top: -1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--color-gold) 12%,
-    var(--color-accent) 50%,
-    var(--color-gold) 88%,
-    transparent
-  );
-}
-.as-duel-vs--h .as-duel-vs-glyph {
-  flex-direction: row;
-  padding: 0.25rem 0.75rem;
-  border-block: 0;
-  border-inline: 1px solid var(--color-border-gold-subtle);
-}
-.as-duel-vs--h .as-duel-vs-flash { display: none; }
 
 /* Reduced-motion: par pintado directo, VS estático, sin destello.
    (El coreógrafo además se abstiene de lanzar WAAPI — esto es cinturón
@@ -214,4 +183,11 @@
   .as-duel-kanji-peek {
     transition: none;
   }
+}
+
+/* Salida del par: la carta saliente sigue a la vista 220ms mientras el
+   estado ya apunta al duelo nuevo — un click aquí votaría al par entrante
+   con el arte viejo delante. Se corta la interacción durante la salida. */
+[data-votar-arena][data-exiting] .as-duel-figure {
+  pointer-events: none;
 }

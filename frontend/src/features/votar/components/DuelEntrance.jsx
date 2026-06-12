@@ -40,9 +40,17 @@ import './duel-entrance.css'
  *   Lado izquierdo. `kanji` = kanji de universo (getAnimeIdentity); null
  *   = sin asomo (p. ej. identidad oculta en modo a ciegas).
  * @param {{slug:string,nombre:string,anime:string,kanji:?string}} props.b
- * @param {(side:'left'|'right') => import('react').ReactNode} props.renderCard
+ * @param {(side:'left'|'right', fig:object) => import('react').ReactNode} props.renderCard
  *   Render del VoteCard de cada lado, INTACTO, con `captionHidden` (el
- *   nombre lo pinta DuelEntrance para poder cortarlo con tinta).
+ *   nombre lo pinta DuelEntrance para poder cortarlo con tinta). Recibe la
+ *   FIGURA MOSTRADA (snapshot con lag): durante la salida del par la carta
+ *   sigue siendo la saliente — usa fig.personaje, no el par actual.
+ * @param {import('react').ReactNode} [props.vsBadgeCompact] Badge compacto
+ *   de móvil: entra con la ceremonia (fade en el nacimiento del VS) y sale
+ *   con el par. Sin él, móvil no pinta VS.
+ * @param {(side:'left'|'right', fig:object) => import('react').ReactNode} [props.nameExtra]
+ *   Extra bajo el nombre (p.ej. el link "Ver ficha" post-voto), alineado
+ *   con su lado y revelado junto al nombre.
  * @param {import('react').ReactNode} [props.vsBadge] VsBadge existente —
  *   se monta dentro del glifo del VS (slam de voto intacto). Si se omite,
  *   se pinta el glifo 対 + VS de la casa.
@@ -52,6 +60,10 @@ import './duel-entrance.css'
  *   es un fade de 120ms; el auto-avance JAMÁS espera a la ceremonia.
  * @param {boolean} [props.holdCeremony=false] Tour del primer duelo activo:
  *   la ceremonia espera su telón (figuras en espera, cero solape).
+ * @param {(fase: string) => void} [props.onPhase] Fases de la ceremonia
+ *   ('left-in'|'right-in'|'plant'|'vs'|'names'|'flash'|'done') — punto de
+ *   enganche del sonido. El modo rápido y reduced-motion solo emiten
+ *   'done', así que lo que cuelgues aquí respeta la cadencia gratis.
  * @param {() => void} [props.onEntranceDone] Fin de la pieza (nombres
  *   asentados). NO usar para gatear el voto: las cartas son interactivas
  *   desde el primer frame.
@@ -62,15 +74,19 @@ export default function DuelEntrance({
   b,
   renderCard,
   vsBadge = null,
+  vsBadgeCompact = null,
   tieSlot = null,
+  nameExtra,
   fastMode,
   holdCeremony = false,
+  onPhase,
   onEntranceDone,
 }) {
   const reduceMotion = useReducedMotionPref()
   // El par MOSTRADO va por detrás del par pedido: al cambiar pairKey,
   // primero la salida sobre el DOM saliente, luego swap + re-entrada ×0.7.
   const [shown, setShown] = useState({ pairKey, a, b, scale: 1 })
+  const [exiting, setExiting] = useState(false)
   // Misma key con datos nuevos (revelado a ciegas, refresh): espejo en
   // seco ajustando DURANTE el render (patrón oficial, Compiler-safe).
   if (shown.pairKey === pairKey && (shown.a !== a || shown.b !== b)) {
@@ -79,6 +95,7 @@ export default function DuelEntrance({
   const leftFigure = useRef(null)
   const rightFigure = useRef(null)
   const vsWrap = useRef(null)
+  const vsCompact = useRef(null)
   const vsLine = useRef(null)
   const vsFlash = useRef(null)
   const leftCover = useRef(null)
@@ -87,9 +104,11 @@ export default function DuelEntrance({
   const exitForRef = useRef(null)
   const ranKeyRef = useRef(null)
   const doneRef = useRef(onEntranceDone)
+  const phaseRef = useRef(onPhase)
   useEffect(() => {
     doneRef.current = onEntranceDone
-  }, [onEntranceDone])
+    phaseRef.current = onPhase
+  }, [onEntranceDone, onPhase])
 
   useEffect(() => {
     // Salida una sola vez por pairKey nuevo (el guard absorbe re-runs por
@@ -99,21 +118,26 @@ export default function DuelEntrance({
     }
     exitForRef.current = pairKey
     cancelRef.current?.()
-    cancelRef.current = runDuelExit(
-      {
-        leftFigure: leftFigure.current,
-        rightFigure: rightFigure.current,
-        alsoFade: [vsWrap.current],
-      },
-      {
-        axis: 'x',
-        fast: fastMode,
-        reduceMotion,
-        onDone: () =>
-          setShown({ pairKey, a, b, scale: ENTRANCE_T.reEntryScale }),
-      },
-    )
-    return undefined
+    const t = setTimeout(() => {
+      setExiting(true)
+      cancelRef.current = runDuelExit(
+        {
+          leftFigure: leftFigure.current,
+          rightFigure: rightFigure.current,
+          alsoFade: [vsWrap.current, vsCompact.current],
+        },
+        {
+          axis: 'x',
+          fast: fastMode,
+          reduceMotion,
+          onDone: () => {
+            setExiting(false)
+            setShown({ pairKey, a, b, scale: ENTRANCE_T.reEntryScale })
+          },
+        },
+      )
+    }, 0)
+    return () => clearTimeout(t)
   }, [pairKey, shown.pairKey, a, b, fastMode, reduceMotion])
 
   useLayoutEffect(() => {
@@ -122,6 +146,7 @@ export default function DuelEntrance({
       rightFigure: rightFigure.current,
       vsLine: vsLine.current,
       vsFlash: vsFlash.current,
+      vsCompact: vsCompact.current,
       leftCover: leftCover.current,
       rightCover: rightCover.current,
     }
@@ -149,6 +174,7 @@ export default function DuelEntrance({
       axis: 'x',
       fast: fastMode,
       reduceMotion,
+      onPhase: (fase) => phaseRef.current?.(fase),
       onDone: () => doneRef.current?.(),
     })
     return () => cancelRef.current?.()
@@ -166,7 +192,7 @@ export default function DuelEntrance({
         </span>
       )}
       <div>
-        {renderCard(side)}
+        {renderCard(side, p)}
         <div
           className={`as-duel-name flex min-w-0 flex-col px-1 pt-2 ${
             side === 'right' ? 'items-end text-right' : 'items-start text-left'
@@ -176,6 +202,7 @@ export default function DuelEntrance({
             {p.nombre}
           </h2>
           <p className="line-clamp-1 w-full text-[12px] text-fg-muted">{p.anime}</p>
+          {nameExtra?.(side, p)}
           <span ref={coverRef} className="as-duel-name-cover" aria-hidden="true"></span>
         </div>
       </div>
@@ -185,8 +212,17 @@ export default function DuelEntrance({
   return (
     <div
       data-votar-arena
+      data-exiting={exiting || undefined}
       className="relative grid grid-cols-2 items-start gap-x-2 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-stretch sm:gap-6"
     >
+      {vsBadgeCompact && (
+        <div
+          ref={vsCompact}
+          className="pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 sm:hidden"
+        >
+          {vsBadgeCompact}
+        </div>
+      )}
       {figure('left', shown.a, leftFigure, leftCover)}
       <div
         ref={vsWrap}
@@ -197,13 +233,11 @@ export default function DuelEntrance({
           <span ref={vsFlash} className="as-duel-vs-flash" aria-hidden="true"></span>
           <div className="as-duel-vs-glyph">
             {vsBadge ?? (
-              <>
-                <span className="as-duel-vs-kanji" lang="ja" aria-hidden="true">
-                  対
-                </span>
-                <span className="as-duel-vs-label">VS</span>
-              </>
+              <span className="as-duel-vs-kanji" lang="ja" aria-hidden="true">
+                対
+              </span>
             )}
+            <span className="as-duel-vs-label">VS</span>
           </div>
           {tieSlot && <div className="as-duel-vs-tie">{tieSlot}</div>}
         </div>

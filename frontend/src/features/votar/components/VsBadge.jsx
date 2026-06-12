@@ -10,7 +10,7 @@ const TIE_SPARKS = Array.from({ length: 8 }, (_, index) => index)
  * golpe en la carta). En empate no rota: pulso simétrico + chispa de choque
  * dorada radiando desde el centro (decorativa, solo transform/opacity).
  */
-const VsBadge = memo(function VsBadge({ votedFor, isTie = false, compact = false }) {
+const VsBadge = memo(function VsBadge({ votedFor, isTie = false, compact = false, caption = true }) {
   const reduceMotion = useReducedMotion()
   return (
     <motion.div
@@ -60,11 +60,13 @@ const VsBadge = memo(function VsBadge({ votedFor, isTie = false, compact = false
           })}
         </span>
       )}
-      <span className={`absolute font-mono font-extrabold text-gold ${
-        compact ? '-bottom-5 text-[9px]' : '-bottom-6 text-[10px]'
-      }`}>
-        VS
-      </span>
+      {caption && (
+        <span className={`absolute font-mono font-extrabold text-gold ${
+          compact ? '-bottom-5 text-[9px]' : '-bottom-6 text-[10px]'
+        }`}>
+          VS
+        </span>
+      )}
     </motion.div>
   )
 })
