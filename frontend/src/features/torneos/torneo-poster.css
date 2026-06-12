@@ -1,0 +1,30 @@
+/* Latido del nodo de fase actual del cartel de torneo. Solo opacity sobre un
+   halo pre-renderizado. Se pausa fuera de viewport vía data-tp-paused, con la
+   pestaña oculta y en modo calma; con reduced-motion queda marcado sin latir. */
+
+@keyframes tp-latido {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.tp-pulse {
+  animation: tp-latido var(--tp-pulse-dur, 2.2s) ease-in-out infinite;
+}
+
+[data-tp-paused='true'] .tp-pulse,
+html.as-tab-hidden .tp-pulse,
+html.as-calm .tp-pulse {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-pulse {
+    animation: none;
+    opacity: 0.9;
+  }
+}
