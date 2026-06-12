@@ -1,0 +1,323 @@
+/* ============================================================
+   FightBill — «El cartel de la velada» · importado por el componente
+   (CSP por hash: cero keyframes en runtime). Todas las fases son
+   transform/opacity (Safari-safe: cero blur, cero filters). Alturas
+   FIJAS = cero CLS; los slots reservados se parametrizan con
+   --fb-slots (hoy 1: VotarPage prefetchea un duelo; al cablear el
+   lote /siguientes, subir a 3).
+   Las fases se conmutan con [data-phase] en el <aside class="fb">:
+     idle → cover-in (240ms) → invert (commit, sin transición)
+          → play (FLIP 300ms + retirada del cover) → idle
+   ============================================================ */
+
+/* Sello hanko del titular: caída + overshoot (ease-stamp de la casa). */
+@keyframes fb-stamp {
+  0%   { transform: translateY(-26px) scale(1.5) rotate(-18deg); opacity: 0; }
+  55%  { transform: translateY(2px) scale(0.94) rotate(-6deg); opacity: 1; }
+  78%  { transform: translateY(-1px) scale(1.05) rotate(-9deg); opacity: 1; }
+  100% { transform: translateY(0) scale(1) rotate(-8deg); opacity: 1; }
+}
+
+/* Respiración del rótulo de cola vacía (opacity-only; as-tab-hidden la
+   pausa global y la calma la apaga abajo). */
+@keyframes fb-breathe {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+.fb {
+  /* En reposo la tira NUNCA compite con el duelo en curso. */
+  opacity: 0.85;
+  transition: opacity 240ms ease;
+  --fb-slots: 3;
+}
+.fb:hover,
+.fb:focus-within,
+.fb--live {
+  opacity: 1;
+}
+
+.fb-eyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.625rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+}
+.fb-eyebrow-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 0.9375rem;
+  color: var(--color-gold);
+}
+
+/* ── Titular (marco oro, altura fija) ─────────────────────────── */
+.fb-headliner {
+  position: relative;
+  overflow: hidden;
+  height: 11rem; /* fija → cero CLS */
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-aura-sm);
+  --aura-color: color-mix(in srgb, var(--color-gold) 25%, transparent);
+}
+.fb--bottom .fb-headliner {
+  height: 6rem;
+  width: 9.375rem;
+  flex-shrink: 0;
+}
+.fb-headliner-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem;
+}
+.fb-headliner-names {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-canvas) 85%, transparent));
+}
+.fb-now {
+  position: absolute;
+  left: 0.625rem;
+  top: 0.5rem;
+  font-size: 0.625rem;
+  color: var(--color-gold);
+}
+.fb-hanko {
+  position: absolute;
+  right: 0.625rem;
+  top: 0.5rem;
+  display: grid;
+  place-items: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 0.375rem;
+  background: var(--color-hanko);
+  color: var(--color-fg-strong);
+  font-family: var(--font-kanji-serif);
+  font-size: 0.875rem;
+  /* relieve de sello sin blur */
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 18%, transparent),
+    inset 0 -3px 5px color-mix(in srgb, var(--color-canvas) 55%, transparent);
+  animation: fb-stamp 460ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Corte de tinta del titular ───────────────────────────────── */
+.fb-cover {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--color-bg);
+  border-left: 3px solid var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: right center;
+}
+.fb[data-phase='cover-in'] .fb-cover {
+  transform: scaleX(1);
+  transition: transform 240ms var(--ease-brush);
+}
+.fb[data-phase='invert'] .fb-cover {
+  transform: scaleX(1);
+  transition: none;
+}
+.fb[data-phase='play'] .fb-cover {
+  transform: scaleX(0);
+  transition: transform 240ms var(--ease-brush) 120ms;
+}
+
+/* ── Cola: recomposición FLIP (solo transform, stagger 40ms) ──── */
+.fb-list {
+  list-style: none;
+  margin: 0.875rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  /* N slots de 5.25rem + (N-1) huecos de 0.625rem → cero CLS */
+  min-height: calc(var(--fb-slots) * 5.25rem + (var(--fb-slots) - 1) * 0.625rem);
+}
+.fb--bottom .fb-list {
+  margin: 0;
+  flex-direction: row;
+  min-height: 6rem;
+}
+.fb-slot { margin: 0; }
+.fb[data-phase='invert'] .fb-slot {
+  transform: translate3d(0, 5.875rem, 0); /* slot 84px + gap 10px */
+  transition: none;
+}
+.fb--bottom[data-phase='invert'] .fb-slot {
+  transform: translate3d(8.75rem, 0, 0); /* slot 132px + gap 8px */
+}
+.fb[data-phase='play'] .fb-slot {
+  transform: translate3d(0, 0, 0);
+  transition: transform 300ms var(--ease-lift) calc(var(--fb-i) * 40ms);
+}
+/* El recién llegado entra por el fondo con fade (sin translate). */
+.fb[data-phase='invert'] .fb-slot:last-child {
+  transform: none;
+  opacity: 0;
+}
+.fb[data-phase='play'] .fb-slot:last-child {
+  opacity: 1;
+  transition: opacity 280ms ease calc(var(--fb-i) * 40ms + 60ms);
+}
+
+/* ── Mini-cartel ──────────────────────────────────────────────── */
+.fb-cartel {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr 3.5rem;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  height: 5.25rem; /* ≥44px hit */
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-alt);
+  text-align: center;
+  color: var(--color-fg-strong);
+}
+.fb--bottom .fb-cartel {
+  width: 8.25rem;
+  height: 6rem;
+  grid-template-columns: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.1875rem;
+}
+.fb-cartel--btn { cursor: pointer; }
+.fb-cartel--btn:hover,
+.fb-cartel--btn:focus-visible {
+  border-color: var(--color-border-gold);
+}
+/* Filo especial discreto del duelo destacado. */
+.fb-cartel--destacado {
+  border-color: var(--color-border-gold-subtle);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-gold) 20%, transparent);
+}
+.fb-cartel-names {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.71875rem;
+  font-weight: 700;
+}
+.fb-cartel-names > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fb-tai {
+  font-family: var(--font-kanji-serif);
+  font-size: 1.625rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+.fb-tai--sm { font-size: 0.8125rem; }
+
+/* Retratos 2:3 enfrentados en diagonal. */
+.fb-retrato {
+  display: block;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+.fb-retrato--md { width: 4.75rem; }
+.fb-retrato--xs { width: 2.75rem; border-radius: 0.375rem; }
+.fb-retrato--a { transform: rotate(-4deg) translateY(2px); }
+.fb-retrato--b { transform: rotate(4deg) translateY(-2px); }
+
+/* ── Ghost de ascenso (transform-only) ────────────────────────── */
+.fb-ghost {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 5.25rem;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-alt);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-fg-strong);
+}
+.fb[data-phase='invert'] .fb-ghost {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+  transition: none;
+}
+.fb[data-phase='play'] .fb-ghost {
+  /* titular(176) + márgenes/label(48) = 224px de ascenso */
+  transform: translate3d(0, -14rem, 0) scale(1.06);
+  opacity: 0;
+  transition: transform 300ms var(--ease-lift), opacity 240ms ease 80ms;
+}
+.fb--bottom[data-phase='play'] .fb-ghost {
+  transform: translate3d(-9.875rem, 0, 0) scale(1.06);
+}
+
+/* ── Cola vacía: «la arena respira» (skeleton de la casa .skl) ── */
+.fb-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-height: calc(var(--fb-slots) * 5.25rem + (var(--fb-slots) - 1) * 0.625rem);
+}
+.fb--bottom .fb-empty {
+  flex-direction: row;
+  align-items: center;
+  min-height: 6rem;
+}
+.fb-empty-card {
+  height: 5.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-alt);
+}
+.fb--bottom .fb-empty-card {
+  width: 8.25rem;
+  height: 6rem;
+  flex-shrink: 0;
+}
+.fb-empty-label {
+  margin: 0.25rem 0 0;
+  text-align: center;
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+  animation: fb-breathe 2.4s ease-in-out infinite;
+}
+/* La calma apaga el único loop decorativo (as-tab-hidden ya pausa global). */
+html.as-calm .fb-empty-label { animation: none; }
+
+/* ── reduced-motion: swap directo, sin vuelos ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .fb-cover,
+  .fb[data-phase] .fb-cover { transition: none; transform: scaleX(0); }
+  .fb[data-phase] .fb-slot { transition: none; transform: none; opacity: 1; }
+  .fb-ghost { display: none; }
+  .fb-hanko { animation: none; }
+  .fb-empty-label { animation: none; }
+}
