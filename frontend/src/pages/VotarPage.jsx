@@ -22,6 +22,7 @@ import TieResultPanel from '../features/votar/components/TieResultPanel'
 import VotarShortcutsFooter from '../features/votar/components/VotarShortcutsFooter'
 import VotarTopBar from '../features/votar/components/VotarTopBar'
 import VoteArena from '../features/votar/components/VoteArena'
+import FightBill from '../features/votar/components/FightBill'
 import VoteResultPanel from '../features/votar/components/VoteResultPanel'
 import SessionStreakCounter from '../features/votar/components/SessionStreakCounter'
 import { useMisEspeciales } from '../hooks/useCartas'
@@ -215,6 +216,17 @@ function VotarPage() {
     gcTime: 0,
     retry: false,
   })
+  // Espejo reactivo del prefetch del siguiente duelo para el cartel de la
+  // velada: muestra EXACTAMENTE lo que el auto-avance va a usar (cero
+  // invención). enabled:false → jamás dispara fetch propio; solo observa la
+  // cache que puebla prefetchSiguientePar, y su isFetching refleja el
+  // prefetch en vuelo.
+  const { data: siguienteEnCartel, isFetching: reponiendoCartel } = useQuery({
+    queryKey: PREFETCH_BACKEND_KEY,
+    queryFn: fetchSiguienteBackend,
+    enabled: false,
+    gcTime: PREFETCH_GC_TIME,
+  })
   const modoSugerido = Boolean(
     !fixedPersonaje &&
       !hasFixedAnime &&
@@ -281,6 +293,26 @@ function VotarPage() {
     seenBackendPairsRef.current.add(currentPairKey)
     recordedPairKeyRef.current = currentPairKey
   }, [a?.slug, b?.slug, currentPairKey, matchId])
+
+  // Datos del cartel de la velada (FightBill): solo modo backend (la arena
+  // ranked con matchId real); en casual/sugerido no hay cola que enseñar.
+  // Memoizados para que la identidad estable no re-dispare el sync del
+  // espejo en cada render de esta página (la más caliente de la app).
+  const cartelActual = useMemo(
+    () => (modoBackend && a && b && matchId != null ? { key: String(matchId), a, b } : null),
+    [a, b, matchId, modoBackend],
+  )
+  const cartelCola = useMemo(() => {
+    if (!modoBackend) return []
+    const p1 = siguienteEnCartel?.personaje1
+    const p2 = siguienteEnCartel?.personaje2
+    const id = Number(siguienteEnCartel?.id)
+    if (!p1 || !p2 || !Number.isInteger(id)) return []
+    // El prefetch recién consumido puede seguir en cache apuntando al duelo
+    // en curso: no es "el siguiente", no se enseña.
+    if (String(id) === String(matchId)) return []
+    return [{ key: String(id), a: p1, b: p2 }]
+  }, [matchId, modoBackend, siguienteEnCartel])
 
   const tieSelected = votedFor === TIE_VOTE_KEY
   const votedPersonaje = votedFor === a?.slug ? a : votedFor === b?.slug ? b : null
@@ -820,11 +852,25 @@ function VotarPage() {
   return (
     <VisualPageShell
       visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
-      contentClassName="mx-auto flex max-w-5xl flex-col gap-3 sm:gap-4"
+      contentClassName="relative mx-auto flex max-w-5xl flex-col gap-3 sm:gap-4"
       lateralKanji={{ left: '挑', right: '闘' }}
       className="min-h-[calc(100svh-5rem)] py-3 sm:py-8 lg:py-10"
       atmosphere="arena-storm"
     >
+        {/* El cartel de la velada — rail lateral solo en pantallas muy
+            anchas (≥2xl: el gutter derecho del max-w-5xl da los 240px sin
+            tocar la columna del duelo). En sm..2xl vive como tira inferior
+            junto a los extras; en móvil no se monta (el duelo manda). */}
+        {cartelActual && (
+          <div className="absolute left-full top-24 ml-8 hidden w-60 2xl:block">
+            <FightBill
+              current={cartelActual}
+              queue={cartelCola}
+              replenishing={reponiendoCartel}
+              maxSlots={1}
+            />
+          </div>
+        )}
         <VotarTopBar
           arenaStatusLabel={arenaStatusLabel}
           showChallenge={Boolean(!identitiesHidden && !votedFor && a?.slug && b?.slug)}
@@ -928,6 +974,17 @@ function VotarPage() {
             blindMode={identitiesHidden}
           />
           <DailyMissionPanel compact />
+          {cartelActual && (
+            <div className="2xl:hidden">
+              <FightBill
+                current={cartelActual}
+                queue={cartelCola}
+                placement="bottom"
+                replenishing={reponiendoCartel}
+                maxSlots={1}
+              />
+            </div>
+          )}
         </div>
         <MobileExtrasToggle
           a={a}
