@@ -79,11 +79,27 @@ function SkeletonSection({
   )
 }
 
+// Kanji de espera (matsu) fantasma: trazo cursivo continuo que se dibuja y
+// desvanece a ciclo de 8s (.skl-kanji, index.css). Se DIBUJA como path —
+// nunca se tipografía, así que no toca los subsets de la display. Va en el
+// bloque hero de cada arquetipo (necesita un padre con position).
+function KanjiEsperaGhost() {
+  return (
+    <svg viewBox="0 0 120 120" aria-hidden="true" className="skl-kanji">
+      <path
+        pathLength="1"
+        d="M22 14 C18 22 15 28 10 34 C18 30 24 29 28 31 C24 40 19 49 14 56 C17 55 19 56 20 60 C20 74 20 87 18 100 C26 84 42 50 52 24 C64 21 77 19 90 18 C75 26 59 32 44 37 C62 35 81 34 100 32 C80 41 59 49 40 57 C61 54 82 52 104 50 C93 46 83 42 74 40 C76 56 77 74 74 92 C72 99 64 97 57 88"
+      />
+    </svg>
+  )
+}
+
 // Hero fantasma que imita el <CinematicHero> de VisualSystem (panel
 // redondeado con eyebrow + título + subtítulo + acciones).
 function HeroGhost() {
   return (
     <div className="relative mb-8 overflow-hidden rounded-3xl border border-white/10 bg-bg/72 p-5 shadow-elev-3 backdrop-blur-xl sm:p-7 lg:p-8">
+      <KanjiEsperaGhost />
       <div className="flex max-w-2xl flex-col gap-4">
         <Skeleton variant="box" className="h-6 w-40" />
         <Skeleton variant="box" className="h-12 w-full" />
@@ -265,8 +281,10 @@ function PageSkeleton({ pathname = '', reserveClassName = '' }) {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start md:gap-12">
             {/* Retrato */}
             <Skeleton variant="box" className="order-2 aspect-[2/3] max-h-[55vh] w-full md:order-1" />
-            {/* Identidad + stats */}
-            <div className="order-1 flex flex-col gap-4 md:order-2">
+            {/* Identidad + stats — la ficha no usa HeroGhost: el kanji de
+                espera vive aquí, anclado a la columna de identidad. */}
+            <div className="relative order-1 flex flex-col gap-4 md:order-2">
+              <KanjiEsperaGhost />
               <Skeleton variant="circle" className="h-20 w-20 sm:h-28 sm:w-28" />
               <Skeleton variant="box" className="h-10 w-3/4" />
               <Skeleton variant="box" className="h-4 w-1/2" />
