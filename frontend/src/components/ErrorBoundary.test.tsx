@@ -81,7 +81,7 @@ describe('ErrorBoundary resetKey', () => {
       </ErrorBoundary>,
     )
 
-    expect(screen.getByText('La batalla se ha interrumpido')).toBeInTheDocument()
+    expect(screen.getByText('Perdimos la señal de la cabina')).toBeInTheDocument()
 
     rerender(
       <ErrorBoundary resetKey="/ruta-sana">
