@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -12,7 +12,6 @@ import {
   Volume2,
   VolumeX,
   LogOut,
-  Search,
   Tv,
   Sparkles,
   Brain,
@@ -250,6 +249,53 @@ function CommandPalette({ initialOpen = false } = {}) {
     navigate(path)
   }
 
+  // Hairline carmesí que persigue la selección + contador del pie. cmdk
+  // gestiona la selección con aria-selected; aquí solo medimos el item
+  // seleccionado y movemos el rail por translateY/height vía ref — cero
+  // re-renders. Un MutationObserver (aria-selected + childList) cubre
+  // flechas, puntero y refiltrados; el rAF coalesce ráfagas.
+  const listRef = useRef(null)
+  const railRef = useRef(null)
+  const counterRef = useRef(null)
+  const decorRafRef = useRef(null)
+  const syncListDecor = useCallback(() => {
+    cancelAnimationFrame(decorRafRef.current)
+    decorRafRef.current = requestAnimationFrame(() => {
+      const list = listRef.current
+      if (!list) return
+      if (counterRef.current) {
+        const n = list.querySelectorAll('[cmdk-item]:not([aria-disabled="true"])').length
+        counterRef.current.textContent = n === 1 ? '1 resultado' : `${n} resultados`
+      }
+      const rail = railRef.current
+      if (!rail) return
+      const item = list.querySelector('[cmdk-item][aria-selected="true"]')
+      if (!item) {
+        rail.style.opacity = '0'
+        return
+      }
+      const pad = Math.round(item.offsetHeight * 0.15)
+      rail.style.opacity = '1'
+      rail.style.height = `${item.offsetHeight - pad * 2}px`
+      rail.style.transform = `translateY(${item.offsetTop + pad}px)`
+    })
+  }, [])
+  useEffect(() => {
+    if (!open) return undefined
+    syncListDecor()
+    const list = listRef.current
+    const observer = new MutationObserver(syncListDecor)
+    if (list) {
+      // Solo aria-selected y altas/bajas de items: los writes de estilo del
+      // propio rail no entran en el filtro — sin bucle de mutaciones.
+      observer.observe(list, { subtree: true, childList: true, attributeFilter: ['aria-selected'] })
+    }
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(decorRafRef.current)
+    }
+  }, [open, syncListDecor])
+
   if (!open) return null
 
   return (
@@ -267,7 +313,7 @@ function CommandPalette({ initialOpen = false } = {}) {
       aria-modal="true"
       aria-labelledby={`${inputId}-title`}
       aria-describedby={`${inputId}-desc`}
-      className="fixed inset-0 z-50 flex items-start justify-center px-3 pt-[15vh] sm:px-4"
+      className="fixed inset-0 z-50 flex items-start justify-center max-sm:px-0 max-sm:pt-0 px-3 pt-[15vh] sm:px-4"
     >
       <h2 id={`${inputId}-title`} className="sr-only">
         Buscador rápido
@@ -279,7 +325,7 @@ function CommandPalette({ initialOpen = false } = {}) {
         type="button"
         aria-label="Cerrar buscador"
         tabIndex={-1}
-        className="fixed inset-0 cursor-default bg-black/70 backdrop-blur-sm"
+        className="fixed inset-0 cursor-default bg-black/75"
         onClick={() => {
           setSearch('')
           setOpen(false)
@@ -287,10 +333,19 @@ function CommandPalette({ initialOpen = false } = {}) {
       />
       <Command
         label="Buscador rápido"
-        className="relative z-10 w-full max-w-xl rounded-xl border border-border bg-surface shadow-2xl"
+        className="relative z-10 w-full max-w-xl overflow-hidden rounded-xl border border-border-gold-subtle bg-surface shadow-2xl max-sm:rounded-t-none max-sm:border-x-0 max-sm:border-t-0"
       >
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-          <Search className="h-4 w-4 text-fg-muted" />
+        {/* Marca de agua del archivo — decorativa, bajo el contenido. */}
+        <div
+          aria-hidden="true"
+          className="font-kanji-serif pointer-events-none absolute -top-9 right-1 z-0 select-none text-[210px] leading-none text-gold opacity-5"
+        >
+          検
+        </div>
+        <div className="relative z-10 flex items-center gap-3 border-b border-border-gold-subtle px-4 py-3">
+          <span aria-hidden="true" className="font-kanji-serif text-[15px] leading-none text-gold/70">
+            検
+          </span>
           {/*
             sin autoFocus. Antes el input
             se autofocuseaba en el commit y mi useEffect del focus trap
@@ -302,16 +357,24 @@ function CommandPalette({ initialOpen = false } = {}) {
           <Command.Input
             value={search}
             onValueChange={setSearch}
-            placeholder="Busca personajes, torneos o navega..."
+            placeholder="Busca personajes, torneos o comandos…"
             className="flex-1 bg-transparent text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none"
           />
           <kbd className="hidden rounded-md border border-border bg-bg px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline-block">
             ESC
           </kbd>
         </div>
-        <Command.List className="scrollbar-hide max-h-[60vh] overflow-y-auto p-2">
-          <Command.Empty className="py-10 text-center text-sm text-fg-muted">
-            Sin resultados.
+        <Command.List ref={listRef} className="scrollbar-hide relative z-10 max-h-[60vh] overflow-y-auto p-2">
+          {/* La hairline que persigue: posicionada por syncListDecor vía ref. */}
+          <div aria-hidden="true" ref={railRef} className="as-cmdk-rail absolute left-0 top-0 w-0.5" />
+          <Command.Empty className="py-9 text-center">
+            <span className="relative mx-auto block w-fit overflow-hidden leading-none">
+              <span className="font-kanji-serif block text-[76px] text-gold/80">無</span>
+              <span aria-hidden="true" className="as-cmdk-mu-cover absolute inset-0 bg-surface" />
+            </span>
+            <span className="as-cmdk-mu-text mt-2 block text-sm text-fg-muted">
+              Nada en los archivos
+            </span>
           </Command.Empty>
           {queryPersonajes.length >= 2 && (
             <PersonajesCommandGroup
@@ -321,14 +384,14 @@ function CommandPalette({ initialOpen = false } = {}) {
           )}
           <Command.Group
             heading="Páginas"
-            className="text-[11px] font-semibold text-fg-muted"
+            className="font-mono text-[11px] text-gold/55"
           >
             {rutas.map(({ to, label, icon: Icon, searchTerms = '' }) => (
               <Command.Item
                 key={to}
                 value={`pagina ${label} ${to} ${searchTerms}`}
                 onSelect={() => go(to)}
-                className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
               >
                 <Icon className="h-4 w-4 text-fg-muted" />
                 {label}
@@ -340,7 +403,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={to}
                   value={`acceso ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
                 >
                   <Icon className="h-4 w-4 text-fg-muted" />
                   {label}
@@ -352,7 +415,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={to}
                   value={`usuario ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
                 >
                   <Icon className="h-4 w-4 text-fg-muted" />
                   {label}
@@ -364,7 +427,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   key={to}
                   value={`admin ${label} ${to} ${searchTerms}`}
                   onSelect={() => go(to)}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
                 >
                   <Icon className="h-4 w-4 text-fg-muted" />
                   {label}
@@ -374,7 +437,7 @@ function CommandPalette({ initialOpen = false } = {}) {
 
           <Command.Group
             heading="Acciones"
-            className="mt-2 text-[11px] font-semibold text-fg-muted"
+            className="mt-2 font-mono text-[11px] text-gold/55"
           >
             <Command.Item
               value="sonido toggle"
@@ -383,7 +446,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                 setSearch('')
                 setOpen(false)
               }}
-              className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+              className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
             >
               {muted ? (
                 <Volume2 className="h-4 w-4 text-fg-muted" />
@@ -400,7 +463,7 @@ function CommandPalette({ initialOpen = false } = {}) {
                   setSearch('')
                   setOpen(false)
                 }}
-                className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
               >
                 <LogOut className="h-4 w-4 text-fg-muted" />
                 Cerrar sesión
@@ -411,14 +474,14 @@ function CommandPalette({ initialOpen = false } = {}) {
           {torneos.length > 0 && (
             <Command.Group
               heading="Torneos"
-              className="mt-2 text-[11px] font-semibold text-fg-muted"
+              className="mt-2 font-mono text-[11px] text-gold/55"
             >
               {torneos.map((t) => (
                 <Command.Item
                   key={t.slug}
                   value={`torneo ${t.nombre}`}
                   onSelect={() => go(`/torneos/${t.slug}`)}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg aria-selected:text-fg-strong"
                 >
                   <Trophy className="h-4 w-4 text-fg-muted" />
                   {t.nombre}
@@ -433,7 +496,7 @@ function CommandPalette({ initialOpen = false } = {}) {
           {queryPersonajes.length < 2 && (
             <Command.Group
               heading="Personajes"
-              className="mt-2 text-[11px] font-semibold text-fg-muted"
+              className="mt-2 font-mono text-[11px] text-gold/55"
             >
               <Command.Item
                 disabled
@@ -445,15 +508,23 @@ function CommandPalette({ initialOpen = false } = {}) {
             </Command.Group>
           )}
         </Command.List>
-        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 text-[11px] text-fg-muted">
+        <div className="relative z-10 flex items-center gap-4 border-t border-border-gold-subtle px-4 py-2 font-mono text-[11px] text-fg-muted">
           <span>
-            <kbd className="font-mono">⌘K</kbd> /{' '}
-            <kbd className="font-mono">Ctrl K</kbd> para abrir
+            <kbd>↑↓</kbd> navegar
           </span>
           <span>
-            <kbd className="font-mono">↑↓</kbd> navegar ·{' '}
-            <kbd className="font-mono">↵</kbd> ir
+            <kbd>↵</kbd> abrir
           </span>
+          <span>
+            <kbd>esc</kbd> cerrar
+          </span>
+          <span ref={counterRef} className="ml-auto text-gold/55" />
+        </div>
+        {/* Corte de tinta: cover de entrada que se retira con filo dorado.
+            Animación CSS de montaje — se reproduce en cada apertura porque
+            el palette desmonta entero al cerrarse. */}
+        <div aria-hidden="true" className="as-cmdk-cover pointer-events-none absolute inset-0 z-20 bg-canvas">
+          <div className="as-cmdk-edge absolute inset-y-0 right-0 w-[3px]" />
         </div>
       </Command>
     </div>
@@ -464,7 +535,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
   return (
     <Command.Group
       heading="Personajes"
-      className="text-[11px] font-semibold text-fg-muted"
+      className="font-mono text-[11px] text-gold/55"
     >
       {personajesPalette.length === 0 && (
         <Command.Item
@@ -480,7 +551,7 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
           key={p.slug}
           value={`personaje ${p.nombre} ${p.anime}`}
           onSelect={() => go(`/personajes/${p.slug}`)}
-          className="flex min-w-0 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-strong aria-selected:bg-surface-alt aria-selected:text-gold"
+          className="flex min-w-0 cursor-pointer items-center gap-3 rounded-lg px-3 py-1.5 text-sm text-fg aria-selected:text-fg-strong"
         >
           <PersonajeImg
             slug={p.slug}
@@ -489,11 +560,11 @@ function PersonajesCommandGroup({ personajesPalette, go }) {
             alt={p.nombre}
             loading="lazy"
             sizes="32px"
-            className="h-7 w-5 shrink-0 rounded-lg object-cover object-top"
+            className="h-[45px] w-[30px] shrink-0 rounded border border-border-gold-subtle object-cover object-top"
           />
-          <span className="min-w-0 truncate">{p.nombre}</span>
-          <span className="ml-auto max-w-[45%] truncate text-[11px] text-fg-muted">
-            {p.anime}
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate font-medium">{p.nombre}</span>
+            <span className="truncate text-[11px] text-fg-muted">{p.anime}</span>
           </span>
         </Command.Item>
       ))}
