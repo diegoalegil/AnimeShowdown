@@ -100,19 +100,21 @@ function NotifBell() {
         className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface-alt hover:text-fg-strong"
       >
         <Bell className="h-4 w-4" />
-        {wave > 0 && !reducedMotion && (
-          <span
-            key={wave}
-            aria-hidden="true"
-            className="as-notif-onda pointer-events-none absolute -inset-1 rounded-full border-2 border-gold opacity-0"
-          />
-        )}
         {unread > 0 && (
           <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 font-mono text-[10px] font-bold leading-none text-white">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
       </button>
+      {/* La onda vive FUERA del botón (hermana posicionada sobre él): el
+          contenido del botón es contrato del e2e — un único span, el badge. */}
+      {wave > 0 && !reducedMotion && (
+        <span
+          key={wave}
+          aria-hidden="true"
+          className="as-notif-onda pointer-events-none absolute -inset-1 rounded-full border-2 border-gold opacity-0"
+        />
+      )}
 
       {open && (
         <NotifDropdown
