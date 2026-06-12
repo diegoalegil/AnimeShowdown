@@ -1,7 +1,9 @@
-import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Activity, AlertTriangle, CheckCircle2, Clock3, Server } from 'lucide-react'
 import { endpoints } from '../lib/api'
+import StatusSeismograph from '../features/status/StatusSeismograph'
+import IncenseUptime from '../features/status/IncenseUptime'
 import { formatDateSafe } from '../lib/dateUtils'
 import { useSeo } from '../hooks/useSeo'
 import { VisualPageShell } from '../components/VisualSystem'
@@ -88,63 +90,6 @@ function StatusMetric({ title, window }) {
   )
 }
 
-function Sparkline({ samples }) {
-  const points = useMemo(() => {
-    if (!samples?.length) return []
-    const maxLatency = Math.max(...samples.map((s) => s.latencyMs || 0), 1)
-    return samples.map((sample, index) => {
-      const x = samples.length === 1 ? 50 : (index / (samples.length - 1)) * 100
-      const y = 88 - ((sample.latencyMs || 0) / maxLatency) * 70
-      return { x, y, status: sample.status }
-    })
-  }, [samples])
-
-  if (points.length < 2) {
-    return (
-      <div className="flex min-h-44 items-center justify-center rounded-lg border border-dashed border-border bg-bg/50 text-sm text-fg-muted">
-        Esperando suficientes muestras para dibujar tendencia.
-      </div>
-    )
-  }
-
-  const polyline = points.map((p) => `${p.x},${p.y}`).join(' ')
-
-  return (
-    <div className="rounded-lg border border-border bg-bg/50 p-4">
-      <svg viewBox="0 0 100 100" className="h-44 w-full overflow-visible" role="img" aria-label="Latencia reciente del backend">
-        <defs>
-          <linearGradient id="statusLine" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="var(--color-gold)" />
-            <stop offset="100%" stopColor="var(--color-accent)" />
-          </linearGradient>
-        </defs>
-        <polyline
-          points={polyline}
-          fill="none"
-          stroke="url(#statusLine)"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        {points.map((point, index) => (
-          <circle
-            key={`${point.x}-${index}`}
-            cx={point.x}
-            cy={point.y}
-            r={point.status === 'UP' ? 1.6 : 2.4}
-            fill={point.status === 'UP' ? '#34d399' : '#be2b38'}
-          />
-        ))}
-      </svg>
-      <div className="mt-2 flex items-center justify-between text-[11px] text-fg-muted">
-        <span>Más antiguo</span>
-        <span>Ahora</span>
-      </div>
-    </div>
-  )
-}
-
 function StatusPage() {
   useSeo({
     title: 'Estado del servicio',
@@ -152,6 +97,7 @@ function StatusPage() {
       'Disponibilidad pública de AnimeShowdown con uptime de 24h, 7d, 30d y 90d.',
   })
 
+  const queryClient = useQueryClient()
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['status'],
     queryFn: endpoints.status,
@@ -159,6 +105,18 @@ function StatusPage() {
     staleTime: 15000,
     retry: 1,
   })
+
+  // Latido del sismógrafo: una sola fuente — cada ping mide la latencia real
+  // del fetch y hace write-through a la caché para que los números de la
+  // página respiren con él (el refetchInterval queda como cinturón cuando el
+  // sismógrafo está pausado por viewport/pestaña/reduced-motion).
+  const ping = useCallback(async () => {
+    const t0 = performance.now()
+    const payload = await endpoints.status()
+    const latencyMs = performance.now() - t0
+    queryClient.setQueryData(['status'], payload)
+    return { latencyMs, status: payload?.currentStatus ?? 'DOWN' }
+  }, [queryClient])
 
   const tone = statusTone(data?.currentStatus)
   const ToneIcon = tone.icon
@@ -240,6 +198,11 @@ function StatusPage() {
         </section>
       ) : (
         <>
+          <IncenseUptime
+            segments={(data.samples ?? []).map((s) => ({ date: s.checkedAt, status: s.status }))}
+            uptimePercent={data.last90d?.uptimePercent ?? 0}
+          />
+
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatusMetric title="Últimas 24h" window={data.last24h} />
             <StatusMetric title="Últimos 7 días" window={data.last7d} />
@@ -252,10 +215,10 @@ function StatusPage() {
               <div className="mb-3 flex items-center gap-2">
                 <Activity className="h-4 w-4 text-gold" />
                 <h2 className="text-sm font-black text-fg-muted">
-                  Latencia reciente
+                  Latencia en vivo
                 </h2>
               </div>
-              <Sparkline samples={data.samples} />
+              <StatusSeismograph ping={ping} />
             </div>
 
             <aside className="rounded-lg border border-border bg-surface/80 p-5">
