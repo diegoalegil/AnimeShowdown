@@ -1,0 +1,239 @@
+/* ════════════════════════════════════════════════════════════════════════
+   FestivalBoard — cartelera de /eventos con linternas chōchin.
+   Pegar en index.css (CSP por hash: nada de <style> en runtime).
+   Solo transform/opacity en TODO lo animado. Cero blur, cero filter.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
+
+/* Entrada en stagger (una vez, por orden temporal). Solo `from`: el estado
+   base YA es el final — reduced-motion sale gratis al anular la animación. */
+@keyframes fest-enter {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+/* Latido del activo: cross-fade de 2 capas de luz pre-renderizadas.
+   Ciclo 2.8s; se pausa vía [data-pulse="paused"] (viewport/pestaña). */
+@keyframes fest-pulse-a {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.15; }
+}
+@keyframes fest-pulse-b {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.7; }
+}
+
+/* Caída del banderín 開催中 al expirar (gravedad: ease-in acelerado). */
+@keyframes fest-banner-fall {
+  to { transform: rotate(16deg) translateY(150px); opacity: 0; }
+}
+
+/* Estampado del 終 (ease-stamp de los hanko: overshoot por debajo de 1). */
+@keyframes fest-stamp-in {
+  0% { opacity: 0; transform: scale(1.9); }
+  55% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Fade genérico de capas (sepia al expirar en caliente). */
+@keyframes fest-fade-in {
+  from { opacity: 0; }
+}
+
+/* ── Rail y nudos ──────────────────────────────────────────────────────── */
+
+.fest-rail {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 45%, transparent) 36px,
+    color-mix(in srgb, var(--color-gold) 45%, transparent) calc(100% - 56px),
+    transparent
+  );
+}
+
+.fest-nudo {
+  border-color: var(--color-gold);
+  background: var(--color-canvas);
+}
+
+/* ── Entrada ───────────────────────────────────────────────────────────── */
+
+.fest-enter {
+  animation: fest-enter 480ms var(--ease-lift) both;
+  animation-delay: calc(var(--fest-i, 0) * 80ms);
+}
+
+/* ── Linterna chōchin ──────────────────────────────────────────────────── */
+
+.fest-lantern-frame { stroke: var(--color-border); }
+.fest-lantern-cap { fill: var(--color-bg); stroke: var(--color-border); }
+.fest-lantern-body { fill: var(--color-surface); stroke: var(--color-border); }
+.fest-lantern-rib { stroke: color-mix(in srgb, var(--color-border) 60%, transparent); }
+.fest-lantern-light { fill: var(--color-gold-bright); opacity: 0; }
+.fest-lantern-dia { fill: var(--color-fg); }
+.fest-lantern-mes { color: var(--color-fg-muted); }
+
+[data-estado='activo'] .fest-lantern-frame,
+[data-estado='activo'] .fest-lantern-cap,
+[data-estado='activo'] .fest-lantern-body { stroke: var(--color-gold); }
+[data-estado='activo'] .fest-lantern-body { fill: color-mix(in srgb, var(--color-accent) 24%, var(--color-canvas)); }
+[data-estado='activo'] .fest-lantern-rib { stroke: color-mix(in srgb, var(--color-gold) 45%, transparent); }
+[data-estado='activo'] .fest-lantern-light { opacity: 0.45; }
+[data-estado='activo'] .fest-lantern-dia { fill: var(--color-gold-pale); }
+[data-estado='activo'] .fest-lantern-mes { color: color-mix(in srgb, var(--color-gold) 80%, transparent); }
+
+[data-estado='futuro'] .fest-lantern-frame,
+[data-estado='futuro'] .fest-lantern-cap,
+[data-estado='futuro'] .fest-lantern-body { stroke: var(--color-border-gold-subtle); }
+[data-estado='futuro'] .fest-lantern-rib { stroke: color-mix(in srgb, var(--color-gold) 22%, transparent); }
+[data-estado='futuro'] .fest-lantern-dia { fill: var(--color-electric-soft); }
+
+[data-estado='pasado'] .fest-lantern-frame,
+[data-estado='pasado'] .fest-lantern-cap,
+[data-estado='pasado'] .fest-lantern-body,
+[data-estado='apagada'] .fest-lantern-frame,
+[data-estado='apagada'] .fest-lantern-cap,
+[data-estado='apagada'] .fest-lantern-body { stroke: color-mix(in srgb, var(--color-gold) 38%, var(--color-border)); }
+[data-estado='pasado'] .fest-lantern-body { fill: color-mix(in srgb, var(--color-gold) 10%, var(--color-canvas)); }
+[data-estado='pasado'] .fest-lantern-dia { fill: color-mix(in srgb, var(--color-gold) 55%, var(--color-fg-muted)); }
+
+/* ── Latido del activo ─────────────────────────────────────────────────── */
+
+.fest-pulse { transition: opacity 500ms ease; }
+.fest-pulse[data-apagando] { opacity: 0; }
+
+.fest-pulse-a {
+  opacity: 0.5;
+  background: radial-gradient(60% 70% at 50% 28%, color-mix(in srgb, var(--color-gold) 32%, transparent), transparent 70%);
+  animation: fest-pulse-a 2.8s ease-in-out infinite;
+}
+.fest-pulse-b {
+  opacity: 0.25;
+  background: radial-gradient(75% 80% at 50% 65%, color-mix(in srgb, var(--color-accent-text) 24%, transparent), transparent 72%);
+  animation: fest-pulse-b 2.8s ease-in-out infinite;
+}
+
+[data-pulse='paused'] .fest-pulse-a,
+[data-pulse='paused'] .fest-pulse-b { animation-play-state: paused; }
+
+/* ── Cartel ────────────────────────────────────────────────────────────── */
+
+.fest-cartel {
+  color: inherit;
+  transition: transform 300ms var(--ease-lift), border-color 300ms ease;
+}
+.fest-cartel:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--color-gold) 70%, transparent); }
+.fest-cartel:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; }
+
+.fest-cartel[data-estado='activo'] { border-color: var(--color-border-gold); }
+.fest-cartel[data-estado='futuro'] { border-color: color-mix(in srgb, var(--color-border) 70%, transparent); }
+.fest-cartel[data-estado='pasado'] { border-color: color-mix(in srgb, var(--color-gold) 22%, transparent); }
+
+.fest-art-kanji { color: color-mix(in srgb, var(--color-gold) 16%, transparent); }
+.fest-art-scrim { background: linear-gradient(180deg, transparent 45%, color-mix(in srgb, var(--color-canvas) 88%, transparent)); }
+
+.fest-titulo { color: var(--color-fg-strong); }
+.fest-desc { color: var(--color-fg-muted); }
+.fest-meta { color: var(--color-fg-muted); }
+.fest-cartel[data-estado='activo'] .fest-meta { color: var(--color-gold-bright); }
+.fest-cartel[data-estado='pasado'] .fest-titulo { color: color-mix(in srgb, var(--color-gold) 50%, var(--color-fg-muted)); }
+.fest-cartel[data-estado='pasado'] .fest-desc { color: color-mix(in srgb, var(--color-gold) 25%, var(--color-fg-muted)); }
+.fest-cartel[data-estado='pasado'] .fest-meta { color: color-mix(in srgb, var(--color-gold) 45%, var(--color-fg-muted)); }
+
+/* ── Sepia de pasado — capas de color, PROHIBIDO filter en runtime ─────── */
+
+.fest-sepia-sat {
+  background: var(--color-canvas);
+  mix-blend-mode: saturation; /* estática: se compone una vez, sin coste por frame */
+  opacity: 0.85;
+}
+.fest-sepia-tint { background: color-mix(in srgb, color-mix(in srgb, var(--color-gold) 30%, var(--color-canvas)) 40%, transparent); }
+.fest-sepia-sat[data-anim],
+.fest-sepia-tint[data-anim] { animation: fest-fade-in 600ms ease-out 300ms both; }
+
+/* ── Futuro: cordón + cuenta atrás ─────────────────────────────────────── */
+
+.fest-futuro-dim { background: color-mix(in srgb, var(--color-canvas) 38%, transparent); }
+.fest-cordon {
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 50%, transparent);
+  transform: rotate(-2.5deg);
+}
+.fest-cordon-tag {
+  transform: translate(-50%, -50%) rotate(-2.5deg);
+  background: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-gold) 35%, transparent);
+  color: var(--color-fg-muted);
+}
+
+/* ── Banderín 開催中 ───────────────────────────────────────────────────── */
+
+.fest-banner { transform-origin: 50% 0; }
+.fest-banner[data-cae] { animation: fest-banner-fall 400ms cubic-bezier(0.55, 0, 0.8, 0.4) both; }
+.fest-banner-tela {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 86%, var(--color-canvas)), var(--color-accent));
+  border: 1px solid var(--color-border-gold);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 12px), 0 100%);
+}
+.fest-banner-texto { writing-mode: vertical-rl; color: var(--color-gold-pale); }
+.fest-banner-clavo { background: var(--color-gold); }
+
+/* ── Sello 終 ──────────────────────────────────────────────────────────── */
+
+.fest-stamp[data-anim] { animation: fest-stamp-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 380ms both; }
+.fest-stamp-bleed {
+  /* "Sangrado" del hanko: segundo aro estático ligeramente mayor. */
+  border-color: color-mix(in srgb, var(--color-hanko) 30%, transparent);
+  transform: rotate(-12deg) scale(1.03);
+}
+.fest-stamp-seal {
+  border-color: var(--color-hanko);
+  color: var(--color-hanko);
+  transform: rotate(-12deg);
+  background: color-mix(in srgb, var(--color-hanko) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-hanko) 25%, transparent);
+}
+
+/* ── Chips de recompensa y cordón de canje ─────────────────────────────── */
+
+.fest-chip { border-color: var(--color-border-gold-subtle); background: color-mix(in srgb, var(--color-fg-strong) 2%, transparent); }
+.fest-chip-kanji { color: var(--color-gold); }
+.fest-chip-label { color: var(--color-fg); }
+.fest-chip[data-apagado] { border-color: color-mix(in srgb, var(--color-gold) 24%, transparent); }
+.fest-chip[data-apagado] .fest-chip-kanji,
+.fest-chip[data-apagado] .fest-chip-label { color: color-mix(in srgb, var(--color-gold) 45%, var(--color-fg-muted)); }
+
+.fest-canje-hilo { background: color-mix(in srgb, var(--color-gold) 60%, transparent); }
+.fest-canje-tag { background: var(--color-surface); border-color: color-mix(in srgb, var(--color-gold) 40%, transparent); }
+.fest-canje-kanji { border-color: var(--color-hanko); color: var(--color-hanko); }
+
+/* ── Plaza vacía ───────────────────────────────────────────────────────── */
+
+.fest-watermark { color: color-mix(in srgb, var(--color-fg-strong) 4%, transparent); }
+
+/* ── reduced-motion: estados directos, sin latido ni caídas ────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .fest-enter,
+  .fest-pulse-a,
+  .fest-pulse-b,
+  .fest-banner[data-cae],
+  .fest-stamp[data-anim],
+  .fest-sepia-sat[data-anim],
+  .fest-sepia-tint[data-anim] {
+    animation: none !important;
+  }
+  /* Sin caída: el banderín desaparece directo al expirar. */
+  .fest-banner[data-cae] { opacity: 0; }
+  .fest-cartel { transition: none; }
+  .fest-pulse-a { opacity: 0.5; }
+  .fest-pulse-b { opacity: 0.25; }
+}
+
+/* Modo calma y pestaña oculta pausan el latido decorativo del activo. */
+html.as-calm .fest-pulse-a,
+html.as-calm .fest-pulse-b,
+html.as-tab-hidden .fest-pulse-a,
+html.as-tab-hidden .fest-pulse-b {
+  animation-play-state: paused;
+}
