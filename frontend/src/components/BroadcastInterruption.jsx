@@ -24,11 +24,11 @@ import './broadcast-interruption.css'
  * - CERO dependencias más allá de React: ni router (los links son <a>
  *   planos), ni react-query, ni SoundContext, ni hooks compartidos del árbol.
  * - Los estilos CRÍTICOS van inline (fondo, color, layout, botones ≥ 44 px)
- *   con fallback rgb() dentro de var(): si index.css no cargó, la pantalla
+ *   con fallback de color dentro de var(): si index.css no cargó, la pantalla
  *   sigue legible y operativa. Las clases bi-* y de tokens solo AÑADEN color
  *   de barras, tipografía de marca y movimiento.
  *   NOTA sobre el guard de CI: veta hex (#) en JSX; los fallbacks degradados
- *   usan rgb(...) a conciencia — ver NOTAS-HANDOFF.md §degradado.
+ *   usan canales de color a conciencia — ver NOTAS-HANDOFF.md §degradado.
  * - prefers-reduced-motion se lee con matchMedia inline (inicializador puro,
  *   StrictMode-safe), sin importar useReducedMotionPref: con reduced-motion
  *   no hay estática y todo nace en su estado final (los keyframes solo
