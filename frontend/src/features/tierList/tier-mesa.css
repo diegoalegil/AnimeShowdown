@@ -1,0 +1,8 @@
+/* Mesa del editor de tier lists: grabado del kanji de rango — sombra
+   oscura arriba + filo de luz abajo, dos capas ESTATICAS de text-shadow
+   (jamas se animan). */
+.tier-grabado {
+  text-shadow:
+    0 -1px 1px color-mix(in srgb, var(--color-canvas) 85%, transparent),
+    0 1px 0 color-mix(in srgb, var(--color-fg-strong) 7%, transparent);
+}

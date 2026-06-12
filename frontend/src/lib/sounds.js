@@ -714,3 +714,34 @@ export async function playStreakHito() {
     osc.stop(now + 1.2)
   })
 }
+
+/**
+ * Obturador de cámara (export de tier list): clic del espejo + clac de la
+ * cortinilla — dos ráfagas de ruido filtrado en bandpass, sintetizadas.
+ */
+export async function playShutter() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const click = (t0, freq, dur, vol) => {
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
+    const d = buf.getChannelData(0)
+    for (let i = 0; i < d.length; i++) {
+      d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2.4
+    }
+    const src = ctx.createBufferSource()
+    src.buffer = buf
+    const bp = ctx.createBiquadFilter()
+    bp.type = 'bandpass'
+    bp.frequency.value = freq
+    bp.Q.value = 1.1
+    const g = ctx.createGain()
+    g.gain.value = vol
+    src.connect(bp)
+    bp.connect(g)
+    g.connect(ctx.destination)
+    src.start(t0)
+  }
+  const now = ctx.currentTime + 0.01
+  click(now, 2600, 0.03, 0.5)
+  click(now + 0.07, 1450, 0.05, 0.38)
+}
