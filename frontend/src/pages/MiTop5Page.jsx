@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -17,8 +17,9 @@ import { miTop5Schema } from '../features/miTop5/mi-top5-schema'
 import RankingImportPanel from '../features/miTop5/RankingImportPanel'
 import Top5QuickSuggestions from '../features/miTop5/Top5QuickSuggestions'
 import Top5SearchPanel from '../features/miTop5/Top5SearchPanel'
-import Top5Altar from '../features/miTop5/Top5Altar'
-import { lanzarVueloTop5 } from '../features/miTop5/top5-altar'
+import AltarFive from '../features/miTop5/AltarFive'
+import { brandImage } from '../lib/brand-assets'
+import { slugifyAnime } from '../lib/animes'
 import {
   buildInitialSlots,
   getTop5AddSlugs,
@@ -123,7 +124,39 @@ function MiTop5Page() {
     })
   }
 
-  const quitarSlot = (idx) => setSlot(idx, null)
+  // Adapter del altar: el storage habla en slugs, el altar en entries
+  // ricos. PersonajeImg resuelve la imagen y el color dominante por slug,
+  // así que la entry solo necesita identidad y nombre visible.
+  const altarEntries = useMemo(
+    () =>
+      effectiveSlots.map((slug) => {
+        if (!slug) return null
+        const p = personajesBySlug.get(slug)
+        return { slug, name: p?.nombre ?? slug }
+      }),
+    [effectiveSlots, personajesBySlug],
+  )
+
+  // Arte de fondo del nº1: escena de marca del anime del primer puesto.
+  const altarBgScene = useMemo(() => {
+    const primero = effectiveSlots[0]
+      ? personajesBySlug.get(effectiveSlots[0])
+      : null
+    if (!primero?.anime) return undefined
+    return brandImage(`${slugifyAnime(primero.anime)}-scene-01`)?.src
+  }, [effectiveSlots, personajesBySlug])
+
+  const onAltarChange = (next) => {
+    setSlots(next.map((e) => (e ? e.slug : null)))
+  }
+
+  const searchPanelRef = useRef(null)
+  const enfocarBuscador = () => {
+    const panel = searchPanelRef.current
+    if (!panel) return
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    panel.querySelector('input')?.focus({ preventScroll: true })
+  }
 
   const completo = effectiveSlots.every(Boolean)
   const slotsVacios = effectiveSlots.filter((s) => !s).length
@@ -136,7 +169,7 @@ function MiTop5Page() {
       .slice(0, 6)
   }, [personajesBySlug, effectiveSlots])
 
-  const addSlugAlPrimerSlotLibre = (slug, originEl) => {
+  const addSlugAlPrimerSlotLibre = (slug) => {
     const idx = effectiveSlots.findIndex((s) => !s)
     if (idx === -1) {
       toast.info('Top 5 completo. Quita uno para añadir otro.')
@@ -146,9 +179,9 @@ function MiTop5Page() {
       toast.info('Ese personaje ya está en tu top.')
       return
     }
+    // El altar detecta la llegada (render-adjust por slug) y anima el
+    // descenso a la peana — el vuelo FLIP del altar viejo se retiró.
     setSlot(idx, slug)
-    // La carta vuela del chip clicado a su pedestal (el altar concilia por slug).
-    if (originEl) lanzarVueloTop5(slug, originEl)
   }
 
   const rellenarDesdeRanking = () => {
@@ -216,14 +249,16 @@ function MiTop5Page() {
           onImport={rellenarDesdeRanking}
         />
 
-        {/* Altar de cinco pedestales: escalonado 3D con el nº1 al frente y
-            numerales kanji 一二三四五 grabados en las peanas. En móvil
-            (<640px) y reduced-motion degrada al grid compacto de Top5Slot
-            de siempre (lo resuelve el propio Top5Altar). */}
-        <Top5Altar
-          slots={effectiveSlots}
-          personajesBySlug={personajesBySlug}
-          onQuitar={quitarSlot}
+        {/* El altar de los cinco: peanas escalonadas (el nº1 más alto y
+            centrado) con numerales kanji 一二三四五, velas votivas
+            pausables y el arte del anime del nº1 de fondo. Reorden por
+            drag (FLIP WAAPI) y ▲▼ 100% teclado; las llegadas descienden
+            a su peana. Sustituye al Top5Altar 3D y a su vuelo FLIP. */}
+        <AltarFive
+          entries={altarEntries}
+          onChange={onAltarChange}
+          bgSceneSrc={altarBgScene}
+          onBrowseCatalog={enfocarBuscador}
         />
 
         <Top5QuickSuggestions
@@ -232,10 +267,12 @@ function MiTop5Page() {
           onAdd={addSlugAlPrimerSlotLibre}
         />
 
-        <Top5SearchPanel
-          onSelect={addSlugAlPrimerSlotLibre}
-          filtroExtra={(p) => !effectiveSlots.includes(p.slug)}
-        />
+        <div ref={searchPanelRef}>
+          <Top5SearchPanel
+            onSelect={addSlugAlPrimerSlotLibre}
+            filtroExtra={(p) => !effectiveSlots.includes(p.slug)}
+          />
+        </div>
 
         <CanvasPreview
           slots={effectiveSlots}

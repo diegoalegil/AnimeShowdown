@@ -398,7 +398,7 @@ test('MiTop5 aplica add=slug aunque la pagina ya este montada', async ({ page })
     window.dispatchEvent(new PopStateEvent('popstate'))
   })
 
-  await expect(page.getByRole('button', { name: 'Quitar Luffy del top' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Quitar a Luffy del altar' })).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate((key) => {
