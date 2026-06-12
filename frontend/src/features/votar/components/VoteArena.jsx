@@ -1,8 +1,10 @@
-import { memo } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { memo, useMemo } from 'react'
 import { Scale } from 'lucide-react'
 import VoteCard from './VoteCard'
 import VsBadge from './VsBadge'
+import DuelEntrance from './DuelEntrance'
+import { getAnimeIdentity } from '../../../data/anime-identities'
+import { slugifyAnime } from '../../../lib/animes'
 
 /**
  * VoteArena — el grid de duelo (dos VoteCard + VS badge).
@@ -12,9 +14,33 @@ import VsBadge from './VsBadge'
  * hijos) se re-renderizan; QuickModes, DailyMissionPanel y el resto de
  * la página quedan fuera del ciclo.
  *
- * AnimatePresence mode="popLayout" + exit: el par actual hace fade-out/up
- * mientras el siguiente hace fade-in/down, evitando el corte abrupto.
+ * El montaje del par lo coreografía DuelEntrance (entrada de
+ * combatientes: caminata desde los laterales + squash + VS de tinta +
+ * nombres por corte) — sustituye al AnimatePresence popLayout. Los
+ * nombres los pinta DuelEntrance (VoteCard va con captionHidden), así
+ * que en modo a ciegas recibe las identidades YA enmascaradas (Opción
+ * A/B, sin kanji de universo) y el revelado llega como espejo en seco.
  */
+function toFigura(p, sideLabel, oculto) {
+  if (!p) return p
+  if (oculto) {
+    return {
+      slug: p.slug,
+      nombre: `Opción ${sideLabel}`,
+      anime: 'Identidad oculta',
+      kanji: null,
+    }
+  }
+  return {
+    slug: p.slug,
+    nombre: p.nombre,
+    anime: p.anime,
+    // Mismo patrón que DueloVersusPage: kanji de universo curado (o el
+    // genérico de la casa) por slug de anime.
+    kanji: getAnimeIdentity(slugifyAnime(p.anime), p.anime)?.kanji ?? null,
+  }
+}
+
 const VoteArena = memo(function VoteArena({
   a,
   b,
@@ -28,10 +54,10 @@ const VoteArena = memo(function VoteArena({
   handleVoteRight,
   handleTieVote,
   canTie = false,
+  fastMode = false,
   ownsEspecialA = false,
   ownsEspecialB = false,
 }) {
-  const reduceMotion = useReducedMotion()
   const arenaKey = a && b ? `${a.slug}-${b.slug}` : 'empty'
   // El empate también cuenta desde el voto optimista (votedFor con el
   // sentinel que no es ninguna de las dos cartas): sin esto, mientras el
@@ -53,38 +79,65 @@ const VoteArena = memo(function VoteArena({
       ? voteResult
       : null
 
+  // Identidades para DuelEntrance, memoizadas: una identidad nueva por
+  // render dispararía el espejo en seco del coreógrafo en cada ciclo.
+  const oculto = Boolean(blindMode && !blindReveal)
+  const figuraA = useMemo(() => toFigura(a, 'A', oculto), [a, oculto])
+  const figuraB = useMemo(() => toFigura(b, 'B', oculto), [b, oculto])
+
+  const renderCard = (side) =>
+    side === 'left' ? (
+      <VoteCard
+        personaje={a}
+        ownsEspecial={ownsEspecialA}
+        onClick={handleVoteLeft}
+        disabled={controlsDisabled}
+        isVoted={votedFor === a.slug}
+        isLoser={Boolean(votedFor && votedFor !== a.slug && !isTie)}
+        isTie={isTie}
+        showResult={Boolean(votedFor)}
+        side="left"
+        anonymousLimited={votoInvitadoActivo}
+        blindMode={blindMode}
+        blindReveal={blindReveal}
+        voteResult={leftVoteResult}
+        captionHidden
+      />
+    ) : (
+      <VoteCard
+        personaje={b}
+        ownsEspecial={ownsEspecialB}
+        onClick={handleVoteRight}
+        disabled={controlsDisabled}
+        isVoted={votedFor === b.slug}
+        isLoser={Boolean(votedFor && votedFor !== b.slug && !isTie)}
+        isTie={isTie}
+        showResult={Boolean(votedFor)}
+        side="right"
+        anonymousLimited={votoInvitadoActivo}
+        blindMode={blindMode}
+        blindReveal={blindReveal}
+        voteResult={rightVoteResult}
+        captionHidden
+      />
+    )
+
   return (
-    <AnimatePresence mode="popLayout">
-      <motion.div
-        key={arenaKey}
-        data-votar-arena
-        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -12 }}
-        transition={{ duration: reduceMotion ? 0 : 0.28, ease: 'easeInOut' }}
-        className="relative grid grid-cols-2 items-start gap-x-2 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-stretch sm:gap-6"
-      >
-        <div className="pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 sm:hidden">
-          <VsBadge votedFor={votedFor} isTie={isTie} compact />
-        </div>
-        <VoteCard
-          personaje={a}
-          ownsEspecial={ownsEspecialA}
-          onClick={handleVoteLeft}
-          disabled={controlsDisabled}
-          isVoted={votedFor === a.slug}
-          isLoser={Boolean(votedFor && votedFor !== a.slug && !isTie)}
-          isTie={isTie}
-          showResult={Boolean(votedFor)}
-          side="left"
-          anonymousLimited={votoInvitadoActivo}
-          blindMode={blindMode}
-          blindReveal={blindReveal}
-          voteResult={leftVoteResult}
-        />
-        <div className="hidden self-center justify-self-center sm:flex sm:flex-col sm:items-center sm:gap-3">
-          <VsBadge votedFor={votedFor} isTie={isTie} />
-          {canTie && !votedFor && (
+    <div className="relative">
+      {/* VS compacto de móvil: overlay sobre el grid de 2 columnas (el
+          VS de tinta central solo existe en sm+). */}
+      <div className="pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 sm:hidden">
+        <VsBadge votedFor={votedFor} isTie={isTie} compact />
+      </div>
+      <DuelEntrance
+        pairKey={arenaKey}
+        a={figuraA}
+        b={figuraB}
+        renderCard={renderCard}
+        fastMode={fastMode}
+        vsBadge={<VsBadge votedFor={votedFor} isTie={isTie} />}
+        tieSlot={
+          canTie && !votedFor ? (
             <button
               type="button"
               onClick={handleTieVote}
@@ -94,36 +147,21 @@ const VoteArena = memo(function VoteArena({
               <Scale className="h-3.5 w-3.5" />
               No puedo decidir
             </button>
-          )}
-        </div>
-        <VoteCard
-          personaje={b}
-          ownsEspecial={ownsEspecialB}
-          onClick={handleVoteRight}
+          ) : null
+        }
+      />
+      {canTie && !votedFor && (
+        <button
+          type="button"
+          onClick={handleTieVote}
           disabled={controlsDisabled}
-          isVoted={votedFor === b.slug}
-          isLoser={Boolean(votedFor && votedFor !== b.slug && !isTie)}
-          isTie={isTie}
-          showResult={Boolean(votedFor)}
-          side="right"
-          anonymousLimited={votoInvitadoActivo}
-          blindMode={blindMode}
-          blindReveal={blindReveal}
-          voteResult={rightVoteResult}
-        />
-        {canTie && !votedFor && (
-          <button
-            type="button"
-            onClick={handleTieVote}
-            disabled={controlsDisabled}
-            className="col-span-2 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[12px] font-black text-gold transition-colors hover:border-gold disabled:cursor-not-allowed disabled:opacity-60 sm:hidden"
-          >
-            <Scale className="h-3.5 w-3.5" />
-            No puedo decidir
-          </button>
-        )}
-      </motion.div>
-    </AnimatePresence>
+          className="mt-3 inline-flex w-full min-h-11 items-center justify-center gap-1.5 rounded-lg border border-gold/35 bg-gold-soft px-3 py-2 text-[12px] font-black text-gold transition-colors hover:border-gold disabled:cursor-not-allowed disabled:opacity-60 sm:hidden"
+        >
+          <Scale className="h-3.5 w-3.5" />
+          No puedo decidir
+        </button>
+      )}
+    </div>
   )
 })
 

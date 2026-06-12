@@ -921,6 +921,7 @@ function VotarPage() {
             handleVoteRight={handleVoteRight}
             handleTieVote={handleTieVote}
             canTie={modoBackend}
+            fastMode={fastMode}
             ownsEspecialA={Boolean(a?.slug && misEspeciales?.has(a.slug))}
             ownsEspecialB={Boolean(b?.slug && misEspeciales?.has(b.slug))}
           />
