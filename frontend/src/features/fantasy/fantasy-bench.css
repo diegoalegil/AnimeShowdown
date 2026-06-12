@@ -1,0 +1,173 @@
+/* ============================================================
+   El banquillo del estratega — bloque para index.css
+   (keyframes + clases sb-…; pegar en la sección de componentes)
+   Todo transform/opacity. Cero blur, cero SVG filters.
+   ============================================================ */
+
+/* --- tokens nuevos (añadir al @theme junto a los --color-…) ---
+   Deltas del acta SOBRE PAPEL CLARO (--color-fg-strong de fondo):
+   el verde-oro se oscurece con canvas para contraste AA en grande;
+   el negativo reutiliza el carmesí de marca (≈7:1 sobre papel).
+   Generan text-scroll-up / text-scroll-down. */
+:root {
+  --color-scroll-up: color-mix(in srgb, var(--color-success) 58%, var(--color-canvas));
+  --color-scroll-down: var(--color-accent);
+}
+
+/* --- loops ambientales (percha, invitación, banderín, puntos) ---
+   Se pausan con la pestaña oculta (html.as-tab-hidden, convención del
+   proyecto) y fuera de viewport ([data-offscreen], IO del componente). */
+@keyframes sb-hanger-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(3px) rotate(-2deg); }
+}
+@keyframes sb-invite-breathe {
+  0%, 100% { opacity: 0.16; }
+  50% { opacity: 0.5; }
+}
+@keyframes sb-pennant-sway {
+  0%, 100% { transform: rotate(-1.1deg); }
+  50% { transform: rotate(1.1deg); }
+}
+@keyframes sb-dot-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.95; }
+}
+
+.sb-hanger-bob { animation: sb-hanger-bob 4.2s ease-in-out infinite; }
+.sb-invite { animation: sb-invite-breathe 3.6s ease-in-out infinite; }
+.sb-pennant-sway { animation: sb-pennant-sway 7s ease-in-out infinite; }
+.sb-dot { animation: sb-dot-pulse 1.2s ease-in-out infinite; }
+
+html.as-tab-hidden .sb-loop,
+[data-offscreen] .sb-loop {
+  animation-play-state: paused !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-loop { animation: none !important; }
+}
+
+/* --- madera lacada de las taquillas: gradiente de tokens + hairline oro.
+   color-mix con fallback plano para Safari <16.2 (los degradados con
+   color-mix desaparecían en silencio — lección del medallero). */
+.sb-locker-wood {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-gold-subtle);
+  box-shadow: var(--inset-shadow-hairline), 0 24px 60px -36px color-mix(in srgb, var(--color-canvas) 90%, transparent);
+}
+@supports (background: color-mix(in srgb, red 50%, blue)) {
+  .sb-locker-wood {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-gold) 15%, var(--color-surface)) 0%,
+      var(--color-surface) 36%,
+      color-mix(in srgb, var(--color-accent) 9%, var(--color-bg)) 100%
+    );
+  }
+}
+/* veta vertical sutil (estática, sin coste de composición) */
+.sb-locker-grain {
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-fg-strong) 1.6%, transparent) 0 2px, transparent 2px 9px);
+}
+
+/* --- cordón de semana cerrada --- */
+.sb-cord {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-accent) 60%, var(--color-canvas)),
+    var(--color-accent),
+    color-mix(in srgb, var(--color-accent) 60%, var(--color-canvas))
+  );
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-canvas) 55%, transparent);
+}
+
+/* --- moneda (pila y vuelo). El clon volador añade position:fixed inline. */
+.sb-coin {
+  width: 56px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 35% 28%,
+    var(--color-gold-bright),
+    var(--color-gold) 58%,
+    color-mix(in srgb, var(--color-gold) 50%, var(--color-canvas)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--color-gold-bright) 50%, transparent);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--color-canvas) 70%, var(--color-gold));
+}
+.sb-coin-flying {
+  position: fixed;
+  z-index: 79;
+  pointer-events: none;
+}
+
+/* --- etiqueta mono flotante "−120"/"+120" (la anima WAAPI el componente) */
+.sb-float-label {
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 81;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* --- banderín --- */
+.sb-pennant-rod {
+  width: 132px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-gold) 55%, var(--color-canvas)),
+    var(--color-gold),
+    color-mix(in srgb, var(--color-gold) 55%, var(--color-canvas))
+  );
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-canvas) 50%, transparent);
+}
+.sb-pennant {
+  min-height: 152px;
+  clip-path: polygon(0 0, 100% 0, 100% 82%, 50% 100%, 0 82%);
+  background: linear-gradient(
+    180deg,
+    var(--color-accent) 0%,
+    color-mix(in srgb, var(--color-accent) 52%, var(--color-canvas)) 100%
+  );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 10%, transparent);
+}
+
+/* --- acta: varilla + papel --- */
+.sb-scroll-rod {
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-gold) 55%, var(--color-canvas)),
+    var(--color-gold),
+    color-mix(in srgb, var(--color-gold) 55%, var(--color-canvas))
+  );
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--color-canvas) 60%, transparent);
+}
+.sb-paper {
+  background: linear-gradient(
+    180deg,
+    var(--color-fg-strong),
+    color-mix(in srgb, var(--color-fg-strong) 93%, var(--color-gold))
+  );
+  color: var(--color-canvas);
+  box-shadow: 0 30px 80px -30px color-mix(in srgb, var(--color-canvas) 90%, transparent), inset 0 -16px 20px -18px color-mix(in srgb, var(--color-canvas) 45%, transparent);
+}
+
+/* --- sangrado del sello hanko: gemela difusa PRE-HORNEADA (text/box-shadow
+   estáticos que cross-fadean en opacity — nunca filter/blur). */
+.sb-seal-bleed {
+  box-shadow: 0 0 0 3px var(--color-hanko), 0 0 22px 6px color-mix(in srgb, var(--color-hanko) 35%, transparent);
+}
+
+/* Modo calma y pestana oculta pausan los loops ambientales del banquillo. */
+html.as-calm .sb-percha,
+html.as-calm .sb-banderin,
+html.as-tab-hidden .sb-percha,
+html.as-tab-hidden .sb-banderin {
+  animation-play-state: paused;
+}
