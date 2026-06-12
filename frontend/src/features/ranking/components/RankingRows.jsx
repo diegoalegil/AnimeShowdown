@@ -6,7 +6,6 @@ import {
 import { AppLink } from '../../../components/AppLink'
 import PersonajeCutImg from '../../../components/PersonajeCutImg'
 import PersonajeImg from '../../../components/PersonajeImg'
-import EloSparkline from './EloSparkline'
 import LiveNumber from './LiveNumber'
 
 /**
@@ -31,83 +30,10 @@ function FlipFlashOverlays() {
   )
 }
 
-export const RankRowElo = memo(function RankRowElo({
-  rank,
-  slug,
-  nombre,
-  anime,
-  elo,
-  history,
-  imagenUrl,
-  imagenColorDominante,
-}) {
-  if (!slug) return null
-  // ELO canónico real (semilla por popularidad +15% femenino + ajuste por votos),
-  // calculado en el backend. Las W/L sintéticas no se muestran.
-  const esTop10 = rank <= 10
-  const rowTone = esTop10
-    ? 'border-medal-gold/30 bg-gradient-to-r from-medal-gold/5 to-surface'
-    : 'border-border bg-surface'
-  return (
-    <li data-flip-key={slug} data-tour="rank-row" data-slug={slug}>
-      <div
-        className={`group relative flex items-center gap-2 rounded-lg border px-3 py-3 transition-all hover:-translate-x-1 hover:border-accent/40 hover:bg-surface-alt sm:gap-3 sm:px-5 ${rowTone}`}
-      >
-        <FlipFlashOverlays />
-        <AppLink
-          to={`/personajes/${slug}`}
-          aria-label={`Rank #${rank} — ${nombre} de ${anime}, ELO ${elo}`}
-          title={`${nombre} de ${anime} · ELO ${elo}`}
-          className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5"
-        >
-          <RankBadge rank={rank} />
-          <PersonajeImg
-            slug={slug}
-            src={imagenUrl}
-            nombre={nombre}
-            colorDominante={imagenColorDominante}
-            alt={nombre}
-            loading="lazy"
-            className="h-14 w-10 shrink-0 rounded-lg object-cover object-top sm:hidden"
-          />
-          <PersonajeCutImg
-            slug={slug}
-            alt={nombre}
-            loading="lazy"
-            sizes="56px"
-            className="hidden h-14 w-14 shrink-0 rounded-lg border border-white/10 sm:block"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="truncate text-sm font-bold text-fg-strong group-hover:text-gold">
-                {nombre}
-              </p>
-              {esTop10 && (
-                <span className="hidden shrink-0 rounded-md border border-medal-gold/40 bg-medal-gold/10 px-1.5 py-0.5 font-mono text-[9px] font-extrabold text-medal-gold sm:inline">
-                  Top 10
-                </span>
-              )}
-            </div>
-            <p className="truncate text-[12px] text-fg-muted">{anime}</p>
-            {esTop10 && <EloSparkline points={history} className="mt-1" />}
-          </div>
-          <div
-            className="text-right"
-            title="ELO: semilla por popularidad + ajuste por tus votos (se recalcula cada pocos minutos)."
-          >
-            <p className="font-mono text-base font-bold text-gold">
-              <LiveNumber value={elo} />
-            </p>
-            <p className="text-[10px] text-fg-muted">
-              ELO
-            </p>
-          </div>
-        </AppLink>
-        <ChallengeLink slug={slug} nombre={nombre} />
-      </div>
-    </li>
-  )
-})
+/* RankRowElo se retiró: la pestaña ELO la pinta FederationTable (el
+   Registro de la Federación). Estas filas siguen sirviendo a las pestañas
+   de votos (Histórico / Este mes / Por anime / intención) hasta que el
+   Registro parametrice la cifra acuñada. */
 
 export const RankRowVotos = memo(function RankRowVotos({
   rank,
