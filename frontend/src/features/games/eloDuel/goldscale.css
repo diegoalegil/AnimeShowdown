@@ -1,0 +1,233 @@
+/* ============================================================
+   GoldScale — bloque para index.css (CSP por hash: nada en runtime)
+   Curvas: --ease-lift / --ease-brush ya existen en @theme.
+   El "ease-stamp" del hanko se usa aquí como literal (mismo valor
+   que el resto de sellos del sistema): cubic-bezier(0.34,1.56,0.64,1).
+   Todo es transform/opacity; cero blur(), cero SVG filters.
+   ============================================================ */
+
+/* Escenario: 680×470 de diseño; el padre lo escala (ver notas §mobile). */
+.gs-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gs-stage {
+  position: relative;
+  width: 680px;
+  height: 470px;
+}
+.gs-armature {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.gs-arm {
+  transform-box: view-box;
+  transform-origin: 340px 68px;
+  /* La rotación la escribe el rAF del componente — aquí solo el origin. */
+}
+
+/* Colgantes (cadenas + platillo + retrato): el rAF escribe translate3d.
+   left = tipX − 85 (tips del brazo en x=108/572 del viewBox). */
+.gs-hang {
+  position: absolute;
+  top: 66px;
+  width: 170px;
+  will-change: transform;
+}
+.gs-hang[data-side='left'] { left: 23px; }
+.gs-hang[data-side='right'] { left: 487px; }
+
+.gs-pan-btn {
+  display: block;
+  margin: -4px auto 0;
+  width: 138px;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+.gs-pan-btn[aria-disabled='true'] { cursor: default; }
+
+.gs-card {
+  display: block;
+  position: relative;
+  width: 134px;
+  aspect-ratio: 2 / 3;
+  margin: 0 auto;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1.5px solid var(--color-border-gold-subtle);
+  transition: border-color 240ms ease;
+}
+.gs-card--picked { border-color: var(--color-gold-bright); }
+.gs-card-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 22px 8px 9px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-canvas) 0%, transparent), color-mix(in srgb, var(--color-canvas) 92%, transparent) 55%);
+}
+.gs-elo {
+  display: inline-block;
+  min-width: 92px;
+  margin-top: 7px;
+  padding: 5px 12px;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Sello de empate técnico — estampado hanko (overshoot del sistema). */
+.gs-tie {
+  position: absolute;
+  left: 50%;
+  top: 196px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.gs-tie-stamp {
+  border: 2.5px solid var(--color-hanko);
+  border-radius: var(--radius-lg);
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+  box-shadow: inset 0 0 14px var(--color-accent-soft);
+  text-align: center;
+}
+.gs-tie-stamp--anim {
+  animation: gs-stamp 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.gs-tie-kanji {
+  display: block;
+  font-family: var(--font-kanji-serif);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-accent-text);
+}
+@keyframes gs-stamp {
+  0% { transform: rotate(-4deg) scale(1.5); opacity: 0; }
+  60% { transform: rotate(-4deg) scale(0.95); opacity: 1; }
+  100% { transform: rotate(-4deg) scale(1); opacity: 1; }
+}
+
+/* Live region visible (además de anunciar a lectores). */
+.gs-live { margin: 0; min-height: 20px; }
+
+/* ——— Fila de pesas ——— */
+.gs-weights-wrap {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  padding: 14px 10px 0;
+}
+.gs-weights {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  min-height: 44px;
+}
+.gs-weight {
+  width: 36px;
+  transform-origin: 88% 100%;
+}
+.gs-weight-knob {
+  display: block;
+  margin: 0 auto;
+  width: 13px;
+  height: 7px;
+  border: 2px solid color-mix(in srgb, var(--color-gold) 62%, var(--color-canvas)); /* oro sombra del gradiente de pesa */
+  border-bottom: none;
+  border-radius: 7px 7px 0 0;
+}
+.gs-weight-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border-radius: 4px 4px 6px 6px;
+  background: linear-gradient(
+    160deg,
+    var(--color-gold-bright),
+    var(--color-gold) 45%,
+    color-mix(in srgb, var(--color-gold) 62%, var(--color-canvas))
+  );
+  font-size: 13px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--color-canvas) 72%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 22%, transparent);
+}
+.gs-shelf {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-gold) 0%, transparent),
+    color-mix(in srgb, var(--color-gold) 55%, transparent) 12%,
+    color-mix(in srgb, var(--color-gold) 55%, transparent) 88%,
+    color-mix(in srgb, var(--color-gold) 0%, transparent)
+  );
+}
+
+/* Acierto: la pesa nueva CAE (translateY + ease-stamp, 300ms). */
+.gs-weight--drop {
+  animation: gs-weight-drop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes gs-weight-drop {
+  from { transform: translateY(-54px); }
+  to { transform: translateY(0); }
+}
+
+/* Fallo: vuelco en cascada (delay por JS: i × 40ms), una vez, con dignidad. */
+.gs-weight--topple {
+  animation: gs-weight-topple 260ms var(--ease-brush) both;
+}
+.gs-weight--tipped { transform: rotate(96deg) translate(5px, 2px); }
+@keyframes gs-weight-topple {
+  to { transform: rotate(96deg) translate(5px, 2px); }
+}
+
+/* Récord personal: la fila brilla UNA pasada (600ms). */
+.gs-shine-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.gs-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 32%;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--color-gold-pale) 0%, transparent) 0%,
+    color-mix(in srgb, var(--color-gold-pale) 16%, transparent) 40%,
+    color-mix(in srgb, var(--color-gold-bright) 30%, transparent) 52%,
+    color-mix(in srgb, var(--color-gold-pale) 0%, transparent) 80%
+  );
+  animation: gs-shine 600ms var(--ease-lift) both;
+}
+@keyframes gs-shine {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(420%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-tie-stamp--anim,
+  .gs-weight--drop,
+  .gs-weight--topple,
+  .gs-shine {
+    animation: none !important;
+  }
+  /* El estado final lo pone el componente (ángulo directo, --tipped). */
+}

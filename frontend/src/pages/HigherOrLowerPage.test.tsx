@@ -25,6 +25,7 @@ vi.mock('framer-motion', async () => {
 
   return {
     AnimatePresence: ({ children }: { children?: ReactNode }) => <>{children}</>,
+    useReducedMotion: () => true,
     motion: new Proxy(
       {},
       {
@@ -126,7 +127,7 @@ describe('HigherOrLowerPage feedback accesible', () => {
       'Ronda lista: decide si Roronoa Zoro tiene más o menos ELO competitivo que Monkey D. Luffy.',
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /más elo/i }))
+    fireEvent.click(screen.getByRole('button', { name: /elegir a roronoa zoro/i }))
 
     await waitFor(() => {
       expect(

@@ -6,9 +6,6 @@ import {
   Trophy,
   Sparkles,
   RotateCcw,
-  ArrowUp,
-  ArrowDown,
-  HelpCircle,
   Flame,
   Share2,
 } from 'lucide-react'
@@ -19,7 +16,7 @@ import {
   safeStorage,
 } from '../lib/games'
 import { endpoints } from '../lib/api'
-import PersonajeImg from '../components/PersonajeImg'
+import GoldScale from '../features/games/eloDuel/GoldScale'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import { useSound } from '../contexts/SoundContext'
 import { useSeo } from '../hooks/useSeo'
@@ -89,6 +86,8 @@ function HigherOrLowerGame() {
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(readBestStreak)
   const [gameOver, setGameOver] = useState(false)
+  // Lado elegido en la balanza ('left'=referencia pesa más → retador menor).
+  const [picked, setPicked] = useState(null)
   const mountedRef = useRef(false)
   const revealTimerRef = useRef(null)
   const round = roundOverride ?? initialRoundQuery.data ?? null
@@ -101,6 +100,7 @@ function HigherOrLowerGame() {
       if (!mountedRef.current) return
       setRoundOverride(nextRound)
       setResult(null)
+      setPicked(null)
       setGameOver(false)
       if (resetScore) setScore(0)
     } catch (error) {
@@ -151,7 +151,6 @@ function HigherOrLowerGame() {
     setIsSubmitting(false)
 
     if (guessResult.correct) {
-      play('playMagic')
       const newScore = score + 1
       setScore(newScore)
       if (newScore > best) {
@@ -165,12 +164,12 @@ function HigherOrLowerGame() {
         if (guessResult.nextRound) {
           setRoundOverride(guessResult.nextRound)
           setResult(null)
+          setPicked(null)
         } else {
           loadRound()
         }
       }, 1100)
     } else {
-      play('playImpact')
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
       revealTimerRef.current = setTimeout(() => {
         revealTimerRef.current = null
@@ -296,24 +295,32 @@ function HigherOrLowerGame() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              /* Tres columnas desde mobile para mantener el duelo completo
-                 dentro del primer viewport. */
-              className="mx-auto grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 md:items-center md:gap-6"
+              className="mx-auto w-full max-w-5xl"
             >
-              <ReferenceCard
-                personaje={reference}
-                elo={round.referenceElo}
-                scoreLabel={scoreLabel}
-              />
-              <VsBadge revealed={revealed} />
-              <ChallengerCard
-                personaje={challenger}
-                revealedState={revealed}
-                revealedElo={result?.challengerElo}
-                scoreLabel={scoreLabel}
-                isSubmitting={isSubmitting}
-                onMayor={() => handleGuess(true)}
-                onMenor={() => handleGuess(false)}
+              {/* La balanza de oro: cero reveal especulativo — el brazo solo
+                  pesa cuando llega el resultado del server, keyed por ronda. */}
+              <GoldScale
+                left={reference}
+                right={challenger}
+                leftElo={round.referenceElo}
+                rightElo={null}
+                picked={picked}
+                result={
+                  result
+                    ? {
+                        outcome: result.correct ? 'win' : 'lose',
+                        leftElo: result.referenceElo ?? round.referenceElo,
+                        rightElo: result.challengerElo,
+                        resultId: round.roundToken,
+                      }
+                    : null
+                }
+                onPick={(side) => {
+                  setPicked(side)
+                  handleGuess(side === 'right')
+                }}
+                streak={score}
+                disabled={isSubmitting || gameOver}
               />
             </motion.div>
           )}
@@ -471,173 +478,6 @@ function ScoreBar({ score, best }) {
         </span>
       </div>
     </div>
-  )
-}
-
-function VsBadge({ revealed }) {
-  // Separador animado entre las 2 cards. Compacto en mobile (h-9), grande
-  // en desktop (h-14) con líneas decorativas a ambos lados.
-  return (
-    <div className="flex flex-col items-center justify-center gap-1">
-      <span className="hidden h-[1px] w-12 bg-border md:block" />
-      <motion.div
-        animate={
-          revealed === null
-            ? { scale: [1, 1.06, 1] }
-            : revealed === 'correct'
-              ? { rotate: [0, 8, -8, 0], scale: 1.15 }
-              : { x: [0, -4, 4, -2, 2, 0], scale: 1 }
-        }
-        transition={{
-          duration: revealed === null ? 1.8 : 0.5,
-          repeat: revealed === null ? Infinity : 0,
-          ease: 'easeInOut',
-        }}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 sm:h-14 sm:w-14 ${
-          revealed === 'correct'
-            ? 'border-success bg-success/20 text-success'
-            : revealed === 'wrong'
-              ? 'border-danger bg-danger/20 text-danger'
-              : 'border-accent/60 bg-accent-soft text-gold'
-        }`}
-      >
-        <span className="font-mono text-xs font-extrabold tracking-tighter sm:text-base">
-          VS
-        </span>
-      </motion.div>
-      <span className="hidden h-[1px] w-12 bg-border md:block" />
-    </div>
-  )
-}
-
-function ReferenceCard({ personaje, elo, scoreLabel }) {
-  return (
-    <motion.div
-      key={personaje.slug}
-      initial={{ x: 40, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="as-ssr-card relative flex flex-col overflow-hidden rounded-2xl border-2 border-border"
-    >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt sm:aspect-auto sm:h-[40vh] sm:max-h-[470px]">
-        <PersonajeImg
-          slug={personaje.slug}
-          alt={personaje.nombre}
-          colorDominante={personaje.imagenColorDominante}
-          className="h-full w-full object-contain"
-        />
-        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4">
-          <span className="text-[9px] font-semibold text-white/80 sm:text-[10px]">
-            {scoreLabel}
-          </span>
-          <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
-            {elo}
-          </span>
-        </div>
-      </div>
-      <div className="flex flex-col gap-0.5 px-2 py-2 sm:gap-1 sm:px-4 sm:py-3">
-        <h3 className="line-clamp-1 text-[13px] font-bold text-fg-strong sm:text-base">{personaje.nombre}</h3>
-        <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[12px]">{personaje.anime}</p>
-      </div>
-    </motion.div>
-  )
-}
-
-function ChallengerCard({
-  personaje,
-  revealedState,
-  revealedElo,
-  scoreLabel,
-  isSubmitting,
-  onMayor,
-  onMenor,
-}) {
-  const isCorrect = revealedState === 'correct'
-  const isWrong = revealedState === 'wrong'
-  const isRevealed = revealedState !== null
-  const isDisabled = isRevealed || isSubmitting
-
-  const borderClass = isCorrect
-    ? 'border-success'
-    : isWrong
-      ? 'border-danger'
-      : 'border-border'
-
-  return (
-    <motion.div
-      key={personaje.slug}
-      initial={{ x: -40, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      className={`as-ssr-card relative flex flex-col overflow-hidden rounded-2xl border-2 transition-colors ${borderClass}`}
-    >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-alt sm:aspect-auto sm:h-[40vh] sm:max-h-[470px]">
-        <PersonajeImg
-          slug={personaje.slug}
-          alt={personaje.nombre}
-          colorDominante={personaje.imagenColorDominante}
-          className="h-full w-full object-contain"
-        />
-        <AnimatePresence>
-          {!isRevealed && (
-            <motion.div
-              key="hidden"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 bg-black/60 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4"
-            >
-              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px]">
-                {scoreLabel} oculto
-              </span>
-              <HelpCircle className="h-6 w-6 text-white/90 sm:h-9 sm:w-9" />
-            </motion.div>
-          )}
-          {isRevealed && (
-            <motion.div
-              key="revealed"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className={`absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-0.5 p-2 text-center backdrop-blur-md sm:gap-1 sm:p-4 ${
-                isCorrect ? 'bg-success/90' : 'bg-danger/90'
-              }`}
-            >
-              <span className="text-[9px] font-semibold text-white/80 sm:text-[10px]">
-                {scoreLabel}
-              </span>
-              <span className="font-mono text-xl font-extrabold text-white tabular-nums sm:text-4xl">
-                {revealedElo ?? '—'}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-      <div className="flex flex-col gap-2 px-2 py-2 sm:gap-3 sm:px-4 sm:py-3">
-        <div className="flex flex-col gap-0.5 sm:gap-1">
-          <h3 className="line-clamp-1 text-[13px] font-bold text-fg-strong sm:text-base">{personaje.nombre}</h3>
-          <p className="line-clamp-1 text-[10px] text-fg-muted sm:text-[12px]">{personaje.anime}</p>
-        </div>
-        <div className="flex flex-col gap-1.5 sm:grid sm:grid-cols-2 sm:gap-2">
-          <button
-            type="button"
-            onClick={onMayor}
-            disabled={isDisabled}
-            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-success/40 bg-success/10 px-2 py-2 text-[12px] font-semibold text-success transition-all hover:-translate-y-0.5 hover:bg-success/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
-          >
-            <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            Más ELO
-          </button>
-          <button
-            type="button"
-            onClick={onMenor}
-            disabled={isDisabled}
-            className="group inline-flex items-center justify-center gap-1 rounded-lg border border-danger/40 bg-danger/10 px-2 py-2 text-[12px] font-semibold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:gap-1.5 sm:px-3 sm:py-2.5 sm:text-sm"
-          >
-            <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            Menos ELO
-          </button>
-        </div>
-      </div>
-    </motion.div>
   )
 }
 
