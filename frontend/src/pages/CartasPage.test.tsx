@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 import CartasPage from './CartasPage'
+import { SoundProvider } from '../contexts/SoundContext'
 
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { username: 'diegofutbolista1' } }),
@@ -74,7 +75,9 @@ describe('CartasPage', () => {
   it('explica de forma visible como se consiguen las monedas', () => {
     render(
       <MemoryRouter>
-        <CartasPage />
+        <SoundProvider>
+          <CartasPage />
+        </SoundProvider>
       </MemoryRouter>,
     )
 
