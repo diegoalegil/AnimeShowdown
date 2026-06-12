@@ -1,5 +1,4 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
 import {
   AlertTriangle,
   ArrowRight,
@@ -7,14 +6,12 @@ import {
   LayoutGrid,
   List,
   Search,
-  Sparkles,
   Swords,
   TrendingUp,
   X,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Dialog from '../components/Dialog'
-import PersonajeCard from '../components/PersonajeCard'
 import BrandSelect from '../components/BrandSelect'
 import PersonajeImg from '../components/PersonajeImg'
 import SugerirPersonajeCTA from '../components/SugerirPersonajeCTA'
@@ -23,14 +20,17 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { useSound } from '../contexts/SoundContext'
-import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
+import { VisualPageShell } from '../components/VisualSystem'
 import EmptyState from '../components/EmptyState'
 import { BRAND_VISUALS } from '../data/visual-assets'
 import { endpoints } from '../lib/api'
 import { useCatalogoPersonajes } from '../hooks/useCatalogoPersonajes'
 import { useQueryState } from '../hooks/useQueryState'
 import { RASGOS_OTAKU } from '../data/personajes-tags'
+import LiveNumber from '../features/ranking/components/LiveNumber'
+import CatalogCard from '../features/personajes/CatalogoPersonajes/CatalogCard'
 import CatalogoSkeletonGrid from '../features/personajes/CatalogoPersonajes/CatalogoSkeletonGrid'
+import FilterStampChip from '../features/personajes/CatalogoPersonajes/FilterStampChip'
 import HighlightMatch from '../features/personajes/CatalogoPersonajes/HighlightMatch'
 import MiniHeroStat from '../features/personajes/CatalogoPersonajes/MiniHeroStat'
 import PersonajeListRow from '../features/personajes/CatalogoPersonajes/PersonajeListRow'
@@ -45,14 +45,9 @@ import {
   filtrarCatalogo,
 } from '../features/personajes/CatalogoPersonajes/catalogo-index'
 
-const headerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-}
+/* Fichas que entran en stagger en el PRIMER paint del catálogo (ley
+   anti-re-animación de CatalogCard: el resto monta sin coreografía). */
+const ENTRADA_MAX = 24
 
 function PersonajesPage() {
   const {
@@ -121,6 +116,20 @@ function PersonajesPage() {
   const [pag, setPag] = useState({ key: filterKey, count: PAGE_SIZE })
   const visibleCount = pag.key === filterKey ? pag.count : PAGE_SIZE
   const cargarMas = () => setPag({ key: filterKey, count: visibleCount + PAGE_SIZE })
+
+  // Stagger del PRIMER paint (ley de CatalogCard): solo las fichas del
+  // catálogo recién aterrizado reciben índice de entrada. La ventana se
+  // cierra por timer (la coreografía dura ~1.8s) y también si cambia
+  // cualquier filtro — ambos cierres dejan entradaIndex=null para
+  // siempre, así paginación y filtros pintan directo sin re-animar.
+  const [entradaViva, setEntradaViva] = useState(true)
+  const [claveEntrada] = useState(filterKey)
+  useEffect(() => {
+    const t = setTimeout(() => setEntradaViva(false), 2200)
+    return () => clearTimeout(t)
+  }, [])
+  const conEntrada = entradaViva && filterKey === claveEntrada
+  const entradaIndexDe = (i) => (conEntrada && i < ENTRADA_MAX ? i : null)
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams)
@@ -323,45 +332,60 @@ function PersonajesPage() {
           { label: 'Personajes', path: '/personajes' },
         ])}
       />
-        <motion.div initial="hidden" animate="visible" variants={headerVariants}>
-          <CinematicHero
-            visual={BRAND_VISUALS.personajes}
-            icon={Sparkles}
-            eyebrow={`Catálogo completo · ${catalogoPersonajes.length} combatientes`}
-            title="Archivo de personajes"
-            subtitle="Busca, filtra y compara a los personajes que sostienen el meta. Cada ficha funciona como entrada de archivo y como carta de combate para saltar directo al duelo."
-            actions={
-              <>
-                <Link
-                  to="/votar"
-                  className="as-button-primary inline-flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-black"
-                >
-                  <Swords className="h-4 w-4" />
-                  Votar ahora
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  to="/ranking"
-                  className="as-button-ghost inline-flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-bold"
-                >
-                  <TrendingUp className="h-4 w-4" />
-                  Ver ranking
-                </Link>
-              </>
-            }
-            aside={
-              <div className="grid gap-3 rounded-2xl border border-white/10 bg-bg/62 p-5 backdrop-blur-xl">
-                <p className="text-[11px] font-black text-gold">
-                  Estado del archivo
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <MiniHeroStat label="Universos" value={animes.length} />
-                  <MiniHeroStat label="Top ELO base" value={eloBounds.top} />
-                </div>
+        {/* Cabecera del registro: el peso del número (pieza Archivo).
+            Sustituye al CinematicHero — el archivo se presenta como
+            registro burocrático de la federación, no como póster. */}
+        <header className="as-panel relative mb-4 overflow-hidden rounded-2xl p-6">
+          <span
+            aria-hidden="true"
+            className="font-kanji-serif pointer-events-none absolute -bottom-9 -right-2 select-none text-[190px] leading-none text-gold opacity-5"
+          >
+            録
+          </span>
+          <div className="relative flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+            <div>
+              <p className="as-kicker">El registro de la federación</p>
+              <h1 className="mb-3 font-display text-3xl font-bold text-fg-strong md:text-4xl">
+                Archivo de personajes
+              </h1>
+              <div className="flex flex-wrap items-baseline gap-2.5">
+                <LiveNumber value={filtered.length} className="cat-odometro text-5xl" />
+                <span className="text-[15px] font-bold text-fg-strong">
+                  {hayFiltros ? 'fichas encontradas' : 'fichas registradas'}
+                </span>
+                {hayFiltros && (
+                  <span className="text-[12px] text-fg-muted">
+                    de {catalogoPersonajes.length} registradas
+                  </span>
+                )}
               </div>
-            }
-          />
-        </motion.div>
+              <p className="sr-only" aria-live="polite">
+                {filtered.length} fichas {hayFiltros ? 'encontradas' : 'registradas'}
+              </p>
+              {/* NO TOCAR el formato: smoke test atado a este texto. */}
+              <p className="mt-2.5 text-[11px] text-fg-muted">
+                Mostrando <strong className="text-fg-strong">{filtered.length}</strong>{' '}
+                de {catalogoPersonajes.length} personajes
+                {animeFilter && (
+                  <>
+                    {' '}· Universo:{' '}
+                    <strong className="text-fg-strong">{animeFilter}</strong>
+                  </>
+                )}
+                {selectedTag && (
+                  <>
+                    {' '}· Rasgo:{' '}
+                    <strong className="text-fg-strong">{selectedTag.label}</strong>
+                  </>
+                )}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <MiniHeroStat label="Universos" value={animes.length} />
+              <MiniHeroStat label="Top ELO base" value={eloBounds.top} />
+            </div>
+          </div>
+        </header>
 
         <div className="as-panel mb-4 grid gap-3 rounded-2xl p-3 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-center">
           <div className="relative flex-1">
@@ -557,33 +581,30 @@ function PersonajesPage() {
           </button>
         </div>
 
-        <div className="scrollbar-hide scroll-x-affordance scroll-x-fade-mobile -mx-5 mb-6 hidden gap-2 overflow-x-auto px-5 pb-1 sm:flex sm:-mx-0 sm:px-0">
+        {/* Cajones del archivo: chips de universo con sello hanko 選.
+            padding-top 12px: el sello asoma -8px y el overflow-x no debe
+            recortarlo. */}
+        <div
+          role="group"
+          aria-label="Filtrar por universo"
+          className="scrollbar-hide scroll-x-affordance scroll-x-fade-mobile -mx-5 mb-6 hidden gap-2 overflow-x-auto px-5 pb-1 pt-3 sm:flex sm:-mx-0 sm:px-0"
+        >
           <button
             type="button"
-            onClick={() => seleccionarAnime(null)}
+            className="cat-chip"
             aria-pressed={animeFilter === null}
-            className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
-              animeFilter === null
-                ? 'as-chip-active'
-                : 'as-chip hover:border-gold/40 hover:text-fg-strong'
-            }`}
+            onClick={() => seleccionarAnime(null)}
           >
-            Todos · {catalogoPersonajes.length}
+            Todos <span className="cat-chip__n">{catalogoPersonajes.length}</span>
           </button>
           {animes.map(([anime, count]) => (
-            <button
+            <FilterStampChip
               key={anime}
-              type="button"
-              onClick={() => seleccionarAnime(anime)}
-              aria-pressed={animeFilter === anime}
-              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
-                animeFilter === anime
-                  ? 'as-chip-active'
-                  : 'as-chip hover:border-gold/40 hover:text-fg-strong'
-              }`}
-            >
-              {anime} · {count}
-            </button>
+              label={anime}
+              count={count}
+              pressed={animeFilter === anime}
+              onToggle={() => seleccionarAnime(animeFilter === anime ? null : anime)}
+            />
           ))}
         </div>
 
@@ -762,23 +783,6 @@ function PersonajesPage() {
           </section>
         </Dialog>
 
-        <p className="mb-4 text-[11px] text-fg-muted">
-          Mostrando <strong className="text-fg-strong">{filtered.length}</strong>{' '}
-          de {catalogoPersonajes.length} personajes
-          {animeFilter && (
-            <>
-              {' '}· Universo:{' '}
-              <strong className="text-fg-strong">{animeFilter}</strong>
-            </>
-          )}
-          {selectedTag && (
-            <>
-              {' '}· Rasgo:{' '}
-              <strong className="text-fg-strong">{selectedTag.label}</strong>
-            </>
-          )}
-        </p>
-
         {/* Leyenda del sufijo "·b": aclara una sola vez que el ELO de las
             cards/lista es una estimación por popularidad, no el ranking real
             por votos. Evita repetir el matiz en cada tarjeta. */}
@@ -810,29 +814,17 @@ function PersonajesPage() {
             }
           />
         ) : filtered.length === 0 ? (
-          <EmptyState scene
-            visual={BRAND_VISUALS.empty}
-            icon={Search}
-            title="No hay combatientes con esos filtros"
-          >
-            <p>
-              El archivo no encontró coincidencias. Prueba con otro universo,
-              busca por nombre alternativo o limpia filtros para volver al
-              roster completo.
-            </p>
-            <button
-              type="button"
-              onClick={limpiarFiltros}
-              className="as-button-ghost mt-3 inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-bold"
-            >
-              Limpiar filtros
-            </button>
-          </EmptyState>
+          <CajonVacio onLimpiar={limpiarFiltros} />
         ) : view === 'grid' ? (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {visiblePersonajes.map((p) => (
-                <PersonajeCard key={p.slug} rank={rankPorSlug.get(p.slug)} {...p} />
+            <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {visiblePersonajes.map((p, i) => (
+                <CatalogCard
+                  key={p.slug}
+                  rank={rankPorSlug.get(p.slug)}
+                  entradaIndex={entradaIndexDe(i)}
+                  {...p}
+                />
               ))}
             </div>
             {remainingPersonajes > 0 && (
@@ -917,6 +909,39 @@ function PersonajesPage() {
           <SugerirPersonajeCTA titulo="¿No está tu personaje favorito?" />
         </div>
     </VisualPageShell>
+  )
+}
+
+/* Cajón del archivo abierto y vacío (無): el empty state de filtros sin
+   coincidencias, fiel a la metáfora física del archivo. */
+function CajonVacio({ onLimpiar }) {
+  return (
+    <div className="cat-vacio">
+      <div className="cat-vacio__cajon" aria-hidden="true">
+        <div className="cat-vacio__boca">
+          <span className="cat-vacio__guia" style={{ left: '18%' }} />
+          <span className="cat-vacio__guia" style={{ left: '38%' }} />
+          <span className="cat-vacio__guia" style={{ left: '62%' }} />
+          <span className="cat-vacio__guia" style={{ left: '82%' }} />
+          <span className="cat-vacio__mu">無</span>
+        </div>
+        <div className="cat-vacio__frente">
+          <span className="cat-vacio__tirador" />
+        </div>
+      </div>
+      <p className="cat-vacio__titulo">Este cajón está vacío</p>
+      <p className="cat-vacio__texto">
+        El archivo no encontró coincidencias. Prueba con otro universo, busca
+        por nombre alternativo o limpia filtros para volver al roster completo.
+      </p>
+      <button
+        type="button"
+        onClick={onLimpiar}
+        className="as-button-ghost inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-bold"
+      >
+        Limpiar filtros
+      </button>
+    </div>
   )
 }
 
