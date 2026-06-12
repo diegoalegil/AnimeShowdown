@@ -120,8 +120,6 @@
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
 
-  --animate-marquee: marquee 40s linear infinite;
-
   /* Motion — única fuente de verdad de las curvas del sistema.
      "lift": entradas y hovers premium. "brush": trazo de pincel del kanji.
      Generan las utilidades Tailwind ease-lift / ease-brush. */
@@ -210,15 +208,6 @@
   100% {
     transform: scale(1.12);
     opacity: 0;
-  }
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
   }
 }
 
