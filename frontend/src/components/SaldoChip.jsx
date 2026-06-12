@@ -14,6 +14,7 @@ function SaldoChip({ className = '' }) {
   return (
     <Link
       to="/cartas"
+      data-tour="saldo-chip"
       aria-label={`${saldo} monedas`}
       title={`${saldo} monedas`}
       className={`inline-flex items-center gap-1 rounded-lg border border-white/12 bg-black/30 px-2 py-1 text-sm font-bold text-gold transition-colors hover:border-gold/50 ${className}`}

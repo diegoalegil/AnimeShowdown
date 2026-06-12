@@ -6,6 +6,7 @@ import Dialog from '../../components/Dialog'
 import PackOpening from './PackOpening'
 import { useAuth } from '../../contexts/AuthContext'
 import { ApiError } from '../../lib/api'
+import { SOBRE_ABIERTO_EVENT, emitAppEvent } from '../../lib/app-events'
 import {
   useColeccionResumen,
   useDescargarCarta,
@@ -86,6 +87,8 @@ function SobreBienvenidaBanner() {
     try {
       const res = await reclamar.mutateAsync()
       setReveal(res)
+      // Señal plana para oyentes desacoplados (onboarding): sobre abierto.
+      emitAppEvent(SOBRE_ABIERTO_EVENT)
     } catch (err) {
       // 409 = el backend ya tenía el sobre reclamado (idempotencia correcta);
       // el cliente tenía estado obsoleto y mostraba la oferta igualmente. En
@@ -111,7 +114,10 @@ function SobreBienvenidaBanner() {
 
   return (
     <section className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6">
-      <div className="relative overflow-hidden rounded-2xl border border-gold/45 bg-gradient-to-br from-accent/15 via-surface/85 to-surface-alt/80 p-5 shadow-aura backdrop-blur-sm sm:p-6">
+      <div
+        data-tour="sobre-bienvenida"
+        className="relative overflow-hidden rounded-2xl border border-gold/45 bg-gradient-to-br from-accent/15 via-surface/85 to-surface-alt/80 p-5 shadow-aura backdrop-blur-sm sm:p-6"
+      >
         <Sparkles
           className="pointer-events-none absolute -right-4 -top-4 h-24 w-24 text-gold/15"
           aria-hidden="true"
