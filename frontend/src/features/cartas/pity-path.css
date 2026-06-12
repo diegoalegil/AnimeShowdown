@@ -1,0 +1,739 @@
+/* ============================================================
+   PityPath — El camino al torii (pity de cartas ESPECIALES)
+   Bloque autocontenido para pegar en index.css.
+
+   Reglas que respeta:
+   - Solo se animan transform y opacity. Cero blur()/backdrop-blur,
+     cero SVG filters: todo glow es una capa pre-horneada (gradiente
+     estático) que entra y sale por cross-fade de opacity.
+   - Sin color-mix(): Safari <16.2 lo ignora en silencio (lección de
+     los god-rays del podio) — alphas con rgb(… / …) sobre los hex de
+     los tokens.
+   - Patrón reduced-motion de la casa: el estado BASE ya es el final;
+     las animaciones solo viven dentro de no-preference, así la
+     versión estática sale gratis.
+   - Timing acoplado a PityPath.jsx (stagger 40ms, flash 240ms,
+     ignite 200ms, respiración 2400ms, rescoldo 2000ms). Si se toca
+     aquí, tocar también las constantes del componente.
+   ============================================================ */
+
+.pity-path {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, var(--color-bg), var(--color-canvas) 78%);
+  box-shadow: var(--shadow-elev-1), var(--inset-shadow-hairline);
+  color: var(--color-fg);
+}
+
+/* ---------- cabecera: odómetro + estado + odds ---------- */
+
+.pity-path__head {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem 0.25rem;
+}
+
+.pity-path__count {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.14em;
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-fg-strong);
+}
+
+.pity-path__count-num {
+  display: inline-block;
+  min-width: 1.2ch;
+  text-align: right;
+  color: var(--color-gold-bright);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pity-path__count-num {
+    animation: pity-path-digit 260ms var(--ease-lift);
+  }
+}
+
+@keyframes pity-path-digit {
+  from {
+    opacity: 0;
+    transform: translateY(0.4em);
+  }
+}
+
+.pity-path__count-sep,
+.pity-path__count-max {
+  font-size: 0.62em;
+  color: var(--color-fg-muted);
+}
+
+.pity-path__copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.pity-path__label {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  color: var(--color-fg-muted);
+}
+
+.pity-path__label strong {
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+.pity-path__status {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--color-fg-muted);
+}
+
+/* La única promesa textual permitida: la que el server garantiza. */
+.pity-path--breathing .pity-path__status {
+  color: var(--color-gold-bright);
+}
+
+/* ---------- odds: transparencia anti-casino, siempre a un focus ---------- */
+
+.pity-path__odds {
+  position: relative;
+  flex: none;
+}
+
+.pity-path__odds-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.pity-path__odds-btn:hover,
+.pity-path__odds-btn[aria-expanded='true'] {
+  color: var(--color-gold);
+  border-color: var(--color-border-gold);
+}
+
+.pity-path__odds-btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.pity-path__odds-kanji {
+  font-family: var(--font-kanji-serif);
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+.pity-path__odds-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: 18.5rem;
+  max-width: calc(100vw - 2.5rem);
+  padding: 0.8rem 0.9rem 0.7rem;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elev-2), var(--inset-shadow-hairline);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms var(--ease-lift), visibility 0s 160ms;
+}
+
+.pity-path__odds-tip[data-open] {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 160ms ease, transform 160ms var(--ease-lift);
+}
+
+.pity-path__odds-rows {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.pity-path__odds-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pity-path__odds-row dt {
+  color: var(--color-fg-muted);
+}
+
+.pity-path__odds-row dd {
+  margin: 0;
+  color: var(--color-fg-strong);
+}
+
+.pity-path__odds-foot {
+  margin: 0.6rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 18%, transparent);
+  color: var(--color-gold);
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+/* ---------- escena: penumbra, kanji al 5%, brumas pre-horneadas ---------- */
+
+.pity-path__scene {
+  position: relative;
+  height: 300px;
+  /* Claro de cielo tras el torii: silueta legible sin encenderlo. */
+  background: radial-gradient(36% 34% at 85% 28%, color-mix(in srgb, var(--color-gold) 8.5%, transparent), transparent 72%);
+}
+
+.pity-path__kanji {
+  position: absolute;
+  left: 2%;
+  bottom: -12%;
+  font-family: var(--font-kanji-serif);
+  font-size: 15rem;
+  line-height: 1;
+  color: var(--color-gold);
+  opacity: 0.05;
+  user-select: none;
+  pointer-events: none;
+}
+
+.pity-path__haze {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(58% 36% at 30% 72%, color-mix(in srgb, var(--color-fg-muted) 7%, transparent), transparent 72%);
+}
+
+.pity-path__haze--b {
+  background: radial-gradient(48% 30% at 66% 40%, color-mix(in srgb, var(--color-fg-muted) 5.5%, transparent), transparent 72%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pity-path__haze--a {
+    animation: pity-path-drift 16s ease-in-out infinite alternate;
+  }
+  .pity-path__haze--b {
+    animation: pity-path-drift 21s ease-in-out -9s infinite alternate-reverse;
+  }
+}
+
+@keyframes pity-path-drift {
+  from {
+    transform: translateX(-1.4%);
+  }
+  to {
+    transform: translateX(1.4%);
+  }
+}
+
+/* ---------- piedras ---------- */
+
+.pity-path__stones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  inset: 0;
+}
+
+.pity-path__stone {
+  position: absolute;
+  left: var(--x);
+  bottom: var(--y);
+  width: 44px;
+  height: 28px;
+  transform: translate(-50%, 50%) scale(var(--s));
+}
+
+.pity-path__stone-body {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.pity-path__stone-base {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    120% 95% at 50% 16%,
+    color-mix(in srgb, var(--color-border) 90%, var(--color-bg)),
+    var(--color-surface-alt) 42%,
+    color-mix(in srgb, var(--color-bg) 80%, var(--color-surface)) 100%
+  );
+  box-shadow: 0 7px 12px -7px color-mix(in srgb, var(--color-canvas) 85%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-fg-strong) 7%, transparent);
+}
+
+/* Capa encendida pre-horneada: gradiente + glow ESTÁTICOS, solo cambia
+   su opacity. El apagado del reinicio hereda esta transición de 600ms. */
+.pity-path__stone-lit {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(
+    closest-side,
+    var(--color-gold-pale) 0%,
+    var(--color-gold-bright) 32%,
+    color-mix(in srgb, var(--color-gold) 50%, transparent) 58%,
+    transparent 78%
+  );
+  box-shadow: 0 0 22px -4px var(--color-gold-aura);
+  transition: opacity 600ms ease;
+}
+
+.pity-path__stone.is-lit .pity-path__stone-lit {
+  opacity: 1;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Encendido: micro-pop 1.15→1 en 200ms. Solo piedras nuevas (is-new);
+     las que ya estaban encendidas al montar aparecen asentadas. */
+  .pity-path__stone.is-lit.is-new .pity-path__stone-lit {
+    animation: pity-path-ignite 200ms var(--ease-lift);
+  }
+}
+
+@keyframes pity-path-ignite {
+  from {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Voluta de niebla por piedra: capa pre-horneada que se aparta
+   (cross-fade + deslizamiento, nada de blur). */
+.pity-path__stone-mist {
+  position: absolute;
+  left: -34%;
+  right: -34%;
+  top: -95%;
+  height: 130%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-fg) 11%, transparent),
+    color-mix(in srgb, var(--color-fg) 4%, transparent) 55%,
+    transparent 78%
+  );
+  opacity: 1;
+  transition: opacity 480ms ease, transform 480ms var(--ease-lift);
+}
+
+.pity-path__stone.is-lit .pity-path__stone-mist {
+  opacity: 0;
+  transform: translateX(26%);
+}
+
+/* ---------- onda de la ESPECIAL (40ms stagger por piedra) ---------- */
+
+.pity-path__stone-flash {
+  position: absolute;
+  inset: -32%;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-fg-strong) 95%, transparent) 0%,
+    var(--color-gold-pale) 32%,
+    transparent 72%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pity-path--wave .pity-path__stone-flash {
+    animation: pity-path-wave-flash 240ms var(--ease-lift) var(--wd);
+  }
+  .pity-path--wave .pity-path__stone-body {
+    animation: pity-path-wave-pop 240ms var(--ease-lift) var(--wd);
+  }
+  .pity-path--wave .pity-path__torii-frame--lit {
+    animation: pity-path-torii-flash 420ms var(--ease-lift) var(--wd);
+  }
+  .pity-path--wave .pity-path__torii-glow {
+    animation: pity-path-torii-flash 420ms var(--ease-lift) var(--wd);
+  }
+}
+
+@keyframes pity-path-wave-flash {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pity-path-wave-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pity-path-torii-flash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- reinicio elegante: fade suave + rescoldo de 2s ---------- */
+
+.pity-path--afterglow .pity-path__stone.is-lit .pity-path__stone-lit {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.pity-path--afterglow .pity-path__stone.is-lit .pity-path__stone-mist {
+  opacity: 1;
+  transform: none;
+  transition: opacity 900ms ease 250ms, transform 900ms var(--ease-lift) 250ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pity-path--afterglow .pity-path__torii-glow {
+    animation: pity-path-ember 2000ms ease-out;
+  }
+}
+
+@keyframes pity-path-ember {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- torii ---------- */
+
+.pity-path__torii {
+  position: absolute;
+  right: 5%;
+  bottom: 53%;
+  width: 104px;
+  height: 112px;
+  transform: scale(0.82);
+  transform-origin: bottom center;
+}
+
+.pity-path__torii-frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.pity-path__torii-frame > span {
+  position: absolute;
+  display: block;
+}
+
+.pity-path__torii-kasagi {
+  top: 0;
+  left: -13%;
+  right: -13%;
+  height: 12px;
+  border-radius: 7px 7px 3px 3px;
+}
+
+.pity-path__torii-shimaki {
+  top: 13px;
+  left: -5%;
+  right: -5%;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.pity-path__torii-gakuzuka {
+  top: 21px;
+  left: 50%;
+  width: 9px;
+  height: 23px;
+  margin-left: -4.5px;
+}
+
+.pity-path__torii-nuki {
+  top: 44px;
+  left: -8%;
+  right: -8%;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.pity-path__torii-hashira {
+  top: 15px;
+  bottom: 0;
+  width: 11px;
+  border-radius: 3px 3px 0 0;
+  transform-origin: bottom center;
+}
+
+.pity-path__torii-hashira--l {
+  left: 7%;
+  transform: rotate(2.2deg);
+}
+
+.pity-path__torii-hashira--r {
+  right: 7%;
+  transform: rotate(-2.2deg);
+}
+
+/* Silueta en penumbra con hairline dorada arriba (legible sobre var(--color-canvas)). */
+.pity-path__torii-frame--dark > span {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-border) 70%, var(--color-bg)), color-mix(in srgb, var(--color-bg) 55%, var(--color-surface)) 70%);
+  box-shadow:
+    inset 0 1px 0 var(--color-border-gold),
+    0 4px 10px -4px color-mix(in srgb, var(--color-canvas) 80%, transparent);
+}
+
+/* Versión dorada pre-horneada: SOLO cross-fade de opacity la revela
+   (respiración, onda). Cero filtros, cero sombras animadas. */
+.pity-path__torii-frame--lit {
+  opacity: 0;
+}
+
+.pity-path__torii-frame--lit > span {
+  background: linear-gradient(180deg, var(--color-gold-pale), var(--color-gold-bright) 45%, var(--color-gold));
+  box-shadow: 0 0 14px -3px var(--color-gold-aura);
+}
+
+.pity-path__torii-glow {
+  position: absolute;
+  inset: -48% -64%;
+  opacity: 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-gold-bright) 50%, transparent),
+    color-mix(in srgb, var(--color-gold) 20%, transparent) 48%,
+    transparent 76%
+  );
+}
+
+/* Respiración (pity−2): dos capas pre-horneadas en cross-fade, ciclo 2,4s,
+   en contrafase (−1200ms). Se pausa con --asleep (viewport/pestaña). */
+.pity-path__torii-breath {
+  position: absolute;
+  inset: -30% -42%;
+  opacity: 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-gold-pale) 34%, transparent),
+    color-mix(in srgb, var(--color-gold) 14%, transparent) 52%,
+    transparent 78%
+  );
+}
+
+.pity-path__torii-breath--b {
+  inset: -56% -74%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-gold) 20%, transparent),
+    color-mix(in srgb, var(--color-gold) 8%, transparent) 55%,
+    transparent 80%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pity-path--breathing .pity-path__torii-breath--a {
+    animation: pity-path-breathe 2400ms ease-in-out infinite;
+  }
+  .pity-path--breathing .pity-path__torii-breath--b {
+    animation: pity-path-breathe 2400ms ease-in-out -1200ms infinite;
+  }
+  .pity-path--breathing .pity-path__torii-frame--lit {
+    animation: pity-path-breathe-frame 2400ms ease-in-out infinite;
+  }
+}
+
+@keyframes pity-path-breathe {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pity-path-breathe-frame {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* reduced-motion: el torii ni respira, pero que se NOTE que estás cerca. */
+@media (prefers-reduced-motion: reduce) {
+  .pity-path--breathing .pity-path__torii-frame--lit {
+    opacity: 0.4;
+  }
+}
+
+.pity-path--static.pity-path--breathing .pity-path__torii-frame--lit {
+  opacity: 0.4;
+}
+
+/* ---------- pausa fuera del viewport / pestaña oculta ----------
+   SOLO los loops infinitos (brumas, respiración): pausar también los
+   one-shot (ignite, onda, dígito) los congela en su frame 0%/both si
+   el estado cambia con la pestaña oculta — piedras invisibles. */
+
+.pity-path--asleep .pity-path__haze--a,
+.pity-path--asleep .pity-path__haze--b,
+.pity-path--asleep .pity-path__torii-breath--a,
+.pity-path--asleep .pity-path__torii-breath--b,
+.pity-path--asleep.pity-path--breathing .pity-path__torii-frame--lit {
+  animation-play-state: paused !important;
+}
+
+/* ---------- modo estático forzado (tests / demo / fallback) ---------- */
+
+.pity-path--static *,
+.pity-path--static *::before,
+.pity-path--static *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ---------- compacto ≤520px de contenedor: fila bajo el botón de abrir ---------- */
+
+.pity-path--compact .pity-path__head {
+  flex-wrap: wrap;
+  padding: 0.85rem 1rem 0.4rem;
+}
+
+.pity-path--compact .pity-path__count {
+  font-size: 1.4rem;
+}
+
+.pity-path--compact .pity-path__scene {
+  position: static;
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0.35rem 1rem 1rem;
+}
+
+.pity-path--compact .pity-path__kanji,
+.pity-path--compact .pity-path__haze,
+.pity-path--compact .pity-path__stone-mist {
+  display: none;
+}
+
+.pity-path--compact .pity-path__stones {
+  position: static;
+  inset: auto;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.pity-path--compact .pity-path__stone {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: 15px;
+  height: 15px;
+  transform: none;
+}
+
+.pity-path--compact .pity-path__stone-base {
+  border-radius: 50%;
+}
+
+.pity-path--compact .pity-path__torii {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  flex: none;
+  width: 34px;
+  height: 37px;
+  transform: none;
+}
+
+.pity-path--compact .pity-path__torii-kasagi {
+  height: 5px;
+  border-radius: 3px 3px 1px 1px;
+}
+
+.pity-path--compact .pity-path__torii-shimaki {
+  top: 6px;
+  height: 3px;
+}
+
+.pity-path--compact .pity-path__torii-gakuzuka {
+  top: 9px;
+  width: 4px;
+  height: 7px;
+  margin-left: -2px;
+}
+
+.pity-path--compact .pity-path__torii-nuki {
+  top: 16px;
+  height: 4px;
+}
+
+.pity-path--compact .pity-path__torii-hashira {
+  top: 7px;
+  width: 5px;
+}
+
+/* Modo calma y pestana oculta pausan la respiracion del torii. */
+html.as-calm .pity-path__torii-breath,
+html.as-tab-hidden .pity-path__torii-breath {
+  animation-play-state: paused;
+}
