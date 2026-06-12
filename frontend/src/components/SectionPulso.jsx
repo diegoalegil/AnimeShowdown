@@ -7,6 +7,7 @@ import { imagenPersonaje, personajes, getStatsPersonaje } from '../lib/personaje
 import { personajeDelDia } from '../lib/games'
 import ResponsivePicture from './ResponsivePicture'
 import FavoritosPulsoBanner from './FavoritosPulsoBanner'
+import { PULSE_STALE, useRankingPulso } from '../features/home/pulso/pulsoQueries'
 import CampeonCard from '../features/home/pulso/components/CampeonCard'
 import DueloAbiertoCard from '../features/home/pulso/components/DueloAbiertoCard'
 import DueloDestacadoCard from '../features/home/pulso/components/DueloDestacadoCard'
@@ -76,16 +77,6 @@ function tieneImagenPromocionable(item, catalogoPersonajes = personajes) {
  * null si la query falla o devuelve vacío). El stale-time de 1min recarga
  * silenciosamente cuando el usuario vuelve a la home tras un rato.
  */
-const PULSE_STALE = 60 * 1000
-
-function useRanking() {
-  return useQuery({
-    queryKey: ['pulso', 'ranking'],
-    queryFn: endpoints.ranking,
-    staleTime: PULSE_STALE,
-  })
-}
-
 function useMovimientos() {
   // limit 100: cubre el top de movers Y la mayoría de slugs que un usuario
   // pueda tener en su roster — esto comparte cache con
@@ -126,7 +117,7 @@ function useUltimosVotos() {
 
 function SectionPulso() {
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
-  const { data: ranking, isLoading: rankingLoading } = useRanking()
+  const { data: ranking, isLoading: rankingLoading } = useRankingPulso()
   const { data: movimientos } = useMovimientos()
   const { data: torneos = [] } = useTorneos()
   const { data: duelo } = useDueloAbierto()
