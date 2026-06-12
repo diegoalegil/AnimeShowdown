@@ -595,3 +595,84 @@ export async function playAcunado() {
     osc.stop(now + 0.65)
   })
 }
+
+// Lavado grave — la aguada avanzando (t0→t+600). Ruido pasabajos que cae
+// de 420→110Hz: agua y tinta, sin brillo metálico.
+export async function playVerdictWash() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const dur = 0.6
+  const src = ctx.createBufferSource()
+  src.buffer = getNoiseBuffer(ctx, 0.25)
+  src.loop = true
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'lowpass'
+  filter.Q.value = 0.8
+  filter.frequency.setValueAtTime(420, now)
+  filter.frequency.exponentialRampToValueAtTime(110, now + dur)
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.11, now + 0.07)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + dur)
+  src.connect(filter)
+  filter.connect(gain)
+  gain.connect(ctx.destination)
+  src.start(now)
+  src.stop(now + dur + 0.03)
+}
+
+// Tick de odómetro — cada ~8% del lado líder (ODOMETER_TICK_EVERY_PCT).
+// Blip mínimo de 28ms; el caller no necesita pasar el paso: la alternancia
+// interna evita la fatiga de un mismo tono repetido ~12 veces.
+let _verdictTickFlip = false
+export async function playVerdictTick() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  _verdictTickFlip = !_verdictTickFlip
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'square'
+  osc.frequency.setValueAtTime(_verdictTickFlip ? 1320 : 1480, now)
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.035, now + 0.004)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028)
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start(now)
+  osc.stop(now + 0.04)
+}
+
+// Golpe seco del sello 票 — variante corta y seca del acuñado: sub con el
+// peso del hanko + crack filtrado, sin ring metálico (esto es papel).
+export async function playVerdictStamp() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const sub = ctx.createOscillator()
+  const subGain = ctx.createGain()
+  sub.type = 'sine'
+  sub.frequency.setValueAtTime(165, now)
+  sub.frequency.exponentialRampToValueAtTime(48, now + 0.16)
+  subGain.gain.setValueAtTime(0, now)
+  subGain.gain.linearRampToValueAtTime(0.28, now + 0.005)
+  subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2)
+  sub.connect(subGain)
+  subGain.connect(ctx.destination)
+  sub.start(now)
+  sub.stop(now + 0.22)
+  const crack = ctx.createBufferSource()
+  crack.buffer = getNoiseBuffer(ctx, 0.12)
+  const bp = ctx.createBiquadFilter()
+  bp.type = 'bandpass'
+  bp.frequency.setValueAtTime(1350, now)
+  bp.Q.value = 3
+  const crackGain = ctx.createGain()
+  crackGain.gain.setValueAtTime(0.14, now)
+  crackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1)
+  crack.connect(bp)
+  bp.connect(crackGain)
+  crackGain.connect(ctx.destination)
+  crack.start(now)
+}
