@@ -1,0 +1,218 @@
+/* ============================================================
+   El santuario del oráculo — bloque para index.css (CSP por hash:
+   nada de <style> en runtime). Solo transform/opacity en todo loop;
+   cero blur/backdrop-blur/SVG filters nuevos (jank WebKit).
+   Pausa global: html.as-tab-hidden ya pausa todas las animaciones;
+   el componente añade pausa por viewport vía .orc-paused.
+   ============================================================ */
+
+/* Bob de levitación de la máscara: ±4px, ciclo 4s. */
+@keyframes orc-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+/* Respiración del aura: cross-fade de la capa fuerte PRE-PINTADA sobre la
+   base tenue (mismo patrón que kanji-ink-breathe). La DURACIÓN es la
+   cadencia de confianza y la escribe el componente vía --orc-aura-dur. */
+@keyframes orc-aura {
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 1; }
+}
+
+/* Desenrollado de la tira omikuji: scaleY origin-top, 300ms lift. */
+@keyframes orc-unroll {
+  from { transform: rotate(-0.6deg) scaleY(0); }
+  to   { transform: rotate(-0.6deg) scaleY(1); }
+}
+
+@keyframes orc-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* UN balanceo de péndulo del ema recién colgado (240ms, origin top). */
+@keyframes orc-swing {
+  0%   { transform: rotate(7deg); }
+  55%  { transform: rotate(-3.5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Sello de acierto: caída + overshoot de hanko (ease-stamp) + reposo a −8°. */
+@keyframes orc-stamp {
+  0%   { opacity: 0; transform: translateY(-44px) scale(1.6) rotate(-18deg); }
+  55%  { opacity: 1; transform: translateY(2px) scale(0.92) rotate(-6deg); }
+  75%  { transform: translateY(-1px) scale(1.05) rotate(-10deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(-8deg); }
+}
+
+/* Sangrado del estampado: anillo que se expande y muere (one-shot). */
+@keyframes orc-ripple {
+  0%   { transform: scale(0.5); opacity: 0; }
+  18%  { opacity: 0.55; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+/* Entrada de la carta del veredicto. */
+@keyframes orc-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── máscara ── */
+
+.orc-mask {
+  transition: transform 300ms var(--ease-lift);
+  transform: rotate(0deg) translateY(0);
+}
+.orc-mask--uncertain { transform: rotate(4deg); }            /* ladeo, sin juicio */
+.orc-mask--bow       { transform: rotate(8deg) translateY(4px); }  /* inclinación pre-sello */
+.orc-mask--sorry     { transform: rotate(-9deg) translateY(6px); } /* apenada, fallo */
+
+.orc-mask__glint {
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.orc-mask__glint--on { opacity: 0.9; }
+
+.orc-bob {
+  animation: orc-bob 4s ease-in-out infinite;
+}
+
+/* Aura carmesí: capa base estática (el gradiente vive en el JSX como
+   token-mix vía clase Tailwind arbitraria o aquí si se prefiere). */
+.orc-aura-breathe {
+  opacity: 0;
+  animation: orc-aura var(--orc-aura-dur, 4s) ease-in-out infinite;
+}
+
+/* Pausa por viewport (IntersectionObserver del componente). */
+.orc-paused .orc-bob,
+.orc-paused .orc-aura-breathe {
+  animation-play-state: paused;
+}
+
+/* Capas del aura pre-pintadas (radial ya difuso: cero blur). */
+.orc-aura {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-accent) 30%, transparent),
+    color-mix(in srgb, var(--color-accent) 10%, transparent) 55%,
+    transparent 72%
+  );
+}
+.orc-aura--strong {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-accent) 55%, transparent),
+    color-mix(in srgb, var(--color-accent) 16%, transparent) 55%,
+    transparent 72%
+  );
+}
+
+/* ── tira omikuji ── */
+
+.orc-strip {
+  transform-origin: 50% 0;
+  animation: orc-unroll 300ms var(--ease-lift) both;
+}
+.orc-strip__text {
+  animation: orc-fade 240ms ease 150ms both;
+}
+
+/* Papel washi sobre tokens (mismo criterio que OmikujiCylinder): marfil
+   del sistema, nunca white puro. Tinta = canvas casi puro. */
+.orc-strip-paper {
+  --orc-ink-muted: color-mix(in oklab, var(--color-gold) 55%, var(--color-canvas));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-gold) 10%, var(--color-fg-strong)),
+    color-mix(in srgb, var(--color-gold) 22%, var(--color-fg-strong))
+  );
+  color: color-mix(in srgb, var(--color-canvas) 88%, var(--color-gold));
+  box-shadow: 0 18px 48px -28px color-mix(in srgb, var(--color-canvas) 90%, transparent);
+}
+
+/* ── emas ── */
+
+.orc-beam {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border-gold) 10%,
+    var(--color-border-gold) 90%,
+    transparent
+  );
+}
+
+.orc-ema {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  padding: 9px 6px 7px;
+  border: 1px solid var(--color-border-gold-subtle);
+  border-top: 2px solid var(--color-border-gold);
+  border-radius: 6px 6px 4px 4px;
+  background: linear-gradient(
+    102deg,
+    color-mix(in oklab, var(--color-gold) 24%, var(--color-bg)),
+    color-mix(in oklab, var(--color-gold) 13%, var(--color-bg))
+  );
+}
+
+.orc-ema--fresh {
+  transform-origin: 50% 0;
+  animation: orc-swing 240ms ease-out 40ms both;
+}
+
+/* ── veredicto ── */
+
+.orc-verdict {
+  animation: orc-rise 400ms var(--ease-lift) both;
+}
+.orc-seal {
+  /* base = estado final: con reduced-motion la animación se apaga y el
+     sello queda estampado (mismo truco que totb-…). */
+  transform: rotate(-8deg);
+  animation: orc-stamp 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.orc-seal-ripple {
+  opacity: 0;
+  animation: orc-ripple 700ms ease-out 180ms both;
+}
+.orc-seal-face {
+  border: 3px solid var(--color-hanko);
+  background: radial-gradient(
+    circle at 50% 35%,
+    color-mix(in srgb, var(--color-hanko) 18%, transparent),
+    color-mix(in srgb, var(--color-canvas) 60%, transparent) 75%
+  );
+}
+
+/* ── reduced-motion: sin bob ni balanceos; aura fija a opacity media;
+      emas y tira aparecen sin vuelo; sello estampado directo. ── */
+@media (prefers-reduced-motion: reduce) {
+  .orc-bob,
+  .orc-aura-breathe,
+  .orc-strip,
+  .orc-strip__text,
+  .orc-ema--fresh,
+  .orc-verdict,
+  .orc-seal,
+  .orc-seal-ripple {
+    animation: none !important;
+  }
+  .orc-aura-breathe { opacity: 0.5; }
+  .orc-seal-ripple  { opacity: 0; }
+  .orc-mask { transition: none; }
+}
+
+/* Modo calma pausa los loops decorativos del altar (bob + respiración). */
+html.as-calm .orc-bob,
+html.as-calm .orc-aura-breathe,
+html.as-tab-hidden .orc-bob,
+html.as-tab-hidden .orc-aura-breathe {
+  animation-play-state: paused;
+}

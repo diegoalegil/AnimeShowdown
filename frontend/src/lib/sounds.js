@@ -745,3 +745,78 @@ export async function playShutter() {
   click(now, 2600, 0.03, 0.5)
   click(now + 0.07, 1450, 0.05, 0.38)
 }
+
+/**
+ * Campanilla del oráculo (pregunta nueva): dos senos 1568/2093 Hz con
+ * decay de 0.6s, muy por debajo del resto del banco.
+ */
+export async function playCampanilla() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  ;[
+    [1568, 0.05],
+    [2093, 0.035],
+  ].forEach(([freq, vol]) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, now)
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(vol, now + 0.008)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.65)
+  })
+}
+
+/**
+ * Sello del veredicto: sub 170→46 Hz + crack de ruido en bandpass 1500 Hz
+ * + ring 2093 Hz — el golpe de hanko recortado para el 当 del oráculo.
+ */
+export async function playSello() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const sub = ctx.createOscillator()
+  const subGain = ctx.createGain()
+  sub.type = 'sine'
+  sub.frequency.setValueAtTime(170, now)
+  sub.frequency.exponentialRampToValueAtTime(46, now + 0.16)
+  subGain.gain.setValueAtTime(0, now)
+  subGain.gain.linearRampToValueAtTime(0.5, now + 0.006)
+  subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3)
+  sub.connect(subGain)
+  subGain.connect(ctx.destination)
+  sub.start(now)
+  sub.stop(now + 0.32)
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate)
+  const d = buf.getChannelData(0)
+  for (let i = 0; i < d.length; i++) {
+    d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2
+  }
+  const crack = ctx.createBufferSource()
+  crack.buffer = buf
+  const bp = ctx.createBiquadFilter()
+  bp.type = 'bandpass'
+  bp.frequency.value = 1500
+  const crackGain = ctx.createGain()
+  crackGain.gain.value = 0.3
+  crack.connect(bp)
+  bp.connect(crackGain)
+  crackGain.connect(ctx.destination)
+  crack.start(now)
+  const ring = ctx.createOscillator()
+  const ringGain = ctx.createGain()
+  ring.type = 'sine'
+  ring.frequency.setValueAtTime(2093, now + 0.03)
+  ringGain.gain.setValueAtTime(0, now + 0.03)
+  ringGain.gain.linearRampToValueAtTime(0.04, now + 0.05)
+  ringGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55)
+  ring.connect(ringGain)
+  ringGain.connect(ctx.destination)
+  ring.start(now + 0.03)
+  ring.stop(now + 0.6)
+}
