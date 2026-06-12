@@ -16,6 +16,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema, gameWebApplicationSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import AutocompletePersonaje from '../components/AutocompletePersonaje'
+import LacqueredTile from '../features/games/anigrid/LacqueredTile'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import {
@@ -142,6 +143,11 @@ function AnidelGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
   const intentosUsados = estado.intentos.length + (estado.pistaLetra ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
 
+  // Solo la fila del envío REAL flipa; las restauradas pintan estático
+  // (contrato anti-re-animación de la piel lacada).
+  const [filaViva, setFilaViva] = useState(-1)
+  const [anuncioFila, setAnuncioFila] = useState('')
+
   const handleGuess = (slug) => {
     if (estado.finalizado) return
     if (estado.intentos.some((i) => i.slug === slug)) {
@@ -165,6 +171,17 @@ function AnidelGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
       direccionElo: direccionEloEntre(elo, eloObjetivo),
     }
     const intentos = [...estado.intentos, intento]
+    setFilaViva(estado.intentos.length)
+    window.setTimeout(() => {
+      const partes = [
+        `inicial ${intento.matchLetra ? 'correcta' : 'incorrecta'}`,
+        `anime ${intento.matchAnime ? 'correcto' : 'distinto'}`,
+        intento.direccionElo === 'cerca' || intento.direccionElo === 'eq'
+          ? 'ELO muy cercano'
+          : `ELO objetivo ${intento.direccionElo === 'up' ? 'más alto' : 'más bajo'}`,
+      ]
+      setAnuncioFila(`Intento ${intentos.length}: ${intento.nombre} — ${partes.join(', ')}.`)
+    }, 460)
     const finalizado =
       acierto || intentos.length + (estado.pistaLetra ? 1 : 0) >= MAX_INTENTOS
     setEstado((s) => ({
@@ -314,10 +331,15 @@ function AnidelGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
                 key={i}
                 intento={intento}
                 isObjetivoElo={eloObjetivo}
+                reveal={i === filaViva ? 'flip' : 'static'}
               />
             )
           })}
         </div>
+
+        <p className="sr-only" role="status" aria-live="polite">
+          {anuncioFila}
+        </p>
 
         {!estado.finalizado ? (
           <div className="mb-6 flex flex-col gap-2">
@@ -375,17 +397,19 @@ function AnidelGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
   )
 }
 
-function FilaIntento({ intento }) {
+function FilaIntento({ intento, reveal = 'static' }) {
   if (!intento) {
     return (
       <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2 rounded-lg border border-dashed border-border bg-bg/40 p-2">
         <span className="text-[12px] text-fg-muted/50">·</span>
-        <span className="h-7 w-7 rounded-lg border border-border/50" />
-        <span className="h-7 w-7 rounded-lg border border-border/50" />
-        <span className="h-7 w-7 rounded-lg border border-border/50" />
+        <span className="agx-tile agx-skin-idle h-9 w-9" />
+        <span className="agx-tile agx-skin-idle h-9 w-9" />
+        <span className="agx-tile agx-skin-idle h-9 w-9" />
       </div>
     )
   }
+  const inicial = intento.nombre.charAt(0).toUpperCase()
+  const cerca = intento.direccionElo === 'cerca' || intento.direccionElo === 'eq'
   return (
     <div
       className={`grid grid-cols-[1fr_auto_auto_auto] items-center gap-2 rounded-lg border p-2 ${
@@ -409,69 +433,45 @@ function FilaIntento({ intento }) {
           <p className="truncate text-[11px] text-fg-muted">{intento.anime}</p>
         </div>
       </div>
-      <Squarito
-        ok={intento.matchLetra}
-        label={intento.nombre.charAt(0)}
+      <LacqueredTile
+        estado={intento.matchLetra ? 'correct' : 'absent'}
+        reveal={reveal}
+        delay={0}
         title={
           intento.matchLetra
-            ? `La inicial ${intento.nombre.charAt(0).toUpperCase()} coincide`
-            : `La inicial ${intento.nombre.charAt(0).toUpperCase()} no coincide`
+            ? `La inicial ${inicial} coincide`
+            : `La inicial ${inicial} no coincide`
         }
-      />
-      <Squarito
-        ok={intento.matchAnime}
-        label={<Tv className="h-3 w-3" />}
-        title={intento.matchAnime ? 'Mismo anime' : 'Anime distinto'}
-      />
-      <SquaritoFlecha dir={intento.direccionElo} elo={intento.elo} />
-    </div>
-  )
-}
-
-function Squarito({ ok, label, title }) {
-  return (
-    <span
-      title={title}
-      aria-label={title}
-      className={`inline-flex h-7 w-7 items-center justify-center rounded-lg font-mono text-[11px] font-bold ${
-        ok
-          ? 'bg-success/20 text-success'
-          : 'bg-danger/15 text-danger/80'
-      }`}
-    >
-      {label}
-    </span>
-  )
-}
-
-function SquaritoFlecha({ dir, elo }) {
-  // 'cerca' (y el legacy 'eq' de estados guardados) = ELO base muy parecido:
-  // mismo tier, sin dirección fiable. No usamos verde para no sugerir un match
-  // exacto; ámbar con − indica "pista de proximidad, no de dirección".
-  if (dir === 'cerca' || dir === 'eq')
-    return (
-      <span
-        className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gold/15 text-gold"
-        title={`ELO base ${elo} — muy parecido al objetivo (mismo tier)`}
       >
-        <Minus className="h-3.5 w-3.5" />
-      </span>
-    )
-  return (
-    <span
-      className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gold/15 text-gold"
-      title={
-        dir === 'up'
-          ? `ELO base ${elo} — el objetivo tiene bastante más`
-          : `ELO base ${elo} — el objetivo tiene bastante menos`
-      }
-    >
-      {dir === 'up' ? (
-        <ArrowUp className="h-3.5 w-3.5" />
-      ) : (
-        <ArrowDown className="h-3.5 w-3.5" />
-      )}
-    </span>
+        <span className="font-mono text-[12px] font-bold">{inicial}</span>
+      </LacqueredTile>
+      <LacqueredTile
+        estado={intento.matchAnime ? 'correct' : 'absent'}
+        reveal={reveal}
+        delay={50}
+        title={intento.matchAnime ? 'Mismo anime' : 'Anime distinto'}
+      >
+        <Tv className="h-3.5 w-3.5" />
+      </LacqueredTile>
+      <LacqueredTile
+        estado={cerca ? 'present' : 'absent'}
+        reveal={reveal}
+        delay={100}
+        title={
+          cerca
+            ? `ELO base ${intento.elo} — muy parecido al objetivo (mismo tier)`
+            : `ELO base ${intento.elo} — el objetivo es ${intento.direccionElo === 'up' ? 'más alto' : 'más bajo'}`
+        }
+      >
+        {cerca ? (
+          <Minus className="h-3.5 w-3.5" />
+        ) : intento.direccionElo === 'up' ? (
+          <ArrowUp className="h-3.5 w-3.5" />
+        ) : (
+          <ArrowDown className="h-3.5 w-3.5" />
+        )}
+      </LacqueredTile>
+    </div>
   )
 }
 

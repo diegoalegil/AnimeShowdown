@@ -1,0 +1,280 @@
+/* ============================================================
+   AniGrid — fichas de madera lacada (skin del tablero)
+   Pegar tal cual en index.css. Solo usa tokens del sistema
+   (--color-…, --ease-…, --radius-lg) + color-mix de tokens.
+   Todas las animaciones son transform-only (60fps, cero blur).
+   ============================================================ */
+
+/* ---------- Tablero ---------- */
+.agx-board {
+  display: grid;
+  gap: clamp(5px, 1.6vw, 8px);
+  width: 100%;
+  max-width: 330px;
+  margin-inline: auto;
+}
+.agx-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(5px, 1.6vw, 8px);
+}
+.agx-tile {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  perspective: 640px;
+  -webkit-perspective: 640px;
+}
+
+/* Rotor 3D del flip. Gotcha Safari de la casa: backface en AMBAS caras,
+   con prefijo; el nodo preserve-3d NO lleva filter/overflow/opacity. */
+.agx-rotor {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+.agx-rotor--flip {
+  animation: agx-flip 300ms var(--ease-brush) both;
+  animation-delay: calc(var(--agx-col, 0) * 50ms);
+}
+@keyframes agx-flip {
+  from { transform: rotateX(0deg); }
+  to   { transform: rotateX(180deg); }
+}
+
+/* ---------- Caras de la ficha ---------- */
+.agx-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-display);
+  font-weight: 700;
+  /* Las celdas de Anidel ponen su propio tamano (iconos y letra peq). */
+  font-size: inherit;
+  line-height: 1;
+  text-transform: uppercase;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.agx-face--back { transform: rotateX(180deg); }
+
+/* Madera lacada en reposo: laca oscura con veta sutil de oro (gradiente de
+   token, sin texturas externas) y bisel de hairlines: brillo arriba,
+   sombra húmeda abajo. */
+.agx-skin-idle {
+  background:
+    repeating-linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--color-gold) 2.5%, transparent) 0 2px,
+      transparent 2px 11px
+    ),
+    linear-gradient(
+      168deg,
+      var(--color-surface-alt),
+      var(--color-bg) 55%,
+      var(--color-surface)
+    );
+  border: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+  box-shadow:
+    var(--inset-shadow-hairline),
+    inset 0 -10px 16px -12px color-mix(in srgb, var(--color-canvas) 85%, transparent);
+  color: var(--color-fg-strong);
+}
+/* Ficha con letra escrita (aún sin juzgar): la laca despierta en oro. */
+.agx-skin-tbd {
+  border-color: var(--color-border-gold-subtle);
+  box-shadow:
+    var(--inset-shadow-hairline-strong),
+    inset 0 -10px 16px -12px color-mix(in srgb, var(--color-canvas) 85%, transparent);
+}
+
+/* CORRECTA — entintada en ORO. Laca dorada con bisel brillante. */
+.agx-skin-correct {
+  background:
+    repeating-linear-gradient(
+      97deg,
+      color-mix(in srgb, var(--color-fg-strong) 5%, transparent) 0 1px,
+      transparent 1px 6px
+    ),
+    linear-gradient(
+      165deg,
+      var(--color-gold-bright),
+      var(--color-gold) 46%,
+      color-mix(in oklab, var(--color-gold) 52%, black)
+    );
+  border: 1px solid color-mix(in srgb, var(--color-gold-pale) 70%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-gold-pale) 80%, transparent),
+    inset 0 -8px 14px -10px color-mix(in srgb, var(--color-canvas) 55%, transparent);
+  color: var(--color-canvas);
+}
+
+/* PRESENTE — CIAN puntual: laca teñida, filo y letra eléctricos. */
+.agx-skin-present {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--color-electric) 28%, var(--color-bg)),
+    color-mix(in oklab, var(--color-electric) 12%, var(--color-canvas)) 62%
+  );
+  border: 1px solid color-mix(in srgb, var(--color-electric) 55%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-electric-soft) 35%, transparent),
+    inset 0 -8px 14px -10px color-mix(in srgb, var(--color-canvas) 70%, transparent);
+  color: var(--color-electric-pale);
+}
+
+/* AUSENTE — CENIZA: la laca se apaga, la letra casi se hunde. */
+.agx-skin-absent {
+  background: linear-gradient(
+    168deg,
+    color-mix(in oklab, var(--color-border) 18%, var(--color-canvas)),
+    var(--color-canvas)
+  );
+  border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent);
+  box-shadow: inset 0 -8px 14px -10px color-mix(in srgb, var(--color-canvas) 80%, transparent);
+  color: color-mix(in srgb, var(--color-fg-muted) 55%, transparent);
+}
+
+/* ---------- Coreografías ---------- */
+/* Pop al escribir: scale 1.06→1 en 80ms (solo sobre la letra recién puesta). */
+.agx-pop { animation: agx-pop 80ms ease-out both; }
+@keyframes agx-pop {
+  from { transform: scale(1.06); }
+  to   { transform: scale(1); }
+}
+
+/* Palabra inválida: tremor de 2px, 150ms, UNA vez. Se aplica remontando la
+   fila (key=nonce), así no hay limpieza de clase por JS. */
+.agx-row--tremor { animation: agx-tremor 150ms var(--ease-brush) 1 both; }
+@keyframes agx-tremor {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-2px); }
+  62%      { transform: translateX(2px); }
+}
+
+/* Victoria: dominó — cada ficha de la fila ganadora cabecea 8º en secuencia. */
+.agx-tile--domino .agx-rotor,
+.agx-tile--domino .agx-static {
+  animation: agx-domino 260ms var(--ease-lift) both;
+  animation-delay: calc(var(--agx-col, 0) * 60ms + var(--agx-domino-wait, 0ms));
+}
+@keyframes agx-domino {
+  0%   { transform: rotateX(0deg); }
+  45%  { transform: rotateX(8deg) translateY(2px); }
+  100% { transform: rotateX(0deg); }
+}
+/* La cara trasera ya revelada vive a 180º: el dominó de una fila flipada
+   parte de esa pose. */
+.agx-tile--domino .agx-rotor--flipped { animation-name: agx-domino-flipped; }
+@keyframes agx-domino-flipped {
+  0%   { transform: rotateX(180deg); }
+  45%  { transform: rotateX(188deg) translateY(2px); }
+  100% { transform: rotateX(180deg); }
+}
+.agx-rotor--flipped { transform: rotateX(180deg); }
+
+/* Derrota: la solución se revela en una ficha grande que flipa sola. */
+.agx-reveal {
+  perspective: 900px;
+  -webkit-perspective: 900px;
+  width: min(100%, 330px);
+  height: 72px;
+  margin-inline: auto;
+}
+.agx-reveal .agx-face {
+  font-size: 1.7rem;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+}
+.agx-reveal .agx-rotor--flip {
+  animation-duration: 420ms;
+  animation-delay: 240ms;
+}
+
+/* ---------- Teclado de fichas en miniatura ---------- */
+.agx-kb {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+}
+.agx-kb-row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+.agx-key {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 90ms var(--ease-lift),
+    opacity 480ms var(--ease-lift),
+    border-color 180ms ease,
+    color 180ms ease;
+  transition-delay: 0ms, calc(var(--agx-ki, 0) * 14ms), 0ms, 0ms;
+}
+.agx-key:active { transform: translateY(1px) scale(0.97); }
+.agx-key:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.agx-key--wide { flex: 1.55 1 0; font-size: 0.66rem; letter-spacing: 0.04em; }
+
+/* Victoria: el teclado se apaga con elegancia (fade en cascada por tecla,
+   transition-delay escalonado vía --agx-ki; nada de re-layout). */
+.agx-kb--off .agx-key {
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+/* ---------- Live region accesible ---------- */
+.agx-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- reduced-motion: el estado llega directo ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .agx-rotor--flip,
+  .agx-pop,
+  .agx-row--tremor,
+  .agx-tile--domino .agx-rotor,
+  .agx-tile--domino .agx-static,
+  .agx-reveal .agx-rotor--flip {
+    animation: none !important;
+  }
+  .agx-rotor--flip { transform: rotateX(180deg); }
+  .agx-reveal .agx-rotor--flip { transform: rotateX(180deg); }
+  .agx-key { transition-duration: 0ms; }
+}
+/* Hook de demo/QA: fuerza el mismo comportamiento que reduced-motion. */
+.agx-reduced .agx-rotor--flip,
+.agx-reduced .agx-pop,
+.agx-reduced .agx-row--tremor,
+.agx-reduced .agx-tile--domino .agx-rotor,
+.agx-reduced .agx-tile--domino .agx-static,
+.agx-reduced .agx-reveal .agx-rotor--flip {
+  animation: none !important;
+}
+.agx-reduced .agx-rotor--flip { transform: rotateX(180deg); }
+.agx-reduced .agx-key { transition-duration: 0ms; }
