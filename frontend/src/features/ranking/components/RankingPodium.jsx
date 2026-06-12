@@ -1,222 +1,408 @@
-import { useEffect, useRef, useState } from 'react'
-import {
-  Crown,
-  Medal,
-} from 'lucide-react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AppLink } from '../../../components/AppLink'
 import PersonajeImg from '../../../components/PersonajeImg'
 import { markPersonajeHero } from '../../../lib/viewTransitions'
-import EloSparkline from './EloSparkline'
+import { brandImage } from '../../../lib/brand-assets'
+import './ranking-podium.css'
 
 /**
- * Visible una sola vez: dispara la entrada escalonada del podio cuando el
- * grid entra en viewport. Sin IntersectionObserver (o antes del mount) el
- * podio se muestra directamente en su estado final.
+ * RankingPodium — "El podio de los tres": tres estandartes verticales de
+ * tela (oro al centro y más alto, plata y bronce flanqueando) colgados de
+ * una varilla dorada, sobre el arte de marca del universo del nº1.
+ *
+ * Sustituye al podio "Salón del Trono" en /ranking (pestaña ELO). Las
+ * clases podio-* viven en ranking-podium.css (importado aquí) — los
+ * @keyframes NO se inyectan en runtime (CSP por hash).
+ *
+ * Coreografía (todas las duraciones escalan con --podio-vel):
+ *  - Entrada: cuerdas 80ms antes que su tela; telas scaleY 0.04→1 en
+ *    550ms var(--ease-lift), stagger 120ms (oro → plata → bronce). Gateada
+ *    por [data-podio-vivo], que se retira al terminar: los remounts
+ *    posteriores (swap de laterales) no re-despliegan.
+ *  - Relevo de nº1 (delta WS → cambia top3[0].slug): el saliente se
+ *    recoge (400ms var(--ease-brush)), el entrante cae (550ms), los
+ *    laterales hacen swap por FLIP (WAAPI, translateX) y el sello 王 se
+ *    estampa (380ms ease-stamp) con sangrado por cross-fade de una capa
+ *    pre-renderizada. El fondo cross-fadea entre dos capas apiladas.
+ *    Keyed por slug del nº1: un re-render con el mismo líder JAMÁS
+ *    re-anima, y el sello solo existe tras un relevo real (no al montar).
+ *  - prefers-reduced-motion: estandartes ya desplegados; el relevo entero
+ *    degrada a un cross-fade de 200ms (.podio-xfade).
+ *
+ * Reglas de perf que cumple: solo transform/opacity; cero blur/filters;
+ * cero loops infinitos (la ondulación de hover es una pasada CSS); el
+ * grid reserva su geometría desde el primer paint → cero CLS bajo la
+ * tabla (el skeleton usa la misma silueta).
+ *
+ * Datos que NO existen aún en el producto (no se inventan aquí):
+ *  - kanji de universo: llega por la prop `kanjiPorAnime`; sin entrada,
+ *    la esquina queda vacía (sin japonés de relleno).
+ *  - slug de anime para brandImage(): llega por `animeSlugPorNombre`;
+ *    sin entrada, el podio se pinta sin fondo de escena (solo scrim).
+ *
+ * @param {object} props
+ * @param {Array<{slug: string, nombre: string, anime: string, elo: number,
+ *   imagenUrl?: string, imagenColorDominante?: string}>} props.top3
+ *   Los tres primeros del ranking, en orden. Mismo shape que consume
+ *   RankRowElo. Longitud exacta 3 (el caller ya lo garantiza).
+ * @param {Record<string, string>} [props.kanjiPorAnime]
+ *   Mapa nombre de anime → kanji de universo (kanji REAL con significado,
+ *   p.ej. 'Dragon Ball' → 龍). Pendiente de promover a data/.
+ * @param {Record<string, string>} [props.animeSlugPorNombre]
+ *   Mapa nombre de anime → slug canónico del catálogo, para resolver
+ *   brandImage(`${slug}-scene-01`) del fondo.
+ * @param {boolean} [props.isLoading] Silueta .skl de los tres estandartes.
  */
-function useInViewOnce(ref) {
-  const [inView, setInView] = useState(
-    () => typeof IntersectionObserver === 'undefined',
-  )
+function RankingPodium({
+  top3,
+  kanjiPorAnime,
+  animeSlugPorNombre,
+  isLoading = false,
+}) {
+  const [mostrar, setMostrar] = useState(top3)
+  const [ceremonia, setCeremonia] = useState(null) // {fase:'recogida'|'caida'|'xfade', entrante?}
+  const [selloPara, setSelloPara] = useState(null)
+  const [vivo, setVivo] = useState(true)
+  const mostrarRef = useRef(top3)
+  const rectsRef = useRef(null)
+  const liRefs = useRef(new Map())
+  const anuncioRef = useRef(null)
+
   useEffect(() => {
-    if (inView) return undefined
-    const el = ref.current
-    if (!el) return undefined
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setInView(true)
-      },
-      // Umbral mínimo: con 0.15 el podio podía quedarse invisible si asoma
-      // recortado por abajo en el primer viewport y nunca llega al 15%.
-      { threshold: 0.05 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [inView, ref])
-  return inView
-}
+    mostrarRef.current = mostrar
+  }, [mostrar])
 
-/**
- * Podio "Salón del Trono": god-rays oblicuos y corona viva para el campeón,
- * destello de borde para plata y bronce, y entrada escalonada al hacer
- * scroll. Todo lo decorativo es aria-hidden y solo anima transform/opacity;
- * los keyframes viven en index.css y respetan prefers-reduced-motion y la
- * pausa global de pestaña oculta (html.as-tab-hidden).
- */
-function RankingPodium({ top3, historyBySlug = {} }) {
-  const gridRef = useRef(null)
-  const inView = useInViewOnce(gridRef)
-  const [primero, segundo, tercero] = top3
+  // La gate de entrada se retira al terminar la coreografía (~1.6s):
+  // a partir de ahí ninguna tela remontada vuelve a desplegarse sola.
+  useEffect(() => {
+    const t = setTimeout(() => setVivo(false), 1600)
+    return () => clearTimeout(t)
+  }, [])
+
+  // Contrato del relevo, Compiler-safe en dos mitades:
+  //  - mismo líder → `mostrar` converge a top3 AJUSTANDO DURANTE EL RENDER
+  //    (patrón oficial de derived state; refetch del ELO y re-renders del
+  //    padre jamás re-animan).
+  //  - cambia el líder → se agenda el relevo como estado pendiente y un
+  //    effect corre la ceremonia con timers (setState solo en callbacks).
+  const [prevTop3, setPrevTop3] = useState(top3)
+  const [liderVisto, setLiderVisto] = useState(top3[0]?.slug)
+  const [relevoPendiente, setRelevoPendiente] = useState(null)
+  if (prevTop3 !== top3) {
+    setPrevTop3(top3)
+    if (top3[0]?.slug === liderVisto) {
+      setMostrar(top3)
+    } else {
+      setLiderVisto(top3[0]?.slug)
+      setRelevoPendiente(top3)
+    }
+  }
+
+  useEffect(() => {
+    if (!relevoPendiente) return undefined
+    const top3Nuevo = relevoPendiente
+    const nuevoLider = top3Nuevo[0]?.slug
+    // aria-live: el announce va en un nodo persistente, no en un toast.
+    if (anuncioRef.current) {
+      anuncioRef.current.textContent = `Nuevo número uno: ${top3Nuevo[0].nombre}, ${top3Nuevo[0].elo}`
+    }
+    const timers = []
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      // El relevo entero degrada a un cross-fade de 200ms.
+      timers.push(
+        setTimeout(() => {
+          setMostrar(top3Nuevo)
+          setSelloPara(nuevoLider)
+          setCeremonia({ fase: 'xfade' })
+        }, 0),
+      )
+      timers.push(setTimeout(() => setCeremonia(null), 260))
+    } else {
+      timers.push(setTimeout(() => setCeremonia({ fase: 'recogida' }), 0))
+      timers.push(
+        setTimeout(() => {
+          // Snapshot de posiciones (por slug visible) para el FLIP lateral.
+          const rects = {}
+          mostrarRef.current.forEach((p, i) => {
+            const el = liRefs.current.get(i + 1)
+            if (el) rects[p.slug] = el.getBoundingClientRect()
+          })
+          rectsRef.current = rects
+          setMostrar(top3Nuevo)
+          setSelloPara(nuevoLider)
+          setCeremonia({ fase: 'caida', entrante: nuevoLider })
+        }, 400),
+      )
+    }
+    // El pendiente NO se anula aquí: anularlo dispararía este cleanup y
+    // mataría el timer de los 400ms. Un relevo nuevo lo pisa (los timers
+    // del anterior se limpian) — coalescencia natural de ráfagas.
+    return () => timers.forEach(clearTimeout)
+  }, [relevoPendiente])
+
+  // FLIP de los laterales tras el commit del relevo (WAAPI, --ease-lift).
+  useLayoutEffect(() => {
+    if (ceremonia?.fase !== 'caida' || !rectsRef.current) return undefined
+    const prev = rectsRef.current
+    rectsRef.current = null
+    mostrarRef.current.forEach((p, i) => {
+      if (p.slug === ceremonia.entrante) return
+      const el = liRefs.current.get(i + 1)
+      const r0 = prev[p.slug]
+      if (!el || !r0 || typeof el.animate !== 'function') return
+      const dx = r0.left - el.getBoundingClientRect().left
+      if (Math.abs(dx) < 1) return
+      const ease =
+        getComputedStyle(el).getPropertyValue('--ease-lift').trim() || 'ease-out'
+      el.animate(
+        [{ transform: `translateX(${dx}px)` }, { transform: 'translateX(0)' }],
+        { duration: 400, easing: ease },
+      )
+    })
+    const t = setTimeout(() => setCeremonia(null), 1400)
+    return () => clearTimeout(t)
+  }, [ceremonia])
+
+  const lider = mostrar[0]
+  const escena = !isLoading && lider && animeSlugPorNombre?.[lider.anime]
+    ? brandImage(`${animeSlugPorNombre[lider.anime]}-scene-01`)
+    : null
+  const hayEmpate =
+    !isLoading &&
+    mostrar.length === 3 &&
+    (mostrar[1].elo === mostrar[0].elo || mostrar[2].elo === mostrar[1].elo)
+  const eloEmpatado = hayEmpate
+    ? (mostrar[1].elo === mostrar[0].elo ? mostrar[0].elo : mostrar[1].elo)
+    : null
+
   return (
-    <div
-      ref={gridRef}
-      data-trono-in={inView || undefined}
-      className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-6"
+    <section
+      className={`podio-escenario rounded-2xl border border-border bg-bg px-3 pb-5 pt-6 sm:px-6 sm:pb-8 sm:pt-9 ${
+        ceremonia?.fase === 'xfade' ? 'podio-xfade' : ''
+      }`}
+      aria-label="podio del ranking"
     >
-      <PodioCard
-        personaje={primero}
-        rank={1}
-        highlighted
-        orden={2}
-        history={historyBySlug[primero.slug]}
-        className="col-span-2 sm:order-2 sm:col-span-1"
-      />
-      <PodioCard
-        personaje={segundo}
-        rank={2}
-        orden={0}
-        history={historyBySlug[segundo.slug]}
-        className="sm:order-1"
-      />
-      <PodioCard
-        personaje={tercero}
-        rank={3}
-        orden={1}
-        history={historyBySlug[tercero.slug]}
-        className="sm:order-3"
-      />
-    </div>
-  )
-}
-
-function TronoRays() {
-  return (
-    <span
-      aria-hidden="true"
-      className="trono-rays pointer-events-none absolute inset-0 overflow-hidden rounded-2xl"
-    >
-      <span className="trono-ray trono-ray--a" />
-      <span className="trono-ray trono-ray--b" />
-      <span className="trono-ray trono-ray--c" />
-    </span>
-  )
-}
-
-function PodioCard({ personaje, rank, highlighted, history, orden = 0, className = '' }) {
-  const retratoRef = useRef(null)
-  if (!personaje?.slug) return null
-  const tone =
-    rank === 1
-      ? {
-          border: 'border-medal-gold/70',
-          bg: 'bg-gradient-to-b from-medal-gold/15 via-medal-gold/5 to-transparent',
-          text: 'text-medal-gold',
-          icon: Crown,
-          label: 'Campeón actual',
-        }
-      : rank === 2
-        ? {
-            border: 'border-medal-silver/50',
-            bg: 'bg-gradient-to-b from-medal-silver/10 via-medal-silver/5 to-transparent',
-            text: 'text-medal-silver',
-            hoverGlow: 'hover:shadow-aura [--aura-color:var(--color-medal-silver-aura)]',
-            shine: 'trono-shine--plata',
-            icon: Medal,
-            label: '2º puesto',
-          }
-        : {
-            border: 'border-medal-bronze/50',
-            bg: 'bg-gradient-to-b from-medal-bronze/10 via-medal-bronze/5 to-transparent',
-            text: 'text-medal-bronze',
-            hoverGlow: 'hover:shadow-aura [--aura-color:var(--color-medal-bronze-aura)]',
-            shine: 'trono-shine--bronce',
-            icon: Medal,
-            label: '3er puesto',
-          }
-  const Icon = tone.icon
-  const linkLayout = highlighted
-    ? 'grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-3 p-4 text-left sm:flex sm:flex-col sm:items-center sm:gap-2 sm:p-3 sm:pt-6 sm:text-center'
-    : 'flex flex-col items-center gap-2 p-3 pt-4 text-center'
-
-  return (
-    <div className={`trono-card relative ${className}`} style={{ '--trono-i': orden }}>
-      {highlighted && (
-        <span
-          aria-hidden="true"
-          className="trono-aura pointer-events-none absolute inset-0 rounded-2xl shadow-aura-lg [--aura-color:var(--color-medal-gold-aura)]"
-        />
-      )}
-      <AppLink
-        to={`/personajes/${personaje.slug}`}
-        // El retrato del podio viaja hasta el hero del detalle (morph).
-        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
-        className={`group relative h-full overflow-hidden rounded-2xl border-2 transition-all motion-safe:hover:-translate-y-1 ${linkLayout} ${tone.border} ${tone.bg} ${tone.hoverGlow ?? ''}`}
+      {escena && <FondoEscena escena={escena} />}
+      <div className="podio-varilla mx-auto max-w-3xl" aria-hidden="true" />
+      <ol
+        role="list"
+        aria-label="podio del ranking"
+        aria-busy={isLoading || undefined}
+        data-podio-vivo={vivo || undefined}
+        className="mx-auto flex max-w-3xl items-start justify-center gap-2 sm:gap-7"
       >
-        {rank === 1 ? (
-          <TronoRays />
-        ) : (
-          <span
-            aria-hidden="true"
-            className={`trono-shine pointer-events-none absolute inset-0 rounded-2xl ${tone.shine}`}
-          />
-        )}
-        <span
-          className={`relative inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold ${tone.border} ${tone.text} ${highlighted ? 'col-span-2 justify-self-start sm:justify-self-auto' : ''}`}
-        >
-          <Icon className="h-3 w-3" />
-          #{rank}
-          {highlighted && ` · ${tone.label}`}
-        </span>
-        <div
-          className={`relative w-full ${
-            highlighted
-              ? 'max-w-[8.5rem] sm:mx-auto sm:max-w-none'
-              : 'mx-auto max-w-[8rem] sm:max-w-none'
-          }`}
-        >
-          {rank === 1 && (
-            <Crown
-              aria-hidden="true"
-              className="trono-crown absolute -top-3 left-1/2 z-10 h-7 w-7 text-medal-gold drop-shadow-scrim"
-            />
-          )}
+        {isLoading
+          ? [1, 2, 3].map((rank) => <EstandarteSkeleton key={rank} rank={rank} />)
+          : mostrar.map((p, i) => (
+              <Estandarte
+                key={`puesto-${i + 1}`}
+                personaje={p}
+                rank={i + 1}
+                kanjiUniverso={kanjiPorAnime?.[p.anime]}
+                empatado={i > 0 && p.elo === mostrar[0].elo}
+                recogiendo={ceremonia?.fase === 'recogida' && i === 0}
+                entrante={ceremonia?.fase === 'caida' && p.slug === ceremonia.entrante}
+                sello={selloPara === p.slug && i === 0}
+                registrarLi={(el) => liRefs.current.set(i + 1, el)}
+              />
+            ))}
+      </ol>
+      {hayEmpate && (
+        <div className="mx-auto mt-4 max-w-xl text-center">
+          <div className="podio-empate-regla" aria-hidden="true" />
+          <p className="mt-2 font-mono text-[11px] text-fg-muted">
+            empate a <strong className="font-bold text-gold">{eloEmpatado} ELO</strong>{' '}
+            en el top 3 · desempate: orden de catálogo (
+            <strong className="font-bold text-gold">personaje.id</strong> ascendente)
+          </p>
+        </div>
+      )}
+      {/* aria-live persistente: el relevo se anuncia aunque lo decorativo
+          esté reducido o fuera de viewport. */}
+      <p ref={anuncioRef} aria-live="polite" className="sr-only" />
+    </section>
+  )
+}
+
+const MEDALLA = ['oro', 'plata', 'bronce']
+const ETIQUETA = ['Campeón actual', '2º puesto', '3er puesto']
+// Oro al centro: orden visual plata | oro | bronce; el DOM mantiene 1º→3º
+// para lectores de pantalla. Stagger: oro primero.
+const ORDEN_VISUAL = ['order-2', 'order-1', 'order-3']
+const STAGGER_I = [0, 1, 2]
+
+function Estandarte({
+  personaje: p,
+  rank,
+  kanjiUniverso,
+  empatado,
+  recogiendo,
+  entrante,
+  sello,
+  registrarLi,
+}) {
+  const retratoRef = useRef(null)
+  const esOro = rank === 1
+  const alto = esOro || empatado
+  return (
+    <li
+      ref={registrarLi}
+      className={`flex flex-col ${ORDEN_VISUAL[rank - 1]} ${
+        esOro ? 'w-[40%] max-w-[248px]' : 'w-[27%] max-w-[200px]'
+      }`}
+      style={{ '--podio-i': STAGGER_I[rank - 1] }}
+    >
+      <div className="podio-cuerdas h-5 sm:h-9" aria-hidden="true">
+        <span className="podio-cuerda podio-cuerda--l" />
+        <span className="podio-cuerda podio-cuerda--r" />
+      </div>
+      <AppLink
+        to={`/personajes/${p.slug}`}
+        onViewTransitionStart={() => markPersonajeHero(retratoRef.current)}
+        aria-label={`${rank}º — ${p.nombre}, ${p.anime}, ${p.elo} ELO. ${ETIQUETA[rank - 1]}. Ver ficha.`}
+        className="podio-banner block rounded-sm outline-offset-4 focus-visible:outline-2 focus-visible:outline-gold"
+      >
+        <div className="podio-pivote">
+          {/* key por slug: la tela es la identidad del ocupante; al cambiar
+              el ocupante del puesto, la tela nueva monta (y cae si es el
+              entrante de un relevo). */}
           <div
-            ref={retratoRef}
-            className={`relative aspect-[2/3] w-full overflow-hidden rounded-2xl border ${tone.border} bg-surface ${
-              highlighted ? '' : 'opacity-95'
+            key={p.slug}
+            className={`podio-tela podio-tela--${MEDALLA[rank - 1]} ${
+              recogiendo ? 'podio-tela--recoge' : ''
+            } ${entrante ? 'podio-tela--cae' : ''} ${
+              alto ? 'h-[252px] sm:h-[444px]' : 'h-[196px] sm:h-[372px]'
             }`}
           >
-            <PersonajeImg
-              slug={personaje.slug}
-              src={personaje.imagenUrl}
-              nombre={personaje.nombre}
-              colorDominante={personaje.imagenColorDominante}
-              alt={personaje.nombre}
-              loading="eager"
-              sizes={highlighted ? '(min-width: 640px) 190px, 136px' : '128px'}
-              fit="contain"
-              position="center"
-              className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
-            />
+            <span ref={retratoRef} className="podio-retrato" aria-hidden="true">
+              <PersonajeImg
+                slug={p.slug}
+                src={p.imagenUrl}
+                nombre={p.nombre}
+                colorDominante={p.imagenColorDominante}
+                alt=""
+                loading="eager"
+                sizes={esOro ? '(min-width: 640px) 248px, 40vw' : '(min-width: 640px) 200px, 27vw'}
+                fit="cover"
+                position="top"
+                className="h-full w-full"
+              />
+            </span>
+            <span className="podio-tela-scrim" aria-hidden="true" />
+            {kanjiUniverso && (
+              <>
+                <span
+                  lang="ja"
+                  aria-hidden="true"
+                  className="podio-kanji-universo text-[17px] sm:text-[28px]"
+                >
+                  {kanjiUniverso}
+                </span>
+                <span
+                  lang="ja"
+                  aria-hidden="true"
+                  className="podio-kanji-agua text-5xl sm:text-[88px]"
+                >
+                  {kanjiUniverso}
+                </span>
+              </>
+            )}
+            {sello && (
+              <span lang="ja" aria-hidden="true" className="podio-sello-rey">
+                王
+              </span>
+            )}
+            <span className="podio-pie relative z-[2] mt-auto flex flex-col gap-px px-2 pb-5 text-center sm:gap-0.5 sm:px-3.5 sm:pb-9">
+              <span className="font-mono text-[9px] font-extrabold tracking-[0.04em] text-(--podio-medalla) sm:text-[11px]">
+                {`Nº 0${rank}`}
+              </span>
+              <span
+                className={`truncate font-extrabold text-fg-strong drop-shadow-scrim ${
+                  esOro ? 'text-sm sm:text-xl' : 'text-xs sm:text-[17px]'
+                }`}
+              >
+                {p.nombre}
+              </span>
+              <span className="truncate text-[9px] text-fg-muted drop-shadow-scrim sm:text-2xs">
+                {p.anime}
+              </span>
+              <span
+                className={`mt-0.5 font-mono font-extrabold tabular-nums text-(--podio-medalla) sm:mt-1.5 ${
+                  esOro ? 'text-lg sm:text-[26px]' : 'text-[15px] sm:text-[22px]'
+                }`}
+              >
+                {p.elo}
+                <span className="ml-1 text-[10px] font-bold opacity-70">ELO</span>
+              </span>
+            </span>
           </div>
         </div>
-        <div
-          className={`relative flex min-w-0 flex-col gap-0.5 ${
-            highlighted ? 'items-start sm:items-center' : 'items-center'
-          }`}
-        >
-          <h3
-            className={`line-clamp-1 font-bold text-fg-strong group-hover:text-gold ${
-              highlighted ? 'text-base sm:text-lg' : 'text-sm'
-            }`}
-          >
-            {personaje.nombre}
-          </h3>
-          <p className="line-clamp-1 text-[11px] text-fg-muted">
-            {personaje.anime}
-          </p>
-          <p
-            className={`mt-1 font-mono font-extrabold tabular-nums ${tone.text} ${
-              highlighted ? 'text-2xl' : 'text-lg'
-            }`}
-          >
-            {personaje.elo}
-            <span className="ml-1 text-[10px] opacity-70">
-              ELO
-            </span>
-          </p>
-          <EloSparkline points={history} className="mt-1" />
-        </div>
       </AppLink>
+    </li>
+  )
+}
+
+function EstandarteSkeleton({ rank }) {
+  const esOro = rank === 1
+  return (
+    <li
+      aria-hidden="true"
+      className={`flex flex-col ${ORDEN_VISUAL[rank - 1]} ${
+        esOro ? 'w-[40%] max-w-[248px]' : 'w-[27%] max-w-[200px]'
+      }`}
+      style={{ '--podio-i': STAGGER_I[rank - 1] }}
+    >
+      <div className="podio-cuerdas h-5 sm:h-9">
+        <span className="podio-cuerda podio-cuerda--l" />
+        <span className="podio-cuerda podio-cuerda--r" />
+      </div>
+      <div
+        className={`podio-skl skl ${
+          esOro ? 'h-[252px] sm:h-[444px]' : 'h-[196px] sm:h-[372px]'
+        }`}
+      />
+    </li>
+  )
+}
+
+/**
+ * Dos capas de escena apiladas: el relevo solo cross-fadea opacity entre
+ * ellas (regla anti-jank de Safari: nada de animar src/filters).
+ * @param {{escena: import('../../../lib/brand-assets').BrandImage}} props
+ */
+function FondoEscena({ escena }) {
+  const [capas, setCapas] = useState(() => [
+    { escena, activa: true },
+    { escena: null, activa: false },
+  ])
+  // Ajuste durante el render (patrón oficial, Compiler-safe): si la escena
+  // cambió, la capa inactiva recibe la nueva y pasa a activa — el CSS
+  // cross-fadea opacity entre las dos <img> apiladas.
+  const activa = capas.find((c) => c.activa)
+  if (activa?.escena?.src !== escena.src) {
+    setCapas((prev) =>
+      prev.map((c) =>
+        c.activa ? { ...c, activa: false } : { escena, activa: true },
+      ),
+    )
+  }
+  return (
+    <div className="podio-fondo" aria-hidden="true">
+      {capas.map((c, i) =>
+        c.escena ? (
+          <img
+            key={i}
+            src={c.escena.src}
+            srcSet={c.escena.srcSet}
+            sizes="100vw"
+            alt=""
+            data-activa={c.activa || undefined}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : null,
+      )}
+      <div className="podio-fondo-scrim" />
     </div>
   )
 }
