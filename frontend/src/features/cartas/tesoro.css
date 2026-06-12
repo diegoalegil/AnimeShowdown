@@ -1,0 +1,284 @@
+/* La caja del tesoro — SOLO el monedero vivo (CoinPurse). El libro de
+   cuentas (LedgerBook) espera su endpoint de asientos en el backend. */
+/* ──────────────────────────────────────────────────────────────────────
+   La caja del tesoro — Monedero vivo (CoinPurse) + Libro de cuentas (LedgerBook)
+   Bloque para index.css (CSP por hash: nada se inyecta en runtime).
+
+   Reglas de la casa que cumple este bloque:
+   - Solo se anima transform/opacity (60fps). Cero blur/backdrop-filter
+     nuevos, cero SVG filters. El flip es scaleX (sin preserve-3d): no hay
+     capas 3D que WebKit componga mal; aun así ambas capas llevan
+     -webkit-backface-visibility por contrato de la pieza.
+   - Curvas de la casa: var(--ease-lift) en elevaciones/odómetro,
+     var(--ease-brush) en flip y subrayado de tinta.
+   - Knobs por custom property con fallback (se pueden pisar desde un
+     ancestro sin tocar este bloque):
+       --tesoro-flip-ms    (400ms)  duración del flip de la moneda
+       --tesoro-odo-ms     (480ms)  rodadura de cada rueda del odómetro
+       --tesoro-delta-ms   (600ms)  vida del delta flotante
+       --tesoro-delta-lift (16px)   recorrido vertical del delta
+       --tesoro-tinta-ms   (800ms)  subrayado de tinta de asientos vivos
+       --tesoro-libro-alto (22rem)  alto máx. del área de scroll del libro
+   ────────────────────────────────────────────────────────────────────── */
+
+/* Panel opaco del tesoro: pariente de .as-panel pero SIN backdrop-blur
+   (prohibido añadir blur nuevos; además el thead pegajoso necesita fondo
+   opaco para no re-pintar en scroll). */
+.tesoro-panel {
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 10%, transparent);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fg-strong) 4.5%, transparent), color-mix(in srgb, var(--color-fg-strong) 1.5%, transparent)),
+    var(--color-bg);
+  box-shadow:
+    var(--inset-shadow-hairline),
+    var(--shadow-elev-1);
+}
+
+/* ═══════════════ MONEDERO VIVO ═══════════════ */
+
+.tesoro-monedero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.tesoro-monedero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.tesoro-monedero-etiqueta {
+  color: var(--color-fg-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Mensaje honesto del saldo a 0 — sin pena ni confeti. */
+.tesoro-monedero-vacio {
+  margin: 0.25rem 0 0;
+  color: var(--color-fg-muted);
+  font-size: 0.8rem;
+}
+
+/* ── Moneda: 2 capas escalonadas + scaleX = grosor fingido ──
+   La cara y el canto comparten keyframes; el canto va 45ms por detrás,
+   así durante el cruce por 0 asoma el borde y la moneda "tiene" grosor.
+   Nada de rotateY/perspective: cero nodos preserve-3d. */
+.tesoro-coin {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+}
+
+.tesoro-coin-capa {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.tesoro-coin-canto {
+  inset: -2px;
+  background: color-mix(in srgb, var(--color-gold) 34%, var(--color-surface));
+}
+
+.tesoro-coin-cara {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-gold);
+  background:
+    radial-gradient(circle at 32% 26%, var(--color-gold-soft), transparent 68%),
+    var(--color-surface-alt);
+  color: var(--color-gold);
+  font-family: var(--font-kanji-serif);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Sombreado del giro: capa opaca con opacity keyframed (nada de filter). */
+.tesoro-coin-sombra {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-canvas);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* El flip SOLO existe con .tesoro-coin--flip (la monta el componente en
+   cambios reales de saldo; jamás en el primer paint). */
+.tesoro-coin--flip .tesoro-coin-cara {
+  animation: tesoro-flip var(--tesoro-flip-ms, 400ms) var(--ease-brush);
+}
+.tesoro-coin--flip .tesoro-coin-canto {
+  animation: tesoro-flip var(--tesoro-flip-ms, 400ms) var(--ease-brush) 45ms;
+}
+.tesoro-coin--flip .tesoro-coin-sombra {
+  animation: tesoro-flip-sombra var(--tesoro-flip-ms, 400ms) var(--ease-brush);
+}
+
+@keyframes tesoro-flip {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.08);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes tesoro-flip-sombra {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Saldo a 0: la moneda descansa de canto (transform persistente con
+   transition, no animation — convive con el flip sin pelearse porque el
+   componente no aplica --flip cuando el saldo queda a 0). */
+.tesoro-coin--decanto .tesoro-coin-cara {
+  transform: scaleX(0.09);
+  transition: transform 400ms var(--ease-lift);
+}
+.tesoro-coin--decanto .tesoro-coin-canto {
+  transform: scaleX(0.16);
+  transition: transform 400ms var(--ease-lift) 45ms;
+}
+
+/* ── Odómetro ── ruedas de 0-9 por dígito; cada rueda rueda con
+   translateY (compositor). Claves estables desde la derecha en el JSX:
+   crecer de 999 a 1.024 conserva la identidad de unidades/decenas. */
+.tesoro-saldo {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--color-gold);
+  font-family: var(--font-mono);
+  font-size: 2.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tesoro-odo {
+  display: inline-flex;
+  line-height: 1;
+}
+
+.tesoro-odo-celda {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.tesoro-odo-sep {
+  display: inline-block;
+  line-height: 1;
+}
+
+.tesoro-odo-rueda {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--tsr-d, 0) * -1em));
+  transition: transform var(--tesoro-odo-ms, 480ms) var(--ease-lift);
+}
+
+.tesoro-odo-rueda > span {
+  display: block;
+  height: 1em;
+  line-height: 1;
+  text-align: center;
+}
+
+/* ── Delta flotante ── un ÚNICO nodo (coalescencia en JS: el delta en
+   vuelo absorbe el importe nuevo y se remonta con key → reinicia vida). */
+.tesoro-delta {
+  position: absolute;
+  left: calc(100% + 0.6rem);
+  top: 50%;
+  margin-top: -0.5em;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tesoro-delta--gana {
+  color: var(--color-gold);
+  animation: tesoro-delta-sube var(--tesoro-delta-ms, 600ms) var(--ease-lift) both;
+}
+
+.tesoro-delta--gasta {
+  color: var(--color-accent-text);
+  animation: tesoro-delta-baja var(--tesoro-delta-ms, 600ms) var(--ease-lift) both;
+}
+
+@keyframes tesoro-delta-sube {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(var(--tesoro-delta-lift, 16px) * -1));
+  }
+}
+
+@keyframes tesoro-delta-baja {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--tesoro-delta-lift, 16px));
+  }
+}
+
+/* ═══════════════ LIBRO DE CUENTAS ═══════════════ */
+
+
+@media (prefers-reduced-motion: reduce) {
+  .tesoro-coin--flip .tesoro-coin-cara,
+  .tesoro-coin--flip .tesoro-coin-canto,
+  .tesoro-coin--flip .tesoro-coin-sombra {
+    animation: none !important;
+  }
+  .tesoro-coin--decanto .tesoro-coin-cara,
+  .tesoro-coin--decanto .tesoro-coin-canto {
+    transition: none !important;
+  }
+  .tesoro-delta {
+    display: none !important;
+  }
+  .tesoro-odo-rueda {
+    transition: none !important;
+  }
+  .tesoro-fila--viva::after {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}

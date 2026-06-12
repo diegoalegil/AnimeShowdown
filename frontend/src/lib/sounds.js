@@ -820,3 +820,38 @@ export async function playSello() {
   ring.start(now + 0.03)
   ring.stop(now + 0.6)
 }
+
+/**
+ * Clink corto de moneda — SOLO en ganancia (el CoinPurse lo dispara;
+ * el gasto va en silencio).
+ */
+export async function playClink() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const tick = ctx.createOscillator()
+  const tickGain = ctx.createGain()
+  tick.type = 'triangle'
+  tick.frequency.setValueAtTime(1800, now)
+  tick.frequency.exponentialRampToValueAtTime(900, now + 0.03)
+  tickGain.gain.setValueAtTime(0, now)
+  tickGain.gain.linearRampToValueAtTime(0.1, now + 0.004)
+  tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06)
+  tick.connect(tickGain)
+  tickGain.connect(ctx.destination)
+  tick.start(now)
+  tick.stop(now + 0.07)
+  ;[2093, 3135.96].forEach((freq, i) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, now + 0.012)
+    gain.gain.setValueAtTime(0, now + 0.012)
+    gain.gain.linearRampToValueAtTime(i === 0 ? 0.055 : 0.03, now + 0.025)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now + 0.012)
+    osc.stop(now + 0.36)
+  })
+}

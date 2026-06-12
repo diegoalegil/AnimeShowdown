@@ -6,6 +6,7 @@ import EmptyState from '../components/EmptyState'
 import Dialog from '../components/Dialog'
 import CartaTile from '../components/CartaTile'
 import MonedaIcon from '../components/MonedaIcon'
+import CoinPurse from '../features/cartas/CoinPurse'
 import BrandSelect from '../components/BrandSelect'
 import PackOpening from '../features/cartas/PackOpening'
 import CardShowcase from '../features/cartas/CardShowcase'
@@ -35,7 +36,6 @@ const ORDENES = [
 ]
 const EMPTY_CARTAS = []
 const EMPTY_PROGRESO = []
-const numberFmt = new Intl.NumberFormat('es-ES')
 const FUENTES_MONEDA = [
   'Reclama el cofre diario desde esta página.',
   'Vota cada día: el primer voto completa la misión diaria y los hitos de votos dan extras.',
@@ -192,7 +192,13 @@ function CartasPage() {
       <div className="as-panel mb-8 flex flex-col gap-5 rounded-2xl p-5 sm:p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
           <div className="grid gap-4 sm:grid-cols-3">
-            <Stat label="Saldo" value={numberFmt.format(saldo)} icon={<MonedaIcon className="h-6 w-6 text-gold" />} />
+            {/* El monedero vivo: flip + odómetro + delta coalescido en los
+                cambios REALES de saldo (anti-drift: pinta siempre el del
+                server). El clink suena solo al ganar. */}
+            <CoinPurse
+              saldo={saldo}
+              mensajeCero="Sin monedas — vota o completa misiones para ganar."
+            />
             <Stat label="Colección" value={`${totalPoseidas} / ${totalCatalogo}`} accent={`${porcentaje}%`} />
             <Stat label="Pity especial" value={`${pityActual} / ${pityDuro}`} accent={`${Math.round(probEspecial * 100)}% base`} />
           </div>
