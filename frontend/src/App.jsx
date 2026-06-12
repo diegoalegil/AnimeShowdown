@@ -9,11 +9,11 @@ import ScrollProgress from './components/ScrollProgress'
 import CommandPaletteLazyMount from './components/CommandPaletteLazyMount'
 import EmailVerifyBanner from './components/EmailVerifyBanner'
 import BadgeUnlockListener from './components/BadgeUnlockListener'
-import FirstDuelTourGate from './features/onboarding/FirstDuelTourGate'
 import PushSubscriptionSync from './components/PushSubscriptionSync'
 import OnboardingGate from './components/onboarding/OnboardingGate'
+import FirstDuelTourGate from './features/onboarding/FirstDuelTourGate'
 import CookieConsent from './components/CookieConsent'
-import SakuraPetals from './components/SakuraPetals'
+import SeasonalLayer from './components/SeasonalLayer'
 import KonamiCode from './components/KonamiCode'
 import MobileBottomNav from './components/MobileBottomNav'
 import RequireCatalog from './components/RequireCatalog'
@@ -357,18 +357,19 @@ function App() {
       {/* Listener global de unlock: side-effect-only, sin UI. Se monta
           siempre — internamente skipea cuando no hay user logueado. */}
       <BadgeUnlockListener />
+      {/* Mantiene la suscripción de web push atada al backend: resync al
+          arrancar + reacción al pushsubscriptionchange del SW. Side-effect-only,
+          skipea sin user, sin soporte push o sin permiso concedido. */}
+      <PushSubscriptionSync />
       {/* Combate guiado de primera visita: null para todo el mundo salvo el
           candidato (autenticado + gate ausente + primer /votar); el chunk
           del tour solo se carga entonces. Distinto del OnboardingGate de
           username/avatar (V-8): aquel es el alta, este es el primer combate. */}
       <FirstDuelTourGate />
-      {/* Mantiene la suscripción de web push atada al backend: resync al
-          arrancar + reacción al pushsubscriptionchange del SW. Side-effect-only,
-          skipea sin user, sin soporte push o sin permiso concedido. */}
-      <PushSubscriptionSync />
-      {/* Pétalos de sakura del 15 marzo al 15 abril (hanami). Auto-off el
-          resto del año. Toggle vía localStorage animeshowdown.sakura. */}
-      <SakuraPetals />
+      {/* Capas estacionales (hanami, Tanabata, …): registro data-driven con
+          gate por fechas/rutas y kill-switches en seasonal-events.js. Las
+          capas nuevas cargan lazy — 0 bytes fuera de su ventana. */}
+      <SeasonalLayer />
       {/* Easter egg ↑↑↓↓←→←→BA. */}
       <KonamiCode />
       {/* V-8: tras el primer login OAuth (username autogenerado) abre el
