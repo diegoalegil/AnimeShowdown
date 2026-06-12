@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link } from 'react-router-dom'
 import { useSound } from '../../contexts/SoundContext'
 import { brandImage } from '../../lib/brand-assets'
@@ -108,13 +108,17 @@ function useExpiracionCaliente(estado, onExpira) {
   const prev = useRef(estado)
   const [expirando, setExpirando] = useState(false)
   useEffect(() => {
-    if (prev.current === 'activo' && estado === 'pasado') {
+    const cruza = prev.current === 'activo' && estado === 'pasado'
+    // SIEMPRE se avanza el previo: si no, el cruce se re-detecta en cada
+    // re-render del board (el ticker re-renderiza por minuto/segundo) y la
+    // ceremonia + el hanko se repetían en bucle.
+    prev.current = estado
+    if (cruza) {
       setExpirando(true)
       onExpira?.()
       const t = setTimeout(() => setExpirando(false), 1400)
       return () => clearTimeout(t)
     }
-    prev.current = estado
     return undefined
   }, [estado, onExpira])
   return expirando
@@ -387,10 +391,12 @@ export default function FestivalBoard({ eventos, hrefDe = (slug) => `/eventos/${
   const deadlineEstados = eventos.flatMap((e) => [e.inicio.getTime(), e.fin.getTime()])
   const now = useTickerNow(deadlineEstados)
 
-  const onExpira = () => {
+  // Identidad estable: con una arrow inline cada render del board creaba
+  // un onExpira nuevo y re-disparaba el effect del cruce en cada tick.
+  const onExpira = useCallback(() => {
     play('playAcunado') // respeta el mute global vía SoundContext
     onExpiraActivo?.()
-  }
+  }, [play, onExpiraActivo])
 
   if (!eventos.length) return <PlazaVacia />
 
