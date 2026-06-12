@@ -15,6 +15,7 @@ import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
 import JsonLd from '../components/JsonLd'
 import { usePerfilPublico, useToggleSeguir } from '../hooks/usePerfil'
+import MissingFighter from '../features/perfil/MissingFighter'
 import { ApiError } from '../lib/api'
 import { VisualPageShell } from '../components/VisualSystem'
 import { BRAND_VISUALS } from '../data/visual-assets'
@@ -84,29 +85,9 @@ function UsuarioPage() {
   }
 
   if (error?.status === 404 || !perfil) {
-    return (
-      <section className="px-5 py-12 sm:px-8 sm:py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-[clamp(1.75rem,4vw,2.25rem)] font-bold tracking-tight text-fg-strong">
-            Usuario no encontrado
-          </h1>
-          <p className="mt-3 text-fg-muted">
-            No existe ningún usuario con el username{' '}
-            <code className="rounded-md bg-surface px-1.5 py-0.5 text-[13px]">
-              {username}
-            </code>
-            .
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="mt-6 inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-fg-strong transition-colors hover:border-accent/40"
-          >
-            Volver al inicio
-          </button>
-        </div>
-      </section>
-    )
+    // Señal perdida: el 404 como transmisión interrumpida del archivo (el
+    // noindex ya quedó puesto arriba por useSeo).
+    return <MissingFighter username={username} />
   }
 
   const handleToggle = async () => {
