@@ -26,8 +26,9 @@ import {
   safeStorage,
 } from '../lib/games'
 import PersonajeImg from '../components/PersonajeImg'
-import PersonajeCutImg from '../components/PersonajeCutImg'
-import { hasCut } from '../lib/cuts'
+import ShadowByobu from '../features/games/shadow/ShadowByobu'
+import { hasCut, cutUrl } from '../lib/cuts'
+import { imagenPersonaje } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { useTodayKey } from '../hooks/useDailyGameState'
 import { getGameVisual } from '../data/visual-assets'
@@ -63,16 +64,23 @@ function GuessCharacterPage() {
   useSeo({
     title: 'Shadow Guess · Guess the Character — Daily',
     description:
-      'Adivina el personaje de anime del día por su imagen difuminada. 5 intentos. Comparte tu resultado estilo Wordle.',
+      'Adivina el personaje de anime del día: su sombra vive tras un biombo. 5 intentos. Comparte tu resultado estilo Wordle.',
     canonical: 'https://animeshowdown.dev/games/shadow-guess',
     image: SEO_IMAGE,
   })
 
   const { personajes: catalogoPersonajes } = usePersonajesCatalogo()
   const todayKey = useTodayKey()
+  // El biombo necesita silueta real (recorte alpha → negro): el daily se
+  // elige SOLO entre personajes con recorte (~80% del catálogo). Sigue
+  // siendo determinista y el mismo para todo el mundo.
+  const candidatos = useMemo(
+    () => catalogoPersonajes.filter((p) => hasCut(p.slug)),
+    [catalogoPersonajes],
+  )
   const dailyObjetivo = useMemo(
-    () => personajeDelDia('guess-character', dateFromDayKey(todayKey), catalogoPersonajes),
-    [catalogoPersonajes, todayKey],
+    () => personajeDelDia('guess-character', dateFromDayKey(todayKey), candidatos),
+    [candidatos, todayKey],
   )
 
   if (!dailyObjetivo) {
@@ -91,11 +99,12 @@ function GuessCharacterPage() {
       todayKey={todayKey}
       dailyObjetivo={dailyObjetivo}
       catalogoPersonajes={catalogoPersonajes}
+      candidatos={candidatos}
     />
   )
 }
 
-function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
+function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes, candidatos }) {
   // El "daily" usa personajeDelDia (determinístico, compartible). Cuando
   // el user pulsa "Jugar otra" tras terminar, generamos un personaje
   // random sin determinismo y sin compartir — modo endless improvisado.
@@ -123,13 +132,13 @@ function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
 
   const intentosUsados = estado.intentos.length + (estado.pistaUsada ? 1 : 0)
   const restantes = MAX_INTENTOS - intentosUsados
-  const blurPx = estado.finalizado ? 0 : Math.max(0, 32 - intentosUsados * 8)
-  // Silueta REAL en los primeros intentos: con el recorte transparente,
-  // brightness(0) pinta la figura en negro (sombra) y se va iluminando al
-  // fallar. El difuminado anterior dejaba ver colores (pelo, ropa) y no
-  // parecía una silueta. Sin recorte caemos al retrato difuminado completo.
-  const usarSilueta = hasCut(objetivo.slug) && !estado.finalizado
-  const brilloSilueta = Math.min(1, intentosUsados / 3)
+  // Cada fallo (y la pista, que cuesta un intento) abre un panel del
+  // biombo — máximo 4 paneles; el 5º intento se juega a biombo abierto.
+  const fallos = Math.min(
+    4,
+    estado.intentos.filter((i) => !i.acierto).length + (estado.pistaUsada ? 1 : 0),
+  )
+  const resultado = estado.finalizado ? (estado.acertado ? 'acierto' : 'derrota') : null
 
   const handleGuess = (slug) => {
     if (estado.finalizado) return
@@ -161,7 +170,7 @@ function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
 
   /** Genera nueva partida con personaje random (no comparable con otros) */
   const jugarOtra = () => {
-    const random = catalogoPersonajes[Math.floor(Math.random() * catalogoPersonajes.length)]
+    const random = candidatos[Math.floor(Math.random() * candidatos.length)]
     if (!random) return
     setExtraObjetivo(random)
     setEstado(loadEstado(random.slug, true, todayKey))
@@ -190,10 +199,10 @@ function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
           alternateName: 'Guess the Character',
           path: '/games/shadow-guess',
           description:
-            'Juego diario para adivinar un personaje de anime por una imagen difuminada con cinco intentos.',
+            'Juego diario para adivinar un personaje de anime oculto tras un biombo retroiluminado, con cinco intentos.',
           featureList: [
             'Personaje diario determinístico',
-            'Imagen difuminada que se aclara tras cada fallo',
+            'Biombo de cuatro paneles que se abre con cada fallo',
             'Pista opcional del anime',
             'Resultado compartible estilo Wordle',
           ],
@@ -229,82 +238,23 @@ function GuessCharacterGame({ todayKey, dailyObjetivo, catalogoPersonajes }) {
           <p className="text-[13px] text-fg-muted">
             {estado.finalizado
               ? 'Partida del día completada. Comparte tu resultado o vuelve mañana.'
-              : `Tienes ${restantes} intentos. Cada fallo aclara un poco la imagen.`}
+              : `Tienes ${restantes} intentos. Cada fallo abre un panel del biombo.`}
           </p>
         </motion.header>
 
-        {/* Ancho cómodo en móvil (antes la imagen quedaba diminuta capada a
-            42vh ≈ 28vw de ancho). max-w-[min(78vw,320px)] la hace protagonista
-            sin desbordar; en sm+ vuelve al max-w-sm original. */}
-        <div
-          className={`as-panel relative mx-auto mb-4 w-full max-w-[min(78vw,320px)] overflow-hidden rounded-2xl border transition-all duration-500 sm:mb-6 sm:max-w-sm ${
-            estado.acertado
-              ? 'border-success/60 shadow-aura-lg [--aura-color:var(--color-arc-mentor-aura)]'
-              : 'border-border'
-          }`}
-        >
-          <div className="relative aspect-[2/3] w-full overflow-hidden bg-bg">
-            {usarSilueta ? (
-              <PersonajeCutImg
-                slug={objetivo.slug}
-                alt="Silueta del personaje"
-                className="h-full w-full"
-                imgClassName="transition-all duration-500"
-                style={{
-                  filter: `brightness(${brilloSilueta}) blur(${blurPx}px)`,
-                  transform: 'scale(1.05)',
-                }}
-              />
-            ) : (
-              <PersonajeImg
-                slug={objetivo.slug}
-                alt={estado.finalizado ? objetivo.nombre : 'Personaje difuminado'}
-                className="h-full w-full object-contain transition-all duration-500"
-                style={{
-                  filter: `blur(${blurPx}px)`,
-                  transform: blurPx > 0 ? 'scale(1.05)' : 'scale(1)',
-                }}
-              />
-            )}
-            {estado.acertado && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: 'spring', stiffness: 220, damping: 14 }}
-                className="pointer-events-none absolute inset-0 flex items-center justify-center"
-              >
-                <motion.div
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 0.6, repeat: 1 }}
-                  className="rounded-full border-2 border-success/80 bg-success/20 px-5 py-2 text-lg font-extrabold text-success backdrop-blur-sm"
-                >
-                  ¡Acertaste!
-                </motion.div>
-              </motion.div>
-            )}
-            {estado.finalizado && (
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4">
-                <p className="text-[11px] text-fg-muted">
-                  Era…
-                </p>
-                <p className="text-xl font-bold text-fg-strong">
-                  {objetivo.nombre}
-                </p>
-                <p className="text-[12px] text-fg-muted">{objetivo.anime}</p>
-              </div>
-            )}
-          </div>
+        {/* El biombo: la silueta vive detrás de 4 paneles de papel
+            retroiluminados; cada fallo desliza uno. La escena gestiona
+            pista, revelado del acierto y placa de derrota. */}
+        <div className="mx-auto mb-4 w-full max-w-2xl sm:mb-6">
+          <ShadowByobu
+            siluetaSrc={cutUrl(objetivo.slug)}
+            arteSrc={imagenPersonaje(objetivo.slug)}
+            personaje={{ nombre: objetivo.nombre, anime: objetivo.anime }}
+            fallos={fallos}
+            resultado={resultado}
+            pistaVisible={estado.pistaUsada}
+          />
         </div>
-
-        {estado.pistaUsada && !estado.finalizado && (
-          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 p-3 text-[13px]">
-            <p className="text-gold">
-              <Lightbulb className="mr-1 inline h-3.5 w-3.5" />
-              Pista: es del anime{' '}
-              <strong className="font-semibold">{objetivo.anime}</strong>.
-            </p>
-          </div>
-        )}
 
         {!estado.finalizado ? (
           <div className="mb-6 flex flex-col gap-2">

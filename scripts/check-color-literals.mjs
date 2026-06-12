@@ -16,6 +16,10 @@ const cssAllowlist = new Map([
     'frontend/src/features/cartas/cartas.css',
     'stylesheet de animaciones de cartas; los colores deben quedarse como variables CSS locales',
   ],
+  [
+    'frontend/src/features/games/shadow/shadow-byobu.css',
+    'escena del biombo de Shadow Guess: paleta local de madera/papel/vela (sin token de la casa) como variables CSS del componente',
+  ],
 ])
 // Componentes del SISTEMA VISUAL PROCEDURAL: pintan auroras/god-rays/vignettes
 // con rgb() token-driven (rgb(var(--visual-accent)/α)) y canales runtime
