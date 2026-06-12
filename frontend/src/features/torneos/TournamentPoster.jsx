@@ -348,7 +348,7 @@ function PosterEnJuego({ torneo, destacado }) {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-hanko" />
             </span>
             <span className="font-bold text-accent-text">En juego</span>
-            {torneo.rondaActual && torneo.totalRondas && (
+            {Boolean(torneo.rondaActual && torneo.totalRondas) && (
               <span>· Ronda {torneo.rondaActual}/{torneo.totalRondas}</span>
             )}
           </p>
@@ -395,9 +395,15 @@ function PosterEnJuego({ torneo, destacado }) {
 /** INSCRIPCIÓN ABIERTA — cartel medio con cuenta atrás del arranque. */
 function PosterInscripcion({ torneo }) {
   const ocupadas = torneo.numParticipantes ?? 0
+  // El nodo actual del camino tambien late aqui: misma pausa por
+  // viewport que el cartel EN JUEGO (hallazgo de auditoria).
+  const ref = useRef(null)
+  const vivo = usePosterEnViewport(ref)
 
   return (
     <article
+      ref={ref}
+      data-tp-paused={vivo ? undefined : 'true'}
       data-comment-anchor={`poster-${torneo.slug}`}
       className="group relative isolate overflow-hidden rounded-2xl border border-border bg-bg transition-colors hover:border-gold/45"
       style={{ '--tp-accent': torneo.visual?.accentRgb }}
