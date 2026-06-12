@@ -289,6 +289,18 @@ export default function FederationColophon({ buildVersion, newsletterSlot, extra
 
         {extraSlot}
 
+        {/* CTA de conversión heredado del footer clásico: en móvil el header
+            lo esconde y este es el único "Votar ahora" de la home (contrato
+            del smoke e2e, además de producto). */}
+        <div className="mt-10 flex justify-center">
+          <Link
+            to="/votar"
+            className="as-button-primary inline-flex min-h-11 items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-black"
+          >
+            Votar ahora
+          </Link>
+        </div>
+
         {/* Línea de horizonte: torii centrado (eje del sello), grulla a la derecha. */}
         <div className="fc-horizon">
           <ToriiGlyph />
