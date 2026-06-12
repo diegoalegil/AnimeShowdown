@@ -193,8 +193,15 @@ for (const [cara, chars] of Object.entries(caras)) {
 }
 if (existsSync(OFL)) copyFileSync(OFL, join(OUT_FONTS, 'OFL.txt'))
 
-// Presupuesto duro ≤120KB sobre core+ext (lo que puede pagar un usuario
-// normal); la cara ja solo viaja con el idioma japonés activo.
+// Presupuesto en DOS topes duros (política 2026-06-12, decisión del owner):
+//  - core+ext ≤120KB: el camino que paga una visita normal (core se
+//    precarga; ext baja lazy con el primer kanji en pantalla).
+//  - total ≤180KB: techo de TODO lo descargable (incluida la cara ja,
+//    lazy por unicode-range y cacheada inmutable). El rediseño Kessen
+//    firma con kanji (sellos, marcas de agua, kanji de universo) y ese
+//    coste se declara aquí en vez de fingir que el total cabe en 120.
+const PRESUPUESTO_CRITICO_KB = 120
+const PRESUPUESTO_TOTAL_KB = 180
 const totalKb = Object.values(resultados).reduce((a, r) => a + Number(r.kb), 0)
 const presupuestoKb = Number(resultados.core?.kb ?? 0) + Number(resultados.ext?.kb ?? 0)
 
@@ -203,7 +210,7 @@ const presupuestoKb = Number(resultados.core?.kb ?? 0) + Number(resultados.ext?.
 const css = `/* GENERADO por scripts/subset-display-font.mjs — NO editar a mano.
    AS Display = Zen Old Mincho 700 (OFL, licencia en /fonts/OFL.txt) en
    ${Object.keys(resultados).length} caras con unicode-range; solo la cara core se precarga.
-   Total ${totalKb.toFixed(1)}KB (presupuesto ≤120KB). */
+   core+ext ${presupuestoKb.toFixed(1)}KB (tope 120) · total ${totalKb.toFixed(1)}KB (tope 180). */
 ${Object.entries(resultados)
   .map(
     ([cara, r]) => `@font-face {
@@ -245,5 +252,8 @@ if (existsSync(INDEX_HTML) && resultados.core) {
 for (const [cara, r] of Object.entries(resultados)) {
   console.log(`${cara}: ${r.nombre} — ${r.kb}KB (${r.chars} chars)`)
 }
-console.log(`core+ext: ${presupuestoKb.toFixed(1)}KB ${presupuestoKb <= 120 ? 'OK' : '⚠️ SOBRE PRESUPUESTO (120KB)'} · total con ja: ${totalKb.toFixed(1)}KB`)
-if (presupuestoKb > 120) process.exit(1)
+console.log(
+  `core+ext: ${presupuestoKb.toFixed(1)}KB ${presupuestoKb <= PRESUPUESTO_CRITICO_KB ? 'OK' : `⚠️ SOBRE PRESUPUESTO (${PRESUPUESTO_CRITICO_KB}KB)`} · ` +
+    `total con ja: ${totalKb.toFixed(1)}KB ${totalKb <= PRESUPUESTO_TOTAL_KB ? 'OK' : `⚠️ SOBRE TECHO TOTAL (${PRESUPUESTO_TOTAL_KB}KB)`}`,
+)
+if (presupuestoKb > PRESUPUESTO_CRITICO_KB || totalKb > PRESUPUESTO_TOTAL_KB) process.exit(1)
