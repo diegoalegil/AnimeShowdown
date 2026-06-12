@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Brain,
   Check,
-  HelpCircle,
   RotateCcw,
   Sparkles,
   X,
@@ -17,6 +16,8 @@ import JsonLd from '../components/JsonLd'
 import GameCatalogLoading from '../components/GameCatalogLoading'
 import PanelResultadoAnime from '../components/PanelResultadoAnime'
 import PersonajeImg from '../components/PersonajeImg'
+import OracleShrine from '../features/games/oraculo/OracleShrine'
+import { imagenPersonaje } from '../lib/personajes-core'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { getGameVisual } from '../data/visual-assets'
 import { getCategoriasPersonaje } from '../data/personajes-tags'
@@ -86,14 +87,23 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
   const initialState = () => loadEstado(todayKey)
   const [respuestas, setRespuestas] = useState(() => initialState().respuestas)
   const [revelado, setRevelado] = useState(() => initialState().finalizado)
+  // Candidatos que el jugador ya rechazó en un veredicto fallido ("no era"):
+  // el oráculo sigue preguntando sin volver a apostar por ellos.
+  const [descartados, setDescartados] = useState([])
+  // null = veredicto sin confirmar · true = acierto sellado · false = fallo.
+  const [outcome, setOutcome] = useState(null)
+  const [cerrado, setCerrado] = useState(false)
 
   const pregunta = useMemo(
     () => seleccionarPreguntaOraculo(catalogoPersonajes, respuestas, tagsDePersonaje),
     [catalogoPersonajes, respuestas],
   )
   const ranking = useMemo(
-    () => rankOraculoCandidates(catalogoPersonajes, respuestas, tagsDePersonaje).slice(0, 5),
-    [catalogoPersonajes, respuestas],
+    () =>
+      rankOraculoCandidates(catalogoPersonajes, respuestas, tagsDePersonaje)
+        .filter((c) => !descartados.includes(c.slug))
+        .slice(0, 5),
+    [catalogoPersonajes, respuestas, descartados],
   )
   const top = ranking[0]
   const totalRespondidas = Object.keys(respuestas).length
@@ -102,6 +112,9 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
     !pregunta ||
     totalRespondidas >= MAX_PREGUNTAS ||
     (respuestasUtiles >= 5 && top?.confianza >= 78)
+  // El oráculo se inclina solo cuando el motor está listo (o el jugador
+  // forzó la apuesta). Derivado: cero setState-en-effect.
+  const enVeredicto = (revelado || debeResolver) && Boolean(top)
 
   useEffect(() => {
     safeStorage.set(
@@ -109,13 +122,13 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
       JSON.stringify({
         fecha: todayKey,
         respuestas,
-        finalizado: revelado,
+        finalizado: revelado || (debeResolver && Boolean(top)),
       }),
     )
-  }, [respuestas, revelado, todayKey])
+  }, [respuestas, revelado, debeResolver, top, todayKey])
 
   const responder = (respuesta) => {
-    if (!pregunta || revelado) return
+    if (!pregunta || enVeredicto) return
     setRespuestas((actual) => ({
       ...actual,
       [pregunta.id]: respuesta,
@@ -129,6 +142,15 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
 
   const reiniciar = () => {
     setRespuestas({})
+    setRevelado(false)
+    setDescartados([])
+    setOutcome(null)
+    setCerrado(false)
+  }
+
+  const seguirPreguntando = () => {
+    if (top) setDescartados((d) => [...d, top.slug])
+    setOutcome(null)
     setRevelado(false)
   }
 
@@ -203,9 +225,9 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
           </p>
         </motion.header>
 
-        {revelado && top && (
+        {(outcome === true || cerrado) && top && (
           <PanelResultadoAnime
-            acertado={top.confianza >= 50}
+            acertado={outcome === true}
             titulo={`Apuesto por ${top.nombre}`}
             tier={`${top.confianza}% de confianza · ${top.anime}`}
             squares={Object.values(respuestas).map((respuesta) => ({
@@ -229,67 +251,97 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
         )}
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-          <div className="as-panel rounded-2xl border border-border p-5 sm:p-6">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-bold text-electric">
-                  Lectura {Math.min(totalRespondidas + 1, MAX_PREGUNTAS)}/{MAX_PREGUNTAS}
-                </p>
-                <h2 className="mt-1 text-2xl font-extrabold text-fg-strong">
-                  {revelado
-                    ? 'Lectura cerrada'
-                    : pregunta?.texto ?? 'No quedan preguntas fuertes'}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={reiniciar}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/50 px-3 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/45 hover:text-gold"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Reiniciar
-              </button>
-            </div>
+          <div className="as-panel rounded-2xl border border-border p-2 sm:p-4">
+            <OracleShrine
+              status={enVeredicto ? 'verdict' : 'asking'}
+              question={
+                pregunta
+                  ? {
+                      id: pregunta.id,
+                      ordinal: Math.min(totalRespondidas + 1, MAX_PREGUNTAS),
+                      text: pregunta.texto,
+                    }
+                  : null
+              }
+              confidence={(top?.confianza ?? 0) / 100}
+              history={Object.entries(respuestas).map(([id, r], i) => ({
+                id,
+                ordinal: i + 1,
+                value: r === 'si' ? 'yes' : r === 'no' ? 'no' : 'unsure',
+              }))}
+              verdict={
+                enVeredicto && top
+                  ? {
+                      character: { name: top.nombre, slug: top.slug, anime: top.anime },
+                      imageSrc: imagenPersonaje(top.slug),
+                      outcome,
+                    }
+                  : null
+              }
+              onAnswer={(value) =>
+                responder(value === 'yes' ? 'si' : value === 'no' ? 'no' : 'nose')
+              }
+              onRetry={seguirPreguntando}
+              onEnd={() => {
+                setOutcome(false)
+                setCerrado(true)
+              }}
+            />
 
-            {!revelado && pregunta && (
-              <div className="grid gap-3 sm:grid-cols-3">
-                <AnswerButton
-                  icon={Check}
-                  label="Sí"
-                  tone="success"
-                  onClick={() => responder('si')}
-                />
-                <AnswerButton
-                  icon={X}
-                  label="No"
-                  tone="danger"
-                  onClick={() => responder('no')}
-                />
-                <AnswerButton
-                  icon={HelpCircle}
-                  label="No sé"
-                  tone="muted"
-                  onClick={() => responder('nose')}
-                />
+            {/* Confirmación del veredicto: el jugador es el único juez. */}
+            {enVeredicto && outcome === null && !cerrado && (
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-3 pb-3">
+                <p className="m-0 text-sm font-semibold text-fg-strong">¿Acertó el oráculo?</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRevelado(true)
+                    setOutcome(true)
+                  }}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-5 text-sm font-bold text-success transition-colors hover:bg-success/20"
+                >
+                  <Check className="h-4 w-4" />
+                  Sí, era ese
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRevelado(true)
+                    setOutcome(false)
+                  }}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-danger/40 bg-danger/10 px-5 text-sm font-bold text-danger transition-colors hover:bg-danger/20"
+                >
+                  <X className="h-4 w-4" />
+                  No era
+                </button>
               </div>
             )}
 
-            {!revelado && (
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={revelar}
-                  disabled={!top || (!debeResolver && totalRespondidas < 3)}
-                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Hacer apuesta
-                </button>
+            {!enVeredicto && (
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-3 px-4 pb-3">
                 <p className="text-[12px] text-fg-muted" aria-live="polite">
-                  {top
-                    ? `Candidato actual: ${top.nombre} · ${top.confianza}%`
-                    : 'Esperando candidatos.'}
+                  Lectura {Math.min(totalRespondidas + 1, MAX_PREGUNTAS)}/{MAX_PREGUNTAS}
+                  {top ? ` · candidato al ${top.confianza}%` : ''}
                 </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={revelar}
+                    disabled={!top || totalRespondidas < 3}
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-bold text-bg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Hacer apuesta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={reiniciar}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg/50 px-3 py-2 text-[12px] font-semibold text-fg-muted transition-colors hover:border-accent/45 hover:text-gold"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Reiniciar
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -312,25 +364,6 @@ function OraculoGame({ todayKey, catalogoPersonajes }) {
         </div>
       </div>
     </section>
-  )
-}
-
-function AnswerButton({ icon: Icon, label, tone, onClick }) {
-  const toneClass = {
-    success: 'border-success/40 bg-success/10 text-success hover:bg-success/20',
-    danger: 'border-danger/40 bg-danger/10 text-danger hover:bg-danger/20',
-    muted: 'border-border bg-bg/55 text-fg-muted hover:border-accent/45 hover:text-gold',
-  }[tone]
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex min-h-24 items-center justify-center gap-2 rounded-xl border px-4 py-4 text-base font-black transition-colors ${toneClass}`}
-    >
-      <Icon className="h-5 w-5" />
-      {label}
-    </button>
   )
 }
 
