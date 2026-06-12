@@ -14,7 +14,7 @@ export function getArenaStatusLabel({
   dueloSugerido,
 }) {
   return modoBackend
-    ? 'Match en juego · En vivo'
+    ? 'Duelo en juego · En vivo'
     : exactDuelActive
       ? identitiesHidden
         ? 'Duelo a ciegas'

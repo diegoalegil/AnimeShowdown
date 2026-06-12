@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -43,6 +43,8 @@ import { formatPersonalVoteImpact, formatVoteScore } from '../features/votar/vot
 import { incrementarContadorLocalVotos } from '../features/votar/vote-local-counter'
 import { getArenaDescription, getArenaStatusLabel } from '../features/votar/arena-labels'
 import { VOTO_REGISTRADO_EVENT, emitAppEvent } from '../lib/app-events'
+import { warmPersonajeImage } from '../lib/personaje-img-srcset'
+import { imagenPersonaje } from '../lib/personajes-core'
 
 // Suscripción imperativa del contador de racha al evento de voto de la casa
 // (identidad estable a nivel de módulo: el contador se monta UNA vez y
@@ -60,6 +62,94 @@ const PREFETCH_BACKEND_KEY = ['enfrentamientos', 'prefetch-siguiente']
 const PREFETCH_SUGERIDO_KEY = ['votar', 'duelo-sugerido-prefetch']
 const PREFETCH_GC_TIME = 8_000
 
+// Espeja el sizes del <picture> de VoteCard: el warm pide la MISMA
+// candidata que pintará la carta y la descarga aterriza en caché HTTP
+// antes del swap (sin esto, la cara "pop-ea" en mitad de la ceremonia).
+const VOTE_CARD_SIZES = '(max-width: 640px) 42vw, (max-width: 1024px) 38vw, 320px'
+function warmParImagenes(par) {
+  ;[par?.personaje1, par?.personaje2].forEach((p) => {
+    if (!p) return
+    warmPersonajeImage(p.imagenUrl ?? p.imagen ?? imagenPersonaje(p.slug), VOTE_CARD_SIZES)
+  })
+}
+
+// Breakpoints del cartel de la velada (patrón matchMedia+useSyncExternalStore
+// de VoteResultPanel): UNA instancia real por viewport — nada de montar dos
+// copias bajo display:none corriendo timers en móvil.
+const CARTEL_SM_QUERY = '(min-width: 640px)'
+const CARTEL_RAIL_QUERY = '(min-width: 1568px)'
+const subscribeCartelSm = (cb) => {
+  const mq = window.matchMedia(CARTEL_SM_QUERY)
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+const subscribeCartelRail = (cb) => {
+  const mq = window.matchMedia(CARTEL_RAIL_QUERY)
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+const readCartelSm = () => window.matchMedia(CARTEL_SM_QUERY).matches
+const readCartelRail = () => window.matchMedia(CARTEL_RAIL_QUERY).matches
+
+/**
+ * El cartel de la velada, autocontenido: observa la cache del prefetch
+ * (enabled:false — jamás fetchea por su cuenta; el cartel enseña EXACTAMENTE
+ * lo que el auto-avance va a usar) y decide su placement por viewport:
+ * nada <sm (el duelo manda), tira inferior con los extras en sm..2xl y rail
+ * absoluto en el gutter derecho a partir de 1568px (a 2xl exacto el gutter
+ * mide 256px y un rail de ml-8+w-60 salía recortado por el overflow del
+ * shell). El re-render del ciclo del prefetch muere aquí dentro, no en la
+ * página.
+ */
+function FightBillRail({ modoBackend, a, b, matchId, fetchSiguienteBackend }) {
+  const isSm = useSyncExternalStore(subscribeCartelSm, readCartelSm)
+  const isRail = useSyncExternalStore(subscribeCartelRail, readCartelRail)
+  const { data: siguienteEnCartel, isFetching: reponiendoCartel } = useQuery({
+    queryKey: PREFETCH_BACKEND_KEY,
+    queryFn: fetchSiguienteBackend,
+    enabled: false,
+    gcTime: PREFETCH_GC_TIME,
+  })
+  const cartelActual = useMemo(
+    () => (modoBackend && a && b && matchId != null ? { key: String(matchId), a, b } : null),
+    [a, b, matchId, modoBackend],
+  )
+  const cartelCola = useMemo(() => {
+    if (!modoBackend) return []
+    const p1 = siguienteEnCartel?.personaje1
+    const p2 = siguienteEnCartel?.personaje2
+    const id = Number(siguienteEnCartel?.id)
+    if (!p1 || !p2 || !Number.isInteger(id)) return []
+    // El prefetch recién consumido puede seguir en cache apuntando al duelo
+    // en curso: no es "el siguiente", no se enseña.
+    if (String(id) === String(matchId)) return []
+    return [{ key: String(id), a: p1, b: p2 }]
+  }, [matchId, modoBackend, siguienteEnCartel])
+
+  if (!isSm || !cartelActual) return null
+  if (isRail) {
+    return (
+      <div className="absolute left-full top-24 ml-4 w-56">
+        <FightBill
+          current={cartelActual}
+          queue={cartelCola}
+          replenishing={reponiendoCartel}
+          maxSlots={1}
+        />
+      </div>
+    )
+  }
+  return (
+    <FightBill
+      current={cartelActual}
+      queue={cartelCola}
+      placement="bottom"
+      replenishing={reponiendoCartel}
+      maxSlots={1}
+    />
+  )
+}
+
 // El captcha modal lazy-load el script de Cloudflare Turnstile la primera
 // vez. La mayoría de usuarios nunca caen en captcha, así que mantenemos
 // el bundle inicial sin ese coste.
@@ -72,9 +162,11 @@ const CaptchaModal = lazy(() => import('../components/CaptchaModal'))
  *   - Cards con max-h 55vh + object-contain (no recorta) + letterbox
  *     ligero con color dominante. Evitamos blur en tiempo real porque
  *     castigaba el frame rate de la arena.
- *   - VS central grande con glow magenta.
+ *   - VS de tinta central (DuelEntrance): la línea carmesí/oro nace por
+ *     corte vertical; el slam del voto vive en VsBadge montado en su glifo.
  *   - "Saltar" arriba a la derecha, siempre visible.
- *   - Nombre + anime debajo de cada card (no overlay) → comparación rápida.
+ *   - Nombre + anime bajo cada carta los pinta DuelEntrance con corte de
+ *     tinta (VoteCard va con captionHidden) → comparación rápida.
  *   - Atajos de teclado: ← vota izquierda, → derecha, S saltar, Espacio
  *     siguiente cuando ya hay voto.
  *   - Modo rápido (toggle): tras votar carga el siguiente duelo automáticamente.
@@ -191,6 +283,10 @@ function VotarPage() {
     // torneos en CADA voto sin necesidad. El bracket y el ranking en vivo se
     // mueven por WebSocket (BracketUpdate/RankingDelta), no por refetch del REST.
   })
+  // mutate ES referencialmente estable en TanStack v5; el objeto votarMutation
+  // NO (uno nuevo por render) — tenerlo en deps recreaba handleVote y
+  // handleTieVote en cada ciclo y rompía el memo de VoteArena/VoteCard.
+  const { mutate: votar } = votarMutation
   const isVotePending = votarMutation.isPending
   useEffect(() => {
     isVotePendingRef.current = isVotePending
@@ -215,17 +311,6 @@ function VotarPage() {
     staleTime: 0,
     gcTime: 0,
     retry: false,
-  })
-  // Espejo reactivo del prefetch del siguiente duelo para el cartel de la
-  // velada: muestra EXACTAMENTE lo que el auto-avance va a usar (cero
-  // invención). enabled:false → jamás dispara fetch propio; solo observa la
-  // cache que puebla prefetchSiguientePar, y su isFetching refleja el
-  // prefetch en vuelo.
-  const { data: siguienteEnCartel, isFetching: reponiendoCartel } = useQuery({
-    queryKey: PREFETCH_BACKEND_KEY,
-    queryFn: fetchSiguienteBackend,
-    enabled: false,
-    gcTime: PREFETCH_GC_TIME,
   })
   const modoSugerido = Boolean(
     !fixedPersonaje &&
@@ -294,26 +379,6 @@ function VotarPage() {
     recordedPairKeyRef.current = currentPairKey
   }, [a?.slug, b?.slug, currentPairKey, matchId])
 
-  // Datos del cartel de la velada (FightBill): solo modo backend (la arena
-  // ranked con matchId real); en casual/sugerido no hay cola que enseñar.
-  // Memoizados para que la identidad estable no re-dispare el sync del
-  // espejo en cada render de esta página (la más caliente de la app).
-  const cartelActual = useMemo(
-    () => (modoBackend && a && b && matchId != null ? { key: String(matchId), a, b } : null),
-    [a, b, matchId, modoBackend],
-  )
-  const cartelCola = useMemo(() => {
-    if (!modoBackend) return []
-    const p1 = siguienteEnCartel?.personaje1
-    const p2 = siguienteEnCartel?.personaje2
-    const id = Number(siguienteEnCartel?.id)
-    if (!p1 || !p2 || !Number.isInteger(id)) return []
-    // El prefetch recién consumido puede seguir en cache apuntando al duelo
-    // en curso: no es "el siguiente", no se enseña.
-    if (String(id) === String(matchId)) return []
-    return [{ key: String(id), a: p1, b: p2 }]
-  }, [matchId, modoBackend, siguienteEnCartel])
-
   const tieSelected = votedFor === TIE_VOTE_KEY
   const votedPersonaje = votedFor === a?.slug ? a : votedFor === b?.slug ? b : null
   const losingPersonaje = votedFor === a?.slug ? b : votedFor === b?.slug ? a : null
@@ -330,20 +395,24 @@ function VotarPage() {
   const prefetchSiguientePar = useCallback(() => {
     if (modoBackend) {
       if (hasPrefetchReadyOrRunning(queryClient, PREFETCH_BACKEND_KEY)) return
-      queryClient.prefetchQuery({
-        queryKey: PREFETCH_BACKEND_KEY,
-        queryFn: fetchSiguienteBackend,
-        staleTime: 0,
-        gcTime: PREFETCH_GC_TIME,
-      })
+      queryClient
+        .prefetchQuery({
+          queryKey: PREFETCH_BACKEND_KEY,
+          queryFn: fetchSiguienteBackend,
+          staleTime: 0,
+          gcTime: PREFETCH_GC_TIME,
+        })
+        .then(() => warmParImagenes(queryClient.getQueryData(PREFETCH_BACKEND_KEY)))
     } else if (modoSugerido) {
       if (hasPrefetchReadyOrRunning(queryClient, PREFETCH_SUGERIDO_KEY)) return
-      queryClient.prefetchQuery({
-        queryKey: PREFETCH_SUGERIDO_KEY,
-        queryFn: endpoints.dueloSugerido,
-        staleTime: 0,
-        gcTime: PREFETCH_GC_TIME,
-      })
+      queryClient
+        .prefetchQuery({
+          queryKey: PREFETCH_SUGERIDO_KEY,
+          queryFn: endpoints.dueloSugerido,
+          staleTime: 0,
+          gcTime: PREFETCH_GC_TIME,
+        })
+        .then(() => warmParImagenes(queryClient.getQueryData(PREFETCH_SUGERIDO_KEY)))
     }
     // Modo casual es instantáneo (solo estado local), no necesita prefetch.
   }, [fetchSiguienteBackend, modoBackend, modoSugerido, queryClient])
@@ -480,6 +549,7 @@ function VotarPage() {
   // concretos (primero del día, cada 10º) → es un premio puntual, no ruido, así
   // que el toast se muestra también en modo rápido. Refrescamos el saldo del
   // header tras el drop async (el listener lo acredita justo tras el commit).
+  const coinsTimeoutRef = useRef(null)
   const notifyCoins = useCallback(
     (data) => {
       const monedas = data?.monedasGanadas ?? 0
@@ -495,7 +565,7 @@ function VotarPage() {
       queryClient.setQueryData(['monedero'], (old) =>
         old ? { ...old, saldo: (old.saldo ?? 0) + monedas } : old,
       )
-      window.setTimeout(() => {
+      coinsTimeoutRef.current = window.setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['monedero'] })
       }, 1500)
     },
@@ -528,7 +598,7 @@ function VotarPage() {
           description: data?.votosGanador != null
             ? data?.anonimo
               ? `Voto invitado guardado · te quedan ${data.votosAnonimosRestantes ?? 0}${impact ? ` · #${impact.rank} en tu ranking` : ''}`
-              : `Ahora suma ${formatVoteScore(data.votosGanador)} votos en este match${impact ? ` · #${impact.rank} en tu ranking` : ''}`
+              : `Ahora suma ${formatVoteScore(data.votosGanador)} votos en este duelo${impact ? ` · #${impact.rank} en tu ranking` : ''}`
             : impact
               ? formatPersonalVoteImpact(impact)
               : 'Voto registrado · ranking actualizado',
@@ -541,7 +611,7 @@ function VotarPage() {
       prefetchSiguientePar()
       scheduleAutoNext()
     },
-    [scheduleAutoNext, trackLocalVote, prefetchSiguientePar, notifyCoins],
+    [scheduleAutoNext, trackLocalVote, prefetchSiguientePar, notifyCoins, fastModeRef],
   )
 
   const handleTieVoteSuccess = useCallback(
@@ -570,7 +640,7 @@ function VotarPage() {
       prefetchSiguientePar()
       scheduleAutoNext()
     },
-    [a, b, prefetchSiguientePar, scheduleAutoNext, notifyCoins],
+    [a, b, prefetchSiguientePar, scheduleAutoNext, notifyCoins, fastModeRef],
   )
 
   const {
@@ -614,7 +684,7 @@ function VotarPage() {
 
       if (modoBackend) {
         setVotedFor(personaje.slug)
-        votarMutation.mutate(
+        votar(
           { enfrentamientoId: matchId, personajeGanadorId: personaje.id, anonymous: !user },
           {
             onSuccess: (data) => {
@@ -711,7 +781,7 @@ function VotarPage() {
       modoBackend,
       user,
       navigate,
-      votarMutation,
+      votar,
       matchId,
       scheduleAutoNext,
       handleVoteSuccess,
@@ -720,6 +790,7 @@ function VotarPage() {
       a,
       b,
       trackLocalVote,
+      fastModeRef,
     ],
   )
 
@@ -779,7 +850,7 @@ function VotarPage() {
     }
     voteLockedRef.current = true
     setVotedFor(TIE_VOTE_KEY)
-    votarMutation.mutate(
+    votar(
       { enfrentamientoId: matchId, anonymous: !user, empate: true },
       {
         onSuccess: handleTieVoteSuccess,
@@ -808,7 +879,7 @@ function VotarPage() {
         },
       },
     )
-  }, [modoBackend, matchId, votedFor, user, votarMutation, handleTieVoteSuccess])
+  }, [modoBackend, matchId, votedFor, user, votar, handleTieVoteSuccess])
 
   const arenaStatusLabel = getArenaStatusLabel({
     modoBackend,
@@ -832,6 +903,49 @@ function VotarPage() {
     hasFixedAnime,
     fixedAnime,
   })
+
+  // Estado terminal: el backend cayó (5xx/red, no el 404 sano), no hay
+  // catálogo local (primera visita) y el duelo sugerido tampoco respondió.
+  // Sin esto la página quedaba en "Preparando duelo…" PARA SIEMPRE (retry
+  // false en ambas queries y refetchOnWindowFocus global apagado).
+  const sinDuelo =
+    isError &&
+    !sinMatchesAbiertos &&
+    !canUseLocalCatalog &&
+    !modoSugerido &&
+    !isFetchingDueloSugerido
+  if (sinDuelo) {
+    return (
+      <VisualPageShell
+        visual={{ ...BRAND_VISUALS.torneos, kanji: '闘' }}
+        className="flex min-h-[calc(100vh-6rem)] items-center justify-center"
+        contentClassName="flex flex-col items-center gap-4 text-center"
+        lateralKanji={null}
+      >
+        <span className="font-kanji-serif text-6xl text-gold opacity-40" lang="ja" aria-hidden="true">
+          闘
+        </span>
+        <div>
+          <p className="text-lg font-bold text-fg-strong">La arena no responde</p>
+          <p className="mt-1 max-w-sm text-[13px] text-fg-muted">
+            No pudimos traer ningún duelo. Suele ser cosa de la conexión —
+            reintenta en unos segundos.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={isFetching || isFetchingDueloSugerido}
+          onClick={() => {
+            refetch()
+            refetchDueloSugerido()
+          }}
+          className="as-button-primary rounded-lg px-5 py-3 text-sm font-black disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isFetching || isFetchingDueloSugerido ? 'Reintentando…' : 'Reintentar'}
+        </button>
+      </VisualPageShell>
+    )
+  }
 
   if ((!fixedPersonaje && !hasFixedAnime && isLoading) || needsCasualPair) {
     return (
@@ -857,22 +971,9 @@ function VotarPage() {
       className="min-h-[calc(100svh-5rem)] py-3 sm:py-8 lg:py-10"
       atmosphere="arena-storm"
     >
-        {/* El cartel de la velada — rail lateral solo en pantallas muy
-            anchas (≥2xl: el gutter derecho del max-w-5xl da los 240px sin
-            tocar la columna del duelo). En sm..2xl vive como tira inferior
-            junto a los extras; en móvil no se monta (el duelo manda). */}
-        {cartelActual && !blindMode && (
-          <div className="absolute left-full top-24 ml-8 hidden w-60 2xl:block">
-            <FightBill
-              current={cartelActual}
-              queue={cartelCola}
-              replenishing={reponiendoCartel}
-              maxSlots={1}
-            />
-          </div>
-        )}
         <VotarTopBar
           arenaStatusLabel={arenaStatusLabel}
+          live={modoBackend}
           showChallenge={Boolean(!identitiesHidden && !votedFor && a?.slug && b?.slug)}
           onChallenge={handleChallenge}
           fastMode={fastMode}
@@ -886,7 +987,7 @@ function VotarPage() {
 
         {/* Pregunta principal */}
         <header className="flex flex-col items-center gap-0.5 text-center sm:gap-1">
-          <h1 className="text-2xl font-extrabold leading-tight tracking-normal sm:text-3xl">
+          <h1 className="font-display text-2xl leading-tight sm:text-3xl">
             ¿A quién prefieres?
           </h1>
           <p className="max-w-xl text-[12px] text-fg-muted sm:text-[13px]">
@@ -896,9 +997,10 @@ function VotarPage() {
 
         {votoInvitadoActivo && (
           <div className="rounded-lg border border-gold/40 bg-gold-soft px-4 py-3 text-center text-[13px] font-medium text-gold">
-            Voto invitado activo: los primeros {ANON_VOTE_LIMIT} votos cuentan con peso 0.3.
+            Modo invitado: tus primeros {ANON_VOTE_LIMIT} votos cuentan, pero
+            valen menos que los de una cuenta.
             <Link to="/login?next=%2Fvotar" className="ml-1 underline decoration-gold/50 underline-offset-4 hover:text-fg-strong">
-              Entra para peso completo y guardar historial.
+              Entra para voto completo e historial.
             </Link>
           </div>
         )}
@@ -975,18 +1077,20 @@ function VotarPage() {
             blindMode={identitiesHidden}
           />
           <DailyMissionPanel compact />
-          {cartelActual && !blindMode && (
-            <div className="2xl:hidden">
-              <FightBill
-                current={cartelActual}
-                queue={cartelCola}
-                placement="bottom"
-                replenishing={reponiendoCartel}
-                maxSlots={1}
-              />
-            </div>
-          )}
         </div>
+        {/* El cartel de la velada: UNA sola instancia real (FightBillRail
+            decide por matchMedia: nada <sm, tira inferior sm..2xl, rail
+            absoluto en el gutter ≥2xl) y desaparece en modo a ciegas — el
+            cartel enseñaría las identidades del duelo y del siguiente. */}
+        {!blindMode && (
+          <FightBillRail
+            modoBackend={modoBackend}
+            a={a}
+            b={b}
+            matchId={matchId}
+            fetchSiguienteBackend={fetchSiguienteBackend}
+          />
+        )}
         <MobileExtrasToggle
           a={a}
           b={b}
@@ -1018,7 +1122,7 @@ function VotarPage() {
                 setVotedFor(ch.empate ? TIE_VOTE_KEY : ch.personajeSlug)
                 // Re-emitimos el voto con el token. El backend valida
                 // contra Cloudflare y, si OK, registra el voto.
-                votarMutation.mutate(
+                votar(
                   {
                     enfrentamientoId: ch.enfrentamientoId,
                     personajeGanadorId: ch.personajeId,

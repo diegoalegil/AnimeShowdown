@@ -58,7 +58,7 @@ function VoteFeedbackBurst({
         initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.92 }}
         animate={{ opacity: [0, 1, 1, 0], scale: reduceMotion ? 1 : [0.92, 1.08, 1.02, 1] }}
         transition={{ duration: reduceMotion ? 0.22 : 0.58, times: [0, 0.18, 0.72, 1] }}
-        className="rounded-full border border-gold/70 bg-black/75 px-4 py-2 text-center font-mono text-sm font-black text-gold shadow-aura [--aura-color:rgb(245_197_92_/_0.9)] backdrop-blur"
+        className="rounded-full border border-gold/70 bg-black/75 px-4 py-2 text-center font-mono text-sm font-black text-gold shadow-aura [--aura-color:var(--color-gold-bright)] backdrop-blur"
       >
         <span className="block text-[10px] text-gold/80">
           {label}
@@ -85,7 +85,7 @@ function VoteFeedbackBurst({
         return (
           <motion.span
             key={particle}
-            className="absolute h-1.5 w-1.5 rounded-full bg-gold shadow-aura-sm [--aura-color:rgb(245_197_92_/_0.9)]"
+            className="absolute h-1.5 w-1.5 rounded-full bg-gold shadow-aura-sm [--aura-color:var(--color-gold-bright)]"
             initial={{ opacity: 0, x: 0, y: 0, scale: 0.4 }}
             animate={{
               opacity: [0, 1, 0],

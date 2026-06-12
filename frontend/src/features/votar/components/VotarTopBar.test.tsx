@@ -17,7 +17,7 @@ function renderTopBar(props: Record<string, unknown> = {}) {
   }
   render(
     <VotarTopBar
-      arenaStatusLabel="Match en juego · En vivo"
+      arenaStatusLabel="Duelo en juego · En vivo"
       showChallenge
       fastMode={false}
       blindMode={false}
@@ -33,7 +33,7 @@ function renderTopBar(props: Record<string, unknown> = {}) {
 describe('VotarTopBar', () => {
   it('muestra el badge de estado y despacha cada accion', () => {
     const handlers = renderTopBar()
-    expect(screen.getByText('Match en juego · En vivo')).toBeTruthy()
+    expect(screen.getByText('Duelo en juego · En vivo')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: /Reta a un amigo/ }))
     fireEvent.click(screen.getByRole('button', { name: /Modo rápido/ }))

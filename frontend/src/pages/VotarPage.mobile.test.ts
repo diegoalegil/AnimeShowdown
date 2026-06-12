@@ -18,7 +18,7 @@ describe('VotarPage mobile viewport', () => {
   })
 
   it('usa escala tipografica estable por breakpoint en la pregunta principal', () => {
-    expect(source).toContain('className="text-2xl font-extrabold leading-tight tracking-normal sm:text-3xl"')
+    expect(source).toContain('className="font-display text-2xl leading-tight sm:text-3xl"')
     expect(source).not.toContain('text-[clamp(1.5rem,3.5vw,2.25rem)]')
   })
 })
