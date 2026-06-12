@@ -3,20 +3,17 @@ import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   CalendarClock,
-  CheckCircle2,
   Clock,
-  ArrowRight,
   PlayCircle,
   Sparkles,
   Swords,
   Trophy,
   Users,
 } from 'lucide-react'
-import TorneoCard from '../components/TorneoCard'
 import EditorialCover from '../components/EditorialCover'
 import { CinematicHero, VisualPageShell } from '../components/VisualSystem'
 import ResilientEmptyState from '../components/EmptyState'
-import Skeleton from '../components/Skeleton'
+import { CarteleraTorneos } from '../features/torneos/TournamentPoster'
 import { useTorneos } from '../lib/torneosQueries'
 import { useSeo } from '../hooks/useSeo'
 import { breadcrumbsSchema } from '../lib/schema'
@@ -64,9 +61,10 @@ const SUGERENCIAS_TORNEO = (() => {
  * footer y un grid plano sin separar estados. Ahora:
  *
  * <ul>
- *   <li>Skeleton de 6 cards mientras carga (perceptual mejor que spinner).</li>
- *   <li>Secciones agrupadas por estado: En curso · Próximamente · Historial.
- *       Cada sección solo aparece si tiene items, así no hay headers vacíos.</li>
+ *   <li>Skeleton con la silueta de la cartelera mientras carga.</li>
+ *   <li>La cartelera de la velada (TournamentPoster): en juego se imprime
+ *       grande y primero, inscripción después, historial como archivo
+ *       compacto. Cada sección solo aparece si tiene items.</li>
  *   <li>Empty state premium cuando no hay torneos en BD: copy explicativo
  *       sobre el cron de auto-torneos + CTAs reales (votar duelos abiertos
  *       y crear torneo propio si el user está logueado).</li>
@@ -147,36 +145,15 @@ function TorneosPage() {
         {!isLoading && !isError && total > 0 && (
           <div className="flex flex-col gap-12">
             <TorneosOverview model={model} t={t} />
-            {enCurso.length > 0 && (
-              <TorneosSeccion
-                icon={PlayCircle}
-                tono="text-success"
-                dotColor="bg-success"
-                titulo={t('torneos.seccionEnCurso')}
-                count={enCurso.length}
-                torneos={enCurso}
-              />
-            )}
-            {proximos.length > 0 && (
-              <TorneosSeccion
-                icon={CalendarClock}
-                tono="text-electric"
-                dotColor="bg-electric"
-                titulo={t('torneos.seccionProximos')}
-                count={proximos.length}
-                torneos={proximos}
-              />
-            )}
-            {historial.length > 0 && (
-              <TorneosSeccion
-                icon={CheckCircle2}
-                tono="text-fg-muted"
-                dotColor="bg-fg-muted"
-                titulo={t('torneos.seccionHistorial')}
-                count={historial.length}
-                torneos={historial}
-              />
-            )}
+            {/* La cartelera de la velada: en juego XL primero, inscripción
+                después y el historial como archivo compacto (TournamentPoster).
+                El destacado del overview viejo murió aquí: el primer cartel
+                EN JUEGO a página completa ES el destacado. */}
+            <CarteleraTorneos
+              enCurso={enCurso}
+              proximos={proximos}
+              historial={historial}
+            />
           </div>
         )}
       </div>
@@ -186,7 +163,6 @@ function TorneosPage() {
 
 function TorneosOverview({ model, t }) {
   const numberFormat = new Intl.NumberFormat()
-  const destacado = model.destacado
   const metrics = [
     {
       icon: PlayCircle,
@@ -217,16 +193,11 @@ function TorneosOverview({ model, t }) {
   return (
     <section
       aria-label={t('torneos.resumenAria')}
-      className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.55fr)]"
+      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
     >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {metrics.map((metric) => (
-          <TorneoMetric key={metric.label} {...metric} />
-        ))}
-      </div>
-      {destacado && (
-        <TorneoDestacado destacado={destacado} t={t} />
-      )}
+      {metrics.map((metric) => (
+        <TorneoMetric key={metric.label} {...metric} />
+      ))}
     </section>
   )
 }
@@ -243,70 +214,6 @@ function TorneoMetric({ icon: Icon, label, value, tone }) {
       <p className="mt-0.5 text-[11px] font-semibold text-fg-muted">
         {label}
       </p>
-    </div>
-  )
-}
-
-function TorneoDestacado({ destacado, t }) {
-  const { torneo, tipo } = destacado
-  const ronda = torneo.rondaActual && torneo.totalRondas
-    ? `${torneo.rondaActual}/${torneo.totalRondas}`
-    : null
-  const copyKey = {
-    IN_PROGRESS: 'torneos.resumenDestacadoEnCurso',
-    SCHEDULED: 'torneos.resumenDestacadoProximo',
-    FINISHED: 'torneos.resumenDestacadoHistorial',
-  }[tipo]
-  const ctaKey = {
-    IN_PROGRESS: 'torneos.resumenCtaEnCurso',
-    SCHEDULED: 'torneos.resumenCtaProximo',
-    FINISHED: 'torneos.resumenCtaHistorial',
-  }[tipo]
-
-  return (
-    <Link
-      to={`/torneos/${torneo.slug}`}
-      className="group flex min-h-full flex-col justify-between rounded-xl border border-accent/30 bg-accent-soft p-4 transition-colors hover:border-gold/55 hover:bg-accent/20"
-    >
-      <span className="text-[11px] font-black text-gold">
-        {t('torneos.resumenDestacado')}
-      </span>
-      <div className="mt-3">
-        <p className="line-clamp-1 text-lg font-black text-fg-strong">
-          {torneo.nombre}
-        </p>
-        <p className="mt-1 text-[12px] leading-5 text-fg-muted">
-          {t(copyKey, { ronda: ronda ?? t('torneos.resumenRondaFallback') })}
-        </p>
-      </div>
-      <span className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-black text-gold">
-        {t(ctaKey)}
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-      </span>
-    </Link>
-  )
-}
-
-function TorneosSeccion({ icon: Icon, tono, dotColor, titulo, count, torneos }) {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 border-b border-border pb-3">
-        <span className={`flex h-6 w-6 items-center justify-center rounded-lg bg-surface ${tono}`}>
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        <h2 className={`text-[13px] font-semibold ${tono}`}>
-          {titulo}
-        </h2>
-        <span className="font-mono text-[11px] text-fg-muted tabular-nums">
-          ({count})
-        </span>
-        <span className={`ml-auto h-1.5 w-1.5 rounded-full ${dotColor}`} aria-hidden="true" />
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-        {torneos.map((it) => (
-          <TorneoCard key={it.slug} torneo={it} />
-        ))}
-      </div>
     </div>
   )
 }
@@ -352,13 +259,27 @@ function TorneosHeroBanner() {
 }
 
 function TorneosSkeleton() {
-  // 6 cards en grid igual que el real para que el cambio loading → loaded
-  // no recalcule el layout (cero CLS). Avatares fake + h3 fake + meta fake.
+  // Mismo layout que la cartelera real (cartel XL + dos medios + filas de
+  // archivo) para que el cambio loading → loaded no recalcule el layout.
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Skeleton key={i} variant="card" />
-      ))}
+    <div className="flex flex-col gap-12">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <span key={i} className="skl block h-28 rounded-xl bg-surface-alt" />
+        ))}
+      </div>
+      <div className="flex flex-col gap-5">
+        <span className="skl block min-h-[420px] rounded-2xl bg-surface-alt sm:min-h-[480px]" />
+        <div className="grid gap-5 md:grid-cols-2">
+          <span className="skl block min-h-[320px] rounded-2xl bg-surface-alt" />
+          <span className="skl hidden min-h-[320px] rounded-2xl bg-surface-alt md:block" />
+        </div>
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <span key={i} className="skl block h-[88px] rounded-xl bg-surface-alt" />
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
