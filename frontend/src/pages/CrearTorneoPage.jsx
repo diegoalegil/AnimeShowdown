@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useController, useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import {
@@ -16,6 +16,8 @@ import { useCrearTorneoMio } from '../hooks/useTorneosCreados'
 import { usePersonajesCatalogo } from '../hooks/usePersonajesCatalogo'
 import { ApiError } from '../lib/api'
 import PersonajeImg from '../components/PersonajeImg'
+import ScribeFieldRhf from '../components/scribe/ScribeFieldRhf'
+import ScribeToggle from '../components/scribe/ScribeToggle'
 import TournamentBannerForge from '../features/torneos/forge/TournamentBannerForge'
 
 const containerVariants = {
@@ -60,12 +62,12 @@ function CrearTorneoPage() {
   const deferredQuery = useDeferredValue(query)
 
   const {
-    register,
+    control,
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
     setError,
-  } = useForm({ defaultValues: { publico: true } })
+  } = useForm({ defaultValues: { nombre: '', descripcion: '', publico: true } })
   // Datos reales para el estandarte de la forja: el nombre se observa en
   // vivo, el organizador es el usuario logueado y la fecha es la de hoy.
   const nombreEnVivo = watch('nombre')
@@ -198,10 +200,7 @@ function CrearTorneoPage() {
         >
           <CardTamano tamano={tamano} onCambio={cambiarTamano} />
 
-          <CardDatos
-            register={register}
-            errors={errors}
-          />
+          <CardDatos control={control} />
 
           <CardSeleccion
             tamano={tamano}
@@ -287,7 +286,15 @@ function CardTamano({ tamano, onCambio }) {
   )
 }
 
-function CardDatos({ register, errors }) {
+/**
+ * Datos del torneo con el kit del escriba: nombre y descripción son
+ * ScribeField (label flotante, trazo de tinta, contador con tope duro por
+ * atributo maxLength — las reglas de longitud máxima de RHF sobran) y el
+ * checkbox de publicación pasa a ScribeToggle (role="switch" + clack).
+ * La validación sigue en el padre vía rules: el kit solo pinta el error.
+ */
+function CardDatos({ control }) {
+  const publico = useController({ name: 'publico', control })
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="mb-4 flex items-center gap-2">
@@ -295,71 +302,40 @@ function CardDatos({ register, errors }) {
         <h2 className="text-lg font-bold text-fg-strong">Datos del torneo</h2>
       </div>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="nombre"
-            className="text-[12px] font-medium text-fg-strong"
-          >
-            Nombre
-          </label>
-          <input
-            id="nombre"
-            type="text"
-            {...register('nombre', {
-              required: 'El nombre es obligatorio',
-              minLength: { value: 5, message: 'Mínimo 5 caracteres' },
-              maxLength: { value: 80, message: 'Máximo 80 caracteres' },
-            })}
-            placeholder='Ej. "Las mejores chicas de los 2010"'
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.nombre ? 'border-danger' : 'border-border'
-            }`}
+        <ScribeFieldRhf
+          control={control}
+          name="nombre"
+          rules={{
+            required: 'El nombre es obligatorio',
+            minLength: { value: 5, message: 'Mínimo 5 caracteres' },
+          }}
+          id="nombre"
+          label="Nombre"
+          maxLength={80}
+          showCount
+          hint="Ej. «Las mejores chicas de los 2010»"
+        />
+        <ScribeFieldRhf
+          control={control}
+          name="descripcion"
+          id="descripcion"
+          label="Descripción (opcional)"
+          multiline
+          rows={3}
+          maxLength={500}
+          showCount
+          hint="Cuenta el concepto del torneo."
+        />
+        <div className="rounded-lg border border-border bg-bg/70 p-3">
+          <ScribeToggle
+            checked={Boolean(publico.field.value)}
+            onChange={(next) => publico.field.onChange(next)}
+            label="Publicar si el admin lo aprueba"
           />
-          {errors.nombre && (
-            <p className="text-[11px] text-danger">
-              {errors.nombre.message}
-            </p>
-          )}
+          <p className="mt-1 text-[12px] text-fg-muted">
+            Aparecerá en /torneos y cualquier cuenta podrá votar sus duelos.
+          </p>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="descripcion"
-            className="text-[12px] font-medium text-fg-strong"
-          >
-            Descripción <span className="text-fg-muted">(opcional)</span>
-          </label>
-          <textarea
-            id="descripcion"
-            rows={3}
-            {...register('descripcion', {
-              maxLength: { value: 500, message: 'Máximo 500 caracteres' },
-            })}
-            placeholder="Cuenta el concepto del torneo."
-            className={`rounded-lg border bg-bg px-3.5 py-2.5 text-sm text-fg-strong placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40 ${
-              errors.descripcion ? 'border-danger' : 'border-border'
-            }`}
-          />
-          {errors.descripcion && (
-            <p className="text-[11px] text-danger">
-              {errors.descripcion.message}
-            </p>
-          )}
-        </div>
-        <label className="flex items-start gap-3 rounded-lg border border-border bg-bg/70 p-3 text-sm text-fg-muted">
-          <input
-            type="checkbox"
-            {...register('publico')}
-            className="mt-1 h-4 w-4 rounded-md border-border bg-bg accent-[var(--color-accent)]"
-          />
-          <span>
-            <span className="block font-semibold text-fg-strong">
-              Publicar si el admin lo aprueba
-            </span>
-            <span className="text-[12px]">
-              Aparecerá en /torneos y cualquier cuenta podrá votar sus duelos.
-            </span>
-          </span>
-        </label>
       </div>
     </div>
   )
