@@ -676,3 +676,41 @@ export async function playVerdictStamp() {
   crackGain.connect(ctx.destination)
   crack.start(now)
 }
+// Hito de racha — tick seco (hyōshigi) + campanilla grave que decae.
+// Federación sobria: nada de arpegio arcade.
+export async function playStreakHito() {
+  const ctx = await ensureRunning()
+  if (!ctx) return
+  const now = ctx.currentTime
+  // Tick seco
+  const tick = ctx.createOscillator()
+  const tickGain = ctx.createGain()
+  tick.type = 'triangle'
+  tick.frequency.setValueAtTime(1320, now)
+  tick.frequency.exponentialRampToValueAtTime(740, now + 0.03)
+  tickGain.gain.setValueAtTime(0, now)
+  tickGain.gain.linearRampToValueAtTime(0.09, now + 0.004)
+  tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07)
+  tick.connect(tickGain)
+  tickGain.connect(ctx.destination)
+  tick.start(now)
+  tick.stop(now + 0.09)
+  // Campanilla grave (bonshō pequeña): fundamental G3 + parciales suaves
+  ;[
+    [196, 0.07],
+    [294, 0.028],
+    [392, 0.016],
+  ].forEach(([freq, vol]) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, now + 0.05)
+    gain.gain.setValueAtTime(0, now + 0.05)
+    gain.gain.linearRampToValueAtTime(vol, now + 0.07)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.15)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now + 0.05)
+    osc.stop(now + 1.2)
+  })
+}
