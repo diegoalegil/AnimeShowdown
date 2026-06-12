@@ -132,14 +132,6 @@
     "resumenProximos": "近日",
     "resumenVotos7d": "7日間投票",
     "resumenParticipantes": "参加者",
-    "resumenDestacado": "次のおすすめアクション",
-    "resumenDestacadoEnCurso": "今すぐ投票できる対戦があります。ラウンド{{ronda}}を動かしましょう。",
-    "resumenDestacadoProximo": "最も近いブラケットの参加者が準備されています。",
-    "resumenDestacadoHistorial": "直近で終了したブラケットです。結果と優勝者を確認できます。",
-    "resumenRondaFallback": "現在",
-    "resumenCtaEnCurso": "投票する",
-    "resumenCtaProximo": "参加者を見る",
-    "resumenCtaHistorial": "結果を見る",
     "vacioTitulo": "次のブラケットを準備中",
     "vacioSub": "次のトーナメントは数日ごとに自動生成されます。それまではカジュアルモードのデュエルに投票して、お気に入りのELOを上げましょう。",
     "vacioContador": "次のブラケットは近日公開",
@@ -148,7 +140,10 @@
     "sugerenciasNota": "アイデア — まだ実際のトーナメントではありません",
     "sugerenciaBadge": "作成可能",
     "sugerenciaCtaCrear": "このプリセットで作成",
-    "sugerenciaCtaVotar": "公開中のデュエルに投票"
+    "sugerenciaCtaVotar": "公開中のデュエルに投票",
+    "carteleraEnJuego": "開催中",
+    "carteleraInscripcion": "募集中",
+    "carteleraArchivo": "アーカイブ"
   },
   "votar": {
     "tituloPagina": "投票",
