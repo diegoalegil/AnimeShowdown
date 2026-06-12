@@ -10,6 +10,7 @@ import {
 import { ApiError } from '../lib/api'
 import { useVotarEnfrentamiento } from '../lib/torneosQueries'
 import BracketReveal from './BracketReveal'
+import BracketPaths from './BracketPaths'
 import PersonajeCutImg from './PersonajeCutImg'
 import KanjiStroke from './KanjiStroke'
 
@@ -73,6 +74,9 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
   // retroactivo cada vez que alguien abre el torneo.
   const resueltosPreviosRef = useRef(null)
   const [reveladosEnVivo, setReveladosEnVivo] = useState(() => new Set())
+  // Grid interior del bracket: ancla de la capa de caminos (BracketPaths
+  // mide las cards relativas a él, así el scroll-x cancela por construcción).
+  const gridRef = useRef(null)
   useEffect(() => {
     const actuales = new Set(
       (enfrentamientos ?? []).filter((e) => e.ganador).map((e) => e.id),
@@ -128,6 +132,17 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
     ultimoMatch?.ganador ??
     null
 
+  // Meta para la capa de caminos: posiciones VISUALES 0-based (columna y
+  // orden de arriba abajo), las mismas con las que se itera porRonda.
+  const matchesMeta = rondas.flatMap((r, col) =>
+    porRonda.get(r).map((enf, idx) => ({
+      id: enf.id,
+      ronda: col,
+      idx,
+      resuelto: Boolean(enf.ganador),
+    })),
+  )
+
   return (
     <div>
       {/* Barra de progreso superior con "X de Y matches"
@@ -167,7 +182,18 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
         className="scrollbar-hide scroll-x-affordance scroll-x-fade -mx-5 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8"
         aria-label="Bracket desplazable horizontalmente"
       >
-        <div className="flex min-w-max snap-x snap-mandatory items-stretch gap-3 scroll-smooth">
+        <div
+          ref={gridRef}
+          className="relative flex min-w-max snap-x snap-mandatory items-stretch gap-3 scroll-smooth"
+        >
+          {/* Capa de caminos como PRIMER hijo: las cards son opacas y pintan
+              encima; los conectores viven en los gaps entre columnas. */}
+          <BracketPaths
+            gridRef={gridRef}
+            matches={matchesMeta}
+            revealedIds={reveladosEnVivo}
+            hayCampeon={Boolean(campeon)}
+          />
           {rondas.map((ronda, i) => (
             <div
               key={ronda}
@@ -194,7 +220,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
                 )}
               </div>
               <div className="flex flex-1 flex-col justify-around gap-3">
-                {porRonda.get(ronda).map((match) => (
+                {porRonda.get(ronda).map((match, idx) => (
                   <BracketMatch
                     key={match.id}
                     match={match}
@@ -203,6 +229,7 @@ function Bracket({ enfrentamientos, ganadorSlug, totalRondas, torneoId, torneoSl
                     estado={estado}
                     prediccion={prediccionesPorEnf.get(match.id)}
                     revelar={reveladosEnVivo.has(match.id)}
+                    posicion={`${i}:${idx}`}
                   />
                 ))}
               </div>
@@ -254,15 +281,19 @@ function findPersonajePorSlug(enfrentamientos, slug) {
   return null
 }
 
-function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion, revelar = false }) {
+function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion, revelar = false, posicion }) {
   const ambosPersonajes = match.personaje1 && match.personaje2
 
   // Match vacío (slot de ronda futura sin resolver): placeholder difuminado.
   // Sigue el patrón ya existente del ChampionPlaceholder (border-dashed +
-  // Lock + texto) para coherencia visual.
+  // Lock + texto) para coherencia visual. El data-bracket-match va TAMBIÉN
+  // aquí: el esqueleto de caminos existe desde el primer render.
   if (!ambosPersonajes) {
     return (
-      <div className="flex min-h-16 items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/30 px-3 py-3 opacity-60">
+      <div
+        data-bracket-match={posicion}
+        className="flex min-h-16 items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-alt/30 px-3 py-3 opacity-60"
+      >
         <Lock className="h-3 w-3 text-fg-muted" aria-hidden="true" />
         <span className="text-[11px] font-medium text-fg-muted">
           Por decidir
@@ -279,12 +310,14 @@ function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion, revelar
     <BracketSlot
       personaje={match.personaje1}
       winner={ganadorId === match.personaje1.id}
+      posicionSlot={posicion ? `${posicion}:0` : undefined}
     />
   )
   const slot2 = (
     <BracketSlot
       personaje={match.personaje2}
       winner={ganadorId === match.personaje2.id}
+      posicionSlot={posicion ? `${posicion}:1` : undefined}
     />
   )
   // Revelado en vivo: el cruce acaba de resolverse delante del usuario.
@@ -304,7 +337,7 @@ function BracketMatch({ match, torneoId, torneoSlug, estado, prediccion, revelar
     : null
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-2">
+    <div data-bracket-match={posicion} className="rounded-xl border border-border bg-surface p-2">
       {conReveal ? (
         <BracketReveal resolved>
           <Envoltura1 className="rounded-lg">{slot1}</Envoltura1>
@@ -560,9 +593,10 @@ function PickButton({ personaje, onClick, disabled }) {
   )
 }
 
-function BracketSlot({ personaje, winner }) {
+function BracketSlot({ personaje, winner, posicionSlot }) {
   return (
     <div
+      data-bracket-slot={posicionSlot}
       className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 ${
         winner ? 'bg-accent-soft' : ''
       }`}
@@ -590,6 +624,7 @@ function BracketSlot({ personaje, winner }) {
 function ChampionSlot({ personaje }) {
   return (
     <div
+      data-bracket-champion
       className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-accent/40 bg-accent-soft p-3"
       style={{ boxShadow: 'var(--shadow-aura)' }}
     >
@@ -608,7 +643,10 @@ function ChampionSlot({ personaje }) {
 
 function ChampionPlaceholder() {
   return (
-    <div className="mt-3 flex aspect-[2/3] max-w-[130px] flex-col items-center justify-center gap-2 self-center rounded-xl border-2 border-dashed border-border bg-surface-alt/40 p-3 text-center">
+    <div
+      data-bracket-champion
+      className="mt-3 flex aspect-[2/3] max-w-[130px] flex-col items-center justify-center gap-2 self-center rounded-xl border-2 border-dashed border-border bg-surface-alt/40 p-3 text-center"
+    >
       <Lock className="h-5 w-5 text-fg-muted" />
       <p className="text-[11px] font-semibold text-fg-muted">
         Por decidir
