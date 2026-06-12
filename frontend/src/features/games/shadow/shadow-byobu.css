@@ -1,0 +1,173 @@
+/* ============================================================
+   ShadowByobu — bloque para index.css (CSP por hash: nada inline)
+   Madera lacada + papel washi + luz de vela. Todo el movimiento es
+   transform/opacity; cero blur, cero SVG filters (jank Safari).
+   Tonos decorativos nuevos propuestos como custom props locales;
+   si el sistema los adopta, promover a @theme como --color-byobu-….
+   ============================================================ */
+
+.sb-marco {
+  --byobu-lacquer-hi: #2a1d12;
+  --byobu-lacquer: #140d07;
+  --byobu-lacquer-lo: #1d130b;
+  --byobu-paper: rgb(243 226 198 / 0.38);
+  --byobu-fibra: rgb(110 82 38 / 0.05);
+  --byobu-vela: rgb(255 184 96 / 0.42);
+  --byobu-vela-alt: rgb(255 196 110 / 0.4);
+  --byobu-vela-bloom: rgb(255 214 140 / 0.85);
+  background: linear-gradient(180deg, var(--byobu-lacquer-hi), var(--byobu-lacquer) 60%, var(--byobu-lacquer-lo));
+  box-shadow:
+    inset 0 0 0 1px rgb(197 161 90 / 0.35),
+    0 30px 92px -40px rgb(0 0 0 / 0.9),
+    0 0 64px -16px rgb(159 29 44 / 0.28);
+}
+
+.sb-escena {
+  aspect-ratio: 8 / 5;
+  border-radius: 4px;
+  background: #060409;
+  box-shadow: inset 0 0 0 1px rgb(197 161 90 / 0.18);
+}
+
+.sb-kanji { font-family: var(--font-kanji-serif); }
+
+.sb-fuda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 32px;
+  padding: 8px 0 10px;
+  border: 1px solid rgb(197 161 90 / 0.4);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #241a12, #150e08);
+  transform: rotate(2deg);
+  box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.8);
+  font-size: 19px;
+}
+
+/* --- Capas de luz: SIEMPRE pre-horneadas; solo anima opacity --- */
+.sb-luz-base {
+  background: radial-gradient(ellipse 78% 66% at 50% 60%, var(--byobu-vela), rgb(214 108 60 / 0.16) 52%, rgb(159 29 44 / 0.07) 68%, transparent 80%);
+}
+.sb-luz-sway {
+  background: radial-gradient(ellipse 84% 70% at 46% 56%, var(--byobu-vela-alt), rgb(220 118 64 / 0.14) 50%, transparent 76%);
+  opacity: 0;
+  animation: sb-sway 3s ease-in-out infinite;
+}
+.sb-luz-sway.sb-pausado { animation-play-state: paused; }
+.sb-luz-bloom {
+  background: radial-gradient(ellipse 95% 85% at 50% 52%, var(--byobu-vela-bloom), rgb(236 150 84 / 0.32) 55%, rgb(159 29 44 / 0.1) 75%, transparent 88%);
+  opacity: 0;
+  transition: opacity 400ms ease-out; /* floración del acierto */
+}
+.sb-luz-bloom.sb-encendida { opacity: 1; }
+
+.sb-silueta {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  height: 92%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* --- Papel: translucidez por composición de opacity, SIN blur --- */
+.sb-panel {
+  flex: 1 1 0;
+  position: relative;
+  background:
+    repeating-linear-gradient(90deg, var(--byobu-fibra) 0 2px, transparent 2px 7px),
+    repeating-linear-gradient(0deg, rgb(110 82 38 / 0.03) 0 1px, transparent 1px 9px),
+    var(--byobu-paper);
+  box-shadow:
+    inset 0 0 0 1px rgb(110 82 38 / 0.22),
+    inset 0 0 60px rgb(255 214 150 / 0.1);
+  transform: translateX(0);
+  transition: transform 350ms var(--ease-lift); /* fallo: un panel se desliza */
+}
+.sb-panel.sb-cierre { transition-duration: 300ms; } /* derrota: cierre digno */
+.sb-abierto-0 { transform: translateX(-112%); }
+.sb-abierto-1 { transform: translateX(-218%); }
+.sb-abierto-2 { transform: translateX(218%); }
+.sb-abierto-3 { transform: translateX(112%); }
+
+.sb-montante {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  margin-left: -5px;
+  background: linear-gradient(90deg, #241a12, #15100a 50%, #241a12);
+  box-shadow: inset 1px 0 0 rgb(197 161 90 / 0.18), inset -1px 0 0 rgb(0 0 0 / 0.6);
+}
+
+.sb-pista {
+  border: 1px solid rgb(197 161 90 / 0.3);
+  background: rgb(8 11 18 / 0.82);
+  animation: sb-rise 350ms var(--ease-lift) both;
+}
+
+.sb-arte-entrada { animation: sb-rise 450ms var(--ease-lift) 180ms both; }
+.sb-scrim-nombre {
+  background: linear-gradient(to top, rgb(0 0 0 / 0.9), rgb(0 0 0 / 0.4) 60%, transparent);
+}
+.sb-placa { animation: sb-rise 400ms var(--ease-lift) 320ms both; }
+
+/* --- Sello hanko de acierto: caída + overshoot + sangrado (ease-stamp) --- */
+.sb-sello {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--color-hanko);
+  border-radius: 9999px;
+  color: var(--color-hanko);
+  background: rgb(8 11 18 / 0.92);
+  font-size: 26px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 4px rgb(214 43 43 / 0.14), var(--shadow-elev-1);
+  animation: sb-stamp 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 600ms both;
+}
+.sb-sello-anillo {
+  border: 1px solid rgb(214 43 43 / 0.6);
+  animation: sb-ring 620ms ease-out 740ms both;
+}
+
+@keyframes sb-sway { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes sb-stamp {
+  0% { transform: translateY(-52px) scale(1.65) rotate(-20deg); opacity: 0; }
+  50% { transform: translateY(3px) scale(0.92) rotate(-5deg); opacity: 1; }
+  72% { transform: translateY(-2px) scale(1.06) rotate(-10deg); opacity: 1; }
+  100% { transform: translateY(0) scale(1) rotate(-8deg); opacity: 1; }
+}
+@keyframes sb-ring { 0% { transform: scale(0.7); opacity: 0.65; } 100% { transform: scale(1.55); opacity: 0; } }
+@keyframes sb-rise { from { opacity: 0; transform: translateY(16px); } }
+
+/* reduced-motion: revelado por pasos — capas estáticas, cero deslizamiento.
+   Los keyframes solo definen el "from": el estado base YA es el final. */
+@media (prefers-reduced-motion: reduce) {
+  .sb-luz-sway { animation: none; }
+  .sb-luz-bloom { transition: none; }
+  .sb-panel { transition: none; }
+  .sb-pista,
+  .sb-arte-entrada,
+  .sb-placa,
+  .sb-sello,
+  .sb-sello-anillo { animation: none; }
+}
+
+/* Adaptación del repo: la silueta es el RECORTE alpha del personaje
+   pintado a negro (brightness estática, compone una vez — no se anima).
+   Cuando existan assets de silueta dedicados, quitar este filtro y
+   pasar siluetaSrc real. */
+.sb-silueta {
+  filter: brightness(0);
+}
+
+/* Modo calma y pestaña oculta pausan el vaivén de la vela. */
+html.as-calm .sb-luz-sway,
+html.as-tab-hidden .sb-luz-sway {
+  animation-play-state: paused;
+}
