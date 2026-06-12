@@ -1,0 +1,217 @@
+/* ============================================================
+   Entrada de combatientes (DuelEntrance) — importado por DuelEntrance
+   ------------------------------------------------------------
+   La coreografía principal (caminata, squash, VS, cortes de tinta)
+   corre por WAAPI sobre refs (cero re-render por frame, cero <style>
+   runtime — compatible con la CSP por hash). Aquí viven las clases
+   de layout/estado y los keyframes puramente CSS (destello de filo,
+   fade del modo rápido). Solo tokens del sistema; estado base = estado
+   FINAL (reduced-motion, print y no-JS pintan el par directo, gratis).
+   ============================================================ */
+
+/* Figura: celda de una carta. position:relative para el kanji que asoma;
+   la entrada WAAPI anima ESTE nodo (transform/opacity), nunca el button
+   interior — el punch físico del click (VoteCard/framer) queda intacto. */
+.as-duel-figure {
+  position: relative;
+}
+
+/* Kanji de universo que asoma al desafiar (hover/focus). Vive DETRÁS de la
+   carta (z-index 0 vs 1 del contenido) recortado por el borde superior;
+   al hover/focus-within sube 8px y asoma. Solo transform/opacity. */
+.as-duel-kanji-peek {
+  position: absolute;
+  top: -0.1em;
+  left: 50%;
+  z-index: 0;
+  transform: translate(-50%, 10px);
+  opacity: 0;
+  font-family: var(--font-kanji-serif);
+  font-weight: 900;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--color-gold);
+  pointer-events: none;
+  transition:
+    transform 200ms var(--ease-lift),
+    opacity 160ms ease;
+}
+.as-duel-figure > * {
+  position: relative;
+  z-index: 1;
+}
+.as-duel-figure:hover .as-duel-kanji-peek,
+.as-duel-figure:focus-within .as-duel-kanji-peek {
+  transform: translate(-50%, -8px);
+  opacity: 1;
+}
+
+/* VS de tinta — columna central. La línea nace por WAAPI (scaleY 0→1,
+   origin center); base = pintada. Núcleo carmesí con filo dorado. */
+.as-duel-vs {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 3.5rem;
+}
+.as-duel-vs-line {
+  position: absolute;
+  inset-block: 8%;
+  left: 50%;
+  width: 3px;
+  margin-left: -1.5px;
+  transform-origin: center;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-gold) 12%,
+    var(--color-accent) 50%,
+    var(--color-gold) 88%,
+    transparent
+  );
+  will-change: transform;
+}
+.as-duel-vs-glyph {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.4rem;
+  background: var(--color-bg);
+  border-block: 1px solid var(--color-border-gold-subtle);
+}
+.as-duel-vs-kanji {
+  font-family: var(--font-kanji-serif);
+  font-weight: 900;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--color-fg-strong);
+}
+.as-duel-vs-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-gold);
+}
+/* Destello de filo al nacer el VS (t+700, 120ms). One-shot re-keyed por
+   data-attr desde JS; jamás loop. */
+.as-duel-vs-flash {
+  position: absolute;
+  inset-block: 8%;
+  left: 50%;
+  width: 7px;
+  margin-left: -3.5px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-gold-pale) 50%,
+    transparent
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+.as-duel-vs-flash[data-flash] {
+  animation: as-duel-vs-flash 120ms ease-out both;
+}
+@keyframes as-duel-vs-flash {
+  0% { opacity: 0; transform: scaleY(0.6); }
+  35% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+
+/* Empate: el botón existente se cuelga del flujo del VS, debajo del
+   glifo — la línea pasa por detrás (z-index), nunca lo tapa. */
+.as-duel-vs-tie {
+  position: relative;
+  z-index: 1;
+}
+
+/* Nombre por corte de tinta: cover scaleX origin-left que se retira con
+   filo dorado de 3px (mismo lenguaje que .as-cmdk-cover). Base scaleX(0)
+   = nombre visible; WAAPI lo lanza de 1→0. */
+.as-duel-name {
+  position: relative;
+  overflow: hidden;
+}
+.as-duel-name-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--color-bg);
+  pointer-events: none;
+  will-change: transform;
+}
+.as-duel-name-cover::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  width: 3px;
+  background: var(--color-gold);
+}
+
+/* Modo rápido / salida del par: fades cortos disponibles también como
+   clase CSS (el coreógrafo usa WAAPI; esto cubre fallbacks declarativos). */
+@keyframes as-duel-fade-in {
+  from { opacity: 0; }
+}
+.as-duel-fade-in {
+  animation: as-duel-fade-in 120ms ease-out both;
+}
+
+/* 390px — apilado en columna: el VS pasa a hairline horizontal con su
+   kanji; la línea nace por scaleX (el coreógrafo cambia el eje). */
+.as-duel-vs--h {
+  flex-direction: row;
+  min-width: 0;
+  min-height: 2.75rem;
+  width: 100%;
+}
+.as-duel-vs--h .as-duel-vs-line {
+  inset-block: auto;
+  inset-inline: 4%;
+  left: auto;
+  top: 50%;
+  width: auto;
+  height: 2px;
+  margin-left: 0;
+  margin-top: -1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-gold) 12%,
+    var(--color-accent) 50%,
+    var(--color-gold) 88%,
+    transparent
+  );
+}
+.as-duel-vs--h .as-duel-vs-glyph {
+  flex-direction: row;
+  padding: 0.25rem 0.75rem;
+  border-block: 0;
+  border-inline: 1px solid var(--color-border-gold-subtle);
+}
+.as-duel-vs--h .as-duel-vs-flash { display: none; }
+
+/* Reduced-motion: par pintado directo, VS estático, sin destello.
+   (El coreógrafo además se abstiene de lanzar WAAPI — esto es cinturón
+   y tirantes para los one-shot declarativos.) */
+@media (prefers-reduced-motion: reduce) {
+  .as-duel-vs-flash[data-flash],
+  .as-duel-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .as-duel-vs-flash[data-flash] { opacity: 0 !important; }
+  .as-duel-kanji-peek {
+    transition: none;
+  }
+}

@@ -15,6 +15,7 @@ import { EASE_LIFT } from '../../../lib/motion'
 const FALLBACK_DOMINANT_COLOR = 'var(--color-surface)'
 
 const VoteCard = memo(function VoteCard({
+  captionHidden = false,
   personaje,
   onClick,
   disabled,
@@ -233,12 +234,16 @@ const VoteCard = memo(function VoteCard({
           side === 'right' ? 'items-end text-right' : 'items-start text-left'
         }`}
       >
-        <h2 className="line-clamp-1 w-full text-base font-bold text-fg-strong sm:text-lg">
-          {identityHidden ? optionLabel : personaje.nombre}
-        </h2>
-        <p className="line-clamp-1 w-full text-[12px] text-fg-muted">
-          {identityHidden ? 'Identidad oculta' : personaje.anime}
-        </p>
+        {!captionHidden && (
+          <>
+            <h2 className="line-clamp-1 w-full text-base font-bold text-fg-strong sm:text-lg">
+              {identityHidden ? optionLabel : personaje.nombre}
+            </h2>
+            <p className="line-clamp-1 w-full text-[12px] text-fg-muted">
+              {identityHidden ? 'Identidad oculta' : personaje.anime}
+            </p>
+          </>
+        )}
         {showResult && (
           <Link
             to={`/personajes/${personaje.slug}`}
