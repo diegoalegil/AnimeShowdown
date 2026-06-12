@@ -7,7 +7,7 @@
      cero SVG filters: todo glow es una capa pre-horneada (gradiente
      estático) que entra y sale por cross-fade de opacity.
    - Sin color-mix(): Safari <16.2 lo ignora en silencio (lección de
-     los god-rays del podio) — alphas con rgb(… / …) sobre los hex de
+     los god-rays del podio) — alphas con mezcla de tokens sobre los hex de
      los tokens.
    - Patrón reduced-motion de la casa: el estado BASE ya es el final;
      las animaciones solo viven dentro de no-preference, así la
