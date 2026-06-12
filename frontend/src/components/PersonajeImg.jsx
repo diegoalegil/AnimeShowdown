@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { encodeImageUrl } from '../lib/personaje-img-srcset'
 import {
   CATALOGO_PERSONAJES_HYDRATED_EVENT,
   MISSING_IMAGE_PREFIX,
@@ -27,10 +28,7 @@ const POSITION_CLASSES = {
   top: 'object-top',
 }
 
-function encodeImageUrl(url) {
-  if (!url || /^(data|blob):/i.test(url)) return url
-  return encodeURI(url).replace(/,/g, '%2C')
-}
+
 
 /**
  * <img> de personaje con fallback premium + responsive.
