@@ -475,6 +475,126 @@
   }
 }
 
+/* La espera con firma — piel de marca para Skeleton/PageSkeleton. Sustituye
+   al animate-pulse genérico: un barrido carmesí→oro recorre cada ghost
+   (transform-only, compositor) y el hero de cada arquetipo lleva un kanji
+   de espera (matsu) fantasma de un solo trazo. Las medidas de los ghosts no
+   cambian: anti-CLS intacto, cero JS. Los skeletons solo existen durante la
+   navegación y mueren al hidratar — no necesitan pausa por IO. */
+
+@keyframes skl-sweep {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@keyframes skl-kanji-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  46% {
+    stroke-dashoffset: 0; /* dibujado */
+  }
+  60% {
+    stroke-dashoffset: 0; /* respira */
+  }
+  100% {
+    stroke-dashoffset: -1; /* se desvanece en el sentido del trazo */
+  }
+}
+
+.skl {
+  position: relative;
+  overflow: hidden;
+}
+
+.skl::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 32%,
+    color-mix(in oklab, var(--color-accent) 9%, transparent) 46%,
+    color-mix(in oklab, var(--color-gold) 12%, transparent) 56%,
+    transparent 68%
+  );
+  transform: translate3d(-100%, 0, 0);
+  will-change: transform;
+  animation: skl-sweep 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-delay: calc(var(--skl-row, 0s) + var(--skl-col, 0s));
+}
+
+/* Desincronización DETERMINISTA: el delay se compone de la posición del
+   ghost entre sus hermanos (--skl-col) y la de su contenedor (--skl-row).
+   Vecinos nunca barren al unísono; la página respira. Sin JS ni azar. */
+.skl:nth-child(2n) {
+  --skl-col: -0.45s;
+}
+.skl:nth-child(3n) {
+  --skl-col: -0.9s;
+}
+.skl:nth-child(5n) {
+  --skl-col: -1.25s;
+}
+:nth-child(2n) > .skl {
+  --skl-row: -0.6s;
+}
+:nth-child(3n) > .skl {
+  --skl-row: -1.1s;
+}
+.skl:nth-child(4n)::after {
+  animation-duration: 1.5s;
+}
+.skl:nth-child(7n)::after {
+  animation-duration: 1.75s;
+}
+
+/* Kanji de espera fantasma — SOLO en el bloque hero de cada PageSkeleton.
+   El SVG lleva pathLength fijado a 1 ⇒ dash pre-horneado, sin medir
+   longitudes ni cargar KanjiStroke. Es un trazo cursivo continuo (gesto de
+   marca, no tipografía: por eso NO entra en los subsets de la display).
+   stroke-dashoffset repinta (no es compositor-only) pero es un único nodo
+   pequeño por página a ciclo de 8s; lo masivo —el barrido— es transform. */
+.skl-kanji {
+  position: absolute;
+  right: 4%;
+  bottom: -6%;
+  width: 38%;
+  max-width: 220px;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.skl-kanji path {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 6.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: skl-kanji-draw 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skl::after {
+    animation: none;
+    background: none;
+    transform: none;
+  }
+  .skl {
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--color-gold) 40%, transparent);
+  }
+  .skl-kanji {
+    display: none;
+  }
+}
+
 /* Ticker del Modo TV: cinta translateX infinita (dos copias, -50%). */
 @keyframes as-tv-ticker {
   from {

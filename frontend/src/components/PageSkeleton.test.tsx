@@ -12,6 +12,6 @@ describe('PageSkeleton', () => {
     expect(skeleton).not.toBeNull()
     expect(skeleton?.getAttribute('data-page-skeleton')).toBe('animeDetail')
     expect(skeleton?.className).toContain('min-h-[2200px]')
-    expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(3)
+    expect(container.querySelectorAll('.skl').length).toBeGreaterThan(3)
   })
 })

@@ -50,9 +50,9 @@ describe('RequireCatalog — gate de catálogo (V-2 anti-blanco)', () => {
     // 3) La forma es ESPECÍFICA de la ruta (no un genérico): /personajes → grid.
     expect(skeleton?.getAttribute('data-page-skeleton')).toBe('catalogGrid')
 
-    // 4) Tiene estructura real (varios bloques skeleton animados): ni spinner
-    //    de un solo elemento ni página en blanco.
-    expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(3)
+    // 4) Tiene estructura real (varios bloques skeleton con la piel de marca
+    //    .skl): ni spinner de un solo elemento ni página en blanco.
+    expect(container.querySelectorAll('.skl').length).toBeGreaterThan(3)
 
     // 5) No es el spinner genérico que reemplazamos.
     expect(queryByText(/Preparando arena/i)).toBeNull()
