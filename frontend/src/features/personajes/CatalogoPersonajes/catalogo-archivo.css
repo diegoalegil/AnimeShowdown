@@ -1,0 +1,462 @@
+/* EL ARCHIVO DE LA FEDERACIÓN — /personajes como archivo físico.
+   Reglas de la casa que cumple este bloque:
+   · solo se anima transform/opacity — JAMÁS box-shadow, width, top
+   · sombras pre-horneadas en capas propias que cross-fadean opacity
+   · cero blur ni backdrop-filter nuevos, cero filtros SVG
+   · la pestaña está SIEMPRE en el layout → CLS 0
+   · prefers-reduced-motion: sin stagger ni lift; la pestaña se
+     enciende por color */
+
+:root {
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Entrada del archivo: primer paint, UNA sola vez. El contrato
+   anti-re-animación es estructural — la animación solo existe en fichas
+   con la clase .cat-ficha-entrada + --entrada-i, que la página asigna
+   ÚNICAMENTE en el primer paint del catálogo. El estado final coincide
+   con el estilo base, así que print y reduced-motion ven contenido. */
+@keyframes cat-ficha-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cat-ficha-entrada .cat-ficha__cuerpo {
+    animation: cat-ficha-entrada 420ms var(--ease-lift) both;
+    animation-delay: calc(var(--entrada-i, 0) * var(--entrada-paso, 60ms));
+  }
+}
+
+/* La ficha de archivador */
+.cat-ficha {
+  position: relative;
+  display: block;
+  border-radius: 6px 6px var(--radius-card) var(--radius-card);
+  /* Hit target: la ficha entera es el link; nunca baja de 44px. */
+  min-height: 44px;
+}
+
+.cat-ficha:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* El cuerpo es lo único que se TRANSFORMA en hover; la sombra de
+   contacto queda fuera, "en el suelo", para que el lift abra hueco. */
+.cat-ficha__cuerpo {
+  position: relative;
+  transition: transform 240ms var(--ease-lift);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cat-ficha:hover .cat-ficha__cuerpo {
+    transform: translateY(var(--lift-y, -4px));
+  }
+}
+
+.cat-ficha:focus-visible .cat-ficha__cuerpo {
+  transform: translateY(var(--lift-y, -4px));
+}
+
+/* Pestaña de archivador: slug en mono 10px sobre hairline dorada.
+   Altura fija 22px y SIEMPRE presente → cero CLS, con o sin datos. */
+.cat-ficha__tab {
+  display: flex;
+  align-items: flex-end;
+  height: 22px;
+  padding: 0 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+  transition: border-color 240ms ease;
+}
+
+.cat-ficha__lengueta {
+  display: inline-block;
+  max-width: 88%;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 10%, transparent);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-fg-strong) 5%, transparent),
+      color-mix(in srgb, var(--color-fg-strong) 1.5%, transparent)
+    ),
+    color-mix(in srgb, var(--color-bg) 86%, transparent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+
+.cat-ficha:hover .cat-ficha__lengueta,
+.cat-ficha:focus-visible .cat-ficha__lengueta {
+  color: var(--color-gold);
+  border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+}
+
+.cat-ficha:hover .cat-ficha__tab,
+.cat-ficha:focus-visible .cat-ficha__tab {
+  border-bottom-color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+}
+
+/* Sombra de contacto pre-horneada: vive bajo la ficha, NO dentro del
+   nodo transformado, y solo cambia opacity. box-shadow jamás se anima. */
+.cat-ficha__sombra {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -9px;
+  height: 16px;
+  background: radial-gradient(
+    50% 100% at 50% 20%,
+    color-mix(in srgb, var(--color-canvas) 60%, transparent),
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+
+.cat-ficha:hover .cat-ficha__sombra,
+.cat-ficha:focus-visible .cat-ficha__sombra {
+  opacity: 1;
+}
+
+/* Marco del arte 2:3 (la PersonajeImg vive dentro). */
+.cat-ficha__arte {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-fg-strong) 4%, transparent),
+      color-mix(in srgb, var(--color-fg-strong) 1%, transparent)
+    ),
+    color-mix(in srgb, var(--color-bg) 60%, var(--color-surface));
+  transition: border-color 240ms ease;
+}
+
+.cat-ficha:hover .cat-ficha__arte,
+.cat-ficha:focus-visible .cat-ficha__arte {
+  border-color: color-mix(in srgb, var(--color-gold) 45%, transparent);
+}
+
+/* Chips del índice + sello hanko */
+.cat-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 11%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 86%, transparent);
+  color: var(--color-fg-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  /* 250ms con overshoot al hundirse; al soltarse el transition-duration
+     baja a 180ms (regla de abajo). */
+  transition:
+    transform 250ms var(--ease-stamp),
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+@media (pointer: coarse) {
+  .cat-chip {
+    min-height: 44px;
+  }
+}
+
+.cat-chip:hover {
+  border-color: color-mix(in srgb, var(--color-gold) 40%, transparent);
+  color: var(--color-fg-strong);
+}
+
+.cat-chip[aria-pressed='true'] {
+  transform: translateY(1px);
+  border-color: color-mix(in srgb, var(--color-gold) 52%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 42%, transparent);
+  color: var(--color-fg-strong);
+}
+
+.cat-chip[aria-pressed='false'] {
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease-brush);
+}
+
+/* Hundido: sombra interior pre-horneada en ::after, solo opacity. */
+.cat-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 2px 5px color-mix(in srgb, var(--color-canvas) 50%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.cat-chip[aria-pressed='true']::after {
+  opacity: 1;
+}
+
+.cat-chip__n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+/* Mini-sello hanko: cae con overshoot (250ms ease-stamp) y se levanta
+   en 180ms. El sangrado es una capa pre-renderizada en ::before que
+   solo cross-fadea opacity 110ms después del impacto. */
+.cat-chip__sello {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 35% 30%,
+    var(--color-hanko),
+    color-mix(in srgb, var(--color-hanko) 70%, var(--color-canvas))
+  );
+  color: var(--color-fg-strong);
+  font-family: var(--font-kanji-serif);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  transform: rotate(-8deg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cat-chip__sello::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-hanko) 42%, transparent) 30%,
+    color-mix(in srgb, var(--color-hanko) 16%, transparent) 58%,
+    transparent 74%
+  );
+  opacity: 0;
+  transition: opacity 180ms ease 110ms;
+  z-index: -1;
+}
+
+.cat-chip__sello[data-fase='cae'] {
+  animation: cat-sello-cae 250ms var(--ease-stamp) both;
+}
+
+.cat-chip__sello[data-fase='cae']::before {
+  opacity: 1;
+}
+
+.cat-chip__sello[data-fase='leva'] {
+  animation: cat-sello-leva 180ms var(--ease-brush) both;
+}
+
+@keyframes cat-sello-cae {
+  0% {
+    opacity: 0;
+    transform: scale(2) rotate(-15deg);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-8deg);
+  }
+}
+
+@keyframes cat-sello-leva {
+  from {
+    opacity: 1;
+    transform: scale(1) rotate(-8deg);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7) rotate(-14deg);
+  }
+}
+
+/* El peso del número del registro: piel del LiveNumber del repo, que
+   rueda por rAF — aquí solo va la tipografía del odómetro. */
+.cat-odometro {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+/* Cajón abierto sin resultados (無) */
+.cat-vacio {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 48px 24px 40px;
+  text-align: center;
+}
+
+.cat-vacio__cajon {
+  width: min(360px, 86%);
+}
+
+.cat-vacio__boca {
+  position: relative;
+  height: 128px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 12%, transparent);
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-canvas) 95%, transparent),
+    color-mix(in srgb, var(--color-bg) 55%, transparent) 70%
+  );
+  /* Sombra interior estática (nunca animada). */
+  box-shadow: inset 0 16px 26px color-mix(in srgb, var(--color-canvas) 62%, transparent);
+}
+
+/* Guías de carpetas vacías al fondo del cajón. */
+.cat-vacio__guia {
+  position: absolute;
+  bottom: 10px;
+  width: 2px;
+  height: 64px;
+  background: color-mix(in srgb, var(--color-fg-strong) 7%, transparent);
+  border-radius: 2px;
+}
+
+.cat-vacio__mu {
+  font-family: var(--font-kanji-serif);
+  font-size: 76px;
+  line-height: 1;
+  color: var(--color-gold);
+  opacity: 0.2;
+  user-select: none;
+}
+
+.cat-vacio__frente {
+  height: 38px;
+  margin-top: 4px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 14%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-fg-strong) 5%, transparent),
+      color-mix(in srgb, var(--color-fg-strong) 1%, transparent)
+    ),
+    var(--color-surface);
+}
+
+.cat-vacio__tirador {
+  width: 44px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-gold) 50%, transparent);
+}
+
+.cat-vacio__titulo {
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-fg-strong);
+}
+
+.cat-vacio__texto {
+  margin: 0;
+  max-width: 40ch;
+  font-size: 13px;
+  color: var(--color-fg-muted);
+}
+
+/* Ficha skeleton (casa con la piel .skl existente) */
+.cat-ficha-skl__tab {
+  display: flex;
+  align-items: flex-end;
+  height: 22px;
+  padding: 0 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+}
+
+.cat-ficha-skl__lengueta {
+  width: 58%;
+  height: 14px;
+  border-radius: 6px 6px 0 0;
+  background: color-mix(in srgb, var(--color-fg-strong) 5%, transparent);
+}
+
+.cat-ficha-skl__arte {
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--color-fg-strong) 8%, transparent);
+  background: color-mix(in srgb, var(--color-fg-strong) 4%, transparent);
+}
+
+/* Reduced motion: sin stagger ni lift; la pestaña habla con color.
+   El sello aparece y desaparece sin coreografía. */
+@media (prefers-reduced-motion: reduce) {
+  .cat-ficha__cuerpo,
+  .cat-chip {
+    transition-property: color, border-color, background-color;
+  }
+
+  .cat-ficha:hover .cat-ficha__cuerpo,
+  .cat-ficha:focus-visible .cat-ficha__cuerpo {
+    transform: none;
+  }
+
+  .cat-ficha__sombra {
+    display: none;
+  }
+
+  .cat-chip[aria-pressed='true'] {
+    transform: none;
+  }
+
+  .cat-chip__sello[data-fase='cae'] {
+    animation: none;
+    opacity: 1;
+  }
+
+  .cat-chip__sello[data-fase='leva'] {
+    animation: none;
+    opacity: 0;
+  }
+
+  .cat-chip__sello::before {
+    transition: none;
+  }
+}
